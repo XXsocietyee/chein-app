@@ -48,6 +48,13 @@ public struct OrientScoreReviewRow: Equatable, Identifiable, Sendable {
     public let note: String?
 }
 
+public struct OrientScoreRecoveryRow: Equatable, Identifiable, Sendable {
+    public let id: Int
+    public let kind: String
+    public let status: Int
+    public let note: String
+}
+
 public struct OrientScoreSettlementSummary: Equatable, Sendable {
     public let settlementID: Int
     public let total: String
@@ -70,6 +77,8 @@ public struct OrientScoreSummary: Equatable, Sendable {
     public let disputeDeadline: String?
     /// Same rule as the mini-program: status 1 or 2, a deadline, and no open dispute.
     public let canDispute: Bool
+    /// Server `recoveries`, in order. Empty when the score has none.
+    public let recoveries: [OrientScoreRecoveryRow]
     public var settlementNotice: String {
         settlement == nil
             ? W8Text.t("本局尚未结算，暂不能确认积分或探索值到账。", "This round is not settled yet, so points and explore XP are not confirmed.")
@@ -140,7 +149,10 @@ public enum OrientScorePresentation {
             totalAccessibility: W8Text.t("本局总分 \(total) 分", "Round total \(total) points"),
             dimensions: dimensions, timeline: timeline, settlement: settlement,
             appeals: reviews(score.appealRecords), disputes: reviews(score.disputeRecords),
-            disputeDeadline: score.disputeWindowDeadline, canDispute: score.canDispute)
+            disputeDeadline: score.disputeWindowDeadline, canDispute: score.canDispute,
+            recoveries: score.recoveries.map {
+                OrientScoreRecoveryRow(id: $0.id, kind: $0.kind, status: $0.status, note: $0.note)
+            })
     }
 
     /// A timeline entry without a positive entry id or numeric delta is dropped, matching the
@@ -245,8 +257,9 @@ public struct OrientScorePage: Equatable, Sendable {
     public var showsMerchantChoice: Bool { false }
     public var appealEnabled: Bool { false }
     public var disputeEnabled: Bool { false }
-    public var settleEnabled: Bool { false }
-    public var syncEnabled: Bool { false }
+    /// MP sync and settle are open. Payment, payout, and withdrawal stay off.
+    public var settleEnabled: Bool { true }
+    public var syncEnabled: Bool { true }
     public var paymentEnabled: Bool { false }
     public var payoutEnabled: Bool { false }
     public var withdrawalEnabled: Bool { false }

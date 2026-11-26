@@ -10,10 +10,17 @@ struct ClubCommunityContext {
     let evidence: (Int, ClubCommunityPost?, ClubCommunityComment?) async throws -> ClubCommunityEvidence
     var images: any ClubCommunityImageUploading = ClubCommunityDisabledImages()
     var postImagePicker: ClubPostImagePickerContext = .disabled
+    /// CLB-G05: `/api/registration/my-joined` for 「带上一次游玩记录」. Nil hides the row.
+    var loadPostRefs: (() async throws -> [ClubPostRefOption])? = nil
+    /// CLB-G10: `POST /api/user/follow/action` `{follow_member_id, follow: 1}`. Nil hides the 「+」 pill.
+    var followAuthor: ((Int) async throws -> Void)? = nil
     var onAuthor: ((Int) -> Void)? = nil
     var onTopic: ((Int) -> Void)? = nil
     var feedSourceScope: () -> ClubCommunityFeedSourceContext? = { nil }
     var feedSourceDestination: ((Int, ClubCommunityFeedSourceContext) -> AnyView?)? = nil
+    /// Relation / discover creative-square lane. Nil leaves the club feed unchanged.
+    /// The closure's cursor is nil on the first page. A throw fails the whole feed.
+    var creativeSquareLane: (@MainActor (Int?) async throws -> RelationCreativeSquareLane)? = nil
 }
 
 @MainActor
@@ -27,6 +34,26 @@ final class ClubCommunityViewModel: ObservableObject {
     @Published var review: ClubCommunityReview?
     @Published private(set) var busy = false
     @Published private(set) var pendingRecord: ClubCommunityPendingRecord?
+    /// CLB-G10: authors followed from a post card in this session (MP `onFollowPost` flips every post by the author).
+    @Published private(set) var followedAuthors: Set<Int> = []
+    private var followPending: Set<Int> = []
+    /// MP `pages/club/detail/index.js:3224-3243`: optimistic follow, roll back on failure, show the server `msg`
+    /// (else 关注没成功 / 网络错误，请重试).
+    func followAuthor(_ memberID: Int) async {
+        guard memberID > 0, let follow = context.followAuthor, !followPending.contains(memberID) else { return }
+        followPending.insert(memberID)
+        followedAuthors.insert(memberID)
+        defer { followPending.remove(memberID) }
+        do {
+            try await follow(memberID)
+        } catch let refusal as MPGapServerRefusal {
+            followedAuthors.remove(memberID)
+            notice = refusal.message.flatMap { $0.isEmpty ? nil : $0 } ?? "club.follow.failed"
+        } catch {
+            followedAuthors.remove(memberID)
+            notice = "club.follow.networkFailed"
+        }
+    }
     private var generation: UInt64 = 0
     private var postCursor = ClubCommunityReadCursor()
     private var feedCursor = ClubCommunityFeedCursor()
@@ -158,7 +185,13 @@ final class ClubCommunityViewModel: ObservableObject {
             let session = try context.currentSession(); identity = session.identity
             let result: ClubCommunitySnapshot
             if case let .feed(limit, beforeID) = operation {
-                result = try await context.service.readDiscoverFeed(limit: limit, beforeID: beforeID, session: session) {
+                let lane: RelationCreativeSquareLane?
+                if let fetch = context.creativeSquareLane, beforeID == nil || feedCursor.communityHasMore {
+                    lane = try await fetch(beforeID == nil ? nil : feedCursor.communityCursor)
+                } else {
+                    lane = nil
+                }
+                result = try await context.service.readDiscoverFeed(limit: limit, beforeID: beforeID, session: session, community: lane) {
                     guard try self.context.currentSession() == session else { throw ClubCommunityFailure.stale }
                 }
             } else {
@@ -558,6 +591,13 @@ struct ClubCommunityPostTile: View {
         let target = clubID ?? post.clubID
         return target != nil && identity.isSignedIn && !model.busy && model.context.coordinator?.permitsInjectedWrites == true
     }
+    /// MP post-card: `showFollow && post.isFollowTheUser == 0 && post.memberId && post.memberId != userId`.
+    private var followableAuthor: Int? {
+        guard clubID != nil, model.context.followAuthor != nil, identity.isSignedIn, post.followsAuthor == false,
+              let author = post.followMemberID, author != identity.accountID, post.authorMemberID != identity.accountID
+        else { return nil }
+        return author
+    }
     private func allows(_ operation: ClubCommunityOperation) -> Bool {
         // CLB-detail-04: the menu only decides which rows to show. Freshness (< 60 s) is
         // enforced again in `ClubCommunityCoordinator.prepare`, which re-reads evidence, so
@@ -567,7 +607,16 @@ struct ClubCommunityPostTile: View {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            ClubPostAuthorProfile(post: post, clubID: clubID, identity: identity, model: model)
+            HStack(alignment: .center, spacing: CYSpacing.sm) {
+                ClubPostAuthorProfile(post: post, clubID: clubID, identity: identity, model: model)
+                if let author = followableAuthor {
+                    Spacer(minLength: 0)
+                    // CLB-G10: MP cy-post-card `show-follow` (detail wxml:117-119, post-card wxml:15-17).
+                    ClubGapFollowAuthorButton(isFollowing: model.followedAuthors.contains(author)) {
+                        Task { await model.followAuthor(author) }
+                    }
+                }
+            }
             if post.activityCard.showsActivity {
                 SquareCloudStravaBlock(
                     card: post.activityCard,
@@ -834,6 +883,7 @@ struct ClubCommunityComposer: View {
     @State private var uploading = false
     @State private var canAnnounce = false
     @State private var asAnnouncement = false
+    @State private var postRef: ClubPostRefOption?
     @StateObject private var imageBridge: ClubPostImageComposerBridge
     init(model: ClubCommunityViewModel, clubID: Int, post: ClubCommunityPost?) {
         self.model = model
@@ -877,13 +927,17 @@ struct ClubCommunityComposer: View {
                         uploading: $uploading,
                         notice: $model.notice
                     )
+                    if post == nil, let loadPostRefs = model.context.loadPostRefs {
+                        // CLB-G05: MP cy-post-compose club mode (index.wxml:63-92) — one play record per post.
+                        ClubGapPlayRecordPickerRow(selected: $postRef, load: loadPostRefs)
+                    }
                     if post == nil, canAnnounce {
                         // MP post-compose 作为公告发布 (owner / content managers only).
                         Toggle(isOn: $asAnnouncement) { Text("club.community.asNotice") }
                             .accessibilityIdentifier("club.community.asNotice")
                     }
                     CYPillButton("club.community.review") {
-                        let operation: ClubCommunityOperation = post == nil ? .create(content: content, images: images, notice: canAnnounce && asAnnouncement) : .update(content: content, images: images, requestID: UUID().uuidString)
+                        let operation: ClubCommunityOperation = post == nil ? .create(content: content, images: images, notice: canAnnounce && asAnnouncement, ref: postRef) : .update(content: content, images: images, requestID: UUID().uuidString)
                         model.stageDraft(operation, clubID: clubID, post: post)
                         dismiss()
                     }
@@ -983,7 +1037,7 @@ struct ClubCommunityReviewView: View {
                 }
 
                 switch review.operation {
-                case let .create(content, images, _), let .update(content, images, _):
+                case let .create(content, images, _, _), let .update(content, images, _):
                     Text(verbatim: content)
                         .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)

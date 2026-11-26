@@ -95,7 +95,7 @@ extension MerchantContentServing {
     /// No topic-publisher read on this reader. Fail closed: a nil proof cannot invite.
     public func chapterReplacementPublisherProof(topicID: Int, actorAccountID: Int, access: MerchantAccess?) async -> ChapterReplacementInvitationPublisherProof? { nil }
 }
-/// Real-transport gate. Chapter invite, respond, apply, and withdraw stay closed.
+/// Real-transport gate. Chapter invite, respond, apply, and withdraw default on.
 /// Node, NPC, registration, audit, and circle review match the mini-program writes and default on.
 /// One flag per gate. `.closed` is the all-off value tests use for the no-dispatch path.
 public struct MerchantContentWriteApproval: Equatable {
@@ -103,9 +103,9 @@ public struct MerchantContentWriteApproval: Equatable {
     public let chapterInvite: Bool
     /// `api/merchant/chapter-application/invite/respond` (merchantinfo.js:1653).
     public let chapterRespond: Bool
-    /// Mini `merchantinfo` chapter application (`api/merchant/chapter-application/apply`, merchantinfo.js:1460). Default closed.
+    /// Mini `merchantinfo` chapter application (`api/merchant/chapter-application/apply`, merchantinfo.js:1460).
     public let chapterApply: Bool
-    /// Withdraw a pending application (`api/merchant/chapter-application/withdraw`, merchantinfo.js:1782). Default closed.
+    /// Withdraw a pending application (`api/merchant/chapter-application/withdraw`, merchantinfo.js:1782).
     public let chapterWithdraw: Bool
     /// `api/merchant/chapter-node/submit` and `api/merchant/chapter-node/audit`.
     public let node: Bool
@@ -121,7 +121,7 @@ public struct MerchantContentWriteApproval: Equatable {
     public let register: Bool
     /// `api/registration/merchant/update`.
     public let updateRegistration: Bool
-    public init(chapterInvite: Bool = false, chapterRespond: Bool = false, chapterApply: Bool = false, chapterWithdraw: Bool = false, node: Bool = true, npc: Bool = true, cancel: Bool = true, audit: Bool = true, circleReview: Bool = true, register: Bool = true, updateRegistration: Bool = true) {
+    public init(chapterInvite: Bool = true, chapterRespond: Bool = true, chapterApply: Bool = true, chapterWithdraw: Bool = true, node: Bool = true, npc: Bool = true, cancel: Bool = true, audit: Bool = true, circleReview: Bool = true, register: Bool = true, updateRegistration: Bool = true) {
         self.chapterInvite = chapterInvite; self.chapterRespond = chapterRespond
         self.chapterApply = chapterApply; self.chapterWithdraw = chapterWithdraw
         self.node = node; self.npc = npc; self.cancel = cancel; self.audit = audit
@@ -168,6 +168,8 @@ public struct MerchantContentWriteApproval: Equatable {
         case .reviewCircle: return writeApproval().circleReview
         case .register: return writeApproval().register
         case .updateRegistration: return writeApproval().updateRegistration
+        case .claim, .cancelClaim, .cityStatus, .place:
+            return MerchantCoopLiveWrites.cityNode && writeApproval() != .closed
         default: return false
         }
     }

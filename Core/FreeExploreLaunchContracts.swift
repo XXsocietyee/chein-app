@@ -89,6 +89,8 @@ public struct FreeExploreLaunchReservation: Decodable, Equatable {
     public let status: String
     public let idempotencyKey: String
     public let requestFingerprint: String
+    /// MP `reservation`: only `BOOKED` can cancel. This does not send a cancel.
+    public var canCancel: Bool { status == "BOOKED" }
     public func matches(_ command: FreeExploreLaunchReservationCommand, owner: FreeExploreLaunchID) -> Bool {
         holderMemberId == owner && registrationId == command.registrationId && unitId == command.unitId
             && offerId == command.offerId && idempotencyKey == command.idempotencyKey
@@ -109,10 +111,92 @@ public struct FreeExploreLaunchOrder: Decodable, Equatable {
             public let holderMemberId: FreeExploreLaunchID
             public let chapterId: FreeExploreLaunchID
             public let status: String
+            /// MP `unit.validTo`. Absent stays nil so a legacy order still decodes.
+            public let validTo: String?
+        }
+        public struct Chapter: Decodable, Equatable {
+            public struct Store: Decodable, Equatable {
+                public let offerId: FreeExploreLaunchID
+                public let merchantName: String?
+                public let perkName: String?
+            }
+            public let chapterId: FreeExploreLaunchID
+            public let name: String?
+            public let content: String?
+            public let stores: [Store]
+            private enum CodingKeys: String, CodingKey { case chapterId, name, content, stores }
+            public init(from decoder: Decoder) throws {
+                let c = try decoder.container(keyedBy: CodingKeys.self)
+                chapterId = try c.decode(FreeExploreLaunchID.self, forKey: .chapterId)
+                name = try c.decodeIfPresent(String.self, forKey: .name)
+                content = try c.decodeIfPresent(String.self, forKey: .content)
+                stores = try c.decodeIfPresent([Store].self, forKey: .stores) ?? []
+            }
+        }
+        public struct RefundHold: Decodable, Equatable {
+            public let state: String
+            public let refundId: String?
+            public let sourceRegistrationId: String?
+            private enum CodingKeys: String, CodingKey { case state, refundId, sourceRegistrationId }
+            public init(from decoder: Decoder) throws {
+                let c = try decoder.container(keyedBy: CodingKeys.self)
+                state = try c.decode(String.self, forKey: .state)
+                refundId = Self.loose(c, .refundId)
+                sourceRegistrationId = Self.loose(c, .sourceRegistrationId)
+            }
+            private static func loose(_ c: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys) -> String? {
+                guard c.contains(key), (try? c.decodeNil(forKey: key)) != true else { return nil }
+                if let text = try? c.decode(String.self, forKey: key) {
+                    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                    return trimmed.isEmpty ? nil : trimmed
+                }
+                if let number = try? c.decode(Int64.self, forKey: key) { return String(number) }
+                return nil
+            }
+        }
+        public struct ExitCase: Decodable, Equatable {
+            public let id: FreeExploreLaunchID
+            public let decision: String
+            public let unitId: FreeExploreLaunchID?
+            public let targetOfferId: FreeExploreLaunchID?
+            public let idempotencyKey: String?
         }
         public let order: Owner
         public let units: [Unit]
         public let reservations: [FreeExploreLaunchReservation]
+        public let chapters: [Chapter]
+        public let refundHold: RefundHold?
+        public let exitCases: [ExitCase]
+        private enum CodingKeys: String, CodingKey {
+            case order, units, reservations, chapters, refundHold, exitCases
+        }
+        public init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            order = try c.decode(Owner.self, forKey: .order)
+            units = try c.decode([Unit].self, forKey: .units)
+            reservations = try c.decode([FreeExploreLaunchReservation].self, forKey: .reservations)
+            chapters = try c.decodeIfPresent([Chapter].self, forKey: .chapters) ?? []
+            refundHold = try c.decodeIfPresent(RefundHold.self, forKey: .refundHold)
+            if c.contains(.exitCases) {
+                exitCases = try c.decode([ExitCase].self, forKey: .exitCases)
+            } else {
+                exitCases = []
+            }
+        }
+        /// MP chapter content for a unit. Missing chapter is an empty string.
+        public func chapterContent(chapterID: FreeExploreLaunchID) -> String {
+            chapters.first { $0.chapterId == chapterID }?.content ?? ""
+        }
+        /// MP shop name for an offer. A present store with a blank name reads 商家.
+        public func shopName(offerID: FreeExploreLaunchID) -> String {
+            for chapter in chapters {
+                if let store = chapter.stores.first(where: { $0.offerId == offerID }) {
+                    let name = store.merchantName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                    return name.isEmpty ? "商家" : name
+                }
+            }
+            return ""
+        }
     }
     public let registrationId: FreeExploreLaunchID
     public let registrationNo: String?

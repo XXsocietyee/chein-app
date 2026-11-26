@@ -353,8 +353,9 @@ import UIKit
         let capped = Array(items.prefix(12))
         let slides: [CYCarouselSlide] = capped.map { item in
             CYCarouselSlide(id: item.accessibilityKey, seed: item.name, title: item.name,
-                            date: QuestifyCardText.date(item.startDate, sourceTimeZone: sourceTimeZone, locale: locale, displayTimeZone: timeZone),
-                            // R7-PC-A1-3 (r1 PC-A-1-6): 编辑精选 keeps the MP `Beta 试玩` signal.
+                            date: section == .recommended ? editorsPickDate(item) : QuestifyCardText.date(item.startDate, sourceTimeZone: sourceTimeZone, locale: locale, displayTimeZone: timeZone),
+                            // PC-A-1-6: 编辑精选 keeps Beta 试玩 on the badge. Category, status and club
+                            // share the caption and are left out when the topic-list row did not send them.
                             place: item.place, badge: section == .upcoming ? upcomingCountdown(item)
                                 : (item.isBeta ? appLocalized("topic.source.betaBadge", locale: locale) : nil),
                             imageURL: QuestifyCardArtwork.safeURL(item.imageURL),
@@ -373,6 +374,14 @@ import UIKit
             ForEach(items) { item in row(item, section: section.rawValue, style: .hero) }
         }
         .accessibilityIdentifier("homeFeed.carousel.\(section.rawValue)")
+    }
+    /// Date line for an 编辑精选 slide, plus the category, status and club already on that topic-list row.
+    /// A missing date or label is left out. Nothing here is filled with 0 or a placeholder.
+    private func editorsPickDate(_ item: HomeFeedItem) -> String? {
+        let date = QuestifyCardText.date(item.startDate, sourceTimeZone: sourceTimeZone, locale: locale, displayTimeZone: timeZone)
+        let lines = [date].compactMap { $0 } + item.featuredCategoryTags
+            + [item.featuredStatusText, item.featuredClubText].compactMap { $0 }
+        return lines.isEmpty ? nil : lines.joined(separator: "\n")
     }
     /// Source 即将上线 countdown (hengyin 07608d68a, j1 F23): 还剩N天 / 还剩N小时 / 已开始. Unknown start shows nothing.
     private func upcomingCountdown(_ item: HomeFeedItem) -> String? {
@@ -409,14 +418,18 @@ import UIKit
         return VStack(alignment: .leading, spacing: CYSpacing.xs) {
         Button { if model.canOpen(reader) { onDestination(item.id) } } label: {
             Group {
-                if let style { HomeFeedShelfCard(item: item, sourceTimeZone: sourceTimeZone, style: style, fallback: Self.fallbackCover(section)) } else { HomeFeedCard(item: item, sourceTimeZone: sourceTimeZone, showsPlace: placeURL == nil) }
+                if let style {
+                    HomeFeedShelfCard(item: item, sourceTimeZone: sourceTimeZone, style: style, fallback: Self.fallbackCover(section), showsFeaturedFacts: section == HomeFeedSection.recommended.rawValue)
+                } else {
+                    HomeFeedCard(item: item, sourceTimeZone: sourceTimeZone, showsPlace: placeURL == nil)
+                }
             }
             // The tapped card grows into the detail (iOS 18 zoom; iOS 17 keeps the push + entrance). Only the first copy of an item
             // on screen is the source, so duplicates across rails and the stream never fight over one id.
             .cyHeroSourceInherited(item.id, isEnabled: heroNamespace != nil && !heroOwned(by: section == "stream" ? nil : section).contains(item.id))
         }
             .buttonStyle(QuestifyCardButtonStyle())
-            .pageTemplateGroupedCard(label: feedCardLabel(item), traits: .isButton)
+            .pageTemplateGroupedCard(label: feedCardLabel(item, includeFeaturedFacts: section == HomeFeedSection.recommended.rawValue), traits: .isButton)
             .modifier(HomeFeedOpenPlaceInMaps(url: HomeFeedMapsLink.url(for: item.place), openURL: openURL))
             .accessibilityIdentifier("homeFeed.\(section).\(item.accessibilityKey)")
             if let placeURL, let place = item.place {
@@ -426,7 +439,8 @@ import UIKit
         }
     }
     /// One label for the grouped feed card: name, then the price, time, and place lines already on the card.
-    private func feedCardLabel(_ item: HomeFeedItem) -> Text {
+    /// 编辑精选 also speaks Beta 试玩, the category tags, the status and the club when the list row has them.
+    private func feedCardLabel(_ item: HomeFeedItem, includeFeaturedFacts: Bool = false) -> Text {
         let price: Text
         if let amount = HomeFeedMoney.plain(item.amount) {
             price = Text("playx.finishRoute.priceFrom \(amount)")
@@ -441,10 +455,17 @@ import UIKit
         }
         let place = item.place?.trimmingCharacters(in: .whitespacesAndNewlines)
         let placeText = PageTemplateVoiceOver.spoken((place?.isEmpty == false ? place! : HomeFeedSurfaceState.unknownText), locale: locale)
-        return Text(verbatim: item.name) + Text(verbatim: ", ")
+        var label = Text(verbatim: item.name) + Text(verbatim: ", ")
             + Text("homeFeed.status.price") + Text(verbatim: " ") + price + Text(verbatim: ", ")
             + Text("homeFeed.status.time") + Text(verbatim: " ") + time + Text(verbatim: ", ")
             + Text("homeFeed.place") + Text(verbatim: " ") + placeText
+        if includeFeaturedFacts {
+            if item.isBeta { label = label + Text(verbatim: ", ") + Text("topic.source.betaBadge") }
+            for tag in item.featuredCategoryTags { label = label + Text(verbatim: ", ") + Text(verbatim: tag) }
+            if let status = item.featuredStatusText { label = label + Text(verbatim: ", ") + Text(verbatim: status) }
+            if let club = item.featuredClubText { label = label + Text(verbatim: ", ") + Text(verbatim: club) }
+        }
+        return label
     }
     /// Every rail and the first feed page failed and nothing is on screen: the page shows one inline error (166:3280).
     private var feedDown: Bool {
@@ -509,6 +530,8 @@ struct HomeFeedShelfCard: View {
     var style: CYImageCard.Style
     /// Round 4 image parity: the MP default differs per rail (stream / 附近活动 / 即将上线 / 编辑精选).
     var fallback: CYCarouselFallback = .homeRouteCityPlaceholder
+    /// 编辑精选 only. Nearby and upcoming leave this off.
+    var showsFeaturedFacts: Bool = false
     @Environment(\.locale) private var locale
     @Environment(\.timeZone) private var timeZone
     var body: some View {
@@ -516,11 +539,62 @@ struct HomeFeedShelfCard: View {
         // Currency + 起/From come from the shared price key; unknown price shows an em dash, never 0.
         let price = HomeFeedMoney.plain(item.amount).map { appLocalized("playx.finishRoute.priceFrom \($0)", locale: locale) } ?? "—"
         let line = [QuestifyCardText.metaLine(date: date, place: item.place), price].compactMap { $0 }.joined(separator: " · ")
-        CYImageCard(LocalizedStringKey(item.name), metaText: line,
+        let card = CYImageCard(LocalizedStringKey(item.name), metaText: line,
                     imageURL: QuestifyCardArtwork.safeURL(item.imageURL), style: style)
             // MP asset (index.wxml:216): a card without a cover shows `home-route-city-placeholder.jpg`.
             .fallbackArtwork(fallback.image)
             .cachingFeedImage()
+        if showsFeaturedFacts, HomeFeedFeaturedFacts.hasAny(item) {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                card
+                HomeFeedFeaturedFacts(item: item)
+            }
+        } else {
+            card
+        }
+    }
+}
+
+/// Beta 试玩, category, status and club already present on an 编辑精选 topic-list row.
+/// Each line is omitted when that field is missing. No zero and no placeholder.
+struct HomeFeedFeaturedFacts: View {
+    let item: HomeFeedItem
+    static func hasAny(_ item: HomeFeedItem) -> Bool {
+        item.isBeta || !item.featuredCategoryTags.isEmpty || item.featuredStatusText != nil || item.featuredClubText != nil
+    }
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            if item.isBeta {
+                Text("topic.source.betaBadge")
+                    .cyText(.meta, weight: .semibold)
+                    .foregroundStyle(CYColor.brand)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("homeFeed.featured.beta")
+            }
+            ForEach(Array(item.featuredCategoryTags.enumerated()), id: \.offset) { index, name in
+                Text(verbatim: name)
+                    .cyText(.meta)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("homeFeed.featured.category.\(index)")
+            }
+            if let status = item.featuredStatusText {
+                Text(verbatim: status)
+                    .cyText(.meta)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("homeFeed.featured.status")
+            }
+            if let club = item.featuredClubText {
+                Text(verbatim: club)
+                    .cyText(.meta)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("homeFeed.featured.club")
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityIdentifier("homeFeed.featured.facts")
     }
 }
 

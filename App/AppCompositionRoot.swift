@@ -173,7 +173,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     let clubBadgeManagementApproval: @MainActor (RuntimeDependencyContext) -> ClubBadgeManagementApproval?
     let merchantReviewOriginalReadApproval: @MainActor (RuntimeDependencyContext) -> MerchantReviewOriginalReadApproval?
     let deployment: DeploymentState
-    let storage: AppScopedStorageFactory
+    var storage: AppScopedStorageFactory
     let makeTransport: () -> any HTTPTransport
     /// Distinct endpoint permissions, neither inferred from login nor ordinary club writes.
     var clubWelcomeNoteWriteApproval: @MainActor (RuntimeDependencyContext) -> OperationEndpointApproval? = { _ in nil }
@@ -320,7 +320,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     let roamSessionFactReadAccess: @MainActor (RuntimeDependencyContext) -> RoamSessionFactReadAccess?
     let roamNearbyEventsReadAccess: @MainActor (RuntimeDependencyContext) -> RoamNearbyEventsReadAccess?
     let roamNearbyPlayersReadAccess: @MainActor (RuntimeDependencyContext) -> RoamNearbyPlayersReadAccess?
-    /// Roam home 附近活动 peek and passport/private read tools. No reviewed default exists; nil keeps them unavailable, and writes remain strictly independent.
+    /// 附近活动 peek. China production gates issue the signed-in read. A public guest GET is admitted with no account. Writes stay off.
     let roamEntryNearbyReadAccess: @MainActor (RuntimeDependencyContext) -> RoamEntryNearbyReadAccess?
     let roamReceivedStampReadAccess: @MainActor (RuntimeDependencyContext) -> RoamReceivedStampReadAccess?
     let roamPassportHistoryReadAccess: @MainActor (RuntimeDependencyContext) -> RoamPassportHistoryReadAccess?
@@ -536,8 +536,8 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.walletHistoryReadApproval = walletHistoryReadApproval ?? (productionGatesEnabled ? { [gates] in gates.walletHistory($0) } : { _ in nil })
         self.roamSessionFactReadAccess = roamSessionFactReadAccess
         self.roamNearbyEventsReadAccess = roamNearbyEventsReadAccess
-        self.roamNearbyPlayersReadAccess = roamNearbyPlayersReadAccess
-        self.roamEntryNearbyReadAccess = roamEntryNearbyReadAccess
+        self.roamNearbyPlayersReadAccess = { [gates] context in roamNearbyPlayersReadAccess(context) ?? (productionGatesEnabled ? gates.roamNearbyPlayers(context) : nil) }
+        self.roamEntryNearbyReadAccess = { [gates] context in roamEntryNearbyReadAccess(context) ?? (productionGatesEnabled ? gates.roamEntryNearby(context) : nil) }
         self.roamReceivedStampReadAccess = roamReceivedStampReadAccess
         self.roamPassportHistoryReadAccess = { [gates] context in
             roamPassportHistoryReadAccess(context) ?? (productionGatesEnabled ? gates.roamPassportHistory(context) : nil)
@@ -599,14 +599,14 @@ extension KeychainTokenStore: AppTokenStorage {}
         }
         notePlayerWrites(grantPlayerWrites)
         if grantPlayerWrites {
-            clubOrdinaryAdmissionApproval = { [gates] context in gates.playerWriters(context)?.clubAdmission }
-            nativeFriendApproval = { [gates] context in gates.playerWriters(context)?.friends }
+            clubOrdinaryAdmissionApproval = { [gates] context in gates.playerWriters(context)?.clubAdmission }; nativeFriendApproval = { [gates] context in gates.playerWriters(context)?.friends }
             nativeChannelTextSendApproval = { [gates] context in gates.playerWriters(context)?.channelTextSend }
             nativeChannelTextReceiptApproval = { [gates] context in gates.playerWriters(context)?.channelTextReceipt }
             clubPublicTopicsApproval = { [gates] context, clubID in gates.clubPublicTopics(context, clubID: clubID) }
-            nativeBlacklistApproval = { [gates] context in gates.blacklist(context) }
-            installSocialWriteApprovals(gates)
-            // E2E-20261113b N4: the purchased library follows the TEST money switch (closed on the production host).
+            nativeBlacklistApproval = { [gates] context in gates.blacklist(context) }; installSocialWriteApprovals(gates)
+            clubRoleAssignmentApproval = { MPFirstClubApprovals.roleAssignment($0) }; clubRoleRevocationApproval = { MPFirstClubApprovals.roleRevocation($0) }
+            clubPublicRosterApproval = { MPFirstClubApprovals.roster($0) }; clubWelcomeNoteWriteApproval = { MPFirstClubApprovals.welcomeWrite($0) }
+            clubWelcomeNoteReceiptApproval = { MPFirstClubApprovals.welcomeReceipt($0) }; if self.storage.clubWelcomeNoteOriginalJournalDirectory == nil { self.storage.clubWelcomeNoteOriginalJournalDirectory = MPFirstClubApprovals.welcomeDirectory }
             self.workshopPurchasedReadApproval = { [gates] context in gates.workshopPurchasedRead(context) }
         }
     }
@@ -689,7 +689,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         case .contentDetail:
             guard reviewed.contentDetails == .activityAndTopic else { return .detailReadNotApproved }
             guard let identity else { return .sessionUnavailable }
-            if identity.accountID == nil && identity.role == nil && identity.token == nil { return .signInRequired }
+            if identity.accountID == nil && identity.role == nil && identity.token == nil { return .available }
             guard identity.isSignedInContentViewer else { return .sessionUnavailable }
         }
         return .available
@@ -3071,18 +3071,16 @@ extension KeychainTokenStore: AppTokenStorage {}
                 return fresh === selected && fresh.matches(context)
             }
         } else if entryNearby != nil {
-            guard captured.isSignedInContentViewer, let snapshot = entryNearbyArea,
-                  let account = captured.accountID, let role = captured.role, let token = captured.token,
-                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
-            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
-            guard let selected = roamEntryNearbyReadAccess(context), selected.matches(context),
-                  selected.endpoints.allows(configuration: api, namespace: session.namespace,
-                    accountID: account, path: RoamEntryNearbyRoute.path) else { throw APIError.notConfigured }
-            readApprovalStillValid = { [roamEntryNearbyReadAccess, manualMapSelection] in
-                guard manualMapSelection?.snapshot == snapshot,
-                      let fresh = roamEntryNearbyReadAccess(context) else { return false }
-                return fresh === selected && fresh.matches(context)
+            guard let snapshot = entryNearbyArea else { throw APIError.notConfigured }
+            let guestEntryRead = deployment.productionGatesEnabled && deployment.regional.market == .china && captured.accountID == nil && captured.isPublicTemplateViewer && request.value(forHTTPHeaderField: "Authorization") == nil
+            if guestEntryRead { readApprovalStillValid = { [manualMapSelection] in manualMapSelection?.snapshot == snapshot } } else {
+                guard captured.isSignedInContentViewer, let account = captured.accountID, let role = captured.role, let token = captured.token, let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
+                let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+                guard let selected = roamEntryNearbyReadAccess(context), selected.matches(context), selected.endpoints.allows(configuration: api, namespace: session.namespace, accountID: account, path: RoamEntryNearbyRoute.path) else { throw APIError.notConfigured }
+                readApprovalStillValid = { [roamEntryNearbyReadAccess, manualMapSelection] in
+                    guard manualMapSelection?.snapshot == snapshot, let fresh = roamEntryNearbyReadAccess(context) else { return false }
+                    return fresh === selected && fresh.matches(context)
+                }
             }
         } else if receivedStamp != nil {
             guard captured.isSignedInContentViewer,
@@ -3534,12 +3532,12 @@ extension KeychainTokenStore: AppTokenStorage {}
                 throw APIError.notConfigured
             }
         } else if let route = SignedInContentDetailReadRoute(url: url, baseURL: api.baseURL) {
-            // Activity info accepts a nil token. Topic info stays a signed-in content viewer.
-            let guestActivity = route == .activity && captured.accountID == nil && captured.role == nil
-                && captured.token == nil && request.value(forHTTPHeaderField: "Authorization") == nil
-                && captured.isPublicTemplateViewer
+            // Anonymous activity and topic info use a nil token.
+            // Favorite, buy, and review stay signed in.
+            let guestRead = captured.isPublicTemplateViewer && captured.accountID == nil
+                && request.value(forHTTPHeaderField: "Authorization") == nil
             guard deployment.contentDetails == .activityAndTopic,
-                  (guestActivity || captured.isSignedInContentViewer), route.accepts(request) else { throw APIError.notConfigured }
+                  (guestRead || captured.isSignedInContentViewer), route.accepts(request) else { throw APIError.notConfigured }
         } else if OfficialPublicEventReadRoute.accepts(request, baseURL: api.baseURL) {
             let selection = officialPublicEventReadSelection
             guard deployment.regional.market == .china, deployment.reads.contains(.officialPublicEventCatalogAndDetail),
@@ -3590,7 +3588,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else if ReviewedProductionFormMutationRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isSignedInContentViewer else { throw APIError.notConfigured }
-        } else if MPFirstMerchantWriteRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
+        } else if MPFirstMerchantWriteRoute.accepts(request, baseURL: api.baseURL, token: captured.token) || (deployment.playerWritesEnabled && MPFirstClubWriteRoute.accepts(request, baseURL: api.baseURL, token: captured.token)) {
             // Owner 2026-11-25 MP-first rule: the merchant writes the MP sends; the server checks the merchant role.
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isSignedInContentViewer else { throw APIError.notConfigured }

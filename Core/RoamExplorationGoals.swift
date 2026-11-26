@@ -20,32 +20,47 @@ public struct RoamExplorationGoal: Equatable, Identifiable {
     public let target: Int
     public let startDate: String
     public let endDateExclusive: String
-    public let progress: Int
+    /// Nil when the server omitted the count. That is not zero: the list hides the bar (MP `pct < 0`).
+    public let progress: Int?
     public let state: RoamGoalState
     public let privateCommemoration: Bool
     public let asOfMs: Int64
     public let createdAtMs: Int64
-    /// Whole percent capped at 100, as the mini-program bar.
-    public var percent: Int { target > 0 ? min(100, Int((Double(progress) / Double(target) * 100).rounded())) : 0 }
+    /// Whole percent capped at 100 when a count arrived. Nil hides the list bar.
+    public var knownPercent: Int? {
+        guard let progress, target > 0 else { return nil }
+        return min(100, Int((Double(progress) / Double(target) * 100).rounded()))
+    }
+    /// Detail always draws a bar. An unknown count is 0 (MP `progress || 0`).
+    public var percent: Int { knownPercent ?? 0 }
 
     struct Raw: Decodable {
         let id: String; let requestId: String; let metric: String; let target: Int
-        let startDate: String; let endDateExclusive: String; let progress: Int64; let state: String
+        let startDate: String; let endDateExclusive: String; let progress: Int64?; let state: String
         let privateCommemoration: Bool; let timeZone: String; let countingVersion: String
         let asOfMs: Int64; let createdAtMs: Int64
     }
     /// The client's strict `goal()` projection: any mismatch is "目标响应未确认", never shown partially.
+    /// A missing `progress` is valid and stays nil. A present count still has to be in range, and ACHIEVED still needs one.
     static func project(_ raw: Raw, confirmedCancelled: Set<String> = []) throws -> RoamExplorationGoal {
         guard RoamPrivateRequestID.isCanonicalID(raw.id), RoamPrivateRequestID.isValid(raw.requestId),
               let metric = RoamGoalMetric(rawValue: raw.metric), (1...100).contains(raw.target),
               let start = RoamShanghaiCalendar.parseDate(raw.startDate), let end = RoamShanghaiCalendar.parseDate(raw.endDateExclusive), start < end,
-              raw.progress >= 0, raw.progress <= Int64(Int32.max), let state = RoamGoalState(rawValue: raw.state),
-              raw.privateCommemoration == (state == .achieved), state != .achieved || raw.progress >= Int64(raw.target),
+              let state = RoamGoalState(rawValue: raw.state),
+              raw.privateCommemoration == (state == .achieved),
               raw.timeZone == "Asia/Shanghai", raw.countingVersion == "COMPLETED_SESSION_AGGREGATE_V1" else { throw APIError.malformedResponse }
+        let progress: Int?
+        if let value = raw.progress {
+            guard value >= 0, value <= Int64(Int32.max), state != .achieved || value >= Int64(raw.target) else { throw APIError.malformedResponse }
+            progress = Int(value)
+        } else {
+            guard state != .achieved else { throw APIError.malformedResponse }
+            progress = nil
+        }
         // Cancellation is monotonic: a late create/receipt response never revives a confirmed cancellation.
         let cancelled = confirmedCancelled.contains(raw.id)
         return .init(id: raw.id, requestID: raw.requestId, metric: metric, target: raw.target, startDate: raw.startDate,
-                     endDateExclusive: raw.endDateExclusive, progress: Int(raw.progress), state: cancelled ? .cancelled : state,
+                     endDateExclusive: raw.endDateExclusive, progress: progress, state: cancelled ? .cancelled : state,
                      privateCommemoration: cancelled ? false : raw.privateCommemoration, asOfMs: raw.asOfMs, createdAtMs: raw.createdAtMs)
     }
     static func decode(_ envelope: RoamPrivateEnvelope, confirmedCancelled: Set<String> = []) throws -> RoamExplorationGoal {

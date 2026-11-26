@@ -172,9 +172,15 @@ public struct MerchantProject: Decodable, Equatable, Identifiable {
     public let endTime: String?
     public let signupCount: Int
     public let viewCount: Int
+    /// Cover from `imgUrl` (host) or `topicImgUrl` (join). Nil keeps the logo mark.
+    public let thumb: String?
+    /// Join cards match upcoming-runs on this topic. Host cards leave it nil.
+    public let visitTopicID: Int?
+    public let isJoinCard: Bool
     enum CodingKeys: String, CodingKey {
         case id, bizType, title, projectTypeText, stateText, acceptStatusText, startTime, endTime, signupCount, viewCount
         case state, ownerType, addressName, pendingVerifyCount
+        case imgUrl, topicImgUrl, role, topicId
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -198,6 +204,85 @@ public struct MerchantProject: Decodable, Equatable, Identifiable {
         endTime = try c.decodeIfPresent(String.self, forKey: .endTime)
         signupCount = try c.decodeIfPresent(Int.self, forKey: .signupCount) ?? 0
         viewCount = try c.decodeIfPresent(Int.self, forKey: .viewCount) ?? 0
+        let hostImage = Self.firstImage(try c.decodeIfPresent(String.self, forKey: .imgUrl))
+        let joinImage = Self.firstImage(try c.decodeIfPresent(String.self, forKey: .topicImgUrl))
+        let role = try c.decodeIfPresent(String.self, forKey: .role)
+        let topic = c.merchantInteger(.topicId)
+        isJoinCard = role == "join" || bizType == "join" || bizType == "registration" || ownerType == "join"
+            || (joinImage != nil && hostImage == nil)
+        thumb = isJoinCard ? (joinImage ?? hostImage) : (hostImage ?? joinImage)
+        visitTopicID = isJoinCard ? (topic ?? projectID) : topic
+    }
+    private static func firstImage(_ raw: String?) -> String? {
+        guard let raw else { return nil }
+        let piece = raw.split(separator: ",").lazy.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.first { !$0.isEmpty }
+        guard let piece, piece.hasPrefix("https://") || piece.hasPrefix("http://") else { return nil }
+        return piece
+    }
+}
+
+/// One row of POST `api/merchant/upcoming-runs` (pages/merchant/index/index.js). Visit text follows utils/merchant-workbench.js.
+public struct MerchantUpcomingRun: Decodable, Equatable {
+    public let topicID: Int
+    public let clubName: String
+    public let paidCount: Int
+    public let arrivalStart: String?
+    public let startTime: String?
+    enum CodingKeys: String, CodingKey { case topicId, clubName, paidCount, arrivalStart, startTime }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        guard let topic = c.merchantInteger(.topicId), topic > 0 else {
+            throw DecodingError.dataCorruptedError(forKey: .topicId, in: c, debugDescription: "Invalid topic")
+        }
+        topicID = topic
+        clubName = try c.decodeIfPresent(String.self, forKey: .clubName)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if let count = c.merchantInteger(.paidCount) { paidCount = count }
+        else if let text = try c.decodeIfPresent(String.self, forKey: .paidCount), let count = Int(text) { paidCount = count }
+        else { paidCount = 0 }
+        arrivalStart = try c.decodeIfPresent(String.self, forKey: .arrivalStart)
+        startTime = try c.decodeIfPresent(String.self, forKey: .startTime)
+    }
+}
+
+public enum MerchantUpcomingVisit {
+    /// Join cards only. First run per topic with a club name and paidCount > 0.
+    public static func line(runs: [MerchantUpcomingRun], topicID: Int, roleJoin: Bool, now: Date = Date()) -> String? {
+        guard roleJoin else { return nil }
+        guard let run = runs.first(where: { $0.topicID == topicID && !$0.clubName.isEmpty && $0.paidCount > 0 }) else { return nil }
+        return text(run, now: now)
+    }
+    private static func text(_ run: MerchantUpcomingRun, now: Date) -> String? {
+        guard let instant = chinaInstant(run.arrivalStart ?? run.startTime) else { return nil }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Asia/Shanghai") ?? .gmt
+        let parts = calendar.dateComponents([.month, .day, .hour, .minute, .weekday], from: instant)
+        guard let month = parts.month, let day = parts.day, let hour = parts.hour, let minute = parts.minute, let weekday = parts.weekday else { return nil }
+        let clock = String(format: "%02d:%02d", hour, minute)
+        let todayKey = calendar.dateComponents([.year, .month, .day], from: now)
+        let runKey = calendar.dateComponents([.year, .month, .day], from: instant)
+        if todayKey == runKey { return "今天 \(clock) · \(run.paidCount) 人已报名" }
+        let names = ["日", "一", "二", "三", "四", "五", "六"]
+        let week = names[(weekday - 1) % 7]
+        return "\(run.clubName) · \(month)月\(day)日 周\(week) \(clock) 到店"
+    }
+    /// Bare `YYYY-MM-DD HH:mm[:ss]` is China time. Offset ISO keeps its own zone.
+    private static func chinaInstant(_ raw: String?) -> Date? {
+        guard let raw else { return nil }
+        let value = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !value.isEmpty else { return nil }
+        if value.hasSuffix("Z") || value.range(of: #"[+-]\d\d:?\d\d$"#, options: .regularExpression) != nil {
+            let parser = ISO8601DateFormatter()
+            parser.formatOptions = [.withInternetDateTime]
+            return parser.date(from: value.replacingOccurrences(of: " ", with: "T"))
+        }
+        let parser = DateFormatter()
+        parser.locale = Locale(identifier: "en_US_POSIX")
+        parser.timeZone = TimeZone(identifier: "Asia/Shanghai")
+        for format in ["yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd"] {
+            parser.dateFormat = format
+            if let date = parser.date(from: value) { return date }
+        }
+        return nil
     }
 }
 

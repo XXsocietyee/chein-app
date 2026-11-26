@@ -283,9 +283,13 @@ elif "-exportArchive" in args:
 
             self.assertEqual(preflight.run_checks(tmp_root), [])
 
-            # Flipping ReleaseMoneyWriteSwitch.paymentEnabled to true must fail
+            # Forcing the payment derivation default to true must fail
             cap = tmp_root / "Core/ChinaReviewedRouteCapability.swift"
-            cap.write_text(cap.read_text().replace("public static let paymentEnabled = false", "public static let paymentEnabled = true"))
+            cap.write_text(cap.read_text().replace(
+                "public static var paymentEnabled: Bool { testDerivation?(.payment) ?? false }",
+                "public static var paymentEnabled: Bool { true }",
+                1,
+            ))
             failures = preflight.run_checks(tmp_root)
             self.assertTrue(any("paymentEnabled" in f for f in failures), failures)
 

@@ -67,6 +67,12 @@ public struct SquareCommunityFeatures: Equatable {
     public func squareFeed(query: SquareQuery, cursor: SquareCursor?) async throws -> SquareFeedPage {
         try await read { try await $0.feed(query: query, cursor: cursor, token: $1) }
     }
+    /// Relation feed lane: GET `api/v1/community/feeds/LATEST` with `limit=20`, the rewrite of
+    /// `/api/creativesquare/list` when `is_my` is 0.
+    public func relationCreativeSquare(cursor: Int?) async throws -> SquareFeedPage {
+        let feedCursor = cursor.map { SquareCursor(id: $0) }
+        return try await read { try await $0.feed(query: .init(mode: .latest), cursor: feedCursor, token: $1, limit: 20) }
+    }
     public func squareDetail(id: Int) async throws -> SquarePost {
         try await read { try await $0.detail(id: id, token: $1) }
     }

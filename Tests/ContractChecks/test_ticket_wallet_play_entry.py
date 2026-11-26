@@ -44,6 +44,7 @@ class TicketWalletPlayEntryContracts(unittest.TestCase):
 
     def test_positive_exact_registration_and_known_ready_status_only(self):
         self.assertIn('requestedID > 0, ticket.id == requestedID, ticket.registrationStatus == 2', self.entry)
+        self.assertIn('ticket.isWalletUsable, !ticket.isWalletLocked', self.entry)
         self.assertIn('let ownerID = ticket.ownerID, ownerID > 0', self.entry)
         self.assertIn('ParticipationPlayEntry(registrationID: requestedID, scope: scope)', self.entry)
         for forbidden in ['ticket.status', 'ticket.title', 'ticket.productType', 'cmsTopic', 'cmsActivity']:
@@ -67,6 +68,18 @@ class TicketWalletPlayEntryContracts(unittest.TestCase):
         self.assertEqual(self.provider.count('makeDestination(target.entry)'), 1)
         self.assertNotIn('makeDestination(', self.entry)
 
+    def test_play_waits_for_this_detail_to_confirm_the_registration(self):
+        button = self.screen.split('accessibilityIdentifier("ticketWallet.play.open")', 1)[0].split('Button {', 1)[1].split('} label:', 1)[0]
+        self.assertNotIn('playEntry.activate', button)
+        self.assertIn('let permit = model.presentation, model.accepts(permit, currentOwner: key)', button)
+        self.assertIn('schedule(permit, confirmPlay: true)', button)
+        load = self.screen.split('private func load(presentation:', 1)[1].split('private struct TicketWalletPlayLoadKey', 1)[0]
+        self.assertLess(load.index('reader.ticketDetail(id: id)'), load.index('playEntry.activate'))
+        self.assertLess(load.index('confirmPlay || (autoStartsPlay && !didAutoStart)'), load.index('playEntry.activate'))
+        self.assertNotIn('api/registration/pay', self.detail)
+        self.assertNotIn('api/registration/create', self.detail)
+        self.assertNotIn('OrderLifecycleCoordinator(', self.detail)
+
     def test_stale_taps_duplicate_selection_and_changed_ticket_facts_are_rejected(self):
         for token in ['visible && target == nil && provider.matches(reader: reader)', 'self.presentationID == presentationID', 'self.target == target && target.owner == provider.owner', 'target.entry == Self.entry(ticket: ticket, requestedID: requestedID)', 'let id = UUID()']:
             self.assertIn(token, self.entry)
@@ -88,6 +101,10 @@ class TicketWalletPlayEntryContracts(unittest.TestCase):
         self.assertIn('if ticket.status == .ready && ticket.clearedFlag != true && !ticket.isWalletLocked {', self.screen)
         self.assertIn('.accessibilityIdentifier("ticketWallet.present.open")', self.screen)
         self.assertNotIn('ticketWallet.noCode', self.screen)
+        self.assertIn('ticketWallet.party.share', self.screen)
+        self.assertIn('ticketWallet.explore.redeemed', self.screen)
+        self.assertIn('schedule(permit, confirmPlay: true)', self.screen)
+        self.assertIn('allowsOwnerActions(ticket)', self.screen)
 
 
 if __name__ == '__main__':

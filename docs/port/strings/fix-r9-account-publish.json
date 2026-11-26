@@ -1,0 +1,253 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "fixr9.ap.template.scanReply": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reply after scanning"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫完回复"
+          }
+        }
+      }
+    },
+    "fixr9.ap.template.participation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How players join"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参与方式"
+          }
+        }
+      }
+    },
+    "fixr9.ap.template.relaxOnLowHP": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ease off when they're struggling"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状态不好时松一点"
+          }
+        }
+      }
+    },
+    "fixr9.ap.template.outcomes": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outcomes this can trigger"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可触发的结果"
+          }
+        }
+      }
+    },
+    "fixr9.ap.template.outcome.pass": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通过"
+          }
+        }
+      }
+    },
+    "fixr9.ap.template.outcome.fail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Didn't pass"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没通过"
+          }
+        }
+      }
+    },
+    "fixr9.ap.consent.readAndAgree": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I have read and agree to the User Service Agreement and the Privacy Protection Guide"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我已阅读并同意《用户服务协议》《隐私保护指引》"
+          }
+        }
+      }
+    },
+    "fixr9.ap.consent.checked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checked"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已勾选"
+          }
+        }
+      }
+    },
+    "fixr9.ap.consent.unchecked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not checked"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未勾选"
+          }
+        }
+      }
+    },
+    "templateAuthor.outcome.completed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Complete this stop" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "完成节点" } }
+      }
+    },
+    "templateAuthor.outcome.d20Success": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Check succeeded" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "检定成功" } }
+      }
+    },
+    "templateAuthor.outcome.d20Failure": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Check failed" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "检定失败" } }
+      }
+    },
+    "templateAuthor.outcome.unnamed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Unnamed result" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未命名结果" } }
+      }
+    },
+    "templateAuthor.outcome.invalidCode": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "An outcome code uses 1 to 64 letters, numbers, underscores, or hyphens" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "outcomeCode 只能使用1至64位字母、数字、下划线和短横线" } }
+      }
+    },
+    "templateAuthor.outcome.duplicateCode": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Outcome codes can't be repeated" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "outcomeCode 不能重复" } }
+      }
+    },
+    "templateAuthor.validation.citynodeInteraction": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Choose how this play appears" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "请选择玩法形态" } }
+      }
+    },
+    "templateAuthor.citynode.cityStoryCard": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "City story card" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "城市故事卡" } }
+      }
+    },
+    "templateAuthor.citynode.hiddenMenu": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Hidden menu" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "隐藏菜单" } }
+      }
+    },
+    "templateAuthor.citynode.photoSpot": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Photo spot" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "拍照点" } }
+      }
+    },
+    "templateAuthor.citynode.qrCheckin": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Scan on arrival" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "到店扫码" } }
+      }
+    },
+    "fixr9.ap.share": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分享"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

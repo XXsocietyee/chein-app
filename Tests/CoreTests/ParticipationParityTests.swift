@@ -64,7 +64,12 @@ final class ParticipationParityTests: XCTestCase {
         let pending = paid.replacingOccurrences(of: #""registrationStatus":2,"paymentStatus":2"#, with: #""registrationStatus":1,"paymentStatus":1"#)
         XCTAssertTrue(try detail(pending).sourceCanCancel(now: early))
         let modify = String(paid.dropLast()) + #","displayStatus":"需修改"}"#
-        XCTAssertFalse(try detail(modify).sourceCanCancel(now: early)); XCTAssertFalse(try detail(modify).showsContactService(now: early))
+        let needsEdit = try detail(modify)
+        XCTAssertTrue(needsEdit.needsModification)
+        XCTAssertFalse(needsEdit.sourceCanCancel(now: early)); XCTAssertFalse(needsEdit.showsContactService(now: early))
+        XCTAssertFalse(try detail(paid).needsModification)
+        let otherStatus = String(paid.dropLast()) + #","displayStatus":"进行中"}"#
+        XCTAssertFalse(try detail(otherStatus).needsModification)
     }
 
     func testStatisticsShowZeroForUnknownAndTwoSourceCells() throws {

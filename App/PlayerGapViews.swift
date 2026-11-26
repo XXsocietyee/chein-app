@@ -392,7 +392,16 @@ struct CityFavoriteNodesSection: View {
                                 Button("playerGap.cityFavorites.remove", role: .destructive) { pendingRemoval = node }
                                     .disabled(removing != nil)
                             }
+                            .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                                // r9 A4-04b: MP mylike.wxml:49-53 分享据点 (open-type="share").
+                                R9PublicShareButton(url: PublicContentShareLink.poi(id: node.id),
+                                                    copyText: PublicContentShareLink.poiCopyText(id: node.id),
+                                                    identifier: "favorites.node.share")
+                            }
                             .contextMenu {
+                                R9PublicShareButton(url: PublicContentShareLink.poi(id: node.id),
+                                                    copyText: PublicContentShareLink.poiCopyText(id: node.id),
+                                                    identifier: "favorites.node.share")
                                 Button("playerGap.cityFavorites.remove", systemImage: "star.slash", role: .destructive) { pendingRemoval = node }
                                     .disabled(removing != nil)
                             }

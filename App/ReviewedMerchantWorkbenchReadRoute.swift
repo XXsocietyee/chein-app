@@ -9,6 +9,7 @@ import Foundation
 enum ReviewedMerchantWorkbenchReadRoute {
     static let bodylessPaths = ["api/merchant/dashboard", "api/merchant/todo-summary"]
     static let eventsPath = "api/merchant/events"
+    static let upcomingRunsPath = "api/merchant/upcoming-runs"
 
     static func accepts(_ request: URLRequest, baseURL: URL, token: String?) -> Bool {
         guard let token, AuthRequestBuilder.isValidToken(token),
@@ -21,6 +22,10 @@ enum ReviewedMerchantWorkbenchReadRoute {
         let absolute = url.absoluteString
         if absolute == baseURL.appendingPathComponent(eventsPath).absoluteString {
             return MerchantEventsBodyAdmission.admits(request)
+        }
+        if absolute == baseURL.appendingPathComponent(upcomingRunsPath).absoluteString {
+            return request.value(forHTTPHeaderField: "Content-Type") == "application/json"
+                && request.httpBody == Data("{}".utf8)
         }
         guard request.httpBody == nil || request.httpBody?.isEmpty == true,
               request.value(forHTTPHeaderField: "Content-Type") == nil else { return false }

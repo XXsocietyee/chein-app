@@ -80,7 +80,10 @@ public struct DiscoveryService {
         return collected
     }
     private static func playTemplatePage(_ data: Data) throws -> (rows: [DiscoveryPlayTemplate], total: Int?) {
-        let rows = try JSONDecoder().decode(DiscoveryRowsEnvelope<DiscoveryPlayTemplate>.self, from: data).rows
+        let rows: [DiscoveryPlayTemplate]
+        do { rows = try JSONDecoder().decode(DiscoveryRowsEnvelope<DiscoveryPlayTemplate>.self, from: data).rows }
+        catch let error as APIError { throw error }
+        catch { throw APIError.malformedResponse }
         guard let root = try JSONSerialization.jsonObject(with: data) as? [String: Any] else { throw APIError.malformedResponse }
         let payload = root["data"]
         let rawTotal: Any?

@@ -47,6 +47,7 @@ import Combine
     weak var presentation: RoamSharePresentationLifetime?
     let attachmentID: UUID
     private var departing = false
+    private var wasInNavigation = false
     init(presentation: RoamSharePresentationLifetime) {
         self.presentation = presentation; attachmentID = presentation.attach()
         super.init(nibName: nil, bundle: nil)
@@ -57,21 +58,47 @@ import Combine
         while let value = next { values.append(value); next = value.parent }
         return values
     }
+    /// The hosting controller is the navigation child; this attachment is only a descendant.
+    private func navigationHost() -> UIViewController? {
+        var current: UIViewController? = self
+        while let value = current {
+            if let navigation = value.navigationController {
+                var node: UIViewController? = value
+                while let item = node {
+                    if navigation.viewControllers.contains(where: { $0 === item }) { return item }
+                    node = item.parent
+                }
+            }
+            current = value.parent
+        }
+        return nil
+    }
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        if navigationHost() != nil { wasInNavigation = true }
         guard let presentation, presentation.isCurrentAttachment(attachmentID) else { return }
         departing = false; presentation.appear()
     }
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        if navigationHost() != nil { wasInNavigation = true }
         departing = ancestry.contains { $0.isMovingFromParent || $0.isBeingDismissed }
     }
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        guard departing, transitionCoordinator?.isCancelled != true,
+        // A cancelled interactive pop must not retire the page. A push or full-screen
+        // cover leaves this host in the navigation stack.
+        guard transitionCoordinator?.isCancelled != true else { return }
+        retireIfPopped()
+        // Non-animated pop never sets isMovingFromParent and drops the host after this callback.
+        Task { @MainActor in self.retireIfPopped() }
+    }
+    private func retireIfPopped() {
+        guard transitionCoordinator?.isCancelled != true,
               let presentation, presentation.isCurrentAttachment(attachmentID) else { return }
-        // A cancelled interactive pop must not retire the page. Ordinary full-screen
-        // cover has no moving/dismissing ancestor, and never reaches this branch.
+        let leaving = departing || ancestry.contains { $0.isMovingFromParent || $0.isBeingDismissed }
+        let popped = wasInNavigation && navigationHost() == nil
+        guard leaving || popped else { return }
         presentation.retire(publishing: false)
     }
 }

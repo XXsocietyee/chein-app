@@ -12,6 +12,8 @@ struct TopicDetailView: View {
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
     var publisherDestination: ((TopicDetail) -> AnyView)? = nil
     var reviewOwner: ContextualReviewCoordinator? = nil
+    /// Guest 收藏 / buy / review. Nil for a signed-in reader.
+    var guestSignIn: (() -> Void)? = nil
     @State private var showsReview = false
     var selfPlayDestination: ((TopicDetail) -> AnyView)? = nil
     var ticketWalletDestination: ((Int) -> AnyView)? = nil
@@ -91,7 +93,7 @@ struct TopicDetailView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     TopicXcxToolbarActions(shareURL: PublicContentShareLink.topic(id: value.id), shareTitle: value.name,
                                            isFavorited: favorited,
-                                           onToggleFavorite: favoriteHost == nil ? nil : { toggleFavorite(topicID: value.id) },
+                                           onToggleFavorite: guestSignIn != nil ? { guestSignIn?() } : (favoriteHost == nil ? nil : { toggleFavorite(topicID: value.id) }),
                                            posterCover: value.imageURL, posterSubtitle: value.subtitle)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
@@ -485,7 +487,7 @@ struct TopicDetailView: View {
                 if value.selfPlay == 1 {
                     TopicPrice(value: value.selfPlayPrice, label: "topic.selfPlayPrice")
                     if value.canOfferPurchase && !saleClosed(value) {
-                        CYPillButton("contextSelfPlay.title", style: .secondary) { showingSelfPlay = true }
+                        CYPillButton("contextSelfPlay.title", style: .secondary) { asSignedIn { showingSelfPlay = true } }
                             .accessibilityIdentifier("contextSelfPlay.open")
                     }
                 }
@@ -493,12 +495,12 @@ struct TopicDetailView: View {
             // C13: the empty state is said once (TopicReviewsContent), with no 0 total and no small print under the
             // reviews (MP `det6`: 还没有评价 card, else rating + 基于 N 条评论 + list).
             Section("topic.comments") {
-                CYPillButton("context.review.title", style: .secondary) { showsReview = true }.accessibilityIdentifier("topic.openReview")
+                CYPillButton("context.review.title", style: .secondary) { asSignedIn { showsReview = true } }.accessibilityIdentifier("topic.openReview")
                 // R8-PC-B1-2 (MP `det6`): the 还没有评价 card itself is the write entry; the content view stays read-only.
                 let emptyWrite = value.reviews.hasConfirmedNoReviews && value.reviews.preview.isEmpty
                 TopicReviewsContent(reviews: value.reviews)
                     .contentShape(Rectangle())
-                    .onTapGesture { if emptyWrite { showsReview = true } }
+                    .onTapGesture { if emptyWrite { asSignedIn { showsReview = true } } }
                     .accessibilityAddTraits(emptyWrite ? .isButton : [])
                     .accessibilityHint(emptyWrite ? Text("context.review.title") : Text(verbatim: ""))
             }
@@ -512,7 +514,7 @@ struct TopicDetailView: View {
                     if chapter.locked {
                         // A locked chapter does not open. When self-play purchase is offered, the row is the paywall.
                         Button {
-                            if value.selfPlay == 1 && value.canOfferPurchase && !saleClosed(value) { showingSelfPlay = true }
+                            if value.selfPlay == 1 && value.canOfferPurchase && !saleClosed(value) { asSignedIn { showingSelfPlay = true } }
                         } label: {
                             chapterSummary(chapter, locked: true)
                         }
@@ -541,7 +543,7 @@ struct TopicDetailView: View {
                             .accessibilityIdentifier("topic.paywall.price")
                     }
                     if value.selfPlay == 1 && value.canOfferPurchase && !saleClosed(value) {
-                        CYPillButton("topicXcx.paywall.unlock", style: .primary) { showingSelfPlay = true }.accessibilityIdentifier("topic.paywall.unlock")
+                        CYPillButton("topicXcx.paywall.unlock", style: .primary) { asSignedIn { showingSelfPlay = true } }.accessibilityIdentifier("topic.paywall.unlock")
                     }
                     // PC-B-1-15: a buyer whose purchase has not synced yet has a way out (MP 已购？去票夹).
                     if ticketWalletDestination != nil {
@@ -581,7 +583,7 @@ struct TopicDetailView: View {
         .modifier(TopicBarRecede(active: showingSessionSelection || (barSheetOrigin != nil && (showingSelfPlay || showingTickets || showsPricing))))
         .safeAreaInset(edge: .bottom) {
             TopicXcxActionBar(topic: value, openSessions: { if !showingSessionSelection { showingSessionSelection = true } },
-                              openSelfPlay: { barSheetOrigin = .selfPlay; showingSelfPlay = true },
+                              openSelfPlay: { asSignedIn { barSheetOrigin = .selfPlay; showingSelfPlay = true } },
                               openPricing: pricingDestination == nil ? nil : { barSheetOrigin = .pricing; showsPricing = true },
                               openEditor: editorDestination == nil ? nil : { showsEditor = true },
                               preferSession: preferSession,
@@ -647,7 +649,12 @@ struct TopicDetailView: View {
     /// Guard: only an in-flight load falls back to idle; loaded/failed results are kept.
     private func settleLoading() { if phase.isLoading { phase = .idle } }
     /// MP `_loadFav`: one like_list read on entry; a tap made before it returns wins (the ledger drops the stale read).
+    private func asSignedIn(_ action: () -> Void) {
+        if let prompt = guestSignIn { prompt(); return }
+        action()
+    }
     private func seedFavorite() async {
+        guard guestSignIn == nil else { favoriteHost = nil; favorited = nil; return }
         guard let host = favoriteHostFactory?() else { favoriteHost = nil; favorited = nil; return }
         favoriteHost = host; favorited = nil
         let topicID = id
@@ -770,7 +777,7 @@ struct TopicDetailView: View {
             case .success:
                 showingContactSheet = false
                 topicToastMessage = PlayCloseCopy.text("资料已保存，请继续建单", "Contact saved. Continue placing your order", locale)
-                showingSelfPlay = true
+                asSignedIn { showingSelfPlay = true }
             case .failure:
                 topicToastMessage = PlayCloseCopy.text("保存失败，请检查姓名与手机号", "Save failed. Check name and phone", locale)
             }

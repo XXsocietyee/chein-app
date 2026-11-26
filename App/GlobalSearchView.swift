@@ -29,6 +29,8 @@ import SwiftUI
     @State private var filter = GlobalSearchQuery()
     /// R7-PC-A3-2: MP search2 `navigateToSearchList` toast (pages/search2/index.js:130, 250).
     @State private var emptySearchToast: LocalizedStringKey?
+    /// PC-A-3-3: empty Search submit. Nil hides the prompt.
+    @State private var emptySearchNotice: LocalizedStringKey?
     @State private var categoryRecovery = SearchMapCategoryRecovery()
     @State private var categoryPresentationID = UUID()
     @State private var filterPresentationID = UUID()
@@ -78,7 +80,7 @@ import SwiftUI
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
                     TextField(LocalizedStringKey(hidesMerchants ? "searchMap.placeholder.player" : "searchMap.placeholder"), text: Binding(get: { filter.keyword }, set: setKeyword)).textInputAutocapitalization(.never)
-                        .submitLabel(.search).onSubmit { Task { await search() } }
+                        .submitLabel(.search).onSubmit { submitSearch() }
                         .accessibilityIdentifier("searchMap.keyword")
                         .frame(minHeight: 44)
                     // Mini-program field: 搜索中 spinner while a search runs, clear (x) once there is text.
@@ -117,10 +119,11 @@ import SwiftUI
                 if reader.isOfflineExample { Label("searchMap.offline", systemImage: "wifi.slash").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             }
             .listRowBackground(Color.clear)
-            // The single primary action appears once there is a keyword; the keyboard Search key always submits.
+            // The primary action appears once a keyword or category can search. An empty Search key
+            // shows the prompt and does not start a request.
             if filter.canSearch {
                 Section {
-                    Button("searchMap.search") { Task { await search() } }
+                    Button("searchMap.search") { submitSearch() }
                         .buttonStyle(.questifyPrimary).frame(maxWidth: .infinity, minHeight: 44).disabled(!reader.isConfigured)
                         .accessibilityIdentifier("searchMap.submit")
                 }
@@ -234,6 +237,7 @@ import SwiftUI
             isVisible = false; retainedResults.cancelPending(); settleLoading()
             categoryRecovery.update(reader: reader, presentationID: nil, active: false)
         }
+        .cyToast(message: $emptySearchNotice)
     }
     private var categoryOwner: SearchMapCategoryRecovery.Owner { .init(reader: reader) }
     /// Changes when the list swaps suggestions, loading, a failure or result rows.
@@ -256,7 +260,7 @@ import SwiftUI
                     Text(LocalizedStringKey(hidesMerchants ? "searchMap.placeholder.player" : "searchMap.placeholder"))
                 }
                     .textInputAutocapitalization(.never)
-                    .submitLabel(.search).onSubmit { Task { await search() } }
+                    .submitLabel(.search).onSubmit { submitSearch() }
                     .focused($keywordFocused)
                     .accessibilityIdentifier("searchMap.keyword")
                     .frame(minHeight: 44)
@@ -612,6 +616,15 @@ import SwiftUI
             history = historyStore.read(namespace: historyNamespace); historyFailure = historyStore.failed
         }
         updateCategoryPresentation()
+    }
+    /// Keyboard Search and the search button. No keyword and no category is a prompt, not a request.
+    private func submitSearch() {
+        guard filter.canSearch else {
+            emptySearchNotice = LocalizedStringKey("searchMap.needKeywordOrCategory")
+            return
+        }
+        emptySearchNotice = nil
+        Task { await search() }
     }
     private func search() async {
         let query = filter

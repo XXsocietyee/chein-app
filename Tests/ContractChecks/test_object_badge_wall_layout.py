@@ -36,18 +36,23 @@ class ObjectBadgeWallLayoutContracts(unittest.TestCase):
         self.assertNotIn('RealityKit', self.wall)
         self.assertNotIn('AsyncImage(', self.wall)
     def test_same_rows_group_order_and_partial_results_are_retained(self):
-        groups = ['Section("profile.badges.identities")', 'Section("profile.badges.medals")', 'Section("profile.badges.achievements")']
+        # BWALL-3: 已点亮 before 未解锁. Family sections are no longer the wall.
+        groups = ['Section("profile.badges.unlocked")', 'Section("profile.badges.notUnlocked")']
         self.assertEqual([self.wall.index(g) for g in groups], sorted(self.wall.index(g) for g in groups))
         for token in ['if wall.isPartial', 'Text("profile.badges.partial")', 'wall.medalFailureMessage',
                       'if wall.isEmpty {', 'CYEmptyState(systemImage: "medal", "badgeWall.empty"', 'if let medals = wall.medals',
                       'let city = medals.filter { !$0.isAchievement }', 'let achievements = medals.filter(\\.isAchievement)',
-                      'ObjectBadgeWallOrdering.litFirst(wall.identities).map { .identity($0) }', 'city.map { .medal($0) }', 'achievements.map { .medal($0) }']:
+                      'ObjectBadgeWallOrdering.litFirst(wall.identities)', 'profile.badge.identity',
+                      'profile.badge.medal', 'profile.badge.achievement', 'if badge.unlocked']:
             self.assertIn(token, self.wall)
-        self.assertEqual(self.wall.count('ForEach(Array(badges.enumerated()), id: \\.offset)'), 2)
+        self.assertNotIn('Section("profile.badges.identities")', self.wall)
+        self.assertNotIn('POST', self.wall)
     def test_static_grid_is_readable_and_uses_existing_badge_facts(self):
-        for token in ['dynamicTypeSize.isAccessibilitySize', 'CYCollectionGrid.columns(accessibility: dynamicTypeSize.isAccessibilitySize)', 'description.fixedSize(horizontal: false, vertical: true)',
+        for token in ['dynamicTypeSize.isAccessibilitySize ? 1 : 2', 'LazyVGrid(columns: badgeWallColumns',
+                      'description.fixedSize(horizontal: false, vertical: true)',
                       '.accessibilityElement(children: .combine)', 'Text(verbatim: badge.name)',
                       'badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked"',
+                      'ObjectBadgeTileArtwork(url: badge.image',
                       ]:
             self.assertIn(token, self.wall)
         self.assertIn('layout: layout, wall: wall).buttonStyle(.plain)', self.wall)

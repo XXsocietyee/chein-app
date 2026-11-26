@@ -45,7 +45,9 @@ import FoundationNetworking
     public func expireIfNeeded(now: Date = Date()) { if now >= expiresAt { revoke() } }
 }
 
-/// Exact unpaginated server subset. There is no member override or client pagination.
+/// Owner-only registration reads. The list is multipart `owner_type=3`, or that same
+/// `api/registration/list` read with canonical `pageNum`, `pageSize` 10 and `status` 0.
+/// There is no member override. Detail and original-event stay a single positive id.
 /// `originalEvent` is only POST api/registration/original-event with that request's own positive id.
 /// A detail approval, an approval revision, or a previously allowed info request does not select it.
 /// This case does not call /business/audit-log and does not build an OriginalAuditEvent.
@@ -69,6 +71,11 @@ public enum OwnedOrderReadRoute: Equatable {
         else if absolute.utf8.elementsEqual(info.utf8) { key = "id" }
         else if absolute.utf8.elementsEqual(originalEvent.utf8) { key = "id" }
         else { return nil }
+        // History paging uses the existing list read. A partial page body stays closed.
+        if absolute.utf8.elementsEqual(list.utf8), Self.admitsPagedRegistrationList(text, boundary: boundary, url: url, body: body) {
+            self = .list
+            return
+        }
         let prefix = "--\(boundary)\r\nContent-Disposition: form-data; name=\"\(key)\"\r\n\r\n", suffix = "\r\n--\(boundary)--\r\n"
         guard text.hasPrefix(prefix), text.hasSuffix(suffix), text.count > prefix.count + suffix.count else { return nil }
         let value = String(text.dropFirst(prefix.count).dropLast(suffix.count))
@@ -79,6 +86,40 @@ public enum OwnedOrderReadRoute: Equatable {
         else if absolute.utf8.elementsEqual(info.utf8) { self = .detail(id) }
         else if absolute.utf8.elementsEqual(originalEvent.utf8) { self = .originalEvent(id) }
         else { return nil }
+    }
+
+    /// Exact body `orderHistory` already sends. Page size is `app.getPageSize()` (10).
+    /// Anything else — another size, another status, a member id, a bare page field — stays nil.
+    private static func admitsPagedRegistrationList(_ text: String, boundary: String, url: URL, body: Data) -> Bool {
+        guard let fields = formFields(text, boundary: boundary), fields.count == 4,
+              fields["owner_type"] == "3", fields["status"] == "0",
+              fields["pageSize"] == String(ProfileService.registrationListPageSize),
+              let rawPage = fields["pageNum"], let page = Int(rawPage), page > 0, String(page) == rawPage,
+              let canonical = try? AuthRequestBuilder.makeFormRequest(url: url, fields: fields, token: nil, boundary: boundary),
+              canonical.httpBody == body else { return false }
+        return true
+    }
+
+    private static func formFields(_ text: String, boundary: String) -> [String: String]? {
+        let marker = "--\(boundary)"
+        guard text.hasPrefix(marker), text.hasSuffix("\(marker)--\r\n") else { return nil }
+        var fields: [String: String] = [:]
+        for part in text.components(separatedBy: marker).dropFirst() {
+            if part == "--\r\n" { continue }
+            let header = "\r\nContent-Disposition: form-data; name=\""
+            guard part.hasPrefix(header) else { return nil }
+            let rest = part.dropFirst(header.count)
+            guard let quote = rest.firstIndex(of: "\"") else { return nil }
+            let name = String(rest[..<quote])
+            let after = rest[rest.index(after: quote)...]
+            guard after.hasPrefix("\r\n\r\n") else { return nil }
+            var value = String(after.dropFirst(4))
+            guard value.hasSuffix("\r\n") else { return nil }
+            value.removeLast(2)
+            guard fields[name] == nil, !name.isEmpty, !value.contains("\r"), !value.contains("\n") else { return nil }
+            fields[name] = value
+        }
+        return fields
     }
 }
 

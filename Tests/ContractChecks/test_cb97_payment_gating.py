@@ -163,7 +163,7 @@ class ReleasePaymentGatingTests(unittest.TestCase):
     def test_each_release_switch_is_its_own_constant_and_off(self):
         body = slice_between(self.gate, "public enum ReleaseMoneyWriteSwitch", "public static func isEnabled")
         for kind, name in SWITCHES.items():
-            self.assertIn(f"public static let {name} = false", body, kind)
+            self.assertIn(f"public static var {name}: Bool {{ testDerivation?(.{kind}) ?? false }}", body, kind)
             self.assertNotIn(f"public static let {name} = true", self.gate, kind)
         enabled = slice_between(self.gate, "public static func isEnabled", "public static func blocks")
         for kind, name in SWITCHES.items():

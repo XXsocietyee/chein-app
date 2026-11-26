@@ -133,10 +133,16 @@ import CryptoKit
         do {
             let receipt = try await access.send(review)
             guard current(review.identity, review.namespace, key, generation) else { throw ClubOwnerRefundFailure.unknown }
-            mutate(key) { $0.receipt = receipt; $0.phase = receipt.manualReview ? .manualReview : .acknowledged }
+            mutate(key) { $0.receipt = receipt; $0.failure = nil; $0.phase = receipt.manualReview ? .manualReview : .acknowledged }
         } catch {
-            // Once send has been entered, every failure retains both durable locks.
-            mutate(key) { $0.phase = .outcomeUnknown; $0.failure = issue(error) }
+            // Once send has been entered, an unconfirmed dispatch retains both locks.
+            // A receipt already parsed for this attempt is not rewritten as outcomeUnknown.
+            // outcomeUnknown is not a payout success.
+            let failure = issue(error)
+            mutate(key) {
+                guard $0.receipt == nil else { return }
+                $0.phase = .outcomeUnknown; $0.failure = failure
+            }
         }
         // Only a read. A return or failed read never dispatches a second cancellation.
         if access.identity == review.identity, access.namespace == review.namespace { await reconcile(target) }
@@ -158,13 +164,20 @@ import CryptoKit
             _ = try relatedKeys(evidence, identity: identity, namespace: namespace)
             let hasLock = try locked(key)
             mutate(key) {
-                if hasLock, [.idle, .notSent].contains($0.phase) { $0.phase = .outcomeUnknown }
+                let prior = $0.phase
+                let priorReceipt = $0.receipt
+                if hasLock, [.idle, .notSent].contains(prior) { $0.phase = .outcomeUnknown }
                 $0.readback = evidence; $0.readbackLoading = false
                 // REFUNDED confirms only the record's status. Cash/points evidence remains separate.
+                // A pending or other non-REFUNDED row must not replace a real acknowledgement.
                 if evidence.status == "REFUNDED" { $0.phase = .refundRecorded }
+                else if priorReceipt != nil, [.acknowledged, .manualReview].contains(prior) {
+                    $0.receipt = priorReceipt; $0.phase = prior
+                }
             }
         } catch {
             guard current(identity, namespace, key, generation) else { return }
+            // A failed checkin read does not erase an acknowledged or manual-review receipt.
             mutate(key) { $0.readbackLoading = false; $0.readbackUnavailable = true }
         }
     }

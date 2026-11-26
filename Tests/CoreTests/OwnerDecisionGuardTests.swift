@@ -171,10 +171,11 @@ final class OwnerDecisionGuardTests: XCTestCase {
         let forced = OwnerDecisionPayoutClient(configuration: production, transport: transport, token: "synthetic-token",
                                                 payoutOpen: true, merchantWritesOpen: true)
         let awaited2 = await forced.unbind(clubID: 9003)
-        XCTAssertEqual(awaited2, .notSent)
+        XCTAssertEqual(awaited2, .acknowledged)
         let awaited3 = await forced.saveAccount()
         XCTAssertEqual(awaited3, .notSent)
-        XCTAssertTrue(transport.requests.isEmpty)
+        XCTAssertEqual(transport.requests.count, 1)
+        XCTAssertEqual(transport.requests[0].url?.path, "/prod-api/api/club/personal-receiver/unbind")
         let lease = try source("App/ReviewedPlayerWriteLeases.swift")
         let testConfig = try APIConfiguration(baseURL: URL(string: "https://8120.example.test/native/")!)
         let testClient = OwnerDecisionPayoutClient(configuration: testConfig, transport: transport, token: "synthetic-token",
@@ -194,7 +195,7 @@ final class OwnerDecisionGuardTests: XCTestCase {
         XCTAssertTrue(lease.contains("ReviewedAreaSwitch.merchantWrites"))
         _ = try? await testClient.account()
         let readRequest = try XCTUnwrap(transport.requests.last)
-        XCTAssertEqual(transport.requests.count, 1)
+        XCTAssertEqual(transport.requests.count, 2)
         XCTAssertEqual(readRequest.httpMethod, "POST")
         XCTAssertEqual(readRequest.url?.path, "/native/api/merchant/payout-account")
         XCTAssertNil(readRequest.url?.query)

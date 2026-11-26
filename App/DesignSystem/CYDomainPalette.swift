@@ -24,10 +24,15 @@ struct CYDomainPalette {
     init(_ domain: ThemeDomain) { self.domain = domain }
 
     private var isDark: Bool { domain.colorScheme == .dark }
+    /// Native iOS r2: nil = the palette follows the system Light/Dark trait at draw time (player, merchant, editor);
+    /// true = forced dark (play stage, explicit dark surfaces).
+    private var forcedDark: Bool? { domain.forcedColorScheme.map { $0 == .dark } }
+    /// Follows the system appearance and uses the system accent, like Apple's own apps.
+    var followsSystem: Bool { forcedDark == nil }
     /// Play runtime overlays `.theme-game` tokens onto the player dark stage rather than light gray merchant chrome.
     private var surfaceDomain: ThemeDomain { domain == .game ? .player : domain }
 
-    var isDarkDomain: Bool { isDark }
+    var isDarkDomain: Bool { forcedDark == true }
 
     /// Button shape by domain. Owner default skill-r2 Q4 (accepted 2026-11-16): one capsule shape across player,
     /// merchant and editor (Figma `Role Shape / button-radius` = 999 in every mode). This is the one place the shape
@@ -39,14 +44,29 @@ struct CYDomainPalette {
     var resolvedSurfaceDomain: ThemeDomain { surfaceDomain }
 
     private func token(_ name: String, dark: CYRGB, light: CYRGB) -> Color {
+        if followsSystem {
+            let darkValue = Theme.Generated.color(name, in: .player) ?? dark.swiftUIColor
+            let lightValue = Theme.Generated.color(name, in: .merchant) ?? light.swiftUIColor
+            return Self.dynamic(dark: darkValue, light: lightValue)
+        }
         if let value = Theme.Generated.color(name, in: surfaceDomain) { return value }
         return (isDark ? dark : light).swiftUIColor
+    }
+
+    /// Resolves at draw time from the view's own Light/Dark trait.
+    static func dynamic(dark: Color, light: Color) -> Color {
+        #if canImport(UIKit)
+        return Color(uiColor: UIColor { $0.userInterfaceStyle == .dark ? UIColor(dark) : UIColor(light) })
+        #else
+        return dark
+        #endif
     }
 
     #if canImport(UIKit)
     /// Native restyle (native-ios-r1 §2.2): a UIKit semantic colour resolved in this domain's appearance
     /// (player dark, merchant light), keeping the user's Increase Contrast and elevation traits.
     private func system(_ color: UIColor) -> Color {
+        if followsSystem { return Color(uiColor: color) }
         let style: UIUserInterfaceStyle = isDark ? .dark : .light
         return Color(uiColor: UIColor { traits in
             color.resolvedColor(with: traits.modifyingTraits { $0.userInterfaceStyle = style })
@@ -66,7 +86,8 @@ struct CYDomainPalette {
     /// Dark-domain text colours that the generated token sheet leaves under 4.5:1 on raised surfaces (`#1C1C1E`/`#2A2A2C`)
     /// or on their own soft fill are lifted here once, so no page needs a local fix. Light domains keep the sheet values.
     private func legible(_ name: String, darkText: UInt32, dark: CYRGB, light: CYRGB) -> Color {
-        isDark ? CYRGB(hex: darkText).swiftUIColor : token(name, dark: dark, light: light)
+        if followsSystem { return Self.dynamic(dark: CYRGB(hex: darkText).swiftUIColor, light: token(name, dark: dark, light: light)) }
+        return isDark ? CYRGB(hex: darkText).swiftUIColor : token(name, dark: dark, light: light)
     }
 
     // MARK: Surfaces (--cy-color-bg-*)
@@ -110,7 +131,8 @@ struct CYDomainPalette {
     var segmentThumb: Color { native(.segmentThumb, "--cy-color-bg-surface", dark: CYRGB(hex: 0x636366), light: CYRGB(hex: 0xFFFFFF)) }
     /// Nested card inside a sheet (`#3A3A3C` player / `#F8F9FA` merchant).
     var sheetCard: Color {
-        isDark
+        if followsSystem { return native(.tertiaryGroupedBackground, "--cy-comp-sheet-player-card", dark: CYRGB(hex: 0x3A3A3C), light: CYRGB(hex: 0xF8F9FA)) }
+        return isDark
             ? token("--cy-comp-sheet-player-card", dark: CYRGB(hex: 0x3A3A3C), light: CYRGB(hex: 0xF8F9FA))
             : CYRGB(hex: 0xF8F9FA).swiftUIColor
     }
@@ -174,17 +196,17 @@ struct CYDomainPalette {
 
     /// `--cy-color-brand`: `#F8F8F8` (player) / `#33363C` (merchant).
     /// This is also the primary CTA fill. Merchant does not use `--cy-color-action-primary-bg` (`#000000`).
-    var brand: Color { token("--cy-color-brand", dark: CYRGB(hex: 0xF8F8F8), light: CYRGB(hex: 0x33363C)) }
+    var brand: Color { followsSystem ? .accentColor : token("--cy-color-brand", dark: CYRGB(hex: 0xF8F8F8), light: CYRGB(hex: 0x33363C)) }
     /// `--cy-color-brand-strong`: pressed brand (`#B7B7B7` / `#33363C`).
-    var brandStrong: Color { token("--cy-color-brand-strong", dark: CYRGB(hex: 0xB7B7B7), light: CYRGB(hex: 0x33363C)) }
+    var brandStrong: Color { followsSystem ? .accentColor : token("--cy-color-brand-strong", dark: CYRGB(hex: 0xB7B7B7), light: CYRGB(hex: 0x33363C)) }
     /// `--cy-color-brand-soft`: `rgba(248,248,248,.12)` / `#EAEBEE`.
     var brandSoft: Color { token("--cy-color-brand-soft", dark: CYRGB(hex: 0xF8F8F8, alpha: 0.12), light: CYRGB(hex: 0xEAEBEE)) }
     /// `--cy-color-selection`: same pair as brand (`#F8F8F8` / `#33363C`).
-    var selection: Color { token("--cy-color-selection", dark: CYRGB(hex: 0xF8F8F8), light: CYRGB(hex: 0x33363C)) }
+    var selection: Color { followsSystem ? .accentColor : token("--cy-color-selection", dark: CYRGB(hex: 0xF8F8F8), light: CYRGB(hex: 0x33363C)) }
     /// `--cy-color-action-primary-bg`: `#F8F8F8` / `#000000`.
-    var actionPrimaryBg: Color { token("--cy-color-action-primary-bg", dark: CYRGB(hex: 0xF8F8F8), light: CYRGB(hex: 0x000000)) }
+    var actionPrimaryBg: Color { followsSystem ? .accentColor : token("--cy-color-action-primary-bg", dark: CYRGB(hex: 0xF8F8F8), light: CYRGB(hex: 0x000000)) }
     /// `--cy-color-action-primary-fg`: `#0A0A0A` / `#FFFFFF`.
-    var actionPrimaryFg: Color { token("--cy-color-action-primary-fg", dark: CYRGB(hex: 0x0A0A0A), light: CYRGB(hex: 0xFFFFFF)) }
+    var actionPrimaryFg: Color { followsSystem ? .white : token("--cy-color-action-primary-fg", dark: CYRGB(hex: 0x0A0A0A), light: CYRGB(hex: 0xFFFFFF)) }
     /// `--cy-color-action-secondary-bg`: `rgba(255,255,255,.08)` / `#EEEEEE`.
     var actionSecondaryBg: Color { token("--cy-color-action-secondary-bg", dark: CYRGB(hex: 0xFFFFFF, alpha: 0.08), light: CYRGB(hex: 0xEEEEEE)) }
     /// `--cy-color-action-danger-bg`: `#D0323B` both domains (white text 5.0:1).
@@ -295,7 +317,7 @@ struct CYDomainPalette {
     /// Selected tab icon/label tint. Neutral since the design hand-off r1 (owner ruling, PL-01): the selected tab is the
     /// primary ink at full opacity (white on the player bar, black on the merchant bar); unselected items stay at 60%.
     /// The MP tab ink (`#F8F8F8` / `#000000`), kept as the brand selected state while body text moves to `label`.
-    var tabSelectedTint: Color { token("--cy-color-text-primary", dark: CYRGB(hex: 0xF8F8F8), light: CYRGB(hex: 0x000000)) }
+    var tabSelectedTint: Color { followsSystem ? .accentColor : token("--cy-color-text-primary", dark: CYRGB(hex: 0xF8F8F8), light: CYRGB(hex: 0x000000)) }
     /// Selected tab capsule behind the icon and label: ink at 12% (PL-01; was a violet pill, then a blank white one).
     var tabSelectedCapsule: Color { tabSelectedTint.opacity(0.12) }
     /// Profile hero avatar ring (`--cy-comp-profile-avatar-ring` `#7A5CFF`).

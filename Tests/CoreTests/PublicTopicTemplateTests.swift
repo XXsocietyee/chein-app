@@ -46,6 +46,23 @@ final class PublicTopicTemplateTests: XCTestCase {
     private func service(_ transport: PublicTemplateTransport) throws -> DiscoveryService {
         try DiscoveryService(configuration: APIConfiguration(baseURL: URL(string: "https://api.example.com/prod-api")!), transport: transport)
     }
+    func testNodeGameAndDurationStayOptional() throws {
+        let plain = try decode(PublicTopicTemplateFixtures.content())
+        let node = try XCTUnwrap(plain.chapters.first?.nodes.first)
+        XCTAssertNil(node.game); XCTAssertNil(node.gameIcon); XCTAssertNil(node.duration)
+        let wired = PublicTopicTemplateFixtures.content().replacingOccurrences(of: "\"hookTeaser\":", with: "\"gameTitle\":\" 寻物 \",\"gameDuration\":\"12\",\"gameIcon\":\"  \",\"game\":7,\"duration\":-3,\"hookTeaser\":")
+        let decoded = try XCTUnwrap(try decode(wired).chapters.first?.nodes.first)
+        XCTAssertEqual(decoded.game, "寻物")
+        XCTAssertNil(decoded.gameIcon)
+        XCTAssertEqual(decoded.duration, 12)
+        let titled = PublicTopicTemplateFixtures.content().replacingOccurrences(of: "\"hookTeaser\":", with: "\"game\":\"Cipher\",\"duration\":8.0,\"hookTeaser\":")
+        let fallback = try XCTUnwrap(try decode(titled).chapters.first?.nodes.first)
+        XCTAssertEqual(fallback.game, "Cipher")
+        XCTAssertEqual(fallback.duration, 8)
+        let broken = PublicTopicTemplateFixtures.content().replacingOccurrences(of: "\"hookTeaser\":", with: "\"gameTitle\":{\"name\":\"x\"},\"gameDuration\":true,\"hookTeaser\":")
+        XCTAssertNil(try decode(broken).chapters.first?.nodes.first?.game)
+        XCTAssertNil(try decode(broken).chapters.first?.nodes.first?.duration)
+    }
     func testRealDecoderPreservesAuthoritativeCountsAndPublicIdentity() throws {
         let detail = try decode(PublicTopicTemplateFixtures.content())
         XCTAssertEqual(detail.id, 801); XCTAssertEqual(detail.chapters.first?.id, 901)

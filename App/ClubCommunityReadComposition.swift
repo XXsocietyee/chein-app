@@ -58,6 +58,23 @@ enum ClubCommunityReadComposition {
 }
 
 extension AppSession {
+    /// MP relation feed creative-square lane. Closed unless `communityPostRead` is literal true.
+    /// The wire is GET `api/v1/community/feeds/LATEST` (community-post-api.js rewrite of creativesquare/list).
+    func relationCreativeSquareLane() -> @MainActor (Int?) async throws -> RelationCreativeSquareLane {
+        { [weak self] cursor in
+            guard let self else { return RelationCreativeSquareLane(posts: [], hasMore: false, nextCursor: nil) }
+            let features = try? await self.squareReader.communityFeatures()
+            guard features?.read == true else { return RelationCreativeSquareLane(posts: [], hasMore: false, nextCursor: nil) }
+            let feedPage = try await self.squareReader.relationCreativeSquare(cursor: cursor)
+            let posts = feedPage.items.map { item in
+                RelationCreativeSquareLane.Post(id: item.id, content: item.contents ?? "", nickname: item.nickname ?? "",
+                                                 images: item.images.joined(separator: ";"), createTime: item.createTime,
+                                                 authorMemberID: item.memberID > 0 ? item.memberID : nil)
+            }
+            return RelationCreativeSquareLane(posts: posts, hasMore: feedPage.hasMore, nextCursor: feedPage.nextCursor?.id)
+        }
+    }
+
     func selectClubCommunityReadApproval(_ context: RuntimeDependencyContext) -> ClubCommunityReadApproval? {
         guard let current = clubCommunityRuntimeContext,
               ContentDraftContextFence.matches(context, current),

@@ -34,4 +34,20 @@ final class TicketWalletSourceCopyTests: XCTestCase {
         XCTAssertEqual(pending.action, .paymentUnavailable)
         XCTAssertEqual(try ticket(#""registrationStatus":2"#).action, .detail)
     }
+
+    func testMemberPartyAndExploreProgressDecodeWithoutDroppingTheTicket() throws {
+        let plain = try ticket(#""registrationStatus":2"#)
+        XCTAssertNil(plain.memberID)
+        XCTAssertNil(plain.party)
+        XCTAssertNil(plain.exploreProgress)
+        let row = try ticket(#""memberId":12,"party":{"adultCount":1,"childCount":1},"exploreProgress":{"redeemed":2,"required":4,"active":true,"completed":false,"ended":false}"#)
+        XCTAssertEqual(row.memberID, "12")
+        XCTAssertEqual(row.party?.adultCount, 1)
+        XCTAssertEqual(row.party?.childCount, 1)
+        XCTAssertEqual(row.exploreProgress?.redeemed, 2)
+        XCTAssertEqual(row.exploreProgress?.required, 4)
+        XCTAssertEqual(row.exploreProgress?.active, true)
+        XCTAssertNil(try ticket(#""memberId":"12","exploreProgress":{"required":0}"#).exploreProgress)
+        XCTAssertEqual(try ticket(#""memberId":"12""#).memberID, "12")
+    }
 }

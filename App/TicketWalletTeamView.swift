@@ -224,7 +224,11 @@ struct TicketWalletTeamContext: Hashable {
             if phase == .background { model.end() }
             else if phase == .active, visible, model.presentation == nil { model.scheduleList(model.appear()) }
         }
-        .refreshable { await model.refreshList(offeredPresentation) }
+        .refreshable {
+            let current = model.presentation
+            guard let current else { return }
+            await model.refreshList(current)
+        }
         .accessibilityIdentifier("ticketTeam.view")
     }
     private func issueKey(_ issue: TicketWalletTeamModel.Issue) -> String {

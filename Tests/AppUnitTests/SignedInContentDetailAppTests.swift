@@ -50,13 +50,16 @@ import XCTest
                 let activity = try XCTUnwrap(wire.requests.last)
                 XCTAssertTrue(activity.url?.path.hasSuffix("/activity/info") == true)
                 XCTAssertNil(activity.value(forHTTPHeaderField: "Authorization"))
+                let topic = try await session.topicReader.topicDetail(id: 31)
+                XCTAssertEqual(topic.id, 31)
+                let topicRequest = try XCTUnwrap(wire.requests.last)
+                XCTAssertTrue(topicRequest.url?.path.hasSuffix("/info-to-user") == true)
+                XCTAssertNil(topicRequest.value(forHTTPHeaderField: "Authorization"))
             } else {
                 do { _ = try await session.activityDetail(id: 21); XCTFail() } catch { XCTAssertEqual(error as? APIError, .notConfigured) }
+                do { _ = try await session.topicReader.topicDetail(id: 31); XCTFail() } catch { XCTAssertEqual(error as? APIError, .notConfigured) }
                 XCTAssertTrue(wire.requests.isEmpty)
             }
-            let beforeTopic = wire.requests.count
-            do { _ = try await session.topicReader.topicDetail(id: 31); XCTFail() } catch { XCTAssertEqual(error as? APIError, .unauthorized) }
-            XCTAssertEqual(wire.requests.count, beforeTopic)
         }
         let wire = Wire(), vault = Vault(), session = try root(wire, vault: vault, approved: false).makeSession()
         await signIn(session, wire: wire)

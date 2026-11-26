@@ -27,12 +27,15 @@ final class MerchantInsightRecentVisitorsTests: XCTestCase {
         XCTAssertEqual(MerchantInsightRecentVisitors(.array(Array(repeating: row, count: 5))), .loaded(Array(repeating: visitor, count: 5)))
         XCTAssertEqual(MerchantInsightRecentVisitors(.array(Array(repeating: row, count: 6))), .unavailable)
     }
-    func testContactAvatarAndIdentityFieldsAreNeverRetainedOrUsedAsDisplayFallback() throws {
+    func testContactAndIdentityFieldsAreNeverRetainedAndAvatarIsKept() throws {
         let minimal = MerchantMarketingValue.object(["nickname": .string("Visitor")])
         let extra = MerchantMarketingValue.object(["nickname": .string("Visitor"), "phone": .string("must-not-display"),
-                                                   "memberId": .number(42), "avatar": .string("https://example.test/image")])
+                                                   "memberId": .number(42)])
         XCTAssertEqual(MerchantInsightRecentVisitor(row: minimal), MerchantInsightRecentVisitor(row: extra))
         XCTAssertNil(MerchantInsightRecentVisitor(row: .object(["phone": .string("must-not-display"), "memberId": .number(42)])))
+        let shown = try XCTUnwrap(MerchantInsightRecentVisitor(row: .object(["nickname": .string("Visitor"), "avatar": .string("https://example.test/image")])))
+        XCTAssertEqual(shown.avatar, "https://example.test/image")
+        XCTAssertNil(MerchantInsightRecentVisitor(row: .object(["nickname": .string("Visitor"), "avatar": .string("  ")]))?.avatar)
     }
     func testUnknownTextIsNotCoercedAndValidTextIsNeverTimezoneConverted() throws {
         let value = try XCTUnwrap(MerchantInsightRecentVisitor(row: .object(["nickname": .number(7), "topicName": .bool(false),

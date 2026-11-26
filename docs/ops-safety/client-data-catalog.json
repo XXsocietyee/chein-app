@@ -168,6 +168,15 @@
       "deletion": "Changing the language overwrites it; removed when the app is deleted"
     },
     {
+      "file": "App/MPFirstClubApprovals.swift",
+      "kinds": [
+        "file"
+      ],
+      "purpose": "Application Support directory club-welcome-note-original for the club welcome-note original journal (owner, club id, request id, source hash, state). The note text is not stored here. This file does not send pay, refund, payout, or settlement writes.",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
       "file": "App/MerchantInboxPreviewSection.swift",
       "kinds": [
         "userDefaults"
@@ -175,6 +184,15 @@
       "purpose": "Merchant workbench 我的消息 read marks (source merchant_inbox_read_<userID>): read keys of conversations, received coop invites and business events, per account, capped at 300",
       "retention": "Until the marks age out of the 300 newest or the app is removed",
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "App/MerchantLedgerSettlementOverview.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Device-local @AppStorage flag merchant.settleRemind.coopSettle: the merchant's on/off choice for 结算到账提醒. Preference only; it does not send money or call a settlement write.",
+      "retention": "Device-local until the toggle changes or the app is deleted",
+      "deletion": "Overwritten by the toggle; removed with the app's UserDefaults. Logout cleanup not verified"
     },
     {
       "file": "App/MerchantStoreCharacterView.swift",
@@ -220,6 +238,15 @@
       "purpose": "Official organizer console local UI state via injected UserDefaults",
       "retention": "待隐私评审确定 / pending privacy review",
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "App/OrientScoreSettlementControls.swift",
+      "kinds": [
+        "file"
+      ],
+      "purpose": "Application Support root for OrientScoreSettlementFileJournal (folder orient-score-settlement): one idempotency file per account, namespace, and round, holding the sync or settle kind and request id. Points and explore XP only; no money and no token. Logout does not erase it.",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "Logout does not erase the file; 退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
     {
       "file": "App/PassMembershipViews.swift",

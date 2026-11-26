@@ -68,7 +68,16 @@ public struct WalletHistoryReadRoute: Equatable {
             return
         }
         if path == "api/withdrawal/list" {
-            guard request.httpBody == nil, request.value(forHTTPHeaderField: "Content-Type") == nil else { return nil }
+            if request.httpBody == nil, request.value(forHTTPHeaderField: "Content-Type") == nil {
+                self.path = path
+                return
+            }
+            guard request.value(forHTTPHeaderField: "Content-Type") == "application/x-www-form-urlencoded;",
+                  let body = request.httpBody, let text = String(data: body, encoding: .utf8) else { return nil }
+            let parts = text.split(separator: "&", omittingEmptySubsequences: false).map(String.init)
+            guard parts.count == 2, parts[0].hasPrefix("pageNum="), parts[1] == "pageSize=\(WithdrawalHistoryPage.pageSize)" else { return nil }
+            let number = String(parts[0].dropFirst("pageNum=".count))
+            guard let pageNumber = Int(number), pageNumber > 0, String(pageNumber) == number else { return nil }
         } else if path == "api/wallet/stages" {
             guard request.httpBody == Data("{}".utf8), request.value(forHTTPHeaderField: "Content-Type") == "application/json" else { return nil }
         } else {

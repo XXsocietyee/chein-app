@@ -57,6 +57,12 @@ public struct TicketWalletTicket: Decodable, Equatable, Identifiable {
     public let hasManualRefundCase: Bool
     /// `cmsActivity.imgUrl`, else `cmsTopic.imgUrl`. Nil when neither object carries one.
     public let coverURL: String?
+    /// Source `memberId`. Nil when the key is absent. A number and its decimal text compare equal.
+    public let memberID: String?
+    /// Source `party`. Nil when the object or either count is missing.
+    public let party: TicketWalletParty?
+    /// Source `exploreProgress` when `required > 0`. Otherwise nil.
+    public let exploreProgress: TicketWalletExploreProgress?
 
     /// `true` / `false` are the 已通关 / 即将开始 buckets. Absent and unknown stay nil (全部 only).
     public var topicCompletedFlag: Bool? {
@@ -133,6 +139,9 @@ public struct TicketWalletTicket: Decodable, Equatable, Identifiable {
         let manual = TicketWalletKey("manualRefundCaseStatus")
         hasManualRefundCase = c.contains(manual) && (try? c.decodeNil(forKey: manual)) == false
         coverURL = activity?.imgUrl ?? topic?.imgUrl
+        memberID = Self.memberText(c)
+        party = Self.partyCounts(c)
+        exploreProgress = Self.explore(c)
         // Missing activity object has a game. Otherwise topicId or templateId must be positive.
         if let activity {
             activityHasGame = (activity.topicID ?? 0) > 0 || (activity.templateID ?? 0) > 0
@@ -144,6 +153,62 @@ public struct TicketWalletTicket: Decodable, Equatable, Identifiable {
     public let activityHasGame: Bool
     /// MP `ticketHasGame`: only an activity ticket (`ownerType` 2) can be no-game.
     public var hasGame: Bool { ownerType != 2 || activityHasGame }
+
+    private static func memberText(_ c: KeyedDecodingContainer<TicketWalletKey>) -> String? {
+        let key = TicketWalletKey("memberId")
+        guard c.contains(key), (try? c.decodeNil(forKey: key)) != true else { return nil }
+        if let number = try? c.decode(Int.self, forKey: key) { return String(number) }
+        if let text = try? c.decode(String.self, forKey: key) {
+            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmed.isEmpty ? nil : trimmed
+        }
+        return nil
+    }
+
+    private static func partyCounts(_ c: KeyedDecodingContainer<TicketWalletKey>) -> TicketWalletParty? {
+        let key = TicketWalletKey("party")
+        guard c.contains(key), (try? c.decodeNil(forKey: key)) != true,
+              let nested = try? c.nestedContainer(keyedBy: TicketWalletKey.self, forKey: key),
+              let adult = Self.count(nested, "adultCount"),
+              let child = Self.count(nested, "childCount") else { return nil }
+        return TicketWalletParty(adultCount: adult, childCount: child)
+    }
+
+    private static func explore(_ c: KeyedDecodingContainer<TicketWalletKey>) -> TicketWalletExploreProgress? {
+        let key = TicketWalletKey("exploreProgress")
+        guard c.contains(key), (try? c.decodeNil(forKey: key)) != true,
+              let nested = try? c.nestedContainer(keyedBy: TicketWalletKey.self, forKey: key),
+              let required = Self.count(nested, "required"), required > 0 else { return nil }
+        let redeemedRaw = Self.count(nested, "redeemed") ?? 0
+        return TicketWalletExploreProgress(
+            redeemed: redeemedRaw > 0 ? redeemedRaw : 0,
+            required: required,
+            active: (try? nested.decode(Bool.self, forKey: TicketWalletKey("active"))) == true,
+            completed: (try? nested.decode(Bool.self, forKey: TicketWalletKey("completed"))) == true,
+            ended: (try? nested.decode(Bool.self, forKey: TicketWalletKey("ended"))) == true)
+    }
+
+    private static func count(_ nested: KeyedDecodingContainer<TicketWalletKey>, _ name: String) -> Int? {
+        let key = TicketWalletKey(name)
+        if let number = try? nested.decode(Int.self, forKey: key) { return number }
+        if let text = try? nested.decode(String.self, forKey: key), let number = Int(text), String(number) == text { return number }
+        return nil
+    }
+}
+
+/// MP `party.adultCount` / `party.childCount`.
+public struct TicketWalletParty: Equatable, Sendable {
+    public let adultCount: Int
+    public let childCount: Int
+}
+
+/// MP `exploreProgressOf`: present only when `required > 0`.
+public struct TicketWalletExploreProgress: Equatable, Sendable {
+    public let redeemed: Int
+    public let required: Int
+    public let active: Bool
+    public let completed: Bool
+    public let ended: Bool
 }
 
 /// Source `refundApplication`. Unknown numbers stay nil; nothing here is a money write.

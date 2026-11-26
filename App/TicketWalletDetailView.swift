@@ -22,6 +22,8 @@ import SwiftUI
     @State private var playEntry = TicketWalletPlayEntry()
     @State private var playReadOwner: TicketWalletPlayOwner?
     @State private var presenting = false
+    /// Confirmed only after the signed-in account is compared with `memberID`. Starts closed when an owner id exists.
+    @State private var ownerActionsMatch = false
     @Namespace private var presentHero
     private var key: TicketWalletLoadKey { TicketWalletLoadKey(reader: reader, id: id) }
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
@@ -39,26 +41,40 @@ import SwiftUI
                     TicketWalletDetailHeader(ticket: ticket)
                         .cyHeroSource("present", in: presentHero)
                         .questifyCardListRow()
-                    if ticket.status == .ready && ticket.clearedFlag != true && !ticket.isWalletLocked {
-                        // MP: a cleared ticket shows no entry code (PLY-21-4); a locked one cannot be presented yet.
-                        // The pass holder's one primary action. Staff verify; the real code only comes from the injected factory.
-                        CYPillButton(verbatim: c.t("出示票券", "Present pass"), systemImage: "qrcode") { presenting = true }
-                            .accessibilityIdentifier("ticketWallet.present.open")
-                            .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                    if ticket.showsSharedParty, let party = ticket.party {
+                        Text("ticketWallet.party.share \(party.adultCount) \(party.childCount)")
+                            .cyText(.bodyCompact)
+                            .accessibilityIdentifier("ticketWallet.party.\(ticket.id)")
+                    }
+                    if let progress = ticket.exploreProgress {
+                        Text("ticketWallet.explore.redeemed \(progress.redeemed) \(progress.required)")
+                            .cyText(.bodyCompact)
+                            .accessibilityIdentifier("ticketWallet.explore.\(ticket.id)")
+                    }
+                    if allowsOwnerActions(ticket) {
+                        if ticket.status == .ready && ticket.clearedFlag != true && !ticket.isWalletLocked {
+                            // MP: a cleared ticket shows no entry code (PLY-21-4); a locked one cannot be presented yet.
+                            // The pass holder's one primary action. Staff verify; the real code only comes from the injected factory.
+                            CYPillButton(verbatim: c.t("出示票券", "Present pass"), systemImage: "qrcode") { presenting = true }
+                                .accessibilityIdentifier("ticketWallet.present.open")
+                                .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                        }
                     }
                 }
-                if let makeTeamCoordinator {
+                if allowsOwnerActions(ticket), let makeTeamCoordinator {
                     TicketWalletTeamEntrySection(ticket: ticket, requestedID: id, reader: reader, makeCoordinator: makeTeamCoordinator)
                 }
-                if ticket.hasGame, let playProvider, playReadOwner == playProvider.owner,
+                if allowsOwnerActions(ticket), ticket.hasGame, let playProvider, playReadOwner == playProvider.owner,
                    playEntry.canOpen(ticket: ticket, requestedID: id, reader: reader, provider: playProvider) {
                     let presentationID = playEntry.presentationID
                     Section {
                         Button {
                             guard !model.isLoading, model.value(owner: key) == ticket,
                                   playReadOwner == playProvider.owner else { return }
-                            playEntry.activate(ticket: ticket, requestedID: id, reader: reader, provider: playProvider,
-                                               presentationID: presentationID)
+                            // A row already on screen is not proof. Re-read inside this permit, then start only if it is still usable.
+                            guard playEntry.presentationID == presentationID,
+                                  let permit = model.presentation, model.accepts(permit, currentOwner: key) else { return }
+                            schedule(permit, confirmPlay: true)
                         } label: {
                             // PLY-21-4: MP signup wxml:103-105 labels a cleared ticket 查看记录.
                             if ticket.clearedFlag == true { Label { Text(verbatim: c.t("查看记录", "View record")) } icon: { TicketWalletPlayGlyph() } }
@@ -69,7 +85,7 @@ import SwiftUI
                         .accessibilityIdentifier("ticketWallet.play.open")
                     }
                 }
-                if mpParity.journeySeats != nil {
+                if allowsOwnerActions(ticket), mpParity.journeySeats != nil {
                     // Mini-program order detail `goSeats`: the wallet id is the registration id; the lobby gates itself (buyer only).
                     Section {
                         NavigationLink { MPParityDestination(route: .journeySeats(registrationID: String(id))) } label: {
@@ -97,7 +113,7 @@ import SwiftUI
                         }
                     }
                 }
-                if let lifecycleCoordinator {
+                if allowsOwnerActions(ticket), let lifecycleCoordinator {
                     Section {
                         NavigationLink { OrderLifecycleView(id: id, coordinator: lifecycleCoordinator).id(lifecycleCoordinator.scope) } label: {
                             Label("orderLifecycle.title", systemImage: "list.bullet.rectangle")
@@ -120,14 +136,20 @@ import SwiftUI
         .cyHideTabBar()
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button { schedule(offeredPresentation) } label: { Label("ticketWallet.refresh", systemImage: "arrow.clockwise") }
+                Button {
+                    guard let permit = offeredPresentation, permit == model.presentation,
+                          model.accepts(permit, currentOwner: key) else { return }
+                    schedule(offeredPresentation)
+                } label: { Label("ticketWallet.refresh", systemImage: "arrow.clockwise") }
                     .disabled(model.isLoading || !reader.isAuthenticated || !reader.isConfigured)
                     .accessibilityIdentifier("ticketWallet.detail.refresh")
             }
         }
         .onChange(of: TicketWalletPlayLoadKey(readerID: ObjectIdentifier(reader), key: key, providerOwner: playProvider?.owner)) { _, _ in replacePresentation() }
         .refreshable {
-            await model.refresh(presentation: offeredPresentation, currentOwner: key) { await load(presentation: $0) }
+            let current = model.presentation
+            guard let current, model.accepts(current, currentOwner: key) else { return }
+            await model.refresh(presentation: current, currentOwner: key) { await load(presentation: $0) }
         }
         .onAppear { isVisible = true; refreshOnActive = false; playEntry.appear(); replacePresentation() }
         .onDisappear { isVisible = false; model.endPresentation(); playEntry.disappear() }
@@ -149,6 +171,12 @@ import SwiftUI
                 }
             }
         .accessibilityIdentifier("ticketWallet.detail")
+        .background {
+            if !reader.isOfflineExample, let ticket = model.value(owner: key), ticket.id == id,
+               let memberID = ticket.memberID, !memberID.isEmpty {
+                TicketWalletOwnerProbe(memberID: memberID, allowed: $ownerActionsMatch)
+            }
+        }
         .cyPushedChrome(domain: .player)
         .appSwitcherPrivacyShield()
         .modifier(CYOptionalHeroDestination(id: heroID ?? id, namespace: heroNamespace))
@@ -165,10 +193,10 @@ import SwiftUI
         guard isVisible, scenePhase == .active else { model.endPresentation(preservingValues: false); return }
         schedule(model.beginPresentation(owner: key))
     }
-    private func schedule(_ permit: TicketWalletReadPresentation?) {
-        model.schedule(presentation: permit, currentOwner: key) { await load(presentation: $0) }
+    private func schedule(_ permit: TicketWalletReadPresentation?, confirmPlay: Bool = false) {
+        model.schedule(presentation: permit, currentOwner: key) { await load(presentation: $0, confirmPlay: confirmPlay) }
     }
-    private func load(presentation: TicketWalletReadPresentation) async {
+    private func load(presentation: TicketWalletReadPresentation, confirmPlay: Bool = false) async {
         guard isVisible, scenePhase == .active, !Task.isCancelled,
               model.accepts(presentation, currentOwner: key) else { return }
         playEntry.retire()
@@ -177,21 +205,63 @@ import SwiftUI
         let provider = playProvider
         await model.load(presentation: presentation, currentOwner: { key }) { try await reader.ticketDetail(id: id) }
         if !Task.isCancelled, model.accepts(presentation, currentOwner: key),
+           model.value(owner: captured)?.id == id, captured == key,
+           let ticket = model.value(owner: captured), !ticket.hasGame,
+           ticket.status == .ready, ticket.clearedFlag != true, !ticket.isWalletLocked {
+            presenting = true
+        }
+        if !Task.isCancelled, model.accepts(presentation, currentOwner: key),
+           let provider, provider.owner == playProvider?.owner, provider.matches(reader: reader),
            model.value(owner: captured)?.id == id, captured == key {
-            if let ticket = model.value(owner: captured), !ticket.hasGame,
-               ticket.status == .ready, ticket.clearedFlag != true, !ticket.isWalletLocked {
-                presenting = true
-            }
-            if let provider, provider.owner == playProvider?.owner, provider.matches(reader: reader) {
-                playReadOwner = provider.owner
-                if autoStartsPlay, !didAutoStart, let ticket = model.value(owner: captured), ticket.hasGame,
-                   playEntry.canOpen(ticket: ticket, requestedID: id, reader: reader, provider: provider) {
-                    didAutoStart = true
-                    playEntry.activate(ticket: ticket, requestedID: id, reader: reader, provider: provider,
-                                       presentationID: playEntry.presentationID)
-                }
+            playReadOwner = provider.owner
+            // Play waits for this detail. A list row, or the ticket that was on screen, is not enough.
+            let startPlay = confirmPlay || (autoStartsPlay && !didAutoStart)
+            if autoStartsPlay { didAutoStart = true }
+            if startPlay, let ticket = model.value(owner: captured), ticket.hasGame,
+               playEntry.canOpen(ticket: ticket, requestedID: id, reader: reader, provider: provider) {
+                playEntry.activate(ticket: ticket, requestedID: id, reader: reader, provider: provider,
+                                   presentationID: playEntry.presentationID)
             }
         }
+    }
+
+    /// MP focus read (`signup/index.js`): a present `memberId` must equal the signed-in account before owner actions show.
+    /// Offline examples keep their actions. A missing `memberId` is not treated as a mismatch.
+    private func allowsOwnerActions(_ ticket: TicketWalletTicket) -> Bool {
+        if reader.isOfflineExample { return true }
+        guard let memberID = ticket.memberID, !memberID.isEmpty else { return true }
+        return ownerActionsMatch
+    }
+}
+
+extension TicketWalletTicket {
+    /// MP wallet card: 「N 大 M 小同享」only when a child shares the ticket.
+    var showsSharedParty: Bool {
+        guard let party else { return false }
+        return party.childCount > 0
+    }
+
+    /// A missing owner id stays open. A present id matches only the signed-in account, as decimal text.
+    static func allowsOwnerActions(memberID: String?, viewerAccountID: Int?) -> Bool {
+        guard let memberID, !memberID.isEmpty else { return true }
+        guard let viewerAccountID, viewerAccountID > 0 else { return false }
+        return memberID == String(viewerAccountID)
+    }
+}
+
+/// Reads the signed-in account only when a live ticket names its owner. Fixtures never mount this view.
+@MainActor private struct TicketWalletOwnerProbe: View {
+    let memberID: String
+    @Binding var allowed: Bool
+    @EnvironmentObject private var session: AppSession
+    var body: some View {
+        Color.clear.frame(width: 0, height: 0).accessibilityHidden(true)
+            .task(id: session.account?.id) { publish() }
+            .onChange(of: memberID) { _, _ in publish() }
+    }
+    private func publish() {
+        let next = TicketWalletTicket.allowsOwnerActions(memberID: memberID, viewerAccountID: session.account?.id)
+        if allowed != next { allowed = next }
     }
 }
 
@@ -257,8 +327,8 @@ struct TicketWalletPlayProvider {
     /// Explicit current registration facts only. No lane, title, product name or numeric-ID guessing.
     static func entry(ticket: TicketWalletTicket, requestedID: Int) -> ParticipationPlayEntry? {
         // R7-MEM-21-2: a wallet-locked ticket has no play entry (MP index.js:371-374).
-        guard requestedID > 0, ticket.id == requestedID, !ticket.isWalletLocked, ticket.registrationStatus == 2,
-              let ownerID = ticket.ownerID, ownerID > 0 else { return nil }
+        guard requestedID > 0, ticket.id == requestedID, ticket.registrationStatus == 2,
+              ticket.isWalletUsable, !ticket.isWalletLocked, let ownerID = ticket.ownerID, ownerID > 0 else { return nil }
         let scope: PlaySessionScope
         switch ticket.ownerType {
         case 1:

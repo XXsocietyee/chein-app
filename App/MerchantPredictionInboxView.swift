@@ -168,18 +168,20 @@ extension MerchantPredictionReading {
     @ObservedObject var session: AppSession
     var body: some View {
         if let reader = session.merchantPredictionReader {
-            MerchantPredictionEntry(reader: reader).id(reader.id)
+            MerchantPredictionEntry(reader: reader, settlement: session.merchantMarketingCoordinator.service).id(reader.id)
         }
     }
 }
 @MainActor private struct MerchantPredictionEntry: View {
     let reader: MerchantPredictionReader
+    let settlement: MerchantMarketingService?
     @State private var inboxReader: MerchantPredictionReader
     @StateObject private var model: MerchantPredictionInboxModel
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
-    init(reader: MerchantPredictionReader) {
-        self.reader = reader; _model = StateObject(wrappedValue: .init(reader: reader))
+    init(reader: MerchantPredictionReader, settlement: MerchantMarketingService? = nil) {
+        self.reader = reader; self.settlement = settlement
+        _model = StateObject(wrappedValue: .init(reader: reader))
         _inboxReader = State(initialValue: reader.isolatedReader())
     }
     private var zh: Bool { locale.language.languageCode?.identifier == "zh" }
@@ -187,7 +189,7 @@ extension MerchantPredictionReading {
         VStack(spacing: 8) {
             // Keep the link owner mounted while its pushed inbox is visible, even
             // when foreground access revalidation temporarily hides the entry label.
-            NavigationLink { MerchantPredictionInboxView(reader: inboxReader) } label: {
+            NavigationLink { MerchantPredictionInboxView(reader: inboxReader, settlement: settlement) } label: {
                 Label("merchant.predict.title", systemImage: "questionmark.bubble")
             }
             .disabled(!model.canEnter).opacity(model.canEnter ? 1 : 0)
@@ -206,11 +208,21 @@ extension MerchantPredictionReading {
 
 @MainActor struct MerchantPredictionInboxView: View {
     let reader: any MerchantPredictionReading
+    /// Session marketing service. Options become a single choice when it permits settlement.
+    var settlement: MerchantMarketingService?
     @StateObject private var model: MerchantPredictionInboxModel
+    @State private var settlementChoice: String?
+    @State private var settlementAcknowledged = false
+    @State private var settlementPublishing = false
+    @State private var settlementFailure: MerchantMarketingFailure?
+    @State private var settlementWinners: Int?
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
-    init(reader: any MerchantPredictionReading) { self.reader = reader; _model = StateObject(wrappedValue: .init(reader: reader)) }
+    init(reader: any MerchantPredictionReading, settlement: MerchantMarketingService? = nil) {
+        self.reader = reader; self.settlement = settlement
+        _model = StateObject(wrappedValue: .init(reader: reader))
+    }
     private var zh: Bool { locale.language.languageCode?.identifier == "zh" }
     var body: some View {
         List {
@@ -309,11 +321,63 @@ extension MerchantPredictionReading {
                                 .cyText(.meta)
                                 .foregroundStyle(CYColor.textSecondary)
                         }
-                        // Answer options. Publishing the answer is not wired in the app, so options are listed without an action.
                         Section {
-                            ForEach(selected.round.options) { option in
-                                LabeledContent { Text(verbatim: option.label) } label: { Text(verbatim: option.key) }
+                            if let settlement, settlement.permitsSettlement {
+                                ForEach(selected.round.options) { option in
+                                    Button {
+                                        guard !settlementPublishing, settlementWinners == nil else { return }
+                                        settlementChoice = option.key
+                                        settlementFailure = nil
+                                    } label: {
+                                        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                                            Text(verbatim: option.label.isEmpty ? option.key : option.label)
+                                                .cyText(.body)
+                                                .foregroundStyle(CYColor.textPrimary)
+                                                .frame(maxWidth: .infinity, alignment: .leading)
+                                            if settlementChoice == option.key {
+                                                Image(systemName: "checkmark")
+                                                    .cyText(.body, weight: .semibold)
+                                                    .foregroundStyle(CYColor.brand)
+                                                    .accessibilityHidden(true)
+                                            }
+                                        }
+                                        .frame(minHeight: CYSpacing.minTouchTarget)
+                                        .contentShape(Rectangle())
+                                    }
+                                    .buttonStyle(.plain)
+                                    .disabled(settlementPublishing || settlementWinners != nil)
                                     .accessibilityIdentifier("merchant.prediction.review.option.\(option.key)")
+                                    .accessibilityAddTraits(settlementChoice == option.key ? AccessibilityTraits.isSelected : [])
+                                }
+                                if settlementChoice != nil, settlementWinners == nil {
+                                    Text("merchantMarketing.couponWarning")
+                                        .cyText(.body)
+                                        .foregroundStyle(CYColor.textPrimary)
+                                    Toggle("merchantMarketing.acknowledgeEffects", isOn: $settlementAcknowledged)
+                                        .disabled(settlementPublishing)
+                                        .accessibilityIdentifier("merchant.prediction.acknowledgeEffects")
+                                    Button("merchantMarketing.confirmSettlement") {
+                                        Task { await publishSettlement(selected.round, service: settlement) }
+                                    }
+                                    .disabled(!settlementAcknowledged || settlementPublishing)
+                                    .accessibilityIdentifier("merchant.prediction.confirmSettlement")
+                                }
+                                if settlementPublishing { ProgressView() }
+                                if let settlementFailure {
+                                    Text(LocalizedStringKey(settlementFailure.key))
+                                        .cyText(.body)
+                                        .foregroundStyle(CYColor.dangerText)
+                                        .accessibilityIdentifier("merchant.prediction.settlementFailure")
+                                }
+                                if let settlementWinners {
+                                    LabeledContent("merchantMarketing.winners", value: String(settlementWinners))
+                                        .accessibilityIdentifier("merchantMarketing.winners")
+                                }
+                            } else {
+                                ForEach(selected.round.options) { option in
+                                    LabeledContent { Text(verbatim: option.label) } label: { Text(verbatim: option.key) }
+                                        .accessibilityIdentifier("merchant.prediction.review.option.\(option.key)")
+                                }
                             }
                         }
                         Section {
@@ -331,8 +395,45 @@ extension MerchantPredictionReading {
             .cyDomainSheet(detents: [.half, .full])
             .themeDomain(.merchant)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { model.close(id: selected.id) } } }
-            .onAppear { model.didPresent(id: selected.id) }
+            .onAppear {
+                resetSettlementChoice()
+                model.didPresent(id: selected.id)
+            }
             .onDisappear { model.close(id: selected.id); model.didDismiss(id: selected.id) }
+            .onChange(of: selected.id) { _, _ in resetSettlementChoice() }
+        }
+    }
+
+    private func resetSettlementChoice() {
+        settlementChoice = nil
+        settlementAcknowledged = false
+        settlementPublishing = false
+        settlementFailure = nil
+        settlementWinners = nil
+    }
+
+    private func publishSettlement(_ round: MerchantPredictionInboxRound, service: MerchantMarketingService) async {
+        guard let settlementChoice, settlementAcknowledged, !settlementPublishing, settlementWinners == nil,
+              service.permitsSettlement else { return }
+        settlementPublishing = true
+        defer { settlementPublishing = false }
+        do {
+            let rounds = try await service.inbox()
+            guard let match = rounds.first(where: {
+                $0.nodeID == String(round.nodeID) && $0.playDay == round.playDay
+                    && $0.options.contains { $0.key == settlementChoice }
+            }) else {
+                settlementFailure = .stale
+                return
+            }
+            let review = try await service.prepare(round: match, optionKey: settlementChoice)
+            let receipt = try await service.settle(review, acknowledgedCouponEffects: true)
+            settlementWinners = receipt.winners
+            await model.load()
+        } catch let error as MerchantMarketingFailure {
+            settlementFailure = error
+        } catch {
+            settlementFailure = .unknown
         }
     }
 }

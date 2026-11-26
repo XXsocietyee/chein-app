@@ -4,7 +4,8 @@ import FoundationNetworking
 #endif
 
 /// Same paths as `ChinaReviewedRouteCapability.ownerDecisionGuardGrant`.
-/// Reads are admitted. Payout and merchant writes also need `ReviewedAreaSwitch`, which stays closed on www.chengyinhub.com.
+/// Reads are admitted. Payout writes follow the payout switch, including www.chengyinhub.com.
+/// Merchant content writes stay closed on that host.
 enum OwnerDecisionGuardLease {
     static let paths: Set<String> = [
         "api/club/personal-receiver/status",
@@ -14,14 +15,13 @@ enum OwnerDecisionGuardLease {
 
     static func admits(relative: String, method: String, body: Data?, host: String?) -> Bool {
         guard paths.contains(relative) else { return false }
-        let production = host?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == ReviewedAreaSwitch.productionAPIHost
         if relative == "api/club/personal-receiver/status" {
             return method == "GET" && (body == nil || body?.isEmpty == true)
         }
         if relative == "api/merchant/payout-account" {
             return method == "POST" && (body == nil || body?.isEmpty == true)
         }
-        guard !production, !ReleaseMoneyWriteSwitch.blocks("/" + relative), ReviewedAreaSwitch.payout(host: host) else { return false }
+        guard !ReleaseMoneyWriteSwitch.blocks("/" + relative), ReviewedAreaSwitch.payout(host: host) else { return false }
         if relative.hasPrefix("api/merchant/") {
             guard ReviewedAreaSwitch.merchantWrites(host: host) else { return false }
         }
@@ -360,7 +360,7 @@ extension ReviewedProductionFormMutationRoute {
         case "api/coupon/usability":
             return request.httpBody == nil || request.httpBody?.isEmpty == true
         case "api/marketing/group-checkout/create", "api/marketing/product/activate":
-            let open = MPCommerceGate.purchasesEnabled && ReviewedAreaSwitch.moneyPayments(host: baseURL.host)
+            let open = ReviewedAreaSwitch.moneyPayments(host: baseURL.host)
             return open && wp07WriteBody(request, relative: relative)
         default:
             return false
@@ -581,6 +581,8 @@ enum ReviewedPlayerReadRoute {
     private var roamPrivateToolsWriteByContext: [String: RoamPrivateToolsAccess] = [:]
     private var roamPassportToolsByContext: [String: RoamPassportToolsReadAccess] = [:]
     private var roamPassportHistoryByContext: [String: RoamPassportHistoryReadAccess] = [:]
+    private var roamEntryNearbyByContext: [String: RoamEntryNearbyReadAccess] = [:]
+    private var roamNearbyPlayersByContext: [String: RoamNearbyPlayersReadAccess] = [:]
     private var teamReadByContext: [String: TeamReadApproval] = [:]
     private var growthNormalReadByContext: [String: GrowthNormalReadApproval] = [:]
     private var nearbyTeamReadByContext: [String: OperationEndpointApproval] = [:]
@@ -1202,6 +1204,30 @@ enum ReviewedPlayerReadRoute {
         return access
     }
 
+    /// ROAM-7: `GET /api/roam/entry/nearby`. China player/club/merchant only. A public guest uses the composition path, not this lease.
+    func roamEntryNearby(_ context: RuntimeDependencyContext) -> RoamEntryNearbyReadAccess? {
+        guard context.market == .china, ["player", "club", "merchant"].contains(context.role) else { return nil }
+        let key = contextKey(context)
+        if let existing = roamEntryNearbyByContext[key], existing.matches(context) { return existing }
+        roamEntryNearbyByContext[key]?.revoke()
+        guard let endpoints = makeEndpoint(context, paths: [RoamEntryNearbyRoute.path]),
+              let issued = try? RoamEntryNearbyReadAccess(context: context, approval: endpoints) else { return nil }
+        roamEntryNearbyByContext[key] = issued
+        return issued
+    }
+
+    /// ROAM-7: `POST /api/roam/nearby-runners`. Signed-in China player/club/merchant. Not a guest read.
+    func roamNearbyPlayers(_ context: RuntimeDependencyContext) -> RoamNearbyPlayersReadAccess? {
+        guard context.market == .china, ["player", "club", "merchant"].contains(context.role) else { return nil }
+        let key = contextKey(context)
+        if let existing = roamNearbyPlayersByContext[key], existing.matches(context) { return existing }
+        roamNearbyPlayersByContext[key]?.revoke()
+        guard let endpoints = makeEndpoint(context, paths: [RoamNearbyPlayersReadRoute.path]),
+              let issued = try? RoamNearbyPlayersReadAccess(context: context, approval: endpoints) else { return nil }
+        roamNearbyPlayersByContext[key] = issued
+        return issued
+    }
+
     func teamRead(_ context: RuntimeDependencyContext) -> TeamReadApproval? {
         guard context.market == .china, ["player", "club", "merchant"].contains(context.role) else { return nil }
         let key = contextKey(context)
@@ -1423,6 +1449,7 @@ enum ReviewedPlayerReadRoute {
             configuration: playConfiguration(context),
             businessConfiguration: businessConfiguration,
             couponCodeApproval: couponCodeApproval,
+            clubGovernanceApproval: playerWritesEnabled ? MPFirstClubApprovals.governance(context) : nil,
             merchantBusinessApproval: MPFirstMerchantApprovals.business(context),
             merchantEngagementApproval: MPFirstMerchantApprovals.engagement(context),
             orderLifecycleConfiguration: orderConfiguration,

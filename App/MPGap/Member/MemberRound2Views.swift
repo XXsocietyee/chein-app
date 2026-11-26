@@ -122,7 +122,12 @@ public struct ParticipationDetailGapSections: View {
 
             if isFreeExplore {
                 Section {
-                    Button("participation.freeExploreBundle", action: onOpenFreeExploreBundle)
+                    Button(action: onOpenFreeExploreBundle) {
+                        Text("participation.freeExploreBundle").cyText(.body)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                    }
+                    .accessibilityIdentifier("playerJourney.freeExploreBundle")
                 }
             }
 

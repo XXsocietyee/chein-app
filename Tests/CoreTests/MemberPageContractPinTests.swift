@@ -58,7 +58,7 @@ final class MemberPageContractPinTests: XCTestCase {
     }
 
     func testCouponSummaryPinsPost() {
-        XCTAssertEqual(MerchantBusinessMutation.couponSummary, "api/merchant/coupon-summary")
+        XCTAssertEqual(MerchantOpsWp03Catalog.couponSummary, "api/merchant/coupon-summary")
         XCTAssertEqual("POST", "POST")
     }
 
@@ -80,7 +80,7 @@ final class MemberPageContractPinTests: XCTestCase {
         XCTAssertEqual(["code", "requestId"], ["code", "requestId"])
     }
 
-    func testGiftClaimPinsTokenAndRequestIdAndSendsNothing() throws {
+    func testGiftClaimPinsTokenAndRequestIdAndSendsNothing() async throws {
         XCTAssertFalse(PlatformPass.moneyEnabled)
         XCTAssertFalse(PlatformPass.writesReachable)
         XCTAssertEqual(PlatformPass.claimPath, "api/marketing/product/gifts/claim")
@@ -88,7 +88,10 @@ final class MemberPageContractPinTests: XCTestCase {
         XCTAssertEqual(["token", "requestId"], ["token", "requestId"])
         let transport = MemberPagePinTransport()
         let client = try passClient(transport)
-        XCTAssertThrowsError(try client.claim(giftToken: "gift", requestID: "req", token: "synthetic")) { error in
+        do {
+            _ = try await client.claim(giftToken: "gift", requestID: "req", token: "synthetic")
+            XCTFail("claim")
+        } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
         XCTAssertTrue(transport.requests.isEmpty)
@@ -128,7 +131,7 @@ final class MemberPageContractPinTests: XCTestCase {
         XCTAssertEqual("GET", "GET")
     }
 
-    func testProductQuotePinsFieldsAndSendsNothing() throws {
+    func testProductQuotePinsFieldsAndSendsNothing() async throws {
         XCTAssertFalse(PlatformPass.moneyEnabled)
         XCTAssertFalse(PlatformPass.writesReachable)
         XCTAssertEqual(PlatformPass.quotePath, "api/marketing/product/quote")
@@ -136,13 +139,16 @@ final class MemberPageContractPinTests: XCTestCase {
         XCTAssertEqual(["productId", "quantity", "fulfillmentKind"], ["productId", "quantity", "fulfillmentKind"])
         let transport = MemberPagePinTransport()
         let client = try passClient(transport)
-        XCTAssertThrowsError(try client.quote(productID: "9", token: "synthetic")) { error in
+        do {
+            _ = try await client.quote(productID: "9", token: "synthetic")
+            XCTFail("quote")
+        } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
         XCTAssertTrue(transport.requests.isEmpty)
     }
 
-    func testProductOrderPinsFieldsAndSendsNothing() throws {
+    func testProductOrderPinsFieldsAndSendsNothing() async throws {
         XCTAssertFalse(PlatformPass.moneyEnabled)
         XCTAssertFalse(PlatformPass.writesReachable)
         XCTAssertEqual(PlatformPass.orderPath, "api/marketing/product/order")
@@ -152,20 +158,26 @@ final class MemberPageContractPinTests: XCTestCase {
             ["productId", "payMode", "quantity", "fulfillmentKind", "quoteSign", "quoteExpiresAt", "requestId"])
         let transport = MemberPagePinTransport()
         let client = try passClient(transport)
-        XCTAssertThrowsError(try client.order(productID: "9", token: "synthetic")) { error in
+        do {
+            _ = try await client.order(productID: "9", token: "synthetic", payMode: 1, quoteSign: "sign", quoteExpiresAt: 1, requestID: "mkp_1")
+            XCTFail("order")
+        } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
         XCTAssertTrue(transport.requests.isEmpty)
     }
 
-    func testProductOrderPayPinsPostAndSendsNothing() throws {
+    func testProductOrderPayPinsPostAndSendsNothing() async throws {
         XCTAssertFalse(PlatformPass.moneyEnabled)
         XCTAssertFalse(PlatformPass.writesReachable)
         XCTAssertEqual(PlatformPass.productOrderPayPath, "api/marketing/product/orders/{}/pay")
         XCTAssertEqual("POST", "POST")
         let transport = MemberPagePinTransport()
         let client = try passClient(transport)
-        XCTAssertThrowsError(try client.payProductOrder(orderNo: "NO1", token: "synthetic")) { error in
+        do {
+            _ = try await client.payProductOrder(orderNo: "NO1", token: "synthetic")
+            XCTFail("pay")
+        } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
         XCTAssertTrue(transport.requests.isEmpty)

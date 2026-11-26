@@ -36,8 +36,16 @@ import SwiftUI
                         if let day = group.dayKey { Text(verbatim: day) } else { Text("withdrawal.history.dateUnknown") }
                     }
                 }
-                if model.page?.mayHaveMore == true {
-                    Text("wallet.sourceLimited").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                // FIN-19-1: tixianjilu shows 加载更多 while another page exists.
+                // loadMore is the existing read; a failure keeps the rows already on screen.
+                if model.hasMore {
+                    Button("wallet.loadMore") { Task { await model.loadMore() } }
+                        .frame(minHeight: 44)
+                        .accessibilityIdentifier("withdrawal.history.loadMore")
+                }
+                if model.loadMoreFailed {
+                    Text("withdrawal.history.failed.detail").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("withdrawal.history.loadMoreFailed")
                 }
             case .empty:
                 CYEmptyState(systemImage: "tray", "wallet.withdrawals.emptyTitle", messageIdentifier: "withdrawal.history.empty")

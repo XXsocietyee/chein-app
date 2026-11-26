@@ -4,7 +4,7 @@ import XCTest
 import FoundationNetworking
 #endif
 
-/// Purchase, quote, order, and claim are compiled and refuse before any request. Money stays off.
+/// Purchase stays refused. Quote, order, pay, and claim throw while no payment host is installed, and send once it is.
 final class PlatformPassPurchaseUnreachableTests: XCTestCase {
     func testPurchaseAndClaimStayUnreachableWhileMoneyIsOff() async throws {
         XCTAssertFalse(PlatformPass.moneyEnabled)
@@ -27,14 +27,23 @@ final class PlatformPassPurchaseUnreachableTests: XCTestCase {
         XCTAssertThrowsError(try reader.purchase(planCode: "YEAR", channel: "XPAY", token: "session-token")) {
             XCTAssertEqual($0 as? PlatformPassWriteRefusal, .unreachable)
         }
-        XCTAssertThrowsError(try reader.quote(productID: "9", token: "session-token")) {
-            XCTAssertEqual($0 as? PlatformPassWriteRefusal, .unreachable)
+        do {
+            _ = try await reader.quote(productID: "9", token: "session-token")
+            XCTFail("quote")
+        } catch {
+            XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
-        XCTAssertThrowsError(try reader.order(productID: "9", token: "session-token")) {
-            XCTAssertEqual($0 as? PlatformPassWriteRefusal, .unreachable)
+        do {
+            _ = try await reader.order(productID: "9", token: "session-token", payMode: 1, quoteSign: "sign", quoteExpiresAt: 1, requestID: "mkp_1")
+            XCTFail("order")
+        } catch {
+            XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
-        XCTAssertThrowsError(try reader.claim(giftToken: "gift-token", requestID: "gift_1", token: "session-token")) {
-            XCTAssertEqual($0 as? PlatformPassWriteRefusal, .unreachable)
+        do {
+            _ = try await reader.claim(giftToken: "gift-token", requestID: "gift_1", token: "session-token")
+            XCTFail("claim")
+        } catch {
+            XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
         XCTAssertEqual(wire.requests.count, 1)
         XCTAssertEqual(wire.requests.map { $0.httpMethod ?? "" }, ["GET"])
@@ -83,11 +92,91 @@ final class PlatformPassPurchaseUnreachableTests: XCTestCase {
         } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
-        XCTAssertThrowsError(try reader.payPassOrder(orderNo: "PP1", jsCode: "js", token: "session-token")) {
-            XCTAssertEqual($0 as? PlatformPassWriteRefusal, .unreachable)
+        do {
+            _ = try await reader.payPassOrder(orderNo: "PP1", jsCode: "js", token: "session-token")
+            XCTFail("pay")
+        } catch {
+            XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
         XCTAssertEqual(wire.requests.count, 1)
         XCTAssertFalse(PlatformPass.moneyEnabled)
+    }
+
+    /// Owner 2026-11-25: an installed host, including www.chengyinhub.com, turns payment on.
+    /// Quote, order, pay, and gift claim then send the existing paths. A missing host still throws.
+    /// Virtual goods stay off, and purchase still throws because it would pick a channel.
+    func testQuoteOrderPayAndClaimSendWhenAPaymentHostIsInstalled() async throws {
+        defer { ReleaseMoneyWriteSwitch.testDerivation = nil }
+        ReleaseMoneyWriteSwitch.testDerivation = nil
+        let closed = Wire()
+        let refused = try PlatformPass(configuration: APIConfiguration(baseURL: URL(string: "https://www.chengyinhub.com/prod-api/")!), transport: closed)
+        do {
+            _ = try await refused.quote(productID: "9", token: "session-token")
+            XCTFail("missing host")
+        } catch {
+            XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
+        }
+        XCTAssertTrue(closed.requests.isEmpty)
+
+        ReleaseMoneyWriteSwitch.testDerivation = { $0 == .virtualGoods }
+        XCTAssertTrue(ReleaseMoneyWriteSwitch.virtualGoodsEnabled)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.paymentEnabled)
+        do {
+            _ = try await refused.payProductOrder(orderNo: "MO1", token: "session-token")
+            XCTFail("virtual goods")
+        } catch {
+            XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
+        }
+        XCTAssertTrue(closed.requests.isEmpty)
+
+        ReleaseMoneyWriteSwitch.testDerivation = { kind in
+            switch kind {
+            case .payment, .payout, .withdrawal, .refund, .hostCancelRefund: return true
+            case .virtualGoods: return false
+            }
+        }
+        XCTAssertTrue(ReleaseMoneyWriteSwitch.paymentEnabled)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.virtualGoodsEnabled)
+        let wire = Wire()
+        wire.body = Data(#"{"code":200,"data":{"productId":9,"quantity":1,"fulfillmentKind":1,"quoteSign":"sig","quoteExpiresAt":1700000000000,"availablePayModes":[1],"orderNo":"MO1","statusLabel":"PAID","registrationId":"11"}}"#.utf8)
+        let client = try PlatformPass(configuration: APIConfiguration(baseURL: URL(string: "https://www.chengyinhub.com/prod-api/")!), transport: wire)
+        let quote = try await client.quote(productID: "9", token: "session-token")
+        XCTAssertEqual(quote.quoteSign, "sig")
+        XCTAssertEqual(quote.availablePayModes, [1])
+        let ordered = try await client.order(productID: "9", token: "session-token", payMode: 1, quoteSign: "sig", quoteExpiresAt: 1_700_000_000_000, requestID: "mkp_1")
+        XCTAssertEqual(ordered.orderNo, "MO1")
+        let paid = try await client.payProductOrder(orderNo: "MO1", token: "session-token")
+        XCTAssertEqual(paid.orderNo, "MO1")
+        let passPaid = try await client.payPassOrder(orderNo: "PP1", jsCode: "js", token: "session-token")
+        XCTAssertEqual(passPaid.orderNo, "PP1")
+        let emptyCode = try await client.payPassOrder(orderNo: "PP1", jsCode: "", token: "session-token")
+        XCTAssertEqual(emptyCode.orderNo, "PP1")
+        let claimed = try await client.claim(giftToken: "gift-token", requestID: "gift_1", token: "session-token")
+        XCTAssertEqual(claimed.registrationID, "11")
+        XCTAssertThrowsError(try client.purchase(planCode: "YEAR", channel: "XPAY", token: "session-token")) {
+            XCTAssertEqual($0 as? PlatformPassWriteRefusal, .unreachable)
+        }
+        XCTAssertEqual(wire.requests.map { $0.httpMethod }, ["POST", "POST", "POST", "POST", "POST", "POST"])
+        XCTAssertEqual(wire.requests.map { $0.url?.path }, [
+            "/prod-api/api/marketing/product/quote",
+            "/prod-api/api/marketing/product/order",
+            "/prod-api/api/marketing/product/orders/MO1/pay",
+            "/prod-api/api/platform-pass/orders/PP1/pay",
+            "/prod-api/api/platform-pass/orders/PP1/pay",
+            "/prod-api/api/marketing/product/gifts/claim"
+        ])
+        XCTAssertEqual(wire.requests.map { $0.httpBody }, [
+            Data(#"{"fulfillmentKind":1,"productId":9,"quantity":1}"#.utf8),
+            Data(#"{"fulfillmentKind":1,"payMode":1,"productId":9,"quantity":1,"quoteExpiresAt":1700000000000,"quoteSign":"sig","requestId":"mkp_1"}"#.utf8),
+            Data("{}".utf8),
+            Data(#"{"jsCode":"js"}"#.utf8),
+            Data("{}".utf8),
+            Data(#"{"requestId":"gift_1","token":"gift-token"}"#.utf8)
+        ])
+        XCTAssertTrue(wire.requests.allSatisfy { body in
+            let text = String(data: body.httpBody ?? Data(), encoding: .utf8) ?? ""
+            return !text.contains("channel") && !text.contains("provider") && !text.contains("XPAY")
+        })
     }
 
     private final class Wire: HTTPTransport, @unchecked Sendable {

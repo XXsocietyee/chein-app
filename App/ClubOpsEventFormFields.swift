@@ -5,6 +5,9 @@ import SwiftUI
     let operation: ClubGovernanceMutation
     @Binding var capacity: String
     @Binding var waitlist: Bool
+    /// CLB-event-ops-06 (MP event-ops wxml:253, js:581): the selected topic's facts from the eventTopics read.
+    /// A multi-ticket topic (`sessionTicketCount > 1`) keeps each ticket's capacity, so the field is hidden.
+    var topicFact: ClubOpsEventTopicFact? = nil
     var body: some View {
         if operation == .updateSeries {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
@@ -18,6 +21,7 @@ import SwiftUI
                 Text("clubOpsEvent.recurrence.note", tableName: "ClubOpsEvent").cyText(.bodyCompact).foregroundStyle(.secondary)
                 Text("clubOpsEvent.refundAnchor", tableName: "ClubOpsEvent").cyText(.bodyCompact).foregroundStyle(.secondary)
             }
+            if topicFact?.showsCapacity ?? true {
             VStack(alignment: .leading, spacing: 6) {
                 Text("clubOpsEvent.section.capacity", tableName: "ClubOpsEvent").cyText(.cardTitle)
                 Text("clubOpsEvent.capacity.note", tableName: "ClubOpsEvent").cyText(.bodyCompact).foregroundStyle(.secondary)
@@ -30,6 +34,7 @@ import SwiftUI
                 }
                 Text("clubOpsEvent.capacity.help", tableName: "ClubOpsEvent").cyText(.meta).foregroundStyle(.secondary)
             }
+            }
             Toggle("club.gov.field.waitlistEnabled", isOn: $waitlist).accessibilityIdentifier("club.gov.input.waitlistEnabled")
         }
     }
@@ -39,8 +44,18 @@ import SwiftUI
 @MainActor struct ClubOpsEventOfferHelp: View {
     let minutes: String
     let visible: Bool
+    private var offerReadout: String? {
+        guard let value = Int(minutes.trimmingCharacters(in: .whitespaces)) else { return nil }
+        let text = ClubEventOpsFormRules.offerWindowText(minutes: value)
+        return text.isEmpty ? nil : text
+    }
     var body: some View {
         if visible {
+            // CLB-event-ops-06 (MP event-ops wxml:264, js:233 offerWindowText): the 候补认领时长 readout, e.g. 「1 天」.
+            if let readout = offerReadout {
+                Text(verbatim: readout).cyText(.bodyCompact, weight: .semibold)
+                    .accessibilityIdentifier("clubOpsEvent.offer.readout")
+            }
             Text("clubOpsEvent.offer.placeholder", tableName: "ClubOpsEvent").cyText(.meta).foregroundStyle(.secondary)
             Text("clubOpsEvent.offer.help", tableName: "ClubOpsEvent").cyText(.meta).foregroundStyle(.secondary)
         }
@@ -91,5 +106,17 @@ enum ClubOpsEventFormCopy {
         // CLB-group-code-04 (fix-r3-club-b): MP sheet title 活动核验团码.
         if route.operation == .issueGroupCode { return Text("clubR3b.groupCode.title") }
         return Text(LocalizedStringKey("club.gov.action." + route.operation.rawValue))
+    }
+}
+
+/// CLB-event-ops-06: the eventTopics fact for the topic a create-series form was opened from.
+/// Set by ClubSeriesCreationPresentationOwner; nil keeps the capacity field (the MP default ticketCount 1).
+private struct ClubOpsEventTopicFactKey: EnvironmentKey {
+    static let defaultValue: ClubOpsEventTopicFact? = nil
+}
+extension EnvironmentValues {
+    var clubOpsEventTopicFact: ClubOpsEventTopicFact? {
+        get { self[ClubOpsEventTopicFactKey.self] }
+        set { self[ClubOpsEventTopicFactKey.self] = newValue }
     }
 }

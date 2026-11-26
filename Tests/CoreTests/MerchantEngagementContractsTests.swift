@@ -119,6 +119,9 @@ final class MerchantEngagementContractsTests: XCTestCase {
     func testInactiveAccessIsValidOnlyForInvitationContext() throws {
         let access = try MerchantEngagementAccess(["active":.bool(false),"permissions":.array([])])
         XCTAssertNil(access.merchantID); XCTAssertThrowsError(try access.require(["merchant:crm:read"]))
+        let command = MerchantEngagementCommand.acceptInvitation(try .init(token: "synthetic-invitation-token"))
+        XCTAssertTrue(MerchantCoopLiveWrites.admitsAccept(command, merchantID: 0))
+        XCTAssertFalse(MerchantCoopLiveWrites.admitsAccept(.contact(try .init(61001), .copy), merchantID: 0))
     }
     func testInviteRoutePreservesTokenButRejectsDuplicateQuery() throws {
         let route = try MerchantOperatorInviteRoute(path: "/merchant/team", queryItems: [.init(name: "invite", value: "synthetic-invitation-token")])

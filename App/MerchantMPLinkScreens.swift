@@ -34,7 +34,7 @@ import SwiftUI
     var body: some View {
         Group {
             if let reader = session.merchantPredictionReader {
-                MerchantPredictionInboxView(reader: reader.isolatedReader())
+                MerchantPredictionInboxView(reader: reader.isolatedReader(), settlement: session.merchantMarketingCoordinator.service)
             } else {
                 MerchantSignInState(title: "merchant.predict.signIn", identifier: "merchant.predict.link.signIn")
             }
