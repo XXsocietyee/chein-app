@@ -59,6 +59,33 @@ struct ProfileOrdersView: View {
             }
         }
     }
+    /// One history row: the card link, the NIT-R11-1 visible menu, and the R7-MEM-16-1 swipe / context actions.
+    @ViewBuilder private func orderListRow(_ order: ProfileOrder, now: Date) -> some View {
+        HStack {
+            NavigationLink { ProfileOrderDetailView(id: order.id, reader: reader, lifecycleCoordinator: lifecycleCoordinator, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, ticketReader: ticketReader, orderSupport: orderSupport, lookedUpOrderID: lookedUpOrderID, onOpenedOrder: { [owner = filterOwner] in lookupOpenedOrder($0, expectedOwner: owner) }) } label: {
+                ProfileOrderRow(order: order, historyState: order.historyState(now: now), statusKey: order.historyTagKey(now: now))
+            }
+            .accessibilityIdentifier("profile.order.\(order.id)")
+            // NIT-R11-1: MP order-history card shows its buttons (index.wxml:84-90); a visible menu makes them discoverable.
+            if hasCardAction(order) {
+                Menu { cardExitButton(order) } label: {
+                    Label("profile.orderExit.more", systemImage: "ellipsis.circle").labelStyle(.iconOnly)
+                        .frame(minWidth: 44, minHeight: 44)
+                }
+                .buttonStyle(.borderless)
+                .accessibilityIdentifier("profile.order.cardMenu.\(order.id)")
+            }
+        }
+        // R7-MEM-16-1: MP order-history card 取消订单 / 取消报名 (index.wxml:84-90) as the native
+        // swipe action and context menu; it opens the reviewed cancel flow (MP confirm + 处理中).
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) { cardExitButton(order) }
+        .contextMenu { cardExitButton(order) }
+    }
+    private func hasCardAction(_ order: ProfileOrder) -> Bool {
+        guard let lifecycleCoordinator,
+              lifecycleCoordinator.hasReviewedWriter || lifecycleCoordinator.canDispatch || lifecycleCoordinator.canSimulate else { return false }
+        return order.cardPayNowShown || order.cardExitKey != nil
+    }
     private var filterOwner: ProfileOrderFilterOwner {
         .init(readerID: ObjectIdentifier(reader), identity: reader.identity, isConfigured: reader.isConfigured)
     }
@@ -124,14 +151,7 @@ struct ProfileOrdersView: View {
                         }
                         Section {
                             ForEach(matches) { order in
-                                NavigationLink { ProfileOrderDetailView(id: order.id, reader: reader, lifecycleCoordinator: lifecycleCoordinator, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, ticketReader: ticketReader, orderSupport: orderSupport, lookedUpOrderID: lookedUpOrderID, onOpenedOrder: { [owner = filterOwner] in lookupOpenedOrder($0, expectedOwner: owner) }) } label: {
-                                    ProfileOrderRow(order: order, historyState: order.historyState(now: clock.date), statusKey: order.historyTagKey(now: clock.date))
-                                }
-                                .accessibilityIdentifier("profile.order.\(order.id)")
-                                // R7-MEM-16-1: MP order-history card 取消订单 / 取消报名 (index.wxml:84-90) as the native
-                                // swipe action and context menu; it opens the reviewed cancel flow (MP confirm + 处理中).
-                                .swipeActions(edge: .trailing, allowsFullSwipe: false) { cardExitButton(order) }
-                                .contextMenu { cardExitButton(order) }
+                                orderListRow(order, now: clock.date)
                             }
                             if historyMore, ProfileOrderSearch.isIdle(orderQuery) {
                                 Group {
