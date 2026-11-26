@@ -12,9 +12,10 @@ class ClubHostApplicationMaterialsContracts(unittest.TestCase):
 
     def test_normal_existing_host_apply_owns_the_material_model(self):
         self.assertIn('@StateObject private var hostMaterials = ClubHostApplicationMaterials()', self.form)
-        # The 资质/案例图 picker is intentionally unmounted until an upload path exists; the model still owns the gate.
+        # CLB-apply-05 (35cb3f59b): 资质/案例图 now upload through the shared uploader (ClubHostCertImagesSection) into
+        # `certImages`; the old materials rows stay unmounted and the model still owns the review gate.
         self.assertNotIn('ClubHostApplicationMaterialsRows(', self.form)
-        self.assertIn('so the picker stays hidden until uploads exist (ClubHostApplicationMaterialsRows)', self.form)
+        self.assertIn('ClubHostCertImagesSection(urlsText: textBinding("certImages"), disabled: busy || locked || review != nil)', self.form)
         self.assertIn('(route.operation != .hostApply || key != "certImages")', self.form)
 
     def test_only_host_pending_materials_gate_review_and_prepare(self):

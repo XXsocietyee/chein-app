@@ -117,9 +117,11 @@ class ClubNotificationAudienceContracts(unittest.TestCase):
     def test_rows_use_current_stamp_and_borderless_hit_regions(self):
         for token in ['guard canEdit(), isCurrent(), model.canSelect(option.id, snapshotID: snapshot, permit: permit, access: access)',
                       '.disabled(!canEdit() || !option.enabled)', '.contentShape(Rectangle())',
-                      '.buttonStyle(.cyPressable)', '.buttonStyle(.borderless)',
+                      # native-r2 club round 2: the row buttons use the system List style (whole-row hit region).
+                      '.buttonStyle(.borderless)',
                       'Task { await model.load(permit, access: access, isCurrent: isCurrent) }']:
             self.assertIn(token, self.view)
+        self.assertNotIn('.buttonStyle(.plain)', self.view)
 
     def test_new_catalog_has_both_languages_and_only_own_key(self):
         strings = json.loads((ROOT / 'Resources/ClubNotificationAudience.xcstrings').read_text())['strings']

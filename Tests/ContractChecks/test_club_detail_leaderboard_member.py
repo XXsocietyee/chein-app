@@ -39,7 +39,7 @@ class ClubDetailLeaderboardMemberTests(unittest.TestCase):
             "operation: .customer",
             "club.detail.leaderboard.member.public",
             "club.detail.leaderboard.member.customer",
-            "table: \"ClubPublicRoster\"",
+            "tableName: \"ClubPublicRoster\"",  # native-r2 club round 2: confirmationDialog Text(..., tableName:)
         ):
             self.assertIn(token, board)
         gap = board.split("if let hidden = row.hiddenCount", 1)[1].split("} else {", 1)[0]

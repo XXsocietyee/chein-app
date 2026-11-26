@@ -65,7 +65,8 @@ class MerchantClubDiscoveryContracts(unittest.TestCase):
         self.assertNotIn('clubLocality(token:', extension)
 
     def test_app_session_reads_with_credential_and_scope_fences_without_expiring_optional_read(self):
-        source = self.read('App/AppSession.swift')
+        # f967221a1 moved the AppSession merchant/club readers into AppSession+DiscoveryReading.swift.
+        source = self.read('App/AppSession.swift') + self.read('App/AppSession+DiscoveryReading.swift')
         locality = source.split('func clubMerchantLocality()', 1)[1].split('func clubHome()', 1)[0]
         self.assertIn('captured.isMerchantViewer', locality)
         self.assertEqual(locality.count('clubDiscoveryScope == captured, token == credential'), 2)
@@ -74,7 +75,7 @@ class MerchantClubDiscoveryContracts(unittest.TestCase):
         self.assertIn('captured.merchantID == result.merchantID', locality)
 
     def test_access_refresh_cannot_expire_a_new_scope_or_canceled_request(self):
-        source = self.read('App/AppSession.swift')
+        source = self.read('App/AppSession.swift') + self.read('App/AppSession+DiscoveryReading.swift')
         method = source.split('private func readMerchant<Value>', 1)[1].split('func merchantAccess()', 1)[0]
         catch = method.split('} catch {', 1)[1]
         self.assertLess(catch.index('expectedDiscoveryScope == nil || !Task.isCancelled'), catch.index('expireIfMatching'))
@@ -99,7 +100,7 @@ class MerchantClubDiscoveryContracts(unittest.TestCase):
         self.assertIn('''if !discoveryScope.isMerchantViewer {
                         NavigationLink {
                             ClubOwnedView(''', source)
-        self.assertIn('CYListRow("club.owned", trailing: .chevron)', source)
+        self.assertIn('Label("club.owned", systemImage: "person.crop.circle")', source)  # native-r2 club round 2
         self.assertIn('clubRows(home.joined, identifier: "club.home.joined", section: .joined, page: page)', source)
         self.assertIn('let nearby = locality.nearby(home.nearby, in: discoveryScope)', source)
         # Merchant viewers get the locality list only: the owned/joined list is in the non-merchant branch.
@@ -112,8 +113,8 @@ class MerchantClubDiscoveryContracts(unittest.TestCase):
         for marker in ['club.locality.loading', 'club.locality.unavailable', 'club.home.locality.retry',
                        'club.locality.ready', 'club.tab.empty.merchant']:
             self.assertIn(marker, source)
-        self.assertIn('actionTitle: "action.retry"', source)
-        self.assertIn(') { Task { await loadLocality() } }', source)
+        # native-r2 club round 2: ContentUnavailableView with a system retry button, same action and identifier.
+        self.assertIn('Button("action.retry") { Task { await loadLocality() } }', source)
 
     def test_bilingual_fragment_is_merged_without_empty_strings(self):
         fragment = json.loads(self.read('Resources/MerchantClubDiscoveryLocalizations.fragment.json'))

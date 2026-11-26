@@ -121,7 +121,8 @@ class ClubOpsGovernanceContracts(unittest.TestCase):
 
     def test_ban_body_sends_duration_days_7_30_90(self):
         self.assertIn('requiredKeys = ["targetMemberId", "reason", "requestId", "durationDays"]', self.commands)
-        self.assertIn('guard let days = result["durationDays"]?.int, ClubGovernanceFormDraft.banDayChoices.contains(days)', self.commands)
+        # Integer-only: a string day count is rejected (stricter than `?.int`).
+        self.assertIn('guard let value = result["durationDays"], case .integer(let days) = value,\n                  ClubGovernanceFormDraft.banDayChoices.contains(days) else { throw ClubGovernanceFailure.invalidRequest }', self.commands)
         self.assertNotIn('expiresAtEpochMs', self.commands)
         self.assertNotIn('maximumClubBanMilliseconds', self.commands)
         self.assertIn('public static let banDayChoices = [7, 30, 90]', self.draft)

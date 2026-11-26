@@ -99,8 +99,9 @@ class ClubInvitationTermsContracts(unittest.TestCase):
         owner = span(self.source, "private struct ClubInvitationFeedbackDetailOwner", "private struct ClubInvitationFeedbackRowLabel")
         self.assertIn("guard current else { return nil }", owner)
         self.assertIn("return model.accepted(item.context,", owner)
-        self.assertIn('CYEmptyState(systemImage: "envelope", "cooperation.unavailable"', owner)
-        self.assertIn('CYSkeleton()', owner)
+        # native-r2 club round 2: ContentUnavailableView and ProgressView replace CYEmptyState and CYSkeleton.
+        self.assertIn('Label { Text("cooperation.unavailable").accessibilityIdentifier("club.inviteFeedback.detail.unavailable") } icon: { Image(systemName: "envelope") }', owner)
+        self.assertIn('ProgressView()', owner)
         self.assertIn('.accessibilityLabel(Text("club.loading"))', owner)
         self.assertIn(".task(id: current)", owner)
         self.assertIn("await model.load(permit, clubReader: clubReader, reader: reader, access: access,", owner)

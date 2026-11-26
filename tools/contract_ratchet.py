@@ -5,7 +5,7 @@ Runs every test_*.py module (one subprocess per module, in parallel), collects
 failing test ids and compares them with docs/release/contract-failing-baseline.txt.
 
   --check   exit 1 on a new failure or a baseline entry that now passes
-  --update  rewrite the baseline from this run (sorted)
+  --update  rewrite the baseline from this run (sorted; keeps `  # note` suffixes)
   (none)    just print the failing ids
 """
 import argparse
@@ -50,10 +50,21 @@ def run_suite(jobs):
     return sorted({t for _, ids in results for t in ids})
 
 
-def read_baseline():
+def read_notes():
+    """Map baseline id -> note. A line is `<id>` or `<id>  # <note>` (e.g. `# merchant release`)."""
+    notes = {}
     if not BASELINE.exists():
-        return []
-    return sorted(l.strip() for l in BASELINE.read_text().splitlines() if l.strip())
+        return notes
+    for line in BASELINE.read_text().splitlines():
+        name, _, note = line.partition('#')
+        name = name.strip()
+        if name:
+            notes[name] = note.strip()
+    return notes
+
+
+def read_baseline():
+    return sorted(read_notes())
 
 
 def main():
@@ -68,7 +79,8 @@ def main():
         return 0
     failing = run_suite(args.jobs)
     if args.update:
-        BASELINE.write_text(''.join(f'{t}\n' for t in failing))
+        notes = read_notes()
+        BASELINE.write_text(''.join(f'{t}  # {notes[t]}\n' if notes.get(t) else f'{t}\n' for t in failing))
         print(f'contract ratchet: baseline rewritten with {len(failing)} failing tests')
         return 0
     if not args.check:

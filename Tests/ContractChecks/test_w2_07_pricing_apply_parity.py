@@ -50,7 +50,8 @@ class W207PricingApplyParity(unittest.TestCase):
         self.assertIn('f["startDate"] = .string(range.start + " 00:00:00"); f["endDate"] = .string(range.end + " 23:59:59")', commands)
         editor = read('App/MerchantContentEditor.swift')
         self.assertIn('if case .registrationCreate = kind { applyDateSection }', editor)
-        self.assertIn('MerchantApplyXcx.firstMissing(', editor)
+        # 104580afa: the editor lists every missing field (allMissing) rather than only the first; dates still checked.
+        self.assertIn('MerchantApplyXcx.allMissing(\n                address: text["address"] ?? "", startDay: draft.createStartDay, endDay: draft.createEndDay,', editor)
         self.assertIn('MerchantApplyXcx.editBlock(status: s.value["status"].integer', editor)
 
 
