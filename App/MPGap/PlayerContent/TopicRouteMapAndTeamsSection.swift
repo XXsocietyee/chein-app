@@ -13,6 +13,7 @@ public struct TopicRouteMapAndTeamsSection: View {
     public var onOpenAllTeams: () -> Void = {}
     /// Nil: the cards are read-only rows (no dead button when the host has no opener).
     public var onSelectMerchant: ((TopicFreeExploreMerchantCard) -> Void)? = nil
+    @State private var selectedPinID: String?
 
     public init(
         pins: [TopicRouteNodePin],
@@ -51,7 +52,9 @@ public struct TopicRouteMapAndTeamsSection: View {
             }
 
             if !pins.isEmpty {
-                Map {
+                // R10-PC-B-N8: system `Marker`s numbered in route order (green when done); a tap selects the marker and
+                // hands the pin to the host, which opens it in Maps.
+                Map(selection: $selectedPinID) {
                     if !isFreeExplore && pins.count >= 2 {
                         MapPolyline(coordinates: pins.map {
                             CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude)
@@ -59,21 +62,16 @@ public struct TopicRouteMapAndTeamsSection: View {
                         .stroke(Color.accentColor, lineWidth: 3)
                     }
                     ForEach(pins) { pin in
-                        Annotation(pin.name, coordinate: CLLocationCoordinate2D(latitude: pin.latitude, longitude: pin.longitude)) {
-                            Button {
-                                onSelectPin(pin)
-                            } label: {
-                                // Numbered map pin (route order); system accent / green when done.
-                                Text("\(pin.sequence)")
-                                    .font(.caption.bold())
-                                    .monospacedDigit()
-                                    .foregroundStyle(.white)
-                                    .frame(width: 26, height: 26)
-                                    .background(pin.isCompleted ? Color.green : Color.accentColor, in: Circle())
-                            }
-                            .buttonStyle(.plain)
-                        }
+                        Marker(pin.name, monogram: Text(verbatim: "\(pin.sequence)"),
+                               coordinate: CLLocationCoordinate2D(latitude: pin.latitude, longitude: pin.longitude))
+                            .tint(pin.isCompleted ? Color.green : Color.accentColor)
+                            .tag(pin.id)
                     }
+                }
+                .onChange(of: selectedPinID) { _, id in
+                    guard let id, let pin = pins.first(where: { $0.id == id }) else { return }
+                    onSelectPin(pin)
+                    selectedPinID = nil
                 }
                 .mapControls {
                     MapCompass()
