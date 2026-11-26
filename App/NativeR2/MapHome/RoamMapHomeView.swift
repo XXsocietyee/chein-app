@@ -32,14 +32,13 @@ struct RoamMapHomeDependencies {
     var onOpenAccount: (() -> Void)? = nil
 }
 
-/// Native r2 漫游 tab root: a full-screen MapKit `Map` and one persistent bottom sheet (Apple Maps).
+/// Native r2 漫游 tab root: a full-screen MapKit `Map` and one persistent bottom panel (Apple Maps detents).
+/// The panel lives inside the tab, as in Find My, so the system tab bar stays visible under it.
 @MainActor struct RoamMapHomeView: View {
     let dependencies: RoamMapHomeDependencies
     @State private var model = RoamMapHomeModel()
     @State private var position: MapCameraPosition = .userLocation(fallback: .automatic)
-    @State private var sheetShown = false
     @State private var cameraArea: RoamSearchArea?
-    @Environment(\.rootTabSwitch) private var rootTabSwitch
     @ObservedObject private var cityLinks = CityDeepLinks.shared
 
     private var area: RoamSearchArea? { dependencies.entryReader?.searchArea ?? dependencies.roamReader.searchArea }
@@ -59,6 +58,37 @@ struct RoamMapHomeDependencies {
     }
 
     var body: some View {
+        GeometryReader { proxy in
+            map
+                .safeAreaPadding(.bottom, RoamMapHomePanelMetrics.mapInset(detent: model.detent, available: proxy.size.height))
+                .overlay(alignment: .bottom) {
+                    RoamMapHomePanel(detent: $model.detent, available: proxy.size.height) {
+                        RoamMapHomeSheet(model: model, dependencies: dependencies)
+                    }
+                }
+        }
+        .onChange(of: model.selectedPinID) { _, id in model.open(pinID: id) }
+        .onChange(of: model.path) { _, _ in model.pathChanged() }
+        .onChange(of: model.officialRoute) { _, route in
+            guard let route else { return }
+            fit(RoamMapHomePin.make(officialRoute: route).map(\.coordinate))
+        }
+        .task(id: (dependencies.entryReader?.readKey ?? "") + "|" + String(model.reloadGeneration)) {
+            await model.loadEntry(reader: dependencies.entryReader, teams: dependencies.entryTeams)
+        }
+        .task(id: placesKey) {
+            await model.loadPlaces(reader: dependencies.roamReader)
+            if placesKey.wantsStops { await model.loadStops(reader: dependencies.roamReader) }
+        }
+        .onChange(of: area, initial: true) { _, newArea in recentre(on: newArea) }
+        .onChange(of: cityLinks.pendingProperty, initial: true) { _, id in
+            // A City property deep link still opens on the City board (decision 1: the board is a map mode).
+            if id != nil, dependencies.cityBoardDestination != nil { model.showsCityBoard = true }
+        }
+    }
+
+    /// The map layer under the panel.
+    private var map: some View {
         Map(position: $position, selection: $model.selectedPinID) {
             UserAnnotation()
             ForEach(model.mapPins(reader: dependencies.entryReader, center: area?.coordinate)) { pin in
@@ -85,34 +115,6 @@ struct RoamMapHomeDependencies {
             MapScaleView()
         }
         .accessibilityIdentifier("city.roam.map")
-        .onAppear { sheetShown = true }
-        .onDisappear { if !model.coversMap { sheetShown = false } }
-        .sheet(isPresented: $sheetShown) {
-            RoamMapHomeSheet(model: model, dependencies: dependencies, onSwitchTab: switchTab(to:))
-                .presentationDetents([RoamMapHomeModel.peek, .medium, .large], selection: $model.detent)
-                .presentationBackgroundInteraction(.enabled(upThrough: .medium))
-                .presentationContentInteraction(.scrolls)
-                .presentationDragIndicator(.visible)
-                .interactiveDismissDisabled()
-        }
-        .onChange(of: model.selectedPinID) { _, id in model.open(pinID: id) }
-        .onChange(of: model.path) { _, _ in model.pathChanged() }
-        .onChange(of: model.officialRoute) { _, route in
-            guard let route else { return }
-            fit(RoamMapHomePin.make(officialRoute: route).map(\.coordinate))
-        }
-        .task(id: (dependencies.entryReader?.readKey ?? "") + "|" + String(model.reloadGeneration)) {
-            await model.loadEntry(reader: dependencies.entryReader, teams: dependencies.entryTeams)
-        }
-        .task(id: placesKey) {
-            await model.loadPlaces(reader: dependencies.roamReader)
-            if placesKey.wantsStops { await model.loadStops(reader: dependencies.roamReader) }
-        }
-        .onChange(of: area, initial: true) { _, newArea in recentre(on: newArea) }
-        .onChange(of: cityLinks.pendingProperty, initial: true) { _, id in
-            // A City property deep link still opens on the City board (decision 1: the board is a map mode).
-            if id != nil, dependencies.cityBoardDestination != nil { model.showsCityBoard = true }
-        }
     }
 
     private func recentre(on newArea: RoamSearchArea?) {
@@ -135,13 +137,5 @@ struct RoamMapHomeDependencies {
         withAnimation {
             position = .region(MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: (minLat + maxLat) / 2, longitude: (minLng + maxLng) / 2), span: span))
         }
-    }
-
-    /// The persistent sheet covers the tab bar (it is a real sheet, as in Maps), so the sheet offers the
-    /// other tabs. It is dismissed first so the next tab does not inherit it.
-    private func switchTab(to tab: RootTab) {
-        guard rootTabSwitch.isAvailable else { return }
-        sheetShown = false
-        rootTabSwitch(tab)
     }
 }
