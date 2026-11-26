@@ -316,8 +316,10 @@ struct TopicXcxActionBar: View {
         .accessibilityElement(children: .contain)
     }
 
+    // R10-PC-B-N6: a system bottom bar (the host's `.safeAreaInset(edge: .bottom)`) on the `.bar` material; no CYFooterBar.
     var body: some View {
-        CYFooterBar {
+        VStack(spacing: 0) {
+            Divider()
             VStack(spacing: 6) {
                 if topic.merchantClosed && !topic.isSignUp { Text("topicXcx.merchantClosed").font(.subheadline).foregroundStyle(.orange) }
                 HStack(alignment: .center, spacing: CYSpacing.md) {
@@ -374,7 +376,11 @@ struct TopicXcxActionBar: View {
                 .controlSize(.large)
                 .accessibilityIdentifier("topic.actionBar")
             }
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.vertical, CYSpacing.md)
         }
+        .frame(maxWidth: .infinity)
+        .background(.bar)
     }
 }
 
@@ -382,14 +388,12 @@ struct TopicXcxActionBar: View {
 /// 立即报名 and 查看场次 both open the session sheet but never show together (sign-up vs self-play states), so one id is unique.
 enum TopicBarSheet: Hashable { case sessions, selfPlay, tickets, pricing }
 
-/// `cyHeroSource` for a bar button when the host passed a namespace. Primary buttons clip at the button radius (`CYRadius.md`).
+/// R10-PC-B-N6: pass-through. The custom hero morph (and its corner clip) is gone; the system sheet slide is the only motion.
 private struct TopicBarHeroSource: ViewModifier {
     let sheet: TopicBarSheet
     let namespace: Namespace.ID?
     var cornerRadius: CGFloat = CYRadius.md
-    @ViewBuilder func body(content: Content) -> some View {
-        if let namespace { content.cyHeroSource(sheet, in: namespace, cornerRadius: cornerRadius) } else { content }
-    }
+    func body(content: Content) -> some View { content }
 }
 
 /// The sheet's side of the pair: `cyHeroDestination` only when the bar opened this sheet (`origin`). Other openers of the
@@ -398,9 +402,8 @@ struct TopicBarHeroDestination: ViewModifier {
     let sheet: TopicBarSheet
     let origin: TopicBarSheet?
     let namespace: Namespace.ID
-    @ViewBuilder func body(content: Content) -> some View {
-        if origin == sheet { content.cyHeroDestination(sheet, in: namespace) } else { content }
-    }
+    // R10-PC-B-N6: pass-through, paired with `TopicBarHeroSource` (no hero morph).
+    func body(content: Content) -> some View { content }
 }
 
 /// native r2: decorative recede removed; the system sheet presentation is the only motion. Kept as a pass-through so
@@ -620,8 +623,8 @@ struct TopicXcxRouteSection: View {
                             if let image = stop.node.images.first, let url = QuestifyCardArtwork.safeURL(image) {
                                 PlayerFeedRemoteImage(url: url, maxPixel: 160, placeholder: { Color.secondary.opacity(0.15) }, failure: { Color.secondary.opacity(0.15) })
                                     .frame(width: 56, height: 56)
-                                    // Stop photo thumbnail: small system-like corner clip.
-                                    .clipShape(.rect(cornerRadius: 6))
+                                    // R10-PC-B-N7: no custom corner clip; only keep the image inside its frame.
+                                    .clipped()
                                     .accessibilityHidden(true)
                             }
                         }
