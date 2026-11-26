@@ -98,9 +98,67 @@ import SwiftUI
                         ForEach(0...3, id: \.self) { Text(String($0)).tag($0) }
                     }
                 }
-            case .gallery, .branch, .line, .divider:
+            case .gallery:
+                // r9 C-F1b: MP fabu/index.wxml:574-584, :837-845; pro-editor-story.js:63-81, :375-380 —
+                // `layout` 1…4 (单图/双图/三图/四图), `images[{url}]` one per cell, `altText` 图片说明 (≤200).
+                // Cells take an image reference until the C-F8 upload destination lands (Cursor Core).
+                Section("fixr9.ap.story.gallery") {
+                    Picker("fixr9.ap.story.gallery.layout", selection: galleryLayoutBinding) {
+                        ForEach(1...4, id: \.self) { n in
+                            Text(LocalizedStringKey("fixr9.ap.story.gallery.layout." + String(n))).tag(n)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .accessibilityIdentifier("projectEdit.rich.gallery.layout")
+                    ForEach(0..<galleryLayout, id: \.self) { index in
+                        TextField("projectEdit.imageReference", text: galleryCell(index))
+                            .textInputAutocapitalization(.never).autocorrectionDisabled()
+                            .accessibilityIdentifier("projectEdit.rich.gallery.cell." + String(index))
+                    }
+                    TextField("fixr9.ap.story.gallery.altText", text: galleryAltText, axis: .vertical)
+                        .lineLimit(1...4)
+                        .accessibilityIdentifier("projectEdit.rich.gallery.altText")
+                }
+            case .branch:
+                // r9 C-F1b: MP fabu/index.wxml:586-597, :847-873; pro-editor-story.js:83-92 —
+                // question (`content`, ≤200), 2…3 options `{text ≤40, to: continue | end | chapter:N}`.
+                Section("fixr9.ap.story.branch.question") {
+                    TextField("fixr9.ap.story.branch.questionPrompt", text: $block.content, axis: .vertical)
+                        .lineLimit(2...6)
+                        .accessibilityIdentifier("projectEdit.rich.branch.question")
+                }
+                Section("fixr9.ap.story.branch.options") {
+                    ForEach(0..<branchOptions.count, id: \.self) { index in
+                        VStack(alignment: .leading, spacing: 4) {
+                            TextField("fixr9.ap.story.branch.optionPrompt", text: branchText(index))
+                                .accessibilityIdentifier("projectEdit.rich.branch.option." + String(index))
+                            Picker("fixr9.ap.story.branch.to", selection: branchTo(index)) {
+                                Text("fixr9.ap.story.branch.to.continue").tag("continue")
+                                Text("fixr9.ap.story.branch.to.end").tag("end")
+                                ForEach(branchChapterTargets, id: \.self) { number in
+                                    Text("fixr9.ap.story.branch.to.chapter \(number)").tag("chapter:" + String(number))
+                                }
+                            }
+                        }
+                    }
+                    .onDelete { offsets in
+                        guard branchOptions.count - offsets.count >= 2 else { return }
+                        var options = branchOptions
+                        options.remove(atOffsets: offsets)
+                        setBranchOptions(options)
+                    }
+                    if branchOptions.count < 3 {
+                        Button("fixr9.ap.story.branch.add") {
+                            var options = branchOptions
+                            options.append(["text": .string(""), "to": .string("continue")])
+                            setBranchOptions(options)
+                        }
+                        .accessibilityIdentifier("projectEdit.rich.branch.add")
+                    }
+                }
+            case .line, .divider:
                 Section("projectEdit.rich.content") {
-                    if block.kind == .branch || block.kind == .line {
+                    if block.kind == .line {
                         TextField("projectEdit.story", text: $block.content, axis: .vertical).lineLimit(3...8)
                     }
                     if block.kind == .line {
@@ -112,6 +170,76 @@ import SwiftUI
             }
         }.disabled(!model.fullEdit).navigationTitle(Text(LocalizedStringKey("projectEdit.rich.kind." + block.kind.rawValue)))
             .navigationBarTitleDisplayMode(.inline).scrollDismissesKeyboard(.interactively)
+    }
+    // MARK: r9 C-F1b gallery / branch fields (MP pro-editor-story.js)
+    private var galleryLayout: Int {
+        let raw = Int(block.fieldText("layout")) ?? 1
+        return (1...4).contains(raw) ? raw : 1
+    }
+    private var galleryLayoutBinding: Binding<Int> {
+        Binding(get: { galleryLayout }, set: { n in
+            block.setField("layout", .number(Decimal(n)))
+            // normalizeGalleryImages: never keep more images than cells.
+            let images = galleryImages
+            if images.count > n { block.setField("images", .array(Array(images.prefix(n)).map(ProjectEditJSON.object))) }
+        })
+    }
+    private var galleryImages: [[String: ProjectEditJSON]] { block.sourceFields?["images"]?.array?.compactMap(\.object) ?? [] }
+    /// MP `fillGalleryCell`: an empty earlier cell is filled first; a cleared cell drops out of the list.
+    private func galleryCell(_ index: Int) -> Binding<String> {
+        Binding(get: {
+            let images = galleryImages
+            return images.indices.contains(index) ? images[index]["url"]?.text ?? "" : ""
+        }, set: { value in
+            var images = galleryImages
+            let url = value.trimmingCharacters(in: .whitespacesAndNewlines)
+            if images.indices.contains(index) {
+                if url.isEmpty { images.remove(at: index) } else { images[index]["url"] = .string(url) }
+            } else if !url.isEmpty, images.count < galleryLayout {
+                images.append(["url": .string(url)])
+            }
+            block.setField("images", images.isEmpty ? nil : .array(images.map(ProjectEditJSON.object)))
+        })
+    }
+    private var galleryAltText: Binding<String> {
+        Binding(get: { block.fieldText("altText") }, set: { value in
+            let text = String(value.prefix(200))
+            block.setField("altText", text.isEmpty ? nil : .string(text))
+        })
+    }
+    private var branchOptions: [[String: ProjectEditJSON]] {
+        let raw = block.sourceFields?["options"]?.array?.compactMap(\.object) ?? []
+        if raw.count >= 2 { return Array(raw.prefix(3)) }
+        return raw + Array(repeating: ["text": .string(""), "to": .string("continue")], count: 2 - raw.count)
+    }
+    private func setBranchOptions(_ options: [[String: ProjectEditJSON]]) {
+        block.setField("options", .array(options.map(ProjectEditJSON.object)))
+    }
+    private func branchText(_ index: Int) -> Binding<String> {
+        Binding(get: {
+            let options = branchOptions
+            return options.indices.contains(index) ? options[index]["text"]?.text ?? "" : ""
+        }, set: { value in
+            var options = branchOptions
+            guard options.indices.contains(index) else { return }
+            options[index]["text"] = .string(String(value.prefix(40)))
+            setBranchOptions(options)
+        })
+    }
+    private func branchTo(_ index: Int) -> Binding<String> {
+        Binding(get: {
+            let options = branchOptions
+            return options.indices.contains(index) ? options[index]["to"]?.text ?? "continue" : "continue"
+        }, set: { value in
+            var options = branchOptions
+            guard options.indices.contains(index) else { return }
+            options[index]["to"] = .string(value)
+            setBranchOptions(options)
+        })
+    }
+    /// MP `_storyBranchTos`: 跳到第 N 章 for every chapter except the one being edited.
+    private var branchChapterTargets: [Int] {
+        model.draft.chapters.enumerated().compactMap { offset, chapter in chapter.id == chapterID ? nil : offset + 1 }
     }
     private func image(_ index: Int, _ field: String) -> Binding<String> {
         Binding(get: { block.dreamImages.indices.contains(index) ? block.dreamImages[index][field]?.text ?? "" : "" }, set: { block.setDreamImage(index: index, field: field, value: $0) })

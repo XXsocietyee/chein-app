@@ -17,7 +17,6 @@ import SwiftUI
     @Environment(\.analyticsEventClient) private var analytics
     @Environment(\.ugcSafetyContext) private var ugcSafety
     @Environment(\.locale) private var locale
-    @State private var shareRoute: ShareRoute?
     private struct ShareRoute: Identifiable { let id = UUID(); let payload: CYSquareSharePayload; let url: URL }
     @State private var showsAuthorProfile = false
     @State private var relatedTopic: SquareRelatedTopicSelection?
@@ -69,6 +68,7 @@ import SwiftUI
                             } else {
                                 SquareRelatedTopicLink(post: post, source: .init(id: id, generation: contentGeneration), squareReader: reader) { relatedTopic = $0 }
                             }
+                            SquareDetailMedalPill(gold: post.medalGold, silver: post.medalSilver, bronze: post.medalBronze)
                             // Mini `components/route-map`: live route only with a provider; the post's own snapshot is already in the gallery.
                             if let topicID = post.topicID, topicID > 0 { CYSquareRouteMapCard(topicID: topicID) }
                             if let actions, actions.identity.accountID != nil {
@@ -164,13 +164,12 @@ import SwiftUI
         .sheet(item: $editor, onDismiss: { applyFollowReceipt() }) { item in Group {
             if let actions { NavigationStack { SocialActionEditorView(purpose: item.purpose, target: item.target, coordinator: actions, initialText: item.text, contentGeneration: contentGeneration, initialEnabled: item.enabled) }.id(actions.identity) }
         }.cySheet(detents: [.large]) }
-        .sheet(item: $shareRoute) { route in CYSquareShareSheet(payload: route.payload, url: route.url) }
         .navigationDestination(isPresented: $showsAuthorProfile) {
             if let accountReader, let post, post.memberID > 0 {
                 SocialPublicProfileView(memberID: post.memberID, reader: accountReader, squareReader: reader, actions: actions)
             }
         }
-        .onChange(of: key) { _, _ in shareRoute = nil; showsAuthorProfile = false; blockTarget = nil }
+        .onChange(of: key) { _, _ in showsAuthorProfile = false; blockTarget = nil }
         .alert(
             Text(verbatim: String(localized: LocalizedStringResource("ugc.safety.block.confirmTitle", table: "UGCSafety", locale: locale))),
             isPresented: Binding(get: { blockTarget != nil }, set: { if !$0 { blockTarget = nil } }),
@@ -284,12 +283,13 @@ import SwiftUI
                     .accessibilityLabel(Text(LocalizedStringKey(post.isBookmarked == 1 ? "square.bookmark.remove" : "square.bookmark.add"))).accessibilityHint(Text("social.editor.bookmark")).accessibilityIdentifier("square.detail.bookmark")
             }
             // Mini `act-share` sits right after the other actions (owner 2026-11-09, Threads-style).
+            // native-r2 N-24: the system share sheet straight from `ShareLink` (no custom half sheet in between).
             if let route = makeShareRoute(for: post) {
-                Button {
-                    shareRoute = route
-                    MiniProgramAnalytics.track(analytics, "content_share", bizType: "square", bizID: MiniProgramAnalytics.bizID(post.id), pagePath: "/pages/square/detail/index")
-                } label: { Image(systemName: "paperplane") }
+                ShareLink(item: route.url, preview: SharePreview(route.payload.excerpt ?? "城瘾Hub")) { Image(systemName: "paperplane") }
                     .tint(.primary)
+                    .simultaneousGesture(TapGesture().onEnded {
+                        MiniProgramAnalytics.track(analytics, "content_share", bizType: "square", bizID: MiniProgramAnalytics.bizID(post.id), pagePath: "/pages/square/detail/index")
+                    })
                     .accessibilityLabel(Text("share.entry", tableName: "SocialParity")).accessibilityIdentifier("square.detail.share")
             }
             Spacer(minLength: 0)
@@ -699,6 +699,33 @@ struct SquareDetailIssueView: View {
                 Button("square.detail.back", action: back).buttonStyle(.bordered)
                     .accessibilityIdentifier("square.detail.back")
             }
+        }
+    }
+}
+
+/// C-S10b (r9): MP components/cy/completion-share-card/index.wxml:17-22 (square/detail/index.wxml:57-66):
+/// one medal image per tier that is above zero, then the sum. Hidden when every tier is zero or unknown.
+struct SquareDetailMedalPill: View {
+    let gold: Int?
+    let silver: Int?
+    let bronze: Int?
+    var body: some View {
+        let g = gold ?? 0, s = silver ?? 0, b = bronze ?? 0
+        if g > 0 || s > 0 || b > 0 {
+            Label {
+                Text("fixr9.ap.square.medals \(g + s + b)")
+            } icon: {
+                HStack(spacing: 2) {
+                    if g > 0 { MPAsset.BadgeMedal.medalGold.resizable().scaledToFit() }
+                    if s > 0 { MPAsset.BadgeMedal.medalSilver.resizable().scaledToFit() }
+                    if b > 0 { MPAsset.BadgeMedal.medalBronze.resizable().scaledToFit() }
+                }
+                .frame(height: 20)
+                .accessibilityHidden(true)
+            }
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+            .accessibilityIdentifier("square.detail.medals")
         }
     }
 }

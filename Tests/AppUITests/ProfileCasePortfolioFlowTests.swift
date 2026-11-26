@@ -28,8 +28,6 @@ final class ProfileCasePortfolioFlowTests: XCTestCase {
         launch(); let field = openCase(); field.tap(); field.typeText(" Updated")
         app.buttons["profile.fieldEdit.apply"].tap(); app.swipeUp()
         let review = app.buttons["profile.edit.review"]; XCTAssertTrue(review.isEnabled); review.tap()
-        XCTAssertTrue(app.staticTexts["City photo stories Updated"].waitForExistence(timeout: 5))
-        app.buttons["profile.edit.confirm"].tap()
         let status = app.staticTexts["profile.edit.status"]; XCTAssertTrue(status.waitForExistence(timeout: 10))
         XCTAssertEqual(status.label, "Your profile was saved and verified.")
     }

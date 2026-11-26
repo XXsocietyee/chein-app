@@ -86,13 +86,11 @@ class ProfileDraftReviewRestoreContracts(unittest.TestCase):
             self.assertNotIn(token,s)
     def test_existing_save_cancel_and_review_lifetime_wiring_remain(self):
         s=read('App/ProfileEditView.swift')
-        self.assertIn('ProfileDraftReviewSection(summary: value.reviewSummary,',s)
-        self.assertIn('canRestore: model.canRestoreReviewedDraft(value)',s)
-        self.assertIn('restore: { _ = model.restoreReviewedDraft(value) })\n                        .id(value.id)',s)
+        # A3-06 (r9): MP gerenziliao.wxml:94 saveInfo saves on tap; 保存 prepares then commits, no review sheet.
+        self.assertIn('await model.prepare()\n        guard let value = model.confirmation else { return }\n        await commitSave(value)',s)
         self.assertIn('let receipt = await model.save(value)',s)
         # A3-11-r7: a failed save stays on the page with 重试保存 instead of returning silently.
         self.assertIn('guard let receipt, model.consumeSavedReturn(receipt) else {',s)
-        self.assertIn('model.coordinator.cancel(value); model.confirmation = nil',s)
     def test_fragment_has_fifteen_bilingual_keys_and_no_central_changes(self):
         rows=json.loads(read('Resources/ProfileDraftReviewRestoreLocalizations.fragment.json'));self.assertEqual(len(rows),15)
         for key,row in rows.items():

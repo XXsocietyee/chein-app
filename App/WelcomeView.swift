@@ -37,27 +37,9 @@ struct WelcomeView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 36) {
-                    header
-                    features
-                    if let key = WelcomeSessionPresentation.upgradeNoticeKey(errorKey: session.errorKey, accountID: session.account?.id) {
-                        Label(LocalizedStringKey(key), systemImage: "arrow.up.circle")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .accessibilityIdentifier("welcome.upgradeRequired")
-                    }
-                }
-                .padding(.horizontal, 32)
-                .padding(.top, 40)
-                .padding(.bottom, 24)
-                .frame(maxWidth: 560)
-                .frame(maxWidth: .infinity)
+            Group {
+                if onBrowse == nil { signedOutMine } else { welcomeContent }
             }
-            .scrollBounceBehavior(.basedOnSize)
-            .safeAreaInset(edge: .bottom) { footer }
-            .background(Color(uiColor: .systemBackground))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) { moreMenu }
@@ -75,6 +57,52 @@ struct WelcomeView: View {
         .onChange(of: destination?.id) { _, _ in refreshConsent() }
         .onChange(of: scenePhase) { _, phase in if phase == .active { refreshConsent() } }
         .onReceive(NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification)) { _ in refreshConsent() }
+    }
+
+    /// r9 A1-08: MP pages/member/index/index.wxml:6 — signed out, the 我的 tab is the in-page empty state
+    /// `cy-empty kind="no-permission" title="登录后查看我的主页" cta="登录"`, not the welcome page.
+    /// 登录 keeps the `welcome.player` id and opens the same player sign-in sheet (LoginView keeps the consent gate).
+    private var signedOutMine: some View {
+        ContentUnavailableView {
+            Label("fixr9.ap.mine.signedOutTitle", systemImage: "person.crop.circle.badge.questionmark")
+        } description: {
+            if let key = WelcomeSessionPresentation.upgradeNoticeKey(errorKey: session.errorKey, accountID: session.account?.id) {
+                Text(LocalizedStringKey(key))
+                    .accessibilityIdentifier("welcome.upgradeRequired")
+            }
+        } actions: {
+            Button { destination = .login(.player) } label: { Text("fixr9.ap.mine.signIn") }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .accessibilityIdentifier("welcome.player")
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(uiColor: .systemBackground))
+    }
+
+    /// Launch welcome (guest browse available).
+    private var welcomeContent: some View {
+        ScrollView {
+            VStack(spacing: 36) {
+                header
+                features
+                if let key = WelcomeSessionPresentation.upgradeNoticeKey(errorKey: session.errorKey, accountID: session.account?.id) {
+                    Label(LocalizedStringKey(key), systemImage: "arrow.up.circle")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .accessibilityIdentifier("welcome.upgradeRequired")
+                }
+            }
+            .padding(.horizontal, 32)
+            .padding(.top, 40)
+            .padding(.bottom, 24)
+            .frame(maxWidth: 560)
+            .frame(maxWidth: .infinity)
+        }
+        .scrollBounceBehavior(.basedOnSize)
+        .safeAreaInset(edge: .bottom) { footer }
+        .background(Color(uiColor: .systemBackground))
     }
 
     // MARK: Header and features

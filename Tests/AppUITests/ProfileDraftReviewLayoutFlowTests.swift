@@ -12,7 +12,7 @@ final class ProfileDraftReviewLayoutFlowTests: XCTestCase {
         }
         XCTAssertTrue(element.exists); XCTAssertTrue(element.isHittable)
     }
-    private func compareAndCancel(chinese: Bool) throws {
+    private func saveOnTap(chinese: Bool) throws {
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", chinese ? "(zh-Hans)" : "(en)",
             "-AppleLocale", chinese ? "zh_CN" : "en_US", "--uitesting-profile-edit-fixture", "caseRemoval",
             "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
@@ -28,29 +28,13 @@ final class ProfileDraftReviewLayoutFlowTests: XCTestCase {
         input.tap(); input.typeText(suffix)
         let apply = app.buttons["profile.fieldEdit.apply"]
         XCTAssertTrue(apply.isEnabled); apply.tap()
+        // A3-06 (r9): MP gerenziliao.wxml:94 saveInfo — 保存 writes on tap; no review/compare sheet.
         let review = app.buttons["profile.edit.review"]; reveal(review); review.tap()
-        let compare = app.buttons["profile.reviewRestore.compare"]
-        XCTAssertTrue(compare.waitForExistence(timeout: 5)); reveal(compare); compare.tap()
-        let change = app.descendants(matching: .any).matching(identifier: "profile.reviewRestore.change.name").firstMatch
-        XCTAssertTrue(change.waitForExistence(timeout: 5))
-        let beforeLabel = change.staticTexts[chinese ? "原值" : "Before"]
-        let afterLabel = change.staticTexts[chinese ? "保存后" : "After saving"]
-        XCTAssertTrue(beforeLabel.exists); XCTAssertTrue(afterLabel.exists)
-        XCTAssertTrue(change.staticTexts[before].exists)
-        let value = change.staticTexts[after]
-        XCTAssertTrue(value.exists); XCTAssertEqual(value.label, after)
-        XCTAssertGreaterThan(value.frame.height, afterLabel.frame.height)
-        XCTAssertGreaterThanOrEqual(value.frame.minY, afterLabel.frame.maxY - 1)
-        XCTAssertLessThanOrEqual(value.frame.width, app.frame.width)
-        let discard = app.buttons["profile.reviewRestore.open"]; reveal(discard); discard.tap()
-        let cancel = app.buttons["profile.reviewRestore.cancel"]
-        XCTAssertTrue(cancel.waitForExistence(timeout: 5)); cancel.tap()
-        XCTAssertTrue(app.buttons["profile.edit.confirm"].exists)
-        app.buttons["profile.edit.cancel"].tap()
-        reveal(entry, upwards: false)
-        XCTAssertTrue(entry.label.contains(suffix))
-        XCTAssertTrue(app.buttons["profile.edit.review"].isEnabled)
+        XCTAssertFalse(app.buttons["profile.reviewRestore.compare"].waitForExistence(timeout: 2))
+        let status = app.staticTexts["profile.edit.status"]
+        XCTAssertTrue(status.waitForExistence(timeout: 10))
+        if !chinese { XCTAssertEqual(status.label, "Your profile was saved and verified.") }
     }
-    func testEnglishMaximumTextKeepsComparisonAndCancelledDraft() throws { try compareAndCancel(chinese: false) }
-    func testChineseMaximumTextKeepsComparisonAndCancelledDraft() throws { try compareAndCancel(chinese: true) }
+    func testEnglishMaximumTextSavesOnTap() throws { try saveOnTap(chinese: false) }
+    func testChineseMaximumTextSavesOnTap() throws { try saveOnTap(chinese: true) }
 }
