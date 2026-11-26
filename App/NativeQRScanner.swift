@@ -49,7 +49,7 @@ struct NativeQRScanner: View {
                 Text("scanner.permission.hint")
             } actions: {
                 Button("scanner.allowCamera") { session.requestPermission() }
-                    .buttonStyle(.questifyPrimary)
+                    .buttonStyle(.borderedProminent)
                     .disabled(!session.isActive)
             }
         case .denied:
@@ -64,7 +64,7 @@ struct NativeQRScanner: View {
                         openURL(url)
                     }
                 }
-                .buttonStyle(.questifyPrimary)
+                .buttonStyle(.borderedProminent)
                 .accessibilityLabel(Text("scanner.openSettings"))
                 .accessibilityValue(Text("scanner.denied.title"))
                 .accessibilityHint(Text("scanner.denied.hint"))
@@ -85,7 +85,7 @@ struct NativeQRScanner: View {
                 Text("scanner.unavailable.hint")
             } actions: {
                 Button("action.retry") { session.retry() }
-                    .buttonStyle(.questifyPrimary)
+                    .buttonStyle(.borderedProminent)
                     .disabled(!session.isActive)
             }
         case .ready:

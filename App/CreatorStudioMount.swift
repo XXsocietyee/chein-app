@@ -34,16 +34,22 @@ extension AppSession {
                 Section {
                     if maintenance == .available {
                         NavigationLink { CreatorMaintenanceWorkbenchView(service: service, loadTopics: loadTopics) } label: {
-                            CYListRow("creatorStudio.maintenance.entry", meta: "creatorStudio.maintenance.entryMeta", trailing: .none) {
-                                CYRowIcon(systemImage: "wrench.and.screwdriver")
-                            }
+                            Label {
+                                VStack(alignment: .leading) {
+                                    Text("creatorStudio.maintenance.entry")
+                                    Text("creatorStudio.maintenance.entryMeta").font(.subheadline).foregroundStyle(.secondary)
+                                }
+                            } icon: { Image(systemName: "wrench.and.screwdriver") }
                         }.accessibilityIdentifier("creatorStudio.maintenance")
                     }
                     if outcome == .available {
                         NavigationLink { CreatorPostGameOutcomeView(service: service, loadTopics: loadTopics) } label: {
-                            CYListRow("creatorStudio.outcome.entry", meta: "creatorStudio.outcome.entryMeta", trailing: .none) {
-                                CYRowIcon(systemImage: "chart.line.uptrend.xyaxis")
-                            }
+                            Label {
+                                VStack(alignment: .leading) {
+                                    Text("creatorStudio.outcome.entry")
+                                    Text("creatorStudio.outcome.entryMeta").font(.subheadline).foregroundStyle(.secondary)
+                                }
+                            } icon: { Image(systemName: "chart.line.uptrend.xyaxis") }
                         }.accessibilityIdentifier("creatorStudio.outcome")
                     }
                 } header: { Text("creatorStudio.section") }
@@ -76,17 +82,27 @@ struct CreatorStudioIssueView: View {
     var body: some View {
         switch failure {
         case .unauthorized?:
-            CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "creatorStudio.issue.signIn")
+            ContentUnavailableView("creatorStudio.issue.signIn", systemImage: "person.crop.circle.badge.exclamationmark")
         case .notFound(let code)? where code == "CREATOR_TOPICS_NOT_FOUND":
-            CYEmptyState(systemImage: "square.stack.3d.up.slash", "creatorStudio.issue.noTopics")
+            ContentUnavailableView("creatorStudio.issue.noTopics", systemImage: "square.stack.3d.up.slash")
         case .notFound?:
-            CYEmptyState(systemImage: "questionmark.folder", "creatorStudio.issue.notFound", actionTitle: "creatorStudio.retry", action: retry)
+            issue("creatorStudio.issue.notFound", systemImage: "questionmark.folder")
         case .unavailable?:
-            CYEmptyState(systemImage: "exclamationmark.icloud", "creatorStudio.issue.unavailable", actionTitle: "creatorStudio.retry", action: retry)
+            issue("creatorStudio.issue.unavailable", systemImage: "exclamationmark.icloud")
         case .rejected(_, _, let message)?:
-            CYEmptyState(systemImage: "exclamationmark.triangle", "creatorStudio.issue.rejected", detailVerbatim: message, actionTitle: "creatorStudio.retry", action: retry)
+            issue("creatorStudio.issue.rejected", systemImage: "exclamationmark.triangle", detail: message)
         default:
-            CYEmptyState(systemImage: "exclamationmark.triangle", "creatorStudio.issue.failed", actionTitle: "creatorStudio.retry", action: retry)
+            issue("creatorStudio.issue.failed", systemImage: "exclamationmark.triangle")
+        }
+    }
+
+    private func issue(_ title: LocalizedStringKey, systemImage: String, detail: String? = nil) -> some View {
+        ContentUnavailableView {
+            Label(title, systemImage: systemImage)
+        } description: {
+            if let detail { Text(verbatim: detail) }
+        } actions: {
+            Button("creatorStudio.retry", action: retry).buttonStyle(.bordered)
         }
     }
 }

@@ -23,7 +23,7 @@ import SwiftUI
     var body: some View {
         Group {
             if editable {
-                Text("templateAuthor.preference.editorTitle").cyText(.cardTitle)
+                Text("templateAuthor.preference.editorTitle").font(.headline)
                 TextEditor(text: .init(get: { raw }, set: { value in
                     guard editable else { return }
                     invalidate()
@@ -52,21 +52,21 @@ import SwiftUI
                 if checking { ProgressView("templateAuthor.preference.checking") }
                 if let report = currentReport {
                     Text(LocalizedStringKey(report.messageKey)).accessibilityIdentifier("templateAuthor.preference.status")
-                    if report.status != .valid { Text(verbatim: report.path).cyText(.meta) }
+                    if report.status != .valid { Text(verbatim: report.path).font(.footnote) }
                     if report.canPreview {
-                        Text("templateAuthor.preference.preview").cyText(.cardTitle).accessibilityIdentifier("templateAuthor.preference.preview")
+                        Text("templateAuthor.preference.preview").font(.headline).accessibilityIdentifier("templateAuthor.preference.preview")
                         ForEach(Array(report.fields.enumerated()), id: \.offset) { _, field in
                             VStack(alignment: .leading, spacing: 4) {
-                                Text(verbatim: field.path).cyText(.meta).foregroundStyle(.secondary)
+                                Text(verbatim: field.path).font(.footnote).foregroundStyle(.secondary)
                                 Text(verbatim: field.value).accessibilityIdentifier("templateAuthor.preference.field." + field.path)
                             }
                         }
                         if !report.unknownPaths.isEmpty {
-                            Text("templateAuthor.preference.unknown").cyText(.meta)
-                            ForEach(Array(report.unknownPaths.enumerated()), id: \.offset) { _, path in Text(verbatim: path).cyText(.meta) }
+                            Text("templateAuthor.preference.unknown").font(.footnote)
+                            ForEach(Array(report.unknownPaths.enumerated()), id: \.offset) { _, path in Text(verbatim: path).font(.footnote) }
                         }
                     }
-                } else if !checking { Text("templateAuthor.preference.unchecked").cyText(.meta).accessibilityIdentifier("templateAuthor.preference.unchecked") }
+                } else if !checking { Text("templateAuthor.preference.unchecked").font(.footnote).accessibilityIdentifier("templateAuthor.preference.unchecked") }
             } else { Text("templateAuthor.unavailable") }
         }
         .onChange(of: raw) { _, _ in invalidate() }
@@ -74,21 +74,15 @@ import SwiftUI
         .onChange(of: model.coordinator.identity) { _, _ in invalidate(); replaceExample = false }
         .onChange(of: model.coordinator.session) { _, _ in invalidate(); replaceExample = false }
         .onDisappear { sourceFocused = false; invalidate(); replaceExample = false }
-        .sheet(isPresented: $replaceExample) {
-            CYConfirmSheet(
-                title: appLocalized("templateAuthor.preference.example", locale: locale),
-                message: appLocalized("templateAuthor.preference.replaceQuestion", locale: locale),
-                confirmTitle: appLocalized("templateAuthor.preference.replace", locale: locale),
-                isDestructive: true,
-                onConfirm: {
-                    guard editable else { return }
-                    invalidate()
-                    model.draft.preferenceJson = TemplatePreferenceDraftCheck.example
-                    model.changed()
-                }
-            )
-            .cyDomainSheet(detents: [.half])
-            .themeDomain(.topicEditor)
+        .confirmationDialog(appLocalized("templateAuthor.preference.example", locale: locale), isPresented: $replaceExample, titleVisibility: .visible) {
+            Button(appLocalized("templateAuthor.preference.replace", locale: locale), role: .destructive) {
+                guard editable else { return }
+                invalidate()
+                model.draft.preferenceJson = TemplatePreferenceDraftCheck.example
+                model.changed()
+            }
+        } message: {
+            Text(verbatim: appLocalized("templateAuthor.preference.replaceQuestion", locale: locale))
         }
     }
     private func invalidate() {

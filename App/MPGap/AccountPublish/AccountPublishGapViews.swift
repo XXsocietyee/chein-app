@@ -15,24 +15,20 @@ public struct AccountGapOwnProfileComposerRow: View {
         Group {
             // r8 A1-01 (MP cyp wxml:262-275): own-profile prompt that opens the post composer.
             Button(action: onTapCompose) {
-                HStack(spacing: CYSpacing.sm) {
+                Label {
+                    Text("fixr8.profile.composerPlaceholder")
+                        .foregroundStyle(.secondary)
+                } icon: {
                     MPAsset.FeatureIcon.iconPen
                         .resizable()
                         .scaledToFit()
                         .frame(width: 20, height: 20)
                         .accessibilityHidden(true)
-                    Text("fixr8.profile.composerPlaceholder")
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textSecondary)
-                    Spacer()
                 }
-                .frame(minHeight: 44)
-                .contentShape(Rectangle())
             }
             .accessibilityIdentifier("profile.ownComposer")
             if let joinDateText, !joinDateText.isEmpty {
                 LabeledContent(AccountPublishGapCopy.joinDatePrefix, value: joinDateText)
-                    .cyText(.meta)
             }
         }
     }
@@ -48,12 +44,13 @@ public struct SocialPublicProfileGapCoopBar: View {
     }
 
     public var body: some View {
-        HStack {
-            Button(AccountPublishGapCopy.initiateCoop, action: onInitiateCoop)
-                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
+        Button(action: onInitiateCoop) {
+            Text(verbatim: AccountPublishGapCopy.initiateCoop).frame(maxWidth: .infinity)
         }
-        .padding(.horizontal, CYSpacing.lg)
-        .padding(.vertical, CYSpacing.sm)
+        .buttonStyle(.borderedProminent)
+        .controlSize(.large)
+        .padding(.horizontal)
+        .padding(.vertical, 8)
     }
 }
 
@@ -83,30 +80,26 @@ public struct ProjectEditGapCastAndLookSection: View {
             // r8 C-F5 (MP fabu wxml:172-187): one card, 角色 + stacked faces + 「N 位」 + switch; the row opens the list.
             Section {
                 Toggle(isOn: $castEnabled) {
-                    Text("fixr8.cast.title").cyText(.body)
+                    Text("fixr8.cast.title")
                 }
                 .accessibilityIdentifier("projectEdit.cast.switch")
                 if castEnabled {
                     Button(action: onOpenCastEditor) {
-                        HStack(spacing: CYSpacing.sm) {
-                            Text("fixr8.cast.list").cyText(.body).foregroundStyle(CYColor.textPrimary)
-                            Spacer()
+                        LabeledContent {
                             if !castMembers.isEmpty {
                                 Text("fixr8.cast.count \(castMembers.count)")
-                                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             }
-                            Image(systemName: "chevron.right")
-                                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                                .accessibilityHidden(true)
+                        } label: {
+                            Text("fixr8.cast.list")
                         }
-                        .frame(minHeight: 44)
                         .contentShape(Rectangle())
                     }
+                    .tint(.primary)
                     .accessibilityLabel(Text("fixr8.cast.open"))
                     .accessibilityIdentifier("projectEdit.cast.open")
                 }
             } header: {
-                Text("fixr8.cast.title").cyText(.sectionTitle)
+                Text("fixr8.cast.title")
             }
 
             if let selectedLookID {
@@ -116,9 +109,8 @@ public struct ProjectEditGapCastAndLookSection: View {
                             Text(verbatim: preset.name).tag(preset.id)
                         }
                     }
-                    .cyText(.body)
                 } header: {
-                    Text(verbatim: TopicLookStyleCopy.sectionTitle).cyText(.sectionTitle)
+                    Text(verbatim: TopicLookStyleCopy.sectionTitle)
                 }
             }
         }
@@ -150,28 +142,32 @@ public struct SquareDetailGapPlayCardSection: View {
 
     public var body: some View {
         Section {
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                CYStatusChip(verbatim: AccountPublishGapCopy.playableTemplateBadge, tone: .info)
+            VStack(alignment: .leading, spacing: 8) {
+                Label {
+                    Text(verbatim: AccountPublishGapCopy.playableTemplateBadge)
+                } icon: {
+                    Image(systemName: "play.circle").foregroundStyle(.tint)
+                }
+                .font(.footnote)
+                .foregroundStyle(.secondary)
                 Text(verbatim: templateTitle)
-                    .cyText(.cardTitle)
-                    .foregroundStyle(CYColor.textPrimary)
-                HStack(spacing: CYSpacing.sm) {
+                    .font(.headline)
+                HStack(spacing: 8) {
                     Button(AccountPublishGapCopy.viewTemplateRemix, action: onRemixTemplate)
-                        .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
+                        .buttonStyle(.bordered)
                     Button(AccountPublishGapCopy.tryPlay, action: onTryPlay)
-                        .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: false, compact: true))
+                        .buttonStyle(.borderedProminent)
                 }
             }
-            .padding(.vertical, CYSpacing.xs)
 
             Button(action: onToggleBookmark) {
-                HStack(spacing: CYSpacing.xs) {
+                Label {
+                    Text(verbatim: isBookmarked ? AccountPublishGapCopy.bookmarkRemove : AccountPublishGapCopy.bookmarkAdd)
+                } icon: {
                     (isBookmarked ? MPAsset.FeatureIcon.iconStarFilled : MPAsset.FeatureIcon.iconStarOutline)
                         .resizable()
                         .scaledToFit()
                         .frame(width: 18, height: 18)
-                    Text(verbatim: isBookmarked ? AccountPublishGapCopy.bookmarkRemove : AccountPublishGapCopy.bookmarkAdd)
-                        .cyText(.body)
                 }
             }
         }
@@ -217,30 +213,32 @@ public struct TeamDetailGapApplicantsSection: View {
         Section {
             switch state {
             case .loading:
-                CYLoadingState("fixr8.team.applicants.loading", messageIdentifier: "team.applicants.loading")
+                ProgressView { Text("fixr8.team.applicants.loading") }
+                    .frame(maxWidth: .infinity)
+                    .accessibilityIdentifier("team.applicants.loading")
             case .error(let msg):
-                CYEmptyState(systemImage: "exclamationmark.triangle", "fixr8.team.applicants.loadFailed",
-                             detailVerbatim: msg.isEmpty ? nil : msg, actionTitle: "重试",
-                             actionIdentifier: "team.applicants.retry", action: onRetry)
+                ContentUnavailableView {
+                    Label("fixr8.team.applicants.loadFailed", systemImage: "exclamationmark.triangle")
+                } description: {
+                    if !msg.isEmpty { Text(verbatim: msg) }
+                } actions: {
+                    Button("重试", action: onRetry)
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("team.applicants.retry")
+                }
             case .ready(let items):
-                CYCard(padding: CYSpacing.md) {
-                    VStack(spacing: 0) {
-                        if items.isEmpty {
-                            Text("fixr8.team.applicants.empty")
-                                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                        ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                            applicantRow(item)
-                            if index < items.count - 1 { Divider().overlay(CYColor.borderSubtle) }
-                        }
-                        if let commandNotice, !commandNotice.isEmpty {
-                            Text(verbatim: commandNotice)
-                                .cyText(.meta).foregroundStyle(CYColor.dangerText)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .accessibilityAddTraits(.updatesFrequently)
-                        }
-                    }
+                // Native r2: one list row per applicant (no card, no drawn dividers).
+                if items.isEmpty {
+                    Text("fixr8.team.applicants.empty")
+                        .foregroundStyle(.secondary)
+                }
+                ForEach(items, id: \.id) { item in
+                    applicantRow(item)
+                }
+                if let commandNotice, !commandNotice.isEmpty {
+                    Text(verbatim: commandNotice)
+                        .font(.footnote).foregroundStyle(.red)
+                        .accessibilityAddTraits(.updatesFrequently)
                 }
             }
         } header: {
@@ -251,7 +249,7 @@ public struct TeamDetailGapApplicantsSection: View {
                     Text("fixr8.team.applicants.title")
                 }
             }
-            .cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+            .accessibilityAddTraits(.isHeader)
         }
         .confirmationDialog(Text("fixr8.team.applicants.rejectTitle \(rejecting?.nickname ?? "")"),
                             isPresented: Binding(get: { rejecting != nil }, set: { if !$0 { rejecting = nil } }),
@@ -264,29 +262,26 @@ public struct TeamDetailGapApplicantsSection: View {
     }
 
     @ViewBuilder private func applicantRow(_ item: TeamApplicantItem) -> some View {
-        HStack(spacing: CYSpacing.sm) {
+        HStack(spacing: 8) {
             applicantAvatar(item.avatarURL)
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text(verbatim: item.nickname).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: item.nickname)
                 if let message = item.message, !message.isEmpty {
-                    Text(verbatim: message).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: message).font(.subheadline).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            Spacer(minLength: CYSpacing.xs)
+            Spacer(minLength: 4)
             Button("fixr8.team.applicants.reject") { rejecting = item }
-                .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
-                .frame(minHeight: 44)
+                .buttonStyle(.bordered)
                 .accessibilityLabel(Text("fixr8.team.applicants.rejectA11y \(item.nickname)"))
                 .accessibilityIdentifier("team.applicants.reject.\(item.userID)")
             Button("fixr8.team.applicants.approve") { handle(item, approved: true) }
-                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: false, compact: true))
-                .frame(minHeight: 44)
+                .buttonStyle(.borderedProminent)
                 .accessibilityLabel(Text("fixr8.team.applicants.approveA11y \(item.nickname)"))
                 .accessibilityIdentifier("team.applicants.approve.\(item.userID)")
         }
         .disabled(handlingID != nil)
-        .padding(.vertical, CYSpacing.xs)
     }
 
     @ViewBuilder private func applicantAvatar(_ raw: String?) -> some View {
@@ -350,27 +345,36 @@ public struct TeamJoinGapManualCodeSection: View {
     public var body: some View {
         Section {
             TextField(TeamGapCopy.joinCodePlaceholder, text: $code)
-                .cyText(.body)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .submitLabel(.next)
                 .onChange(of: code) { _, newValue in
                     if newValue.count > TeamGapCopy.maxJoinCodeLength {
                         code = String(newValue.prefix(TeamGapCopy.maxJoinCodeLength))
                     }
                 }
-            if let errorText, !errorText.isEmpty {
-                Text(verbatim: errorText)
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.dangerText)
+            Button(action: onSubmitCode) {
+                Text(verbatim: TeamGapCopy.nextStep).frame(maxWidth: .infinity)
             }
-            Button(TeamGapCopy.nextStep, action: onSubmitCode)
-                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
                 .disabled(code.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
 
             if showsBuyTicketCTA {
-                Button(TeamGapCopy.buyTicketCTA, action: onBuyTicket)
-                    .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
+                Button(action: onBuyTicket) {
+                    Text(verbatim: TeamGapCopy.buyTicketCTA).frame(maxWidth: .infinity)
+                }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
             }
         } header: {
-            Text(verbatim: TeamGapCopy.joinCodeLabel).cyText(.sectionTitle)
+            Text(verbatim: TeamGapCopy.joinCodeLabel)
+        } footer: {
+            // Validation in the section footer (native r2 inputs rule).
+            if let errorText, !errorText.isEmpty {
+                Text(verbatim: errorText)
+                    .foregroundStyle(.red)
+            }
         }
     }
 }

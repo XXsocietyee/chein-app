@@ -36,18 +36,21 @@ import SwiftUI
             if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
             else if !reader.isConfigured { AccountCollectionIssueView(issue: .notConfigured) }
             else {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: CYSpacing.sm) {
+                // Native r2: a menu Picker replaces the filter pills (same cases, same selection).
+                Section {
+                    Picker(selection: $filter) {
                         ForEach(AccountCollectionCouponFilter.allCases) { option in
-                            OrderFilterPill(title: LocalizedStringKey("accountCollection.coupons.filter." + option.rawValue),
-                                            isSelected: filter == option) { filter = option }
+                            Text(LocalizedStringKey("accountCollection.coupons.filter." + option.rawValue)).tag(option)
                         }
-                    }.padding(.horizontal, CYSpacing.pageHorizontal)
+                    } label: {
+                        Label("accountCollection.coupons.filter", systemImage: "line.3.horizontal.decrease.circle")
+                    }
+                    .pickerStyle(.menu)
+                    .accessibilityIdentifier("accountCollection.coupons.filter")
                 }
-                .listRowInsets(EdgeInsets())
-                .listRowBackground(Color.clear)
-                .accessibilityIdentifier("accountCollection.coupons.filter")
-                if model.isLoading || model.loadedRequest != offeredRequest { CYSkeleton().listRowBackground(Color.clear).accessibilityLabel(Text("accountCollection.loading")) }
+                if model.isLoading || model.loadedRequest != offeredRequest {
+                    ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("accountCollection.loading"))
+                }
                 else if let issue = model.issue(for: offeredRequest) {
                     AccountCollectionIssueView(issue: issue, retry: {
                         let permit = activePermit(foreground: scenePhase == .active)
@@ -57,21 +60,11 @@ import SwiftUI
                     let rows = coupons.filter { filter.includes($0) }
                     if rows.isEmpty {
                         if filter == .all, submittedQuery.isEmpty {
-                            CYEmptyState(
-                                systemImage: "tray",
-                                "accountCollection.coupons.empty",
-                                messageIdentifier: "accountCollection.coupons.empty",
-                                kind: .generic
-                            )
-                            .listRowBackground(Color.clear)
+                            ContentUnavailableView("accountCollection.coupons.empty", systemImage: "tray")
+                                .accessibilityIdentifier("accountCollection.coupons.empty")
                         } else {
-                            CYEmptyState(
-                                systemImage: "tray",
-                                "accountCollection.coupons.filteredEmpty",
-                                messageIdentifier: "accountCollection.coupons.filteredEmpty",
-                                kind: .generic
-                            )
-                            .listRowBackground(Color.clear)
+                            ContentUnavailableView("accountCollection.coupons.filteredEmpty", systemImage: "tray")
+                                .accessibilityIdentifier("accountCollection.coupons.filteredEmpty")
                         }
                     }
                     let selections = model.selections(for: offeredRequest, filter: filter)
@@ -90,11 +83,8 @@ import SwiftUI
                                 } label: { AccountCollectionCouponRow(coupon: coupon) }
                             }
                         }
-                        .buttonStyle(QuestifyCardButtonStyle())
-                        .questifyHidesLinkIndicator()
                         .overlay(alignment: .bottomTrailing) { AccountCollectionCouponNavigateButton(coupon: coupon) }
                         .accessibilityIdentifier("accountCollection.coupon.\(coupon.id)")
-                        .questifyCardListRow()
                     }
                 }
             }
@@ -166,16 +156,16 @@ struct AccountCollectionCouponRow: View {
     var showsCodeFooter = false
     @Environment(\.locale) private var locale
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
+        VStack(alignment: .leading, spacing: 6) {
             AccountCollectionCouponBadge(status: coupon.status)
             AccountCollectionTitle(value: coupon.name, fallback: "accountCollection.coupon.untitled")
-                .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                .font(.headline).foregroundStyle(.primary).fixedSize(horizontal: false, vertical: true)
             if let description = coupon.displayDescription, !description.isEmpty {
-                Text(verbatim: description).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: description).font(.subheadline).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if let day = coupon.futureStartDay(relativeTo: Date()) {
-                Text("accountCollection.coupon.startsLater").cyText(.meta)
+                Text("accountCollection.coupon.startsLater").font(.subheadline)
                     .accessibilityIdentifier("accountCollection.coupon.futureStart")
                 // Mini-program date line: {day} 起可用.
                 QuestifyMetadataLine(label: "accountCollection.coupon.validFrom", value: appLocalized("couponWallet.validFrom \(day)", locale: locale),
@@ -183,7 +173,7 @@ struct AccountCollectionCouponRow: View {
             }
             // MP: an invalid coupon replaces the date line with 该券已被平台手动失效.
             if coupon.status == .invalid {
-                Text("accountCollection.coupon.invalidHint").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Text("accountCollection.coupon.invalidHint").font(.subheadline).foregroundStyle(.secondary)
             }
             // Otherwise an unknown end date is an em dash, as in the mini-program.
             if coupon.status != .invalid {
@@ -198,13 +188,13 @@ struct AccountCollectionCouponRow: View {
             if showsCodeFooter {
                 Label(coupon.futureStartDay(relativeTo: Date()) != nil ? "accountCollection.coupon.viewAvailability" : "couponCode.show",
                       systemImage: coupon.futureStartDay(relativeTo: Date()) != nil ? "calendar" : "qrcode")
-                    .cyText(.label).foregroundStyle(CYColor.brand)
+                    .font(.subheadline).foregroundStyle(.tint)
                     .accessibilityIdentifier("accountCollection.coupon.codeFooter")
             }
             // Room for the 导航 capsule the list overlays on the card (MKT-8-4).
             if coupon.hasShopNavigation { Color.clear.frame(height: 44).accessibilityHidden(true) }
         }
-        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -212,12 +202,12 @@ struct AccountCollectionCouponRow: View {
 struct AccountCollectionCouponShopLine: View {
     let coupon: AccountCollectionCoupon
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
-            Image(systemName: "storefront").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+        HStack(alignment: .firstTextBaseline) {
+            Image(systemName: "storefront").foregroundStyle(.tertiary).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
-                if let name = coupon.shopName { Text(verbatim: name).cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary) }
+                if let name = coupon.shopName { Text(verbatim: name).font(.subheadline).foregroundStyle(.primary) }
                 if let address = coupon.shopAddress {
-                    Text(verbatim: address).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: address).font(.footnote).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -243,14 +233,10 @@ struct AccountCollectionCouponNavigateButton: View {
                 Task { _ = await NativePlatformMapOpener().open(destination) }
             } label: {
                 Label("accountCollection.coupon.navigate", systemImage: "arrow.triangle.turn.up.right.diamond")
-                    .cyText(.label)
-                    .padding(.horizontal, CYSpacing.md)
-                    .frame(minHeight: 44)
-                    .background(CYColor.bgOverlay, in: Capsule())
-                    .contentShape(Capsule())
             }
-            .buttonStyle(.borderless)
-            .padding(CYSpacing.lg)
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .padding(.vertical, 8)
             .accessibilityHint(Text("accountCollection.coupon.openInMaps"))
             .accessibilityIdentifier("accountCollection.coupon.list.navigate")
         }

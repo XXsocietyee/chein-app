@@ -55,14 +55,11 @@ struct TopicReviewsContent: View {
                     }
                 }
             }
-            .cyText(.body)
+            .font(.body)
             .fixedSize(horizontal: false, vertical: true)
-            .questifyCardSurface()
-            .questifyCardListRow()
             ForEach(Array(reviews.preview.enumerated()), id: \.offset) { index, review in
                 UGCBlockedFilterContainer(authorName: review.authorName) {
                     TopicReviewCard(review: review, index: index)
-                        .questifyCardListRow()
                 }
             }
         }
@@ -84,11 +81,11 @@ private struct TopicReviewCard: View {
                 if let name = review.authorName { Text(verbatim: name) }
                 else { Text("topic.reviews.authorUnknown") }
             }
-            .cyText(.cardTitle)
+            .font(.headline)
             .accessibilityIdentifier("topic.reviews.author.\(index)")
             if let date = review.createTime {
                 Text(verbatim: date)
-                    .cyText(.meta)
+                    .font(.footnote)
                     .foregroundStyle(.secondary)
             }
             LabeledContent("topic.reviews.rating") {
@@ -113,6 +110,5 @@ private struct TopicReviewCard: View {
             )
         }
         .fixedSize(horizontal: false, vertical: true)
-        .questifyCardSurface()
     }
 }

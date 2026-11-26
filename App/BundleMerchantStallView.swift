@@ -17,12 +17,18 @@ struct BundleMerchantStallView: View {
         Form {
             switch content {
             case .unavailable:
-                text("unavailable").accessibilityIdentifier("bundleStall.unavailable")
+                ContentUnavailableView {
+                    Label {
+                        text("unavailable").accessibilityIdentifier("bundleStall.unavailable")
+                    } icon: {
+                        Image(systemName: "storefront")
+                    }
+                }
             case let .loaded(detail, window):
                 Section {
-                    if let name = detail.merchantName { Text(verbatim: name).cyText(.cardTitle) }
-                    if let terms = detail.termsMode { Text(verbatim: terms).cyText(.bodyCompact) }
-                    if let end = detail.validEnd { Text(verbatim: end.raw).cyText(.bodyCompact) }
+                    if let name = detail.merchantName { Text(verbatim: name).font(.headline) }
+                    if let terms = detail.termsMode { Text(verbatim: terms).font(.subheadline).foregroundStyle(.secondary) }
+                    if let end = detail.validEnd { Text(verbatim: end.raw).font(.subheadline).foregroundStyle(.secondary) }
                 }
                 if !detail.reasons.isEmpty {
                     Section {

@@ -19,37 +19,37 @@ struct BundleRefundQuoteView: View {
             seed: presentation.policyVersion.isEmpty ? "bundle-refund-quote" : presentation.policyVersion,
             symbol: "arrow.uturn.backward"
         ) {
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
+            Section {
                 amountHero
-                routeCard
-                CYListRow(
-                    verbatim: catalog("remainingRatioLabel"),
-                    trailing: .value(Cloud03Copy.shown(presentation.remainingRatioText)),
-                    card: true
-                ) { CYRowIcon(systemImage: "percent") }
-                CYListRow(
-                    verbatim: catalog("remainingValueLabel"),
-                    trailing: .value(Cloud03Copy.shown(presentation.remainingValueText)),
-                    card: true
-                ) { CYRowIcon(systemImage: "circle.lefthalf.filled") }
-                CYListRow(
-                    verbatim: catalog("totalValueLabel"),
-                    trailing: .value(Cloud03Copy.shown(presentation.totalValueText)),
-                    card: true
-                ) { CYRowIcon(systemImage: "tag") }
+            }
+            routeSection
+            Section {
+                LabeledContent {
+                    Text(verbatim: Cloud03Copy.shown(presentation.remainingRatioText))
+                } label: {
+                    Label(catalog("remainingRatioLabel"), systemImage: "percent")
+                }
+                LabeledContent {
+                    Text(verbatim: Cloud03Copy.shown(presentation.remainingValueText))
+                } label: {
+                    Label(catalog("remainingValueLabel"), systemImage: "circle.lefthalf.filled")
+                }
+                LabeledContent {
+                    Text(verbatim: Cloud03Copy.shown(presentation.totalValueText))
+                } label: {
+                    Label(catalog("totalValueLabel"), systemImage: "tag")
+                }
                 if let key = presentation.afterSalesPointerKey {
-                    CYNoteBanner(text: Text(verbatim: catalog(key)), symbol: "person.crop.circle.badge.questionmark", tone: .info)
+                    Cloud03Note(text: Text(verbatim: catalog(key)), symbol: "person.crop.circle.badge.questionmark", tone: .info)
                         .accessibilityIdentifier("bundleRefund.afterSales")
                 }
+            } footer: {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Text(verbatim: catalog(presentation.quoteOnlyNoticeKey))
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("bundleRefund.quoteOnly")
                     Text(verbatim: Cloud03Copy.shown(presentation.policyVersion))
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textTertiary)
+                        .foregroundStyle(.tertiary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -59,38 +59,33 @@ struct BundleRefundQuoteView: View {
     private var amountHero: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text(verbatim: catalog("amountLabel"))
-                .cyText(.meta)
-                .foregroundStyle(CYColor.textSecondary)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(verbatim: Cloud03Copy.shown(presentation.amountText))
-                .cyText(.dataXL)
-                .foregroundStyle(CYColor.textPrimary)
+                .font(.largeTitle.weight(.semibold).monospacedDigit())
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
     }
 
-    private var routeCard: some View {
-        CYInfoCard(
-            title: Text(verbatim: catalog(presentation.routeTitleKey)),
-            symbol: "arrow.uturn.backward",
-            tint: CYColor.textSecondary
-        ) {
+    private var routeSection: some View {
+        Section {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 Text(verbatim: catalog(presentation.routeBodyKey))
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if let reason = presentation.serverReason {
                     Text(verbatim: Cloud03Copy.shown(reason))
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textTertiary)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
+            .accessibilityIdentifier("bundleRefund.route")
+        } header: {
+            Label(catalog(presentation.routeTitleKey), systemImage: "arrow.uturn.backward")
         }
-        .accessibilityIdentifier("bundleRefund.route")
     }
 
     private func catalog(_ key: String) -> String {

@@ -103,7 +103,8 @@ private enum TopicRevealDestination: Hashable, Identifiable { case wallet, play;
                         Button(action: { model.flow.prepare() }) {
                             Text("contextSelfPlay.review").frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(.cyPrimary)
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
                         .disabled(!model.flow.canCreate)
                         .accessibilityIdentifier("contextSelfPlay.review")
                     }
@@ -194,8 +195,8 @@ private enum TopicRevealDestination: Hashable, Identifiable { case wallet, play;
                     Button(action: { confirm(consented) }) {
                         Text("contextSelfPlay.continuePayment").frame(maxWidth: .infinity)
                     }
-                        .buttonStyle(.questifyPrimary)
-                        .frame(maxWidth: .infinity)
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
                         .listRowBackground(Color.clear)
                         .disabled(!consented)
                     Button("action.cancel", role: .cancel, action: cancel)

@@ -337,14 +337,9 @@ struct CYCarouselCaption: View {
 struct CYGlassSliver: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @QuestifyReduceMotion private var reduceMotion
+    /// Native r2: no glass sliver. Draws nothing.
     var body: some View {
-        let reduced = reduceMotion
-        sliverFill
-            .scrollTransition(.interactive, axis: .horizontal) { view, phase in
-                view.opacity(reduced ? (phase.isIdentity ? 0 : 1) : min(1, max(0, (abs(phase.value) - 0.35) / 0.65)))
-            }
-            .allowsHitTesting(false)
-            .accessibilityHidden(true)
+        EmptyView()
     }
     @ViewBuilder private var sliverFill: some View {
         let shape = RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous)
@@ -363,8 +358,9 @@ struct CYGlassSliver: View {
 /// One `GlassEffectContainer` for the rail on iOS 26 so adjacent slivers blend while paging; passthrough before.
 struct CYGlassGroup<Content: View>: View {
     @ViewBuilder let content: Content
+    /// Native r2: no glass container; passthrough.
     var body: some View {
-        if #available(iOS 26.0, *) { GlassEffectContainer(spacing: 24) { content } } else { content }
+        content
     }
 }
 
@@ -378,12 +374,9 @@ struct CYCarouselBackdrop: View {
 
     private var hue: Double? { seed.map { Double(CYCoverArt.stableHash($0) % 360) / 360 } }
 
+    /// Native r2: no tinted, blurred gradient backdrop. Clear.
     var body: some View {
-        ZStack { layer.id(seed ?? "neutral").transition(.opacity) }
-            .animation(reduceMotion ? CYMotion.reduced : CYMotion.standard, value: seed)
-            .mask(LinearGradient(stops: [.init(color: .clear, location: 0), .init(color: .black, location: 0.12),
-                                         .init(color: .black, location: 0.88), .init(color: .clear, location: 1)],
-                                 startPoint: .top, endPoint: .bottom))
+        Color.clear
             .accessibilityHidden(true)
     }
 

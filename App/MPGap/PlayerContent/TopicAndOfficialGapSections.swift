@@ -36,15 +36,15 @@ public struct OfficialEventLeaderboardSection: View {
                     HStack {
                         Text("#\(row.rank)")
                             .cyText(.numericBody, monospacedDigit: true)
-                            .foregroundStyle(row.isSelf ? CYColor.brand : CYColor.textSecondary)
+                            .foregroundStyle(row.isSelf ? Color.accentColor : Color.secondary)
                             .frame(width: 40, alignment: .leading)
                         Text(row.displayName)
                             .cyText(.bodyMedium)
-                            .foregroundStyle(CYColor.textPrimary)
+                            .foregroundStyle(.primary)
                         Spacer()
                         Text(row.scoreText)
                             .cyText(.numericBody, monospacedDigit: true)
-                            .foregroundStyle(CYColor.textSecondary)
+                            .foregroundStyle(.secondary)
                     }
                 }
             } header: {
@@ -54,7 +54,7 @@ public struct OfficialEventLeaderboardSection: View {
                     if let chip {
                         Text(verbatim: chip)
                             .cyText(.meta, monospacedDigit: true)
-                            .foregroundStyle(CYColor.brand)
+                            .foregroundStyle(.tint)
                             .accessibilityIdentifier("official.leaderboard.chip")
                     }
                 }
@@ -140,7 +140,7 @@ public struct MerchantHostWorkbenchSection: View {
                         if !writesEnabled {
                             Text("merchantHost.gated")
                                 .cyText(.meta)
-                                .foregroundStyle(CYColor.textSecondary)
+                                .foregroundStyle(.secondary)
                         }
                     }
                 }

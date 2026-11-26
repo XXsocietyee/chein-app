@@ -14,20 +14,35 @@ struct ProfileInviteHistoryIssueView: View {
     /// FIN-20-4: MP cy-error fill size lg while no row is loaded: 登录 for signed-out, 重试 for ordinary failures.
     private func page(_ kind: ProfileInviteHistoryIssueKind) -> some View {
         let action: (() -> Void)? = kind == .signIn ? signIn : (kind.canRetry ? retry : nil)
-        return CYEmptyState(systemImage: kind == .signIn ? "person.crop.circle.badge.exclamationmark" : "exclamationmark.triangle",
-                            LocalizedStringKey(kind.titleKey),
-                            detail: kind.detailKey.map { LocalizedStringKey($0) },
-                            messageIdentifier: "profile.inviteHistory.issue",
-                            actionTitle: action == nil ? nil : (kind == .signIn ? "auth.signIn" : "action.retry"),
-                            actionIdentifier: action == nil ? nil : "profile.inviteHistory.issue.action",
-                            kind: .failure,
-                            action: action)
+        return ContentUnavailableView {
+            Label(LocalizedStringKey(kind.titleKey),
+                  systemImage: kind == .signIn ? "person.crop.circle.badge.exclamationmark" : "exclamationmark.triangle")
+        } description: {
+            if let detail = kind.detailKey { Text(LocalizedStringKey(detail)) }
+        } actions: {
+            if let action {
+                Button(action: action) {
+                    Text(LocalizedStringKey(kind == .signIn ? "auth.signIn" : "action.retry"))
+                }
+                .buttonStyle(.bordered)
+                .accessibilityIdentifier("profile.inviteHistory.issue.action")
+            }
+        }
+        .accessibilityIdentifier("profile.inviteHistory.issue")
     }
     private func inline(_ kind: ProfileInviteHistoryIssueKind) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            CYStatusChip(LocalizedStringKey(kind.titleKey), tone: .warning, systemImage: "exclamationmark.circle")
-            if let detail = kind.detailKey { Text(LocalizedStringKey(detail)).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
-            if kind.canRetry, let retry { CYPillButton("action.retry", style: .secondary, fullWidth: false, action: retry) }
+        VStack(alignment: .leading) {
+            Label {
+                Text(LocalizedStringKey(kind.titleKey))
+            } icon: {
+                Image(systemName: "exclamationmark.circle").foregroundStyle(.orange)
+            }
+            if let detail = kind.detailKey { Text(LocalizedStringKey(detail)).font(.subheadline).foregroundStyle(.secondary) }
+            if kind.canRetry, let retry {
+                Button(action: retry) { Text("action.retry") }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+            }
         }.accessibilityElement(children: .contain).accessibilityIdentifier("profile.inviteHistory.issue")
     }
 }
@@ -50,23 +65,22 @@ struct ProfileInviteLatestEarnCard: View {
     let member: SocialInvitedMember
     let reward: SocialInviteReward
     var body: some View {
-        HStack(alignment: .center, spacing: CYSpacing.md) {
+        HStack(alignment: .center) {
             CYAvatarView(url: member.avatar.flatMap { URL(string: $0) }, name: member.nickname ?? "—", size: .lg)
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            VStack(alignment: .leading) {
                 Text("u9cde.invite.points \(NSDecimalNumber(decimal: reward.points).stringValue)")
-                    .cyText(.cardTitle).monospacedDigit().foregroundStyle(CYColor.brand)
+                    .font(.headline).monospacedDigit().foregroundStyle(.tint)
                 HStack(spacing: 0) {
                     if let nickname = member.nickname, !nickname.isEmpty { Text(verbatim: nickname + " · ") }
                     Text("social.invites.earned")
                 }
-                .cyText(.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1)
+                .font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
             }
-            Spacer(minLength: CYSpacing.sm)
+            Spacer()
             if let time = reward.createdAt, !time.isEmpty {
-                Text(verbatim: WalletPointsShortTime.text(time)).cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: WalletPointsShortTime.text(time)).font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
             }
         }
-        .padding(.vertical, CYSpacing.xs)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("profile.inviteHistory.latestEarn")
     }
@@ -75,7 +89,8 @@ struct ProfileInviteLatestEarnCard: View {
 /// Source empty state: 还没有人接受你的邀请 with its hint.
 struct ProfileInviteHistoryEmptyView: View {
     var body: some View {
-        CYEmptyState(systemImage: "tray", "profile.inviteHistory.empty", messageIdentifier: "profile.inviteHistory.empty")
+        ContentUnavailableView("profile.inviteHistory.empty", systemImage: "tray")
+            .accessibilityIdentifier("profile.inviteHistory.empty")
     }
 }
 
@@ -84,7 +99,7 @@ struct ProfileInviteHistorySummaryLine: View {
     let total: Int?
     var body: some View {
         if let total {
-            Text("profile.inviteHistoryP2.summary \(total)").cyText(.cardTitle)
+            Text("profile.inviteHistoryP2.summary \(total)").font(.headline)
                 .accessibilityIdentifier("profile.inviteHistory.summary")
         }
     }

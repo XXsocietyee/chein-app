@@ -18,7 +18,6 @@ import QuestifyCore
                     TopicStoryParticipationScreen(topicID: topicID, chapters: chapters)
                 } label: {
                     Label(W8Text.t("参与剧情", "Join the story"), systemImage: "book.pages")
-                        .frame(minHeight: 44)
                 }
                 .accessibilityIdentifier("topic.storyParticipation")
             }
@@ -48,8 +47,8 @@ import QuestifyCore
                     )
                     if let message = StoryParticipationFeedbackMapping.joinMessage(actions.joinState) {
                         Label(message, systemImage: "exclamationmark.triangle.fill")
-                            .cyText(.bodyCompact)
-                            .foregroundStyle(CYColor.dangerText)
+                            .font(.subheadline)
+                            .foregroundStyle(.red)
                             .accessibilityIdentifier("story.joinMessage")
                     }
                 }
@@ -59,7 +58,6 @@ import QuestifyCore
                 ProgressView().frame(maxWidth: .infinity, minHeight: 120)
             }
         }
-        .background(CYColor.bgPage.ignoresSafeArea())
         .navigationTitle(W8Text.t("参与剧情", "Join the story"))
         .navigationBarTitleDisplayMode(.inline)
         .task {

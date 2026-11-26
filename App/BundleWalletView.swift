@@ -10,7 +10,7 @@ import SwiftUI
     private func text(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: table) }
 
     var body: some View {
-        // Native restyle r1 (spec §3.2): an inset-grouped list with a system inline title; facts are LabeledContent.
+        // Native r2: an inset-grouped list with a system inline title; facts are LabeledContent.
         List {
             balances
             if !order.units.isEmpty {
@@ -42,11 +42,21 @@ import SwiftUI
 
     @ViewBuilder private var balances: some View {
         if order.isLegacy {
-            Section { CYEmptyState(systemImage: "tray", "order.legacy", tableName: table) }
-                .cyCardRow()
+            Section {
+                ContentUnavailableView {
+                    Label { text("order.legacy") } icon: { Image(systemName: "tray") }
+                }
+            }
         } else if !order.hasBalanceDetail || order.balances.isEmpty {
-            Section { CYEmptyState(systemImage: "tray", "wallet.noDetail", tableName: table, messageIdentifier: "bundle.wallet.noDetail") }
-                .cyCardRow()
+            Section {
+                ContentUnavailableView {
+                    Label {
+                        text("wallet.noDetail").accessibilityIdentifier("bundle.wallet.noDetail")
+                    } icon: {
+                        Image(systemName: "tray")
+                    }
+                }
+            }
         } else {
             ForEach(order.balances, id: \.grantId) { balance in
                 Section { balanceRows(balance) }
@@ -57,12 +67,12 @@ import SwiftUI
     @ViewBuilder private func balanceRows(_ balance: BundleBalanceRow) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             text("wallet.unitsTotal")
-                .cyText(.meta)
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityHidden(true)
             Text(verbatim: String(balance.unitsTotal))
-                .cyText(.data2XL)
+                .font(.largeTitle.weight(.semibold))
                 .monospacedDigit()
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityLabel(text("wallet.unitsTotal"))
@@ -79,7 +89,11 @@ import SwiftUI
         LabeledContent { Text(verbatim: WalletCopy.server(balance.validFrom.raw)) } label: { text("wallet.validFrom") }
         LabeledContent { Text(verbatim: WalletCopy.server(balance.validTo.raw)) } label: { text("wallet.validTo") }
         if balance.expired {
-            CYStatusChip(verbatim: WalletCopy.bundle("wallet.expired"), tone: .warning, systemImage: "clock.badge.exclamationmark")
+            Label {
+                Text(verbatim: WalletCopy.bundle("wallet.expired"))
+            } icon: {
+                Image(systemName: "clock.badge.exclamationmark").foregroundStyle(.orange)
+            }
                 .accessibilityIdentifier("bundle.wallet.expired")
                 .accessibilityLabel(text("wallet.expired"))
         }

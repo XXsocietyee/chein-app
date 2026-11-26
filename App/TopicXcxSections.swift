@@ -23,7 +23,7 @@ enum TopicXcxTab: Int, CaseIterable, Identifiable {
     var anchor: String { "topicXcx.anchor.\(rawValue)" }
 }
 
-/// Mini-program 详情 / 故事 / 路线 sticky underline tabs using shared `CYTabs(.sticky)`;
+/// Mini-program 详情 / 故事 / 路线 tabs as a system segmented `Picker` (native r2);
 /// jumps to each section cleanly so every row stays reachable. Free exploration uses 地点 for the third tab.
 struct TopicXcxTabs: View {
     let proxy: ScrollViewProxy
@@ -44,10 +44,16 @@ struct TopicXcxTabs: View {
     private var selection: Binding<TopicXcxTab> { shared ?? $ownSelection }
 
     var body: some View {
-        let items = TopicXcxTab.allCases.map { tab in
-            CYTabItem(id: tab, title: appLocalized(String.LocalizationValue(tab.titleKeyString(productType: productType)), locale: locale))
+        Picker(selection: selection) {
+            ForEach(TopicXcxTab.allCases) { tab in
+                Text(verbatim: appLocalized(String.LocalizationValue(tab.titleKeyString(productType: productType)), locale: locale))
+                    .tag(tab)
+            }
+        } label: {
+            Text(TopicXcxTab.details.titleKey(productType: productType))
         }
-        CYTabs(items: items, selection: selection, variant: .sticky)
+        .pickerStyle(.segmented)
+        .labelsHidden()
             .accessibilityIdentifier("topic.tabs")
             .onChange(of: selection.wrappedValue) { _, tab in
                 withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) {
@@ -67,24 +73,15 @@ struct TopicXcxHero: View {
         default: return "topicXcx.review.unlisted"
         }
     }
-    @Environment(\.cyPalette) private var palette
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             // skill-r2 hand-off / verify-r1 3.1 (`169:6954`): no blue type chip; the type is the eyebrow over the title.
+            // native r2: categories are one secondary line, not chips.
             if !topic.categoryNames.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: CYSpacing.sm) {
-                        ForEach(topic.categoryNames, id: \.self) { name in
-                            Text(verbatim: name)
-                                .cyText(.label)
-                                .foregroundStyle(palette.textSecondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .padding(.horizontal, CYSpacing.sm)
-                                .padding(.vertical, CYSpacing.xxs)
-                                .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
-                        }
-                    }
-                }
+                Text(verbatim: topic.categoryNames.joined(separator: " · "))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             // R7-PC-B1-9 (MP index.wxml:89-91, 101): publisher row (avatar + name + 发布) and the owner-only review chip.
             if topic.publisher != nil || topic.ownerReviewLabel != nil {
@@ -93,37 +90,33 @@ struct TopicXcxHero: View {
                         CYAvatarView(url: publisher.avatar.flatMap(URL.init(string:)), name: publisher.name, size: .xs)
                             .accessibilityHidden(true)
                         Text(verbatim: publisher.name)
-                            .cyText(.label)
-                            .foregroundStyle(palette.textPrimary)
+                            .font(.subheadline)
+                            .foregroundStyle(.primary)
                             .lineLimit(1)
                         Text("topicXcx.publisher.posted")
-                            .cyText(.label)
-                            .foregroundStyle(palette.textSecondary)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                     }
                     if let review = topic.ownerReviewLabel {
-                        Text(LocalizedStringKey(TopicXcxHero.reviewKey(review)))
-                            .cyText(.label)
-                            .foregroundStyle(palette.textSecondary)
-                            .padding(.horizontal, CYSpacing.sm)
-                            .padding(.vertical, CYSpacing.xxs)
-                            .background(palette.bgRaised, in: Capsule())
+                        Label(LocalizedStringKey(TopicXcxHero.reviewKey(review)), systemImage: "hourglass")
+                            .font(.subheadline)
+                            .foregroundStyle(.orange)
                             .accessibilityIdentifier("topic.ownerReviewState")
                     }
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("topic.publisher")
             }
-            if let club = topic.clubName { Label { Text("topicXcx.clubHost \(club)") } icon: { Image(systemName: "person.3").accessibilityHidden(true) }.font(CYTypography.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true) }
+            if let club = topic.clubName { Label { Text("topicXcx.clubHost \(club)") } icon: { Image(systemName: "person.3").accessibilityHidden(true) }.font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
         }
     }
 }
 
-/// verify-r1 3.1 / PL-23 (`169:6954`): up to four equal stat cells in one card, value at 20 pt over a 13 pt label.
+/// verify-r1 3.1 / PL-23 (`169:6954`): up to four equal stat cells in one row (native r2: no card), value over a caption label.
 /// Only known facts appear (a missing duration or distance is left out, never `—` or `0`).
 struct TopicXcxStatBar: View {
     let cells: [TopicXcxFacts.StatCell]
     var stops: Int? = nil
-    @Environment(\.cyPalette) private var palette
     @Environment(\.dynamicTypeSize) private var typeSize
 
     private struct Tile: Identifiable {
@@ -159,24 +152,22 @@ struct TopicXcxStatBar: View {
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(alignment: .firstTextBaseline, spacing: 2) {
                             Text(verbatim: tile.value)
-                                .cyText(.sectionTitle)
+                                .font(.title3.weight(.semibold))
                                 .monospacedDigit()
-                                .foregroundStyle(palette.textPrimary)
+                                .foregroundStyle(.primary)
                             if let unit = tile.unit {
-                                Text(unit).cyText(.meta).foregroundStyle(palette.textPrimary)
+                                Text(unit).font(.footnote).foregroundStyle(.primary)
                             }
                         }
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
-                        Text(tile.label).cyText(.meta).foregroundStyle(palette.textSecondary)
+                        Text(tile.label).font(.footnote).foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityElement(children: .combine)
                 }
             }
-            .padding(.vertical, CYSpacing.md)
-            .padding(.horizontal, CYSpacing.lg)
-            .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .padding(.vertical, CYSpacing.xs)
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier("topic.statBar")
         }
@@ -236,8 +227,8 @@ struct TopicXcxLineup: View {
                     UGCBlockedFilterContainer(authorName: member.name) {
                         let card = VStack(spacing: CYSpacing.xs) {
                             CYAvatarView(name: member.name, size: .lg)
-                            Text(verbatim: member.name).cyText(.label).foregroundStyle(CYColor.textPrimary).cyWrapText(alignment: .center)
-                            Text(member.kind == .club ? "topicXcx.lineup.club" : "topicXcx.lineup.merchant").cyText(.micro).foregroundStyle(CYColor.textTertiary)
+                            Text(verbatim: member.name).font(.subheadline).foregroundStyle(.primary).cyWrapText(alignment: .center)
+                            Text(member.kind == .club ? "topicXcx.lineup.club" : "topicXcx.lineup.merchant").font(.caption).foregroundStyle(.secondary)
                         }
                         .frame(width: 88)
                         Group {
@@ -268,7 +259,6 @@ struct TopicXcxLineup: View {
 /// verify-r1 3.1 / PL-23 (`169:6954`): the sticky bar is the price on the left (with one caption line) and one
 /// primary on the right. 查看场次 is a quiet text action under the price; share and favourite live in the navigation bar.
 struct TopicXcxActionBar: View {
-    @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
     let topic: TopicDetail
     var openSessions: () -> Void
@@ -299,22 +289,16 @@ struct TopicXcxActionBar: View {
         VStack(alignment: .leading, spacing: 2) {
             switch TopicXcxFacts.action(topic, preferSession: preferSession) {
             case .ticketWallet:
-                Text("topicXcx.bar.signedUp").cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
+                Text("topicXcx.bar.signedUp").font(.headline).foregroundStyle(.primary)
             case .locked, .closed:
                 EmptyView()
             case .selfPlay(let price):
-                priceText(price).cyText(.sectionTitle).foregroundStyle(palette.textPrimary).monospacedDigit()
+                priceText(price).font(.title3.weight(.semibold)).foregroundStyle(.primary).monospacedDigit()
                 Button(action: openSessions) {
-                    HStack(spacing: 2) {
-                        Text("topicXcx.cta.sessions")
-                        Image(systemName: "chevron.forward").font(.caption2.weight(.semibold)).accessibilityHidden(true)
-                    }
-                    .cyText(.meta)
-                    .foregroundStyle(palette.textSecondary)
-                    .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-                    .contentShape(Rectangle())
+                    Text("topicXcx.cta.sessions")
+                        .font(.footnote)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.borderless)
                 .modifier(TopicBarHeroSource(sheet: .sessions, namespace: heroNamespace, cornerRadius: CYRadius.sm))
                 .pageTemplateControl(label: Text("topicXcx.cta.sessions"), traits: .isButton)
                 .pageTemplateReadingOrder(2)
@@ -322,10 +306,10 @@ struct TopicXcxActionBar: View {
             case .signUp:
                 if let lowest = lowestTicketPrice {
                     HStack(alignment: .firstTextBaseline, spacing: 2) {
-                        priceText(lowest).cyText(.sectionTitle).monospacedDigit()
-                        if lowest > 0 { Text("topicXcx.bar.from").cyText(.meta) }
+                        priceText(lowest).font(.title3.weight(.semibold)).monospacedDigit()
+                        if lowest > 0 { Text("topicXcx.bar.from").font(.footnote) }
                     }
-                    .foregroundStyle(palette.textPrimary)
+                    .foregroundStyle(.primary)
                 }
             }
         }
@@ -335,7 +319,7 @@ struct TopicXcxActionBar: View {
     var body: some View {
         CYFooterBar {
             VStack(spacing: 6) {
-                if topic.merchantClosed && !topic.isSignUp { Text("topicXcx.merchantClosed").cyText(.bodyCompact).foregroundStyle(palette.warning) }
+                if topic.merchantClosed && !topic.isSignUp { Text("topicXcx.merchantClosed").font(.subheadline).foregroundStyle(.orange) }
                 HStack(alignment: .center, spacing: CYSpacing.md) {
                     priceColumn
                     Spacer(minLength: CYSpacing.sm)
@@ -345,42 +329,42 @@ struct TopicXcxActionBar: View {
                             Button(action: openTickets) {
                                 Label("topicXcx.bar.toTickets", systemImage: "ticket").frame(minWidth: 132)
                             }
-                            .buttonStyle(.cyPrimary)
+                            .buttonStyle(.borderedProminent)
                             .modifier(TopicBarHeroSource(sheet: .tickets, namespace: heroNamespace))
                             // R7-PC-B1-23 (r1 PC-B-1-17): the spoken label is the visible 去票夹.
                             .accessibilityIdentifier("topic.cta.tickets")
                         } else {
-                            Label("topicXcx.cta.ticketWallet", systemImage: "ticket").foregroundStyle(palette.textSecondary)
+                            Label("topicXcx.cta.ticketWallet", systemImage: "ticket").foregroundStyle(.secondary)
                         }
                     case .locked(let lifecycle):
                         switch TopicXcxFacts.ownerSaleRoute(topic) {
                         case .pricing where openPricing != nil:
-                            Button(action: { openPricing?() }) { Text("topicXcx.cta.confirmPrice").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
+                            Button(action: { openPricing?() }) { Text("topicXcx.cta.confirmPrice").frame(maxWidth: .infinity) }.buttonStyle(.borderedProminent)
                                 .modifier(TopicBarHeroSource(sheet: .pricing, namespace: heroNamespace))
                                 .pageTemplateControl(label: Text("topicXcx.cta.confirmPrice"), traits: .isButton)
                                 .accessibilityIdentifier("topic.cta.pricing")
                         case .editor where openEditor != nil:
                             // R7-PC-B1-19 (MP index.js:1177-1182): 去设置票价 opens the editor for a free-explore owner.
-                            Button(action: { openEditor?() }) { Text("topicXcx.cta.editPrice").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
+                            Button(action: { openEditor?() }) { Text("topicXcx.cta.editPrice").frame(maxWidth: .infinity) }.buttonStyle(.borderedProminent)
                                 .pageTemplateControl(label: Text("topicXcx.cta.editPrice"), traits: .isButton)
                                 .accessibilityIdentifier("topic.cta.editor")
                         default:
-                            Text(LocalizedStringKey("topicXcx.cta.locked." + String(lifecycle))).frame(maxWidth: .infinity).foregroundStyle(CYColor.textSecondary)
+                            Text(LocalizedStringKey("topicXcx.cta.locked." + String(lifecycle))).frame(maxWidth: .infinity).foregroundStyle(.secondary)
                         }
                     case .closed:
                         // PC-B-1-3: after the sale deadline the bar only states 已截止 (MP is-off pill); no buy entry.
-                        Text("topicXcx.cta.closed").frame(maxWidth: .infinity).foregroundStyle(CYColor.textSecondary)
+                        Text("topicXcx.cta.closed").frame(maxWidth: .infinity).foregroundStyle(.secondary)
                             .accessibilityIdentifier("topic.cta.closed")
                     case .selfPlay:
                         Button(action: openSelfPlay) {
                             Text("topicXcx.cta.selfPlayNoPrice").frame(minWidth: 132)
-                        }.buttonStyle(.cyPrimary).disabled(!topic.canOfferPurchase)
+                        }.buttonStyle(.borderedProminent).disabled(!topic.canOfferPurchase)
                             .modifier(TopicBarHeroSource(sheet: .selfPlay, namespace: heroNamespace))
                             .accessibilityAddTraits(.isButton)
                             .pageTemplateReadingOrder(1)
                             .accessibilityIdentifier("topic.cta.selfPlay")
                     case .signUp:
-                        Button(action: openSessions) { Text("topicXcx.cta.signUp").frame(minWidth: 132) }.buttonStyle(.cyPrimary)
+                        Button(action: openSessions) { Text("topicXcx.cta.signUp").frame(minWidth: 132) }.buttonStyle(.borderedProminent)
                             .modifier(TopicBarHeroSource(sheet: .sessions, namespace: heroNamespace))
                             .pageTemplateControl(label: Text("topicXcx.cta.signUp"), traits: .isButton)
                             .disabled(topic.merchantClosed)
@@ -419,19 +403,12 @@ struct TopicBarHeroDestination: ViewModifier {
     }
 }
 
-/// The topic page behind a bar sheet recedes (scale 0.96, corners to `CYRadius.xl`) while the sheet zooms out of its
-/// button. The sheets use fractional detents, so the system never recedes the page itself. Apply it to the scroll content
-/// BEFORE the bottom bar inset: the bar (the zoom source) stays still, so the zoom lands back on the real button.
-/// At rest (`active == false`) scale 1 and radius 0, identical to before. Reduce Motion: no scale; the sheet dim remains.
+/// native r2: decorative recede removed; the system sheet presentation is the only motion. Kept as a pass-through so
+/// hosts keep their call sites.
 struct TopicBarRecede: ViewModifier {
     let active: Bool
-    @QuestifyReduceMotion private var reduceMotion
     func body(content: Content) -> some View {
-        let receded = active && !reduceMotion
         content
-            .clipShape(RoundedRectangle(cornerRadius: receded ? CYRadius.xl : 0, style: .continuous))
-            .scaleEffect(receded ? 0.96 : 1)
-            .animation(reduceMotion ? nil : CYMotion.standard, value: receded)
     }
 }
 
@@ -523,7 +500,6 @@ extension EnvironmentValues {
 /// Source tab "路线": every stop in order with its walking estimate.
 struct TopicXcxRouteSection: View {
     @Environment(\.locale) private var locale
-    @Environment(\.cyPalette) private var palette
     @Environment(\.rootTabSwitch) private var rootTabSwitch
     @Environment(\.openURL) private var openURL
     /// R7-PC-B1-6: MP `_loadProgress` reads the buyer's own `/api/play/nodes` total/doneCount (bought only; otherwise 0, no fake
@@ -588,45 +564,43 @@ struct TopicXcxRouteSection: View {
             }
             // Source `route-note`: 固定路线 for city orienteering, 没有固定路线 for free explore.
             Text(topic.productType == 2 ? "u9cde.topic.routeNote.free" : "u9cde.topic.routeNote.fixed")
-                .cyText(.label, weight: .semibold)
-                .foregroundStyle(topic.productType == 2 ? CYColor.textSecondary : CYNight.ink0)
-                .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
-                .background(Capsule().fill(topic.productType == 2 ? CYNight.glassFill : CYNight.lantern))
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.primary)
                 .accessibilityIdentifier("topic.route.note")
             // R7-PC-B1-18, MP pages/topic/utils/topic-motion.js routeNote: the gift count is in the sentence.
             Text(verbatim: routeNoteText)
-                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                .font(.footnote).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("topic.route.noteText")
             if topic.chapters.allSatisfy({ $0.nodes.isEmpty }) {
-                Text("u9cde.topic.routeConfiguring").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text("u9cde.topic.routeConfiguring").font(.headline)
                     .accessibilityIdentifier("topic.route.empty")
                 // R7-PC-B1-17 (MP index.wxml:358, js:1120 `goTopicList` → pages/template/index, the 发布/模板 tab).
                 if rootTabSwitch.isAvailable {
                     Button { rootTabSwitch(.publish) } label: {
-                        Text("topicXcx.route.browseOthers").frame(minHeight: CYSpacing.minTouchTarget)
+                        Text("topicXcx.route.browseOthers")
                     }
                     .accessibilityIdentifier("topic.route.browseOthers")
                 }
             }
             ForEach(Array(topic.chapters.enumerated()), id: \.offset) { _, chapter in
-                if !chapter.nodes.isEmpty { Text(verbatim: chapter.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                if !chapter.nodes.isEmpty { Text(verbatim: chapter.title).font(.headline) }
                 ForEach(TopicChapterItinerary(chapter: chapter).stops) { stop in
                     VStack(alignment: .leading, spacing: 2) {
                         // PC-B-1-7: the API has no walking time; say only the straight-line distance (MP 直线约 X).
                         if let meters = stop.straightLineMeters {
                             Text("topicXcx.route.straightLine \(TopicChapterItinerary.distanceText(meters: meters, chinese: locale.language.languageCode?.identifier == "zh"))")
-                                .cyText(.label).foregroundStyle(.secondary)
+                                .font(.footnote).foregroundStyle(.secondary)
                         }
                         HStack(alignment: .top) {
-                            Text(verbatim: String(stop.id + 1)).cyText(.label, weight: .bold, monospacedDigit: true).frame(minWidth: 24, minHeight: 24).background(Circle().fill(palette.bgRaised)).accessibilityHidden(true)
+                            Image(systemName: stop.id < 50 ? "\(stop.id + 1).circle.fill" : "circle.fill").font(.title3).foregroundStyle(.tint).accessibilityHidden(true)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(verbatim: stop.node.name)
-                                if let hours = stop.node.businessTime { Text(verbatim: hours).cyText(.meta) }
+                                if let hours = stop.node.businessTime { Text(verbatim: hours).font(.footnote).foregroundStyle(.secondary) }
                                 // R7-PC-B1-18: MP stop row opens the place in the map app.
                                 if let gift = stop.node.shopGift {
                                     Text(verbatim: appLocalized("topicXcx.stop.gift \(gift)", locale: locale))
-                                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                                        .font(.footnote).foregroundStyle(.secondary)
                                         .accessibilityIdentifier("topic.route.stop.\(stop.id).gift")
                                 }
                                 if let address = stop.node.address {
@@ -634,7 +608,6 @@ struct TopicXcxRouteSection: View {
                                         Link(destination: url) {
                                             Label { Text(verbatim: address).lineLimit(1) } icon: { Image(systemName: "mappin") }.font(.caption)
                                         }
-                                        .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
                                         .accessibilityHint(Text("accountCollection.coupon.openInMaps"))
                                         .accessibilityIdentifier("topic.route.stop.\(stop.id).map")
                                     } else {
@@ -645,9 +618,10 @@ struct TopicXcxRouteSection: View {
                             Spacer(minLength: 0)
                             // R7-PC-B1-18: MP stop image.
                             if let image = stop.node.images.first, let url = QuestifyCardArtwork.safeURL(image) {
-                                PlayerFeedRemoteImage(url: url, maxPixel: 160, placeholder: { CYColor.bgSurfaceStrong }, failure: { CYColor.bgSurfaceStrong })
+                                PlayerFeedRemoteImage(url: url, maxPixel: 160, placeholder: { Color.secondary.opacity(0.15) }, failure: { Color.secondary.opacity(0.15) })
                                     .frame(width: 56, height: 56)
-                                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                                    // Stop photo thumbnail: small system-like corner clip.
+                                    .clipShape(.rect(cornerRadius: 6))
                                     .accessibilityHidden(true)
                             }
                         }
@@ -669,7 +643,7 @@ struct TopicXcxSessionChip: View {
                 Text(LocalizedStringKey("topicXcx.weekday." + String(chip.weekday)))
                 Text(verbatim: chip.monthDay)
                 if let time = chip.time { Text(verbatim: time) }
-            }.cyText(.label, weight: .semibold, monospacedDigit: true).accessibilityElement(children: .combine).accessibilityIdentifier("topic.sessionChip")
+            }.font(.subheadline.weight(.semibold)).monospacedDigit().accessibilityElement(children: .combine).accessibilityIdentifier("topic.sessionChip")
         }
     }
 }
@@ -682,7 +656,7 @@ struct TopicXcxNodeFootView: View {
         if let merchant = foot.merchant {
             HStack(spacing: 4) {
                 Text(verbatim: merchant + "（" + foot.node + "）").font(.subheadline)
-                if foot.merchantCount > 1 { Text("topicXcx.moreMerchants \(foot.merchantCount)").cyText(.meta).foregroundStyle(.secondary) }
+                if foot.merchantCount > 1 { Text("topicXcx.moreMerchants \(foot.merchantCount)").font(.footnote).foregroundStyle(.secondary) }
             }.accessibilityIdentifier("topic.nodeFoot")
         }
     }
@@ -691,7 +665,6 @@ struct TopicXcxNodeFootView: View {
 /// 「出发前」 (MP `index.wxml` `topic-includes`, `pages/topic/utils/depart-notes.js`, 2026-11-21; port plan r1 C13):
 /// one short line per fact the route already has. Nothing shows when nothing is known.
 struct TopicDepartSection: View {
-    @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
     let items: [TopicDepartNotes.Item]
 
@@ -700,8 +673,8 @@ struct TopicDepartSection: View {
             Section("topic.depart") {
                 ForEach(Array(items.enumerated()), id: \.offset) { index, item in
                     row(item)
-                        .cyText(.bodyCompact)
-                        .foregroundStyle(palette.textPrimary)
+                        .font(.subheadline)
+                        .foregroundStyle(.primary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("topic.depart.\(index)")
                 }
@@ -723,7 +696,7 @@ struct TopicDepartSection: View {
                     }
                     .monospacedDigit()
                     if let sharedBy {
-                        Text("topic.depart.sharedBy \(sharedBy)").cyText(.caption).foregroundStyle(palette.textSecondary)
+                        Text("topic.depart.sharedBy \(sharedBy)").font(.caption).foregroundStyle(.secondary)
                     }
                 }
             }

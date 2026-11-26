@@ -12,52 +12,38 @@ import SwiftUI
         let rendered = readIntent()
         List {
             if let flow, let row = flow.detailRow {
-                CYListRow(verbatim: playerFactOrDash(row.title), trailing: .none) {
-                    CYRowIcon(systemImage: row.kind == .appeal ? "text.bubble" : "flag")
+                Label {
+                    Text(verbatim: playerFactOrDash(row.title))
+                } icon: {
+                    Image(systemName: row.kind == .appeal ? "text.bubble" : "flag")
                 }
-                .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
                 memberScoreText("score.kind.\(row.kind.rawValue)")
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                    .foregroundStyle(.secondary)
                 Text(verbatim: sessionLine(row))
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textTertiary)
+                    .font(.subheadline)
+                    .foregroundStyle(.tertiary)
                     .monospacedDigit()
-                    .fixedSize(horizontal: false, vertical: true)
-                    .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.xs, trailing: CYSpacing.pageHorizontal))
                 if let value = flow.detail {
                     MemberScoreStatusChip(status: value.status)
-                        .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
                     if let note = value.resolutionNote, !note.isEmpty {
                         Text(verbatim: note)
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.textPrimary)
-                            .fixedSize(horizontal: false, vertical: true)
+                            .foregroundStyle(.primary)
                             .textSelection(.enabled)
-                            .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
                     }
-                    VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                        memberScoreText("score.detail.centi")
-                            .cyText(.meta)
-                            .foregroundStyle(CYColor.textSecondary)
+                    LabeledContent {
                         Text(verbatim: String(value.totalCenti))
-                            .cyText(.dataXL)
-                            .foregroundStyle(CYColor.textPrimary)
+                            .font(.title2.bold())
                             .monospacedDigit()
-                            .fixedSize(horizontal: false, vertical: true)
+                    } label: {
+                        memberScoreText("score.detail.centi")
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityElement(children: .combine)
-                    .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
                 }
                 if flow.busy {
-                    CYSkeleton()
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
                         .accessibilityElement(children: .ignore)
                         .accessibilityLabel(Text("score.detail.loading", tableName: "MemberScoreAppealList"))
-                        .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
                 }
                 if let failure = flow.failure {
                     Label {
@@ -65,15 +51,17 @@ import SwiftUI
                     } icon: {
                         Image(systemName: "exclamationmark.triangle").accessibilityHidden(true)
                     }
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                    .foregroundStyle(.primary)
                 }
             } else {
-                CYEmptyState(systemImage: "exclamationmark.triangle", "score.error.disabled", tableName: "MemberScoreAppealList", kind: .failure)
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
+                ContentUnavailableView {
+                    Label {
+                        Text("score.error.disabled", tableName: "MemberScoreAppealList")
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle")
+                    }
+                }
+                .listRowBackground(Color.clear)
             }
             // PLY-30-5: MP appeal-mine openAppeal lands on that round's scoring; the app opens 本局计分 for the session.
             if let row = flow?.detailRow, let topicID = row.topicID, topicID > 0, let topic = Int(exactly: topicID) {
@@ -84,7 +72,6 @@ import SwiftUI
                         Label { Text(verbatim: CoreLoopCopy(locale: locale).t("打开本局计分", "Open this round’s score")) }
                             icon: { Image(systemName: "list.number").accessibilityHidden(true) }
                     }
-                    .frame(minHeight: CYSpacing.minTouchTarget)
                     .accessibilityIdentifier("score.detail.openOrientScore")
                 }
             }

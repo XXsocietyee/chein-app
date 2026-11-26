@@ -63,7 +63,7 @@ import SwiftUI
     var body: some View {
         Section("原 RPG 被动观察与难度") {
             if editor == nil {
-                CYPillButton(verbatim: "读取本主题原被动与技能配置", style: .secondary) { open() }.disabled(!available)
+                Button { open() } label: { Text(verbatim: "读取本主题原被动与技能配置") }.disabled(!available)
             } else if let draft = editor, let editorID = capture?.id {
                 let editRevision = bufferRevision
                 Group {
@@ -82,14 +82,14 @@ import SwiftUI
                     }
                     Button("明确填入正式 DC 10／13／16") { mutate(editorID, revision: editRevision) { $0.useFormalDCs() } }
                     ForEach(draft.issues,id: \.self) { NativeAuthorNotice(text: Text($0), tone: .attention) }
-                    CYPillButton(verbatim: "预览本主题被动规则修改", style: .secondary) { preview(editorID, revision: editRevision) }
+                    Button { preview(editorID, revision: editRevision) } label: { Text(verbatim: "预览本主题被动规则修改") }
                     if let review {
                         Text(review.value.text ?? "").font(.caption.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
-                        CYPillButton(verbatim: saveUnconfirmed ? "重试保存原完整项目草稿" : "确认保存原完整项目草稿") { apply(review) }
+                        Button { apply(review) } label: { Text(verbatim: saveUnconfirmed ? "重试保存原完整项目草稿" : "确认保存原完整项目草稿").fontWeight(.semibold) }
                     }
                     Text("使用原项目保存／同请求恢复／发布后冻结。不会给既有局补开始、到达或线索；TEAM、非当前节点、过目不忘规则仍不因此开放。")
                 }.disabled(!current)
-                CYPillButton(verbatim: "关闭被动编辑副本", style: .tertiary) { close(editorID) }
+                Button { close(editorID) } label: { Text(verbatim: "关闭被动编辑副本") }
             }
             if let message { NativeAuthorNotice(text: Text(message)) }
         }

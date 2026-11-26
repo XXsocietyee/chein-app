@@ -72,8 +72,8 @@ struct BundleExitSwapView: View {
 
     var body: some View {
         List {
-            if let notice { Text(verbatim: notice).foregroundStyle(CYColor.textSecondary) }
-            if let error { Text(verbatim: error).foregroundStyle(CYColor.dangerText) }
+            if let notice { Label(notice, systemImage: "info.circle").foregroundStyle(.secondary) }
+            if let error { Label(error, systemImage: "exclamationmark.triangle").foregroundStyle(.red) }
             ForEach(units, id: \.id) { unit in
                 Button { Task { await loadOptions(unit.id) } } label: {
                     Text(verbatim: PlayerCapabilityCopy.text("权益 #", "Unit #", locale) + unit.id.text + " · " + unit.status)
@@ -85,7 +85,7 @@ struct BundleExitSwapView: View {
                 Section(PlayerCapabilityCopy.text("可换商家", "Swap to", locale)) {
                     if !options.merchantExited || options.targets.isEmpty {
                         Text(verbatim: PlayerCapabilityCopy.text("这家商家仍在营业，无需更换", "This merchant is still open", locale))
-                            .foregroundStyle(CYColor.textSecondary)
+                            .foregroundStyle(.secondary)
                     }
                     ForEach(options.merchantExited ? options.targets : [], id: \.offerId) { target in
                         Button { confirming = target } label: {
@@ -107,7 +107,8 @@ struct BundleExitSwapView: View {
             }
         }
         .task { await start() }
-        .cyDomainScreen(.player)
+        .listStyle(.insetGrouped)
+        .themeDomain(.player)
     }
 
     private func start() async {

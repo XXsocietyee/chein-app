@@ -796,36 +796,25 @@ public struct CYProgressBar: View {
         self.onRetry = onRetry
     }
 
+    /// Native r2: a system linear `ProgressView` (indeterminate-free: empty when the count is unknown) with the
+    /// title and a tabular "n / m" counter as its labels. Failure shows the inline error. No segmented capsules.
     public var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            if dynamicTypeSize >= .xxLarge {
-                VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    progressTitle
-                    progressCounter
-                }
-            } else {
-                HStack {
-                    progressTitle
-                    Spacer(minLength: CYSpacing.sm)
-                    progressCounter
-                }
-            }
-
             if loadFailed {
+                LabeledContent {
+                    progressCounter
+                } label: {
+                    progressTitle
+                }
                 CYInlineError("cy.progress.loadFailed", retryTitle: "cy.state.offline.retry", onRetry: onRetry)
-            } else if let total, total > 0 {
-                HStack(spacing: CYSpacing.xs) {
-                    ForEach(0..<total, id: \.self) { index in
-                        let isDone = (completed ?? -1) > index
-                        Capsule(style: .continuous)
-                            .fill(isDone ? palette.textPrimary : palette.bgStrong)
-                            .frame(height: 4)
+            } else {
+                ProgressView(value: Double(max(0, min(completed ?? 0, max(total ?? 0, 0)))), total: Double(max(total ?? 1, 1))) {
+                    LabeledContent {
+                        progressCounter
+                    } label: {
+                        progressTitle
                     }
                 }
-            } else {
-                Capsule(style: .continuous)
-                    .fill(palette.bgStrong)
-                    .frame(height: 4)
             }
         }
         .cyDomainCard()
@@ -834,16 +823,13 @@ public struct CYProgressBar: View {
 
     private var progressTitle: some View {
         Text(verbatim: title)
-            .cyText(.label, weight: .semibold)
-            .foregroundStyle(palette.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
     }
 
     private var progressCounter: some View {
         Text(verbatim: counterText)
-            .cyText(.meta, weight: .semibold, monospacedDigit: true)
-            .foregroundStyle(loadFailed ? palette.danger : palette.textSecondary)
-            .fixedSize(horizontal: false, vertical: true)
+            .monospacedDigit()
+            .foregroundStyle(loadFailed ? AnyShapeStyle(Color.red) : AnyShapeStyle(.secondary))
     }
 
     private var counterText: String {
