@@ -22,7 +22,9 @@ No compiler in the cloud: Swift unbuilt; contract checks touched by these rows r
 | C-S10b | fixed | 2d9330c58 | App/SquareDetailView.swift:712 | MPAsset medal pill |
 | Team avatars | fixed | 085c11af4 | App/TeamComponents.swift:142 | AsyncImage, d_profile fallback |
 | C-F14b | fixed | f6ede0224 | App/ProjectEditView.swift:344 | `* 还有 N 项未填`; identity cells = 0 (not collected here) |
-| A1-02 | open | — | App/QuestifyApp.swift | tabbed self profile as 我的 root: next |
-| A8-02 / A8-03 | open | — | App/ClubHomeView.swift | square posts into club-hub feed |
-| C-F2 (rest), C-F4 (rest), C-T5 (rest), C-T2b | open | — | | |
-| C-A9-r7, C-A8b, Mode switch, A3-10, C-F16-r7, C-I5 (rest), B-SZ-10 | open | — | | P2 |
+| A1-02 | open | — | App/QuestifyApp.swift | tabbed self profile as 我的 root: next round |
+| A8-02 / A8-03 | open | — | App/ClubHomeView.swift | square posts into club-hub feed: next round |
+| C-T2b | blocked | — | App/OwnedTemplateConfigurationView.swift | `TemplateAuthoringSupportPhase` / `TemplateAdoptionConfirmation` exist in Core (TemplateAuthoringDomain.swift:61-69) but nothing produces them (no support-matrix read, no adoption state). Needs a Core producer (Cursor); the view keeps host.loading / failed + 重新加载 |
+| C-A8b | blocked | — | App/PublishingModesViews.swift:461-466 | wire already sends the activity span (PublishModesDomain.swift:124-130), but the wizard still requires ticket start/end (ActivityPublishingWizard.swift:271-272). Dropping the fields needs that Core check relaxed first (Cursor) |
+| C-T5 (rest), C-F4 (rest), C-F16-r7, C-F2 (rest) | open | — | | each moves/changes a control pinned by 6-58 XCUITests plus source contracts (e.g. 58 `textFields["projectEdit.name"]`); needs a simulator run to land safely |
+| C-A9-r7, Mode switch, A3-10, C-I5 (rest), B-SZ-10 | open | — | | P2 |
