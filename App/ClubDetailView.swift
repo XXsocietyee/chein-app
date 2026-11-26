@@ -706,6 +706,7 @@ private struct ClubDetailHeader: View {
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
     @ScaledMetric(relativeTo: .title) private var bannerHeight: CGFloat = 160  // CLB-detail-37: MP cover-wrap 160
+    @ScaledMetric(relativeTo: .title2) private var logoSide: CGFloat = 56  // CLB-r10-nat-detail-06: MP logo 112 rpx, scales with type
 
     private static func known(_ value: String?) -> String? { ClubDetailHeaderFact.known(value) }
     /// CLB-detail-42 (MP detail header): a missing 主理人 or 城市 reads 待补充 instead of dropping the line.
@@ -736,7 +737,7 @@ private struct ClubDetailHeader: View {
                 HStack(alignment: .center, spacing: CYSpacing.md) {
                     if !typeSize.isAccessibilitySize {
                         ClubDetailCover(source: club.logo, seed: club.name, showsSymbol: false, fallback: MPAsset.BrandLogo.dLogo)
-                            .frame(width: 56, height: 56)  // CLB-detail-37: MP logo 112 rpx
+                            .frame(width: logoSide, height: logoSide)  // CLB-detail-37: MP logo 112 rpx
                             .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                             .accessibilityIdentifier("club.detail.logo")
                     }
