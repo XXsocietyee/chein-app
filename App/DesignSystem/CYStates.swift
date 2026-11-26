@@ -48,17 +48,42 @@ struct CYEmptyState: View {
         self.action = action
     }
 
+    /// R9-MEM-IOS-1 (native-r2): the system `ContentUnavailableView`. The icon is the MP empty art via `MPAsset`
+    /// when the symbol maps to one (`CYEmptyIllustration`), otherwise the SF Symbol. The one action keeps its style.
     var body: some View {
-        CYStateLayout(
-            kind: kind ?? CYStateKind(symbol: systemImage),
-            title: Text(message, tableName: tableName),
-            detail: detailVerbatim.map { Text(verbatim: $0) } ?? detail.map { Text($0, tableName: tableName) },
-            primary: actionTitle.flatMap { title in action.map { (title: title, action: $0) } },
-            primaryStyle: actionStyle,
-            primaryIdentifier: actionIdentifier,
-            emptyIllustration: CYEmptyIllustration.kind(matching: systemImage)
-        )
+        ContentUnavailableView {
+            Label {
+                Text(message, tableName: tableName)
+            } icon: {
+                if let art = CYEmptyIllustration.kind(matching: systemImage) {
+                    CYEmptyIllustration(kind: art, size: 96)
+                } else {
+                    Image(systemName: kind?.symbol ?? systemImage)
+                }
+            }
+        } description: {
+            if let detailVerbatim {
+                Text(verbatim: detailVerbatim)
+            } else if let detail {
+                Text(detail, tableName: tableName)
+            }
+        } actions: {
+            if let actionTitle, let action {
+                actionButton(actionTitle, action: action)
+            }
+        }
         .cyIdentifier(messageIdentifier)
+    }
+
+    @ViewBuilder private func actionButton(_ title: LocalizedStringKey, action: @escaping () -> Void) -> some View {
+        let button = Button(action: action) { Text(title, tableName: tableName) }
+            .controlSize(.large)
+            .cyIdentifier(actionIdentifier)
+        switch actionStyle {
+        case .primary: button.buttonStyle(.borderedProminent)
+        case .secondary: button.buttonStyle(.bordered)
+        case .tertiary: button.buttonStyle(.borderless)
+        }
     }
 }
 
