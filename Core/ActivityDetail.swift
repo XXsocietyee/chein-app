@@ -94,7 +94,10 @@ public struct ActivityDetail: Decodable, Equatable {
     /// PC-C-1-4 (MP check-1104 j1 F14): a shop-hosted activity names the shop as 主办方, not the creator member.
     public let organizerShopName: String?
     public let organizerShopLogo: String?
-    enum CodingKeys: String, CodingKey { case omsTicketList, memberId, memberTemplateList, isSignUp, cancelTime, cancelReason, organizerShopName, organizerShopLogo }
+    /// R7-PC-C2-1: MP baoming.js:760-764 reads the activity `merchantClosed` flag and shows 商家暂停营业.
+    /// Only an explicit `true` / `1` counts; anything else is open.
+    public let merchantClosed: Bool
+    enum CodingKeys: String, CodingKey { case omsTicketList, memberId, memberTemplateList, isSignUp, cancelTime, cancelReason, organizerShopName, organizerShopLogo, merchantClosed }
     public init(from decoder:Decoder) throws {
         publisherAuthoritySource = try? PublisherActivityAuthoritySource(from: decoder)
         summary=try ActivitySummary(from:decoder)
@@ -109,6 +112,8 @@ public struct ActivityDetail: Decodable, Equatable {
         cancelTime=Self.text(c,.cancelTime); cancelReason=Self.text(c,.cancelReason)
         organizerShopName=Self.text(c,.organizerShopName)
         organizerShopLogo=Self.text(c,.organizerShopLogo)
+        if let flag = (try? c.decodeIfPresent(Bool.self,forKey:.merchantClosed)) ?? nil { merchantClosed = flag }
+        else { merchantClosed = ((try? c.decodeIfPresent(Int.self,forKey:.merchantClosed)) ?? nil) == 1 }
     }
     private static func text(_ c: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys) -> String? {
         // Dates may arrive as text or epoch milliseconds; either one is a present cancellation.

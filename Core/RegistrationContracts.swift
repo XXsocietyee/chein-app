@@ -55,11 +55,21 @@ public struct RegistrationQuote: Decodable, Equatable {
     /// In `pages/activity/baoming/baoming.js`, `payAmount > 0 && refundableNow === false` triggers the
     /// mandatory 24-hour non-refundable confirmation ("本单不可退").
     public let refundableNow: Bool?
+    /// R7-PC-C2-1: MP baoming.js:1871-1876 shows the 通行证 row when the quote's `mkt.coveredByPass === true`.
+    public let coveredByPass: Bool
 
     private enum CodingKeys: String, CodingKey {
         case payAmount, pointsUsed, pointsDeductYuan, pointsUsable, pointsBalance, availablePoints, userPoints
         case memberDiscountYuan, couponDeductYuan, clubMember, quoteSign
-        case prioritySignupEnabled, refundDeadline, refundableNow
+        case prioritySignupEnabled, refundDeadline, refundableNow, mkt
+    }
+    private struct Marketing: Decodable {
+        let coveredByPass: Bool
+        private enum CodingKeys: String, CodingKey { case coveredByPass }
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            coveredByPass = ((try? c.decodeIfPresent(Bool.self, forKey: .coveredByPass)) ?? nil) == true
+        }
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -81,6 +91,7 @@ public struct RegistrationQuote: Decodable, Equatable {
             ? rawDeadline?.trimmingCharacters(in: .whitespacesAndNewlines)
             : nil
         refundableNow = (try? c.decodeIfPresent(Bool.self, forKey: .refundableNow)) ?? nil
+        coveredByPass = ((try? c.decodeIfPresent(Marketing.self, forKey: .mkt)) ?? nil)?.coveredByPass == true
         guard pointsUsed >= 0 else { throw APIError.malformedResponse }
     }
 
