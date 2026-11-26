@@ -94,20 +94,17 @@ enum MyProjectAddressLink {
         if let tab = MyProjectTab(rawValue: type) {
             let canPublishActivity = entry?.canPublishActivity == true && !merchantScopeAccess.isBrowseOnly
             let keys = MyProjectListPresentation.emptyKeys(for: tab, canPublishActivity: canPublishActivity)
-            VStack(spacing: CYSpacing.md) {
-                // Round 4 image parity: MP `cy-empty kind="empty"` (myproject/index.wxml:59) = empty_state_bg + figure.
-                CYStateArt(kind: .generic)
-                Text(LocalizedStringKey(keys.title)).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
-                    .multilineTextAlignment(.center)
-                // Round 4 copy: MP TYPE_EMPTY (myproject/index.js:50-54) has `sub: ''` on every tab, so no detail line.
+            // R10-PC-D-N3: MP `cy-empty kind="empty"` (subpackageA/pages/myproject/index.wxml:59) as a system ContentUnavailableView.
+            // MP TYPE_EMPTY (myproject/index.js:50-54) has `sub: ''` on every tab, so no description.
+            ContentUnavailableView {
+                Label { Text(LocalizedStringKey(keys.title)) } icon: { CYStateArt(kind: .generic) }
+            } actions: {
                 if !merchantScopeAccess.isBrowseOnly, let entry, let cta = MyProjectListPresentation.emptyCTAKey(for: tab, canPublishActivity: canPublishActivity) {
                     NavigationLink { entry.make() } label: { Text(LocalizedStringKey(cta)) }
-                        .buttonStyle(.cyPrimary(fullWidth: false))
-                        .padding(.top, CYSpacing.sm)
+                        .buttonStyle(.borderedProminent)
                         .accessibilityIdentifier("myProject.emptyCTA." + type)
                 }
             }
-            .frame(maxWidth: .infinity).padding(.vertical, CYSpacing.xxl).padding(.horizontal, CYSpacing.xxl)
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier("myProject.empty." + type)
         } else {
