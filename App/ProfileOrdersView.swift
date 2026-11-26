@@ -451,11 +451,11 @@ struct ProfileOrderDetailView: View {
                 if order.settlementView.show {
                     Section("profile.order.settlement") {
                         if !order.settlementView.stage.isEmpty {
-                            Text(verbatim: order.settlementView.stage)
+                            ProfileOrderSettlementCopy.stage(order.settlementView.stage)
                                 .accessibilityIdentifier("profile.order.settlement.stage")
                         }
                         ForEach(Array(order.settlementView.rows.enumerated()), id: \.offset) { _, row in
-                            LabeledContent { Text(verbatim: row.value) } label: { Text(verbatim: row.label) }
+                            LabeledContent { ProfileOrderSettlementCopy.value(row) } label: { ProfileOrderSettlementCopy.label(row) }
                         }
                     }
                     .accessibilityIdentifier("profile.order.settlement")

@@ -45,9 +45,9 @@ struct ProfileOrderSourceDetailSections: View {
                 ProfileOptionalRow(key: "profile.orderParity.entitlementExpires", value: order.sourceExpiresAtText)
             }
         }
-        if let party = order.party?.text {
+        if let party = ProfileOrderSettlementCopy.party(order.party) {
             Section("profile.order.party") {
-                Text(verbatim: party).accessibilityIdentifier("profile.order.party")
+                party.accessibilityIdentifier("profile.order.party")
             }
         }
         if order.walletExpired {
@@ -195,5 +195,45 @@ private struct ProfileOrderTimelineStepRow: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("profile.order.timeline.\(step.id)")
+    }
+}
+
+/// R9-MEM-17-2: MP order detail (scene-member-order-detail D:110-123 settlement, D:260-275 party) copy keyed in the
+/// catalog so English does not show Core's Chinese. Core keeps its zh text; unknown text stays verbatim.
+enum ProfileOrderSettlementCopy {
+    private static let stageKeys: [String: String] = [
+        "退款审核中": "profile.order.settlement.stage.underReview",
+        "已批准，等待原路退回": "profile.order.settlement.stage.payoutPending",
+        "人工退款处理中": "profile.order.settlement.stage.manualPayout",
+        "已原路退回": "profile.order.settlement.stage.completed",
+        "退款未通过": "profile.order.settlement.stage.rejected",
+        "售后处理中": "profile.order.settlement.stage.manualReview",
+        "退款状态待确认": "profile.order.settlement.stage.unknown"
+    ]
+    private static let rowKeys: Set<String> = ["pending", "processing", "completed", "total", "entitlement"]
+
+    static func stage(_ text: String) -> Text {
+        if let key = stageKeys[text] { return Text(LocalizedStringKey(key)) }
+        return Text(verbatim: text)
+    }
+
+    static func label(_ row: ProfileOrderSettlementView.Row) -> Text {
+        if rowKeys.contains(row.key) { return Text(LocalizedStringKey("profile.order.settlement.row." + row.key)) }
+        return Text(verbatim: row.label)
+    }
+
+    static func value(_ row: ProfileOrderSettlementView.Row) -> Text {
+        if row.value == "金额待确认" { return Text("profile.order.settlement.amountPending") }
+        return Text(verbatim: row.value)
+    }
+
+    /// Same rule as `ProfileOrderParty.text`: nothing without children.
+    static func party(_ party: ProfileOrderParty?) -> Text? {
+        guard let party, party.childCount > 0 else { return nil }
+        let counts = Text("profile.order.party.counts \(party.adultCount) \(party.childCount)")
+        if let age = party.childAge, !age.isEmpty {
+            return counts + Text("profile.order.party.childAge \(age)")
+        }
+        return counts
     }
 }
