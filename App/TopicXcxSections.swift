@@ -633,8 +633,8 @@ struct TopicXcxRouteSection: View {
                             if let image = stop.node.images.first, let url = QuestifyCardArtwork.safeURL(image) {
                                 PlayerFeedRemoteImage(url: url, maxPixel: 160, placeholder: { Color.secondary.opacity(0.15) }, failure: { Color.secondary.opacity(0.15) })
                                     .frame(width: 56, height: 56)
-                                    // Stop photo thumbnail: small system-like corner clip.
-                                    .clipShape(.rect(cornerRadius: 6))
+                                    // R10-PC-B-N7: plain image bounds, no custom corner clip.
+                                    .clipped()
                                     .accessibilityHidden(true)
                             }
                         }
