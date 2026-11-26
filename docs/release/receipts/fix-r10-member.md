@@ -90,3 +90,5 @@ Round 2 re-checked member.md §4 on the new base (`origin/ui/combined-r7` @ `05c
 | R10-PC-B-N14 | fixed on base | — | `App/PublisherLifecycleViews.swift:399-405` | `ProgressView`, `.bordered`, no fixed `minHeight` |
 
 **N9/N10 note:** I tried this and reverted it. Turning `MerchantContentDocumentView` into a `List` makes each record (`MerchantContentRows`) and the project block (`MerchantContentProjectView`) one row that holds several `NavigationLink`s and `Button`s. In a SwiftUI `List`, one tap on such a row fires every link in it. Doing this safely means splitting each action into its own row. That needs a simulator check, and there is none in the cloud.
+
+Gates at the round 2 push: `check_scaffold.py` PASS structural checks (5190 Swift files, 19496 bilingual keys). `check_a11y_lint.py` PASS (0 new). `contract_ratchet.py --check`: 192 failing, baseline 192, **new 0**. No new strings.
