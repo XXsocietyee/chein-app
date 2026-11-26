@@ -14,7 +14,9 @@ class SocialArticleContentChecks(unittest.TestCase):
         guide = self.read('App/SocialGuideViews.swift')
         self.assertEqual(guide.count('SocialArticleContentView(contents: contents)'), 1)
         for token in ['if id <= 0', 'reader.information(id: id)', 'requestKey: "information-\\(id)"',
-                      'case .empty(.removed):', 'CYEmptyState(systemImage: "doc.text", LocalizedStringKey(InformationDetailPageModel.Copy.noContent))']:
+                      'case .empty(.removed):',
+                      # native-r2: ContentUnavailableView replaces CYEmptyState.
+                      'ContentUnavailableView(LocalizedStringKey(InformationDetailPageModel.Copy.noContent), systemImage: "doc.text")']:
             self.assertIn(token, guide)
         self.assertIn('if row.isRemoved || row.id <= 0', self.read('Core/ProfileGuideRead.swift'))
         screen = self.read('App/SocialAccountComponents.swift')
@@ -42,8 +44,10 @@ class SocialArticleContentChecks(unittest.TestCase):
         view = self.read('App/SocialArticleContentView.swift')
         for token in ['Text(verbatim: run.text)', 'Text(verbatim: marker)', '.textSelection(.enabled)',
                       '.fixedSize(horizontal: false, vertical: true)', '.accessibilityAddTraits(.isHeader)',
-                      '.accessibilityElement(children: .combine)', 'CYEmptyState(systemImage: "doc.text", "social.guide.noContent")',
-                      'CYStatusChip("social.article.limited", tone: .neutral, systemImage: "scissors")', 'min(depth, 4)']:
+                      '.accessibilityElement(children: .combine)',
+                      # native-r2: ContentUnavailableView / a secondary Label replace CYEmptyState / CYStatusChip.
+                      'ContentUnavailableView("social.guide.noContent", systemImage: "doc.text")',
+                      'Label("social.article.limited", systemImage: "scissors")', 'min(depth, 4)']:
             self.assertIn(token, view)
         for token in ['Link(', 'Button(', 'NavigationLink', 'openURL', 'WebView', 'WKWebView',
                       'AsyncImage', 'Image(', 'URLSession', '.task', 'AttributedString(markdown:', '.lineLimit(']:

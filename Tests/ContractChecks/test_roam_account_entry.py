@@ -22,8 +22,14 @@ class RoamAccountEntryContracts(unittest.TestCase):
 
     def test_normal_root_selects_existing_current_account_tab(self):
         self.assertIn("onOpenAccount:{ selectedTab = .mine }", self.root)
-        self.assertEqual(self.root.count("onOpenAccount:"), 1)
-        self.assertIn('}.cyFloatingTabBarClearance().tabItem { rootTabLabel(.mine).accessibilityIdentifier("rootTabBar.tab.player.4") }.tag(RootTab.mine)', self.root)
+        # native-r2 map home (3118b9e80) is the second caller; it also only selects the existing Me tab.
+        self.assertEqual(self.root.count("onOpenAccount:"), 2)
+        self.assertEqual(self.root.count("onOpenAccount:{"), 1)
+        self.assertIn("onOpenAccount: signIn)", self.root)
+        self.assertIn("let signIn: () -> Void = { selectedTab = .mine }", self.root)
+        # native-r2 shell (95fe28012): system TabView; the Me tab is still the existing `.mine` tab.
+        self.assertIn('Tab("tabBar.mine", systemImage: RootTab.mine.nativeSystemImage, value: RootTab.mine) { mineTab }', self.root)
+        self.assertIn('mineTab.tabItem { rootTabLabel(.mine).accessibilityIdentifier("rootTabBar.tab.player.4") }.tag(RootTab.mine)', self.root)
         self.assertIn("if let account=session.account { PassportView(account:account", self.root)
         self.assertIn("else { WelcomeView() }", self.root)
 

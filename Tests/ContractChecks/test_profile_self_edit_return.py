@@ -32,7 +32,9 @@ class ProfileSelfEditSourceChecks(unittest.TestCase):
   self.assertIn('var selfEditAccess: ProfileSelfEditAccess? = nil',self.view)
  def test_entry_only_exists_in_about_when_context_available(self):
   body=self.view.split('case .about:')[1];self.assertIn('if selfEditContext != nil',body)
-  self.assertIn('CYPillButton("profile.selfEdit.open", style: .secondary) { selfEditNavigation.open(selfEditContext) }',body)
+  # native-r2 (bfea7b414): a plain system Button in the introduction section replaces CYPillButton.
+  self.assertIn('Button("profile.selfEdit.open") { selfEditNavigation.open(selfEditContext) }',body.split('if selfEditContext != nil',1)[1].split('Section(',1)[0])
+  self.assertEqual(self.view.count('selfEditNavigation.open(selfEditContext)'),1)
  def test_return_rekeys_existing_public_read(self):
   self.assertIn('"profile-\\(memberID)-\\(selfEditNavigation.refreshID)-\\(reader.presentationRevision)"',self.view)
   self.assertIn('loaded = try await reader.publicProfile(memberID: memberID)',self.view)

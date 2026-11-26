@@ -50,10 +50,12 @@ class Pkg03FavoritesClosureTests(unittest.TestCase):
             '@MainActor private struct AccountCollectionFavoriteTopicsView: View {', 1
         )[0]
         # h-visual-bugs adds the city places tab; the posts tab itself stays behind the community gate.
-        # X5: underline CYTabs instead of the segmented Picker; the tab row is still conditional.
+        # native-r2: system segmented Picker replaces CYTabs; the tab row and the posts tab stay conditional.
         self.assertIn('if postsAllowed || showsCityNodesTab {', host)
-        self.assertIn('CYTabs(items: favoriteTabs, selection: $selectedTab, variant: .underline)', host)
-        self.assertIn('if postsAllowed { items.append(.init(id: .posts, title: appLocalized("social.posts", locale: locale))) }', host)
+        self.assertIn('Picker(selection: $selectedTab) {', host)
+        self.assertIn('.pickerStyle(.segmented)', host)
+        self.assertIn('if postsAllowed { Text("social.posts").tag(Tab.posts) }', host)
+        self.assertEqual(host.count('.tag(Tab.posts)'), 1)
         self.assertIn('if postsAllowed && selectedTab == .posts {', host)
         model = self.text('Core/AccountCollectionReading.swift')
         gate = model.split('public final class AccountCollectionCommunityGateModel', 1)[1]

@@ -107,9 +107,15 @@ class OwnedCouponLifecycleContracts(unittest.TestCase):
         ui = self.read('Tests/AppUITests/OwnedCouponCodeJourneyUITests.swift')
         for step in ['accountCollection.openCoupons', 'accountCollection.coupon.701', 'couponCode.open', 'couponCode.review', 'couponCode.qr']:
             self.assertIn('"' + step + '"', ui)
-        self.assertIn('app.sheets.buttons["Cancel"].tap()', ui)
-        self.assertGreaterEqual(ui.count('assertIssues(0)'), 5)
-        self.assertGreaterEqual(ui.count('assertIssues(1)'), 3)
+        # fix-r9 MKT-9-2 (ec9c8a528): MP coupon-qr issues the code on show, no 出示 confirm sheet.
+        # The journey still proves list/detail never issue, opening issues exactly one code,
+        # leaving drops the rendered code, and the review button no longer exists.
+        self.assertIn('XCTAssertFalse(app.buttons["couponCode.review"].exists)', ui)
+        self.assertIn('XCTAssertTrue(app.staticTexts["Sample weekend benefit"].waitForExistence(timeout: 5)); assertIssues(0)', ui)
+        self.assertIn('XCTAssertTrue(app.images["couponCode.qr"].waitForExistence(timeout: 5)); assertIssues(1)', ui)
+        self.assertIn('XCTAssertFalse(app.images["couponCode.qr"].exists); assertIssues(1)', ui)
+        self.assertGreaterEqual(ui.count('assertIssues(0)'), 2)
+        self.assertGreaterEqual(ui.count('assertIssues(1)'), 2)
         self.assertNotIn('XCTSkip', ui)
 
     def test_no_mutation_or_production_approval_is_added_to_metadata_or_fixture(self):
@@ -137,7 +143,12 @@ class OwnedCouponLifecycleContracts(unittest.TestCase):
         source = self.read('App/CouponCodeView.swift')
         self.assertIn('appearance.actionTask = Task', source)
         self.assertIn('appearance.foregroundTask = Task', source)
-        self.assertIn('if appearance.end(model: model) { review = false }', source)
+        # MKT-9-2: no review sheet to close; the on-appear issue path is bound to this appearance and permit.
+        self.assertIn('_ = appearance.end(model: model)', source)
+        issue = source.split('private func issue(', 1)[1].split('\n    }', 1)[0]
+        self.assertIn('guard !appearance.isClosed, let presentation, model.presentation === presentation', issue)
+        self.assertIn('model.offerConfirmation(presentation: presentation)', issue)
+        self.assertNotIn('@State private var review', source)
         self.assertNotIn('@State private var actionTask', source)
 
     def test_closed_view_appearances_cannot_reopen_and_nil_first_body_is_covered(self):

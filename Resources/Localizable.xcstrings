@@ -237788,13 +237788,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Categories could not be loaded"
+            "value": "Couldn't load categories"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "分类未能加载"
+            "value": "类别加载失败"
           }
         }
       }
@@ -237916,13 +237916,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Find activities and topics on the map"
+            "value": "Find on the map"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在地图上找活动与主题节点"
+            "value": "在地图上找"
           }
         }
       }
@@ -238110,13 +238110,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "That's everything"
+            "value": "No more results"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "内容已加载完"
+            "value": "没有更多了"
           }
         }
       }
@@ -238823,7 +238823,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "搜索主题、活动、俱乐部和商家"
+            "value": "搜索主题、活动、俱乐部、商家"
           }
         }
       }
@@ -238930,13 +238930,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh results"
+            "value": "Search again"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "刷新搜索结果"
+            "value": "重新搜索"
           }
         }
       }

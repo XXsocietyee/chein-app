@@ -62,7 +62,8 @@ struct R9PublicShareButton: View {
     @State private var opensCoopInvite = false
 
     private var showsCoopBar: Bool {
-        guard isMerchant, let viewer = session.account?.id else { return false }
+        // Lane G: the 发起合作 coop bar is hidden in Release.
+        guard PlayerLaunch.merchantCenterEnabled, isMerchant, let viewer = session.account?.id else { return false }
         return viewer != memberID
     }
 
