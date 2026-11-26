@@ -9,4 +9,11 @@ enum NativeR2Flags {
         guard UserDefaults.standard.object(forKey: key) != nil else { return value }
         return UserDefaults.standard.bool(forKey: key)
     }
+
+    /// Free exploration (自由探索) native flow. `-nativeR2.freeExplore NO` restores the old screens.
+    static var freeExplore: Bool { isEnabled("nativeR2.freeExplore") }
+    /// Story route page, reader and in-place stage result.
+    static var storyFlow: Bool { isEnabled("nativeR2.storyFlow") }
+    /// Native game shell and the six kit templates (games A and B).
+    static var games: Bool { isEnabled("nativeR2.games") }
 }
