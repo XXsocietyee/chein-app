@@ -803,7 +803,8 @@ struct ClubOperationsWorkspaceView: View {
         if case .outcomeUnknown = state { return true }
         return false
     }
-    /// Create rejection that names a taken club name. The wizard returns to the name step; the lock stays if the result is unknown.
+    /// Create rejection that names a taken club name. The name field shows the message and 去改名称 takes the user back to
+    /// the name step on tap (no auto-jump); the lock stays if the result is unknown.
     private var createNameTakenMessage: String? {
         guard target == .create, case .rejected(let failure) = state, ClubNameCheck.isTakenMessage(failure.message) else { return nil }
         return failure.message

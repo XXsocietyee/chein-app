@@ -27,15 +27,17 @@ extension EnvironmentValues {
     }
     var body: some View {
         if model.isVisible {
+            // CLB-r10-nat-checkin-02 (MP checkin-detail refund): system text styles; the review is a
+            // NavigationStack { List } sheet with toolbar cancel / destructive confirm. Refund stays money-gated.
             VStack(alignment: .leading, spacing: 12) {
-                Text("club.refund.title").cyText(.cardTitle).accessibilityIdentifier("club.refund.panel")
+                Text("club.refund.title").font(.headline).accessibilityIdentifier("club.refund.panel")
                 if let coordinator, coordinator.identity == identity {
                     Text(LocalizedStringKey("club.refund.phase." + status.phase.rawValue))
                         .accessibilityIdentifier("club.refund.phase")
                     if status.inFlight { ProgressView("club.refund.working") }
                     if let receipt = status.receipt { receiptRows(receipt) }
                     if model.showsNoReplayNote {
-                        Text("club.refund.noReplay").cyText(.bodyCompact)
+                        Text("club.refund.noReplay").font(.subheadline)
                     }
                     if status.readbackUnavailable { Text("club.refund.readbackUnavailable").accessibilityIdentifier("club.refund.readbackUnavailable") }
                     if let failure = failure ?? status.failure {
@@ -51,9 +53,9 @@ extension EnvironmentValues {
                             Task { await coordinator.reconcile(target); if coordinator.identity == identity { onReadback() } }
                         }.disabled(status.inFlight).accessibilityIdentifier("club.refund.readback")
                     }
-                    if !coordinator.canDispatch { Text("club.refund.disabled").cyText(.bodyCompact).accessibilityIdentifier("club.refund.disabled") }
-                } else { Text("club.refund.disabled").cyText(.bodyCompact) }
-                Text("club.refund.policy").cyText(.bodyCompact).foregroundStyle(.secondary)
+                    if !coordinator.canDispatch { Text("club.refund.disabled").font(.subheadline).accessibilityIdentifier("club.refund.disabled") }
+                } else { Text("club.refund.disabled").font(.subheadline) }
+                Text("club.refund.policy").font(.subheadline).foregroundStyle(.secondary)
             }
             .cySheet(item: $review, onDismiss: cancelPending) { pending in
                 NavigationStack {

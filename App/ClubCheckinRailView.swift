@@ -154,9 +154,10 @@ struct ClubCheckinDetailRows: View {
                         .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                         .accessibilityHidden(true)
                 } else {
-                    // MP wxml:45 `ckd-cover--empty`: the same footprint on bg-elevated, so the text column never jumps.
-                    RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
-                        .fill(Color(uiColor: .tertiarySystemFill))
+                    // MP wxml:45 `ckd-cover--empty`. CLB-r10-nat-checkin-01: an SF Symbol in the same footprint (no drawn
+                    // placeholder plate), so the text column never jumps.
+                    Image(systemName: "photo")
+                        .foregroundStyle(.tertiary)
                         .frame(width: 59, height: 40)
                         .accessibilityHidden(true)
                 }
