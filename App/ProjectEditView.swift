@@ -653,8 +653,14 @@ import SwiftUI
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 HStack(spacing: CYSpacing.xs) {
-                    if model.canRestore || model.canEdit || model.canReview {
-                        Menu {
+                    // r10 C-F4: MP fabu/index.js (saveDraft=1) has 保存草稿 (server draft) + 下一步 in the bar; the
+                    // app-only 存到本机 lives in this ⋯ menu.
+                    Menu {
+                            Button { focusedField = nil; model.saveLocal() } label: {
+                                Text("projectEdit.saveLocal")
+                            }
+                                .disabled(!model.canSaveLocal)
+                                .accessibilityIdentifier("projectEdit.saveLocal")
                             if model.canRestore {
                                 Button(MerchantCloseCopy.text("使用本地/已保存草稿", "Draft Version Choice", locale)) { activeEditorModal = .draftConflict }
                             }
@@ -668,20 +674,14 @@ import SwiftUI
                             Image(systemName: "ellipsis.circle")
                                 .accessibilityLabel(MerchantCloseCopy.text("草稿与规则弹窗", "Draft and rule actions", locale))
                         }
-                    }
+                        .accessibilityIdentifier("projectEdit.more")
                 }
             }
         }
         .scrollDismissesKeyboard(.interactively)
         .toolbar {
-            // System bottom toolbar: 保存草稿 (+ 保存到云端) and the one prominent 下一步 / 提交草稿.
+            // System bottom toolbar: 保存草稿 (server draft, MP saveDraft=1) and the one prominent 下一步 / 提交草稿.
             ToolbarItemGroup(placement: .bottomBar) {
-                Button { focusedField = nil; model.saveLocal() } label: {
-                    Text("projectEdit.saveLocal")
-                }
-                    .buttonStyle(.bordered)
-                    .disabled(!model.canSaveLocal)
-                    .accessibilityIdentifier("projectEdit.saveLocal")
                 if model.coordinator.canSaveCloudDraft {
                     Button { focusedField = nil; model.review(intent: .saveCloudDraft) } label: {
                         Text("action.saveCloud", tableName: "ProjectCloudDraftReceipt")

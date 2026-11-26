@@ -52,7 +52,7 @@ import XCTest
         let app = XCUIApplication(); self.app = app
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US", "--uitesting-module", "projectEdit", "--project-edit-starter-probe", "--project-story-image"]
         app.launch(); XCTAssertTrue(revealProjectEditorNameInForm(in: app), app.debugDescription); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5)); assertFixtureEnvironment(in: app, dynamicTypeSize: "large")
-        tap("projectEdit.saveLocal", app, fixed: true); var saved = try inspect(app)
+        tapEditorMenuItem("projectEdit.saveLocal", menu: "projectEdit.more", in: app); var saved = try inspect(app)
         let chapter = saved.savedDraft.chapters[0]; XCTAssertEqual(chapter.blocks?.count, 2); XCTAssertEqual(saved.storyImageUploadCount, 0)
         tap("projectEdit.chapter." + chapter.id, app); tap("projectStoryImage.add", app)
         choose(app); tap("projectStoryImage.cancelLocal", app); XCTAssertFalse(app.buttons["projectStoryImage.upload"].exists)
@@ -66,7 +66,7 @@ import XCTest
         XCTAssertEqual(Array(image.url.utf8), Array(saved.storyImageReference.utf8))
         tap("projectEdit.fixture.reopen", app, fixed: true)
         let restore = app.buttons["projectEdit.restore"]; XCTAssertTrue(restore.waitForExistence(timeout: 5)); restore.tap()
-        tap("projectEdit.saveLocal", app, fixed: true); saved = try inspect(app)
+        tapEditorMenuItem("projectEdit.saveLocal", menu: "projectEdit.more", in: app); saved = try inspect(app)
         XCTAssertEqual(saved.savedDraft.chapters[0].blocks?.last?.id, image.id); XCTAssertEqual(saved.storyImageUploadCount, 1)
         tap("projectEdit.chapter." + chapter.id, app); tap("projectStoryImage.replace." + image.id, app)
         choose(app); tap("projectStoryImage.upload", app); XCTAssertTrue(reference.waitForExistence(timeout: 5))

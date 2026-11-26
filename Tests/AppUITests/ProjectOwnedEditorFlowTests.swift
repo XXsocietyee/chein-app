@@ -54,7 +54,7 @@ import XCTest
         XCTAssertTrue(revealFixtureElement(name, in: app, maximumSwipes: 40)); let old = try XCTUnwrap(name.value as? String)
         name.tap(); name.typeText(" local"); let edited = try XCTUnwrap(name.value as? String)
         XCTAssertNotEqual(edited, old); XCTAssertTrue(edited.contains(" local"))
-        tap("projectEdit.saveLocal", in: app, fixed: true); back(app)
+        tapEditorMenuItem("projectEdit.saveLocal", menu: "projectEdit.more", in: app); back(app)
         tap("projectRemote.edit", in: app, fixed: true)
         tap("projectEdit.restore", in: app)
         XCTAssertTrue(revealFixtureElement(app.textFields["projectEdit.name"], in: app, maximumSwipes: 40))

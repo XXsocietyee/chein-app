@@ -21,7 +21,7 @@ import XCTest
         let app = XCUIApplication(); self.app = app
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN", "--uitesting-max-text", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL", "--uitesting-module", "projectEdit", "--project-edit-starter-probe", "--project-story-image"]
         app.launch(); XCTAssertTrue(revealFixtureElement(app.textFields["projectEdit.name"], in: app, maximumSwipes: 10)); XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5)); assertFixtureEnvironment(in: app, dynamicTypeSize: "accessibility5")
-        tap("projectEdit.saveLocal", app, fixed: true); let before = try snapshot(app)
+        tapEditorMenuItem("projectEdit.saveLocal", menu: "projectEdit.more", in: app); let before = try snapshot(app)
         let draft = try XCTUnwrap(before["savedDraft"] as? [String: Any]), chapters = try XCTUnwrap(draft["chapters"] as? [[String: Any]]), chapter = try XCTUnwrap(chapters.first), id = try XCTUnwrap(chapter["id"] as? String)
         tap("projectEdit.chapter." + id, app); tap("projectStoryImage.add", app)
         XCTAssertTrue(app.navigationBars["故事图片"].waitForExistence(timeout: 5))

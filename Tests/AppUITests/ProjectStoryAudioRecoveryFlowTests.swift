@@ -8,11 +8,11 @@ import XCTest
     private func revealRootChapter(_ element: XCUIElement, in app: XCUIApplication) -> Bool {
         let forms = app.collectionViews
         let navigation = app.navigationBars["路线编辑器"]
-        let save = app.buttons["projectEdit.saveLocal"]
+        // r10 C-F4: 存到本机 is in the ⋯ menu (MP fabu bar is 保存草稿 + 下一步); 下一步 marks the bar edge.
+        let save = app.buttons["projectEdit.review"]
         let review = app.buttons["projectEdit.review"]
         for attempt in 0...45 {
             guard forms.count == 1, app.navigationBars.count == 1, navigation.exists,
-                  app.buttons.matching(identifier: "projectEdit.saveLocal").count == 1,
                   app.buttons.matching(identifier: "projectEdit.review").count == 1,
                   save.exists, review.exists, save.isHittable, review.isHittable else { return false }
             let form = forms.element(boundBy: 0)
@@ -79,7 +79,7 @@ import XCTest
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN", "--uitesting-max-text", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL", "--uitesting-module", "projectEdit", "--project-edit-starter-probe", "--project-story-audio", "--project-story-audio-unknown"]
         app.launch(); XCTAssertTrue(revealProjectEditorNameInForm(in: app), app.debugDescription)
         XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5)); assertFixtureEnvironment(in: app, dynamicTypeSize: "accessibility5")
-        tap("projectEdit.saveLocal", app, fixed: true); var saved = try snapshot(app)
+        tapEditorMenuItem("projectEdit.saveLocal", menu: "projectEdit.more", in: app); var saved = try snapshot(app)
         let chapterID = try XCTUnwrap(chapter(saved)["id"] as? String)
         tap("projectEdit.chapter." + chapterID, app); tap("projectStoryAudio.add", app); back(app)
         saved = try snapshot(app); let blockID = try XCTUnwrap(blocks(saved).last?["id"] as? String)
@@ -99,7 +99,7 @@ import XCTest
         app.launchArguments.append("--project-edit-opening"); app.launch()
         XCTAssertTrue(revealProjectEditorNameInForm(in: app), app.debugDescription)
         XCTAssertTrue(app.textFields["projectEdit.name"].waitForExistence(timeout: 5)); assertFixtureEnvironment(in: app, dynamicTypeSize: "accessibility5")
-        tap("projectEdit.saveLocal", app, fixed: true); saved = try snapshot(app)
+        tapEditorMenuItem("projectEdit.saveLocal", menu: "projectEdit.more", in: app); saved = try snapshot(app)
         let opening = try XCTUnwrap(chapter(saved)["id"] as? String)
         tap("projectEdit.chapter." + opening, app); tap("projectStoryAudio.add", app); back(app)
         saved = try snapshot(app); let local = try XCTUnwrap(blocks(saved).last?["id"] as? String)

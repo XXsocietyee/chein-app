@@ -47,7 +47,7 @@ import XCTest
     // UNMEASURED complete new-method estimate: 720 seconds, including both launches and restore.
     func testFreeNewChapterRequiresCoordinatesThenSavesTogetherAndFailureKeepsMaterial() throws {
         var app = launch(["--project-pending-missing-coordinates"])
-        tap("projectEdit.saveLocal", in: app, fixed: true)
+        tapEditorMenuItem("projectEdit.saveLocal", menu: "projectEdit.more", in: app)
         var saved = try XCTUnwrap(try inspect(app).savedDraft); let row = try XCTUnwrap(saved.pendingMaterials?.first)
         XCTAssertTrue(saved.chapters.isEmpty)
         tap("projectPending.newChapter." + row.node.id, in: app)
@@ -73,7 +73,7 @@ import XCTest
     }
     // UNMEASURED complete new-method estimate: 660 seconds, including Back and explicit story insertion.
     func testCityNewChapterKeepsMaterialThroughBackUntilTextAndChosenSlot() throws {
-        let app = launch(city: true); tap("projectEdit.saveLocal", in: app, fixed: true)
+        let app = launch(city: true); tapEditorMenuItem("projectEdit.saveLocal", menu: "projectEdit.more", in: app)
         var saved = try XCTUnwrap(try inspect(app).savedDraft); let row = try XCTUnwrap(saved.pendingMaterials?.first)
         tap("projectPending.newChapter." + row.node.id, in: app)
         let insert = app.buttons["projectPending.insert.end"]; reveal(insert, in: app); XCTAssertFalse(insert.isEnabled)

@@ -59,7 +59,7 @@ import XCTest
     // UNMEASURED full-method allowance:680s. Retained630s floor plus two22s read-only launch reveals, rounded up; both original journeys remain complete.
     func testPreparedStoryOrderAndMissingFieldsStayDistinctFromWhitelistOmission() throws {
         var app = launch(["--project-edit-prepared-order"], free: false)
-        tap("projectEdit.saveLocal", in: app, fixed: true); let saved = try inspect(app)
+        tapEditorMenuItem("projectEdit.saveLocal", menu: "projectEdit.more", in: app); let saved = try inspect(app)
         XCTAssertEqual(saved.chapters[0].nodes.map(\.name), ["Lighthouse", "Second staged node"])
         tap("projectEdit.review", in: app, fixed: true)
         read("name", node: 0, expected: "Second staged node", in: app); read("sortID", node: 0, expected: "1", in: app)

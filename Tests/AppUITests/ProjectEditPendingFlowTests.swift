@@ -62,7 +62,7 @@ import XCTest
     // UNMEASURED full new-method estimate:420s, actual city story edit/back/explicit insertion.
     func testCityPendingMaterialWaitsForStoryAndExplicitGapInsteadOfFreePlacement() throws {
         let app = launch(["--project-edit-pending", "--project-edit-empty-story"], city: true)
-        tap("projectEdit.saveLocal", in: app, fixed: true)
+        tapEditorMenuItem("projectEdit.saveLocal", menu: "projectEdit.more", in: app)
         var saved = try XCTUnwrap(try inspect(app).savedDraft); let material = try XCTUnwrap(saved.pendingMaterials?.first)
         tap("projectPending.arrange." + material.node.id, in: app); choose(saved.chapters[0], in: app)
         let insert = app.buttons["projectPending.insert.end"]; reveal(insert, in: app); XCTAssertFalse(insert.isEnabled)
@@ -70,7 +70,7 @@ import XCTest
         reveal(story, in: app, towardTop: true); story.tap(); story.typeText("Written city story")
         let accepted = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "Written city story"), object: story)
         XCTAssertEqual(XCTWaiter.wait(for: [accepted], timeout: 5), .completed, app.debugDescription)
-        tap("projectPending.close", in: app, fixed: true); tap("projectEdit.saveLocal", in: app, fixed: true)
+        tap("projectPending.close", in: app, fixed: true); tapEditorMenuItem("projectEdit.saveLocal", menu: "projectEdit.more", in: app)
         saved = try XCTUnwrap(try inspect(app).savedDraft)
         XCTAssertEqual(saved.pendingMaterials?.count, 1); XCTAssertTrue(saved.chapters[0].nodes.isEmpty)
         tap("projectPending.arrange." + material.node.id, in: app); choose(saved.chapters[0], in: app)
