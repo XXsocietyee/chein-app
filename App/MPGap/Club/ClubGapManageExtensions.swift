@@ -58,7 +58,7 @@ public struct ClubGapCoopPoolSection: View {
                 .cyPageTitle(verbatim: ClubCoopPoolCopy.applyModalTitle(topicName: item.name))
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
-                        Button("取消") { applyingItem = nil }
+                        Button("common.cancel") { applyingItem = nil }
                     }
                     ToolbarItem(placement: .confirmationAction) {
                         Button(ClubCoopPoolCopy.submitApply) {
@@ -268,7 +268,7 @@ public struct ClubGapSettingsSheet: View {
             .accessibilityIdentifier("club.settings.sheet")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("关闭") { dismiss() }
+                    Button("common.close") { dismiss() }
                 }
             }
         }

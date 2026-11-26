@@ -83,7 +83,7 @@ public struct ClubGapManagedProjectsDirectorSection: View {
                     .cyPageTitle(verbatim: ClubTopicDirectorCopy.selectSessionTitle)
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
-                            Button("关闭") { pickingProject = nil }
+                            Button("common.close") { pickingProject = nil }
                         }
                     }
                 }
