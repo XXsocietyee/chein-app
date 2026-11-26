@@ -410,19 +410,19 @@ private struct VideoBountyAppealSheet: View {
 
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-                TextField(text: $note, axis: .vertical) { Text("mp.vb.appeal.placeholder") }
-                    .lineLimit(4...8)
-                    .focused($focused)
-                    .padding(CYSpacing.lg)
-                    .background(CYNight.ink1, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                    .onChange(of: note) { _, _ in showsRequired = false }
-                    .accessibilityIdentifier("videoBounty.appeal.note")
-                if showsRequired { MPInlineError(text: Text("mp.vb.appeal.required")) }
-                Spacer()
+            // R10-PC-D-N13: system Form on the system background; validation in the section footer.
+            Form {
+                Section {
+                    TextField(text: $note, axis: .vertical) { Text("mp.vb.appeal.placeholder") }
+                        .lineLimit(4...8)
+                        .focused($focused)
+                        .submitLabel(.done)
+                        .onChange(of: note) { _, _ in showsRequired = false }
+                        .accessibilityIdentifier("videoBounty.appeal.note")
+                } footer: {
+                    if showsRequired { Text("mp.vb.appeal.required").foregroundStyle(.red) }
+                }
             }
-            .padding(CYSpacing.pageHorizontal)
-            .background(CYNight.ink0.ignoresSafeArea())
             .navigationTitle(Text("mp.vb.appeal.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -438,6 +438,6 @@ private struct VideoBountyAppealSheet: View {
             }
             .onAppear { focused = true }
         }
-        .presentationDetents([.medium])
+        .presentationDetents([.medium, .large])
     }
 }
