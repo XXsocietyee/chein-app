@@ -1,3 +1,4 @@
+import Charts
 import SwiftUI
 import UIKit
 import Charts
@@ -810,39 +811,44 @@ struct RoamAnniversaryReadIntent {
 private struct RoamRecapWeekChart: View {
     let weeks: [RoamRecapWeek]
     @Binding var picked: Int?
-    @Environment(\.locale) private var locale
-    /// The column's minimum height scales with the caption instead of locking at 170.
+    /// The 110pt plot stays put. The chart's minimum height scales with the caption instead of locking at 170.
     @ScaledMetric(relativeTo: .caption) private var chartHeight: CGFloat = 170
-    private func weekLabel(_ week: RoamRecapWeek) -> String {
-        appLocalized("roam.tools.recap.week \(week.index)", locale: locale)
-    }
-    /// Tap-to-pick (MP monthly-recap bar tap) through the system chart selection; the label maps back to the week.
+    /// Categorical x value for a week (Swift Charts selection works on the plotted value).
+    private static func key(_ index: Int) -> String { String(index) }
+    /// Plain-String series names (not catalog keys; the axis and marks carry the localized text).
+    private static let xSeries: String = "week", ySeries: String = "count"
     private var selection: Binding<String?> {
-        Binding(get: { weeks.first(where: { $0.index == picked }).map(weekLabel) },
-                set: { value in
-                    guard let value, let week = weeks.first(where: { weekLabel($0) == value }) else { return }
-                    picked = week.index
-                })
+        Binding(get: { picked.map(Self.key) },
+                set: { value in if let value, let index = Int(value) { picked = index } })
     }
     var body: some View {
-        // N-TOOLS (r10): Swift Charts bars instead of drawn RoundedRectangles. MP subpackageTools/monthly-recap
-        // keeps the max week tinted and its count shown; a picked week shows its count too (TRECAP-6: 62rpx bars).
+        // N-TOOLS (r10): Swift Charts BarMark instead of hand-drawn RoundedRectangle bars
+        // (MP subpackageTools monthly-recap week bars; TRECAP-6). Tap selects a week like the MP `pickWeek`.
         Chart(weeks) { week in
-            BarMark(x: .value("week", weekLabel(week)), y: .value("count", week.count), width: .fixed(28))
+            BarMark(x: .value(Self.xSeries, Self.key(week.index)), y: .value(Self.ySeries, week.count), width: .fixed(28))
                 .foregroundStyle(week.isMax ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary.opacity(0.4)))
                 .annotation(position: .top) {
-                    if week.isMax || picked == week.index {
-                        Text(week.count, format: .number).cyText(.meta, weight: .bold)
-                    }
+                    Text(week.count, format: .number).cyText(.meta, weight: .bold)
+                        .opacity(week.isMax || picked == week.index ? 1 : 0)
                 }
+                .accessibilityLabel(Text("roam.tools.recap.weekCount \(week.index) \(week.count)"))
         }
         .chartYAxis(.hidden)
+        .chartXAxis { weekAxis }
         .chartXSelection(value: selection)
         .frame(minHeight: chartHeight)
-        // TRECAP-6: one summary of every week (MP `aria-label`); the system chart adds Audio Graph per bar.
-        .accessibilityLabel(Text(verbatim: weeks.map { appLocalized("roam.tools.recap.weekCount \($0.index) \($0.count)", locale: locale) }
+        // TRECAP-6: one summary of every week first (MP `aria-label`).
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text(verbatim: weeks.map { appLocalized("roam.tools.recap.weekCount \($0.index) \($0.count)", locale: .current) }
             .joined(separator: "，")))
         .accessibilityIdentifier("roam.tools.recap.weeks")
+    }
+    private var weekAxis: some AxisContent {
+        AxisMarks { value in
+            AxisValueLabel {
+                Text("roam.tools.recap.week \(Int(value.as(String.self) ?? "") ?? 0)")
+            }
+        }
     }
 }
 

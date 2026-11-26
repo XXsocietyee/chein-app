@@ -297,10 +297,13 @@ struct TopicDetailView: View {
                         if RetainedPublicImageReader().enabled {
                             NativeMediaGalleryEntry(sources: covers, scope: key.scope, titleKey: "media.destination.squareImages", compact: true)
                         } else {
-                            // Coordinator review: photos cannot load here (no image storage), so the hero is the designed
-                            // cover, never a 图片暂不可用 line.
-                            CYDesignedCover(title: value.name)
-                                .aspectRatio(16 / 9, contentMode: .fit)
+                            // Coordinator review: photos cannot load here (no image storage), so the hero is never a
+                            // 图片暂不可用 line. R10-PC-B-N2: one plain `Image` header (the MP `/images/cover-route.svg` mark,
+                            // topic/index.wxml:49/78), no designed cover or custom clip.
+                            MPAsset.BannerCover.coverRoute.resizable().scaledToFit()
+                                .frame(maxWidth: .infinity, maxHeight: 120)
+                                .padding(.vertical, CYSpacing.md)
+                                .accessibilityHidden(true)
                         }
                     }
                     .listRowInsets(EdgeInsets())
@@ -856,15 +859,16 @@ struct TopicChapterView: View {
     var body: some View {
         switch issue {
         case .unavailable:
+            // R10-PC-B-N2: the refused state is a plain ContentUnavailableView; 返回 is its `.bordered` action.
             ContentUnavailableView {
                 Label { Text("mpfresh.topic.refused.title", tableName: "MpFresh") } icon: { Image(systemName: "eye.slash") }
+            } actions: {
+                Button { dismiss() } label: { Text("mpfresh.topic.back", tableName: "MpFresh") }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .accessibilityIdentifier("topic.error.back")
             }
                 .accessibilityIdentifier("topic.error")
-                .safeAreaInset(edge: .bottom) {
-                    CYPillButton("mpfresh.topic.back", style: .secondary, tableName: "MpFresh") { dismiss() }
-                        .padding(CYSpacing.pageHorizontal)
-                        .accessibilityIdentifier("topic.error.back")
-                }
         case .failed:
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 Text("mpfresh.topic.failed.title", tableName: "MpFresh").font(.title3.weight(.semibold))

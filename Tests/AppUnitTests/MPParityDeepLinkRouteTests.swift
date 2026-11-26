@@ -44,7 +44,9 @@ import XCTest
         XCTAssertEqual(MPParityRoute(link: home), .screen(page: "pages/index/index", query: [:]))
         let order = MiniProgramPageLink(path: "subpackageMember/orderinfo/orderinfo", query: ["id": "7"])!
         XCTAssertEqual(MPParityRoute(link: order), .screen(page: "subpackageMember/orderinfo/orderinfo", query: ["id": "7"]))
-        XCTAssertNil(MPParityRoute(miniProgramPath: "pages/club/governance/index", query: [:]))
+        // CLB-r8-governance-01 (MP governance js:204-207): a bare link opens the screen, which shows 链接已失效 + 返回.
+        XCTAssertEqual(MPParityRoute(miniProgramPath: "pages/club/governance/index", query: [:]),
+                       .screen(page: "pages/club/governance/index", query: [:]))
         // CLB-topic-detail-01 / CLB-workbench-01: club pages reach their screens with their MP keys.
         let topic = MiniProgramPageLink(path: "pages/club/topic-detail/index", query: ["topicId": "3", "clubId": "7"])!
         XCTAssertEqual(MPParityRoute(link: topic), .screen(page: "pages/club/topic-detail/index", query: ["topicId": "3", "clubId": "7"]))

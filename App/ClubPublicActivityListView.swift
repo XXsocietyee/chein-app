@@ -53,7 +53,8 @@ import SwiftUI
                 }
                 if let groupCode {
                     Button("club.activity.groupCode") { groupCode(row.id) }
-                        .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
+                        .buttonStyle(.bordered)  // CLB-r10-nat-detail-09: system button, not a custom pill
+                        .controlSize(.small)
                         .accessibilityIdentifier("club.activity.groupCode.\(row.id)")
                 }
             }

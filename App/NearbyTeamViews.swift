@@ -303,7 +303,8 @@ import SwiftUI
                 if !coordinator.serverMessage.isEmpty { Text(verbatim: coordinator.serverMessage).accessibilityIdentifier("nearby.serverMessage") }
             }.cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+                // N-RTEAMS (r10): system GroupBox instead of the drawn domain card (MP my-teams / nearby wxml notice block).
+                .groupBoxWrapped()
         }
     }
     /// Mini-program 范围 control. Coordinates are only typed in when the host gave no map point.
@@ -405,8 +406,7 @@ import SwiftUI
         else { radius = context.radius; recruiting = .loaded }
     }
     private func teamCard(_ team: NearbyTeam) -> some View {
-        // N-RTEAMS (r10): MP my-teams card (subpackageRoam/my-teams/index.wxml) as a system GroupBox, no drawn card.
-        GroupBox { VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
                 if NearbyTeamPresentation.heading(team).isEmpty { Text("nearby.untitled").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) } else { Text(verbatim: NearbyTeamPresentation.heading(team)).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
                 Spacer(minLength: 8)
@@ -435,8 +435,9 @@ import SwiftUI
             default: EmptyView()
             }
             NearbyTeamReportButton(teamID: team.id.rawValue, leader: team.mode == "leader" || team.viewerStatus == .leader)
-        }.fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading) }
-            .frame(maxWidth: .infinity, alignment: .leading)
+        }.fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading)
+            // N-RTEAMS (r10): the team card is a system GroupBox, not the drawn domain card (MP nearby / my-teams team card).
+            .groupBoxWrapped()
             .accessibilityElement(children: .contain).accessibilityIdentifier("nearby.team.\(team.id.rawValue)")
     }
     @ViewBuilder private var applicantSection: some View {
@@ -715,4 +716,9 @@ import SwiftUI
             button.frame(maxWidth: .infinity).fontWeight(.semibold)
         }
     }
+}
+
+private extension View {
+    /// N-RTEAMS (r10): wraps the receiver in a system `GroupBox` (system grouped fill, system corner radius).
+    func groupBoxWrapped() -> some View { GroupBox { self } }
 }

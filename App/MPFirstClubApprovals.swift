@@ -96,6 +96,10 @@ enum MPFirstClubWriteRoute {
         "api/club/crm/customers/detail", "api/club/event-ops/topics", "api/club/event-ops/series/detail",
         "api/club/event-ops/roster", "api/club/topic-setting/detail", "api/club/access/me", "api/club/members"
     ]
+    /// CLB-G13a: the club staff shared-run command (MP topic-detail director.js confirmGenericOps / plan-fallback.js →
+    /// `executeAction`). Admitted only with the exact `PlaySharedRunOps.acceptsCommandBody` envelope and a 通用玩法 /
+    /// PLAN_FALLBACK action; the server checks the staff role. Not money (`GameSharedRunControl.RUN_CONTROL_ACTIONS`).
+    static let sharedRunCommandPath = "api/game/session/command"
     /// CLB-r10-badges-01: badge reads, create and grant (all `POST` JSON, ClubBadgeManagementRoute).
     static let badgePaths: Set<String> = ClubBadgeManagementRoute.paths
     /// MP topic-detail chapter recruit/finish post `multipart/form-data` (ClubGovernanceService form: true), and so
@@ -123,7 +127,9 @@ enum MPFirstClubWriteRoute {
             return moneyKeys.allSatisfy { !text.contains("name=\"\($0)\"") }
         }
         guard contentType == "application/json",
-              governancePaths.contains(relative) || operationPaths.contains(relative) || badgePaths.contains(relative),
+              governancePaths.contains(relative) || operationPaths.contains(relative) || badgePaths.contains(relative)
+                || relative == sharedRunCommandPath,
+              relative != sharedRunCommandPath || PlaySharedRunOps.acceptsCommandBody(body),
               let parsed = try? JSONSerialization.jsonObject(with: body),
               let object = parsed as? [String: Any],
               moneyKeys.isDisjoint(with: object.keys) else { return false }

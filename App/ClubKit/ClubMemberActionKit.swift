@@ -156,7 +156,7 @@ struct ClubPageEndActions: View {
     @Environment(\.locale) private var locale
 
     var body: some View {
-        // The host places this in one List row with zero insets; these are Settings-style red rows in that cell.
+        // The host places this in one system List row with zero insets; these are Settings-style red rows in that cell.
         VStack(spacing: 0) {
             if canLeave {
                 row(key: "club.leave", symbol: "rectangle.portrait.and.arrow.right", identifier: "club.end.leave", action: onLeave)
@@ -166,8 +166,6 @@ struct ClubPageEndActions: View {
                 row(key: "club.report", symbol: "flag", identifier: "club.end.report", action: onReport)
             }
         }
-        .background(Color(uiColor: .secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 
     private func row(key: String, symbol: String, identifier: String, action: @escaping () -> Void) -> some View {

@@ -74,3 +74,13 @@ There is no compiler in the cloud. Every API used here was checked by grep, or i
 ## Merchant release
 
 None. No row in this slice is merchant-only.
+
+## Round 2 (2026-11-26)
+
+Merged `origin/ui/combined-r7` (tip 05caead53) into this branch. No conflicts.
+
+- **No open fixable rows left.** Every row in the slice was already fixed, fixed on tip, moved to acct-a, blocked or owner after round 1.
+- **Regression check after the merge.** All cited files were grepped again for CY chrome (`CYNight`, gradients, shadows, `strokeBorder`, `CYModal`, `CYFooterBar`, `CYTabs`, `CYSkeleton`, `CYStatusChip`, `.cyText(.sectionTitle)`, materials, `.buttonStyle(.cy…)`). Nothing came back. The only hits are the two `CYScreenOfflineWriteBanner` section footers from N-15 and N-16, which are intended, and comments.
+- **Blocked rows (A8-03, B-SZ-10) are still blocked.** I tried to attach the MP repo again under the new owner (`add_repo XXsocietyee/chengyinhub-xcx`). It was denied: not found, or no access. The repo docs (`docs/mp-gap`, `docs/alignment`, `docs/parity`) don't record the `shezhi.wxml:9-36` row order or the `talent/list/index.wxml:64-76` sections. I won't guess MP order.
+- **Rows waiting on someone else:** A3-05 and B-AG-04 need an owner decision. C-F16-r7 and A8-03 need a simulator run. A3-10 is still partly done.
+- **Gates:** scaffold PASS; a11y PASS (0 new); contract ratchet 192 failing = baseline 192, new 0.

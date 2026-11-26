@@ -30,13 +30,11 @@ final class ClubDetailPageReadyTests: XCTestCase {
     }
 
     func testMissingHostCityAndLevelUsePendingCopy() {
-        let known = ClubDetailOverviewFactsGrid(leaderName: " 阿青 ", level: 4, city: " 杭州 ")
-        XCTAssertEqual(known.items.map(\.label), ["主理人", "等级", "所在城市"])
-        XCTAssertEqual(known.items.map(\.value), ["阿青", "L4", "杭州"])
-
-        let missing = ClubDetailOverviewFactsGrid(leaderName: " ", level: 0, city: nil)
-        XCTAssertEqual(missing.items.map(\.value), ["待补充", "待定", "待补充"])
-        XCTAssertEqual(ClubDetailOverviewFactsGrid(leaderName: nil, level: 6, city: "").items.map(\.value), ["待补充", "待定", "待补充"])
+        XCTAssertEqual(ClubDetailHeaderFact.known(" 阿青 "), "阿青")
+        XCTAssertNil(ClubDetailHeaderFact.known(" "))
+        XCTAssertNil(ClubDetailHeaderFact.known(nil))
+        XCTAssertNil(ClubDetailHeaderFact.known(dash))
+        XCTAssertEqual(ClubDetailHeaderFact.pendingKey, "club.detail.factPending")
         XCTAssertEqual(ClubDetailPageModel.countText(nil), dash)
         XCTAssertEqual(ClubDetailPageModel.levelText(0), dash)
     }
