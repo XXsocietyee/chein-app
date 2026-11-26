@@ -45,11 +45,11 @@ import SwiftUI
                                           onOpenBalance: { showsPassportWallet = true },
                                           refreshToken: memberRefreshToken, avatarAccess: session.memberIdentityAvatarAccess)
                 if showsPassportOverview {
-                    PassportOverviewSection(reader: session.roamExperienceReader, growth: session.growthCenterReader, refreshToken: memberRefreshToken, onOpenTickets: { showsTicketPass = true },
+                    PassportOverviewSection(reader: session.roamExperienceReader, album: session.roamAlbumMetadataReader, growth: session.growthCenterReader, refreshToken: memberRefreshToken, onOpenTickets: { showsTicketPass = true },
                                             // verify-r1: 票夹 is the card's pill; no second 票夹 circle 250 pt lower (same destination).
                                             showsTicketsAction: false,
                                             onOpenWallet: { showsPassportWallet = true }, onOpenMessages: { showsPassportMessages = true },
-                                            onOpenStamps: session.roamExperienceReader.isConfigured ? { showsPassportStamps = true } : nil,
+                                            onOpenStamps: session.roamExperienceReader.isConfigured || session.roamAlbumMetadataReader.isConfigured ? { showsPassportStamps = true } : nil,
                                             onOpenBadges: { showsPassportBadges = true })
                 }
                 ProfileAccountLinks(reader:session.profileReader,scoreAppealsDestination:{ AnyView(MemberScoreAppealListView(session: session)) },ordersDestination:{ AnyView(SessionOwnedOrdersView(session: session)) },participantReader:session.participantReader,participantCoordinator:session.participantCoordinator,orderLifecycleCoordinator:session.orderLifecycleCoordinator, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory, part: .orders)
@@ -230,9 +230,18 @@ import SwiftUI
             }
             .navigationDestination(isPresented:$showsPassportMessages) { SessionMessagingHome(session: session).cyPushedChrome() }
             // A1-06: 邮票 opens the stamp album and 勋章 the badge wall, as the MP 收集册 piles do.
-            .navigationDestination(isPresented:$showsPassportStamps) { RoamStampAlbumView(reader: session.roamExperienceReader,
-                // SALBUM-r7-1: the camera item / empty CTA open the session camera, not the disabled bare one.
-                stampDestination: { [session] in AnyView(SessionRoamStampCameraView().environmentObject(session)) }).cyPushedChrome() }
+            .navigationDestination(isPresented:$showsPassportStamps) {
+                // P-077 "See All": the account's stamp album (same page and read as the roam passport) when configured.
+                if session.roamAlbumMetadataReader.isConfigured {
+                    RoamAlbumMetadataDestination(reader: session.roamAlbumMetadataReader,
+                        stampDestination: { [session] in AnyView(SessionRoamStampCameraView().environmentObject(session)) })
+                        .id(session.roamAlbumMetadataReader.scope).cyPushedChrome()
+                } else {
+                    RoamStampAlbumView(reader: session.roamExperienceReader,
+                    // SALBUM-r7-1: the camera item / empty CTA open the session camera, not the disabled bare one.
+                    stampDestination: { [session] in AnyView(SessionRoamStampCameraView().environmentObject(session)) }).cyPushedChrome()
+                }
+            }
             .navigationDestination(isPresented:$showsPassportBadges) { ObjectBadgeWallView(reader: session.profileReader, media: session.makeObjectCardImageLoader()).cyPushedChrome() }
             .background {
                 ProfileFavoriteTopicNavigationLayer(owner: savedTopicOwner) { selected in

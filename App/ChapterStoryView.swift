@@ -44,6 +44,8 @@ import UIKit
     }
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
+    /// P-082: the domain of the page that opened the reader (the story route). Native r2 reads in that same domain.
+    @Environment(\.themeDomain) private var hostDomain
     private var chapter: ChapterStoryDocument? { model.chapterStories[chapterID] }
     private var gameStage: PlayGameStage? {
         guard let result = model.snapshot?.result else { return nil }
@@ -260,7 +262,8 @@ import UIKit
             }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            if NativeR2Flags.storyFlow, visible, audioMounted, scenePhase == .active, makeAudio != nil, !orderedAudioURLs.isEmpty {
+            // P-083: native r2 keeps the mini player mounted when the app leaves the foreground so narration goes on.
+            if NativeR2Flags.storyFlow, visible, audioMounted, makeAudio != nil, !orderedAudioURLs.isEmpty {
                 NR2MiniAudioPlayer(title: chapter?.title ?? chapterPosition?.name, urls: orderedAudioURLs, selected: audioURL,
                                    scope: mediaScope, makeAudio: makeAudio, select: scopedAudioSelection())
                     .id(audioPresentationID)
@@ -332,9 +335,14 @@ import UIKit
         .onChange(of: chapterID) { _, _ in audioPresentationID = UUID(); audioURL = nil; resumeTried = false; readingSegmentID = nil; zoomedImage = nil }
         .onChange(of: nodeID) { _, _ in audioPresentationID = UUID(); audioURL = nil; zoomedImage = nil }
         .onChange(of: model.identity) { _, _ in audioPresentationID = UUID(); advancedVariables = [:]; dirtyNodes = []; activeInlineNodeID = nil; audioURL = nil; resumeTried = false; readingSegmentID = nil; zoomedImage = nil }
-        .onChange(of: scenePhase) { _, phase in audioPresentationID = UUID(); if phase != .active { audioURL = nil; zoomedImage = nil } }
+        .onChange(of: scenePhase) { _, phase in
+            // P-083: native r2 narration continues in the background (the mini player owns that rule); r1 stops it.
+            if NativeR2Flags.storyFlow { if phase != .active { zoomedImage = nil }; return }
+            audioPresentationID = UUID(); if phase != .active { audioURL = nil; zoomedImage = nil }
+        }
         .onDisappear { audioMounted = false; audioURL = nil; audioPresentationID = UUID(); advancedVariables = [:]; dirtyNodes = []; zoomedImage = nil }
-        .cyDomainScreen(.player)
+        // P-082: native r2 reads in the route's domain (no dark route → light reader jump); r1 keeps the player domain.
+        .cyDomainScreen(NativeR2Flags.storyFlow ? hostDomain : .player)
     }
     @ViewBuilder private func segmentBody(_ segment: ChapterStorySegment) -> some View {
         switch segment.content {
@@ -493,7 +501,8 @@ import UIKit
     }
     private func selectAudio(_ url: String) {
         guard makeAudio != nil else { return }
-        guard audioMounted, scenePhase == .active, currentAudioURLs.contains(url) else { return }
+        // P-083: native r2 also accepts the Lock Screen "next" while in the background.
+        guard audioMounted, scenePhase == .active || NativeR2Flags.storyFlow, currentAudioURLs.contains(url) else { return }
         audioURL = url
     }
     private func leave() { if dirtyNodes.isEmpty { dismiss() } else { confirmLeave = true } }

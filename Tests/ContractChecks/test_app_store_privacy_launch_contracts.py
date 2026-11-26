@@ -30,14 +30,15 @@ class AppStorePrivacyLaunchContracts(unittest.TestCase):
             self.assertIn(snippet, mic_zh)
 
     def test_no_always_location_and_only_session_background_location(self):
-        # OWN-D-07: When-In-Use only; the one background mode is session-scoped location.
+        # OWN-D-07: When-In-Use only; background modes are session-scoped location and story audio (P-083).
         blob = '\n'.join((ROOT / p).read_text() for p in (
             'Config/Base.xcconfig', 'Config/Info.plist', 'Resources/InfoPlist.xcstrings', 'Resources/PrivacyInfo.xcprivacy'))
         for forbidden in ('NSLocationAlwaysUsageDescription', 'NSLocationAlwaysAndWhenInUseUsageDescription',
                           'INFOPLIST_KEY_UIBackgroundModes', 'requestAlwaysAuthorization'):
             self.assertNotIn(forbidden, blob)
         info = plistlib.loads((ROOT / 'Config/Info.plist').read_bytes())
-        self.assertEqual(info['UIBackgroundModes'], ['location'])
+        # P-083 (design backlog L5): story narration keeps playing on the Lock Screen; still no Always location.
+        self.assertEqual(info['UIBackgroundModes'], ['audio', 'location'])
         self.assertEqual(list(ROOT.glob('*.entitlements')) + list(ROOT.glob('App/*.entitlements')), [])
 
     def test_privacy_manifest(self):

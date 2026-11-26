@@ -18,7 +18,7 @@ class WP11SessionLocationContracts(unittest.TestCase):
 
     def test_own_d07a_plist_declares_only_session_location_background_and_when_in_use(self):
         info = plistlib.loads((ROOT / 'Config/Info.plist').read_bytes())
-        self.assertEqual(info['UIBackgroundModes'], ['location'])
+        self.assertEqual(info['UIBackgroundModes'], ['audio', 'location'])  # P-083 story audio
         base = self.read('Config/Base.xcconfig')
         self.assertIn('INFOPLIST_KEY_NSLocationWhenInUseUsageDescription', base)
         for source in swift_sources('App', 'Core'):

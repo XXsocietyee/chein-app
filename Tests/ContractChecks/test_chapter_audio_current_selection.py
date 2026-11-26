@@ -11,10 +11,13 @@ class ChapterAudioCurrentSelectionTests(unittest.TestCase):
     def test_all_audio_choices_recheck_current_projection(self):
         self.assertEqual(self.code.count("{ selectAudio(url) }"), 3)
         self.assertNotIn("{ audioURL = url }", self.code)
-        self.assertIn("guard audioMounted, scenePhase == .active, currentAudioURLs.contains(url) else { return }", self.code)
+        # P-083: native r2 also accepts the Lock Screen "next" in the background; r1 still needs the foreground.
+        self.assertIn("guard audioMounted, scenePhase == .active || NativeR2Flags.storyFlow, currentAudioURLs.contains(url) else { return }", self.code)
 
     def test_player_mount_also_rechecks_current_projection(self):
-        self.assertIn("if let audioURL, audioMounted, scenePhase == .active, currentAudioURLs.contains(audioURL)", self.code)
+        # r1 host still needs the foreground; the native r2 mini player stays mounted in the background (P-083).
+        self.assertIn("if !NativeR2Flags.storyFlow, let audioURL, audioMounted, scenePhase == .active, currentAudioURLs.contains(audioURL)", self.code)
+        self.assertIn("if NativeR2Flags.storyFlow, visible, audioMounted, makeAudio != nil, !orderedAudioURLs.isEmpty {", self.code)
         self.assertIn("guard visible else { return [] }", self.code)
         self.assertIn("currentRead: visible", self.code)
 
@@ -51,7 +54,9 @@ class ChapterAudioCurrentSelectionTests(unittest.TestCase):
         for key in ("mediaScope", "chapterID", "nodeID", "model.identity"):
             self.assertIn(".onChange(of: " + key + ") { _, _ in audioPresentationID = UUID();", self.code)
         self.assertIn(".onDisappear { audioMounted = false; audioURL = nil; audioPresentationID = UUID(); advancedVariables = [:]; dirtyNodes = []; zoomedImage = nil }", self.code)
-        self.assertIn(".onChange(of: scenePhase) { _, phase in audioPresentationID = UUID();", self.code)
+        scene = self.code.split(".onChange(of: scenePhase) { _, phase in", 1)[1].split(".onDisappear", 1)[0]
+        self.assertIn("if NativeR2Flags.storyFlow { if phase != .active { zoomedImage = nil }; return }", scene)
+        self.assertIn("audioPresentationID = UUID(); if phase != .active { audioURL = nil; zoomedImage = nil }", scene)
 
     def test_unconfigured_audio_has_no_enabled_play_action(self):
         self.assertEqual(self.code.count(".disabled(makeAudio == nil)"), 2)

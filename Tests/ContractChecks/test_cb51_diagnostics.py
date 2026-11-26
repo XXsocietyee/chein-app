@@ -101,8 +101,9 @@ class CB51DiagnosticsContracts(unittest.TestCase):
         self.assertNotIn(FLAG, base)
         info = self.read("Config/Info.plist")
         entitlements = self.read("Config/Questify.entitlements")
-        # OWN-D-07: Info.plist declares only the session-scoped location background mode.
-        self.assertIn("<key>UIBackgroundModes</key><array><string>location</string></array>", info)
+        # OWN-D-07: Info.plist declares the session-scoped location background mode (and P-083 story audio).
+        # P-083: plus the audio mode for story narration on the Lock Screen.
+        self.assertIn("<key>UIBackgroundModes</key><array><string>audio</string><string>location</string></array>", info)
         for text in (entitlements, base):
             self.assertNotIn("UIBackgroundModes", text)
         for text in (info, entitlements, base):
