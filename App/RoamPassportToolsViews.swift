@@ -236,11 +236,13 @@ struct RoamAnniversaryReadIntent {
                 // TANNIV-5: two card-shaped skeletons (MP wxml:13), layout-stable; VoiceOver hears the loading copy once.
                 ForEach(0..<2, id: \.self) { index in
                     Section {
+                        // N-TOOLS (r10): system placeholder redaction instead of drawn skeleton blocks.
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                            CYSkeletonBlock(height: 18).frame(maxWidth: 120)
-                            CYSkeletonBlock(height: 14)
-                            CYSkeletonBlock(height: 14).frame(maxWidth: 200)
+                            Text(verbatim: "0000-00-00").font(.headline)
+                            Text(verbatim: String(repeating: "0", count: 24))
+                            Text(verbatim: String(repeating: "0", count: 16))
                         }
+                        .redacted(reason: .placeholder)
                         .padding(.vertical, CYSpacing.xs)
                         .accessibilityElement(children: .ignore)
                         .accessibilityLabel(Text("roam.tools.anniversary.loading"))

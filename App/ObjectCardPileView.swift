@@ -26,7 +26,6 @@ import SwiftUI
                         let base: CGPoint = position(index, count: shown.count, in: geo.size)
                         let extra: CGSize = (moved[index] ?? .zero) + (dragIndex == index ? dragTranslation : .zero)
                         pileTile(card, index: index)
-                            .rotationEffect(.degrees(gathered ? 0 : tilt(index)))
                             .scaleEffect(dragIndex == index ? 1.08 : 1)
                             .position(clamped(CGPoint(x: base.x + extra.width, y: base.y + extra.height), in: geo.size))
                             .zIndex(dragIndex == index ? 1_000 : Double(shown.count - index))
@@ -67,8 +66,7 @@ import SwiftUI
                 RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYColor.bgRaised)
                     .overlay { Image(systemName: "shippingbox").foregroundStyle(CYColor.textTertiary) }
             }
-            .frame(width: tile, height: tile)
-            .shadow(color: .black.opacity(0.22), radius: 4, y: 2)
+            .frame(width: tile, height: tile)  // N-OCARDS (r10): untilted, no shadow
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

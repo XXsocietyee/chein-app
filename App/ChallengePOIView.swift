@@ -275,19 +275,18 @@ import QuestifyCore
         return components?.url
     }
 
+    /// N-POICH (r10): a system Label in the semantic tone colour; no tinted rounded box (MP pages/play/poi-challenge.wxml notes).
     private func note(_ text: String, symbol: String, tone: CYStatusTone) -> some View {
         let foreground: Color = tone == .danger ? palette.danger : tone == .success ? palette.success : palette.textPrimary
-        let background: Color = tone == .danger ? palette.dangerSoft : tone == .success ? palette.successSoft : palette.bgRaised
-        return HStack(alignment: .top, spacing: CYSpacing.sm) {
-            Image(systemName: symbol).accessibilityHidden(true)
+        return Label {
             Text(verbatim: text)
-                .cyText(.bodyCompact)
+                .font(.subheadline)
                 .fixedSize(horizontal: false, vertical: true)
+        } icon: {
+            Image(systemName: symbol).accessibilityHidden(true)
         }
         .foregroundStyle(foreground)
-        .padding(CYSpacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(background, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .accessibilityElement(children: .combine)
     }
 

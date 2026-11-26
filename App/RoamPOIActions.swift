@@ -321,13 +321,15 @@ struct RoamPOIActionRows: View {
             Button("action.cancel", role: .cancel) { model.disarmReverify() }
             Button("roam.poi.answer.submit") { submit(.init(answer: answerText, photoURL: challengePhoto)) }
         }
-        .cySheet(isPresented: $choiceSheet) {
-            CYOptionSheet(title: node.questionName ?? appLocalized("roam.poi.answer.title", locale: locale),
-                          items: node.quizOptions.map { CYOptionSheetItem(id: $0.id, title: $0.id + ". " + $0.text) },
-                          selectedID: nil,
-                          onSelect: { id in choiceSheet = false; submit(.init(answer: id, photoURL: challengePhoto)) },
-                          onClose: { choiceSheet = false; model.disarmReverify() })
-                .cyDomainSheet(detents: [.half])
+        // N-RPOI (r10): the quiz choice is a system confirmation dialog (MP subpackageRoam/poi-detail action sheet).
+        .confirmationDialog(Text(verbatim: node.questionName ?? appLocalized("roam.poi.answer.title", locale: locale)),
+                            isPresented: $choiceSheet, titleVisibility: .visible) {
+            ForEach(node.quizOptions, id: \.id) { option in
+                Button { submit(.init(answer: option.id, photoURL: challengePhoto)) } label: {
+                    Text(verbatim: option.id + ". " + option.text)
+                }
+            }
+            Button("action.cancel", role: .cancel) { model.disarmReverify() }
         }
         .cySheet(isPresented: $photoSheet) { Group {
             NavigationStack {

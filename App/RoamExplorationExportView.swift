@@ -320,10 +320,11 @@ private struct RoamExportFileSaveLink: View {
             }
         }.disabled(model.isBusy)
         Section {
-            CYPillButton("roam.export.prepare") { saveResult = nil; owner.prepare(startDate: startDate, endDate: endDate) }
-                .listRowBackground(Color.clear)
+            // N-TOOLS (r10): a plain Form button row (MP subpackageTools export 生成).
+            Button("roam.export.prepare") { saveResult = nil; owner.prepare(startDate: startDate, endDate: endDate) }
+                .frame(maxWidth: .infinity)
                 .disabled(!owner.active || model.isBusy || !RoamExportContract.isValidRange(start: startDate, end: endDate)).accessibilityIdentifier("roam.export.prepare")
-            if model.phase == .preparing { CYSkeleton() }
+            if model.phase == .preparing { ProgressView().frame(maxWidth: .infinity) }  // N-TOOLS (r10)
         }
     }
     @ViewBuilder private var progress: some View {

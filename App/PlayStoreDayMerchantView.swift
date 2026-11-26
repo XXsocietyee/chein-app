@@ -55,26 +55,25 @@ import SwiftUI
                     .themeDomain(.player)
             }
         }
-        .cyModalConfirm(
-            isPresented: showingProof,
-            title: String(localized: LocalizedStringResource("playStoreDay.proofConfirm.title", table: "PlayStoreDay", locale: locale)),
-            message: String(localized: LocalizedStringResource("playStoreDay.proofConfirm.notice", table: "PlayStoreDay", locale: locale)),
-            cancelTitle: String(localized: LocalizedStringResource("playStoreDay.cancel", table: "PlayStoreDay", locale: locale)),
-            confirmTitle: pendingProofIsPhoto
-                ? String(localized: LocalizedStringResource("playStoreDay.proofConfirm.photo", table: "PlayStoreDay", locale: locale))
-                : String(localized: LocalizedStringResource("playStoreDay.proofConfirm.scan", table: "PlayStoreDay", locale: locale)),
-            onCancel: {
+        // N-MERCHANT (r10): the MP wx.showModal confirmations (pages/play/merchant.js) as system alerts.
+        .alert(Text(verbatim: String(localized: LocalizedStringResource("playStoreDay.proofConfirm.title", table: "PlayStoreDay", locale: locale))),
+               isPresented: $showingProof) {
+            Button(String(localized: LocalizedStringResource("playStoreDay.cancel", table: "PlayStoreDay", locale: locale)), role: .cancel) {
                 showingProof = false
                 pendingProof = nil
                 model.cancelPreparedProof()
-            },
-            onConfirm: {
+            }
+            Button(pendingProofIsPhoto
+                   ? String(localized: LocalizedStringResource("playStoreDay.proofConfirm.photo", table: "PlayStoreDay", locale: locale))
+                   : String(localized: LocalizedStringResource("playStoreDay.proofConfirm.scan", table: "PlayStoreDay", locale: locale))) {
                 showingProof = false
                 guard let proof = pendingProof else { return }
                 pendingProof = nil
                 Task { await model.submitProof(proof) }
             }
-        )
+        } message: {
+            Text(verbatim: String(localized: LocalizedStringResource("playStoreDay.proofConfirm.notice", table: "PlayStoreDay", locale: locale)))
+        }
         .onChange(of: model.preparedProof) { _, proof in
             guard let proof else { return }
             pendingProof = proof
@@ -82,31 +81,35 @@ import SwiftUI
             Task { try? await Task.sleep(nanoseconds: 450_000_000); if pendingProof == proof, model.preparedProof == proof { showingProof = true } }
         }
         .onChange(of: showingProof) { _, visible in if !visible, pendingProof != nil { pendingProof = nil; model.cancelPreparedProof() } }
-        .cyModalConfirm(
-            isPresented: model.consentPromptVisible,
-            title: String(localized: LocalizedStringResource("playStoreDay.modal.title", table: "PlayStoreDay", locale: locale)),
-            message: String(format: String(localized: LocalizedStringResource("playStoreDay.modal.body", table: "PlayStoreDay", locale: locale)), storeName),
-            cancelTitle: String(localized: LocalizedStringResource("playStoreDay.cancel", table: "PlayStoreDay", locale: locale)),
-            confirmTitle: String(localized: LocalizedStringResource("playStoreDay.modal.confirm", table: "PlayStoreDay", locale: locale)),
-            confirmIdentifier: "storeDayPage.modal.confirm",
-            onCancel: { model.declineConsent() },
-            onConfirm: { Task { await model.agreeConsent() } }
-        )
-        .cyModalConfirm(
-            isPresented: confirmRevoke,
-            title: String(localized: LocalizedStringResource("playStoreDay.revokeConfirm.title", table: "PlayStoreDay", locale: locale)),
-            cancelTitle: String(localized: LocalizedStringResource("playStoreDay.cancel", table: "PlayStoreDay", locale: locale)),
-            confirmTitle: String(localized: LocalizedStringResource("playStoreDay.consent.revoke", table: "PlayStoreDay", locale: locale)),
-            isDestructive: true,
-            onCancel: { confirmRevoke = false },
-            onConfirm: {
+        .alert(Text(verbatim: String(localized: LocalizedStringResource("playStoreDay.modal.title", table: "PlayStoreDay", locale: locale))),
+               isPresented: consentPromptBinding) {
+            Button(String(localized: LocalizedStringResource("playStoreDay.cancel", table: "PlayStoreDay", locale: locale)), role: .cancel) {
+                model.declineConsent()
+            }
+            Button(String(localized: LocalizedStringResource("playStoreDay.modal.confirm", table: "PlayStoreDay", locale: locale))) {
+                Task { await model.agreeConsent() }
+            }
+            .accessibilityIdentifier("storeDayPage.modal.confirm")
+        } message: {
+            Text(verbatim: String(format: String(localized: LocalizedStringResource("playStoreDay.modal.body", table: "PlayStoreDay", locale: locale)), storeName))
+        }
+        .alert(Text(verbatim: String(localized: LocalizedStringResource("playStoreDay.revokeConfirm.title", table: "PlayStoreDay", locale: locale))),
+               isPresented: $confirmRevoke) {
+            Button(String(localized: LocalizedStringResource("playStoreDay.cancel", table: "PlayStoreDay", locale: locale)), role: .cancel) {
+                confirmRevoke = false
+            }
+            Button(String(localized: LocalizedStringResource("playStoreDay.consent.revoke", table: "PlayStoreDay", locale: locale)), role: .destructive) {
                 confirmRevoke = false
                 Task { await model.revokeConsent() }
             }
-        )
+        }
         .onChange(of: model.dismissRequested) { _, requested in if requested { dismiss() } }
     }
 
+    /// The consent prompt is model state; the alert buttons call decline / agree, so a write from the alert is ignored.
+    private var consentPromptBinding: Binding<Bool> {
+        Binding(get: { model.consentPromptVisible }, set: { _ in })
+    }
     private var pendingProofIsPhoto: Bool { if case .photo = pendingProof { return true }; return false }
     private var storeName: String { model.node?.name ?? L("playStoreDay.consent.defaultStore") }
     private func L(_ key: String.LocalizationValue) -> String { String(localized: key, table: "PlayStoreDay") }
@@ -357,14 +360,10 @@ import SwiftUI
                 Button(L("playStoreDay.more.photo")) { model.preparePhoto() }
                 Button(L("playStoreDay.cancel"), role: .cancel) {}
             }
-            .cyModalConfirm(
-                isPresented: showingArrivePurpose,
-                title: L("playStoreDay.arrive.purpose"),
-                cancelTitle: L("playStoreDay.cancel"),
-                confirmTitle: L("playStoreDay.arrive.confirm"),
-                onCancel: { showingArrivePurpose = false },
-                onConfirm: { showingArrivePurpose = false; arrivePurposeShown = true; Task { await locateAndArrive() } }
-            )
+            .alert(Text(verbatim: L("playStoreDay.arrive.purpose")), isPresented: $showingArrivePurpose) {
+                Button(L("playStoreDay.cancel"), role: .cancel) { showingArrivePurpose = false }
+                Button(L("playStoreDay.arrive.confirm")) { showingArrivePurpose = false; arrivePurposeShown = true; Task { await locateAndArrive() } }
+            }
         }
         .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.md).background(.bar)
     }
