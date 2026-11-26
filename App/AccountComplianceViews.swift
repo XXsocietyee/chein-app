@@ -141,11 +141,13 @@ import SwiftUI
     let market: RegionalMarket?
     let legalReader: any SettingsLegalReading
     var showsNPCChatDataEntry = true
+    /// r11 B-SZ-10: SettingsView shows 营销消息与优惠券 on its own, right after AI 对话记录 (MP shezhi.wxml:21-22).
+    var showsMarketingEntry = true
     @State private var selected: ComplianceDestination?
     @State private var npcChatData: NPCChatDataPresentation?
     var body: some View {
         Section {
-            ForEach(ComplianceDestination.allCases.filter { $0 != .cancellation }) { destination in
+            ForEach(ComplianceDestination.allCases.filter { $0 != .cancellation && (showsMarketingEntry || $0 != .marketing) }) { destination in
                 if destination == .marketing {
                     NavigationLink {
                         AccountComplianceSheet(coordinator: makeCoordinator(), destination: destination,
@@ -193,6 +195,27 @@ import SwiftUI
         .presentationDragIndicator(.visible)
         }
         .cySheet(item: $npcChatData) { presentation in Group { NPCChatDataView(coordinator: presentation.coordinator) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+    }
+}
+/// r11 B-SZ-10: the 营销消息与优惠券 row on its own, so Settings can place it where MP shezhi.wxml:21-22 does
+/// (after AI 对话记录, before 帖文处置与申诉). Same destination and id as the row in `AccountComplianceSettingsSection`.
+@MainActor struct AccountComplianceMarketingSettingsEntry: View {
+    let coordinator: AccountComplianceCoordinator?
+    let market: RegionalMarket?
+    var legalReader: any SettingsLegalReading = SettingsBundledLegalReader()
+    var body: some View {
+        if let coordinator {
+        Section {
+            NavigationLink {
+                AccountComplianceSheet(coordinator: coordinator, destination: .marketing,
+                    market: market, legalReader: legalReader, showsCloseButton: false)
+            } label: {
+                Label { Text(LocalizedStringKey(ComplianceDestination.marketing.title)) } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcTicket) }
+                    .environment(\.settingsTileTint, SettingsTint.orange)
+            }
+            .accessibilityIdentifier("compliance.open.\(ComplianceDestination.marketing.rawValue)")
+        }
+        }
     }
 }
 /// B-DR-07: the compliance sheet in its own navigation stack, shared by the Settings row and the Settings search result.

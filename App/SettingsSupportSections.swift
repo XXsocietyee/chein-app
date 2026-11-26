@@ -8,6 +8,9 @@ import UIKit
     let complianceCoordinator: AccountComplianceCoordinator?
     private(set) var showsNPCChatDataEntry: Bool
     func hidingNPCChatDataEntry() -> Self { var copy = self; copy.showsNPCChatDataEntry = false; return copy }
+    private(set) var showsMarketingEntry = true
+    /// r11 B-SZ-10: SettingsView places 营销消息与优惠券 itself (MP shezhi.wxml:21-22).
+    func hidingMarketingEntry() -> Self { var copy = self; copy.showsMarketingEntry = false; return copy }
     let soundStore: any SettingsSoundStoring
     let legalReader: any SettingsLegalReading
     let appInformation: SettingsAppInformation
@@ -24,13 +27,6 @@ import UIKit
         self.appInformation = appInformation; self.copyText = copyText
     }
     var body: some View {
-        Section {
-            NavigationLink {
-                SettingsSoundPreferencesView(store: soundStore)
-            } label: { Label("settingsNative.sound.title", systemImage: "speaker.wave.2.fill") }
-            .accessibilityIdentifier("settingsNative.openSound")
-        }
-        .environment(\.settingsTileTint, SettingsTint.pink)
         Section("settingsNative.legal.title") {
             ForEach(SettingsLegalType.allCases) { type in
                 NavigationLink {
@@ -44,19 +40,9 @@ import UIKit
                 .accessibilityIdentifier("settingsNative.openLegal.\(type.rawValue)")
             }
         }
-        // UIV-06: 关于 sits with legal; privacy/compliance (incl. account deregistration) follows, then sign-out last.
-        Section {
-            NavigationLink {
-                SettingsAboutView(market: market, appInformation: appInformation, legalReader: legalReader, copyText: copyText)
-            } label: {
-                // MP shezhi.wxml:35: the row reads 关于 only (no description line).
-                Label { Text("settingsNative.about.title") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcInfo) }
-            }
-            .accessibilityIdentifier("settingsNative.openAbout")
-        }
-        .environment(\.settingsTileTint, SettingsTint.blue)
         if let complianceCoordinator {
-            AccountComplianceSettingsSection(makeCoordinator: { complianceCoordinator }, market: market, legalReader: legalReader, showsNPCChatDataEntry: showsNPCChatDataEntry)
+            AccountComplianceSettingsSection(makeCoordinator: { complianceCoordinator }, market: market, legalReader: legalReader, showsNPCChatDataEntry: showsNPCChatDataEntry,
+                showsMarketingEntry: showsMarketingEntry)
         } else {
         Section("settingsNative.privacy.title") {
             ForEach(SettingsUnavailableFeature.allCases) { feature in
@@ -67,6 +53,24 @@ import UIKit
             }
         }
         }
+        // r11 B-SZ-10: MP shezhi.wxml:31-35 用户服务协议 → 账号注销 → 关于; app-only rows (sound) come after 关于.
+        Section {
+            NavigationLink {
+                SettingsAboutView(market: market, appInformation: appInformation, legalReader: legalReader, copyText: copyText)
+            } label: {
+                // MP shezhi.wxml:35: the row reads 关于 only (no description line).
+                Label { Text("settingsNative.about.title") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcInfo) }
+            }
+            .accessibilityIdentifier("settingsNative.openAbout")
+        }
+        .environment(\.settingsTileTint, SettingsTint.blue)
+        Section {
+            NavigationLink {
+                SettingsSoundPreferencesView(store: soundStore)
+            } label: { Label("settingsNative.sound.title", systemImage: "speaker.wave.2.fill") }
+            .accessibilityIdentifier("settingsNative.openSound")
+        }
+        .environment(\.settingsTileTint, SettingsTint.pink)
     }
 }
 
