@@ -501,9 +501,9 @@ private struct ParticipationCoverPlaceholder: View {
             if loading { ProgressView("playerJourney.parity.detailLoading") }
             if let issue { ParticipationIssueView(issue: issue, retry: { Task { await load() } }) }
             if let detail {
-                // PLY-23-6: MP mycanyuinfo `picUrl` cover (cmsTopic/cmsActivity imgUrl || imgArr), https only, none when absent.
-                ParticipationDetailGapSections(coverURL: QuestifyCardArtwork.safeURL(detail.templateBannerURL)?.absoluteString
-                    ?? QuestifyCardArtwork.safeURL(detail.record.cover)?.absoluteString)
+                // PLY-23-6: MP participation-detail index.wxml:29-30 `picUrl` cover (cmsTopic/cmsActivity imgUrl || imgArr),
+                // https only, none when absent. The topic banner has its own slot in the template row (wxml:101).
+                ParticipationDetailGapSections(coverURL: QuestifyCardArtwork.safeURL(detail.record.cover)?.absoluteString)
                 ParticipationDetailHeader(detail: detail)
                 // PLY-23-4: 自由探索权益 under the info card (MP wxml:64-66, `_bundleEntry`: ownerType 1 +
                 // cmsTopic + purchaseKind 3 or productType 2). The route opens FreeExploreBundleLaunchView.
@@ -565,6 +565,14 @@ private struct ParticipationCoverPlaceholder: View {
                 }
                 if let rawID = detail.templateID, let id = MemberPlayTemplateID(rawValue: rawID) {
                     Section("playerJourney.template") {
+                        // PLY-23-6: MP wxml:101 `mci-banner` = first `topicImgArr` image, inside the template row.
+                        if let banner = QuestifyCardArtwork.safeURL(detail.templateBannerURL)?.absoluteString {
+                            CYCachedAsyncImage(banner, role: .cover)
+                                .frame(maxWidth: .infinity, minHeight: 120)
+                                .listRowInsets(EdgeInsets())
+                                .accessibilityHidden(true)
+                                .accessibilityIdentifier("playerJourney.templateBanner")
+                        }
                         if let templateName = detail.templateName { Text(verbatim: templateName) }
                         NavigationLink { SessionMemberTemplateDetailView(id: id) } label: {
                             Label("memberTemplate.title", systemImage: "doc.text.magnifyingglass")
