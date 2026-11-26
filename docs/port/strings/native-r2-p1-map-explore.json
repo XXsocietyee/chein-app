@@ -80,6 +80,22 @@
           }
         }
       }
+    },
+    "nativeR2.freeExplore.map.arrival": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're nearby"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已到达附近"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

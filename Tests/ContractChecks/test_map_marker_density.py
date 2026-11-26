@@ -19,13 +19,15 @@ class MapMarkerDensityContracts(unittest.TestCase):
         self.assertIn('.id(MapPresentationIdentity(area: mapCameraIdentityArea ?? area, scope: reader.scope))', host)
         self.assertIn('gate.accepts(', host)
     def test_cluster_never_selects_arbitrary_business_member(self):
-        singleton = self.ui.split('if group.members.count == 1 {', 1)[1].split('else { expand(group) }', 1)[0]
-        self.assertIn('selectionGate.request(id: anchor.id, suppliedIDs: pins.map(\\.id))', self.ui)
-        self.assertIn('guard renderedInput == currentFocusInput, let request,', singleton)
+        # P-038: markers are MapKit Markers; a tap arrives through the map selection binding. A single marker goes
+        # through the selection gate; a group marker only expands (never selects its first member).
+        singleton = self.ui.split('private var markerSelection: Binding<String?> {', 1)[1].split('\n    }', 1)[0]
+        self.assertIn('guard let tag, focusInput == currentFocusInput else { return }', singleton)
+        self.assertIn('selectionGate.request(id: tag, suppliedIDs: pins.map(\\.id))', singleton)
         self.assertIn('let id = selectionGate.consume(request) else { return }', singleton)
         self.assertLess(singleton.index('closeExpansion()'), singleton.index('onSelect?(id)'))
-        self.assertNotIn('onSelect?(anchor.id)', singleton)
-        self.assertIn('else { expand(group) }', self.ui)
+        self.assertLess(singleton.index('{ expand(group) }'), singleton.index('selectionGate.request('))
+        self.assertNotIn('onSelect?(anchor.id)', self.ui)
         expand = self.ui.split('private func expand(',1)[1].split('\n    }', 1)[0]
         self.assertNotIn('onSelect', expand)
         self.assertIn('guard expandedSnapshot == snapshot,', self.ui)
