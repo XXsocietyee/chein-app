@@ -2108,6 +2108,23 @@
           }
         }
       }
+    },
+    "club.groupCode.pageTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Group check-in code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "团核销码"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

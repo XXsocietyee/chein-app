@@ -26,10 +26,13 @@ struct ClubGroupCodeSessionStep: View {
     @State private var phase: Phase = .loading
     @State private var pickedID: Int?
     @State private var attempt = 0
+    /// CLB-group-code-05: 进入俱乐部管理 (MP `goManage` → detail?owner=1&tab=manage, group-code js:225-230).
+    @State private var opensManage = false
 
     var body: some View {
         content
             .task(id: attempt) { await load() }
+            .navigationDestination(isPresented: $opensManage) { ClubGroupCodeMissingLinkView.manageDestination }
             .navigationDestination(item: $pickedID) { id in
                 if case .sessions(let sessions) = phase, let session = sessions.first(where: { $0.id == id }) {
                     issueForm(session)
@@ -58,7 +61,7 @@ struct ClubGroupCodeSessionStep: View {
         case .sessions(let sessions):
             ClubGapGroupCodeSessionPickerView(state: .selecting(sessions),
                                               onSelectSession: { pickedID = $0.id },
-                                              onOpenManage: {})
+                                              onOpenManage: { opensManage = true })
         }
     }
 
@@ -95,5 +98,31 @@ struct ClubGroupCodeSessionStep: View {
                 phase = .failed(appLocalized("clubR3b.groupCode.sessionsFailed", locale: locale))
             }
         }
+    }
+}
+
+/// CLB-group-code-05 (MP group-code/index.wxml:17-24, js:219-230): a link with neither `activityId` nor `topicId` is the
+/// MP `invalid` state: 团核销码, 缺少路线或场次信息 and 进入俱乐部管理 (no retry, it would fail again).
+struct ClubGroupCodeMissingLinkView: View {
+    /// MP `goManage`: the viewer's own club on 管理 (`detail?owner=1&tab=manage`).
+    static var manageDestination: some View {
+        MPReviewedPageScreen(page: "pages/club/detail/index", query: ["owner": "1", "tab": "manage"])
+    }
+
+    var body: some View {
+        ContentUnavailableView {
+            Label("gap.club.groupCode.invalid", systemImage: "exclamationmark.triangle")
+        } actions: {
+            NavigationLink {
+                Self.manageDestination
+            } label: {
+                Text("gap.club.groupCode.enterManage")
+            }
+            .buttonStyle(.borderedProminent)
+            .accessibilityIdentifier("club.groupCode.enterManage")
+        }
+        .accessibilityIdentifier("club.groupCode.invalid")
+        .navigationTitle(Text("club.groupCode.pageTitle"))
+        .navigationBarTitleDisplayMode(.inline)
     }
 }

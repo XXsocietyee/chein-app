@@ -333,9 +333,12 @@ import SwiftUI
                     .environment(\.clubRoleActivityLabel, ClubRoleActivityLabel.entry(query["activityName"] ?? query["topicName"]))
             } else if let topic = queryID(query, "topicId") {
                 // CLB-group-code-05 (fix-r3-club-b round 4): topic-only links run the MP 选择场次 step (one session
-                // issues at once), not the whole topic overview. A link with neither id never reaches this route.
+                // issues at once), not the whole topic overview.
                 clubGovernance { g in ClubGroupCodeSessionStep(clubID: queryID(query, "clubId"), topicID: topic, identity: session.clubIdentity, access: g.access, coordinator: g.coordinator) }
-            } else { unavailable }
+            } else {
+                // CLB-group-code-05: neither id → the MP invalid state with 进入俱乐部管理.
+                ClubGroupCodeMissingLinkView()
+            }
         case "pages/club/join-requests/index":
             if let id = clubQueryID(query) {
                 let management = session.clubManagementContext
