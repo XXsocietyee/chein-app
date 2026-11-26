@@ -15,7 +15,9 @@ import FoundationNetworking
         XCTAssertFalse(ContextualReviewDraft(rating: 0, contents: "A").isValid)
         XCTAssertFalse(ContextualReviewDraft(rating: 6, contents: "A").isValid)
         XCTAssertFalse(ContextualReviewDraft(rating: 1, contents: "  ").isValid)
-        XCTAssertFalse(ContextualReviewDraft(rating: 1, contents: String(repeating: "x", count: 501)).isValid)
+        // R7-PC-C1-6: MP textarea maxlength 300 (scene-play-activity-detail/index.wxml:138-139).
+        XCTAssertTrue(ContextualReviewDraft(rating: 1, contents: String(repeating: "x", count: 300)).isValid)
+        XCTAssertFalse(ContextualReviewDraft(rating: 1, contents: String(repeating: "x", count: 301)).isValid)
         XCTAssertThrowsError(try draft.fields(target: .topic(0)))
     }
     /// PG-006 (port P5, chengyin-ios 63dad0d7).

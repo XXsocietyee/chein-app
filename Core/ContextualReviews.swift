@@ -21,7 +21,10 @@ public struct ContextualReviewDraft: Equatable {
     public init(rating: Int = 0, contents: String = "", requestID: String? = nil) {
         self.rating = rating; self.contents = contents; self.requestID = requestID
     }
-    public var isValid: Bool { (1...5).contains(rating) && !contents.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && contents.utf16.count <= 500 }
+    /// R7-PC-C1-6: MP review textarea `maxlength="300"` (scene-play-activity-detail/index.wxml:138-139; topic/index.wxml:441-446).
+    /// A JS string length, so UTF-16 units.
+    public static let maximumContents = 300
+    public var isValid: Bool { (1...5).contains(rating) && !contents.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && contents.utf16.count <= Self.maximumContents }
     public func fields(target: ContextualReviewTarget) throws -> [String: String] {
         guard isValid, target.ownerID > 0 else { throw APIError.invalidRequest }
         var fields = ["owner_type": String(target.ownerType), "owner_id": String(target.ownerID),
