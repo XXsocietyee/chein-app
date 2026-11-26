@@ -218,6 +218,11 @@ struct ClubGovernanceReadView: View {
     @State private var topicMoreRoute: ClubTopicMoreRoute?
     /// CLB-topic-detail-05: the half sheet a topic round action opened.
     @State private var topicQuickSheet: ClubTopicQuickSheet?
+    /// CLB-G13b (MP topic-detail wxml:340-345 `cy-club-director-end-confirm`): 结束这场活动？
+    @State private var directorEndConfirm = false
+    /// CLB-G13b: 更多 → 结束活动 opens the confirm once the half sheet has gone.
+    @State private var directorEndAfterSheet = false
+    @Environment(\.clubTopicDirectorHost) private var directorHost
     /// CLB-r7-C-03 (MP roles/index.js:266-272): a failed reread after a role action keeps the list and toasts.
     @State private var roleRereadToast: LocalizedStringKey?
     @State private var feedMediaScope = UUID()
@@ -766,6 +771,13 @@ struct ClubGovernanceReadView: View {
         .listStyle(.plain)
         .scrollContentBackground(.hidden).cyDomainPageBackground()
         .safeAreaInset(edge: .bottom) { topicPrimaryFooter }
+        // CLB-G13b (MP wxml:340-345): centred confirm with 再想想 / 结束活动, then FINISH.
+        .alert(Text("club.topic.directorEnd.title"), isPresented: $directorEndConfirm) {
+            Button("club.topic.directorEnd.cancel", role: .cancel) {}
+            Button("club.topic.primary.running", role: .destructive) { sendDirector(.finish) }
+        } message: {
+            Text("club.topic.directorEnd.message")
+        }
         .sheet(isPresented: $sessionPickerVisible) { topicSessionPicker }
         .navigationDestination(item: $pickedSession) { target in
             ClubOpsEventView(scope: target, identity: identity, access: access, coordinator: coordinator)
@@ -1663,7 +1675,9 @@ struct ClubGovernanceReadView: View {
                     .init(id: "more", titleKey: "club.topic.quick.more", systemImage: "ellipsis") { topicQuickSheet = .more },
                 ])
             }
-            .sheet(item: $topicQuickSheet) { sheet in
+            .sheet(item: $topicQuickSheet, onDismiss: {
+                if directorEndAfterSheet { directorEndAfterSheet = false; directorEndConfirm = true }
+            }) { sheet in
                 NavigationStack {
                     Group {
                         switch sheet {
@@ -1672,8 +1686,20 @@ struct ClubGovernanceReadView: View {
                         case .customers:
                             ClubGovernanceReadView(operation: .topicCustomers, scope: scope, identity: identity, access: access, coordinator: coordinator)
                         case .more:
-                            List { Section { link(.topicStats); link(.topicSettings); enrollmentLink(focusTopicID: scope.topicID) } }
-                                .cyPageTitle("club.topic.quick.more")
+                            List {
+                                Section { link(.topicStats); link(.topicSettings); enrollmentLink(focusTopicID: scope.topicID) }
+                                // CLB-G13b (MP wxml:436-442): 结束活动 for a self-run session the director has taken over.
+                                if ClubTopicDetailPort.stateKey(value) == .selfrun, directorActive {
+                                    Section {
+                                        Button("club.topic.primary.running", role: .destructive) {
+                                            directorEndAfterSheet = true
+                                            topicQuickSheet = nil
+                                        }
+                                        .accessibilityIdentifier("club.topic.more.endSession")
+                                    }
+                                }
+                            }
+                            .cyPageTitle("club.topic.quick.more")
                         }
                     }
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("club.gov.close") { topicQuickSheet = nil } } }
@@ -1996,9 +2022,27 @@ struct ClubGovernanceReadView: View {
         }
         .presentationDetents([.medium, .large])
     }
+    /// CLB-G13b: the director coordinator for this page's `activityId`, when the host is mounted.
+    private var directorModel: PlayDirectorCoordinator? {
+        guard operation == .topicOverview, let activityID = scope.activityID, let directorHost else { return nil }
+        return directorHost.coordinator(activityID)
+    }
+    /// MP `_directorActivityId` (topic-detail js:587-592): the page was opened on one session and the director runs it.
+    private var directorActive: Bool { directorModel != nil }
+    /// MP `onPrepareSession` / `onStartSession` / `onFinishSession` (director.js:1431-1438): one command at the
+    /// projection's revision; the projection refuses what the server does not offer (当前不能结束活动).
+    private func sendDirector(_ action: PlayDirectorAction) {
+        guard let model = directorModel, let projection = model.projection,
+              let command = try? PlayDirectorCommand(activityID: model.activityID, nodeID: nil,
+                                                     expectedRevision: projection.revision, action: action, payload: [:]) else { return }
+        Task {
+            await model.submit(command)
+            await load()
+        }
+    }
     private func topicPrimaryPlan(state: ClubTopicDetailPort.State, stats: ClubGovernanceValue, sessions: [ClubGovernanceValue]) -> ClubTopicDetailPort.Primary {
         let single = sessions.count == 1 ? sessions[0]["id"].int : nil
-        return ClubTopicDetailPort.primary(state: state, directorActive: false, canDirect: stats["canDirect"] == .bool(true),
+        return ClubTopicDetailPort.primary(state: state, directorActive: directorActive, canDirect: stats["canDirect"] == .bool(true),
             canManageSessions: stats["canManageSessions"] == .bool(true), hasClub: scope.clubID != nil,
             sessionCount: sessions.count, singleSessionHasValidID: single != nil)
     }
@@ -2032,7 +2076,26 @@ struct ClubGovernanceReadView: View {
                             Text(LocalizedStringKey(phase.primaryKey))
                         }.buttonStyle(CYPillButtonStyle(style: .primary)).accessibilityIdentifier("club.topic.primary")
                     }
-                case .confirmed, .preparing, .running, .selfrun:
+                case .confirmed, .preparing, .running:
+                    if directorActive, let model = directorModel {
+                        // CLB-G13b (MP onPrimary js:880-897): 开始准备 → PREPARE, 开始活动 → START, 结束活动 → the confirm.
+                        Button(LocalizedStringKey(phase.primaryKey)) {
+                            if phase == .running { directorEndConfirm = true } else { sendDirector(phase == .confirmed ? .prepare : .start) }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+                        .disabled(model.phase != "ready")
+                        .accessibilityIdentifier("club.topic.primary")
+                    } else if let sessionScope {
+                        NavigationLink { ClubGovernanceEventView(scope: sessionScope, identity: identity, access: access, coordinator: coordinator) } label: {
+                            Text(LocalizedStringKey(phase.primaryKey))
+                        }.buttonStyle(CYPillButtonStyle(style: .primary)).accessibilityIdentifier("club.topic.primary")
+                    } else {
+                        NavigationLink { ClubOpsEventView(scope: opsScope, identity: identity, access: access, coordinator: coordinator) } label: {
+                            Text(LocalizedStringKey(phase.primaryKey))
+                        }.buttonStyle(CYPillButtonStyle(style: .primary)).accessibilityIdentifier("club.topic.primary")
+                    }
+                case .selfrun:
                     if let sessionScope {
                         NavigationLink { ClubGovernanceEventView(scope: sessionScope, identity: identity, access: access, coordinator: coordinator) } label: {
                             Text(LocalizedStringKey(phase.primaryKey))

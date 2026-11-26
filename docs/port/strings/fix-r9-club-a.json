@@ -1496,6 +1496,57 @@
           }
         }
       }
+    },
+    "club.topic.directorEnd.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "End this event?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结束这场活动？"
+          }
+        }
+      }
+    },
+    "club.topic.directorEnd.message": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After ending, check-ins, teams and roles can no longer change; settlement facts already produced are kept. This cannot be undone."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结束后不能再核销、不能再改队伍与角色；已产生的结算事实会保留。此操作不可撤销。"
+          }
+        }
+      }
+    },
+    "club.topic.directorEnd.cancel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再想想"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
