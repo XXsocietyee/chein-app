@@ -174,7 +174,6 @@ private enum Cur5 {
         state.accruals = .ready([
             VideoBountyAccrualRow(id: "acc-1", amountText: nil, views: 0, groupViews: nil)
         ])
-        state.attribution = .ready(.unknown)
         return state
     }
 
@@ -186,7 +185,6 @@ private enum Cur5 {
         var state = VideoBountyState()
         state.submissions = .failed(nil)
         state.accruals = .failed(nil)
-        state.attribution = .failed(nil)
         return state
     }
 }

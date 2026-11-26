@@ -117,46 +117,6 @@ extension MPParityBindings {
         }
     }
 
-    func loadSubmissionAttribution(id: String) {
-        state.attribution = .loading
-        Task {
-            guard let source = source(), let token = token() else {
-                state.attribution = .failed(nil)
-                return
-            }
-            do {
-                let envelope = try await source.submissionAttribution(submissionID: id, token: token)
-                guard let fact = VideoBountySource.attribution(in: envelope) else {
-                    state.attribution = .failed(nil)
-                    return
-                }
-                state.attribution = .ready(fact)
-            } catch {
-                state.attribution = .failed(nil)
-            }
-        }
-    }
-
-    func loadCampaignAttribution(campaignID: String, topicID: String) {
-        state.attribution = .loading
-        Task {
-            guard let source = source(), let token = token() else {
-                state.attribution = .failed(nil)
-                return
-            }
-            do {
-                let envelope = try await source.campaignAttribution(campaignID: campaignID, topicID: topicID, token: token)
-                guard let fact = VideoBountySource.attribution(in: envelope) else {
-                    state.attribution = .failed(nil)
-                    return
-                }
-                state.attribution = .ready(fact)
-            } catch {
-                state.attribution = .failed(nil)
-            }
-        }
-    }
-
     func cancel(submissionID: String) {
         guard !state.submitting else { return }
         state.submitting = true

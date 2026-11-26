@@ -71,8 +71,6 @@ struct VideoBountyState: Equatable {
     var submitError: String? = nil
     /// Bumps after a successful submit so the view can clear the form and switch tabs.
     var submitRevision = 0
-    /// Nil until the reader asks. Counts inside a ready value are already em dashes when unconfirmed.
-    var attribution: MPLoad<VideoBountyAttributionFact>? = nil
     /// PC-D-7-1: no session token. The page shows one sign-in gate (MP cy-access-gate kind=login), not two 读取失败.
     var signedOut = false
 
@@ -80,19 +78,18 @@ struct VideoBountyState: Equatable {
         lhs.submissions == rhs.submissions && lhs.accruals == rhs.accruals && lhs.submitting == rhs.submitting
             && lhs.fieldError?.field == rhs.fieldError?.field && lhs.fieldError?.text == rhs.fieldError?.text
             && lhs.submitError == rhs.submitError && lhs.submitRevision == rhs.submitRevision
-            && lhs.attribution == rhs.attribution && lhs.signedOut == rhs.signedOut
+            && lhs.signedOut == rhs.signedOut
     }
 }
 
 /// Implemented by `VideoBountySessionModel`: `/api/video-bounty/submission/mine`, `/accrual/mine`, submit, appeal, cancel.
+/// R9-PC-D7-2: MP subpackageA/pages/video-bounty/index.wxml has no attribution block, so the binding has no attribution reads.
 @MainActor protocol VideoBountyBinding: AnyObject, Observable {
     var state: VideoBountyState { get }
     func load()
     func submit(campaignKey: String, topicID: String, platform: VideoBountyPlatform?, sourceURL: String, originGroupKey: String)
     func appeal(submissionID: String, note: String)
     func cancel(submissionID: String)
-    func loadSubmissionAttribution(id: String)
-    func loadCampaignAttribution(campaignID: String, topicID: String)
 }
 
 @MainActor struct VideoBountyHost: View {
