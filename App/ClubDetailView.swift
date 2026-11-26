@@ -155,37 +155,6 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 if tab == .manage, club.isOwner, let access = management?.governance?.access {
                     ClubEditionsShareSection(clubID: club.id, access: access)
                 }
-                if tab == .posts, (club.isOwner || club.isJoined), reader.clubIdentity.isSignedIn, let session = reader as? AppSession {
-                    Section {
-                        NavigationLink { SessionClubChatView(clubID: id, session: session) } label: {
-                            CYListRow("club.chat.title", trailing: .none, card: true) { CYRowIcon(systemImage: "person.3") }
-                        }.buttonStyle(.plain)
-                            .accessibilityIdentifier("club.chat.entry")
-                        NavigationLink { BeGapImDesk(clubID: Int64(id), session: session) } label: {
-                            CYListRow("beGapIm.entry", trailing: .none, card: true) { CYRowIcon(systemImage: "list.bullet.rectangle") }
-                        }.buttonStyle(.plain)
-                            .accessibilityIdentifier("beGapIm.entry")
-                        if facts.channels {
-                        NavigationLink {
-                            ClubChannelMessagingHostView(
-                                club: club,
-                                reader: reader,
-                                manageGrant: manageGrant,
-                                safetyService: session.makeClubChannelSafetyService(
-                                    club: club,
-                                    management: management,
-                                    community: community
-                                ),
-                                onSignIn: onSignIn
-                            )
-                        } label: {
-                            Label(locale.pick("俱乐部频道", "Club Channels"), systemImage: "number.square")
-                        }
-                        .accessibilityIdentifier("club.channels.discordEntry")
-                        }
-                        NativeChannelManagementClubEntry(club: club, session: session)
-                    }
-                }
                 if tab == .manage, club.isOwner, let session = reader as? AppSession {
                     Section { NavigationLink("context.ai.title") { SessionClubAIDesignView(session: session, clubID: id) }.accessibilityIdentifier("club.context.openAI") }
                     Section { NavigationLink("club.projectLaunch.title") { SessionClubProjectLaunchView(session: session, club: club) }.accessibilityIdentifier("club.projectLaunch.entry") }
@@ -399,6 +368,39 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                                        access: governance.access, coordinator: governance.coordinator)
                             } label: { Label("club.detail.safety.appeal", systemImage: "checkmark.shield") }
                                 .accessibilityIdentifier("club.detail.safety.appeal")
+                        }
+                    }
+                    // CLB-detail-14 (MP detail wxml:83-84, 96-158): 帖文 is the feed only; the MP dropped 进入群聊 from the club
+                    // page. The chat, IM desk and channel rows keep working on 概览 for members, above 退出 / 举报.
+                    if tab == .overview, (club.isOwner || club.isJoined), reader.clubIdentity.isSignedIn, let session = reader as? AppSession {
+                        Section {
+                            NavigationLink { SessionClubChatView(clubID: id, session: session) } label: {
+                                Label("club.chat.title", systemImage: "person.3")
+                            }
+                                .accessibilityIdentifier("club.chat.entry")
+                            NavigationLink { BeGapImDesk(clubID: Int64(id), session: session) } label: {
+                                Label("beGapIm.entry", systemImage: "list.bullet.rectangle")
+                            }
+                                .accessibilityIdentifier("beGapIm.entry")
+                            if facts.channels {
+                            NavigationLink {
+                                ClubChannelMessagingHostView(
+                                    club: club,
+                                    reader: reader,
+                                    manageGrant: manageGrant,
+                                    safetyService: session.makeClubChannelSafetyService(
+                                        club: club,
+                                        management: management,
+                                        community: community
+                                    ),
+                                    onSignIn: onSignIn
+                                )
+                            } label: {
+                                Label(locale.pick("俱乐部频道", "Club Channels"), systemImage: "number.square")
+                            }
+                            .accessibilityIdentifier("club.channels.discordEntry")
+                            }
+                            NativeChannelManagementClubEntry(club: club, session: session)
                         }
                     }
                     // HANDOFF-R1 MC-20: 退出俱乐部 and 举报俱乐部 close 概览 as quiet red rows; 退出 still confirms.
