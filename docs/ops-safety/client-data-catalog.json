@@ -366,6 +366,15 @@
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
     {
+      "file": "App/PlayExperienceView.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "PLAY-6a: the MP 游玩工具 preferences (play.bgmOn, play.narrationOn, play_reduced_motion + legacy roam_reduced_motion), three Bools set by the player in the play tools sheet",
+      "retention": "Until app data is deleted or the app is reinstalled",
+      "deletion": "Deleted with app data; each toggle overwrites its own key"
+    },
+    {
       "file": "App/RoamLiveSessionView.swift",
       "kinds": [
         "userDefaults"
