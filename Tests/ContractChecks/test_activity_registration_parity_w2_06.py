@@ -174,7 +174,8 @@ class RegistrationCheckoutParityTests(unittest.TestCase):
         contracts = read("Core/RegistrationContracts.swift")
         self.assertIn("prioritySignupEnabled = ((try? c.decodeIfPresent(Bool.self, forKey: .prioritySignupEnabled)) ?? nil) == true", contracts)
         detail = read("Core/ActivityDetail.swift")
-        self.assertIn("signupDeadline,meetingPoint }", detail)
+        # R7-PC-C1-5 (MP scene-play-activity-detail/index.wxml:89-96): the ticket also decodes its cmsRegistrationList lineup.
+        self.assertIn("signupDeadline,meetingPoint,cmsRegistrationList }", detail)
         self.assertIn("(try? c.decodeIfPresent(String.self,forKey:.meetingPoint))", detail)
 
 
