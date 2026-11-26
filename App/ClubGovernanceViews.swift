@@ -2348,7 +2348,8 @@ struct ClubGovernanceEventView: View {
                         .accessibilityIdentifier("club.story.aigc")
                 }
                 if presentation.chapters.isEmpty {
-                    ClubStoryEmptyState(title: "club.story.noChapters", detail: "club.story.noRoute")
+                    // CLB-topic-story-06 (MP topic-story wxml:56): no chapters reads 暂无路线.
+                    ClubStoryEmptyState(title: "club.story.noRoute", detail: "club.story.noChapters")
                 } else if tab == .route {
                     ForEach(presentation.chapters) { chapter in
                         Section {

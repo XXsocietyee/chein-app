@@ -73,7 +73,7 @@ struct ClubStoryEmptyState: View {
     var body: some View {
         // Mini-program cy-empty: title only; the explanatory detail line is no longer shown.
         let _ = detail
-        CYEmptyState(systemImage: "map", title)
+        ContentUnavailableView(title, systemImage: "map")
     }
 }
 struct ClubStoryChapterTitle: View {
