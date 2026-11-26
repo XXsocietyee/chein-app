@@ -492,14 +492,17 @@ struct TopicDetailView: View {
             // C13: the empty state is said once (TopicReviewsContent), with no 0 total and no small print under the
             // reviews (MP `det6`: 还没有评价 card, else rating + 基于 N 条评论 + list).
             Section("topic.comments") {
-                CYPillButton("context.review.title", style: .secondary) { asSignedIn { showsReview = true } }.accessibilityIdentifier("topic.openReview")
+                Button("context.review.title") { asSignedIn { showsReview = true } }
+                    .buttonStyle(.bordered).accessibilityIdentifier("topic.openReview")
                 // R8-PC-B1-2 (MP `det6`): the 还没有评价 card itself is the write entry; the content view stays read-only.
-                let emptyWrite = value.reviews.hasConfirmedNoReviews && value.reviews.preview.isEmpty
-                TopicReviewsContent(reviews: value.reviews)
-                    .contentShape(Rectangle())
-                    .onTapGesture { if emptyWrite { asSignedIn { showsReview = true } } }
-                    .accessibilityAddTraits(emptyWrite ? .isButton : [])
-                    .accessibilityHint(emptyWrite ? Text("context.review.title") : Text(verbatim: ""))
+                // R9-PC-BN-4: a real Button (system traits and highlight) instead of onTapGesture + a manual trait.
+                if value.reviews.hasConfirmedNoReviews && value.reviews.preview.isEmpty {
+                    Button { asSignedIn { showsReview = true } } label: { TopicReviewsContent(reviews: value.reviews) }
+                        .buttonStyle(.plain)
+                        .accessibilityHint(Text("context.review.title"))
+                } else {
+                    TopicReviewsContent(reviews: value.reviews)
+                }
             }
             .environment(\.ugcSafetySubjectID, value.id)
             Section {
