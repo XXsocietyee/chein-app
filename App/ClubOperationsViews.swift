@@ -180,6 +180,12 @@ struct ClubOperationsWorkspaceView: View {
             enteredManageDestination: enteredManageDestination
         )
     }
+    /// CLB-r9-create-02: the create check answered and this account is not a host (MP redirects to apply).
+    private var hostAutoOpenActive: Bool {
+        guard target == .create, !loading, let value = snapshot, !value.canCreate, value.accountRole != "club", hostApplication != nil else { return false }
+        return ClubCreatePageModel.interpret(signedIn: identity != nil, configured: access.isConfigured, loading: false, gate: ClubCreationGate(access: access),
+                                             snapshot: value, readback: .received(value), onPlayerFirstEntry: false).showsHostApplication
+    }
     var body: some View {
         Form {
             // CLB-r9-create-01 (MP create wxml:12-15): the create check reads 正在确认创建资格 while it runs.
@@ -269,6 +275,7 @@ struct ClubOperationsWorkspaceView: View {
             }
         }
         .interactiveDismissDisabled(dirty || state.locksForm)
+        .modifier(ClubCreateHostAutoOpen(active: hostAutoOpenActive, identity: identity, governance: hostApplication))
         .confirmationDialog("club.ops.discardTitle", isPresented: $showDiscard, titleVisibility: .visible) {
             if !profileDraftEnabled {
                 Button("club.ops.discard", role: .destructive) { dismiss() }
