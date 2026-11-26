@@ -110,16 +110,18 @@ import Core
     }
 
     func testMoneySwitchesStayFalse() throws {
+        defer { ReleaseMoneyWriteSwitch.testDerivation = nil }
+        ReleaseMoneyWriteSwitch.testDerivation = nil
         XCTAssertFalse(ReleaseMoneyWriteSwitch.paymentEnabled)
         XCTAssertFalse(ReleaseMoneyWriteSwitch.payoutEnabled)
         XCTAssertFalse(ReleaseMoneyWriteSwitch.withdrawalEnabled)
         XCTAssertFalse(ReleaseMoneyWriteSwitch.virtualGoodsEnabled)
         XCTAssertFalse(BundleMoneyWriteGate.allowsRefundApply)
         let text = try source("Core/ChinaReviewedRouteCapability.swift")
-        XCTAssertTrue(text.contains("public static let paymentEnabled = false"))
-        XCTAssertTrue(text.contains("public static let payoutEnabled = false"))
-        XCTAssertTrue(text.contains("public static let withdrawalEnabled = false"))
-        XCTAssertTrue(text.contains("public static let virtualGoodsEnabled = false"))
+        XCTAssertTrue(text.contains("public static var paymentEnabled: Bool { testDerivation?(.payment) ?? false }"))
+        XCTAssertTrue(text.contains("public static var payoutEnabled: Bool { testDerivation?(.payout) ?? false }"))
+        XCTAssertTrue(text.contains("public static var withdrawalEnabled: Bool { testDerivation?(.withdrawal) ?? false }"))
+        XCTAssertTrue(text.contains("public static var virtualGoodsEnabled: Bool { testDerivation?(.virtualGoods) ?? false }"))
         XCTAssertFalse(text.contains("paymentEnabled = true"))
         XCTAssertFalse(text.contains("virtualGoodsEnabled = true"))
     }

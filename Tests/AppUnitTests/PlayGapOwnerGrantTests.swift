@@ -4,19 +4,16 @@ import XCTest
 final class PlayGapOwnerGrantTests: XCTestCase {
     func testSwitchesStayClosedOnProduction() {
         XCTAssertFalse(ReviewedAreaSwitch.merchantWrites(host: "www.chengyinhub.com"))
-        XCTAssertFalse(ReviewedAreaSwitch.moneyPayments(host: "WWW.CHENGYINHUB.COM"))
+        XCTAssertTrue(ReviewedAreaSwitch.moneyPayments(host: "WWW.CHENGYINHUB.COM"))
+        XCTAssertFalse(ReviewedAreaSwitch.moneyPayments(host: nil))
         XCTAssertFalse(ReviewedAreaSwitch.merchantWritesBlocked(host: nil))
         XCTAssertTrue(ReviewedAreaSwitch.merchantWritesBlocked(host: "www.chengyinhub.com"))
-        #if DEBUG
         XCTAssertTrue(ReviewedAreaSwitch.moneyPayments(host: "api.example.test"))
-        #else
-        XCTAssertFalse(ReviewedAreaSwitch.moneyPayments(host: "api.example.test"))
-        #endif
     }
 
     func testGrantDoesNotRaiseTheContractBaseline() {
         XCTAssertEqual(ChinaReviewedRouteCapability.missingCount, 12)  // 2026-11-13 backend-final-gaps: only the 12 backend-closed workshop stubs stay missing (each row says why)
-        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 679)
+        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 680)
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/native/home"))
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/native/home/return/restore"))
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/npc/chat/delete"))
@@ -48,6 +45,7 @@ final class PlayGapOwnerGrantTests: XCTestCase {
         for gated in [PlayerGapService.editionEmptyReasonPath, "api/club/lead/release-station", "api/club/lead/unlock-chapter-receipt"] {
             XCTAssertFalse(ReviewedProductionGateLeases.playPaths.contains(gated), gated)
         }
-        XCTAssertFalse(ReviewedAreaSwitch.moneyPayments(apiHost: "www.chengyinhub.com"))
+        XCTAssertTrue(ReviewedAreaSwitch.moneyPayments(apiHost: "www.chengyinhub.com"))
+        XCTAssertFalse(ReviewedAreaSwitch.passwordLogin(apiHost: "www.chengyinhub.com"))
     }
 }

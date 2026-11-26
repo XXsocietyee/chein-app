@@ -5,11 +5,12 @@ import FoundationNetworking
 
 /// Wire contracts for player-content mini-program `sendRequest` calls at hengyin
 /// `chengyinhub-xcx` `25eb6a0c`. Paths, methods, and field names match that source.
-/// Money writes and the pricing grant stay off: those builders refuse before a request exists.
-/// Nothing here is called from App screens.
+/// Quote, registration create, and pricing confirm follow the payment host switch.
+/// They refuse while no host derivation is installed. Nothing here chooses a payment provider.
 public enum PlayerContentMPContract {
-    public static let moneyEnabled = false
-    public static let pricingGrantEnabled = false
+    public static var moneyEnabled: Bool { ReleaseMoneyWriteSwitch.paymentEnabled }
+    /// Pricing confirm is a payment write and uses the same host gate.
+    public static var pricingGrantEnabled: Bool { moneyEnabled }
 
     public enum Refusal: Error, Equatable {
         case moneyDisabled
@@ -67,7 +68,6 @@ public enum PlayerContentMPContract {
 
     /// `utils/checkout/selfplay-xpay-pay.js:48` at hengyin `25eb6a0c`.
     /// POST `{id}`. Virtual-payment confirm. This constant does not build or send a request.
-    /// `moneyEnabled` stays false.
     public static let xpayConfirmPath = "api/registration/xpay/confirm"
 
     /// `utils/fe-author-sale.js:92`. GET `{topicId}`. Sale-readiness read. Does not send.

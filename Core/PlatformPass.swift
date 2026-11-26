@@ -8,11 +8,12 @@ import FoundationNetworking
 /// Source: hengyin `chengyinhub-xcx` `1c80c5aea8f721ca8575e6108048495b100f5576`
 /// (`subpackageMember/utils/platform-pass.js`, `pass-library.js`, `market-view.js`,
 /// `market/membership`, `market/library`, `market/passes`).
-/// Purchase, quote, gift claim, cancel, confirm, and refund-apply are compiled on this type and always refuse.
-/// Money stays off: this type does not build a payment body or call a pay route.
+/// Purchase, quote, gift claim, cancel, confirm, and refund-apply are compiled on this type.
+/// `moneyEnabled` follows the payment host switch and stays off when no host is installed.
+/// The synchronous entries still throw; they do not build a payment body.
 public struct PlatformPass: @unchecked Sendable {
     public static let miniProgramCommit = "1c80c5aea8f721ca8575e6108048495b100f5576"
-    public static let moneyEnabled = false
+    public static var moneyEnabled: Bool { ReleaseMoneyWriteSwitch.paymentEnabled }
 
     /// TEST-only switch for cancel, confirm, and refund-apply. Nil (the default) sends nothing.
     /// Pay, gift claim, payout, and withdrawal do not read this switch.
@@ -80,8 +81,7 @@ public struct PlatformPass: @unchecked Sendable {
     public static let passOrderPayPath = "api/platform-pass/orders/{}/pay"
 
     public static var writesReachable: Bool {
-        moneyEnabled && ReleaseMoneyWriteSwitch.paymentEnabled && ReleaseMoneyWriteSwitch.payoutEnabled
-            && ReleaseMoneyWriteSwitch.withdrawalEnabled && ReleaseMoneyWriteSwitch.virtualGoodsEnabled
+        moneyEnabled && ReleaseMoneyWriteSwitch.paymentEnabled
     }
 
     private let configuration: APIConfiguration

@@ -78,9 +78,10 @@ final class OwnerDecisions1124Tests: XCTestCase {
 
         let source = try String(contentsOf: sourceURL("Core/ChinaReviewedRouteCapability.swift"), encoding: .utf8)
         let body = try XCTUnwrap(source.components(separatedBy: "public enum ReleaseMoneyWriteSwitch {").last)
-        let release = try XCTUnwrap(body.components(separatedBy: "#else").dropFirst().first?.components(separatedBy: "#endif").first)
-        XCTAssertTrue(release.contains("public static let refundEnabled = false"))
-        XCTAssertTrue(release.contains("public static let hostCancelRefundEnabled = false"))
+        XCTAssertTrue(body.contains("public static var refundEnabled: Bool { testDerivation?(.refund) ?? false }"))
+        XCTAssertTrue(body.contains("public static var hostCancelRefundEnabled: Bool { testDerivation?(.hostCancelRefund) ?? false }"))
+        XCTAssertFalse(body.contains("public static let refundEnabled = false"))
+        XCTAssertFalse(body.contains("public static let hostCancelRefundEnabled = false"))
     }
 
     // MARK: D3

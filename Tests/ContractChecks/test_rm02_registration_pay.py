@@ -33,7 +33,7 @@ class Rm02RegistrationPayContractTests(unittest.TestCase):
     def test_release_money_switch_stays_off_in_release(self):
         cap = self.read("Core/ChinaReviewedRouteCapability.swift")
         self.assertIn('"/api/registration/pay": .payment', cap)
-        self.assertIn("public static let paymentEnabled = false", cap)
+        self.assertIn("public static var paymentEnabled: Bool { testDerivation?(.payment) ?? false }", cap)
 
 
 if __name__ == "__main__":

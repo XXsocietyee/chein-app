@@ -395,16 +395,17 @@ import FoundationNetworking
     func testChinaProductionAdmitsTheG6GrantAndRefusesHiddenAndMoneyRoutes() async throws {
         for path in ["/api/ai/npc/profile", "/api/ai/npc/event", "/api/ai/theme/draft/prepare", "/api/ai/theme/draft/execute",
                      "/api/ai/theme/draft/recovery", "/api/ai/theme/draft/request", "/api/marketing/promotions/catalog",
-                     "/api/marketing/revenue/author/mine", "/api/marketing/product/88"] {
+                     "/api/marketing/revenue/author/mine", "/api/marketing/product/88",
+                     "/api/platform-pass/orders", "/api/platform-pass/orders/77"] {
             XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall(path), path)
         }
-        for path in ["/api/marketing/attribution/claim", "/api/platform-pass/orders/77", "/api/platform-pass/orders",
+        for path in ["/api/marketing/attribution/claim",
                      "/api/ai/npc/chat", "/api/ai/npc/chat/request", "/api/author-write/receipt",
                      "/api/marketing/product/quote", "/api/marketing/product/order", "/api/marketing/product/gifts/claim",
                      "/api/marketing/product/orders/77/pay", "/api/registration/pay", "/api/pay/create", "/api/withdrawal/create"] {
             XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall(path), path)
         }
-        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 679) // 677 + IM in-game resolve/summary
+        XCTAssertEqual(ChinaReviewedRouteCapability.wiredPatternCount, 680) // 679 + orient scoring session recovery
         let wire = Wire(body: Data(#"{"code":200,"data":[]}"#.utf8))
         let china = G6CapabilitySource(configuration: try APIConfiguration(baseURL: URL(string: "https://www.chengyinhub.com/prod-api/")!), transport: wire)
         _ = try await china.authorRevenue(token: token)

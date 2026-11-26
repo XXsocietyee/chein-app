@@ -133,9 +133,9 @@ public enum PublicCatalogScreen {
 }
 
 /// Host for the three public-catalog reads. The reader is injected.
-/// This type does not open a live session and does not enable money.
+/// `moneyEnabled` follows the payment host switch. Quote, order, and pay still throw.
 public struct PublicCatalogHost {
-    public static let moneyEnabled = false
+    public static var moneyEnabled: Bool { ReleaseMoneyWriteSwitch.paymentEnabled }
     private let reader: PWaveReader
 
     public init(reader: PWaveReader) {

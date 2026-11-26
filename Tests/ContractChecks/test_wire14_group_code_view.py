@@ -12,7 +12,7 @@ class ClubGroupCodeViewWireContract(unittest.TestCase):
         for part in (apply, checkin): self.assertNotIn("ClubGroupCodePage", part)
         self.assertIn("showsMerchantChoice = false", (R / "App/WelcomeView.swift").read_text())
         money = (R / "Core/ChinaReviewedRouteCapability.swift").read_text()
-        self.assertIn("paymentEnabled = false", money)
+        self.assertIn("testDerivation?(.payment) ?? false", money)
         self.assertNotIn("paymentEnabled = true", money)
 if __name__ == "__main__":
     unittest.main()
