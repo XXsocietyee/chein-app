@@ -10,22 +10,22 @@ import SwiftUI
             if flow.quotaReadState == .loading { ProgressView("publishingAIQuota.loading") }
             if let quota = flow.quota {
                 if flow.quotaIsStale {
-                    CYStatusChip("publishingAIQuota.stale", tone: .warning, systemImage: "clock")
+                    Label("publishingAIQuota.stale", systemImage: "clock").foregroundStyle(.orange)
                         .accessibilityIdentifier("publishingAIQuota.stale")
                 }
                 if quota.limited {
                     if let limit = quota.limit {
                         LabeledContent("publishingAIQuota.limit") {
                             Text(verbatim: String(limit))
-                                .cyText(.bodyCompact, monospacedDigit: true)
-                                .foregroundStyle(palette.textPrimary)
+                                .monospacedDigit()
                         }
                     } else { PublishingStatusRow(title: Text("publishingAIQuota.limitUnknown")) }
                     if let remaining = quota.remaining {
                         LabeledContent("contextPublish.ai.remaining") {
                             Text(verbatim: String(remaining))
-                                .cyText(.cardTitle, monospacedDigit: true)
-                                .foregroundStyle(remaining == 0 ? palette.danger : palette.textPrimary)
+                                .font(.headline)
+                                .monospacedDigit()
+                                .foregroundStyle(remaining == 0 ? Color.red : Color.primary)
                         }
                         .accessibilityIdentifier("publishingAIQuota.remaining")
                     }
@@ -34,8 +34,7 @@ import SwiftUI
                 if let readAt = flow.quotaReadAt {
                     LabeledContent("publishingAIQuota.lastRead") {
                         Text(readAt, format: .dateTime.month().day().hour().minute())
-                            .cyText(.meta)
-                            .foregroundStyle(palette.textSecondary)
+                            .foregroundStyle(.secondary)
                     }
                 }
             } else if flow.quotaReadState == .idle { PublishingStatusRow(title: Text("publishingAIQuota.notRead")) }
@@ -46,7 +45,7 @@ import SwiftUI
             if flow.quotaReadState == .unavailable { PublishingStatusRow(title: Text("publishingAIQuota.unavailable"), symbol: "wifi.slash") }
             if flow.quotaReadState != .unavailable {
                 Button { Task { await flow.loadQuota() } } label: {
-                    Label("publishingAIQuota.refresh", systemImage: "arrow.clockwise").frame(minHeight: 44)
+                    Label("publishingAIQuota.refresh", systemImage: "arrow.clockwise")
                 }
                     .disabled(!flow.canRefreshQuota).accessibilityIdentifier("publishingAIQuota.refresh")
             }

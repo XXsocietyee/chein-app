@@ -42,18 +42,20 @@ import SwiftUI
             Section {
                 Text(creatorString("workshopCreator.boundary")).foregroundStyle(.secondary)
             }
-            if controller.phase == .loading || controller.phase == .submitting { CYLoadingStateView(rows: 1).accessibilityLabel(Text(verbatim: creatorString("workshopCreator.loading"))) }
+            if controller.phase == .loading || controller.phase == .submitting { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text(verbatim: creatorString("workshopCreator.loading"))) }
             if let issue = controller.issue { Text(creatorString(issueKey(issue))).foregroundStyle(.red).accessibilityIdentifier("workshopCreator.issue") }
             if let pending = controller.pending {
-                Section(creatorString("workshopCreator.request")) { Text(verbatim: pending.requestId).cyText(.meta).textSelection(.enabled) }
+                Section(creatorString("workshopCreator.request")) { Text(verbatim: pending.requestId).font(.footnote).textSelection(.enabled) }
             }
             if let preview = controller.preview {
                 Section(creatorString("workshopCreator.exactSource")) {
-                    Text(creatorString("workshopCreator.textOnly")).cyText(.bodyCompact)
+                    Text(creatorString("workshopCreator.textOnly")).font(.subheadline)
                     ForEach(WorkshopCreatorPreview.fieldOrder, id: \.self) { field in
                         if let value = preview.textFields[field] {
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(creatorString("workshopCreator.field." + field)).cyText(.meta).foregroundStyle(.secondary)
+                            LabeledContent {
+                                EmptyView()
+                            } label: {
+                                Text(creatorString("workshopCreator.field." + field))
                                 Text(verbatim: value).textSelection(.enabled)
                             }
                         }
@@ -71,9 +73,9 @@ import SwiftUI
                             controller.select(target, appearance: appearance)
                         } label: {
                             HStack {
-                                VStack(alignment: .leading) { Text(verbatim: target.moduleId); Text(verbatim: target.versionId).cyText(.meta) }
+                                VStack(alignment: .leading) { Text(verbatim: target.moduleId).foregroundStyle(.primary); Text(verbatim: target.versionId).font(.footnote).foregroundStyle(.secondary) }
                                 Spacer()
-                                if controller.selected?.id == target.id { Image(systemName: "checkmark.circle.fill").accessibilityHidden(true) }
+                                if controller.selected?.id == target.id { Image(systemName: "checkmark").foregroundStyle(.tint).accessibilityHidden(true) }
                             }
                         }.accessibilityAddTraits(controller.selected?.id == target.id ? .isSelected : [])
                         .disabled(controller.phase != .reviewing).accessibilityIdentifier("workshopCreator.target.\(target.id.uuidString)")
@@ -110,7 +112,11 @@ import SwiftUI
                                 set: { controller.acknowledge(index, value: $0, appearance: appearance) }))
                                 .disabled(controller.phase != .reviewing).accessibilityIdentifier("workshopCreator.confirm.\(index)")
                         }
-                        CYPillButton(verbatim: creatorString("workshopCreator.declare"), style: .primary) { run(controller.offerConfirm(appearance)) }
+                        Button { run(controller.offerConfirm(appearance)) } label: {
+                            Text(creatorString("workshopCreator.declare")).frame(maxWidth: .infinity)
+                        }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.large)
                             .disabled(!controller.canConfirm).accessibilityIdentifier("workshopCreator.declare")
                     }
                 }
@@ -121,13 +127,13 @@ import SwiftUI
                     LabeledContent(creatorString("workshopCreator.package"), value: receipt.consentReference.moduleId)
                     LabeledContent(creatorString("workshopCreator.version"), value: receipt.consentReference.versionId)
                     LabeledContent(creatorString("workshopCreator.record"), value: receipt.consentReference.consentId)
-                    Text(verbatim: receipt.declaredAt).cyText(.meta)
-                    CYPillButton(verbatim: creatorString("workshopCreator.another"), style: .secondary) { run(controller.offerAnotherReview(appearance)) }
+                    Text(verbatim: receipt.declaredAt).font(.footnote)
+                    Button(creatorString("workshopCreator.another")) { run(controller.offerAnotherReview(appearance)) }
                         .accessibilityIdentifier("workshopCreator.another")
                 }
             }
             if controller.phase != .submitting && controller.phase != .loading && controller.phase != .recorded {
-                CYPillButton(verbatim: creatorString(controller.pending == nil ? "workshopCreator.refresh" : "workshopCreator.checkStatus"), style: .secondary) { run(controller.offerLoad(appearance)) }
+                Button(creatorString(controller.pending == nil ? "workshopCreator.refresh" : "workshopCreator.checkStatus")) { run(controller.offerLoad(appearance)) }
                     .accessibilityIdentifier("workshopCreator.refresh")
             }
         }.navigationTitle(creatorString("workshopCreator.title")).navigationBarTitleDisplayMode(.inline)

@@ -67,18 +67,17 @@ import UIKit
         let flow=model.flow
         NavigationStack{
             Form{
-                Section{CYHeroHeader("projectNodeImage.title",subtitle:"projectNodeImage.scope",tableName:"ProjectNodeImageAuthor").listRowBackground(Color.clear).listRowInsets(EdgeInsets())}
                 Section{
                     Text(verbatim:original.opening.nodeName).accessibilityIdentifier("projectNodeImage.node")
-                    CYPillButton("projectNodeImage.choose",style:(flow.review==nil && flow.receipt==nil) ? .primary : .secondary,systemImage:"photo",tableName:"ProjectNodeImageAuthor"){Task{await model.choose()}}
+                    Button{Task{await model.choose()}}label:{Label{Text("projectNodeImage.choose",tableName:"ProjectNodeImageAuthor")}icon:{Image(systemName:"photo")}}
                         .disabled(!model.canChoose).accessibilityIdentifier("projectNodeImage.choose")
                     if let draft=model.crop.draft{ProjectNodeImageCropView(draft:draft,confirm:model.confirmCrop,cancel:model.cancelCrop).id(draft.id)}
                     if let preview=model.preview{Image(uiImage:preview).resizable().scaledToFit().accessibilityLabel(Text("image.retained.preview")).accessibilityIdentifier("projectNodeImage.localPreview")}
                     if let review=flow.review{
                         Text("projectNodeImage.uploadReview",tableName:"ProjectNodeImageAuthor")
-                        CYPillButton("projectNodeImage.upload",systemImage:"arrow.up.circle",tableName:"ProjectNodeImageAuthor"){model.upload(review)}
+                        Button{model.upload(review)}label:{Label{Text("projectNodeImage.upload",tableName:"ProjectNodeImageAuthor")}icon:{Image(systemName:"arrow.up.circle")}}
                             .disabled(!flow.canUpload(review)).accessibilityIdentifier("projectNodeImage.upload")
-                        CYPillButton("action.cancel",style:.tertiary){model.cancel(review)}.disabled(flow.busy).accessibilityIdentifier("projectNodeImage.cancelReview")
+                        Button("action.cancel",role:.cancel){model.cancel(review)}.disabled(flow.busy).accessibilityIdentifier("projectNodeImage.cancelReview")
                     }
                     if flow.busy{ProgressView().accessibilityIdentifier("projectNodeImage.busy")}
                     if flow.unresolvedUploadCount>0 || flow.state == .unknown{Text("projectNodeImage.unknown",tableName:"ProjectNodeImageAuthor")}
@@ -89,15 +88,15 @@ import UIKit
                         if !flow.referenceFitsCSV{Text("projectNodeImage.unsupportedReference",tableName:"ProjectNodeImageAuthor")}
                         if flow.hasUnstoredReceipt{
                             Text("projectNodeImage.unstored",tableName:"ProjectNodeImageAuthor")
-                            CYPillButton("projectNodeImage.persistReceipt",style:.secondary,tableName:"ProjectNodeImageAuthor"){model.persistReceipt()}
+                            Button{model.persistReceipt()}label:{Text("projectNodeImage.persistReceipt",tableName:"ProjectNodeImageAuthor")}
                                 .disabled(!flow.canPersistReceipt).accessibilityIdentifier("projectNodeImage.persistReceipt")
                         }
-                        CYPillButton(LocalizedStringKey(flow.alreadyApplied ? "projectNodeImage.finishLocal":"projectNodeImage.append"),tableName:"ProjectNodeImageAuthor"){model.apply()}
+                        Button{model.apply()}label:{Text(LocalizedStringKey(flow.alreadyApplied ? "projectNodeImage.finishLocal":"projectNodeImage.append"),tableName:"ProjectNodeImageAuthor")}
                             .disabled(!flow.canApply).accessibilityIdentifier("projectNodeImage.append")
                     }
                     if flow.state == .localSaveFailed{Text("projectNodeImage.localFailure",tableName:"ProjectNodeImageAuthor")}
-                }
-            }.cyGroupedSurface().cyHeroScreen()
+                }footer:{Text("projectNodeImage.scope",tableName:"ProjectNodeImageAuthor")}
+            }.navigationTitle(Text("projectNodeImage.title",tableName:"ProjectNodeImageAuthor")).navigationBarTitleDisplayMode(.inline)
                 .toolbar{ToolbarItem(placement:.cancellationAction){Button{model.close();close()}label:{Text("projectNodeImage.close",tableName:"ProjectNodeImageAuthor")}.accessibilityIdentifier("projectNodeImage.close")}}
                 .task{model.load()}.background(RetainedImagePresenterHost(host:model.pickerHost).frame(width:0,height:0))
                 .onChange(of:scenePhase){_,phase in if phase != .active{model.close();close()}}
