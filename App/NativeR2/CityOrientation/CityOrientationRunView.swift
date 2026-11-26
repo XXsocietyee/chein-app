@@ -40,6 +40,10 @@ extension EnvironmentValues {
     @ViewBuilder var panel: () -> Panel
     @State private var camera: MapCameraPosition = .automatic
     @State private var detent: PresentationDetent = .height(120)
+    /// P-053: the peek grows with Dynamic Type so the metrics row is never clipped at accessibility sizes.
+    @ScaledMetric(relativeTo: .title2) private var peekHeight: CGFloat = 120
+    /// P-052: a tapped control-point marker opens its punch sheet.
+    @State private var selectedStop: Int?
     /// Motion r1: the route and team trails draw on when the run map appears.
     @State private var draw = NativeR2DrawOn()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -77,14 +81,20 @@ extension EnvironmentValues {
             .sensoryFeedback(.success, trigger: inHighlight) { old, new in !old && new }
             .sheet(isPresented: $sheetShown) {
                 panel()
-                    .presentationDetents([.height(120), .medium, .large], selection: $detent)
+                    .presentationDetents([.height(peekHeight), .medium, .large], selection: $detent)
                     .presentationBackgroundInteraction(.enabled(upThrough: .medium))
                     .presentationDragIndicator(.visible)
                     .interactiveDismissDisabled()
             }
             // P-050: the session is owned by the play screen; leaving this view (a pushed page) or the
             // foreground does not stop it. Background reading is gated by the session's active run.
-            .onAppear { location.start() }
+            .onAppear {
+                location.start()
+                if detent == .height(120), peekHeight != 120 { detent = .height(peekHeight) }
+            }
+            .onChange(of: peekHeight) { old, new in
+                if detent == .height(old) { detent = .height(new) }
+            }
             .onDisappear { QuestLiveActivityCenter.shared.clearPlayContext() }
             .onChange(of: scenePhase) { _, phase in
                 if phase == .active { location.start() }
@@ -96,6 +106,11 @@ extension EnvironmentValues {
             // Native r2 M4: entering the 50 m highlight pops an arrival island whose action opens the same punch sheet.
             .onChange(of: inHighlight) { old, new in
                 guard !old, new, let stop = currentStop else { return }
+                // P-054: VoiceOver hears the arrival. The island announces itself; without it, post here.
+                if !IslandCenter.isEnabled {
+                    AccessibilityNotification.Announcement(
+                        appLocalized("island.arrival.punch", locale: locale) + ", " + stopTitle(stop)).post()
+                }
                 IslandCenter.shared.show(IslandItem(kind: .arrival, title: .key("island.arrival.punch"),
                                                     subtitle: .verbatim(stopTitle(stop)),
                                                     actions: [IslandAction(title: .key("island.arrival.punch.action"),
@@ -109,7 +124,7 @@ extension EnvironmentValues {
     // MARK: map
 
     private var map: some View {
-        Map(position: $camera) {
+        Map(position: $camera, selection: $selectedStop) {
             UserAnnotation()
             if let route {
                 ForEach(route.segments) { segment in
@@ -119,11 +134,22 @@ extension EnvironmentValues {
                         .stroke(segmentStyle(segment, in: route),
                                 style: StrokeStyle(lineWidth: 4, lineCap: .round, dash: segmentDash(segment, in: route)))
                 }
+                // P-052: system Markers (Maps balloons, system contrast and size): the order as a monogram,
+                // a checkmark when done, a lock when locked. Tapping one opens its punch sheet.
                 ForEach(route.mappedStops) { stop in
                     if let point = stop.coordinate {
-                        Annotation(stopTitle(stop), coordinate: coordinate(point)) {
-                            CityOrientationStopBadge(order: stop.order, state: stop.state)
-                                .accessibilityIdentifier("nativeR2.city.pin.\(stop.id)")
+                        if stop.state == .completed {
+                            Marker(stopTitle(stop), systemImage: "checkmark", coordinate: coordinate(point))
+                                .tint(Color.green)
+                                .tag(stop.id)
+                        } else if stop.state == .locked {
+                            Marker(stopTitle(stop), systemImage: "lock.fill", coordinate: coordinate(point))
+                                .tint(Color.gray)
+                                .tag(stop.id)
+                        } else {
+                            Marker(stopTitle(stop), monogram: Text(verbatim: String(stop.order)), coordinate: coordinate(point))
+                                .tint(stop.state == .current ? Color.accentColor : Color.gray)
+                                .tag(stop.id)
                         }
                     }
                 }
@@ -162,6 +188,11 @@ extension EnvironmentValues {
             MapPitchToggle()
         }
         .onAppear { fitCamera() }
+        .onChange(of: selectedStop) { _, id in
+            guard let id else { return }
+            selectedStop = nil
+            onPunch(id)
+        }
         .task(id: route?.segments.count ?? 0) { await draw.run(reduceMotion: reduceMotion) }
         .accessibilityIdentifier("nativeR2.city.map")
     }
@@ -203,8 +234,10 @@ extension EnvironmentValues {
 
     @ViewBuilder private var banner: some View {
         if let stop = currentStop {
+            // P-055: the banner always opens the punch sheet (it never punches by itself); the route map
+            // stays one tap away in the controls below.
             Button {
-                if inHighlight { onPunch(stop.id) } else { onOpenRoute?() }
+                onPunch(stop.id)
             } label: {
                 HStack(spacing: 12) {
                     Image(systemName: bannerSymbol)
@@ -237,6 +270,7 @@ extension EnvironmentValues {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityHint(Text("nativeR2.city.banner.hint"))
             .accessibilityIdentifier("nativeR2.city.banner")
         }
     }
@@ -267,35 +301,6 @@ extension EnvironmentValues {
     }
 }
 
-/// A numbered control point: done shows a checkmark (green), current uses the accent, locked a lock (gray).
-struct CityOrientationStopBadge: View {
-    let order: Int
-    let state: PlayRouteMapPresentation.State
-    var body: some View {
-        ZStack {
-            Circle().fill(fill)
-            switch state {
-            case .completed: Image(systemName: "checkmark")
-            case .locked: Image(systemName: "lock.fill")
-            default: Text(verbatim: String(order)).monospacedDigit()
-            }
-        }
-        .font(.caption.bold())
-        .foregroundStyle(.white)
-        .frame(width: 30, height: 30)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(verbatim: String(order)) + Text(verbatim: ", ") + Text(LocalizedStringKey(state.labelKey)))
-    }
-    private var fill: Color {
-        switch state {
-        case .completed: return .green
-        case .current: return .accentColor
-        case .locked: return .gray
-        case .available, .unknown: return .secondary
-        }
-    }
-}
-
 /// S9 peek row (Fitness live metrics): run clock, walked distance and points done, plus the caller's buttons.
 @MainActor struct CityOrientationRunMetricsRow<Trailing: View>: View {
     @Bindable var model: PlayExperienceCoordinator
@@ -313,31 +318,34 @@ struct CityOrientationStopBadge: View {
     }
 
     var body: some View {
-        HStack(alignment: .center, spacing: 16) {
-            VStack(alignment: .leading, spacing: 2) {
-                // The run clock ticks from the monotonic anchor; pausing stops it (PlayRunClock).
-                TimelineView(.periodic(from: .now, by: 1)) { _ in
-                    Text(verbatim: PlayRunElapsedText.format(model.clock.elapsed(monotonicNow: ProcessInfo.processInfo.systemUptime)))
-                        .font(.title2.bold().monospacedDigit())
-                        .accessibilityAddTraits(.updatesFrequently)
-                        .accessibilityIdentifier("playx.run.clock")
+        // P-053: one row when it fits; at large Dynamic Type sizes a two-column grid, then a stack, so the
+        // values never truncate or overflow the peek.
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .center, spacing: 16) {
+                clockCell
+                distanceCell
+                pointsCell
+                Spacer(minLength: 0)
+                trailing()
+            }
+            VStack(alignment: .leading, spacing: 12) {
+                Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 8) {
+                    GridRow {
+                        clockCell
+                        distanceCell
+                    }
+                    GridRow {
+                        pointsCell
+                    }
                 }
-                Text(model.clock.phase == .paused ? "nativeR2.city.paused" : "nativeR2.city.metric.time")
-                    .font(.caption).foregroundStyle(.secondary)
+                trailing()
             }
-            VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: walkedMeters > 0 ? CityOrientationFormat.distance(walkedMeters) : "—")
-                    .font(.title2.bold().monospacedDigit())
-                    .nativeR2RollingNumber(walkedMeters)
-                Text("nativeR2.city.metric.distance").font(.caption).foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 12) {
+                clockCell
+                distanceCell
+                pointsCell
+                trailing()
             }
-            VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: points).font(.title2.bold().monospacedDigit())
-                    .nativeR2RollingNumber(Double(doneCount))
-                Text("nativeR2.city.metric.points").font(.caption).foregroundStyle(.secondary)
-            }
-            Spacer(minLength: 0)
-            trailing()
         }
         .opacity(model.clock.phase == .paused ? 0.6 : 1)
         .padding(.horizontal)
@@ -345,6 +353,38 @@ struct CityOrientationStopBadge: View {
         .padding(.bottom, 8)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("nativeR2.city.metrics")
+    }
+
+    private var clockCell: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            // The run clock ticks from the monotonic anchor; pausing stops it (PlayRunClock).
+            TimelineView(.periodic(from: .now, by: 1)) { _ in
+                Text(verbatim: PlayRunElapsedText.format(model.clock.elapsed(monotonicNow: ProcessInfo.processInfo.systemUptime)))
+                    .font(.title2.bold().monospacedDigit())
+                    .accessibilityAddTraits(.updatesFrequently)
+                    .accessibilityIdentifier("playx.run.clock")
+            }
+            Text(model.clock.phase == .paused ? "nativeR2.city.paused" : "nativeR2.city.metric.time")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+        .fixedSize()
+    }
+    private var distanceCell: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(verbatim: walkedMeters > 0 ? CityOrientationFormat.distance(walkedMeters) : "—")
+                .font(.title2.bold().monospacedDigit())
+                .nativeR2RollingNumber(walkedMeters)
+            Text("nativeR2.city.metric.distance").font(.caption).foregroundStyle(.secondary)
+        }
+        .fixedSize()
+    }
+    private var pointsCell: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(verbatim: points).font(.title2.bold().monospacedDigit())
+                .nativeR2RollingNumber(Double(doneCount))
+            Text("nativeR2.city.metric.points").font(.caption).foregroundStyle(.secondary)
+        }
+        .fixedSize()
     }
 }
 
