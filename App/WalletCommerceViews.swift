@@ -742,6 +742,19 @@ extension EnvironmentValues {
     }
 }
 
+/// R9-PC-D4-1: App-side income segments. Core `WalletIncomeFilter` rawValues stay the API `eventType`.
+enum WalletIncomeSegment: Hashable {
+    case all, create, brand, organizer
+    var apiFilter: WalletIncomeFilter? {
+        switch self {
+        case .all: return .all
+        case .create: return .create
+        case .brand: return .brand
+        case .organizer: return nil
+        }
+    }
+}
+
 @MainActor struct WalletIncomeView: View {
     @Environment(\.scenePhase) private var scenePhase
     let reader: WalletCommerceReader
@@ -751,6 +764,7 @@ extension EnvironmentValues {
     /// R7-PC-D4-5 (MP income-detail.js:15-18 `theme=merchant`): merchant chrome, and no 分佣 tabs.
     var merchantView = false
     @State private var filter = WalletIncomeFilter.all
+    @State private var segment = WalletIncomeSegment.all
     @State private var hold = WalletEarningsTabHold()
     /// R7-PC-D4-2 (MP income-detail.wxml:14-18): 收益 / 分佣 tabs while the server has an own allocation projection.
     @Environment(\.g6Capabilities) private var g6
@@ -768,34 +782,19 @@ extension EnvironmentValues {
         guard let organizerFinance, organizerFinance.allowsRead() else { return nil }
         return organizerFinance
     }
-    private var showIncome: Bool { financeAccess == nil || hold.tab == .income }
+    /// R9-PC-D4-1: 主办分润 is the 4th filter segment, shown in place of the ledger (MP scene-asset-income-detail/index.js:31-39, 59-75).
+    private var organizerShown: Bool { financeAccess != nil && hold.tab == .organizer }
     var body: some View {
         VStack(spacing: 0) {
-            if financeAccess != nil {
-                WalletEarningsTabBar(tab: hold.tab) { hold.select($0) }
-                #if DEBUG
-                if WalletEarningsDebugFinance.enabled {
-                    Text(verbatim: String(debugFinance.financeReads))
-                        .accessibilityIdentifier("wallet.earnings.finance.reads")
-                    WalletFundsStagesInline(reader: reader, funds: debugStages) { Task { await loadDebugStages() } }
-                }
-                #endif
+            #if DEBUG
+            if financeAccess != nil, WalletEarningsDebugFinance.enabled {
+                Text(verbatim: String(debugFinance.financeReads))
+                    .accessibilityIdentifier("wallet.earnings.finance.reads")
+                WalletFundsStagesInline(reader: reader, funds: debugStages) { Task { await loadDebugStages() } }
             }
-            ZStack {
-                incomeBody
-                    .opacity(showIncome ? 1 : 0)
-                    .allowsHitTesting(showIncome)
-                    .accessibilityHidden(!showIncome)
-                    .zIndex(showIncome ? 1 : 0)
-                // ponytail: finance stays mounted across tab switches so the finance task does not restart; background drops it.
-                if let access = financeAccess, hold.mounted {
-                    WalletOrganizerFinancePane(access: access, mounted: hold.mounted)
-                        .opacity(hold.tab == .organizer ? 1 : 0)
-                        .allowsHitTesting(hold.tab == .organizer)
-                        .accessibilityHidden(hold.tab != .organizer)
-                        .zIndex(hold.tab == .organizer ? 1 : 0)
-                }
-            }.frame(maxWidth: .infinity, maxHeight: .infinity)
+            #endif
+            incomeBody
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }.appNavigationTitle("wallet.income").navigationBarTitleDisplayMode(.inline).themeDomain(merchantView ? .merchant : .player).cyHideTabBar()
             .onChange(of: scenePhase) { _, phase in
                 guard financeAccess != nil else { return }
@@ -854,11 +853,7 @@ extension EnvironmentValues {
     private var incomeLedger: some View {
         VStack(alignment: .leading, spacing: 12) {
             // PC-D-4-3 (MC-41): 收益明细 is drawn once, by the bar; no second in-content title.
-            Picker("wallet.income", selection: $filter) {
-                Text("wallet.all").tag(WalletIncomeFilter.all)
-                Text("wallet.creationIncome").tag(WalletIncomeFilter.create)
-                Text("wallet.brandIncome").tag(WalletIncomeFilter.brand)
-            }.pickerStyle(.segmented).padding()
+            incomeSegments
             if financeAccess == nil, showsCooperationFinance {
                 Button(action: onCooperationFinance) {
                     Text("wallet.clubFinance").frame(maxWidth: .infinity)
@@ -866,8 +861,47 @@ extension EnvironmentValues {
                 .buttonStyle(.bordered).controlSize(.large)
                 .padding(.horizontal)
             }
-            WalletLedgerView(reader: reader, kind: .income(filter)).id(filter.rawValue)
+            ZStack(alignment: .top) {
+                incomeLedgerList
+                // ponytail: finance stays mounted across segment switches so the finance task does not restart; background drops it.
+                if let access = financeAccess, hold.mounted {
+                    WalletOrganizerFinancePane(access: access, mounted: hold.mounted)
+                        .opacity(organizerShown ? 1 : 0)
+                        .allowsHitTesting(organizerShown)
+                        .accessibilityHidden(!organizerShown)
+                        .zIndex(organizerShown ? 1 : 0)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+    }
+    /// R9-PC-D4-1: MP filterTabs 全部 / 创作收益 / 品牌收益 / 主办分润 (scene-asset-income-detail/index.js:31-39; index.wxml:9-11).
+    private var incomeSegments: some View {
+        Picker("wallet.income", selection: $segment) {
+            Text("wallet.all").tag(WalletIncomeSegment.all)
+            Text("wallet.creationIncome").tag(WalletIncomeSegment.create)
+            Text("wallet.brandIncome").tag(WalletIncomeSegment.brand)
+            if financeAccess != nil {
+                Text("wallet.earnings.tab.organizer", tableName: "WalletEarningsOverview").tag(WalletIncomeSegment.organizer)
+            }
+        }
+        .pickerStyle(.segmented)
+        .padding()
+        .accessibilityIdentifier("wallet.income.filter")
+        .onChange(of: segment) { _, next in selectSegment(next) }
+    }
+    private var incomeLedgerList: some View {
+        WalletLedgerView(reader: reader, kind: .income(filter)).id(filter.rawValue)
+            .opacity(organizerShown ? 0 : 1)
+            .allowsHitTesting(!organizerShown)
+            .accessibilityHidden(organizerShown)
+            .zIndex(organizerShown ? 0 : 1)
+    }
+    /// MP onFilterChange (index.js:61-75): `club` does not reload the ledger; the other keys pick the API filter.
+    private func selectSegment(_ next: WalletIncomeSegment) {
+        if let apiFilter = next.apiFilter { filter = apiFilter }
+        guard financeAccess != nil else { return }
+        hold.select(next == .organizer ? .organizer : .income)
     }
     #if DEBUG
     private func loadDebugStages() async {
