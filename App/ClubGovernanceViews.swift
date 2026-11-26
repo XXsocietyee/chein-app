@@ -379,7 +379,7 @@ struct ClubGovernanceReadView: View {
         .onChange(of: roleManagementSource) { _, source in
             roleManagementReturn.invalidateUnlessCurrent(source: source, active: scenePhase == .active)
         }
-        .cyToast(message: $roleRereadToast, tone: .warning)
+        .clubIslandStatus(message: $roleRereadToast, tone: .warning, surface: "governance-roles")
         .onChange(of: scenePhase) { _, phase in
             if operation == .roles {
                 if phase != .active { roleManagementReturn.retire(); roleReads.retire(); generation &+= 1; loading = false }
@@ -2171,11 +2171,11 @@ struct ClubGovernanceReadView: View {
                     } else if let sessionScope {
                         NavigationLink { ClubGovernanceEventView(scope: sessionScope, identity: identity, access: access, coordinator: coordinator) } label: {
                             Text(LocalizedStringKey(phase.primaryKey))
-                        }.buttonStyle(CYPillButtonStyle(style: .primary)).accessibilityIdentifier("club.topic.primary")
+                        }.buttonStyle(.borderedProminent).controlSize(.large).accessibilityIdentifier("club.topic.primary")
                     } else {
                         NavigationLink { ClubOpsEventView(scope: opsScope, identity: identity, access: access, coordinator: coordinator) } label: {
                             Text(LocalizedStringKey(phase.primaryKey))
-                        }.buttonStyle(CYPillButtonStyle(style: .primary)).accessibilityIdentifier("club.topic.primary")
+                        }.buttonStyle(.borderedProminent).controlSize(.large).accessibilityIdentifier("club.topic.primary")
                     }
                 case .selfrun:
                     if let sessionScope {
@@ -2471,7 +2471,7 @@ struct ClubGovernanceEventView: View {
                     .id(target.id)
             }
         }
-        .cyToast(verbatimMessage: $storyToastMessage)
+        .clubIslandStatus(verbatimMessage: $storyToastMessage, surface: "governance-story")
         .task(id: reloadContext) {
             // The overview is also covered. On return, obtain a fresh source
             // through its original scoped loader, rather than reuse old cards.

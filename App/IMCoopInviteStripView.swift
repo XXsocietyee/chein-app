@@ -12,6 +12,7 @@ import SwiftUI
     private var direction: CooperationDirection { fixedDirection ?? pickedDirection }
     @State private var phase: Phase = .loading
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     enum Phase {
         case loading
@@ -84,7 +85,9 @@ import SwiftUI
                         .accessibilityIdentifier("im.coopStrip.card.\(card.id)")
                     }
                 }
+                .scrollTargetLayout()
             }
+            .scrollTargetBehavior(.viewAligned)
         }
     }
 
@@ -108,7 +111,10 @@ import SwiftUI
         GroupBox {
             cardCopy(card)
         }
-        .frame(width: 280, alignment: .leading)
+        // G-042 (design P1): sized to the strip, not a fixed 280 pt. Three quarters of the width shows the next card
+        // peeking (as the App Store's shelves do); at accessibility sizes one card takes the full width.
+        .containerRelativeFrame(.horizontal, count: typeSize.isAccessibilitySize ? 1 : 4,
+                                span: typeSize.isAccessibilitySize ? 1 : 3, spacing: 12, alignment: .leading)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text(verbatim: inviteLabel(card)))
         .accessibilityHint(Text(verbatim: copy("打开邀请详情", "Opens invite details")))
