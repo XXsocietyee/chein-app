@@ -141,7 +141,7 @@ The finish line: every MP feature works in the app the way it does in the MP (no
 
 Owner 2026-11-25: money is on for payment, refund, payout, and withdrawal on `www.chengyinhub.com`, including Release. Virtual goods and password login stay off. TestFlight is authorized and not uploaded yet. Merged r10 worktrees were removed; the data volume then had about 9.9Gi free.
 
-Integration tip is `ui/combined-r7` `8acdaf59d` (fast-forward of `cursor/r11-core-pins` `8acdaf59ddb578d2b441c2817cd47add87084fe1`). The extra route mark is `POST /api/orient/scoring/session/{}/recovery`. Ticket expiry waits for a manual retry. Platform-pass order reads stay admitted; pay stays refused. No CHECK was started.
+Integration tip is `ui/combined-r7` `0c80591c0`, the merge of `cursor/r11-money-on` `139e06853480803e1e2c8c1bc2b3bb8552880534` onto `8acdaf59d`. For an installed host including `www.chengyinhub.com`, payment, refund, host-cancel refund, payout, and withdrawal are on in Release. Virtual goods, password login, and non-payment merchant writes stay off. A missing host stays off. Platform-pass synchronous pay and gift claim still throw and do not build a request. Local `swift build --build-tests` on `0c80591c0` passed. CHECK [45738766534](https://github.com/liboyang42-cpu/chengyin-app/actions/runs/45738766534) is in progress on `ac509608a`.
 
 | Lane | Branch | Base | Status | SHA | Notes |
 |---|---|---|---|---|---|
