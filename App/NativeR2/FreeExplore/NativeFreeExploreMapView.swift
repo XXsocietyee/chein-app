@@ -129,7 +129,7 @@ import SwiftUI
         }
     }
 
-    private func stopPin(_ state: StopState) -> some View {
+    private func stopPin(_ state: StopState, font: Font = .title) -> some View {
         let symbol: String
         let color: Color
         switch state {
@@ -139,7 +139,7 @@ import SwiftUI
         case .open: symbol = "mappin.circle.fill"; color = Color.red
         }
         return Image(systemName: symbol)
-            .font(.title)
+            .font(font)
             .symbolRenderingMode(.palette)
             .foregroundStyle(Color.white, color)
             .accessibilityLabel(Text(LocalizedStringKey(Self.stateKey(state))))
@@ -348,7 +348,7 @@ import SwiftUI
                                 }
                             }
                         } icon: {
-                            stopPin(state(of: node, in: snapshot)).font(.body)
+                            stopPin(state(of: node, in: snapshot), font: .body)
                         }
                     }
                 }

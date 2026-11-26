@@ -89,7 +89,7 @@ enum NativeFreeExploreBundleState: Equatable {
                     Text(verbatim: "\(catalog.items.count)").monospacedDigit()
                 }
                 LabeledContent("nativeR2.freeExplore.bundle.stores") {
-                    Text(verbatim: "\(catalog.items.reduce(0) { $0 + $1.stores.count })").monospacedDigit()
+                    Text(verbatim: String(catalog.items.map(\.stores.count).reduce(0, +))).monospacedDigit()
                 }
                 LabeledContent("nativeR2.freeExplore.bundle.reservation") {
                     Text(LocalizedStringKey(catalog.reservationEnabled ? "nativeR2.freeExplore.bundle.reservation.on" : "nativeR2.freeExplore.bundle.reservation.off"))
