@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // WP-01. Ports mini-program pages/club/payout-receiver, pages/club/settlement (mine list and personal summary)
 // and components/cy/club-direct-ledger. Every page stays visible; when the payout area is closed (production host,
@@ -27,6 +28,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
     /// Round 4 copy: MP 绑定失败，请重试 / 解除失败，请重试 (payout-receiver index.js) name the action that failed.
     @State private var noticeFromUnbind = false
     @State private var bound = false
+    @State private var mpPathCopied = false
     @State private var generation = 0
     /// CLB-r7-D-03 (fix-r3-club-b): no club id and no `mine` — retrying can never succeed, so 返回 only.
     @State private var missingClub = false
@@ -129,6 +131,18 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                         Label("payoutReceiver.bind.mpOnly", systemImage: "info.circle")
                             .foregroundStyle(.secondary)
                             .accessibilityIdentifier("payoutReceiver.bind.mpOnly")
+                        // CLB-payout-receiver-01 interim (blocked on WeChat Open Platform + backend): MP payout-receiver/index.js:95-121
+                        // binds with wx.login, so the row copies the MP page path for this club.
+                        if let club = resolvedClubID ?? clubID {
+                            Button {
+                                UIPasteboard.general.string = "pages/club/payout-receiver/index?clubId=\(club)"
+                                mpPathCopied = true
+                            } label: { Label("payoutReceiver.bind.copyMPPath", systemImage: "doc.on.doc") }
+                                .accessibilityIdentifier("payoutReceiver.bind.copyMPPath")
+                            if mpPathCopied {
+                                Text("payoutReceiver.bind.mpPathCopied").font(.footnote).foregroundStyle(.secondary)
+                            }
+                        }
                     }
                 }
                 if status.pageState != .unbound, status.canUnbind {

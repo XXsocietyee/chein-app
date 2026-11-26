@@ -326042,6 +326042,40 @@
           }
         }
       }
+    },
+    "payoutReceiver.bind.copyMPPath": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bind in the mini-program"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去小程序绑定"
+          }
+        }
+      }
+    },
+    "payoutReceiver.bind.mpPathCopied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mini-program page path copied. Open the Chengyin mini-program in WeChat and paste it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已复制小程序页面路径，请在微信里打开城瘾小程序粘贴"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
