@@ -1145,6 +1145,7 @@ private struct ClubSingleOwnedEntry<Reader: ClubReading & ObservableObject, Sing
     private enum Resolution: Equatable { case single(Int), list, failed }
     @State private var resolved: Resolution?
     @State private var attempt = 0
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         Group {
@@ -1154,12 +1155,17 @@ private struct ClubSingleOwnedEntry<Reader: ClubReading & ObservableObject, Sing
             case .failed?:
                 // CLB-workbench-03 (MP workbench wxml:9-15): a failed owned-clubs read is 没能进入俱乐部管理 + 重试进入,
                 // not a silent fallback to the list.
+                // CLB-r11-workbench-01 (MP wxml:9-15, js:33): the description and a second 返回俱乐部 (onBack).
                 ContentUnavailableView {
                     Label("club.workbench.enterFailed", systemImage: "exclamationmark.triangle")
+                } description: {
+                    Text("club.workbench.enterFailedDetail")
                 } actions: {
                     Button("club.workbench.retryEnter") { resolved = nil; attempt += 1 }
                         .buttonStyle(.bordered)
                         .accessibilityIdentifier("club.workbench.retryEnter")
+                    Button("club.workbench.backToClub") { dismiss() }
+                        .accessibilityIdentifier("club.workbench.backToClub")
                 }
                 .accessibilityIdentifier("club.workbench.enterFailed")
             case nil: ProgressView()

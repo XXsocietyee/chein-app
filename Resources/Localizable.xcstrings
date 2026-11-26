@@ -326263,6 +326263,40 @@
           }
         }
       }
+    },
+    "club.workbench.enterFailedDetail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Club management is unavailable right now. Try again or go back to the club."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法进入俱乐部管理，请重试或返回俱乐部"
+          }
+        }
+      }
+    },
+    "club.workbench.backToClub": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to club"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回俱乐部"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
