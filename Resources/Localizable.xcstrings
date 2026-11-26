@@ -326229,6 +326229,23 @@
           }
         }
       }
+    },
+    "objects.renamed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renamed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已改名"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
