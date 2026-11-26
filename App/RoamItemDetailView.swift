@@ -55,6 +55,14 @@ struct RoamItemDetailView: View {
         let active: Bool
         let visit: UUID
     }
+    /// RPOI-4: only once the node read succeeded and the place is open; nil link → copyable MP path (R9PublicShareButton).
+    @ViewBuilder private var poiShareButton: some View {
+        if let node, !nodeUnavailable {
+            R9PublicShareButton(url: PublicContentShareLink.poi(id: node.id),
+                                copyText: PublicContentShareLink.poiCopyText(id: node.id),
+                                identifier: "roam.detail.share")
+        }
+    }
     private var readsActive: Bool { eventIsVisible && readsInForeground && scenePhase == .active && reader.isConfigured && isCurrent }
     private var readKey: ReadKey { .init(identity: reader.identity, active: readsActive, visit: eventPresentationID) }
     private var isCurrent: Bool { originatingIdentity != nil && reader.identity == originatingIdentity }
@@ -136,7 +144,12 @@ struct RoamItemDetailView: View {
                         .accessibilityIdentifier("roamFeaturedCouponWallet.stale")
                 }
             }
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("roam.close") { merchantRetry.cancel(); dismiss() } } }
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) { Button("roam.close") { merchantRetry.cancel(); dismiss() } }
+                // RPOI-4 (r10; MP subpackageRoam/poi-detail/index.js:52-66 onShareAppMessage): share the loaded place
+                // as the reviewed universal link (docs/release/aasa.json lists /subpackageRoam/poi-detail/index).
+                ToolbarItem(placement: .primaryAction) { poiShareButton }
+            }
             .task(id: offeredReadKey) {
                 guard !Task.isCancelled, offeredReadKey.active, offeredReadKey == readKey, readsActive else { return }
                 readOwner.activate(); await load()
