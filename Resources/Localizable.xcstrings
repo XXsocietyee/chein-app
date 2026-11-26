@@ -320924,6 +320924,40 @@
           }
         }
       }
+    },
+    "freeBundle.action.exitSwap": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change merchant"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更换商家"
+          }
+        }
+      }
+    },
+    "freeBundle.action.review": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant reviews"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家评价"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

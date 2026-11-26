@@ -60,7 +60,7 @@ extension EnvironmentValues {
     var body: some View {
         Group {
             if !host.current { Text("stale", tableName: "FreeExploreBundleLaunch") }
-            else if let model = host.model { FreeExploreBundleLaunchView(model: model) }
+            else if let model = host.model { FreeExploreBundleLaunchView(model: model, host: host) }
             else if host.busy { ProgressView { Text("loading", tableName: "FreeExploreBundleLaunch") } }
             else if host.legacy { Text("legacy", tableName: "FreeExploreBundleLaunch") }
             else if host.failed {
@@ -73,6 +73,6 @@ extension EnvironmentValues {
         .task { await host.load() }
         .onChange(of: host.current) { _, current in if !current { host.retire() } }
         .onChange(of: scenePhase) { _, phase in if phase == .background { host.retire() } }
-        .onDisappear { host.retire() } // no writer/review sheets can open in this read-only host
+        .onDisappear { host.retire() } // MKT-7-3b action sheets present over this page and do not trigger onDisappear
     }
 }
