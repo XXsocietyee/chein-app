@@ -214,7 +214,21 @@ struct SettingsView: View {
                 ProfileSettingsFavoritesEntry(session: session, owner: favoritesOwner).environment(\.settingsTileTint, SettingsTint.pink)
                 // B-SZ-15-r7: MP shezhi 邀请与收益 (players only) right after 我的收藏; same promo binding as 我的.
                 SettingsInvitePromoEntry().environment(\.settingsTileTint, SettingsTint.orange)
+                // r11 B-SZ-10: MP pages/shezhi/shezhi.wxml:20-35 — 隐私与定位, AI 对话记录, 营销消息与优惠券, 帖文处置与申诉,
+                // 投诉建议, 我的申诉, 发票, 用户服务协议, 账号注销, 关于 (legal → 注销 → 关于 inside SettingsSupportSections).
+                // App-only rows (notifications, usage consent, region, language, safety, merchant tools) follow 关于; 退出 last (:42-47).
                 SettingsPrivacyLocationEntry(session: session).environment(\.settingsTileTint, SettingsTint.green)
+                NPCChatDataReadSettingsEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
+                AccountComplianceMarketingSettingsEntry(coordinator: session.accountComplianceCoordinator, market: session.operationalMarket)
+                SettingsPostGovernanceEntry(session: session).environment(\.settingsTileTint, SettingsTint.red)
+                // MP V1-P53 (B-SZ-01): 投诉建议 sits in Settings, after 帖文处置与申诉.
+                Section { ProfileComplaintPreparationLink(session: session) }
+                    .environment(\.settingsTileTint, SettingsTint.teal)
+                MemberScoreAppealSettingsEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
+                SettingsInvoiceEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
+                SettingsSupportSections(market: session.operationalMarket, complianceCoordinator: session.accountComplianceCoordinator)
+                    .hidingNPCChatDataEntry() // B-SZ-03: 「AI 对话记录」 above is the one NPC chat data row.
+                    .hidingMarketingEntry() // r11 B-SZ-10: 营销消息与优惠券 sits after AI 对话记录 above.
                 Section {
                     NativeNotificationPermissionEntry()
                     NativeChannelNotificationSettingsEntry(session: session)
@@ -237,8 +251,7 @@ struct SettingsView: View {
                     Text("settings.languageNotice")
                 }
                 .environment(\.settingsTileTint, SettingsTint.blue)
-                MemberScoreAppealSettingsEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
-                SettingsInvoiceEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
+                SettingsSupportSafetyEntry().environment(\.settingsTileTint, SettingsTint.teal)
                 // B-SZ-13 MP-first: MP shezhi.wxml has no 商家工具 row for players (only 成为商家, :19); merchants keep it.
                 if PlayerLaunch.merchantCenterEnabled && session.account?.effectiveRole == "merchant" { Section { // Lane G
                     NavigationLink {
@@ -249,14 +262,6 @@ struct SettingsView: View {
                     .accessibilityIdentifier("settings.beGapMerchant")
                 }
                 .environment(\.settingsTileTint, SettingsTint.teal) }
-                NPCChatDataReadSettingsEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
-                SettingsPostGovernanceEntry(session: session).environment(\.settingsTileTint, SettingsTint.red)
-                // MP V1-P53 (B-SZ-01): 投诉建议 sits in Settings, after 帖文处置与申诉.
-                Section { ProfileComplaintPreparationLink(session: session) }
-                    .environment(\.settingsTileTint, SettingsTint.teal)
-                SettingsSupportSafetyEntry().environment(\.settingsTileTint, SettingsTint.teal)
-                SettingsSupportSections(market: session.operationalMarket, complianceCoordinator: session.accountComplianceCoordinator)
-                    .hidingNPCChatDataEntry() // B-SZ-03: 「AI 对话记录」 above is the one NPC chat data row.
                 SettingsSignOutEntry(session: session) { dismiss() }
             }
             .labelStyle(SettingsTileLabelStyle())

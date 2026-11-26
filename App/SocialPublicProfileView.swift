@@ -373,8 +373,8 @@ import SwiftUI
     }
     private func profileCounter(_ value: Int?, id: String, label: () -> Text) -> some View {
         VStack(spacing: 2) {
-            // A2-09: MP pc-stat-n is 18 bold → sectionTitle.
-            Text(verbatim: value.map(String.init) ?? "—").cyText(.sectionTitle).monospacedDigit()
+            // A2-09: MP pc-stat-n is 18 bold (pages/userinfo/userinfo.wxss). r11 N-30: system `.headline`, not a CY text style.
+            Text(verbatim: value.map(String.init) ?? "—").font(.headline).monospacedDigit()
             label().cyText(.meta).foregroundStyle(.secondary).cyWrapText(alignment: .center)
         }
         .frame(maxWidth: .infinity, minHeight: 56)

@@ -97,16 +97,15 @@ class MerchantClubDiscoveryContracts(unittest.TestCase):
     def test_merchant_owned_joined_create_are_presentation_hidden_only(self):
         source = self.read('App/ClubHomeView.swift')
         self.assertIn('if !discoveryScope.isMerchantViewer, let operations = management?.operations', source)
-        self.assertIn('''if !discoveryScope.isMerchantViewer {
-                        NavigationLink {
-                            ClubOwnedView(''', source)
-        self.assertIn('Label("club.owned", systemImage: "person.crop.circle")', source)  # native-r2 club round 2
+        # r11 A8-03: MP talent/list/index.wxml:57-95 has no 我创建的俱乐部 link; owned clubs are the first list rows.
+        self.assertNotIn('ClubOwnedView(', source)
+        self.assertIn('clubRows(home.owned, identifier: "club.home.owned", section: .owned, page: page)', source)
         self.assertIn('clubRows(home.joined, identifier: "club.home.joined", section: .joined, page: page)', source)
         self.assertIn('let nearby = locality.nearby(home.nearby, in: discoveryScope)', source)
         # Merchant viewers get the locality list only: the owned/joined list is in the non-merchant branch.
         self.assertIn('if discoveryScope.isMerchantViewer {\n                    localityStatus\n                    merchantNearbySection(nearby, page: page)', source)
         self.assertIn('ClubDetailView(id: id, reader: reader', source)
-        self.assertIn('if let topicDestination, event.id > 0', source)
+        self.assertNotIn('if let topicDestination, event.id > 0', source)  # r11 A8-03: no events section on the tab root
 
     def test_locality_failure_is_inline_with_retry_not_an_empty_list(self):
         source = self.read('App/ClubHomeView.swift')

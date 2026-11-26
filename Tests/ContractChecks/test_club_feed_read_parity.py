@@ -43,14 +43,15 @@ class ClubFeedReadParityContracts(unittest.TestCase):
         self.assertIn('club.feed.emptyPosts', view)
 
     def test_club_home_uses_existing_reader_without_inheriting_mutation_context(self):
+        # r11 A8-03: MP talent/list/index.wxml:57-95 (chengyinhub-xcx) — the 俱乐部 tab root is 创建俱乐部 + one club
+        # list, so the governance feed entry left ClubHomeView. The feed binding is still pinned on its fixture host.
         view = source('App/ClubHomeView.swift')
-        binding = view.split('ClubGovernanceHomeEntries(feedContext:')[1].split('identity: reader.clubIdentity')[0]
+        self.assertNotIn('ClubGovernanceHomeEntries(', view)
+        self.assertIn('ClubDetailView(id: id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community, publicRoster:publicRoster)', view)
+        host = source('App/ClubFeedFixtureHost.swift')
+        binding = host.split('ClubGovernanceHomeEntries(feedContext:')[1].split('identity: reader.clubIdentity')[0]
         self.assertIn('readerIdentity: ObjectIdentifier(reader)', binding)
         self.assertIn('viewerRevision:', binding)
-        # CLB-detail-34 (666d94a69): the feed opens the same full club page as the list rows, so it carries exactly
-        # the list-row coordinator/management/community and nothing more. Revision and reader fences stay above.
-        self.assertIn('ClubDetailView(id: id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator,\n                                                       management: management, community: community, publicRoster: publicRoster)', binding)
-        self.assertIn('ClubDetailView(id: id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community, publicRoster:publicRoster)', view)
         self.assertEqual(binding.count('ClubDetailView('), 1)
 
     def test_navigation_rechecks_exact_snapshot_row_reader_and_content(self):

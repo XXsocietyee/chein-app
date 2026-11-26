@@ -38,7 +38,9 @@ class ClubGovernanceSourceChecks(unittest.TestCase):
         self.assertIn('clubGovernanceService=ClubGovernanceService(configuration:configuration,transport:transport)',session)
         self.assertIn('governance:clubGovernanceContext',session)
         self.assertGreater(session.count('clubGovernanceCoordinator.cancelReview()'),3)
-        self.assertIn('ClubGovernanceHomeEntries(',self.text('App/ClubHomeView.swift'))
+        # r11 A8-03: MP talent/list/index.wxml:57-95 has no governance entries on the 俱乐部 tab root.
+        self.assertNotIn('ClubGovernanceHomeEntries(',self.text('App/ClubHomeView.swift'))
+        self.assertIn('ClubGovernanceHomeEntries(',self.text('App/ClubGovernanceFixtureHost.swift'))
     def test_review_has_account_epoch_namespace_and_fresh_targets(self):
         service=self.text('Core/ClubGovernanceService.swift');coordinator=self.text('Core/ClubGovernanceCoordinator.swift')
         for token in ['guard snapshot == review.snapshot','session.identity == review.identity','session.storageNamespace == review.storageNamespace','members == review.supportingMembers']:

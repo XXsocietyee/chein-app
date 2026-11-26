@@ -96,7 +96,7 @@ import SwiftUI
                         Label("social.profile", systemImage: "person.crop.rectangle")
                     }.accessibilityIdentifier("account.publicProfile")
                     ProfileFollowListAccountEntry(session: session)
-                    NavigationLink { ProfileEditView(coordinator:session.profileEditCoordinator,sessionRevision:session.contentDetailRevision,categoryReader:session,avatarDependencies:session.profileAvatarDependencies,currentReviewReader:session.profileCurrentReviewReader,nicknameReader:session.profileNicknameReader,savedMedia:session.profileSavedMediaReaders).cyPushedChrome()                     } label: {
+                    NavigationLink { ProfileEditView(coordinator:session.profileEditCoordinator,sessionRevision:session.contentDetailRevision,categoryReader:session,avatarDependencies:session.profileAvatarDependencies,currentReviewReader:session.profileCurrentReviewReader,nicknameReader:session.profileNicknameReader,savedMedia:session.profileSavedMediaReaders).localCover(owner:localCoverOwner,reader:session.socialAccountReader).cyPushedChrome()                     } label: {
                         Label("profile.edit.title", systemImage: "pencil")
                     }.accessibilityIdentifier("account.editProfile")
                 }
@@ -218,7 +218,7 @@ import SwiftUI
             }
             .navigationDestination(isPresented:$showsPassportWallet) { SessionWalletCommerceView().id(session.walletCommerceScope).cyPushedChrome() }
             .navigationDestination(isPresented:$showsPointsLedger) { WalletLedgerView(reader: session.walletHistoryReader, kind: .assetPoints).id(session.walletCommerceScope).cyPushedChrome() }
-            .navigationDestination(isPresented:$showsEditProfile) { ProfileEditView(coordinator:session.profileEditCoordinator,sessionRevision:session.contentDetailRevision,categoryReader:session,avatarDependencies:session.profileAvatarDependencies,currentReviewReader:session.profileCurrentReviewReader,nicknameReader:session.profileNicknameReader,savedMedia:session.profileSavedMediaReaders).cyPushedChrome() }
+            .navigationDestination(isPresented:$showsEditProfile) { ProfileEditView(coordinator:session.profileEditCoordinator,sessionRevision:session.contentDetailRevision,categoryReader:session,avatarDependencies:session.profileAvatarDependencies,currentReviewReader:session.profileCurrentReviewReader,nicknameReader:session.profileNicknameReader,savedMedia:session.profileSavedMediaReaders).localCover(owner:localCoverOwner,reader:session.socialAccountReader).cyPushedChrome() }
             .cySheet(isPresented:$showsPointsHelp) {
                 NavigationStack {
                     WalletPointsTasksView(reader: session.walletHistoryReader).id(session.walletCommerceScope)

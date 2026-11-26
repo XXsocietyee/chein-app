@@ -129,51 +129,10 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                 // r10 N-09b: one system Section for the queued /api/club/join writes (it collapses when there are none),
                 // not a banner inside every club row. MP talent/list/index.wxml has no per-row offline chrome.
                 CYScreenOfflineWriteSection(routes: ["/api/club/join"], session: offlineWriteSession.session)
-                Section {
-                    if let governance = management?.governance {
-                        ClubGovernanceHomeEntries(feedContext: .init(viewerRevision: management?.viewerRevision ?? governance.viewerRevision,
-                            readerIdentity: ObjectIdentifier(reader), destination: { id in
-                                // CLB-detail-34: the feed opens the same full club page as the list rows (:187).
-                                AnyView(ClubDetailView(id: id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator,
-                                                       management: management, community: community, publicRoster: publicRoster))
-                            }), identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator)
-                    }
-                    NavigationLink {
-                        ClubDirectoryView(reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community, publicRoster:publicRoster)
-                            .cyPushedChrome()
-                    } label: {
-                        Label("club.directory", systemImage: "magnifyingglass")
-                    }
-                        .accessibilityIdentifier("club.openDirectory")
-                    if !discoveryScope.isMerchantViewer {
-                        NavigationLink {
-                            ClubOwnedView(reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community, publicRoster:publicRoster)
-                                .cyPushedChrome()
-                        } label: {
-                            Label("club.owned", systemImage: "person.crop.circle")
-                        }
-                            .accessibilityIdentifier("club.openOwned")
-                    }
-                }
-                Section {
-                    if home.events.isEmpty {
-                        ContentUnavailableView {
-                            Label { Text("club.emptyEvents").accessibilityIdentifier("club.home.events.empty") } icon: { Image(systemName: "flag.checkered") }
-                        }
-                    }
-                    ForEach(Array(home.events.enumerated()), id: \.offset) { _, event in
-                        if let topicDestination, event.id > 0 {
-                            NavigationLink { topicDestination(event.id) } label: { eventRow(event, page: page) }
-                                .accessibilityIdentifier("club.event.\(event.id)")
-                        } else if let onTopicDestination {
-                            Button { onTopicDestination(event.id) } label: { eventRow(event, page: page) }
-                                .foregroundStyle(.primary)
-                                .accessibilityIdentifier("club.event.\(event.id)")
-                        } else { eventRow(event, page: page) }
-                    }
-                } header: {
-                    Text("club.events")
-                }
+                // r11 A8-03: MP talent/list/index.wxml:57-95 — the 俱乐部 tab is the 创建俱乐部 row plus one club list and
+                // nothing else (:64-65). The governance entries (主理人状态 lives in 设置 / 创建俱乐部; club posts in 帖文),
+                // 我创建的俱乐部 (already the first rows above) and the 俱乐部活动 section left the tab root; 查找俱乐部 is the
+                // toolbar magnifying glass below. Club events stay on each club's detail page.
             }
         }
         }
@@ -194,6 +153,18 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         }
         .cyRootHeader(.club)
         .toolbar {
+            // r11 A8-03: 查找俱乐部 moved off the list into the toolbar; only on the 俱乐部 top tab, like before.
+            ToolbarItem(placement: .topBarTrailing) {
+                if topTab == .club || community == nil {
+                    NavigationLink {
+                        ClubDirectoryView(reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community, publicRoster:publicRoster)
+                            .cyPushedChrome()
+                    } label: {
+                        Label("club.directory", systemImage: "magnifyingglass")
+                    }
+                    .accessibilityIdentifier("club.openDirectory")
+                }
+            }
             // r9 A4-04b: MP talent/list/index.js:585-600 onShareAppMessage shares the hub page itself.
             ToolbarItem(placement: .topBarTrailing) {
                 R9PublicShareButton(url: PublicContentShareLink.clubHub(tab: topTab.rawValue),

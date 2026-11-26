@@ -53,14 +53,24 @@ import SwiftUI
                     Toggle("projectEdit.rich.locationRequired", isOn: Binding(get: { block.sourceFields?["locationRequired"] != .bool(false) }, set: { block.setField("locationRequired", .bool($0)) }))
                 }
             case .image, .audio:
-                Section { ProjectEditReferenceField(title: LocalizedStringKey(block.kind == .image ? "projectEdit.imageReference" : "projectEdit.audioReference"), value: $block.url, identifier: "projectEdit.rich.media") }
+                // r11 C-F18: images come from the photo library (MP fabu/index.js:1515-1540). Audio stays a reference:
+                // the MP picks it with app.chooseDocument (app.js:732-775, multipart fileType/fileName), which the
+                // JPEG-only PlayerContentImageUploader does not send.
+                Section {
+                    if block.kind == .image {
+                        ProjectEditStoryImageField(title: "projectEdit.imageReference", value: $block.url, identifier: "projectEdit.rich.media")
+                    } else {
+                        ProjectEditReferenceField(title: "projectEdit.audioReference", value: $block.url, identifier: "projectEdit.rich.media")
+                    }
+                }
             case .dream:
                 Section("projectEdit.rich.album") {
                     TextField("projectEdit.rich.albumTitle", text: text("title")).accessibilityIdentifier("projectEdit.rich.albumTitle")
                     ForEach(block.dreamImages.indices, id: \.self) { index in
                         VStack(alignment: .leading) {
-                            TextField("projectEdit.imageReference", text: image(index, "url"))
-                                .accessibilityIdentifier("projectEdit.rich.image.\(index)")
+                            // r11 C-F18: MP fabu/index.js:1733 addStoryDreamImage picks an album photo.
+                            ProjectEditStoryImageField(title: "projectEdit.imageReference", value: image(index, "url"),
+                                                       identifier: "projectEdit.rich.image.\(index)")
                             TextField("projectEdit.rich.imageCaption", text: image(index, "line"), axis: .vertical)
                             if allowsAlbumImageSource {
                                 ProjectAlbumPhotoRemovalButton(model: model, chapterID: chapterID, blockID: block.id, index: index)
@@ -101,7 +111,6 @@ import SwiftUI
             case .gallery:
                 // r9 C-F1b: MP fabu/index.wxml:574-584, :837-845; pro-editor-story.js:63-81, :375-380 —
                 // `layout` 1…4 (单图/双图/三图/四图), `images[{url}]` one per cell, `altText` 图片说明 (≤200).
-                // Cells take an image reference until the C-F8 upload destination lands (Cursor Core).
                 Section("fixr9.ap.story.gallery") {
                     Picker("fixr9.ap.story.gallery.layout", selection: galleryLayoutBinding) {
                         ForEach(1...4, id: \.self) { n in
@@ -111,9 +120,9 @@ import SwiftUI
                     .pickerStyle(.segmented)
                     .accessibilityIdentifier("projectEdit.rich.gallery.layout")
                     ForEach(0..<galleryLayout, id: \.self) { index in
-                        TextField("projectEdit.imageReference", text: galleryCell(index))
-                            .textInputAutocapitalization(.never).autocorrectionDisabled()
-                            .accessibilityIdentifier("projectEdit.rich.gallery.cell." + String(index))
+                        // r11 C-F18: MP fabu/index.js:2104 fillStoryGalleryCell picks one photo per cell.
+                        ProjectEditStoryImageField(title: "projectEdit.imageReference", value: galleryCell(index),
+                                                   identifier: "projectEdit.rich.gallery.cell." + String(index))
                     }
                     TextField("fixr9.ap.story.gallery.altText", text: galleryAltText, axis: .vertical)
                         .lineLimit(1...4)

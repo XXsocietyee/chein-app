@@ -1,0 +1,36 @@
+# Fix r11, lane acct: account-publish fix queue (2026-11-26)
+
+- **Brief:** `origin/design/handoff-r2:docs/briefs/fix-r11.md`, lane `acct`.
+- **Queue:** `origin/audit/parity-r11-account-publish:docs/audit/parity-r11/account-publish.md` §5 (P0: none; P1: 6; P2: 9).
+- **Base:** `origin/ui/combined-r7` @ `b9a9d4d29`. Branch `fix/r11-acct`.
+- **MP:** `origin/mp-source:chengyinhub-xcx/`. MP file:line is cited in a code comment at each change.
+- **No compiler or simulator in the cloud.** Every type and member used was grepped first. The rows marked "needs simulator" below are written but have not been run.
+
+## Rows
+
+| id | sev | status | SHA | app file:line | MP | note |
+|---|---|---|---|---|---|---|
+| C-F18 | P1 | **fixed** (audio: partly) | 1b4755108, f2f222f04 | App/MPGap/AccountPublish/AccountPublishR11Mounts.swift:13 (`ProjectEditStoryImageField`); App/ProjectEditRichStoryForms.swift:61 (image block), :72 (album photo), :124 (gallery cell) | pages/publish/fabu/index.js:1515-1540, :1733, :2104; app.js:654-685 | Image block, album photo and gallery cells are now a `PhotosPicker` that uploads through `\.playerContentImageUploader` with bizType `image_free`. The url is written only after upload, as in the MP. The accessibility ids are unchanged. **Audio stays a typed reference.** The MP uses `app.chooseDocument` (app.js:732-775), which sends multipart `fileType`/`fileName`, and the JPEG-only `PlayerContentImageUploader` can't send that. `ProjectEditRichStoryFlowTests.testDreamImageAdditionIsLocalAndDoesNotPublish` now queries any element type. |
+| A8-03 | P1 | **fixed** (needs simulator) | 77a2c810c | App/ClubHomeView.swift:132-135 (sections removed), :157-168 (toolbar 查找俱乐部) | pages/talent/list/index.wxml:57-95 | The tab root is now the 创建俱乐部 row plus one list (created → joined → nearby). Removed: the governance entries (主理人状态 is still under 设置 and 创建俱乐部; club posts are in 帖文), the 我创建的俱乐部 link (owned clubs are the first rows of the list), and the 俱乐部活动 section. 查找俱乐部 is now a toolbar `magnifyingglass` with the same id `club.openDirectory`, shown only on the 俱乐部 top tab. Updated tests: `test_club_feed_read_parity`, `test_club_governance_contracts` (the feed binding is now pinned on `ClubFeedFixtureHost`), `test_club_home_topic_navigation`, `test_merchant_club_discovery`, `MerchantClubDiscoveryFlowTests` (owned row instead of `club.openOwned`), `ClubCommunityUITests` (removed the 3 home-topic `club.event.91` tests; the section is gone). |
+| C-F2 (rest) | P1 | **blocked** | — | App/ProjectEditPendingPresentation.swift:81; App/ProjectEditStarterPresentation.swift:38 | fabu node sheet | The pending sheet already has the picker. The starter has none: `ProjectPendingNodePlaceContext.capture()` only accepts `.edit` destinations that are present in `pendingMaterials`, so `.firstNode` needs a new capture path in the pending-safety code. The UI-test host has no map reader yet (`SearchMapFixtureReader` exists and could be injected). Three UI flows type coordinates. This needs a simulator run, and I did not want to write the capture path blind. |
+| C-T2b | P1 | **blocked** (Core) | — | Core/TemplateAuthoringDomain.swift:61, :66 | temp/index.wxml:66, :71-72 | Needs a Core producer for `TemplateAuthoringSupportPhase` / `TemplateAdoptionConfirmation` (Cursor). |
+| A1-02 | P1 | **owner** | — | App/QuestifyApp.swift:409 | member/index/index.wxml:6-7 | Owner decides the 我的 root. |
+| A3-05 | P1 | **owner** | — | App/MPGap/AccountPublish/AccountPublishGapRemainingViews.swift:5 | gerenziliao.wxml:54-56 | WeChat-only `bindgetphonenumber`; owner picks the iOS bind. |
+| B-SZ-10 | P2 | **fixed** | d2d83b99a | App/SettingsView.swift:216-265; App/SettingsSupportSections.swift:29-73; App/AccountComplianceViews.swift:202 | pages/shezhi/shezhi.wxml:14-35, :42-47 | Order is now: 隐私与定位 → AI 对话记录 → 营销消息与优惠券 (new standalone `AccountComplianceMarketingSettingsEntry`, same id `compliance.open.marketing`; hidden in the compliance section via `hidingMarketingEntry()`) → 帖文处置与申诉 → 投诉建议 → 我的申诉 → 发票 → 用户服务协议/legal → (roam consent) → 账号注销 → 关于. After that come the app-only rows (sound, notifications, usage consent, region, language, safety, gated merchant tools), then 退出. All ids kept. |
+| A8-06 | P2 | **owner** | — | App/ClubHomeView.swift:48 | talent/list/index.wxml:19 | The queue says to confirm with the owner first (MP says 发现; design hand-off PL-11 says 俱乐部). Not changed. |
+| C-F8c | P2 | **fixed** | f2f222f04 | App/MPGap/AccountPublish/AccountPublishR10Mounts.swift:82-112 (crop sheet), :137-200 (crop + upload) | fabu topic-detail-sheet `chooseMedia`; app.js:681-685 | After the pick, `MiniCropView` opens at 3:4 (cover) or 16:9 (gallery). The chosen frame is rendered and uploaded with bizType `image_3_4` / `image_16_9`; 使用原图 uploads the centred frame. The picker `onChange`/`.sheet` moved from the `Group` to the single picker row, so they no longer repeat on every image row. |
+| A3-10 | P2 | **fixed** | 4cca1890a | App/ProfileEditView.swift:590-596, :654-656; App/AccountView.swift:99, :221 | gerenziliao.wxml:20-38 (更换背景 :36-38) | `ProfileEditView.localCover(owner:reader:)`: AccountView passes the owner, and the existing `ProfileLocalCoverSection` shows right after the avatar header. 我的 keeps its row. |
+| C-F16-r7 | P2 | **blocked** | — | App/ProjectEditView.swift:1046 | fabu/index.wxml:103-117 (`textarea` auto-height, maxlength 30) | `axis: .vertical` turns the field into a text view for XCUITest. About 41 UI test files use `textFields["projectEdit.name"]`, and those files are byte-pinned by contract fixtures (`test_project_editor_readiness`, `test_run129_navigation_diagnostics`, `fixtures/project_editor_readiness.json`). That needs a simulator run plus a fixture re-pin. |
+| B-AG-04 | P2 | **owner** | — | App/SettingsLegalDocumentView.swift | — | App-only legal wording (MP-first exception). |
+| N-30 | P2 | **fixed** | ce852acdd | App/SocialPublicProfileView.swift:377 | pages/userinfo/userinfo.wxml (stats) | `.cyText(.sectionTitle)` changed to `.font(.headline)`. |
+| N-31 | P2 | **held** (owner pause) | — | App/TemplateAuthoringIntroExperience.swift:108-147 | template-intro/index.wxml | The row is already built from system stacks (`AnyLayout` HStack/VStack that switches at accessibility sizes), with no CY chrome. Moving it to `List`/`Grid` changes how it looks, and the owner has paused visual work. |
+| N-32 | P2 | **fixed** | 472eff5c8 | App/ProjectEditView.swift:304; App/PublishingModesViews.swift:174 | — | `CYDomainPalette(.topicEditor)` was never read on either page, so the accessor was removed. |
+| C-T3c, A2-10 | — | **merchant release** | — | — | — | Not counted (audit §4). |
+
+## Gates
+
+Last run on this branch, before the push:
+- `python3 tools/check_scaffold.py`: PASS structural checks.
+- `python3 -B tools/check_a11y_lint.py`: PASS (0 new).
+- `python3 -B tools/contract_ratchet.py --check`: 192 failing = baseline 192, **new 0**. The first run had 3 new failures from A8-03: `test_club_home_topic_navigation` ×2 and `test_merchant_club_discovery` ×1, which pinned the removed sections. They were re-pinned to the MP tab root in 622e7376a.
+- I ran the affected contract modules one by one (club governance/feed/story/enrollment, settings native/deletion/marketing, profile_*). Every failure is already in `docs/release/contract-failing-baseline.txt`.

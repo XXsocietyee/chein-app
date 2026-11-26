@@ -84,7 +84,9 @@ final class MerchantClubDiscoveryFlowTests: XCTestCase {
     func testLateLocalityAfterPlayerSwitchCannotHidePlayerRows() {
         let app = launch("merchantLocalityDelayed"); pending(1, app: app)
         tapFixedFixtureControl("club.fixture.toggleLocalityRole", app: app)
-        XCTAssertTrue(app.buttons["club.openOwned"].waitForExistence(timeout: 5))
+        // r11 A8-03: 我创建的俱乐部 is no longer a separate link (MP talent/list/index.wxml:57-95); owned clubs are the
+        // first rows of the one list, so the player switch is seen on the owned row itself.
+        XCTAssertTrue(revealFixtureElement(element("club.home.owned.81", app: app), in: app))
         tapFixedFixtureControl("club.fixture.locality.release", app: app); pending(0, app: app)
         XCTAssertFalse(element("club.home.locality.ready", app: app).exists)
         XCTAssertFalse(app.buttons["club.home.locality.retry"].exists)

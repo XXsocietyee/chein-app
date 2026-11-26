@@ -171,9 +171,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
     @Environment(\.analyticsEventClient) private var analytics
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
-    /// verify-r2 N-01: this page applies the topicEditor domain to itself, so its own palette is that domain's.
-    /// Reading `cyPalette` here gave the pushing NavigationStack's palette (the dark player shell).
-    private var palette: CYDomainPalette { CYDomainPalette(.topicEditor) }
+    // r11 N-32: the unused `CYDomainPalette(.topicEditor)` accessor is gone; the page uses system tint / semantic colours.
     @StateObject private var localClear = ActivityPublishingLocalClearOwner()
     @StateObject private var timeRange = ActivityPublishingTimeRangeOwner()
     @StateObject private var identityRegistration = PublisherIdentityRegistrationOwner()

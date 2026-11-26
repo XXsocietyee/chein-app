@@ -301,9 +301,7 @@ import SwiftUI
     @StateObject private var approvedRelease: ApprovedReleaseAuthorPresentation
     @StateObject private var reviewRequest: ApprovedTopicReviewPresentation
     @Environment(\.locale) private var locale
-    /// verify-r2 N-01: this page applies the topicEditor domain to itself, so its own palette is that domain's.
-    /// Reading `cyPalette` here gave the pushing NavigationStack's palette (the dark player shell).
-    private var palette: CYDomainPalette { CYDomainPalette(.topicEditor) }
+    // r11 N-32: the unused `CYDomainPalette(.topicEditor)` accessor is gone; the page uses system tint / semantic colours.
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var discardConfirmation = false
