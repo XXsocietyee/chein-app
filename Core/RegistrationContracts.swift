@@ -75,6 +75,14 @@ public struct RegistrationQuote: Decodable, Equatable {
     public let marketingAdjustments: [RegistrationMarketingAdjustment]
     /// 完局奖励 coupon name (quote-view.js:117-122). Nil hides the row.
     public let completeRewardCouponName: String?
+    /// R11-PC-C-5: quote `paymentChannels` (MP pages/activity/utils/quote-view.js:79-84). Nil on an old backend.
+    public let paymentChannels: [String]?
+    /// MP `paymentChannelState == 'unavailable'`: listed channels, a positive amount, and no app channel (`APP`).
+    /// A missing list keeps the payment-readiness probe (baoming.js:1243-1253).
+    public var paymentChannelUnavailable: Bool {
+        guard let paymentChannels, let payAmount, payAmount > .zero else { return false }
+        return !paymentChannels.contains("APP")
+    }
     /// MP `marketingView.show`: discount > 0 and at least one adjustment (quote-view.js:102).
     public var showsMarketingAdjustments: Bool {
         (marketingDiscountAmount ?? 0) > 0 && !marketingAdjustments.isEmpty
@@ -84,7 +92,7 @@ public struct RegistrationQuote: Decodable, Equatable {
         case payAmount, pointsUsed, pointsDeductYuan, pointsUsable, pointsBalance, availablePoints, userPoints
         case memberDiscountYuan, couponDeductYuan, clubMember, quoteSign
         case prioritySignupEnabled, refundDeadline, refundableNow, mkt, delivery, coveredByPass
-        case marketingSign, listAmount, marketingDiscountAmount, marketingAdjustments, completeRewardCoupon
+        case marketingSign, listAmount, marketingDiscountAmount, marketingAdjustments, completeRewardCoupon, paymentChannels
     }
     private struct Marketing: Decodable {
         let coveredByPass: Bool
@@ -126,6 +134,7 @@ public struct RegistrationQuote: Decodable, Equatable {
             return RegistrationMarketingAdjustment(id: (wire.kind ?? "ADJ") + "-" + (wire.code ?? String(index)), label: label,
                                                    amount: amount < 0 ? -amount : amount)
         }
+        paymentChannels = (try? c.decodeIfPresent([String].self, forKey: .paymentChannels)) ?? nil
         completeRewardCouponName = ((try? c.decodeIfPresent(RegistrationRewardCouponWire.self, forKey: .completeRewardCoupon)) ?? nil)?.name
         guard pointsUsed >= 0 else { throw APIError.malformedResponse }
     }

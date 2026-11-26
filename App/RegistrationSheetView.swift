@@ -150,7 +150,9 @@ struct RegistrationSheetView: View {
                         }
                         quoteSection
                         CouponUsabilitySection(phase: couponPhase, onRetry: { Task { await reloadCoupons() } })
-                        RegistrationPaymentReadinessSection(price: flow.selectedTicket?.price, onResult: { paymentReadiness = $0 })
+                        // R11-PC-C-5: a quote that lists channels without APP skips the readiness probe (MP quote-view.js:79-84).
+                        RegistrationPaymentReadinessSection(price: flow.quoteState.quoteValue?.paymentChannelUnavailable == true ? nil : flow.selectedTicket?.price,
+                                                            onResult: { paymentReadiness = $0 })
                         refundTiersSection
                         hostReservationSection
                         waitlistSection
@@ -468,6 +470,8 @@ struct RegistrationSheetView: View {
         case .intentAlreadySubmitted: return copy.t("已提交报名", "Already submitted")
         // R7-PC-C2-1: MP baoming.js:1717 toast('请选择儿童年龄').
         case .childAgeRequired: return copy.t("请选择儿童年龄", "Choose the child's age")
+        // R11-PC-C-5: MP baoming.js:1425 paymentChannelState 'unavailable'.
+        case .paymentChannelUnavailable: return copy.t("支付通道未就绪", "The payment channel isn't ready")
         default: return copy.t("暂时无法继续", "Not available right now")
         }
     }

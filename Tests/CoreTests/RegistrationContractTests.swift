@@ -316,4 +316,12 @@ final class RegistrationContractTests: XCTestCase {
         XCTAssertTrue(try decode(RegistrationQuote.self, #"{"payAmount":0,"quoteSign":"s","coveredByPass":true}"#).coveredByPass)
         XCTAssertFalse(try decode(RegistrationQuote.self, #"{"payAmount":0,"quoteSign":"s","coveredByPass":"true"}"#).coveredByPass)
     }
+
+    /// R11-PC-C-5: MP pages/activity/utils/quote-view.js:79-84 paymentChannelState.
+    func testQuotePaymentChannels() throws {
+        XCTAssertTrue(try decode(RegistrationQuote.self, #"{"payAmount":5,"quoteSign":"s","paymentChannels":["JSAPI"]}"#).paymentChannelUnavailable)
+        XCTAssertFalse(try decode(RegistrationQuote.self, #"{"payAmount":5,"quoteSign":"s","paymentChannels":["APP"]}"#).paymentChannelUnavailable)
+        XCTAssertFalse(try decode(RegistrationQuote.self, #"{"payAmount":5,"quoteSign":"s"}"#).paymentChannelUnavailable)
+        XCTAssertFalse(try decode(RegistrationQuote.self, #"{"payAmount":0,"quoteSign":"s","paymentChannels":[]}"#).paymentChannelUnavailable)
+    }
 }
