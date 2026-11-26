@@ -13,6 +13,14 @@ import SwiftUI
     private enum Phase { case loading, signedOut, failed, loaded([OrientSessionTeam]) }
 
     var body: some View {
+        if NativeR2Flags.cityOrientation {
+            CityOrientationTeamLobbyView(ownerType: ownerType, ownerID: ownerID, scopeTitle: scopeTitle)
+        } else {
+            legacyBody
+        }
+    }
+
+    private var legacyBody: some View {
         List {
             if let scopeTitle, !scopeTitle.isEmpty {
                 Text(verbatim: scopeTitle).cyText(.meta).foregroundStyle(CYColor.textSecondary)
