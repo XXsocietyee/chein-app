@@ -14,7 +14,9 @@ class OfficialSourceChecks(unittest.TestCase):
     def test_only_seven_source_backed_read_routes(self):
         service = read("Core/OfficialEventService.swift")
         routes = set(re.findall(r'"(api/official/[^"\n]+)"', service))
-        expected = {"api/official/events", r"api/official/events/\(id)", "api/official/my-events", "api/official/v2/party-inbox", "api/official/can-publish", "api/official/my-published", r"api/official/broadcast/\(id)/stats"}
+        expected = {"api/official/events", r"api/official/events/\(id)", "api/official/my-events", "api/official/v2/party-inbox", "api/official/can-publish", "api/official/my-published", r"api/official/broadcast/\(id)/stats",
+                    # ROAM-r11-2 (D-73): MP subpackageRoam/components/cy/scene-roam-task-list/index.js:62-66.
+                    "api/official/active-for-roam"}
         self.assertEqual(routes, expected)
         self.assertEqual(re.findall(r'httpMethod\s*=\s*"([A-Z]+)"', service), ["GET", "GET"])
         self.assertNotIn("request.httpBody =", service)
@@ -160,7 +162,7 @@ class OfficialSourceChecks(unittest.TestCase):
             self.assertNotIn(flag + "=true", model)
         service = read("Core/OfficialEventService.swift")
         routes = set(re.findall(r'"(api/official/[^"\n]+)"', service))
-        self.assertEqual(len(routes), 7)
+        self.assertEqual(len(routes), 8)  # ROAM-r11-2 adds api/official/active-for-roam (MP scene-roam-task-list/index.js:62-66)
         self.assertIn("#if DEBUG", read("Core/OfficialEventSyntheticFixtures.swift"))
         spec_path = "docs/release/ui-strings-pages-activity-list-index.json"
         spec = json.loads(read(spec_path))
