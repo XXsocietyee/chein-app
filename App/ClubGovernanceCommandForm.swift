@@ -416,11 +416,13 @@ import SwiftUI
                     coordinator: coordinator, formID: route.id)
             }
             if let groupCode {
+                // CLB-r10-nat-group-code-01 (MP group-code wxml:38-39): the session name is the Section header.
                 Section {
                     ClubGroupCodePresentation(value: groupCode,
                         current: identity == access.identity && scenePhase == .active,
-                        onReissue: busy || locked ? nil : { Task { await reissueGroupCode() } },
-                        sessionName: ClubRoleActivityLabel.entry(sessionLabel))
+                        onReissue: busy || locked ? nil : { Task { await reissueGroupCode() } })
+                } header: {
+                    if let name = ClubRoleActivityLabel.entry(sessionLabel) { Text(verbatim: name) }
                 }
             }
             if let receipt {
