@@ -3,6 +3,8 @@ import SwiftUI
 /// Embed in the root's NavigationStack or present through DiscoveryHomeView.
 @MainActor
 struct DiscoveryTemplateBrowserView: View {
+    /// R9-PC-A-N1: the MP bell icon follows Dynamic Type.
+    @ScaledMetric(relativeTo: .body) private var bellSide: CGFloat = 24
     let reader: any DiscoveryReading
     let authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)?
     let authoringRevision: UInt64
@@ -128,7 +130,7 @@ struct DiscoveryTemplateBrowserView: View {
                     NavigationLink { inboxDestination() } label: {
                         MPAsset.FeatureIcon.iconBell.resizable().scaledToFit()
                             .accessibilityHidden(true)
-                            .frame(width: 24, height: 24)
+                            .frame(width: bellSide, height: bellSide)
                             .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                     }
                     .accessibilityLabel(Text("discovery.templateTab.inbox"))
