@@ -287,12 +287,15 @@ struct SessionRootView: View {
     @State private var clubTabBarVisibility = CYTabBarVisibility()
     @State private var mineTabBarVisibility = CYTabBarVisibility()
     @State private var isTabBarHidden = false
+    /// L1 P-004: sign-in opens as one sheet over the current tab; the optional action resumes after it.
+    @State private var showsRootSignIn = false
+    @State private var resumeAfterSignIn: (@MainActor () -> Void)?
     #if DEBUG
     @State private var showsScannerFixture = false
     #endif
 
     @ViewBuilder private var homeTab: some View {
-                    SessionHomeFeedView(onSignIn:{ selectedTab = .mine },onStartRoam:{ selectedTab = .roam }).cyFloatingTabBarClearance()
+                    SessionHomeFeedView(onSignIn:{ requestSignIn() },onStartRoam:{ selectedTab = .roam })
                         .environment(\.cyTabBarVisibility, homeTabBarVisibility)
     }
 
@@ -311,7 +314,6 @@ struct SessionRootView: View {
         } else {
                     SessionCityRoamRoot(liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost)) },
                                         passportDestination: { AnyView(roamBrowser) }, onChooseArea: { showsAreaPicker = true })
-                        .cyFloatingTabBarClearance()
                         .environment(\.cyTabBarVisibility, roamTabBarVisibility)
         }
     }
@@ -330,7 +332,8 @@ struct SessionRootView: View {
     /// Native r2 map home: the readers and destinations the City root and `roamBrowser` already use.
     private var roamMapHomeDependencies: RoamMapHomeDependencies {
         let session = session
-        let signIn: () -> Void = { selectedTab = .mine }
+        let signIn: () -> Void = { requestSignIn() }
+        let openAccount: () -> Void = { openAccountOrSignIn() }
         return RoamMapHomeDependencies(
             roamReader: session.roamReader,
             entryReader: session.roamEntryNearbyReader,
@@ -359,16 +362,14 @@ struct SessionRootView: View {
             myTeamsDestination: { AnyView(SessionRoamNearbyTeamsView(initialTab: 1, onSignIn: signIn)) },
             nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView().environment(\.nearbyTeamsSignIn, signIn)) },
             nearbyTeamDestination: { AnyView(SessionRoamNearbyTeamsView(focusTeamID: $0, onSignIn: signIn)) },
-            searchDestination: { keyword in
-                AnyView(SessionLinkedSearchView(initialQuery: GlobalSearchQuery(keyword: keyword), startsOnMap: true, onSignIn: signIn))
-            },
+            searchReader: session.searchMapReader,
             onChooseArea: { showsAreaPicker = true },
-            onOpenAccount: signIn)
+            onOpenAccount: openAccount)
     }
 
     /// The shipped roam page (走起, 漫游护照, tools). Owner Q9: the 漫游 root is the map; this page opens from it.
     @ViewBuilder private var roamBrowser: some View {
-                    RoamBrowserView(reader:session.roamReader,nearbyEventsReader:session.roamNearbyEventsReader,nearbyPlayersReader:session.roamNearbyPlayersReader,onChooseArea:{ showsAreaPicker=true },onOpenAccount:{ selectedTab = .mine },experienceReader:session.roamExperienceReader, albumMetadataReader:session.roamAlbumMetadataReader, tileMemoryReader:session.roamTileMemoryReader, sessionFactReader:session.roamSessionFactReader, cityDestination: { AnyView(SessionCityPlayerView()) }, territoryDestination: { AnyView(SessionRoamTerritoryView()) }, nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView().environment(\.nearbyTeamsSignIn, { selectedTab = .mine })) }, stampDestination: { AnyView(SessionRoamStampCameraView()) }, liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost)) }, posterDestination: { AnyView(SessionRoamPosterView(node: $0)) }, eventDestination: { target in
+                    RoamBrowserView(reader:session.roamReader,nearbyEventsReader:session.roamNearbyEventsReader,nearbyPlayersReader:session.roamNearbyPlayersReader,onChooseArea:{ showsAreaPicker=true },onOpenAccount:{ openAccountOrSignIn() },experienceReader:session.roamExperienceReader, albumMetadataReader:session.roamAlbumMetadataReader, tileMemoryReader:session.roamTileMemoryReader, sessionFactReader:session.roamSessionFactReader, cityDestination: { AnyView(SessionCityPlayerView()) }, territoryDestination: { AnyView(SessionRoamTerritoryView()) }, nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView().environment(\.nearbyTeamsSignIn, { requestSignIn() })) }, stampDestination: { AnyView(SessionRoamStampCameraView()) }, liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost)) }, posterDestination: { AnyView(SessionRoamPosterView(node: $0)) }, eventDestination: { target in
                         switch target {
                         case .activity(let id): return AnyView(ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true))
                         case .topic(let id): return AnyView(SessionTopicDetailView(id: id, session: session))
@@ -378,7 +379,7 @@ struct SessionRootView: View {
                     }, playerProfileDestination: { memberID in
                         AnyView(SocialPublicProfileView(memberID: memberID, reader: session.socialAccountReader,
                             squareReader: session.squareReader, actions: nil).id(session.socialAccountReader.identity))
-                    }, couponWalletDestination: session.makeRoamCouponWalletDestination(reader: session.roamReader), officialRouteReader: session.officialRouteReader, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory, entryReader: session.roamEntryNearbyReader, entryTeams: { await session.roamEntryTeams(area: $0) }, myTeamsDestination: { AnyView(SessionRoamNearbyTeamsView(initialTab: 1, onSignIn: { selectedTab = .mine })) }, nearbyTeamDestination: { AnyView(SessionRoamNearbyTeamsView(focusTeamID: $0, onSignIn: { selectedTab = .mine })) }, toolsReader: session.roamPassportToolsReader, passportToolsReader: session.roamPassportToolsReader, privateToolsReader: session.roamPrivateToolsReader, anniversaryRouteDestination: { topicID in
+                    }, couponWalletDestination: session.makeRoamCouponWalletDestination(reader: session.roamReader), officialRouteReader: session.officialRouteReader, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory, entryReader: session.roamEntryNearbyReader, entryTeams: { await session.roamEntryTeams(area: $0) }, myTeamsDestination: { AnyView(SessionRoamNearbyTeamsView(initialTab: 1, onSignIn: { requestSignIn() })) }, nearbyTeamDestination: { AnyView(SessionRoamNearbyTeamsView(focusTeamID: $0, onSignIn: { requestSignIn() })) }, toolsReader: session.roamPassportToolsReader, passportToolsReader: session.roamPassportToolsReader, privateToolsReader: session.roamPrivateToolsReader, anniversaryRouteDestination: { topicID in
                         guard let id = Int(topicID), id > 0, String(id) == topicID else {
                             return AnyView(TopicIssueView(issue: .unavailable))
                         }
@@ -394,14 +395,12 @@ struct SessionRootView: View {
     @ViewBuilder private var publishTab: some View {
                     NavigationStack { PublishTabRootView() }
                         .id(session.sessionRevision)
-                        .cyFloatingTabBarClearance()
                         .environment(\.cyTabBarVisibility, publishTabBarVisibility)
     }
 
     @ViewBuilder private var clubTab: some View {
-                    NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab = .mine },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, publicRoster:session.clubPublicRosterReader, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }, requestedClubID: $deepLinkClubID, authorSquare: session.squareReader).modifier(SessionMessagingToolbarEntry(session: session)) }
+                    NavigationStack { ClubHomeView(reader:session,onSignIn:{ requestSignIn() },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, publicRoster:session.clubPublicRosterReader, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }, requestedClubID: $deepLinkClubID, authorSquare: session.squareReader).modifier(SessionMessagingToolbarEntry(session: session)) }
                         .id(session.sessionRevision)
-                        .cyFloatingTabBarClearance()
                         .environment(\.cyTabBarVisibility, clubTabBarVisibility)
     }
 
@@ -409,8 +408,33 @@ struct SessionRootView: View {
                     Group {
                         if let account=session.account { PassportView(account:account,privateHomeCoordinator:session.privateHomeCoordinator,nativeHomeReturnSelection:session.nativeHomeReturnSelection,onOpenGuideDestination:{ destination in selectedTab = destination == .roam ? .roam : .home },presentsTicketPass:$deepLinkTicketPass).id(session.sessionRevision) }
                         else { WelcomeView() }
-                    }.cyFloatingTabBarClearance()
+                    }
                         .environment(\.cyTabBarVisibility, mineTabBarVisibility)
+    }
+
+    /// L1 P-004: present sign-in in place (no tab switch). Already signed in: run the action now.
+    private func requestSignIn(then resume: (@MainActor () -> Void)? = nil) {
+        guard session.account == nil else { resume?(); return }
+        resumeAfterSignIn = resume
+        showsRootSignIn = true
+    }
+
+    /// The passport / account entries: the 我的 tab when signed in, the in-place sign-in sheet otherwise.
+    private func openAccountOrSignIn() {
+        if session.account == nil { requestSignIn() } else { selectedTab = .mine }
+    }
+
+    /// The sheet closed. With an account, the waiting action resumes and VoiceOver hears that sign-in finished.
+    private func finishRootSignIn() {
+        let resume = resumeAfterSignIn
+        resumeAfterSignIn = nil
+        guard session.account != nil else { return }
+        if IslandCenter.isEnabled {
+            IslandCenter.shared.status(.key("nativeR2.shell.signedIn"), tone: .success)
+        } else {
+            AccessibilityNotification.Announcement(appLocalized("nativeR2.shell.signedIn", locale: Locale.current)).post()
+        }
+        resume?()
     }
 
     /// Native r2: the system tab bar (`TabView` + `Tab`, SF Symbols, system tint). No custom bar, pill or haptic.
@@ -435,7 +459,13 @@ struct SessionRootView: View {
                 }
             }
         }
-                .id(session.account?.id ?? 0).environment(\.rootTabSwitch, RootTabSwitch { selectedTab = $0 })
+                // L1 P-002: no `.id(account)`; signing in keeps every tab's navigation and scroll state.
+                .environment(\.rootTabSwitch, RootTabSwitch { selectedTab = $0 })
+                .environment(\.rootSignIn, RootSignIn { requestSignIn(then: $0) })
+                .cySheet(isPresented: $showsRootSignIn, onDismiss: { finishRootSignIn() }) {
+                    LoginView(intent: .player).environmentObject(session)
+                }
+                .sensoryFeedback(.success, trigger: session.account?.id) { old, new in old == nil && new != nil }
                 .environment(\.growthSessionProfile, session.account.map { GrowthSessionProfile(name: $0.nickname, avatar: $0.avatar) })
                 .sessionOfflineBanner(reachability: reachability, session: session)
                 .cyScreenStyle()

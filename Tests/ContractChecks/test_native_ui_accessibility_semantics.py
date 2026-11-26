@@ -65,10 +65,11 @@ class NativeUIAccessibilitySemanticsChecks(unittest.TestCase):
 
     def test_essential_legal_source_notice_uses_adaptive_primary_contrast(self):
         view = source('App/SettingsLegalDocumentView.swift')
-        # Restyle: design-system tokens (secondary 10.3:1, tertiary 7.4:1 light) replace the system semantic styles.
-        self.assertIn('Text("settingsNative.legal.sourceNotice").cyText(.meta).foregroundStyle(CYColor.textSecondary)', view)
-        # B-AG-01 (fix-r3): the version + date footer is one ViewThatFits block with the same tertiary token.
-        self.assertIn('.cyText(.meta).foregroundStyle(CYColor.textTertiary).padding(.top, CYSpacing.lg)', view)
+        # native r2 (84fd0d480): the system adaptive secondary label style (light/dark/increased-contrast aware)
+        # replaces the design-system tokens; never the low-contrast tertiary style or an opacity fade.
+        self.assertIn('Label("settingsNative.legal.sourceNotice", systemImage: "info.circle").font(.footnote).foregroundStyle(.secondary)', view)
+        # B-AG-01 (fix-r3): the version + date footer is one ViewThatFits block with the same secondary style.
+        self.assertIn('.font(.footnote).foregroundStyle(.secondary).padding(.top, 16)', view)
         self.assertNotIn('.foregroundStyle(.tertiary)', view)
         self.assertNotIn('.opacity(', view)
 
@@ -96,8 +97,11 @@ class NativeUIAccessibilitySemanticsChecks(unittest.TestCase):
         self.assertIn('let message = app.staticTexts["team.message"]', source('Tests/AppUITests/TeamFlowTests.swift'))
         view = source('App/OrderPassPreviewView.swift')
         self.assertNotIn('}.accessibilityIdentifier("orderLifecycle.pass.preview")', view)
-        # The disabled state is the shared empty-state (message leaf id) with its own container id.
-        self.assertIn('detail: "verificationCode.phase.disabled",\n                             messageIdentifier: "orderLifecycle.pass.preview")\n                    .accessibilityIdentifier("verificationCode.disabled")', view)
+        # The disabled state is the system empty state: the title leaf carries the preview id, the description says
+        # disabled, and the container keeps its own id (native r2 ContentUnavailableView).
+        self.assertRegex(view, r'ContentUnavailableView \{\s*Label \{ Text\("verificationCode\.ticket\.title"\)\.accessibilityIdentifier\("orderLifecycle\.pass\.preview"\) \}'
+                               r' icon: \{ Image\(systemName: "ticket"\) \}\s*\} description: \{\s*Text\("verificationCode\.phase\.disabled"\)\s*\}'
+                               r'\s*\.accessibilityIdentifier\("verificationCode\.disabled"\)')
 
     def test_shelf_account_event_is_delivered_inside_active_review(self):
         fixture = source('App/TemplateAuthoringFixtureSupport.swift')

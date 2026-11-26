@@ -8,7 +8,6 @@ import SwiftUI
     var currentDocument: BankWithdrawalCurrentDocument? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.cyPalette) private var palette
     @Environment(\.analyticsEventClient) private var analytics
     @State private var draft = BankWithdrawalDraft()
     @State private var snapshot: BankWithdrawalDraft?
@@ -27,30 +26,30 @@ import SwiftUI
     private var available: Bool { adapter?.isAvailable == true }
     private var hasInput: Bool { draft != BankWithdrawalDraft() }
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.xl) {
-                Cloud02ScreenHeader(title: "bank.withdrawal.title", seed: "bank-withdrawal", symbol: "lock.shield")
-                if let receipt {
-                    receiptBlock(receipt)
-                } else {
-                    notice
-                    CYSectionHeader("bank.withdrawal.destination")
+        // G-060 (design P1): system Form chrome (Wallet › Transfer to Bank). Same fields, order, identifiers,
+        // gates and clearing; the hero header, card backgrounds, CY rows/chips/skeleton and sheet glass are gone.
+        Form {
+            if let receipt {
+                receiptSections(receipt)
+            } else {
+                noticeSection
+                Section {
                     destinationFields
-                    CYSectionHeader("bank.withdrawal.amount")
-                    amountField
-                    NavigationLink { WalletWithdrawalsView(reader: reader) } label: {
-                        CYListRow("wallet.withdrawals", trailing: .chevron) { CYRowIcon(systemImage: "clock.arrow.circlepath") }
-                    }
-                    .buttonStyle(.plain)
-                    .questifyHidesLinkIndicator()
-                    .accessibilityLabel(Text("wallet.withdrawals"))
+                } header: {
+                    Text("bank.withdrawal.destination")
                 }
+                Section {
+                    amountField
+                } header: {
+                    Text("bank.withdrawal.amount")
+                } footer: {
+                    Text("bank.withdrawal.feeArrivalUnknown")
+                }
+                withdrawalsSection
             }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.vertical, CYSpacing.lg)
         }
-        .cyHeroScreen()
-        .cyDomainPageBackground()
+        .navigationTitle(Text("bank.withdrawal.title"))
+        .navigationBarTitleDisplayMode(.inline)
         .scrollDismissesKeyboard(.interactively)
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if receipt == nil { reviewBar }
@@ -70,93 +69,76 @@ import SwiftUI
         }
         .cySheet(isPresented: $showReview, onDismiss: { snapshot = nil; review = nil; proof = nil }) {
             reviewSheet
-                .cyPlayerSheetGlass()
         }
         .onChange(of: reader.scope) { _, _ in clear() }
         .onChange(of: scenePhase) { _, phase in if phase == .background { clear() } }
         .onChange(of: showReview) { _, shown in if shown { commitPulse += 1 } }
         .onChange(of: issue) { _, new in if new != nil { warnPulse += 1 } }
-        .cyHaptic(.impactMedium, trigger: commitPulse)
-        .cyHaptic(.warning, trigger: warnPulse)
-        .cyHaptic(.impactMedium, trigger: receipt?.applicationID) { old, new in old == nil && new != nil }
+        .sensoryFeedback(.impact(weight: .medium), trigger: commitPulse)
+        .sensoryFeedback(.warning, trigger: warnPulse)
+        .sensoryFeedback(.success, trigger: receipt?.applicationID) { old, new in old == nil && new != nil }
         .onDisappear { clear() }
         .cyPushedChrome(domain: .player)
         .appSwitcherPrivacyShield()
     }
 
-    private var notice: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
+    private var noticeSection: some View {
+        Section {
             if reader.scope == nil {
-                statusLine("person.crop.circle.badge.exclamationmark", "wallet.login", tone: palette.textSecondary)
+                statusLine("person.crop.circle.badge.exclamationmark", "wallet.login", tint: .secondary)
             } else if !available {
-                statusLine("lock.fill", "bank.withdrawal.unavailable", tone: palette.textPrimary)
+                statusLine("lock.fill", "bank.withdrawal.unavailable", tint: .secondary)
             }
             if adapter?.hasUnresolvedOutcome == true {
-                statusLine("exclamationmark.triangle.fill", "bank.withdrawal.unresolved", tone: palette.warning)
+                statusLine("exclamationmark.triangle.fill", "bank.withdrawal.unresolved", tint: .orange)
             }
-            Text("bank.withdrawal.privacy")
-                .cyText(.bodyCompact)
-                .foregroundStyle(palette.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
             if let currentDocument {
                 Link(destination: currentDocument.officialURL) {
-                    HStack(spacing: CYSpacing.sm) {
-                        CYRowIcon(systemImage: "doc.text")
-                        Text("bank.withdrawal.currentDocument")
-                            .cyText(.cardTitle)
-                            .foregroundStyle(palette.textPrimary)
-                            .fixedSize(horizontal: false, vertical: true)
-                        Spacer(minLength: CYSpacing.sm)
-                        Image(systemName: "arrow.up.right")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(palette.textTertiary)
-                            .accessibilityHidden(true)
-                    }
-                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    Label("bank.withdrawal.currentDocument", systemImage: "doc.text")
                 }
                 .accessibilityLabel(Text("bank.withdrawal.currentDocument"))
             }
+        } footer: {
+            Text("bank.withdrawal.privacy")
         }
-        .padding(CYSpacing.lg)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
     }
 
-    private var destinationFields: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            labeled("bank.withdrawal.name") {
-                TextField("bank.withdrawal.name", text: $draft.realname)
-                    .focused($focused, equals: .name)
-                    .textContentType(.name)
-                    .accessibilityIdentifier("bank.withdrawal.name")
-                    .accessibilityLabel(Text("bank.withdrawal.name"))
-                    .submitLabel(.next)
-                    .onSubmit { focused = .bank }
+    private var withdrawalsSection: some View {
+        Section {
+            NavigationLink { WalletWithdrawalsView(reader: reader) } label: {
+                Label("wallet.withdrawals", systemImage: "clock.arrow.circlepath")
             }
-            labeled("bank.withdrawal.bank") {
-                TextField("bank.withdrawal.bank", text: $draft.bankName)
-                    .focused($focused, equals: .bank)
-                    .submitLabel(.next)
-                    .onSubmit { focused = .account }
-                    .accessibilityIdentifier("bank.withdrawal.bank")
-                    .accessibilityLabel(Text("bank.withdrawal.bank"))
-            }
-            labeled("bank.withdrawal.account") {
-                SecureField("bank.withdrawal.account", text: $draft.bankAccount)
-                    .focused($focused, equals: .account)
-                    .keyboardType(.numbersAndPunctuation)
-                    .textContentType(.none)
-                    .accessibilityIdentifier("bank.withdrawal.account")
-                    .accessibilityLabel(Text("bank.withdrawal.account"))
-            }
-            labeled("bank.withdrawal.phone") {
-                SecureField("bank.withdrawal.phone", text: $draft.mobilephone)
-                    .focused($focused, equals: .phone)
-                    .keyboardType(.phonePad)
-                    .textContentType(.none)
-                    .accessibilityIdentifier("bank.withdrawal.phone")
-                    .accessibilityLabel(Text("bank.withdrawal.phone"))
-            }
+            .accessibilityLabel(Text("wallet.withdrawals"))
+        }
+    }
+
+    @ViewBuilder private var destinationFields: some View {
+        Group {
+            TextField("bank.withdrawal.name", text: $draft.realname)
+                .focused($focused, equals: .name)
+                .textContentType(.name)
+                .accessibilityIdentifier("bank.withdrawal.name")
+                .accessibilityLabel(Text("bank.withdrawal.name"))
+                .submitLabel(.next)
+                .onSubmit { focused = .bank }
+            TextField("bank.withdrawal.bank", text: $draft.bankName)
+                .focused($focused, equals: .bank)
+                .submitLabel(.next)
+                .onSubmit { focused = .account }
+                .accessibilityIdentifier("bank.withdrawal.bank")
+                .accessibilityLabel(Text("bank.withdrawal.bank"))
+            SecureField("bank.withdrawal.account", text: $draft.bankAccount)
+                .focused($focused, equals: .account)
+                .keyboardType(.numbersAndPunctuation)
+                .textContentType(.none)
+                .accessibilityIdentifier("bank.withdrawal.account")
+                .accessibilityLabel(Text("bank.withdrawal.account"))
+            SecureField("bank.withdrawal.phone", text: $draft.mobilephone)
+                .focused($focused, equals: .phone)
+                .keyboardType(.phonePad)
+                .textContentType(.none)
+                .accessibilityIdentifier("bank.withdrawal.phone")
+                .accessibilityLabel(Text("bank.withdrawal.phone"))
         }
         .autocorrectionDisabled()
         .textInputAutocapitalization(.never)
@@ -164,164 +146,151 @@ import SwiftUI
     }
 
     private var amountField: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            labeled("bank.withdrawal.amountCNY") {
-                TextField("bank.withdrawal.amountCNY", text: $draft.amount)
-                    .focused($focused, equals: .amount)
-                    .keyboardType(.decimalPad)
-                    .monospacedDigit()
-                    .accessibilityIdentifier("bank.withdrawal.amount")
-                    .accessibilityLabel(Text("bank.withdrawal.amountCNY"))
-            }
-            Text("bank.withdrawal.feeArrivalUnknown")
-                .cyText(.meta)
-                .foregroundStyle(palette.textTertiary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
+        TextField("bank.withdrawal.amountCNY", text: $draft.amount)
+            .focused($focused, equals: .amount)
+            .keyboardType(.decimalPad)
+            .monospacedDigit()
+            .accessibilityIdentifier("bank.withdrawal.amount")
+            .accessibilityLabel(Text("bank.withdrawal.amountCNY"))
     }
 
     private var reviewBar: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+        VStack(alignment: .leading, spacing: 8) {
             if let issue { issueLine(issue, identified: true) }
-            Cloud02ActionButton(title: "bank.withdrawal.review", identifier: "bank.withdrawal.review", systemImage: "checkmark.circle", primary: true, isDisabled: busy || reader.scope == nil || adapter?.hasUnresolvedOutcome == true) {
+            Button {
                 localReview()
+            } label: {
+                Label("bank.withdrawal.review", systemImage: "checkmark.circle").frame(maxWidth: .infinity)
             }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .disabled(busy || reader.scope == nil || adapter?.hasUnresolvedOutcome == true)
+            .accessibilityIdentifier("bank.withdrawal.review")
+            .accessibilityLabel(Text("bank.withdrawal.review"))
         }
-        .padding(.horizontal, CYSpacing.pageHorizontal)
-        .padding(.top, CYSpacing.sm)
-        .padding(.bottom, CYSpacing.sm)
-        .background(palette.bgPage)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(.bar)
     }
 
-    private func receiptBlock(_ receipt: BankWithdrawalReceipt) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.lg) {
-            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-                Image(systemName: "clock.badge.checkmark")
-                    .foregroundStyle(palette.textSecondary)
-                    .accessibilityHidden(true)
+    @ViewBuilder private func receiptSections(_ receipt: BankWithdrawalReceipt) -> some View {
+        Section {
+            Label {
                 Text("bank.withdrawal.accepted")
-                    .cyText(.body)
-                    .foregroundStyle(palette.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("bank.withdrawal.receipt")
+            } icon: {
+                Image(systemName: "clock.badge.checkmark").foregroundStyle(.secondary)
             }
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text("bank.withdrawal.applicationID")
-                    .cyText(.meta)
-                    .foregroundStyle(palette.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+            LabeledContent {
                 Text(verbatim: String(receipt.applicationID))
-                    .cyText(.dataXL)
+                    .font(.title3.weight(.semibold))
                     .monospacedDigit()
-                    .foregroundStyle(palette.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .foregroundStyle(.primary)
+                    .textSelection(.enabled)
+            } label: {
+                Text("bank.withdrawal.applicationID")
             }
             .accessibilityElement(children: .combine)
-            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-                Image(systemName: "exclamationmark.circle")
-                    .foregroundStyle(palette.warning)
-                    .accessibilityHidden(true)
+            Label {
                 Text("bank.withdrawal.notPaid")
-                    .cyText(.body)
-                    .foregroundStyle(palette.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
+            } icon: {
+                Image(systemName: "exclamationmark.circle").foregroundStyle(.orange)
             }
-            NavigationLink { WalletWithdrawalsView(reader: reader) } label: {
-                CYListRow("wallet.withdrawals", trailing: .chevron) { CYRowIcon(systemImage: "clock.arrow.circlepath") }
-            }
-            .buttonStyle(.plain)
-            .questifyHidesLinkIndicator()
-            .accessibilityLabel(Text("wallet.withdrawals"))
         }
-        .padding(CYSpacing.lg)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        withdrawalsSection
     }
 
     private var reviewSheet: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: CYSpacing.xl) {
-                    Cloud02ScreenHeader(title: "bank.withdrawal.checkDetails", seed: "bank-withdrawal-review", symbol: "lock.shield")
-                    if let snapshot {
-                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                            CYListRow("bank.withdrawal.amountCNY", trailing: .value(amountText(snapshot))) { CYRowIcon(systemImage: "yensign.circle") }
-                            CYListRow("bank.withdrawal.name", trailing: .value(cloud02Known(snapshot.realname))) { CYRowIcon(systemImage: "person") }
-                            CYListRow("bank.withdrawal.bank", trailing: .value(cloud02Known(snapshot.bankName))) { CYRowIcon(systemImage: "building.columns") }
-                            CYListRow("bank.withdrawal.account", trailing: .value(cloud02Known(snapshot.accountMask))) { CYRowIcon(systemImage: "creditcard") }
-                            CYListRow("bank.withdrawal.phone", trailing: .value(cloud02Known(snapshot.phoneMask))) { CYRowIcon(systemImage: "phone") }
+            Form {
+                if let snapshot {
+                    Section {
+                        LabeledContent { Text(verbatim: amountText(snapshot)).monospacedDigit() } label: {
+                            Label("bank.withdrawal.amountCNY", systemImage: "yensign.circle")
                         }
-                        .privacySensitive()
-                    }
-                    if let proof {
-                        CYSectionHeader("bank.withdrawal.serverConfirmation")
-                        VStack(alignment: .leading, spacing: CYSpacing.md) {
-                            if proof.riskLevel == "WARNING" {
-                                CYStatusChip("bank.withdrawal.serverWarning", tone: .warning, systemImage: "exclamationmark.triangle")
-                            }
-                            Text(verbatim: cloud02Known(proof.question))
-                                .cyText(.body)
-                                .foregroundStyle(palette.textPrimary)
-                                .fixedSize(horizontal: false, vertical: true)
-                            Text(verbatim: cloud02Known(proof.consequence))
-                                .cyText(.bodyCompact)
-                                .foregroundStyle(palette.textSecondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                            ForEach(Array(proof.safetyMessages.enumerated()), id: \.offset) { _, text in
-                                Text(verbatim: cloud02Known(text))
-                                    .cyText(.bodyCompact)
-                                    .foregroundStyle(palette.textSecondary)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                            Text("bank.withdrawal.feeArrivalUnknown")
-                                .cyText(.meta)
-                                .foregroundStyle(palette.textTertiary)
-                                .fixedSize(horizontal: false, vertical: true)
-                            Cloud02ActionButton(title: "bank.withdrawal.confirmSubmit", identifier: "bank.withdrawal.confirmSubmit", systemImage: "paperplane.fill", primary: true, isDisabled: busy) {
-                                Task { await submit(proof) }
-                            }
-                            Button("bank.withdrawal.reject", role: .destructive) { Task { await reject(proof) } }
-                                .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
-                                .disabled(busy)
-                                .accessibilityLabel(Text("bank.withdrawal.reject"))
+                        LabeledContent { Text(verbatim: cloud02Known(snapshot.realname)) } label: {
+                            Label("bank.withdrawal.name", systemImage: "person")
                         }
-                    } else {
-                        VStack(alignment: .leading, spacing: CYSpacing.md) {
-                            if adapter?.hasUnresolvedOutcome == true {
-                                statusLine("exclamationmark.triangle.fill", "bank.withdrawal.unresolved", tone: palette.warning)
-                            } else {
-                                Text("bank.withdrawal.notSubmitted")
-                                    .cyText(.body)
-                                    .foregroundStyle(palette.textPrimary)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                            if snapshot != nil {
-                                Text("bank.withdrawal.disclosure")
-                                    .cyText(.bodyCompact)
-                                    .foregroundStyle(palette.textSecondary)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                            if !available {
-                                statusLine("lock.fill", "bank.withdrawal.unavailable", tone: palette.textPrimary)
-                            }
-                            Cloud02ActionButton(title: "bank.withdrawal.prepare", identifier: "bank.withdrawal.prepare", systemImage: "lock", primary: true, isDisabled: !available || busy || review == nil) {
-                                Task { await prepare() }
-                            }
+                        LabeledContent { Text(verbatim: cloud02Known(snapshot.bankName)) } label: {
+                            Label("bank.withdrawal.bank", systemImage: "building.columns")
+                        }
+                        LabeledContent { Text(verbatim: cloud02Known(snapshot.accountMask)) } label: {
+                            Label("bank.withdrawal.account", systemImage: "creditcard")
+                        }
+                        LabeledContent { Text(verbatim: cloud02Known(snapshot.phoneMask)) } label: {
+                            Label("bank.withdrawal.phone", systemImage: "phone")
                         }
                     }
-                    if busy {
-                        CYSkeleton().accessibilityLabel(Text("wallet.loading"))
-                        Text("wallet.loading")
-                            .cyText(.meta)
-                            .foregroundStyle(palette.textSecondary)
-                    }
-                    if let issue { issueLine(issue, identified: false) }
+                    .privacySensitive()
                 }
-                .padding(.horizontal, CYSpacing.pageHorizontal)
-                .padding(.vertical, CYSpacing.lg)
+                if let proof {
+                    Section {
+                        if proof.riskLevel == "WARNING" {
+                            statusLine("exclamationmark.triangle", "bank.withdrawal.serverWarning", tint: .orange)
+                        }
+                        Text(verbatim: cloud02Known(proof.question))
+                        Text(verbatim: cloud02Known(proof.consequence))
+                            .foregroundStyle(.secondary)
+                        ForEach(Array(proof.safetyMessages.enumerated()), id: \.offset) { _, text in
+                            Text(verbatim: cloud02Known(text))
+                                .foregroundStyle(.secondary)
+                        }
+                    } header: {
+                        Text("bank.withdrawal.serverConfirmation")
+                    } footer: {
+                        Text("bank.withdrawal.feeArrivalUnknown")
+                    }
+                    Section {
+                        Button {
+                            Task { await submit(proof) }
+                        } label: {
+                            Label("bank.withdrawal.confirmSubmit", systemImage: "paperplane.fill").fontWeight(.semibold)
+                        }
+                        .disabled(busy)
+                        .accessibilityIdentifier("bank.withdrawal.confirmSubmit")
+                        .accessibilityLabel(Text("bank.withdrawal.confirmSubmit"))
+                        Button("bank.withdrawal.reject", role: .destructive) { Task { await reject(proof) } }
+                            .disabled(busy)
+                            .accessibilityLabel(Text("bank.withdrawal.reject"))
+                    }
+                } else {
+                    Section {
+                        if adapter?.hasUnresolvedOutcome == true {
+                            statusLine("exclamationmark.triangle.fill", "bank.withdrawal.unresolved", tint: .orange)
+                        } else {
+                            Text("bank.withdrawal.notSubmitted")
+                        }
+                        if snapshot != nil {
+                            Text("bank.withdrawal.disclosure")
+                                .foregroundStyle(.secondary)
+                        }
+                        if !available {
+                            statusLine("lock.fill", "bank.withdrawal.unavailable", tint: .secondary)
+                        }
+                    }
+                    Section {
+                        Button {
+                            Task { await prepare() }
+                        } label: {
+                            Label("bank.withdrawal.prepare", systemImage: "lock").fontWeight(.semibold)
+                        }
+                        .disabled(!available || busy || review == nil)
+                        .accessibilityIdentifier("bank.withdrawal.prepare")
+                        .accessibilityLabel(Text("bank.withdrawal.prepare"))
+                    }
+                }
+                if busy {
+                    Section {
+                        ProgressView { Text("wallet.loading") }
+                            .frame(maxWidth: .infinity)
+                    }
+                }
+                if let issue {
+                    Section { issueLine(issue, identified: false) }
+                }
             }
-            .cyHeroScreen()
-            .cyDomainPageBackground()
+            .navigationTitle(Text("bank.withdrawal.checkDetails"))
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button("action.cancel") {
                     if let proof { Task { await reject(proof) } } else { clear() }
@@ -333,47 +302,22 @@ import SwiftUI
         .presentationDetents([.large])
     }
 
-    private func labeled<Content: View>(_ title: LocalizedStringKey, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(title)
-                .cyText(.meta)
-                .foregroundStyle(palette.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityHidden(true)
-            content()
-                .cyText(.body)
-                .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-        }
-        .padding(CYSpacing.lg)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
-    }
-
-    private func statusLine(_ symbol: String, _ key: LocalizedStringKey, tone: Color) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-            Image(systemName: symbol)
-                .foregroundStyle(tone)
-                .accessibilityHidden(true)
+    private func statusLine(_ symbol: String, _ key: LocalizedStringKey, tint: Color) -> some View {
+        Label {
             Text(key)
-                .cyText(.body)
-                .foregroundStyle(palette.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
+        } icon: {
+            Image(systemName: symbol).foregroundStyle(tint)
         }
-        .accessibilityElement(children: .contain)
     }
 
     private func issueLine(_ key: String, identified: Bool) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(palette.danger)
-                .accessibilityHidden(true)
+        Label {
             Text(LocalizedStringKey(key))
-                .cyText(.body)
-                .foregroundStyle(palette.danger)
-                .fixedSize(horizontal: false, vertical: true)
+                .foregroundStyle(.red)
                 .modifier(Cloud02Identifier(identified ? "bank.withdrawal.issue" : nil))
+        } icon: {
+            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.red)
         }
-        .accessibilityElement(children: .contain)
     }
 
     /// A validated amount stays as written, including a real zero. An amount that did not validate is unknown.

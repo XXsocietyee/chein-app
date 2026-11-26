@@ -15,6 +15,14 @@ protocol NativePlatformAudioDownloading: AnyObject {
     func stop()
 }
 extension AVAudioPlayer: NativePlatformAudioPlaying {}
+/// P-083 / P-084: position, length and speed for the story player. AVAudioPlayer has them; test stubs need not.
+@MainActor protocol NativePlatformAudioTimed: AnyObject {
+    var currentTime: TimeInterval { get set }
+    var duration: TimeInterval { get }
+    var rate: Float { get set }
+    var enableRate: Bool { get set }
+}
+extension AVAudioPlayer: NativePlatformAudioTimed {}
 
 @MainActor struct NativePlatformAudioDependencies {
     let notifications: NotificationCenter
@@ -86,7 +94,9 @@ private final class ApprovedAudioDownload: NSObject, NativePlatformAudioDownload
 }
 
 /// Authored only: callers must explicitly inject this after runtime and consent approval.
-/// Playback-only category, never requests microphone access or background-audio entitlement.
+/// Playback-only category, never requests microphone access. P-083: with `continuesInBackground` (story narration,
+/// `storyNarration()`), leaving the app keeps the spoken audio going (Info.plist `audio` background mode); every
+/// other signal (calls, unplugged headphones, media reset) still stops or pauses exactly as before.
 @MainActor final class NativePlatformAudioDriver: NSObject, PlatformAudioDriving, AVAudioPlayerDelegate {
     private let dependencies: NativePlatformAudioDependencies
     private var player: (any NativePlatformAudioPlaying)?
@@ -101,7 +111,18 @@ private final class ApprovedAudioDownload: NSObject, NativePlatformAudioDownload
     private var interruption = PlatformAudioInterruptionResume()
     // Device measurement only: request-to-playing latency, never the source URL.
     private var startInterval: NativePerformanceInterval?
+    /// P-083: false keeps the original rule (backgrounding stops and releases).
+    var continuesInBackground = false
+    /// P-084: the listener's speed; kept across clips of the same driver.
+    private var preferredRate: Float = 1
+    private var timed: (any NativePlatformAudioTimed)? { player as? any NativePlatformAudioTimed }
     override convenience init() { self.init(dependencies: .live) }
+    /// Story narration driver: keeps playing in the background, with Now Playing and remote commands.
+    static func storyNarration() -> NativePlatformAudioDriver {
+        let driver = NativePlatformAudioDriver()
+        driver.continuesInBackground = true
+        return driver
+    }
     init(dependencies: NativePlatformAudioDependencies) {
         self.dependencies = dependencies
         lifecycle = .init(notifications: dependencies.notifications, enqueue: dependencies.enqueue)
@@ -110,6 +131,7 @@ private final class ApprovedAudioDownload: NSObject, NativePlatformAudioDownload
     private func observeLifecycle() {
         lifecycle.observe { [weak self] signal in
             guard let self, self.event != nil else { return }
+            if signal == .enteredBackground && self.continuesInBackground { return }
             // setCategory during this driver's own start also emits a route change;
             // an incompatible category takeover remains a stop-worthy event.
             let decision = self.interruption.decide(signal, playing: self.player == nil ? nil : self.audible,
@@ -140,8 +162,10 @@ private final class ApprovedAudioDownload: NSObject, NativePlatformAudioDownload
                     try self.dependencies.activateSession(); self.sessionActive = true
                     let player = try self.dependencies.makePlayer(data)
                     self.player = player; player.delegate = self
+                    if let timed = player as? any NativePlatformAudioTimed { timed.enableRate = true; timed.rate = self.preferredRate }
                     guard player.prepareToPlay(), player.play() else { self.finish(.failed); return }
                     self.audible = true
+                    PlatformAudioTransportRegistry.active = self
                     self.startInterval?.end(); self.startInterval = nil
                     self.event?(.playing)
                 } catch { self.finish(.failed) }
@@ -162,6 +186,7 @@ private final class ApprovedAudioDownload: NSObject, NativePlatformAudioDownload
         lifecycle.invalidate()
         download?.cancel(); download = nil
         player?.stop(); player?.delegate = nil; player = nil; event = nil; audible = false; interruption.userActed()
+        if PlatformAudioTransportRegistry.active === self { PlatformAudioTransportRegistry.active = nil }
         let usedSession = sessionActive; sessionActive = false
         if usedSession { dependencies.deactivateSession() }
     }
@@ -179,6 +204,20 @@ private final class ApprovedAudioDownload: NSObject, NativePlatformAudioDownload
         Task { @MainActor [weak self, weak player] in
             guard let self, let player, self.player === player else { return }; self.finish(.failed)
         }
+    }
+}
+/// P-084: the story player's scrubber, ±15 s and speed menu read and drive the loaded clip through this seam.
+extension NativePlatformAudioDriver: PlatformAudioTransporting {
+    var elapsed: TimeInterval { timed?.currentTime ?? 0 }
+    var duration: TimeInterval { max(0, timed?.duration ?? 0) }
+    var playbackRate: Float { preferredRate }
+    func seek(to time: TimeInterval) {
+        guard let timed else { return }
+        timed.currentTime = min(max(0, time), max(0, timed.duration))
+    }
+    func setPlaybackRate(_ rate: Float) {
+        preferredRate = min(max(rate, 0.5), 2)
+        timed?.rate = preferredRate
     }
 }
 @MainActor struct NativePlatformMapOpener: PlatformMapOpening {

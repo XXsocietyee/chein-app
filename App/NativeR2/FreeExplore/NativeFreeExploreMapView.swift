@@ -38,6 +38,10 @@ import SwiftUI
     @State private var draw = NativeR2DrawOn()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.locale) private var locale
+    @Environment(\.scenePhase) private var scenePhase
+    /// P-070: foreground-only position for the distance to each store (never asks for permission, reads nothing
+    /// from the network; the same observer city orientation uses, without a run so it never reads in the background).
+    @StateObject private var location = CityOrientationLocationObserver()
 
     var body: some View {
         map
@@ -48,15 +52,29 @@ import SwiftUI
                 MapScaleView()
             }
             .toolbar { toolbar }
-            .sheet(isPresented: $showsSheet, onDismiss: openPendingStore) { sheet }
+            .sheet(isPresented: $showsSheet, onDismiss: openPendingStore) { sheet.cySheetBackdropExempt() }
             .navigationDestination(item: $selectedStore) { id in storeDestination(id) }
             .onAppear {
                 if arrival == nil { arrival = PlayArrivalService(runtime: model, location: arrivalLocation) }
                 if selectedStore == nil { showsSheet = true }
+                location.start()
                 // Native r2 M4: Dynamic Island shows the session as free explore (next stop from the same snapshot).
-                QuestLiveActivityCenter.shared.setPlayContext(mode: .explore, nextDistanceMeters: nil)
+                QuestLiveActivityCenter.shared.setPlayContext(mode: .explore, nextDistanceMeters: nextDistance)
             }
-            .onDisappear { showsSheet = false; arrival?.cancel(); QuestLiveActivityCenter.shared.clearPlayContext() }
+            .onDisappear {
+                showsSheet = false; arrival?.cancel(); location.stop()
+                QuestLiveActivityCenter.shared.clearPlayContext()
+            }
+            .onChange(of: scenePhase) { _, phase in if phase == .active { location.start() } }
+            // P-070: the Dynamic Island and the next-stop card share the distance to the next store.
+            .onChange(of: nextDistance) { _, meters in
+                QuestLiveActivityCenter.shared.setPlayContext(mode: .explore, nextDistanceMeters: meters)
+            }
+            // P-070: entering the arrival radius of the next store pops an arrival island with 我已到达 up front.
+            .onChange(of: nextInArrivalRange) { old, new in
+                guard !old, new, let node = nextStore else { return }
+                announceArrival(node)
+            }
             .onChange(of: selectedStore) { _, id in
                 // Back from a store page: the card returns to the first open store (the visited one may be done now).
                 if id == nil { focusedStore = nil; showsSheet = true }
@@ -86,6 +104,49 @@ import SwiftUI
         if let focusedStore, let node = stores.first(where: { $0.id == focusedStore }) { return node }
         let candidates = stores.filter { !snapshot.isDone($0) && !snapshot.isLocked($0) }
         return candidates.first { !skipped.contains($0.id) } ?? candidates.first
+    }
+
+    /// Metres from the last foreground fix to `node`, rounded to 10 m so the card does not jitter.
+    private func distance(to node: PlayNode) -> Double? {
+        guard let meters = location.distance(toLatitude: node.latitude, longitude: node.longitude) else { return nil }
+        return (meters / 10).rounded() * 10
+    }
+
+    private var nextDistance: Double? { nextStore.flatMap { distance(to: $0) } }
+
+    /// Same 50 m radius city orientation highlights; it only offers 我已到达, the server still decides.
+    private var nextInArrivalRange: Bool {
+        guard let nextDistance else { return false }
+        return nextDistance <= PlayArrivalPolicy.stationHighlightMeters
+    }
+
+    private func displayName(_ node: PlayNode) -> String {
+        if let name = node.name, !name.isEmpty { return name }
+        return appLocalized("playFree.store.untitled", locale: locale)
+    }
+
+    private func distanceText(_ meters: Double) -> Text {
+        Text(Measurement(value: meters, unit: UnitLength.meters), format: .measurement(width: .abbreviated, usage: .road))
+    }
+
+    private func announceArrival(_ node: PlayNode) {
+        guard IslandCenter.isEnabled else {
+            AccessibilityNotification.Announcement(appLocalized("nativeR2.freeExplore.map.arrival", locale: locale)
+                                                   + " " + displayName(node)).post()
+            return
+        }
+        let id = node.id
+        let canArrive = arrival?.offer(for: id) != nil
+        let action: IslandAction
+        if canArrive {
+            action = IslandAction(title: .key("playArrival.action"), systemImage: "location.fill", prominent: true) { arrivalStore = id }
+        } else {
+            action = IslandAction(title: .key("nativeR2.freeExplore.map.open"), systemImage: "storefront", prominent: true) { open(id) }
+        }
+        IslandCenter.shared.show(IslandItem(kind: .arrival, title: .key("nativeR2.freeExplore.map.arrival"),
+                                            subtitle: .verbatim(displayName(node)), actions: [action],
+                                            open: { if canArrive { arrivalStore = id } else { open(id) } },
+                                            lifetime: .seconds(6), dedupeKey: "freeExplore.arrival", startsExpanded: true))
     }
 
     private enum StopState { case done, next, locked, open }
@@ -124,8 +185,9 @@ import SwiftUI
             }
             if let snapshot {
                 ForEach(mappedStops) { stop in
-                    Annotation(stop.node.name ?? "", coordinate: stop.coordinate, anchor: .center) {
-                        stopPin(state(of: stop.node, in: snapshot))
+                    // P-066: the pin carries the store's name (untitled fallback) for the map label and VoiceOver.
+                    Annotation(displayName(stop.node), coordinate: stop.coordinate, anchor: .center) {
+                        stopPin(state(of: stop.node, in: snapshot), name: displayName(stop.node))
                             .accessibilityIdentifier("playFree.store.\(stop.node.id)")
                     }
                     .tag(stop.node.id)
@@ -135,7 +197,8 @@ import SwiftUI
         .task(id: mappedStops.count) { await draw.run(reduceMotion: reduceMotion) }
     }
 
-    private func stopPin(_ state: StopState, font: Font = .title) -> some View {
+    /// `name` is set on the map, where the pin is the whole element; list rows already show the name.
+    private func stopPin(_ state: StopState, font: Font = .title, name: String? = nil) -> some View {
         let symbol: String
         let color: Color
         switch state {
@@ -149,7 +212,8 @@ import SwiftUI
             .symbolRenderingMode(.palette)
             .foregroundStyle(Color.white, color)
             .nativeR2SymbolReplace()
-            .accessibilityLabel(Text(LocalizedStringKey(Self.stateKey(state))))
+            .accessibilityLabel(name.map { Text(verbatim: $0 + ", ") + Text(LocalizedStringKey(Self.stateKey(state))) }
+                                ?? Text(LocalizedStringKey(Self.stateKey(state))))
     }
 
     private static func stateKey(_ state: StopState) -> String {
@@ -261,6 +325,16 @@ import SwiftUI
                             .font(.subheadline)
                             .foregroundStyle(.orange)
                     }
+                    // P-070: distance to the next store, rolling as the walker moves.
+                    if let meters = distance(to: node) {
+                        Label { distanceText(meters) } icon: { Image(systemName: "location.fill") }
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                            .contentTransition(.numericText(value: meters))
+                            .animation(reduceMotion ? nil : .default, value: meters)
+                            .accessibilityIdentifier("nativeR2.freeExplore.next.distance")
+                    }
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("nativeR2.freeExplore.next")
@@ -340,9 +414,15 @@ import SwiftUI
     private func allStopsSection(_ snapshot: PlaySnapshot) -> some View {
         Section {
             ForEach(stores) { node in
+                HStack {
                 Button { open(node.id) } label: {
                     LabeledContent {
-                        Text(LocalizedStringKey(FreeExplorationPresentation.state(of: node, in: snapshot).titleKey))
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text(LocalizedStringKey(FreeExplorationPresentation.state(of: node, in: snapshot).titleKey))
+                            if let meters = distance(to: node) {
+                                distanceText(meters).font(.footnote).foregroundStyle(.secondary).monospacedDigit()
+                            }
+                        }
                     } label: {
                         Label {
                             VStack(alignment: .leading, spacing: 2) {
@@ -359,8 +439,18 @@ import SwiftUI
                         }
                     }
                 }
+                .buttonStyle(.borderless)
                 .tint(.primary)
                 .accessibilityIdentifier("playFree.store.\(node.id)")
+                // P-070: 我已到达 is a visible button on the row when the store offers it (was only a swipe action).
+                if arrival?.offer(for: node.id) != nil {
+                    Button { arrivalStore = node.id } label: {
+                        Label("playArrival.action", systemImage: "location.fill").labelStyle(.iconOnly)
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("playArrival.action.\(node.id)")
+                }
+                }
                 .swipeActions(edge: .trailing) {
                     if arrival?.offer(for: node.id) != nil {
                         Button("playArrival.action") { arrivalStore = node.id }.tint(.accentColor)

@@ -37,9 +37,11 @@ class MapVisualFoundationTests(unittest.TestCase):
         self.assertIn('QuestifyMapPinSymbol(symbol: pin.symbol, selected: pin.id == selectedID)', source)
         density = self.read('App/QuestifyDensityMap.swift')
         self.assertIn('QuestifyDensityMap(area: area, pins: pins, selectedID: selectedID', source)
-        self.assertIn('QuestifyMapPinSymbol(symbol: anchor.symbol, selected: anchor.id == selectedID)', density)
+        # P-038: live map pins are MapKit Markers; the map's own selection is the non-colour cue.
+        self.assertIn('Marker(anchor.title, systemImage: anchor.symbol, coordinate: coordinate(anchor.coordinate))', density)
+        self.assertIn('selection: markerSelection', density)
         self.assertIn('.accessibilityAddTraits(pin.id == selectedID ? .isSelected : [])', source)
-        self.assertIn('.accessibilityAddTraits(group.members.contains(where: { $0.id == selectedID }) ? .isSelected : [])', density)
+        self.assertIn('Binding(get: { selectedID }', density)
         self.assertIn('QuestifyDensityMap(area: area, pins: pins, selectedID: selectedID', self.read('App/RoamMapView.swift'))
 
     def test_route_casing_below_existing_route_and_target(self):

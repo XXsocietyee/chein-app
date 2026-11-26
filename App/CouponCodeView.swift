@@ -56,6 +56,9 @@ extension EnvironmentValues {
             .listStyle(.insetGrouped)
             .cyPageTitle("couponCode.title")
             .privacySensitive().accessibilityIdentifier("couponCode.view")
+            // G-059: full screen brightness while the scannable code is on screen (Wallet pass behaviour); restored on
+            // used / expired / leave / background. Same helper as the ticket pass; instant under Reduce Motion.
+            .cyBrightnessBoost(model.historyID > 0 && model.phase == .ready && model.canDisplay)
             // MKT-9-4: MP coupon-qr vibrates once when the merchant scan lands (index.js:413-418).
             .cyHaptic(.success, trigger: model.phase == .used, where: { old, new in !old && new })
             .onAppear {

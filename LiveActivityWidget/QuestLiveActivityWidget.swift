@@ -5,11 +5,14 @@ import WidgetKit
 /// Lock Screen and Dynamic Island presentation for `QuestLiveActivityAttributes`.
 /// System fonts and colors only. Native r2 M4: compact / minimal / expanded regions for the orientation run
 /// (`Text(timerInterval:)`), free-explore next stop and story audio, in the in-app island's symbols and tints.
+/// Design P1 L9: taps carry `QuestWidgetLinks.liveActivity` (P-017 / G-087); stop / clue progress is a system
+/// `ProgressView` in the activity's keyline tint (G-088).
 struct QuestLiveActivityWidget: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: QuestLiveActivityAttributes.self) { context in
             QuestLiveActivityLockScreenView(attributes: context.attributes, state: context.state)
                 .padding()
+                .widgetURL(QuestWidgetLinks.liveActivity(context.attributes.kind))
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
@@ -35,6 +38,7 @@ struct QuestLiveActivityWidget: Widget {
                 QuestLiveActivityGlyphView(attributes: context.attributes, state: context.state)
             }
             .keylineTint(QuestLiveActivityGlyph.tint(context.attributes.kind, mode: context.state.mode))
+            .widgetURL(QuestWidgetLinks.liveActivity(context.attributes.kind))
         }
     }
 }
@@ -182,23 +186,26 @@ struct QuestLiveActivityMetrics: View {
                 QuestLiveActivityMetric(label: "liveActivity.roam.places", value: state.placesRevealed.map(String.init) ?? "—")
             }
         case .play:
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("liveActivity.play.stop").font(.caption).foregroundStyle(.secondary)
-                    if let name = state.stopName {
-                        Text(verbatim: name).font(.body).lineLimit(1)
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("liveActivity.play.stop").font(.caption).foregroundStyle(.secondary)
+                        if let name = state.stopName {
+                            Text(verbatim: name).font(.body).lineLimit(1)
+                        }
+                        if state.stopIndex != nil {
+                            Text(verbatim: QuestLiveActivityText.fraction(state.stopIndex, state.stopCount))
+                                .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                        }
                     }
-                    if state.stopIndex != nil {
-                        Text(verbatim: QuestLiveActivityText.fraction(state.stopIndex, state.stopCount))
-                            .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
-                    }
-                }
-                Spacer()
-                if state.nextDistanceMeters != nil {
-                    QuestLiveActivityMetric(label: "liveActivity.play.nextDistance", value: QuestLiveActivityText.distance(state.nextDistanceMeters))
                     Spacer()
+                    if state.nextDistanceMeters != nil {
+                        QuestLiveActivityMetric(label: "liveActivity.play.nextDistance", value: QuestLiveActivityText.distance(state.nextDistanceMeters))
+                        Spacer()
+                    }
+                    QuestLiveActivityMetric(label: "liveActivity.play.clues", value: QuestLiveActivityText.fraction(state.cluesSolved, state.cluesTotal))
                 }
-                QuestLiveActivityMetric(label: "liveActivity.play.clues", value: QuestLiveActivityText.fraction(state.cluesSolved, state.cluesTotal))
+                QuestLiveActivityProgress(attributes: attributes, state: state)
             }
         case .story:
             HStack {
@@ -211,6 +218,23 @@ struct QuestLiveActivityMetrics: View {
                 .foregroundStyle(.secondary)
                 Spacer()
             }
+        }
+    }
+}
+
+/// G-088: system progress bar for the stops (or, without stops, the clues), tinted like the keyline.
+struct QuestLiveActivityProgress: View {
+    let attributes: QuestLiveActivityAttributes
+    let state: QuestLiveActivityContent
+    var body: some View {
+        let stops = QuestLiveActivityText.progress(state.stopIndex, state.stopCount)
+        if let progress = stops ?? QuestLiveActivityText.progress(state.cluesSolved, state.cluesTotal) {
+            ProgressView(value: progress.value, total: progress.total)
+                .tint(QuestLiveActivityGlyph.tint(attributes.kind, mode: state.mode))
+                .accessibilityLabel(Text(stops == nil ? "liveActivity.play.clues" : "liveActivity.play.progress"))
+                .accessibilityValue(Text(verbatim: stops == nil
+                    ? QuestLiveActivityText.fraction(state.cluesSolved, state.cluesTotal)
+                    : QuestLiveActivityText.fraction(state.stopIndex, state.stopCount)))
         }
     }
 }

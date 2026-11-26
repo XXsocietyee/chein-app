@@ -54,7 +54,12 @@ import SwiftUI
                             if explanationCount > 500 {
                                 Text("input.tooLong", tableName: "NativeChannelAppealDetails").foregroundStyle(.red)
                             }
-                            Text("input.limit", tableName: "NativeChannelAppealDetails")
+                            HStack {
+                                Text("input.limit", tableName: "NativeChannelAppealDetails")
+                                Spacer(minLength: 8)
+                                Text(verbatim: "\(explanationCount)/500").monospacedDigit()
+                                    .foregroundStyle(explanationCount > 500 ? AnyShapeStyle(.red) : AnyShapeStyle(.secondary))
+                            }
                             Text("input.explanation", tableName: "NativeChannelAppealDetails")
                             if explanationCount == 0 {
                                 Text("input.required", tableName: "NativeChannelAppealDetails")

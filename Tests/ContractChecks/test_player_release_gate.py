@@ -58,12 +58,15 @@ CLASSIFIED = {
     "App/ClubGovernanceViews.swift": "gated",              # 切换到商家端 / 查看商家入驻 / merchantinfo review
     "App/CouponManagementView.swift": "gated",             # 申请成为商家 from the coupon deny state
     "App/PlayerJourneyViews.swift": "gated",               # 去修改 merchant apply editor
+    "App/ClubTopicDirectorMount.swift": "gated",           # 准备总览 联系商家 (coop list)
+    "App/MPGap/AccountPublish/AccountPublishR9Mounts.swift": "gated",  # 发起合作 bar on a merchant's public profile
     "App/MPParityKit.swift": "gated",                      # parity route table: hidden page -> player home
     "App/MPReviewedPageScreen.swift": "gated",             # reviewed page screen: hidden page -> player home
     "App/CoopRelationDiscoveryView.swift": "merchant-only",
     "App/CooperationBrowserView.swift": "merchant-only",
     "App/CooperationFlowWorkbench.swift": "merchant-only",
     "App/IMCoopInviteStripView.swift": "merchant-only",    # built only by IMCoopInviteStripFactory
+    "App/NativeR2/Island/IslandSources.swift": "merchant-only",  # coop invite island, fed only by the gated IM coop strip
     "App/MerchantCoopCenterSessionBinding.swift": "merchant-only",
     "App/MerchantDecorR8Parity.swift": "merchant-only",
     "App/MerchantHomeView.swift": "merchant-only",
@@ -148,6 +151,9 @@ class PlayerReleaseGateContracts(unittest.TestCase):
             "App/IMCoopInviteStripFactory.swift": ["guard PlayerLaunch.merchantCenterEnabled, let reader else { return nil }"],
             "App/CouponManagementView.swift": ["if isMerchantMember || !PlayerLaunch.merchantCenterEnabled {"],
             "App/PlayerJourneyViews.swift": ["if PlayerLaunch.merchantCenterEnabled { // Lane G: merchant apply editor"],
+            "App/ClubTopicDirectorMount.swift": ["if PlayerLaunch.merchantCenterEnabled, merchantHoldBlocked, let topicID {"],
+            "App/MPGap/AccountPublish/AccountPublishR9Mounts.swift": [
+                "guard PlayerLaunch.merchantCenterEnabled, isMerchant, let viewer = session.account?.id else { return false }"],
             "Core/HomeSearchTabParity.swift": ["fixedActionBanners.filter { !PlayerLaunch.isHidden(page: $0.routePath) }"],
         }
         for rel, needles in checks.items():
@@ -158,7 +164,11 @@ class PlayerReleaseGateContracts(unittest.TestCase):
         pool = club.split("struct ClubCoopPoolMount: View {", 1)[1].split("\n}\n", 1)[0]
         self.assertIn("if PlayerLaunch.merchantCenterEnabled {", pool)
         gov = read("App/ClubGovernanceViews.swift")
-        self.assertIn("canReviewUndertake: PlayerLaunch.merchantCenterEnabled &&", gov)
+        # CLB-r9-topic-detail-02: 承接审核 moved from the toolbar ClubGapTopicMoreMenu into the 更多 sheet; same gate.
+        undertake = gov.split('Button("club.director.reviewUndertake")', 1)[0].rsplit("\n", 2)[-2]
+        self.assertIn('if PlayerLaunch.merchantCenterEnabled, stats["canReviewChapterApplications"] == .bool(true) {', undertake)
+        self.assertEqual(gov.count('Button("club.director.reviewUndertake")'), 1)
+        self.assertNotIn("ClubGapTopicMoreMenu(", gov)
         self.assertIn("if PlayerLaunch.merchantCenterEnabled, let topicID = scope.topicID, stats[\"canReviewChapterApplications\"]", gov)
         self.assertIn("if PlayerLaunch.merchantCenterEnabled { // Lane G: 切换到商家端", gov)
 

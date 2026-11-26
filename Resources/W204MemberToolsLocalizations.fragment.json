@@ -140,7 +140,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前账号无法查看处理进展"
+            "value": "当前身份不能查看处理进展"
           }
         }
       }
@@ -220,7 +220,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前账号无法查看邀请记录"
+            "value": "当前身份不能查看邀请记录"
           }
         }
       }
@@ -252,7 +252,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "邀请记录没加载出来"
+            "value": "邀请记录加载失败"
           }
         }
       }

@@ -4,11 +4,7 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.themeDomain) private var themeDomain
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    /// Continuity r1: set when 首页 hosts search as a state of the page instead of a sheet.
-    @Environment(\.globalSearchInPageHost) private var inPageHost
-    @FocusState private var keywordFocused: Bool
-    /// The field's body size, so the 首页 placeholder (14 pt) scales into it rather than cross-fading.
-    @ScaledMetric(relativeTo: .body) private var fieldTextSize: CGFloat = 17
+    @Environment(\.locale) private var locale
     /// R7-PC-A3-1 MP-first: MP search2 searches 主题、活动、俱乐部、商家 for every viewer (pages/search2/index.wxml:13;
     /// utils/discover-search.js:199-210 always requests the merchant lane), so players keep the merchant lane and copy.
     private var hidesMerchants: Bool { false }
@@ -21,8 +17,15 @@ import SwiftUI
     var publicLayers: MapPublicLayerCaller? = nil
     /// MP link keyword / filters (PC-A-3-2): applied and searched once.
     var initialQuery: GlobalSearchQuery? = nil
+    /// P-021 / P-026: the host's search model when the host draws the system search field (首页 searches in place).
+    /// Nil: this page owns the model and draws the field itself.
+    var searchSession: GlobalSearchSession? = nil
     let destination: (SearchMapDestination) -> Destination
     @State private var initialQueryApplied = false
+    @State private var ownSearchSession = GlobalSearchSession()
+    /// The one search model: the host's, or this page's own.
+    private var searchModel: GlobalSearchSession { searchSession ?? ownSearchSession }
+    private var hostsField: Bool { searchSession == nil }
     /// PC-A-4-1: 主题模板 / 玩法模板 results for the same keyword (nil = not searched or not available).
     @State private var templateResults: GlobalTemplateSearchResults?
     @Environment(\.globalTemplateSearch) private var templateLanes
@@ -45,7 +48,8 @@ import SwiftUI
     private var loading: Bool { phase.isLoading }
     /// Guard: only an in-flight search falls back to idle; a failure stays visible.
     private func settleLoading() { if phase.isLoading { phase = .idle } }
-    @State private var selectedKind: GlobalSearchKind?
+    /// Result scope, from the system scope bar (`.searchScopes`).
+    private var selectedKind: GlobalSearchKind? { searchModel.scope }
     @State private var showsFilters = false
     @State private var history: [String] = []
     @State private var historyFailure = false
@@ -72,35 +76,13 @@ import SwiftUI
     var body: some View {
         List {
             Section {
-                // Mini-program `search2` head: a system text field row with 筛选 trailing.
-                HStack(spacing: 8) {
-                    Image(systemName: "magnifyingglass").foregroundStyle(.secondary).accessibilityHidden(true)
-                    TextField(LocalizedStringKey(hidesMerchants ? "searchMap.placeholder.player" : "searchMap.placeholder"), text: Binding(get: { filter.keyword }, set: setKeyword)).textInputAutocapitalization(.never)
-                        .submitLabel(.search).onSubmit { submitSearch() }
-                        .accessibilityIdentifier("searchMap.keyword")
-                        .frame(minHeight: 44)
-                    // Mini-program field: 搜索中 spinner while a search runs, clear (x) once there is text.
-                    if loading {
-                        ProgressView().controlSize(.small).accessibilityLabel(Text("searchMap.loading"))
-                    }
-                    if !filter.keyword.isEmpty {
-                        Button { setKeyword("") } label: {
-                            Image(systemName: "xmark.circle.fill").foregroundStyle(.tertiary)
-                                .frame(minWidth: 44, minHeight: 44)
-                        }
-                        .buttonStyle(.borderless)
-                        .accessibilityLabel(Text("searchMap.clearKeyword"))
-                        .accessibilityIdentifier("searchMap.clearKeyword")
-                    }
-                    // Mini-program `search2` head: 筛选 (grid icon + label) as a system bordered button.
-                    Button { openFilters() } label: {
-                        Label("searchMap.filters", systemImage: "square.grid.2x2")
-                    }
-                    .buttonStyle(.bordered).fixedSize()
-                    .pageTemplateControl(label: Text("searchMap.filters"), traits: .isButton)
-                    .accessibilityIdentifier("searchMap.filters")
+                // P-022: the keyword lives in the system search field (`.searchable`, drawn by `globalSearchField`);
+                // 筛选 is the first row, as Mail and Files put their filter under the field.
+                Button { openFilters() } label: {
+                    Label("searchMap.filters", systemImage: "line.3.horizontal.decrease.circle")
                 }
-                .globalSearchInlineField(hidden: inPageHost != nil)
+                .pageTemplateControl(label: Text("searchMap.filters"), traits: .isButton)
+                .accessibilityIdentifier("searchMap.filters")
                 // PC-A-3-3: an empty Search submit shows the prompt inline, as form validation does; no request starts.
                 if let emptySearchNotice {
                     Label(emptySearchNotice, systemImage: "info.circle")
@@ -141,9 +123,7 @@ import SwiftUI
             mapSection
         }
         .listStyle(.insetGrouped)
-        .globalSearchInPage(inPageHost) { hostedFieldRow($0) }
-        .appNavigationTitle("searchMap.title").navigationBarTitleDisplayMode(.inline)
-        .cyHideTabBar()
+        .globalSearchPageChrome(hostsField ? ownSearchSession : nil)
         .navigationDestination(item: $mapRoute) { route in
             let _ = recordRoute(route)
             switch route {
@@ -192,7 +172,7 @@ import SwiftUI
         .task(id: readOwner) {
             await prepare()
             if let initialQuery, !initialQueryApplied, reader.isConfigured {
-                initialQueryApplied = true; filter = initialQuery
+                initialQueryApplied = true; filter = initialQuery; searchModel.keyword = initialQuery.keyword
                 // The task can start before onAppear marks the page visible; search() refuses an invisible page.
                 for _ in 0..<40 where !isVisible && !Task.isCancelled { try? await Task.sleep(nanoseconds: 50_000_000) }
                 await search()
@@ -213,9 +193,15 @@ import SwiftUI
             if !visible { filterSheetVisible = false }
             updateCategoryPresentation()
         }
-        .onAppear { isVisible = true; categoryPresentationID = UUID(); updateCategoryPresentation() }
-        // In-page search: the keyboard rises with the field and drops as 取消 starts the reverse.
-        .onChange(of: inPageHost?.progress) { _, progress in keywordFocused = progress == 1 }
+        .onAppear {
+            isVisible = true; categoryPresentationID = UUID(); updateCategoryPresentation()
+            searchModel.kinds = searchKinds
+            searchModel.suggestionPool = history + recommendedKeywords
+        }
+        // The system field drives the query: typing, a completion, the Search key.
+        .onChange(of: searchModel.keyword) { _, value in setKeyword(value) }
+        .onChange(of: searchModel.submitCount) { _, _ in submitSearch() }
+        .onChange(of: history) { _, value in searchModel.suggestionPool = value + recommendedKeywords }
         .onDisappear {
             isVisible = false; retainedResults.cancelPending(); settleLoading()
             categoryRecovery.update(reader: reader, presentationID: nil, active: false)
@@ -232,59 +218,6 @@ import SwiftUI
     private var unifiedKeywordOnly: Bool {
         filter.categoryID == nil && filter.startDate == nil && filter.endDate == nil
             && filter.minimumPrice == nil && filter.maximumPrice == nil
-    }
-    /// 首页's search state: the field it was tapped from, 筛选 and 取消 in one top row. Same field, spinner, clear and
-    /// filters as the inline row; only its place changes.
-    private func hostedFieldRow(_ host: GlobalSearchInPageHost) -> some View {
-        HStack(spacing: CYSpacing.sm) {
-            HStack(spacing: 8) {
-                // Same ink as the 首页 field it starts on (magnifier and prompt in textSecondary), so the hand-over frame
-                // matches the field at rest exactly.
-                Image(systemName: "magnifyingglass").foregroundStyle(.secondary).accessibilityHidden(true)
-                TextField(text: Binding(get: { filter.keyword }, set: setKeyword),
-                          prompt: Text(LocalizedStringKey(hidesMerchants ? "searchMap.placeholder.player" : "searchMap.placeholder"))) {
-                    Text(LocalizedStringKey(hidesMerchants ? "searchMap.placeholder.player" : "searchMap.placeholder"))
-                }
-                    .textInputAutocapitalization(.never)
-                    .submitLabel(.search).onSubmit { submitSearch() }
-                    .focused($keywordFocused)
-                    .accessibilityIdentifier("searchMap.keyword")
-                    .frame(minHeight: 44)
-                    .modifier(GlobalSearchTextSettle(progress: host.progress, moving: host.source != nil,
-                                                     from: Theme.length("--cy-type-body") / max(fieldTextSize, 1)))
-                // Contextual icons: spinner and clear trade places with scale, fade and blur.
-                if loading {
-                    ProgressView().controlSize(.small).accessibilityLabel(Text("searchMap.loading"))
-                }
-                if !filter.keyword.isEmpty {
-                    Button { setKeyword("") } label: {
-                        Image(systemName: "xmark.circle.fill").foregroundStyle(.tertiary)
-                            .frame(minWidth: 44, minHeight: 44)
-                    }
-                    .buttonStyle(.borderless)
-                    .accessibilityLabel(Text("searchMap.clearKeyword"))
-                    .accessibilityIdentifier("searchMap.clearKeyword")
-                }
-            }
-            .padding(.horizontal, CYSpacing.md)
-            .modifier(GlobalSearchFieldMorph(progress: host.progress, source: host.source, onPlaced: host.onFieldPlaced))
-            // 筛选 exists only in the search state: it fades in after half the move and out in the first half back.
-            Button { openFilters() } label: {
-                Label("searchMap.filters", systemImage: "square.grid.2x2")
-            }
-            .buttonStyle(.bordered).fixedSize()
-            .pageTemplateControl(label: Text("searchMap.filters"), traits: .isButton)
-            .accessibilityIdentifier("searchMap.filters")
-            .modifier(GlobalSearchProgressFade(progress: host.progress, start: 0.5, end: 1))
-            Button("action.cancel") { keywordFocused = false; host.onCancel() }
-                .buttonStyle(.borderless).fixedSize()
-                .frame(minHeight: 44)
-                .accessibilityIdentifier("globalSearch.close")
-                .modifier(GlobalSearchTrailingSlide(progress: host.progress, moving: host.source != nil))
-        }
-        .padding(.horizontal, CYSpacing.pageHorizontal)
-        .padding(.vertical, CYSpacing.xs)
-        .accessibilityAction(.escape) { keywordFocused = false; host.onCancel() }
     }
     private var categories: [DiscoveryCategory] { categoryRecovery.owns(categoryOwner) ? categoryRecovery.categories : [] }
     private var categoryFailed: Bool { categoryRecovery.owns(categoryOwner) && categoryRecovery.phase == .failed }
@@ -415,32 +348,8 @@ import SwiftUI
         Text(key).accessibilityAddTraits(.isHeader)
     }
     @ViewBuilder private func results(_ value: GlobalSearchResults, retainedKinds: [GlobalSearchKind]) -> some View {
-        // Mini-program `pages/search2/result`: result tabs first. Segmented when the labels fit, a menu otherwise,
-        // so counts never clip on small phones or at large text sizes.
-        Section {
-            // System segmented control; it scrolls sideways instead of clipping counts on small phones or large text.
-            ScrollView(.horizontal, showsIndicators: false) {
-                Picker(selection: $selectedKind) {
-                    // Mini-program result tabs: 全部 carries no count; each kind tab shows its own.
-                    Text("searchMap.all").tag(nil as GlobalSearchKind?)
-                    ForEach(searchKinds, id: \.self) { kind in
-                        (Text(kind.titleKey) + Text(verbatim: " \(countText(value, kind))"))
-                            .monospacedDigit()
-                            .tag(kind as GlobalSearchKind?)
-                            .accessibilityIdentifier("searchMap.kind.\(kind.rawValue)")
-                    }
-                } label: {
-                    Text("searchMap.all")
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .fixedSize()
-            }
-            .accessibilityIdentifier("searchMap.resultKinds")
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets())
-            .sensoryFeedback(.selection, trigger: selectedKind)
-        }
+        // Mini-program `pages/search2/result` tabs are the system scope bar (`.searchScopes` in `globalSearchField`);
+        // counts reach it through the search model once a search settles.
         if (loading && !value.rows.isEmpty) || !retainedKinds.isEmpty || !value.gatedKinds.isEmpty || !value.failedKinds.isEmpty {
             Section {
                 if loading && !value.rows.isEmpty {
@@ -552,10 +461,14 @@ import SwiftUI
         filter = next; invalidate(); Task { await search() }
     }
     private func setKeyword(_ value: String) {
+        if !searchModel.keyword.utf8.elementsEqual(value.utf8) { searchModel.keyword = value }
         guard !filter.keyword.utf8.elementsEqual(value.utf8) else { return }
         invalidate(); filter.keyword = value
     }
-    private func invalidate() { retainedResults.invalidate(); phase = .idle; selectedKind = nil }
+    private func invalidate() {
+        retainedResults.invalidate(); phase = .idle
+        searchModel.scope = nil; searchModel.scopeCounts = [:]
+    }
     private func prepare() async {
         guard !Task.isCancelled else { return }
         if preparedOwner != readOwner {
@@ -591,6 +504,12 @@ import SwiftUI
             guard !Task.isCancelled, isVisible, filter == query, retainedResults.accepts(ticket, in: resultContext) else { return }
             phase = .loaded(())
             retainedResults.finish(value, ticket: ticket, in: resultContext)
+            searchModel.scopeCounts = Dictionary(uniqueKeysWithValues: searchKinds.map { ($0, countText(value, $0)) })
+            // VoiceOver: results replace the suggestions in place, so say how many arrived.
+            let found = value.rows.filter(showsRow).count
+            AccessibilityNotification.Announcement(found == 0
+                ? appLocalized("globalSearch.empty", locale: locale)
+                : appLocalized("globalSearch.resultsAnnounced \(found)", locale: locale)).post()
             history = historyStore.add(query.keyword, namespace: historyNamespace, current: history); historyFailure = historyStore.failed
         } catch {
             guard isVisible, retainedResults.accepts(ticket, in: resultContext) else { return }
@@ -602,170 +521,18 @@ import SwiftUI
 
 private let globalSearchRecentRoutesKey = "globalSearch.recentRoutes.v1"
 
-// MARK: - In-page host (continuity r1)
-
-/// 首页 hosts search as a state of the page. The host owns one progress value (0 = the field sits on the 首页 field
-/// the user tapped, 1 = search at rest) and animates it on `CYMotion.standard`; every piece below derives from it, so
-/// the whole change reverses or retargets from wherever it is.
-struct GlobalSearchInPageHost {
-    /// Window frame of the tapped 首页 field. Nil (Reduce Motion, iOS 17, field scrolled away) = no travel, a cross-fade.
-    var source: CGRect?
-    var progress: CGFloat
-    var onCancel: () -> Void
-    /// The field reports its resting window frame once laid out; the host then starts the move.
-    var onFieldPlaced: (CGRect) -> Void
-}
-
-private struct GlobalSearchInPageHostKey: EnvironmentKey { static let defaultValue: GlobalSearchInPageHost? = nil }
-
-extension EnvironmentValues {
-    var globalSearchInPageHost: GlobalSearchInPageHost? {
-        get { self[GlobalSearchInPageHostKey.self] }
-        set { self[GlobalSearchInPageHostKey.self] = newValue }
-    }
-}
+// MARK: - Page chrome (P-022)
 
 extension View {
-    /// Content that exists only in the search state (history, suggestions, results) fades in after half the move.
-    @ViewBuilder func globalSearchInPage<Row: View>(_ host: GlobalSearchInPageHost?, @ViewBuilder row: (GlobalSearchInPageHost) -> Row) -> some View {
-        if let host {
-            modifier(GlobalSearchProgressFade(progress: host.progress, start: 0.5, end: 1))
-                .safeAreaInset(edge: .top, spacing: 0) { row(host) }
-                // The hosted root has no bar. Without these the layer's stack drew its large 搜索 title over 首页 on
-                // the hand-over frame (integ-r3, iOS 27 sim); the title still names pushed results' back button.
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar(.hidden, for: .navigationBar)
+    /// A page that owns its search model draws the system field and its own inline title; a hosted page (首页) leaves
+    /// the field, title and tab bar to the host.
+    @MainActor @ViewBuilder fileprivate func globalSearchPageChrome(_ ownSession: GlobalSearchSession?) -> some View {
+        if let ownSession {
+            globalSearchField(ownSession)
+                .appNavigationTitle("searchMap.title").navigationBarTitleDisplayMode(.inline)
+                .cyHideTabBar()
         } else {
             self
         }
-    }
-
-    /// Drops the inline field row when the host draws the field in its top row.
-    @ViewBuilder fileprivate func globalSearchInlineField(hidden: Bool) -> some View {
-        if hidden { EmptyView() } else { self }
-    }
-}
-
-/// Opacity ramps 0 to 1 while `progress` runs from `start` to `end`; evaluated every frame.
-struct GlobalSearchProgressFade: ViewModifier, Animatable {
-    var progress: CGFloat
-    let start: CGFloat
-    let end: CGFloat
-    var animatableData: CGFloat {
-        get { progress }
-        set { progress = newValue }
-    }
-    func body(content: Content) -> some View {
-        let t = end > start ? (progress - start) / (end - start) : (progress >= end ? 1 : 0)
-        content.opacity(Double(min(max(t, 0), 1)))
-    }
-}
-
-/// The field's capsule travels between the two boxes: its top-leading corner and size interpolate from the 首页 field to
-/// the top row (a background layer, so nothing reflows), and the icon and text ride along with a transform. The map
-/// glyph that only the 首页 field has fades out in the first 30 %.
-private struct GlobalSearchFieldMorph: ViewModifier, Animatable {
-    var progress: CGFloat
-    let source: CGRect?
-    let onPlaced: (CGRect) -> Void
-    @State private var rest: CGRect?
-    var animatableData: CGFloat {
-        get { progress }
-        set { progress = newValue }
-    }
-    func body(content: Content) -> some View {
-        let t = progress
-        let moving = source != nil && rest != nil
-        let s = source ?? .zero
-        let r = rest ?? .zero
-        let boxX = moving ? (s.minX - r.minX) * (1 - t) : 0
-        let boxY = moving ? (s.minY - r.minY) * (1 - t) : 0
-        let midY = moving ? (s.midY - r.midY) * (1 - t) : 0
-        content
-            .offset(x: boxX, y: midY)
-            // Measured AFTER the travel offset: a modifier applied after `.offset` sees the field's layout frame, not
-            // the moved one. Measured before it, the reading would include the offset that is derived from it, and
-            // `rest` would flip between two frames on every update (integ-r3: an endless update loop, search stuck
-            // invisible at progress 0 while its `.isModal` layer hid 首页 from VoiceOver).
-            .background {
-                GeometryReader { proxy in
-                    Color.clear
-                        .onAppear { place(proxy.frame(in: .global)) }
-                        .onChange(of: proxy.frame(in: .global)) { _, frame in place(frame) }
-                }
-            }
-            .background(alignment: .topLeading) {
-                // System search-field fill (as UISearchBar draws it) while the field travels.
-                Capsule(style: .continuous).fill(.fill.tertiary)
-                    .frame(width: moving ? max(r.width + (s.width - r.width) * (1 - t), 1) : nil,
-                           height: moving ? max(r.height + (s.height - r.height) * (1 - t), 1) : nil)
-                    .overlay(alignment: .trailing) {
-                        if moving {
-                            Image(systemName: "map")
-                                .font(.body.weight(.semibold))
-                                .foregroundStyle(.primary)
-                                .frame(width: 52, height: 52)
-                                .opacity(Double(min(max(1 - t / 0.3, 0), 1)))
-                                .accessibilityHidden(true)
-                        }
-                    }
-                    .offset(x: boxX, y: boxY)
-            }
-            .opacity(rest == nil ? 0 : 1)
-    }
-    private func place(_ frame: CGRect) {
-        guard frame.width > 1, rest != frame else { return }
-        // The first reading can come from a layout pass before the top inset is placed (seen on iOS 27: x −83,
-        // y −22, 52 pt wide). Only a frame inside the window may start the move.
-        if rest == nil, frame.minX < 0 || frame.minY < 0 { return }
-        let first = rest == nil
-        rest = frame
-        if first { onPlaced(frame) }
-    }
-}
-
-/// Text that changes size scales rather than cross-fading: the 14 pt 首页 placeholder grows into the field's body size.
-private struct GlobalSearchTextSettle: ViewModifier, Animatable {
-    var progress: CGFloat
-    let moving: Bool
-    let from: CGFloat
-    var animatableData: CGFloat {
-        get { progress }
-        set { progress = newValue }
-    }
-    func body(content: Content) -> some View {
-        let t = min(max(progress, 0), 1)
-        content.scaleEffect(moving ? from + (1 - from) * t : 1, anchor: .leading)
-    }
-}
-
-/// 取消 slides in from the trailing edge with the field and back out with it.
-private struct GlobalSearchTrailingSlide: ViewModifier, Animatable {
-    var progress: CGFloat
-    /// False under Reduce Motion and the other no-travel cases: 取消 is simply there and fades with the layer.
-    let moving: Bool
-    var animatableData: CGFloat {
-        get { progress }
-        set { progress = newValue }
-    }
-    func body(content: Content) -> some View {
-        let remaining = moving ? 1 - progress : 0
-        content.visualEffect { view, proxy in
-            view.offset(x: remaining * (proxy.size.width + CYSpacing.pageHorizontal))
-        }
-    }
-}
-
-private struct GlobalSearchBlur: ViewModifier {
-    let radius: CGFloat
-    func body(content: Content) -> some View { content.blur(radius: radius) }
-}
-
-extension AnyTransition {
-    /// make-interfaces-feel-better §7: contextual icons enter from scale 0.25, opacity 0 and 4 pt blur.
-    static var globalSearchContextualIcon: AnyTransition {
-        .scale(scale: 0.25)
-            .combined(with: .opacity)
-            .combined(with: .modifier(active: GlobalSearchBlur(radius: 4), identity: GlobalSearchBlur(radius: 0)))
     }
 }

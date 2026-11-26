@@ -29,7 +29,19 @@ class ActivityDesignStructureTests(unittest.TestCase):
 
     def test_primary_action_preserves_allowed_detail_and_registration_gate(self):
         source = app("ActivityDetailView.swift")
-        self.assertIn("case .allowed(let detail):\n                    detailContent(detail)", source)
+        # native-r2 city orientation (3ec3d687f): a topic-linked allowed detail may render the city event list
+        # behind the flag; both branches still only receive the allowed detail.
+        ALLOWED = ("case .allowed(let detail):\n"
+                   "                    if NativeR2Flags.cityOrientation, detail.summary.linkedTopicID != nil {\n"
+                   "                        cityEventDetail(detail)\n"
+                   "                    } else {\n"
+                   "                        detailContent(detail)\n"
+                   "                    }")
+        self.assertIn(ALLOWED, source)
+        # The city CTA is built only behind the same registrationEnabled gate, guest sign-in first.
+        self.assertIn("cta: registrationEnabled ? cityEventCTA(detail) : nil", source)
+        city_cta = source.split("private func cityEventCTA(", 1)[1].split("/// Secondary sections", 1)[0]
+        self.assertIn("if let guestSignIn { guestSignIn() } else { tileOpenedSheet = true; showsRegistration = true }", city_cta)
         self.assertIn("var registrationEnabled=false", source)
         self.assertIn(".safeAreaInset(edge:.bottom,spacing:0)", source)
         self.assertIn("if registrationEnabled { registrationAction(detail) }", source)

@@ -37,14 +37,16 @@ class AcceptanceR2ClubLeaveConfirmation(unittest.TestCase):
     def test_single_confirmation_sheet_on_membership_button(self):
         # One presenter per placement: the header placement's membership row, and (design r1 MC-20)
         # the single page-end row. The two placements are exclusive branches of one panel instance.
-        self.assertEqual(self.source.count('.cySheet('), 2)
+        # Design P1 G-032: the presenter is the system confirmation dialog, not a custom sheet.
+        self.assertEqual(self.source.count('.cySheet('), 0)
+        self.assertEqual(self.source.count('.confirmationDialog('), 1)
+        self.assertEqual(self.source.count('confirmationPresenter('), 2)
         page_end = self.source.split('private var pageEndSection', 1)[1].split('private func membershipButton', 1)[0]
-        self.assertIn('.cySheet(isPresented: confirmationPresented) { confirmationSheet }', page_end)
+        self.assertIn('confirmationPresenter(ClubPageEndActions(', page_end)
         self.assertIn('.onDisappear { reset() }', page_end)
         self.assertNotIn('ProgressView', page_end)
-        self.assertIn('membershipButton(action, state: state)\n'
-                      '                                .cySheet(isPresented: confirmationPresented) { confirmationSheet }',
-                      self.source)
+        self.assertIn('confirmationPresenter(membershipButton(action, state: state))', self.source)
+        self.assertIn('isPresented: confirmationPresented', self.source)
         self.assertIn('confirmIdentifier: "club.action.confirm"', self.source)
         self.assertIn('{ submit(value) }', self.source)
         self.assertIn('set: { if !$0 { cancelConfirmation() } }', self.source)

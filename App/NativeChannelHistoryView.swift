@@ -19,6 +19,10 @@ import SwiftUI
     @State private var revision = 0
     @State private var task: Task<Void, Never>?
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var liveRefreshPending = false
     @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 40
     var body: some View {
         let _ = revision
@@ -59,30 +63,31 @@ import SwiftUI
                                 IMChatDividerLabel(divider: divider).font(.caption).foregroundStyle(.secondary)
                                     .frame(maxWidth: .infinity)
                             }
-                            Button {
-                                selectedMessageID = message.id; presentsMessage = true
-                            } label: {
-                                HStack(alignment: .bottom, spacing: 8) {
+                            // G-023 (design P1): a tap no longer pushes a page. Like Messages, the bubble's actions live in
+                            // its context menu (touch and hold) and in the VoiceOver actions rotor; 详情 opens the same
+                            // message detail page as before.
+                            HStack(alignment: .bottom, spacing: 8) {
+                                if !isOwn {
+                                    Image(systemName: "person.crop.circle.fill")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .foregroundStyle(.secondary)
+                                        .frame(width: avatarSize, height: avatarSize)
+                                        .accessibilityHidden(true)
+                                }
+                                ChatMessageBubble(isOwn: isOwn) {
                                     if !isOwn {
-                                        Image(systemName: "person.crop.circle.fill")
-                                            .resizable()
-                                            .scaledToFit()
-                                            .foregroundStyle(.secondary)
-                                            .frame(width: avatarSize, height: avatarSize)
-                                            .accessibilityHidden(true)
+                                        MessagingSenderName(message: message, conversation: model.conversation,
+                                                            accountID: model.client.identity?.accountID ?? 0)
                                     }
-                                    ChatMessageBubble(isOwn: isOwn) {
-                                        if !isOwn {
-                                            MessagingSenderName(message: message, conversation: model.conversation,
-                                                                accountID: model.client.identity?.accountID ?? 0)
-                                        }
-                                    } content: {
-                                        if let messageContent { messageContent(message) }
-                                        else { MessagingMessageContent(message: message) }
-                                    }
+                                } content: {
+                                    if let messageContent { messageContent(message) }
+                                    else { MessagingMessageContent(message: message) }
                                 }
                             }
-                            .buttonStyle(.plain)
+                            .contextMenu { messageMenu(message) }
+                            .accessibilityElement(children: .contain)
+                            .accessibilityAction(named: Text("channel.message.details")) { openDetails(message.id) }
                             .accessibilityIdentifier("channel.message.\(message.id)")
                         }
                         .listRowSeparator(.hidden)
@@ -125,6 +130,7 @@ import SwiftUI
                     }
                 }
                 .listStyle(.plain)
+                .animation(reduceMotion ? nil : .default, value: renderedMessages.map(\.id))
                 // Few messages sit just above the composer and grow upward, as in direct chat.
                 .defaultScrollAnchor(.bottom)
                 .scrollDismissesKeyboard(.interactively)
@@ -185,6 +191,21 @@ import SwiftUI
             task?.cancel(); task = nil; textCoordinator?.stop()
             if !retainWhileCovered() { model.stop(); model.onChange = nil }
         }
+        // G-021 (design P1): no realtime transport exists, so the screen reads its next page when new messages are
+        // announced (an IM push while the app is open) and when the app returns to the foreground. Same guarded
+        // `.newer` / `.load` read as the buttons and pull to refresh; no timer, no polling.
+        .onReceive(NotificationCenter.default.publisher(for: MPNotificationTapRouter.foregroundMessageArrived)) { _ in
+            refreshLive()
+        }
+        .onChange(of: scenePhase) { old, phase in
+            if old == .background, phase == .active { refreshLive() }
+        }
+        .onChange(of: renderedMessages.last?.id) { old, new in
+            // New messages at the bottom are announced, as Messages does; the first load is not.
+            guard let old, let new, new != old, liveRefreshPending else { return }
+            liveRefreshPending = false
+            AccessibilityNotification.Announcement(appLocalized("channel.live.newMessages", locale: locale)).post()
+        }
         .onChange(of: model.client.identity) { _, _ in task?.cancel(); textCoordinator?.accessInvalidated(); model.stop(); revision += 1 }
         .onChange(of: model.client.isConfigured) { _, available in
             if !available { task?.cancel(); textCoordinator?.accessInvalidated(); model.stop(); revision += 1 }
@@ -200,6 +221,25 @@ import SwiftUI
         guard let message = model.detailMessage(id), messageVisibility?(message) != false,
               message.status == .recalled || textCoordinator?.isMessageWithheld(id) != true else { return nil }
         return message
+    }
+    @ViewBuilder private func messageMenu(_ message: MessagingMessage) -> some View {
+        if message.isPayloadVisible, message.type == 1, let text = message.content,
+           !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            Button {
+                UIPasteboard.general.string = text
+            } label: { Label("channel.message.copy", systemImage: "doc.on.doc") }
+        }
+        Button { openDetails(message.id) } label: { Label("channel.message.details", systemImage: "info.circle") }
+    }
+    private func openDetails(_ id: Int) {
+        selectedMessageID = id; presentsMessage = true
+    }
+    /// A live trigger reads the newer page when the backlog supports it, else the latest page. Skipped while another
+    /// read runs or before the first load; the model's own `prepare` guards identity and access.
+    private func refreshLive() {
+        guard model.isCurrent, model.loaded, !model.isLoading else { return }
+        liveRefreshPending = true
+        run(model.client.canLoadNewer ? .newer : .load)
     }
     private var historyReady: Bool { model.isCurrent && model.loaded && !model.isLoading && model.issue == nil }
     private func prepareTextCoordinator() {

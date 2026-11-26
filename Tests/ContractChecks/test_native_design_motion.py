@@ -89,8 +89,10 @@ class NativeDesignMotionGuards(unittest.TestCase):
         self.assertIn("expectedPage: pageTicket", model)
     def test_navigation_scope_pagination_and_duplicate_rows_stay_explicit(self):
         wallet = app("TicketWalletView.swift")
-        # 即将开始 / 已通关 filters the same enumerated array. Offset identity still keeps repeated server ids.
-        self.assertIn("ForEach(Array(snapshot.tickets.enumerated()).filter { shown.contains($0.element) }, id: \\.offset)", wallet)
+        # R9-MEM-NIT-1 (bd9469fe3): the MP wallet has no filter, so every ticket shows in source order.
+        # Offset identity still keeps repeated server ids.
+        self.assertIn("let shown = snapshot.tickets\n", wallet)
+        self.assertIn("ForEach(Array(shown.enumerated()), id: \\.offset)", wallet)
         self.assertIn("if ticket.action == .detail", wallet)
         # Check the native destination and arguments inside the detail-only branch (locked MP cards never open).
         route = re.search(r"if ticket.action == \.detail && !ticket.isWalletLocked\s*\{\s*NavigationLink\s*\{\s*TicketWalletDetailView\(([^()]*)\)\s*\} label:", wallet)
@@ -139,8 +141,9 @@ class NativeDesignMotionGuards(unittest.TestCase):
             self.assertIn("!model.isLoading", destination)
             self.assertIn(entry + ".matches(target,", destination)
             self.assertIn("let destination = " + bound + ".destination(target: target, reader: reader)", destination)
-        self.assertRegex(detail, r"if let lifecycleCoordinator\s*\{\s*Section\s*\{\s*NavigationLink\s*\{\s*OrderLifecycleView")
-        self.assertRegex(detail, r"if let makeTeamCoordinator\s*\{\s*TicketWalletTeamEntrySection")
+        # 6b940cb8c: owner-only destinations are additionally gated on the viewer owning the ticket.
+        self.assertRegex(detail, r"if allowsOwnerActions\(ticket\), let lifecycleCoordinator\s*\{\s*Section\s*\{\s*NavigationLink\s*\{\s*OrderLifecycleView")
+        self.assertRegex(detail, r"if allowsOwnerActions\(ticket\), let makeTeamCoordinator\s*\{\s*TicketWalletTeamEntrySection")
         self.assertIn("guard owner == target.owner, matches(reader: reader) else { return nil }", detail)
         self.assertIn("matches(reader: reader) else { return nil }", pending)
 

@@ -76,6 +76,8 @@ import MapKit
     @State private var cityRunSheet = false
     @State private var cityTeams: [TeamTrailTeam] = []
     @State private var cityPunchNode: CityOrientationPunchTarget?
+    /// P-056: the stop whose hint ladder is open over the run map.
+    @State private var cityHintNode: CityOrientationHintTarget?
     @State private var cityEndDialog = false
     /// Native r2 route page: the chapter whose reader is pushed (Continue or a chapter row).
     @State private var nr2ReaderChapter: Int?
@@ -94,7 +96,8 @@ import MapKit
         scope.teamID = model.snapshot?.result.teamID.map(String.init)
         return scope
     }
-    var body: some View {
+    /// Split from body so the type checker handles the modifier chain in parts.
+    private var navigationLayer: some View {
         Group {
             if model.gameplayMode == .freeExploration || (model.snapshot == nil && presentedMode == .freeExploration) {
                 if NativeR2Flags.freeExplore {
@@ -130,29 +133,34 @@ import MapKit
         }
         .environment(\.questifyCast, castModel?.context)
         .privacySensitive()
-        .cyDomainScreen(.game)
-        .cyPushedChrome(domain: .game)
-        .tint(CYColor.gameAccent)
+        // P-049: the native r2 flows follow the system Light/Dark setting (player domain, system accent);
+        // the legacy play screens keep the forced-dark game domain.
+        .cyDomainScreen(screenDomain)
+        .cyPushedChrome(domain: screenDomain)
+        .tint(usesNativeR2Domain ? Color.accentColor : CYColor.gameAccent)
         .appNavigationTitle(key: model.gameplayMode == .freeExploration ? "playFree.title" : "playx.title")
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(item: $selectedNode) { id in
             nodeDestination(id, opensHelp: hintNode == id)
-                .cyPushedChrome(domain: .game)
+                .cyPushedChrome(domain: screenDomain)
         }
         .onChange(of: selectedNode) { _, id in if id == nil { hintNode = nil } }
         .navigationDestination(item: $nr2ReaderChapter) { chapterID in
             nr2ReaderDestination(chapterID)
         }
         .navigationDestination(isPresented: $showBackpack) {
-            backpackDestination.cyPushedChrome(domain: .game)
+            backpackDestination.cyPushedChrome(domain: screenDomain)
         }
         .navigationDestination(isPresented: $showRouteMap) {
             PlayRouteMapView(
                 model: model,
                 nodeDestination: { AnyView(nodeDestination($0)) },
                 actionRead: routeActionRead ?? heldRouteActionRead)
-                .cyPushedChrome(domain: .game)
+                .cyPushedChrome(domain: screenDomain)
         }
+    }
+    private var presentationLayer: some View {
+        navigationLayer
         .toolbar {
             if castModel?.config != nil {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -223,6 +231,9 @@ import MapKit
                 .presentationDragIndicator(.visible)
             }
         }
+    }
+    var body: some View {
+        presentationLayer
         .onChange(of: model.snapshot?.result.topicID) { _, topicID in
             chapterFilter = nil
             presentTitleCardIfNeeded(topicID)
@@ -691,6 +702,14 @@ import MapKit
     /// (pause / resume) above the panel, and the unchanged task list in a three-detent panel.
     // MARK: native r2 city orientation (NativeR2Flags.cityOrientation)
 
+    /// P-049: city orientation and free explore run their native r2 screens under the player domain.
+    private var usesNativeR2Domain: Bool {
+        if model.gameplayMode == .cityOrientation { return NativeR2Flags.cityOrientation }
+        if model.gameplayMode == .freeExploration { return NativeR2Flags.freeExplore }
+        return false
+    }
+    private var screenDomain: ThemeDomain { usesNativeR2Domain ? .player : .game }
+
     /// Any other presentation of this screen hides the run sheet first; it comes back when that one closes.
     private var cityRunSheetBlocked: Bool {
         finishScreen || stageSettlement != nil || showEmergencyHelp || showChapterPicker || showRouteMap || showBackpack
@@ -717,7 +736,7 @@ import MapKit
             },
             panel: { cityRunPanel })
         .onAppear { cityRunSheet = true }
-        .onDisappear { cityRunSheet = false; cityPunchNode = nil }
+        .onDisappear { cityRunSheet = false; cityPunchNode = nil; cityHintNode = nil }
     }
     @ViewBuilder private var cityRunPanel: some View {
         VStack(spacing: 0) {
@@ -731,7 +750,7 @@ import MapKit
                             node: node, snapshot: snapshot,
                             distance: cityLocation.distance(toLatitude: node.latitude, longitude: node.longitude),
                             onPunch: { cityPunchNode = CityOrientationPunchTarget(id: id) },
-                            onHint: { hintNode = id; selectedNode = id })
+                            onHint: { openCityHint(id) })
                     }
                     if let snapshot = model.snapshot, let route = PlayRouteMapPresentation(snapshot: snapshot) {
                         CityOrientationLegsSection(route: route, onOpen: { cityPunchNode = CityOrientationPunchTarget(id: $0) })
@@ -757,6 +776,12 @@ import MapKit
             .nativeR2SheetBackdropSource()
         }
         .nativeR2SheetBackdrop(isPresented: cityPunchNode != nil)
+        // P-056: the hint ladder opens in place; the stop page is only for stops without a server ladder.
+        .cySheet(item: $cityHintNode) { target in
+            CityOrientationHintSheet(
+                model: model, nodeID: target.id, makeTeamPool: teamPoolModel, approvedArtworkHosts: approvedArtworkHosts,
+                onOpenStop: { id in cityHintNode = nil; hintNode = id; selectedNode = id })
+        }
         .confirmationDialog(Text("playx.run.end"), isPresented: $cityEndDialog, titleVisibility: .visible) {
             Button("playx.run.end", role: .destructive) {
                 Task { await model.endRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) }
@@ -764,6 +789,14 @@ import MapKit
             Button("playx.cancel", role: .cancel) {}
         } message: {
             Text("playx.run.end.detail")
+        }
+    }
+    /// P-056: a server hint ladder opens as a sheet over the map; without one, the stop page keeps its legacy hint rows.
+    private func openCityHint(_ id: Int) {
+        if model.helpClient(nodeID: id) != nil {
+            cityHintNode = CityOrientationHintTarget(id: id)
+        } else {
+            hintNode = id; selectedNode = id
         }
     }
     /// Same actions and identifiers as `runPrimary`, drawn with system button styles.

@@ -13,9 +13,12 @@ enum NativeGameKits {
     ]
     /// Templates 4–6 (camera, chance, story choice). Filled by the other half.
     static var templateB: Set<PlayKitScreenKind> { NativeGameKitsB.kinds }
-    static func covers(_ kind: PlayKitScreenKind) -> Bool { templateA.contains(kind) || templateB.contains(kind) }
+    /// The five kinds that used to fall back to the legacy forms (G-001): true/false, image guess, jigsaw, scratch, compare.
+    static var templateC: Set<PlayKitScreenKind> { NativeGameKitsC.kinds }
+    static func covers(_ kind: PlayKitScreenKind) -> Bool { templateA.contains(kind) || templateB.contains(kind) || templateC.contains(kind) }
     /// Kits drawn by a child view that publishes its own bottom-bar action.
-    static let childKinds: Set<PlayKitScreenKind> = [.reaction, .countdown, .stopwatch, .typeIn, .ballShake, .quietHold, .compass, .shout]
+    static let childKinds: Set<PlayKitScreenKind> = [.reaction, .countdown, .stopwatch, .typeIn, .ballShake, .quietHold, .compass, .shout,
+                                                     .jigsaw, .scratchCard, .compare]
     /// Kits whose server reply to a wrong typed answer shows under the controls.
     static let wrongReplyKinds: Set<PlayKitScreenKind> = [.qa, .typeIn]
 }
@@ -24,7 +27,8 @@ enum NativeGameKits {
 /// `PlayGameOutcome` rules and retry gate; only the drawing changes.
 extension PlayKitScreen {
     var usesNativeGame: Bool {
-        NativeR2Flags.games && NativeGameKits.covers(kind) && accusationProjection == nil
+        // G-002: the UG-03 accusation draws inside the shell too (NativeGameAccusationKit).
+        NativeR2Flags.games && NativeGameKits.covers(kind)
     }
 
     var nativeGameContainer: some View {
@@ -36,6 +40,8 @@ extension PlayKitScreen {
             progress: nativeProgress,
             wrongReply: nativeWrongReply,
             submit: nativeBottomAction,
+            verdict: nativeVerdict,
+            score: nativeScore,
             help: nativeHelp,
             analyticsNodeID: model.state?.nodeID,
             analyticsKit: kind.rawValue,
@@ -48,6 +54,7 @@ extension PlayKitScreen {
                 if model.isCurrent && raw.object != nil { nativeControls }
             },
             outcome: { nativeOutcome })
+        // Success haptic, verdict bounce and the island now live in the shell (G-007).
         .refreshable {
             if model.pending == nil && model.isCurrent && model.phase != "submitting" { await model.refreshAuthoritative() }
         }
@@ -56,7 +63,17 @@ extension PlayKitScreen {
             nativeExpectResult = false
             nativeResultShown = true
         }
-        .sensoryFeedback(.success, trigger: projection.reportedPass == true) { old, next in !old && next }
+    }
+
+    /// The server verdict the shell celebrates (G-007) and shows in the result sheet. The accusation reads its own ending.
+    var nativeVerdict: PlayGameOutcome? {
+        accusationProjection == nil ? PlayGameOutcome.resolve(projection) : nil
+    }
+
+    /// A server-reported score, when the kit has one; the result sheet rolls it up (G-009). Never computed on the phone.
+    var nativeScore: Int? {
+        guard nativeVerdict != nil else { return nil }
+        return raw["score"].integer ?? raw["points"].integer
     }
 
     /// 「第 N 关 · 玩法」; without a station number, the kit name alone.
@@ -67,7 +84,7 @@ extension PlayKitScreen {
     }
 
     var nativeWrongReply: String? {
-        guard NativeGameKits.wrongReplyKinds.contains(kind), model.isCurrent else { return nil }
+        guard NativeGameKits.wrongReplyKinds.contains(kind), model.isCurrent, accusationProjection == nil else { return nil }
         if kind == .qa, raw["letterPool"] != .null { return nil }
         return PlayKitWrongReply.text(segment: raw)
     }
@@ -105,7 +122,8 @@ extension PlayKitScreen {
 
     /// Changes only when the server reports a new verdict, attempt or completion.
     var nativeResultIdentity: String? {
-        PlayGameOutcome.resolve(projection).map { "\($0.rawValue):\(raw["attempts"].integer ?? -1):\(projection.complete)" }
+        guard accusationProjection == nil else { return nil }
+        return PlayGameOutcome.resolve(projection).map { "\($0.rawValue):\(raw["attempts"].integer ?? -1):\(projection.complete)" }
     }
 
     /// Same write path as `prepare`; also marks that the next server verdict opens the result sheet.
@@ -230,7 +248,9 @@ extension PlayKitScreen {
 
     @ViewBuilder var nativeControls: some View {
         switch kind {
-        case .qa: nativeQA
+        case .qa:
+            if accusationProjection != nil { nativeAccusation } else { nativeQA }
+        case .trueFalse, .imageGuess, .jigsaw, .scratchCard, .compare: nativeControlsC
         case .predict: nativePredict
         case .estimate: nativeEstimate
         case .pricePair: nativePricePair
@@ -267,7 +287,8 @@ extension PlayKitScreen {
     var nativeKitSubmit: NativeGameSubmit? {
         guard raw.object != nil, model.isCurrent else { return nil }
         switch kind {
-        case .qa: return nativeQASubmit
+        case .qa: return accusationProjection != nil ? nativeChildSubmit : nativeQASubmit
+        case .trueFalse, .imageGuess: return nativeKitSubmitC
         case .predict:
             if let mine = raw["myOptionKey"].text, !mine.isEmpty { return nil }
             return nativeSubmit("SUBMIT_PREDICT", ["optionKey": .string(selected.first ?? "")], valid: !selected.isEmpty)
@@ -294,7 +315,7 @@ extension PlayKitScreen {
     // MARK: Result
 
     @ViewBuilder var nativeOutcome: some View {
-        if reasoningFeedback.showsResult(for: projection), let outcome = PlayGameOutcome.resolve(projection) {
+        if accusationProjection == nil, reasoningFeedback.showsResult(for: projection), let outcome = PlayGameOutcome.resolve(projection) {
             Section {
                 nativeVerdictLabel
                 PlayGameResultLine(outcome: outcome, open: !projection.complete)

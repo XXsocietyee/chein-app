@@ -14,13 +14,13 @@ final class TopicTemplateNameSearchFlowTests: XCTestCase {
     }
     /// The shelf capsule is the only search entrance. It pushes the existing global search page.
     private func openGlobalSearch(maximumSwipes: Int = 12) {
-        XCTAssertFalse(app.textFields["searchMap.keyword"].exists)
+        XCTAssertFalse(app.searchFields.firstMatch.exists)
         let capsule = app.descendants(matching: .any)["discovery.globalSearch"].firstMatch
         XCTAssertTrue(revealFixtureElement(capsule, in: app, maximumSwipes: maximumSwipes), app.debugDescription)
         XCTAssertEqual(app.descendants(matching: .any).matching(identifier: "discovery.globalSearch").count, 1)
         XCTAssertTrue(capsule.isHittable, app.debugDescription)
         capsule.tap()
-        XCTAssertTrue(app.textFields["searchMap.keyword"].waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertTrue(app.searchFields.firstMatch.waitForExistence(timeout: 10), app.debugDescription)
     }
     func testTopicShelfCapsuleOpensGlobalSearch() {
         launch()

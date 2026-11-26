@@ -25,6 +25,7 @@ extension EnvironmentValues {
     @State private var loading = false
     @State private var loadError = false
     @State private var showingReportSheet = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
 
     var body: some View {
@@ -37,19 +38,15 @@ extension EnvironmentValues {
                     case .loading:
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
                             rankingTitle
-                            CYSkeleton().accessibilityLabel(Text(verbatim: c.t("正在加载队伍排名", "Loading team ranking")))
+                            // G-039 (design P1): the system spinner, not a drawn skeleton.
+                            ProgressView { Text(verbatim: c.t("正在加载队伍排名", "Loading team ranking")) }
+                                .frame(maxWidth: .infinity)
                         }
                         .accessibilityIdentifier("team.orient.rankingLoading")
                     case .failed:
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
                             rankingTitle
-                            HStack {
-                                CYStatusChip(verbatim: c.t("队伍排名加载失败", "Team ranking failed to load"), tone: .danger, systemImage: "exclamationmark.triangle")
-                                Spacer()
-                                CYPillButton(verbatim: c.t("重试", "Retry"), style: .secondary, fullWidth: false) {
-                                    Task { await load() }
-                                }
-                            }
+                            failureRow(c.t("队伍排名加载失败", "Team ranking failed to load"))
                         }
                         .accessibilityIdentifier("team.orient.rankingError")
                     case .ready:
@@ -57,9 +54,10 @@ extension EnvironmentValues {
                     }
                 }
                 if detail.leader != true {
-                    CYPillButton(verbatim: c.t("举报队伍", "Report team"), style: .tertiary, systemImage: "flag", fullWidth: false) {
-                        showingReportSheet = true
+                    Button { showingReportSheet = true } label: {
+                        Label { Text(verbatim: c.t("举报队伍", "Report team")) } icon: { Image(systemName: "flag") }
                     }
+                    .buttonStyle(.borderless)
                     .accessibilityIdentifier("team.orient.report")
                 }
             }
@@ -86,14 +84,8 @@ extension EnvironmentValues {
             }
 
             if loadError && board == nil {
-                HStack {
-                    CYStatusChip(verbatim: c.t("进度加载失败", "Failed to load task progress"), tone: .danger, systemImage: "exclamationmark.triangle")
-                    Spacer()
-                    CYPillButton(verbatim: c.t("重试", "Retry"), style: .secondary, fullWidth: false) {
-                        Task { await load() }
-                    }
-                }
-                .accessibilityIdentifier("team.orient.error")
+                failureRow(c.t("进度加载失败", "Failed to load task progress"))
+                    .accessibilityIdentifier("team.orient.error")
             } else if let board {
                 Text(
                     board.isEmpty
@@ -102,7 +94,8 @@ extension EnvironmentValues {
                               "Team completed \(board.completedCount) / \(board.tasks.count) nodes")
                 )
                 .cyText(.bodyCompact)
-                .foregroundStyle(CYColor.textSecondary)
+                .foregroundStyle(.secondary)
+                .contentTransition(reduceMotion ? .identity : .numericText())
                 .accessibilityIdentifier("team.orient.summary")
 
                 if !board.isEmpty {
@@ -111,11 +104,11 @@ extension EnvironmentValues {
                             GridRow {
                                 Text(c.t("队员", "Member"))
                                     .cyText(.caption)
-                                    .foregroundStyle(CYColor.textSecondary)
+                                    .foregroundStyle(.secondary)
                                 ForEach(board.tasks) { task in
                                     Text(verbatim: task.title)
                                         .cyText(.caption)
-                                        .foregroundStyle(CYColor.textSecondary)
+                                        .foregroundStyle(.secondary)
                                         .lineLimit(2)
                                 }
                             }
@@ -126,9 +119,9 @@ extension EnvironmentValues {
                                         .cyText(.meta)
                                     ForEach(board.tasks) { task in
                                         let done = member.hasCompleted(taskID: task.id)
-                                        Text(verbatim: done ? "✓" : "·")
-                                            .cyText(.meta, weight: .bold)
-                                            .foregroundStyle(done ? CYColor.successText : CYColor.textSecondary)
+                                        Image(systemName: done ? "checkmark.circle.fill" : "circle")
+                                            .font(.body)
+                                            .foregroundStyle(done ? AnyShapeStyle(Color.green) : AnyShapeStyle(HierarchicalShapeStyle.tertiary))
                                             .accessibilityLabel(
                                                 done ? c.t("已完成", "Completed") : c.t("未完成", "Pending")
                                             )
@@ -141,11 +134,35 @@ extension EnvironmentValues {
                 }
             }
         }
-        .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("team.orient.board")
+    }
+
+    /// G-039: an inline failure as Settings shows one: a red SF Symbol label and a bordered 重试 button.
+    private func failureRow(_ text: String) -> some View {
+        ViewThatFits(in: .horizontal) {
+            HStack {
+                failureLabel(text)
+                Spacer()
+                retryButton
+            }
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                failureLabel(text)
+                retryButton
+            }
+        }
+    }
+
+    private func failureLabel(_ text: String) -> some View {
+        Label { Text(verbatim: text) } icon: { Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.red) }
+            .font(.subheadline)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var retryButton: some View {
+        Button { Task { await load() } } label: { Text(verbatim: c.t("重试", "Retry")) }
+            .buttonStyle(.bordered)
     }
 
     private var rankingTitle: some View {
@@ -160,7 +177,7 @@ extension EnvironmentValues {
             if ranking.isEmpty {
                 Text(c.t("暂无队伍排名", "No team ranking yet"))
                     .cyText(.bodyCompact)
-                    .foregroundStyle(CYColor.textSecondary)
+                    .foregroundStyle(.secondary)
                     .accessibilityIdentifier("team.orient.rankingEmpty")
             }
 
@@ -175,27 +192,30 @@ extension EnvironmentValues {
                             Text(verbatim: row.teamName.isEmpty ? "#\(row.teamID)" : row.teamName)
                                 .cyText(.bodyMedium)
                             if row.isMyTeam(currentTeamID: detail.team.id) {
-                                CYStatusChip(verbatim: c.t("我的队伍", "My team"), tone: .info, systemImage: "person.fill")
+                                Label { Text(verbatim: c.t("我的队伍", "My team")) } icon: { Image(systemName: "person.fill") }
+                                    .labelStyle(.titleAndIcon)
+                                    .font(.caption)
+                                    .foregroundStyle(.tint)
                             }
                         }
                         if let duration = row.durationText {
                             Text(verbatim: duration)
                                 .cyText(.meta)
-                                .foregroundStyle(CYColor.textSecondary)
+                                .foregroundStyle(.secondary)
                         }
                     }
                     Spacer()
                     Text(verbatim: "\(row.completedCount) / \(row.totalTasks)")
                         .cyText(.numericBody)
                         .monospacedDigit()
-                        .foregroundStyle(CYColor.textSecondary)
+                        .foregroundStyle(.secondary)
+                        .contentTransition(reduceMotion ? .identity : .numericText())
                 }
                 .padding(.vertical, 4)
             }
         }
-        .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .animation(reduceMotion ? nil : .default, value: ranking.map(\.completedCount))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("team.orient.ranking")
     }

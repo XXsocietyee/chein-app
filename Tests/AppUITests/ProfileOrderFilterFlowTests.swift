@@ -26,17 +26,18 @@ import XCTest
         app.launchArguments=["--uitesting-reset-language","--uitesting-profile-order-filters","-AppleLanguages","(en)","-AppleLocale","en_US"] + (empty ? ["--profile-order-filters-empty"] : [])
         app.launch()
     }
-    /// Source chip row: every filter is a visible chip; scroll the row until the chip is hittable.
+    /// G-053: the filter is the system menu picker; open it and choose the option by its visible MP title.
     private func choose(_ filter:String, label:String) {
         let row=app.descendants(matching: .any).matching(identifier: "profile.orderFilter.picker").firstMatch
         XCTAssertTrue(row.waitForExistence(timeout:5))
-        let option=app.buttons["profile.orderFilter.chip.\(filter)"];XCTAssertTrue(option.waitForExistence(timeout:3))
+        row.tap()
+        let byID=app.buttons["profile.orderFilter.chip.\(filter)"]
+        let option=byID.waitForExistence(timeout:2) ? byID : app.buttons[label]
+        XCTAssertTrue(option.waitForExistence(timeout:3))
         XCTAssertEqual(option.label,label)
-        var swipes=0
-        while !option.isHittable && swipes<6 { row.swipeLeft(); swipes+=1 }
-        XCTAssertTrue(option.isHittable)
         option.tap()
-        XCTAssertTrue(option.isSelected)
+        XCTAssertTrue(row.waitForExistence(timeout:3))
+        XCTAssertTrue((row.value as? String)?.contains(label) == true || row.label.contains(label))
     }
     func testFilterAndClearDoNotReload() {
         launch();choose("manualRefund",label:"Manual after-sales")

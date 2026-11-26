@@ -95,10 +95,6 @@ import QuestifyCore
             if let reader = dependencies.officialRouteReader {
                 RoamMapHomeRouteCard(reader: reader, routeID: id, model: model)
             }
-        case .search(let keyword):
-            if let make = dependencies.searchDestination {
-                make(keyword)
-            }
         }
     }
 }
@@ -108,6 +104,7 @@ import QuestifyCore
     @Bindable var model: RoamMapHomeModel
     let dependencies: RoamMapHomeDependencies
     @State private var location: RoamLocationSettingsSnapshot?
+    @Environment(\.locale) private var locale
 
     private var area: RoamSearchArea? { dependencies.entryReader?.searchArea ?? dependencies.roamReader.searchArea }
     private var entryState: RoamEntryPeekState? { dependencies.entryReader.map { model.entry.visibleState(reader: $0) } }
@@ -144,7 +141,12 @@ import QuestifyCore
                     placement: .navigationBarDrawer(displayMode: .always),
                     prompt: Text("nativeR2.mapHome.search.prompt"))
         .onChange(of: model.searchActive) { _, active in if active { model.detent = .large } }
-        .onSubmit(of: .search) { model.detent = .medium }
+        // P-037: submit searches the map's area and drops the results as pins on the home map (Maps' search).
+        .onSubmit(of: .search) { submitSearch() }
+        .onChange(of: model.query) { _, text in
+            if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { model.clearSearch() }
+        }
+        .onChange(of: model.searchPhase) { _, phase in announceSearch(phase) }
         .refreshable { model.reloadGeneration += 1 }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) { mapMenu }
@@ -291,24 +293,69 @@ import QuestifyCore
         }
     }
 
+    private var canSearchMap: Bool {
+        guard let reader = dependencies.searchReader else { return false }
+        return reader.isConfigured && area != nil
+    }
+
+    private func submitSearch() {
+        guard canSearchMap else { model.detent = .medium; return }
+        model.submitSearch(reader: dependencies.searchReader, area: area)
+        model.detent = .medium
+    }
+
+    /// VoiceOver hears the result of a submitted search; the pins appear on the map at the same time.
+    private func announceSearch(_ phase: RoamMapHomeLoadPhase) {
+        switch phase {
+        case .loaded:
+            let count = model.searchPins(center: area?.coordinate).count
+            let key = count == 0 ? "nativeR2.mapHome.search.announce.none" : "nativeR2.mapHome.search.announce.count"
+            let format = appLocalized(String.LocalizationValue(key), locale: locale)
+            AccessibilityNotification.Announcement(String(format: format, count)).post()
+        case .failed:
+            AccessibilityNotification.Announcement(appLocalized("nativeR2.mapHome.search.failed", locale: locale)).post()
+        default:
+            break
+        }
+    }
+
     @ViewBuilder private var searchSections: some View {
         Section {
-            if pins.isEmpty {
+            if pins.isEmpty, model.searchPhase == .loading {
+                ForEach(0..<3, id: \.self) { _ in
+                    Label("nativeR2.mapHome.loading", systemImage: "mappin")
+                        .redacted(reason: .placeholder)
+                }
+            } else if pins.isEmpty {
                 ContentUnavailableView.search(text: model.query)
             } else {
                 ForEach(pins) { pin in RoamMapHomePinRow(pin: pin) }
             }
+        } footer: {
+            if model.hasSubmittedSearch, model.searchPhase == .failed {
+                Label("nativeR2.mapHome.search.failed", systemImage: "exclamationmark.triangle")
+            }
         }
-        if dependencies.searchDestination != nil {
+        if canSearchMap {
             Section {
-                NavigationLink(value: RoamMapHomeRoute.search(model.query.trimmingCharacters(in: .whitespacesAndNewlines))) {
+                // Was a push of the search map explorer (a second map in the sheet). Now: results land as pins here.
+                Button(action: submitSearch) {
                     LabeledContent {
-                        Text(verbatim: model.query)
+                        if model.searchPhase == .loading, model.hasSubmittedSearch {
+                            ProgressView()
+                        } else {
+                            Text(verbatim: model.query)
+                        }
                     } label: {
                         Label("nativeR2.mapHome.searchMap", systemImage: "magnifyingglass")
                     }
                 }
+                .disabled(model.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 .accessibilityIdentifier("roam.search")
+            } footer: {
+                if model.hasSubmittedSearch, model.searchUnauthorized, let onOpenAccount = dependencies.onOpenAccount {
+                    Button("nativeR2.mapHome.signIn", action: onOpenAccount)
+                }
             }
         }
     }

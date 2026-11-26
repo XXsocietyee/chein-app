@@ -58,11 +58,13 @@ extension AppSession {
 /// Notification taps. Only a source page path in the payload routes (`PushTapRouter` rejects schemes and hosts).
 /// Foreground presentation (native r2 M4): with `nativeR2.island` on, a notification that arrives while the app is open
 /// shows as an island (invitation / message / status by its page path) instead of the system banner; tapping it routes
-/// exactly like a banner tap. Flag off: nothing is shown in the foreground, as before.
+/// exactly like a banner tap. Flag off: the system banner (design P1 G-027; it used to be dropped).
 @MainActor final class MPNotificationTapRouter: NSObject, UNUserNotificationCenterDelegate {
     static let shared = MPNotificationTapRouter()
     /// The mini-program subscribe-message field that carries the page path.
     nonisolated static let routeKeys = ["page"]
+    /// Posted on the main actor when an IM / channel notification arrives in the foreground (G-021).
+    nonisolated static let foregroundMessageArrived = Notification.Name("chein.im.foregroundMessageArrived")
     private weak var session: AppSession?
     private var pending: NativeEntryIntent?
 
@@ -95,7 +97,13 @@ extension AppSession {
         for key in Self.routeKeys { if let value = content.userInfo[key] as? String { payload[key] = value } }
         let title = content.title, body = content.body, routePayload = payload
         Task { @MainActor in
-            guard IslandCenter.isEnabled else { completionHandler([]); return }
+            // G-021: an IM / channel push while the app is open tells an open conversation to read its newer page
+            // (the same guarded read as pull to refresh; nothing reads when no conversation is on screen).
+            if IslandPushPresenter.kind(forPage: routePayload.values.first?.lowercased() ?? "") == .message {
+                NotificationCenter.default.post(name: MPNotificationTapRouter.foregroundMessageArrived, object: nil)
+            }
+            // G-027 (design P1): flag off, the system banner shows instead of the push being dropped while open.
+            guard IslandCenter.isEnabled else { completionHandler([.banner, .list, .sound, .badge]); return }
             IslandPushPresenter.present(title: title, body: body, payload: routePayload) { MPNotificationTapRouter.shared.route(routePayload) }
             // Kept in Notification Center; the island replaces the banner and sound while the app is open.
             completionHandler([.list, .badge])

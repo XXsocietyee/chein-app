@@ -273,24 +273,27 @@ struct ClubOwnerFundsSection: View {
     }
 }
 
-/// Available balance: the system grouped-row look (label, large monospaced amount, the pending amount below).
+/// G-034 (design P1): the available balance is a plain grouped row, as Wallet's Apple Cash card lists its balance:
+/// `LabeledContent` with the amount in a large monospaced title; the pending amount is its own row below.
+/// The amount rolls with `.numericText()` when a reload changes it (instant under Reduce Motion).
 private struct CYBalanceHeroLocal: View {
     let label: LocalizedStringKey
     let amount: String
     let delta: String
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(label).font(.subheadline).foregroundStyle(.secondary)
+        LabeledContent {
             Text(verbatim: amount)
-                .font(.largeTitle.bold())
+                .font(.title.bold())
                 .monospacedDigit()
-            Text(verbatim: delta)
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .monospacedDigit()
+                .contentTransition(reduceMotion ? .identity : .numericText())
+                .animation(reduceMotion ? nil : .default, value: amount)
+        } label: {
+            Text(label)
+            Text(verbatim: delta).monospacedDigit()
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("club.ownerFunds.available")
     }
 }
 

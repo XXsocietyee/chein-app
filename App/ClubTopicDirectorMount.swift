@@ -186,7 +186,7 @@ struct ClubTopicMoreRoute: Hashable {
                 }
             }
             .accessibilityIdentifier("club.topic.director.ready")
-            if merchantHoldBlocked, let topicID {
+            if PlayerLaunch.merchantCenterEnabled, merchantHoldBlocked, let topicID { // Lane G: 联系商家 (coop list) hidden in Release
                 Section {
                     NavigationLink {
                         MPReviewedPageScreen(page: "pages/coop/list/index", query: ["tab": "sent", "topicId": String(topicID)])

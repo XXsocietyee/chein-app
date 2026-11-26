@@ -7,7 +7,10 @@ import SwiftUI
 /// - 我已到达 is `PlayArrivalService.arrive` (the same service `PlayArrivalControl` uses), so the start
 ///   GPS lock (300 m, accuracy relax ≤ 200 m) and the server decision are unchanged.
 /// - The local lock row is display only. It never blocks or sends anything by itself.
-/// - Scan, photo and answer open the existing stop page, which owns the camera and scanner capture.
+/// - P-057: a scan stop scans in place (VisionKit `DataScannerViewController` via `NativeQRScanner`) and
+///   submits through the same review → confirm → `submit` path as the stop page (`/checkin`).
+/// - Photo and answer still open the existing stop page: the system camera / photo picker are presented by the
+///   play runtime root, which cannot present over the run sheets.
 @MainActor struct CityOrientationPunchSheet: View {
     @Bindable var model: PlayExperienceCoordinator
     let nodeID: Int
@@ -17,6 +20,15 @@ import SwiftUI
     /// The next control point after a punch, or a replacement offered by an arrival refusal.
     let onNext: (Int) -> Void
     @State private var arrival: PlayArrivalService?
+    /// P-057: the in-sheet scanner, the pending review it produced, and why a scan was refused.
+    @State private var scanning = false
+    @State private var review: PlayCompletionReview?
+    @State private var confirmReview = false
+    @State private var refusal: PlayReviewRefusal?
+    /// The code the scanner returned; reviewed once the scanner has finished dismissing.
+    @State private var scannedCode: String?
+    /// This sheet submitted a scan, so the coordinator's next issue is shown here.
+    @State private var submittedHere = false
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
 
@@ -26,6 +38,12 @@ import SwiftUI
         return snapshot.isDone(node)
     }
     private var distance: Double? { location.distance(toLatitude: node?.latitude, longitude: node?.longitude) }
+    /// Scan stops capture in this sheet; every other task keeps the stop page.
+    private var scansInPlace: Bool {
+        guard let snapshot = model.snapshot, let node else { return false }
+        let task = PlayNodeTask.resolve(mode: snapshot.result.mode, node: node)
+        return task == .scan || task == .merchantScan
+    }
     private var nextNodeID: Int? {
         guard let snapshot = model.snapshot, let next = PlayTaskSummaryPresentation(snapshot: snapshot).currentNodeID,
               next != nodeID else { return nil }
@@ -49,9 +67,37 @@ import SwiftUI
         .onAppear {
             if arrival == nil { arrival = PlayArrivalService(runtime: model, location: RuntimeNativeLocationProvider(enabled: true)) }
         }
-        .onDisappear { arrival?.cancel() }
+        .onDisappear { arrival?.cancel(); if review != nil { model.cancelReview(); review = nil } }
         .sensoryFeedback(.success, trigger: done) { old, new in !old && new }
+        .onChange(of: done) { old, new in
+            // P-054: the punch is announced, not only shown.
+            if !old, new { AccessibilityNotification.Announcement(appLocalized("nativeR2.city.punch.done", locale: locale)).post() }
+        }
+        .cySheet(isPresented: $scanning, onDismiss: {
+            if let code = scannedCode { scannedCode = nil; prepareScan(code) }
+        }) {
+            NativeQRScanner { code in
+                scannedCode = code
+                scanning = false
+            }
+        }
+        .confirmationDialog(Text("playx.review"), isPresented: $confirmReview, titleVisibility: .visible) {
+            Button("playx.submit") {
+                guard let pending = review else { return }
+                review = nil // consumed before the dialog's own dismissal
+                submittedHere = true
+                Task { await model.submit(pending) }
+            }
+            .accessibilityIdentifier("playx.confirm")
+            Button("playx.cancel", role: .cancel) { model.cancelReview(); review = nil }
+        } message: {
+            Text("playx.review.detail")
+        }
+        .onChange(of: confirmReview) { _, visible in
+            if !visible, review != nil { model.cancelReview(); review = nil }
+        }
         .sensoryFeedback(.error, trigger: model.arrivalFailure?.nodeID) { _, new in NativeR2Flags.motion && new == nodeID }
+        .sensoryFeedback(.error, trigger: refusal) { _, new in new != nil }
         .accessibilityIdentifier("nativeR2.city.punch")
     }
 
@@ -74,6 +120,12 @@ import SwiftUI
                                                   onScan: { onOpenTask(nodeID) },
                                                   onRefresh: { Task { await model.load() } },
                                                   onOpenNode: onNext)
+                    }
+                    if let reason = refusal, !done {
+                        Section { PlayReviewRefusalRow(refusal: reason, identifier: "nativeR2.city.punch.refusal") }
+                    }
+                    if submittedHere, !done, model.phase != .submitting, let issue = model.issue {
+                        Section { PlayExperienceIssueView(issue: issue) }
                     }
                     taskSection(snapshot: snapshot, node: node)
                 }
@@ -176,6 +228,11 @@ import SwiftUI
                 if node.validationMethod == 2 {
                     Button { onOpenTask(nodeID) } label: { Label("nativeR2.city.punch.photo", systemImage: "camera") }
                         .accessibilityIdentifier("nativeR2.city.punch.photo")
+                } else if scansInPlace {
+                    Button { startScan() } label: { Label("nativeR2.city.punch.scanTask", systemImage: "qrcode.viewfinder") }
+                        .disabled(model.phase == .submitting)
+                        .accessibilityIdentifier("nativeR2.city.punch.task")
+                    if model.phase == .submitting { ProgressView("nativeR2.city.punch.submitting") }
                 } else if task != .arrive {
                     Button { onOpenTask(nodeID) } label: { Label("nativeR2.city.punch.task", systemImage: "list.bullet.clipboard") }
                         .accessibilityIdentifier("nativeR2.city.punch.task")
@@ -186,6 +243,26 @@ import SwiftUI
             }
         } header: {
             Text("nativeR2.city.punch.taskHeader")
+        }
+    }
+
+    // MARK: scan in place (P-057)
+
+    /// The stop page's `prepare`: the coordinator reviews the evidence (nothing is sent), then the confirm dialog
+    /// submits it. A refusal shows its reason in the sheet and as an error haptic.
+    private func startScan() {
+        refusal = nil
+        submittedHere = false
+        scanning = true
+    }
+    private func prepareScan(_ code: String) {
+        let evidence = PlayCompletionEvidence.scan(code)
+        do {
+            review = try model.review(nodeID: nodeID, evidence: evidence, context: model.interactionContext)
+            refusal = nil
+            confirmReview = true
+        } catch {
+            refusal = model.reviewRefusal(nodeID: nodeID, evidence: evidence) ?? PlayReviewRefusal(error: error)
         }
     }
 
@@ -213,11 +290,12 @@ import SwiftUI
                     .disabled(arrival.isBusy || arrival.phase == .unknown || arrival.phase == .succeeded)
                     .accessibilityIdentifier("playArrival.action")
                 }
-                // Scan is the fallback everywhere (location is only required for the start).
-                Button { onOpenTask(nodeID) } label: {
+                // Scan is the fallback everywhere (location is only required for the start). Scan stops scan here.
+                Button { if scansInPlace { startScan() } else { onOpenTask(nodeID) } } label: {
                     Label("nativeR2.city.punch.scan", systemImage: "qrcode.viewfinder").frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
+                .disabled(scansInPlace && model.phase == .submitting)
                 .accessibilityIdentifier("nativeR2.city.punch.scan")
             }
         }

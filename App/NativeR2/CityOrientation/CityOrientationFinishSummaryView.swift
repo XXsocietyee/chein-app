@@ -15,6 +15,10 @@ import MapKit
     var reportDestination: AnyView? = nil
     let onClose: () -> Void
     @State private var loadingBoard = false
+    /// P-059: the route draws itself on the thumbnail and the metrics roll up from zero once, on appear.
+    @State private var draw = NativeR2DrawOn()
+    @State private var revealed = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.locale) private var locale
 
     private struct Metric: Identifiable {
@@ -57,9 +61,13 @@ import MapKit
                             ForEach(metrics) { metric in
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(LocalizedStringKey(metric.id)).font(.caption).foregroundStyle(.secondary)
-                                    Text(verbatim: metric.value).font(.title2.monospacedDigit())
+                                    Text(verbatim: revealed ? metric.value : Self.zeroed(metric.value))
+                                        .font(.title2.monospacedDigit())
+                                        .nativeR2RollingNumber(revealed ? 1 : 0)
                                 }
-                                .accessibilityElement(children: .combine)
+                                .accessibilityElement(children: .ignore)
+                                .accessibilityLabel(Text(LocalizedStringKey(metric.id)))
+                                .accessibilityValue(Text(verbatim: metric.value))
                             }
                         }
                         .padding(.vertical, 4)
@@ -111,15 +119,35 @@ import MapKit
             }
         }
         .accessibilityIdentifier("medalScreen")
+        .task { await reveal() }
+    }
+
+    /// Reduce Motion (or the motion flag off): final values and the whole route at once.
+    private func reveal() async {
+        guard !revealed else { return }
+        guard NativeR2Flags.motion, !reduceMotion else { revealed = true; await draw.run(reduceMotion: true); return }
+        withAnimation(.smooth(duration: 1.2)) { revealed = true }
+        await draw.run(reduceMotion: reduceMotion)
+    }
+
+    /// The starting frame of a rolling value: every digit reads 0 ("00:12:40" → "00:00:00", "3/8" → "0/8" keeps the total).
+    static func zeroed(_ value: String) -> String {
+        if let slash = value.firstIndex(of: "/") {
+            return zeroed(String(value[..<slash])) + String(value[slash...])
+        }
+        return String(value.map { $0.isNumber ? "0" : $0 })
     }
 
     private func routeThumbnail(_ route: PlayRouteMapPresentation) -> some View {
         let points = route.mappedStops.compactMap(\.coordinate).map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
         return Map(initialPosition: .region(CYMapRegion.boundingRegion(coordinates: points)), interactionModes: []) {
             ForEach(route.segments) { segment in
-                MapPolyline(coordinates: [CLLocationCoordinate2D(latitude: segment.start.latitude, longitude: segment.start.longitude),
-                                          CLLocationCoordinate2D(latitude: segment.end.latitude, longitude: segment.end.longitude)])
-                    .stroke(Color.accentColor, lineWidth: 3)
+                MapPolyline(coordinates: NativeR2RoutePath.leg(
+                    CLLocationCoordinate2D(latitude: segment.start.latitude, longitude: segment.start.longitude),
+                    CLLocationCoordinate2D(latitude: segment.end.latitude, longitude: segment.end.longitude),
+                    index: route.segments.firstIndex(where: { $0.id == segment.id }) ?? 0,
+                    count: route.segments.count, progress: draw.progress))
+                    .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
             }
             ForEach(route.mappedStops) { stop in
                 if let point = stop.coordinate {

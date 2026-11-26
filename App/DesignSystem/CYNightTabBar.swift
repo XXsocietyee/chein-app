@@ -129,28 +129,8 @@ extension EnvironmentValues {
     }
 }
 
-extension View {
-    /// E2E-20261113b N3: on iOS 26 the floating tab bar does not shrink the tab content's safe area, so bottom rows and
-    /// pinned actions (play panel stations, the activity "More info" row, club entries) ended up under it. Each tab root
-    /// reserves the bar's height; the bar itself is outside this padding.
-    func cyFloatingTabBarClearance() -> some View {
-        modifier(CYFloatingTabBarClearance())
-    }
-}
-
-private struct CYFloatingTabBarClearance: ViewModifier {
-    @Environment(\.cyTabBarVisibility) private var visibility
-    @Environment(\.cyTabBarHidden) private var isTabBarHidden
-    func body(content: Content) -> some View {
-        let baseClearance = isTabBarHidden ? 0 : CYFloatingTabBarClearanceKey.height
-        let clearance = (visibility?.isHidden == true) ? 0 : baseClearance
-        if #available(iOS 26, *) {
-            // Native r2: the system scroll edge effect only; no painted fade under the bar.
-            content.safeAreaPadding(.bottom, clearance).environment(\.cyTabBarClearance, clearance)
-                .scrollEdgeEffectStyle(.soft, for: .bottom)
-        } else { content }
-    }
-}
+// L1 P-001: the per-tab `cyFloatingTabBarClearance()` padding is gone. The system `TabView` already insets tab
+// content for its bar on every iOS version, so the extra 72 pt made a double gap above it.
 
 /// Height a self-sizing bottom panel (the map scaffold) reserves for the floating tab bar inside a tab. Zero outside tabs.
 struct CYFloatingTabBarClearanceKey: EnvironmentKey {

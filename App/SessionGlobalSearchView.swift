@@ -3,12 +3,14 @@ import SwiftUI
 /// Production destination routing reuses only compatible entity domains.
 @MainActor struct SessionGlobalSearchView: View {
     @EnvironmentObject private var session: AppSession
+    /// P-026: 首页 passes its search model; a pushed page leaves it nil and owns its own.
+    var searchSession: GlobalSearchSession? = nil
     var onSignIn: (() -> Void)? = nil
     @State private var publicLayers: MapPublicLayerCaller?
     var body: some View {
         GlobalSearchView(reader: session.searchMapReader, historyNamespace: session.searchMapHistoryNamespace, publicMerchant: session.publicMerchantHomeContext,
                          onSignIn: onSignIn, recommendedKeywords: GlobalSearchRecommendedKeywords.keywords(for: session.operationalMarket),
-                         publicLayers: publicLayers, destination: destination)
+                         publicLayers: publicLayers, searchSession: searchSession, destination: destination)
             .environment(\.walkingNavigationFactory, session.walkingNavigationFactory)
             .id(session.searchMapReader.scope)
             .task(id: session.searchMapReader.scope) {

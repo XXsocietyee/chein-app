@@ -304,7 +304,7 @@ struct CoopFlowHandleEditor: View {
             CoopFlowRequestPreview(operation: .handle(inviteID: inviteID, action: action, reason: reason),
                                    cancelsAcceptedCooperation: action == .cancel && currentStatus == 1)
         }
-        .cyToast(verbatimMessage: $toastMessage)
+        .clubIslandStatus(verbatimMessage: $toastMessage, surface: "coop-flow")
     }
 
     /// MC7-30-6 status rows for a station accept: sent / unknown / failed copy, or the one review button.

@@ -13,42 +13,36 @@ enum MemberPopupCopy {
 }
 
 /// Sign-out confirmation (`account.logout`, `pages/shezhi/shezhi.js:317` + `utils/danger-actions.js:1179`).
-struct MemberSignOutConfirmSheet: View {
-    @Environment(\.locale) private var locale
+/// Design P1 G-047: the system action sheet (Settings › Sign Out), not a custom sheet. `presenting` carries the
+/// account snapshot captured when the row was tapped, so the confirm acts on exactly that sign-in.
+struct MemberSignOutConfirmation<Expected>: ViewModifier {
+    let isPresented: Binding<Bool>
+    let expected: Expected?
+    let message: LocalizedStringKey
     let confirmIdentifier: String
-    let onConfirm: () -> Void
+    let onConfirm: (Expected) -> Void
 
-    init(confirmIdentifier: String? = nil, onConfirm: @escaping () -> Void) {
-        self.confirmIdentifier = confirmIdentifier ?? ("account" + ".signOut.confirm")
-        self.onConfirm = onConfirm
+    func body(content: Content) -> some View {
+        content.confirmationDialog(Text("auth.signOutConfirm"), isPresented: isPresented,
+                                   titleVisibility: .visible, presenting: expected) { value in
+            Button(role: .destructive) { onConfirm(value) } label: { Text("auth.signOut") }
+                .accessibilityIdentifier(confirmIdentifier)
+            Button(role: .cancel) {} label: { Text("action.cancel") }
+                .accessibilityIdentifier(confirmIdentifier.replacingOccurrences(of: ".confirm", with: ".cancel"))
+        } message: { _ in
+            Text(message)
+        }
     }
+}
 
-    var body: some View {
-        MemberConfirmSheet(
-            title: appLocalized("auth.signOutConfirm", locale: locale),
-            message: MemberPopupCopy.text(
-                "清除本机登录状态，下次进入需要重新登录。",
-                "Clear sign-in state on this device. You will need to sign in again next time.",
-                locale: locale),
-            confirmTitle: appLocalized("auth.signOut", locale: locale),
-            isDestructive: true,
-            confirmIdentifier: confirmIdentifier,
-            consequences: [
-                CYConfirmConsequence(
-                    systemImage: "rectangle.portrait.and.arrow.right",
-                    text: MemberPopupCopy.text(
-                        "本机登录态清除，下次进入需要重新登录",
-                        "Sign-in state is cleared on this device.",
-                        locale: locale)),
-                CYConfirmConsequence(
-                    systemImage: "ticket",
-                    text: MemberPopupCopy.text(
-                        "已购通行证、订单和券都保留在账号里，不会丢",
-                        "Purchased passes, orders and coupons stay saved in your account.",
-                        locale: locale))
-            ],
-            onConfirm: onConfirm
-        )
+extension View {
+    /// Presents the system sign-out confirmation while `isPresented` is true and `expected` is non-nil.
+    func memberSignOutConfirmation<Expected>(isPresented: Binding<Bool>, presenting expected: Expected?,
+                                             message: LocalizedStringKey = "memberPopup.signOut.message",
+                                             confirmIdentifier: String,
+                                             onConfirm: @escaping (Expected) -> Void) -> some View {
+        modifier(MemberSignOutConfirmation(isPresented: isPresented, expected: expected, message: message,
+                                           confirmIdentifier: confirmIdentifier, onConfirm: onConfirm))
     }
 }
 
@@ -60,26 +54,17 @@ struct MemberDeregistrationCancelConfirmSheet: View {
     var body: some View {
         MemberConfirmSheet(
             title: MemberPopupCopy.table("compliance.cancelReview", table: "AccountCompliance", locale: locale),
-            message: MemberPopupCopy.text(
-                "撤销后账号立即恢复正常使用。",
-                "Your account returns to normal use immediately after cancelling.",
-                locale: locale),
+            message: appLocalized("memberPopup.deregistrationCancelConfirmSheet.1", locale: locale),
             confirmTitle: MemberPopupCopy.table("compliance.cancelApplication", table: "AccountCompliance", locale: locale),
             isDestructive: true,
             confirmIdentifier: "compliance.cancel.confirm",
             consequences: [
                 CYConfirmConsequence(
                     systemImage: "checkmark.circle",
-                    text: MemberPopupCopy.text(
-                        "账号恢复正常，登录与购买不受影响",
-                        "Sign-in and purchases continue working normally.",
-                        locale: locale)),
+                    text: appLocalized("memberPopup.deregistrationCancelConfirmSheet.2", locale: locale)),
                 CYConfirmConsequence(
                     systemImage: "arrow.uturn.left",
-                    text: MemberPopupCopy.text(
-                        "之后需要注销可以再次申请",
-                        "You can submit a closure request again later if needed.",
-                        locale: locale))
+                    text: appLocalized("memberPopup.deregistrationCancelConfirmSheet.3", locale: locale))
             ],
             onConfirm: onConfirm
         )
@@ -101,16 +86,10 @@ struct MemberDeregistrationSubmitConfirmSheet: View {
             consequences: [
                 CYConfirmConsequence(
                     systemImage: "hourglass",
-                    text: MemberPopupCopy.text(
-                        "提交后进入受理期，处理完成前仍可随时撤销",
-                        "Once submitted, you can still cancel while the request is pending.",
-                        locale: locale)),
+                    text: appLocalized("memberPopup.deregistrationSubmitConfirmSheet.1", locale: locale)),
                 CYConfirmConsequence(
                     systemImage: "exclamationmark.triangle",
-                    text: MemberPopupCopy.text(
-                        "审核通过并完成注销后，账号与数据将无法恢复",
-                        "Once closure completes, the account and data cannot be recovered.",
-                        locale: locale))
+                    text: appLocalized("memberPopup.deregistrationSubmitConfirmSheet.2", locale: locale))
             ],
             onConfirm: onConfirm
         )
@@ -196,8 +175,8 @@ struct MemberBankWithdrawalDiscardConfirmSheet: View {
 
     var body: some View {
         MemberConfirmSheet(
-            title: MemberPopupCopy.text("放弃本次提现填写？", "Discard unsubmitted bank details?", locale: locale),
-            message: MemberPopupCopy.text("已填写的信息不会被保存", "Entered bank details will not be saved.", locale: locale),
+            title: appLocalized("memberPopup.bankWithdrawalDiscardConfirmSheet.1", locale: locale),
+            message: appLocalized("memberPopup.bankWithdrawalDiscardConfirmSheet.2", locale: locale),
             confirmTitle: appLocalized("bank.withdrawal.discard", locale: locale),
             isDestructive: true,
             confirmIdentifier: "bank.withdrawal.discard.confirm",
@@ -214,12 +193,9 @@ struct MemberBundleSwapConfirmSheet: View {
 
     var body: some View {
         MemberConfirmSheet(
-            title: MemberPopupCopy.text("更换商家？", "Swap merchant?", locale: locale),
-            message: MemberPopupCopy.text(
-                "改选\(merchantName)，有效期不变。",
-                "Switch to \(merchantName). Your validity period stays unchanged.",
-                locale: locale),
-            confirmTitle: MemberPopupCopy.text("更换", "Swap", locale: locale),
+            title: appLocalized("memberPopup.bundleSwapConfirmSheet.1", locale: locale),
+            message: String(format: appLocalized("memberPopup.bundleSwapConfirmSheet.2", locale: locale), locale: locale, merchantName),
+            confirmTitle: appLocalized("memberPopup.bundleSwapConfirmSheet.3", locale: locale),
             isDestructive: false,
             confirmIdentifier: "freeExplore.swap.confirm",
             onConfirm: onConfirm
@@ -234,12 +210,9 @@ struct MemberReportAppealConfirmSheet: View {
 
     var body: some View {
         MemberConfirmSheet(
-            title: MemberPopupCopy.text("确认提交申诉？", "Submit this appeal?", locale: locale),
-            message: MemberPopupCopy.text(
-                "提交后将由平台复核处理，处理结果会更新在本页进度中。",
-                "The platform will review your appeal and update the status on this detail page.",
-                locale: locale),
-            confirmTitle: MemberPopupCopy.text("提交申诉", "Submit", locale: locale),
+            title: appLocalized("memberPopup.reportAppealConfirmSheet.1", locale: locale),
+            message: appLocalized("memberPopup.reportAppealConfirmSheet.2", locale: locale),
+            confirmTitle: appLocalized("memberPopup.reportAppealConfirmSheet.3", locale: locale),
             isDestructive: false,
             confirmIdentifier: "report.appeal.confirm",
             onConfirm: onConfirm
@@ -272,10 +245,7 @@ struct MemberCouponDiscardConfirmSheet: View {
     var body: some View {
         MemberConfirmSheet(
             title: appLocalized("couponManagement.discardTitle", locale: locale),
-            message: MemberPopupCopy.text(
-                "已填写的优惠券内容不会保存。",
-                "Entered coupon details will not be saved.",
-                locale: locale),
+            message: appLocalized("memberPopup.couponDiscardConfirmSheet.1", locale: locale),
             confirmTitle: appLocalized("couponManagement.discard", locale: locale),
             isDestructive: true,
             confirmIdentifier: "couponManagement.discard.confirm",
@@ -293,27 +263,18 @@ struct MemberCouponStopConfirmModal: View {
 
     var body: some View {
         MemberConfirmAlert(
-            title: MemberPopupCopy.text("停发「\(couponName)」?", "Stop issuing \"\(couponName)\"?", locale: locale),
-            message: MemberPopupCopy.text(
-                "停发后将不再新增发放，但已领取的优惠券仍可正常核销。",
-                "No new coupons will be issued, while claimed coupons can still be redeemed.",
-                locale: locale),
+            title: String(format: appLocalized("memberPopup.couponStopConfirmModal.1", locale: locale), locale: locale, couponName),
+            message: appLocalized("memberPopup.couponStopConfirmModal.2", locale: locale),
             consequences: [
                 CYConfirmConsequence(
                     systemImage: "ticket",
-                    text: MemberPopupCopy.text(
-                        "还没领的人再也领不到；已领到的券照常可用、可核销",
-                        "Unclaimed users cannot claim it anymore; claimed coupons stay valid.",
-                        locale: locale)),
+                    text: appLocalized("memberPopup.couponStopConfirmModal.3", locale: locale)),
                 CYConfirmConsequence(
                     systemImage: "exclamationmark.triangle",
-                    text: MemberPopupCopy.text(
-                        "此操作不可撤销，停发后无法恢复继续发放",
-                        "This can't be undone. Issuing cannot be resumed after stopping.",
-                        locale: locale))
+                    text: appLocalized("memberPopup.couponStopConfirmModal.4", locale: locale))
             ],
             cancelTitle: appLocalized("action.cancel", locale: locale),
-            confirmTitle: MemberPopupCopy.text("停发该券", "Stop issuing", locale: locale),
+            confirmTitle: appLocalized("memberPopup.couponStopConfirmModal.5", locale: locale),
             isDestructive: true,
             confirmIdentifier: "couponManagement.stopModal.confirm",
             cancelIdentifier: "couponManagement" + ".stopModal.cancel",
@@ -332,10 +293,7 @@ struct MemberInvoiceWithdrawConfirmSheet: View {
     var body: some View {
         MemberConfirmSheet(
             title: MemberPopupCopy.table("withdrawConfirm", table: "InvoiceLaunchUI", locale: locale),
-            message: MemberPopupCopy.text(
-                "撤回后，订单可重新申请开票。",
-                "Orders can apply for an invoice again after withdrawing.",
-                locale: locale),
+            message: appLocalized("memberPopup.invoiceWithdrawConfirmSheet.1", locale: locale),
             confirmTitle: MemberPopupCopy.table("withdraw", table: "InvoiceLaunchUI", locale: locale),
             isDestructive: true,
             confirmIdentifier: confirmIdentifier,
@@ -352,10 +310,7 @@ struct MemberInvoiceTitleDeleteConfirmSheet: View {
     var body: some View {
         MemberConfirmSheet(
             title: MemberPopupCopy.table("deleteConfirm", table: "InvoiceLaunchUI", locale: locale),
-            message: MemberPopupCopy.text(
-                "删除后不影响已提交的申请。",
-                "Submitted applications are not affected.",
-                locale: locale),
+            message: appLocalized("memberPopup.invoiceTitleDeleteConfirmSheet.1", locale: locale),
             confirmTitle: MemberPopupCopy.table("delete", table: "InvoiceLaunchUI", locale: locale),
             isDestructive: true,
             confirmIdentifier: "invoice.title.delete.confirm",
@@ -379,22 +334,13 @@ struct MemberNPCLogDeleteConfirmSheet: View {
             consequences: [
                 CYConfirmConsequence(
                     systemImage: "trash",
-                    text: MemberPopupCopy.text(
-                        "范围是你账号下所有 AI 对话（漫游向导和店铺形象），不只是当前这一段",
-                        "Applies to all AI conversations under your account, not only the current thread.",
-                        locale: locale)),
+                    text: appLocalized("memberPopup.nPCLogDeleteConfirmSheet.1", locale: locale)),
                 CYConfirmConsequence(
                     systemImage: "info.circle",
-                    text: MemberPopupCopy.text(
-                        "不影响你的漫游足迹、邮票、订单等其他数据",
-                        "Your roam footprints, stamps, orders and other records stay intact.",
-                        locale: locale)),
+                    text: appLocalized("memberPopup.nPCLogDeleteConfirmSheet.2", locale: locale)),
                 CYConfirmConsequence(
                     systemImage: "exclamationmark.triangle",
-                    text: MemberPopupCopy.text(
-                        "此操作不可撤销，删除后无法恢复这些对话",
-                        "This can't be undone. Deleted conversations cannot be recovered.",
-                        locale: locale))
+                    text: appLocalized("memberPopup.nPCLogDeleteConfirmSheet.3", locale: locale))
             ],
             onConfirm: onConfirm
         )
@@ -409,10 +355,7 @@ struct MemberOrientScoreConfirmSheet: View {
     var body: some View {
         MemberConfirmSheet(
             title: appLocalized("orientScore.review.confirmTitle", locale: locale),
-            message: MemberPopupCopy.text(
-                "确认后将按当前请求提交至计分系统处理。",
-                "Once confirmed, this request will be sent to the scoring service.",
-                locale: locale),
+            message: appLocalized("memberPopup.orientScoreConfirmSheet.1", locale: locale),
             confirmTitle: appLocalized("orientScore.review.send", locale: locale),
             isDestructive: false,
             confirmIdentifier: "orientScore.review.confirm",
@@ -472,10 +415,7 @@ struct MemberProfileDiscardConfirmSheet: View {
         case .avatarDiscard:
             MemberConfirmSheet(
                 title: appLocalized("profile.avatar.discardTitle", locale: locale),
-                message: MemberPopupCopy.text(
-                    "放弃后将保留当前已保存的头像，不会上传或提交这张新头像。",
-                    "Discarding keeps your saved avatar without uploading the new selection.",
-                    locale: locale),
+                message: appLocalized("memberPopup.profileDiscardConfirmSheet.1", locale: locale),
                 confirmTitle: appLocalized("profile.avatar.discard", locale: locale),
                 isDestructive: true,
                 confirmIdentifier: "profile.avatar.discard.confirm",
@@ -548,13 +488,10 @@ struct MemberSettingsSceneDiscardModal: View {
 
     var body: some View {
         MemberConfirmAlert(
-            title: MemberPopupCopy.text("放弃本轮修改", "Discard current changes?", locale: locale),
-            message: MemberPopupCopy.text(
-                "离开当前页面后，未提交的修改不会保存。",
-                "Unsaved changes in this screen will be discarded if you leave.",
-                locale: locale),
-            cancelTitle: MemberPopupCopy.text("继续编辑", "Keep editing", locale: locale),
-            confirmTitle: MemberPopupCopy.text("确认放弃", "Discard", locale: locale),
+            title: appLocalized("memberPopup.settingsSceneDiscardModal.1", locale: locale),
+            message: appLocalized("memberPopup.settingsSceneDiscardModal.2", locale: locale),
+            cancelTitle: appLocalized("memberPopup.settingsSceneDiscardModal.3", locale: locale),
+            confirmTitle: appLocalized("memberPopup.settingsSceneDiscardModal.4", locale: locale),
             isDestructive: true,
             confirmIdentifier: "memberPopup.sceneDiscard.confirm",
             cancelIdentifier: "memberPopup.sceneDiscard.cancel",
@@ -573,7 +510,7 @@ struct MemberSettingsClubPickerSheet: View {
 
     var body: some View {
         MemberOptionSheet(
-            title: MemberPopupCopy.text("选择要管理的俱乐部", "Select a club to manage", locale: locale),
+            title: appLocalized("memberPopup.settingsClubPickerSheet.1", locale: locale),
             items: clubs.map { club in
                 CYOptionSheetItem(
                     id: club.id,
@@ -600,21 +537,21 @@ struct MemberAIChatRecordsOptionSheet: View {
 
     var body: some View {
         MemberOptionSheet(
-            title: MemberPopupCopy.text("AI 对话记录", "AI Chat Records", locale: locale),
+            title: appLocalized("memberPopup.aIChatRecordsOptionSheet.1", locale: locale),
             items: [
                 CYOptionSheetItem(
                     id: .view,
-                    title: MemberPopupCopy.text("查看对话记录", "View chat records", locale: locale),
+                    title: appLocalized("memberPopup.aIChatRecordsOptionSheet.2", locale: locale),
                     systemImage: "doc.text.magnifyingglass"
                 ),
                 CYOptionSheetItem(
                     id: .export,
-                    title: MemberPopupCopy.text("导出对话记录", "Export chat records", locale: locale),
+                    title: appLocalized("memberPopup.aIChatRecordsOptionSheet.3", locale: locale),
                     systemImage: "square.and.arrow.up"
                 ),
                 CYOptionSheetItem(
                     id: .clear,
-                    title: MemberPopupCopy.text("清除对话记录", "Clear chat records", locale: locale),
+                    title: appLocalized("memberPopup.aIChatRecordsOptionSheet.4", locale: locale),
                     systemImage: "trash",
                     isDanger: true
                 ),
@@ -676,7 +613,7 @@ struct MemberMerchantNPCChatSheet<Content: View>: View {
                         Button {
                             Task { await onExport() }
                         } label: {
-                            Text(verbatim: MemberPopupCopy.text("导出我的对话记录", "Export my records", locale: locale))
+                            Text(verbatim: appLocalized("memberPopup.merchantNPCChatSheet.1", locale: locale))
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.bordered)
@@ -686,7 +623,7 @@ struct MemberMerchantNPCChatSheet<Content: View>: View {
                         Button(role: .destructive) {
                             confirmsClear = true
                         } label: {
-                            Text(verbatim: MemberPopupCopy.text("清除我的对话记录", "Clear my records", locale: locale))
+                            Text(verbatim: appLocalized("memberPopup.merchantNPCChatSheet.2", locale: locale))
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderless)
@@ -718,10 +655,7 @@ struct MemberCoopInviteDiscardConfirmSheet: View {
     var body: some View {
         MemberConfirmSheet(
             title: appLocalized("coopflow.invite.discardPrompt", locale: locale),
-            message: MemberPopupCopy.text(
-                "返回后当前填写的邀约说明将不会被保存。",
-                "Your unsaved invitation note will be lost.",
-                locale: locale),
+            message: appLocalized("memberPopup.coopInviteDiscardConfirmSheet.1", locale: locale),
             confirmTitle: appLocalized("coopflow.invite.discard", locale: locale),
             isDestructive: true,
             confirmIdentifier: "coopflow.invite.discard.confirm",
@@ -767,7 +701,7 @@ struct MemberCoopInviteSheet: View {
                     }
                 } else if topics.isEmpty {
                     ContentUnavailableView(
-                        MemberPopupCopy.text("暂无可邀约主题，请先在项目工作台创建", "No topics ready to invite", locale: locale),
+                        appLocalized("memberPopup.coopInviteSheet.1", locale: locale),
                         systemImage: "doc.text"
                     )
                 } else {
@@ -794,7 +728,7 @@ struct MemberCoopInviteSheet: View {
                             .accessibilityAddTraits(selectedTopicID == topic.id ? .isSelected : [])
                         }
                     } header: {
-                        Text(verbatim: MemberPopupCopy.text("选择项目主题", "Topic", locale: locale))
+                        Text(verbatim: appLocalized("memberPopup.coopInviteSheet.2", locale: locale))
                     }
 
                     if !chapters.isEmpty {
@@ -820,31 +754,31 @@ struct MemberCoopInviteSheet: View {
                                 .accessibilityAddTraits(draft.selectedChapterID == numericID ? .isSelected : [])
                             }
                         } header: {
-                            Text(verbatim: MemberPopupCopy.text("选择邀约章节", "Chapter", locale: locale))
+                            Text(verbatim: appLocalized("memberPopup.coopInviteSheet.3", locale: locale))
                         }
                     }
 
                     Section {
                         TextField(
-                            MemberPopupCopy.text("填写合作说明（选填）", "Optional cooperation note", locale: locale),
+                            appLocalized("memberPopup.coopInviteSheet.4", locale: locale),
                             text: $draft.note,
                             axis: .vertical
                         )
                         .lineLimit(2...4)
-                        .accessibilityLabel(MemberPopupCopy.text("合作说明", "Cooperation note", locale: locale))
+                        .accessibilityLabel(appLocalized("memberPopup.coopInviteSheet.5", locale: locale))
                         .accessibilityIdentifier("member.coopInvite.note")
                     }
                 }
             }
             .formStyle(.grouped)
-            .navigationTitle(Text(verbatim: MemberPopupCopy.text("发送邀约", "Send Invitation", locale: locale)))
+            .navigationTitle(Text(verbatim: appLocalized("memberPopup.coopInviteSheet.6", locale: locale)))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button {
                         if dirty { showsDiscard = true } else { onClose() }
                     } label: {
-                        Text(verbatim: MemberPopupCopy.text("关闭", "Close", locale: locale))
+                        Text(verbatim: appLocalized("memberPopup.coopInviteSheet.7", locale: locale))
                     }
                     .accessibilityIdentifier("member.coopInvite.close")
                 }
@@ -856,14 +790,11 @@ struct MemberCoopInviteSheet: View {
                                 onOpenFullCoopFlow()
                             } else {
                                 toastMessage = LocalizedStringKey(
-                                    MemberPopupCopy.text(
-                                        "俱乐部直发合作邀约已按合规策略收口至合作中心",
-                                        "Cooperation invites open in the Cooperation Center",
-                                        locale: locale)
+                                    appLocalized("memberPopup.coopInviteSheet.8", locale: locale)
                                 )
                             }
                         } label: {
-                            Text(verbatim: MemberPopupCopy.text("发送", "Send", locale: locale))
+                            Text(verbatim: appLocalized("memberPopup.coopInviteSheet.9", locale: locale))
                         }
                         .disabled(!draft.isReadyToSend || merchantMemberID == nil)
                         .accessibilityIdentifier("member.coopInvite.send")

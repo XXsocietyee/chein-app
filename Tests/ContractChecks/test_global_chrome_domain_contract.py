@@ -41,6 +41,14 @@ class TestGlobalChromeDomainContract(unittest.TestCase):
             "App/PlayKitScreen.swift",
         ):
             src = read_swift(rel)
+            if rel == "App/PlayExperienceView.swift":
+                # P-049 (design P1 L4): legacy play stays on .game; the native r2 city orientation /
+                # free explore screens follow the system appearance under the player domain.
+                self.assertIn("private var screenDomain: ThemeDomain { usesNativeR2Domain ? .player : .game }", src)
+                self.assertIn(".cyDomainScreen(screenDomain)", src)
+                self.assertIn("if model.gameplayMode == .cityOrientation { return NativeR2Flags.cityOrientation }", src)
+                self.assertNotIn(".themeDomain(.player)", src)
+                continue
             self.assertRegex(
                 src,
                 r"cyDomainScreen\(\.game\)|cyPushedChrome\(domain: \.game\)",
@@ -123,7 +131,8 @@ class TestGlobalChromeDomainContract(unittest.TestCase):
         night_bar = read_swift("App/DesignSystem/CYNightTabBar.swift")
         self.assertIn("@Environment(\\.cyTabBarHidden) private var isTabBarHidden", night_bar)
         self.assertIn("if !isTabBarHidden {", night_bar)
-        self.assertIn("isTabBarHidden ? 0 : CYFloatingTabBarClearanceKey.height", night_bar)
+        # L1 P-001: the system TabView insets tab content itself; no per-tab clearance padding.
+        self.assertNotIn("func cyFloatingTabBarClearance", night_bar)
 
         app_root = read_swift("App/QuestifyApp.swift")
         self.assertIn("CYTabBarHiddenPreferenceKey.self", app_root)
@@ -166,16 +175,36 @@ class TestGlobalChromeDomainContract(unittest.TestCase):
             "App/ActivityDetailView.swift",
             "App/TopicXcxSections.swift",
             "App/RegistrationSheetView.swift",
-            "App/OrderLifecycleView.swift",
-            "App/ParticipantFormView.swift",
-            "App/InvoiceLaunchApplyView.swift",
-            "App/InvoiceLaunchTitleEditor.swift",
-            "App/ProfileEditView.swift",
             "App/MerchantCityNodeCreateView.swift",
             "App/SquareDetailView.swift",
             "App/QuestifyMotionComponents.swift",
         ):
             self.assertIn("CYFooterBar", read_swift(rel), f"{rel} must use CYFooterBar for its pinned footer action bar.")
+        # native r2 (8bd25cb04 / 28976a8a0 / da7f2c201): one pinned primary CTA is a system bottom bar —
+        # a bottom safe-area inset on the .bar material holding a .borderedProminent button (same id, same gate).
+        for rel, ident in (
+            ("App/OrderLifecycleView.swift", '"orderLifecycle.review." + action.rawValue'),
+            ("App/InvoiceLaunchApplyView.swift", '"invoice.submit"'),
+            ("App/ProfileEditView.swift", '"profile.edit.review"'),
+        ):
+            src = read_swift(rel)
+            self.assertNotIn("CYFooterBar", src)
+            self.assertIn(".safeAreaInset(edge: .bottom, spacing: 0)", src, rel)
+            self.assertIn(".background(.bar)", src, rel)
+            bar = src[src.index(".safeAreaInset(edge: .bottom, spacing: 0)"):] if rel != "App/OrderLifecycleView.swift" \
+                else src[src.index("private var pinnedPrimary"):]
+            self.assertIn(".buttonStyle(.borderedProminent)", bar, rel)
+            self.assertIn(".disabled(", bar, rel)
+            self.assertIn(f".accessibilityIdentifier({ident})", bar, rel)
+        # native r2 (59d575d2c N-07, 8c9408404 NAT-6): single form saves are the toolbar confirmation action.
+        for rel, ident in (
+            ("App/ParticipantFormView.swift", "participant.form.save"),
+            ("App/InvoiceLaunchTitleEditor.swift", "invoice.title.save"),
+        ):
+            src = read_swift(rel)
+            self.assertNotIn("CYFooterBar", src)
+            item = src[src.index("ToolbarItem(placement: .confirmationAction)"):]
+            self.assertIn(f'.accessibilityIdentifier("{ident}")', item, rel)
         # native r2: the project editor's pinned action bar is now the system bottom toolbar (same actions/ids).
         editor = read_swift("App/ProjectEditView.swift")
         bar = editor[editor.index("ToolbarItemGroup(placement: .bottomBar)"):]

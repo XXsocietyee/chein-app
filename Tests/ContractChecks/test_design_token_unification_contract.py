@@ -192,8 +192,10 @@ class TestDesignTokenUnificationContract(unittest.TestCase):
         self.assertNotIn(".stroke(", pill_style)
 
         order = strip_swift_comments((ROOT / "App/OrderLifecycleView.swift").read_text(encoding="utf-8"))
-        order_sec = order[order.index("private struct CYOrderActionSecondaryLabel"):]
-        self.assertNotIn("strokeBorder(", order_sec, "CYOrderActionSecondaryLabel must not draw a strokeBorder")
+        # native-r2 me-account (8bd25cb04): the custom CYOrderActionSecondaryLabel became Apple stock buttons;
+        # nothing in the order lifecycle screen may draw an outer strokeBorder on its actions.
+        self.assertNotIn("CYOrderActionSecondaryLabel", order)
+        self.assertNotIn("strokeBorder(", order, "OrderLifecycleView actions must not draw a strokeBorder")
 
 
 if __name__ == "__main__":

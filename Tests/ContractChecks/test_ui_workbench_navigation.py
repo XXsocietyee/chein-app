@@ -12,10 +12,9 @@ class WorkbenchUINavigationChecks(unittest.TestCase):
     def test_enrollment_ticket_identifier_does_not_replace_descendant_routes(self):
         source = self.text('App/ClubEnrollmentView.swift')
         # The id stays a leaf on the ticket title (restyled with cardTitle tokens), not on the whole row.
-        # Native restyle R2 (owner-approved): the token is spelled `.cyText(.cardTitle)` (was `.font(CYTypography.cardTitle)`).
+        # Native restyle R2 (owner-approved): the title uses the system `.headline` style with its default primary color.
         self.assertIn('title(ticket.name, fallback: "club.enroll.unnamedTicket")\n'
-                      '            .cyText(.cardTitle)\n'
-                      '            .foregroundStyle(palette.textPrimary)\n'
+                      '            .font(.headline)\n'
                       '            .fixedSize(horizontal: false, vertical: true)\n'
                       '            .accessibilityIdentifier("club.enroll.ticket.\\(ticket.id)")', source)
         self.assertNotIn('}.padding(.vertical, 6).accessibilityIdentifier("club.enroll.ticket.', source)
