@@ -602,7 +602,7 @@ struct RoamStampPrinterView: View {
         }
         .frame(height: 63.5)
         .clipShape(RoundedRectangle(cornerRadius: 12.5, style: .continuous))
-        .shadow(color: .black.opacity(0.45), radius: 14, y: 12)
+        // N-RSTAMP (r10): no drop shadow under the printer art.
         .accessibilityHidden(true)
     }
 }

@@ -150,14 +150,14 @@ extension EnvironmentValues {
             if reader.scope != expectedScope || !reader.isAuthenticated { Text("objects.sessionChanged") }
             else {
                 Section {
-                    // Front: the artwork (drag still turns the frames). Back: the card's facts. Foil cards catch the light.
-                    CYFlipCard(flipped: $flipped, flipActionTitle: Text("objects.flip")) {
-                        artwork
-                    } back: {
-                        facts
+                    // N-OCARDS (r10): an image row (drag still turns the frames) and the card's facts as a row below;
+                    // no flip or foil (MP subpackageP3/object-cards/index/index.wxml detail).
+                    artwork
+                    Label(card.cardStyle == "plain" ? "objects.plain" : "objects.foil", systemImage: isFoil ? "sparkles" : "rectangle.portrait")
+                        .foregroundStyle(.secondary)
+                    if let origin = ObjectCardMediaPolicy.origin(card.sourceURL) {
+                        LabeledContent { Text(verbatim: origin) } label: { Text("objects.source") }
                     }
-                    .cyFoilSheen(active: isFoil, trigger: flipped ? 0 : 1)
-                    .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
                     if card.hasRotationFrames {
                         HStack {
                             Button("objects.previous") { move(-1) }.accessibilityIdentifier("objects.frame.previous")
@@ -193,8 +193,6 @@ extension EnvironmentValues {
         ObjectCardArtwork(url: card.frame(at: frame), label: card.title, media: media,
             expectedScope: expectedScope, currentScope: { reader.scope })
             .frame(maxWidth: .infinity, minHeight: 240)
-            .padding(CYSpacing.md)
-            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
             .accessibilityValue(card.hasRotationFrames ? "\(frame + 1) / \(card.frames.count)" : "")
             .accessibilityAdjustableAction { direction in
                 guard card.hasRotationFrames else { return }
@@ -253,7 +251,6 @@ extension EnvironmentValues {
             }
             .frame(height: 132)
             .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-            .cyFoilSheen(active: isFoil, cornerRadius: CYRadius.md)
             Text(verbatim: card.title)
                 .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 .lineLimit(2).multilineTextAlignment(.leading).fixedSize(horizontal: false, vertical: true)
