@@ -849,11 +849,6 @@ struct ClubCommunityPostDetailView: View {
             } header: {
                 Text("club.community.comments")
             }
-            Section {
-                Button("club.community.refresh") { Task { await model.load(commentsOperation) } }
-                    .disabled(model.loading || model.busy)
-                    .accessibilityIdentifier("club.community.detail.refresh")
-            }
         }
         .navigationTitle(Text("club.community.detail"))
         .navigationBarTitleDisplayMode(.inline)
@@ -1198,9 +1193,6 @@ struct ClubCommunityCommentsView: View {
                 Button("club.community.review") { Task { await model.prepare(.comment(content), clubID: clubID, post: post) } }
                     .disabled(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !identity.isSignedIn || model.busy || model.pendingRecord != nil || model.context.coordinator?.permitsInjectedWrites != true)
             }
-            Section {
-                Button("club.community.refresh") { Task { await model.load(operation) } }
-            }
         }
         .navigationTitle(Text("club.community.comments"))
         .navigationBarTitleDisplayMode(.inline)
@@ -1260,9 +1252,6 @@ struct ClubCommunityHistoryView: View {
                         ClubCommunityReferenceCover(reference: value, index: index)
                     }
                 }
-            }
-            Section {
-                Button("club.community.refresh") { Task { await model.load(.history(postID: postID)) } }
             }
         }
         .navigationTitle(Text("club.community.history"))
