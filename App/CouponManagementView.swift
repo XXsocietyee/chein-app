@@ -30,6 +30,7 @@ import SwiftUI
     @State private var creating = false
     @State private var summary: MerchantCouponSummary?
     @State private var applyingMerchant = false
+    @State private var detailItem: CouponManagementDetailItem?
     @Environment(\.dismiss) private var dismiss
     init(coordinator: CouponManagementCoordinator, sessionKey: CouponManagementSession?, isSourceVisible: Bool = false,
          scope: CouponPublishListScope = .merchant, isMerchantMember: Bool? = nil,
@@ -76,8 +77,9 @@ import SwiftUI
                             .listRowBackground(Color.clear)
                     }
                     ForEach(model.core.rows) { row in
-                        NavigationLink {
-                            CouponManagementDetailView(model: model, id: row.id, scope: scope)
+                        // MKT-10-3: MP coupon/coupon.wxml:46 opens 优惠券详情 in a `cy-sheet`, not a page.
+                        Button {
+                            detailItem = CouponManagementDetailItem(id: row.id)
                         } label: {
                             VStack(alignment: .leading, spacing: CYSpacing.s1_5) {
                                 Text(row.name ?? appLocalized("couponManagement.coupon", locale: locale))
@@ -104,7 +106,9 @@ import SwiftUI
                                     .monospacedDigit()
                                     .foregroundStyle(CYColor.textSecondary)
                             }.padding(.vertical, CYSpacing.xs)
-                        }.accessibilityIdentifier("couponManagement.definition.\(row.id.value)")
+                        }
+                        .foregroundStyle(.primary)
+                        .accessibilityIdentifier("couponManagement.definition.\(row.id.value)")
                     }
                 }
                 .refreshable {
@@ -139,14 +143,27 @@ import SwiftUI
         .navigationDestination(isPresented: $applyingMerchant) {
             MPReviewedPageScreen(page: "pages/merchant/apply/index", query: [:])
         }
+        .sheet(item: $detailItem) { item in
+            NavigationStack {
+                CouponManagementDetailView(model: model, id: item.id, scope: scope)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("action.done") { detailItem = nil }
+                                .accessibilityIdentifier("couponManagement.detail.done")
+                        }
+                    }
+            }
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+        }
         .sheet(isPresented: $creating) {
             NavigationStack { CouponManagementEditor(model: model) }
                 .themeDomain(.topicEditor)
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
         }
-        .onChange(of: sessionKey) { _, _ in creating = false; model.synchronize() }
-        .onChange(of: isSourceVisible) { _, visible in if !visible { creating = false; model.core.leave(); model.revision += 1 } }
+        .onChange(of: sessionKey) { _, _ in creating = false; detailItem = nil; model.synchronize() }
+        .onChange(of: isSourceVisible) { _, visible in if !visible { creating = false; detailItem = nil; model.core.leave(); model.revision += 1 } }
     }
 }
 extension CouponManagementView {
@@ -182,6 +199,11 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
         }
     }
 }
+/// MKT-10-3: the coupon the 优惠券详情 sheet shows.
+private struct CouponManagementDetailItem: Identifiable {
+    let id: CouponDefinitionID
+}
+
 @MainActor private struct CouponManagementDetailView: View {
     @Environment(\.locale) private var locale
     @ObservedObject var model: CouponManagementScreenModel
