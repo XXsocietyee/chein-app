@@ -205,8 +205,10 @@ struct PlayChapterPickRow: Identifiable, Equatable {
     /// PLAY-3: MP 游玩工具 扫码到达 (`onScanArriveFromTools`, mode != 2). Opens the current stop, whose scan task
     /// owns the camera and the `api/play/checkin` write. nil hides the row (no single current stop).
     var openScanArrival: (() -> Void)? = nil
+    /// PLAY-6a: MP 游玩工具 sheet (pages/play/index.wxml 游玩工具: 背景音乐 / 到站自动播放 / 减少动态效果). nil hides the row.
+    var openPreferences: (() -> Void)? = nil
     var body: some View {
-        if showsChapters || showsEmergency || openScanArrival != nil {
+        if showsChapters || showsEmergency || openScanArrival != nil || openPreferences != nil {
             Menu {
                 if let openScanArrival {
                     Button(action: openScanArrival) { Label("play.tools.scanArrive", systemImage: "qrcode.viewfinder") }
@@ -216,6 +218,10 @@ struct PlayChapterPickRow: Identifiable, Equatable {
                 if showsChapters {
                     Button(action: openChapters) { Label("mpd.chapters.switch", systemImage: "book.pages") }
                         .accessibilityIdentifier("play.tools.chapters")
+                }
+                if let openPreferences {
+                    Button(action: openPreferences) { Label("playTools.preferences.section", systemImage: "slider.horizontal.3") }
+                        .accessibilityIdentifier("play.tools.preferences")
                 }
                 if showsEmergency {
                     Button(role: .destructive, action: openEmergency) { Label("mpd.sos.title", systemImage: "exclamationmark.triangle.fill") }
