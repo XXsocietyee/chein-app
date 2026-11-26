@@ -5,7 +5,7 @@
   },
   "searchMap.placeholder": {
     "en": "Search topics, activities, clubs and shops",
-    "zh-Hans": "搜索主题、活动、俱乐部和商家"
+    "zh-Hans": "搜索主题、活动、俱乐部、商家"
   },
   "searchMap.search": {
     "en": "Search",
@@ -16,7 +16,7 @@
     "zh-Hans": "筛选"
   },
   "searchMap.citySearch": {
-    "en": "Search on the map",
+    "en": "Find on the map",
     "zh-Hans": "在地图上找"
   },
   "searchMap.nearby": {
@@ -52,7 +52,7 @@
     "zh-Hans": "分类"
   },
   "searchMap.categoryFailed": {
-    "en": "Categories could not be loaded",
+    "en": "Couldn't load categories",
     "zh-Hans": "类别加载失败"
   },
   "searchMap.all": {
@@ -590,5 +590,13 @@
   "searchMap.emptySubmit": {
     "en": "Enter a keyword or choose a category",
     "zh-Hans": "请输入关键词或选择类别"
+  },
+  "searchMap.needKeywordOrCategory": {
+    "en": "Enter a keyword or select a category",
+    "zh-Hans": "请输入关键词或选择类别"
+  },
+  "searchMap.unified.header": {
+    "en": "Topics, activities and posts",
+    "zh-Hans": "主题、活动与帖文"
   }
 }

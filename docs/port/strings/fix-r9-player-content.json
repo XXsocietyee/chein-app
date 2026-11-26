@@ -304,6 +304,54 @@
           }
         }
       }
+    },
+    "searchMap.categoryFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load categories"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "类别加载失败"
+          }
+        }
+      }
+    },
+    "searchMap.citySearch": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find on the map"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在地图上找"
+          }
+        }
+      }
+    },
+    "searchMap.placeholder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search topics, activities, clubs and shops"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索主题、活动、俱乐部、商家"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
