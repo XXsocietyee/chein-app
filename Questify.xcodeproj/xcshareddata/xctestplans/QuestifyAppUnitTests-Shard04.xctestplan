@@ -342,7 +342,6 @@
         "NonCashRewardCompositionTests",
         "NonCashRewardDetailCompositionTests",
         "NormalHomeRuntimeRecoveryTests",
-        "ObjectBadgeWallLayoutTests",
         "OfficialActionPresentationModelTests",
         "OfficialEventComponentsClosureTests",
         "OfficialEventTimeSafetyViewTests",

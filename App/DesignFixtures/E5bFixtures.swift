@@ -54,7 +54,7 @@ struct E5bBadgeWallFixture: View {
                     }
                     LazyVGrid(columns: CYCollectionGrid.columns(accessibility: dynamicTypeSize.isAccessibilitySize), alignment: .leading, spacing: CYCollectionGrid.spacing) {
                         ForEach(Array(badges.enumerated()), id: \.offset) { _, badge in
-                            ObjectBadgeWallBadgeLabel(badge: badge, layout: .wall)
+                            ObjectBadgeWallBadgeLabel(badge: badge)
                         }
                     }
                 }

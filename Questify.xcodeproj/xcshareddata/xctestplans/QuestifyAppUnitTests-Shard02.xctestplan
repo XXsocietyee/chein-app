@@ -347,7 +347,6 @@
         "NetworkReachabilityAndRetryBackoffSectionViewTests",
         "NonCashRewardCompositionTests",
         "NormalHomeRuntimeRecoveryTests",
-        "ObjectBadgeWallLayoutTests",
         "OfficialActionPresentationModelTests",
         "OfficialEventBrowseStateViewTests",
         "OfficialPublicEventCompositionTests",
