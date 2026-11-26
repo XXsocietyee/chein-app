@@ -484,26 +484,9 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                     if wizardBlock == "ticket" { fieldError("ticket") }
                 }
                 if requiresIdentity {
-                    // Design hand-off r1 CF-58: real-name is its own pushed page, shown only when needed.
-                    Section {
-                        NavigationLink {
-                            Form {
-                                PublisherIdentityRegistrationSection(owner: identityRegistration, makeService: makeIdentityRegistration, enabled: mayClear)
-                            }
-                            .formStyle(.grouped)
-                            .navigationTitle(Text("title", tableName: "PublisherIdentityRegistration"))
-                            .navigationBarTitleDisplayMode(.inline)
-                        } label: {
-                            EditorRow(
-                                label: Text("title", tableName: "PublisherIdentityRegistration"),
-                                value: identityRegistration.confirmedRegistered ? Text("status.registered", tableName: "PublisherIdentityRegistration") : nil,
-                                systemImage: "person.text.rectangle",
-                                showsDot: !identityRegistration.confirmedRegistered,
-                                accessory: .none
-                            )
-                        }
-                        .accessibilityIdentifier("publishModes.activity.identityPage")
-                    }
+                    // r10 C-A9-r7: MP pages/publish/activity/index.wxml:203-221 shows the real-name fields inline in the
+                    // form (only when the publisher still needs them), not on a separate pushed page.
+                    PublisherIdentityRegistrationSection(owner: identityRegistration, makeService: makeIdentityRegistration, enabled: mayClear)
                 }
                 Section {
                     ActivityPublishingReviewSummaryCard(
