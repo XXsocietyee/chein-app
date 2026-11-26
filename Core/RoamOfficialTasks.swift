@@ -15,6 +15,8 @@ public struct RoamOfficialTasksOwner: Equatable, Hashable {
         configured = official.isConfigured; authenticated = official.isAuthenticated
     }
     public var isAuthorized: Bool { roamScopeKey != nil && configured && authenticated }
+    /// ROAM-r11-2: the 全部 list and its detail links are open to guests (D-73).
+    public var isReadable: Bool { roamScopeKey != nil && configured }
 }
 public struct RoamOfficialTasksSnapshot {
     public let id: UUID
@@ -63,16 +65,20 @@ public struct RoamOfficialTaskTarget: Hashable {
         generation &+= 1; let ticket = generation, captured = owner
         if loadedOwner != captured { stored = nil }
         loadedOwner = captured; storedError = nil; isLoading = false
-        guard captured.isAuthorized else {
-            stored = nil; storedError = captured.roamScopeKey == nil || !captured.authenticated ? APIError.unauthorized : APIError.notConfigured
+        // ROAM-r11-2 (D-73): 全部 reads active-for-roam and is open to guests; 我的 needs a session.
+        // MP subpackageRoam/components/cy/scene-roam-task-list/index.js:40-75 (`mineDone = !signedIn`).
+        guard captured.roamScopeKey != nil, captured.configured else {
+            stored = nil; storedError = captured.roamScopeKey == nil ? APIError.unauthorized : APIError.notConfigured
             onChange?(); return
         }
         isLoading = true; onChange?()
         defer { if ticket == generation { isLoading = false; onChange?() } }
         do {
-            let all = try await official.events(city: nil)
+            let all = try await official.activeForRoam()
             guard current(ticket, captured) else { return }
-            let mine = try await official.myEvents()
+            // 「我的」只保留落在这份漫游局列表里的报名 (MP index.js:51-52).
+            let roamIDs = Set(all.map(\.id))
+            let mine = captured.authenticated ? try await official.myEvents().filter { roamIDs.contains($0.id) } : []
             guard current(ticket, captured) else { return }
             try validate(all); try validate(mine)
             stored = .init(id: UUID(), all: all, mine: mine); storedError = nil
@@ -84,12 +90,12 @@ public struct RoamOfficialTaskTarget: Hashable {
         }
     }
     public func select(eventID: Int, query: OfficialEventBrowseQuery, renderedSnapshotID: UUID) -> RoamOfficialTaskTarget? {
-        guard visible, !isLoading, owner.isAuthorized, let snapshot, snapshot.id == renderedSnapshotID,
+        guard visible, !isLoading, owner.isReadable, let snapshot, snapshot.id == renderedSnapshotID,
               eventID > 0, snapshot.visible(query).filter({ $0.id == eventID }).count == 1 else { return nil }
         return .init(id: UUID(), eventID: eventID, owner: owner, snapshotID: snapshot.id)
     }
     public func mayRemainOpen(_ target: RoamOfficialTaskTarget) -> Bool {
-        target.owner.isAuthorized && target.owner == owner && target.snapshotID == snapshot?.id
+        target.owner.isReadable && target.owner == owner && target.snapshotID == snapshot?.id
     }
     private func current(_ ticket: UInt64, _ captured: RoamOfficialTasksOwner) -> Bool {
         !Task.isCancelled && ticket == generation && owner == captured && loadedOwner == captured

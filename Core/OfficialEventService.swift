@@ -38,6 +38,12 @@ public struct OfficialEventService {
         if status == 401 || envelope?.code == 401 { throw APIError.unauthorized }
         return CloudB3RawBody(body: data, status: status)
     }
+    /// ROAM-r11-2 (D-73): `GET api/official/active-for-roam` — the roam task list's 全部 source: 报名中 / 进行中 and
+    /// roam-bound, filtered by the server, guests included. MP subpackageRoam/components/cy/scene-roam-task-list/index.js:62-66.
+    public func activeForRoam(token: String? = nil) async throws -> [OfficialEvent] {
+        let rows: [OfficialEvent] = try await get("api/official/active-for-roam", token: token)
+        return complete(rows)
+    }
     public func detail(id: Int, token: String? = nil) async throws -> OfficialEvent {
         guard id > 0 else { throw APIError.invalidRequest }
         let value: OfficialEvent = try await get("api/official/events/\(id)", token: token, missingEvent: true)

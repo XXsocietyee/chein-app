@@ -34,6 +34,8 @@ public struct OfficialReadContext: Equatable {
     var isOfflineExample: Bool { get }
     var scope: UUID { get }
     func events(city: String?) async throws -> [OfficialEvent]
+    /// ROAM-r11-2: roam-bound events open for signup or live (`GET api/official/active-for-roam`), guests included.
+    func activeForRoam() async throws -> [OfficialEvent]
     func detail(id: Int) async throws -> OfficialEvent
     func myEvents() async throws -> [OfficialEvent]
     func partyInbox() async throws -> [OfficialPartyInvite]
@@ -44,6 +46,8 @@ public struct OfficialReadContext: Equatable {
 }
 public extension OfficialEventReading {
     var invalidationSignal: OfficialReadInvalidationSignal? { nil }
+    /// Readers without the roam route keep the full list (fixtures and merchant readers).
+    func activeForRoam() async throws -> [OfficialEvent] { try await events(city: nil) }
     /// The read surface does not send a recover write. Mocks may override; the default sends nothing.
     func recoverBroadcast(id: String) async throws { throw APIError.notConfigured }
 }
@@ -71,6 +75,9 @@ public extension OfficialEventReading {
     }
     public func events(city: String? = nil) async throws -> [OfficialEvent] {
         try await read { try await $0.events(city: city, token: $1) }
+    }
+    public func activeForRoam() async throws -> [OfficialEvent] {
+        try await read { try await $0.activeForRoam(token: $1) }
     }
     public func officialEventsReceipt(city: String? = nil) async throws -> CloudB3RawBody {
         try await read { try await $0.eventsReceipt(city: city, token: $1) }

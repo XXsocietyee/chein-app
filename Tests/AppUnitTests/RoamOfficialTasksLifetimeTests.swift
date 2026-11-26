@@ -78,9 +78,11 @@ import UIKit
         let retry = r.page.readAction(); r.official.scope = UUID(); r.official.signal.invalidate(); retry(); await settle()
         XCTAssertEqual(r.official.calls, ["all", "mine"]); XCTAssertNil(r.page.model.snapshot)
         XCTAssertFalse(r.page.model.mayRemainOpen(target)); XCTAssertTrue(r.page.model.error is OfficialReadInvalidationFailure)
+        // ROAM-r11-2 (D-73): a guest still reads 全部 (active-for-roam); 我的 is not read without a session.
         r.official.isAuthenticated = false; r.page.appear(foreground: true)
-        try await waitFor { r.page.model.error as? APIError == .unauthorized }
-        XCTAssertEqual(r.official.calls, ["all", "mine"]); XCTAssertEqual(r.roam.reads, 0)
+        try await waitFor { r.page.model.snapshot != nil }
+        XCTAssertEqual(r.official.calls, ["all", "mine", "all"]); XCTAssertEqual(r.page.model.snapshot?.mine.count, 0)
+        XCTAssertEqual(r.roam.reads, 0)
     }
     func testCurrentOwnerNotificationRecoversOnlyMountedForegroundList() async throws {
         let r = OfficialTaskLifetimeRig(); r.page.appear(foreground: true)
