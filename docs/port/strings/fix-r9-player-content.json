@@ -352,6 +352,40 @@
           }
         }
       }
+    },
+    "searchMap.endOfResults": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No more results"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有更多了"
+          }
+        }
+      }
+    },
+    "searchMap.refreshResults": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新搜索"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

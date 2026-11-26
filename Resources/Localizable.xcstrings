@@ -238110,13 +238110,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "That's everything"
+            "value": "No more results"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "内容已加载完"
+            "value": "没有更多了"
           }
         }
       }
@@ -238930,13 +238930,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refresh results"
+            "value": "Search again"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "刷新搜索结果"
+            "value": "重新搜索"
           }
         }
       }

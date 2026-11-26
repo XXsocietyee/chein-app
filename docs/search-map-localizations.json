@@ -548,12 +548,12 @@
     "zh-Hans": "清空搜索历史"
   },
   "searchMap.endOfResults": {
-    "en": "That's everything",
-    "zh-Hans": "内容已加载完"
+    "en": "No more results",
+    "zh-Hans": "没有更多了"
   },
   "searchMap.refreshResults": {
-    "en": "Refresh results",
-    "zh-Hans": "刷新搜索结果"
+    "en": "Search again",
+    "zh-Hans": "重新搜索"
   },
   "searchMap.unknownResults": {
     "en": "Some result types didn't load, so these counts aren't final.",
