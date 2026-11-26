@@ -50,7 +50,8 @@ struct ClubOperationsReviewView: View {
                     .accessibilityIdentifier("club.ops.cancelReview")
             }
         }
-        .cyDomainScreen(.player)
+        // CLB-r10-nat-shared-01: Form draws the system grouped background; only the player domain tokens remain.
+        .themeDomain(.player)
     }
     @ViewBuilder private var details: some View {
         switch review.command {
