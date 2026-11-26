@@ -2,7 +2,7 @@
 
 Brief: `origin/design/handoff-r2:docs/briefs/fix-r10.md` (lane content-a).
 Slice: `origin/design/handoff-r2:docs/audit/parity-r10/player-content-groups/B-topic.md`, all P0 + P1 (9 rows), then P2 (round 2).
-Base: `origin/ui/combined-r7` @ `d9832ac50` (merged again before each push).
+Base: `origin/ui/combined-r7` @ `ae477be47` (round 3; was `d9832ac50`) (merged again before each push).
 MP source (`chengyinhub-xcx`) is not in this container. MP file:line citations come from the audit rows.
 Gates: `python3 tools/check_scaffold.py` → `PASS structural checks`; `python3 -B tools/check_a11y_lint.py` → PASS (0 new); `python3 -B tools/contract_ratchet.py --check` → new 0 from this lane (see the note at the end).
 I had no compiler in the cloud, so the Swift build, unit tests, XCUITest and VoiceOver were NOT_RUN. I grepped every new type and member before using it.
@@ -57,4 +57,5 @@ Already fixed in the r10 audit and not re-touched: R9-PC-B3-2, R7-PC-B1-18, R9-P
 
 - Merchant-only rows: none in this slice's P0/P1. merchantapply / merchantinfo rows were already closed.
 - Contract ratchet: the base already had 1 new failure (`test_social_article_content…test_renderer_is_wired_only_to_existing_scoped_article_contents`; it expects an `.onDisappear { loads.cancel(); generation += 1; busy = false }` line that the base reshaped). It is not in this lane's files, and this lane leaves the count unchanged.
-- Round 2 added the P2 rows (scheduled prompt). Swift build / tests still NOT_RUN (no compiler in the cloud).
+- Round 2 added the P2 rows (scheduled prompt).
+- Round 3 (2026-11-26): merged `origin/ui/combined-r7` @ `ae477be47` (fast-forward, no conflicts). I re-checked every row ID in B-topic.md: all P0/P1/P2 rows are fixed, merchant release, or listed as fixed in the audit itself (R7-PC-B2-1, R7-PC-B3-2, R7-PC-B1-4, R9-PC-B3-1). The only open item is still the R7-PC-B4-3 fee / 到手 row. I searched the repo again (`docs/mp-gap/player-content.md` §14, `docs/mp-gap/copy-g1-player.md`, `docs/port/strings/gap-g1-player.json` `topicPricing.feeRate`, contract checks). None of them names the preview payload's fee-rate key, so it is still blocked on the MP source (`pages/topic/pricing/index.wxml:52`, `index.js`). No code changes this round. Gates re-run: scaffold PASS, a11y PASS (0 new), contract ratchet 192 failing / baseline 192 / new 0. Swift build / tests still NOT_RUN (no compiler in the cloud).
