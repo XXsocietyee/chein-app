@@ -324242,6 +324242,23 @@
           }
         }
       }
+    },
+    "globalSearch.resultsAnnounced %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld results"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "找到 %lld 条结果"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
