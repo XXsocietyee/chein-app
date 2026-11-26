@@ -4,15 +4,14 @@ import MapKit
 import QuestifyCore
 #endif
 
-/// The persistent sheet of the map home: search, 漫游 actions, the 附近 list and the cards pushed over it.
+/// The map home's bottom panel content: search, 漫游 actions, the 附近 list and the cards pushed over it.
 @MainActor struct RoamMapHomeSheet: View {
     @Bindable var model: RoamMapHomeModel
     let dependencies: RoamMapHomeDependencies
-    let onSwitchTab: (RootTab) -> Void
 
     var body: some View {
         NavigationStack(path: $model.path) {
-            RoamMapHomeSheetRoot(model: model, dependencies: dependencies, onSwitchTab: onSwitchTab)
+            RoamMapHomeSheetRoot(model: model, dependencies: dependencies)
                 .navigationDestination(for: RoamMapHomeRoute.self) { route in
                     destination(route)
                 }
@@ -108,7 +107,6 @@ import QuestifyCore
 @MainActor private struct RoamMapHomeSheetRoot: View {
     @Bindable var model: RoamMapHomeModel
     let dependencies: RoamMapHomeDependencies
-    let onSwitchTab: (RootTab) -> Void
     @State private var location: RoamLocationSettingsSnapshot?
 
     private var area: RoamSearchArea? { dependencies.entryReader?.searchArea ?? dependencies.roamReader.searchArea }
@@ -149,7 +147,6 @@ import QuestifyCore
         .onSubmit(of: .search) { model.detent = .medium }
         .refreshable { model.reloadGeneration += 1 }
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) { tabMenu }
             ToolbarItem(placement: .topBarTrailing) { mapMenu }
         }
         .task { location = try? await dependencies.locationSettings?.readStatus() }
@@ -317,20 +314,6 @@ import QuestifyCore
     }
 
     // MARK: Toolbar menus
-
-    /// The sheet covers the system tab bar, so the other tabs are one menu away (and the avatar → 我的).
-    private var tabMenu: some View {
-        Menu {
-            ForEach(RootTab.allCases.filter { $0 != .roam }, id: \.self) { tab in
-                Button { onSwitchTab(tab) } label: {
-                    Label(LocalizedStringKey(tab.titleKey), systemImage: tab.nativeSystemImage)
-                }
-            }
-        } label: {
-            Label("nativeR2.mapHome.tabs", systemImage: "square.grid.2x2")
-        }
-        .accessibilityIdentifier("roam.mapHome.tabs")
-    }
 
     /// Maps' "Choose Map": map style, range, the City board mode and the search area.
     private var mapMenu: some View {
