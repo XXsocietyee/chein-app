@@ -92,14 +92,15 @@ enum MPFirstClubWriteRoute {
         "api/club/event-notification/send", "api/club/event-notification/retry", "api/verify/groupcode/issue",
         "api/club/crm/customers/tag-remark", "api/club/event-ops/series/create", "api/club/event-ops/series/update-future",
         "api/club/event-ops/attendance/correct", "api/club/topic-setting/save",
-        "api/club/event-notification/preview", "api/club/event-notification/status", "api/topic/info-to-user",
+        "api/club/event-notification/preview", "api/club/event-notification/status",
         "api/club/crm/customers/detail", "api/club/event-ops/topics", "api/club/event-ops/series/detail",
         "api/club/event-ops/roster", "api/club/topic-setting/detail", "api/club/access/me", "api/club/members"
     ]
     /// CLB-r10-badges-01: badge reads, create and grant (all `POST` JSON, ClubBadgeManagementRoute).
     static let badgePaths: Set<String> = ClubBadgeManagementRoute.paths
-    /// MP topic-detail chapter recruit/finish post `multipart/form-data` (ClubGovernanceService form: true).
-    static let formPaths: Set<String> = ["api/topic/chapter/recruit", "api/topic/chapter/finish"]
+    /// MP topic-detail chapter recruit/finish post `multipart/form-data` (ClubGovernanceService form: true), and so
+    /// does the issueGroupCode review read `api/topic/info-to-user` (ClubGovernanceRead.usesForm; CLB-r10-group-code-01).
+    static let formPaths: Set<String> = ["api/topic/chapter/recruit", "api/topic/chapter/finish", "api/topic/info-to-user"]
     private static let moneyKeys: Set<String> = [
         "payAmount", "payChannel", "withdrawAmount", "refundId", "payoutAccount", "quoteId", "memberDiscountPrice"
     ]
