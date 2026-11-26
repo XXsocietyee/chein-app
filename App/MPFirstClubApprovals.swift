@@ -5,6 +5,7 @@ import Foundation
 /// confirm are not built or sent. Settlement mine stays `POST {}` on its own route.
 enum MPFirstClubApprovals {
     private static var rosterRevisions: [String: UUID] = [:]
+    private static var badgeApprovals: [String: ClubBadgeManagementApproval] = [:]
 
     static func governance(_ context: RuntimeDependencyContext) -> ClubGovernanceProductionApproval? {
         guard context.market == .china,
@@ -33,6 +34,18 @@ enum MPFirstClubApprovals {
         return ClubPublicRosterApproval(
             identity: ClubReadIdentity(accountID: context.session.accountID, epoch: context.session.epoch),
             baseURL: context.baseURL, revision: revision)
+    }
+
+    /// CLB-r10-badges-01. MP pages/club/badges/index.js: list, create and grant (non-money).
+    /// One approval per session identity so its revision stays stable for the host and transport checks.
+    static func badges(_ context: RuntimeDependencyContext) -> ClubBadgeManagementApproval? {
+        guard context.market == .china, context.session.accountID > 0 else { return nil }
+        let key = "\(context.baseURL.absoluteString)|\(context.session.namespace)|\(context.session.accountID)|\(context.session.epoch)"
+        if let cached = badgeApprovals[key] { return cached }
+        guard let endpoints = endpoint(context, paths: ClubBadgeManagementRoute.paths),
+              let approval = try? ClubBadgeManagementApproval(mpFirstEndpoints: endpoints) else { return nil }
+        badgeApprovals[key] = approval
+        return approval
     }
 
     static func welcomeWrite(_ context: RuntimeDependencyContext) -> OperationEndpointApproval? {
@@ -83,6 +96,8 @@ enum MPFirstClubWriteRoute {
         "api/club/crm/customers/detail", "api/club/event-ops/topics", "api/club/event-ops/series/detail",
         "api/club/event-ops/roster", "api/club/topic-setting/detail", "api/club/access/me", "api/club/members"
     ]
+    /// CLB-r10-badges-01: badge reads, create and grant (all `POST` JSON, ClubBadgeManagementRoute).
+    static let badgePaths: Set<String> = ClubBadgeManagementRoute.paths
     /// MP topic-detail chapter recruit/finish post `multipart/form-data` (ClubGovernanceService form: true).
     static let formPaths: Set<String> = ["api/topic/chapter/recruit", "api/topic/chapter/finish"]
     private static let moneyKeys: Set<String> = [
@@ -107,7 +122,7 @@ enum MPFirstClubWriteRoute {
             return moneyKeys.allSatisfy { !text.contains("name=\"\($0)\"") }
         }
         guard contentType == "application/json",
-              governancePaths.contains(relative) || operationPaths.contains(relative),
+              governancePaths.contains(relative) || operationPaths.contains(relative) || badgePaths.contains(relative),
               let parsed = try? JSONSerialization.jsonObject(with: body),
               let object = parsed as? [String: Any],
               moneyKeys.isDisjoint(with: object.keys) else { return false }

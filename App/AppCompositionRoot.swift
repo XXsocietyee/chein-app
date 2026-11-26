@@ -170,7 +170,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         }
     }
     let invoiceLaunchReadApproval: @MainActor (RuntimeDependencyContext) -> InvoiceLaunchReadApproval?
-    let clubBadgeManagementApproval: @MainActor (RuntimeDependencyContext) -> ClubBadgeManagementApproval?
+    private(set) var clubBadgeManagementApproval: @MainActor (RuntimeDependencyContext) -> ClubBadgeManagementApproval?
     let merchantReviewOriginalReadApproval: @MainActor (RuntimeDependencyContext) -> MerchantReviewOriginalReadApproval?
     let deployment: DeploymentState
     var storage: AppScopedStorageFactory
@@ -606,7 +606,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             nativeBlacklistApproval = { [gates] context in gates.blacklist(context) }; installSocialWriteApprovals(gates)
             clubRoleAssignmentApproval = { MPFirstClubApprovals.roleAssignment($0) }; clubRoleRevocationApproval = { MPFirstClubApprovals.roleRevocation($0) }
             clubPublicRosterApproval = { MPFirstClubApprovals.roster($0) }; clubWelcomeNoteWriteApproval = { MPFirstClubApprovals.welcomeWrite($0) }
-            clubWelcomeNoteReceiptApproval = { MPFirstClubApprovals.welcomeReceipt($0) }; if self.storage.clubWelcomeNoteOriginalJournalDirectory == nil { self.storage.clubWelcomeNoteOriginalJournalDirectory = MPFirstClubApprovals.welcomeDirectory }
+            clubWelcomeNoteReceiptApproval = { MPFirstClubApprovals.welcomeReceipt($0) }; clubBadgeManagementApproval = { MPFirstClubApprovals.badges($0) }; if self.storage.clubWelcomeNoteOriginalJournalDirectory == nil { self.storage.clubWelcomeNoteOriginalJournalDirectory = MPFirstClubApprovals.welcomeDirectory }
             self.workshopPurchasedReadApproval = { [gates] context in gates.workshopPurchasedRead(context) }
         }
     }
