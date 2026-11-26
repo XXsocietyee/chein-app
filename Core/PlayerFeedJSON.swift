@@ -74,12 +74,15 @@ public final class InFlightReadCoalescer<Value>: @unchecked Sendable {
     private struct Slot {
         let id: UUID
         let task: Task<Value, Error>
+        var waiters: Int
     }
 
     private let lock = OSAllocatedUnfairLock()
     private var slots: [String: Slot] = [:]
     /// A body that finished before its slot was published. Cleared when publish observes it.
     private var finishedEarly: Set<UUID> = []
+    /// Reads retired by their last cancelled waiter; their late finish must not mark `finishedEarly`.
+    private var retired: Set<UUID> = []
 
     public init() {}
 
@@ -87,10 +90,14 @@ public final class InFlightReadCoalescer<Value>: @unchecked Sendable {
         lock.withLock { slots[key] != nil }
     }
 
+    /// A read whose every waiter was cancelled is retired: its shared task is cancelled and the key
+    /// is freed, so a later (fresh-lifetime) caller dispatches its own read instead of adopting the
+    /// held, retired response. Regression from 82a8c6126, which made cancelled reads join-able.
     public func join(_ key: String, _ body: @escaping () async throws -> Value) async throws -> Value {
-        let task: Task<Value, Error> = lock.withLock {
-            if let existing = slots[key] {
-                return existing.task
+        let (task, id): (Task<Value, Error>, UUID) = lock.withLock {
+            if var existing = slots[key] {
+                existing.waiters += 1; slots[key] = existing
+                return (existing.task, existing.id)
             }
             let id = UUID()
             let task = Task { () throws -> Value in
@@ -98,15 +105,31 @@ public final class InFlightReadCoalescer<Value>: @unchecked Sendable {
                 return try await body()
             }
             if finishedEarly.remove(id) == nil {
-                slots[key] = Slot(id: id, task: task)
+                slots[key] = Slot(id: id, task: task, waiters: 1)
             }
-            return task
+            return (task, id)
         }
-        return try await task.value
+        return try await withTaskCancellationHandler {
+            try await task.value
+        } onCancel: {
+            self.leave(key, id)
+        }
+    }
+
+    private func leave(_ key: String, _ id: UUID) {
+        let orphan: Task<Value, Error>? = lock.withLock {
+            guard var slot = slots[key], slot.id == id else { return nil }
+            slot.waiters -= 1
+            if slot.waiters > 0 { slots[key] = slot; return nil }
+            slots[key] = nil; retired.insert(id)
+            return slot.task
+        }
+        orphan?.cancel()
     }
 
     private func finish(_ key: String, _ id: UUID) {
         lock.withLock {
+            if retired.remove(id) != nil { return }
             if slots[key]?.id == id {
                 slots[key] = nil
             } else if slots[key] == nil {

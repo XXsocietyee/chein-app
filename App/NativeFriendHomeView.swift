@@ -205,7 +205,7 @@ import SwiftUI
         // It has to sit inside the NavigationStack, before toolbar: on iOS 27 a destination after toolbar is
         // reported as a misplaced navigationDestination(isPresented:) and never pushes.
         .navigationDestination(isPresented: Binding(get: { model.child != nil }, set: { if !$0 { model.child = nil } })) {
-            if let child = model.child {
+            Group { if let child = model.child {
                 switch child {
                 case .blacklist(let blacklist): NativeBlacklistView(flow: blacklist)
                 case .groups(let groups): NativeFriendMetadataView(flow:groups,nickname:"",onApplied:{ Task { await flow.load() } })
@@ -216,7 +216,10 @@ import SwiftUI
                 case .conversation(let id):
                     if flow.isCurrent { conversation(id) }
                 }
-            }
+            } }
+            // A covered parent in a NavigationStack no longer receives its own scenePhase change on iOS 26+/27, so the
+            // visible destination observes the phase itself and suspends (pops + purges) the owner destination.
+            .modifier(NativeFriendDestinationSuspension(suspend: { model.suspend() }))
         }
         // The request is reviewed only after this sheet closes, so the confirmation sheet never stacks on it.
         .cySheet(isPresented: $addingFriend, onDismiss: {
@@ -397,5 +400,14 @@ import SwiftUI
         case .rejected, .cancelled, .expired, .invalidated: return .red
         case .pending: return .orange
         }
+    }
+}
+
+/// Background/inactive while a friend destination is pushed: the covered home cannot see the change itself.
+private struct NativeFriendDestinationSuspension: ViewModifier {
+    @Environment(\.scenePhase) private var scenePhase
+    let suspend: () -> Void
+    func body(content: Content) -> some View {
+        content.onChange(of: scenePhase) { _, value in if value != .active { suspend() } }
     }
 }

@@ -92,7 +92,10 @@ import UIKit
         try await waitFor { self.find("nearby.joined.4101", in: window) != nil }
         let nav = try XCTUnwrap(navigation(window.rootViewController)), count = nav.viewControllers.count
         try await tap(label: appLocalized("nearby.enter", locale: Locale(identifier: "en_US")), in: window)
-        try await waitFor { nav.viewControllers.count == count + 1 && self.find("team.detail.card", in: window) != nil }
+        // On iOS 27 the covered list's onDisappear (which retires the owned read) lands after the pushed controller and
+        // its card are already in the hierarchy, so retirement is awaited as part of the push rather than sampled once.
+        try await waitFor { nav.viewControllers.count == count + 1 && self.find("team.detail.card", in: window) != nil
+            && rig.owned.currentStatus(owner: rig.owner) == .loading }
         XCTAssertEqual(rig.ownedService.detailIDs, [4101]); XCTAssertEqual(rig.owned.currentStatus(owner: rig.owner), .loading)
         XCTAssertEqual(rig.ownedService.writes, 0); XCTAssertTrue(rig.journal.records.isEmpty)
         XCTAssertNotNil(nav.popViewController(animated: false))

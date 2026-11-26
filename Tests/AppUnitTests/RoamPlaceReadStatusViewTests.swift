@@ -963,18 +963,24 @@ import UIKit
         defer { window.isHidden = true; window.rootViewController = nil }
         host.loadViewIfNeeded(); host.view.layoutIfNeeded()
         for _ in 0..<10 { try await Task.sleep(for: .milliseconds(20)) }
-        XCTAssertNil(model.target); XCTAssertNil(host.presentedViewController)
+        // Since a1519ed20 (P-040) the live session view presents one persistent system sheet on mount and every
+        // other presentation, this browse target included, hangs off that sheet. The target is therefore the
+        // sheet's presented controller; the persistent session sheet itself stays up.
+        let browseSheet = { host.presentedViewController?.presentedViewController }
+        for _ in 0..<100 where host.presentedViewController == nil { try await Task.sleep(for: .milliseconds(20)) }
+        XCTAssertNotNil(host.presentedViewController, "persistent session sheet")
+        XCTAssertNil(model.target); XCTAssertNil(browseSheet())
         let context = try XCTUnwrap(RoamPausedBrowseContext.capture(kind: .history, owner: owner, reader: reader))
         let calls = service.calls, fixes = location.calls, bytes = storage.bytes
         model.open(context, entryID: model.entryID, owner: owner, reader: reader)
         let target = try XCTUnwrap(model.target)
-        for _ in 0..<100 where host.presentedViewController == nil { try await Task.sleep(for: .milliseconds(20)) }
-        XCTAssertNotNil(host.presentedViewController)
+        for _ in 0..<100 where browseSheet() == nil { try await Task.sleep(for: .milliseconds(20)) }
+        XCTAssertNotNil(browseSheet())
         XCTAssertEqual(model.target?.id, target.id); XCTAssertEqual(owner.phase, .paused)
         XCTAssertEqual(try target.historyReader?.history(), [])
         model.close(id: target.id)
-        for _ in 0..<100 where host.presentedViewController != nil { try await Task.sleep(for: .milliseconds(20)) }
-        XCTAssertNil(host.presentedViewController); XCTAssertNil(model.target); XCTAssertEqual(owner.phase, .paused)
+        for _ in 0..<100 where browseSheet() != nil { try await Task.sleep(for: .milliseconds(20)) }
+        XCTAssertNil(browseSheet()); XCTAssertNil(model.target); XCTAssertEqual(owner.phase, .paused)
         XCTAssertEqual(service.calls, calls); XCTAssertEqual(location.calls, fixes); XCTAssertEqual(storage.bytes, bytes)
         XCTAssertEqual(reader.remoteReads, 0)
     }
@@ -1231,17 +1237,22 @@ import UIKit
         defer { window.isHidden = true; window.rootViewController = nil }
         host.loadViewIfNeeded(); host.view.layoutIfNeeded()
         for _ in 0..<10 { try await Task.sleep(for: .milliseconds(20)) }
+        // Since a1519ed20 (P-040) the live session view presents one persistent system sheet on mount and every
+        // other presentation, this browse target included, hangs off that sheet. The target is therefore the
+        // sheet's presented controller; the persistent session sheet itself stays up.
+        let browseSheet = { host.presentedViewController?.presentedViewController }
+        XCTAssertNil(browseSheet())
         let context = try XCTUnwrap(RoamPausedBrowseContext.capture(kind: .album, owner: owner, reader: reader))
         let calls = service.calls, fixes = location.calls, bytes = storage.bytes
         model.open(context, entryID: model.entryID, owner: owner, reader: reader)
         let target = try XCTUnwrap(model.target)
-        for _ in 0..<100 where host.presentedViewController == nil || reader.pages.isEmpty { try await Task.sleep(for: .milliseconds(20)) }
-        XCTAssertNotNil(host.presentedViewController); XCTAssertEqual(model.target?.id, target.id)
+        for _ in 0..<100 where browseSheet() == nil || reader.pages.isEmpty { try await Task.sleep(for: .milliseconds(20)) }
+        XCTAssertNotNil(browseSheet()); XCTAssertEqual(model.target?.id, target.id)
         XCTAssertEqual(reader.pages, [1]); XCTAssertEqual(owner.phase, .paused)
         XCTAssertFalse(RoamStampAlbumView(reader: reader, readOnlyScope: try XCTUnwrap(target.albumScope)).allowsCapture)
         model.close(id: target.id)
-        for _ in 0..<100 where host.presentedViewController != nil { try await Task.sleep(for: .milliseconds(20)) }
-        XCTAssertNil(host.presentedViewController); XCTAssertNil(target.albumScope?.identity); XCTAssertEqual(owner.phase, .paused)
+        for _ in 0..<100 where browseSheet() != nil { try await Task.sleep(for: .milliseconds(20)) }
+        XCTAssertNil(browseSheet()); XCTAssertNil(target.albumScope?.identity); XCTAssertEqual(owner.phase, .paused)
         XCTAssertEqual(service.calls, calls); XCTAssertEqual(location.calls, fixes); XCTAssertEqual(storage.bytes, bytes)
         XCTAssertEqual(reader.otherReads, 0)
         XCTAssertEqual(RoamPausedBrowseCopy(locale: Locale(identifier: "en")).label(.album), "View stamp album (read-only)")

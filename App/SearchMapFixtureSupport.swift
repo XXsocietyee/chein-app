@@ -19,6 +19,7 @@ import SwiftUI
     private func cancelActivityPage(_ id: UUID) {
         pendingActivityPages.removeValue(forKey: id)?.resume(throwing: CancellationError())
     }
+    private static let syntheticActivityTotal = SearchMapActivityPage.pageSize + 2
     private var hasActivityPagination: Bool {
         [.pagination, .pageFailure, .pageDelayed, .filteredPage].contains(scenario)
     }
@@ -98,7 +99,9 @@ import SwiftUI
         }
         let visible = scenario == .filteredPage ? [] : activities
         // A synthetic already-filtered first-page projection, never a real backend read.
-        let page = hasActivityPagination ? try SearchMapActivityPage(rows: visible, pageNumber: 1, rawCount: 50, serverTotal: 52) : nil
+        // Sized from the MP `pageSize` (10 since 252af5c46) so page 2's two raw rows end the list.
+        let page = hasActivityPagination ? try SearchMapActivityPage(rows: visible, pageNumber: 1,
+            rawCount: SearchMapActivityPage.pageSize, serverTotal: Self.syntheticActivityTotal) : nil
         return CityNodeSearchResults(activities: visible,
             nodes: isAuthenticated && scenario != .partial ? try decode([SearchMapCityNode].self, SearchMapSyntheticFixtures.cityNodes) : [],
             nodeFailure: !isAuthenticated ? .unauthorized : (scenario == .partial ? .unavailable : nil), activityPage: page)
@@ -122,7 +125,7 @@ import SwiftUI
         let raw = try decode([ActivitySummary].self, #"[{"id":71,"name":"Synthetic older duplicate","latitude":9,"longitude":9},{"id":74,"name":"Synthetic next-page walk","latitude":1.008,"longitude":1.009,"startDate":"2030-05-05","minAmout":30}]"#)
         let rows = raw.filter { query.filter.matches(kind: .activity, date: $0.startDate,
             price: $0.minimumAmount.map { NSDecimalNumber(decimal: $0).doubleValue }) }
-        return try SearchMapActivityPage(rows: rows, pageNumber: page, rawCount: raw.count, serverTotal: 52)
+        return try SearchMapActivityPage(rows: rows, pageNumber: page, rawCount: raw.count, serverTotal: Self.syntheticActivityTotal)
     }
     func nearby(area: RoamSearchArea) async throws -> SearchMapNearbyResults {
         try check()
