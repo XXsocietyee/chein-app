@@ -455,6 +455,7 @@ struct ClubOpsGovernanceSuccess: View {
         case .ban: return "clubOpsGov.success.ban"
         case .unban: return "clubOpsGov.success.unban"
         case .transferOwner: return "clubOpsGov.success.transfer"
+        case .dissolve: return "clubOpsGov.success.dissolve"
         case .report, .appeal: return "clubOpsGov.success.case"
         case .assignRole: return "clubOpsGov.roles.success.assign"
         case .revokeRole: return "clubOpsGov.roles.success.revoke"
