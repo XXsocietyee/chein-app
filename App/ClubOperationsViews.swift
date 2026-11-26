@@ -105,6 +105,7 @@ struct ClubOperationsWorkspaceView: View {
     @State private var readbackUnavailable = false
     @State private var ownerID = UUID()
     @State private var artworkRevision = UUID()
+    @ScaledMetric(relativeTo: .body) private var identityCoverSide: CGFloat = 56
     @State private var createReceiptIdentity: ClubReadIdentity?
     @State private var createReceiptClubID: Int?
     @State private var readbackIdentity: ClubReadIdentity?
@@ -353,7 +354,7 @@ struct ClubOperationsWorkspaceView: View {
         scenePhase == .active && screenIdentity == identity && !loading && !state.locksForm && !profileDraftBlocked && review == nil &&
             expected.matches(target: target, identity: identity, access: access, profile: snapshot?.profile, sourceRevision: artworkRevision)
     }
-    /// No cover uploaded: one calm identity card (mark, name, city, role) instead of a half-empty photo card.
+    /// The edit header row: the cover (or the club glyph) beside name, city and role.
     private func clubIdentityHero(_ club: ClubRecord) -> some View {
         Label {
             VStack(alignment: .leading, spacing: 2) {
@@ -366,24 +367,28 @@ struct ClubOperationsWorkspaceView: View {
                     .foregroundStyle(.secondary)
             }
         } icon: {
-            Image(systemName: "person.3.fill")  // CLB-edit-06
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
+            if let cover = QuestifyCardArtwork.safeURL(club.cover) {
+                PlayerFeedRemoteImage(url: cover, maxPixel: 240, placeholder: { identityGlyph }, failure: { identityGlyph })
+                    .frame(width: identityCoverSide, height: identityCoverSide)
+                    .clipped()
+                    .accessibilityHidden(true)
+            } else {
+                identityGlyph
+            }
         }
         .accessibilityElement(children: .combine)
+    }
+    private var identityGlyph: some View {
+        Image(systemName: "person.3.fill")  // CLB-edit-06
+            .foregroundStyle(.secondary)
+            .accessibilityHidden(true)
     }
     @ViewBuilder private func content(_ value: ClubOperationsSnapshot) -> some View {
         if let profile = value.profile {
             Section {
-                if QuestifyCardArtwork.safeURL(profile.club.cover) == nil {
-                    clubIdentityHero(profile.club)
-                } else {
-                QuestifyImageEntityCard(imageSource: profile.club.cover, title: profile.club.name, subtitle: profile.club.city, fallbackSymbol: "person.3.fill", minimumHeight: 230,
-                    progressiveBlur: .cover, artworkIdentity: identity != nil && screenIdentity == identity && access.identity == identity && access.isConfigured && !loading
-                        ? .init(owner: ownerID.uuidString + ":" + String(identity?.accountID ?? 0) + ":" + String(identity?.epoch ?? 0), content: "club:\(profile.club.id)", version: artworkRevision.uuidString) : nil) {
-                    Text(profile.club.isOwner ? "club.ops.owner" : "club.ops.administrator")
-                }.questifyCardListRow()
-                }
+                // CLB-r10-nat-edit-01 (MP scene-club-edit wxml club-head: logo + name + city): one plain row with a
+                // system-size cover beside 名称 / 城市 / 角色, not a full-bleed blurred image card.
+                clubIdentityHero(profile.club)
             }
         }
         if target == .create && !value.canCreate {
