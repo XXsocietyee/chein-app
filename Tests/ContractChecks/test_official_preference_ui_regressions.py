@@ -25,7 +25,11 @@ class OfficialPreferenceUIRegressions(unittest.TestCase):
     def test_official_browser_does_not_override_search_and_retry_identity(self):
         text = source('App/OfficialEventsBrowserView.swift')
         self.assertNotIn('.accessibilityIdentifier("official.browser")', text)
-        for leaf in ['official.search', 'official.filter', 'official.inboxLink', 'official.publishedLink']:
+        # r11 R10-PC-C-N10: search is the system `.searchable` drawer (MP pages/activity/list/index.wxml hides it on 我的),
+        # which cannot carry an accessibility identifier; the prompt keeps the `official.search` key.
+        self.assertIn('.searchable(text: $keyword', text)
+        self.assertIn('Text("official.search")', text)
+        for leaf in ['official.filter', 'official.inboxLink', 'official.publishedLink']:
             self.assertIn(f'.accessibilityIdentifier("{leaf}")', text)
         self.assertIn('let visible = page.visible', text)
         self.assertIn('OfficialActivityListCoordinator.project(query: query', text)

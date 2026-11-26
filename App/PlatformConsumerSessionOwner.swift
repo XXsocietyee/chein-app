@@ -89,8 +89,8 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                     .environment(\.topicThemeRecordsSession, session)
                     // R7-PC-B1-13: a picked session opens checkout with the topic-page ticket chosen (MP index.js:1312-1351).
                     .environment(\.topicSessionRegistrationDestination, { activityID, ticketName in
-                        AnyView(ActivityDetailView(id: activityID, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) },
-                                                   registrationEnabled: true, opensRegistrationOnLoad: true, registrationTicketName: ticketName))
+                        AnyView(ActivityDetailView(id: activityID, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true,
+                                                   opensRegistrationOnLoad: true, registrationTicketName: ticketName))
                     })
                     // PC-B-4-3 / PC-B-1-3 (X1): every entry gets the owner pricing page and the play runtime client,
                     // not only the topic browser sheet (SessionTopicBrowserView).
