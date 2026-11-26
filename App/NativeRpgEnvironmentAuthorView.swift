@@ -65,24 +65,24 @@ import SwiftUI
     var body: some View {
         Section(copy.text("rpgEnvironment.copy.006")) {
             if editor == nil {
-                CYPillButton(verbatim: copy.text("rpgEnvironment.copy.007"), style: .secondary) { open() }.disabled(!available).accessibilityIdentifier("rpgEnvironment.open")
+                Button(copy.text("rpgEnvironment.copy.007")) { open() }.disabled(!available).accessibilityIdentifier("rpgEnvironment.open")
             } else if let draft = editor, let editorID = capture?.id {
                 let editRevision = bufferRevision
                 Group {
                     if !current { NativeAuthorNotice(text: Text(copy.text("rpgEnvironment.copy.008")), tone: .attention) }
-                    Toggle(copy.text("rpgEnvironment.copy.009"), isOn: Binding(get: { editor?.enabled ?? false }, set: { value in mutate(editorID, revision: editRevision) { $0.configure(enabled: value, authorOverride: draft.authorOverride, location: draft.locationEnabled) } })).frame(minHeight: 44).accessibilityIdentifier("rpgEnvironment.enabled")
-                    Toggle(copy.text("rpgEnvironment.copy.010"), isOn: Binding(get: { editor?.authorOverride ?? false }, set: { value in mutate(editorID, revision: editRevision) { $0.configure(enabled: draft.enabled, authorOverride: value, location: draft.locationEnabled) } })).frame(minHeight: 44).accessibilityIdentifier("rpgEnvironment.authorOverride")
-                    Toggle(copy.text("rpgEnvironment.copy.011"), isOn: Binding(get: { editor?.locationEnabled ?? false }, set: { value in mutate(editorID, revision: editRevision) { $0.configure(enabled: draft.enabled, authorOverride: draft.authorOverride, location: value) } })).frame(minHeight: 44).accessibilityIdentifier("rpgEnvironment.location")
+                    Toggle(copy.text("rpgEnvironment.copy.009"), isOn: Binding(get: { editor?.enabled ?? false }, set: { value in mutate(editorID, revision: editRevision) { $0.configure(enabled: value, authorOverride: draft.authorOverride, location: draft.locationEnabled) } })).accessibilityIdentifier("rpgEnvironment.enabled")
+                    Toggle(copy.text("rpgEnvironment.copy.010"), isOn: Binding(get: { editor?.authorOverride ?? false }, set: { value in mutate(editorID, revision: editRevision) { $0.configure(enabled: draft.enabled, authorOverride: value, location: draft.locationEnabled) } })).accessibilityIdentifier("rpgEnvironment.authorOverride")
+                    Toggle(copy.text("rpgEnvironment.copy.011"), isOn: Binding(get: { editor?.locationEnabled ?? false }, set: { value in mutate(editorID, revision: editRevision) { $0.configure(enabled: draft.enabled, authorOverride: draft.authorOverride, location: value) } })).accessibilityIdentifier("rpgEnvironment.location")
                     Button(copy.text("rpgEnvironment.copy.012")) { mutate(editorID, revision: editRevision) { $0.configure(enabled: draft.enabled, authorOverride: draft.authorOverride, location: draft.locationEnabled) } }
                     Text(copy.text("rpgEnvironment.copy.013")).nativeAuthorSupportingCopy()
                     Text(copy.text("rpgEnvironment.copy.014")).nativeAuthorSupportingCopy()
-                    CYPillButton(verbatim: copy.text("rpgEnvironment.copy.015"), style: .secondary) { preview(editorID, revision: editRevision) }.accessibilityIdentifier("rpgEnvironment.review")
+                    Button(copy.text("rpgEnvironment.copy.015")) { preview(editorID, revision: editRevision) }.accessibilityIdentifier("rpgEnvironment.review")
                     if let review {
                         Text(verbatim: review.value.text ?? "").font(.caption.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("rpgEnvironment.preview")
-                        CYPillButton(verbatim: saveUnconfirmed ? copy.text("rpgEnvironment.copy.016") : copy.text("rpgEnvironment.copy.017")) { apply(review) }.accessibilityIdentifier("rpgEnvironment.confirm").accessibilityHint(Text(copy.text("rpgEnvironment.localOnly")))
+                        Button(saveUnconfirmed ? copy.text("rpgEnvironment.copy.016") : copy.text("rpgEnvironment.copy.017")) { apply(review) }.fontWeight(.semibold).accessibilityIdentifier("rpgEnvironment.confirm").accessibilityHint(Text(copy.text("rpgEnvironment.localOnly")))
                     }
                 }.disabled(!current)
-                CYPillButton(verbatim: copy.text("rpgEnvironment.copy.018"), style: .tertiary) { close(editorID) }.accessibilityIdentifier("rpgEnvironment.close")
+                Button(copy.text("rpgEnvironment.copy.018"), role: .cancel) { close(editorID) }.accessibilityIdentifier("rpgEnvironment.close")
             }
             if let message { NativeAuthorNotice(text: Text(verbatim: copy.message(message))).accessibilityIdentifier("rpgEnvironment.notice") }
         }

@@ -133,7 +133,7 @@ import SwiftUI
         if reader.scope == target.readerScope, reader.isAuthenticated, let coordinator = makeEditor(target) {
             ProjectEditView(coordinator: coordinator, sessionRevision: revision,
                 publisherClient: publisherClient, publisherHost: publisherHost).id(editorContextID.map { target.id + ":" + $0 } ?? target.id)
-        } else { CYEmptyState(systemImage: "exclamationmark.arrow.triangle.2.circlepath", "projectRemote.stale", messageIdentifier: "projectRemote.stale") }
+        } else { ContentUnavailableView("projectRemote.stale", systemImage: "exclamationmark.arrow.triangle.2.circlepath").accessibilityIdentifier("projectRemote.stale") }
     }
 }
 @MainActor struct SessionCreatorProjectsView: View {
