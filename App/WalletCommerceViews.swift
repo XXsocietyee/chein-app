@@ -508,6 +508,8 @@ extension EnvironmentValues {
     private var shownRows: [WalletLedgerRow] { points ? Array(filtered.prefix(shownCount)) : filtered }
     private var hasLocalMore: Bool { points && shownCount < filtered.count }
     private var income: Bool { if case .income = kind { return true }; return false }
+    /// R11-PC-D-2: the income filter names the empty copy.
+    private var incomeFilter: WalletIncomeFilter { if case .income(let filter) = kind { return filter }; return .all }
     private var filtered: [WalletLedgerRow] {
         model.pager.rows.filter { row in
             direction == "all" || (income ? row.incomeDirection : row.assetDirection).rawValue == direction
@@ -531,10 +533,10 @@ extension EnvironmentValues {
             if model.pager.hasLoadedPage && model.pager.loadedScope == reader.scope {
                 if filtered.isEmpty && !model.pager.isLoading && !model.pager.failed {
                     if income || points {
-                        ContentUnavailableView(LocalizedStringKey(WalletPointsLedgerEmptyState.key(direction: direction, isIncomeLedger: income, isPointsLedger: points)), systemImage: "tray")
+                        ContentUnavailableView(LocalizedStringKey(WalletPointsLedgerEmptyState.key(direction: direction, isIncomeLedger: income, isPointsLedger: points, incomeFilter: incomeFilter)), systemImage: "tray")
                             .accessibilityIdentifier("wallet.ledger.empty")
                     } else {
-                        Text(LocalizedStringKey(WalletPointsLedgerEmptyState.key(direction: direction, isIncomeLedger: income, isPointsLedger: points))).accessibilityIdentifier("wallet.ledger.empty")
+                        Text(LocalizedStringKey(WalletPointsLedgerEmptyState.key(direction: direction, isIncomeLedger: income, isPointsLedger: points, incomeFilter: incomeFilter))).accessibilityIdentifier("wallet.ledger.empty")
                     }
                 }
                 if points || kind == .balance {

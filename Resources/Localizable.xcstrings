@@ -326586,6 +326586,40 @@
           }
         }
       }
+    },
+    "wallet.income.empty.create": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No creation earnings yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创作收益还没有收益"
+          }
+        }
+      }
+    },
+    "wallet.income.empty.brand": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No brand earnings yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "品牌收益还没有收益"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

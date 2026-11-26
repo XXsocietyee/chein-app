@@ -11,6 +11,9 @@ final class WalletPointsLedgerEmptyStateTests: XCTestCase {
     func testBalanceAndIncomeLedgersKeepTheirOwnCopy() {
         XCTAssertEqual(WalletPointsLedgerEmptyState.key(direction: "income", isIncomeLedger: false, isPointsLedger: false), "wallet.empty")
         XCTAssertEqual(WalletPointsLedgerEmptyState.key(direction: "expense", isIncomeLedger: true, isPointsLedger: false), "wallet.income.empty")
+        // R11-PC-D-2: MP scene-asset-income-detail/index.js:62-68.
+        XCTAssertEqual(WalletPointsLedgerEmptyState.key(direction: "all", isIncomeLedger: true, isPointsLedger: false, incomeFilter: .create), "wallet.income.empty.create")
+        XCTAssertEqual(WalletPointsLedgerEmptyState.key(direction: "all", isIncomeLedger: true, isPointsLedger: false, incomeFilter: .brand), "wallet.income.empty.brand")
     }
 }
 #endif
