@@ -89,7 +89,7 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                         // Figma 223:3698: 邀请成员 is the first row. Clubs have no invite link yet, so it shares a
                         // text invitation (club name + how to find it in the app) through the system share sheet.
                         if directory.club.isOwner || directory.club.viewerIsAdmin {
-                            ClubMemberInviteRow(clubName: directory.club.name)
+                            ClubMemberInviteRow(clubName: directory.club.name, clubID: directory.club.id)
                                 .listRowInsets(Self.rowInsets)
                                 .listRowBackground(Color.clear)
                                 .listRowSeparator(.hidden)
@@ -309,29 +309,15 @@ enum ClubJoinDateDisplay {
 }
 
 /// 邀请成员 (Figma 223:3698): a row with a plus disc that opens the system share sheet with a text invitation.
+/// CLB-detail-30: the invite carries the club link (same as 分享) and the MP invitation; a plain system row.
 struct ClubMemberInviteRow: View {
     let clubName: String
-    @Environment(\.locale) private var locale
-    @Environment(\.cyPalette) private var palette
+    var clubID: Int? = nil
 
     var body: some View {
-        ShareLink(item: String(format: OpsR3Text.string("r3club.invite.message", locale: locale), clubName)) {
-            HStack(spacing: CYSpacing.md) {
-                Image(systemName: "person.badge.plus")
-                    .cyText(.bodyMedium)  // CLB-detail-41
-                    .foregroundStyle(palette.textPrimary)
-                    .frame(width: 40, height: 40)
-                    .background(Circle().fill(palette.bgElevated))
-                    .accessibilityHidden(true)
-                OpsR3Text.text("r3club.invite.title")
-                    .cyText(.cardTitle)
-                    .foregroundStyle(palette.textPrimary)
-                Spacer(minLength: 0)
-            }
-            .frame(minHeight: CYSpacing.minTouchTarget)
-            .contentShape(Rectangle())
+        ClubInviteShareLink(clubID: clubID, clubName: clubName) {
+            Label { OpsR3Text.text("r3club.invite.title") } icon: { Image(systemName: "person.badge.plus") }
         }
-        .buttonStyle(.cyPressable)
         .accessibilityHint(OpsR3Text.text("r3club.invite.hint"))
         .accessibilityIdentifier("club.members.invite")
     }

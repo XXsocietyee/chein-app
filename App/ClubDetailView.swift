@@ -751,7 +751,7 @@ private struct ClubDetailHeader: View {
                 // stays in the action panel right under the header).
                 // CLB-detail-24: MP gives 邀请成员 to the owner and administrators only (wxml:260, 765).
                 if club.isOwner || club.viewerIsAdmin {
-                    ClubHeaderInviteButton(clubName: club.name)
+                    ClubHeaderInviteButton(clubName: club.name, clubID: club.id)
                         .padding(.top, CYSpacing.xs)
                 }
             }
