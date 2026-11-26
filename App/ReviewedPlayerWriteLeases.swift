@@ -1449,6 +1449,8 @@ enum ReviewedPlayerReadRoute {
             configuration: playConfiguration(context),
             businessConfiguration: businessConfiguration,
             couponCodeApproval: couponCodeApproval,
+            // CLB-r11-checkin-detail-01 (MP checkin-detail/index.js:143-200): the owner 清退并退款.
+            ownerRefundApproval: playerWritesEnabled ? MPFirstClubApprovals.ownerRefund(context) : nil,
             clubGovernanceApproval: playerWritesEnabled ? MPFirstClubApprovals.governance(context) : nil,
             merchantBusinessApproval: MPFirstMerchantApprovals.business(context),
             merchantEngagementApproval: MPFirstMerchantApprovals.engagement(context),

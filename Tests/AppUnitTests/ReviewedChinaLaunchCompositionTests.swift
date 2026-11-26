@@ -196,6 +196,18 @@ import XCTest
             let end = try ClubGovernanceCommand(operation: .endTopic, scope: .init(clubID: 9, topicID: 3), values: ["cancellationEpoch": .string("0")])
             XCTAssertTrue(governance.permits(cancel, context: player))
             XCTAssertTrue(governance.permits(end, context: player))
+            // CLB-r11-checkin-detail-01 (MP checkin-detail/index.js:143-200): the owner refund is composed while refund is on.
+            let refund = try XCTUnwrap(admitted.sessionDependencies(player).ownerRefundApproval)
+            XCTAssertTrue(refund.matches(player))
+            let form = try AuthRequestBuilder.makeFormRequest(url: player.baseURL.appendingPathComponent("api/registration/cancel-by-owner"),
+                                                              fields: ["id": "121"], token: player.session.token)
+            XCTAssertTrue(MPFirstClubWriteRoute.accepts(form, baseURL: player.baseURL, token: player.session.token))
+            let extra = try AuthRequestBuilder.makeFormRequest(url: player.baseURL.appendingPathComponent("api/registration/cancel-by-owner"),
+                                                               fields: ["id": "121", "refundId": "1"], token: player.session.token)
+            XCTAssertFalse(MPFirstClubWriteRoute.accepts(extra, baseURL: player.baseURL, token: player.session.token))
+            ReleaseMoneyWriteSwitch.testDerivation = nil
+            XCTAssertNil(admitted.sessionDependencies(player).ownerRefundApproval)
+            XCTAssertFalse(MPFirstClubWriteRoute.accepts(form, baseURL: player.baseURL, token: player.session.token))
         }
         // CLB-r10-badges-01: MP pages/club/badges/index.js reads, creates and grants for any club.
         let badges = try XCTUnwrap(admitted.clubBadgeManagementApproval(player))

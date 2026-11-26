@@ -16,6 +16,15 @@ enum MPFirstClubApprovals {
         return try? ClubGovernanceProductionApproval(mpFirstMarket: .china, endpoints: endpoints, operations: ClubMPFirstGovernance.governance)
     }
 
+    /// CLB-r11-checkin-detail-01. MP pages/club/checkin-detail/index.js:143-200 (清退并退款, wxml:77-88) posts
+    /// `/api/registration/cancel-by-owner` `{id}`. Owner 11-26: refund is money and is on in Release, so the approval
+    /// is built for China only while `ReleaseMoneyWriteSwitch` has `.refund` on.
+    static func ownerRefund(_ context: RuntimeDependencyContext) -> ClubOwnerRefundApproval? {
+        guard context.market == .china, ReleaseMoneyWriteSwitch.isEnabled(.refund),
+              let endpoints = endpoint(context, paths: MPFirstClubWriteRoute.ownerRefundPaths) else { return nil }
+        return ClubOwnerRefundApproval(market: .china, endpoints: endpoints)
+    }
+
     static func roleAssignment(_ context: RuntimeDependencyContext) -> ClubRoleAssignmentApproval? {
         guard context.market == .china, let endpoints = try? roleEndpoints(context, ClubRoleAssignmentRoute.paths) else { return nil }
         return try? ClubRoleAssignmentApproval(mpFirstEndpoints: endpoints)
@@ -100,7 +109,9 @@ enum MPFirstClubWriteRoute {
         "api/club/join-requests", "api/club/join-request/approve", "api/club/join-request/reject",
         // CLB-r11-money-01 (MP event-ops/index.js:1106-1115, topic-detail/index.js:1145-1148): host-cancel refund
         // writes and the cancel review read. The writes pass only while `.hostCancelRefund` is on (`accepts`).
-        "api/club/event-ops/cancel", "api/club/topic-setting/end", "api/club/event-ops/occurrence/status"
+        "api/club/event-ops/cancel", "api/club/topic-setting/end", "api/club/event-ops/occurrence/status",
+        // CLB-r11-checkin-detail-01 (MP checkin-detail/index.js): the owner refund evidence read.
+        "api/club/crm/checkin/detail"
     ]
     /// CLB-r11-money-01: the host-cancel refund writes. Gated on `ReleaseMoneyWriteSwitch` `.hostCancelRefund`.
     static let hostCancelRefundPaths: Set<String> = ["api/club/event-ops/cancel", "api/club/topic-setting/end"]
@@ -113,11 +124,15 @@ enum MPFirstClubWriteRoute {
     /// MP topic-detail chapter recruit/finish post `multipart/form-data` (ClubGovernanceService form: true), and so
     /// does the issueGroupCode review read `api/topic/info-to-user` (ClubGovernanceRead.usesForm; CLB-r10-group-code-01).
     static let formPaths: Set<String> = ["api/topic/chapter/recruit", "api/topic/chapter/finish", "api/topic/info-to-user"]
+    /// CLB-r11-checkin-detail-01: the owner refund write and its two review reads (Core/ClubOwnerRefundApprovedAccess.swift:13).
+    static let ownerRefundPath = "api/registration/cancel-by-owner"
+    static let ownerRefundPaths: Set<String> = [ownerRefundPath, "api/club/access/me", "api/club/crm/checkin/detail"]
     private static let moneyKeys: Set<String> = [
         "payAmount", "payChannel", "withdrawAmount", "refundId", "payoutAccount", "quoteId", "memberDiscountPrice"
     ]
 
     static func accepts(_ request: URLRequest, baseURL: URL, token: String?) -> Bool {
+        if acceptsOwnerRefund(request, baseURL: baseURL, token: token) { return true }
         guard let token, AuthRequestBuilder.isValidToken(token),
               request.httpMethod == "POST", request.httpBodyStream == nil,
               request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
@@ -149,6 +164,28 @@ enum MPFirstClubWriteRoute {
             return shape.admits(object)
         }
         return true
+    }
+
+    /// CLB-r11-checkin-detail-01 (MP checkin-detail/index.js:163): `POST api/registration/cancel-by-owner` with the
+    /// multipart form `{id}` (ClubOwnerRefundService), a positive registration id and nothing else, only while refund is on.
+    static func acceptsOwnerRefund(_ request: URLRequest, baseURL: URL, token: String?) -> Bool {
+        guard ReleaseMoneyWriteSwitch.isEnabled(.refund), let token, AuthRequestBuilder.isValidToken(token),
+              request.httpMethod == "POST", request.httpBodyStream == nil,
+              request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
+              let url = request.url, url.fragment == nil, url.user == nil, url.password == nil, url.query == nil,
+              url.scheme == baseURL.scheme, url.host == baseURL.host, url.port == baseURL.port,
+              let parts = URLComponents(url: url, resolvingAgainstBaseURL: false), parts.query == nil,
+              MPFirstMerchantWriteRoute.relativePath(parts.path, base: baseURL.path) == ownerRefundPath,
+              let type = request.value(forHTTPHeaderField: "Content-Type"), type.hasPrefix("multipart/form-data; boundary="),
+              let body = request.httpBody, body.count < 1024, let text = String(data: body, encoding: .utf8) else { return false }
+        let boundary = String(type.dropFirst("multipart/form-data; boundary=".count))
+        guard !boundary.isEmpty else { return false }
+        let prefix = "--\(boundary)\r\nContent-Disposition: form-data; name=\"id\"\r\n\r\n"
+        let suffix = "\r\n--\(boundary)--\r\n"
+        guard text.hasPrefix(prefix), text.hasSuffix(suffix), text.count > prefix.count + suffix.count else { return false }
+        let id = String(text.dropFirst(prefix.count).dropLast(suffix.count))
+        guard id.count <= 16, id.allSatisfy(\.isASCII), id.allSatisfy(\.isNumber), let value = Int(id) else { return false }
+        return value > 0
     }
 
     /// Exact bodies for the review reads (ClubGovernanceRead.fields) and the join-request review writes
@@ -188,7 +225,9 @@ enum MPFirstClubWriteRoute {
         // CLB-r11-money-01: MP event-ops/index.js:1110-1115 and topic-detail/index.js:1147 bodies, exact keys.
         "api/club/event-ops/occurrence/status": .init(ids: ["clubId", "activityId"]),
         "api/club/event-ops/cancel": .init(ids: ["clubId", "activityId"], required: ["reason", "requestId"]),
-        "api/club/topic-setting/end": .init(ids: ["clubId", "topicId"], required: ["cancellationEpoch"])
+        "api/club/topic-setting/end": .init(ids: ["clubId", "topicId"], required: ["cancellationEpoch"]),
+        // CLB-r11-checkin-detail-01: the owner refund evidence read (ClubGovernanceRead.checkin keys).
+        "api/club/crm/checkin/detail": .init(ids: ["clubId", "registrationId"])
     ]
     static func positive(_ value: Any?) -> Bool {
         guard let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() else { return false }
