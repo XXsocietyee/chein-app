@@ -11,7 +11,9 @@ public struct TopicRouteMapAndTeamsSection: View {
     public let merchantCards: [TopicFreeExploreMerchantCard]
     public var onSelectPin: (TopicRouteNodePin) -> Void = { _ in }
     public var onOpenAllTeams: () -> Void = {}
-    public var onSelectMerchant: (TopicFreeExploreMerchantCard) -> Void = { _ in }
+    /// Nil: the cards are read-only rows (no dead button when the host has no opener).
+    public var onSelectMerchant: ((TopicFreeExploreMerchantCard) -> Void)? = nil
+    @State private var selectedPinID: String?
 
     public init(
         pins: [TopicRouteNodePin],
@@ -22,7 +24,7 @@ public struct TopicRouteMapAndTeamsSection: View {
         merchantCards: [TopicFreeExploreMerchantCard] = [],
         onSelectPin: @escaping (TopicRouteNodePin) -> Void = { _ in },
         onOpenAllTeams: @escaping () -> Void = {},
-        onSelectMerchant: @escaping (TopicFreeExploreMerchantCard) -> Void = { _ in }
+        onSelectMerchant: ((TopicFreeExploreMerchantCard) -> Void)? = nil
     ) {
         self.pins = pins
         self.completedCount = completedCount
@@ -50,7 +52,9 @@ public struct TopicRouteMapAndTeamsSection: View {
             }
 
             if !pins.isEmpty {
-                Map {
+                // R10-PC-B-N8: system `Marker`s numbered in route order (green when done); a tap selects the marker and
+                // hands the pin to the host, which opens it in Maps.
+                Map(selection: $selectedPinID) {
                     if !isFreeExplore && pins.count >= 2 {
                         MapPolyline(coordinates: pins.map {
                             CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude)
@@ -58,21 +62,16 @@ public struct TopicRouteMapAndTeamsSection: View {
                         .stroke(Color.accentColor, lineWidth: 3)
                     }
                     ForEach(pins) { pin in
-                        Annotation(pin.name, coordinate: CLLocationCoordinate2D(latitude: pin.latitude, longitude: pin.longitude)) {
-                            Button {
-                                onSelectPin(pin)
-                            } label: {
-                                // Numbered map pin (route order); system accent / green when done.
-                                Text("\(pin.sequence)")
-                                    .font(.caption.bold())
-                                    .monospacedDigit()
-                                    .foregroundStyle(.white)
-                                    .frame(width: 26, height: 26)
-                                    .background(pin.isCompleted ? Color.green : Color.accentColor, in: Circle())
-                            }
-                            .buttonStyle(.plain)
-                        }
+                        Marker(pin.name, monogram: Text(verbatim: "\(pin.sequence)"),
+                               coordinate: CLLocationCoordinate2D(latitude: pin.latitude, longitude: pin.longitude))
+                            .tint(pin.isCompleted ? Color.green : Color.accentColor)
+                            .tag(pin.id)
                     }
+                }
+                .onChange(of: selectedPinID) { _, id in
+                    guard let id, let pin = pins.first(where: { $0.id == id }) else { return }
+                    onSelectPin(pin)
+                    selectedPinID = nil
                 }
                 .mapControls {
                     MapCompass()
@@ -112,34 +111,43 @@ public struct TopicRouteMapAndTeamsSection: View {
                     Text("topicRoute.merchants.title")
                         .font(.headline)
                     ForEach(merchantCards) { card in
-                        Button {
-                            onSelectMerchant(card)
-                        } label: {
-                            HStack(spacing: CYSpacing.sm) {
-                                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                                    Text(card.merchantName)
-                                        .foregroundStyle(.primary)
-                                    if let perk = card.perkTitle, !perk.isEmpty {
-                                        Text(perk)
-                                            .font(.subheadline)
-                                            .foregroundStyle(.tint)
-                                    }
-                                    if let addr = card.address, !addr.isEmpty {
-                                        Text(addr)
-                                            .font(.subheadline)
-                                            .foregroundStyle(.secondary)
-                                    }
+                        if let onSelectMerchant {
+                            Button {
+                                onSelectMerchant(card)
+                            } label: {
+                                HStack(spacing: CYSpacing.sm) {
+                                    merchantCardText(card)
+                                    Spacer()
+                                    Image(systemName: "chevron.forward")
+                                        .font(.footnote.weight(.semibold))
+                                        .foregroundStyle(.tertiary)
                                 }
-                                Spacer()
-                                Image(systemName: "chevron.forward")
-                                    .font(.footnote.weight(.semibold))
-                                    .foregroundStyle(.tertiary)
+                                .contentShape(Rectangle())
                             }
-                            .contentShape(Rectangle())
+                            .buttonStyle(.plain)
+                        } else {
+                            merchantCardText(card)
+                                .accessibilityElement(children: .combine)
                         }
-                        .buttonStyle(.plain)
                     }
                 }
+            }
+        }
+    }
+
+    private func merchantCardText(_ card: TopicFreeExploreMerchantCard) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            Text(card.merchantName)
+                .foregroundStyle(.primary)
+            if let perk = card.perkTitle, !perk.isEmpty {
+                Text(perk)
+                    .font(.subheadline)
+                    .foregroundStyle(.tint)
+            }
+            if let addr = card.address, !addr.isEmpty {
+                Text(addr)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
         }
     }

@@ -180,6 +180,12 @@ struct ClubOperationsWorkspaceView: View {
             enteredManageDestination: enteredManageDestination
         )
     }
+    /// CLB-r9-create-02: the create check answered and this account is not a host (MP redirects to apply).
+    private var hostAutoOpenActive: Bool {
+        guard target == .create, !loading, let value = snapshot, !value.canCreate, value.accountRole != "club", hostApplication != nil else { return false }
+        return ClubCreatePageModel.interpret(signedIn: identity != nil, configured: access.isConfigured, loading: false, gate: ClubCreationGate(access: access),
+                                             snapshot: value, readback: .received(value), onPlayerFirstEntry: false).showsHostApplication
+    }
     var body: some View {
         Form {
             // CLB-r9-create-01 (MP create wxml:12-15): the create check reads 正在确认创建资格 while it runs.
@@ -269,6 +275,7 @@ struct ClubOperationsWorkspaceView: View {
             }
         }
         .interactiveDismissDisabled(dirty || state.locksForm)
+        .modifier(ClubCreateHostAutoOpen(active: hostAutoOpenActive, identity: identity, governance: hostApplication))
         .confirmationDialog("club.ops.discardTitle", isPresented: $showDiscard, titleVisibility: .visible) {
             if !profileDraftEnabled {
                 Button("club.ops.discard", role: .destructive) { dismiss() }
@@ -543,8 +550,7 @@ struct ClubOperationsWorkspaceView: View {
             case .rejected(let failure):
                 if target == .create {
                     // CLB-r8-create-01 (fix-r8-club): MP create wxml:134-135 创建没有完成 + the reason + 重试. A taken
-                    // name carries no retry here: its fix is 去改名称, which the user taps to go back to the name step
-                    // (CLB-r10-create-01; no auto-jump, see the createNameTaken onChange).
+                    // name shows 去改名称 instead of 重试 (MP wxml:135, js:482 refreshStep(3)); the wizard stays put until tapped.
                     Text("clubR8b.create.failed").font(.headline).foregroundStyle(.red)
                         .accessibilityIdentifier("club.ops.create.failed")
                     Text(verbatim: failure.message ?? appLocalized("clubR8b.create.failedHint", locale: locale))

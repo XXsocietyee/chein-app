@@ -24,8 +24,10 @@ class TopicSessionSelectionChecks(unittest.TestCase):
         self.assertEqual(content.count('.safeAreaInset(edge: .bottom)'), 1)
         self.assertIn('TopicXcxActionBar(', content)
         issue = self.detail.split('struct TopicDetailIssueState', 1)[1]
-        self.assertEqual(issue.count('.safeAreaInset(edge: .bottom)'), 1)
-        self.assertIn('CYPillButton("mpfresh.topic.back"', issue)
+        # R10-PC-B-N2: the refused-topic 返回 is the ContentUnavailableView `actions:` button (no extra inset).
+        self.assertEqual(issue.count('.safeAreaInset(edge: .bottom)'), 0)
+        self.assertIn('} actions: {', issue)
+        self.assertIn('Text("mpfresh.topic.back", tableName: "MpFresh")', issue)
         self.assertNotIn('TopicXcxActionBar', issue)
         self.assertNotIn('Button("topic.sessionSelection.enroll")', self.detail)
         self.assertNotIn('proxy.scrollTo("topicXcx.anchor.sessions"', self.detail)

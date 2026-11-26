@@ -248,7 +248,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                         // CLB-G08 (MP wxml:265-280): four member avatars and +N above 查看全部成员.
                         if club.canSeeMembers, !r8Mounts.memberAvatars.isEmpty {
                             ClubGapMemberAvatarStrip(avatars: r8Mounts.memberAvatars, totalCount: r8Mounts.memberTotal) { showsMembers = true }
-                                .memberTap(stripProfileAction)
+                                .memberTap(stripProfileAction(club))
                                 .frame(minHeight: CYSpacing.minTouchTarget)
                                 .accessibilityIdentifier("club.detail.memberStrip")
                         }
@@ -449,12 +449,8 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     }
             }
             .clubIslandStatus(message: $groupCodeToast, tone: .info, surface: "detail-groupCode")
-            .navigationDestination(item: $stripProfileMemberID) { memberID in
-                if let profile = management?.governance?.enrollmentProfile {
-                    SocialPublicProfileView(memberID: memberID, reader: profile.reader, squareReader: profile.squareReader,
-                                            actions: profile.actions, isCurrent: { stripProfileMemberID == memberID })
-                }
-            }
+            .modifier(ClubDetailStripMemberOpen(tapped: $stripProfileMemberID, club: club, identity: reader.clubIdentity,
+                                                governance: management?.governance))
             .navigationDestination(item: $r8Route) { route in
                 ClubDetailR8Destination(route: route, club: club, identity: reader.clubIdentity,
                                         session: reader as? AppSession, management: management)
@@ -568,9 +564,14 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
 
     /// CLB-r9-detail-01 (MP `goMemberProfile` js:2529-2534): a strip avatar opens that member's public profile when the
     /// profile reader belongs to this viewer; otherwise the tap stays on 查看全部成员.
-    private var stripProfileAction: ((Int) -> Void)? {
-        guard reader.clubIdentity.isSignedIn, let profile = management?.governance?.enrollmentProfile,
-              profile.reader.isConfigured, profile.reader.identity.accountID == reader.clubIdentity.accountID else { return nil }
+    /// r10: the owner and administrators choose 公开资料 / 客户档案 (ClubDetailStripMemberOpen).
+    private func stripProfileAction(_ club: ClubRecord) -> ((Int) -> Void)? {
+        let identity = reader.clubIdentity
+        guard identity.isSignedIn, let governance = management?.governance else { return nil }
+        let profileOpenable = governance.enrollmentProfile.map { $0.reader.isConfigured && $0.reader.identity.accountID == identity.accountID } ?? false
+        let customerOpenable = (club.isOwner || club.viewerIsAdmin)
+            && governance.access.isConfigured && governance.access.identity == identity
+        guard profileOpenable || customerOpenable else { return nil }
         return { stripProfileMemberID = $0 }
     }
     /// CLB-G06: the 设置 quick action (typed, not a ternary inside the body).
@@ -705,11 +706,11 @@ private struct ClubDetailHeader: View {
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
     @ScaledMetric(relativeTo: .title) private var bannerHeight: CGFloat = 160  // CLB-detail-37: MP cover-wrap 160
+    @ScaledMetric(relativeTo: .title2) private var logoSide: CGFloat = 56  // CLB-r10-nat-detail-06: MP logo 112 rpx, scales with type
 
-    private static func known(_ value: String?) -> String? {
-        let text = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        return text.isEmpty || text == ClubDetailPageModel.unknownMark ? nil : text
-    }
+    private static func known(_ value: String?) -> String? { ClubDetailHeaderFact.known(value) }
+    /// CLB-detail-42 (MP detail header): a missing 主理人 or 城市 reads 待补充 instead of dropping the line.
+    private var pendingText: String { appLocalized(String.LocalizationValue(ClubDetailHeaderFact.pendingKey), locale: locale) }
     private var typeText: String? { Self.known(content?.typeText ?? club.clubType ?? club.clubTypes) }
     private var leaderText: String? { Self.known(content?.leaderText ?? club.leaderName) }
     private var cityText: String? { Self.known(content?.cityText ?? club.city ?? club.address) }
@@ -736,7 +737,7 @@ private struct ClubDetailHeader: View {
                 HStack(alignment: .center, spacing: CYSpacing.md) {
                     if !typeSize.isAccessibilitySize {
                         ClubDetailCover(source: club.logo, seed: club.name, showsSymbol: false, fallback: MPAsset.BrandLogo.dLogo)
-                            .frame(width: 56, height: 56)  // CLB-detail-37: MP logo 112 rpx
+                            .frame(width: logoSide, height: logoSide)  // CLB-detail-37: MP logo 112 rpx
                             .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                             .accessibilityIdentifier("club.detail.logo")
                     }
@@ -754,20 +755,7 @@ private struct ClubDetailHeader: View {
                     }
                     Spacer(minLength: 0)
                 }
-                if leaderText != nil || cityText != nil {
-                    HStack(spacing: 4) {
-                        if let leaderText {
-                            Text(verbatim: appLocalized("club.leader", locale: locale) + " " + leaderText)
-                                .accessibilityIdentifier("club.detail.fact.leader")
-                        }
-                        if leaderText != nil, cityText != nil { Text(verbatim: "·").accessibilityHidden(true) }
-                        if let cityText { Text(verbatim: cityText).accessibilityIdentifier("club.detail.fact.city") }
-                    }
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .accessibilityElement(children: .combine)
-                    .accessibilityIdentifier("club.detail.factsGrid")
-                }
+                factsLine
                 statusTags
                 // MC-22 Member / Manager header: 邀请朋友加入 is the header's one full-width action (the visitor's 加入
                 // stays in the action panel right under the header).
@@ -781,6 +769,19 @@ private struct ClubDetailHeader: View {
             .padding(.bottom, CYSpacing.md)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var factsLine: some View {
+        HStack(spacing: 4) {
+            Text(verbatim: appLocalized("club.leader", locale: locale) + " " + (leaderText ?? pendingText))
+                .accessibilityIdentifier("club.detail.fact.leader")
+            Text(verbatim: "·").accessibilityHidden(true)
+            Text(verbatim: cityText ?? pendingText).accessibilityIdentifier("club.detail.fact.city")
+        }
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("club.detail.factsGrid")
     }
 
     /// The viewer's relation to the club: role tags are neutral; pending is amber, a declined request red with its reason.

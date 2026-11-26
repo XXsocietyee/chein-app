@@ -44,6 +44,8 @@ public final class RegistrationUIFlow {
     public private(set) var selectedParticipantID: Int?
     public private(set) var selectedTicketID: Int?
     public private(set) var usePoints = false
+    /// R7-PC-C2-1: the picked 儿童年龄 (MP baoming.wxml:155-161). Cleared on ticket change; a change re-quotes.
+    public private(set) var childAge: Int?
     /// OWN-D-01.b: why the server quoted 0 for points after the toggle was on. Cleared by the next toggle or ticket change.
     public private(set) var pointsRefusal: RegistrationPointsRefusal?
     /// The viewer's point balance (`userInfo.point`). Nil when unknown, as in `baoming.js:1240`.
@@ -174,7 +176,7 @@ public final class RegistrationUIFlow {
         openedIdentity = currentIdentity()
         guard hasCurrentSession else { block = .sessionChanged; changed(); return }
         if let intent = coordinator.retainedIntent {
-            selectedTicketID = intent.selection.ticketID; usePoints = intent.selection.usePoints
+            selectedTicketID = intent.selection.ticketID; usePoints = intent.selection.usePoints; childAge = intent.selection.childAge
         } else {
             selectedTicketID = activity.tickets.first?.id; usePoints = false
             applySelection()
@@ -220,7 +222,15 @@ public final class RegistrationUIFlow {
     @discardableResult public func selectTicket(id: Int?) -> Bool {
         guard canEdit, (id == nil ? activity.tickets.isEmpty : activity.tickets.contains(where: { $0.id == id })) else { return false }
         guard selectedTicketID != id else { return false }
-        selectedTicketID = id; pointsRefusal = nil; resetWaitlist(); refreshCreationLock(); applySelection(); changed(); return true
+        selectedTicketID = id; childAge = nil; pointsRefusal = nil; resetWaitlist(); refreshCreationLock(); applySelection(); changed(); return true
+    }
+    @discardableResult public func setChildAge(_ value: Int?) -> Bool {
+        guard canEdit, value != childAge else { return false }
+        if let value {
+            guard let range = activity.tickets.first(where: { $0.id == selectedTicketID })?.childAgeRange,
+                  range.options.contains(value) else { return false }
+        }
+        childAge = value; applySelection(); changed(); return true
     }
     @discardableResult public func setUsePoints(_ value: Bool) -> Bool {
         guard canEdit, value != usePoints else { return false }
@@ -509,7 +519,8 @@ public final class RegistrationUIFlow {
         waitlistOutcomeUnknown = false; isReadingWaitlist = false; isMutatingWaitlist = false; isRecordingConsent = false
     }
     private var expectedSelection: RegistrationQuoteRequest? {
-        try? RegistrationQuoteRequest(ownerID: activity.summary.id, ticketID: selectedTicketID, usePoints: usePoints, waitlistOffer: activeWaitlistOffer)
+        try? RegistrationQuoteRequest(ownerID: activity.summary.id, ticketID: selectedTicketID, usePoints: usePoints, waitlistOffer: activeWaitlistOffer,
+                                       childAge: childAge)
     }
     /// `baoming.js` turns the toggle off when the quote deducts nothing, and says why.
     private func applySelection() {
@@ -527,7 +538,7 @@ public final class RegistrationUIFlow {
     private func clearForm() {
         resetWaitlist(); quoteReceivedAt = nil; durableCreation = .none; durableStatus = nil; durableStatusFailed = false
         draft = .init(); participantSuppliedDraft = false; participants = []; participantProjectionIdentity = nil; participantsState = .idle; selectedParticipantID = nil
-        selectedTicketID = nil; usePoints = false; pointsRefusal = nil; consented = false; confirmation = nil; block = nil
+        selectedTicketID = nil; usePoints = false; childAge = nil; pointsRefusal = nil; consented = false; confirmation = nil; block = nil
         manuallyEdited = false; isQuoting = false; isSubmitting = false; isReadingStatus = false
     }
     private func changed() { onChange?() }

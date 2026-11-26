@@ -67,8 +67,13 @@ class ClubDetailPageReadyContract(unittest.TestCase):
         self.assertIn('"/api/club/channels": .liveInProduction', switches)
         welcome = (ROOT / "App/WelcomeView.swift").read_text()
         self.assertIn("static let showsMerchantChoice = false", welcome)
-        self.assertIn("待补充", model)
-        self.assertIn("待定", model)
+        # CLB-detail-42 (MP pages/club/detail header): a missing 主理人 / 城市 reads 待补充 on the live header
+        # (App/ClubDetailView.swift factsLine) through a catalog key; the dead overview grid is gone.
+        self.assertIn('pendingKey = "club.detail.factPending"', model)
+        catalog = json.loads((ROOT / "Resources/Localizable.xcstrings").read_text())["strings"]
+        self.assertEqual(catalog["club.detail.factPending"]["localizations"]["zh-Hans"]["stringUnit"]["value"], "待补充")
+        self.assertIn("ClubDetailHeaderFact.pendingKey", (ROOT / "App/ClubDetailView.swift").read_text())
+        self.assertNotIn("ClubDetailOverviewFactsGrid", model)
 
     def test_swift_tests_were_added_without_removing_existing_ones(self):
         tests = TESTS.read_text()

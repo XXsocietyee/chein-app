@@ -1,3 +1,4 @@
+import Charts
 import SwiftUI
 import UIKit
 
@@ -809,31 +810,44 @@ struct RoamAnniversaryReadIntent {
 private struct RoamRecapWeekChart: View {
     let weeks: [RoamRecapWeek]
     @Binding var picked: Int?
-    /// The 110pt bar stays put. The column's minimum height scales with the caption instead of locking at 170.
+    /// The 110pt plot stays put. The chart's minimum height scales with the caption instead of locking at 170.
     @ScaledMetric(relativeTo: .caption) private var chartHeight: CGFloat = 170
+    /// Categorical x value for a week (Swift Charts selection works on the plotted value).
+    private static func key(_ index: Int) -> String { String(index) }
+    /// Plain-String series names (not catalog keys; the axis and marks carry the localized text).
+    private static let xSeries: String = "week", ySeries: String = "count"
+    private var selection: Binding<String?> {
+        Binding(get: { picked.map(Self.key) },
+                set: { value in if let value, let index = Int(value) { picked = index } })
+    }
     var body: some View {
-        let top = max(weeks.map(\.count).max() ?? 0, 1)
-        HStack(alignment: .bottom, spacing: 12) {
-            ForEach(weeks) { week in
-                Button { picked = week.index } label: {
-                    VStack(spacing: 6) {
-                        Text(week.count, format: .number).cyText(.meta, weight: .bold)
-                            .opacity(week.isMax || picked == week.index ? 1 : 0)
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(week.isMax ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary.opacity(0.4)))
-                            // TRECAP-6: MP 62rpx bars.
-                            .frame(width: 28, height: max(4, CGFloat(week.count) / CGFloat(top) * 110))
-                        Text("roam.tools.recap.week \(week.index)").cyText(.caption).foregroundStyle(.secondary)
-                    }.frame(maxWidth: .infinity)
-                }.buttonStyle(.plain)
-                    .accessibilityLabel(Text("roam.tools.recap.weekCount \(week.index) \(week.count)"))
-            }
-        }.frame(minHeight: chartHeight)
-        // TRECAP-6: one summary of every week first (MP `aria-label`), then each week stays its own button.
+        // N-TOOLS (r10): Swift Charts BarMark instead of hand-drawn RoundedRectangle bars
+        // (MP subpackageTools monthly-recap week bars; TRECAP-6). Tap selects a week like the MP `pickWeek`.
+        Chart(weeks) { week in
+            BarMark(x: .value(Self.xSeries, Self.key(week.index)), y: .value(Self.ySeries, week.count), width: .fixed(28))
+                .foregroundStyle(week.isMax ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary.opacity(0.4)))
+                .annotation(position: .top) {
+                    Text(week.count, format: .number).cyText(.meta, weight: .bold)
+                        .opacity(week.isMax || picked == week.index ? 1 : 0)
+                }
+                .accessibilityLabel(Text("roam.tools.recap.weekCount \(week.index) \(week.count)"))
+        }
+        .chartYAxis(.hidden)
+        .chartXAxis { weekAxis }
+        .chartXSelection(value: selection)
+        .frame(minHeight: chartHeight)
+        // TRECAP-6: one summary of every week first (MP `aria-label`).
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Text(verbatim: weeks.map { appLocalized("roam.tools.recap.weekCount \($0.index) \($0.count)", locale: .current) }
             .joined(separator: "，")))
         .accessibilityIdentifier("roam.tools.recap.weeks")
+    }
+    private var weekAxis: some AxisContent {
+        AxisMarks { value in
+            AxisValueLabel {
+                Text("roam.tools.recap.week \(Int(value.as(String.self) ?? "") ?? 0)")
+            }
+        }
     }
 }
 

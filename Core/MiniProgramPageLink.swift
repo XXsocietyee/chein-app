@@ -75,8 +75,10 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         pages["pages/club/notify/index"] = Rule(allowed: ["clubId", "id", "activityId", "silent"], required: [], ids: ["clubId", "id", "activityId"])
         pages["pages/club/topic-detail/index"] = Rule(allowed: ["topicId", "clubId", "activityId", "id"], required: [], ids: ["topicId", "clubId", "activityId", "id"])
         pages["pages/club/topic-story/index"] = Rule(allowed: ["topicId", "clubId", "scope", "id"], required: [], ids: ["topicId", "clubId", "id"])
+        // CLB-r8-governance-01 (MP governance js:204-207): no clubId still opens the page; the screen shows the
+        // missing-param state (链接已失效 + 返回, `ClubGovernanceEntryRoute.Failure.missingClub`).
         pages["pages/club/governance/index"] = Rule(allowed: ["clubId", "memberId", "mode", "targetId", "targetMemberId", "targetName", "targetType"],
-                                                    required: ["clubId"], ids: ["clubId", "memberId", "targetId", "targetMemberId"])
+                                                    required: [], ids: ["clubId", "memberId", "targetId", "targetMemberId"])
         pages["pages/club/roles/index"] = Rule(allowed: ["clubId", "id", "activityId", "activityLabel", "memberId"], required: [], ids: ["clubId", "id", "activityId", "memberId"])
         // Subscribe-message landing pages from public hengyin (cur-push). Set last: `pages/coop/list/index` keeps `tab`.
         // `order/order?detailId=` (subscribe-message landing) opens that order; `orderinfo?outTradeNo=` (payment
