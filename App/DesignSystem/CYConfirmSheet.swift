@@ -157,6 +157,8 @@ public struct CYConfirmSheet: View {
                 }
             }
             .padding()
+            // The system sheet background (`CYColor.sheetGlass` resolves to `systemBackground` since native r1).
+            .background(CYColor.sheetGlass)
         }
         .presentationDetents(dynamicTypeSize.isAccessibilitySize ? [.large] : [.medium, .large])
         .presentationDragIndicator(.visible)
