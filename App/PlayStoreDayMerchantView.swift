@@ -170,11 +170,10 @@ import SwiftUI
             if let url {
                 AsyncImage(url: url) { image in image.resizable().scaledToFill() } placeholder: { heroPlaceholder }
             } else { heroPlaceholder }
-            // Vignette keeps the navigation bar and tag legible over artwork (mini-program .mp-hero__vig).
-            LinearGradient(colors: [Color.black.opacity(0.34), Color.black.opacity(0), Color.black.opacity(0.30)], startPoint: .top, endPoint: .bottom)
         }
+        // N-MERCHANT (r10): plain image row. The MP vignette (pages/play/merchant.wxml .mp-hero__vig) only kept a
+        // transparent bar legible over art; the system bar sits above this hero, so no scrim or rounded cut is drawn.
         .frame(maxWidth: .infinity).frame(height: 260).clipped()
-        .clipShape(UnevenRoundedRectangle(bottomLeadingRadius: CYRadius.sheet, bottomTrailingRadius: CYRadius.sheet, style: .continuous))
         .accessibilityHidden(true)
     }
     /// MP `.mp-hero__im` renders only when the store has an image; no default art, just the hero ground.
@@ -183,9 +182,9 @@ import SwiftUI
     }
     private func header(_ node: PlayStoreDayNode) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Text(L(tagKey(PlayStoreDayHeaderTag(node)))).cyText(.micro).foregroundStyle(CYColor.textTertiary)
-                .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
-                .background(CYColor.bgRaised, in: Capsule()).accessibilityIdentifier("storeDayPage.tag")
+            // N-MERCHANT (r10): MP .mp-tag as plain secondary caption text, no drawn capsule.
+            Text(L(tagKey(PlayStoreDayHeaderTag(node)))).font(.caption).foregroundStyle(.secondary)
+                .accessibilityIdentifier("storeDayPage.tag")
             Group {
                 if let name = node.name { Text(verbatim: name) } else { Text("playStoreDay.name.untitled", tableName: "PlayStoreDay") }
             }.cyText(.pageTitle).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("storeDayPage.name")
