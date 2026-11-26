@@ -8,9 +8,14 @@ public struct DiscoveryService {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
     private let reads = InFlightReadCoalescer<InFlightHTTPBody>()
-    public init(configuration: APIConfiguration, transport: any HTTPTransport) {
+    /// Home feed shelves share one in-flight read (6ebdcafb9). The session reader passes `false`: its
+    /// generation-fenced loaders must each dispatch their own read, so a newer loader never waits on (or
+    /// adopts) an older, superseded or held response (PublicTemplate/TemplateMetadata composition tests).
+    private let coalescesReads: Bool
+    public init(configuration: APIConfiguration, transport: any HTTPTransport, coalescesReads: Bool = true) {
         self.configuration = configuration
         self.transport = transport
+        self.coalescesReads = coalescesReads
     }
     public func banners(token: String? = nil) async throws -> [DiscoveryBanner] {
         let data = try await post("api/common/banner", fields: ["showType": "1", "linkType": "0"], token: token)
@@ -139,7 +144,7 @@ public struct DiscoveryService {
                       templateDetail: Bool = false, templateMetadata: Bool = false) async throws -> Data {
         let key = InFlightReadKey.fields(method: "POST", path: path, fields: fields ?? [:], token: token,
                                          tag: "\(fields == nil)")
-        let response = try await reads.join(key) {
+        let read: () async throws -> InFlightHTTPBody = {
             var request = try AuthRequestBuilder.makeFormRequest(
                 url: self.configuration.baseURL.appendingPathComponent(path), fields: fields ?? [:], token: token)
             if fields == nil {
@@ -149,6 +154,8 @@ public struct DiscoveryService {
             let (data, status) = try await self.transport.send(request)
             return InFlightHTTPBody(data: data, status: status)
         }
+        let response: InFlightHTTPBody
+        if coalescesReads { response = try await reads.join(key, read) } else { response = try await read() }
         let (data, status) = (response.data, response.status)
         // Check gateway status and envelope code before payload decoding, including detail refusals.
         if status == 401 { throw APIError.unauthorized }
