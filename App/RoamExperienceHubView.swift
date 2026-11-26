@@ -135,9 +135,15 @@ import SwiftUI
 @MainActor struct RoamTileMemoryView: View {
     let reader: any RoamExperienceReading
     var showsLiveUnavailable = false
+    /// Captured at init, so a revoked/reissued grant on the same reader instance is a changed view input. Computed in
+    /// `body` only, SwiftUI skipped the body (same reader reference) and kept the stale disabled page alive.
+    private let owner: RoamTileMemoryPageOwner
+    init(reader: any RoamExperienceReading, showsLiveUnavailable: Bool = false) {
+        self.reader = reader; self.showsLiveUnavailable = showsLiveUnavailable; owner = .init(reader: reader)
+    }
     var body: some View {
         RoamTileMemoryContent(reader: reader, showsLiveUnavailable: showsLiveUnavailable)
-            .id(RoamTileMemoryPageOwner(reader: reader))
+            .id(owner)
     }
 }
 /// This owner describes only the existing read capability, never location/reveal authority.
@@ -262,6 +268,8 @@ struct RoamTileMemoryPageOwner: Equatable, Hashable {
             .onAppear { presentation.appear(foreground: scenePhase == .active) }
             .onChange(of: scenePhase) { _, phase in presentation.setForeground(phase == .active) }
             .onDisappear { presentation.disappear() }
+            // Same as the hub (73a06a74f): iOS 27 only exposes a screen-level identifier on an accessibility container.
+            .accessibilityElement(children: .contain)
             .accessibilityIdentifier(showsLiveUnavailable ? "roam.experience.live" : "roam.experience.tileMemory")
     }
 }

@@ -199,6 +199,9 @@ import Foundation
         } catch { if generation == stamp { phase = .unknown; issue = "blacklist.unknown" } }
     }
     public func invalidate() {
+        // A purge that observes withdrawn authority retires it for good, whoever noticed first (the page's
+        // isCurrent observer can beat the 250 ms poll); a later restored grant cannot revive this visit.
+        if !authorityRetired, service?.isCurrent != true { authorityRetired = true }
         generation &+= 1; items = []; nextCursor = nil; selected = nil; review = nil; pending = nil; result = nil; current = nil
         busy = false; serverWriteEnabled = false; phase = .closed; issue = nil; changed()
         // Only in-memory presentation is erased. Durable originals survive close/background/revocation.

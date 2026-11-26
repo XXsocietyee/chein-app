@@ -41,7 +41,8 @@ import UIKit
     func testOriginalCompositionSendsOnlyIndependentReceivedMultipartRead() async throws {
         let wire = Wire(), session = try root(wire, Grants()).makeSession(); await login(session); wire.requests = []
         let page = try await session.roamReceivedStampReader.album(page: 1, pageSize: 20)
-        XCTAssertEqual(page.list.first?.kind, 1); XCTAssertEqual(page.total, 21)
+        // Wire total is sourcePageSize + 1; the MP album page size became 50 in 57af9d446 (was 20 → 21).
+        XCTAssertEqual(page.list.first?.kind, 1); XCTAssertEqual(page.total, StampAlbumIndexPageModel.sourcePageSize + 1)
         let request = try XCTUnwrap(wire.requests.first)
         XCTAssertEqual(request.url?.path, "/native/api/roam/stamp/received"); XCTAssertEqual(request.httpMethod, "POST")
         XCTAssertNotNil(RoamReceivedStampReadRoute(request: request, baseURL: base))
