@@ -34,14 +34,14 @@ struct CityGamePanel: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("cityGame.title", tableName: "CityGame").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
             phaseText.cyText(.meta).foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("cityGame.phase")
-            if model.phase == .loading || model.phase == .quoting || model.phase == .sending { CYSkeleton() }
+            if model.phase == .loading || model.phase == .quoting || model.phase == .sending { ProgressView().frame(maxWidth: .infinity) }
             if let notice = model.notice { noticeText(notice).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("cityGame.notice") }
             if let outcome = model.lastOutcome { outcomeText(outcome).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("cityGame.outcome") }
             if model.phase == .unknown { unknownSection }
             if let review = model.review, model.phase == .review { reviewCard(review) }
             if let snapshot = model.snapshot { boardContent(snapshot) }
             if model.phase == .unavailable || model.phase == .ready {
-                CYPillButton("cityGame.refresh", style: .tertiary, tableName: "CityGame") { Task { if model.phase == .ready { await model.refresh() } else { await model.load() } } }
+                Button { Task { if model.phase == .ready { await model.refresh() } else { await model.load() } } } label: { Text("cityGame.refresh", tableName: "CityGame").frame(maxWidth: .infinity) }.buttonStyle(.bordered)
                     .accessibilityIdentifier("cityGame.refresh")
             }
             Text("cityGame.privacy", tableName: "CityGame").cyText(.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
@@ -82,7 +82,7 @@ struct CityGamePanel: View {
             Text("cityGame.points.zero", tableName: "CityGame").cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("cityGame.zeroPoints")
         }
         if model.canRoll {
-            CYPillButton("cityGame.roll", systemImage: "dice", tableName: "CityGame") { model.prepareRoll() }
+            Button { model.prepareRoll() } label: { Label { Text("cityGame.roll", tableName: "CityGame") } icon: { Image(systemName: "dice") }.frame(maxWidth: .infinity) }.buttonStyle(.borderedProminent)
                 .accessibilityIdentifier("cityGame.roll")
         }
         if snapshot.properties.isEmpty { Text("cityGame.properties.empty", tableName: "CityGame").cyText(.body).foregroundStyle(CYColor.textSecondary) }
@@ -135,14 +135,14 @@ struct CityGamePanel: View {
                     }
                     Spacer(minLength: 0)
                     if model.canAcceptService(offer, on: property) {
-                        CYPillButton("cityGame.service.accept", style: .secondary, fullWidth: false, tableName: "CityGame") { Task { await model.prepare(.acceptServiceVisit, property: property, service: offer) } }
+                        Button { Task { await model.prepare(.acceptServiceVisit, property: property, service: offer) } } label: { Text("cityGame.service.accept", tableName: "CityGame") }.buttonStyle(.bordered)
                             .accessibilityIdentifier("cityGame.service.\(offer.serviceId)")
                     }
                 }
             }
             ForEach(model.actions(for: property), id: \.rawValue) { kind in
                 Button { Task { await model.prepare(kind, property: property) } } label: { actionText(kind).frame(maxWidth: .infinity) }
-                    .buttonStyle(.cySecondary(fullWidth: true)).accessibilityIdentifier("cityGame.action.\(kind.rawValue).\(property.propertyId)")
+                    .buttonStyle(.bordered).accessibilityIdentifier("cityGame.action.\(kind.rawValue).\(property.propertyId)")
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -174,22 +174,24 @@ struct CityGamePanel: View {
                 Text("cityGame.review.insufficient", tableName: "CityGame").cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("cityGame.review.insufficient")
             }
-            CYPillButton("cityGame.review.confirm", tableName: "CityGame") { Task { await model.confirm() } }
+            Button { Task { await model.confirm() } } label: { Text("cityGame.review.confirm", tableName: "CityGame").frame(maxWidth: .infinity) }.buttonStyle(.borderedProminent).controlSize(.large)
                 .disabled(!model.reviewAffordable).accessibilityIdentifier("cityGame.confirm")
-            CYPillButton("cityGame.review.cancel", style: .tertiary, tableName: "CityGame") { model.cancelReview() }
+            Button { model.cancelReview() } label: { Text("cityGame.review.cancel", tableName: "CityGame").frame(maxWidth: .infinity) }.buttonStyle(.bordered).controlSize(.large)
                 .accessibilityIdentifier("cityGame.cancel")
         }
         .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
         .accessibilityElement(children: .contain).accessibilityIdentifier("cityGame.review")
     }
 
+    // N-ORIENT (r10): system Buttons (borderedProminent primary, bordered secondary) replace CYPillButton;
+    // MP subpackageCity city game panel actions keep the same order and identifiers.
     @ViewBuilder private var unknownSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("cityGame.unknown.explain", tableName: "CityGame").cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
-            CYPillButton("cityGame.unknown.readBack", style: .secondary, tableName: "CityGame") { Task { await model.readBack() } }
+            Button { Task { await model.readBack() } } label: { Text("cityGame.unknown.readBack", tableName: "CityGame").frame(maxWidth: .infinity) }.buttonStyle(.bordered)
                 .accessibilityIdentifier("cityGame.readBack")
             if model.canRetryExact {
-                CYPillButton("cityGame.unknown.retry", style: .tertiary, tableName: "CityGame") { Task { await model.retryExact() } }
+                Button { Task { await model.retryExact() } } label: { Text("cityGame.unknown.retry", tableName: "CityGame").frame(maxWidth: .infinity) }.buttonStyle(.bordered)
                     .accessibilityIdentifier("cityGame.retry")
             }
         }
@@ -203,15 +205,12 @@ struct CityGamePanel: View {
             Text(label, tableName: "CityGame").cyText(.caption).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(CYSpacing.md)
-        .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYColor.bgRaised))
         .accessibilityElement(children: .combine)
     }
 
     private func chip(_ text: Text, tone: CYStatusTone) -> some View {
-        text.cyText(.caption).foregroundStyle(CYColor.textSecondary)
-            .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs + 1)
-            .background(Capsule(style: .continuous).fill(CYColor.bgRaised))
+        // N-ORIENT (r10): plain secondary caption, no drawn capsule (MP subpackageCity status text).
+        text.font(.caption).foregroundStyle(.secondary)
     }
 
     private var outcomeApplied: Bool {
