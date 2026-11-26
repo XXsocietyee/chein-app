@@ -162,9 +162,9 @@ typealias WorkshopPurchasedUpgradeFactory = () -> WorkshopPurchasedUpgradeHandle
                 } label: { Text("workshopUpgrade.cancel") }
                     .accessibilityIdentifier("workshopPurchased.upgrade.cancelCompare")
             }
-            if unavailable { Text("workshopUpgrade.noNewVersion").cyText(.bodyCompact).foregroundStyle(.secondary).accessibilityIdentifier("workshopPurchased.upgrade.unavailable") }
-            if draftSaved { Text("workshopUpgrade.savedUnchanged").cyText(.bodyCompact).foregroundStyle(.secondary).accessibilityIdentifier("workshopPurchased.upgrade.draftSaved") }
-            if saveFailed { Text("workshopUpgrade.error.failed").cyText(.bodyCompact).foregroundStyle(.red).accessibilityIdentifier("workshopPurchased.upgrade.saveFailed") }
+            if unavailable { Text("workshopUpgrade.noNewVersion").foregroundStyle(.secondary).accessibilityIdentifier("workshopPurchased.upgrade.unavailable") }
+            if draftSaved { Text("workshopUpgrade.savedUnchanged").foregroundStyle(.secondary).accessibilityIdentifier("workshopPurchased.upgrade.draftSaved") }
+            if saveFailed { Text("workshopUpgrade.error.failed").foregroundStyle(.red).accessibilityIdentifier("workshopPurchased.upgrade.saveFailed") }
         }
         .background(WorkshopUpgradeLeasePublish(live: liveAccount, flow: handlers.flow))
         .onAppear { Self.performRestore(item: item, handlers: handlers, draftSaved: &draftSaved, receipt: &receipt) }

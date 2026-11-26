@@ -27,11 +27,10 @@ public struct ClubGapManagedProjectsDirectorSection: View {
         if !projects.isEmpty {
             Section {
                 ForEach(projects) { project in
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    VStack(alignment: .leading, spacing: 8) {
                         Text(verbatim: project.title)
-                            .cyText(.cardTitle)
-                            .foregroundStyle(CYColor.textPrimary)
-                        HStack(spacing: CYSpacing.sm) {
+                            .font(.headline)
+                        HStack(spacing: 8) {
                             if project.gameModuleEnabled {
                                 Button(ClubRound4Copy.directorRowTitle) {
                                     if project.sessions.count == 1, let only = project.sessions.first {
@@ -40,26 +39,27 @@ public struct ClubGapManagedProjectsDirectorSection: View {
                                         pickingProject = project
                                     }
                                 }
-                                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: false, compact: true))
+                                .buttonStyle(.borderedProminent)
+                                .controlSize(.small)
                             }
                             if let firstSession = project.sessions.first {
                                 Button(ClubRound4Copy.sessionToolsTitle) {
                                     toolSessionTarget = (project.id, firstSession)
                                 }
-                                .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
                             }
                         }
                     }
-                    .padding(.vertical, CYSpacing.xs)
                 }
             } header: {
-                Text(verbatim: "管理中的项目").cyText(.sectionTitle)
+                Text(verbatim: "管理中的项目")
             }
             .sheet(item: $pickingProject) { project in
                 NavigationStack {
                     List {
                         if project.sessions.isEmpty {
-                            CYEmptyState(systemImage: "calendar.badge.exclamationmark", verbatimTitle: ClubRound4Copy.noSessionsToast)
+                            ContentUnavailableView(ClubRound4Copy.noSessionsToast, systemImage: "calendar.badge.exclamationmark")
                         } else {
                             ForEach(project.sessions) { session in
                                 Button {
@@ -67,14 +67,15 @@ public struct ClubGapManagedProjectsDirectorSection: View {
                                     onOpenDirector(project.id, session.id)
                                 } label: {
                                     HStack {
-                                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                            Text(verbatim: session.title).cyText(.body).foregroundStyle(CYColor.textPrimary)
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(verbatim: session.title).foregroundStyle(.primary)
                                             if let timeLabel = session.timeLabel, !timeLabel.isEmpty {
-                                                Text(verbatim: timeLabel).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                                                Text(verbatim: timeLabel).font(.subheadline).foregroundStyle(.secondary)
                                             }
                                         }
                                         Spacer()
-                                        Image(systemName: "chevron.right").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                                        Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+                                            .accessibilityHidden(true)
                                     }
                                 }
                             }
@@ -125,14 +126,13 @@ public struct ClubGapStoryMapAddressRow: View {
                     .resizable()
                     .scaledToFit()
                     .frame(width: 16, height: 16)
-                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text(verbatim: stop.address)
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textPrimary)
+                        .foregroundStyle(.primary)
                     if stop.hasCoordinates {
                         Text(verbatim: stop.mapActionTitle)
-                            .cyText(.meta)
-                            .foregroundStyle(CYColor.brand)
+                            .font(.subheadline)
+                            .foregroundStyle(.tint)
                     }
                 }
                 Spacer()
@@ -173,16 +173,15 @@ public struct ClubGapApplyCertImagesSection: View {
             ForEach(Array(draft.uploadedURLs.enumerated()), id: \.offset) { index, urlString in
                 HStack {
                     Text(verbatim: "凭证图片 \(index + 1)")
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textPrimary)
                     Spacer()
                     if draft.failedIndices.contains(index) {
                         Button("重试") { onRetryIndex(index) }
-                            .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
                     } else {
                         Text(verbatim: urlString.isEmpty ? "上传中…" : "已上传")
-                            .cyText(.meta)
-                            .foregroundStyle(CYColor.textSecondary)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                     }
                     Button(role: .destructive) {
                         draft.uploadedURLs.remove(at: index)
@@ -190,17 +189,15 @@ public struct ClubGapApplyCertImagesSection: View {
                     } label: {
                         Image(systemName: "trash")
                     }
-                    .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                    .buttonStyle(.borderless)
                     .accessibilityLabel(Text(verbatim: "删除凭证图片 \(index + 1)"))
                 }
             }
             if draft.remainingCapacity > 0 {
                 Button("添加资质 / 案例图片（还可传 \(draft.remainingCapacity) 张）", action: onAddImages)
-                    .cyText(.body)
             }
         } header: {
             Text(verbatim: "\(ClubRound4Copy.certSectionTitle)（\(draft.uploadedURLs.count)/\(ClubApplyCertImagesDraft.maxCount)）")
-                .cyText(.sectionTitle)
         }
     }
 }
@@ -220,16 +217,18 @@ public struct ClubGapFEReferenceRangeBar: View {
 
     public var body: some View {
         Section {
-            TextField(ClubRound4Copy.rangeStartPlaceholder, text: $range.fromDate).cyText(.body)
-            TextField(ClubRound4Copy.rangeEndPlaceholder, text: $range.toDate).cyText(.body)
-            HStack(spacing: CYSpacing.sm) {
+            TextField(ClubRound4Copy.rangeStartPlaceholder, text: $range.fromDate)
+            TextField(ClubRound4Copy.rangeEndPlaceholder, text: $range.toDate)
+            HStack(spacing: 8) {
                 if range.isActive {
                     Button(ClubRound4Copy.rangeClear) { range.clear() }
-                        .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
                 }
                 Spacer()
                 Button(ClubRound4Copy.rangeExport, action: onExport)
-                    .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: false, compact: true))
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
                     .disabled(isExporting)
             }
         }
@@ -262,28 +261,29 @@ public struct ClubGapGroupCodeSessionPickerView: View {
                         onSelectSession(session)
                     } label: {
                         HStack {
-                            Text(verbatim: session.title).cyText(.body).foregroundStyle(CYColor.textPrimary)
+                            Text(verbatim: session.title).foregroundStyle(.primary)
                             Spacer()
-                            Image(systemName: "chevron.right").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+                                .accessibilityHidden(true)
                         }
                     }
                 }
             case .empty:
-                CYEmptyState(systemImage: "calendar", verbatimTitle: ClubRound4Copy.groupCodeEmptyTitle)
+                ContentUnavailableView(ClubRound4Copy.groupCodeEmptyTitle, systemImage: "calendar")
             case .invalid:
-                CYEmptyState(
-                    systemImage: "exclamationmark.triangle",
-                    LocalizedStringKey(ClubRound4Copy.groupCodeInvalidTitle),
-                    actionTitle: LocalizedStringKey(ClubRound4Copy.groupCodeEnterManage),
-                    action: onOpenManage
-                )
+                ContentUnavailableView {
+                    Label(LocalizedStringKey(ClubRound4Copy.groupCodeInvalidTitle), systemImage: "exclamationmark.triangle")
+                } actions: {
+                    Button(LocalizedStringKey(ClubRound4Copy.groupCodeEnterManage), action: onOpenManage)
+                        .buttonStyle(.bordered)
+                }
             case .noPermission:
-                CYEmptyState(
-                    systemImage: "lock",
-                    LocalizedStringKey(ClubRound4Copy.groupCodeNoPermission),
-                    actionTitle: LocalizedStringKey(ClubRound4Copy.groupCodeEnterManage),
-                    action: onOpenManage
-                )
+                ContentUnavailableView {
+                    Label(LocalizedStringKey(ClubRound4Copy.groupCodeNoPermission), systemImage: "lock")
+                } actions: {
+                    Button(LocalizedStringKey(ClubRound4Copy.groupCodeEnterManage), action: onOpenManage)
+                        .buttonStyle(.bordered)
+                }
             }
         }
         .cyPageTitle(verbatim: ClubRound4Copy.groupCodeSelectTitle)

@@ -15,7 +15,7 @@ private struct NativeChannelFlowPageStyle: ViewModifier {
 extension View {
     func nativeChannelFlowPage() -> some View { modifier(NativeChannelFlowPageStyle()) }
     func nativeChannelFlowAction() -> some View {
-        buttonStyle(.questifyPrimary).controlSize(.large)
+        buttonStyle(.borderedProminent).controlSize(.large)
     }
 }
 

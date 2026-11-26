@@ -15,69 +15,49 @@ struct TemplateAuthoringCoverHeader: View {
     var defaultCover: Image? = nil
     @FocusState private var editingTitle: Bool
 
-    @Environment(\.cyPalette) private var palette
-
     var body: some View {
-        Color.clear
-            .aspectRatio(16.0 / 9.0, contentMode: .fit)
-            .overlay {
-                GeometryReader { geometry in
-                    if let imageURL, !imageURL.isEmpty {
-                        // The shared loader draws 16:10; centre it and clip to 16:9.
-                        CYCachedAsyncImage(imageURL, role: .cover)
-                            .frame(width: geometry.size.width, height: geometry.size.width * 10.0 / 16.0)
-                            .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
-                    } else if let defaultCover {
-                        defaultCover
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: geometry.size.width, height: geometry.size.height)
-                            .clipped()
-                            .accessibilityHidden(true)
-                    } else {
-                        palette.coverFallback
-                            .overlay(Image(systemName: "photo").accessibilityHidden(true).font(.title).foregroundStyle(palette.onCoverFgDim))
-                    }
-                }
-            }
-            .overlay(alignment: .bottomLeading) {
-                HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-                    TextField(text: $title, prompt: EditorKitText.text("editorKit.cover.untitled").foregroundStyle(Color.white.opacity(0.75)), axis: .vertical) {
-                        Text("templateAuthor.field.title")
-                    }
-                    .lineLimit(1...3)
-                    .cyText(.sectionTitle)
-                    .foregroundStyle(Color.white)
-                    .tint(Color.white)
-                    .submitLabel(.done)
-                    .focused($editingTitle)
-                    .disabled(!editable)
-                    .accessibilityIdentifier("templateAuthor.field.title")
-                    if editable {
-                        Button { editingTitle = true } label: {
-                            Image(systemName: "pencil")
-                                .font(.body.weight(.semibold))
-                                .foregroundStyle(Color.white)
-                                .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
-                                .contentShape(Rectangle())
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Color.clear
+                .aspectRatio(16.0 / 9.0, contentMode: .fit)
+                .overlay {
+                    GeometryReader { geometry in
+                        if let imageURL, !imageURL.isEmpty {
+                            // The shared loader draws 16:10; centre it and clip to 16:9.
+                            CYCachedAsyncImage(imageURL, role: .cover)
+                                .frame(width: geometry.size.width, height: geometry.size.width * 10.0 / 16.0)
+                                .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                        } else if let defaultCover {
+                            defaultCover
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: geometry.size.width, height: geometry.size.height)
+                                .clipped()
+                                .accessibilityHidden(true)
+                        } else {
+                            Color(.secondarySystemFill)
+                                .overlay(Image(systemName: "photo").accessibilityHidden(true).font(.title).foregroundStyle(.secondary))
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(Text("templateAuthor.field.title"))
-                        .accessibilityHint(EditorKitText.text("editorKit.cover.editTitleHint"))
                     }
                 }
-                .padding(.leading, CYSpacing.lg)
-                .padding(.trailing, CYSpacing.xs)
-                .padding(.vertical, CYSpacing.sm)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                // verify-r1 2.9: a fixed dark scrim (45% to 70% black) so the white title reaches 4.5:1 on a pale cover or
-                // on the light placeholder; the theme overlay token was too light on the editor domain.
-                .background(LinearGradient(colors: [.black.opacity(0.45), .black.opacity(0.7)], startPoint: .top, endPoint: .bottom))
+                // Image crop only: the cover artwork keeps the system grouped-row corner.
+                .clipShape(.rect(cornerRadius: EditorKitMetric.cardRadius, style: .continuous))
+            // verify-r1 2.9: the title is the name field itself (no separate 名称 row); a plain system text field
+            // below the cover instead of white text on a scrim.
+            TextField(text: $title, prompt: EditorKitText.text("editorKit.cover.untitled"), axis: .vertical) {
+                Text("templateAuthor.field.title")
             }
-            .clipShape(RoundedRectangle(cornerRadius: EditorKitMetric.cardRadius, style: .continuous))
-            .textCase(nil)
-            .padding(.bottom, CYSpacing.sm)
-            .accessibilityElement(children: .contain)
-            .accessibilityIdentifier("editorKit.templateCoverHeader")
+            .lineLimit(1...3)
+            .font(.title2.bold())
+            .foregroundStyle(.primary)
+            .submitLabel(.done)
+            .focused($editingTitle)
+            .disabled(!editable)
+            .accessibilityIdentifier("templateAuthor.field.title")
+            .accessibilityHint(editable ? EditorKitText.text("editorKit.cover.editTitleHint") : Text(verbatim: ""))
+        }
+        .textCase(nil)
+        .padding(.bottom, CYSpacing.sm)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("editorKit.templateCoverHeader")
     }
 }

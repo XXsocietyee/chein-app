@@ -27,39 +27,60 @@ struct ClubOpsJoinRequestLoadIssue: View {
     let disabled: Bool
     let retry: () -> Void
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            if issue == .failed, let literalTitle {
-                CYEmptyState(systemImage: "exclamationmark.triangle", verbatimTitle: literalTitle, kind: .failure)
-            } else if issue == .failed {
-                CYEmptyState(systemImage: "exclamationmark.triangle", "clubOpsJoin.failed", tableName: "ClubOpsJoinNotify", kind: .failure)
-            } else {
-                Label {
-                    Text("clubOpsJoin.stale", tableName: "ClubOpsJoinNotify")
-                        .fixedSize(horizontal: false, vertical: true)
-                } icon: {
-                    Image(systemName: "exclamationmark.triangle").accessibilityHidden(true)
+        Group {
+            if issue == .failed {
+                ContentUnavailableView {
+                    Label {
+                        if let literalTitle { Text(verbatim: literalTitle) }
+                        else { Text("clubOpsJoin.failed", tableName: "ClubOpsJoinNotify") }
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle")
+                    }
+                } actions: {
+                    retryButton
                 }
-                .cyText(.sectionTitle)
-                .foregroundStyle(CYColor.warningText)
+            } else {
+                VStack(alignment: .leading, spacing: CYSpacing.md) {
+                    Label {
+                        Text("clubOpsJoin.stale", tableName: "ClubOpsJoinNotify")
+                            .fixedSize(horizontal: false, vertical: true)
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle")
+                            .foregroundStyle(.orange)
+                            .accessibilityHidden(true)
+                    }
+                    retryButton
+                }
             }
-            CYPillButton(issue == .failed ? "clubOpsJoin.retry" : "clubOpsJoin.retryStale", style: .secondary, systemImage: "arrow.clockwise", tableName: "ClubOpsJoinNotify", action: retry)
-                .disabled(disabled)
-                .accessibilityIdentifier(issue == .failed ? "clubOpsJoin.retry" : "clubOpsJoin.retryStale")
         }
         .accessibilityIdentifier(issue == .failed ? "clubOpsJoin.failed" : "clubOpsJoin.stale")
+    }
+
+    private var retryButton: some View {
+        Button(action: retry) {
+            Label {
+                Text(LocalizedStringKey(issue == .failed ? "clubOpsJoin.retry" : "clubOpsJoin.retryStale"), tableName: "ClubOpsJoinNotify")
+            } icon: {
+                Image(systemName: "arrow.clockwise")
+            }
+        }
+        .buttonStyle(.bordered)
+        .disabled(disabled)
+        .accessibilityIdentifier(issue == .failed ? "clubOpsJoin.retry" : "clubOpsJoin.retryStale")
     }
 }
 
 /// Mini notify `no-permission` state: no retry, because repeating the read cannot grant access.
 struct ClubOpsNotifyDeniedText: View {
     var body: some View {
-        VStack(spacing: CYSpacing.sm) {
-            CYEmptyState(systemImage: "lock", "clubOpsNotify.denied.title", tableName: "ClubOpsJoinNotify", kind: .generic)
+        ContentUnavailableView {
+            Label {
+                Text("clubOpsNotify.denied.title", tableName: "ClubOpsJoinNotify")
+            } icon: {
+                Image(systemName: "lock")
+            }
+        } description: {
             Text("clubOpsNotify.denied.body", tableName: "ClubOpsJoinNotify")
-                .cyText(.body)
-                .foregroundStyle(CYColor.textSecondary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
         }
         .accessibilityIdentifier("clubOpsNotify.denied")
     }
@@ -75,41 +96,40 @@ struct ClubOpsPageFailureSection: View {
     @Environment(\.locale) private var locale
     var body: some View {
         Section {
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-                if let literal = copy.literalTitle {
-                    Text(verbatim: literal)
-                        .cyText(.cardTitle)
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity)
-                        .accessibilityIdentifier("clubOps.pageFailure.title")
-                } else {
-                    CYEmptyState(
-                        systemImage: "exclamationmark.triangle",
-                        LocalizedStringKey(copy.titleKey),
-                        tableName: copy.table,
-                        messageIdentifier: "clubOps.pageFailure.title",
-                        kind: .failure
-                    )
+            ContentUnavailableView {
+                Label {
+                    if let literal = copy.literalTitle {
+                        Text(verbatim: literal)
+                            .accessibilityIdentifier("clubOps.pageFailure.title")
+                    } else {
+                        Text(LocalizedStringKey(copy.titleKey), tableName: copy.table)
+                            .accessibilityIdentifier("clubOps.pageFailure.title")
+                    }
+                } icon: {
+                    Image(systemName: "exclamationmark.triangle")
                 }
+            } description: {
                 if let reason {
                     reason
-                        .cyText(.bodyCompact)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity)
                         .accessibilityIdentifier("club.gov.error")
                 }
+            } actions: {
                 if copy.prefersBack {
-                    CYPillButton(verbatim: locale.pick("返回", "Back"), style: .secondary, action: { dismiss() })
+                    Button { dismiss() } label: { Text(verbatim: locale.pick("返回", "Back")) }
+                        .buttonStyle(.bordered)
                         .accessibilityIdentifier("clubOps.pageFailure.back")
                 } else {
-                    CYPillButton(LocalizedStringKey(copy.retryKey), style: .secondary, systemImage: "arrow.clockwise", tableName: copy.table, action: retry)
-                        .accessibilityIdentifier("clubOps.pageFailure.retry")
+                    Button(action: retry) {
+                        Label {
+                            Text(LocalizedStringKey(copy.retryKey), tableName: copy.table)
+                        } icon: {
+                            Image(systemName: "arrow.clockwise")
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("clubOps.pageFailure.retry")
                 }
             }
-            .e1ActionRow()
         }
     }
 }
@@ -137,7 +157,8 @@ struct ClubOpsPageFailureSection: View {
         .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
     }
     private func fixture(_ title: String, id: String, action: @escaping () -> Void) -> some View {
-        CYPillButton(verbatim: title, style: .secondary, fullWidth: true, action: action)
+        Button(action: action) { Text(verbatim: title).frame(maxWidth: .infinity) }
+            .buttonStyle(.bordered)
             .accessibilityIdentifier(id)
     }
     static func permissions(removing removed: Set<String>) -> ClubGovernanceValue {

@@ -9,7 +9,6 @@ struct ClubCheckinRailView: View {
     /// sub line, and denied falls back to 当前身份不能查看核销记录 (index.js:82).
     var reason: String? = nil
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.cyPalette) private var palette
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.locale) private var locale
     var body: some View {
@@ -17,20 +16,26 @@ struct ClubCheckinRailView: View {
             // CLB-checkin-detail-03 (fix-r3-club-b): denied / missing / error are full-page states (MP cy-error /
             // cy-empty fill), not a meta line under the rail.
             Section {
-                CYEmptyState(
-                    systemImage: stateKind == .error ? "exclamationmark.triangle" : (stateKind == .denied ? "lock" : "doc.text"),
-                    LocalizedStringKey(stateKind == .missing ? (shownReason ?? stateCopy(stateKind)) : stateCopy(stateKind)),
-                    detailVerbatim: stateKind == .missing ? nil
-                        : (shownReason ?? (stateKind == .denied ? appLocalized("clubR3b.checkin.deniedReason", locale: locale) : nil)),
-                    messageIdentifier: "club.checkin.rail.stateTitle",
-                    actionTitle: stateKind == .error && onReload != nil ? "clubR3b.checkin.reload" : "clubR3b.checkin.back",
-                    actionIdentifier: "club.checkin.state.action",
-                    actionStyle: .primary,
-                    kind: stateKind == .error ? .failure : .generic
-                ) {
-                    if stateKind == .error, let onReload { onReload() } else { dismiss() }
+                let detail: String? = stateKind == .missing ? nil
+                    : (shownReason ?? (stateKind == .denied ? appLocalized("clubR3b.checkin.deniedReason", locale: locale) : nil))
+                ContentUnavailableView {
+                    Label {
+                        Text(LocalizedStringKey(stateKind == .missing ? (shownReason ?? stateCopy(stateKind)) : stateCopy(stateKind)))
+                            .accessibilityIdentifier("club.checkin.rail.stateTitle")
+                    } icon: {
+                        Image(systemName: stateKind == .error ? "exclamationmark.triangle" : (stateKind == .denied ? "lock" : "doc.text"))
+                    }
+                } description: {
+                    if let detail { Text(verbatim: detail) }
+                } actions: {
+                    Button {
+                        if stateKind == .error, let onReload { onReload() } else { dismiss() }
+                    } label: {
+                        Text(LocalizedStringKey(stateKind == .error && onReload != nil ? "clubR3b.checkin.reload" : "clubR3b.checkin.back"))
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("club.checkin.state.action")
                 }
-                .listRowBackground(Color.clear)
             }
         } else {
             railSection
@@ -51,24 +56,24 @@ struct ClubCheckinRailView: View {
             }
             if let sessionTime = rail.sessionTimeText {
                 Text(verbatim: sessionTime)
-                    .cyText(.meta)
-                    .foregroundStyle(palette.textSecondary)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                     .monospacedDigit()
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("club.checkin.rail.sessionTime")
             }
             if let statusTime = rail.statusTimeText {
                 Text(verbatim: statusTime)
-                    .cyText(.meta)
-                    .foregroundStyle(palette.textSecondary)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                     .monospacedDigit()
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("club.checkin.rail.statusTime")
             }
             if rail.refunded {
                 Label("club.checkin.rail.refunded", systemImage: "arrow.uturn.backward")
-                    .cyText(.meta)
-                    .foregroundStyle(palette.textSecondary)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("club.checkin.rail.refundedNote")
             }
@@ -83,9 +88,9 @@ struct ClubCheckinRailView: View {
                 .foregroundStyle(stopTint(stop))
                 .accessibilityHidden(true)
             Text(LocalizedStringKey("club.checkin.rail." + stop.step.rawValue))
-                .cyText(.meta)
+                .font(.footnote)
                 .fontWeight(stop.current ? .bold : .regular)
-                .foregroundStyle(stop.reached ? palette.textPrimary : palette.textSecondary)
+                .foregroundStyle(stop.reached ? Color.primary : Color.secondary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -98,8 +103,8 @@ struct ClubCheckinRailView: View {
     }
 
     private func stopTint(_ stop: ClubCheckinRail.Stop) -> Color {
-        guard stop.reached else { return palette.textTertiary }
-        return stop.step == .contacted ? palette.warning : palette.success
+        guard stop.reached else { return Color(uiColor: .tertiaryLabel) }
+        return stop.step == .contacted ? .orange : .green
     }
 
     /// `titleKey` is not in the catalog yet. Use it once it resolves; otherwise the bilingual fallback, never the dotted key.
@@ -125,7 +130,6 @@ struct ClubCheckinRailView: View {
 /// Values come straight from the server; a missing value shows —. A real 0 stays 0.
 struct ClubCheckinDetailRows: View {
     let value: ClubGovernanceValue
-    @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
@@ -152,27 +156,26 @@ struct ClubCheckinDetailRows: View {
                 } else {
                     // MP wxml:45 `ckd-cover--empty`: the same footprint on bg-elevated, so the text column never jumps.
                     RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
-                        .fill(CYColor.bgElevated)
+                        .fill(Color(uiColor: .tertiarySystemFill))
                         .frame(width: 59, height: 40)
                         .accessibilityHidden(true)
                 }
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 if let session = text("sessionTimeText") {
                     Text(verbatim: session)
-                        .cyText(.meta)
-                        .foregroundStyle(palette.textSecondary)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                         .monospacedDigit()
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 // CLB-checkin-detail-07: MP topic is label-bold; body-medium is the closest step on the scale.
                 Text(verbatim: text("topicName") ?? appLocalized("clubR3b.checkin.untitledTopic", locale: locale))
-                    .cyText(.bodyMedium)
-                    .foregroundStyle(palette.textPrimary)
+                    .font(.headline)
                     .fixedSize(horizontal: false, vertical: true)
                 if let order = text("orderNo") {
                     Text("club.checkin.orderNo \(order)")
-                        .cyText(.meta)
-                        .foregroundStyle(palette.textSecondary)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                         .textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -205,22 +208,21 @@ struct ClubCheckinDetailRows: View {
             .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: text("displayName") ?? "—")
-                    .cyText(.cardTitle)
-                    .foregroundStyle(palette.textPrimary)
+                    .font(.headline)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("club.gov.fact.displayName")
                 if let session = text("sessionTimeText") {
                     Text(verbatim: session)
-                        .cyText(.bodyCompact)
-                        .foregroundStyle(palette.textSecondary)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                         .monospacedDigit()
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 if let phone = text("phoneText") {
                     HStack(spacing: CYSpacing.sm) {
                         Text(verbatim: phone)
-                            .cyText(.bodyCompact)
-                            .foregroundStyle(palette.textSecondary)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                             .monospacedDigit()
                             .fixedSize(horizontal: false, vertical: true)
                         // CLB-checkin-detail-02: MP checkin-detail wxml:29 (phoneCallable from the server).
@@ -235,22 +237,24 @@ struct ClubCheckinDetailRows: View {
     @ViewBuilder private var statusBlock: some View {
         VStack(alignment: typeSize.isAccessibilitySize ? .leading : .trailing, spacing: CYSpacing.xs) {
             if let status = text("statusText") {
-                CYStatusChip(verbatim: status, tone: statusTone, systemImage: statusSymbol)
+                Label(status, systemImage: statusSymbol)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(statusColor)
             }
             if let time = text("statusTimeText") {
                 Text(verbatim: time)
-                    .cyText(.meta)
-                    .foregroundStyle(palette.textSecondary)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                     .monospacedDigit()
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
-    private var statusTone: CYStatusTone {
+    private var statusColor: Color {
         switch value["statusCode"].string {
-        case "VERIFIED": return .success
-        case "REFUNDED", "CANCELLED": return .danger
-        default: return .warning
+        case "VERIFIED": return .green
+        case "REFUNDED", "CANCELLED": return .red
+        default: return .orange
         }
     }
     private var statusSymbol: String {
@@ -267,8 +271,6 @@ struct ClubCheckinDetailRows: View {
     private func row(_ title: LocalizedStringKey, _ key: String) -> some View {
         // Owner decision 9: amounts read ¥12.50 through `MoneyDisplay` (via `ClubMoneyText`).
         LabeledContent(title) { Text(verbatim: text(key).map { ClubMoneyText.amountKeys.contains(key) ? ClubMoneyText.display($0) : $0 } ?? "—").monospacedDigit() }
-            .cyText(.bodyCompact)
-            .foregroundStyle(palette.textPrimary)
     }
 }
 
@@ -303,7 +305,6 @@ private struct ClubCheckinPreview: View {
                 "orderNo": .string("SAMPLE-0")
             ]))
         }
-        .cyDomainPageBackground()
     }
 }
 #endif

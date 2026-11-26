@@ -31,23 +31,24 @@ struct ClubTopicCustomerRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
+            // Contacts-style monogram.
             Text(verbatim: name.isEmpty ? "·" : String(name.prefix(1)))
-                .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                .font(.headline)
+                .foregroundStyle(.secondary)
                 .frame(width: 40, height: 40)
-                .background(Circle().fill(CYColor.bgSurfaceStrong))
+                .background(Circle().fill(.quaternary))
                 .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            VStack(alignment: .leading, spacing: 2) {
                 Group {
                     if name.isEmpty { Text("club.topic.customer.unnamed") } else { Text(verbatim: name) }
                 }
-                .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 Group {
                     if let sessionTime, !sessionTime.isEmpty { Text(verbatim: sessionTime) } else { Text("club.topic.customer.timeTbd") }
                 }
-                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                .font(.subheadline).foregroundStyle(.secondary)
                 if let phoneText {
-                    Text(verbatim: phoneText).cyText(.meta).foregroundStyle(CYColor.textSecondary).monospacedDigit()
+                    Text(verbatim: phoneText).font(.subheadline).foregroundStyle(.secondary).monospacedDigit()
                 }
                 if dynamicTypeSize.isAccessibilitySize { status }
             }
@@ -61,18 +62,28 @@ struct ClubTopicCustomerRow: View {
             }
             if !dynamicTypeSize.isAccessibilitySize { status }
         }
-        .padding(.vertical, CYSpacing.xs)
         .accessibilityElement(children: .combine)
     }
 
     @ViewBuilder private var status: some View {
-        VStack(alignment: .trailing, spacing: CYSpacing.xxs) {
+        VStack(alignment: .trailing, spacing: 2) {
             if let text = row["statusText"].string?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty {
-                CYStatusChip(verbatim: text, tone: Self.tone(row["statusCode"]))
+                Text(verbatim: text)
+                    .font(.subheadline)
+                    .foregroundStyle(Self.color(Self.tone(row["statusCode"])))
             }
             if let verifyText {
-                Text(verbatim: verifyText).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: verifyText).font(.footnote).foregroundStyle(.secondary)
             }
+        }
+    }
+
+    /// Plain coloured status text (as in Reminders/Mail), not a pill.
+    private static func color(_ tone: CYStatusTone) -> Color {
+        switch tone {
+        case .success: return .green
+        case .warning: return .orange
+        default: return .secondary
         }
     }
 
@@ -102,31 +113,27 @@ struct ClubTopicQuickActionRow: View {
 
     var body: some View {
         let layout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
-            : AnyLayout(HStackLayout(alignment: .top, spacing: CYSpacing.sm))
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
+            : AnyLayout(HStackLayout(alignment: .top, spacing: 8))
+        // Contacts-style action tiles: system bordered buttons, icon over label.
         layout {
             ForEach(items) { item in
                 Button(action: item.action) {
-                    VStack(spacing: CYSpacing.xs) {
+                    VStack(spacing: 4) {
                         Image(systemName: item.systemImage)
                             .font(.title3)
-                            .foregroundStyle(CYColor.textPrimary)
-                            .frame(width: 48, height: 48)
-                            .background(Circle().fill(CYColor.bgRaised))
                             .accessibilityHidden(true)
                         Text(item.titleKey)
-                            .cyText(.label).foregroundStyle(CYColor.textPrimary)
+                            .font(.caption)
                             .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                    .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
-                    .contentShape(Rectangle())
+                    .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.bordered)
                 .accessibilityIdentifier("club.topic.quick." + item.id)
             }
         }
-        .listRowBackground(Color.clear)
     }
 }
 
@@ -159,28 +166,29 @@ struct ClubTopicStoryCard: View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
             if let coverURL {
                 AsyncImage(url: coverURL) { phase in
-                    if let image = phase.image { image.resizable().scaledToFill() } else { CYColor.bgSurfaceSubtle }
+                    if let image = phase.image { image.resizable().scaledToFill() } else { Rectangle().fill(.quaternary) }
                 }
                 .frame(width: 96, height: 96)
                 .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                 .accessibilityHidden(true)
             }
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(verbatim: value["name"].string ?? value["title"].string ?? "—")
-                    .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    .font(.headline)
                     .fixedSize(horizontal: false, vertical: true)
                 if !structureText.isEmpty {
-                    Text(verbatim: structureText).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: structureText).font(.subheadline).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 if value["storyReady"] == .bool(true) {
-                    CYStatusChip("club.topic.card.storyReady", tone: .success)
+                    Label("club.topic.card.storyReady", systemImage: "checkmark.circle.fill")
+                        .font(.subheadline)
+                        .foregroundStyle(.green)
                 }
-                Text("club.topic.card.openStory").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Text("club.topic.card.openStory").font(.subheadline).foregroundStyle(.tint)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.vertical, CYSpacing.xs)
         .accessibilityElement(children: .combine)
     }
 }

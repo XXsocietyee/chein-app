@@ -36,44 +36,40 @@ struct NativeChannelContextSelection: Identifiable {let id:NativeChannelMessageI
     @Environment(\.dismiss) private var dismiss
     var body:some View {
         List {
-            Section {
-                CYHeroHeader("d7.channelContext.title")
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-            }
             if !model.isCurrent {
-                stateRow { CYEmptyState(systemImage: "lock", "d7.channelContext.unavailable") }
+                stateRow { ContentUnavailableView("d7.channelContext.unavailable", systemImage: "lock") }
             }
             else if let page=model.page {
                 if page.older.has_more,let cursor=page.older.next_cursor,let id=NativeChannelMessageID(rawValue:cursor) {
-                    Section { CYPillButton("d7.channelContext.earlier", style: .tertiary, fullWidth: false) { open(id) }
-                        .accessibilityLabel(Text("d7.channelContext.earlier"))
-                        .listRowBackground(Color.clear) }
+                    Section { Button { open(id) } label: { Label("d7.channelContext.earlier", systemImage: "arrow.up") }
+                        .accessibilityLabel(Text("d7.channelContext.earlier")) }
                 }
                 if !page.older.list.isEmpty {
-                    Section { ForEach(page.older.list,id:\.id) { row in line(row) } } header: { CYSectionHeader("d7.channelContext.before").textCase(nil) }
+                    Section { ForEach(page.older.list,id:\.id) { row in line(row) } } header: { Text("d7.channelContext.before") }
                 }
-                Section { line(page.anchor) } header: { CYSectionHeader("d7.channelContext.anchor").textCase(nil) }
+                Section { line(page.anchor) } header: { Text("d7.channelContext.anchor") }
                 if !page.newer.list.isEmpty {
-                    Section { ForEach(page.newer.list,id:\.id) { row in line(row) } } header: { CYSectionHeader("d7.channelContext.after").textCase(nil) }
+                    Section { ForEach(page.newer.list,id:\.id) { row in line(row) } } header: { Text("d7.channelContext.after") }
                 }
                 if page.newer.has_more,let cursor=page.newer.next_after,let id=NativeChannelMessageID(rawValue:cursor) {
-                    Section { CYPillButton("d7.channelContext.later", style: .tertiary, fullWidth: false) { open(id) }
-                        .accessibilityLabel(Text("d7.channelContext.later"))
-                        .listRowBackground(Color.clear) }
+                    Section { Button { open(id) } label: { Label("d7.channelContext.later", systemImage: "arrow.down") }
+                        .accessibilityLabel(Text("d7.channelContext.later")) }
                 }
             } else if model.failed {
                 stateRow {
-                    CYEmptyState(systemImage: "exclamationmark.bubble", "d7.channelContext.failed",
-                        actionTitle: "messaging.retry", actionStyle: .secondary) { open() }
-                        .disabled(model.loading || phase != .active)
+                    ContentUnavailableView {
+                        Label("d7.channelContext.failed", systemImage: "exclamationmark.bubble")
+                    } actions: {
+                        Button("messaging.retry") { open() }
+                            .buttonStyle(.bordered)
+                            .disabled(model.loading || phase != .active)
+                    }
                 }
             }
             if model.loading { stateRow { loading } }
         }
+        .navigationTitle(Text("d7.channelContext.title"))
         .nativeChannelScreen()
-        .listStyle(.insetGrouped)
-        .cyHeroScreen()
         .privacySensitive()
         .refreshable { open(); await readTask?.value }
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { dismiss() } } }
@@ -83,14 +79,13 @@ struct NativeChannelContextSelection: Identifiable {let id:NativeChannelMessageI
         .onChange(of:phase){_,value in if value != .active {readTask?.cancel();readTask=nil}}
     }
     private var loading: some View {
-        CYSkeleton()
+        ProgressView()
+            .frame(maxWidth: .infinity)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text("cy.state.loading"))
     }
     private func stateRow<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
         content()
-            .listRowBackground(Color.clear)
-            .listRowSeparator(.hidden)
     }
     private func open(_ id:NativeChannelMessageID?=nil) {
         guard phase == .active,model.isCurrent else{return}
@@ -98,15 +93,14 @@ struct NativeChannelContextSelection: Identifiable {let id:NativeChannelMessageI
         readTask=Task{await model.open(id)}
     }
     @ViewBuilder private func line(_ row:NativeChannelMessageSnapshot)->some View {
-        HStack(alignment: .top, spacing: CYSpacing.md) {
+        HStack(alignment: .top, spacing: 12) {
             CYCoverArt(seed: row.message.senderName ?? row.id.rawValue, symbol: "person.fill", showsDebugLabel: false)
                 .frame(width: 40, height: 40)
                 .clipShape(Circle())
                 .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(verbatim: sender(row.message.senderName))
-                    .cyText(.cardTitle)
-                    .foregroundStyle(CYColor.textPrimary)
+                    .font(.headline)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityLabel(Text(verbatim: sender(row.message.senderName)))
                 NativeChannelMessageBubbleView(snapshot:row,isCurrent:{model.containsCurrent(row)},

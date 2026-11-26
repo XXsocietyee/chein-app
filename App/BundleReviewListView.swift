@@ -8,25 +8,40 @@ import SwiftUI
         List {
             switch model.state {
             case .idle, .loading where model.items.isEmpty:
-                CYLoadingStateView(rows: 2).listRowBackground(Color.clear)
+                ProgressView()
+                    .frame(maxWidth: .infinity)
+                    .listRowBackground(Color.clear)
             case .unavailable:
-                CYEmptyState(systemImage: "star.bubble", LocalizedStringKey(W8Text.t("评价功能暂未开放", "Reviews are not available yet")),
-                             messageIdentifier: "bundleReviewList.unavailable").listRowBackground(Color.clear)
+                ContentUnavailableView {
+                    Label {
+                        Text(verbatim: W8Text.t("评价功能暂未开放", "Reviews are not available yet"))
+                            .accessibilityIdentifier("bundleReviewList.unavailable")
+                    } icon: {
+                        Image(systemName: "star.bubble")
+                    }
+                }
+                .listRowBackground(Color.clear)
             case .failed:
-                CYEmptyState(systemImage: "exclamationmark.triangle", LocalizedStringKey(W8Text.t("评价加载失败", "Couldn't load reviews")),
-                             actionTitle: "action.retry") { Task { await model.load() } }.listRowBackground(Color.clear)
+                ContentUnavailableView {
+                    Label(W8Text.t("评价加载失败", "Couldn't load reviews"), systemImage: "exclamationmark.triangle")
+                } actions: {
+                    Button { Task { await model.load() } } label: { Text("action.retry") }
+                        .buttonStyle(.borderedProminent)
+                }
+                .listRowBackground(Color.clear)
             case .empty:
-                CYEmptyState(
-                    systemImage: "star.bubble",
-                    LocalizedStringKey(W8Text.t("还没有评价", "No reviews yet")),
-                    detailVerbatim: W8Text.t("完成体验后，可以留下第一条评价。", "Finish an experience to share the first review.")
-                ).listRowBackground(Color.clear)
+                ContentUnavailableView {
+                    Label(W8Text.t("还没有评价", "No reviews yet"), systemImage: "star.bubble")
+                } description: {
+                    Text(verbatim: W8Text.t("完成体验后，可以留下第一条评价。", "Finish an experience to share the first review."))
+                }
+                .listRowBackground(Color.clear)
             default:
                 ForEach(model.items, id: \.id) { review in
                     VStack(alignment: .leading, spacing: 4) {
-                        Label { Text(verbatim: String(review.rating)).cyText(.cardTitle).monospacedDigit() } icon: { Image(systemName: "star.fill").foregroundStyle(CYColor.warningText) }
+                        Label { Text(verbatim: String(review.rating)).font(.headline).monospacedDigit() } icon: { Image(systemName: "star.fill").foregroundStyle(.orange) }
                         Text(verbatim: review.content)
-                        if let time = review.createTime { Text(verbatim: time).cyText(.meta) }
+                        if let time = review.createTime { Text(verbatim: time).font(.footnote).foregroundStyle(.secondary) }
                     }
                 }
                 if model.hasMore {
@@ -36,7 +51,9 @@ import SwiftUI
                 }
             }
         }
+        .listStyle(.insetGrouped)
         .task { await model.load() }
-        .cyDomainScreen(.player)
+        .refreshable { await model.load() }
+        .themeDomain(.player)
     }
 }

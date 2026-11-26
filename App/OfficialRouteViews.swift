@@ -8,8 +8,6 @@ import SwiftUI
     private var officialRouteIsChinese: Bool { locale.language.languageCode?.identifier == "zh" }
     let reader: OfficialRouteReader
     @State private var state: LoadState = .loading
-    @Namespace private var hero
-    @State private var stagger = CYStaggerGate()
     private enum LoadState { case loading, ready([OfficialRoute]), empty, failed, offline }
     private var stateKey: Int {
         switch state { case .loading: return 0; case .ready: return 1; case .empty: return 2; case .failed: return 3; case .offline: return 4 }
@@ -18,37 +16,47 @@ import SwiftUI
         Group {
             switch state {
             case .loading:
-                ScrollView { CYLoadingStateView(rows: 3).padding(CYSpacing.lg) }
+                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
                     .accessibilityLabel(Text("officialRoute.loading"))
             case .failed:
                 // MP cy-error: 线路加载失败 + 重试 (no second line).
-                CYStateLayout(kind: .failure, title: Text("officialRoute.list.error"), primary: ("officialRoute.retry", { _ = Task { await load() } }))
+                ContentUnavailableView {
+                    Label("officialRoute.list.error", systemImage: "exclamationmark.triangle")
+                } actions: {
+                    Button { Task { await load() } } label: { Text("officialRoute.retry") }.buttonStyle(.bordered)
+                }
             case .offline:
-                CYStateLayout(kind: .offline, title: Text("officialRoute.list.error"), detail: Text("cy.kit.offline.body"), primary: ("officialRoute.retry", { _ = Task { await load() } }))
+                ContentUnavailableView {
+                    Label("officialRoute.list.error", systemImage: "wifi.slash")
+                } description: {
+                    Text("cy.kit.offline.body")
+                } actions: {
+                    Button { Task { await load() } } label: { Text("officialRoute.retry") }.buttonStyle(.bordered)
+                }
             case .empty:
-                // MP cy-empty kind="empty": the two-layer empty illustration.
-                CYStateLayout(kind: .generic, title: Text("officialRoute.list.empty"), emptyIllustration: .generic)
+                // MP cy-empty kind="empty".
+                ContentUnavailableView("officialRoute.list.empty", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
             case .ready(let routes):
                 ScrollView {
-                    LazyVStack(spacing: CYSpacing.lg) {
-                        ForEach(Array(routes.enumerated()), id: \.element.id) { index, route in
-                            NavigationLink { OfficialRouteDetailView(reader: reader, routeID: route.id).cyHeroDestination(route.id, in: hero) } label: {
-                                row(route).cyHeroSource(route.id, in: hero).cyStaggeredAppear(index: index, gate: stagger)
+                    // OfficialRouteCard draws its own surface; the links stay plain.
+                    LazyVStack(spacing: 16) {
+                        ForEach(routes, id: \.id) { route in
+                            NavigationLink { OfficialRouteDetailView(reader: reader, routeID: route.id) } label: {
+                                row(route)
                             }
-                                .buttonStyle(CYPressableStyle())
+                                .buttonStyle(.plain)
                                 .accessibilityLabel(Text("officialRoute.list.open \(route.name)"))
                         }
                     }
-                    .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
+                    .padding(.horizontal).padding(.vertical, 12)
                 }
             }
         }
-        .cyAnimation(.easeInOut(duration: CYMotion.Duration.standard), value: stateKey)
         .navigationTitle(Text("officialRoute.title"))
         .navigationBarTitleDisplayMode(.inline)
         .cyDomainScreen(.player)
         .task { await load() }
-        .cyRefreshable { await load(refreshing: true) }
+        .refreshable { await load(refreshing: true) }
         .accessibilityIdentifier("officialRoute.list")
     }
     private func row(_ route: OfficialRoute) -> some View { OfficialRouteCard(route: route, chinese: officialRouteIsChinese) }
@@ -79,9 +87,13 @@ import SwiftUI
                 ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
                     .accessibilityLabel(Text("officialRoute.loading"))
             case .failed:
-                CYStateLayout(kind: .failure, title: Text("officialRoute.detail.error"), primary: ("officialRoute.retry", { _ = Task { await load() } }))
+                ContentUnavailableView {
+                    Label("officialRoute.detail.error", systemImage: "exclamationmark.triangle")
+                } actions: {
+                    Button { Task { await load() } } label: { Text("officialRoute.retry") }.buttonStyle(.bordered)
+                }
             case .notFound:
-                CYStateLayout(kind: .generic, title: Text("officialRoute.detail.notFound"), emptyIllustration: .generic)
+                ContentUnavailableView("officialRoute.detail.notFound", systemImage: "questionmark.circle")
             case .ready(let detail):
                 content(detail)
             }

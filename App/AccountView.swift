@@ -66,7 +66,7 @@ import SwiftUI
                     // Passport keeps one Wallet entry (the circle action above); the legacy account page keeps the row.
                     if !showsPassportOverview {
                     NavigationLink { SessionWalletCommerceView().id(session.walletCommerceScope).cyPushedChrome()                     } label: {
-                        CYListRow("wallet.title", trailing: .none) { CYRowIcon(systemImage: "wallet.pass") }
+                        Label("wallet.title", systemImage: "wallet.pass")
                     }.accessibilityIdentifier("account.wallet")
                     }
                     ModSettlementAccountLink(makeReader: { session.makeModSettlementReader() })
@@ -77,15 +77,15 @@ import SwiftUI
                             .environment(\.growthExploreHomeAction, onOpenGuideDestination.map { open in { open(.home) } })
                             .cyPushedChrome()
                     } label: {
-                        CYListRow("growth.title", trailing: .none) { CYRowIcon(systemImage: "chart.bar.xaxis") }
+                        Label("growth.title", systemImage: "chart.bar.xaxis")
                     }.accessibilityIdentifier("account.growthCenter")
                     ProfileAccountLinks(reader:session.profileReader, part: .collection)
                     NavigationLink { SessionObjectCardsView().cyPushedChrome()                     } label: {
-                        CYListRow("objects.title", trailing: .none) { AccountPublishMPRowIcon(MPAsset.FeatureIcon.object3d) } // MP album 藏品 object-3d.png
+                        Label { Text("objects.title") } icon: { AccountPublishMPRowIcon(MPAsset.FeatureIcon.object3d) } // MP album 藏品 object-3d.png
                     }.accessibilityIdentifier("account.objectCards")
                     if session.playerGapService != nil {
                         NavigationLink { List { CityFavoriteNodesSection() }.navigationTitle(Text("playerGap.cityFavorites.title")).navigationBarTitleDisplayMode(.inline).cyPushedChrome() } label: {
-                            CYListRow("playerGap.cityFavorites.title", trailing: .none) { CYRowIcon(systemImage: "mappin.and.ellipse") }
+                            Label("playerGap.cityFavorites.title", systemImage: "mappin.and.ellipse")
                         }.accessibilityIdentifier("account.cityFavorites")
                     }
                 }
@@ -93,11 +93,11 @@ import SwiftUI
                     NavigationLink { ProfilePublicInfoHost(reader: session.makeProfilePublicInfoReader(memberID: account.id)) { profileReader in
                         SocialPublicProfileView(memberID: account.id, reader: profileReader, squareReader: session.squareReader, actions: session.socialActionCoordinator, selfOrdersAccess: .init(session: session), selfProjectsAccess: .init(session: session), selfGrowthAccess: .init(reader: session.growthCenterReader, owner: session.socialAccountReader.identity), memberAttributesService: session.makeCityMonopolyService(), weeklyPointsAccess: .init(reader: PassMarketPointsBridge.statistics(for: session), owner: session.socialAccountReader.identity), personalToolsAccess: .init(owner: session.socialAccountReader.identity, wallet: session.walletHistoryReader, complaint: session.cooperationFlowReader), selfCouponAccess: .init(reader: session.profileOwnedCouponReader, owner: session.socialAccountReader.identity), selfObjectCardsAccess: .init(reader: session.objectCardReader, owner: session.socialAccountReader.identity), selfMedalsReader: session.profileReader, selfEditAccess: .init(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision, categoryReader: session, nicknameReader: session.profileNicknameReader, currentReviewReader: session.profileCurrentReviewReader, savedMedia: session.profileSavedMediaReaders, avatarDependencies: session.profileAvatarDependencies), localCoverOwner: localCoverOwner, isCurrent: { profileReader.isCurrent })
                     }.id(session.socialAccountReader.identity).cyPushedChrome() } label: {
-                        CYListRow("social.profile", trailing: .none) { CYRowIcon(systemImage: "person.crop.rectangle") }
+                        Label("social.profile", systemImage: "person.crop.rectangle")
                     }.accessibilityIdentifier("account.publicProfile")
                     ProfileFollowListAccountEntry(session: session)
                     NavigationLink { ProfileEditView(coordinator:session.profileEditCoordinator,sessionRevision:session.contentDetailRevision,categoryReader:session,avatarDependencies:session.profileAvatarDependencies,currentReviewReader:session.profileCurrentReviewReader,nicknameReader:session.profileNicknameReader,savedMedia:session.profileSavedMediaReaders).cyPushedChrome()                     } label: {
-                        CYListRow("profile.edit.title", trailing: .none) { CYRowIcon(systemImage: "pencil") }
+                        Label("profile.edit.title", systemImage: "pencil")
                     }.accessibilityIdentifier("account.editProfile")
                 }
                 ProfileLocalCoverSection(owner: localCoverOwner, reader: session.socialAccountReader)
@@ -116,35 +116,35 @@ import SwiftUI
                 Section {
                     if !showsPassportOverview { // Passport has the Messages circle action instead
                         NavigationLink { SessionMessagingHome(session: session).cyPushedChrome() } label: {
-                            HStack(spacing: CYSpacing.sm) {
-                                CYListRow("messaging.title", trailing: .none) { CYRowIcon(systemImage: "bubble.left.and.bubble.right") }
+                            HStack {
+                                Label("messaging.title", systemImage: "bubble.left.and.bubble.right")
                                 IMUnreadEntryBadge(reader: session.imUnreadTotalReader)
                             }
                         }.accessibilityIdentifier("account.messages")
                     }
                     NavigationLink { SessionTeamHomeView().cyPushedChrome() } label: {
-                        CYListRow("team.title", trailing: .none) { CYRowIcon(systemImage: "person.3") }
+                        Label("team.title", systemImage: "person.3")
                     }.accessibilityIdentifier("account.teams")
                     // The Clubs tab is the one Clubs entry on the player bar.
                     if !showsPassportOverview {
                     NavigationLink { ClubHomeView(reader:session,actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }, authorSquare: session.squareReader).id(session.sessionRevision).cyPushedChrome() } label: {
-                        CYListRow("club.title", trailing: .none) { CYRowIcon(systemImage: "person.3") }
+                        Label("club.title", systemImage: "person.3")
                     }.accessibilityIdentifier("account.clubs")
                     }
                     if session.account?.effectiveRole == "club" { PayoutAccountLinks(audience: .club) }
                     NavigationLink { SocialInviteHistoryView(reader: session.profileInviteHistoryReader, squareReader: session.squareReader, actions: session.socialActionCoordinator).id(session.profileInviteHistoryReader.identity).cyPushedChrome()
                             .environment(\.socialConversationDestination, session.socialConversationDestination) } label: {
-                        CYListRow("social.invites.title", trailing: .none) { CYRowIcon(systemImage: "person.2.badge.plus") }
+                        Label("social.invites.title", systemImage: "person.2.badge.plus")
                     }.accessibilityIdentifier("account.inviteHistory")
                     NavigationLink { ProfileGuideHost(reader: session.makeProfileGuideReader(), makeArticleReader: { session.makeProfileGuideArticleReader($0) }, onOpenDestination: onOpenGuideDestination, templateReader: session).id(session.socialAccountReader.identity).cyPushedChrome() } label: {
-                        CYListRow("social.guide.title", trailing: .none) { CYRowIcon(systemImage: "book") }
+                        Label("social.guide.title", systemImage: "book")
                     }.accessibilityIdentifier("account.playGuide")
                     NavigationLink { SessionDoorInviterView(session: session).cyPushedChrome() } label: {
-                        CYListRow("door.inviter.title", trailing: .none) { CYRowIcon(systemImage: "person.badge.plus") }
+                        Label("door.inviter.title", systemImage: "person.badge.plus")
                     }.accessibilityIdentifier("door.inviter.entry")
                     if session.playerGapService != nil {
                         NavigationLink { Form { Section { PlayerCodeAndJoinSection() } }.navigationTitle(Text("playerGap.playerCode.title")).navigationBarTitleDisplayMode(.inline).cyPushedChrome() } label: {
-                            CYListRow("playerGap.playerCode.title", trailing: .none) { CYRowIcon(systemImage: "qrcode") }
+                            Label("playerGap.playerCode.title", systemImage: "qrcode")
                         }.accessibilityIdentifier("account.playerCode")
                     }
                 }
@@ -172,9 +172,8 @@ import SwiftUI
                 if WelcomeView.showsMerchantChoice {
                 Section {
                     Button { showsCooperation=true } label: {
-                        CYListRow("cooperation.title", trailing: .none) { CYRowIcon(systemImage: "person.2") }
+                        Label("cooperation.title", systemImage: "person.2")
                     }
-                    .buttonStyle(.cyPressable)
                     .accessibilityIdentifier("account.cooperation")
                 }
                 }
@@ -196,7 +195,6 @@ import SwiftUI
             }
             // Pull to refresh: light tick at release; the cards reload in place (numbers roll, nothing re-enters).
             .cyRefreshable { await MainActor.run { memberRefreshToken += 1 } }
-            .listSectionSpacing(CYSpacing.xl)
             .cyDomainPageBackground()
             // Design hand-off r1 PL-11: the root title is the tab's label (我的), not 主页 / 护照; 消息 then 设置 at the right.
             .cyRootHeader(.mine)
@@ -365,7 +363,7 @@ import SwiftUI
             NavigationLink {
                 SessionCreatorProjectsView(session: session)
                     .cyPushedChrome(domain: .topicEditor)
-            } label: { CYListRow("creatorContent.projects", trailing: .none) { CYRowIcon(systemImage: "square.stack") } }
+            } label: { Label("creatorContent.projects", systemImage: "square.stack") }
             .accessibilityIdentifier("account.creatorProjects")
             WorkshopOwnedAccountLink(browser: session.workshopOwnedBrowser)
             WorkshopPurchasedAccountLink(browser: session.workshopPurchasedBrowser, makeInstall: { session.makeWorkshopPaidInstallController(item: $0) }, makeText: { session.makeWorkshopPaidInstalledTextController(reference: $0) }, makeProfessional: { session.makeWorkshopPaidProfessionalController(reference: $0) })
@@ -380,13 +378,13 @@ import SwiftUI
             }.accessibilityIdentifier("account.workshopLicenses")
             OwnerDraftAccountLink(browser: session.ownerDraftBrowser)
             NavigationLink { ProjectEditLaunchView().id(session.sessionRevision).cyPushedChrome(domain: .topicEditor)                     } label: {
-                CYListRow("projectEdit.title", trailing: .none) { CYRowIcon(systemImage: "square.and.pencil") }
+                Label("projectEdit.title", systemImage: "square.and.pencil")
             }.accessibilityIdentifier("account.projectEditor")
             NavigationLink { TemplateAuthoringLaunchView().id(session.templateAuthoringViewIdentity).cyPushedChrome(domain: .topicEditor)                     } label: {
-                CYListRow("templateAuthor.title", trailing: .none) { CYRowIcon(systemImage: "square.and.pencil") }
+                Label("templateAuthor.title", systemImage: "square.and.pencil")
             }.accessibilityIdentifier("account.templateAuthoring")
             NavigationLink { CreatorContentCenterView(reader:session.creatorContentReader, publisherContext: session.publisherLifecycleContext, creatorStudio: session.creatorStudioService).id(session.creatorContentReader.scope).cyPushedChrome(domain: .topicEditor)                     } label: {
-                CYListRow("creatorContent.center", trailing: .none) { CYRowIcon(systemImage: "pencil.and.outline") }
+                Label("creatorContent.center", systemImage: "pencil.and.outline")
             }.accessibilityIdentifier("account.creatorCenter")
         }
     }
@@ -395,22 +393,21 @@ import SwiftUI
         Section { // players never see merchant rows; code stays for the merchant role
             if themeDomain != .player { // players never see merchant rows; code stays for the merchant role
             NavigationLink { SessionMerchantOverviewView(session: session).cyPushedChrome(domain: .merchant) } label: {
-                CYListRow("account.merchantOverview", trailing: .none) { CYRowIcon(systemImage: "chart.bar.doc.horizontal") }
+                Label("account.merchantOverview", systemImage: "chart.bar.doc.horizontal")
             }.accessibilityIdentifier("account.merchantOverview")
             NavigationLink { SessionMerchantProjectBrowseView(session: session).cyPushedChrome(domain: .merchant) } label: {
-                CYListRow("merchant.projects", trailing: .none) { CYRowIcon(systemImage: "calendar") }
+                Label("merchant.projects", systemImage: "calendar")
             }.accessibilityIdentifier("account.merchantProjectBrowse")
             NavigationLink { MerchantHomeView(reader:session,marketingModel:session.merchantMarketingCoordinator,marketingDestination:{ AnyView(SessionMerchantMarketingDestination(session:session,destination:$0)) },openApplication:{ showsMerchantApplication=true },operationsReader:session.merchantOperationsReader,operationsDestinationFactory:{ session.merchantOperationsDestination($0, access: $1) },businessReader:session.merchantBusinessReader,businessJournal:session.merchantBusinessJournal,contentService:session.merchantContentService,cooperationFlowReader:session.cooperationFlowReader,engagementReader:session.merchantEngagementReader,exportRecovery:session.merchantExportRecovery,predictionReader:session.merchantPredictionReader).environment(\.merchantPredictionWorkbenchEntry,{ AnyView(SessionMerchantPredictionEntry(session: session)) }).environment(\.merchantAnchorDestination, { access in AnyView(SessionMerchantAnchorView(access: access)) }).cyPushedChrome(domain: .merchant)                     } label: {
-                CYListRow("merchant.title", trailing: .none) { CYRowIcon(systemImage: "storefront") }
+                Label("merchant.title", systemImage: "storefront")
             }.accessibilityIdentifier("account.merchant")
             PayoutAccountLinks(audience: .merchant)
             if merchantRootModeSwitch.isAvailable {
                 MerchantAccountModeSwitchRow(modeSwitch: merchantRootModeSwitch)
             }
             Button { showsMerchantApplication=true } label: {
-                CYListRow("merchant.onboarding.openApplication", trailing: .none) { CYRowIcon(systemImage: "doc.text") }
+                Label("merchant.onboarding.openApplication", systemImage: "doc.text")
             }
-            .buttonStyle(.cyPressable)
             .accessibilityIdentifier("account.merchantApplication")
             }
         }

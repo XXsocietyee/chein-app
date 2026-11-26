@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// One slide of a `CYHeroBanner`. A slide without a usable HTTPS cover shows a brand gradient (never an empty frame).
+/// One slide of a `CYHeroBanner`. A slide without a usable HTTPS cover shows a plain system fill (never an empty frame).
 struct CYHeroBannerItem: Identifiable {
     let id: Int
     var imageURL: URL?
@@ -11,132 +11,81 @@ struct CYHeroBannerItem: Identifiable {
     var action: (() -> Void)?
 }
 
-/// Rounded banner pager (mini-program home hero swiper) with real depth: the neighbours peek in, the active
-/// card is full scale and the others recede (scale + dim), and the cover parallaxes inside its card.
-/// Reduce Motion keeps the paging but drops scale and parallax. Renders nothing when `items` is empty.
+/// Banner pager (mini-program home hero swiper), native r2: the system page-style `TabView` (system page dots),
+/// each page the cover image (or a plain system fill with a photo symbol when there is no HTTPS cover) in the one
+/// card radius, with an optional title / subtitle in plain text below it. No gradients, scrim, shadow, parallax or
+/// scale. Renders nothing when `items` is empty.
 struct CYHeroBanner: View {
     let items: [CYHeroBannerItem]
-    @State private var page: Int? = 0
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var page: Int = 0
 
-    private static let gradients: [[Color]] = [
-        [Color(red: 0.05, green: 0.36, blue: 0.45), Color(red: 0.10, green: 0.10, blue: 0.20)],
-        [Color(red: 0.62, green: 0.25, blue: 0.10), Color(red: 0.16, green: 0.07, blue: 0.10)],
-        [Color(red: 0.08, green: 0.36, blue: 0.24), Color(red: 0.04, green: 0.12, blue: 0.14)],
-    ]
-
-    private static let cardFraction: CGFloat = 0.88
+    private var hasCaption: Bool { items.contains { $0.title != nil } }
 
     var body: some View {
         if !items.isEmpty {
-            VStack(spacing: CYSpacing.sm) {
-                // The clear box fixes the height (card width x 9/16) so the pager never collapses inside a List row.
-                Color.clear
-                    .frame(maxWidth: .infinity)
-                    .aspectRatio(items.count > 1 ? 16.0 / 9.0 / Self.cardFraction : 16.0 / 9.0, contentMode: .fit)
-                    .overlay { pager }
-                if items.count > 1 { dots }
-            }
-        }
-    }
-
-    private var pager: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            LazyHStack(spacing: CYSpacing.md) {
+            TabView(selection: $page) {
                 ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                    card(item, index: index).id(index)
+                    slide(item)
+                        .padding(.horizontal)
+                        .padding(.bottom, items.count > 1 ? CYSpacing.xxl : 0)
+                        .tag(index)
                 }
             }
-            .scrollTargetLayout()
+            .tabViewStyle(.page(indexDisplayMode: items.count > 1 ? .always : .never))
+            .indexViewStyle(.page(backgroundDisplayMode: .interactive))
+            .frame(maxWidth: .infinity)
+            .aspectRatio(hasCaption ? 4.0 / 3.0 : 16.0 / 10.0, contentMode: .fit)
+            .sensoryFeedback(.selection, trigger: page)
         }
-        .contentMargins(.horizontal, CYSpacing.lg, for: .scrollContent)
-        .scrollClipDisabled()
-        .scrollTargetBehavior(.viewAligned)
-        .scrollPosition(id: $page)
-        .sensoryFeedback(.selection, trigger: page)
     }
 
-    private func card(_ item: CYHeroBannerItem, index: Int) -> some View {
-        let reduced = reduceMotion
-        return slide(item, index: index)
-            .containerRelativeFrame(.horizontal) { width, _ in items.count > 1 ? width * Self.cardFraction : width }
-            .frame(maxHeight: .infinity)
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-            .shadow(color: .black.opacity(0.35), radius: 10, x: 0, y: 6)
-            .scrollTransition(axis: .horizontal) { content, phase in
-                content
-                    .scaleEffect(reduced ? 1 : 1 - abs(phase.value) * 0.07)
-                    .opacity(reduced ? 1 : 1 - abs(phase.value) * 0.3)
+    @ViewBuilder private func slide(_ item: CYHeroBannerItem) -> some View {
+        let content = VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            cover(item)
+            if let title = item.title {
+                VStack(alignment: .leading, spacing: 2) {
+                    title.font(.headline).lineLimit(2)
+                    if let subtitle = item.subtitle {
+                        subtitle.font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
+                    }
+                }
             }
-    }
-
-    @ViewBuilder private func slide(_ item: CYHeroBannerItem, index: Int) -> some View {
-        let art = cover(item, index: index).overlay(alignment: .bottomLeading) { caption(item) }
+        }
         if let action = item.action {
-            Button(action: action) { art }
+            Button(action: action) { content }
                 .buttonStyle(.plain)
                 .accessibilityLabel(item.accessibilityLabel ?? "")
         } else {
-            art.accessibilityHidden(true)
+            content.accessibilityHidden(true)
         }
     }
 
-    /// Cover (or brand gradient) drawn 18% oversized and shifted against the scroll so it parallaxes inside the card.
-    @ViewBuilder private func cover(_ item: CYHeroBannerItem, index: Int) -> some View {
-        let reduced = reduceMotion
-        Group {
-            if let url = item.imageURL, url.scheme?.lowercased() == "https" {
-                AsyncImage(url: url) { phase in
-                    if let image = phase.image { image.resizable().scaledToFill() } else { gradient(index) }
+    private func cover(_ item: CYHeroBannerItem) -> some View {
+        Color.clear
+            .aspectRatio(16.0 / 9.0, contentMode: .fit)
+            .overlay {
+                if let url = item.imageURL, url.scheme?.lowercased() == "https" {
+                    AsyncImage(url: url) { phase in
+                        if let image = phase.image { image.resizable().scaledToFill() } else { placeholder }
+                    }
+                } else {
+                    placeholder
                 }
-            } else {
-                gradient(index)
             }
-        }
-        .scaleEffect(reduceMotion ? 1 : 1.18)
-        .scrollTransition(axis: .horizontal) { content, phase in
-            content.offset(x: reduced ? 0 : phase.value * -44)
-        }
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
     }
 
-    @ViewBuilder private func caption(_ item: CYHeroBannerItem) -> some View {
-        if let title = item.title {
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                title.cyText(.dataXL).lineLimit(3).minimumScaleFactor(0.7)
-                if let subtitle = item.subtitle { subtitle.cyText(.bodyCompact).opacity(0.9).lineLimit(2) }
+    private var placeholder: some View {
+        Color(uiColor: .secondarySystemFill)
+            .overlay {
+                Image(systemName: "photo")
+                    .font(.title)
+                    .foregroundStyle(.secondary)
             }
-            .foregroundStyle(.white)
-            .padding(CYSpacing.lg)
-            .padding(.top, CYSpacing.jumbo)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(LinearGradient(colors: [.clear, .black.opacity(0.7)], startPoint: .top, endPoint: .bottom))
-        }
-    }
-
-    private func gradient(_ index: Int) -> some View {
-        ZStack {
-            LinearGradient(colors: Self.gradients[index % Self.gradients.count], startPoint: .topLeading, endPoint: .bottomTrailing)
-            CYCoverArt(seed: "hero-\(index)", showsDebugLabel: false).opacity(0.6)
-        }
-    }
-
-    private var dots: some View {
-        HStack(spacing: 6) {
-            ForEach(items.indices, id: \.self) { index in
-                Capsule()
-                    .fill(Color.primary.opacity(index == (page ?? 0) ? 0.9 : 0.3))
-                    .frame(width: index == (page ?? 0) ? 18 : 6, height: 6)
-            }
-        }
-        .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.8), value: page)
-        .accessibilityHidden(true)
     }
 }
 
-#Preview("HeroBanner · player dark") {
+#Preview("HeroBanner") {
     CYHeroBanner(items: (0..<3).map { CYHeroBannerItem(id: $0) })
-        .padding(CYSpacing.pageHorizontal)
         .frame(maxHeight: .infinity, alignment: .top)
-        .cyDomainPageBackground()
-        .themeDomain(.player)
 }

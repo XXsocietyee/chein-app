@@ -55,7 +55,7 @@ struct ProfileSelfOrderSelection: Identifiable, Hashable {
                     if model.isLoading || model.loadedScope == nil { ProgressView("profile.loading") }
                     if let issue = model.issue {
                         Text(LocalizedStringKey(issue.titleKey)).accessibilityIdentifier("profile.selfOrders.issue")
-                        if model.rows != nil { Text("profile.selfOrders.stale").cyText(.meta) }
+                        if model.rows != nil { Text("profile.selfOrders.stale").font(.footnote).foregroundStyle(.secondary) }
                         if issue == .readFailed {
                             Button("action.retry") { Task { await model.load(reader: reader) } }
                                 .disabled(model.isLoading).accessibilityIdentifier("profile.selfOrders.retry")
@@ -63,7 +63,7 @@ struct ProfileSelfOrderSelection: Identifiable, Hashable {
                     }
                     if let rows = model.rows {
                         if rows.isEmpty && model.issue == nil && !model.isLoading {
-                            CYEmptyState(systemImage: "ticket", "profile.selfOrders.empty", messageIdentifier: "profile.selfOrders.empty", kind: .orders).listRowBackground(Color.clear).listRowSeparator(.hidden)
+                            ContentUnavailableView("profile.selfOrders.empty", systemImage: "ticket").accessibilityIdentifier("profile.selfOrders.empty").listRowBackground(Color.clear).listRowSeparator(.hidden)
                         }
                         ForEach(ProfileSelfOrdersPreview(rows: rows).rows) { order in
                             Button {
@@ -96,13 +96,13 @@ struct ProfileSelfOrderSelection: Identifiable, Hashable {
         .privacySensitive()
     }
     private func previewRow(_ order: ProfileOrder) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading) {
             if let title = order.title, !title.isEmpty { Text(verbatim: title) }
             else { Text("profile.orders.untitled") }
             if let created = ProfileSelfOrdersPreview.createdLabel(order.createTime) {
-                Text(verbatim: created).cyText(.meta).foregroundStyle(.secondary)
+                Text(verbatim: created).font(.subheadline).foregroundStyle(.secondary)
             }
-        }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+        }.frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 @MainActor struct ProfileSelfOrdersBrowser: View {

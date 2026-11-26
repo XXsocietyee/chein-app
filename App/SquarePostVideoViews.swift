@@ -140,13 +140,18 @@ struct SquarePostVideoComposerSection: View {
             case .policyUnavailable:
                 Label("square.video.policyUnavailable", systemImage: "video.slash").accessibilityIdentifier("square.video.policyUnavailable")
             case .empty: Text("square.video.empty").foregroundStyle(.secondary)
-            case .working: CYSkeleton()
-            case .failed: CYStatusChip("square.video.failed", tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("square.video.failed")
+            case .working: ProgressView().frame(maxWidth: .infinity)
+            case .failed:
+                Label { Text("square.video.failed") } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.red) }
+                    .accessibilityIdentifier("square.video.failed")
             case .ready(let item, let rejections):
                 preview(item)
-                if rejections.isEmpty { CYStatusChip("square.video.withinPolicy", tone: .success, systemImage: "checkmark.circle").accessibilityIdentifier("square.video.accepted") }
+                if rejections.isEmpty {
+                    Label { Text("square.video.withinPolicy") } icon: { Image(systemName: "checkmark.circle").foregroundStyle(.green) }
+                        .accessibilityIdentifier("square.video.accepted")
+                }
                 ForEach(rejections, id: \.self) { rejection in
-                    Text(LocalizedStringKey("square.video.reject." + String(describing: rejection))).foregroundStyle(CYColor.dangerText)
+                    Text(LocalizedStringKey("square.video.reject." + String(describing: rejection))).foregroundStyle(.red)
                         .accessibilityIdentifier("square.video.reject")
                 }
             case .restored(let item, let status):
@@ -157,21 +162,21 @@ struct SquarePostVideoComposerSection: View {
                 Button("square.video.remove", role: .destructive) { model.remove() }.accessibilityIdentifier("square.video.remove")
             }
             // Upload is disabled until a reviewed video transport exists (uploadOSS is JPEG/PNG only).
-            CYPillButton("square.video.upload", style: .secondary) {}.disabled(true).accessibilityIdentifier("square.video.upload")
+            Button("square.video.upload") {}.disabled(true).accessibilityIdentifier("square.video.upload")
             if case .unavailable(let blocker) = model.upload {
-                Text(LocalizedStringKey("square.video.uploadBlocked." + blocker.rawValue)).cyText(.bodyCompact).foregroundStyle(.secondary)
+                Text(LocalizedStringKey("square.video.uploadBlocked." + blocker.rawValue)).font(.footnote).foregroundStyle(.secondary)
                     .accessibilityIdentifier("square.video.uploadBlocked")
             }
         }
     }
     @ViewBuilder private func preview(_ item: SquarePostMediaDraftItem) -> some View {
         HStack(spacing: 12) {
-            if let poster = model.poster { Image(decorative: poster, scale: 1).resizable().scaledToFill().frame(width: 96, height: 72).clipped().cornerRadius(8) }
+            if let poster = model.poster { Image(decorative: poster, scale: 1).resizable().scaledToFill().frame(width: 96, height: 72).clipped() }
             else { Image(systemName: "film").font(.largeTitle).frame(width: 96, height: 72).accessibilityHidden(true) }
             VStack(alignment: .leading, spacing: 2) {
                 if let ms = item.durationMilliseconds { Text("square.video.duration \(Int(ms / 1000))") }
-                Text(verbatim: "\(item.width)×\(item.height)").cyText(.meta)
-                Text(verbatim: ByteCountFormatter.string(fromByteCount: item.byteCount, countStyle: .file)).cyText(.meta).foregroundStyle(.secondary)
+                Text(verbatim: "\(item.width)×\(item.height)").font(.caption)
+                Text(verbatim: ByteCountFormatter.string(fromByteCount: item.byteCount, countStyle: .file)).font(.caption).foregroundStyle(.secondary)
             }
         }.accessibilityElement(children: .combine).accessibilityIdentifier("square.video.preview")
     }
@@ -201,7 +206,7 @@ struct SquarePostVideoPlayerRow: View {
                     VideoPlayer(player: player).frame(height: 220).accessibilityIdentifier("square.video.player.\(video.id)")
                 } else if let url = Self.playableURL(video.source) {
                     Button { player = AVPlayer(url: url) } label: {
-                        Label("square.video.play", systemImage: "play.rectangle").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                        Label("square.video.play", systemImage: "play.rectangle").frame(maxWidth: .infinity, alignment: .leading)
                     }.accessibilityIdentifier("square.video.play.\(video.id)")
                 } else {
                     Label("square.video.sourceUnavailable", systemImage: "video.slash").accessibilityIdentifier("square.video.sourceUnavailable")
@@ -209,10 +214,10 @@ struct SquarePostVideoPlayerRow: View {
             case .pending: Label("square.video.review.pending", systemImage: "hourglass")
             case .rejected(let reason):
                 Label("square.video.review.rejected", systemImage: "xmark.octagon")
-                if let reason { Text(verbatim: reason).cyText(.meta) }
+                if let reason { Text(verbatim: reason).font(.caption).foregroundStyle(.secondary) }
             case .unavailable, .unknown: Label("square.video.sourceUnavailable", systemImage: "video.slash")
             }
-            if let ms = video.durationMilliseconds { Text("square.video.duration \(ms / 1000)").cyText(.meta).foregroundStyle(.secondary) }
+            if let ms = video.durationMilliseconds { Text("square.video.duration \(ms / 1000)").font(.caption).foregroundStyle(.secondary) }
         }
         .onDisappear { player?.pause(); player = nil }
     }

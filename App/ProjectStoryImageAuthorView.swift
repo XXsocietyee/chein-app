@@ -136,8 +136,9 @@ struct ProjectStoryImagePreparedReferences: View {
                         Text(text("projectStoryImage.changed", "The draft has changed. Save any received receipt, then close and reopen this field before choosing another image."))
                             .accessibilityIdentifier("projectStoryImage.changed")
                     }
-                    CYPillButton(verbatim: text("projectStoryImage.choose", "Choose an image"), style: .secondary) { Task { await model.choose() } }
-                        .listRowBackground(Color.clear).disabled(!model.canChoose).accessibilityIdentifier("projectStoryImage.choose")
+                    Button { Task { await model.choose() } } label: { Text(verbatim: text("projectStoryImage.choose", "Choose an image")) }
+                        .buttonStyle(.bordered).controlSize(.large)
+                        .disabled(!model.canChoose).accessibilityIdentifier("projectStoryImage.choose")
                     if let draft = model.crop.draft {
                         CreatorCropExportView(draft: draft, confirm: { model.confirmCrop($0, $1) }, cancel: { model.cancelCrop($0) })
                     }
@@ -148,17 +149,20 @@ struct ProjectStoryImagePreparedReferences: View {
                     if let review {
                         Text(text("projectStoryImage.notUploaded", "This selection has not been uploaded."))
                             .accessibilityIdentifier("projectStoryImage.notUploaded")
-                        CYPillButton(verbatim: text("projectStoryImage.upload", "Upload this story image"), style: .primary) { model.upload(review) }
-                            .listRowBackground(Color.clear).disabled(!flow.canUpload(review) || model.crop.draft != nil).accessibilityIdentifier("projectStoryImage.upload")
-                        CYPillButton(verbatim: text("projectStoryImage.cancelLocal", "Cancel this local selection"), style: .tertiary) { model.cancel(review) }
-                            .listRowBackground(Color.clear).disabled(flow.busy).accessibilityIdentifier("projectStoryImage.cancelLocal")
+                        Button { model.upload(review) } label: { Text(verbatim: text("projectStoryImage.upload", "Upload this story image")) }
+                            .buttonStyle(.borderedProminent).controlSize(.large)
+                            .disabled(!flow.canUpload(review) || model.crop.draft != nil).accessibilityIdentifier("projectStoryImage.upload")
+                        Button { model.cancel(review) } label: { Text(verbatim: text("projectStoryImage.cancelLocal", "Cancel this local selection")) }
+                            .buttonStyle(.borderless).controlSize(.large)
+                            .disabled(flow.busy).accessibilityIdentifier("projectStoryImage.cancelLocal")
                     }
                 }
                 if flow.hasUnstoredReceipt {
                     Section {
                         Text(text("projectStoryImage.unstored", "The server returned this reference, but this device could not save its receipt. Save the receipt locally before applying it. This recovery is held only while this app session remains open."))
-                        CYPillButton(verbatim: text("projectStoryImage.saveReceipt", "Save the received reference receipt"), style: .secondary) { model.persistReceipt() }
-                            .listRowBackground(Color.clear).disabled(!flow.canPersistReceipt).accessibilityIdentifier("projectStoryImage.saveReceipt")
+                        Button { model.persistReceipt() } label: { Text(verbatim: text("projectStoryImage.saveReceipt", "Save the received reference receipt")) }
+                            .buttonStyle(.bordered).controlSize(.large)
+                            .disabled(!flow.canPersistReceipt).accessibilityIdentifier("projectStoryImage.saveReceipt")
                     }
                 }
                 if let receipt = flow.receipt {
@@ -169,7 +173,7 @@ struct ProjectStoryImagePreparedReferences: View {
                         Button { model.apply() } label: {
                             if flow.target.isAlbumAppend { Text("projectAlbumImage.append", tableName: "ProjectAlbumImageAuthor") }
                             else { Text(text("projectStoryImage.apply", "Apply to this chapter and save locally")) }
-                        }.buttonStyle(.cyPrimary(fullWidth: true)).disabled(!flow.canApply).accessibilityIdentifier("projectStoryImage.apply")
+                        }.buttonStyle(.borderedProminent).controlSize(.large).disabled(!flow.canApply).accessibilityIdentifier("projectStoryImage.apply")
                     }
                 }
                 if flow.unresolvedUploadCount > 0 && !flow.hasUnstoredReceipt {
@@ -182,7 +186,7 @@ struct ProjectStoryImagePreparedReferences: View {
                 }
                 if flow.state == .failed { Text(text("projectStoryImage.failed", "The local record could not be verified. Existing story references remain available.")) }
                 if flow.state == .unauthorized { Text(text("projectStoryImage.unauthorized", "Sign in again before uploading another story image. The unresolved attempt is retained.")) }
-                if flow.state == .uploading { CYSkeleton().accessibilityIdentifier("projectStoryImage.busy") }
+                if flow.state == .uploading { ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("projectStoryImage.busy") }
             }
             .navigationTitle(flow.target.isAlbumAppend ? Text("projectAlbumImage.title", tableName: "ProjectAlbumImageAuthor") : Text(text("projectStoryImage.title", "Story image"))).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) {

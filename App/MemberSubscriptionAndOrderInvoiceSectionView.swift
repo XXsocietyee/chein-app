@@ -141,32 +141,32 @@ public struct MemberSubscriptionAndOrderInvoiceSectionView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: "Member Subscription, 5-State Order & Refund Readback")
-                    .cyText(.cardTitle)
+                    .font(.headline)
                     .accessibilityIdentifier("memberSubscriptionOrder.title")
                 Spacer()
                 Text(verbatim: statusBadgeText)
-                    .cyText(.meta, weight: .semibold)
-                    .foregroundStyle(snapshot.isAllCompliant ? CYColor.successText : CYColor.warningText)
+                    .font(.footnote)
+                    .foregroundStyle(snapshot.isAllCompliant ? Color.green : Color.orange)
                     .accessibilityIdentifier("memberSubscriptionOrder.statusBadge")
             }
 
             Text(verbatim: subscriptionSummaryText)
-                .cyText(.bodyCompact)
-                .foregroundStyle(snapshot.storeKit2GateFailClosed ? CYColor.textSecondary : CYColor.dangerText)
+                .font(.subheadline)
+                .foregroundStyle(snapshot.storeKit2GateFailClosed ? Color.secondary : Color.red)
                 .accessibilityIdentifier("memberSubscriptionOrder.subscriptionSummary")
 
             Text(verbatim: lifecycleStatesSummaryText)
                 .font(.footnote.monospaced())
                 .foregroundStyle(
                     snapshot.supportedOrderStates == MemberSubscriptionAndOrderSnapshot.fiveOrderLifecycleStates
-                        ? CYColor.textSecondary
-                        : CYColor.warningText
+                        ? Color.secondary
+                        : Color.orange
                 )
                 .accessibilityIdentifier("memberSubscriptionOrder.lifecycleStatesSummary")
 
             Text(verbatim: refundReceiptSummaryText)
-                .cyText(.bodyCompact)
-                .foregroundStyle(snapshot.refundReceiptReadbackRequired ? CYColor.textSecondary : CYColor.dangerText)
+                .font(.subheadline)
+                .foregroundStyle(snapshot.refundReceiptReadbackRequired ? Color.secondary : Color.red)
                 .accessibilityIdentifier("memberSubscriptionOrder.refundReceiptSummary")
 
             VStack(alignment: .leading, spacing: 8) {
@@ -174,26 +174,20 @@ public struct MemberSubscriptionAndOrderInvoiceSectionView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(alignment: .firstTextBaseline) {
                             Text(verbatim: "[\(row.scopeCode)] \(row.title)")
-                                .cyText(.bodyMedium)
+                                .font(.body)
                             Spacer()
                             Text(verbatim: row.statusBadgeText)
                                 .font(.caption.monospaced())
-                                .foregroundStyle((row.isCompliant && !row.liveChargeEnabled) ? CYColor.successText : CYColor.warningText)
+                                .foregroundStyle((row.isCompliant && !row.liveChargeEnabled) ? Color.green : Color.orange)
                         }
                         Text(verbatim: row.policyDetail)
-                            .cyText(.meta)
+                            .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
-                    .padding(8)
-                    .background(CYColor.bgSurfaceSubtle)
-                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                 }
             }
             .accessibilityIdentifier("memberSubscriptionOrder.rowList")
         }
-        .padding(12)
-        .background(CYColor.bgSurfaceSubtle)
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("memberSubscriptionOrder.section")
     }

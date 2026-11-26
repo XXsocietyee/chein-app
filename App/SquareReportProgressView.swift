@@ -33,38 +33,35 @@ struct MemberReportProgressTimeView: View {
                         guard let (original, intent) = rendered, let selected = original.select(record, intent: intent) else { return }
                         selection = selected
                     } label: {
-                        // Source report-mine row: 「对象 · 原因」 over 「编号 N · 时间」, stage and chevron on the right.
-                        HStack(alignment: .center, spacing: CYSpacing.sm) {
-                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        // Source report-mine row: 「对象 · 原因」 over 「编号 N · 时间」 and the stage, as a system list row.
+                        HStack {
+                        VStack(alignment: .leading, spacing: 4) {
                             memberReportProgressText("report.stage.\(record.stageKey)")
-                                .cyText(.micro)
-                                .foregroundStyle(CYColor.textSecondary)
-                                .padding(.horizontal, CYSpacing.sm)
-                                .frame(minHeight: 20)
-                                .background(Capsule(style: .continuous).fill(CYColor.bgSurfaceSubtle))
-                            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                            HStack(alignment: .firstTextBaseline, spacing: 4) {
                                 memberReportProgressText("report.target.\(record.targetKey)")
                                 Text(verbatim: "·").accessibilityHidden(true)
                                 if let label = flow.reasonLabel(for: record) { Text(verbatim: label) }
                                 else { memberReportProgressText("report.reason.fallback") }
                             }
-                            .cyText(.cardTitle)
-                            .foregroundStyle(CYColor.textPrimary)
+                            .font(.body)
+                            .foregroundStyle(.primary)
                             .fixedSize(horizontal: false, vertical: true)
                             MemberReportProgressTimeView(value: record.createTime)
-                                .cyText(.meta)
-                                .foregroundStyle(CYColor.textSecondary)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                             // PLY-28-3: mini-program ETA line 「预计 … 前给出结论」 while the report is still open.
                             if !["RESOLVED", "CLOSED"].contains(record.stageKey), let eta = record.estimatedResolveAt?.display() {
                                 Text("report.eta \(eta)", tableName: "MemberReportProgress")
-                                    .cyText(.meta)
-                                    .foregroundStyle(CYColor.textSecondary)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
                             }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         // PLY-28-6: disclosure chevron, as the MP row.
-                        Image(systemName: "chevron.right").cyText(.meta, weight: .semibold)
-                            .foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                        Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
+                            .foregroundStyle(.tertiary).accessibilityHidden(true)
                         }
                         .contentShape(Rectangle())
                     }
@@ -76,7 +73,9 @@ struct MemberReportProgressTimeView: View {
                 }
                 if flow.loaded && flow.records.isEmpty {
                     // PLY-28-3: one empty line per filter, as the mini-program.
-                    CYEmptyState(systemImage: "tray", LocalizedStringKey("report.history.empty." + flow.filter.rawValue), tableName: "MemberReportProgress")
+                    ContentUnavailableView {
+                        Label { Text(LocalizedStringKey("report.history.empty." + flow.filter.rawValue), tableName: "MemberReportProgress") } icon: { Image(systemName: "tray") }
+                    }
                 }
                 if flow.hasMore {
                     Button {
@@ -85,24 +84,33 @@ struct MemberReportProgressTimeView: View {
                 }
                 if flow.loaded && !flow.records.isEmpty && !flow.hasMore && !flow.busy {
                     // Source list footer: 已经到底了.
-                    Text("u9cde.report.end").cyText(.bodyCompact).foregroundStyle(.secondary)
+                    Text("u9cde.report.end").font(.footnote).foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity).listRowBackground(Color.clear)
                         .accessibilityIdentifier("report.progress.end")
                 }
                 // R7-MEM-28-1: the skeleton is for the first load only; a refresh over kept rows stays quiet.
-                if flow.busy && flow.records.isEmpty { CYSkeleton() }
+                if flow.busy && flow.records.isEmpty { ProgressView().frame(maxWidth: .infinity) }
                 if let failure = flow.failure, flow.records.isEmpty {
                     let message = LocalizedStringKey("report.error." + String(describing: failure))
-                    CYEmptyState(systemImage: "exclamationmark.triangle", message, tableName: "MemberReportProgress", messageIdentifier: "report.progress.error", actionTitle: "report.retry", action: { load(rendered) })
+                    ContentUnavailableView {
+                        Label { Text(message, tableName: "MemberReportProgress").accessibilityIdentifier("report.progress.error") } icon: { Image(systemName: "exclamationmark.triangle") }
+                    } actions: {
+                        Button { load(rendered) } label: { memberReportProgressText("report.retry") }
+                            .buttonStyle(.bordered)
+                    }
                 }
             } else if session.account == nil {
                 // PLY-28-4: signed out → mini-program login gate with a way to sign in.
-                CYEmptyState(systemImage: "person.crop.circle", "report.signIn.title", tableName: "MemberReportProgress",
-                             messageIdentifier: "report.progress.signIn", actionTitle: "report.signIn.action",
-                             actionIdentifier: "report.progress.signIn.action", actionStyle: .primary) { showsSignIn = true }
+                ContentUnavailableView {
+                    Label { memberReportProgressText("report.signIn.title").accessibilityIdentifier("report.progress.signIn") } icon: { Image(systemName: "person.crop.circle") }
+                } actions: {
+                    Button { showsSignIn = true } label: { memberReportProgressText("report.signIn.action") }
+                        .buttonStyle(.borderedProminent)
+                        .accessibilityIdentifier("report.progress.signIn.action")
+                }
             } else { memberReportProgressText("report.error.disabled") }
         }
-        .cyGroupedSurface()
+        .listStyle(.insetGrouped)
         .cyPushedChrome(domain: .player)
         .navigationTitle(memberReportProgressText("report.history.title")).navigationBarTitleDisplayMode(.inline)
         .privacySensitive()

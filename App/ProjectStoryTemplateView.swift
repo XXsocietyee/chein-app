@@ -11,49 +11,67 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             Form {
-                Section { CYHeroHeader(verbatim: nodeSelection ? String(localized: LocalizedStringResource("projectNodeTemplate.title", table: "ProjectNodeTemplateSelection", locale: locale)) : String(localized: LocalizedStringResource("projectStoryTemplate.title", table: "Localizable", locale: locale))) }.e1HeroRow()
                 Section {
-                    if nodeSelection { Text("projectNodeTemplate.scope", tableName: "ProjectNodeTemplateSelection").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
-                    else { Text("projectStoryTemplate.scope").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+                    if nodeSelection { Text("projectNodeTemplate.scope", tableName: "ProjectNodeTemplateSelection").font(.footnote).foregroundStyle(.secondary) }
+                    else { Text("projectStoryTemplate.scope").font(.footnote).foregroundStyle(.secondary) }
                 }
                 if let review = controller.review {
                     Section("projectStoryTemplate.previewTitle") {
-                        Text(verbatim: review.source.row.title).cyText(.sectionTitle).accessibilityAddTraits(.isHeader).accessibilityIdentifier("projectStoryTemplate.preview.title")
+                        Text(verbatim: review.source.row.title).font(.headline).accessibilityAddTraits(.isHeader).accessibilityIdentifier("projectStoryTemplate.preview.title")
                         Group {
                             if nodeSelection { ProjectStoryTemplatePreview(source: review.source, nodeSelection: true) }
                             else { ProjectStoryTemplatePreview(source: review.source) }
                         }.accessibilityElement(children: .contain).accessibilityIdentifier("projectStoryTemplate.preview")
                     }
                     Section {
-                        CYPillButton(nodeSelection ? "projectNodeTemplate.apply" : "projectStoryTemplate.apply", tableName: nodeSelection ? "ProjectNodeTemplateSelection" : nil) { _ = controller.apply(review, original: original) }
-                            .disabled(controller.busy || !controller.isCurrent(original))
-                            .accessibilityIdentifier("projectStoryTemplate.apply").e1ActionRow()
-                        CYPillButton("projectStoryTemplate.back", style: .tertiary) { controller.back(original) }
-                            .disabled(controller.busy).accessibilityIdentifier("projectStoryTemplate.back").e1ActionRow()
+                        Button { _ = controller.apply(review, original: original) } label: {
+                            Text(LocalizedStringKey(nodeSelection ? "projectNodeTemplate.apply" : "projectStoryTemplate.apply"), tableName: nodeSelection ? "ProjectNodeTemplateSelection" : nil)
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+                        .disabled(controller.busy || !controller.isCurrent(original))
+                        .accessibilityIdentifier("projectStoryTemplate.apply")
+                        Button("projectStoryTemplate.back") { controller.back(original) }
+                            .disabled(controller.busy).accessibilityIdentifier("projectStoryTemplate.back")
                     }
                 } else {
                     Section {
-                        CYPillButton("projectStoryTemplate.refresh", style: .secondary, systemImage: "arrow.clockwise") { _ = controller.refresh(original) }
-                            .disabled(controller.busy).accessibilityIdentifier("projectStoryTemplate.refresh").e1ActionRow()
+                        Button { _ = controller.refresh(original) } label: {
+                            Label("projectStoryTemplate.refresh", systemImage: "arrow.clockwise")
+                        }
+                        .disabled(controller.busy).accessibilityIdentifier("projectStoryTemplate.refresh")
                         ForEach(controller.rows) { row in
                             Button { _ = controller.select(row, original: original) } label: {
-                                CYListRow(verbatim: row.title, meta: String(row.id.rawValue)) { CYRowIcon(systemImage: "text.book.closed") }
+                                Label {
+                                    Text(verbatim: row.title)
+                                    Text(verbatim: String(row.id.rawValue))
+                                } icon: {
+                                    Image(systemName: "text.book.closed")
+                                }
                             }.disabled(controller.busy).accessibilityIdentifier("projectStoryTemplate.row.\(row.id.rawValue)")
                         }
-                        if controller.state == .ready && controller.rows.isEmpty { CYEmptyState(systemImage: "text.book.closed", "projectStoryTemplate.empty").listRowBackground(Color.clear) }
+                        if controller.state == .ready && controller.rows.isEmpty { ContentUnavailableView("projectStoryTemplate.empty", systemImage: "text.book.closed") }
                         if controller.nextPage != nil {
-                            CYPillButton("projectStoryTemplate.more", style: .secondary) { _ = controller.loadMore(original) }
-                                .disabled(controller.busy).accessibilityIdentifier("projectStoryTemplate.more").e1ActionRow()
+                            Button("projectStoryTemplate.more") { _ = controller.loadMore(original) }
+                                .disabled(controller.busy).accessibilityIdentifier("projectStoryTemplate.more")
                         }
                     }
                 }
                 if nodeSelection && controller.state == .unsupported { Text("projectNodeTemplate.unsupported", tableName: "ProjectNodeTemplateSelection") }
-                if controller.busy { CYSkeletonBlock(height: 18).accessibilityLabel(Text("cy.state.loading")).accessibilityIdentifier("projectStoryTemplate.busy") }
+                if controller.busy {
+                    HStack { Spacer(); ProgressView(); Spacer() }
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(Text("cy.state.loading")).accessibilityIdentifier("projectStoryTemplate.busy")
+                }
                 if [.failed, .changed, .saveFailed].contains(controller.state) {
                     Text(LocalizedStringKey("projectStoryTemplate." + controller.state.rawValue))
                         .accessibilityIdentifier("projectStoryTemplate.status")
                 }
-            }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
+            }
+            .formStyle(.grouped)
+            .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .cancellationAction) {
                     Button("projectStoryTemplate.close") { controller.close(original) }
                         .accessibilityIdentifier("projectStoryTemplate.close")

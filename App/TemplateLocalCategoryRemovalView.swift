@@ -64,7 +64,6 @@ import Combine
     }
     var body: some View {
         Form {
-            Section { CYHeroHeader("templateLocalCategories.title", subtitle: "templateLocalCategories.scope", tableName: "TemplateLocalCategoryRemoval") }.e1HeroRow()
             if controller.canRead {
                 Section {
                     if let raw = controller.visibleRaw {
@@ -76,10 +75,10 @@ import Combine
                     } else if controller.visibleIDs.isEmpty {
                         Text("templateLocalCategories.empty", tableName: "TemplateLocalCategoryRemoval")
                     }
-                }
+                } header: { Text("templateLocalCategories.scope", tableName: "TemplateLocalCategoryRemoval") }
                 ForEach(controller.visibleIDs, id: \.self) { id in
                     HStack {
-                        Text(verbatim: "#" + String(id)).cyText(.numericBody)
+                        Text(verbatim: "#" + String(id)).monospacedDigit()
                         Spacer()
                         Button(action: controller.removeAction(id)) {
                             Text("templateLocalCategories.remove", tableName: "TemplateLocalCategoryRemoval")
@@ -92,13 +91,17 @@ import Combine
             } else {
                 Section {
                     Text("templateLocalCategories.changed", tableName: "TemplateLocalCategoryRemoval")
-                    CYPillButton("templateLocalCategories.reload", style: .secondary, systemImage: "arrow.clockwise", tableName: "TemplateLocalCategoryRemoval", action: controller.reload)
+                    Button(action: controller.reload) {
+                        Label { Text("templateLocalCategories.reload", tableName: "TemplateLocalCategoryRemoval") } icon: { Image(systemName: "arrow.clockwise") }
+                    }
                         .disabled(!controller.canReload)
-                        .accessibilityIdentifier("templateLocalCategories.reload").e1ActionRow()
-                }
+                        .accessibilityIdentifier("templateLocalCategories.reload")
+                } header: { Text("templateLocalCategories.scope", tableName: "TemplateLocalCategoryRemoval") }
             }
         }
-        .formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
+        .formStyle(.grouped)
+        .navigationTitle(Text("templateLocalCategories.title", tableName: "TemplateLocalCategoryRemoval"))
+        .navigationBarTitleDisplayMode(.inline)
         .onAppear { controller.viewAppeared(sceneIsActive: scenePhase == .active) }
         .onDisappear { controller.viewDisappeared() }
         .onChange(of: scenePhase) { _, phase in controller.sceneChanged(isActive: phase == .active) }

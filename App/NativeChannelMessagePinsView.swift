@@ -15,24 +15,18 @@ import SwiftUI
     var locateOriginal: ((NativeChannelMessageID) -> Void)?
     var body: some View {
         List {
-            Section {
-                CYHeroHeader("pins.title", tableName: "NativeChannelMessage")
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-            }
-            if coordinator.pins.loading { stateRow { loading } }
+            if coordinator.pins.loading { loading }
             else if !coordinator.pins.isCurrent {
-                stateRow { CYEmptyState(systemImage: "lock", "access.closed", tableName: "NativeChannelMessage") }
+                unavailable("access.closed", systemImage: "lock")
             }
             else {
                 if coordinator.pins.rows.isEmpty && !coordinator.pins.failed {
-                    stateRow { CYEmptyState(systemImage: "pin", "pins.empty", tableName: "NativeChannelMessage") }
+                    unavailable("pins.empty", systemImage: "pin")
                 }
                 ForEach(coordinator.pins.rows) { pin in
                     Button { if coordinator.pins.isCurrent { locateOriginal?(pin.message_id) } } label: {
-                        CYListRow(verbatim: pin.summary, trailing: .none) { CYRowIcon(systemImage: "pin.fill") }
+                        Label { Text(verbatim: pin.summary).foregroundStyle(.primary) } icon: { Image(systemName: "pin.fill") }
                     }
-                    .buttonStyle(.plain)
                     .disabled(locateOriginal == nil)
                     .accessibilityLabel(Text(verbatim: shown(pin.summary)))
                     .accessibilityIdentifier("ncm47.pin.\(pin.id.rawValue)")
@@ -47,28 +41,27 @@ import SwiftUI
             }
             if selecting {
                 ProgressView(copy.text("p23.selecting"))
-                    .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                    .frame(maxWidth: .infinity)
                     .accessibilityLabel(Text(verbatim: copy.text("p23.selecting")))
             }
             if coordinator.pins.failed {
                 Section {
                     if coordinator.pins.rows.isEmpty {
-                        CYEmptyState(systemImage: "exclamationmark.triangle", "load.failed", tableName: "NativeChannelMessage", kind: .failure)
-                            .listRowBackground(Color.clear)
+                        ContentUnavailableView {
+                            Label { Text("load.failed", tableName: "NativeChannelMessage") } icon: { Image(systemName: "exclamationmark.triangle") }
+                        }
                     } else {
-                        CYNoteBanner(text: Text("load.failed", tableName: "NativeChannelMessage"), symbol: "exclamationmark.triangle", tone: .danger)
+                        Label { Text("load.failed", tableName: "NativeChannelMessage") } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.red) }
                     }
-                    CYPillButton(verbatim: copy.text("p23.reload"), style: .secondary) { reload() }
+                    Button(copy.text("p23.reload")) { reload() }
                         .disabled(!coordinator.pins.isCurrent || phase != .active)
                         .accessibilityLabel(Text(verbatim: copy.text("p23.reload")))
-                        .listRowBackground(Color.clear)
                 }
             }
             NativeChannelMessageRecoveryView(coordinator: coordinator)
         }
         .nativeChannelScreen().listStyle(.insetGrouped)
-        .cyGroupedSurface()
-        .cyHeroScreen()
+        .navigationTitle(Text("pins.title", tableName: "NativeChannelMessage"))
         .toolbar {
             ToolbarItem(placement: .cancellationAction) { Button("action.done") { dismiss() } }
             if coordinator.client.allows(.mutate(.sort)) {
@@ -89,31 +82,16 @@ import SwiftUI
             }
         }
         .refreshable { await coordinator.pins.reload() }
-        .sheet(item: $pinSelection) { selection in
-            CYConfirmSheet(
-                title: copy.text("p23.confirm.title"),
-                message: "",
-                confirmTitle: copy.text("p23.confirm.action"),
-                cancelTitle: copy.text("p23.cancel"),
-                isDestructive: true,
-                confirmDisabled: !coordinator.canStart || !selectionIsCurrent(selection),
-                onCancel: { pinSelection = nil }
-            ) {
-                confirmRemoval(selection)
-            }
-            .cyDomainSheet(detents: [.peek, .half])
+        .confirmationDialog(copy.text("p23.confirm.title"),
+                            isPresented: Binding(get: { pinSelection != nil }, set: { shown in if !shown { pinSelection = nil } }),
+                            titleVisibility: .visible, presenting: pinSelection) { selection in
+            // confirmRemoval re-checks canStart and the current selection, so a stale tap only reports the change.
+            Button(copy.text("p23.confirm.action"), role: .destructive) { confirmRemoval(selection) }
+                .disabled(!coordinator.canStart || !selectionIsCurrent(selection))
+            Button(copy.text("p23.cancel"), role: .cancel) { pinSelection = nil }
         }
-        .overlay {
-            if localIssue {
-                CYModal(
-                    title: copy.text("p23.changed"),
-                    message: "",
-                    cancelTitle: nil,
-                    confirmTitle: copy.text("p23.ok"),
-                    onCancel: { localIssue = false },
-                    onConfirm: { localIssue = false }
-                )
-            }
+        .alert(copy.text("p23.changed"), isPresented: $localIssue) {
+            Button(copy.text("p23.ok")) { localIssue = false }
         }
         .onChange(of: coordinator.pins.isCurrent) { _, current in if !current { retireRead() } }
         .onChange(of: coordinator.client.allows(.receipt)) { _, allowed in
@@ -126,12 +104,15 @@ import SwiftUI
         .privacySensitive()
     }
     private var loading: some View {
-        CYSkeleton()
+        ProgressView()
+            .frame(maxWidth: .infinity)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text("cy.state.loading"))
     }
-    private func stateRow<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
-        content().listRowBackground(Color.clear).listRowSeparator(.hidden)
+    private func unavailable(_ key: String, systemImage: String) -> some View {
+        ContentUnavailableView {
+            Label { Text(LocalizedStringKey(key), tableName: "NativeChannelMessage") } icon: { Image(systemName: systemImage) }
+        }
     }
     /// Blank pin text is unknown. A real summary, including "0", stays.
     private func shown(_ value: String) -> String {

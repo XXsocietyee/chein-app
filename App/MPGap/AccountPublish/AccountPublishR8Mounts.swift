@@ -65,7 +65,7 @@ private struct TeamApplicantsEnvelope: Decodable {
     var body: some View {
         Group {
             if !hidden {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                VStack(alignment: .leading) {
                     TeamDetailGapApplicantsSection(
                         state: state,
                         teamID: teamID,
@@ -394,11 +394,16 @@ enum ProjectEditLook {
     var body: some View {
         if read.failed {
             Section {
-                CYEmptyState(systemImage: "exclamationmark.triangle", "fixr8.activity.organizerFailed",
-                             detail: "fixr8.activity.organizerFailedDetail", actionTitle: "重试",
-                             actionIdentifier: "activityPublish.organizer.retry", kind: .failure,
-                             action: { Task { await read.load() } })
-                    .disabled(read.loading)
+                ContentUnavailableView {
+                    Label("fixr8.activity.organizerFailed", systemImage: "exclamationmark.triangle")
+                } description: {
+                    Text("fixr8.activity.organizerFailedDetail")
+                } actions: {
+                    Button("重试") { Task { await read.load() } }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("activityPublish.organizer.retry")
+                }
+                .disabled(read.loading)
             }
         }
     }
@@ -414,15 +419,14 @@ enum ProjectEditLook {
     enum Phase: Equatable { case idle, saving, saved, failed }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+        VStack(alignment: .leading) {
             TeamDetailGapSaveInviteImageRow { save() }
                 .disabled(phase == .saving)
-                .frame(minHeight: 44)
                 .accessibilityIdentifier("team.invite.saveImage")
             switch phase {
             case .saving: ProgressView().controlSize(.small)
-            case .saved: Text("fixr8.team.saveImage.saved").cyText(.meta).foregroundStyle(CYColor.successText)
-            case .failed: Text("fixr8.team.saveImage.failed").cyText(.meta).foregroundStyle(CYColor.dangerText)
+            case .saved: Text("fixr8.team.saveImage.saved").font(.footnote).foregroundStyle(.green)
+            case .failed: Text("fixr8.team.saveImage.failed").font(.footnote).foregroundStyle(.red)
             case .idle: EmptyView()
             }
         }
@@ -475,21 +479,34 @@ enum ProjectEditLook {
         List {
             switch state {
             case .loading:
-                CYLoadingState("fixr8.settings.identityPicker.loading", messageIdentifier: "settings.identityPicker.loading")
+                HStack {
+                    Text("fixr8.settings.identityPicker.loading")
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    ProgressView()
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("settings.identityPicker.loading")
             case .signedOut:
-                CYEmptyState(systemImage: "person.crop.circle", "fixr8.settings.identityPicker.signedOut")
+                ContentUnavailableView("fixr8.settings.identityPicker.signedOut", systemImage: "person.crop.circle")
             case .denied:
-                CYEmptyState(systemImage: "lock", verbatimTitle: SettingsAccountProfileClient.deniedCopy)
+                ContentUnavailableView {
+                    Label { Text(verbatim: SettingsAccountProfileClient.deniedCopy) } icon: { Image(systemName: "lock") }
+                }
             case .failed:
-                CYEmptyState(systemImage: "exclamationmark.triangle", "fixr8.settings.identityPicker.failed",
-                             actionTitle: "重试", actionIdentifier: "settings.identityPicker.retry", kind: .failure,
-                             action: { Task { await load() } })
+                ContentUnavailableView {
+                    Label("fixr8.settings.identityPicker.failed", systemImage: "exclamationmark.triangle")
+                } actions: {
+                    Button("重试") { Task { await load() } }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("settings.identityPicker.retry")
+                }
             case .ready:
                 if let profile, SettingsIdentityApplications.isOffered(toRole: profile.role, isClubLeader: profile.isClubLeader) {
                     SettingsIdentityApplicationEntries(session: session, profile: profile)
                         .environment(\.settingsTileTint, SettingsTint.orange)
                 } else {
-                    CYEmptyState(systemImage: "checkmark.seal", "fixr8.settings.identityPicker.none")
+                    ContentUnavailableView("fixr8.settings.identityPicker.none", systemImage: "checkmark.seal")
                 }
             }
         }
@@ -570,32 +587,31 @@ struct TemplateIntroFloatingCover: ViewModifier {
     }
 
     private func row(_ post: AccountPublishMPContract.ClubFeedPost) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            HStack(spacing: CYSpacing.xs) {
+        VStack(alignment: .leading) {
+            HStack {
                 Label("fixr8.profile.clubPost", systemImage: "person.3").labelStyle(.titleAndIcon)
-                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    .font(.subheadline).foregroundStyle(.secondary)
                 Spacer()
                 if !post.formattedCreateTime.isEmpty {
-                    Text(verbatim: post.formattedCreateTime).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: post.formattedCreateTime).font(.subheadline).foregroundStyle(.tertiary)
                 }
             }
             if !post.content.isEmpty {
-                Text(verbatim: post.content).cyText(.body).foregroundStyle(CYColor.textPrimary).lineLimit(4)
+                Text(verbatim: post.content).font(.body).foregroundStyle(.primary).lineLimit(4)
             }
             if !post.images.isEmpty {
-                HStack(spacing: CYSpacing.xs) {
+                HStack {
                     ForEach(Array(post.images.prefix(3).enumerated()), id: \.offset) { _, raw in
                         if let url = URL(string: raw), url.scheme == "https" {
-                            AsyncImage(url: url) { $0.resizable().scaledToFill() } placeholder: { CYColor.bgSurfaceSubtle }
+                            AsyncImage(url: url) { $0.resizable().scaledToFill() } placeholder: { ProgressView() }
                                 .frame(width: 72, height: 72)
-                                .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                                .clipped()
                                 .accessibilityHidden(true)
                         }
                     }
                 }
             }
         }
-        .padding(.vertical, CYSpacing.xs)
         .accessibilityElement(children: .combine)
     }
 

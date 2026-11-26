@@ -21,24 +21,13 @@ import SwiftUI
                 SocialMessageMediaView(message: snapshot.message, reader: reader, expectedIdentity: expectedIdentity,
                     isMessageCurrent: { current })
             } else {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                        CYHeroHeader("attachment.open", tableName: "NativeChannelMessage") {
-                            Color.clear
-                                .aspectRatio(16.0 / 10.0, contentMode: .fit)
-                                .overlay { CYCoverArt(seed: snapshot.id.rawValue, symbol: "doc") }
-                                .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-                        }
-                        CYEmptyState(systemImage: "doc.badge.ellipsis", "attachment.sourceRequired", tableName: "NativeChannelMessage")
-                    }
-                    .padding(.horizontal, CYSpacing.pageHorizontal)
-                    .padding(.bottom, CYSpacing.xl)
+                ContentUnavailableView {
+                    Label { Text("attachment.sourceRequired", tableName: "NativeChannelMessage") } icon: { Image(systemName: "doc.badge.ellipsis") }
                 }
-                .cyHeroScreen()
+                .navigationTitle(Text("attachment.open", tableName: "NativeChannelMessage"))
             }
         }
         .nativeChannelScreen()
-        .background(CYColor.bgPage.ignoresSafeArea())
         .privacySensitive()
         .accessibilityIdentifier("ncm47.attachment")
     }

@@ -3,13 +3,13 @@ import SwiftUI
 // D3 presentation pieces shared by the orders, tickets and coupons screens.
 // Built only from CY tokens; candidates to fold into the design kit once it exists.
 
-/// Revolut-style borderless card: `bgElevated` fill with dark inner top highlight / light soft shadow.
+/// Native r2: no card chrome. Content keeps its padding and full width; the list or form around it draws the grouping.
 struct OrderCardSurface: ViewModifier {
     var padding: CGFloat = CYSpacing.lg
     func body(content: Content) -> some View {
         content
+            .padding(padding)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .cyDomainCard(radius: CYRadius.card, padding: padding)
     }
 }
 
@@ -24,12 +24,9 @@ struct OrderStatusChip: View {
     var emphasized = false
     @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
-        Label { Text(title).cyWrapText() } icon: { Image(systemName: systemImage).accessibilityHidden(true) }
-            .cyText(.caption, weight: .semibold)
-            .foregroundStyle(emphasized ? CYColor.textPrimary : CYColor.textSecondary)
-            .padding(.horizontal, CYSpacing.md)
-            .padding(.vertical, CYSpacing.xs + 2)
-            .background(emphasized ? CYColor.bgRaised : CYColor.bgSurfaceSubtle, in: Capsule(style: .continuous))
+        Label { Text(title) } icon: { Image(systemName: systemImage).accessibilityHidden(true) }
+            .font(.footnote)
+            .foregroundStyle(emphasized ? Color.primary : Color.secondary)
             .fixedSize(horizontal: false, vertical: true)
             .layoutPriority(1)
             .accessibilityElement(children: .combine)
@@ -53,14 +50,14 @@ struct OrderCoverTile: View {
             } else { placeholder }
         }
         .frame(width: size, height: size)
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
+        .clipped()
         .accessibilityHidden(true)
     }
     @ViewBuilder private var placeholder: some View {
         if let fallback {
             fallback.resizable().scaledToFit().padding(size * 0.18)
                 .frame(width: size, height: size)
-                .background(CYColor.bgSurfaceStrong)
+                .background(.quaternary)
         } else {
             E1CoverArt(seed: seed.isEmpty ? systemImage : seed, symbol: systemImage, debugLabel: false)
         }
@@ -74,16 +71,13 @@ struct OrderPillLabel: View {
     var fullWidth = false
     @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
-        HStack(spacing: CYSpacing.xs) {
+        HStack {
             if let systemImage { Image(systemName: systemImage).accessibilityHidden(true) }
-            title.cyWrapText(alignment: .center)
+            title.multilineTextAlignment(.center)
         }
-        .cyText(.label)
-        .foregroundStyle(CYColor.textOnAccent)
-        .padding(.horizontal, CYSpacing.xl)
-        .padding(.vertical, CYSpacing.xs)
+        .font(.body.weight(.semibold))
+        .foregroundStyle(.tint)
         .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: CYSpacing.minTouchTarget)
-        .background(CYColor.actionPrimaryBg, in: Capsule(style: .continuous))
     }
 }
 
@@ -93,16 +87,16 @@ struct OrderFilterPill: View {
     let isSelected: Bool
     let choose: () -> Void
     var body: some View {
-        Button(action: choose) {
-            Text(title)
-                .cyText(.label)
-                .foregroundStyle(isSelected ? CYColor.textOnAccent : CYColor.textPrimary)
-                .padding(.horizontal, CYSpacing.lg)
-                .frame(minHeight: CYSpacing.minTouchTarget)
-                .background(isSelected ? CYColor.actionPrimaryBg : CYColor.bgElevated, in: Capsule(style: .continuous))
-                .contentShape(Capsule(style: .continuous))
+        Group {
+            if isSelected {
+                Button(action: choose) { Text(title) }
+                    .buttonStyle(.borderedProminent)
+            } else {
+                Button(action: choose) { Text(title) }
+                    .buttonStyle(.bordered)
+            }
         }
-        .buttonStyle(.plain)
+        .buttonBorderShape(.capsule)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
@@ -121,16 +115,16 @@ struct OrderAmountHero: View {
         return formatter.string(from: NSDecimalNumber(decimal: amount)) ?? "—"
     }
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(label).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+        VStack(alignment: .leading) {
+            Text(label).font(.subheadline).foregroundStyle(.secondary)
             Text(verbatim: figure)
-                .cyText(.data2XL)
-                .foregroundStyle(CYColor.textPrimary)
-                .cyWrapText()
+                .font(.largeTitle.bold())
+                .monospacedDigit()
+                .foregroundStyle(.primary)
                 .privacySensitive()
             if amount != nil, showsCurrencyCaveat {
                 Text(verbatim: appLocalized("activity.currencyUnconfirmed", locale: locale))
-                    .cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                    .font(.caption).foregroundStyle(.tertiary)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -144,14 +138,11 @@ struct OrderValueRow: View {
     let value: String
     @Environment(\.dynamicTypeSize) private var size
     var body: some View {
-        let layout = size.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.xs))
-                                              : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: CYSpacing.md))
-        layout {
-            Text(label).cyText(.meta).foregroundStyle(CYColor.textSecondary)
-            if size.isAccessibilitySize == false { Spacer(minLength: CYSpacing.sm) }
-            Text(verbatim: value).cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary)
+        LabeledContent {
+            Text(verbatim: value)
                 .multilineTextAlignment(size.isAccessibilitySize ? .leading : .trailing)
-                .fixedSize(horizontal: false, vertical: true)
+        } label: {
+            Text(label)
         }
         .accessibilityElement(children: .combine)
     }

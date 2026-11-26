@@ -61,7 +61,7 @@ import SwiftUI
                                     TextField(text:$deleteMessageSeconds,prompt:Text(verbatim:"0")) { Text("d7.channelModeration.deleteMessages") }
                                         .keyboardType(.numberPad).multilineTextAlignment(.trailing)
                                 }
-                                Text("d7.channelModeration.deleteWarning").foregroundStyle(CYColor.dangerText).fixedSize(horizontal:false,vertical:true)
+                                Text("d7.channelModeration.deleteWarning").foregroundStyle(.red).fixedSize(horizontal:false,vertical:true)
                             }
                             Picker("d7.channelModeration.reasonType",selection:$reasonCode) {
                                 Text("d7.channelModeration.reason.NOISE").tag("NOISE")
@@ -70,7 +70,7 @@ import SwiftUI
                                 }
                             }
                             TextField("d7.channelModeration.details",text:$reason,axis:.vertical).lineLimit(3...7)
-                            if invalidDraft { Text("d7.channelModeration.invalid").foregroundStyle(CYColor.dangerText).fixedSize(horizontal:false,vertical:true) }
+                            if invalidDraft { Text("d7.channelModeration.invalid").foregroundStyle(.red).fixedSize(horizontal:false,vertical:true) }
                         }
                         Section {
                             Button("d7.channelModeration.review") {
@@ -91,7 +91,7 @@ import SwiftUI
                         ForEach(flow.actions) { action in
                             VStack(alignment:.leading,spacing:Theme.Space.s1) {
                                 HStack(alignment:.firstTextBaseline) {
-                                    typeText(action.type).cyText(.sectionTitle)
+                                    typeText(action.type).font(.headline)
                                     Spacer(minLength:Theme.Space.s2)
                                     statusText(action.status).font(.subheadline).foregroundStyle(.secondary)
                                 }
@@ -113,17 +113,11 @@ import SwiftUI
                     }
                 }
                 .refreshable { await flow.refresh() }
-                .sheet(isPresented: $retryConfirmation) {
-                    CYConfirmSheet(
-                        title: appLocalized("d7.channelModeration.retryTitle", locale: locale),
-                        message: "",
-                        confirmTitle: appLocalized("d7.channelModeration.retry", locale: locale),
-                        cancelTitle: appLocalized("d7.channelModeration.cancel", locale: locale),
-                        isDestructive: true
-                    ) {
+                .confirmationDialog(appLocalized("d7.channelModeration.retryTitle", locale: locale), isPresented: $retryConfirmation, titleVisibility: .visible) {
+                    Button(appLocalized("d7.channelModeration.retry", locale: locale), role: .destructive) {
                         Task { await flow.retryOriginal() }
                     }
-                    .cyDomainSheet(detents: [.peek, .half])
+                    Button(appLocalized("d7.channelModeration.cancel", locale: locale), role: .cancel) {}
                 }
             } else if unavailable {
                 ContentUnavailableView {
@@ -136,7 +130,6 @@ import SwiftUI
             }
         }
         .nativeChannelFlowPage()
-        .cyGroupedSurface()
         .navigationTitle("d7.channelModeration.title").navigationBarTitleDisplayMode(.inline)
         .task { await open() }
         .task {

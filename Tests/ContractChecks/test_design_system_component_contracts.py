@@ -62,6 +62,12 @@ RAW_COLOR_ALLOWLIST: dict[str, int] = {
     "App/PrivateHomeMapPicker.swift": 1,
     "App/PrivateHomeView.swift": 1,
     "App/ProfileCurrentMediaPreview.swift": 1,
+    # native r2: semantic UIKit system colours (no raw RGB/hex) prescribed by the native conversion brief.
+    "App/ProjectEditExitGuard.swift": 1,  # secondarySystemGroupedBackground under the inset exit bar
+    "App/PublishingContextHandoffViews.swift": 1,  # systemGroupedBackground canvas
+    "App/TemplateAuthoringCoverHeader.swift": 1,  # secondarySystemFill cover placeholder
+    "App/TemplateAuthoringMineView.swift": 1,  # secondarySystemFill cover placeholder
+    "App/TemplateDetailXbChrome.swift": 1,  # tertiarySystemFill capsule
     "App/ProjectChapterAtmosphereFields.swift": 1,
     "App/QuestifyImageEntityCard.swift": 1,
     "App/QuestifyMotionComponents.swift": 3,

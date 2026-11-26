@@ -30,10 +30,12 @@ import SwiftUI
     var body: some View {
         let offeredPresentation = model.presentation
         List {
-            if reader.isOfflineExample { Text("ticketWallet.offlineExample").cyText(.caption) }
+            if reader.isOfflineExample { Text("ticketWallet.offlineExample").font(.footnote).foregroundStyle(.secondary) }
             if !reader.isAuthenticated { TicketWalletIssueView(issue: .login) }
             else if !reader.isConfigured { TicketWalletIssueView(issue: .notConfigured) }
-            else if model.isLoading || model.loadedOwner != key { CYSkeleton().listRowBackground(Color.clear).accessibilityLabel(Text("ticketWallet.loading")) }
+            else if model.isLoading || model.loadedOwner != key {
+                ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("ticketWallet.loading"))
+            }
             else if let issue = model.issue(owner: key) {
                 TicketWalletIssueView(issue: issue, retry: { schedule(offeredPresentation) })
             } else if let ticket = model.value(owner: key), ticket.id == id {
@@ -43,19 +45,22 @@ import SwiftUI
                         .questifyCardListRow()
                     if ticket.showsSharedParty, let party = ticket.party {
                         Text("ticketWallet.party.share \(party.adultCount) \(party.childCount)")
-                            .cyText(.bodyCompact)
                             .accessibilityIdentifier("ticketWallet.party.\(ticket.id)")
                     }
                     if let progress = ticket.exploreProgress {
                         Text("ticketWallet.explore.redeemed \(progress.redeemed) \(progress.required)")
-                            .cyText(.bodyCompact)
                             .accessibilityIdentifier("ticketWallet.explore.\(ticket.id)")
                     }
                     if allowsOwnerActions(ticket) {
                         if ticket.status == .ready && ticket.clearedFlag != true && !ticket.isWalletLocked {
                             // MP: a cleared ticket shows no entry code (PLY-21-4); a locked one cannot be presented yet.
                             // The pass holder's one primary action. Staff verify; the real code only comes from the injected factory.
-                            CYPillButton(verbatim: c.t("出示票券", "Present pass"), systemImage: "qrcode") { presenting = true }
+                            Button(action: { presenting = true }) {
+                                Label { Text(verbatim: c.t("出示票券", "Present pass")) } icon: { Image(systemName: "qrcode") }
+                                    .frame(maxWidth: .infinity)
+                            }
+                                .buttonStyle(.borderedProminent)
+                                .controlSize(.large)
                                 .accessibilityIdentifier("ticketWallet.present.open")
                                 .listRowBackground(Color.clear).listRowSeparator(.hidden)
                         }
@@ -77,8 +82,8 @@ import SwiftUI
                             schedule(permit, confirmPlay: true)
                         } label: {
                             // PLY-21-4: MP signup wxml:103-105 labels a cleared ticket 查看记录.
-                            if ticket.clearedFlag == true { Label { Text(verbatim: c.t("查看记录", "View record")) } icon: { TicketWalletPlayGlyph() } }
-                            else { Label { Text("playerJourney.start") } icon: { TicketWalletPlayGlyph() } }
+                            if ticket.clearedFlag == true { Label { Text(verbatim: c.t("查看记录", "View record")) } icon: { TicketWalletPlayGlyph() }.frame(maxWidth: .infinity) }
+                            else { Label { Text("playerJourney.start") } icon: { TicketWalletPlayGlyph() }.frame(maxWidth: .infinity) }
                         }
                         .modifier(TicketWalletPlayButtonStyle(secondary: ticket.status == .ready))
                         .listRowBackground(Color.clear)
@@ -106,7 +111,7 @@ import SwiftUI
                     Section("ticketWallet.entitlements") {
                         LabeledContent("ticketWallet.pendingChapters", value: String(ticket.pendingCount))
                             .accessibilityIdentifier("ticketWallet.pendingChapters")
-                        if ticket.hasUnknownEntitlementStatus { Text("ticketWallet.unknownEntitlementStatus").cyText(.meta) }
+                        if ticket.hasUnknownEntitlementStatus { Text("ticketWallet.unknownEntitlementStatus").font(.footnote).foregroundStyle(.secondary) }
                         ForEach(Array(ticket.entitlements.enumerated()), id: \.offset) { _, entitlement in
                             TicketWalletEntitlementRow(entitlement: entitlement)
                                 .accessibilityIdentifier("ticketWallet.entitlement.\(entitlement.id)")
@@ -129,8 +134,6 @@ import SwiftUI
             }
         }
         .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
-        .listSectionSpacing(20)
         .appNavigationTitle("ticketWallet.detail")
         .navigationBarTitleDisplayMode(.inline)
         .cyHideTabBar()
@@ -269,7 +272,7 @@ extension TicketWalletTicket {
 private struct TicketWalletPlayButtonStyle: ViewModifier {
     let secondary: Bool
     @ViewBuilder func body(content: Content) -> some View {
-        if secondary { content.buttonStyle(.cySecondary(fullWidth: true)) } else { content.buttonStyle(.cyPrimary(fullWidth: true)) }
+        if secondary { content.buttonStyle(.bordered).controlSize(.large) } else { content.buttonStyle(.borderedProminent).controlSize(.large) }
     }
 }
 
@@ -400,15 +403,15 @@ private struct TicketWalletEntitlementRow: View {
                     else if let id = entitlement.chapterID { Text("ticketWallet.chapter"); Text(verbatim: String(id)) }
                     else { Text("ticketWallet.unnamedChapter") }
                 }
-                .cyText(.cardTitle).fixedSize(horizontal: false, vertical: true)
+                .font(.body).fixedSize(horizontal: false, vertical: true)
                 if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
                 // B-21 (FE-G6): MP order-detail wxml:278 prints `statusLabel || ''`, so an empty server label shows no text.
                 // The glyph stays and carries the local state name for VoiceOver, so the state is never colour or shape alone.
                 if let label = entitlement.displayStatusLabel {
                     Label { Text(verbatim: label) } icon: { Image(systemName: symbol).accessibilityHidden(true) }
-                        .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                        .font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 } else {
-                    Image(systemName: symbol).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                    Image(systemName: symbol).font(.subheadline).foregroundStyle(.secondary)
                         .accessibilityLabel(Text(LocalizedStringKey("ticketWallet.entitlementStatus." + entitlement.statusKey)))
                 }
             }
@@ -416,7 +419,7 @@ private struct TicketWalletEntitlementRow: View {
             // and the free-explore catalog, never on the ticket-wallet entitlement, so the row could never render.
             TicketWalletOptionalField(label: "ticketWallet.redeemedAt", value: entitlement.redeemedAt).font(.caption)
             if let reason = entitlement.invalidReason, !reason.isEmpty {
-                Text(verbatim: reason).font(.caption).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: reason).font(.caption).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }.padding(.vertical, 6)

@@ -140,62 +140,59 @@ public struct ClubAccessAndSettlementSectionView: View {
     }
 
     public var body: some View {
+        GroupBox {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: "Club Access, Governance & w2-16 Settlement Parity")
-                    .cyText(.cardTitle)
+                    .font(.headline)
                     .accessibilityIdentifier("clubAccessSettlement.title")
                 Spacer()
                 Text(verbatim: statusBadgeText)
-                    .cyText(.meta, weight: .semibold)
-                    .foregroundStyle(snapshot.isAllScopedAndFailClosed ? CYColor.successText : CYColor.warningText)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(snapshot.isAllScopedAndFailClosed ? Color.green : Color.orange)
                     .accessibilityIdentifier("clubAccessSettlement.statusBadge")
             }
 
             Text(verbatim: accessMeRouteSummaryText)
                 .font(.footnote.monospaced())
-                .foregroundStyle(snapshot.accessMeUsesPOSTJSON ? Color.secondary : CYColor.dangerText)
+                .foregroundStyle(snapshot.accessMeUsesPOSTJSON ? Color.secondary : Color.red)
                 .accessibilityIdentifier("clubAccessSettlement.accessMeRouteSummary")
 
             Text(verbatim: governanceSummaryText)
-                .cyText(.bodyCompact)
-                .foregroundStyle(snapshot.governanceRoleVerified ? Color.secondary : CYColor.dangerText)
+                .font(.subheadline)
+                .foregroundStyle(snapshot.governanceRoleVerified ? Color.secondary : Color.red)
                 .accessibilityIdentifier("clubAccessSettlement.governanceSummary")
 
             Text(verbatim: settlementParitySummaryText)
                 .font(.footnote.monospaced())
-                .foregroundStyle(snapshot.liveSettlementPayoutEnabled ? CYColor.dangerText : Color.secondary)
+                .foregroundStyle(snapshot.liveSettlementPayoutEnabled ? Color.red : Color.secondary)
                 .accessibilityIdentifier("clubAccessSettlement.settlementParitySummary")
 
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(snapshot.rows) { row in
+                    Divider()
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(alignment: .firstTextBaseline) {
                             Text(verbatim: "[\(row.code)] \(row.title)")
-                                .cyText(.bodyMedium)
+                                .font(.body.weight(.medium))
                             Spacer()
                             Text(verbatim: row.statusBadgeText)
                                 .font(.caption.monospaced())
                                 .foregroundStyle(
                                     (row.isPermissionScoped && !row.liveMutationOrPayoutEnabled)
-                                        ? CYColor.successText
-                                        : CYColor.warningText
+                                        ? Color.green
+                                        : Color.orange
                                 )
                         }
                         Text(verbatim: row.contractDetail)
-                            .cyText(.meta)
+                            .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
-                    .padding(8)
-                    .background(CYColor.bgRaised)
-                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                 }
             }
             .accessibilityIdentifier("clubAccessSettlement.rowList")
         }
-        .padding(12)
-        .background(CYColor.bgRaised)
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
+        }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("clubAccessSettlement.section")
     }

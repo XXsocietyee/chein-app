@@ -40,29 +40,29 @@ struct WorkshopPurchasedAccountLink: View {
         let rendered = displayed.permit
         List {
             switch browser.phase {
-            case .idle, .loading: CYLoadingStateView(rows: 1).accessibilityLabel(purchasedText("loading"))
+            case .idle, .loading: ProgressView().frame(maxWidth: .infinity).accessibilityLabel(purchasedText("loading"))
             case .notEnabled: PurchasedUnavailableView()
             case .empty: purchasedText("empty")
             case .failed, .invalidated:
                 purchasedText(browser.phase == .invalidated ? "sessionChanged" : "failed")
-                if browser.phase != .invalidated { CYPillButton(LocalizedStringKey("workshopPurchased.retry"), style: .secondary, tableName: "WorkshopPurchased") { if paymentsOpen { navigation.scheduleList(rendered) } } }
+                if browser.phase != .invalidated { Button { if paymentsOpen { navigation.scheduleList(rendered) } } label: { purchasedText("retry") } }
             case .ready:
                 if browser.issue == .unavailable { purchasedText("failed") }
                 ForEach(browser.rows) { item in
                     Button { navigation.select(licenseId: item.id, presentation: rendered) } label: {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(verbatim: item.moduleId).cyText(.cardTitle)
-                            Text(verbatim: item.purchasedVersionId).cyText(.meta)
-                            purchasedText("status." + item.status.rawValue)
-                            purchasedText("perpetual").cyText(.meta)
-                        }.fixedSize(horizontal: false, vertical: true)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(verbatim: item.moduleId).font(.headline).foregroundStyle(.primary)
+                            Text(verbatim: item.purchasedVersionId).font(.subheadline).foregroundStyle(.secondary)
+                            purchasedText("status." + item.status.rawValue).foregroundStyle(.primary)
+                            purchasedText("perpetual").font(.footnote).foregroundStyle(.secondary)
+                        }
                     }.accessibilityIdentifier("workshopPurchased.row." + item.id)
                 }
                 if let cursor = browser.nextCursor {
                     Button { if paymentsOpen { navigation.scheduleList(rendered, before: cursor) } } label: { purchasedText(browser.issue == .unavailable ? "retry" : "next") }
                 }
             }
-            if !paymentsOpen { Section { Text(verbatim: closedCopy).font(RevolutContentStyle.quiet) } }
+            if !paymentsOpen { Section { Label(closedCopy, systemImage: "info.circle").foregroundStyle(.secondary) } }
             if let checkedAt = browser.checkedAt { Section { Text(verbatim: checkedAt) } header: { purchasedText("checkedAt") } }
         }
         .modifier(PurchasedTitle("title"))
@@ -102,7 +102,7 @@ struct WorkshopPurchasedAccountLink: View {
         let displayed = navigation.detailAppearance
         let rendered = displayed.permit
         Form {
-            if browser.detailLoading { CYLoadingStateView(rows: 1).accessibilityLabel(purchasedText("loading")) }
+            if browser.detailLoading { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(purchasedText("loading")) }
             else if let detail = browser.detail, detail.item.id == licenseId {
                 let item = detail.item
                 Section {
@@ -110,7 +110,7 @@ struct WorkshopPurchasedAccountLink: View {
                     PurchasedFact("version", item.purchasedVersionId)
                     purchasedText("status." + item.status.rawValue).accessibilityIdentifier("workshopPurchased.status")
                     PurchasedFact("acquiredAt", item.acquiredAt); PurchasedFact("checkedAt", detail.checkedAt)
-                    purchasedText("perpetual").cyText(.cardTitle)
+                    purchasedText("perpetual").font(.headline)
                     purchasedText("durationScope").fixedSize(horizontal: false, vertical: true)
                 } header: { purchasedText("record") }
                 Section {
@@ -129,7 +129,7 @@ struct WorkshopPurchasedAccountLink: View {
                 if let handlers = makeUpgrade() { WorkshopPurchasedUpgradeEntry(item: item, handlers: handlers) }
             } else if let issue = browser.detailIssue {
                 purchasedText(issue == .staleSession ? "sessionChanged" : issue == .notFound ? "notFound" : "failed")
-                if issue != .staleSession { CYPillButton(LocalizedStringKey("workshopPurchased.retry"), style: .secondary, tableName: "WorkshopPurchased") { if paymentsOpen { navigation.scheduleDetail(rendered, licenseId: licenseId) } } }
+                if issue != .staleSession { Button { if paymentsOpen { navigation.scheduleDetail(rendered, licenseId: licenseId) } } label: { purchasedText("retry") } }
             }
         }
         .modifier(PurchasedTitle("detail"))
@@ -157,6 +157,7 @@ private struct PurchasedFact: View {
     @Environment(\.locale) private var locale
     init(_ key: String, _ value: String) { self.key = key; self.value = value }
     var body: some View {
+        // Vertical, full-width fact: long verbatim values wrap instead of being squeezed beside the label.
         VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
             Text(verbatim: purchasedLabel(key, locale: locale))
                 .font(RevolutContentStyle.quiet).foregroundStyle(RevolutContentStyle.secondary)
@@ -174,6 +175,7 @@ private struct PurchasedPolicy: View {
     @Environment(\.locale) private var locale
     init(_ key: String, _ policy: String) { self.key = key; self.policy = policy }
     var body: some View {
+        // Vertical, full-width fact: long verbatim values wrap instead of being squeezed beside the label.
         VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
             Text(verbatim: purchasedLabel(key, locale: locale))
                 .font(RevolutContentStyle.quiet).foregroundStyle(RevolutContentStyle.secondary)
@@ -191,6 +193,7 @@ private struct PurchasedLimit: View {
     @Environment(\.locale) private var locale
     init(_ key: String, _ value: WorkshopPurchasedItem.Limit) { self.key = key; self.value = value }
     var body: some View {
+        // Vertical, full-width fact: long verbatim values wrap instead of being squeezed beside the label.
         VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
             Text(verbatim: purchasedLabel(key, locale: locale))
                 .font(RevolutContentStyle.quiet).foregroundStyle(RevolutContentStyle.secondary)

@@ -52,24 +52,27 @@ private struct WorkshopOwnedUnavailableView: View {
             WorkshopOwnedScopeSection()
             switch browser.phase {
             case .idle, .loading:
-                CYLoadingStateView(rows: 1).accessibilityLabel(workshopText("loading")).accessibilityIdentifier("workshopOwned.loading")
+                ProgressView().frame(maxWidth: .infinity).accessibilityLabel(workshopText("loading")).accessibilityIdentifier("workshopOwned.loading")
             case .notEnabled: WorkshopOwnedUnavailableView()
-            case .empty: WorkshopLibraryNotice(text: workshopText("empty"), systemImage: "square.stack.3d.up").accessibilityIdentifier("workshopOwned.empty")
+            case .empty:
+                ContentUnavailableView {
+                    Label { workshopText("empty") } icon: { Image(systemName: "square.stack.3d.up") }
+                }.accessibilityIdentifier("workshopOwned.empty")
             case .failed, .invalidated:
                 WorkshopOwnedFailureView(issue: browser.issue)
                 if browser.phase != .invalidated {
-                    CYPillButton("action.retry", style: .secondary) { navigation.scheduleList(presentation) }.accessibilityIdentifier("workshopOwned.retry")
+                    Button("action.retry") { navigation.scheduleList(presentation) }.accessibilityIdentifier("workshopOwned.retry")
                 }
             case .ready:
-                if browser.hasMore { workshopText("hasMore").cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true) }
+                if browser.hasMore { workshopText("hasMore").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
                 ForEach(browser.rows) { item in
                     Button { navigation.select(claimId: item.id, presentation: presentation) } label: {
-                        VStack(alignment: .leading, spacing: 6) {
-                            workshopText("freeClaim").cyText(.cardTitle)
-                            Text(verbatim: item.claimId).cyText(.meta).foregroundStyle(.secondary)
-                            workshopText("status." + item.status.rawValue)
+                        VStack(alignment: .leading) {
+                            workshopText("freeClaim").font(.headline)
+                            Text(verbatim: item.claimId).font(.footnote).foregroundStyle(.secondary)
+                            workshopText("status." + item.status.rawValue).font(.subheadline).foregroundStyle(.secondary)
                         }.frame(maxWidth: .infinity, alignment: .leading)
-                    }.accessibilityIdentifier("workshopOwned.row.\(item.id)")
+                    }.foregroundStyle(.primary).accessibilityIdentifier("workshopOwned.row.\(item.id)")
                 }
             }
             if let time = browser.checkedAt {
@@ -128,7 +131,7 @@ private struct WorkshopOwnedUnavailableView: View {
           if navigation.isCurrentDetailVisit(routeID: routeID, visitID: visitID) {
             WorkshopOwnedScopeSection()
             if browser.detailLoading {
-                CYLoadingStateView(rows: 1).accessibilityLabel(workshopText("loading")).accessibilityIdentifier("workshopOwned.detailLoading")
+                ProgressView().frame(maxWidth: .infinity).accessibilityLabel(workshopText("loading")).accessibilityIdentifier("workshopOwned.detailLoading")
             } else if let response = browser.detail {
                 if response.metadata.availability == .notEnabled { WorkshopOwnedUnavailableView() }
                 else if let item = response.item, item.claimId == claimId {
@@ -143,15 +146,17 @@ private struct WorkshopOwnedUnavailableView: View {
                         WorkshopLibraryNotice(text: workshopText("publication." + item.publicationStatus.rawValue), systemImage: "square.and.arrow.up")
                     } header: { workshopText("publication") }
                     if browser.packageBrowser != nil {
-                        CYPillButton(LocalizedStringKey("workshopOwned.package.open"), style: .secondary, tableName: "WorkshopOwned") { navigation.openPackage(presentation: presentation) }
-                            .accessibilityIdentifier("workshopOwned.package.open")
+                        Section {
+                            Button { navigation.openPackage(presentation: presentation) } label: { Text("workshopOwned.package.open", tableName: "WorkshopOwned") }
+                                .accessibilityIdentifier("workshopOwned.package.open")
+                        }
                     }
                     Section { WorkshopLibraryNotice(text: workshopText("contentUnavailable"), systemImage: "lock") }
                 }
             } else if let issue = browser.detailIssue {
                 WorkshopOwnedFailureView(issue: issue)
                 if issue != .staleSession {
-                    CYPillButton("action.retry", style: .secondary) { navigation.scheduleDetail(presentation, claimId: claimId) }
+                    Button("action.retry") { navigation.scheduleDetail(presentation, claimId: claimId) }
                         .accessibilityIdentifier("workshopOwned.detailRetry")
                 }
             }
@@ -195,6 +200,7 @@ private struct WorkshopOwnedValueRow: View {
     let value: String
     @Environment(\.locale) private var locale
     var body: some View {
+        // Vertical, full-width fact: long verbatim values wrap instead of being squeezed beside the label.
         VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
             Text(verbatim: workshopLabel(key, locale: locale))
                 .font(RevolutContentStyle.quiet).foregroundStyle(RevolutContentStyle.secondary)

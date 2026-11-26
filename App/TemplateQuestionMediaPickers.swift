@@ -83,7 +83,7 @@ private extension TemplateAuthoringModel {
 
     var body: some View {
         HStack(spacing: CYSpacing.sm) {
-            ConfigR4Text.text(kind.labelKey).cyText(.label).foregroundStyle(palette.textSecondary)
+            ConfigR4Text.text(kind.labelKey).font(.subheadline).foregroundStyle(.secondary)
             Spacer(minLength: CYSpacing.sm)
             Menu {
                 menu()
@@ -94,9 +94,7 @@ private extension TemplateAuthoringModel {
                 .disabled(!clearing.canClear)
                 .accessibilityIdentifier("templateBasicClear." + kind.identifier)
             } label: {
-                Image(systemName: "ellipsis")
-                    .cyText(.bodyMedium)
-                    .foregroundStyle(palette.textSecondary)
+                Image(systemName: "ellipsis.circle")
                     .editorHitTarget()
             }
             .accessibilityLabel(ConfigR4Text.text("config.media.more"))
@@ -146,7 +144,7 @@ private extension TemplateAuthoringModel {
             }
             if owner.isOpen { openFlow.transition(.opacity) } else { slot.transition(.opacity) }
         }
-        .animation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion), value: owner.isOpen)
+        .animation(reduceMotion ? nil : .default, value: owner.isOpen)
         .buttonStyle(.borderless)
     }
 
@@ -161,43 +159,31 @@ private extension TemplateAuthoringModel {
         if let preview = owner.visiblePreviewReference {
             DiscoveryArtwork(source: preview)
                 .aspectRatio(16.0 / 9.0, contentMode: .fit)
-                .clipShape(RoundedRectangle(cornerRadius: EditorKitMetric.cardRadius, style: .continuous))
+                .clipShape(.rect(cornerRadius: EditorKitMetric.cardRadius, style: .continuous)) // image crop only
                 .accessibilityIdentifier("config.qimage.preview")
         } else {
-            Button(action: start) {
-                VStack(spacing: CYSpacing.xs) {
-                    Image(systemName: reference.isEmpty ? "photo.badge.plus" : "photo")
-                        .cyText(.sectionTitle)
-                        .accessibilityHidden(true)
-                    ConfigR4Text.text(reference.isEmpty ? "config.qimage.choose" : "config.qimage.set")
-                        .cyText(.bodyMedium)
-                    ConfigR4Text.text("config.qimage.boundary")
-                        .cyText(.meta)
-                        .foregroundStyle(palette.textTertiary)
-                }
-                .foregroundStyle(palette.textSecondary)
-                .frame(maxWidth: .infinity)
-                .aspectRatio(16.0 / 9.0, contentMode: .fit)
-                .background(RoundedRectangle(cornerRadius: EditorKitMetric.cardRadius, style: .continuous).fill(palette.inputFilledBg))
-                .overlay {
-                    if reference.isEmpty {
-                        RoundedRectangle(cornerRadius: EditorKitMetric.cardRadius, style: .continuous)
-                            .strokeBorder(palette.borderStrong, style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Button(action: start) {
+                    Label {
+                        ConfigR4Text.text(reference.isEmpty ? "config.qimage.choose" : "config.qimage.set")
+                    } icon: {
+                        Image(systemName: reference.isEmpty ? "photo.badge.plus" : "photo")
                     }
                 }
-                .contentShape(Rectangle())
+                .disabled(!owner.canOpen)
+                .accessibilityIdentifier("config.qimage.choose")
+                ConfigR4Text.text("config.qimage.boundary")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
-            .buttonStyle(.cyPressable)
-            .disabled(!owner.canOpen)
-            .accessibilityIdentifier("config.qimage.choose")
         }
     }
 
     @ViewBuilder private var openFlow: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             ConfigR4Text.text(owner.current ? "config.qimage.status." + owner.status : "config.qimage.status.changed")
-                .cyText(.bodyCompact)
-                .foregroundStyle(owner.status == "rejected" || owner.status == "unknown" ? palette.danger : palette.textSecondary)
+                .font(.subheadline)
+                .foregroundStyle(owner.status == "rejected" || owner.status == "unknown" ? Color.red : Color.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("config.qimage.status")
             if let crop = owner.crop, owner.current {
@@ -205,13 +191,12 @@ private extension TemplateAuthoringModel {
             }
             if let image = owner.preview, owner.current {
                 Image(uiImage: image).resizable().scaledToFit()
-                    .clipShape(RoundedRectangle(cornerRadius: EditorKitMetric.cardRadius, style: .continuous))
                     .accessibilityLabel(Text("media.destination.image"))
                     .accessibilityIdentifier("config.qimage.localPreview")
             }
             HStack(spacing: CYSpacing.sm) {
                 Button(action: owner.closeAction()) { ConfigR4Text.text("config.qimage.cancel") }
-                    .buttonStyle(.editorSecondary)
+                    .buttonStyle(.bordered)
                     .disabled(owner.busy)
                     .accessibilityIdentifier("config.qimage.cancel")
                 Spacer(minLength: 0)
@@ -219,16 +204,16 @@ private extension TemplateAuthoringModel {
                     Button(action: owner.uploadAction(review)) {
                         ConfigR4Text.text(owner.status == "rejected" ? "config.qimage.retry" : "config.qimage.upload")
                     }
-                    .buttonStyle(.editorPrimary)
+                    .buttonStyle(.borderedProminent)
                     .disabled(owner.busy)
                     .accessibilityIdentifier("config.qimage.upload")
                 } else if let receipt = owner.receipt, owner.current {
                     Button(action: owner.applyAction(receipt)) { ConfigR4Text.text("config.qimage.apply") }
-                        .buttonStyle(.editorPrimary)
+                        .buttonStyle(.borderedProminent)
                         .accessibilityIdentifier("config.qimage.apply")
                 } else if owner.canChoose {
                     Button(action: owner.chooseAction()) { ConfigR4Text.text("config.qimage.choose") }
-                        .buttonStyle(.editorPrimary)
+                        .buttonStyle(.borderedProminent)
                         .accessibilityIdentifier("config.qimage.chooseAgain")
                 }
             }
@@ -255,33 +240,22 @@ private extension TemplateAuthoringModel {
                 if let row { media?.open(row) }
             } label: {
                 HStack(spacing: CYSpacing.md) {
-                    Image(systemName: kind == .audio ? "waveform" : "photo")
-                        .cyText(.bodyMedium)
-                        .foregroundStyle(palette.textSecondary)
-                        .frame(width: EditorKitMetric.optionThumb, height: EditorKitMetric.optionThumb)
-                        .background(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous).fill(palette.bgElevated))
-                        .accessibilityHidden(true)
-                    VStack(alignment: .leading, spacing: 2) {
+                    Label {
                         ConfigR4Text.text(isSet ? (kind == .audio ? "config.qaudio.set" : "config.qimage.set")
                                                 : (kind == .audio ? "config.qaudio.empty" : "config.qimage.empty"))
-                            .cyText(.bodyMedium)
-                            .foregroundStyle(palette.textPrimary)
                         ConfigR4Text.text(kind == .audio ? "config.qaudio.choose" : "config.qimage.checkLocal")
-                            .cyText(.meta)
-                            .foregroundStyle(palette.textTertiary)
+                    } icon: {
+                        Image(systemName: kind == .audio ? "waveform" : "photo")
                     }
                     Spacer(minLength: CYSpacing.sm)
                     Image(systemName: "chevron.forward")
-                        .cyText(.label)
-                        .foregroundStyle(palette.textTertiary)
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.tertiary)
                         .accessibilityHidden(true)
                 }
-                .padding(.horizontal, EditorKitMetric.fieldPaddingX)
-                .frame(minHeight: EditorKitMetric.optionRowHeight)
-                .background(RoundedRectangle(cornerRadius: EditorKitMetric.fieldRadius, style: .continuous).fill(palette.inputFilledBg))
                 .contentShape(Rectangle())
             }
-            .buttonStyle(.cyPressable)
+            .buttonStyle(.plain)
             .disabled(row == nil || media?.canOpen != true)
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("config.media.open." + kind.identifier)

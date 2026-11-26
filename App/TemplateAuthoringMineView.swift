@@ -54,25 +54,25 @@ import SwiftUI
                     if let id = MemberPlayTemplateID(rawValue: row.id), memberDetail != nil {
                         Button { selectedMember = id } label: {
                             HStack {
-                                Text(verbatim: row.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                                Text(verbatim: row.title).font(.headline).foregroundStyle(.primary)
                                 Spacer()
-                                Image(systemName: "chevron.right").cyText(.meta, weight: .semibold).foregroundStyle(.tertiary)
+                                Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
                             }
                         }
                         .accessibilityLabel(Text(verbatim: row.title))
                         .accessibilityIdentifier("memberTemplate.mine.\(row.id)")
                     } else {
-                        Text(verbatim: row.title).cyText(.cardTitle)
+                        Text(verbatim: row.title).font(.headline)
                     }
                     if let id = MemberPlayTemplateID(rawValue: row.id), ownerConfiguration != nil {
                         Button { selectedConfiguration = id } label: {
-                            CYListRow("templateOwnerConfig.open") { CYRowIcon(systemImage: "slider.horizontal.3") }
+                            Label("templateOwnerConfig.open", systemImage: "slider.horizontal.3")
                         }
                         .accessibilityIdentifier("templateOwnerConfig.open.\(row.id)")
                     }
                     if let id = MemberPlayTemplateID(rawValue: row.id), creatorConsent != nil {
                         Button { selectedCreatorConsent = WorkshopCreatorConsentSelection(source: id) } label: {
-                            CYListRow(verbatim: workshopCreatorLocalized("workshopCreator.open", locale: creatorLocale)) { CYRowIcon(systemImage: "person.badge.shield.checkmark") }
+                            Label(workshopCreatorLocalized("workshopCreator.open", locale: creatorLocale), systemImage: "person.badge.shield.checkmark")
                         }
                         .accessibilityIdentifier("workshopCreator.open.\(row.id)")
                     }
@@ -117,7 +117,7 @@ import SwiftUI
             }
             if appliedKeyword == keyword, let messageKey { Text(LocalizedStringKey(messageKey)).accessibilityIdentifier("templateAuthor.shelf.status") }
         // PLY-26-5: MP `mytemplate` uses theme-merchant for the merchant scope, theme-dark otherwise.
-        }.listStyle(.insetGrouped).cyGroupedSurface().cyDomainScreen(pageDomain)
+        }.listStyle(.insetGrouped).themeDomain(pageDomain)
             .cyPushedChrome(domain: pageDomain).cyPageTitle("templateAuthor.mine")
             .refreshable { await refresh() }
             // Stable typed destination survives invalidation of its source list on push.
@@ -155,20 +155,20 @@ import SwiftUI
                         Section {
                             if value.action == .remove {
                                 Text("templateOwnShelf.delete.title \(value.title)")
-                                    .cyText(.sectionTitle)
+                                    .font(.headline)
                                     .accessibilityIdentifier("templateOwnShelf.delete.title")
                                 Text("templateOwnShelf.delete.irreversible")
                             } else if let question = Self.marketQuestion(value) {
                                 question
-                                    .cyText(.cardTitle)
+                                    .font(.headline)
                                     .accessibilityIdentifier("templateAuthor.shelf.question")
                             } else if value.desiredPublishStatus == 1 {
                                 Text("templateAuthor.shelf.addQuestion \(value.title)")
-                                    .cyText(.cardTitle)
+                                    .font(.headline)
                                     .accessibilityIdentifier("templateAuthor.shelf.question")
                             } else {
                                 Text("templateAuthor.shelf.removeQuestion \(value.title)")
-                                    .cyText(.cardTitle)
+                                    .font(.headline)
                                     .accessibilityIdentifier("templateAuthor.shelf.question")
                             }
                         }
@@ -211,7 +211,7 @@ import SwiftUI
                             #endif
                         }
                 }
-                .cyDomainSheet(detents: [.half, .full])
+                .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
             }
             .cyToast(message: $toastMessage, tone: .success)
     }
@@ -249,7 +249,7 @@ import SwiftUI
         } else if readMessageKey == "templateOwnShelf.read.denied" || !coordinator.canRead {
             TemplateOwnShelfReadCopy(title: "templateOwnShelf.read.denied", subtitle: "templateOwnShelf.read.deniedHint", action: "templateOwnShelf.read.retry", identifier: "templateOwnShelf.read.retry") { Task { await refresh() } }
         } else if appliedKeyword == keyword, busy, rows.isEmpty, readMessageKey == nil {
-            CYLoadingStateView(rows: 2).accessibilityLabel(Text("templateOwnShelf.read.loading")).accessibilityIdentifier("templateOwnShelf.read.loading")
+            ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("templateOwnShelf.read.loading")).accessibilityIdentifier("templateOwnShelf.read.loading")
         } else if appliedKeyword == keyword, readMessageKey == "templateAuthor.listUnavailable", rows.isEmpty {
             TemplateOwnShelfReadCopy(title: "templateOwnShelf.read.failed", action: "templateOwnShelf.read.retry", identifier: "templateOwnShelf.read.retry") { Task { await refresh() } }
         } else if appliedKeyword == keyword, readMessageKey == "templateAuthor.listUnavailable" {
@@ -264,8 +264,8 @@ import SwiftUI
         } else if readMessageKey == "templateAuthor.shelf.moreFailed" {
             TemplateOwnShelfReadCopy(title: "templateOwnShelf.read.moreFailed", subtitle: "templateOwnShelf.read.moreFailedHint", action: "templateOwnShelf.read.retry", identifier: "templateAuthor.shelf.loadMore") { Task { await loadMore() } }
         } else {
-            CYPillButton("templateOwnShelf.read.loadMore", style: .secondary) { Task { await loadMore() } }
-                .disabled(busy).e1ActionRow()
+            Button { Task { await loadMore() } } label: { Text("templateOwnShelf.read.loadMore") }
+                .disabled(busy)
                 .accessibilityIdentifier("templateAuthor.shelf.loadMore")
                 .accessibilityLabel(Text("templateOwnShelf.read.loadMoreLabel"))
         }
@@ -337,11 +337,15 @@ private struct TemplateOwnShelfReadCopy: View {
     var perform: (() -> Void)? = nil
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(title).cyText(.cardTitle)
-            if let subtitle { Text(subtitle).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+            Text(title).font(.headline)
+            if let subtitle { Text(subtitle).font(.subheadline).foregroundStyle(.secondary) }
             if let action {
-                if let perform { CYPillButton(action, style: .secondary, action: perform).accessibilityIdentifier(identifier ?? "templateOwnShelf.read.action").padding(.top, CYSpacing.xs) }
-                else { Text(action).cyText(.meta) }
+                if let perform {
+                    Button(action: perform) { Text(action) }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier(identifier ?? "templateOwnShelf.read.action")
+                }
+                else { Text(action).font(.footnote).foregroundStyle(.secondary) }
             }
         }
     }
@@ -354,27 +358,27 @@ private struct TemplateMineCover: View {
     let imageURL: URL?
     let useNum: Int?
     var body: some View {
-        ZStack(alignment: .bottomLeading) {
-            LinearGradient(colors: [CYColor.brandStrong, CYColor.gameAccent], startPoint: .topLeading, endPoint: .bottomTrailing)
-                .overlay {
-                    Text(verbatim: title.first.map(String.init) ?? appLocalized("templateAuthor.mine.coverInitial", locale: Locale.current))
-                        .cyText(.display, weight: .bold).foregroundStyle(.white.opacity(0.85))
-                }
-            if let imageURL {
-                AsyncImage(url: imageURL) { phase in
-                    if let image = phase.image { image.resizable().scaledToFill() } else { Color.clear }
+        VStack(alignment: .leading, spacing: 0) {
+            ZStack {
+                Color(.secondarySystemFill)
+                    .overlay {
+                        Text(verbatim: title.first.map(String.init) ?? appLocalized("templateAuthor.mine.coverInitial", locale: Locale.current))
+                            .font(.largeTitle.bold()).foregroundStyle(.secondary)
+                    }
+                if let imageURL {
+                    AsyncImage(url: imageURL) { phase in
+                        if let image = phase.image { image.resizable().scaledToFill() } else { Color.clear }
+                    }
                 }
             }
+            .frame(maxWidth: .infinity).frame(height: 120)
+            .clipped()
             if let useNum {
                 Text("templateAuthor.mine.useNum \(useNum)")
-                    .cyText(.meta, weight: .semibold, monospacedDigit: true).foregroundStyle(.white)
-                    .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
-                    .background(.black.opacity(0.45), in: Capsule())
-                    .padding(CYSpacing.sm)
+                    .font(.footnote.monospacedDigit()).foregroundStyle(.secondary)
+                    .padding(.horizontal).padding(.vertical, CYSpacing.sm)
             }
         }
-        .frame(maxWidth: .infinity).frame(height: 120)
-        .clipped()
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(useNum.map { Text("templateAuthor.mine.useNum \($0)") } ?? Text(verbatim: ""))
         .accessibilityHidden(useNum == nil)

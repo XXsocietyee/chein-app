@@ -16,19 +16,24 @@ struct BundleRefundProgressView: View {
             seed: presentation.serverState.isEmpty ? "bundle-refund-progress" : presentation.serverState,
             symbol: presentation.showsRefunded ? "checkmark.circle" : "clock"
         ) {
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-                CYListRow(verbatim: phrase("服务器状态", "Server state"), trailing: .value(Cloud03Copy.shown(presentation.serverState)), card: true) {
-                    CYRowIcon(systemImage: "server.rack")
+            Section {
+                LabeledContent {
+                    Text(verbatim: Cloud03Copy.shown(presentation.serverState))
+                } label: {
+                    Label(phrase("服务器状态", "Server state"), systemImage: "server.rack")
                 }
                 .accessibilityIdentifier("bundleRefund.progress.state")
                 if let refundNo = presentation.refundNo {
-                    CYListRow(verbatim: phrase("退款单号", "Refund number"), trailing: .value(Cloud03Copy.shown(refundNo)), card: true) {
-                        CYRowIcon(systemImage: "number")
+                    LabeledContent {
+                        Text(verbatim: Cloud03Copy.shown(refundNo))
+                    } label: {
+                        Label(phrase("退款单号", "Refund number"), systemImage: "number")
                     }
                     .accessibilityIdentifier("bundleRefund.progress.number")
                 }
+            } footer: {
                 if !presentation.showsRefunded {
-                    CYNoteBanner(
+                    Cloud03Note(
                         text: Text(verbatim: phrase("尚未退款。处理中、结果未知或人工打款都不是已退款。", "Not refunded yet. Processing, an unknown outcome, or a manual payout is not a refund.")),
                         symbol: "clock",
                         tone: .info

@@ -166,15 +166,15 @@ import SwiftUI
         }, service: { makeActivityCover?() })
         Form {
             Section {
-                CYStatusChip(verbatim: editingStatusLabel, tone: editingStatusTone, systemImage: editingStatusSymbol)
+                Label { Text(verbatim: editingStatusLabel) } icon: { Image(systemName: editingStatusSymbol).foregroundStyle(editingStatusColor) }
                     .accessibilityIdentifier("activityEdit.status")
                 if !owner.rejection.isEmpty {
                     Text(verbatim: owner.rejection)
-                        .cyText(.body)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 if owner.draft == nil && owner.review == nil {
-                    CYPillButton("load", tableName: "ActivityEditing") { Task { await owner.load() } }
+                    Button { Task { await owner.load() } } label: { label("load") }
+                        .buttonStyle(.borderedProminent)
                         .disabled(!owner.readable || cover.isOpen)
                         .accessibilityIdentifier("activityEdit.load")
                 } else {
@@ -184,7 +184,7 @@ import SwiftUI
                 }
                 if let request = owner.pending {
                     Text(verbatim: request.operationID.uuidString).textSelection(.enabled)
-                        .cyText(.numericBody)
+                        .font(.body.monospacedDigit())
                         .accessibilityIdentifier("activityEdit.requestID")
                     label("unknownBoundary")
                 }
@@ -206,7 +206,8 @@ import SwiftUI
                     Button { owner.saveLocal() } label: { label("saveLocal") }.disabled(!owner.editable || cover.isOpen)
                         .accessibilityIdentifier("activityEdit.saveLocal")
                     if owner.review == nil {
-                        CYPillButton("reviewAction", tableName: "ActivityEditing") { Task { await owner.prepare() } }
+                        Button { Task { await owner.prepare() } } label: { label("reviewAction") }
+                            .buttonStyle(.borderedProminent)
                             .disabled(!owner.reviewable || cover.isOpen)
                             .accessibilityIdentifier("activityEdit.review")
                     } else {
@@ -223,10 +224,11 @@ import SwiftUI
                         LabeledContent { Text(verbatim: current.draft.text(field)).fixedSize(horizontal: false, vertical: true) } label: { label(field.rawValue) }
                     }
                     Text(verbatim: current.id.uuidString)
-                        .cyText(.numericBody)
+                        .font(.body.monospacedDigit())
                         .accessibilityIdentifier("activityEdit.reviewID")
                     Button { owner.cancel(current) } label: { label("cancel") }.disabled(owner.busy)
-                    CYPillButton("confirm", tableName: "ActivityEditing") { Task { await owner.confirm(current) } }
+                    Button { Task { await owner.confirm(current) } } label: { label("confirm") }
+                        .buttonStyle(.borderedProminent)
                         .disabled(owner.busy || !owner.current)
                         .accessibilityIdentifier("activityEdit.confirm")
                 }
@@ -247,8 +249,6 @@ import SwiftUI
                 }
             }
         }
-        .scrollContentBackground(.hidden)
-        .cyDomainPageBackground()
         .navigationTitle(Text("title", tableName: "ActivityEditing"))
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { owner.appear(active: scenePhase == .active); cover.appear(active: scenePhase == .active) }
@@ -269,21 +269,21 @@ import SwiftUI
         return trimmed
     }
 
-    private var editingStatusTone: CYStatusTone {
+    private var editingStatusColor: Color {
         switch owner.status {
-        case "acknowledged", "localSaved": return .success
-        case "rejected", "unavailable": return .danger
-        case "unknown", "conflict", "notSent": return .warning
-        default: return .neutral
+        case "acknowledged", "localSaved": return .green
+        case "rejected", "unavailable": return .red
+        case "unknown", "conflict", "notSent": return .orange
+        default: return .secondary
         }
     }
 
     private var editingStatusSymbol: String {
-        switch editingStatusTone {
-        case .success: return "checkmark.circle"
-        case .danger: return "exclamationmark.triangle"
-        case .warning: return "questionmark.circle"
-        case .neutral, .info, .rare: return "circle"
+        switch owner.status {
+        case "acknowledged", "localSaved": return "checkmark.circle"
+        case "rejected", "unavailable": return "exclamationmark.triangle"
+        case "unknown", "conflict", "notSent": return "questionmark.circle"
+        default: return "circle"
         }
     }
 }

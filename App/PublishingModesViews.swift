@@ -3,11 +3,10 @@ import UIKit
 import MapKit
 import Combine
 
-/// Form chrome shared by the publish forms: page background from the role palette.
+/// Form behaviour shared by the publish forms: system grouped background, keyboard dismissed by scrolling.
 private struct PublishFormChrome: ViewModifier {
-    @Environment(\.cyPalette) private var palette
     func body(content: Content) -> some View {
-        content.scrollContentBackground(.hidden).cyDomainPageBackground().tint(palette.textPrimary)
+        content.scrollDismissesKeyboard(.interactively)
     }
 }
 private extension View { func publishFormChrome() -> some View { modifier(PublishFormChrome()) } }
@@ -41,55 +40,49 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
     var body: some View {
         // Same choices and order as the mini-program publish menu (cy-publish-sheet):
         // a topic (city orientation or free explore, quick or professional), then interaction.
-        ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.xl) {
-                CYHeroHeader("publishModes.title")
+        List {
+            Section {
                 // One primary action: the quick publish journey ("Quick setup").
                 NavigationLink { QuickPublishingView(placeSearch: placeSearch, account: account, draftStore: draftStore, makeAIDraft: makeAIDraft, simplePageRead: simplePageRead, openProfessional: openProfessional).id(account?.epoch) } label: {
                     Label("publishModes.quick", systemImage: "wand.and.stars")
-                }.buttonStyle(CYPillButtonStyle(style: .primary))
-                VStack(alignment: .leading, spacing: CYSpacing.md) {
-                    CYSectionHeader("publishModes.section.topic")
-                    if let makeProfessional {
-                        NavigationLink { makeProfessional(.city) } label: { CYListRow("publishModes.pro.city", card: true) { CYRowIcon(systemImage: "map") } }
-                            .buttonStyle(.plain).accessibilityIdentifier("publishModes.pro.city")
-                        NavigationLink { makeProfessional(.freeExplore) } label: { CYListRow("publishModes.pro.freeExplore", card: true) { CYRowIcon(systemImage: "location.magnifyingglass") } }
-                            .buttonStyle(.plain).accessibilityIdentifier("publishModes.pro.freeExplore")
-                    }
-                }
-                if let makeTemplateAuthoring {
-                    VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        CYSectionHeader("publishModes.section.interaction")
-                        NavigationLink { makeTemplateAuthoring() } label: { CYListRow("publishModes.interaction", card: true) { CYRowIcon(systemImage: "puzzlepiece.extension") } }
-                            .buttonStyle(.plain).accessibilityIdentifier("publishModes.interaction")
-                    }
-                }
-                VStack(spacing: CYSpacing.md) {
-                    if showsActivity {
-                        NavigationLink { ActivityPublishingView(service: service, account: account, placeSearch: placeSearch, draftStore: draftStore, makeIdentityRegistration: makeIdentityRegistration, makeActivityTemplate: makeActivityTemplate, makeActivityCover: makeActivityCover, openResource: openResource) } label: {
-                            CYListRow("publishModes.activity", card: true) { CYRowIcon(systemImage: "calendar.badge.plus") }
-                        }.buttonStyle(.plain)
-                    }
-                    NavigationLink { if let makeProjects { makeProjects() } else { PublishingProjectsView(service: service, account: account, openResource: openResource) } } label: {
-                        CYListRow("publishModes.projects", card: true) { CYRowIcon(systemImage: "square.stack") }
-                    }.buttonStyle(.plain)
-                    NavigationLink { PublishingIdentityStatusView(service: service, account: account) } label: {
-                        CYListRow("publishModes.identity", card: true) { CYRowIcon(systemImage: "person.text.rectangle") }
-                    }.buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.vertical, CYSpacing.lg)
+            Section {
+                if let makeProfessional {
+                    NavigationLink { makeProfessional(.city) } label: { Label("publishModes.pro.city", systemImage: "map") }
+                        .accessibilityIdentifier("publishModes.pro.city")
+                    NavigationLink { makeProfessional(.freeExplore) } label: { Label("publishModes.pro.freeExplore", systemImage: "location.magnifyingglass") }
+                        .accessibilityIdentifier("publishModes.pro.freeExplore")
+                }
+            } header: { Text("publishModes.section.topic") }
+            if let makeTemplateAuthoring {
+                Section {
+                    NavigationLink { makeTemplateAuthoring() } label: { Label("publishModes.interaction", systemImage: "puzzlepiece.extension") }
+                        .accessibilityIdentifier("publishModes.interaction")
+                } header: { Text("publishModes.section.interaction") }
+            }
+            Section {
+                if showsActivity {
+                    NavigationLink { ActivityPublishingView(service: service, account: account, placeSearch: placeSearch, draftStore: draftStore, makeIdentityRegistration: makeIdentityRegistration, makeActivityTemplate: makeActivityTemplate, makeActivityCover: makeActivityCover, openResource: openResource) } label: {
+                        Label("publishModes.activity", systemImage: "calendar.badge.plus")
+                    }
+                }
+                NavigationLink { if let makeProjects { makeProjects() } else { PublishingProjectsView(service: service, account: account, openResource: openResource) } } label: {
+                    Label("publishModes.projects", systemImage: "square.stack")
+                }
+                NavigationLink { PublishingIdentityStatusView(service: service, account: account) } label: {
+                    Label("publishModes.identity", systemImage: "person.text.rectangle")
+                }
+            }
         }
-        .cyDomainPageBackground()
-        .navigationTitle("").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("publishModes.home")
+        .listStyle(.insetGrouped)
+        .navigationTitle(Text("publishModes.title")).navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("publishModes.home")
     }
 }
 @MainActor struct QuickPublishingView: View {
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var journey = QuickPublishingJourneyOwner()
-    @Environment(\.cyPalette) private var palette
     var placeSearch: (any PublishingPlaceSearching)?
     var account: PublishingSession? = nil
     var draftStore: PublishingDraftStore? = nil
@@ -108,31 +101,43 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
             }
             Section {
                 Button(action: journey.openAIAction(makeClient: makeAIDraft)) {
-                    CYListRow("contextPublish.ai.title") { CYRowIcon(systemImage: "sparkles") }
-                }.buttonStyle(.plain).accessibilityIdentifier("contextPublish.ai.open")
+                    Label("contextPublish.ai.title", systemImage: "sparkles")
+                }.accessibilityIdentifier("contextPublish.ai.open")
             }
             Section {
                 Picker("publishModes.product", selection: draft.product) { Text("projectEdit.city").tag(ProjectEditProduct.city); Text("projectEdit.freeExplore").tag(ProjectEditProduct.freeExplore) }
-                TextField("publishModes.name", text: draft.title).accessibilityIdentifier("publishModes.quick.name")
+                TextField("publishModes.name", text: draft.title).submitLabel(.next).accessibilityIdentifier("publishModes.quick.name")
                 TextField("publishModes.description", text: draft.description, axis: .vertical).lineLimit(3...8)
-            } header: { CYSectionHeader("publishModes.details") }
+            } header: { Text("publishModes.details") }
             ForEach(draft.nodes) { $node in
                 let index = (draft.wrappedValue.nodes.firstIndex { $0.id == node.id } ?? 0) + 1
                 Section {
-                    TextField("publishModes.name", text: $node.name)
+                    TextField("publishModes.name", text: $node.name).submitLabel(.next)
                     TextField("publishModes.description", text: $node.description, axis: .vertical).lineLimit(2...6)
                     Button(action: journey.openPlaceAction(node.id)) {
-                        CYListRow("publishModes.choosePlace", trailing: .valueChevron(node.confirmedPlace.map { $0.address.isEmpty ? $0.name : $0.address } ?? "—")) {
-                            CYRowIcon(systemImage: node.confirmedPlace == nil ? "mappin.and.ellipse" : "checkmark.circle.fill")
+                        LabeledContent {
+                            Text(verbatim: node.confirmedPlace.map { $0.address.isEmpty ? $0.name : $0.address } ?? "—")
+                        } label: {
+                            Label("publishModes.choosePlace", systemImage: node.confirmedPlace == nil ? "mappin.and.ellipse" : "checkmark.circle.fill")
                         }
-                    }.buttonStyle(.plain)
+                    }
                     Button("publishModes.remove", role: .destructive, action: journey.removeNodeAction(node.id))
-                } header: { CYSectionHeader("publishModes.stopNumber \(index)") }
+                } header: { Text("publishModes.stopNumber \(index)") }
             }
             Section {
-                Button(action: journey.addNodeAction()) { Label("publishModes.addNode", systemImage: "plus.circle").frame(maxWidth: .infinity) }
-                    .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
+                Button(action: journey.addNodeAction()) { Label("publishModes.addNode", systemImage: "plus.circle") }
                     .accessibilityIdentifier("publishModes.quick.add")
+            } footer: {
+                // Validation sits in the footer of the last stop section, above the bottom toolbar's one action.
+                if journey.problem {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("publishModes.confirmEveryPlace")
+                        ForEach(Array(QuickPublishValidation.issues(draft.wrappedValue).enumerated()), id: \.offset) { _, issue in
+                            Text(verbatim: issue.message)
+                        }
+                    }
+                    .foregroundStyle(CYColor.dangerText)
+                }
             }
             if account != nil && draftStore != nil {
                 Section {
@@ -142,18 +147,13 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                 }
             }
         }.publishFormChrome().disabled(!journey.canEdit).navigationTitle(Text("publishModes.quick")).navigationBarTitleDisplayMode(.inline)
-        .questifyBottomAction {
-            VStack(spacing: 8) {
-                if journey.problem {
-                    Text("publishModes.confirmEveryPlace").cyText(.meta).foregroundStyle(palette.danger).multilineTextAlignment(.center)
-                    ForEach(Array(QuickPublishValidation.issues(draft.wrappedValue).enumerated()), id: \.offset) { _, issue in
-                        Text(verbatim: issue.message).cyText(.meta).foregroundStyle(palette.danger).multilineTextAlignment(.center)
-                    }
-                }
-                CYPillButton("publishModes.continueEditor", action: journey.handoffAction(openProfessional))
+        .toolbar {
+            ToolbarItem(placement: .bottomBar) {
+                Button(action: journey.handoffAction(openProfessional)) { Text("publishModes.continueEditor") }
+                    .buttonStyle(.borderedProminent)
                     .disabled(!journey.canEdit)
                     .accessibilityIdentifier("publishModes.quick.continue")
-            }.background(palette.bgPage)
+            }
         }
         .onAppear { journey.appear(active: scenePhase == .active) }
         .task(id: account?.epoch) { await simplePage.load(read: simplePageRead, draft: journey.draft) }
@@ -259,7 +259,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
         }
         .cyToast(verbatimMessage: $toastMessage)
         // C-A7: one creator domain for the whole activity form and its sheets.
-        .cyDomainScreen(.topicEditor)
+        .themeDomain(.topicEditor)
         .background {
             if let original = timeRange.presentation {
                 ActivityPublishingTimeRangePresenter(owner: timeRange, original: original) { selected in
@@ -270,7 +270,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
         }
         .sheet(isPresented: Binding(get: { picker != nil }, set: { if !$0 { picker = nil } })) {
             pickerSheet
-                .cyDomainSheet(detents: [.half, .full])
+                .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
                 .themeDomain(.topicEditor)
         }
         .sheet(isPresented: $localReview) {
@@ -288,7 +288,6 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                         Section("publishParity.activity.description") { Text(draft.description) }
                     }
                 }
-                .cyDomainScreen(.topicEditor)
                 .navigationTitle(Text("publishModes.review")).navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
@@ -297,16 +296,13 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                             if let snapshot { service?.cancel(snapshot) }; review = nil; localReview = false
                         }
                     }
-                }
-                .safeAreaInset(edge: .bottom, spacing: 0) {
-                    CYFooterBar {
+                    ToolbarItem(placement: .confirmationAction) {
                         Button { if let snapshot { Task { await submit(snapshot) } } } label: { Text("publishModes.confirm") }
-                            .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true, compact: true))
                             .disabled(snapshot == nil || busy || service?.mutationsConfigured != true)
                     }
                 }
             }
-            .cyDomainSheet(detents: [.half, .full])
+            .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
             .themeDomain(.topicEditor)
         }
     }
@@ -336,43 +332,43 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                 Section {
                     HStack {
                         TextField("publishParity.activity.title", text: $draft.name)
-                            .foregroundStyle(palette.textPrimary)
                         clearButton(.name)
                     }
                     fieldError("name")
                     // C-A2 (MP activity index.wxml:43-50): the venue name comes from 选择地点, never typed.
                     LabeledContent("publishModes.addressName", value: draft.addressName.isEmpty ? "—" : draft.addressName)
-                        .foregroundStyle(palette.textPrimary)
                     fieldError("addressName")
                     Button { picker = "place" } label: {
                         chooserRow("publishModes.choosePlace", value: draft.place.map { $0.address.isEmpty ? $0.name : $0.address }, icon: "mappin.and.ellipse")
                     }
-                } header: { CYSectionHeader(verbatim: CoreLoopCopy(locale: locale).t("配置基本信息", "Basics & Location")) }
-                .listRowBackground(palette.bgElevated)
+                } header: { Text(verbatim: CoreLoopCopy(locale: locale).t("配置基本信息", "Basics & Location")) }
                 .disabled(!editable)
                 Section {
                     Button {
                         localClear.invalidate()
                         timeRange.open(account: account, draftID: draftID, draft: draft, now: Date(), timeZoneID: TimeZone.autoupdatingCurrent.identifier)
                     } label: {
-                        CYListRow("publishModes.chooseTimeRange", trailing: .valueChevron("—")) {
-                            // MP: pages/publish/activity/index.wxml:62 (icon_date3.png, .picker_group image 24rpx)
-                            MPAsset.FeatureIcon.iconDate3.resizable().scaledToFit().frame(width: 12, height: 12)
-                                .accessibilityHidden(true)
+                        LabeledContent {
+                            Text(verbatim: "—")
+                        } label: {
+                            Label {
+                                Text("publishModes.chooseTimeRange")
+                            } icon: {
+                                // MP: pages/publish/activity/index.wxml:62 (icon_date3.png, .picker_group image 24rpx)
+                                MPAsset.FeatureIcon.iconDate3.resizable().scaledToFit().frame(width: 12, height: 12)
+                                    .accessibilityHidden(true)
+                            }
                         }
                     }
                         .disabled(!mayEditTimeRange || !timeRange.canOpen(account: account, draftID: draftID, draft: draft, now: Date()))
                         .accessibilityIdentifier("publishModes.activity.timeRange.open")
                     // C-A2 (MP index.wxml:53-70): start / end come from 选择时间段 only; shown read-only.
                     LabeledContent("publishModes.start", value: draft.start.isEmpty ? "—" : draft.start)
-                        .foregroundStyle(palette.textPrimary)
                         .accessibilityIdentifier("publishModes.activity.start")
                     fieldError("startDate")
                     LabeledContent("publishModes.end", value: draft.end.isEmpty ? "—" : draft.end)
-                        .foregroundStyle(palette.textPrimary)
                     fieldError("endDate")
-                } header: { CYSectionHeader(verbatim: CoreLoopCopy(locale: locale).t("活动时间", "Schedule")) }
-                .listRowBackground(palette.bgElevated)
+                } header: { Text(verbatim: CoreLoopCopy(locale: locale).t("活动时间", "Schedule")) }
                 .disabled(!editable)
                 Section {
                     Button { picker = "category" } label: {
@@ -380,30 +376,25 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                     }
                     fieldError("categoryIds")
                 }
-                .listRowBackground(palette.bgElevated)
                 .disabled(!editable)
             }
             if ActivityPublishingWizard.clamp(wizardStep) == 1 {
                 Section {
                     HStack(alignment: .top) {
                         TextField("publishParity.activity.description", text: $draft.description, axis: .vertical).lineLimit(3...8)
-                            .foregroundStyle(palette.textPrimary)
                         clearButton(.description)
                     }
                     fieldError("description")
                     // Without the cover upload service, an existing cover link is the only way to set one.
                     if makeActivityCover == nil {
                         TextField("publishModes.cover", text: $draft.coverURL).textInputAutocapitalization(.never).autocorrectionDisabled()
-                            .foregroundStyle(palette.textPrimary)
                     }
-                } header: { CYSectionHeader(verbatim: CoreLoopCopy(locale: locale).t("活动说明", "Description")) }
-                .listRowBackground(palette.bgElevated)
+                } header: { Text(verbatim: CoreLoopCopy(locale: locale).t("活动说明", "Description")) }
                 .disabled(!editable)
                 Section {
                     ActivityCoverAuthoringSection(owner: cover)
                     fieldError("imgUrl")
-                } header: { CYSectionHeader("publishModes.coverSection") }
-                .listRowBackground(palette.bgElevated)
+                } header: { Text("publishModes.coverSection") }
                 Section {
                     Button {
                         localClear.invalidate(); timeRange.retire()
@@ -412,8 +403,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                         chooserRow("publishModes.template", value: draft.playTemplateID == nil ? nil : appLocalized("publishModes.selected", locale: locale), icon: "puzzlepiece")
                     }.accessibilityIdentifier("activityTemplate.open")
                     fieldError("templateId")
-                } header: { CYSectionHeader(verbatim: CoreLoopCopy(locale: locale).t("关联玩法模板", "Play Template")) }
-                .listRowBackground(palette.bgElevated)
+                } header: { Text(verbatim: CoreLoopCopy(locale: locale).t("关联玩法模板", "Play Template")) }
                 .disabled(!editable)
                 if templateSelection.open {
                     ActivityTemplateSelectionSection(owner: templateSelection, apply: { stamp in
@@ -430,11 +420,10 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                         chooserRow("publishModes.collaborators", value: draft.collaboratorMemberIDs.isEmpty ? nil : appLocalized("publishModes.selectedCount \(draft.collaboratorMemberIDs.count)", locale: locale), icon: "person.2")
                     }
                     Text(verbatim: CoreLoopCopy(locale: locale).tr(ActivityPublishingWizard.collaboratorSettlementNotice))
-                        .cyText(.meta)
-                        .foregroundStyle(palette.textSecondary)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                     fieldError("collaborators")
-                } header: { CYSectionHeader(verbatim: CoreLoopCopy(locale: locale).t("合作与核销", "Collaborators")) }
-                .listRowBackground(palette.bgElevated)
+                } header: { Text(verbatim: CoreLoopCopy(locale: locale).t("合作与核销", "Collaborators")) }
                 .disabled(!editable)
                 .task { await organizerRead.load() }
                 ForEach($draft.tickets) { $ticket in
@@ -442,33 +431,28 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                         Section {
                             HStack {
                                 TextField("publishParity.ticket.name", text: $ticket.name)
-                                    .foregroundStyle(palette.textPrimary)
                                 clearButton(.ticketName(ticket.id))
                             }
                             fieldError("ticketName\(index)")
                             // CF-48: prices carry 积分, the only currency.
                             HStack(spacing: CYSpacing.s1_5) {
                                 TextField("publishParity.ticket.price", text: $ticket.price).keyboardType(.decimalPad)
-                                    .foregroundStyle(palette.textPrimary)
-                                EditorKitText.text(EditorUnit.points.key).foregroundStyle(palette.textSecondary)
+                                EditorKitText.text(EditorUnit.points.key).foregroundStyle(.secondary)
                             }
                             fieldError("ticketPrice\(index)")
                             HStack {
                                 TextField("publishParity.ticket.stock", text: $ticket.stock).keyboardType(.numberPad)
-                                    .foregroundStyle(palette.textPrimary)
                                 clearButton(.ticketStock(ticket.id))
                             }
                             fieldError("ticketStock\(index)")
                             TextField("publishModes.start", text: $ticket.start)
-                                .foregroundStyle(palette.textPrimary)
                             fieldError("ticketStart\(index)")
                             TextField("publishModes.end", text: $ticket.end)
-                                .foregroundStyle(palette.textPrimary)
                             fieldError("ticketEnd\(index)")
                         } header: {
                             // CF-33 / CF-58: one "⋯" per ticket (上移, 下移, 删除 last) instead of a red text link.
                             HStack {
-                                Text("publishModes.ticketNumber \(index + 1)").foregroundStyle(palette.textPrimary)
+                                Text("publishModes.ticketNumber \(index + 1)")
                                 Spacer(minLength: CYSpacing.sm)
                                 EditorRowActionsMenu(index: index, count: draft.tickets.count, deleteTitle: Text("publishModes.remove"),
                                                      menuID: "publishModes.ticket.menu.\(index)") { action in
@@ -486,7 +470,6 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                                 .textCase(nil)
                             }
                         }
-                        .listRowBackground(palette.bgElevated)
                         .disabled(!editable)
                 }
                 // Mini-program publish/activity: 添加票单 directly follows the ticket list, before publisher identity.
@@ -495,7 +478,6 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                         .disabled(!editable)
                     if wizardBlock == "ticket" { fieldError("ticket") }
                 }
-                .listRowBackground(palette.bgElevated)
                 if requiresIdentity {
                     // Design hand-off r1 CF-58: real-name is its own pushed page, shown only when needed.
                     Section {
@@ -503,7 +485,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                             Form {
                                 PublisherIdentityRegistrationSection(owner: identityRegistration, makeService: makeIdentityRegistration, enabled: mayClear)
                             }
-                            .formStyle(.grouped).cyGroupedSurface()
+                            .formStyle(.grouped)
                             .navigationTitle(Text("title", tableName: "PublisherIdentityRegistration"))
                             .navigationBarTitleDisplayMode(.inline)
                         } label: {
@@ -517,16 +499,13 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                         }
                         .accessibilityIdentifier("publishModes.activity.identityPage")
                     }
-                    .listRowBackground(palette.bgElevated)
                 }
                 Section {
                     ActivityPublishingReviewSummaryCard(
                         summary: ActivityPublishingWizard.reviewSummary(draft: draft),
                         merchantHost: account?.role == "merchant"
                     )
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0))
-                } header: { CYSectionHeader(verbatim: CoreLoopCopy(locale: locale).t("发布前预览", "Preview Before Publishing")) }
+                } header: { Text(verbatim: CoreLoopCopy(locale: locale).t("发布前预览", "Preview Before Publishing")) }
             }
             if account != nil && draftStore != nil {
                 Section {
@@ -548,29 +527,25 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                             draftSaveState = .saveFailed(reason: appLocalized("publishModes.storageFailed", locale: locale), onRetry: { saveLocalDraft() })
                         }
                     }.disabled(!editable)
-                } header: { CYSectionHeader(verbatim: CoreLoopCopy(locale: locale).t("草稿保存", "Draft Persistence")) }
-                .listRowBackground(palette.bgElevated)
+                } header: { Text(verbatim: CoreLoopCopy(locale: locale).t("草稿保存", "Draft Persistence")) }
             }
             submissionResult
+            if !message.isEmpty {
+                Section {
+                    Text(LocalizedStringKey(message))
+                        .foregroundStyle(message == "publishModes.invalid" || message == "publishModes.storageFailed" ? CYColor.dangerText : Color.secondary)
+                        .accessibilityIdentifier("publishModes.message")
+                }
+            }
         }
-        .scrollContentBackground(.hidden)
-        .background(palette.bgPage)
         .publishFormChrome()
         .cyPushedChrome(domain: .topicEditor)
         .navigationTitle(Text("publishModes.activity"))
         // C-A3 (T&C §2): one system inline title; no second principal title drawn over it.
         .navigationBarTitleDisplayMode(.inline)
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            CYFooterBar {
-                VStack(spacing: CYSpacing.sm) {
-                    if !message.isEmpty {
-                        Text(LocalizedStringKey(message)).cyText(.meta)
-                            .foregroundStyle(message == "publishModes.invalid" || message == "publishModes.storageFailed" ? palette.danger : palette.textSecondary)
-                            .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
-                            .accessibilityIdentifier("publishModes.message")
-                    }
-                    ActivityPublishingWizardNavigation(step: wizardStep, enabled: editable, onCancel: cancelWizard, onBack: goBack, onNext: goNext, onReview: { Task { await prepare() } })
-                }
+        .toolbar {
+            ToolbarItem(placement: .bottomBar) {
+                ActivityPublishingWizardNavigation(step: wizardStep, enabled: editable, onCancel: cancelWizard, onBack: goBack, onNext: goNext, onReview: { Task { await prepare() } })
             }
         }
         .onChange(of: draft) { _, _ in
@@ -584,10 +559,13 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
             draft = .init(); draftID = UUID(); review = nil; localReview = false; message = ""
             wizardStep = 0; wizardBlock = nil; abandonConfirm = false
         }
-        .overlay {
-            if abandonConfirm {
-                PlayAreaActivityAbandonModal(onConfirm: { abandonConfirm = false; dismiss() }, onCancel: { abandonConfirm = false })
-            }
+        .alert(PlayAreaPopupCopy.text("放弃未发布的活动？", "Give up this unpublished activity?", locale: locale), isPresented: $abandonConfirm) {
+            Button(PlayAreaPopupCopy.text("继续编辑", "Keep editing", locale: locale), role: .cancel) { abandonConfirm = false }
+                .accessibilityIdentifier("publishModes.abandon.keepEditing")
+            Button(PlayAreaPopupCopy.text("放弃", "Give up", locale: locale), role: .destructive) { abandonConfirm = false; dismiss() }
+                .accessibilityIdentifier("publishModes.abandon.confirm")
+        } message: {
+            Text(verbatim: PlayAreaPopupCopy.text("已填写的活动内容不会保留。", "What you entered in this activity will not be kept.", locale: locale))
         }
         .onAppear { submission.setActive(scenePhase == .active); cover.appear(active: scenePhase == .active); localClear.appear(active: scenePhase == .active); timeRange.setActive(scenePhase == .active); identityRegistration.appear(active: scenePhase == .active); templateSelection.setActive(scenePhase == .active) }
         .onChange(of: scenePhase) { _, phase in
@@ -632,17 +610,21 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
     @ViewBuilder private func fieldError(_ field: String) -> some View {
         if wizardBlock == field {
             Text(verbatim: ActivityPublishingWizardValidationPresentation(locale: locale).message(for: field))
-                .cyText(.meta).foregroundStyle(palette.danger).fixedSize(horizontal: false, vertical: true)
+                .font(.footnote).foregroundStyle(CYColor.dangerText)
                 .accessibilityIdentifier("publishModes.activity.wizard.validation")
         }
     }
     private func chooserRow(_ title: LocalizedStringKey, value: String?, icon: String? = nil) -> some View {
-        CYListRow(title, trailing: .valueChevron(value ?? "—")) { if let icon { CYRowIcon(systemImage: icon) } }
+        LabeledContent {
+            Text(verbatim: value ?? "—")
+        } label: {
+            if let icon { Label(title, systemImage: icon) } else { Text(title) }
+        }
     }
     private func clearButton(_ field: ActivityPublishingLocalClearOwner.Field) -> some View {
         let action = localClear.action(field, draft: $draft, account: account, draftID: draftID, allowed: { mayClear })
         return Button(action: action) {
-            Label("publishModes.clear", systemImage: "xmark.circle.fill").labelStyle(.iconOnly).foregroundStyle(palette.textTertiary)
+            Label("publishModes.clear", systemImage: "xmark.circle.fill").labelStyle(.iconOnly).foregroundStyle(.tertiary)
         }.buttonStyle(.borderless)
             .disabled(!mayClear || !localClear.canClear(field, draft: draft, account: account, draftID: draftID))
             .accessibilityIdentifier("publishModes.activity.clear." + field.id)
@@ -1065,59 +1047,52 @@ struct ActivityPublishingTimeRangeDraft {
         return owner.current(original, timeZoneID: TimeZone.autoupdatingCurrent.identifier)
     }
     private func endpointRow(_ key: LocalizedStringKey, value: String, selected: Bool) -> some View {
-        HStack(spacing: CYSpacing.md) {
-            Text(key).cyText(selected ? .label : .body).foregroundStyle(selected ? palette.textPrimary : palette.textSecondary)
-            Spacer(minLength: CYSpacing.sm)
-            Text(verbatim: value).cyText(.numericBody).monospacedDigit()
-                .foregroundStyle(selected ? palette.textPrimary : palette.textTertiary)
+        LabeledContent {
+            Text(verbatim: value).monospacedDigit()
+                .foregroundStyle(selected ? Color.accentColor : Color.secondary)
+        } label: {
+            Text(key).foregroundStyle(.primary).fontWeight(selected ? .semibold : .regular)
         }
-        .padding(CYSpacing.lg).frame(minHeight: 56)
-        .background(selected ? palette.bgRaised : palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-        .overlay { RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).stroke(selected ? palette.borderStrong : .clear, lineWidth: 1) }
         .contentShape(Rectangle())
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
     var body: some View {
-        // Mini-program 设置活动时间 sheet: start / end switch, the picker, then one primary step button.
+        // Mini-program 设置活动时间 sheet: start / end switch, the picker, then one step action (Next, then Done).
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                    Text("publishModes.beijingTime").cyText(.label).foregroundStyle(palette.textTertiary)
-                    VStack(spacing: CYSpacing.sm) {
-                        Button { editingEnd = false; failure = false } label: {
-                            endpointRow("publishModes.start", value: ProjectEditDateSelection.beijingValue(draft.start) ?? "—", selected: !editingEnd)
-                        }.buttonStyle(.plain)
-                        endpointRow("publishModes.end", value: editingEnd ? (ProjectEditDateSelection.beijingValue(draft.end) ?? "—") : "—", selected: editingEnd)
+            Form {
+                Section {
+                    Button { editingEnd = false; failure = false } label: {
+                        endpointRow("publishModes.start", value: ProjectEditDateSelection.beijingValue(draft.start) ?? "—", selected: !editingEnd)
                     }
+                    endpointRow("publishModes.end", value: editingEnd ? (ProjectEditDateSelection.beijingValue(draft.end) ?? "—") : "—", selected: editingEnd)
+                } footer: { Text("publishModes.beijingTime") }
+                Section {
                     DatePicker(selection: editingEnd ? $draft.end : $draft.start, displayedComponents: [.date, .hourAndMinute]) {
                         Text(LocalizedStringKey(editingEnd ? "publishModes.end" : "publishModes.start"))
                     }.datePickerStyle(.graphical).labelsHidden()
-                        .tint(palette.textPrimary)
                         .environment(\.timeZone, TimeZone(identifier: original.timeZoneID) ?? .gmt)
-                        .padding(CYSpacing.sm)
-                        .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                         .accessibilityIdentifier("publishModes.activity.timeRange.date")
+                } footer: {
                     if failure || (editingEnd && draft.end <= draft.start) {
-                        Text("publishModes.timeRange.invalid").cyText(.meta).foregroundStyle(palette.danger)
+                        Text("publishModes.timeRange.invalid").foregroundStyle(CYColor.dangerText)
                             .accessibilityIdentifier("publishModes.activity.timeRange.invalid")
                     }
                 }
-                .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
             }
             .disabled(!current)
-            .cyDomainPageBackground()
             .navigationTitle(Text("publishModes.timeRange.title")).navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) {
-                Button("publishModes.cancel") { owner.close(original) }.accessibilityIdentifier("publishModes.activity.timeRange.cancel")
-            } }
-            .safeAreaInset(edge: .bottom) {
-                Group {
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("publishModes.cancel") { owner.close(original) }.accessibilityIdentifier("publishModes.activity.timeRange.cancel")
+                }
+                ToolbarItem(placement: .confirmationAction) {
                     if editingEnd {
-                        CYPillButton("publishModes.done") {
+                        Button("publishModes.done") {
                             guard current else { return }; failure = !apply(draft)
                         }
                         .disabled(!current || draft.end <= draft.start).accessibilityIdentifier("publishModes.activity.timeRange.apply")
                     } else {
-                        CYPillButton("publishModes.wizard.next") {
+                        Button("publishModes.wizard.next") {
                             guard current else { return }
                             if draft.end <= draft.start { draft.end = draft.start.addingTimeInterval(3600) }
                             editingEnd = true; failure = false
@@ -1126,8 +1101,6 @@ struct ActivityPublishingTimeRangeDraft {
                         .accessibilityIdentifier("publishModes.activity.timeRange.next")
                     }
                 }
-                .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
-                .background(palette.bgPage)
             }
         }
         .presentationDragIndicator(.visible)

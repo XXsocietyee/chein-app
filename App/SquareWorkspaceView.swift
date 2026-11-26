@@ -131,7 +131,7 @@ import UniformTypeIdentifiers
                 Section("squareWorkspace.actions") {
                     Button("squareWorkspace.saveLocal") { run { try coordinator.saveLocal(draft, lane: lane) } }.accessibilityIdentifier("squareWorkspace.saveLocal")
                     Button("squareWorkspace.saveServer") { run { try await coordinator.saveServer(draft); if let resumed = coordinator.local.last(where: { $0.draft.postID == coordinator.lastPost?.id && !$0.pending && $0.receipt == nil }) { draft = resumed.draft } } }.disabled(!coordinator.grants.live || coordinator.busy || localMedia.hasSelection).accessibilityIdentifier("squareWorkspace.saveServer")
-                    CYPillButton("squareWorkspace.review") { run { _ = try await coordinator.prepare(draft, lane: lane); acceptsGuideline = false; showsReview = true } }
+                    Button("squareWorkspace.review") { run { _ = try await coordinator.prepare(draft, lane: lane); acceptsGuideline = false; showsReview = true } }
                         .disabled(!coordinator.grants.live || coordinator.busy || localMedia.hasSelection).accessibilityIdentifier("squareWorkspace.review")
                     Button("squareWorkspace.newDraft") { draft = .init(); coordinator.cancelReview(); localMedia.invalidate() }
                         .accessibilityIdentifier("squareWorkspace.newDraft")
@@ -170,7 +170,7 @@ import UniformTypeIdentifiers
                         }
                     }
                     if coordinator.hasMore { Button("squareWorkspace.more") { run { try await coordinator.loadServer(more: true) } } }
-                    if coordinator.revisionsLoading { CYSkeleton() }
+                    if coordinator.revisionsLoading { ProgressView().frame(maxWidth: .infinity) }
                     if let postID = coordinator.revisionPostID, let data = coordinator.revisionData,
                        let text = String(data: data, encoding: .utf8) {
                         Text("#\(postID)").font(.caption)
@@ -225,33 +225,25 @@ import UniformTypeIdentifiers
         .onChange(of: draft) { _, _ in coordinator.cancelReview() }
         .onChange(of: lane) { _, _ in coordinator.cancelReview(); options = []; localMedia.invalidate(); coordinator.clearRevisions() }
         .cyToast(message: $toastMessage, tone: .info)
-        .overlay {
-            if issue {
-                CYModal(
-                    title: appLocalized("squareWorkspace.issue", locale: locale),
-                    message: appLocalized("squareWorkspace.issueDetail", locale: locale),
-                    cancelTitle: nil,
-                    confirmTitle: appLocalized("squareWorkspace.close", locale: locale),
-                    onCancel: { issue = false },
-                    onConfirm: { issue = false }
-                )
-            }
+        .alert(Text(verbatim: appLocalized("squareWorkspace.issue", locale: locale)), isPresented: $issue) {
+            Button { issue = false } label: { Text(verbatim: appLocalized("squareWorkspace.close", locale: locale)) }
+        } message: {
+            Text(verbatim: appLocalized("squareWorkspace.issueDetail", locale: locale))
         }
-        .sheet(isPresented: Binding(get: { locationReview != nil }, set: { if !$0 { locationReview = nil } })) {
-            if let post = locationReview {
-                CYConfirmSheet(
-                    title: appLocalized("squareWorkspace.withdrawConfirm", locale: locale),
-                    message: "",
-                    confirmTitle: appLocalized("squareWorkspace.withdrawLocation", locale: locale),
-                    cancelTitle: appLocalized("action.cancel", locale: locale),
-                    isDestructive: true,
-                    onCancel: { locationReview = nil },
-                    onConfirm: {
-                        locationReview = nil
-                        run { try await coordinator.withdrawLocation(reviewed: post, explicitIntent: true) }
-                    }
-                )
-                .cyDomainSheet(detents: [.peek, .half])
+        .confirmationDialog(
+            Text(verbatim: appLocalized("squareWorkspace.withdrawConfirm", locale: locale)),
+            isPresented: Binding(get: { locationReview != nil }, set: { if !$0 { locationReview = nil } }),
+            titleVisibility: .visible,
+            presenting: locationReview
+        ) { post in
+            Button(role: .destructive) {
+                locationReview = nil
+                run { try await coordinator.withdrawLocation(reviewed: post, explicitIntent: true) }
+            } label: {
+                Text(verbatim: appLocalized("squareWorkspace.withdrawLocation", locale: locale))
+            }
+            Button(role: .cancel) { locationReview = nil } label: {
+                Text(verbatim: appLocalized("action.cancel", locale: locale))
             }
         }
         .sheet(isPresented: $showsReview, onDismiss: { coordinator.cancelReview() }) { Group {

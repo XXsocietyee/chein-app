@@ -126,7 +126,7 @@ enum ClubOwnerStageNow {
                 NavigationLink {
                     ClubLeadProgressView(club: club, clubReader: clubReader, reader: reader, access: access, projects: projects, destinations: destinations)
                 } label: {
-                    CYListRow("club.leadProgress.title", trailing: .chevron) { CYRowIcon(systemImage: "list.bullet.indent") }
+                    Label("club.leadProgress.title", systemImage: "list.bullet.indent")
                 }
                     .accessibilityIdentifier("club.leadProgress.entry")
             }
@@ -149,24 +149,30 @@ enum ClubOwnerStageNow {
         let _ = model.bind(scope)
         List {
             if !scope.canRead || model.phase == .denied {
-                CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "club.leadProgress.ownerRequired", messageIdentifier: "club.leadProgress.denied")
+                ContentUnavailableView {
+                    Label { Text("club.leadProgress.ownerRequired").accessibilityIdentifier("club.leadProgress.denied") } icon: { Image(systemName: "person.crop.circle.badge.exclamationmark") }
+                }
             }
             else {
                 if model.phase == .loading {
-                    CYSkeleton()
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
                         .accessibilityElement(children: .ignore)
                         .accessibilityLabel(Text("club.leadProgress.loading"))
                         .accessibilityIdentifier("club.leadProgress.loading")
                 }
                 if model.phase == .failed {
-                    CYEmptyState(systemImage: "exclamationmark.triangle", "club.leadProgress.failed", messageIdentifier: "club.leadProgress.failed", kind: .failure)
+                    ContentUnavailableView {
+                        Label { Text("club.leadProgress.failed").accessibilityIdentifier("club.leadProgress.failed") } icon: { Image(systemName: "exclamationmark.triangle") }
+                    }
                 }
                 if let snapshot = model.accepted(scope, clubReader: clubReader, reader: reader, access: access, projects: projects) {
                     Section {
-                        CYStatusChip(LocalizedStringKey(snapshot.stage.titleKey), tone: .neutral, systemImage: "flag")
+                        Label(LocalizedStringKey(snapshot.stage.titleKey), systemImage: "flag")
                             .accessibilityIdentifier("club.leadProgress.stage")
                         if snapshot.hasPartialProjects {
-                            CYStatusChip("club.leadProgress.partial", tone: .warning, systemImage: "exclamationmark.triangle")
+                            Label("club.leadProgress.partial", systemImage: "exclamationmark.triangle")
+                                .foregroundStyle(.orange)
                                 .accessibilityIdentifier("club.leadProgress.partial")
                         }
                         countRow("club.leadProgress.topicCount", snapshot.topicCount, symbol: "map")
@@ -178,8 +184,13 @@ enum ClubOwnerStageNow {
                             DisclosureGroup("club.leadProgress.timeline", isExpanded: $expanded) {
                                 ForEach(snapshot.nodes) { node in
                                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                                        CYListRow(LocalizedStringKey(node.titleKey), meta: LocalizedStringKey(node.stateKey), trailing: .none) {
-                                            CYRowIcon(systemImage: node.state == .done ? "checkmark.circle" : node.state == .doing ? "record.circle" : "circle")
+                                        Label {
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text(LocalizedStringKey(node.titleKey))
+                                                Text(LocalizedStringKey(node.stateKey)).font(.subheadline).foregroundStyle(.secondary)
+                                            }
+                                        } icon: {
+                                            Image(systemName: node.state == .done ? "checkmark.circle" : node.state == .doing ? "record.circle" : "circle")
                                         }
                                         if node.id == 1, let time = snapshot.invitationTimeText {
                                             LabeledContent("club.leadProgress.invitationTime", value: time)
@@ -202,13 +213,10 @@ enum ClubOwnerStageNow {
                         return model.accepted(scope, clubReader: clubReader, reader: reader, access: access, projects: projects)
                     }, onReturn: { reload(scope) })
                 Button(LocalizedStringKey(model.phase == .failed ? "action.retry" : "club.refresh")) { reload(scope) }
-                    .buttonStyle(CYPillButtonStyle(style: leadActionVisible(scope) ? .secondary : .primary, fullWidth: true))
                     .disabled(model.phase == .loading || model.permit(in: scope) == nil)
                     .accessibilityIdentifier("club.leadProgress.reload")
             }
         }
-        .listStyle(.plain)
-        .cyGroupedSurface()
         .cyPageTitle("club.leadProgress.title")
         .task(id: scope) {
             guard let permit = model.activate(scope) else { return }
@@ -219,11 +227,11 @@ enum ClubOwnerStageNow {
     }
     /// Counts are projected integers. A real 0 stays 0; this reader has no unknown count.
     private func countRow(_ title: LocalizedStringKey, _ count: Int, symbol: String) -> some View {
-        CYListRow(title, trailing: .value(String(count))) { CYRowIcon(systemImage: symbol) }
-    }
-    private func leadActionVisible(_ scope: ClubLeadProgressContext) -> Bool {
-        guard let snapshot = model.accepted(scope, clubReader: clubReader, reader: reader, access: access, projects: projects) else { return false }
-        return ClubLeadPrimaryAction(stage: snapshot.stage) != nil
+        LabeledContent {
+            Text(verbatim: String(count)).monospacedDigit()
+        } label: {
+            Label(title, systemImage: symbol)
+        }
     }
     private func reload(_ scope: ClubLeadProgressContext) {
         guard context == scope, scope.matches(clubReader: clubReader, reader: reader, access: access, projects: projects), let permit = model.permit(in: scope) else { return }

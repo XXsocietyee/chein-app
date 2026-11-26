@@ -10,34 +10,34 @@ struct HomeReturnSection: View {
         Section {
             if let model { content(model) }
             else {
-                Text("homeReturn.notEnabled", tableName: "CityGame").cyText(.bodyCompact).accessibilityIdentifier("homeReturn.notEnabled")
+                Text("homeReturn.notEnabled", tableName: "CityGame").accessibilityIdentifier("homeReturn.notEnabled")
             }
         } header: { Text("homeReturn.title", tableName: "CityGame") }
         .task { await model?.load() }
     }
 
     @ViewBuilder private func content(_ model: HomeReturnCoordinator) -> some View {
-        phaseText(model.phase).cyText(.bodyCompact).accessibilityIdentifier("homeReturn.phase")
-        Text("homeReturn.manual", tableName: "CityGame").cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
+        phaseText(model.phase).accessibilityIdentifier("homeReturn.phase")
+        Text("homeReturn.manual", tableName: "CityGame").fixedSize(horizontal: false, vertical: true)
         if let account = model.account {
             LabeledContent { Text(verbatim: "\(account.current) / \(account.maximum)") } label: { scopeText(model.scope) }
                 .accessibilityIdentifier("homeReturn.account")
         } else if model.phase == .unavailable {
-            Text("homeReturn.unavailable", tableName: "CityGame").cyText(.bodyCompact)
+            Text("homeReturn.unavailable", tableName: "CityGame")
         }
         if let failure = model.failure { failureText(failure).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("homeReturn.failure") }
         if let decision = model.decision { decisionText(decision).accessibilityIdentifier("homeReturn.decision") }
-        if model.noReceiptYet { Text("homeReturn.noReceiptYet", tableName: "CityGame").cyText(.bodyCompact) }
+        if model.noReceiptYet { Text("homeReturn.noReceiptYet", tableName: "CityGame") }
         if model.isBusy { ProgressView() }
         if home?.status != .active, model.phase == .ready {
-            Text("homeReturn.needHome", tableName: "CityGame").cyText(.bodyCompact).accessibilityIdentifier("homeReturn.needHome")
+            Text("homeReturn.needHome", tableName: "CityGame").accessibilityIdentifier("homeReturn.needHome")
         }
         if model.canCheckIn, home?.status == .active {
             Button { Task { await model.checkIn(home: home) } } label: { Text("homeReturn.checkIn", tableName: "CityGame") }
                 .accessibilityIdentifier("homeReturn.checkIn")
         }
         if model.phase == .unknown {
-            Text("homeReturn.unknown", tableName: "CityGame").cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
+            Text("homeReturn.unknown", tableName: "CityGame").fixedSize(horizontal: false, vertical: true)
             Button { Task { await model.readBack() } } label: { Text("homeReturn.readBack", tableName: "CityGame") }
                 .accessibilityIdentifier("homeReturn.readBack")
             if model.canRetryExact {

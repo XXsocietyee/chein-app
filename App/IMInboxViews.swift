@@ -71,14 +71,11 @@ struct IMUnreadBadge: View {
     var body: some View {
         if let text {
             let quiet = muted || text == IMListPageReady.unknownMark
+            // Native r2: the count reads like a List `.badge` (system text, no drawn capsule); unread is tinted.
             Text(verbatim: text)
-                .cyText(.caption, weight: .semibold).monospacedDigit()
-                // Continuity: a count that drops (read in the chat, read-all) rolls down digit by digit instead of
-                // redrawing (C1's shared `cyNumericRoll`); Reduce Motion keeps a short cross-fade.
-                .cyNumericRoll(Double(count ?? 0))
-                .padding(.horizontal, 6).padding(.vertical, 2)
-                .foregroundStyle(quiet ? CYColor.textSecondary : CYColor.textOnAccent)
-                .background(Capsule().fill(quiet ? CYColor.textSecondary.opacity(0.25) : CYColor.dangerSolid))
+                .font(.subheadline.weight(.semibold)).monospacedDigit()
+                .contentTransition(.numericText())
+                .foregroundStyle(quiet ? Color.secondary : Color.accentColor)
                 .accessibilityLabel(Text("messaging.unread"))
                 .accessibilityValue(text == IMListPageReady.unknownMark ? Text("im.list.unread.unknown") : Text(verbatim: text))
         }
@@ -95,7 +92,7 @@ struct IMInboxRow: View {
     @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 56
     @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
+        HStack(alignment: .center) {
             IMRemoteAvatar(url: conversation.kind == .system ? nil : IMRemoteAvatar<EmptyView>.url(conversation.counterparty?.avatar)) {
                 // MP im/list/index.wxml:138-141: the system row keeps its glyph; a person falls back to `/images/d_profile.png`.
                 if conversation.kind == .system || conversation.kind == .group {
@@ -109,56 +106,47 @@ struct IMInboxRow: View {
                 .overlay(alignment: .topTrailing) {
                     // Unread dot on the avatar; the count badge stays on the preview line.
                     if (conversation.unread ?? 0) > 0 && conversation.muted != true {
-                        Circle().fill(CYColor.dangerSolid).frame(width: 12, height: 12).offset(x: 2, y: -2)
-                            .transition(.scale.combined(with: .opacity))
+                        Circle().fill(Color.accentColor).frame(width: 12, height: 12).offset(x: 2, y: -2)
                     }
                 }
                 .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading) {
                 if typeSize >= .xxLarge {
                     MessagingConversationName(conversation: conversation)
-                        .cyText(.cardTitle).fixedSize(horizontal: false, vertical: true)
-                    HStack(spacing: 6) {
+                        .font(.headline)
+                    HStack {
                         officialChip; muteMark
                         IMInboxTimeLabel(raw: conversation.lastMessageAt)
-                            .cyText(.meta).monospacedDigit().foregroundStyle(.secondary)
+                            .font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
                     }
                 } else {
-                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    HStack(alignment: .firstTextBaseline) {
                         MessagingConversationName(conversation: conversation)
-                            .cyText(.cardTitle).cyWrapText()
+                            .font(.headline)
                         officialChip.fixedSize()
                         muteMark
                         Spacer(minLength: 4)
                         IMInboxTimeLabel(raw: conversation.lastMessageAt)
-                            .cyText(.meta).monospacedDigit().foregroundStyle(.secondary)
+                            .font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
                             .fixedSize().layoutPriority(1)
                     }
                 }
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                HStack(alignment: .firstTextBaseline) {
                     MessagingPreview(conversation: conversation)
-                        .cyText(.body)
-                        .fixedSize(horizontal: false, vertical: true)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                     Spacer(minLength: 4)
                     IMUnreadBadge(count: conversation.unread, muted: conversation.muted == true, unknownAsDash: true)
-                        .transition(.scale.combined(with: .opacity))
                 }
             }
         }
-        // The last unread leaving takes the badge and the avatar dot with it (scale + fade), in place.
-        .cyAnimation(CYMotion.standard, value: conversation.unread)
-        .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
-        // Mini-program cy-fly-in: rows settle in with a short rise; Reduce Motion shows them at once.
-        .opacity(arrived || reduceMotion ? 1 : 0)
-        .offset(y: arrived || reduceMotion ? 0 : 8)
-        .onAppear { withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) { arrived = true } }
     }
-    @State private var arrived = false
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @ViewBuilder private var officialChip: some View {
         if conversation.kind == .merchant {
-            CYStatusChip("im.inbox.officialTag", tone: .neutral)
+            Text("im.inbox.officialTag")
+                .font(.caption)
+                .foregroundStyle(.secondary)
                 .accessibilityIdentifier("im.inbox.official.\(conversation.id)")
         }
     }
@@ -208,11 +196,11 @@ struct CYIMCoverArt: View {
 
     var body: some View {
         ZStack {
-            CYColor.bgRaised
+            Color(uiColor: .secondarySystemFill)
             if symbolSize > 0 {
                 Image(systemName: systemImage)
-                    .font(symbolSize >= 28 ? CYTypography.pageTitle : CYTypography.cardTitle)
-                    .foregroundStyle(CYColor.textPrimary)
+                    .font(symbolSize >= 28 ? Font.title : Font.headline)
+                    .foregroundStyle(.secondary)
             }
         }
         .accessibilityIdentifier("im.cover.\(seed)")

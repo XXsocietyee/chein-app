@@ -36,12 +36,12 @@ struct PrivacyProtectionView: View {
     var body: some View {
         Form {
             // B-PV-03: the page title is the inline system title; the lead stays as the first line.
-            Section { Text("authEntry.gate.lead", tableName: "AuthEntry").cyText(.body).foregroundStyle(CYColor.textSecondary) }
+            Section { Text("authEntry.gate.lead", tableName: "AuthEntry").font(.body).foregroundStyle(.secondary) }
             Section {
                 ForEach(PrivacyGuideSummaryPresentation.defaultItems) { item in
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(LocalizedStringKey(item.id + ".title"), tableName: "PrivacyGuideSummary").cyText(.bodyMedium)
-                        Text(LocalizedStringKey(item.id + ".detail"), tableName: "PrivacyGuideSummary").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                        Text(LocalizedStringKey(item.id + ".title"), tableName: "PrivacyGuideSummary").font(.body)
+                        Text(LocalizedStringKey(item.id + ".detail"), tableName: "PrivacyGuideSummary").font(.subheadline).foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
@@ -54,8 +54,10 @@ struct PrivacyProtectionView: View {
                     .accessibilityValue(Text("authEntry.gate.lead", tableName: "AuthEntry"))
                     .accessibilityHint(Text("authEntry.privacy.manage", tableName: "AuthEntry"))
                 if !isPrivacyPolicyBundled {
-                    CYEmptyState(systemImage: "doc.questionmark", "authEntry.privacy.guideUnavailable", tableName: "AuthEntry",
-                                 messageIdentifier: "authEntry.privacy.guideUnavailable")
+                    ContentUnavailableView {
+                        Label { Text("authEntry.privacy.guideUnavailable", tableName: "AuthEntry") } icon: { Image(systemName: "doc.questionmark") }
+                    }
+                    .accessibilityIdentifier("authEntry.privacy.guideUnavailable")
                 }
                 Button { document = AuthEntryLegalSheet(type: .userAgreement) } label: { Text("authEntry.gate.openAgreement", tableName: "AuthEntry") }
                     .accessibilityIdentifier("authEntry.privacy.agreement")
@@ -65,14 +67,14 @@ struct PrivacyProtectionView: View {
             }
             Section {
                 LabeledContent {
-                    if granted { Label { Text("authEntry.privacy.consentGranted", tableName: "AuthEntry") } icon: { Image(systemName: "checkmark.seal") }.foregroundStyle(CYColor.successText) }
-                    else { Label { Text("authEntry.privacy.consentMissing", tableName: "AuthEntry") } icon: { Image(systemName: "exclamationmark.circle") }.foregroundStyle(CYColor.warningText) }
+                    if granted { Label { Text("authEntry.privacy.consentGranted", tableName: "AuthEntry") } icon: { Image(systemName: "checkmark.seal") }.foregroundStyle(.green) }
+                    else { Label { Text("authEntry.privacy.consentMissing", tableName: "AuthEntry") } icon: { Image(systemName: "exclamationmark.circle") }.foregroundStyle(.orange) }
                 } label: { Text("authEntry.privacy.consentStatus", tableName: "AuthEntry") }
                     .accessibilityIdentifier("authEntry.privacy.consentStatus")
                     .accessibilityLabel(Text("authEntry.privacy.consentStatus", tableName: "AuthEntry"))
                     .accessibilityValue(Text(LocalizedStringKey(granted ? "authEntry.privacy.consentGranted" : "authEntry.privacy.consentMissing"), tableName: "AuthEntry"))
                     .accessibilityHint(Text("authEntry.privacy.manage", tableName: "AuthEntry"))
-                Text("authEntry.privacy.manage", tableName: "AuthEntry").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                Text("authEntry.privacy.manage", tableName: "AuthEntry").font(.footnote).foregroundStyle(.secondary)
                 if granted {
                     Button(role: .destructive) {
                         policy.decline()
@@ -89,7 +91,6 @@ struct PrivacyProtectionView: View {
             SessionLocationHoldsSection()
             if !granted { UsageConsentSignInRequirement(market: market, policy: policy, granted: $granted) }
         }
-        .cyGroupedSurface()
         .navigationTitle(Text("authEntry.privacy.title", tableName: "AuthEntry")).navigationBarTitleDisplayMode(.inline)
         .sheet(item: $document) { sheet in Group {
             NavigationStack {

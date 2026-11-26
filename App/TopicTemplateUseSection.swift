@@ -51,7 +51,6 @@ extension AppCompositionRoot {
     let plan: TopicTemplateAdoptionPlan
     let onCopied: (Int) -> Void
     @StateObject private var model: TopicTemplateUseModel
-    @Environment(\.cyPalette) private var palette
     @Environment(\.analyticsEventClient) private var analytics
     @Environment(\.offlineWriteSession) private var offlineWriteSession
 
@@ -82,8 +81,8 @@ extension AppCompositionRoot {
                      ? W8Text.t("复制成你自己的草稿，先沿用原地点；在编辑器的「地点待办」里逐个替换并确认地址。原模板不变。",
                                 "Copies into your own draft that keeps the original places for now. Replace and confirm each address under Place to-dos in the editor. The template itself is unchanged.")
                      : W8Text.t("复制成你自己的草稿，修改不影响原模板。", "Copies into your own draft. Your edits never change the template."))
-                    .cyText(.meta)
-                    .foregroundStyle(palette.textSecondary)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("topicTemplate.useIntent")
             }
@@ -100,9 +99,10 @@ extension AppCompositionRoot {
                     }
                 }
             } label: {
-                Text(buttonTitle).frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                Text(buttonTitle).frame(maxWidth: .infinity)
             }
-            .buttonStyle(.cyPrimary(fullWidth: true))
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
             .disabled(model.state == .using)
             .accessibilityIdentifier("topicTemplate.use")
             CYScreenOfflineWriteBanner(
@@ -112,8 +112,8 @@ extension AppCompositionRoot {
             SourceLineageSection(revisionID: model.copiedReceipt?.sourceContentRevisionId ?? plan.sourceContentRevisionId)
             if let message = TopicTemplateUseModel.message(for: model.state) {
                 Label(message, systemImage: model.copiedReceipt == nil ? "exclamationmark.circle" : "checkmark.circle")
-                    .cyText(.bodyCompact)
-                    .foregroundStyle(palette.textSecondary)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("topicTemplate.useMessage")
             }
@@ -128,27 +128,25 @@ extension AppCompositionRoot {
 @MainActor struct TopicTemplateAdoptionConditionsSection: View {
     let delivery: TopicTemplateContentDelivery?
     var canViewEvidence: Bool = false
-    @Environment(\.cyPalette) private var palette
 
     var body: some View {
         let rows = TopicTemplateAdoptionConditions.rows(delivery, canViewEvidence: canViewEvidence)
         if !rows.isEmpty {
             Section {
                 ForEach(rows) { row in
-                    HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
-                        Text(row.label).cyText(.meta).foregroundStyle(palette.textSecondary)
-                            .frame(minWidth: 64, alignment: .leading)
-                        Text(row.value).cyText(.bodyCompact).foregroundStyle(palette.textPrimary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                    LabeledContent {
+                        Text(row.value)
+                            .multilineTextAlignment(.trailing)
                             .fixedSize(horizontal: false, vertical: true)
+                    } label: {
+                        Text(row.label)
                     }
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("topicTemplate.condition.\(row.key)")
                 }
             } header: {
-                TemplateXbSectionTitle(title: "u02.template.adoptionConditions", systemImage: "checklist")
+                Text("u02.template.adoptionConditions")
             }
-            .discoveryCardRow()
             .accessibilityIdentifier("topicTemplate.adoptionConditions")
         }
     }
@@ -158,12 +156,11 @@ extension AppCompositionRoot {
 @MainActor struct TopicTemplateNodeCredit: View {
     let reference: String
     @State private var credit: String?
-    @Environment(\.cyPalette) private var palette
 
     var body: some View {
         Group {
             if let credit {
-                Text(credit).cyText(.micro).foregroundStyle(palette.textSecondary).lineLimit(1)
+                Text(credit).font(.caption).foregroundStyle(.secondary).lineLimit(1)
                     .accessibilityLabel(Text(W8Text.t("图片署名：\(credit)", "Image credit: \(credit)")))
                     .accessibilityIdentifier("topicTemplate.nodeCredit")
             }
