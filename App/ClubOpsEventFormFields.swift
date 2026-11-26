@@ -27,21 +27,39 @@ import SwiftUI
                     .foregroundStyle(.orange)
                     .accessibilityIdentifier("clubOpsEvent.paymentNotice")
             }
-            if topicFact?.showsCapacity ?? true {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("clubOpsEvent.section.capacity", tableName: "ClubOpsEvent").font(.headline)
-                Text("clubOpsEvent.capacity.note", tableName: "ClubOpsEvent").font(.subheadline).foregroundStyle(.secondary)
-                // CLB-r10-nat-event-ops-04: the TextField carries its own label; no duplicate caption above it.
+            // CLB-r10-nat-event-ops-04: 容量 and 候补 are their own Section (ClubOpsEventCapacitySection).
+        }
+    }
+}
+
+/// CLB-r10-nat-event-ops-04 (MP event-ops wxml:253 人数上限 + 候补): its own Form Section, the capacity
+/// notes and the inline validation in the footer, one labelled TextField (no caption above it).
+@MainActor struct ClubOpsEventCapacitySection: View {
+    @Binding var capacity: String
+    @Binding var waitlist: Bool
+    /// CLB-event-ops-06: a multi-ticket topic keeps each ticket's capacity, so the field is hidden.
+    let showsCapacity: Bool
+    var body: some View {
+        Section {
+            if showsCapacity {
                 TextField(text: $capacity, prompt: Text("clubOpsEvent.capacity.placeholder", tableName: "ClubOpsEvent")) { Text("club.gov.field.capacity") }
                     .keyboardType(.numberPad).accessibilityIdentifier("club.gov.input.capacity")
-                if ClubOpsEventInput.capacityInvalid(capacity) {
-                    Text("clubOpsEvent.capacity.invalid", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.red)
-                        .accessibilityIdentifier("clubOpsEvent.capacity.invalid")
-                }
-                Text("clubOpsEvent.capacity.help", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
-            }
             }
             Toggle("club.gov.field.waitlistEnabled", isOn: $waitlist).accessibilityIdentifier("club.gov.input.waitlistEnabled")
+        } header: {
+            Text("clubOpsEvent.section.capacity", tableName: "ClubOpsEvent")
+        } footer: {
+            if showsCapacity { footer }
+        }
+    }
+    private var footer: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("clubOpsEvent.capacity.note", tableName: "ClubOpsEvent")
+            if ClubOpsEventInput.capacityInvalid(capacity) {
+                Text("clubOpsEvent.capacity.invalid", tableName: "ClubOpsEvent").foregroundStyle(.red)
+                    .accessibilityIdentifier("clubOpsEvent.capacity.invalid")
+            }
+            Text("clubOpsEvent.capacity.help", tableName: "ClubOpsEvent")
         }
     }
 }

@@ -185,73 +185,19 @@ import SwiftUI
                     ClubOpsNotifyContentFields(title: textBinding("title"), content: textBinding("content"))
                 } header: { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.content.section") }
                     .disabled(busy || locked || review != nil)
+            } else if route.operation == .createSeries {
+                // CLB-r10-nat-event-ops-04 (MP event-ops wxml:253): 容量 / 候补 are their own Section between the
+                // schedule rows and the remaining fields; the other operations keep one Section.
+                Section { commandLeadRows }.disabled(busy || locked || review != nil)
+                ClubOpsEventCapacitySection(capacity: textBinding("capacity"), waitlist: flagBinding("waitlistEnabled"),
+                                            showsCapacity: eventTopicFact?.showsCapacity ?? true)
+                    .disabled(busy || locked || review != nil)
+                Section { commandFieldRows }.disabled(busy || locked || review != nil)
             } else {
-            Section {
-                if route.operation == .assignRole {
-                    ClubRoleAssignmentPicker(scope: route.scope, identity: identity, access: access, model: rolePicker,
-                        memberID: textBinding("targetMemberId"), roleCode: textBinding("roleCode"),
-                        canEdit: { !busy && !locked && review == nil },
-                        applySelection: { member, role in draft.applyClubRolePicker(memberID: member, roleCode: role) })
-                    if draft.flags["customerPhoneVisible"] != nil {
-                        Text("club.rolePicker.phoneVisible.hint").font(.footnote).foregroundStyle(.secondary)
-                            .accessibilityIdentifier("club.rolePicker.phoneVisible.hint")
-                    }
-                }
-                if route.operation == .createSeries {
-                    ClubSeriesLeadPicker(scope: route.scope, identity: identity, access: access, model: seriesLeadPicker,
-                        memberID: textBinding("defaultLeadMemberId"), canEdit: { !busy && !locked && review == nil })
-                }
-                if isSeries {
-                    Button("club.schedule.title") {
-                        scheduleSession = .init(form: draft, identity: identity, access: access, now: Date())
-                    }.disabled(identity == nil || identity != access.identity || !access.isConfigured).accessibilityIdentifier("club.schedule.open")
-                    if !(draft.text["startDate"] ?? "").isEmpty {
-                        ClubGovernanceFactRows(value: .object(draft.text.filter { ClubSeriesScheduleDraft.fieldKeys.contains($0.key) }.mapValues(ClubGovernanceValue.string)),
-                            fields: ["recurrenceType", "startDate", "startTime", "occurrenceCount", "customDates"])
-                        if showsCustomDateConversion {
-                            Text("club.schedule.customConversion", tableName: "ClubSeriesSchedule")
-                                .accessibilityIdentifier("club.schedule.formConversion")
-                        }
-                        if let issue = ClubSeriesScheduleDraft(form: draft, now: Date()).issue(now: Date()) {
-                            ClubSeriesScheduleIssueLabel(issue: issue, weeklyHorizon: ClubSeriesScheduleDraft(form: draft, now: Date()).weeklyHorizonMessage(now: Date()))
-                        }
-                    } else { Text("club.schedule.choose") }
-                }
-                if isSeries {
-                    ClubOpsEventSeriesFields(operation: route.operation, capacity: textBinding("capacity"), waitlist: flagBinding("waitlistEnabled"),
-                                             topicFact: eventTopicFact)
-                }
-                if isSeries {
-                    ClubSeriesOfferWindowField(minutes: textBinding("offerMinutes"))
-                        .clubOpsEventVisible(showsOfferWindow)
-                    ClubOpsEventOfferHelp(minutes: draft.text["offerMinutes"] ?? "", visible: showsOfferWindow)
-                }
-                if [.cancelOccurrence, .correctAttendance].contains(route.operation) {
-                    ClubOpsEventReasonField(operation: route.operation, reason: textBinding("reason"))
-                }
-                if route.operation == .saveCustomer {
-                    ClubOpsCustomerTagRemarkEditor(tagsText: textBinding("tags"), remark: textBinding("remark"))
-                }
-                if route.operation == .ban { ClubOpsBanDurationPicker(days: textBinding("banDays")) }
-                ForEach(Array(draft.text.keys).sorted().filter { key in
-                    (route.operation != .ban || key != "banDays") && (route.operation != .revokeRole || key != "reason") &&
-                    (route.operation != .hostApply || key != "certImages") &&
-                    (route.operation != .assignRole || !["targetMemberId", "roleCode"].contains(key)) &&
-                    (!isSeries || (!ClubSeriesScheduleDraft.fieldKeys.contains(key) && key != "offerMinutes")) &&
-                    (route.operation != .createSeries || key != "defaultLeadMemberId") &&
-                    (!isSeries || key != "capacity") && (route.operation != .updateSeries || key != "defaultLeadMemberId") &&
-                    (![.cancelOccurrence, .correctAttendance].contains(route.operation) || key != "reason") &&
-                    (route.operation != .sendNotification || key != "audienceType") &&
-                    (route.operation != .sendNotification || !["title", "content"].contains(key)) &&
-                    (route.operation != .saveCustomer || !["tags", "remark"].contains(key)) &&
-                    // CLB-governance-09 (parity r2): inside a club the report is anchored to that club (MP CU-C-139);
-                    // the user is never asked for a target type or a raw target id.
-                    (route.operation != .report || route.scope.clubID == nil || !["targetType", "targetId"].contains(key))
-                }, id: \.self) { key in fieldRow(key) }
-                ForEach(Array(draft.flags.keys).sorted().filter { !isSeries || $0 != "waitlistEnabled" }, id: \.self) { key in
-                    flagRow(key)
-                }
-            }.disabled(busy || locked || review != nil)
+                Section {
+                    commandLeadRows
+                    commandFieldRows
+                }.disabled(busy || locked || review != nil)
             }
             if let failure, route.operation == .issueGroupCode, ClubGroupCodePort.classify(failure) == .noPermission {
                 // Mini isPermissionDenial: terminal state with an exit, not a retry.
@@ -677,6 +623,76 @@ import SwiftUI
     private var seriesLeadReady: Bool {
         route.operation != .createSeries || seriesLeadPicker.canPrepare(scope: route.scope, identity: identity, access: access,
             memberID: draft.text["defaultLeadMemberId"] ?? "")
+    }
+    /// Role / lead pickers, the series schedule and the series notes (the first rows of the command Section).
+    @ViewBuilder private var commandLeadRows: some View {
+        if route.operation == .assignRole {
+            ClubRoleAssignmentPicker(scope: route.scope, identity: identity, access: access, model: rolePicker,
+                memberID: textBinding("targetMemberId"), roleCode: textBinding("roleCode"),
+                canEdit: { !busy && !locked && review == nil },
+                applySelection: { member, role in draft.applyClubRolePicker(memberID: member, roleCode: role) })
+            if draft.flags["customerPhoneVisible"] != nil {
+                Text("club.rolePicker.phoneVisible.hint").font(.footnote).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("club.rolePicker.phoneVisible.hint")
+            }
+        }
+        if route.operation == .createSeries {
+            ClubSeriesLeadPicker(scope: route.scope, identity: identity, access: access, model: seriesLeadPicker,
+                memberID: textBinding("defaultLeadMemberId"), canEdit: { !busy && !locked && review == nil })
+        }
+        if isSeries {
+            Button("club.schedule.title") {
+                scheduleSession = .init(form: draft, identity: identity, access: access, now: Date())
+            }.disabled(identity == nil || identity != access.identity || !access.isConfigured).accessibilityIdentifier("club.schedule.open")
+            if !(draft.text["startDate"] ?? "").isEmpty {
+                ClubGovernanceFactRows(value: .object(draft.text.filter { ClubSeriesScheduleDraft.fieldKeys.contains($0.key) }.mapValues(ClubGovernanceValue.string)),
+                    fields: ["recurrenceType", "startDate", "startTime", "occurrenceCount", "customDates"])
+                if showsCustomDateConversion {
+                    Text("club.schedule.customConversion", tableName: "ClubSeriesSchedule")
+                        .accessibilityIdentifier("club.schedule.formConversion")
+                }
+                if let issue = ClubSeriesScheduleDraft(form: draft, now: Date()).issue(now: Date()) {
+                    ClubSeriesScheduleIssueLabel(issue: issue, weeklyHorizon: ClubSeriesScheduleDraft(form: draft, now: Date()).weeklyHorizonMessage(now: Date()))
+                }
+            } else { Text("club.schedule.choose") }
+        }
+        if isSeries {
+            ClubOpsEventSeriesFields(operation: route.operation, capacity: textBinding("capacity"), waitlist: flagBinding("waitlistEnabled"),
+                                     topicFact: eventTopicFact)
+        }
+    }
+    /// The remaining command inputs: offer window, reason, customer, ban, the generic text fields and flags.
+    @ViewBuilder private var commandFieldRows: some View {
+        if isSeries {
+            ClubSeriesOfferWindowField(minutes: textBinding("offerMinutes"))
+                .clubOpsEventVisible(showsOfferWindow)
+            ClubOpsEventOfferHelp(minutes: draft.text["offerMinutes"] ?? "", visible: showsOfferWindow)
+        }
+        if [.cancelOccurrence, .correctAttendance].contains(route.operation) {
+            ClubOpsEventReasonField(operation: route.operation, reason: textBinding("reason"))
+        }
+        if route.operation == .saveCustomer {
+            ClubOpsCustomerTagRemarkEditor(tagsText: textBinding("tags"), remark: textBinding("remark"))
+        }
+        if route.operation == .ban { ClubOpsBanDurationPicker(days: textBinding("banDays")) }
+        ForEach(Array(draft.text.keys).sorted().filter { key in
+            (route.operation != .ban || key != "banDays") && (route.operation != .revokeRole || key != "reason") &&
+            (route.operation != .hostApply || key != "certImages") &&
+            (route.operation != .assignRole || !["targetMemberId", "roleCode"].contains(key)) &&
+            (!isSeries || (!ClubSeriesScheduleDraft.fieldKeys.contains(key) && key != "offerMinutes")) &&
+            (route.operation != .createSeries || key != "defaultLeadMemberId") &&
+            (!isSeries || key != "capacity") && (route.operation != .updateSeries || key != "defaultLeadMemberId") &&
+            (![.cancelOccurrence, .correctAttendance].contains(route.operation) || key != "reason") &&
+            (route.operation != .sendNotification || key != "audienceType") &&
+            (route.operation != .sendNotification || !["title", "content"].contains(key)) &&
+            (route.operation != .saveCustomer || !["tags", "remark"].contains(key)) &&
+            // CLB-governance-09 (parity r2): inside a club the report is anchored to that club (MP CU-C-139);
+            // the user is never asked for a target type or a raw target id.
+            (route.operation != .report || route.scope.clubID == nil || !["targetType", "targetId"].contains(key))
+        }, id: \.self) { key in fieldRow(key) }
+        ForEach(Array(draft.flags.keys).sorted().filter { !isSeries || $0 != "waitlistEnabled" }, id: \.self) { key in
+            flagRow(key)
+        }
     }
     private var isSeries: Bool { [.createSeries, .updateSeries].contains(route.operation) }
     private var showsOfferWindow: Bool { route.operation == .createSeries && draft.flags["waitlistEnabled"] == true }

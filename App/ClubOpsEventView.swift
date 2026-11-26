@@ -186,7 +186,7 @@ import SwiftUI
                 }
             } header: { Text("clubOpsEvent.section.recurrence", tableName: "ClubOpsEvent") } footer: { Text("clubOpsEvent.recurrence.note", tableName: "ClubOpsEvent") }
         case .capacity:
-            // Capacity and waitlist are set inside the series form (ClubOpsEventSeriesFields);
+            // Capacity and waitlist are set inside the series form (ClubOpsEventCapacitySection);
             // the hub section held only explanations with no control, so it is not shown.
             EmptyView()
         }
