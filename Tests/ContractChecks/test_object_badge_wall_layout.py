@@ -55,7 +55,9 @@ class ObjectBadgeWallLayoutContracts(unittest.TestCase):
                       'ObjectBadgeTileArtwork(url: badge.image',
                       ]:
             self.assertIn(token, self.wall)
-        self.assertIn('layout: layout, wall: wall).buttonStyle(.plain)', self.wall)
+        # BWALL-3b (r10, MP subpackageP3/badge-wall/index/index.wxml:46-63): one grid, no layout parameter.
+        self.assertIn('albumID: slot.identifier, wall: wall).buttonStyle(.plain)', self.wall)
+        self.assertIn('.grayscale(badge.isLocked ? 1 : 0)', self.wall)
         # The album card (a separate view) clamps its hero name to two lines; the tile label itself never truncates.
         self.assertNotIn('.lineLimit(', self.source.split('struct ObjectBadgeWallBadgeLabel', 1)[1])
         self.assertNotIn('SceneKit', self.wall)
@@ -73,14 +75,11 @@ class ObjectBadgeWallLayoutContracts(unittest.TestCase):
             self.assertEqual(set(row['localizations']), {'en', 'zh-Hans'})
             for locale in row['localizations'].values(): self.assertTrue(locale['stringUnit']['value'])
         self.assertEqual(fragment['objects.badgeLayout.wall']['localizations']['en']['stringUnit']['value'], 'Static wall')
-    def test_focused_runtime_methods_are_authored_without_claiming_execution(self):
-        tests = (ROOT / 'Tests/AppUnitTests/ObjectBadgeWallLayoutTests.swift').read_text()
-        self.assertEqual(len(re.findall(r'func test\w+\(', tests)), 8)
-        for case in ['testAccountEpochSignOutAndConfigurationLoss', 'testReplacementReaderWithSameAccount',
-                     'testOldRenderedControlCannotChangeCurrentOwnersChoice', 'testRetirementNeedsAnotherExplicitCurrentSelection',
-                     'testBilingualLargeTextLabelsAndControlConstructInBothLayouts']:
-            self.assertIn(case, tests)
-        self.assertIn('.dynamicTypeSize(.accessibility5)', tests)
-        self.assertIn('["en", "zh-Hans"]', tests)
+    def test_layout_switch_and_its_state_are_retired(self):
+        # BWALL-3b (r10, MP badge-wall wxml:46-63, 97): the list/wall Picker, its selection state and its unit test are gone.
+        for symbol in ['ObjectBadgeWallLayout', 'ObjectBadgeWallLayoutControl', 'ObjectBadgeWallLayoutSelection',
+                       'CYFoilMedal(unlocked: !badge.isLocked, size: 76', 'cyNewPulse']:
+            self.assertNotIn(symbol, self.wall)
+        self.assertFalse((ROOT / 'Tests/AppUnitTests/ObjectBadgeWallLayoutTests.swift').exists())
 
 if __name__ == '__main__': unittest.main(verbosity=2)
