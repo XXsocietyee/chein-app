@@ -326229,6 +326229,40 @@
           }
         }
       }
+    },
+    "merchant.content.recruitFilled": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nodes filled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已招满"
+          }
+        }
+      }
+    },
+    "merchant.content.recruitPending": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待审"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
