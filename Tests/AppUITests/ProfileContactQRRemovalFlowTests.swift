@@ -31,8 +31,6 @@ final class ProfileContactQRRemovalFlowTests: XCTestCase {
     func testRemovalIsReviewedAndSavedThroughExistingProfileFlow() {
         launch(); openQR(); app.buttons["profile.contactQR.remove"].tap(); app.buttons["profile.contactQR.apply"].tap()
         app.swipeUp(); app.buttons["profile.edit.review"].tap()
-        XCTAssertTrue(app.staticTexts["The contact QR code will be removed."].waitForExistence(timeout: 5))
-        app.buttons["profile.edit.confirm"].tap()
         let status = app.staticTexts["profile.edit.status"]; XCTAssertTrue(status.waitForExistence(timeout: 10))
         XCTAssertEqual(status.label, "Your profile was saved and verified.")
         openQR(); XCTAssertFalse(app.buttons["profile.contactQR.remove"].exists)

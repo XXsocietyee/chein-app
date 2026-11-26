@@ -14,12 +14,11 @@ class ProfileDraftReviewLayoutContracts(unittest.TestCase):
   source=self.read('App/ProfileDraftReviewSection.swift')
   self.assertEqual(source.count('.accessibilityElement(children: .contain)'),2)
   self.assertNotIn('.accessibilityElement(children: .combine)',source)
+  # A3-06 (r9): the review sheet is gone (MP saves on tap); the UI test now pins save-on-tap.
   old=self.read('Tests/AppUITests/ProfileDraftReviewRestoreFlowTests.swift')
-  for label in ['Before','After saving','Trail Friend','Trail Friend Local']:
-   self.assertIn('app.staticTexts["'+label+'"].exists',old)
+  self.assertIn('func testSaveWritesOnTapWithoutReviewSheet',old)
  def testLocalRestoreAndConfirmationContractStillBelongToExactReview(self):
   host=self.read('App/ProfileEditView.swift');source=self.read('App/ProfileDraftReviewSection.swift');popups=self.read('App/MemberAreaPopupSurfaces.swift')
-  self.assertIn('restore: { _ = model.restoreReviewedDraft(value) })\n                        .id(value.id)',host)
   for token in ['.disabled(!canRestore)','MemberProfileDiscardConfirmSheet(kind: .reviewRestore)','restore()', 'ForEach(summary.changes)']:
    self.assertIn(token,source)
   for token in ['case .reviewRestore:', 'appLocalized("profile.reviewRestore.confirm"', 'isDestructive: true', 'CYConfirmSheet']:
@@ -33,6 +32,6 @@ class ProfileDraftReviewLayoutContracts(unittest.TestCase):
  def testNewNativeCasesUseRealFixtureAndRetain140UnitLimit(self):
   source=self.read('Tests/AppUITests/ProfileDraftReviewLayoutFlowTests.swift')
   self.assertEqual(len(re.findall(r'func test',source)),2)
-  for token in ['--uitesting-profile-edit-fixture', 'caseRemoval', 'UICTContentSizeCategoryAccessibilityXXXL', 'XCTAssertLessThanOrEqual(after.utf16.count, 140)', 'XCTAssertEqual(value.label, after)', 'profile.reviewRestore.cancel', 'XCTAssertTrue(entry.label.contains(suffix))']:
+  for token in ['--uitesting-profile-edit-fixture', 'caseRemoval', 'UICTContentSizeCategoryAccessibilityXXXL', 'XCTAssertLessThanOrEqual(after.utf16.count, 140)', 'profile.reviewRestore.compare', 'profile.edit.status']:
    self.assertIn(token,source)
 if __name__=='__main__':unittest.main()

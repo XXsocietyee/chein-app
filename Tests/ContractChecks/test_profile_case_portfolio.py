@@ -95,7 +95,6 @@ class ProfileCasePortfolioContracts(unittest.TestCase):
         self.assertIn('caseImageReader: (any RetainedPublicImageReading)? = nil', view)
         self.assertIn('ProfileTextFieldEditor(edit: value, caseImageReader: caseImageReader,', view)
         self.assertIn('.id(value.id)', view)
-        self.assertIn('if let text = value.payload.caseIntroduction', view)
         self.assertIn('if field == .caseIntroduction, model.coordinator.snapshot?.caseIntroduction == nil', view)
         gallery = read('App/ProfileCasePortfolioSection.swift')
         self.assertIn('NativeMediaGalleryEntry(sources: portfolio.images, scope: scope,', gallery)

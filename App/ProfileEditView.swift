@@ -725,7 +725,8 @@ struct ProfileEditView: View {
                     Label { Text("profile.edit.saveFailed") } icon: { Image(systemName: "exclamationmark.triangle").accessibilityHidden(true) }
                         .foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("profile.edit.saveFailed")
-                    CYPillButton("profile.edit.retrySave") { saveFailed = false; Task { await model.prepare() } }
+                    Button("profile.edit.retrySave") { Task { await saveProfile() } }
+                        .buttonStyle(.bordered)
                         .disabled(model.busy || model.textEdit != nil)
                         .accessibilityIdentifier("profile.edit.retrySave")
                 }
@@ -743,7 +744,8 @@ struct ProfileEditView: View {
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if model.coordinator.identity != nil, model.coordinator.isConfigured, model.coordinator.snapshot != nil {
                 CYFooterBar {
-                    CYPillButton("profile.edit.review") { Task { await model.prepare() } }
+                    Button { Task { await saveProfile() } } label: { Text("profile.edit.review").frame(maxWidth: .infinity) }
+                        .buttonStyle(.borderedProminent).controlSize(.large)
                         .disabled(model.busy || model.coordinator.isLocked || !model.draft.isValid
                                   || model.textEdit != nil || !(model.coordinator.snapshot.map { model.draft.hasChanges(comparedTo: $0) } ?? false))
                         .accessibilityIdentifier("profile.edit.review")
@@ -812,61 +814,28 @@ struct ProfileEditView: View {
         .onChange(of: categoryReader?.discoveryPresentationIdentity) { _, _ in model.retirePreferencePicker() }
         .onChange(of: categoryReader?.isConfigured) { _, _ in model.retirePreferencePicker() }
         .onDisappear(perform: handleEditorDisappear)
-        .sheet(item: $model.confirmation) { value in Group {
-            NavigationStack {
-                Form {
-                    ProfileDraftReviewSection(summary: value.reviewSummary,
-                        canRestore: model.canRestoreReviewedDraft(value),
-                        restore: { _ = model.restoreReviewedDraft(value) })
-                        .id(value.id)
-                    Section {
-                        LabeledContent { Text(verbatim: value.payload.name) } label: { Text("profile.edit.name") }
-                        LabeledContent { Text(verbatim: value.payload.introduction) } label: { Text("profile.edit.introduction") }
-                        if let text = value.payload.caseIntroduction {
-                            LabeledContent { Text(verbatim: text) } label: { Text("profile.case.description") }
-                        }
-                        if value.payload.contactQRReplacement != nil { Text("profile.contactQR.reviewReplace") }
-                        else if value.payload.removesContactQR { Text("profile.contactQR.reviewRemoval") }
-                        if value.payload.removesCasePictures { Text("profile.caseRemoval.review") }
-                        else if let subset = value.payload.casePictureSubset {
-                            LabeledContent("profile.caseSubset.remaining", value: String(subset.retainedCount))
-                        }
-                        if !value.payload.addedCasePictures.isEmpty {
-                            LabeledContent("profile.case.reviewAdded", value: String(value.payload.addedCasePictures.count))
-                        }
-                        if let ids = value.payload.preferenceIDs {
-                            ProfilePreferenceRemovalReview(ids: ids)
-                        }
-                        if value.payload.avatarReplacement != nil { Text("profile.avatar.confirmChange") }
-                        Text("profile.edit.confirmHint")
-                    }
-                    CYPillButton("profile.edit.confirm") {
-                        Task {
-                            savingProfile = true; saveFailed = false
-                            let receipt = await model.save(value)
-                            savingProfile = false
-                            guard let receipt, model.consumeSavedReturn(receipt) else {
-                                let key = model.coordinator.messageKey
-                                if key != "profile.edit.saved", key != "profile.edit.nicknameTaken", key != "profile.edit.nicknameInvalid" { saveFailed = true }
-                                return
-                            }
-                            // The page's status line reads 资料已保存 for a beat before going back (MP toast then navigateBack).
-                            savedTick += 1
-                            try? await Task.sleep(for: .milliseconds(900))
-                            if let onSaved { onSaved() } else { dismiss() }
-                        }
-                    }
-                        .accessibilityIdentifier("profile.edit.confirm")
-                    CYPillButton("profile.edit.cancel", style: .tertiary) {
-                        model.coordinator.cancel(value); model.confirmation = nil
-                    }
-                }.appNavigationTitle("profile.edit.reviewTitle").navigationBarTitleDisplayMode(.inline)
-            }.interactiveDismissDisabled(model.busy)
-            .themeDomain(.player)
+    }
+    // A3-06 (r9): MP pages/gerenziliao/gerenziliao.wxml:94 `saveInfo` saves on tap, with no review modal.
+    // 保存 prepares (fresh read + conflict fence, unchanged) and commits the prepared payload straight away.
+    private func saveProfile() async {
+        saveFailed = false
+        await model.prepare()
+        guard let value = model.confirmation else { return }
+        await commitSave(value)
+    }
+    private func commitSave(_ value: ProfileEditConfirmation) async {
+        savingProfile = true; saveFailed = false
+        let receipt = await model.save(value)
+        savingProfile = false
+        guard let receipt, model.consumeSavedReturn(receipt) else {
+            let key = model.coordinator.messageKey
+            if key != "profile.edit.saved", key != "profile.edit.nicknameTaken", key != "profile.edit.nicknameInvalid" { saveFailed = true }
+            return
         }
-        .presentationDetents([.large])
-        .presentationDragIndicator(.visible)
-        }
+        // The page's status line reads 资料已保存 for a beat before going back (MP toast then navigateBack).
+        savedTick += 1
+        try? await Task.sleep(for: .milliseconds(900))
+        if let onSaved { onSaved() } else { dismiss() }
     }
     private func textFieldRow(_ field: ProfileTextField, value: String) -> some View {
         Button { model.beginTextEdit(field) } label: {

@@ -28,18 +28,7 @@ final class ProfileEditFlowTests: XCTestCase {
         XCTAssertTrue(review.waitForExistence(timeout: 5)); review.tap()
     }
     private func confirm() {
-        // SwiftUI sheet is rendered but is not necessarily an XCUIElementTypeSheet.
-        // Verify its title and reviewed value, then target its unique actionable control.
-        XCTAssertTrue(app.navigationBars["Review profile changes"].waitForExistence(timeout: 10), app.debugDescription)
-        XCTAssertTrue(app.staticTexts["Trail Friend Updated"].exists, app.debugDescription)
-        let leaves = app.buttons.matching(identifier: "profile.edit.confirm")
-        // Hittability is not supported in XCUIElementQuery's server-side predicate subset.
-        let ready=XCTNSPredicateExpectation(predicate:NSPredicate { _,_ in
-            leaves.allElementsBoundByIndex.contains { $0.exists && $0.isEnabled && $0.isHittable }
-        },object:app)
-        XCTAssertEqual(XCTWaiter.wait(for:[ready],timeout:10),.completed,app.debugDescription)
-        guard let button=leaves.allElementsBoundByIndex.reversed().first(where:{ $0.exists && $0.isEnabled && $0.isHittable }) else { XCTFail("Missing profile confirmation action");return }
-        button.tap()
+        // A3-06 (r9): MP gerenziliao.wxml:94 saveInfo saves on tap; there is no review sheet to confirm.
     }
     func testFailedReloadKeepsDraftAndAllowsReviewedSave() {
         launch("refreshFailure")

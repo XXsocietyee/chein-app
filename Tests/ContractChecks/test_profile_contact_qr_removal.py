@@ -98,8 +98,8 @@ class ProfileContactQRRemovalContracts(unittest.TestCase):
         self.assertIn('ProfileContactQREditor(edit: value, reader: caseImageReader,', s)
         self.assertIn('model.confirmContactQR(value, remove: $0)', s)
         self.assertIn('.id(value.id)', s)
-        self.assertIn('if value.payload.removesContactQR', s)
-        self.assertIn('Text("profile.contactQR.reviewRemoval")', s)
+        # A3-06 (r9): MP gerenziliao saveInfo saves on tap; the review sheet that listed the removal is gone.
+        self.assertIn('private func saveProfile() async {', s)
         fallback = read('App/ProfileTextFieldEditor.swift')
         self.assertIn('case .contactQR: return ""', fallback)
         self.assertIn('if edit.field == .contactQR {\n                    Text("profile.contactQR.noUpload")', fallback)

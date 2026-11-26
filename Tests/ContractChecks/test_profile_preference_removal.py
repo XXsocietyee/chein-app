@@ -74,8 +74,7 @@ class ProfilePreferenceRemovalContracts(unittest.TestCase):
         s=read('App/ProfileEditView.swift')
         for token in ['Button("profile.preferenceRemoval.open") { model.beginTextEdit(.preferences) }',
                       'ProfilePreferenceRemovalEditor(edit: value,','model.confirmPreferenceRemoval(value, selectedIDs: $0)',
-                      'ProfileRoutePreferencePicker(reader: categoryReader, selected: selectedPreferences,',
-                      'if let ids = value.payload.preferenceIDs {','ProfilePreferenceRemovalReview(ids: ids)']:
+                      'ProfileRoutePreferencePicker(reader: categoryReader, selected: selectedPreferences,']:
             self.assertIn(token,s)
         fallback=read('App/ProfileTextFieldEditor.swift')
         self.assertIn('case .preferences: return ""',fallback);self.assertIn('.disabled(edit.field == .preferences)',fallback)
