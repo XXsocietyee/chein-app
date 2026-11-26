@@ -148,12 +148,15 @@ public struct ActivityCancelledStateView: View {
         } description: {
             Text("activity.cancelled.subtitle")
         } actions: {
+            // R9-PC-C1-1: one CTA, as the MP cy-empty (scene-play-activity-detail/index.wxml:5-6):
+            // 查看我的订单 with an own order, otherwise 返回活动列表.
             if canViewOwnOrders {
                 Button("activity.cancelled.viewOrders", action: onViewOrders)
                     .buttonStyle(.borderedProminent)
+            } else {
+                Button("activity.cancelled.backToList", action: onBack)
+                    .buttonStyle(.borderedProminent)
             }
-            Button("common.back", action: onBack)
-                .buttonStyle(.bordered)
         }
     }
 }

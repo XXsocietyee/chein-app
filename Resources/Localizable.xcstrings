@@ -314528,6 +314528,22 @@
           }
         }
       }
+    },
+    "activity.cancelled.backToList": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to events"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回活动列表"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

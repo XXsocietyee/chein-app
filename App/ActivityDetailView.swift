@@ -137,6 +137,7 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
     @State private var tileOpenedSheet = false
     @Namespace private var footerHero
     @State private var showsPlay = false
+    @State private var showsOwnOrders = false
     /// One load lifecycle instead of `access` / `loading` / `failed` (docs/release/state-machines/views.md).
     @State private var phase: CYPhase<ActivityDetailAccess, ActivityDetailLoadIssue> = .idle
     private var access: ActivityDetailAccess? { phase.value }
@@ -193,8 +194,9 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                     detailContent(detail)
                 case .cancelled(let canViewOwnOrders):
                     // MP activity detail: a cancelled activity shows the cancelled state; 查看订单 only for the player's own orders.
-                    ActivityCancelledStateView(canViewOwnOrders: canViewOwnOrders && rootTabSwitch.isAvailable,
-                                               onViewOrders: { rootTabSwitch(.mine) }, onBack: { dismiss() })
+                    // R9-PC-C1-1: MP onCancelledAction pushes /subpackageMember/order/order (index.js:436-441).
+                    ActivityCancelledStateView(canViewOwnOrders: canViewOwnOrders,
+                                               onViewOrders: { showsOwnOrders = true }, onBack: { dismiss() })
                         .accessibilityIdentifier("activity.detail.cancelled")
                 }
             }
@@ -282,6 +284,9 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
             .modifier(ActivityFooterHeroDestination(active: !tileOpenedSheet, namespace: footerHero))
             .themeDomain(.player)
             .cySheet(detents: [.large])
+        }
+        .navigationDestination(isPresented: $showsOwnOrders) {
+            SubscribeMessageTapEntry(route: .playerOrderList)
         }
         .navigationDestination(isPresented: $showsPlay) {
             // E2E-20261113b N3: a registered player's "Continue exploring" opens the play session for this activity.
