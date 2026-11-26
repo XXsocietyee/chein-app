@@ -326246,6 +326246,23 @@
           }
         }
       }
+    },
+    "roam.createdStamp.filed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Added to your album"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已入册"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

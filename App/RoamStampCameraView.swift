@@ -36,6 +36,9 @@ import UIKit
     @State private var work: Task<Void, Never>?
     @State private var localDraft = RoamCityStampDraft()
     @State private var createdStampTarget: RoamCreatedStampTarget?
+    /// SCAM-r11-1: the stamp the P3 route already opened in the album, and the 已入册 toast.
+    @State private var autoOpenedStampID: Int?
+    @State private var filedToast: LocalizedStringKey?
     /// subpackageP3/pages/stamp-camera page contract: create and exchange stay hidden while their
     /// capability switches are off; the album list path exists only with an album reader.
     private var pageContract: StampCameraPageContract { StampCameraPageContract(hasAlbumReader: album != nil) }
@@ -167,6 +170,10 @@ import UIKit
             .themeDomain(.player)
             // A stamp that has just been created plays the stamp press once (deduped per stamp id by the queue).
             .onChange(of: revision) { _, _ in celebrateCreatedStamp() }
+            // SCAM-r11-1: on the P3 camera route (no exchange step) a created stamp says 已入册 and opens the album
+            // after 600 ms (MP subpackageP3/pages/stamp-camera/index/index.js:376-388, redirectTo stamp-album).
+            .task(id: revision) { await openAlbumAfterCreate() }
+            .cyToast(message: $filedToast)
             .navigationDestination(item: $createdStampTarget) { target in
                 if let album, target.isCurrent(reader: album.reader) {
                     RoamCreatedStampView(target: target, album: album)
@@ -289,6 +296,16 @@ import UIKit
             catch { exchangePhase = .failed }
         }
     }
+    private func openAlbumAfterCreate() async {
+        guard exchange == nil, let album, let coordinator, case .created(let stampID) = coordinator.phase,
+              autoOpenedStampID != stampID, createdStampTarget == nil else { return }
+        autoOpenedStampID = stampID
+        filedToast = "roam.createdStamp.filed"
+        try? await Task.sleep(nanoseconds: 600_000_000)
+        guard !Task.isCancelled, createdStampTarget == nil, case .created(stampID) = coordinator.phase else { return }
+        createdStampTarget = RoamCreatedStampTarget(phase: coordinator.phase, origin: coordinator.scope, reader: album.reader)
+    }
+
     private func run(_ action: @escaping @MainActor () async -> Void) { work?.cancel(); work = Task { await action(); revision += 1 } }
     private func phaseTone(_ phase: RoamStampCaptureCoordinator.Phase) -> CYStatusTone {
         switch phase {
