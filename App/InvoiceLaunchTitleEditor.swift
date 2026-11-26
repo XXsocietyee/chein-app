@@ -85,9 +85,10 @@ import SwiftUI
                 Section { InvoiceLaunchWriteNoticeView(notice: notice) }
             }
         }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
+        // NAT-6 (native-r2): 保存 is the navigation bar's confirmation action, not a custom footer bar.
+        .toolbar {
             if model.allows(.saveTitle), !saveLocked {
-                CYFooterBar {
+                ToolbarItem(placement: .confirmationAction) {
                     Button {
                         do {
                             let draft = try InvoiceLaunchTitleRules.draft(id: title?.id, type: type,
@@ -96,9 +97,9 @@ import SwiftUI
                             Task { if await model.save(draft) { tax = ""; dismiss() } }
                         } catch { invalid = true }
                     } label: {
-                        Text("save", tableName: "InvoiceLaunchUI").frame(maxWidth: .infinity)
+                        Text("save", tableName: "InvoiceLaunchUI")
                     }
-                    .buttonStyle(.borderedProminent).controlSize(.large)
+                    .fontWeight(.semibold)
                     .disabled(!InvoiceLaunchTitleRules.canSubmit(type: type, name: name, tax: tax))
                     .accessibilityIdentifier("invoice.title.save")
                 }

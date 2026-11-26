@@ -67,7 +67,7 @@ import SwiftUI
                     }
                     // R9-MEM-NIT-1: the MP signup wallet has no filter (signup/index.wxml), so every ticket shows.
                     let shown = snapshot.tickets
-                    ticketCarousel(shown)
+                    // NAT-12 (native-r2): MP signup/index.wxml has no swiper; the rows are the one list (no app-only carousel).
                     // Source preserves both lanes and row order, including repeated server IDs.
                     ForEach(Array(shown.enumerated()), id: \.offset) { rowIndex, ticket in
                         if ticket.action == .detail && !ticket.isWalletLocked {
@@ -278,39 +278,6 @@ import SwiftUI
            let provider, provider.owner == pendingOrderProvider?.owner, provider.matches(reader: reader),
            model.value(owner: captured) != nil {
             pendingOrderReadOwner = provider.owner
-        }
-    }
-}
-
-extension TicketWalletView {
-    /// Glass carousel entry over the openable tickets (detail action only, same destination as the rows below). Two or more tickets;
-    /// accessibility Dynamic Type sizes skip it and keep the vertical rows.
-    @ViewBuilder fileprivate func ticketCarousel(_ tickets: [TicketWalletTicket]) -> some View {
-        // R7-MEM-21-2: locked tickets never open from the carousel (MP index.wxml:59-61).
-        let openable = Array(tickets.enumerated()).filter { $0.element.action == .detail && !$0.element.isWalletLocked }.prefix(12)
-        if openable.count >= 2 && !dynamicTypeSize.isAccessibilitySize {
-            let slides = openable.map { offset, ticket in
-                CYCarouselSlide(id: "\(offset)-\(ticket.id)", seed: "ticket-\(ticket.id)",
-                                title: ticket.title.flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 } ?? appLocalized("ticketWallet.untitled", locale: locale),
-                                date: ticket.participateDate, place: ticket.addressName, badge: statusTitle(ticket.status),
-                                kind: .ticket, dimmed: ticket.status == .cancelled || ticket.status == .expired)
-            }
-            Section {
-                CYCarouselRail(phase: .loaded(Array(slides)), railLabel: "carousel.tickets", onOpen: { key in
-                    if let match = openable.first(where: { "\($0.offset)-\($0.element.id)" == key }) { carouselTicketID = match.element.id }
-                }) { EmptyView() }
-                    .questifyCardListRow()
-            }
-        }
-    }
-    private func statusTitle(_ status: TicketWalletStatus) -> String {
-        switch status {
-        case .ready: return appLocalized("ticketWallet.status.ready", locale: locale)
-        case .pending: return appLocalized("ticketWallet.status.pending", locale: locale)
-        case .verified: return appLocalized("ticketWallet.status.verified", locale: locale)
-        case .cancelled: return appLocalized("ticketWallet.status.cancelled", locale: locale)
-        case .expired: return appLocalized("ticketWallet.status.expired", locale: locale)
-        case .unknown: return appLocalized("ticketWallet.status.unknown", locale: locale)
         }
     }
 }

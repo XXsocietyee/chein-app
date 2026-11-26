@@ -343,13 +343,9 @@ extension AppSession {
                             .buttonStyle(.plain).accessibilityIdentifier("playerJourney.participation.\(row.id)")
                             .accessibilityFocused($focusedParticipationID, equals: row.id)
                         // MP mycanyu「查看报名凭证」→ 票夹 focused on this registration (PLY-22-1).
-                        Button { open(.ticket(registrationID: row.id)) } label: {
-                            Text("playerJourney.viewVoucher").cyText(.label, weight: .semibold)
-                                .padding(.horizontal, CYSpacing.md)
-                                .frame(minHeight: CYSpacing.minTouchTarget)
-                                .background(CYColor.bgRaised, in: Capsule())
-                        }
-                        .buttonStyle(.plain)
+                        // NAT-17 (native-r2): a system bordered button, not a drawn capsule.
+                        Button("playerJourney.viewVoucher") { open(.ticket(registrationID: row.id)) }
+                            .buttonStyle(.bordered)
                         .accessibilityIdentifier("playerJourney.viewVoucher.\(row.id)")
                     }
                 }
@@ -474,8 +470,7 @@ private struct ParticipationCoverPlaceholder: View {
     var body: some View {
         MPAsset.BannerCover.routeCityCover.resizable().scaledToFill()
             .frame(height: 136).frame(maxWidth: .infinity)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .background(CYColor.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .clipped()
             .accessibilityHidden(true).accessibilityIdentifier("playerJourney.row.coverPlaceholder")
     }
 }
