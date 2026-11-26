@@ -27,7 +27,7 @@ import SwiftUI
         .onChange(of: session.sessionRevision) { _, _ in review = nil; editor.cancelReview() }
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button { dismiss() } label: { Text("modInstallation.back", tableName: "ModInstallation") } } }
         .task { await editor.open() }
-        .sheet(item: $review) { original in
+        .cySheet(item: $review) { original in
             Group {
                 NavigationStack { reviewSheet(original) }
             }

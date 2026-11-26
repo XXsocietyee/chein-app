@@ -4,7 +4,7 @@ class MerchantFieldStableOwnerContract(unittest.TestCase):
     def test_rows_only_borrow_owner(self):
         for kind in ['Store','NPC']:
             row=(ROOT/f'App/Merchant{kind}FieldEntry.swift').read_text().split('/// Owned by the stable editor')[0]
-            for token in ['@StateObject','.sheet(','.onDisappear']:self.assertNotIn(token,row)
+            for token in ['@StateObject','.cySheet(','.onDisappear']:self.assertNotIn(token,row)
             self.assertIn(f'@ObservedObject var presentation: Merchant{kind}FieldPresentation',row)
     def test_editor_owns_and_injects(self):
         editor=(ROOT/'App/MerchantOperationsEditor.swift').read_text()
@@ -17,7 +17,7 @@ class MerchantFieldStableOwnerContract(unittest.TestCase):
         for kind in ['Store','NPC']:
             source=(ROOT/f'App/Merchant{kind}FieldEntry.swift').read_text()
             modifier=source.split('/// Owned by the stable editor')[1].split('@MainActor private struct')[0]
-            for token in ['content.background','.sheet(item: presentation.presentationBinding())','.id(presentation.session?.id)', '.onChange(of: document.revision)','.onChange(of: document.coordinator.draftIdentity)','.onChange(of: document.coordinator.reader.scope)','.onChange(of: editable)','.onChange(of: scenePhase)']:self.assertIn(token,modifier)
+            for token in ['content.background','.cySheet(item: presentation.presentationBinding())','.id(presentation.session?.id)', '.onChange(of: document.revision)','.onChange(of: document.coordinator.draftIdentity)','.onChange(of: document.coordinator.reader.scope)','.onChange(of: editable)','.onChange(of: scenePhase)']:self.assertIn(token,modifier)
             # The store editor tracks visibility separately from scene phase; NPC keeps the direct deactivate.
             tail='.onDisappear { presentation.viewDisappeared() }' if kind=='Store' else '.onDisappear { presentation.deactivate() }'
             self.assertIn(tail,modifier)

@@ -100,7 +100,7 @@ struct ProjectTicketMeetingPointHostIdentity: Hashable {
                 guard ownsHost else { return }; controller.open(capture)
             }.disabled(capture == nil).accessibilityIdentifier("projectTicketMeetingPoint.edit")
         }
-        .sheet(item: controller.binding(original)) { value in
+        .cySheet(item: controller.binding(original)) { value in
             Group {
                 ProjectTicketMeetingPointSheet(controller: controller, original: value)
             }

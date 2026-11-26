@@ -776,7 +776,7 @@ struct ProfileEditView: View {
             guard model.canRequestExit else { return }
             if model.requestExit() { dismiss() }
         }
-        .sheet(isPresented: $showExitConfirmation) {
+        .cySheet(isPresented: $showExitConfirmation) {
             if let value = model.exitConfirmation {
                 MemberProfileDiscardConfirmSheet(kind: .exitDiscard, onCancel: { model.cancelExit() }) {
                     showExitConfirmation = false
@@ -787,7 +787,7 @@ struct ProfileEditView: View {
         .onChange(of: model.exitConfirmation?.id) { _, id in showExitConfirmation = id != nil }
         .onChange(of: showExitConfirmation) { _, showing in if !showing { model.cancelExit() } }
         .onChange(of: model.preferencePicker?.id) { _, _ in model.cancelExit() }
-        .sheet(isPresented: $showReloadConfirmation) {
+        .cySheet(isPresented: $showReloadConfirmation) {
             if let value = model.reloadConfirmation {
                 MemberProfileDiscardConfirmSheet(kind: .reloadDiscard, onCancel: { model.cancelReload() }) {
                     showReloadConfirmation = false
@@ -896,7 +896,7 @@ struct ProfileEditView: View {
     let savedMedia: ProfileSavedMediaReaders?
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
-            .sheet(item: model.textEditPresentation(for: edit), onDismiss: { model.cancelTextEdit(edit) }) { value in Group {
+            .cySheet(item: model.textEditPresentation(for: edit), onDismiss: { model.cancelTextEdit(edit) }) { value in Group {
             NavigationStack {
                 if value.field == .contactQR {
                     ProfileContactQREditor(edit: value, reader: caseImageReader,
@@ -938,7 +938,7 @@ struct ProfileEditView: View {
     private var selectedPreferences: [Int] { edit.selected }
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
-            .sheet(item: model.preferencePickerPresentation(for: edit),
+            .cySheet(item: model.preferencePickerPresentation(for: edit),
                    onDismiss: { model.cancelPreferencePicker(edit) }) { offered in Group {
                 NavigationStack {
                     ProfileRoutePreferencePicker(reader: categoryReader, selected: selectedPreferences,

@@ -89,7 +89,7 @@ import SwiftUI
         }
         .themeDomain(.player)
         .task(id: original.id) { await model.load() }
-        .sheet(item: model.confirmationBinding(confirmation)) { captured in Group {
+        .cySheet(item: model.confirmationBinding(confirmation)) { captured in Group {
             ApprovedReleasePublicationConfirmationView(original: captured, cancel: model.cancel, confirm: model.confirm)
         }
         .presentationDetents([.medium, .large])

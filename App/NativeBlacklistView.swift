@@ -144,7 +144,7 @@ import SwiftUI
             guard visible, scenePhase == .active, visit != nil, !flow.busy, flow.review == nil, flow.pending == nil else { return }
             await flow.load()
         }
-        .sheet(isPresented: Binding(get: { flow.review != nil && flow.selected != nil }, set: { if !$0 { flow.cancelReview() } })) {
+        .cySheet(isPresented: Binding(get: { flow.review != nil && flow.selected != nil }, set: { if !$0 { flow.cancelReview() } })) {
             reviewSheet
         }
         .confirmationDialog(localized("blacklist.settleTitle"), isPresented: $confirmingSettlement, titleVisibility: .visible) {

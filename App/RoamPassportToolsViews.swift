@@ -740,7 +740,7 @@ struct RoamAnniversaryReadIntent {
         .disabled(!lifetime.canPresent(reader))
         .privacySensitive()
         .background(LifetimeAttachment(lifetime: lifetime).frame(width: 0, height: 0))
-        .sheet(item: detailBinding(model.presentation)) { presentation in Group {
+        .cySheet(item: detailBinding(model.presentation)) { presentation in Group {
             RoamMonthlyRecapDetailView(model: model, presentation: presentation, routeDestination: routeDestination)
         }.cySheet(detents: [.large]) }
         .onAppear { lifetime.appear(reader, foreground: scenePhase == .active) }

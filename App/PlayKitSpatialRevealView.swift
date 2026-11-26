@@ -40,7 +40,7 @@ import simd
             Button("playkitSpatial.open") { prepare() }
             Button("playkit.cancel", role: .cancel) {}
         } message: { Text("playkitSpatial.purposeDetail") }
-        .sheet(item: $prepared) { item in
+        .cySheet(item: $prepared) { item in
             PlayKitSpatialSurfaceHost(prepared: item, reduceMotion: reduceMotion, close: { prepared = nil }, fallback: {
                 prepared = nil; failedThisVisit = true; issue = .deviceUnavailable
             }).presentationDetents([.large]).privacySensitive()

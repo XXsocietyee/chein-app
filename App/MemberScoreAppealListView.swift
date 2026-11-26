@@ -105,8 +105,8 @@ private struct MemberScorePlayLayer: Hashable, Identifiable {
         .cyPushedChrome(domain: .player)
         .navigationTitle(memberScoreText("score.mine.title")).navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
-        .sheet(isPresented: $showsSignIn, onDismiss: { retire(); start() }) { Group { LoginView(intent: .player).environmentObject(session) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
-        .sheet(isPresented: $showsReputation) { MemberScoreReputationSheet() }
+        .cySheet(isPresented: $showsSignIn, onDismiss: { retire(); start() }) { Group { LoginView(intent: .player).environmentObject(session) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+        .cySheet(isPresented: $showsReputation) { MemberScoreReputationSheet() }
         .accessibilityIdentifier("score.mine.list")
         .navigationDestination(item: $playLayer) { layer in
             OrientScoreDeepLinkScreen(session: session, topicID: layer.topicID, sessionID: layer.sessionID)

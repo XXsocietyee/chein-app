@@ -70,7 +70,7 @@ import SwiftUI
                 Text("projectNodeDuration.edit", tableName: "ProjectNodeDuration")
             }.disabled(captured == nil || original != nil).accessibilityIdentifier("projectNodeDuration.edit")
         }
-        .sheet(item: controller.binding(original)) { original in Group { sheet(original) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+        .cySheet(item: controller.binding(original)) { original in Group { sheet(original) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
         .onChange(of: scenePhase) { _, phase in if phase != .active { controller.retire() } }
         .onChange(of: model.editorIncarnation) { _, _ in controller.retire() }
         .onDisappear { controller.retire() }

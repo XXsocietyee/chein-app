@@ -199,7 +199,7 @@ enum WalletPayoutCapability {
                 await loadFunds()
                 await loadMonth()
             }
-            .sheet(isPresented: $showsMore) { moreSheet }
+            .cySheet(isPresented: $showsMore) { moreSheet }
             .onDisappear { isVisible = false; earnings.clear(); funds.clear(); monthModel.cancel() }
             .onChange(of: scenePhase) { _, phase in
                 if phase != .active { earnings.clear(); funds.clear() }
@@ -609,7 +609,7 @@ extension EnvironmentValues {
             .onChange(of: direction) { _, _ in incomeDetail = nil; shownCount = Self.pointsPageSize }
             .onChange(of: scenePhase) { _, phase in if phase != .active { incomeDetail = nil } }
             .appSwitcherPrivacyShield()
-            .sheet(item: $incomeDetail) { selection in
+            .cySheet(item: $incomeDetail) { selection in
                 NavigationStack {
                     List {
                         if let row = (income ? model.pager.incomeDetailRow(selection, reader: reader) : model.pager.ledgerTransactionDetailRow(selection, reader: reader)) {
@@ -1092,7 +1092,7 @@ extension EnvironmentValues {
             .onDisappear { model.cancel() }.refreshable { await load() }
             // Uses the inherited, independently reviewed support reader. History access
             // does not supply a contact or authorize support configuration/copying.
-            .sheet(isPresented: $showContact) {
+            .cySheet(isPresented: $showContact) {
                 WithdrawalSupportContactView()
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)

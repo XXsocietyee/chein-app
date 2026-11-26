@@ -96,7 +96,7 @@ import SwiftUI
         Button { if let captured { controller.open(captured) } } label: {
             Text("projectInitialAttributes.title", tableName: "ProjectInitialAttributes")
         }.disabled(captured == nil || original != nil).accessibilityIdentifier("projectInitialAttributes.open")
-            .sheet(item: controller.binding(original)) { original in
+            .cySheet(item: controller.binding(original)) { original in
                 ProjectInitialAttributesSheet(controller: controller, original: original)
                     .cyDomainSheet(detents: [.half, .full])
                     .themeDomain(.topicEditor)

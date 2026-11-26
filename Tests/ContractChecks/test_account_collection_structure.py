@@ -105,7 +105,7 @@ class AccountCollectionStructureTests(unittest.TestCase):
         self.assertIn('session.profileFavoritesReader.selectPost($0, renderedScope: session.profileFavoritesReader.scope)', entry)
         self.assertIn('savedPostOwner.open(selected, scope: session.profileFavoritesReader.scope)', entry)
         self.assertIn('favoritesReader: session.profileFavoritesReader', entry)
-        destination = root.split('ProfileFavoriteNavigationLayer(owner: savedPostOwner)', 1)[1].split('.sheet(isPresented:$showsSettings)', 1)[0]
+        destination = root.split('ProfileFavoriteNavigationLayer(owner: savedPostOwner)', 1)[1].split('.cySheet(isPresented:$showsSettings)', 1)[0]
         self.assertIn('ProfileFavoriteDetailDestination(selection: selected,', destination)
         self.assertIn('makeReader: { session.makeProfileFavoriteDetailReader(selected) }', destination)
         self.assertIn('.id(selected.id)', destination)

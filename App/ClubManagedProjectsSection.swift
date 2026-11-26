@@ -119,7 +119,7 @@ struct ClubManagedProjectPermissions: Equatable {
                         .accessibilityIdentifier("club.projects.notice")
                 }
             }
-            .sheet(item: $picker) { picker in
+            .cySheet(item: $picker) { picker in
                 sessionPicker(picker)
                     .presentationDetents([.medium, .large])
             }

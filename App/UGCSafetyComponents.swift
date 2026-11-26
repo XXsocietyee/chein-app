@@ -669,10 +669,10 @@ struct UGCSafetyMenuButton: View {
             }
         }
         .accessibilityLabel(Text("ugc.safety.menu.accessibility", tableName: "UGCSafety"))
-        .sheet(item: $reportPresented) { item in
+        .cySheet(item: $reportPresented) { item in
             UGCReportSheet(presentation: item, onBlocked: onBlocked)
         }
-        .sheet(isPresented: $showSupport) {
+        .cySheet(isPresented: $showSupport) {
             NavigationStack {
                 SettingsSupportSafetyView()
             }
@@ -813,7 +813,7 @@ struct UGCReviewSafetyFooter: View {
                 .accessibilityIdentifier("ugc.safety.footer.block")
             }
         }
-        .sheet(item: $reportPresented) { item in
+        .cySheet(item: $reportPresented) { item in
             UGCReportSheet(presentation: item)
         }
         .alert(Text("ugc.safety.block.confirmTitle", tableName: "UGCSafety"), isPresented: $confirmBlock) {
@@ -923,7 +923,7 @@ struct UGCProfileSafetyActionsSection: View {
                     .foregroundStyle(CYColor.textSecondary)
             }
         }
-        .sheet(item: $reportPresented) { item in
+        .cySheet(item: $reportPresented) { item in
             UGCReportSheet(presentation: item)
         }
         .alert(Text("ugc.safety.block.confirmTitle", tableName: "UGCSafety"), isPresented: $confirmBlock) {

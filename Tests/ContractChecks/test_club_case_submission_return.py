@@ -37,7 +37,7 @@ class ClubCaseSubmissionReturnContracts(unittest.TestCase):
         self.assertIn('@StateObject private var caseSubmissionReturn', self.host)
         self.assertIn('if let item = caseSubmissionReturn.item {', self.host)
         self.assertIn('didDismiss: finishCaseSubmissionReturn).id(item.id)', self.host)
-        self.assertIn('.sheet(isPresented: owner.binding(item,', self.owner)
+        self.assertIn('.cySheet(isPresented: owner.binding(item,', self.owner)
         self.assertIn('guard owner.isPresented, owner.current(item,', self.owner)
     def testBothVisibleDismissOrdersAndOldTaskUUIDAreFenced(self):
         self.assertIn('.onAppear { caseHostVisible = true; finishCaseSubmissionReturn() }', self.host)

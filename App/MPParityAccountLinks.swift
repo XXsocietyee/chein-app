@@ -29,7 +29,7 @@ import SwiftUI
         } header: {
             Text("hostTip.section")
         }
-        .sheet(isPresented: $showsRedeem) { ChannelRedeemSheet(session: session) }
+        .cySheet(isPresented: $showsRedeem) { ChannelRedeemSheet(session: session) }
         // 通行证与礼品 lives under 资产 (`MPPassAssetsLink`), as in the mini-program profile.
         if bindings.journeyPromo != nil || bindings.videoBounty != nil {
             Section {

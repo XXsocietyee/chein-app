@@ -284,7 +284,7 @@ import CoreImage.CIFilterBuiltins
                 run { await model.confirm(original) }
             }.disabled(revocation.map { !model.canConfirm($0) } ?? true)
         }
-        .sheet(isPresented: $reviewing) {
+        .cySheet(isPresented: $reviewing) {
             Group {
                 NavigationStack {
                     Form {

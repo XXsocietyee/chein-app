@@ -241,7 +241,7 @@ struct MessageComposerSubmission: Equatable {
         }
         .onDisappear { model.retire(); confirmsRetry=false; typing=false }
         .onDisappear { flight?.cancel() }
-        .sheet(isPresented: $confirmsRetry) {
+        .cySheet(isPresented: $confirmsRetry) {
             CYConfirmSheet(
                 title: appLocalized("message.send.retryTitle", locale: locale),
                 message: appLocalized("message.send.retryHint", locale: locale),

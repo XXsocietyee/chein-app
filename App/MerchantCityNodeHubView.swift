@@ -139,12 +139,12 @@ struct MerchantCityNodeInlineError: View {
                 }
             }
         )
-        .sheet(isPresented: $showsClaim, onDismiss: { claimModel.cancel() }) {
+        .cySheet(isPresented: $showsClaim, onDismiss: { claimModel.cancel() }) {
             claimSheet
                 .cyDomainSheet(detents: [.half, .full])
                 .themeDomain(.merchant)
         }
-        .sheet(item: $poster, onDismiss: { posterReads.retire() }) { shown in
+        .cySheet(item: $poster, onDismiss: { posterReads.retire() }) { shown in
             if posterReadAllowed(poiID: shown.poiID) {
                 posterSheet(shown)
                     .cyDomainSheet(detents: [.half, .full])

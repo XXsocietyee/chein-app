@@ -4,7 +4,7 @@ class CoopStableOwnerContract(unittest.TestCase):
     def test_lazy_row_only_borrows_route(self):
         text=(ROOT/'App/MerchantCoopFieldEntry.swift').read_text().split('/// Stable editor presentation boundary')[0]
         self.assertIn('@Binding var route:',text)
-        for token in ['@State','.sheet(','.onDisappear','retire()']:self.assertNotIn(token,text)
+        for token in ['@State','.cySheet(','.onDisappear','retire()']:self.assertNotIn(token,text)
     def test_stable_editor_owns_and_presents(self):
         text=(ROOT/'App/MerchantOperationsEditor.swift').read_text()
         for token in ['@State private var coopFieldRoute: MerchantCoopFieldSession?', '.modifier(MerchantCoopFieldStablePresentation(document: model, route: $coopFieldRoute))','MerchantCoopFieldEntry(document: model, route: $coopFieldRoute, fieldID: id)']:self.assertIn(token,text)

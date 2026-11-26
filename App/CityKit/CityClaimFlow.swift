@@ -181,13 +181,13 @@ struct CityClaimSheet: View {
         .sensoryFeedback(.selection, trigger: tick)
         // 圈下了 opens over this sheet with no slide and a clear ground: the moment fades its own ground in (200 ms)
         // while the photo flies from the thumbnail into the deed (xrefs-1 C1, K0 → K3).
-        .fullScreenCover(item: $claimed) { route in
+        .cyFullScreenCover(item: $claimed) { route in
             CityClaimedMoment(place: route.place, photo: route.photo, protectionHours: route.hours, price: route.price,
                               source: route.source, onMine: { (onMine ?? onClose)() }, onDone: onClose)
                 .presentationBackground(.clear)
                 .themeDomain(.player)
         }
-        .fullScreenCover(isPresented: $showsCamera) {
+        .cyFullScreenCover(isPresented: $showsCamera) {
             CityCameraCapture(onCapture: { image in showsCamera = false; Task { await accept(image) } }, onCancel: { showsCamera = false })
                 .ignoresSafeArea()
         }

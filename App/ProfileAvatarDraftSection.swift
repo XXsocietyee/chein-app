@@ -132,7 +132,7 @@ import UIKit
                     .accessibilityIdentifier("profile.avatar.select")
             }
         }
-        .sheet(isPresented: Binding(get: { discardID != nil }, set: { if !$0 { discardID = nil } })) {
+        .cySheet(isPresented: Binding(get: { discardID != nil }, set: { if !$0 { discardID = nil } })) {
             if let id = discardID {
                 MemberProfileDiscardConfirmSheet(kind: .avatarDiscard) {
                     model.discardAvatar(id: id)
@@ -141,7 +141,7 @@ import UIKit
             }
         }
         .onChange(of: model.avatarLifetimeID) { _, _ in discardID = nil; presentation.retire() }
-        .sheet(isPresented: isPresented) {
+        .cySheet(isPresented: isPresented) {
             if let flow = presentation.flow { ProfileMediaFlowSheet(presentation: presentation, flow: flow).cySheet(detents: [.large]) }
         }
     }
@@ -270,7 +270,7 @@ import UIKit
             }
         }
         .onChange(of: model.avatarLifetimeID) { _, _ in presentation.retire() }
-        .sheet(isPresented: isPresented) {
+        .cySheet(isPresented: isPresented) {
             if let flow = presentation.flow { ProfileMediaFlowSheet(presentation: presentation, flow: flow).cySheet(detents: [.large]) }
         }
     }

@@ -98,7 +98,7 @@ extension EnvironmentValues {
         Button { open = true } label: { Label("playkit.hangman.howTo", systemImage: "questionmark.circle") }
             .buttonStyle(.borderless)
             .accessibilityIdentifier(identifier)
-            .sheet(isPresented: $open) {
+            .cySheet(isPresented: $open) {
                 NavigationStack {
                     ScrollView {
                         Text(verbatim: text).font(.body).frame(maxWidth: .infinity, alignment: .leading).padding()
@@ -125,7 +125,7 @@ extension EnvironmentValues {
         Button { open = true } label: { Label("playkit.reference.open", systemImage: "photo") }
             .buttonStyle(.borderless)
             .accessibilityIdentifier("playkit.reference.open")
-            .sheet(isPresented: $open) {
+            .cySheet(isPresented: $open) {
                 PlayKitReferenceSheet(source: source, alt: alt, approvedHosts: approvedHosts, nodeID: nodeID, kit: kit)
             }
     }

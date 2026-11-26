@@ -282,7 +282,7 @@ import SwiftUI
         .navigationTitle(Text(LocalizedStringKey(effect ? "nativeCondition.effect" : "nativeCondition.condition")))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { EditButton().disabled(!model.canEdit) }
-        .sheet(isPresented: $showFields) { Group {
+        .cySheet(isPresented: $showFields) { Group {
             if let value = model.value(path), let revision = model.document?.revision {
                 NavigationStack { NativeConditionAuthorFieldForm(model: model, path: path, original: value, capturedRevision: revision, effect: effect) }
             }

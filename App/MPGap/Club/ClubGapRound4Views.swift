@@ -55,7 +55,7 @@ public struct ClubGapManagedProjectsDirectorSection: View {
             } header: {
                 Text(verbatim: "管理中的项目")
             }
-            .sheet(item: $pickingProject) { project in
+            .cySheet(item: $pickingProject) { project in
                 NavigationStack {
                     List {
                         if project.sessions.isEmpty {

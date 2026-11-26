@@ -44,7 +44,7 @@ struct WelcomeView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) { moreMenu }
             }
-            .sheet(item: $destination) { destination in
+            .cySheet(item: $destination) { destination in
                 switch destination {
                 case .settings: SettingsView()
                 case .login(let intent): LoginView(intent: intent)

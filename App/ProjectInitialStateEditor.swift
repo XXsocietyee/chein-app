@@ -65,7 +65,7 @@ import SwiftUI
                 .disabled(!controller.available).accessibilityIdentifier("projectInitialState.open")
             ProjectInitialAttributesEntry(model: model, chapterID: controller.chapterID)
         }
-        .sheet(item: controller.binding(original)) { original in Group { ProjectInitialStateSheet(controller: controller, original: original) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+        .cySheet(item: controller.binding(original)) { original in Group { ProjectInitialStateSheet(controller: controller, original: original) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
         .onChange(of: model.editorIncarnation) { _, _ in controller.retire() }
         .onDisappear { controller.retire() }
     }

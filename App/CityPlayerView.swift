@@ -184,7 +184,7 @@ struct CityPlayerView: View {
             guard visible, scenePhase == .active, !Task.isCancelled else { return }
             await reader.load()
         }
-        .sheet(item: $rulesSheet, onDismiss: {
+        .cySheet(item: $rulesSheet, onDismiss: {
             // Keep only navigation; every authoritative parent fact is read again.
             selection = nil; reader.cancel(); readRequest = UUID()
         }) { presentation in Group {

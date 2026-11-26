@@ -176,7 +176,7 @@ struct ClubCreateCityRow: View {
             .contentShape(Rectangle())
         }
         .accessibilityHint(Text(verbatim: clubR1("create.city.hint", locale)))
-        .sheet(isPresented: $showsPicker) { Group {
+        .cySheet(isPresented: $showsPicker) { Group {
             ClubCreateCityPicker(current: currentCity, selection: city.isEmpty ? nil : city) { picked in
                 city = picked
             }

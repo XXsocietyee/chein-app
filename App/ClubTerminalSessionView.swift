@@ -238,7 +238,7 @@ extension EnvironmentValues {
     }
     var body: some View {
         Color.clear
-            .sheet(isPresented: presentationBinding) { Group {
+            .cySheet(isPresented: presentationBinding) { Group {
                 NavigationStack {
                     ClubTerminalSessionBrowser(flow: item.flow, identity: item.source.context.identity,
                                                access: access, coordinator: coordinator)
@@ -326,7 +326,7 @@ extension EnvironmentValues {
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { flow.close(); dismiss() } } }
         .task { await flow.load() }
         .onDisappear { if shownSettlement == nil { flow.close() } }
-        .sheet(item: $shownSettlement, onDismiss: {
+        .cySheet(item: $shownSettlement, onDismiss: {
             if let route = flow.settlement { Task { await flow.returned(route) } }
         }) { route in
             if flow.accepts(route), let clubID = flow.context.scope.clubID {

@@ -123,7 +123,7 @@ struct MerchantContentBoundary: View {
         // Clearing the source rows here would remove the pushed NavigationLink's owner.
         // Scope changes still invalidate via load(), and isCurrent rejects stale display data.
         .onDisappear { model.suspend() }
-        .sheet(item: Binding(get: { c.isCurrent && model.projectActionsAreCurrent ? c.review : nil }, set: { if $0 == nil { model.cancel() } })) { value in Group { MerchantContentReviewView(model: model, review: value) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+        .cySheet(item: Binding(get: { c.isCurrent && model.projectActionsAreCurrent ? c.review : nil }, set: { if $0 == nil { model.cancel() } })) { value in Group { MerchantContentReviewView(model: model, review: value) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
     }
     @ViewBuilder private func content(_ s: MerchantContentSnapshot) -> some View {
         switch query {

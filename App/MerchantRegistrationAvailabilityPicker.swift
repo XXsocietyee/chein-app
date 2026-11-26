@@ -53,7 +53,7 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     func body(content: Content) -> some View {
         content
-        .sheet(item: $editor) { captured in
+        .cySheet(item: $editor) { captured in
             Group {
                 MerchantRegistrationAvailabilitySheet(initial: captured.initial,
                     unrecognized: MerchantRegistrationAvailability(source: captured.source) == nil,

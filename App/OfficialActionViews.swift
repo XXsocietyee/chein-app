@@ -151,7 +151,7 @@ import SwiftUI
                 Text("officialAction.editGap").foregroundStyle(.secondary)
             }
         }.formStyle(.grouped).cyPageTitle("officialAction.publish")
-            .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) { Group {
+            .cySheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) { Group {
                 if let reviewed { OfficialActionSheet(coordinator: coordinator, command: reviewed) }
             }.cySheet() }
     }
@@ -195,7 +195,7 @@ import SwiftUI
                 .disabled((try? draft.payload()) == nil)
                 .accessibilityIdentifier("officialAction.reviewBroadcast").e1ActionRow()
         }.formStyle(.grouped).cyPageTitle("officialAction.broadcast")
-            .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) { Group {
+            .cySheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) { Group {
                 if let reviewed { OfficialActionSheet(coordinator: coordinator, command: reviewed) }
             }.cySheet() }
     }
@@ -232,7 +232,7 @@ import SwiftUI
             if embedded { VStack(alignment: .leading, spacing: 8) { content } } else { Section("officialAction.respond") { content } }
         }
         .cyToast(verbatimMessage: $toastMessage)
-        .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil; reviewedAction = nil } }), onDismiss: {
+        .cySheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil; reviewedAction = nil } }), onDismiss: {
             // R7-PC-C5-2 (MP `cy-inline-error` 这次操作没有完成 + 重试): a rejected or unknown write stays visible on the card.
             actionFailed = lastReviewed != nil && [.rejected, .unknown].contains(coordinator.state)
         }) {
@@ -387,7 +387,7 @@ struct OfficialParticipationPresentation {
             }
             // R7-PC-C4-2: no 暂时没有需要你操作的事项 row; the page's CTA bar already states the event's state.
         }
-        } }.sheet(isPresented: Binding(get: { presentation.isPresented }, set: { if !$0, let presentationID { presentation.beginDismiss(id: presentationID) } }), onDismiss: {
+        } }.cySheet(isPresented: Binding(get: { presentation.isPresented }, set: { if !$0, let presentationID { presentation.beginDismiss(id: presentationID) } }), onDismiss: {
             guard let presentationID else { return }
             let callback = presentation.finishDismiss(id: presentationID)
             callback?()
@@ -417,7 +417,7 @@ struct OfficialParticipationPresentation {
                 .buttonStyle(.borderedProminent).controlSize(.large)
                 .disabled(selected.isEmpty).e1ActionRow()
         }.formStyle(.grouped).cyPageTitle("officialAction.invite")
-            .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) { Group {
+            .cySheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) { Group {
                 if let reviewed { OfficialActionSheet(coordinator: coordinator, command: reviewed) }
             }.cySheet() }
     }

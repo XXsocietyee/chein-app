@@ -197,7 +197,7 @@ struct RoamBrowserView: View {
                     }
                 }
             }
-            .sheet(item: $entryCard) { selection in Group {
+            .cySheet(item: $entryCard) { selection in Group {
                 RoamEntryActivitySheet(card: selection.card, eventDestination: nearbyEventDestination ?? eventDestination,
                     teamDestination: nearbyTeamDestination, readOnly: nearbyEventDestination != nil,
                     isCurrent: { selection.mayRemainOpen(in: entryScope) })
@@ -254,7 +254,7 @@ struct RoamBrowserView: View {
             .onChange(of: eventFilter) { _, _ in selected = nil }
             .onChange(of: retentionScope) { _, scope in retainedRead.retainOnly(scope: scope) }
             .task(id: cityGuideOpen) { await resolveCityGuidePlace() }
-            .sheet(item: $selected) { item in
+            .cySheet(item: $selected) { item in
                 RoamItemDetailView(item: item, reader: reader, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, stampDestination: stampDestination, posterDestination: posterDestination, eventDestination: eventDetailDestination(for: item), playerProfileDestination: playerProfileDestination, couponWalletDestination: couponWalletDestination)
                     .cyDomainSheet(detents: [.half, .full])
             }

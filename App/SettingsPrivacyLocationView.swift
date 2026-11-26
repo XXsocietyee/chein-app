@@ -133,7 +133,7 @@ import SwiftUI
             if let compliance { lastRoamCleanup = compliance.state.roamCleanup }
         }
         .task { presenceSharing = await readPresence?() }
-        .sheet(isPresented: $showsRoam, onDismiss: {
+        .cySheet(isPresented: $showsRoam, onDismiss: {
             guard let compliance else { return }
             let feedback = RoamConsentWithdrawalFeedback.evaluate(
                 previous: lastRoamCleanup,

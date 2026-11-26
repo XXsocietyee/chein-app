@@ -72,7 +72,7 @@ import SwiftUI
         }
         .onAppear { visible = true; generation = UUID() }
         .task(id: generation) { await load() }
-        .sheet(isPresented: Binding(get: { activeFlow != nil && current() }, set: { if !$0 { activeFlow?.invalidate(); activeFlow = nil } })) {
+        .cySheet(isPresented: Binding(get: { activeFlow != nil && current() }, set: { if !$0 { activeFlow?.invalidate(); activeFlow = nil } })) {
             Group {
                 if let activeFlow, current() { MerchantOfferWithdrawalOriginalView(flow: activeFlow) }
             }

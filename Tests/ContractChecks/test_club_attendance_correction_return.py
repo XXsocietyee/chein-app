@@ -41,7 +41,7 @@ class ClubAttendanceCorrectionReturnContracts(unittest.TestCase):
         self.assertIn('@StateObject private var attendanceReturn', self.host)
         self.assertIn('if let item = attendanceReturn.item {', self.host)
         self.assertIn('didDismiss: finishAttendanceReturn).id(item.id)', self.host)
-        self.assertIn('.sheet(isPresented: owner.binding(item,', self.owner)
+        self.assertIn('.cySheet(isPresented: owner.binding(item,', self.owner)
         self.assertNotIn('Item?', self.owner.split('func binding(',1)[1].split('-> Binding',1)[0])
     def testRealDepartureAndCoverAreDifferent(self):
         self.assertIn('func hide() { visible = false }', self.owner)

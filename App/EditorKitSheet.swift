@@ -288,7 +288,7 @@ private struct EditorSheetPresenter<Item: Identifiable, SheetContent: View>: Vie
 
     func body(content: Content) -> some View {
         content
-            .sheet(item: $item, onDismiss: onDismiss) { value in
+            .cySheet(item: $item, onDismiss: onDismiss) { value in
                 EditorSheetHost(family: family, isDirty: isDirty) { sheetContent(value) }
             }
     }

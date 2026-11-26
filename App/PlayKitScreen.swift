@@ -66,7 +66,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
             if dirty { leaveReview = true } else { dismiss() }
         }))
         .privacySensitive()
-        .sheet(item: stackedReview) { item in
+        .cySheet(item: stackedReview) { item in
             NavigationStack {
                 Form {
                     Section { reviewReadback(item) }

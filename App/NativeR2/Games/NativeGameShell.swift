@@ -137,8 +137,10 @@ extension EnvironmentValues {
         }
         .safeAreaInset(edge: .bottom) { submitBar }
         .sensoryFeedback(.error, trigger: wrongReply) { _, next in next != nil }
-        .sheet(isPresented: $resultPresented) { resultSheet }
-        .sheet(isPresented: $hintShown) { hintSheet }
+        .cySheet(isPresented: $resultPresented) { resultSheet }
+        .cySheet(isPresented: $hintShown) { hintSheet }
+        // Native r2 M4: a revealed hint level pops the hint island; "下一条提示" reopens this ladder.
+        .islandHints(help?.model) { hintShown = true }
         .accessibilityIdentifier(identifier)
     }
 

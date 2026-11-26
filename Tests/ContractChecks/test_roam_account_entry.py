@@ -31,7 +31,7 @@ class RoamAccountEntryContracts(unittest.TestCase):
         toolbar = self.browser.index(".toolbar {")
         action = self.browser.index("if let onOpenAccount {")
         self.assertLess(toolbar, action)
-        self.assertGreater(toolbar, self.browser.index(".sheet(item: $selected)"))
+        self.assertGreater(toolbar, self.browser.index(".cySheet(item: $selected)"))
         for token in ["reader.isConfigured", "reader.identity", "reader.searchArea", "currentFix", "approval", "transport"]:
             self.assertNotIn(token, self.browser.split("if let onOpenAccount {", 1)[1].split("if experienceReader != nil", 1)[0])
 

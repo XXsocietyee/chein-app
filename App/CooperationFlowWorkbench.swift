@@ -130,7 +130,7 @@ struct CoopFlowSafetyNotice: View {
         .task(id: "\(reader.session?.accountID ?? 0):\(reader.session?.epoch ?? 0):\(refresh)") { await load() }
         .refreshable { await load() }
         .onDisappear { generation = UUID() }
-        .sheet(item: $inviteContext) { context in
+        .cySheet(item: $inviteContext) { context in
             NavigationStack { CoopFlowInviteEditor(reader: reader, context: context) }
                 .cyDomainSheet(detents: [.half, .full])
                 .themeDomain(.merchant)

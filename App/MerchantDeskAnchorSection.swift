@@ -96,7 +96,7 @@ struct MerchantDeskAnchorAcceptance:Equatable {
             visit.invalidate();clear();flow.suspend()
             if visit.visible,phase == .active{let captured=visit.revision;Task{await reload(captured)}}
         }
-        .sheet(isPresented:$confirm,onDismiss:{frozen=nil}){
+        .cySheet(isPresented:$confirm,onDismiss:{frozen=nil}){
             CYConfirmSheet(
                 title:String(localized:LocalizedStringResource("merchant.desk.anchor.confirm",table:"MerchantDeskSkuSupply",locale:locale)),
                 message:{

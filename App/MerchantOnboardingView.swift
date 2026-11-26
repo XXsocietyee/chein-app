@@ -103,7 +103,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             guard let value else { return }
             Task { await model.select(value); photo = nil }
         }
-        .sheet(isPresented: $showHours) {
+        .cySheet(isPresented: $showHours) {
             if let hoursEditor {
                 MerchantOnboardingHoursEditor(editor: hoursEditor) { hoursEditor.cancel(); showHours = false }
                     .cyDomainSheet(detents: [.half, .full])
@@ -380,7 +380,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             }
             .disabled(model.isBusy || model.coordinator.submission.isLocked)
             .accessibilityIdentifier("merchant.onboarding.address")
-            .sheet(isPresented: $showsAddressPicker) {
+            .cySheet(isPresented: $showsAddressPicker) {
                 PublishingPlacePicker(provider: PublishingMapKitAdapter()) { place in
                     model.draft.address = place.address.isEmpty ? place.name : place.address
                     model.draft.locationLat = place.latitude
@@ -727,7 +727,7 @@ struct MerchantOnboardingIdentitySection: View {
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets(top: 0, leading: CYSpacing.xs, bottom: 0, trailing: CYSpacing.xs))
         }
-        .sheet(isPresented: $showsRule) {
+        .cySheet(isPresented: $showsRule) {
             Group {
                 NavigationStack {
                     SettingsLegalDocumentView(type: .privacyPolicy, market: RegionalLaunchConfiguration.market,

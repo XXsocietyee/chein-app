@@ -168,8 +168,8 @@ struct RegistrationSheetView: View {
             .modifier(RegistrationPlayerSheetHeader(onClose: { flow.leave(); dismiss() }))
             .overlay { registrationPopups }
             .cyToast(verbatimMessage: $toastMessage)
-            .sheet(isPresented: $showingTicketSheet) { Group { ticketSheetContent }.cySheet() }
-            .sheet(isPresented: $showingParticipantSheet) { Group { participantSheetContent }.cySheet() }
+            .cySheet(isPresented: $showingTicketSheet) { Group { ticketSheetContent }.cySheet() }
+            .cySheet(isPresented: $showingParticipantSheet) { Group { participantSheetContent }.cySheet() }
             .modifier(RegistrationOrderAndLifecycleModifier(
                 flow: flow,
                 preselectedTicketID: preselectedTicketID,
@@ -1110,7 +1110,7 @@ private struct RegistrationOrderAndLifecycleModifier: ViewModifier {
                 }
                 flow.checkWaitlistDeadline()
             }
-            .sheet(item: $orderDestination) { visit in Group {
+            .cySheet(item: $orderDestination) { visit in Group {
                 if let orderReader {
                     RegistrationWaitlistOrderSheet(presentation: visit.presentation, reader: orderReader,
                         isCurrent: { RegistrationWaitlistOrderVisit.permits(visit, current: orderDestination,
@@ -1120,7 +1120,7 @@ private struct RegistrationOrderAndLifecycleModifier: ViewModifier {
             }.cySheet(detents: [.large]) }
             .onChange(of: flow.waitlistReadKey) { _, _ in orderDestination = nil }
             .onChange(of: flow.waitlistOrderDestination) { _, _ in orderDestination = nil }
-            .sheet(item: $resultOrderDestination) { presentation in Group {
+            .cySheet(item: $resultOrderDestination) { presentation in Group {
                 if let orderReader {
                     RegistrationResultOrderSheet(presentation: presentation, reader: orderReader,
                         isCurrent: { resultOrderDestination == presentation &&
@@ -1128,7 +1128,7 @@ private struct RegistrationOrderAndLifecycleModifier: ViewModifier {
                         .themeDomain(.player)
                 }
             }.cySheet(detents: [.large]) }
-            .sheet(item: $recoveredOrderDestination) { presentation in Group {
+            .cySheet(item: $recoveredOrderDestination) { presentation in Group {
                 if let orderReader {
                     RegistrationRecoveredOrderSheet(presentation: presentation, reader: orderReader,
                         isCurrent: { recoveredOrderDestination == presentation &&
@@ -1141,7 +1141,7 @@ private struct RegistrationOrderAndLifecycleModifier: ViewModifier {
             .onChange(of: scenePhase) { _, phase in
                 if phase == .background { orderDestination = nil; resultOrderDestination = nil; recoveredOrderDestination = nil; flow.retireResultOrderNavigation() }
             }
-            .sheet(isPresented: $showingAddParticipant) { Group {
+            .cySheet(isPresented: $showingAddParticipant) { Group {
                 if let participantReader, let participantCoordinator {
                     NavigationStack {
                         ParticipantFormView(reader: participantReader, coordinator: participantCoordinator,

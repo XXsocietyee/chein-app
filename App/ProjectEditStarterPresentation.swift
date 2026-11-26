@@ -5,7 +5,7 @@ import SwiftUI
     @ObservedObject var controller: ProjectEditStarterController
     func body(content: Content) -> some View {
         let original = controller.destination
-        content.sheet(item: Binding<ProjectEditStarterController.Destination?>(get: {
+        content.cySheet(item: Binding<ProjectEditStarterController.Destination?>(get: {
             guard let value = controller.destination, controller.isCurrent(value) else { return nil }; return value
         }, set: { next in
             if next == nil, let original { controller.close(original) }

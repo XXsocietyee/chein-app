@@ -18,7 +18,7 @@ assert 'self.generation == generation' in redemption
 assert 'expectedMerchantID == access.merchantID' in redemption
 assert 'registrationMerchantId' in redemption and 'station.id' not in redemption
 ui=read('App/NativeVerificationView.swift')
-for text in ['NativeQRScanner', '.sheet(item:', 'flow.prepareChoice(choice.target)', 'flow.deactivate()', 'privacySensitive', 'raw = ""', 'var cameraEnabled = false']:
+for text in ['NativeQRScanner', '.cySheet(item:', 'flow.prepareChoice(choice.target)', 'flow.deactivate()', 'privacySensitive', 'raw = ""', 'var cameraEnabled = false']:
  assert text in ui,text
 assert 'cameraEnabled: session.verificationCameraEnabled' in ui
 assert 'businessConfiguration: BusinessRuntimeConfiguration? = nil' in read('App/NativeRuntimeDependencies.swift')

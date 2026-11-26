@@ -445,7 +445,7 @@ private struct MerchantPredictionReviewView: View {
     let accepted: MerchantPredictionReview
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
-            .sheet(item: model.predictionReviewPresentation(for: accepted),
+            .cySheet(item: model.predictionReviewPresentation(for: accepted),
                    onDismiss: { model.cancelReview(id: accepted.id) }) { review in
                 Group {
                     MerchantPredictionReviewView(model: model, accepted: review)

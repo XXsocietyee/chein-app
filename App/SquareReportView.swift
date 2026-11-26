@@ -126,7 +126,7 @@ extension EnvironmentValues {
         } message: {
             Text(verbatim: appLocalized("social.editor.discardMessage", locale: locale))
         }
-        .sheet(isPresented: $showsReasons) {
+        .cySheet(isPresented: $showsReasons) {
             if let snapshot {
                 NavigationStack {
                     List {
@@ -165,7 +165,7 @@ extension EnvironmentValues {
                 .presentationDetents([.medium, .large])
             }
         }
-        .sheet(item: $review) { item in
+        .cySheet(item: $review) { item in
             NavigationStack {
                 Form {
                     Text("squareReport.reviewWarning")

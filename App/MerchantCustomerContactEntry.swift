@@ -59,7 +59,7 @@ extension EnvironmentValues {
         let shownID = flow?.id
         content.background {
             Color.clear.frame(width: 0, height: 0)
-                .sheet(item: Binding(get: { flow?.id == shownID ? flow : nil }, set: { next in
+                .cySheet(item: Binding(get: { flow?.id == shownID ? flow : nil }, set: { next in
                     guard flow?.id == shownID else { return }
                     if next == nil { flow?.invalidate() }; flow = next
                 })) { value in Group { MerchantCustomerContactSheet(flow: value) }.presentationDetents([.large]).presentationDragIndicator(.visible) }

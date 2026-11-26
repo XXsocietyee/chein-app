@@ -36,7 +36,7 @@ import SwiftUI
             submitter: ProfileComplaintPreparationLink.submitterFactory?(session),
             onSignIn: { showsSignIn = true })
             .id(revision)
-            .sheet(isPresented: $showsSignIn) {
+            .cySheet(isPresented: $showsSignIn) {
                 LoginView(intent: .player).environmentObject(session)
                     .presentationDetents([.large]).presentationDragIndicator(.visible)
             }
@@ -185,7 +185,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
             }
         }
         .cyToast(message: $submittedToast, tone: .success)
-        .sheet(isPresented: $confirmingSend) {
+        .cySheet(isPresented: $confirmingSend) {
             MemberComplaintSubmitConfirmSheet {
                 confirmingSend = false
                 if let review = model.review { Task { await sending.send(review: review, isCurrent: { model.contextMatches }) } }

@@ -150,7 +150,7 @@ extension EnvironmentValues {
             .accessibilityIdentifier("nearbyMerchant.list")
             .modifier(NearbyMerchantInvitableLoader(scope: topicScope, ready: model.phase == .ready,
                                                     rows: $invitable, failed: $invitableFailed))
-            .sheet(item: $publicHomeSelection) { selection in
+            .cySheet(item: $publicHomeSelection) { selection in
                 NavigationStack {
                     Group {
                         if model.isCurrent(selection), purposeAccepted {

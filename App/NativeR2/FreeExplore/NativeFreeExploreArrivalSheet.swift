@@ -36,6 +36,7 @@ import SwiftUI
                     } header: {
                         if arrival.phase == .succeeded {
                             Label("nativeR2.freeExplore.arrival.unlocked", systemImage: "checkmark.seal.fill")
+                                .nativeR2BounceOnAppear()
                         } else {
                             Label("playFree.story.locked", systemImage: "lock.fill")
                                 .accessibilityLabel(Text("playFree.story.locked.a11y"))

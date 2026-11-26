@@ -431,7 +431,7 @@ struct TopicXcxToolbarActions: View {
                 }
                 .accessibilityLabel(Text("topicShare.poster"))
                 .accessibilityIdentifier("topic.cta.poster")
-                .sheet(isPresented: $showsPoster) {
+                .cySheet(isPresented: $showsPoster) {
                     NavigationStack {
                         ScrollView {
                             VStack(spacing: CYSpacing.lg) {

@@ -73,7 +73,7 @@ import SwiftUI
                 Button(CityPlayerValueCopy.string("confirmBind")) { guard model.selected?.poiId == bindTarget else { return }; run { await model.begin() } }
                 Button(CityPlayerValueCopy.string("cancel"), role: .cancel) {}
             }
-            .sheet(item: $sourceSelection, onDismiss: {
+            .cySheet(item: $sourceSelection, onDismiss: {
                 guard let visitID = sourceReturnVisitID else { return }; sourceReturnVisitID = nil
                 run { await model.sourceClosed(visitID: visitID) }
             }) { selected in Group {

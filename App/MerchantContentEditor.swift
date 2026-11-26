@@ -125,7 +125,7 @@ import SwiftUI
                 MerchantContentDocumentView(service: service, query: .project(topicID: topicID), focusedTopicID: topicID)
             }
         }
-        .sheet(isPresented: $showApplyPicker) {
+        .cySheet(isPresented: $showApplyPicker) {
             NavigationStack {
                 MerchantApplyPickerGapView(location: applyLocationBinding, ruleInstructions: binding("activityDesc"),
                                            uploadedPicURLs: applyPicBinding, writesEnabled: false, showsSubmit: false)
@@ -169,7 +169,7 @@ import SwiftUI
             onCancel: { discard = false },
             onConfirm: { discard = false; model.invalidate(); dismiss() }
         )
-        .sheet(item: Binding(get: { c.isCurrent ? c.review : nil }, set: { if $0 == nil { model.cancel() } })) {
+        .cySheet(item: Binding(get: { c.isCurrent ? c.review : nil }, set: { if $0 == nil { model.cancel() } })) {
             MerchantContentReviewView(model: model, review: $0)
                 .cyDomainSheet(detents: [.half, .full])
                 .themeDomain(.merchant)

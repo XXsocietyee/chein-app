@@ -286,7 +286,7 @@ struct FinishRouteAnalyticsModifier: ViewModifier {
                 if let serverNote { Text(verbatim: serverNote).cyText(.meta).foregroundStyle(color) }
                 else if let note { Text(note).cyText(.meta).foregroundStyle(color) }
             }
-            .sheet(isPresented: $scanning) { Group {
+            .cySheet(isPresented: $scanning) { Group {
                 NativeQRScanner { raw in scanning = false; Task { await verify(raw) } }
             }.cySheet(detents: [.large]) }
         }
@@ -452,7 +452,7 @@ struct FinishRouteAnalyticsModifier: ViewModifier {
                     CYPillButton("parityB.circle.pick", style: .secondary) { picking = true }
                         .accessibilityIdentifier("parityB.circle.pick")
                 }
-                .sheet(isPresented: $picking) { Group {
+                .cySheet(isPresented: $picking) { Group {
                     CircleThemeConfigureSheet(topicID: topicID, themeCode: topic.themeCode) { await reload() }
                 }.cySheet(detents: [.large]) }
             }

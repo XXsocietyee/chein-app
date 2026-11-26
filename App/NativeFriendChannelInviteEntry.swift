@@ -208,7 +208,7 @@ import SwiftUI
         .task { await flow.activate() }
         .onChange(of: flow.landing) { _, _ in message = ""; checked = [] }
         .onChange(of: flow.isCurrent) { _, valid in if !valid { message = ""; checked = []; selectedChannel = nil } }
-        .sheet(item: $selectedChannel) { target in
+        .cySheet(item: $selectedChannel) { target in
             NavigationStack {
                 if flow.isCurrent, let destination = conversation?(target.kind, target.channel, target.space) { destination }
                 else { ContentUnavailableView { Label("d7.channelInvite.channelClosed", systemImage: "number") } }

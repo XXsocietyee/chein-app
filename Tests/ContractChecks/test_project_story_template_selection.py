@@ -76,7 +76,7 @@ class ProjectStoryTemplateSelectionContracts(unittest.TestCase):
 
     def test_real_chapter_controls_mount_first_middle_end_sheet(self):
         source = self.read('App/ProjectEditDetailForms.swift')
-        for text in ['storyTemplates.capture(chapterID: chapterID, before: nil)', 'storyTemplates.capture(chapterID: chapterID, before: blockID)', 'projectStoryTemplate.insertBefore.', 'projectStoryTemplate.add', '.sheet(item: storyTemplates.binding(templateOpening))', 'ProjectStoryTemplateView(controller: storyTemplates, original: original)', 'if let templateOpening { storyTemplates.close(templateOpening) }']:
+        for text in ['storyTemplates.capture(chapterID: chapterID, before: nil)', 'storyTemplates.capture(chapterID: chapterID, before: blockID)', 'projectStoryTemplate.insertBefore.', 'projectStoryTemplate.add', '.cySheet(item: storyTemplates.binding(templateOpening))', 'ProjectStoryTemplateView(controller: storyTemplates, original: original)', 'if let templateOpening { storyTemplates.close(templateOpening) }']:
             self.assertIn(text, source)
 
     def test_production_dependency_defaults_nil_and_central_issuance_is_absent(self):

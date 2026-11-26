@@ -27,7 +27,7 @@ import UIKit
             }
             if service == nil { Text(String(localized: LocalizedStringResource("media.disabled", table: "ClubProfileMedia", locale: locale))).cyText(.bodyCompact) }
         }
-        .sheet(isPresented: $showing, onDismiss: { flow.closeSelection() }) { Group {
+        .cySheet(isPresented: $showing, onDismiss: { flow.closeSelection() }) { Group {
             NavigationStack { ClubProfileMediaEditor(flow: flow, apply: { receipt in
                 guard enabled, identity == receipt.scope.identity else { return }
                 try? draft.stageMedia(receipt)
@@ -91,7 +91,7 @@ import UIKit
         .navigationTitle(flow.field == .logo ? String(localized: LocalizedStringResource("media.logo", table: "ClubProfileMedia", locale: locale)) : String(localized: LocalizedStringResource("media.cover", table: "ClubProfileMedia", locale: locale))).navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button(String(localized: LocalizedStringResource("media.done", table: "ClubProfileMedia", locale: locale))) { dismiss() }.disabled(flow.state == .uploading) } }
         .interactiveDismissDisabled(flow.state == .uploading)
-        .sheet(isPresented: $camera) {
+        .cySheet(isPresented: $camera) {
             MerchantEvidenceCameraCapture { bytes in
                 camera = false
                 guard canSelect, let scope = flow.scope, flow.service?.permitsCamera(scope) == true, let bytes else { return }

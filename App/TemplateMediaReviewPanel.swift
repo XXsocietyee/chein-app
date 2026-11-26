@@ -66,7 +66,7 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     func body(content: Content) -> some View {
         let originalID = controller.review?.id
-        content.sheet(item: Binding(get: { controller.review }, set: { next in
+        content.cySheet(item: Binding(get: { controller.review }, set: { next in
             if next == nil, let originalID { controller.cancel(originalID: originalID) }
         })) { original in
             Group {

@@ -229,8 +229,8 @@ struct FreeExplorationStoreName: View {
                               openChapters: { showChapterPicker = true }, openEmergency: { showEmergencyHelp = true })
             }
         }
-        .sheet(isPresented: $showEmergencyHelp) { PlayEmergencyHelpSheet() }
-        .sheet(isPresented: $showChapterPicker) {
+        .cySheet(isPresented: $showEmergencyHelp) { PlayEmergencyHelpSheet() }
+        .cySheet(isPresented: $showChapterPicker) {
             if let snapshot = model.snapshot {
                 PlayChapterPickerSheet(rows: PlayChapterPickRow.rows(snapshot), current: chapterFilter) { picked in
                     withAnimation(CYMotion.standard) { chapterFilter = picked; packOpen = true }

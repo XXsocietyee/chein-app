@@ -65,7 +65,7 @@ import SwiftUI
                 Text(LocalizedStringKey("projectDraftStoryPreview.reason." + reason.rawValue), tableName: "ProjectDraftStoryPreview").font(.caption)
             }
         }
-        .sheet(item: controller.binding(original)) { original in
+        .cySheet(item: controller.binding(original)) { original in
             Group {
                 ProjectDraftStoryPreviewView(controller: controller, original: original)
                     .themeDomain(.topicEditor)

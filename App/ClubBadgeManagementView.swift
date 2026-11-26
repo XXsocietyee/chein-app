@@ -46,9 +46,9 @@ import SwiftUI
         .onChange(of: model.flow?.isCurrent) { _, current in
             if current == false { creating = false; pendingReview = nil; draft = .init(); model.retire() }
         }
-        .sheet(isPresented: $creating) { createForm }
+        .cySheet(isPresented: $creating) { createForm }
         // CLB-badges-04 (fix-r3-club-b): the member picker is the MP 颁给谁？ sheet; the grant confirm is presented from it.
-        .sheet(isPresented: Binding(
+        .cySheet(isPresented: Binding(
             get: { model.flow?.pickerOpen == true },
             set: { open in
                 guard !open, let flow = model.flow else { return }
@@ -227,7 +227,7 @@ import SwiftUI
         }
         .presentationDetents([.medium, .large])
         .interactiveDismissDisabled(flow.busy)
-        .sheet(isPresented: Binding(get: { pendingReview != nil }, set: { if !$0 { pendingReview = nil } })) {
+        .cySheet(isPresented: Binding(get: { pendingReview != nil }, set: { if !$0 { pendingReview = nil } })) {
             if let review = pendingReview {
                 // CLB-badges-05: the title names the badge and the person (MP 把「X」颁给 Y？).
                 let memberName = review.member.trimmedNickname ?? "—"

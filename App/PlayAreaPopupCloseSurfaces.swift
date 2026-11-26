@@ -388,7 +388,7 @@ struct PlayCloseResultSheet: View {
                     contact = await loadContact(activityID)
                 }
             }
-            .sheet(isPresented: $showingCodeSheet) {
+            .cySheet(isPresented: $showingCodeSheet) {
                 PlayCloseSheetHost(
                     title: PlayCloseCopy.text(organizer ? "现场签到管理" : "输入签到码", organizer ? "Attendance Management" : "Enter Check-in Code", locale),
                     detents: [.half],

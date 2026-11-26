@@ -148,7 +148,7 @@ struct DiscoveryTemplateBrowserView: View {
             guard reader.isConfigured, tab == .games, shelfGames.value == nil else { return }
             await loadShelfGames()
         }
-        .sheet(isPresented: $showsAllTags) { Group {
+        .cySheet(isPresented: $showsAllTags) { Group {
             DiscoveryShelfCategorySheet(groups: allTagGroups, selected: tab == .topics ? topicTag : gameTag) { key in
                 if tab == .topics { topicTag = key } else { gameTag = key }
                 showsAllTags = false

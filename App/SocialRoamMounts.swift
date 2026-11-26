@@ -46,7 +46,7 @@ import SwiftUI
                     }
                     .buttonStyle(.borderless)
                     .accessibilityIdentifier("merchant.publicHome.correction")
-                    .sheet(isPresented: $correcting) {
+                    .cySheet(isPresented: $correcting) {
                         MerchantCorrectionSheet(merchantID: merchantID, client: capabilities.client)
                             .cyDomainSheet(detents: [.half, .full])
                     }
@@ -82,7 +82,7 @@ import SwiftUI
                         .font(.footnote).foregroundStyle(.secondary)
                 }
             }
-            .sheet(item: $rating) {
+            .cySheet(item: $rating) {
                 MerchantSafetyRatingSheet(merchantID: $0.merchantID, client: capabilities.client)
                     .cyDomainSheet(detents: [.half, .full])
             }

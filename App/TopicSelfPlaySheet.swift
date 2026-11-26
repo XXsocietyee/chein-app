@@ -123,7 +123,7 @@ private enum TopicRevealDestination: Hashable, Identifiable { case wallet, play;
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { model.flow.leave(); dismiss() } } }
             .task { await model.flow.open() }
             .onDisappear { model.flow.leave() }
-            .sheet(item: Binding(get: { model.flow.review }, set: { if $0 == nil { model.flow.cancelReview() } })) { review in Group {
+            .cySheet(item: Binding(get: { model.flow.review }, set: { if $0 == nil { model.flow.cancelReview() } })) { review in Group {
                 NavigationStack {
                     Form {
                         Text(verbatim: model.flow.topic.name).cyText(.sectionTitle)
@@ -138,10 +138,10 @@ private enum TopicRevealDestination: Hashable, Identifiable { case wallet, play;
                 }
                 .presentationDragIndicator(.visible)
             }.cySheet() }
-            .sheet(item: Binding(get: { model.flow.paymentReview }, set: { if $0 == nil { model.flow.cancelPaymentReview() } })) { review in Group {
+            .cySheet(item: Binding(get: { model.flow.paymentReview }, set: { if $0 == nil { model.flow.cancelPaymentReview() } })) { review in Group {
                 TopicSelfPlayPaymentReviewSheet(review: review, confirm: { consent in Task { await model.flow.confirmExistingPayment(review, consented: consent) } }, cancel: model.flow.cancelPaymentReview)
             }.cySheet() }
-            .sheet(item: Binding(get: { model.flow.result }, set: { _ in })) { result in
+            .cySheet(item: Binding(get: { model.flow.result }, set: { _ in })) { result in
                 PaymentProviderReturnSheet(flow: result) { model.flow.closeResult($0) }
             }
         }

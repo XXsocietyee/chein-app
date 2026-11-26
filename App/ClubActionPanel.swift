@@ -101,7 +101,7 @@ struct ClubActionPanel: View {
                         // A settled join or apply keeps the chip. Do not offer that action again.
                         if rewardAction != action {
                             membershipButton(action, state: state)
-                                .sheet(isPresented: confirmationPresented) { confirmationSheet }
+                                .cySheet(isPresented: confirmationPresented) { confirmationSheet }
                         }
                     } else {
                         Text(LocalizedStringKey(availabilityKey)).foregroundStyle(.secondary)
@@ -185,7 +185,7 @@ struct ClubActionPanel: View {
                 ClubPageEndActions(canLeave: canLeaveHere && !isWorking, onLeave: { prepare(.leave) }, onReport: onReportClub)
                     .listRowInsets(EdgeInsets())
                     .listRowBackground(Color.clear)
-                    .sheet(isPresented: confirmationPresented) { confirmationSheet }
+                    .cySheet(isPresented: confirmationPresented) { confirmationSheet }
                     .onChange(of: identity) { _, _ in reset() }
                     .onChange(of: club.id) { old, _ in reset(clubID: old) }
                     .onDisappear { reset() }

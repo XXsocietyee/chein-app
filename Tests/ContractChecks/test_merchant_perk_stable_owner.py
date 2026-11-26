@@ -3,7 +3,7 @@ ROOT=pathlib.Path(__file__).resolve().parents[2]
 class PerkStableOwnerContract(unittest.TestCase):
     def test_row_only_borrows(self):
         source=(ROOT/'App/MerchantPerkValidityCalendar.swift').read_text();row=source.split('@MainActor struct MerchantPerkValidityEntry')[1].split('@MainActor struct MerchantPerkValidityStablePresentation')[0]
-        for token in ['@State','.sheet(','.onDisappear']:self.assertNotIn(token,row)
+        for token in ['@State','.cySheet(','.onDisappear']:self.assertNotIn(token,row)
         for token in ['@Binding var session:','@Binding var appliedValue:','@Binding var appliedContext:']:self.assertIn(token,row)
     def test_editor_owns_state_and_presentation(self):
         source=(ROOT/'App/CooperationFlowEditors.swift').read_text()

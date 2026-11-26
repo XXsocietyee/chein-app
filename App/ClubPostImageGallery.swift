@@ -65,7 +65,7 @@ import UIKit
                 }
             }
         }
-        .sheet(item: $selection, onDismiss: {
+        .cySheet(item: $selection, onDismiss: {
             initialImage = nil
             if current { focusedImage = returnFocus }
             returnFocus = nil

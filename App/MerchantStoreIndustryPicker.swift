@@ -40,7 +40,7 @@ import SwiftUI
                     .disabled(!editable).accessibilityIdentifier("merchant.industry.open")
                 Text("merchant.industry.orderedHint").cyText(.bodyCompact).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
-            .sheet(item: Binding(get: { picker }, set: { value in
+            .cySheet(item: Binding(get: { picker }, set: { value in
                 if value == nil { picker?.cancel() }; picker = value
             }), onDismiss: close) { value in
                 Group {

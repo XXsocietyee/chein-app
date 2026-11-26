@@ -31,7 +31,7 @@ class TemplateVenueSelectionChecks(unittest.TestCase):
         self.assertEqual(view.count('TemplateAuthoringVenueField(model: model)'), 1)
         self.assertNotIn('TemplateAuthoringField("usageLocation"', view)
         host = read('App/TemplateAuthoringMetadataSelectors.swift').split('@MainActor struct TemplateAuthoringVenueField: View')[1].split('@MainActor private struct TemplateAuthoringVenueSelector: View')[0]
-        self.assertIn('.sheet(item: $presented)', host)
+        self.assertIn('.cySheet(item: $presented)', host)
         self.assertIn('VStack(alignment: .leading', host)
         self.assertIn('Presentation: Identifiable { let id = UUID() }', host)
         self.assertIn('.id(presentation.id)', host)

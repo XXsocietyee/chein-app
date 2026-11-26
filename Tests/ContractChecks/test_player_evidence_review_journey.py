@@ -60,7 +60,7 @@ class PlayerEvidenceReviewJourneyContract(unittest.TestCase):
         self.assertIn('.background { PlayerTaskEvidenceRoot(owner: reviewOwner)', self.host)
         self.assertIn('if phase == .background { clear(); dismiss() }', self.host)
         self.assertNotIn('.confirmationDialog(', self.host)
-        self.assertNotIn('.sheet(', self.host+self.owner)
+        self.assertNotIn('.cySheet(', self.host+self.owner)
         self.assertIn('guard self.root === root, root.isActuallyLeaving else { return }; retire()', self.owner)
         self.assertEqual(self.owner.count('owner?.departed(self)'), 2)
         self.assertNotIn('owner?.retire()', self.owner)

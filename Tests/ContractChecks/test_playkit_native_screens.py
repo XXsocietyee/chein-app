@@ -16,7 +16,7 @@ class PlayKitNativeScreenChecks(unittest.TestCase):
             self.assertRegex(contracts, r'\b'+kind+r'\b')
             self.assertIn('.'+kind, view)
         # U10: kits open as the one sheet over the advanced pack, not a pushed NavigationLink.
-        self.assertIn('.sheet(item: $openKit', self.read('App/PlayAdvancedView.swift'))
+        self.assertIn('.cySheet(item: $openKit', self.read('App/PlayAdvancedView.swift'))
         self.assertIn('presentation: .sheet', self.read('App/PlayAdvancedView.swift'))
         self.assertIn('PlayKitScreenKind.present(in: state)', self.read('App/PlayAdvancedView.swift'))
     def test_review_is_immutable_session_and_version_bound(self):

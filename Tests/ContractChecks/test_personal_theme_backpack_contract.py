@@ -97,7 +97,7 @@ class PersonalThemeBackpackSourceTests(unittest.TestCase):
         self.assertIn('completedReceiveAccepted && !hasReservedSupplies', A)
         self.assertIn('playx.backpack.action.completedUnavailable', V)
     def test_native_review_is_required_before_confirm(self):
-        self.assertIn('.sheet(item: $selection', V)
+        self.assertIn('.cySheet(item: $selection', V)
         self.assertIn('Form {', V)
         self.assertIn('reviewIsCurrent(choice, actions: actions)', V)
         self.assertLess(V.index('try actions.begin('), V.index('await actions.confirm()'))

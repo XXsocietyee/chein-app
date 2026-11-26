@@ -109,7 +109,7 @@ import SwiftUI
                         .accessibilityIdentifier("settings.signOut.failed")
                 }
             }
-            .sheet(isPresented: $confirms) {
+            .cySheet(isPresented: $confirms) {
                 if let expected = confirmation {
                     MemberConfirmSheet(title: appLocalized("auth.signOutConfirm", locale: locale),
                                        message: appLocalized("settings.signOut.message", locale: locale),

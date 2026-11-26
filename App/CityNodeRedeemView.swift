@@ -253,7 +253,7 @@ extension EnvironmentValues {
                 Task { await model.confirm(review.id); confirming = false }
             }
         )
-        .sheet(isPresented: $showsScanner, onDismiss: {
+        .cySheet(isPresented: $showsScanner, onDismiss: {
             // Wait for scanner dismissal before presenting the short confirmation dialog.
             guard let payload = scannedCode else { return }
             scannedCode = nil

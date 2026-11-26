@@ -47,7 +47,7 @@ import QuestifyCore
     var body: some View {
         ClubDetailView(id: 81, reader: reader)
             .overlay { if stage { D4JoinStage() } }
-            .sheet(isPresented: $show) {
+            .cySheet(isPresented: $show) {
                 if join {
                     CYConfirmSheet(
                         title: String(localized: LocalizedStringResource("club.action.join", locale: locale)),

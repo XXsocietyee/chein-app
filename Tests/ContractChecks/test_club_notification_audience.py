@@ -102,7 +102,7 @@ class ClubNotificationAudienceContracts(unittest.TestCase):
                       'audienceVisible = false; notificationAudience.leave(audienceContext)',
                       'isCurrent: { audienceIsCurrent && audienceContext == expected }']:
             self.assertIn(token, self.host)
-        for token in ['.sheet(', '@StateObject', '.onDisappear']:
+        for token in ['.cySheet(', '@StateObject', '.onDisappear']:
             self.assertNotIn(token, self.view)
 
     def test_normal_form_uses_existing_local_binding_and_review_pipeline(self):

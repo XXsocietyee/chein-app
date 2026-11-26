@@ -100,7 +100,7 @@ import SwiftUI
         }
         .onChange(of: scope) { _, _ in presented = nil }
         .onDisappear { presented = nil; model.leave() }
-        .sheet(item: $presented, onDismiss: { reload(scope) }) { selection in
+        .cySheet(item: $presented, onDismiss: { reload(scope) }) { selection in
             NavigationStack {
                 Group {
                     if current(selection) {

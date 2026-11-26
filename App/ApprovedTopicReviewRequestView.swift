@@ -92,7 +92,7 @@ import SwiftUI
         }
         .themeDomain(.player)
         .task(id: original.id) { await model.load() }
-        .sheet(item: model.binding(confirmation)) { captured in Group {
+        .cySheet(item: model.binding(confirmation)) { captured in Group {
             if model.owns(captured) {
                 ApprovedTopicReviewConfirmationView(original: captured, confirm: { model.confirm(captured) }, cancel: { model.cancel(captured) })
             }

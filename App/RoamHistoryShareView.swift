@@ -86,10 +86,10 @@ import UIKit
             .cyHaptic(.impactLight, trigger: machine.readyTick)
             .cyHaptic(.success, trigger: machine.doneTick)
             .cyToast(message: $toast)
-            .sheet(item: Binding(get: { albumGuide.guide }, set: { if $0 == nil { albumGuide.dismissGuide() } })) { guide in
+            .cySheet(item: Binding(get: { albumGuide.guide }, set: { if $0 == nil { albumGuide.dismissGuide() } })) { guide in
                 if permitsAlbumGuide(guide.destination) { RoamShareAlbumGuideView(guide: guide) }
             }
-            .sheet(item: $systemShare, onDismiss: { if machine.state.isExporting { machine.send(.exportFinished(false)) } }) { request in
+            .cySheet(item: $systemShare, onDismiss: { if machine.state.isExporting { machine.send(.exportFinished(false)) } }) { request in
                 // Recheck after the tap as well: a local record or owner may have
                 // changed before SwiftUI actually presents the system sheet.
                 if channelPolicy.permits(.systemShare), machine.image === request.image,

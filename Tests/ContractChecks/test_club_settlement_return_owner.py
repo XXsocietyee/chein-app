@@ -8,7 +8,7 @@ class ClubSettlementReturnContracts(unittest.TestCase):
         s=self.read('App/ClubSettlementDetail.swift').split('struct ClubSettlementRows:',1)[1].split('struct ClubSettlementDetail:',1)[0]
         self.assertIn('@ObservedObject var owner:',s)
         self.assertIn('owner.open(target, source: source, current: currentSource(), active: active())',s)
-        for x in ['@State', '.sheet(', '.onDisappear', '.task(']:self.assertNotIn(x,s)
+        for x in ['@State', '.cySheet(', '.onDisappear', '.task(']:self.assertNotIn(x,s)
     def test_parent_only_concrete_uuid_presenter(self):
         s=self.read('App/ClubGovernanceViews.swift')
         self.assertIn('@StateObject private var settlementReturn = ClubSettlementReturnOwner()',s)

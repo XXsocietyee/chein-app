@@ -555,7 +555,7 @@ struct ObjectCardRenameButton: View {
                 .contentShape(Rectangle())
                 .accessibilityLabel(Text("playerGap.card.rename"))
                 // OCARDS-4 (MP object-cards wxml:91 改名 sheet): 64-char field with count, inline server error, 保存.
-                .sheet(isPresented: $editing) {
+                .cySheet(isPresented: $editing) {
                     ObjectCardRenameSheetView(initialName: draft, errorMessage: error, isSaving: busy,
                                               onSave: { save($0) }, onClose: { editing = false })
                 }
@@ -603,7 +603,7 @@ struct ActivityPublishPrecheckGate<Content: View>: View {
                         Button("action.goSignIn") { showsSignIn = true }.buttonStyle(.cyPrimary)
                             .accessibilityIdentifier("playerGap.publish.goSignIn")
                     }
-                    .sheet(isPresented: $showsSignIn) { Group { LoginView(intent: .player) }.cySheet(detents: [.large]) }
+                    .cySheet(isPresented: $showsSignIn) { Group { LoginView(intent: .player) }.cySheet(detents: [.large]) }
                 case .failed(let message)?:
                     ContentUnavailableView { Label("playerGap.publish.failed", systemImage: "exclamationmark.triangle") } description: {
                         if let message, !message.isEmpty { Text(verbatim: message) }

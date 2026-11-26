@@ -66,7 +66,7 @@ extension EnvironmentValues {
             .task(id: detail.team.id) {
                 await load()
             }
-            .sheet(isPresented: $showingReportSheet) { Group {
+            .cySheet(isPresented: $showingReportSheet) { Group {
                 // Source `team-report-sheet`: five fixed reasons, sent verbatim.
                 TeamReportReasonSheet(teamID: detail.team.id)
             }.cySheet() }

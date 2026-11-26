@@ -133,7 +133,7 @@ extension EnvironmentValues {
         Button { controller.open() } label: {
             Text("projectCategoryPicker.choose", tableName: "ProjectCategoryPicker")
         }.disabled(!model.canEdit).accessibilityIdentifier("projectCategoryPicker.open")
-            .sheet(item: controller.binding(original)) { value in Group { ProjectCategoryPickerSheet(controller: controller, original: value) }.presentationDetents([.medium, .large]).presentationDragIndicator(.visible) }
+            .cySheet(item: controller.binding(original)) { value in Group { ProjectCategoryPickerSheet(controller: controller, original: value) }.presentationDetents([.medium, .large]).presentationDragIndicator(.visible) }
             .onReceive(controller.reader?.discoveryPresentationChanges ?? Empty<Void, Never>().eraseToAnyPublisher()) { _ in readerRevision += 1 }
             .onChange(of: model.editorIncarnation) { _, _ in controller.retire() }
             .onDisappear { controller.retire() }

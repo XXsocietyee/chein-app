@@ -156,8 +156,10 @@ struct QuestifyApp: App {
                 }
                 #endif
             }
+            .cyPresentationBackdropHost()
             .modifier(AppLanguageEnvironment(stored: storedLanguage))
             .tint(CYColor.brand)
+            .islandRoot()
             #if DEBUG
             .modifier(FixtureThemeDomainModifier(isFixture: sessionContainer.session == nil))
             #endif
@@ -750,11 +752,11 @@ struct SessionRootView: View {
         .modifier(DebugOpenURLLaunchArgument(session: session))
         .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { session.receiveUniversalLink($0) }
         // One presentation at a time: the consent gate goes first, native entry and the area picker queue behind it.
-        .sheet(item: Binding(get: { presentation.allowsSecondaryRootSheet ? session.nativeEntry : nil }, set: { if $0 == nil, presentation.allowsSecondaryRootSheet { session.dismissNativeEntry() } })) { entry in
+        .cySheet(item: Binding(get: { presentation.allowsSecondaryRootSheet ? session.nativeEntry : nil }, set: { if $0 == nil, presentation.allowsSecondaryRootSheet { session.dismissNativeEntry() } })) { entry in
             NativeEntryLandingView(entry: entry, session: session, goHome: { browsingAsGuest = true; selectedTab = .home })
                 .cyPlayerSheetGlass()
         }
-        .sheet(isPresented:Binding(get: { showsAreaPicker && presentation.allowsSecondaryRootSheet && session.nativeEntry == nil }, set: { showsAreaPicker = $0 })) { Group {
+        .cySheet(isPresented:Binding(get: { showsAreaPicker && presentation.allowsSecondaryRootSheet && session.nativeEntry == nil }, set: { showsAreaPicker = $0 })) { Group {
             RoamAreaPicker(onSelect:{ session.roamArea=$0 })
                 .cyPlayerSheetGlass()
             }
@@ -768,7 +770,7 @@ struct SessionRootView: View {
         v
         .sessionExpiryNotice(session: session, onContinueAsGuest: { browsingAsGuest = true })
         #if DEBUG
-        .sheet(isPresented: $showsScannerFixture) { Group {
+        .cySheet(isPresented: $showsScannerFixture) { Group {
             NativeQRScanner { _ in }
                 .cyPlayerSheetGlass()
             }

@@ -82,7 +82,7 @@ struct MerchantSignInState: View {
             .accessibilityIdentifier(identifier + ".action")
         }
         .accessibilityIdentifier(identifier)
-        .sheet(isPresented: $showsSignIn) { LoginView(intent: .merchant) }
+        .cySheet(isPresented: $showsSignIn) { LoginView(intent: .merchant) }
     }
 }
 

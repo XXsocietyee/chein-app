@@ -132,7 +132,7 @@ import Combine
             }
         }
             .navigationTitle("templateSamples.open")
-            .sheet(item: controller.presentationBinding) { item in
+            .cySheet(item: controller.presentationBinding) { item in
                 Group {
                     NavigationStack { TemplateSamplePresentationView(controller: controller, presentationID: item.id) }
                 }

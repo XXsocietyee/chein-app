@@ -156,7 +156,7 @@ import SwiftUI
                     Task { await model.writeTag(correctedValue: correctedValue.isEmpty ? nil : correctedValue) }
                 }
             )
-            .sheet(isPresented: $tagSheetShow) {
+            .cySheet(isPresented: $tagSheetShow) {
                 CYOptionSheet(
                     title: PlayCloseCopy.text("改成哪个结果", "Select outcome tag", locale),
                     items: (model.submission?.availableTagValues ?? []).map {

@@ -34,7 +34,7 @@ import SwiftUI
             }
             .task { if model.phase == .idle { await model.load() } }
             .refreshable { await model.load() }
-            .sheet(isPresented: $showingForm) {
+            .cySheet(isPresented: $showingForm) {
                 formSheet
                     .cyDomainSheet(detents: [.half, .full])
                     .themeDomain(.merchant)

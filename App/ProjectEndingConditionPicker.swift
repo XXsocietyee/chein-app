@@ -62,7 +62,7 @@ import SwiftUI
         let original = controller.presentation
         Button { controller.open() } label: { Text("projectEndingChoice.choose", tableName: "ProjectEndingConditionPicker") }
             .disabled(!controller.available).accessibilityIdentifier("projectEndingChoice.open." + String(controller.context.index))
-            .sheet(item: controller.binding(original)) { original in Group { ProjectEndingConditionSheet(controller: controller, original: original) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+            .cySheet(item: controller.binding(original)) { original in Group { ProjectEndingConditionSheet(controller: controller, original: original) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
             .onChange(of: model.editorIncarnation) { _, _ in controller.retire() }
             .onDisappear { controller.retire() }
     }
@@ -191,7 +191,7 @@ import SwiftUI
         let original = controller.presentation
         Button(action: { controller.open() }, label: { Text("projectEndingChoice.choose", tableName: "ProjectEndingConditionPicker") })
             .disabled(!controller.available).accessibilityIdentifier("projectStoryCondition.open")
-            .sheet(item: controller.binding(original)) { original in Group { ProjectStoryConditionSheet(controller: controller, original: original) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+            .cySheet(item: controller.binding(original)) { original in Group { ProjectStoryConditionSheet(controller: controller, original: original) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
             .onChange(of: model.editorIncarnation) { _, _ in controller.retire() }
             .onDisappear { controller.retire() }
     }

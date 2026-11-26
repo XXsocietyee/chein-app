@@ -699,7 +699,7 @@ struct MemberMerchantNPCChatSheet<Content: View>: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .presentationDragIndicator(.visible)
-        .sheet(isPresented: $confirmsClear) {
+        .cySheet(isPresented: $confirmsClear) {
             MemberNPCLogDeleteConfirmSheet {
                 confirmsClear = false
                 if let onClear {
@@ -872,7 +872,7 @@ struct MemberCoopInviteSheet: View {
             }
         }
         .cyToast(message: $toastMessage, tone: .info)
-        .sheet(isPresented: $showsDiscard) {
+        .cySheet(isPresented: $showsDiscard) {
             MemberCoopInviteDiscardConfirmSheet {
                 showsDiscard = false
                 onClose()

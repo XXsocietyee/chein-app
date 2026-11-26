@@ -43,7 +43,7 @@ class ClubSeriesUpdateReturnContracts(unittest.TestCase):
         required(self.host, ['@StateObject private var seriesUpdateReturn = ClubSeriesUpdateReturn()',
                              'if let item = seriesUpdateReturn.item {',
                              'ClubSeriesUpdatePresentationOwner(item: item', '.id(item.id)'])
-        required(self.owner, ['.sheet(isPresented: owner.binding(item, source: source, active: active)',
+        required(self.owner, ['.cySheet(isPresented: owner.binding(item, source: source, active: active)',
                               'if owner.dismissed(item, source: source(), active: active()) { didDismiss() }'])
 
     def test_source_requires_identity_authorization_and_same_snapshot(self):

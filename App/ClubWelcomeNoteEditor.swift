@@ -20,7 +20,7 @@ import SwiftUI
             .disabled(!enabled || !club.isOwner || identity == nil || access.identity != identity)
             .accessibilityIdentifier("club.welcome.edit")
         }
-        .sheet(item: Binding(get: { visit }, set: { next in
+        .cySheet(item: Binding(get: { visit }, set: { next in
             if next == nil { visit?.retire() }; visit = next
         })) { opened in
             NavigationStack {

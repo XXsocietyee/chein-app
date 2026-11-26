@@ -4,7 +4,7 @@ class ContactStableOwnerContract(unittest.TestCase):
  def test_row_borrows_flow_without_sheet(self):
   s=(ROOT/'App/MerchantCustomerContactEntry.swift').read_text().split('/// Retained by MerchantBusinessPage')[0]
   self.assertIn('@Binding var flow:',s)
-  for x in ['@State','.sheet(','.onDisappear']:self.assertNotIn(x,s)
+  for x in ['@State','.cySheet(','.onDisappear']:self.assertNotIn(x,s)
  def test_stable_host_and_old_dismissal_guard(self):
   s=(ROOT/'App/MerchantCustomerContactEntry.swift').read_text().split('/// Retained by MerchantBusinessPage')[1]
   for x in ['content.background','.id(flow?.id)','flow?.id == shownID ? flow : nil','guard flow?.id == shownID else { return }','.onDisappear { flow?.invalidate(); flow = nil }','let captured = flow','captured?.reconcile()']:self.assertIn(x,s)

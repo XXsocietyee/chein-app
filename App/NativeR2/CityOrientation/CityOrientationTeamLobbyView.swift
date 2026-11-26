@@ -203,7 +203,7 @@ import SwiftUI
                 }
             }
         }
-        .sheet(item: model.reviewBinding) { review in TeamReviewSheet(model: model, review: review) }
+        .cySheet(item: model.reviewBinding) { review in TeamReviewSheet(model: model, review: review) }
         .onDisappear { model.leave() }
     }
 

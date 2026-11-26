@@ -323,7 +323,7 @@ struct ClubInvitationFeedbackDetailRoute: Identifiable, Equatable {
     }
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
-            .sheet(isPresented: presentation.binding(for: item), onDismiss: {
+            .cySheet(isPresented: presentation.binding(for: item), onDismiss: {
                 model.leave(item.context)
                 presentation.finish(item, in: currentContext())
             }) {

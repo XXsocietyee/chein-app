@@ -88,7 +88,7 @@ struct AccountDeregistrationImpactConfirmation: View {
             .sensoryFeedback(.warning, trigger: confirming) { _, new in new }
         }
         .onDisappear { confirmation = "" }
-        .sheet(isPresented: $confirming) {
+        .cySheet(isPresented: $confirming) {
             MemberDeregistrationSubmitConfirmSheet {
                 confirming = false
                 confirmation = ""

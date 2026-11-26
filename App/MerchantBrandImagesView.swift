@@ -37,7 +37,7 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     func body(content: Content) -> some View {
         content
-        .sheet(item: $document.brandImagesPresentation) { value in
+        .cySheet(item: $document.brandImagesPresentation) { value in
             Group {
                 MerchantBrandImagesSheet(model: value) {
                     guard document.brandImagesPresentation?.id == value.id else { return }

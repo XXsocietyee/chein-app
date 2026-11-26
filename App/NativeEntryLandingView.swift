@@ -96,7 +96,7 @@ import SwiftUI
                         .tint(.primary)
                     }
                 }
-                .sheet(isPresented: $showsLogin) {
+                .cySheet(isPresented: $showsLogin) {
                     if case .teamInvitation = entry.intent { LoginView(intent: .player) }
                     else { LoginView(intent: .merchant) }
                 }

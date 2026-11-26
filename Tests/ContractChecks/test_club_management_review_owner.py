@@ -8,7 +8,7 @@ class ClubManagementReviewOwnerContracts(unittest.TestCase):
         v=self.read('App/ClubManagementView.swift')
         self.assertIn('if let item = reviewOwner.item {',v)
         self.assertIn('confirmationContent(item)\n                }.id(item.id)',v)
-        self.assertNotIn('.sheet(isPresented: Binding(get: { confirmation',v)
+        self.assertNotIn('.cySheet(isPresented: Binding(get: { confirmation',v)
         self.assertIn('ClubManagementReviewLifetime(covered:',v)
     def test_old_buttons_capture_attachment_and_context(self):
         v=self.read('App/ClubManagementView.swift')

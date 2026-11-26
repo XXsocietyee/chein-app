@@ -11,7 +11,7 @@ import SwiftUI
             Button(text(.choose)) { controller.open() }
                 .buttonStyle(.borderless).disabled(!controller.available).accessibilityIdentifier("projectMerchantDraft.choose")
             Text(text(controller.available ? .localReferenceOnly : .unconfigured)).cyText(.meta)
-        }.sheet(item: controller.presentation(original)) { original in
+        }.cySheet(item: controller.presentation(original)) { original in
             Group {
                 ProjectMerchantDraftPanel(controller: controller, original: original)
             }

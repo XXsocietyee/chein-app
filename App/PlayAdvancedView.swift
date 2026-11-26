@@ -145,7 +145,7 @@ import SwiftUI
         .onAppear { teamSurfaceVisible = true; model.beginTeamSurface(id: teamSurfaceID) }
         .task(id: model.state?.version) { await model.loadAdvancedLeaderboard(surfaceID: teamSurfaceID) }
         .onDisappear { teamSurfaceVisible = false; model.endTeamSurface(id: teamSurfaceID); model.closeAdvancedPanel() }
-        .sheet(item: $openKit, onDismiss: { kitDirty = false; albumCapture = false; model.closePlayKitSheet() }) { sheet in
+        .cySheet(item: $openKit, onDismiss: { kitDirty = false; albumCapture = false; model.closePlayKitSheet() }) { sheet in
             NavigationStack { kitSheet(sheet) }
                 .cyDomainSheet(detents: sheet.halfSheet ? [.half, .full] : [.full])
                 .interactiveDismissDisabled(kitDirty)

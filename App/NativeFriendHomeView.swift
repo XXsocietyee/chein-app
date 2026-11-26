@@ -219,7 +219,7 @@ import SwiftUI
             }
         }
         // The request is reviewed only after this sheet closes, so the confirmation sheet never stacks on it.
-        .sheet(isPresented: $addingFriend, onDismiss: {
+        .cySheet(isPresented: $addingFriend, onDismiss: {
             guard let id = queuedPeer else { return }
             queuedPeer = nil
             flow.reviewRequest(peerID: id, message: message)
@@ -253,7 +253,7 @@ import SwiftUI
             .presentationDetents([.medium])
             .presentationDragIndicator(.visible)
         }
-        .sheet(isPresented: Binding(get: { flow.actionReview != nil }, set: { if !$0 { flow.cancelReview() } })) {
+        .cySheet(isPresented: Binding(get: { flow.actionReview != nil }, set: { if !$0 { flow.cancelReview() } })) {
             if let review = flow.actionReview {
                 NavigationStack {
                     Form {

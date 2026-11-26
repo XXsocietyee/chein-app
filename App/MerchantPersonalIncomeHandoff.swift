@@ -100,7 +100,7 @@ import SwiftUI
                 guard source == nil else { return }
                 source = .init(row: row, reader: reader, currentSnapshot: currentSnapshot)
             }.accessibilityIdentifier("merchant.personalIncome.open")
-            .sheet(item: presentation) { selected in
+            .cySheet(item: presentation) { selected in
                 NavigationStack {
                     destination(selected)
                         .toolbar { ToolbarItem(placement: .cancellationAction) {
@@ -252,7 +252,7 @@ extension EnvironmentValues {
                 guard source == nil else { return }
                 source = .init(reader: reader, currentSnapshot: currentSnapshot)
             }.accessibilityIdentifier("merchant.ledger.personalAssets")
-            .sheet(item: merchantLedgerAssetsPresentation($source)) { selected in
+            .cySheet(item: merchantLedgerAssetsPresentation($source)) { selected in
                 Group {
                     NavigationStack {
                         destination(selected)

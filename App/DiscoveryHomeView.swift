@@ -60,7 +60,7 @@ struct DiscoveryHomeView: View {
                     .refreshable { await reload() }
                 }
             }
-            .sheet(isPresented:$showsTopics) { Group { SessionTopicBrowserView() }.cySheet(detents: [.large]) }
+            .cySheet(isPresented:$showsTopics) { Group { SessionTopicBrowserView() }.cySheet(detents: [.large]) }
             .cyPageTitle("discovery.title")
             .task { if reader.isConfigured { await reload() } }
         }

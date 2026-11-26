@@ -57,7 +57,7 @@ import SwiftUI
             Task { await reload() }
         }
         .onDisappear { generation = UUID(); review = nil; appeal = nil; pendingAppeal = nil; reason = "" }
-        .sheet(item: $appeal, onDismiss: {
+        .cySheet(item: $appeal, onDismiss: {
             if let action = pendingAppeal { pendingAppeal = nil; prepare(action) }
         }) { record in Group {
             NavigationStack {
@@ -74,7 +74,7 @@ import SwiftUI
                 .toolbar { Button("square.gov.cancel") { appeal = nil; reason = "" } }
             }
         }.cySheet() }
-        .sheet(item: $review) { item in Group {
+        .cySheet(item: $review) { item in Group {
             NavigationStack {
                 Form {
                     Text("square.gov.reviewWarning")

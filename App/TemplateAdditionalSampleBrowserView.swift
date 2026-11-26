@@ -136,7 +136,7 @@ import Combine
                 }
             }
         }.formStyle(.grouped).navigationTitle(Text("templateSampleCoverage.open"))
-            .sheet(item: controller.presentationBinding) { item in
+            .cySheet(item: controller.presentationBinding) { item in
                 Group {
                     NavigationStack { TemplateAdditionalSamplePresentationView(controller: controller, presentationID: item.id) }
                 }

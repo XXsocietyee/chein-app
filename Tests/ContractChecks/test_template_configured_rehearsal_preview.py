@@ -31,7 +31,7 @@ class TemplateConfiguredRehearsalPreviewContracts(unittest.TestCase):
         self.assertNotIn('.id(', shell)
         rows = self.app.split('/// Lazy summary rows')[1]
         self.assertEqual(rows.count('@ObservedObject'), 3)
-        self.assertNotIn('@StateObject', rows); self.assertNotIn('.sheet(', rows)
+        self.assertNotIn('@StateObject', rows); self.assertNotIn('.cySheet(', rows)
     def test_hidden_background_and_repeated_appearance_boundaries(self):
         for token in ['active && !retired && !didClose && isVisible && sceneActive', 'guard !retired && !didClose && sceneActive', 'if !active { generation = UUID(); active = true }', 'func viewDisappeared() { isVisible = false; retire() }', 'if !isActive { retire() }', 'generation = UUID(); retired = true; active = false; path = []']:
             self.assertIn(token, self.app)

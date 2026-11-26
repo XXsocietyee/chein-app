@@ -49,7 +49,7 @@ import SwiftUI
         }
         .onChange(of: controller.current) { _, current in if !current { controller.invalidate(); selections = [:] } }
         .onDisappear { visible = false; controller.suspend(); selections = [:] }
-        .sheet(item: Binding(get: { interactive ? controller.confirmation : nil }, set: { if $0 == nil { controller.cancelConfirmation() } })) { captured in Group {
+        .cySheet(item: Binding(get: { interactive ? controller.confirmation : nil }, set: { if $0 == nil { controller.cancelConfirmation() } })) { captured in Group {
             NavigationStack {
                 Form {
                     Text(LocalizedStringKey(captured.command.kind == .accept ? "cityOnsite.accept" : "cityOnsite.submit"), tableName: table)

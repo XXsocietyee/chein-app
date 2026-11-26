@@ -24,7 +24,7 @@ class ChapterArtworkRetryZoomTests(unittest.TestCase):
         self.assertIn("captured == requestKey && !Task.isCancelled", self.code)
 
     def test_zoom_uses_sanitized_current_image_without_new_read(self):
-        cover = self.full.split(".fullScreenCover(item: $zoomedImage)", 1)[1].split(".background(", 1)[0]
+        cover = self.full.split(".cyFullScreenCover(item: $zoomedImage)", 1)[1].split(".background(", 1)[0]
         self.assertIn("if visible, scenePhase == .active, imageReader?.enabled == true", cover)
         self.assertIn("ChapterStoryImageViewer(image: item.image, alt: item.alt)", cover)
         self.assertNotIn("reader.image", cover)

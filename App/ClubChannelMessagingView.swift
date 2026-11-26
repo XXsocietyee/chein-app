@@ -229,7 +229,7 @@ public struct ClubChannelMessagingView: View {
             }
             Button("action.cancel", role: .cancel) {}
         }
-        .sheet(isPresented: $showRulesSheet) {
+        .cySheet(isPresented: $showRulesSheet) {
             NavigationStack {
                 List {
                     Section {
@@ -254,7 +254,7 @@ public struct ClubChannelMessagingView: View {
             }
             .presentationDetents([.medium, .large])
         }
-        .sheet(isPresented: $showMemberRosterSheet) {
+        .cySheet(isPresented: $showMemberRosterSheet) {
             ClubChannelMemberRosterSheet(
                 clubName: club.name,
                 sections: ChannelMemberRoleRoster.buildSections(from: effectiveMemberRoster, locale: locale),

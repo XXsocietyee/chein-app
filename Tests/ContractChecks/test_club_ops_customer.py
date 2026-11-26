@@ -155,7 +155,7 @@ class ClubOpsCustomerWiring(unittest.TestCase):
         self.assertNotIn('"phone"', core)
 
     def test_editor_rereads_detail_after_dismissal_inside_existing_fences(self):
-        self.assertIn(".sheet(item: $editor, onDismiss: { rereadCustomerAfterEditor() })", self.view)
+        self.assertIn(".cySheet(item: $editor, onDismiss: { rereadCustomerAfterEditor() })", self.view)
         body = span(self.view, "private func rereadCustomerAfterEditor()", "private func current(_ target: ClubLeaderboardMemberRoute)")
         for token in ["operation == .customer", "scenePhase == .active", "snapshotContext == readContext",
                       "identity == access.identity", "!loading", "await load()"]:

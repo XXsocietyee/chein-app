@@ -31,7 +31,7 @@ struct ProfileDraftReviewSection: View {
             .accessibilityIdentifier("profile.reviewRestore.compare")
             Button("profile.reviewRestore.open", role: .destructive) { showsRestore = true }
                 .disabled(!canRestore).accessibilityIdentifier("profile.reviewRestore.open")
-                .sheet(isPresented: $showsRestore) {
+                .cySheet(isPresented: $showsRestore) {
                     MemberProfileDiscardConfirmSheet(kind: .reviewRestore) {
                         showsRestore = false
                         restore()

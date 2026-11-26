@@ -47,7 +47,7 @@ def main():
     # R7-PC-A3-3: the sheet-on-sheet wheel is replaced by inline Form DatePicker rows (MP search2 index.wxml:100-129).
     nested = app
     check('inline native DatePicker rows replace the nested wheel sheet',
-          '.sheet(item: $datePicker)' not in app and 'SearchMapDatePickerSheet' not in app and
+          '.cySheet(item: $datePicker)' not in app and 'SearchMapDatePickerSheet' not in app and
           all(f'DatePicker("mapDatePicker.{key}", selection: dateValue(\\.{key}Date), displayedComponents: .date)' in app for key in ['start', 'end']))
     for key in ['start', 'end']:
         check(f'{key} date is optional behind a native Toggle', f'Toggle("searchMap.{key}Date", isOn: dateEnabled(\\.{key}Date))' in app)

@@ -34,6 +34,9 @@ import SwiftUI
     @State private var showChapterPicker = false
     @State private var showEmergencyHelp = false
     @State private var arrival: PlayArrivalService?
+    /// Motion r1: the store path draws on when the map appears.
+    @State private var draw = NativeR2DrawOn()
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.locale) private var locale
 
     var body: some View {
@@ -45,13 +48,15 @@ import SwiftUI
                 MapScaleView()
             }
             .toolbar { toolbar }
-            .sheet(isPresented: $showsSheet, onDismiss: openPendingStore) { sheet }
+            .cySheet(isPresented: $showsSheet, onDismiss: openPendingStore) { sheet }
             .navigationDestination(item: $selectedStore) { id in storeDestination(id) }
             .onAppear {
                 if arrival == nil { arrival = PlayArrivalService(runtime: model, location: arrivalLocation) }
                 if selectedStore == nil { showsSheet = true }
+                // Native r2 M4: Dynamic Island shows the session as free explore (next stop from the same snapshot).
+                QuestLiveActivityCenter.shared.setPlayContext(mode: .explore, nextDistanceMeters: nil)
             }
-            .onDisappear { showsSheet = false; arrival?.cancel() }
+            .onDisappear { showsSheet = false; arrival?.cancel(); QuestLiveActivityCenter.shared.clearPlayContext() }
             .onChange(of: selectedStore) { _, id in
                 // Back from a store page: the card returns to the first open store (the visited one may be done now).
                 if id == nil { focusedStore = nil; showsSheet = true }
@@ -114,7 +119,7 @@ import SwiftUI
         Map(position: $position, selection: $mapSelection) {
             UserAnnotation()
             if mappedStops.count > 1 {
-                MapPolyline(coordinates: mappedStops.map(\.coordinate))
+                MapPolyline(coordinates: NativeR2RoutePath.prefix(mappedStops.map(\.coordinate), progress: draw.progress))
                     .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 3, dash: [6, 5]))
             }
             if let snapshot {
@@ -127,6 +132,7 @@ import SwiftUI
                 }
             }
         }
+        .task(id: mappedStops.count) { await draw.run(reduceMotion: reduceMotion) }
     }
 
     private func stopPin(_ state: StopState, font: Font = .title) -> some View {
@@ -142,6 +148,7 @@ import SwiftUI
             .font(font)
             .symbolRenderingMode(.palette)
             .foregroundStyle(Color.white, color)
+            .nativeR2SymbolReplace()
             .accessibilityLabel(Text(LocalizedStringKey(Self.stateKey(state))))
     }
 
@@ -181,14 +188,14 @@ import SwiftUI
         .presentationBackgroundInteraction(.enabled(upThrough: .medium))
         .presentationDragIndicator(.visible)
         .interactiveDismissDisabled()
-        .sheet(item: arrivalItem) { item in
+        .cySheet(item: arrivalItem) { item in
             if let arrival {
                 NativeFreeExploreArrivalSheet(model: model, arrival: arrival, nodeID: item.id,
                                               onOpenStore: { open(item.id) })
             }
         }
-        .sheet(isPresented: $showEmergencyHelp) { PlayEmergencyHelpSheet() }
-        .sheet(isPresented: $showChapterPicker) {
+        .cySheet(isPresented: $showEmergencyHelp) { PlayEmergencyHelpSheet() }
+        .cySheet(isPresented: $showChapterPicker) {
             if let snapshot {
                 PlayChapterPickerSheet(rows: PlayChapterPickRow.rows(snapshot), current: chapterFilter) { picked in
                     chapterFilter = picked; focusedStore = nil; skipped = []

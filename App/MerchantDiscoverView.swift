@@ -68,7 +68,7 @@ import SwiftUI
             if phase != .active { retire() }
             else if isVisible { Task { await load() } }
         }
-        .sheet(item: Binding(get: { presentation.selection }, set: { next in
+        .cySheet(item: Binding(get: { presentation.selection }, set: { next in
             if next == nil, let id = offeredSelectionID { presentation.close(expectedID: id) }
         }), onDismiss: {
             if let id = offeredSelectionID { presentation.finishDismiss(expectedID: id) }

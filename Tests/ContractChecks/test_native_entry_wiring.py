@@ -26,7 +26,7 @@ class NativeEntryWiringChecks(unittest.TestCase):
         self.assertIn('onCancel: { confirmDiscard = false }', source)
         self.assertIn('isDestructive: true', source)
         self.assertIn('.scrollDismissesKeyboard(.interactively)', source)
-        self.assertNotIn('.sheet(', source)
+        self.assertNotIn('.cySheet(', source)
         self.assertNotIn('execute(', source)
     def test_nearby_is_reachable_without_location_or_network_side_effect(self):
         source = self.read('App/CooperationFlowWorkbench.swift')

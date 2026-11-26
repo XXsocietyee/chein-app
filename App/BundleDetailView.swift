@@ -40,7 +40,7 @@ import SwiftUI
         .navigationTitle(Text(verbatim: name))
         .navigationBarTitleDisplayMode(.inline)
         .safeAreaInset(edge: .bottom, spacing: 0) { bottomBar }
-        .sheet(isPresented: $summaryOpen) { summarySheet }
+        .cySheet(isPresented: $summaryOpen) { summarySheet }
         .onAppear {
             summaryDetent = dynamicTypeSize.isAccessibilitySize ? .large : compactDetent
             if presentsSummaryOnAppear { summaryOpen = true }

@@ -58,7 +58,7 @@ import SwiftUI
             if reviewIssue { CYStatusChip("advancedTeam.reviewChanged", tone: .warning, systemImage: "exclamationmark.triangle").accessibilityIdentifier("advancedTeam.reviewChanged") }
         }
         }.accessibilityIdentifier("advancedTeam.controls")
-        .sheet(item: $review) { captured in Group {
+        .cySheet(item: $review) { captured in Group {
             NavigationStack {
                 Form {
                     Section("advancedTeam.review") {

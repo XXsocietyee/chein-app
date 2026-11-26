@@ -52,13 +52,13 @@ class ClubHostApplicationMaterialsContracts(unittest.TestCase):
     def test_picker_and_preview_have_concrete_stable_owner(self):
         self.assertIn('if let value = hostMaterials.presentation', self.form)
         self.assertIn('allowed: { hostMaterialsAllowed }, changed: { dirty = true }).id(value.id)', self.form)
-        self.assertIn('.sheet(item: model.binding(value, allowed: allowed)', self.source)
+        self.assertIn('.cySheet(item: model.binding(value, allowed: allowed)', self.source)
         self.assertIn('self.current(value, allowed: allowed) ? value : nil', self.source)
         self.assertIn('self.presentation?.id == value.id', self.source)
 
     def test_rows_never_own_sheet_or_leave_lifecycle(self):
         rows = self.source.split('struct ClubHostApplicationMaterialsRows', 1)[1].split('struct ClubHostApplicationMaterialsOwner', 1)[0]
-        for term in ['@State', '.sheet(', '.onDisappear', 'model.retire(']: self.assertNotIn(term, rows)
+        for term in ['@State', '.cySheet(', '.onDisappear', 'model.retire(']: self.assertNotIn(term, rows)
         self.assertIn('.buttonStyle(.borderless).accessibilityElement(children: .contain)', rows)
 
     def test_actual_departure_is_distinct_from_modal_cover(self):

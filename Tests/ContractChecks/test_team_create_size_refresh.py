@@ -10,7 +10,7 @@ class TeamCreateSizeRefreshTests(unittest.TestCase):
         source = (ROOT / "App/TeamCreateView.swift").read_text()
         handler = source.split(
             ".onChange(of: model.coordinator.creation?.sizes ?? [], initial: true)", 1,
-        )[1].split(".sheet(item:", 1)[0]
+        )[1].split(".cySheet(item:", 1)[0]
         self.assertIn("guard !sizes.contains(size), let first = sizes.first else { return }", handler)
         self.assertIn("size = first", handler)
         for forbidden in ["prepare(", "confirm(", "submit(", "pending =", "size = 2", "inviteOnly ="]:

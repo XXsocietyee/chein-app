@@ -100,7 +100,7 @@ class SearchMapDatePresetContractTests(unittest.TestCase):
 
     def test_existing_global_host_only_searches_at_apply_and_has_no_city_options(self):
         view = (ROOT / 'App/GlobalSearchView.swift').read_text()
-        sheet = view.split('.sheet(isPresented: $showsFilters)', 1)[1].split('.task(', 1)[0]
+        sheet = view.split('.cySheet(isPresented: $showsFilters)', 1)[1].split('.task(', 1)[0]
         self.assertIn('applyFilter(next)', sheet)
         self.assertNotIn('applyCityOptions:', sheet)
         select = self.sheet.split('private func selectDatePreset(', 1)[1].split('private func commit()', 1)[0]

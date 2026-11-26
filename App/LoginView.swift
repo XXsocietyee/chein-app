@@ -143,7 +143,7 @@ struct LoginView: View {
 #if DEBUG
             .onAppear { if let o = designOverride, username.isEmpty, !o.username.isEmpty { username = o.username; password = "design-stub" } }
 #endif
-            .sheet(item: $rootLegal) { sheet in legalNavigation(sheet) { rootLegal = nil } }
+            .cySheet(item: $rootLegal) { sheet in legalNavigation(sheet) { rootLegal = nil } }
             .themeDomain(.player)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -155,11 +155,11 @@ struct LoginView: View {
                     .accessibilityIdentifier("auth.close")
                 }
             }
-            .sheet(isPresented:$showsOtherSignIn) {
+            .cySheet(isPresented:$showsOtherSignIn) {
                 AuthChannelView(coordinator:session.authChannels,sessionSnapshot:session.authChannelSnapshot,domesticPhoneVisible:session.supportsDomesticPhoneInput,
                                 onOpenAgreement: { legalDocument = AuthEntryLegalSheet(type: .userAgreement) },
                                 onOpenPrivacy: { legalDocument = AuthEntryLegalSheet(type: .privacyPolicy) })
-                    .sheet(item: $legalDocument) { sheet in legalNavigation(sheet) { legalDocument = nil } }
+                    .cySheet(item: $legalDocument) { sheet in legalNavigation(sheet) { legalDocument = nil } }
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)
 #if DEBUG

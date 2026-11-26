@@ -74,7 +74,7 @@ import SwiftUI
         .navigationDestination(isPresented: $adding) { InvoiceLaunchTitleEditor(model: model, title: nil) }
         .cyPageTitle(verbatim: invoiceString("titles"))
         .task { await model.refresh() }.refreshable { await model.refresh() }
-        .sheet(isPresented: Binding(
+        .cySheet(isPresented: Binding(
             get: { deleteID != nil }, set: { if !$0 { deleteID = nil } })) {
             MemberInvoiceTitleDeleteConfirmSheet {
                 if let id = deleteID { Task { _ = await model.delete(id) } }

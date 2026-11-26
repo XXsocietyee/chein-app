@@ -78,10 +78,10 @@ import UIKit
         .environment(\.nativePlatformRuntime, session.nativePlatformRuntime)
         .task(id: session.sessionRevision) { await session.nativePlatformRuntime?.reconcileOwnedRequests() }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in session.nativePlatformRuntime?.clockChanged() }
-        .sheet(isPresented: Binding(get: { session.playNativeDeviceProvider.showingCamera }, set: { if !$0 { session.playNativeDeviceProvider.cancel() } })) {
+        .cySheet(isPresented: Binding(get: { session.playNativeDeviceProvider.showingCamera }, set: { if !$0 { session.playNativeDeviceProvider.cancel() } })) {
             PlayNativeCameraSheet(provider: session.playNativeDeviceProvider).ignoresSafeArea()
         }
-        .sheet(isPresented: Binding(get: { session.playNativeDeviceProvider.showingLibraryPicker }, set: { if !$0 { session.playNativeDeviceProvider.cancel() } })) {
+        .cySheet(isPresented: Binding(get: { session.playNativeDeviceProvider.showingLibraryPicker }, set: { if !$0 { session.playNativeDeviceProvider.cancel() } })) {
             PlayKitNativePhotoLibrarySheet(provider: session.playNativeDeviceProvider)
         }
         .onChange(of: session.sessionRevision) { _, _ in session.playNativeDeviceProvider.cancel() }

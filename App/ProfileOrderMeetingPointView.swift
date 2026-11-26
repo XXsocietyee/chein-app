@@ -84,7 +84,7 @@ import SwiftUI
     let open: @MainActor (PlatformMapDestination) async -> Bool
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
-            .sheet(item: model.presentation(for: review, current: current),
+            .cySheet(item: model.presentation(for: review, current: current),
                    onDismiss: { model.cancel(id: review.id) }) { offered in Group {
                 NavigationStack {
                     Form {

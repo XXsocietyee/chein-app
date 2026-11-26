@@ -9,9 +9,9 @@ class ReferenceMapLayoutContracts(unittest.TestCase):
     def read(self, path): return (ROOT/path).read_text()
     def test_walking_reuses_native_map_and_inset_and_one_sheet(self):
         value = self.read('App/WalkingNavigationView.swift')
-        for token in ['.safeAreaInset(edge: .bottom', '.sheet(isPresented: $showsSteps', 'NavigationStack', '.presentationDetents(typeSize.isAccessibilitySize ? [.large]', 'if model?.route == nil { showsSteps = false }', 'model?.synchronize()', 'model?.setForeground(value == .active)', 'model?.pause()']:
+        for token in ['.safeAreaInset(edge: .bottom', '.cySheet(isPresented: $showsSteps', 'NavigationStack', '.presentationDetents(typeSize.isAccessibilitySize ? [.large]', 'if model?.route == nil { showsSteps = false }', 'model?.synchronize()', 'model?.setForeground(value == .active)', 'model?.pause()']:
             self.assertIn(token, value)
-        self.assertEqual(value.count('.sheet('), 1)
+        self.assertEqual(value.count('.cySheet('), 1)
         for forbidden in ['DragGesture', 'UserAnnotation', 'requestWhenInUseAuthorization', 'startUpdatingLocation', 'ActivityKit', 'URLSession']:
             self.assertNotIn(forbidden, value)
     def test_summary_only_projects_existing_authorized_data(self):

@@ -122,7 +122,7 @@ import SwiftUI
             }
         }
         .task(id: "\(activityID):\(revision)") { await reload() }
-        .sheet(isPresented: $editing) {
+        .cySheet(isPresented: $editing) {
             NavigationStack {
                 Form {
                     Section {

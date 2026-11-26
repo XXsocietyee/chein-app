@@ -657,7 +657,7 @@ struct PassDetailView: View {
                     .transition(.opacity)
             }
         }
-        .sheet(item: Binding(get: { state.giftShare }, set: { if $0 == nil { onResultDone(true) } })) { share in
+        .cySheet(item: Binding(get: { state.giftShare }, set: { if $0 == nil { onResultDone(true) } })) { share in
             PassGiftReadySheet(share: share, productName: state.product.value?.name ?? "")
         }
     }
@@ -1152,7 +1152,7 @@ private struct PassOrderRefusedWrites: View {
             Button(role: .destructive) { refuse(.cancel) } label: { Text("mp.passOrder.cancel") }
             Button(role: .cancel) {} label: { Text("common.cancel") }
         }
-        .sheet(isPresented: $refunding) {
+        .cySheet(isPresented: $refunding) {
             NavigationStack {
                 Form {
                     // R8-MEM-5-2: MP OR-024 refund terms above the reason (fixed MP defaults until server terms are wired).

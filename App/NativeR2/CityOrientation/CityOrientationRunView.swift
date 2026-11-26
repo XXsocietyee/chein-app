@@ -40,6 +40,9 @@ extension EnvironmentValues {
     @ViewBuilder var panel: () -> Panel
     @State private var camera: MapCameraPosition = .automatic
     @State private var detent: PresentationDetent = .height(120)
+    /// Motion r1: the route and team trails draw on when the run map appears.
+    @State private var draw = NativeR2DrawOn()
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
 
@@ -72,7 +75,7 @@ extension EnvironmentValues {
                 .padding(.top, 8)
             }
             .sensoryFeedback(.success, trigger: inHighlight) { old, new in !old && new }
-            .sheet(isPresented: $sheetShown) {
+            .cySheet(isPresented: $sheetShown) {
                 panel()
                     .presentationDetents([.height(120), .medium, .large], selection: $detent)
                     .presentationBackgroundInteraction(.enabled(upThrough: .medium))
@@ -80,9 +83,23 @@ extension EnvironmentValues {
                     .interactiveDismissDisabled()
             }
             .onAppear { location.start() }
-            .onDisappear { location.stop() }
+            .onDisappear { location.stop(); QuestLiveActivityCenter.shared.clearPlayContext() }
             .onChange(of: scenePhase) { _, phase in
                 if phase == .active { location.start() } else { location.stop() }
+            }
+            // Native r2 M4: Dynamic Island shows this run as an orientation run with the distance to the next control point.
+            .onChange(of: currentDistance, initial: true) { _, meters in
+                QuestLiveActivityCenter.shared.setPlayContext(mode: .orientation, nextDistanceMeters: meters)
+            }
+            // Native r2 M4: entering the 50 m highlight pops an arrival island whose action opens the same punch sheet.
+            .onChange(of: inHighlight) { old, new in
+                guard !old, new, let stop = currentStop else { return }
+                IslandCenter.shared.show(IslandItem(kind: .arrival, title: .key("island.arrival.punch"),
+                                                    subtitle: .verbatim(stopTitle(stop)),
+                                                    actions: [IslandAction(title: .key("island.arrival.punch.action"),
+                                                                           systemImage: "checkmark.seal", prominent: true) { onPunch(stop.id) }],
+                                                    open: { onPunch(stop.id) }, lifetime: .seconds(6),
+                                                    dedupeKey: "arrival.punch", startsExpanded: true))
             }
             .accessibilityIdentifier("nativeR2.city.run")
     }
@@ -94,7 +111,9 @@ extension EnvironmentValues {
             UserAnnotation()
             if let route {
                 ForEach(route.segments) { segment in
-                    MapPolyline(coordinates: [coordinate(segment.start), coordinate(segment.end)])
+                    MapPolyline(coordinates: NativeR2RoutePath.leg(coordinate(segment.start), coordinate(segment.end),
+                                                                   index: route.segments.firstIndex(where: { $0.id == segment.id }) ?? 0,
+                                                                   count: route.segments.count, progress: draw.progress))
                         .stroke(segmentStyle(segment, in: route),
                                 style: StrokeStyle(lineWidth: 4, lineCap: .round, dash: segmentDash(segment, in: route)))
                 }
@@ -112,6 +131,15 @@ extension EnvironmentValues {
                 MapCircle(center: coordinate(point),
                           radius: model.clock.phase == .idle ? PlayArrivalPolicy.startRadiusMeters : PlayArrivalPolicy.stationHighlightMeters)
                     .foregroundStyle(Color.accentColor.opacity(0.15))
+            }
+            if NativeR2Flags.motion {
+                ForEach(teammates) { team in
+                    if team.points.count > 1 {
+                        MapPolyline(coordinates: NativeR2RoutePath.prefix(team.points.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) },
+                                                                          progress: draw.progress))
+                            .stroke(NativeR2RoutePath.teamColor(team.colorIndex), style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
+                    }
+                }
             }
             ForEach(teammates) { team in
                 if let last = team.points.last {
@@ -132,6 +160,7 @@ extension EnvironmentValues {
             MapPitchToggle()
         }
         .onAppear { fitCamera() }
+        .task(id: route?.segments.count ?? 0) { await draw.run(reduceMotion: reduceMotion) }
         .accessibilityIdentifier("nativeR2.city.map")
     }
 
@@ -179,6 +208,8 @@ extension EnvironmentValues {
                     Image(systemName: bannerSymbol)
                         .font(.title2)
                         .foregroundStyle(inHighlight ? Color.green : Color.accentColor)
+                        .nativeR2SymbolReplace()
+                        .nativeR2Bounce(inHighlight)
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 2) {
                         if inHighlight {
@@ -189,6 +220,7 @@ extension EnvironmentValues {
                             Text(verbatim: CityOrientationFormat.distance(currentDistance))
                                 .font(.title2.bold())
                                 .monospacedDigit()
+                                .nativeR2RollingNumber(currentDistance ?? 0)
                         }
                         Text("nativeR2.city.banner.to \(stop.order) \(stopTitle(stop))")
                             .font(.subheadline)
@@ -268,6 +300,10 @@ struct CityOrientationStopBadge: View {
     let walkedMeters: Double
     @ViewBuilder var trailing: () -> Trailing
 
+    private var doneCount: Int {
+        guard let snapshot = model.snapshot else { return 0 }
+        return snapshot.visibleNodes.filter { snapshot.isDone($0) }.count
+    }
     private var points: String {
         guard let snapshot = model.snapshot, !snapshot.visibleNodes.isEmpty else { return "—" }
         let done = snapshot.visibleNodes.filter { snapshot.isDone($0) }.count
@@ -290,10 +326,12 @@ struct CityOrientationStopBadge: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: walkedMeters > 0 ? CityOrientationFormat.distance(walkedMeters) : "—")
                     .font(.title2.bold().monospacedDigit())
+                    .nativeR2RollingNumber(walkedMeters)
                 Text("nativeR2.city.metric.distance").font(.caption).foregroundStyle(.secondary)
             }
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: points).font(.title2.bold().monospacedDigit())
+                    .nativeR2RollingNumber(Double(doneCount))
                 Text("nativeR2.city.metric.points").font(.caption).foregroundStyle(.secondary)
             }
             Spacer(minLength: 0)

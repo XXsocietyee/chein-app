@@ -14,7 +14,7 @@ import SwiftUI
         } label: { Text("preferenceRemoval.open", tableName: "TemplatePreferenceRemoval") }
             .disabled(capture == nil || original != nil)
             .accessibilityIdentifier("preferenceRemoval.open")
-            .sheet(item: Binding(get: { controller.currentPresentation }, set: { value in
+            .cySheet(item: Binding(get: { controller.currentPresentation }, set: { value in
                 if value == nil, let original { controller.close(original) }
             })) { original in
                 Group {

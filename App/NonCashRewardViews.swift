@@ -160,7 +160,7 @@ private struct NonCashRewardCard: View {
         .refreshable { await refreshReward(presentation: presentation) }
         // The owning List survives row recycling. A sheet on the content Group
         // is distributed across lazy rows and can disappear while scrolling.
-        .sheet(isPresented: $presenting) { Group {
+        .cySheet(isPresented: $presenting) { Group {
             if presentationAllowed {
                 NavigationStack {
                     VStack(alignment: .leading, spacing: 24) {
@@ -177,7 +177,7 @@ private struct NonCashRewardCard: View {
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
         }
-        .sheet(item: merchantBinding, onDismiss: merchantDismissed) { selection in
+        .cySheet(item: merchantBinding, onDismiss: merchantDismissed) { selection in
             if let merchantHome {
                 let fenced = NonCashRewardMerchantReader(base: merchantHome.reader, selection: selection,
                     current: { merchantNavigation.selection?.id == selection.id &&

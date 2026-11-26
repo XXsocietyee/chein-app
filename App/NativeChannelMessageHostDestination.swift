@@ -49,7 +49,7 @@ import SwiftUI
             }
         }
         .nativeChannelScreen()
-        .sheet(isPresented:$mentionsPresented) {
+        .cySheet(isPresented:$mentionsPresented) {
             if let flow,flow.canOpenMentionTargets,let targets=flow.mentionTargets {
                 NavigationStack { NativeChannelMentionEntry(source:targets,original:flow.originalDraftReference,canApply:{ flow.canPrepareMentions },apply:flow.prepareOriginalMentions) }
             } else { ContentUnavailableView { Label("d7.channelChat.mentionsUnavailable", systemImage: "at") } }
@@ -65,7 +65,7 @@ import SwiftUI
         .onDisappear {
             if !routeIsPresented.wrappedValue || scenePhase != .active || flow?.isCurrent == false { close() }
         }
-        .sheet(item:$contextSelection) { target in
+        .cySheet(item:$contextSelection) { target in
             if let flow,flow.isCurrent {
                 NativeChannelMessageContextEntry(model:.init(client:flow.coordinator.client,selected:target.id),expanded:{ model in
                     session.nativeChannelMessageExpandedNavigation(for:flow,contextMessageIsCurrent:{ [weak model] message in
@@ -74,7 +74,7 @@ import SwiftUI
                 })
             }
         }
-        .sheet(item: $selected) { message in
+        .cySheet(item: $selected) { message in
             if let flow, flow.isCurrent {
                 NavigationStack {
                     MessagingMessageDetailView(message: message, conversation: flow.history.conversation,

@@ -131,7 +131,7 @@ public struct SearchMapExplorerGapView: View {
             .padding(.horizontal)
             .padding(.bottom, 8)
         }
-        .sheet(item: $selectedPlace) { place in
+        .cySheet(item: $selectedPlace) { place in
             NavigationStack {
                 List {
                     Section {
@@ -155,7 +155,7 @@ public struct SearchMapExplorerGapView: View {
             .presentationDetents([.medium, .large])
             .presentationBackgroundInteraction(.enabled(upThrough: .medium))
         }
-        .sheet(isPresented: $showAllResultsSheet) {
+        .cySheet(isPresented: $showAllResultsSheet) {
             NavigationStack {
                 Group {
                     if places.isEmpty {

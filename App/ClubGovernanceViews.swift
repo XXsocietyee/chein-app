@@ -80,7 +80,7 @@ struct ClubGovernanceEntryButton: View {
             Label(titleKey, systemImage: "person.3.sequence.fill")
         }
             .accessibilityIdentifier("club.gov.open")
-            .sheet(isPresented: $presented) {
+            .cySheet(isPresented: $presented) {
                 NavigationStack { ClubGovernanceWorkspaceView(clubID: clubID, identity: identity, access: access, coordinator: coordinator) }
                     .environment(\.clubEnrollmentProfile, enrollmentProfile)
                     .environment(\.clubOwnerRefundCoordinator, ownerRefund)
@@ -790,7 +790,7 @@ struct ClubGovernanceReadView: View {
         .navigationDestination(isPresented: $opensDirectorBroadcast) {
             if let activityID = scope.activityID, let directorHost { directorHost.destination(activityID) }
         }
-        .sheet(isPresented: $sessionPickerVisible) { topicSessionPicker }
+        .cySheet(isPresented: $sessionPickerVisible) { topicSessionPicker }
         .navigationDestination(item: $pickedSession) { target in
             ClubOpsEventView(scope: target, identity: identity, access: access, coordinator: coordinator)
         }
@@ -800,7 +800,7 @@ struct ClubGovernanceReadView: View {
         // CLB-r7-D-02 (fix-r3-club-b): MP customers onShow re-reads the list, so a tag/remark saved on the
         // customer page shows when the owner comes back.
         .onAppear { rereadCustomersOnReturn() }
-        .sheet(item: $editor, onDismiss: { rereadCustomerAfterEditor() }) { route in
+        .cySheet(item: $editor, onDismiss: { rereadCustomerAfterEditor() }) { route in
             NavigationStack { ClubGovernanceCommandForm(route: route, identity: identity, access: access, coordinator: coordinator)
                 // CLB-group-code-04 (MP group-code wxml:38-39): the topic-detail 出示团码 carries its session label.
                 .environment(\.clubRoleActivityLabel, groupCodeSessionLabel(route)) }
@@ -1686,7 +1686,7 @@ struct ClubGovernanceReadView: View {
                     .init(id: "more", titleKey: "club.topic.quick.more", systemImage: "ellipsis") { topicQuickSheet = .more },
                 ])
             }
-            .sheet(item: $topicQuickSheet, onDismiss: {
+            .cySheet(item: $topicQuickSheet, onDismiss: {
                 if directorEndAfterSheet { directorEndAfterSheet = false; directorEndConfirm = true }
                 if let route = topicMoreAfterSheet { topicMoreAfterSheet = nil; topicMoreRoute = route }
             }) { sheet in
@@ -2446,7 +2446,7 @@ struct ClubGovernanceEventView: View {
                 selectedAnswer = nil
             }
         }
-        .sheet(item: $answerSheetTarget) { target in
+        .cySheet(item: $answerSheetTarget) { target in
             PlayCloseSheetHost(
                 title: [appLocalized("club.story.answerTitle", locale: locale), answerSheetName].compactMap { $0 }.joined(separator: " · "),
                 detents: [.half, .full],
@@ -2461,7 +2461,7 @@ struct ClubGovernanceEventView: View {
                 }
             }
         }
-        .sheet(item: $hostAnswerTarget) { target in
+        .cySheet(item: $hostAnswerTarget) { target in
             PlayCloseSheetHost(
                 title: [appLocalized("club.story.answerTitle", locale: locale), target.name].compactMap { $0 }.joined(separator: " · "),
                 detents: [.half, .full],

@@ -133,7 +133,7 @@ struct ProjectCityStoryNodeRemovalHostIdentity:Hashable { let owner:ObjectIdenti
     @ObservedObject var controller:ProjectCityStoryNodeRemovalController
     func body(content:Content)->some View {
         let original=controller.confirmation
-        content.sheet(item:controller.binding(original)){value in
+        content.cySheet(item:controller.binding(original)){value in
             Group {
                 NavigationStack{Form{
                     Text("projectCityNodeRemoval.warning",tableName:"ProjectCityStoryNodeRemoval")

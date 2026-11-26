@@ -204,7 +204,7 @@ private struct CYCelebrationHost: ViewModifier {
     func body(content: Content) -> some View {
         content
             .modifier(CYStampOverlayHost(center: center, shareEnabled: shareEnabled))
-            .fullScreenCover(item: binding(badge?.0)) { event in
+            .cyFullScreenCover(item: binding(badge?.0)) { event in
                 if case .badge(let payload) = event.payload {
                     CYBadgeUnlockCover(
                         payload: payload,
@@ -214,7 +214,7 @@ private struct CYCelebrationHost: ViewModifier {
                     )
                 }
             }
-            .sheet(item: binding(roam?.0)) { event in
+            .cySheet(item: binding(roam?.0)) { event in
                 if case .roamSummary(let payload) = event.payload {
                     CYRoamSummaryView(
                         payload: payload,
@@ -291,7 +291,7 @@ struct CYStampSlamView: View {
                 }
             }
         }
-        .sheet(isPresented: $sharing) {
+        .cySheet(isPresented: $sharing) {
             CYCelebrationShareSheet(content: CYCelebrationShare.stamp(payload, locale: locale))
         }
         .task { await play() }
@@ -513,7 +513,7 @@ struct CYBadgeUnlockCover: View {
             }
         )
         .accessibilityAction(.escape, onKeep)
-        .sheet(isPresented: $sharing) {
+        .cySheet(isPresented: $sharing) {
             CYCelebrationShareSheet(content: CYCelebrationShare.badge(payload, locale: locale))
         }
         .accessibilityIdentifier("cy.celebration.badge")
@@ -644,7 +644,7 @@ struct CYRoamSummaryView: View {
         .padding(.bottom, CYSpacing.lg)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(palette.bgPage.ignoresSafeArea())
-        .sheet(isPresented: $sharing) {
+        .cySheet(isPresented: $sharing) {
             CYCelebrationShareSheet(
                 content: CYCelebrationShare.walk(payload, locale: locale),
                 routeContent: payload.route.isEmpty ? nil : CYCelebrationShare.walk(payload, locale: locale, includeRoute: true))

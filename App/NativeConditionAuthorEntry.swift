@@ -101,7 +101,7 @@ extension EnvironmentValues {
         }
         // Same presentation shape as the original ProjectEditStarterPresentation. This
         // does not intercept or weaken ProjectEditView.onDisappear/model.leave().
-        .sheet(item: Binding<NativeAuthorProjectVisit?>(get: {
+        .cySheet(item: Binding<NativeAuthorProjectVisit?>(get: {
             guard scenePhase == .active, let visit, visit.isCurrent else { return nil }; return visit
         }, set: { next in if next == nil, let original { close(original) } })) { original in Group {
             NavigationStack {

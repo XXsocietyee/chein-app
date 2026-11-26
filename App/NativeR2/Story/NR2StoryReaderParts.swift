@@ -228,7 +228,15 @@ import SwiftUI
         }
         .onChange(of: scope) { _, _ in review = false; model?.dispose(); model = makeAudio?(); model?.select(source) }
         .onChange(of: scenePhase) { _, next in if next != .active { review = false; model?.suspend() } }
-        .onDisappear { review = false; model?.dispose(); model = nil }
+        .onDisappear {
+            review = false; model?.dispose(); model = nil
+            IslandMediaBridge.stateChanged(.disposed, title: title, toggle: {})
+        }
+        // Native r2 M4: playing / paused → media island (play / pause there runs the same toggle) and the
+        // story-audio Live Activity; ended / failed / disposed removes both.
+        .onChange(of: state) { _, next in
+            IslandMediaBridge.stateChanged(next, title: title) { startOrReview() }
+        }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("play.nr2.reader.miniPlayer")
     }

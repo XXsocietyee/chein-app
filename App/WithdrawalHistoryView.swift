@@ -72,7 +72,7 @@ import SwiftUI
         .task(id: reader.scope) { await model.load() }
         .refreshable { await model.load() }
         .onDisappear { model.cancel() }
-        .sheet(item: $selected) { item in WithdrawalHistoryDetailSheet(row: item.row) }
+        .cySheet(item: $selected) { item in WithdrawalHistoryDetailSheet(row: item.row) }
         .accessibilityIdentifier("withdrawal.history")
     }
     @ViewBuilder private func state(title: LocalizedStringKey, detail: LocalizedStringKey, image: String, id: String) -> some View {

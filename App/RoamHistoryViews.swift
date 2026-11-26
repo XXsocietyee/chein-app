@@ -373,8 +373,8 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
             .cyHideTabBar()
             .task(id: readKey) { showShare = false; selectedMedal = nil; load() }
             .onChange(of: readKey) { _, _ in showShare = false; selectedMedal = nil }
-            .sheet(isPresented: $showShare) { Group { if let record = currentRecord { NavigationStack { RoamHistoryShareView(record: record, reader: reader) } } }.cySheet(detents: [.large]) }
-            .sheet(item: $selectedMedal) { medal in
+            .cySheet(isPresented: $showShare) { Group { if let record = currentRecord { NavigationStack { RoamHistoryShareView(record: record, reader: reader) } } }.cySheet(detents: [.large]) }
+            .cySheet(item: $selectedMedal) { medal in
                 Group {
                     if currentRecord == medal.record {
                         NavigationStack { RoamMedalShareView(selection: medal, reader: reader) }

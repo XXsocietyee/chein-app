@@ -104,7 +104,7 @@ struct UsageConsentGateView: View {
             .themeDomain(.player)
             .navigationTitle(Text("authEntry.gate.title", tableName: "AuthEntry"))
             .navigationBarTitleDisplayMode(.inline)
-            .sheet(item: $document) { sheet in
+            .cySheet(item: $document) { sheet in
                 NavigationStack {
                     SettingsLegalDocumentView(type: sheet.type, market: market, reader: legalReader)
                         .toolbar {
@@ -164,7 +164,7 @@ private struct UsageConsentLaunchGate: ViewModifier {
             }
             .onAppear { presented = UsageConsentGateDecision.showAtLaunch(granted: policy.granted, signedIn: signedIn, declinedThisLaunch: declinedThisLaunch); presentation?.consentActive = presented }
             .onChange(of: presented) { _, value in presentation?.consentActive = value }
-            .sheet(isPresented: $presented) { Group {
+            .cySheet(isPresented: $presented) { Group {
                 UsageConsentGateView(market: market, onAgree: {
                     try? policy.agree(agreementChecked: true); presented = false
                 }, onDecline: {
@@ -200,7 +200,7 @@ struct UsageConsentSignInRequirement: View {
                 .accessibilityValue(Text("authEntry.gate.requiredForSignIn", tableName: "AuthEntry"))
                 .accessibilityHint(Text("authEntry.gate.lead", tableName: "AuthEntry"))
         }
-        .sheet(isPresented: $presented) { Group {
+        .cySheet(isPresented: $presented) { Group {
             UsageConsentGateView(market: market, onAgree: {
                 try? policy.agree(agreementChecked: true); granted = policy.granted; presented = false
             }, onDecline: { policy.decline(); granted = false; presented = false })

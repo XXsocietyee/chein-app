@@ -188,7 +188,7 @@ struct DiscoveryTemplateDetailView: View {
         .appNavigationTitle("discovery.playDetails")
         .navigationBarTitleDisplayMode(.inline)
         .cyToast(verbatimMessage: $toastMessage)
-        .sheet(isPresented: $showsAdoptLogin, onDismiss: {
+        .cySheet(isPresented: $showsAdoptLogin, onDismiss: {
             // Resume once signed in. Signing in changes the read scope, so wait for the re-read of this template if needed.
             guard (reader as? AppSession)?.isSignedIn == true else { pendingAdoption = nil; return }
             resumePendingAdoption()
@@ -214,7 +214,7 @@ struct DiscoveryTemplateDetailView: View {
         .onReceive(reader.discoveryPresentationChanges) { readerChange &+= 1 }
         .onChange(of: requestKey) { _, _ in adoption = nil; tab = .details }
         .onChange(of: loadedKey) { _, _ in if !showsAdoptLogin { resumePendingAdoption() } }
-        .sheet(item: $capabilityPreview) { state in
+        .cySheet(item: $capabilityPreview) { state in
             TemplateNodePreviewSheet(state: state) { capabilityPreview = nil }
                 .cyDomainSheet(detents: [.half, .full])
                 .themeDomain(.player)
@@ -452,7 +452,7 @@ struct DiscoveryTopicTemplatePreview: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
-        .fullScreenCover(item: $nodeGallery) { selected in
+        .cyFullScreenCover(item: $nodeGallery) { selected in
             NativeMediaGallery(snapshot: selected.snapshot, titleKey: "u10.template.nodes", reader: RetainedPublicImageReader())
         }
         .navigationDestination(item: $copiedDraft) { draft in

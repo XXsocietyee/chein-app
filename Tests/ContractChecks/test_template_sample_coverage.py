@@ -95,10 +95,10 @@ class TemplateSampleCoverageContracts(unittest.TestCase):
                       'controller.sceneChanged(isActive: phase == .active)']:
             self.assertIn(token, self.app)
         self.assertNotIn('self.model = model; reload()', self.app)
-        self.assertEqual(self.app.count('.sheet(item: controller.presentationBinding)'), 1)
+        self.assertEqual(self.app.count('.cySheet(item: controller.presentationBinding)'), 1)
         self.assertIn('controller.close(expected: presentationID)', self.app)
         # native r2: CY surface/hero modifiers became a system navigationTitle; sheet still hangs off the Form
-        self.assertLess(self.app.index('}.formStyle(.grouped).navigationTitle(Text("templateSampleCoverage.open"))'), self.app.index('.sheet(item: controller.presentationBinding)'))
+        self.assertLess(self.app.index('}.formStyle(.grouped).navigationTitle(Text("templateSampleCoverage.open"))'), self.app.index('.cySheet(item: controller.presentationBinding)'))
 
     def test_presentation_binding_getter_is_same_captured_visible_identity(self):
         binding = self.app.split('var presentationBinding:')[1].split('\n}')[0]

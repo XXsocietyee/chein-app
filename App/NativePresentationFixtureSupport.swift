@@ -97,7 +97,7 @@ import UIKit
                     }
                 }
                 .navigationTitle("media.destination.squareImages").navigationBarTitleDisplayMode(.inline)
-                .fullScreenCover(isPresented: $gallery) {
+                .cyFullScreenCover(isPresented: $gallery) {
                     NativeMediaGallery(snapshot: .init(sources: [sources[0]], selectedIndex: 0), titleKey: "media.destination.squareImages", reader: images)
                 }
             }

@@ -281,7 +281,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                 .contentShape(Rectangle())
                             }
                                 .buttonStyle(.plain)
-                                .sheet(isPresented: $showsMembers) {
+                                .cySheet(isPresented: $showsMembers) {
                                     NavigationStack {
                                         ClubMembersView(id: club.id, reader: reader, profile: management?.governance?.enrollmentProfile, governance: management?.governance, onSignIn: onSignIn)
                                             .toolbar {
@@ -444,7 +444,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     }
                 }
             }
-            .sheet(isPresented: $showsSettings) {
+            .cySheet(isPresented: $showsSettings) {
                 // CLB-G19: 改为转让主理人 beside 解散 in 危险操作 (owner only, as in the MP).
                 ClubGapSettingsSheet(clubName: club.name, canGovern: club.isOwner,
                                      onEditClub: { r8Route = .workspace },

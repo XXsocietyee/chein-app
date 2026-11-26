@@ -66,7 +66,7 @@ import SwiftUI
                 }, retainWhileCovered: historyRouteIsActive,
                 composerAccessory: composerTools)
         }, locateOriginalMessage: locateOriginal, moreActions: moreActions)
-        .sheet(item: $previewSelection, onDismiss: clearAttachment) { selection in Group {
+        .cySheet(item: $previewSelection, onDismiss: clearAttachment) { selection in Group {
             NavigationStack {
                 NativeChannelAttachmentPreviewEntry(flow: selection.flow,
                     current: { attachmentIsCurrent(selection) })
@@ -89,7 +89,7 @@ import SwiftUI
         }
         .onChange(of: history.client.identity) { _, _ in clearAttachment() }
         .onDisappear { clearAttachment() }
-        .sheet(isPresented: $voicePresented) { Group {
+        .cySheet(isPresented: $voicePresented) { Group {
             if let voice = expanded?.voiceCoordinator?(history.conversation.id), voice.isCurrent {
                 NavigationStack { IMVoiceComposeView(owner: voice, current: {
                     history.isCurrent && history.loaded && !history.isLoading && history.client.identity == voice.scope.identity
@@ -99,7 +99,7 @@ import SwiftUI
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
         }
-        .sheet(isPresented: $filePresented) { Group {
+        .cySheet(isPresented: $filePresented) { Group {
             if let file = expanded?.fileCoordinator?(history.conversation.id), file.isCurrent {
                 NavigationStack { IMFileComposeView(owner: file, current: {
                     history.isCurrent && history.loaded && !history.isLoading && history.client.identity == file.scope.identity
@@ -109,7 +109,7 @@ import SwiftUI
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
         }
-        .sheet(isPresented: $videoPresented) { Group {
+        .cySheet(isPresented: $videoPresented) { Group {
             if let video = expanded?.videoCoordinator?(history.conversation.id), video.isCurrent {
                 NavigationStack { IMVideoComposeView(owner: video, current: {
                     history.isCurrent && history.loaded && !history.isLoading && history.client.identity == video.scope.identity
@@ -119,27 +119,27 @@ import SwiftUI
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
         }
-        .sheet(isPresented:$routePresented) {
+        .cySheet(isPresented:$routePresented) {
             if let expanded,let owner=expanded.coordinator(history.conversation.id),owner.isCurrent {
                 NavigationStack { IMRouteShareComposeView(owner:owner,reader:expanded.topicReader,current:{
                     history.isCurrent && history.loaded && !history.isLoading && history.client.identity == owner.scope.identity
                 }) }
             } else { sessionUnavailable }
         }
-        .sheet(isPresented:$locationPresented) {
+        .cySheet(isPresented:$locationPresented) {
             if let owner=expanded?.coordinator(history.conversation.id),owner.isCurrent {
                 NavigationStack { IMStaticLocationComposeView(owner:owner,current:{
                     history.isCurrent && history.loaded && !history.isLoading && history.client.identity == owner.scope.identity
                 }) }
             } else { sessionUnavailable }
         }
-        .sheet(isPresented: $checkinPresented) {
+        .cySheet(isPresented: $checkinPresented) {
             NavigationStack {
                 NativeChannelCheckinLaunchView(makeFlow: { expanded?.checkinCoordinator?(history.conversation.id) },
                     current: { history.isCurrent && history.loaded && !history.isLoading && coordinator.isCurrent })
             }
         }
-        .sheet(isPresented: $chainPresented, onDismiss: {
+        .cySheet(isPresented: $chainPresented, onDismiss: {
             Task { if history.isCurrent, coordinator.isCurrent { await coordinator.refreshHistory() } }
         }) {
             NavigationStack {
@@ -147,7 +147,7 @@ import SwiftUI
                     current: { history.isCurrent && history.loaded && !history.isLoading && coordinator.isCurrent })
             }
         }
-        .sheet(isPresented:$pollPresented) { Group {
+        .cySheet(isPresented:$pollPresented) { Group {
             if history.isCurrent,history.loaded,
                let owner=expanded?.pollCoordinator?(history.conversation.id,nil),owner.isCurrent,
                owner.scope.identity == history.client.identity {
@@ -161,7 +161,7 @@ import SwiftUI
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
         }
-        .sheet(isPresented: $imagePresented) {
+        .cySheet(isPresented: $imagePresented) {
             if let owner = expanded?.coordinator(history.conversation.id),
                let upload = expanded?.uploadCoordinator(history.conversation.id), owner.scope == upload.scope {
                 NavigationStack {
@@ -171,10 +171,10 @@ import SwiftUI
                 }
             } else { Text("im.reply.unavailable") }
         }
-        .sheet(isPresented: $reportPresented) {
+        .cySheet(isPresented: $reportPresented) {
             if let reportFlow, reportFlow.isCurrent { NativeChannelReportSheet(owner: reportFlow) }
         }
-        .sheet(item: $safety) { presentation in
+        .cySheet(item: $safety) { presentation in
             if history.isCurrent, coordinator.isCurrent, presentation.owner.isCurrent {
                 IMSafetyReviewView(owner: presentation.owner) { _ in
                     Task { await coordinator.refreshHistory() }

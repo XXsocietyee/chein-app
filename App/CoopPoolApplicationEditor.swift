@@ -152,7 +152,7 @@ import SwiftUI
         })
     }
     var body: some View {
-        Color.clear.sheet(isPresented: presentationBinding) {
+        Color.clear.cySheet(isPresented: presentationBinding) {
             NavigationStack {
                 CoopPoolApplicationEditor(model: model, session: session, reader: reader, currentContext: currentContext)
             }

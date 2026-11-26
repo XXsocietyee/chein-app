@@ -71,7 +71,7 @@ import SwiftUI
             guard let permit = model.activate(scope) else { return }
             await model.load(clubReader: clubReader, reader: reader, permit: permit)
         }
-        .sheet(item: presentation.selectionBinding) { choice in
+        .cySheet(item: presentation.selectionBinding) { choice in
             if let profile {
                 ClubMerchantProfileDestination(selection: choice, profile: profile, presentation: presentation,
                     close: { presentation.close(id: choice.id) })

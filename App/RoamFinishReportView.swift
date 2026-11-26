@@ -74,7 +74,7 @@ struct RoamFinishReport: Equatable {
         }
         .background(Color.black.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
-        .sheet(isPresented: $showShare) {
+        .cySheet(isPresented: $showShare) {
             Group { if let record = report.record { NavigationStack { RoamHistoryShareView(record: record, reader: history) } } }
                 .cySheet(detents: [.large])
         }

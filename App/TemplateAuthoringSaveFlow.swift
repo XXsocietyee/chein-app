@@ -89,7 +89,7 @@ import SwiftUI
             }
         }
         .onPreferenceChange(TemplateAuthoringSavedResultPreferenceKey.self) { controller.accept($0) }
-        .sheet(item: controller.presentationBinding()) { value in
+        .cySheet(item: controller.presentationBinding()) { value in
             Group {
                 TemplateAuthoringSavedResultPanel(result: value.signal.result, close: controller.closeAction(value))
             }

@@ -91,8 +91,12 @@ import SwiftUI
         }
         guard let active = model else { onReadModelChanged?(nil); await permission.refresh(); return }
         onReadModelChanged?(active)
-        active.onUnreadSummary = { [weak active] _ in
+        active.onUnreadSummary = { [weak active] summary in
             guard let active, current, model === active, active.isCurrent else { return }
+            // Native r2 M4: channel unread rising on this existing scene-active read → message island.
+            IslandUnreadBridge.observe(source: "channel", total: Int(summary.byTab.channel), title: { .localized("island.message.channel \($0)") }) {
+                MPNotificationTapRouter.shared.open(pagePath: IslandRoutes.messageCenter)
+            }
             // Read-only original inbox reload, never ACK or a claim of device delivery.
             onRecovered()
         }

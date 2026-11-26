@@ -83,7 +83,7 @@ class SubmissionImportContracts(unittest.TestCase):
         self.assertIn('self.session?.id == presentedID',binding)
         self.assertIn('guard value == nil, let presentedID else { return }',binding)
         self.assertIn('self?.cancel(id: presentedID)',binding)
-        self.assertIn('.sheet(item: model.presentationBinding())',self.view)
+        self.assertIn('.cySheet(item: model.presentationBinding())',self.view)
         self.assertNotIn('let id = model.session?.id { model.cancel',self.view)
         tests=(ROOT/'Tests/AppUnitTests/MerchantStationSubmissionImportTests.swift').read_text()
         self.assertIn('testOldPresentationBindingCannotDismissOrExposeReopenedSession',tests)

@@ -338,7 +338,7 @@ import SwiftUI
         })
     }
     var body: some View {
-        Color.clear.sheet(isPresented: presentationBinding, onDismiss: { dismissed(item.id) }) { Group {
+        Color.clear.cySheet(isPresented: presentationBinding, onDismiss: { dismissed(item.id) }) { Group {
             NavigationStack { ClubActivityReportView(flow: item.flow, coordinator: coordinator) }
         }.cySheet(detents: [.large])
         }

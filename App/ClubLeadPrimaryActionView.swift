@@ -138,7 +138,7 @@ extension ClubLeadPrimaryAction {
             if phase == .active { controller.activate(context); onReturn() } else { controller.invalidate() }
         }
         .onDisappear { controller.invalidate() }
-        .sheet(item: Binding(get: { controller.route }, set: { if $0 == nil { controller.dismiss() } }), onDismiss: {
+        .cySheet(item: Binding(get: { controller.route }, set: { if $0 == nil { controller.dismiss() } }), onDismiss: {
             controller.dismiss()
             if current { onReturn() }
         }) { route in Group {

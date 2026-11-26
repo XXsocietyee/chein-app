@@ -82,7 +82,7 @@ struct ProjectStoryVariableHostIdentity: Hashable {
                 Text("projectStoryVariable.empty", tableName: "ProjectStoryVariableInsertion").font(.caption)
             }
         }
-        .sheet(isPresented: controller.binding(original)) {
+        .cySheet(isPresented: controller.binding(original)) {
             Group {
                 if let original { sheet(original) }
             }

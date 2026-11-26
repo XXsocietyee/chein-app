@@ -49,7 +49,7 @@ extension SessionExpiryNoticeContext {
                     Text("authEntry.expiry.browse", tableName: "AuthEntry")
                 }.accessibilityIdentifier("authEntry.expiry.browse")
             } message: { _ in Text("authEntry.expiry.message", tableName: "AuthEntry") }
-            .sheet(isPresented: Binding(get: { presentation.signIn == value }, set: { visible in
+            .cySheet(isPresented: Binding(get: { presentation.signIn == value }, set: { visible in
                 if !visible { presentation.dismissSignIn(value) }
             })) { LoginView(intent: .player).environmentObject(session) }
     }

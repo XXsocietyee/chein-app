@@ -66,7 +66,7 @@ struct ProjectAlbumPhotoRemovalIdentity: Hashable {
         } label: { Text("projectEdit.rich.removeImage") }
             .buttonStyle(.borderless).disabled(captured == nil || original != nil)
             .accessibilityIdentifier("projectAlbumRemoval.open." + String(controller.index))
-            .sheet(item: controller.binding(original)) { original in Group { confirmation(original) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+            .cySheet(item: controller.binding(original)) { original in Group { confirmation(original) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
             .onAppear { controller.setActive(scenePhase == .active) }
             .onChange(of: scenePhase) { _, phase in controller.setActive(phase == .active) }
             .onDisappear { controller.setActive(false) }

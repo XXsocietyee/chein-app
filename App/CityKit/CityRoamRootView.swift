@@ -131,7 +131,7 @@ struct CityRoamRootView: View {
                 case .ledger: CityRentLedgerView(store: store).cyPushedChrome()
                 }
             }
-            .sheet(item: sheetRoute) { route in
+            .cySheet(item: sheetRoute) { route in
                 CitySheetHost(route: route, store: store, captureFix: dependencies.captureFix, photoUploader: dependencies.photoUploader,
                               fixtureClaim: dependencies.fixtureClaim,
                               onRoute: { self.route = $0 },
@@ -139,10 +139,10 @@ struct CityRoamRootView: View {
                               onMine: { self.route = nil; path.append(CityRoamPush.mine) },
                               onDismiss: { self.route = nil })
             }
-            .fullScreenCover(item: $moment) { next in
+            .cyFullScreenCover(item: $moment) { next in
                 CityMomentHost(route: next, store: store, onDone: { moment = nil }, onMine: { moment = nil; path.append(CityRoamPush.mine) })
             }
-            .sheet(isPresented: $showsPassport) {
+            .cySheet(isPresented: $showsPassport) {
                 dependencies.passportDestination?()
                     .presentationDragIndicator(.visible)
             }

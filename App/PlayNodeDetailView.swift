@@ -54,7 +54,7 @@ struct PlayNodeDetailView: View {
         .onChange(of: nodeID) { _, _ in reviewOwner.reset(); answer = "" }
         .onChange(of: model.visibleSnapshot) { _, _ in answer = ""; answerReviewIssue = nil; reviewOwner.discardInvalidUnclaimedReview() }
         .onChange(of: reviewOwner.readGeneration) { _, _ in reviewOwner.discardInvalidUnclaimedReview() }
-        .sheet(isPresented: Binding(get: { launchingExtGame != nil }, set: { if !$0 { launchingExtGame = nil } })) {
+        .cySheet(isPresented: Binding(get: { launchingExtGame != nil }, set: { if !$0 { launchingExtGame = nil } })) {
             if let game = launchingExtGame {
                 ExternalGameRunnerSheet(
                     store: extGameStore,

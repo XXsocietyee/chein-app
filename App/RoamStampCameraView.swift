@@ -172,7 +172,7 @@ import UIKit
                     RoamCreatedStampView(target: target, album: album)
                 } else { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.createdStamp.changed") }
             }
-            .sheet(isPresented: $showingPriming, onDismiss: {
+            .cySheet(isPresented: $showingPriming, onDismiss: {
                 if primingAllowed { primingAllowed = false; requestCamera(primed: true) }
             }) { Group {
                 CYPermissionPrimerScreen(kind: .camera, onPrimary: {
@@ -181,7 +181,7 @@ import UIKit
                     showingPriming = false
                 }, onSecondary: { showingPriming = false })
             }.cySheet(detents: [.large]) }
-            .fullScreenCover(isPresented: $showingCamera, onDismiss: {
+            .cyFullScreenCover(isPresented: $showingCamera, onDismiss: {
                 guard scenePhase == .active, cameraEnabled else { return }
                 focusedControl = coordinator?.selection == nil ? .capture : .status
             }) {

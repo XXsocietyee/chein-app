@@ -95,7 +95,7 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                     .environment(\.topicFavoriteHostFactory, { session.makeTopicFavoriteHost() })
             }
         }
-        .sheet(isPresented: $showsGuestLogin) {
+        .cySheet(isPresented: $showsGuestLogin) {
             Group { LoginView(intent: .player).environmentObject(session) }.presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .onChange(of: session.account == nil) { _, signedOut in if !signedOut { showsGuestLogin = false } }

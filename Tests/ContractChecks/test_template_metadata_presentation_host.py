@@ -10,7 +10,7 @@ class MetadataPresentationHostChecks(unittest.TestCase):
         source = (ROOT / 'App/TemplateAuthoringMetadataSelectors.swift').read_text()
         host = source.split('@MainActor struct TemplateAuthoringMetadataFields: View {')[1].split('@MainActor private struct TemplateAuthoringMetadataSelector')[0]
         self.assertIn('VStack(spacing: 12) {\n            ForEach(TemplateMetadataField.allCases)', host)
-        self.assertEqual(host.count('.sheet(item: $presented)'), 1)
+        self.assertEqual(host.count('.cySheet(item: $presented)'), 1)
         self.assertIn('.buttonStyle(.borderless)', host)
         self.assertIn('.frame(maxWidth: .infinity, minHeight: 44).contentShape(Rectangle())', host)
         self.assertIn('Button { presented = field }', host)

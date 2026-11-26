@@ -42,7 +42,7 @@ import UIKit
                 await model.selectBrandImage(selected); photo = nil
             }
         }
-        .sheet(isPresented: $uploadConfirmationPresented) {
+        .cySheet(isPresented: $uploadConfirmationPresented) {
             CYConfirmSheet(
                 title: appLocalized("merchant.onboardingBrand.uploadTitle", locale: locale),
                 message: appLocalized("merchant.onboardingBrand.uploadMessage", locale: locale),

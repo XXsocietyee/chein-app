@@ -139,7 +139,7 @@ struct MerchantNPCPresetArtwork: View {
         content.background {
             if let original = presentation.picker {
                 Color.clear.frame(width: 0, height: 0)
-                    .sheet(item: presentation.binding(original), onDismiss: { presentation.close(original.id) }) { picker in
+                    .cySheet(item: presentation.binding(original), onDismiss: { presentation.close(original.id) }) { picker in
                         Group {
                             MerchantNPCPresetPicker(model: picker) { presentation.close(original.id) }
                         }

@@ -17,7 +17,7 @@ import QuestifyCore
                     destination(route)
                 }
         }
-        .fullScreenCover(isPresented: $model.showsLive) {
+        .cyFullScreenCover(isPresented: $model.showsLive) {
             NavigationStack {
                 if let live = dependencies.liveDestination {
                     live()
@@ -30,7 +30,7 @@ import QuestifyCore
                 }
             }
         }
-        .fullScreenCover(isPresented: $model.showsCityBoard) {
+        .cyFullScreenCover(isPresented: $model.showsCityBoard) {
             if let board = dependencies.cityBoardDestination {
                 board()
                     .overlay(alignment: .topTrailing) {
@@ -44,20 +44,20 @@ import QuestifyCore
                     }
             }
         }
-        .sheet(isPresented: $model.showsPassport) {
+        .cySheet(isPresented: $model.showsPassport) {
             dependencies.passportDestination?()
                 .presentationDragIndicator(.visible)
         }
         // The team pages are push destinations elsewhere, so each sheet gives them a stack.
-        .sheet(isPresented: $model.showsMyTeams) {
+        .cySheet(isPresented: $model.showsMyTeams) {
             NavigationStack { dependencies.myTeamsDestination?() }
                 .presentationDragIndicator(.visible)
         }
-        .sheet(isPresented: $model.showsNearbyTeams) {
+        .cySheet(isPresented: $model.showsNearbyTeams) {
             NavigationStack { dependencies.nearbyTeamsDestination?() }
                 .presentationDragIndicator(.visible)
         }
-        .sheet(item: $model.teamSheet) { team in
+        .cySheet(item: $model.teamSheet) { team in
             NavigationStack { dependencies.nearbyTeamDestination?(team.teamID) }
                 .presentationDragIndicator(.visible)
         }

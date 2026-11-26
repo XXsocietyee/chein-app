@@ -51,7 +51,7 @@ import SwiftUI
         }
         .cyPageTitle("social.guide.title") // PC-D-2-3
         .accessibilityIdentifier("social.guide")
-        .sheet(item: $openedDoc) { row in
+        .cySheet(item: $openedDoc) { row in
             NavigationStack {
                 Group {
                     if let informationDestination { informationDestination(row) }

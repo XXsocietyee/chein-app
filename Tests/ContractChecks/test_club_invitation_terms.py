@@ -65,7 +65,7 @@ class ClubInvitationTermsContracts(unittest.TestCase):
 
     def test_the_existing_detail_is_the_only_new_display_host(self):
         owner = span(self.source, "private struct ClubInvitationFeedbackDetailOwner", "private struct ClubInvitationFeedbackRowLabel")
-        self.assertIn(".sheet(isPresented: presentation.binding(for: item)", owner)
+        self.assertIn(".cySheet(isPresented: presentation.binding(for: item)", owner)
         self.assertIn("@StateObject private var model = ClubInvitationFeedbackReadModel()", owner)
         self.assertIn("snapshot.target(key: item.key, context: item.context, snapshotID: model.snapshotID)", owner)
         self.assertIn("model.terms(for: target, in: item.context,", owner)

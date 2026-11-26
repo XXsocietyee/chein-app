@@ -156,7 +156,7 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
         .refreshable { await refresh() }
         .modifier(AccountCollectionReadLifecycle(key: key, refresh: refresh, cancel: model.cancelPending))
         .modifier(TopicUnlikeFlow(controller: unlike) { unliked.insert($0) })
-        .sheet(isPresented: $showRecommendNote) {
+        .cySheet(isPresented: $showRecommendNote) {
             MemberFavoritesRecommendNoteSheet { showRecommendNote = false }
                 .themeDomain(.player)
                 .cySheet()

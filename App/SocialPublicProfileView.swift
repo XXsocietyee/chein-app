@@ -332,7 +332,7 @@ import SwiftUI
                 if let ticket = authorPostTicket, ticket.context != context { authorPostTicket = nil }
             }
             .accessibilityIdentifier("social.profile")
-            .fullScreenCover(item: $workImagePreview) { preview in SocialProfileImagePreviewPager(preview: preview) }
+            .cyFullScreenCover(item: $workImagePreview) { preview in SocialProfileImagePreviewPager(preview: preview) }
             .navigationDestination(item: $openedConversationID) { id in
                 if let conversationDestination { conversationDestination(id) }
             }

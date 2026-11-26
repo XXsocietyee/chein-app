@@ -17,7 +17,7 @@ import SwiftUI
             .frame(maxWidth: .infinity, minHeight: 44)
             .accessibilityLabel(Text("mpfresh.teamReport.title", tableName: "MpFresh"))
             .accessibilityIdentifier("nearby.team.report.\(teamID)")
-            .sheet(isPresented: $presented) { Group { TeamReportReasonSheet(teamID: teamID) }.cySheet() }
+            .cySheet(isPresented: $presented) { Group { TeamReportReasonSheet(teamID: teamID) }.cySheet() }
         }
     }
 }

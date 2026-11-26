@@ -321,7 +321,7 @@ struct RoamPOIActionRows: View {
             Button("action.cancel", role: .cancel) { model.disarmReverify() }
             Button("roam.poi.answer.submit") { submit(.init(answer: answerText, photoURL: challengePhoto)) }
         }
-        .sheet(isPresented: $choiceSheet) {
+        .cySheet(isPresented: $choiceSheet) {
             CYOptionSheet(title: node.questionName ?? appLocalized("roam.poi.answer.title", locale: locale),
                           items: node.quizOptions.map { CYOptionSheetItem(id: $0.id, title: $0.id + ". " + $0.text) },
                           selectedID: nil,
@@ -329,7 +329,7 @@ struct RoamPOIActionRows: View {
                           onClose: { choiceSheet = false; model.disarmReverify() })
                 .cyDomainSheet(detents: [.half])
         }
-        .sheet(isPresented: $photoSheet) { Group {
+        .cySheet(isPresented: $photoSheet) { Group {
             NavigationStack {
                 ScrollView {
                     ChallengePOIPhotoCapture(lead: node.photoRequireDesc, uploader: makePhotoUploader?(node.poiId), confirmed: false) { url in
@@ -342,7 +342,7 @@ struct RoamPOIActionRows: View {
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { photoSheet = false; model.disarmReverify() } } }
             }
         }.cySheet(detents: [.large]) }
-        .fullScreenCover(isPresented: $scanSheet) {
+        .cyFullScreenCover(isPresented: $scanSheet) {
             NativeQRScanner { code in scanSheet = false; submit(.init(photoURL: challengePhoto, code: code)) }
         }
         .cyHapticEvent(.checkInSuccess, trigger: model.checkInSuccess != nil) { old, new in !old && new }

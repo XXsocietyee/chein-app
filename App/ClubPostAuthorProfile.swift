@@ -40,7 +40,7 @@ import SwiftUI
                     .buttonStyle(.borderless)
             } else { authorLabel }
         }
-        .sheet(item: $selected) { target in
+        .cySheet(item: $selected) { target in
             if let profile {
                 ClubPostAuthorDestination(target: target, identity: identity, profile: profile, model: model)
                     .presentationDetents([.large]).presentationCompactAdaptation(.sheet)

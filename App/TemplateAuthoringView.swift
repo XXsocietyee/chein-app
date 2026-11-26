@@ -300,7 +300,7 @@ extension EnvironmentValues {
     /// verify-r2 N-01: the topic-editor domain wraps the whole page (ground, section bar, bottom bar), not only the Form.
     var body: some View {
         pageBody.cyDomainScreen(.topicEditor)
-            .sheet(isPresented: $showsSignIn) { LoginView(intent: .player) }
+            .cySheet(isPresented: $showsSignIn) { LoginView(intent: .player) }
     }
     @ViewBuilder private var pageBody: some View {
         let _ = cover.bind(read: {
@@ -464,12 +464,12 @@ extension EnvironmentValues {
         .preference(key: TemplateAuthoringSavedResultPreferenceKey.self, value: TemplateAuthoringSavedResultObservation.capture(model: model, eligible: onSavedDraft == nil))
         .preference(key: TemplateAuthoringPublishResultPreferenceKey.self, value: TemplateAuthoringPublishResultObservation.capture(model: model, eligible: onSavedDraft == nil))
         .modifier(TemplateMediaReviewPresentation(controller: media))
-        .sheet(isPresented: $preview) {
+        .cySheet(isPresented: $preview) {
             TemplateConfiguredRehearsalPreview(model: model) { TemplateAuthoringPreviewView(draft: model.draft) }
                 .cyDomainSheet(detents: [.half, .full])
                 .themeDomain(.topicEditor)
         }
-        .sheet(item: $model.review, onDismiss: { model.cancel() }) { value in
+        .cySheet(item: $model.review, onDismiss: { model.cancel() }) { value in
             NavigationStack { TemplateAuthoringReviewView(review: value, canSimulate: model.coordinator.canSimulate, canSubmit: model.coordinator.canSubmit, confirm: { Task { await model.confirm(value) } }, cancel: { model.cancel() }) }
                 .cyDomainSheet(detents: [.half, .full])
                 .themeDomain(.topicEditor)

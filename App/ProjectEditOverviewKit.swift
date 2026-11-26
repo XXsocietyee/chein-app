@@ -173,7 +173,7 @@ struct ProjectEditNodeMap<Destination: View>: View {
                 }
             }
             .sensoryFeedback(.selection, trigger: selection)
-            .sheet(isPresented: Binding(get: { fullBleed && pins.contains { $0.id == selection } },
+            .cySheet(isPresented: Binding(get: { fullBleed && pins.contains { $0.id == selection } },
                                         set: { if !$0 { selection = nil } })) {
                 if let pin = pins.first(where: { $0.id == selection }) {
                     nodeSheet(pin)

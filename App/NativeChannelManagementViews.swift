@@ -190,7 +190,7 @@ private func ncmLoading() -> some View {
                 parentRouteIsActive: { [weak owner] in visit.wrappedValue && owner?.isCurrent == true })
                 .id(selection.visitID)
         }
-        .sheet(isPresented: $creates) {
+        .cySheet(isPresented: $creates) {
             NavigationStack { NativeChannelManagementEditorView(model: model, channel: nil) }
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
@@ -445,7 +445,7 @@ private func ncmLoading() -> some View {
         .nativeChannelFlowPage()
         .navigationTitle(detailTitle)
         .task(id: channelID) { await model.loadDetail(channelID) }
-        .sheet(isPresented: progressVisit) {
+        .cySheet(isPresented: progressVisit) {
             Group {
                 if let progress = destinations.contextProgress {
                     progress(channelID, model.service, progressVisit).id(progressRoute.visitID)
@@ -454,7 +454,7 @@ private func ncmLoading() -> some View {
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
         }
-        .sheet(isPresented: webhookVisit) {
+        .cySheet(isPresented: webhookVisit) {
             NativeChannelManagementWebhookEntry(channels: model.service, channelID: channelID, makeCoordinator: destinations.webhook,
                 parentRouteIsActive: { webhookVisit.wrappedValue })
                 .id(webhookRoute.visitID)
@@ -574,7 +574,7 @@ private func ncmLoading() -> some View {
         .nativeChannelFlowPage()
         .navigationTitle(ncmText(channel == nil ? "create" : "settings"))
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button { dismiss() } label: { ncmText("close") } } }
-        .sheet(isPresented: $reviews) {
+        .cySheet(isPresented: $reviews) {
             NavigationStack { NativeChannelManagementReviewView(model: model) }
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)

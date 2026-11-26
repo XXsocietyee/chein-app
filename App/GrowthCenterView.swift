@@ -99,7 +99,7 @@ extension RootTabSwitch {
             }
         }
         .cyCelebrations(celebrations)
-        .fullScreenCover(item: $levelUp) { payload in
+        .cyFullScreenCover(item: $levelUp) { payload in
             CYLevelUpMoment(payload: payload) { levelUp = nil }
                 .roleThemedPresentation()
         }

@@ -182,7 +182,7 @@ func mcc(_ key: String, _ locale: Locale) -> String {
                 }
             }
         }
-        .sheet(isPresented: $showsInbox) {
+        .cySheet(isPresented: $showsInbox) {
             inboxDestination?({ showsInbox = false })
                 .cyDomainSheet(detents: [.half, .full])
                 .themeDomain(.merchant)

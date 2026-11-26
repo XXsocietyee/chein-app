@@ -53,12 +53,12 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
                 c.setPageVisible(phase == .active)
                 if phase == .active, c.homeVoiceStatus == .pending { Task { await c.refreshVoice() } }
             }
-            .sheet(isPresented: fieldPresented) {
+            .cySheet(isPresented: fieldPresented) {
                 StoreCharacterFieldSheet(model: model)
                     .cyDomainSheet(detents: [.half, .full])
                     .themeDomain(.merchant)
             }
-            .sheet(isPresented: presetsPresented) {
+            .cySheet(isPresented: presetsPresented) {
                 StoreCharacterPresetSheet(model: model)
                     .cyDomainSheet(detents: [.half, .full])
                     .themeDomain(.merchant)
@@ -66,12 +66,12 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
             .onChange(of: isReady, initial: true) { _, ready in
                 if ready, !introSeen { introPresented = true }
             }
-            .sheet(isPresented: $introPresented, onDismiss: { introSeen = true }) {
+            .cySheet(isPresented: $introPresented, onDismiss: { introSeen = true }) {
                 StoreCharacterIntroSheet { introSeen = true; introPresented = false }
                     .cyDomainSheet(detents: [.full])
                     .themeDomain(.merchant)
             }
-            .sheet(isPresented: voicePresented) {
+            .cySheet(isPresented: voicePresented) {
                 StoreCharacterVoiceSheet(model: model)
                     .cyDomainSheet(detents: [.half, .full])
                     .themeDomain(.merchant)

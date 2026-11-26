@@ -232,7 +232,7 @@ struct NPCChatDataPresentation: Identifiable {
                 ToolbarItem(placement: .cancellationAction) { Button("action.done") { model.disappear(); query = ""; dismiss() } }
                 ToolbarItem(placement: .primaryAction) { NPCChatDataExportButton(data: coordinator.data) }
             }
-            .sheet(isPresented: Binding(
+            .cySheet(isPresented: Binding(
                 get: { coordinator.deletion == .confirming && model.deletionIntent == nil },
                 set: { if !$0 { model.cancelDeletion() } }
             )) {

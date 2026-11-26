@@ -112,26 +112,26 @@ import SwiftUI
             }
         }
         .onDisappear { suspendOriginalInstallRead() }
-        .sheet(item: $editing, onDismiss: { Task { await controller.refreshFacts() } }) { editor in
+        .cySheet(item: $editing, onDismiss: { Task { await controller.refreshFacts() } }) { editor in
             Group {
                 NavigationStack { ModInstallationTemplateEditorView(editor: editor) }
             }
             .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
-        .sheet(item: $editingQa, onDismiss: { Task { await controller.refreshFacts() } }) { editor in
+        .cySheet(item: $editingQa, onDismiss: { Task { await controller.refreshFacts() } }) { editor in
             Group {
                 NavigationStack { ModInstallationQaEditorView(editor: editor) }
             }
             .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
-        .sheet(item: $venue) { model in Group { NavigationStack { ModVenueOperationsView(model: model) } }.presentationDetents([.large]).presentationDragIndicator(.visible) }
-        .sheet(item: $editingTopic, onDismiss: { Task { await controller.refreshFacts() } }) { receipt in
+        .cySheet(item: $venue) { model in Group { NavigationStack { ModVenueOperationsView(model: model) } }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+        .cySheet(item: $editingTopic, onDismiss: { Task { await controller.refreshFacts() } }) { receipt in
             Group {
                 NavigationStack { ModInstallationTopicEditor(receipt: receipt, isCurrent: { controller.isCurrent }) }
             }
             .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
-        .sheet(item: $confirmation) { receipt in
+        .cySheet(item: $confirmation) { receipt in
             Group {
                 ModInstallationConfirmation(receipt: receipt, preview: controller.preview, canConfirm: controller.canConfirm && controller.receipt == receipt) {
                     confirmation = nil
@@ -140,7 +140,7 @@ import SwiftUI
             }
             .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }
-        .sheet(item: $factReview) { facts in
+        .cySheet(item: $factReview) { facts in
             Group {
                 ModInstallationFactReview(facts: facts, canConfirm: controller.canConfirmFacts && controller.facts == facts) {
                     factReview = nil

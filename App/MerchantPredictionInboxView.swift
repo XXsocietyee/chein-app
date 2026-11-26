@@ -309,7 +309,7 @@ extension MerchantPredictionReading {
         .onChange(of: scenePhase) { _, phase in
             if phase != .active { model.retire() } else { Task { await model.load() } }
         }
-        .sheet(item: model.selectionBinding()) { selected in
+        .cySheet(item: model.selectionBinding()) { selected in
             NavigationStack {
                 if model.isCurrent(selected) {
                     List {

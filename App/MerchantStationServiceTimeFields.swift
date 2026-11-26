@@ -31,7 +31,7 @@ import SwiftUI
         }
         .disabled(!canEdit)
         .accessibilityIdentifier("merchant.stationTime.open")
-        .sheet(item: $editor) { captured in
+        .cySheet(item: $editor) { captured in
             Group {
                 MerchantStationServiceTimeSheet(initial: captured.initial,
                     replacesUnrecognizedValue: captured.replacesUnrecognizedValue, cancel: { editor = nil }) { value in

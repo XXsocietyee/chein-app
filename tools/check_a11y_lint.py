@@ -55,7 +55,7 @@ CONTAINERS = {
     'Section', 'Form', 'List', 'ForEach',
     'ToolbarItem', 'ToolbarItemGroup', 'ControlGroup',
     'NavigationStack', 'NavigationSplitView', 'NavigationView', 'TabView',
-    'overlay', 'background', 'mask', 'sheet', 'fullScreenCover', 'popover',
+    'overlay', 'background', 'mask', 'sheet', 'fullScreenCover', 'cySheet', 'cyFullScreenCover', 'popover',
     'safeAreaInset', 'toolbar', 'navigationDestination', 'safeAreaBar',
     'Preview', 'View',
 }
@@ -1225,7 +1225,7 @@ def in_view_builder(tokens, index, opens_at, parent, closes):
 
 
 VIEW_BUILDER_NAMES = CONTAINERS | {
-    'overlay', 'background', 'mask', 'sheet', 'fullScreenCover', 'popover',
+    'overlay', 'background', 'mask', 'sheet', 'fullScreenCover', 'cySheet', 'cyFullScreenCover', 'popover',
     'safeAreaInset', 'toolbar', 'navigationDestination', 'safeAreaBar', 'Preview',
 }
 

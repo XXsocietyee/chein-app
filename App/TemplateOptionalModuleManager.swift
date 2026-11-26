@@ -103,7 +103,7 @@ import Combine
                     .accessibilityIdentifier("templateModules.saveLocal")
             }
         }.navigationTitle("templateModules.title").navigationBarTitleDisplayMode(.inline)
-            .sheet(item: Binding(get: { editor.currentReview }, set: { _ in editor.dismiss(presented) })) { original in
+            .cySheet(item: Binding(get: { editor.currentReview }, set: { _ in editor.dismiss(presented) })) { original in
                 Group {
                     NavigationStack {
                         Form {

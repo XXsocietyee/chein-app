@@ -107,7 +107,7 @@ import SwiftUI
                     Text(verbatim: "—")
                 }
             }
-            .sheet(isPresented: $showingSheet) {
+            .cySheet(isPresented: $showingSheet) {
                 ActivityHostCancelSheet(detail: detail, access: access) {
                     showingSheet = false
                     await onCancelled()

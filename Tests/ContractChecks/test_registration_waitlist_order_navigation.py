@@ -11,7 +11,7 @@ class WaitlistOrderNavigationContracts(unittest.TestCase):
         self.assertIn('orderReader:session.ownedOrderReader', host)
         view = (ROOT / 'App/RegistrationSheetView.swift').read_text()
         self.assertIn('orderReader: (any ProfileReading)? = nil', view)
-        self.assertIn('.sheet(item: $orderDestination)', view)
+        self.assertIn('.cySheet(item: $orderDestination)', view)
         self.assertIn('flow.waitlistOrderDestination == destination', view)
         self.assertIn('.onChange(of: flow.waitlistReadKey)', view)
         self.assertIn('registration.waitlist.openOrder', view)

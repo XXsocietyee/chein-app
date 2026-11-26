@@ -55,7 +55,7 @@ extension EnvironmentValues {
                 } else { Text("club.refund.disabled").cyText(.bodyCompact) }
                 Text("club.refund.policy").cyText(.bodyCompact).foregroundStyle(.secondary)
             }
-            .sheet(item: $review, onDismiss: cancelPending) { pending in
+            .cySheet(item: $review, onDismiss: cancelPending) { pending in
                 NavigationStack {
                     List {
                         Section {

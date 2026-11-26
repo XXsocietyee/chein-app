@@ -209,7 +209,7 @@ struct MessagingHistoryView: View {
                 }
             }
         }
-        .sheet(isPresented: $showingPollComposer) { Group {
+        .cySheet(isPresented: $showingPollComposer) { Group {
             NavigationStack {
                 if let owner = expanded?.pollCoordinator?(conversationID, nil) { GroupPollView(owner: owner, creating: true) }
                 else { GroupPollUnavailableView().toolbar { Button("action.cancel") { showingPollComposer = false } } }
@@ -270,7 +270,7 @@ struct MessagingHistoryView: View {
                 } else { Text("messaging.history.title").font(.headline) }
             }
         }
-        .sheet(item: $safety) { presentation in
+        .cySheet(item: $safety) { presentation in
             ChatSafetySheet(owner: presentation.owner) { action in
                 switch action {
                 case .hide: dismissHistory()                       // source navigateBack after hide
@@ -670,7 +670,7 @@ private struct MessagingBubble: View {
             .alert(Text("im.reportPeer.noPeerMessage"), isPresented: $peerReportClosed) {
                 Button("d7.channelChat.ok", role: .cancel) {}
             }
-            .sheet(isPresented: $showPeerReport) {
+            .cySheet(isPresented: $showPeerReport) {
                 CommunityMemberReportSheet(memberID: peerReportMemberID)
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)

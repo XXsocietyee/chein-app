@@ -121,10 +121,10 @@ import WebKit
         .sensoryFeedback(.success, trigger: store.installedGames.count) { old, new in new > old }
         .onAppear { undoCenter.attach(undoManager) }
         .onDisappear { for id in Array(pendingRemoval.keys) { commitRemoval(id, token: pendingRemoval[id]) } }
-        .sheet(isPresented: $showingImportSheet) {
+        .cySheet(isPresented: $showingImportSheet) {
             ExternalGameImportInputSheet(store: store, initialMode: importMode, onError: { importError = $0 })
         }
-        .sheet(item: $store.pendingConfirmation) { confirmation in
+        .cySheet(item: $store.pendingConfirmation) { confirmation in
             ExternalGamePermissionConfirmationSheet(
                 confirmation: confirmation,
                 onConfirm: {
@@ -140,7 +140,7 @@ import WebKit
                 }
             )
         }
-        .sheet(item: $store.activeLaunchingGame) { game in Group {
+        .cySheet(item: $store.activeLaunchingGame) { game in Group {
             ExternalGameRunnerSheet(
                 store: store,
                 game: game,
@@ -155,7 +155,7 @@ import WebKit
         .navigationDestination(isPresented: $showSubmissions) {
             ExternalGameSubmissionsScreen(model: review, session: session)
         }
-        .sheet(item: $ageTarget) { game in Group {
+        .cySheet(item: $ageTarget) { game in Group {
             ExternalGameAgeGateSheet(game: game, onConfirm: {
                 store.acceptAgeGate(game.manifest)
                 ageTarget = nil
@@ -165,7 +165,7 @@ import WebKit
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
         }
-        .sheet(item: $reportGame) { game in Group {
+        .cySheet(item: $reportGame) { game in Group {
             ExternalGameReportSheet(manifest: game.manifest, onSend: { draft in
                 if draft.blocked { store.block(game.manifest) }
                 Task { await review.report(draft, session: session) }

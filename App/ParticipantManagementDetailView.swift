@@ -67,7 +67,7 @@ struct ParticipantManagementDetailView: View {
                     .accessibilityIdentifier("participant.detail.refresh")
             }
         }
-        .sheet(isPresented: $showsEditor, onDismiss: { Task { await model.load() } }) { Group {
+        .cySheet(isPresented: $showsEditor, onDismiss: { Task { await model.load() } }) { Group {
             NavigationStack {
                 ParticipantFormView(id: model.id, reader: model.reader, coordinator: model.coordinator)
             }

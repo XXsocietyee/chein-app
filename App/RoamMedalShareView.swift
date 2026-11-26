@@ -76,7 +76,7 @@ import UIKit
             .cyHaptic(.success, trigger: machine.doneTick)
             .cyToast(message: $toast)
             // Native true-departure ownership also handles removal while a share sheet covers us.
-            .sheet(item: $systemShare, onDismiss: { if machine.state.isExporting { machine.send(.exportFinished(false)) } }) { item in
+            .cySheet(item: $systemShare, onDismiss: { if machine.state.isExporting { machine.send(.exportFinished(false)) } }) { item in
                 if sourceIsCurrent, machine.image === item.image,
                    item.selection == .init(record: selection.record, includeRoute: false),
                    renderedSelection == selection,

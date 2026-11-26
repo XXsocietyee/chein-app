@@ -73,7 +73,7 @@ import SwiftUI
         }
         .onAppear { active = true }
         .onDisappear { active = false; invalidate() }
-        .sheet(item: $profileTarget) { target in Group {
+        .cySheet(item: $profileTarget) { target in Group {
             if let profile, current(target) {
                 NavigationStack {
                     SocialPublicProfileView(memberID: target.memberID, reader: profile.reader, squareReader: profile.squareReader,

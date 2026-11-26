@@ -138,7 +138,7 @@ extension ProfileLocalCoverOwner {
                 model.diagnosticEvent?("section.task.after-load")
 #endif
             }
-            .sheet(isPresented: Binding(get: { model.isPresented && model.controller.ownsContext }, set: { if !$0 {
+            .cySheet(isPresented: Binding(get: { model.isPresented && model.controller.ownsContext }, set: { if !$0 {
 #if DEBUG
                 model.diagnosticEvent?("sheet.binding.false")
 #endif

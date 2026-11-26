@@ -63,7 +63,7 @@ import UIKit
                 ContentUnavailableView("roam.createdStamp.changed", systemImage: "person.crop.circle.badge.exclamationmark")
             }
         }
-        .fullScreenCover(isPresented: $showingCamera) {
+        .cyFullScreenCover(isPresented: $showingCamera) {
             if cameraEnabled {
                 let ticket = captureGeneration
                 RoamNativeStampCamera { result in
@@ -128,6 +128,7 @@ import UIKit
                     if case .created = coordinator.phase {
                         Label("scan.stamp.created", systemImage: "checkmark.seal.fill")
                             .foregroundStyle(.green)
+                            .nativeR2BounceOnAppear()
                     }
                 } footer: {
                     if !pageContract.showsCreate {

@@ -105,7 +105,7 @@ import SwiftUI
                 Text("projectDatePicker.unknown", tableName: "ProjectEditDatePicker").font(.caption)
             }
         }
-        .sheet(item: controller.binding(original)) { value in Group { ProjectEditDatePickerSheet(controller: controller, original: value) }.presentationDetents([.medium, .large]).presentationDragIndicator(.visible) }
+        .cySheet(item: controller.binding(original)) { value in Group { ProjectEditDatePickerSheet(controller: controller, original: value) }.presentationDetents([.medium, .large]).presentationDragIndicator(.visible) }
         .onReceive(NotificationCenter.default.publisher(for: .NSSystemTimeZoneDidChange)) { _ in controller.retire() }
         .onChange(of: model.editorIncarnation) { _, _ in controller.retire() }
         .onDisappear { controller.retire() }

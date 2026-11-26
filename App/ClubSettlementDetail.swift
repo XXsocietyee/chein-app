@@ -161,7 +161,7 @@ import UIKit
     let returned: () -> Void
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
-            .sheet(isPresented: owner.binding(item, source: source, active: active), onDismiss: {
+            .cySheet(isPresented: owner.binding(item, source: source, active: active), onDismiss: {
                 if owner.dismissed(item, source: source(), active: active()) { returned() }
             }) { Group {
                 NavigationStack {

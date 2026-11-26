@@ -143,7 +143,7 @@ import SwiftUI
             onCancel: { confirmDiscard = false },
             onConfirm: { confirmDiscard = false; draft = .init(); dismiss() }
         )
-        .sheet(isPresented: Binding(get: { review != nil }, set: { if !$0 { review = nil; captured = nil } })) {
+        .cySheet(isPresented: Binding(get: { review != nil }, set: { if !$0 { review = nil; captured = nil } })) {
             NavigationStack {
                 Form {
                     if let review {

@@ -56,7 +56,7 @@ import SwiftUI
     }
     func body(content: Content) -> some View {
         content
-            .sheet(item: Binding(get: { picker }, set: { value in
+            .cySheet(item: Binding(get: { picker }, set: { value in
                 if value == nil { picker?.cancel() }; picker = value
             }), onDismiss: close) { value in
                 Group {

@@ -269,16 +269,16 @@ import SwiftUI
             .appNavigationTitle(key: starterLease == nil && chapterOverride == nil ? "projectEdit.chapterDetails" : "projectEdit.storyFlow").navigationBarTitleDisplayMode(.inline)
             .toolbar { EditButton().disabled(!model.fullEdit) }
             .scrollDismissesKeyboard(.interactively)
-            .sheet(item: storyImages.binding(imagePresentation)) { original in
+            .cySheet(item: storyImages.binding(imagePresentation)) { original in
                 ProjectStoryImageAuthorView(original: original, picker: model.storyImagePicker?(), apply: { storyImages.apply($0) }, close: { storyImages.close(original) })
             }
-            .sheet(item: storyAudios.binding(audioPresentation)) { original in
+            .cySheet(item: storyAudios.binding(audioPresentation)) { original in
                 Group {
                     ProjectStoryAudioAuthorView(original: original, picker: model.storyAudioPicker?(), apply: { storyAudios.apply($0) }, close: { storyAudios.close(original) })
                 }
                 .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
             }
-            .sheet(item: storyTemplates.binding(templateOpening)) { original in
+            .cySheet(item: storyTemplates.binding(templateOpening)) { original in
                 Group {
                     ProjectStoryTemplateView(controller: storyTemplates, original: original)
                 }

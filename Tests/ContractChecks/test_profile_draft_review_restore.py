@@ -77,7 +77,7 @@ class ProfileDraftReviewRestoreContracts(unittest.TestCase):
         s=read('App/ProfileDraftReviewSection.swift')
         popups=read('App/MemberAreaPopupSurfaces.swift')
         for token in ['DisclosureGroup {','ForEach(summary.changes)', 'value(change.before)', 'value(change.after)',
-                      '@State private var showsRestore = false', '.disabled(!canRestore)', '.sheet(isPresented: $showsRestore)',
+                      '@State private var showsRestore = false', '.disabled(!canRestore)', '.cySheet(isPresented: $showsRestore)',
                       'MemberProfileDiscardConfirmSheet(kind: .reviewRestore)', 'restore()', 'text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty']:
             self.assertIn(token,s)
         for token in ['case .reviewRestore:', 'appLocalized("profile.reviewRestore.confirm"', 'isDestructive: true', 'CYConfirmSheet']:

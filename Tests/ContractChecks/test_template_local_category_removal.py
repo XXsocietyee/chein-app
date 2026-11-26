@@ -17,14 +17,14 @@ class TemplateLocalCategoryRemovalContracts(unittest.TestCase):
             self.assertIn(token,self.core+self.app)
         self.assertEqual(self.app.count('self.model.draft = next'),1);self.assertIn('self.model.changed()',self.app)
     def test_no_new_reader_transport_persistence_or_grant(self):
-        for token in ['DiscoveryReading','URLSession','ProductionTransport','capabilityGrant','Task {','model.prepare(','model.save(','removeItem(','AsyncImage','AVPlayer','.sheet(']:self.assertNotIn(token,self.app+self.core)
+        for token in ['DiscoveryReading','URLSession','ProductionTransport','capabilityGrant','Task {','model.prepare(','model.save(','removeItem(','AsyncImage','AVPlayer','.cySheet(']:self.assertNotIn(token,self.app+self.core)
     def test_visible_scene_and_fixed_owner_boundaries(self):
         for token in ['isVisible && sceneActive && model.canReadMetadataDraft','owner == model.coordinator.session','identity == model.coordinator.identity','guard canReload else { retire(); return }','func viewDisappeared() { isVisible = false; retire() }','guard isVisible && sceneActive else { retire(); return }','if !active { reload() }','!model.busy && model.review == nil']:
             self.assertIn(token,self.app)
         self.assertEqual(self.app.count('@StateObject'),1);self.assertNotIn('.id(controller',self.app)
     def test_normal_host_adds_local_route_but_old_selector_gates_remain(self):
         self.assertEqual(self.host.count('TemplateLocalCategoryRemovalView(model: model)'),1)
-        for token in ['canSaveCategories: Bool { canEdit && reader?.isConfigured == true','reader.templateMetadataCategoriesRequest()','Button { presented = field }','.sheet(item: $presented)','TemplateAuthoringVenueField']:
+        for token in ['canSaveCategories: Bool { canEdit && reader?.isConfigured == true','reader.templateMetadataCategoriesRequest()','Button { presented = field }','.cySheet(item: $presented)','TemplateAuthoringVenueField']:
             self.assertIn(token,self.host)
     def test_named_bilingual_resource_covers_local_controls(self):
         strings=json.loads((ROOT/'Resources/TemplateLocalCategoryRemoval.xcstrings').read_text())['strings'];self.assertEqual(len(strings),10)

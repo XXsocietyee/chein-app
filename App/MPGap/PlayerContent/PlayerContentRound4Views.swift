@@ -149,7 +149,7 @@ public struct MerchantApplyPickerGapView: View {
                 }
             }
         }
-        .sheet(isPresented: $showMapPicker) {
+        .cySheet(isPresented: $showMapPicker) {
             MerchantLocationMapPickerSheet(selection: $location) {
                 showMapPicker = false
             }

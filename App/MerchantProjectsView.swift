@@ -158,7 +158,7 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
         .onDisappear { if presentation.selection == nil { presentation.retire() } }
         .background {
             Color.clear.frame(width: 0, height: 0)
-        .sheet(item: presentation.summaryBinding()) { selected in
+        .cySheet(item: presentation.summaryBinding()) { selected in
             NavigationStack {
                 if let snapshot = model.value, presentation.selectionIsCurrent(selected, snapshot: snapshot, context: context) {
                     MerchantProjectSummary(project: selected.project, canOpenWorkspace: presentation.canOpenWorkspace(selected, snapshot: snapshot, context: context, sourceFresh: sourceFresh)) {
@@ -199,7 +199,7 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
         // Rebuild only its owner, never the loaded list or selected tab.
         .id(presentation.presentationIdentity)
         }
-        .sheet(item: $opsProject) { project in
+        .cySheet(item: $opsProject) { project in
             let isTopic = project.bizType == "topic"
             let moneyOpen = MerchantCloseCopy.isReviewedMoneyOpen(host: playGapAPIHost)
             let options: [CYOptionSheetItem<String>] = [

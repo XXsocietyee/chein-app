@@ -29,13 +29,13 @@ import UIKit
             }
         }.cyGroupedSurface().privacySensitive().cyPageTitle("playx.director.title").accessibilityIdentifier("playx.director.view")
             .task { await model.load() }
-            .sheet(item: $editor) { action in
+            .cySheet(item: $editor) { action in
                 if let projection = model.projection {
                     NavigationStack { PlayDirectorCommandEditor(projection: projection, action: action) { command in editor = nil; Task { await model.submit(command) } } }
                         .cyDomainSheet(detents: [.half, .full])
                 }
             }
-            .sheet(isPresented: $showingPlanFallbackSheet) {
+            .cySheet(isPresented: $showingPlanFallbackSheet) {
                 if let projection = model.projection {
                     PlayCloseSheetHost(
                         title: PlayCloseCopy.text("默认结局收尾", "Default Ending Fallback", locale),

@@ -104,7 +104,7 @@ import SwiftUI
         } message: {
             Text("projectChapterAudio.clearMessage", tableName: "ProjectChapterAudio")
         }
-        .sheet(item: uploads.binding(upload)) { original in
+        .cySheet(item: uploads.binding(upload)) { original in
             ProjectChapterAudioAuthorView(original: original, picker: model.storyAudioPicker?(), apply: { uploads.apply($0) }, close: { uploads.close(original) })
                 .cyDomainSheet(detents: [.half, .full])
                 .themeDomain(.topicEditor)

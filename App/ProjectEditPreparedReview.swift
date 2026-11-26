@@ -32,7 +32,7 @@ struct ProjectEditPreparedReviewLease: Equatable {
     @ObservedObject var model: ProjectEditModel
     func body(content: Content) -> some View {
         let original = model.confirmation
-        content.sheet(item: Binding<ProjectEditConfirmation?>(get: {
+        content.cySheet(item: Binding<ProjectEditConfirmation?>(get: {
             guard let value = model.confirmation, model.reviewIsCurrent(value) else { return nil }; return value
         }, set: { next in if next == nil, let original { model.cancelReview(original) } })) { value in
             Group {

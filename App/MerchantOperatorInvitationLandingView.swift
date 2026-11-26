@@ -34,7 +34,7 @@ enum MerchantInvitationAcceptGate {
             if let failure = model.coordinator.failure { Text(LocalizedStringKey(failure.key)) }
             if let receipt = model.coordinator.receipt, case .invitationAccepted = receipt { Text("merchant.engagement.membershipReceipt"); Text("merchant.engagement.refreshIdentity") }
         }.cyPageTitle("merchant.engagement.invitation")
-        .sheet(item: Binding(get: { model.coordinator.review }, set: { if $0 == nil { model.cancel() } })) { review in
+        .cySheet(item: Binding(get: { model.coordinator.review }, set: { if $0 == nil { model.cancel() } })) { review in
             Group {
                 MerchantEngagementReviewView(review: review, enabled: MerchantInvitationAcceptGate.allows(review.command, merchantID: review.proof.access.merchantID, reader: reader), synthetic: reader.isSyntheticEnabled, busy: model.coordinator.busy, cancel: model.cancel) {
                     Task { await model.confirm(review); if let result = model.coordinator.receipt, case .invitationAccepted = result { consumed = true } }

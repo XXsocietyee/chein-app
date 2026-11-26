@@ -61,14 +61,14 @@ import SwiftUI
                 if hasInput || showReview { confirmDiscard = true } else { clear(); dismiss() }
             }.disabled(busy) }
         }
-        .sheet(isPresented: $confirmDiscard) {
+        .cySheet(isPresented: $confirmDiscard) {
             MemberBankWithdrawalDiscardConfirmSheet {
                 confirmDiscard = false
                 clear()
                 dismiss()
             }
         }
-        .sheet(isPresented: $showReview, onDismiss: { snapshot = nil; review = nil; proof = nil }) {
+        .cySheet(isPresented: $showReview, onDismiss: { snapshot = nil; review = nil; proof = nil }) {
             reviewSheet
                 .cyPlayerSheetGlass()
         }

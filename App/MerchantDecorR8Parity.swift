@@ -204,7 +204,7 @@ struct MerchantDecorGalleryCount: View {
         .frame(minHeight: CYSpacing.minTouchTarget)
         .disabled(!model.coordinator.isCurrent || model.coordinator.isBusy || model.coordinator.isLocked)
         .accessibilityIdentifier("merchant.operations.field.preference")
-        .sheet(isPresented: $showsSheet) {
+        .cySheet(isPresented: $showsSheet) {
             MerchantPreferenceSheet(initial: Self.parse(current)) { picked in
                 guard case .profile(var value) = model.coordinator.draft else { return false }
                 let joined = picked.joined(separator: "、")
@@ -280,7 +280,7 @@ struct MerchantContactOperationsRow: View {
                 .frame(minHeight: CYSpacing.minTouchTarget)
         }
         .accessibilityIdentifier("merchant.operations.contactOps")
-        .sheet(isPresented: $showsSupport) {
+        .cySheet(isPresented: $showsSupport) {
             WithdrawalSupportContactView()
                 .cyDomainSheet(detents: [.half, .full])
                 .themeDomain(.merchant)

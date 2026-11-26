@@ -9,8 +9,8 @@ def source(path): return (ROOT / path).read_text()
 class NativePresentationReuseChecks(unittest.TestCase):
     def test_media_keeps_single_full_screen_owner_and_no_container_id(self):
         text = source('App/NativeMediaGallery.swift')
-        self.assertEqual(text.count('.fullScreenCover('), 1)
-        self.assertNotIn('.sheet(', text)
+        self.assertEqual(text.count('.cyFullScreenCover('), 1)
+        self.assertNotIn('.cySheet(', text)
         self.assertNotIn('accessibilityIdentifier("media.gallery.fullscreen")', text)
         for key in ['media.gallery.close', 'media.gallery.previous', 'media.gallery.next', 'media.gallery.position']:
             self.assertIn('accessibilityIdentifier("' + key + '")', text)
@@ -55,9 +55,12 @@ class NativePresentationReuseChecks(unittest.TestCase):
     def test_camera_and_scanner_remain_full_screen_and_cancelable(self):
         for filename, binding in [('RoamStampCameraView.swift', 'showingCamera'), ('RoamPosterScanView.swift', 'showingScanner')]:
             text = source('App/' + filename)
-            self.assertIn('.fullScreenCover(isPresented: $' + binding + ', onDismiss:', text)
+            self.assertIn('.cyFullScreenCover(isPresented: $' + binding + ', onDismiss:', text)
             # The stamp flow gained a non-camera permission-priming sheet; the camera itself stays full screen.
-            self.assertNotIn('.sheet(', text.replace('.sheet(isPresented: $showingPriming, onDismiss:', ''))
+            # `.cySheet(detents:)` is sheet chrome, not a presentation; only presenting calls count here.
+            presenting = text.replace('.cySheet(isPresented: $showingPriming, onDismiss:', '')
+            self.assertNotIn('.cySheet(isPresented', presenting)
+            self.assertNotIn('.cySheet(item', presenting)
             self.assertIn('@AccessibilityFocusState', text)
             self.assertIn('scenePhase == .active, cameraEnabled', text)
             self.assertIn('.onChange(of: cameraEnabled)', text)

@@ -176,7 +176,7 @@ struct VideoBountyView: View {
         .onChange(of: state.submitRevision) { _, _ in
             platform = nil; sourceURL = ""; groupKey = ""; tab = .submissions
         }
-        .sheet(item: $appealTarget) { target in
+        .cySheet(item: $appealTarget) { target in
             VideoBountyAppealSheet(onSubmit: { note in onAppeal(target.id, note); appealTarget = nil }, onClose: { appealTarget = nil })
         }
         .confirmationDialog(Text("mp.vb.cancel.title"), isPresented: Binding(get: { cancelTarget != nil }, set: { if !$0 { cancelTarget = nil } }), titleVisibility: .visible) {

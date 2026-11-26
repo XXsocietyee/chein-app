@@ -144,7 +144,7 @@ import SwiftUI
             }
             if previous?.round != next?.round { model.invalidateReview() }
         }
-        .sheet(item: $offered, onDismiss: { model.invalidateReview() }) { review in
+        .cySheet(item: $offered, onDismiss: { model.invalidateReview() }) { review in
             NavigationStack {
                 Form {
                     Section(review.command.action.title) {
@@ -166,7 +166,7 @@ import SwiftUI
             .cyDomainSheet(detents: [.half, .full])
             .themeDomain(.player)
         }
-        .sheet(item: $shownOperation, onDismiss: { Task { await model.closeOperation() } }) { ticket in
+        .cySheet(item: $shownOperation, onDismiss: { Task { await model.closeOperation() } }) { ticket in
             PlaySharedPlanOperationSurface(model: model, ticket: ticket, makeDestination: operationDestination)
                 .cyDomainSheet(detents: [.half, .full])
                 .themeDomain(.player)

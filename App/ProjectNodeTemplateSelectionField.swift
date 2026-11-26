@@ -15,7 +15,7 @@ import SwiftUI
                 .disabled(capture == nil).accessibilityIdentifier("projectNodeTemplate.choose")
             if capture == nil && original == nil { Text("projectNodeTemplate.unavailable", tableName: "ProjectNodeTemplateSelection").font(.caption) }
         }
-        .sheet(item: controller.binding(original)) { original in
+        .cySheet(item: controller.binding(original)) { original in
             Group {
                 ProjectStoryTemplateView(controller: controller, original: original, nodeSelection: true)
             }

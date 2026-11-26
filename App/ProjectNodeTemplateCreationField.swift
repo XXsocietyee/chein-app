@@ -100,7 +100,7 @@ extension EnvironmentValues {
                 Text("projectNodeCreate.unavailable", tableName: "ProjectNodeTemplateCreation").font(.caption)
             }
         }
-        .sheet(item: controller.binding(original)) { original in Group { ProjectNodeTemplateCreationHost(controller: controller, selector: controller.selector, original: original) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+        .cySheet(item: controller.binding(original)) { original in Group { ProjectNodeTemplateCreationHost(controller: controller, selector: controller.selector, original: original) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
         .onChange(of: model.editorIncarnation) { _, _ in if let original { controller.close(original) } }
         .onDisappear { if let original { controller.close(original) } }
     }

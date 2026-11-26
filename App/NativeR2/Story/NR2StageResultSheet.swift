@@ -48,6 +48,7 @@ struct NR2StageResultTarget: Identifiable, Equatable {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.largeTitle)
                             .foregroundStyle(.green)
+                            .nativeR2BounceOnAppear()
                             .accessibilityHidden(true)
                         Text("play.nr2.result.done").font(.title2.bold())
                             .accessibilityIdentifier("playVerdict.word")
