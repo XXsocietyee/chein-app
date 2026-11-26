@@ -156,6 +156,19 @@ import SwiftUI
                     }.accessibilityIdentifier("account.personalLocationShare")
                     ProfileComplaintPreparationLink(session: session)
                 }
+                // 我的里原先没有入口能打开已有的举报记录，进度只能从会话里碰到。
+                Section("account.section.safety") {
+                    NavigationLink {
+                        SquareReportProgressView(session: session).cyPushedChrome()
+                    } label: {
+                        Label {
+                            Text("report.history.title", tableName: "MemberReportProgress")
+                        } icon: {
+                            Image(systemName: "flag")
+                        }
+                    }
+                    .accessibilityIdentifier("account.reportMine")
+                }
                 if WelcomeView.showsMerchantChoice {
                 Section {
                     Button { showsCooperation=true } label: {
