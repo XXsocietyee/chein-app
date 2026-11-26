@@ -12,7 +12,7 @@ enum NativeGameKits {
         .compass, .walk, .steps, .ballShake, .shout, .quietHold, .reaction, .stopwatch, .countdown, .timeWindow, .slowTask
     ]
     /// Templates 4–6 (camera, chance, story choice). Filled by the other half.
-    static var templateB: Set<PlayKitScreenKind> { [] }
+    static var templateB: Set<PlayKitScreenKind> { NativeGameKitsB.kinds }
     static func covers(_ kind: PlayKitScreenKind) -> Bool { templateA.contains(kind) || templateB.contains(kind) }
     /// Kits drawn by a child view that publishes its own bottom-bar action.
     static let childKinds: Set<PlayKitScreenKind> = [.reaction, .countdown, .stopwatch, .typeIn, .ballShake, .quietHold, .compass, .shout]
@@ -259,7 +259,7 @@ extension PlayKitScreen {
                 makeSensorProvider: makeSensorProvider,
                 publish: { nativeChildSubmit = $0 })
                 .id(childReset)
-        default: EmptyView()
+        default: nativeControlsB
         }
     }
 
@@ -287,7 +287,7 @@ extension PlayKitScreen {
         case .profile: return nativeProfileSubmit
         case .sort, .match, .classify: return nativeReasoningSubmit
         case .slowTask: return nativeSlowTaskSubmit
-        default: return nil
+        default: return nativeKitSubmitB
         }
     }
 
