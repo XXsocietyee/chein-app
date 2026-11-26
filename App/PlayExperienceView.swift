@@ -284,6 +284,14 @@ import MapKit
                 Task { await model.pauseRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) }
             }
         }
+        // P-050: city orientation distance is run-scoped. It keeps reading over pushed pages and, while the run is
+        // started and not ended, in the background; the run's end stops it.
+        .onChange(of: model.clock.phase, initial: true) { _, phase in syncCityRunTracking(phase) }
+    }
+    private func syncCityRunTracking(_ phase: PlayRunClock.Phase) {
+        guard NativeR2Flags.cityOrientation, model.gameplayMode == .cityOrientation else { return }
+        cityLocation.setRunActive(phase == .running || phase == .paused)
+        if phase == .ended { cityLocation.stop() }
     }
     private var themeFacts: PlayThemePresentationFacts? {
         model.snapshot?.result.topicID.flatMap { themeReader?.facts(topicID: $0) }
