@@ -702,10 +702,6 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             if page.phase == .empty {
                 Text("compliance.marketing.empty", tableName: "MarketingConsentOriginalPresentation").accessibilityIdentifier("compliance.marketing.empty")
             }
-            CYScreenOfflineWriteBanner(
-                routes: ["/api/compliance/consents"],
-                session: offlineWriteSession.session
-            )
             // B-MK-02: no engineering scope line on the user page.
             ForEach(model.state.marketingOriginalResults) { receipt in
                 MarketingConsentOriginalReceiptView(receipt: receipt)
@@ -747,6 +743,12 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 marketingChange = nil
                 Task { await model.coordinator.loadMarketing(intent: intent) }
             }.accessibilityIdentifier("compliance.marketing.refresh")
+        } footer: {
+            // r10 N-15: MP shezhi/marketing has no banner row; queued consent writes are the section footer.
+            CYScreenOfflineWriteBanner(
+                routes: ["/api/compliance/consents"],
+                session: offlineWriteSession.session
+            )
         }
     }
     /// B-MK-05 (r9): MP pages/marketing-consent/index.js:60-80 sends on toggle (no confirm sheet), then toasts 已同意 / 已退订.
