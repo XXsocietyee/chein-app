@@ -8,7 +8,7 @@ import SwiftUI
         Group {
             if game.isReasoning {
                 TemplateAuthoringField("prompt", text: binding("prompt"), multiline: true)
-                Text(LocalizedStringKey("playkitAuthor.instructions." + game.rawValue)).cyText(.bodyCompact)
+                Text(LocalizedStringKey("playkitAuthor.instructions." + game.rawValue)).font(.footnote).foregroundStyle(.secondary)
                 if game == .sort {
                     TemplateAuthoringField("maxAttempts", text: binding("maxAttempts"))
                     sortEditor
@@ -27,7 +27,7 @@ import SwiftUI
                 }
                 TemplateAuthoringField("xp", text: binding("xp"))
             }
-            NavigationLink { TemplateMiniGamePreviewView(draft: model.draft.advanced, game: game) } label: { CYListRow("playkitAuthor.preview", trailing: .none) { CYRowIcon(systemImage: "play.circle") } }
+            NavigationLink { TemplateMiniGamePreviewView(draft: model.draft.advanced, game: game) } label: { Label("playkitAuthor.preview", systemImage: "play.circle") }
                 .disabled(!model.draft.advanced.miniGameIssues(game).isEmpty)
         }
     }
@@ -65,11 +65,11 @@ import SwiftUI
         let left = rows("left"), right = rows("right")
         ForEach(0..<max(left.count, right.count), id: \.self) { index in
             VStack(alignment: .leading) {
-                Text(verbatim: String(index + 1)).cyText(.meta)
+                Text(verbatim: String(index + 1)).font(.footnote).foregroundStyle(.secondary)
                 HStack(alignment: .top) {
-                    VStack(alignment: .leading) { Text("playkitAuthor.left").cyText(.meta); rowField("left", index: index) }
+                    VStack(alignment: .leading) { Text("playkitAuthor.left").font(.footnote).foregroundStyle(.secondary); rowField("left", index: index) }
                     Image(systemName: "link").accessibilityHidden(true)
-                    VStack(alignment: .leading) { Text("playkitAuthor.right").cyText(.meta); rowField("right", index: index) }
+                    VStack(alignment: .leading) { Text("playkitAuthor.right").font(.footnote).foregroundStyle(.secondary); rowField("right", index: index) }
                 }
                 Button("playkitAuthor.removePair", role: .destructive) {
                     model.draft.advanced.removeRow(section, "left", index: index)
@@ -92,7 +92,7 @@ import SwiftUI
     }
     @ViewBuilder private var classifyEditor: some View {
         let bins = rows("bins"), items = rows("items")
-        Text("playkitAuthor.categories").cyText(.cardTitle)
+        Text("playkitAuthor.categories").font(.headline)
         ForEach(Array(bins.enumerated()), id: \.offset) { index, _ in
             HStack {
                 rowField("bins", index: index)
@@ -100,7 +100,7 @@ import SwiftUI
             }
         }
         Button("playkitAuthor.addCategory") { model.draft.advanced.appendRow(section, "bins", prefix: "bin", maximum: 4) }.disabled(bins.count >= 4)
-        Text("playkitAuthor.items").cyText(.cardTitle)
+        Text("playkitAuthor.items").font(.headline)
         ForEach(Array(items.enumerated()), id: \.offset) { index, item in
             VStack(alignment: .leading) {
                 rowField("items", index: index)
@@ -127,18 +127,19 @@ import SwiftUI
     private var segment: PlayWireValue? { try? draft.miniPreviewSegment(game) }
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.xl) {
-                CYHeroHeader("playkitAuthor.preview")
+            VStack(alignment: .leading, spacing: 20) {
                 if let segment, let kind = PlayKitScreenKind(rawValue: game.section) {
                     if game.isReasoning {
-                        if let prompt = segment["prompt"].text { Text(verbatim: prompt).cyText(.sectionTitle) }
+                        if let prompt = segment["prompt"].text { Text(verbatim: prompt).font(.title3.bold()) }
                         PlayKitReasoningForm(kind: kind, segment: segment, enabled: true, onDirty: {}, requestReview: { _, payload, _ in previewPayload = payload })
-                        if let previewPayload { Text("playkitAuthor.previewPayload").cyText(.cardTitle); PlayKitPayloadReadback(payload: previewPayload) }
+                        if let previewPayload { Text("playkitAuthor.previewPayload").font(.headline); PlayKitPayloadReadback(payload: previewPayload) }
                     } else {
                         PlayKitSensorChallengeView(kind: kind, segment: segment, enabled: false, active: false, onDirty: {}, requestReview: { _, _, _ in })
                     }
                 } else { Text("playkit.configurationInvalid") }
-            }.padding(CYSpacing.pageHorizontal)
-        }.background(CYColor.bgPage.ignoresSafeArea()).cyHeroScreen().privacySensitive()
+            }.padding()
+        }
+        .navigationTitle(Text("playkitAuthor.preview")).navigationBarTitleDisplayMode(.inline)
+        .privacySensitive()
     }
 }

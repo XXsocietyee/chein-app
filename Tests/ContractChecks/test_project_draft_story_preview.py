@@ -40,7 +40,8 @@ class DraftStoryPreviewContracts(unittest.TestCase):
     def test_unsupported_and_empty_content_have_visible_states(self):
         for key in ['unsupportedChapter','unsupportedBlock','emptyChapter','emptyText','emptyAlbum','emptyCaption','emptyMedia','empty']:
             if key=='emptyMedia': self.assertIn('"emptyMedia"',UI)
-            elif key=='empty': self.assertIn('CYEmptyState(systemImage: "book", "projectDraftStoryPreview.empty", tableName: "ProjectDraftStoryPreview")',UI)
+            # native r2: CYEmptyState replaced by ContentUnavailableView with the same key and symbol
+            elif key=='empty': self.assertIn('ContentUnavailableView { Label { text("empty") } icon: { Image(systemName: "book") } }',UI)
             else: self.assertIn('text("'+key+'")',UI)
     def test_media_projection_omits_urls(self):
         row=CORE.split('public struct Row: Identifiable {',1)[1].split('    public struct Chapter',1)[0]

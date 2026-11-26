@@ -28,8 +28,10 @@ import SwiftUI
     @State private var showsLogin = false
     @StateObject private var dirtyTracker = DeepLinkDirtyTracker()
     @State private var showsDiscardModal = false
+    @Environment(\.locale) private var locale
+    private let discardPrompt = DeepLinkSceneDiscardPrompt()
     var body: some View {
-        ZStack {
+        Group {
             NavigationStack {
                 Group {
                     switch entry.intent {
@@ -42,9 +44,12 @@ import SwiftUI
                             glbHosts: session.playKitArtworkHosts)
                     case .teamInvitation(let route):
                         if session.account == nil {
-                            CYEmptyState(systemImage: "person.crop.circle.badge.questionmark", "nativeNav.team.signInDetail",
-                                         actionTitle: "team.signIn", actionStyle: .primary) { showsLogin = true }
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            ContentUnavailableView {
+                                Label { Text("nativeNav.team.signInDetail") } icon: { Image(systemName: "person.crop.circle.badge.questionmark") }
+                            } actions: {
+                                Button { showsLogin = true } label: { Text("team.signIn") }
+                                    .buttonStyle(.borderedProminent).controlSize(.large)
+                            }
                         } else {
                             SessionTeamDetailView(lookup: .invitation(route.code)).id(session.teamViewIdentity)
                         }
@@ -96,16 +101,18 @@ import SwiftUI
                     else { LoginView(intent: .merchant) }
                 }
             }
-            if showsDiscardModal {
-                MemberDeepLinkDiscardModal(
-                    onCancel: { showsDiscardModal = false },
-                    onConfirm: {
-                        showsDiscardModal = false
-                        dirtyTracker.isDirty = false
-                        session.dismissNativeEntry()
-                    }
-                )
+        }
+        .alert(MemberPopupCopy.text(discardPrompt.title, "Discard current changes?", locale: locale), isPresented: $showsDiscardModal) {
+            Button(MemberPopupCopy.text(discardPrompt.cancelTitle, "Keep editing", locale: locale), role: .cancel) { showsDiscardModal = false }
+                .accessibilityIdentifier("deepLink.discard.cancel")
+            Button(MemberPopupCopy.text(discardPrompt.confirmTitle, "Discard & close", locale: locale), role: .destructive) {
+                showsDiscardModal = false
+                dirtyTracker.isDirty = false
+                session.dismissNativeEntry()
             }
+            .accessibilityIdentifier("deepLink.discard.confirm")
+        } message: {
+            Text(verbatim: MemberPopupCopy.text(discardPrompt.message, "Unsaved edits will be lost if you close.", locale: locale))
         }
         .environment(\.deepLinkDirtyTracker, dirtyTracker)
         .environment(\.memberPopupActions, session.memberPopupActions())
@@ -125,16 +132,17 @@ import SwiftUI
         case .topicDetail(let topicID):
             SessionTopicDetailView(id: topicID, session: session)
         case .home:
-            VStack(spacing: CYSpacing.lg) {
-                Image(systemName: "house").font(.largeTitle).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+            ContentUnavailableView {
+                Image(systemName: "house").accessibilityHidden(true)
+            } description: {
                 if let failure {
-                    Group {
-                        if ["door.disabled", "door.unavailable"].contains(failure) { Text(LocalizedStringKey(failure)) }
-                        else { Text(verbatim: failure) }
-                    }.cyText(.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+                    if ["door.disabled", "door.unavailable"].contains(failure) { Text(LocalizedStringKey(failure)) }
+                    else { Text(verbatim: failure) }
                 }
-                CYPillButton("homeFeed.title", style: .primary, fullWidth: false) { session.dismissNativeEntry(); goHome() }
-            }.padding(CYSpacing.lg).frame(maxWidth: .infinity, maxHeight: .infinity)
+            } actions: {
+                Button { session.dismissNativeEntry(); goHome() } label: { Text("homeFeed.title") }
+                    .buttonStyle(.borderedProminent).controlSize(.large)
+            }
         case nil:
             ProgressView("door.resolving").frame(maxWidth: .infinity, maxHeight: .infinity)
         }

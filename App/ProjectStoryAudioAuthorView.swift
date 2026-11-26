@@ -77,8 +77,9 @@ import SwiftUI
                     Text(text("projectStoryAudio.scope", "Choose one mp3, m4a or aac file up to 10 MiB. Selection stays on this device until you explicitly upload it. Cancelling keeps the existing audio block and reference."))
                     Text(verbatim: original.opening.savedReference).textSelection(.enabled).accessibilityIdentifier("projectStoryAudio.savedReference")
                     if let name = original.opening.savedFilename { Text(verbatim: name).accessibilityIdentifier("projectStoryAudio.savedFilename") }
-                    CYPillButton(verbatim: text("projectStoryAudio.choose", "Choose an audio file"), style: .secondary) { Task { await model.choose() } }
-                        .listRowBackground(Color.clear).disabled(!flow.canPick).accessibilityIdentifier("projectStoryAudio.choose")
+                    Button { Task { await model.choose() } } label: { Text(verbatim: text("projectStoryAudio.choose", "Choose an audio file")) }
+                        .buttonStyle(.bordered).controlSize(.large)
+                        .disabled(!flow.canPick).accessibilityIdentifier("projectStoryAudio.choose")
                     if !flow.matchesCapturedDraft && !flow.alreadyApplied {
                         Text(text("projectStoryAudio.changed", "The captured story has changed. Save any received receipt, then close and reopen this audio block before choosing another file."))
                     }
@@ -91,17 +92,20 @@ import SwiftUI
                             .accessibilityIdentifier("projectStoryAudio.bytes")
                         Text(text("projectStoryAudio.inspection", "Only the filename extension and measured byte count have been checked. Playback and duration have not been verified. This file has not been uploaded."))
                             .accessibilityIdentifier("projectStoryAudio.notUploaded")
-                        CYPillButton(verbatim: text("projectStoryAudio.upload", "Upload this audio file"), style: .primary) { model.upload(review) }
-                            .listRowBackground(Color.clear).disabled(!flow.canUpload(review)).accessibilityIdentifier("projectStoryAudio.upload")
-                        CYPillButton(verbatim: text("projectStoryAudio.cancelLocal", "Cancel this local selection"), style: .tertiary) { model.cancel(review) }
-                            .listRowBackground(Color.clear).disabled(flow.busy).accessibilityIdentifier("projectStoryAudio.cancelLocal")
+                        Button { model.upload(review) } label: { Text(verbatim: text("projectStoryAudio.upload", "Upload this audio file")) }
+                            .buttonStyle(.borderedProminent).controlSize(.large)
+                            .disabled(!flow.canUpload(review)).accessibilityIdentifier("projectStoryAudio.upload")
+                        Button { model.cancel(review) } label: { Text(verbatim: text("projectStoryAudio.cancelLocal", "Cancel this local selection")) }
+                            .buttonStyle(.borderless).controlSize(.large)
+                            .disabled(flow.busy).accessibilityIdentifier("projectStoryAudio.cancelLocal")
                     }
                 }
                 if flow.hasUnstoredReceipt {
                     Section {
                         Text(text("projectStoryAudio.unstored", "The upload returned a reference, but its receipt could not be saved on this device. Save that receipt before applying it. This recovery copy lasts only for the current app session."))
-                        CYPillButton(verbatim: text("projectStoryAudio.saveReceipt", "Save the received audio receipt"), style: .secondary) { model.persistReceipt() }
-                            .listRowBackground(Color.clear).disabled(!flow.canPersistReceipt).accessibilityIdentifier("projectStoryAudio.saveReceipt")
+                        Button { model.persistReceipt() } label: { Text(verbatim: text("projectStoryAudio.saveReceipt", "Save the received audio receipt")) }
+                            .buttonStyle(.bordered).controlSize(.large)
+                            .disabled(!flow.canPersistReceipt).accessibilityIdentifier("projectStoryAudio.saveReceipt")
                     }
                 }
                 if let receipt = flow.receipt {
@@ -110,8 +114,9 @@ import SwiftUI
                         Text(verbatim: receipt.reference).textSelection(.enabled).accessibilityIdentifier("projectStoryAudio.reference")
                         Text(text("projectStoryAudio.referenceScope", "This is the existing upload API's returned reference. It does not establish playback, media ownership, an immutable asset version, or release approval."))
                         if !flow.referenceFitsStory { Text(text("projectStoryAudio.referenceTooLong", "The returned reference exceeds the existing 500-character story limit. The receipt is retained and cannot be applied.")) }
-                        CYPillButton(verbatim: text("projectStoryAudio.apply", "Apply to this audio block and save locally"), style: .primary) { model.apply() }
-                            .listRowBackground(Color.clear).disabled(!flow.canApply).accessibilityIdentifier("projectStoryAudio.apply")
+                        Button { model.apply() } label: { Text(verbatim: text("projectStoryAudio.apply", "Apply to this audio block and save locally")) }
+                            .buttonStyle(.borderedProminent).controlSize(.large)
+                            .disabled(!flow.canApply).accessibilityIdentifier("projectStoryAudio.apply")
                     }
                 }
                 if flow.unresolvedUploadCount > 0 && !flow.hasUnstoredReceipt {
@@ -121,7 +126,7 @@ import SwiftUI
                 if flow.state == .localSaveFailed { Text(text("projectStoryAudio.localFailed", "Local saving did not complete. The received reference is retained. Retry applying it locally; no upload will be sent.")) }
                 if flow.state == .failed { Text(text("projectStoryAudio.failed", "The local receipt could not be verified. Existing audio references are retained.")) }
                 if flow.state == .unauthorized { Text(text("projectStoryAudio.unauthorized", "Sign in again before uploading another audio file. The unresolved attempt is retained.")) }
-                if flow.state == .uploading { CYSkeleton().accessibilityIdentifier("projectStoryAudio.uploading") }
+                if flow.state == .uploading { ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("projectStoryAudio.uploading") }
             }
             .navigationTitle(text("projectStoryAudio.title", "Story audio")).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) {

@@ -48,7 +48,7 @@ enum NativeGalleryPaint {
     static let cardRadius: CGFloat = 12
     static let heroRadius: CGFloat = 20
 
-    static var action: Color { CYColor.actionPrimaryBg }
+    static var action: Color { .accentColor }
 }
 
 enum NativeGalleryTagKind {
@@ -67,38 +67,20 @@ struct NativeGalleryTag: View {
         Text(text)
             .font(.caption)
             .foregroundStyle(foreground)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 3)
-            .background(background, in: Capsule())
     }
 
     private var foreground: Color {
         switch kind {
         case .success:
-            return CYColor.successText
+            return .green
         case .warning:
-            return CYColor.warningText
+            return .orange
         case .danger:
-            return CYColor.dangerText
+            return .red
         case .info:
-            return CYColor.infoText
+            return .secondary
         case .accent:
-            return CYColor.brand
-        }
-    }
-
-    private var background: Color {
-        switch kind {
-        case .success:
-            return CYColor.successSoft
-        case .warning:
-            return CYColor.warningSoft
-        case .danger:
-            return CYColor.dangerSoft
-        case .info:
-            return CYColor.infoSoft
-        case .accent:
-            return CYColor.brandSoft
+            return .accentColor
         }
     }
 }
@@ -171,7 +153,7 @@ struct NativeGalleryTabBar: View {
                     Text(tab.title)
                         .font(.caption)
                 }
-                .foregroundStyle(tab == selected ? CYColor.brand : Color.secondary.opacity(0.6))
+                .foregroundStyle(tab == selected ? Color.accentColor : Color.secondary)
                 .frame(maxWidth: .infinity)
                 .accessibilityLabel(tab == selected ? "当前" + tab.title : "前往" + tab.title)
             }
@@ -209,17 +191,14 @@ struct NativeGalleryHero: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(eyebrow)
                 .font(.caption)
-                .foregroundStyle(.white.opacity(0.92))
+                .foregroundStyle(.secondary)
             Text(title)
-                .font(.title2)
-                .foregroundStyle(.white)
+                .font(.title2.bold())
             Text(detail)
                 .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.92))
+                .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(NativeGalleryPaint.margin)
-        .background(Color.black.opacity(0.72), in: RoundedRectangle(cornerRadius: NativeGalleryPaint.heroRadius, style: .continuous))
     }
 }
 
@@ -227,14 +206,10 @@ struct NativeGalleryCard<Content: View>: View {
     @ViewBuilder var content: () -> Content
 
     var body: some View {
-        content()
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(NativeGalleryPaint.margin)
-            .background(.background, in: RoundedRectangle(cornerRadius: NativeGalleryPaint.cardRadius, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: NativeGalleryPaint.cardRadius, style: .continuous)
-                    .strokeBorder(Color.secondary.opacity(0.25))
-            }
+        GroupBox {
+            content()
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 }
 

@@ -15,7 +15,8 @@ class P02EditorPresentationCloseoutTests(unittest.TestCase):
         for value in ['.formStyle(.grouped)', '.environment(\\.defaultMinListRowHeight, 44)', '.scrollDismissesKeyboard(.interactively)']: self.assertIn(value, source)
         for value in ['@State', 'Task', 'onAppear', 'onDisappear', 'session', 'coordinator', '.disabled', '.task', '.id(']: self.assertNotIn(value, source)
     def testVisibleFieldLabelDoesNotReplaceInputAccessibility(self):
-        self.contains('ProjectEditView', ['struct ProjectEditorField<Content: View>: View', 'Text(title).cyText(.label).foregroundStyle(.secondary).accessibilityHidden(true)', 'self.title = title; self.content = content()'])
+        # native r2: .cyText(.label) became the system .subheadline text style; the label stays accessibilityHidden.
+        self.contains('ProjectEditView', ['struct ProjectEditorField<Content: View>: View', 'Text(title).font(.subheadline).foregroundStyle(.secondary).accessibilityHidden(true)', 'self.title = title; self.content = content()'])
         self.contains('ProjectEditNodeDescriptionField', ['TextField("projectEdit.description", text: buffer.binding, axis: .vertical)', '.accessibilityIdentifier("projectEdit.nodeDescription")', '.disabled(source.target == nil)'])
     def testDescriptionBufferRetainsStaleWriteProtection(self):
         self.contains('ProjectEditNodeDescriptionField', ['guard active, capturedRevision == revision, let target, source.target == target else { return }', 'guard Data(current.description.utf8) == acknowledgedBytes else { synchronize(); return }', 'source.node.wrappedValue = current', '.onChange(of: source.snapshot) { _, _ in buffer.synchronize() }', '.onDisappear { buffer.invalidate() }'])

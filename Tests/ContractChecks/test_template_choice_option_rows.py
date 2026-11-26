@@ -45,7 +45,8 @@ class ChoiceOptionRowsContracts(unittest.TestCase):
         for token in ["templateChoiceRows.add", "templateChoiceRows.remove.", "templateChoiceRows.correctAnswer",
                       "templateAuthor.optionMedia.", "templateAuthor.optionMedia.unsupported", "templateAuthor.optionMedia.limit",
                       "editor.rows.canRemove ? [.moveUp, .moveDown, .delete]", ".disabled(!editor.rows.canAdd)",
-                      ".move(from: from, to: to)", "undoCenter.recordDelete("]:
+                      # native r2: EditorDragReorderStack became ForEach.onMove; same toOffset move action
+                      ".move(from: from, to: destination)", ".onMove { source, destination in", "undoCenter.recordDelete("]:
             self.assertIn(token, app)
 
     def test_fragments_are_bilingual_and_register_only_this_feature(self):
