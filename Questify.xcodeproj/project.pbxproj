@@ -10795,6 +10795,86 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "FABCEFB4B294DBD3FFD196ED";
 		};
+		"8C0B2AA9B8EF4BB82A5AECCD" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Games/NativeGameAnswerKits.swift";
+			"sourceTree" = "<group>";
+		};
+		"3F1359216AE6A25B6FF31C88" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "8C0B2AA9B8EF4BB82A5AECCD";
+		};
+		"3BB812B04D646ABB5F3A6DB3" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Games/NativeGameHintSheet.swift";
+			"sourceTree" = "<group>";
+		};
+		"32454C197C1672BA7AF4250A" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "3BB812B04D646ABB5F3A6DB3";
+		};
+		"419981C3CBC029727EE42B34" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Games/NativeGameScreenHost.swift";
+			"sourceTree" = "<group>";
+		};
+		"E74B456D037631F2BE2AC0BF" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "419981C3CBC029727EE42B34";
+		};
+		"8EF9FBB811A33D0FFC1A1149" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Games/NativeGameSensorKit.swift";
+			"sourceTree" = "<group>";
+		};
+		"50562191CAAD0F54CA9E01AD" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "8EF9FBB811A33D0FFC1A1149";
+		};
+		"4BF1EE390EE1D21F9492BCC8" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Games/NativeGameShell.swift";
+			"sourceTree" = "<group>";
+		};
+		"2BB396A9D4683579D2A19508" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "4BF1EE390EE1D21F9492BCC8";
+		};
+		"DA8DEAC1757481F6DAE5CC16" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Games/NativeGameSortKits.swift";
+			"sourceTree" = "<group>";
+		};
+		"22105FC844392793327655B0" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "DA8DEAC1757481F6DAE5CC16";
+		};
+		"A03F462C05B448347C5C3B2C" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Games/NativeGameTimedKit.swift";
+			"sourceTree" = "<group>";
+		};
+		"801DDD7335D24C2910A1AB15" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "A03F462C05B448347C5C3B2C";
+		};
+		"BDC6CD51FA235EE09E370A32" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/NativeR2Flags.swift";
+			"sourceTree" = "<group>";
+		};
+		"A084FAC08BD3FF990F58B005" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "BDC6CD51FA235EE09E370A32";
+		};
 		"A5316E1A4FB27D678BF2F83D" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -43013,6 +43093,14 @@
 				"689461CCAFD3020D26140D70",
 				"72A08032098E549642A67C65",
 				"FABCEFB4B294DBD3FFD196ED",
+				"8C0B2AA9B8EF4BB82A5AECCD",
+				"3BB812B04D646ABB5F3A6DB3",
+				"419981C3CBC029727EE42B34",
+				"8EF9FBB811A33D0FFC1A1149",
+				"4BF1EE390EE1D21F9492BCC8",
+				"DA8DEAC1757481F6DAE5CC16",
+				"A03F462C05B448347C5C3B2C",
+				"BDC6CD51FA235EE09E370A32",
 				"A5316E1A4FB27D678BF2F83D",
 				"7F8C1C1E521704422D161288",
 				"69947A92192A5150B3DFF1CF",
@@ -48388,6 +48476,14 @@
 				"EB976E99D93A2EEFCF838707",
 				"775A9C4564EF84DFF96D7731",
 				"A85668FB109326CBF51DB01F",
+				"3F1359216AE6A25B6FF31C88",
+				"32454C197C1672BA7AF4250A",
+				"E74B456D037631F2BE2AC0BF",
+				"50562191CAAD0F54CA9E01AD",
+				"2BB396A9D4683579D2A19508",
+				"22105FC844392793327655B0",
+				"801DDD7335D24C2910A1AB15",
+				"A084FAC08BD3FF990F58B005",
 				"A0205E36AD20F9B390C5FAC6",
 				"71BB3EB413E2963E15FFB3CC",
 				"FCC527F2744C4902CD1E8DD1",

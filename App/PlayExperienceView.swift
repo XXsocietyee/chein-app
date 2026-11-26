@@ -922,6 +922,9 @@ import MapKit
         let context = model.interactionContext
         nodeWithConfirms(context: context)
             .environment(\.playGameStage, gameStage)
+            // Native r2 games: the kit shell shows the same ladder from its toolbar hint button.
+            .environment(\.nativeGameHelp, helpEnabled ? help.map { NativeGameHelpContext(model: $0, teamPool: teamPool, approvedArtworkHosts: approvedArtworkHosts,
+                onPoolTrimmed: { Task { await advanced?.refreshAuthoritative() } }) } : nil)
             // Design hand-off r1 PL-15: the hint ladder is a resizable sheet over the play screen.
             .sheet(isPresented: Binding(get: { showHelpPanel && helpEnabled }, set: { if !$0 { showHelpPanel = false } })) {
                 if let help {
