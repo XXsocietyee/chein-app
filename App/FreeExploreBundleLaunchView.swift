@@ -224,7 +224,7 @@ import SwiftUI
                 ForEach(bundle.reservations, id: \.id) { reservation in
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         // MP `{shopName || chapterName || 预约} · {statusText}`.
-                        CYListRow(verbatim: "\(reservationHeading(reservation, bundle: bundle)) · \(Self.statusString(reservation.status))", meta: reservation.startAt, trailing: .none) { CYRowIcon(systemImage: "calendar.badge.checkmark") }
+                        CYListRow(verbatim: "\(reservationHeading(reservation, bundle: bundle)) · \(Self.statusString(reservation.status))", meta: Self.startAtText(reservation.startAt, locale: locale), trailing: .none) { CYRowIcon(systemImage: "calendar.badge.checkmark") }
                             .accessibilityIdentifier("freeBundle.reservation.\(reservation.id.text)")
                         // BOOKED only. The labels are the MP copy; this round does not send a cancel.
                         if reservation.canCancel {
@@ -325,6 +325,16 @@ import SwiftUI
     /// MP `free-explore-bundle.js` STATES (units and reservations share one table). Unknown is an em dash.
     private static let knownStatuses: Set<String> = ["AVAILABLE", "RESERVED", "REDEEMED", "FORFEITED", "HELD", "REFUND_PENDING",
         "REFUNDED", "BOOKED", "CANCELLED", "WAIVED", "LATE_CANCELLED", "NO_SHOW", "FULFILLED", "MERCHANT_EXITED"]
+    /// MKT-7-3: MP free-explore-bundle.js:20 shows `String(row.startAt)`. Epoch milliseconds become a China-time
+    /// date and time; any other text stays as the server sent it.
+    static func startAtText(_ raw: String, locale: Locale) -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, trimmed.allSatisfy(\.isASCII), trimmed.allSatisfy(\.isNumber),
+              let millis = Int64(trimmed), millis > 0 else { return trimmed.isEmpty ? "—" : trimmed }
+        var style = Date.FormatStyle(date: .abbreviated, time: .shortened).locale(locale)
+        if let zone = TimeZone(identifier: "Asia/Shanghai") { style.timeZone = zone }
+        return Date(timeIntervalSince1970: Double(millis) / 1_000).formatted(style)
+    }
     static func statusString(_ raw: String) -> String {
         knownStatuses.contains(raw) ? String(localized: String.LocalizationValue("freeBundle.status." + raw)) : "—"
     }
