@@ -5,6 +5,7 @@ import ActivityKit
 
 /// Display-only Live Activity values shared by the app and the `QuestifyLiveActivity` widget extension.
 /// This file is compiled into both targets; it holds no account, token, coordinate or server identifier.
+/// Design P1 L9: widget / Live Activity links (`QuestWidgetLinks`) and the next-stop widget store live here too.
 /// `story` (native r2 M4): story audio playing; started by the app's `QuestLiveActivityCenter`, never by Core mapping.
 public enum QuestLiveActivityKind: String, Codable, Hashable, Sendable { case roam, play, story }
 /// Which play flow a `.play` activity belongs to (native r2 M4). Nil keeps the original play layout.
@@ -68,10 +69,104 @@ public enum QuestLiveActivityText {
         func two(_ value: Int) -> String { value < 10 ? "0\(value)" : "\(value)" }
         return h > 0 ? "\(h):\(two(m)):\(two(s))" : "\(two(m)):\(two(s))"
     }
+    /// `ProgressView(value:total:)` values (G-088): nil unless both sides are known and the total is positive.
+    public static func progress(_ done: Int?, _ total: Int?) -> (value: Double, total: Double)? {
+        guard let done, let total, total > 0 else { return nil }
+        return (Double(min(max(done, 0), total)), Double(total))
+    }
     /// `2/5`, or an em dash when either side is unknown.
     public static func fraction(_ done: Int?, _ total: Int?) -> String {
         guard let done, let total, total > 0 else { return "—" }
         return "\(min(done, total))/\(total)"
+    }
+}
+
+/// P-017 / G-087: links a widget or Live Activity hands to the app (`widgetURL` / `Link`). They reuse the app's existing
+/// `chein://` intake (`CheinDeepLink`, `chein://mp/<reviewed page>`), so opening one starts, claims or pays nothing.
+public enum QuestWidgetLinks {
+    /// Roam tab (`CheinDeepLink.roamGo`): the walk itself still starts from the roam screen.
+    public static let roam = URL(string: "chein://roam/go")!
+    /// City passport / stamp album (`subpackageP3/pages/stamp-album/index/index`).
+    public static let passport = URL(string: "chein://mp/subpackageP3/pages/stamp-album/index/index")!
+    /// The stories I joined (`subpackageMember/mycanyu/mycanyu`), where 继续故事 picks up.
+    public static let stories = URL(string: "chein://mp/subpackageMember/mycanyu/mycanyu")!
+
+    /// Live Activity tap target. Roam opens its tab; a play run or story audio opens the app where it already is
+    /// (nil), so a tap never pushes a second run or reader over the live one.
+    public static func liveActivity(_ kind: QuestLiveActivityKind) -> URL? {
+        switch kind {
+        case .roam: return roam
+        case .play, .story: return nil
+        }
+    }
+}
+
+/// Next-stop widget values (P-016 / G-089). Display only, like `QuestLiveActivityContent`: no account, token,
+/// coordinate or server identifier. Written by the app's `QuestLiveActivityCenter` when the play stop changes.
+public struct QuestNextStopSnapshot: Codable, Hashable, Sendable {
+    /// After this long without an update the widget falls back to the passport entry.
+    public static let lifetime: TimeInterval = 12 * 60 * 60
+    public var title: String?
+    public var stopName: String
+    public var stopIndex: Int?
+    public var stopCount: Int?
+    public var mode: QuestLiveActivityMode?
+    public var updatedAt: Date
+    public init(title: String?, stopName: String, stopIndex: Int?, stopCount: Int?, mode: QuestLiveActivityMode?, updatedAt: Date) {
+        self.title = title; self.stopName = stopName; self.stopIndex = stopIndex; self.stopCount = stopCount
+        self.mode = mode; self.updatedAt = updatedAt
+    }
+    /// Nil when the play content names no stop (nothing to show beyond the passport entry).
+    public init?(title: String?, content: QuestLiveActivityContent, now: Date) {
+        guard let name = content.stopName?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else { return nil }
+        self.init(title: title, stopName: name, stopIndex: content.stopIndex, stopCount: content.stopCount,
+                  mode: content.mode, updatedAt: now)
+    }
+    public var expiresAt: Date { updatedAt.addingTimeInterval(Self.lifetime) }
+    /// Same visible values (the time stamp alone does not justify a widget reload).
+    public func showsSame(as other: QuestNextStopSnapshot?) -> Bool {
+        guard let other else { return false }
+        return title == other.title && stopName == other.stopName && stopIndex == other.stopIndex
+            && stopCount == other.stopCount && mode == other.mode
+    }
+}
+
+/// App Group storage shared by the app and the widget extension. Dormant until both targets carry the
+/// `group.<app bundle id>` App Group entitlement: without it there is no shared container, reads return nil
+/// and writes are skipped, so the widget shows its passport / roam entry only.
+public enum QuestWidgetStore {
+    public static let nextStopKind = "QuestNextStopWidget"
+    static let snapshotKey = "questWidget.nextStop"
+    static let extensionSuffix = ".LiveActivity"
+
+    /// `group.<app bundle id>`; the widget extension's bundle id is the app's plus `.LiveActivity`.
+    public static func appGroupIdentifier(bundleIdentifier: String?) -> String? {
+        guard var id = bundleIdentifier, !id.isEmpty else { return nil }
+        if id.hasSuffix(extensionSuffix) { id.removeLast(extensionSuffix.count) }
+        return id.isEmpty ? nil : "group." + id
+    }
+
+    static func sharedDefaults() -> UserDefaults? {
+        guard let group = appGroupIdentifier(bundleIdentifier: Bundle.main.bundleIdentifier),
+              FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group) != nil else { return nil }
+        return UserDefaults(suiteName: group)
+    }
+
+    /// The stored snapshot while it is younger than `QuestNextStopSnapshot.lifetime`.
+    public static func read(now: Date = Date()) -> QuestNextStopSnapshot? {
+        guard let data = sharedDefaults()?.data(forKey: snapshotKey),
+              let snapshot = try? JSONDecoder().decode(QuestNextStopSnapshot.self, from: data),
+              snapshot.expiresAt > now else { return nil }
+        return snapshot
+    }
+
+    /// Stores (or with nil removes) the snapshot. False when there is no shared container, so the caller skips the reload.
+    @discardableResult
+    public static func write(_ snapshot: QuestNextStopSnapshot?) -> Bool {
+        guard let defaults = sharedDefaults() else { return false }
+        if let snapshot, let data = try? JSONEncoder().encode(snapshot) { defaults.set(data, forKey: snapshotKey) }
+        else { defaults.removeObject(forKey: snapshotKey) }
+        return true
     }
 }
 

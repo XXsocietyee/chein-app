@@ -15484,6 +15484,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "EB6C2AB0E225E43EFDD202D9";
 		};
+		"500C646E7399E2CD937954E8" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/QuestAppIntents.swift";
+			"sourceTree" = "<group>";
+		};
+		"B7F9A4B3994F26DCEEFFA019" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "500C646E7399E2CD937954E8";
+		};
 		"BE0D611936384AA93E9AE75F" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -40174,6 +40184,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "1880397D050B2FB4D90D73F1";
 		};
+		"F8B32152987AAB266B970E32" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "text.json.xcstrings";
+			"path" = "Resources/AppShortcuts.xcstrings";
+			"sourceTree" = "<group>";
+		};
+		"5E968AE754DA95242DDAEA13" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "F8B32152987AAB266B970E32";
+		};
 		"4441BE5EC0A6E31E88913D0E" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "text.json.xcstrings";
@@ -43981,6 +44001,7 @@
 				"27B87813C59E66C86CF14A5E",
 				"9C04873D1880EE49594D568C",
 				"EB6C2AB0E225E43EFDD202D9",
+				"500C646E7399E2CD937954E8",
 				"BE0D611936384AA93E9AE75F",
 				"44FF6526D3EDDFF8AA848DB9",
 				"4ADD2A35809AACF3F412FADE",
@@ -46450,6 +46471,7 @@
 				"408C18E065048627251AE62B",
 				"697AC8625DEE54E35CA51AFE",
 				"1880397D050B2FB4D90D73F1",
+				"F8B32152987AAB266B970E32",
 				"4441BE5EC0A6E31E88913D0E",
 				"1EACC424F15BF4E149CF12AD",
 				"BC2C43FAEDE5DE1A3A3EBB7F",
@@ -46678,6 +46700,7 @@
 				"CC88D95D0636B7861B729139",
 				"365F73A970B565579A7AD1D5",
 				"FEB51C522DB0B5900B078EBC",
+				"933AD57564F3676A9676415D",
 				"1B7C150D2B71A8D73F2D7F12",
 				"17E1B96C2D43835A76DA0F1A",
 				"0FAFE13FB6F4DC3FA7CAFE4A",
@@ -49406,6 +49429,7 @@
 				"D54B6B4C7509FAEB3D6A593C",
 				"44543C0F0C32BA5A9A055CBF",
 				"E9E52DB5D157D1C0B67EC108",
+				"B7F9A4B3994F26DCEEFFA019",
 				"1EDACA2004C250D72F8451D5",
 				"D5A32CFBA3E396C0AED0C327",
 				"5DBB3F82CC036FDFA4619A5F",
@@ -51882,6 +51906,7 @@
 				"0CCFB92ADB905D6D9DF89428",
 				"448A3273DC90E3E04A6FD2F3",
 				"D2311AE62A7D54F69494E9A7",
+				"5E968AE754DA95242DDAEA13",
 				"AF9A68A843F0ECE1D525E936",
 				"3054BAEF984209DAAA6592F0",
 				"263C4A04CF519756DC540292",
@@ -52197,6 +52222,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "FEB51C522DB0B5900B078EBC";
 		};
+		"933AD57564F3676A9676415D" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "LiveActivityWidget/QuestNextStopWidget.swift";
+			"sourceTree" = "<group>";
+		};
+		"E8CE74022D92C78D95FE726F" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "933AD57564F3676A9676415D";
+		};
 		"1B7C150D2B71A8D73F2D7F12" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "text.json.xcstrings";
@@ -52271,6 +52306,7 @@
 				"DB4E47649D9AEAD98A31279D",
 				"49F85B27D9500C7E5C7B71DA",
 				"2FCB788F4335268BC74809ED",
+				"E8CE74022D92C78D95FE726F",
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
