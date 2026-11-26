@@ -110,6 +110,11 @@ import SwiftUI
                 }
                 Section(text("publisherPricing.yourFinalPrice")) {
                     TextField(text("publisherPricing.finalPrice"), text: $price).keyboardType(.decimalPad).accessibilityIdentifier("publisher.finalPrice")
+                    // R11-PC-B-2: MP selfPriceError under the final price (pages/topic/pricing/index.wxml:69; index.js:169), 无人带 only.
+                    if let error = selfPriceErrorText(preview) {
+                        Text(verbatim: error).font(.footnote).foregroundStyle(.red)
+                            .accessibilityIdentifier("publisher.selfPriceError")
+                    }
                     let floorValue = TopicPricingXcx.initialPrice(floor: preview.minimum)
                     let maximum = TopicPricingXcx.sliderMax(floor: preview.minimum, reference: preview.reference)
                     Slider(value: Binding(get: { Double(price) ?? Double(floorValue) }, set: { price = String(Int($0.rounded())) }),
@@ -130,9 +135,17 @@ import SwiftUI
                     case .notAbove?: Text(text("publisherPricing.notAboveTheLocalReferencePrice")).font(.footnote).foregroundStyle(.secondary)
                     case nil: EmptyView()
                     }
+                    // R7-PC-B4-3: MP 平台服务费 / 预计到手 under the single final (pages/topic/pricing/index.wxml:70-73, index.js:375-385).
+                    if ticketFields.count <= 1, let texts = TopicPricingXcx.feeTexts(price: Decimal(string: price) ?? 0, rate: preview.platformRate) {
+                        LabeledContent("topicPricing.platformFee") { Text(verbatim: texts.fee).monospacedDigit() }
+                            .accessibilityIdentifier("publisher.platformFee")
+                        LabeledContent("topicPricing.takeHome") { Text(verbatim: texts.takeHome).monospacedDigit() }
+                            .accessibilityIdentifier("publisher.takeHome")
+                    }
                 }
                 // R7-PC-B4-3: MP 开售状态 and 结算待处理 cards (pages/topic/pricing/index.wxml:79-86) before 合作阵容.
-                TopicPricingGapSection(ticketFields: $ticketFields, extraStatus: pricingExtra, canConfirmPricing: showsConfirm)
+                TopicPricingGapSection(ticketFields: $ticketFields, extraStatus: pricingExtra, canConfirmPricing: showsConfirm,
+                                       platformRate: preview.platformRate, minimum: preview.minimum)
                 if !preview.lineup.isEmpty {
                     Section {
                         ForEach(preview.lineup) { row in
@@ -156,14 +169,23 @@ import SwiftUI
                     }
                 }
                 Section {
-                    if preview.canConfirm == false {
-                        Text("publisherPricing.phaseBlockedDetail").font(.footnote).foregroundStyle(.orange)
-                            .accessibilityIdentifier("publisher.phaseBlocked")
+                    // R11-PC-B-2: MP index.wxml:104-105: priced → saleStatusText ?? 终价已确认; else a blocked free explore shows confirmBlockReason.
+                    if preview.priced == true {
+                        if let sale = pricingExtra.saleStatusText { Text(verbatim: sale).font(.footnote).foregroundStyle(.secondary) }
+                        else { Text("publisherPricing.priceConfirmed").font(.footnote).foregroundStyle(.secondary) }
+                    } else if preview.canConfirm == false {
+                        if preview.productType == 2 {
+                            Text(verbatim: preview.confirmBlockReason ?? text("publisherPricing.notInPricingPhase")).font(.footnote).foregroundStyle(.orange)
+                                .accessibilityIdentifier("publisher.phaseBlocked")
+                        } else {
+                            Text("publisherPricing.phaseBlockedDetail").font(.footnote).foregroundStyle(.orange)
+                                .accessibilityIdentifier("publisher.phaseBlocked")
+                        }
                     }
                     if showsConfirm {
                         Button { beginPrepare() } label: { Text(verbatim: text("publisherPricing.confirmFinalPriceAndSubmitFor")).frame(maxWidth: .infinity) }
                             .buttonStyle(.borderedProminent).controlSize(.large)
-                            .disabled(busy || preview.canConfirm == false).accessibilityIdentifier("publisher.reviewPrice")
+                            .disabled(busy || preview.canConfirm == false || selfPriceErrorText(preview) != nil).accessibilityIdentifier("publisher.reviewPrice")
                     } else {
                         // R7-PC-B4-1: the session issues the pricing grant; without one (no runtime config) the page is read-only — say so.
                         Text("publisherPricing.confirmNotOpen").font(.footnote).foregroundStyle(.secondary)
@@ -223,6 +245,10 @@ import SwiftUI
         case .traffic: return text("publisherPricing.referral")
         }
     }
+    /// MP index.js:169: `selfPriceError` only applies on 无人带 (subType self).
+    private func selfPriceErrorText(_ preview: PublisherPricingPreview) -> String? {
+        subtype == .selfPlay ? preview.selfPriceError : nil
+    }
     private var isChinese: Bool { locale.language.languageCode?.identifier == "zh" }
     private func input() throws -> PublisherPricingInput {
         try .init(topicID: topicID, subtype: subtype, leadCost: Decimal(string: cost), teamSize: Int(team), scope: pricingScope,
@@ -233,10 +259,13 @@ import SwiftUI
         try .init(topicID: topicID, subtype: subtype, leadCost: Decimal(string: cost), teamSize: Int(team), scope: pricingScope)
     }
     /// R7-PC-B4-3: MP confirmPrice sends `ticketPrices` only when the page lists more than one ticket.
+    /// MP ticketPriceError (index.js:478-484): a ticket below the floor blocks confirm; the row shows 不能低于最低价 ¥X.
     private func ticketPriceRows() throws -> [PublisherTicketPrice] {
         guard ticketFields.count > 1 else { return [] }
+        let floor = preview?.minimum
         return try ticketFields.map { field in
             guard let value = Decimal(string: field.priceText.trimmingCharacters(in: .whitespaces)) else { throw PublisherLifecycleError.incomplete }
+            if let floor, value < floor { throw PublisherLifecycleError.incomplete }
             return try PublisherTicketPrice(ticketID: field.id, price: value)
         }
     }
@@ -277,8 +306,15 @@ import SwiftUI
                 let value = try await client.pricing(capturedInput)
                 guard isCurrent(stamp, session, key), !Task.isCancelled else { return }
                 busy = false; preview = value; loadFailed = false; resultSession = session
-                price = String(TopicPricingXcx.initialPrice(floor: value.minimum))
-                ticketFields = value.tickets.count > 1 ? value.tickets.map { ticket in
+                // R11-PC-B-2 (MP index.js:146-149): start from the saved currentPrice when it is at or above the floor.
+                let floorStart = TopicPricingXcx.initialPrice(floor: value.minimum)
+                if let current = value.currentPrice, current >= Decimal(floorStart) {
+                    price = NSDecimalNumber(decimal: current).stringValue
+                } else {
+                    price = String(floorStart)
+                }
+                // MP ticketRows (index.js:469-476): per-ticket finals only on 有人带 (guided).
+                ticketFields = capturedInput.subtype == .guided && value.tickets.count > 1 ? value.tickets.map { ticket in
                     TopicPricingPerTicketField(id: ticket.id, ticketName: ticket.name,
                                                priceText: ticket.price.map { TopicPricingXcx.moneyText(decimal: $0) } ?? price)
                 } : []

@@ -20,6 +20,8 @@ struct RegistrationSheetView: View {
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.offlineWriteSession) private var offlineWriteSession
+    /// R11-PC-C-3: marketing-consent opt-in after a successful create (MP baoming.wxml:345-351).
+    @Environment(\.marketingConsentService) private var marketingConsentService
     @StateObject private var model: RegistrationSheetModel
     @FocusState private var focusedField: Field?
     @State private var showingConfirmation = false
@@ -263,6 +265,10 @@ struct RegistrationSheetView: View {
                     orderReader.identity?.accountID != destination.identity.accountID ||
                     orderReader.identity?.epoch != destination.identity.epoch)
                 .accessibilityIdentifier("registration.result.openOrder")
+                // R11-PC-C-3: MP baoming.js:1300-1368 loads the offer whose owner is the activity host, off by default.
+                if let marketingConsentService {
+                    MarketingConsentOfferRow(ownerMemberID: flow.activity.hostMemberID, makeService: marketingConsentService)
+                }
                 if PlayAreaPopupCopy.paymentsOpen {
                     Button {
                         showingPaymentPending = true

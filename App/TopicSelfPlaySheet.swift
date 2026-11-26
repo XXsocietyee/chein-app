@@ -13,9 +13,13 @@ private enum TopicRevealDestination: Hashable, Identifiable { case wallet, play;
     var tickets: (() -> AnyView)? = nil
     /// R7-PC-B1-12: 开始游戏 on the pass reveal (MP onRevealPlay → pages/play).
     var play: (() -> AnyView)? = nil
+    /// R7-PC-B1-12: marketing-consent reads / opt-in (MP pages/topic/index/index.js:2083-2139). Nil hides the row.
+    var consentService: (@MainActor () -> PlayerContentRound4Service?)? = nil
     @State private var revealDestination: TopicRevealDestination?
-    init(flow: TopicSelfPlayFlow, orders: (() -> AnyView)? = nil, tickets: (() -> AnyView)? = nil, play: (() -> AnyView)? = nil) {
+    init(flow: TopicSelfPlayFlow, orders: (() -> AnyView)? = nil, tickets: (() -> AnyView)? = nil, play: (() -> AnyView)? = nil,
+         consentService: (@MainActor () -> PlayerContentRound4Service?)? = nil) {
         _model = StateObject(wrappedValue: TopicSelfPlayModel(flow)); self.orders = orders; self.tickets = tickets; self.play = play
+        self.consentService = consentService
     }
     var body: some View {
         NavigationStack {
@@ -27,6 +31,10 @@ private enum TopicRevealDestination: Hashable, Identifiable { case wallet, play;
                             onWallet: { if tickets != nil { revealDestination = .wallet } },
                             onPlay: { if play != nil { revealDestination = .play } else if tickets != nil { revealDestination = .wallet } })
                             .listRowInsets(EdgeInsets())
+                        // R7-PC-B1-12: after the reveal shows, offer the topic owner's merchant opt-in (owner = topic.memberId).
+                        if let consentService {
+                            MarketingConsentOfferRow(ownerMemberID: model.flow.topic.ownerMemberID, makeService: consentService)
+                        }
                     }
                 }
                 // Mini-program self-play-checkout order: 1 theme head, pass coverage, 2 single purchase,

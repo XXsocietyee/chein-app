@@ -362,6 +362,16 @@ struct TopicDetailView: View {
                     Label { VStack(alignment: .leading, spacing: CYSpacing.xxs) { Text(verbatim: venue.name); if let address = venue.address { Text(verbatim: address).font(.subheadline).foregroundStyle(.secondary) } } } icon: { Image(systemName: "mappin.circle.fill").foregroundStyle(.tint) }
                 }
                 if let audio = value.audioURL, !audio.isEmpty { PlatformAudioHost(rawURL: audio, scope: reader.scope, makeModel: makeAudio) }
+                // R7-PC-B1-6: free explore lists 参与商家 · N 家 in 详情 (MP pages/topic/index/index.wxml:190-192, merchantCards).
+                if value.productType == 2 {
+                    let shops = TopicFreeExploreMerchantCard.cards(fromChapters: value.chapters).count
+                    if shops > 0 {
+                        LabeledContent {
+                            Text("topicXcx.merchantsCount \(shops)").monospacedDigit()
+                        } label: { Text("topicRoute.merchants.title") }
+                            .accessibilityIdentifier("topic.detail.merchants")
+                    }
+                }
             }.id(TopicXcxTab.details.anchor)
             if let cast = value.castConfig, !cast.cast.isEmpty {
                 Section("topic.cast") { TopicCastRow(config: cast) }

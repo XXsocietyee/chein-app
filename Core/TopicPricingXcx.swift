@@ -86,6 +86,24 @@ public enum TopicPricingXcx {
     /// Existing confirm contract. The host grant stays off; this does not enable it.
     public static let confirmRoute = "/api/topic/pricing/confirm"
 
+    /// R7-PC-B4-3: MP `ticketFee` (pages/topic/pricing/index.js:489-495). Platform fee rounded to 0.01,
+    /// take-home = price − fee, percent = round(rate×10000)/100. Nil without a rate or a positive price.
+    public static func fee(price: Decimal, rate: Decimal?) -> (fee: Decimal, takeHome: Decimal, percent: Decimal)? {
+        guard let rate, !rate.isNaN, !price.isNaN, price > 0 else { return nil }
+        var rawFee = price * rate, fee = Decimal()
+        NSDecimalRound(&fee, &rawFee, 2, .plain)
+        var rawBasis = rate * 10000, basis = Decimal()
+        NSDecimalRound(&basis, &rawBasis, 0, .plain)
+        return (fee, price - fee, basis / 100)
+    }
+
+    /// R7-PC-B4-3: MP 平台服务费 text `¥fee（pct%）` and 预计到手 `¥takeHome` (index.js:494).
+    public static func feeTexts(price: Decimal, rate: Decimal?) -> (fee: String, takeHome: String)? {
+        guard let value = fee(price: price, rate: rate) else { return nil }
+        let percent = NSDecimalNumber(decimal: value.percent).stringValue
+        return ("¥" + moneyText(decimal: value.fee) + "（" + percent + "%）", "¥" + moneyText(decimal: value.takeHome))
+    }
+
     /// Two-decimal money, or an em dash. A literal zero stays `"0.00"`.
     public static func moneyText(_ raw: String?) -> String {
         let trimmed = raw?.trimmingCharacters(in: .whitespacesAndNewlines)

@@ -67,15 +67,23 @@ public struct TopicPricingGapSection: View {
     @Binding public var ticketFields: [TopicPricingPerTicketField]
     public let extraStatus: TopicPricingExtraStatus
     public let canConfirmPricing: Bool
+    /// R7-PC-B4-3: preview `platformRate` and floor, for per-ticket 平台服务费 / 预计到手 and 不能低于最低价
+    /// (MP pages/topic/pricing/index.wxml:45-56, index.js:478-495).
+    public let platformRate: Decimal?
+    public let minimum: Decimal?
 
     public init(
         ticketFields: Binding<[TopicPricingPerTicketField]>,
         extraStatus: TopicPricingExtraStatus,
-        canConfirmPricing: Bool = false
+        canConfirmPricing: Bool = false,
+        platformRate: Decimal? = nil,
+        minimum: Decimal? = nil
     ) {
         self._ticketFields = ticketFields
         self.extraStatus = extraStatus
         self.canConfirmPricing = canConfirmPricing
+        self.platformRate = platformRate
+        self.minimum = minimum
     }
 
     public var body: some View {
@@ -83,21 +91,12 @@ public struct TopicPricingGapSection: View {
             if !ticketFields.isEmpty {
                 Section("topicPricing.perTicket.title") {
                     ForEach($ticketFields) { $field in
-                        HStack {
-                            Text(field.ticketName)
-                                .cyText(.bodyCompact)
-                            Spacer()
-                            TextField("0", text: $field.priceText)
-                                .keyboardType(.decimalPad)
-                                .multilineTextAlignment(.trailing)
-                                .cyText(.numericBody, monospacedDigit: true)
-                                .disabled(!canConfirmPricing)
-                        }
+                        ticketRow($field)
                     }
                 }
             }
 
-            if extraStatus.saleStatusText != nil || extraStatus.settlementPendingText != nil || extraStatus.platformFeeRatePercent != nil {
+            if extraStatus.saleStatusText != nil || extraStatus.settlementPendingText != nil {
                 Section("topicPricing.extra.title") {
                     if let sale = extraStatus.saleStatusText {
                         LabeledContent("topicPricing.saleStatus", value: sale)
@@ -107,12 +106,33 @@ public struct TopicPricingGapSection: View {
                         LabeledContent("topicPricing.settlementPending", value: pending)
                             .cyText(.bodyCompact)
                     }
-                    if let fee = extraStatus.platformFeeRatePercent {
-                        LabeledContent("topicPricing.feeRate", value: String(format: "%.1f%%", fee))
-                            .cyText(.numericBody, monospacedDigit: true)
-                    }
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private func ticketRow(_ field: Binding<TopicPricingPerTicketField>) -> some View {
+        let value = Decimal(string: field.wrappedValue.priceText.trimmingCharacters(in: .whitespaces))
+        HStack {
+            Text(field.wrappedValue.ticketName)
+                .cyText(.bodyCompact)
+            Spacer()
+            TextField("0", text: field.priceText)
+                .keyboardType(.decimalPad)
+                .multilineTextAlignment(.trailing)
+                .cyText(.numericBody, monospacedDigit: true)
+                .disabled(!canConfirmPricing)
+        }
+        // MP ticketPriceError (index.js:478-484): 不能低于最低价 ¥X under the ticket.
+        if let minimum, let value, value < minimum {
+            Text("topicPricing.belowFloor \(TopicPricingXcx.moneyText(decimal: minimum))")
+                .font(.footnote)
+                .foregroundStyle(.red)
+        }
+        if let value, let texts = TopicPricingXcx.feeTexts(price: value, rate: platformRate) {
+            LabeledContent("topicPricing.platformFee") { Text(verbatim: texts.fee).monospacedDigit() }
+            LabeledContent("topicPricing.takeHome") { Text(verbatim: texts.takeHome).monospacedDigit() }
         }
     }
 }

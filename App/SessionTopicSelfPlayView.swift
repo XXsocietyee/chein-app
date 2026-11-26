@@ -9,7 +9,8 @@ import SwiftUI
             TopicSelfPlaySheet(flow: flow,
                 orders: { AnyView(ProfileOrdersView(reader: session.profileReader, lifecycleCoordinator: session.orderLifecycleCoordinator)) },
                 tickets: { AnyView(SessionTicketWalletHost(isPushed: true, focusTopicID: topic.id).environmentObject(session)) },
-                play: { AnyView(SessionPlayRuntimeView(session: session, destination: .journey(.topic(topic.id)))) })
+                play: { AnyView(SessionPlayRuntimeView(session: session, destination: .journey(.topic(topic.id)))) },
+                consentService: { session.makeMarketingConsentService() })
                 .id(session.sessionRevision)
                 .onAppear {
                     flow.ticketAttribution = ticketSource?.topicID == topic.id ? ticketSource : nil

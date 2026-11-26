@@ -245,13 +245,19 @@ public struct TopicFreeExploreMerchantCard: Identifiable, Equatable, Sendable {
     public let address: String?
     public let perkTitle: String?
     public let coverURL: String?
+    /// R7-PC-B1-6: owner member id (opens the public merchant home) and `mmsMerchant.id` (catalog overlay key). 0 when unknown.
+    public let memberID: Int
+    public let merchantID: Int
 
-    public init(id: Int, merchantName: String, address: String?, perkTitle: String?, coverURL: String?) {
+    public init(id: Int, merchantName: String, address: String?, perkTitle: String?, coverURL: String?,
+                memberID: Int = 0, merchantID: Int = 0) {
         self.id = id
         self.merchantName = merchantName
         self.address = address
         self.perkTitle = perkTitle
         self.coverURL = coverURL
+        self.memberID = memberID
+        self.merchantID = merchantID
     }
 }
 
@@ -379,6 +385,54 @@ public enum MerchantHostWorkbenchAction: String, CaseIterable, Identifiable, Sen
 }
 
 extension TopicFreeExploreMerchantCard {
+    /// R7-PC-B1-6: MP `buildMerchantCards` (pages/topic/utils/topic-motion.js:178-200). One card per shop id (else name) from
+    /// `chapters[].nodes[].registrationMerchantList`; the node name is the place line. Image: cover, else the first photo.
+    /// Needs no sign-in: it reads the topic detail only.
+    public static func cards(fromChapters chapters: [TopicChapter]) -> [TopicFreeExploreMerchantCard] {
+        var seen = Set<String>()
+        var cards: [TopicFreeExploreMerchantCard] = []
+        for chapter in chapters {
+            for node in chapter.nodes {
+                for merchant in node.merchants {
+                    let name = merchant.name.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !name.isEmpty else { continue }
+                    let key = merchant.merchantID > 0 ? "id:\(merchant.merchantID)" : "name:" + name
+                    guard seen.insert(key).inserted else { continue }
+                    let place = node.name.trimmingCharacters(in: .whitespacesAndNewlines)
+                    cards.append(TopicFreeExploreMerchantCard(
+                        id: cards.count + 1, merchantName: name, address: place.isEmpty ? nil : place,
+                        perkTitle: merchant.derivativeBenefits ?? merchant.slogan, coverURL: merchant.coverImage ?? merchant.imageURL,
+                        memberID: merchant.memberID, merchantID: merchant.merchantID))
+                }
+            }
+        }
+        return cards
+    }
+
+    /// R7-PC-B1-6: MP `mergeExploreCatalog` (topic-motion.js:246-261). Overlay the catalog perk line onto base cards by
+    /// `merchantId`, else `merchantName`. The perk line is the store `perkName`, else the catalog item name. Cards without a
+    /// match keep their own line; a missing catalog leaves the cards as they are.
+    public static func overlay(_ cards: [TopicFreeExploreMerchantCard], catalog data: PlayWireValue?) -> [TopicFreeExploreMerchantCard] {
+        guard let items = data?["items"].array else { return cards }
+        var byID: [Int: String] = [:], byName: [String: String] = [:]
+        for item in items {
+            let itemName = item["name"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
+            for store in item["stores"].array ?? [] {
+                let perkName = store["perkName"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard let line = (perkName?.isEmpty == false ? perkName : nil) ?? (itemName?.isEmpty == false ? itemName : nil) else { continue }
+                if let id = store["merchantId"].tolerantInteger, id > 0 { byID[id] = line }
+                if let name = store["merchantName"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty, byName[name] == nil {
+                    byName[name] = line
+                }
+            }
+        }
+        return cards.map { card in
+            guard let line = (card.merchantID > 0 ? byID[card.merchantID] : nil) ?? byName[card.merchantName] else { return card }
+            return TopicFreeExploreMerchantCard(id: card.id, merchantName: card.merchantName, address: card.address, perkTitle: line,
+                                                coverURL: card.coverURL, memberID: card.memberID, merchantID: card.merchantID)
+        }
+    }
+
     /// R7-PC-B1-6: MP pages/topic/index/index.js:665-669 reads `/api/free-explore/bundle/catalog` and lists every store of
     /// every item. One card per `offerId` (first item wins); the item name is the perk line. Stores without a positive id or a
     /// name are dropped; nothing is invented.
