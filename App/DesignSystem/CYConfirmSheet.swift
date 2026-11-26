@@ -8,7 +8,7 @@ public struct CYConfirmConsequence: Identifiable {
     public init(systemImage: String, text: String) { self.systemImage = systemImage; self.text = text }
 }
 
-/// Bottom-sheet confirmation. Not a centered alert.
+/// Bottom-sheet confirmation (native r2: system sheet + Form + system buttons). Not a centered alert.
 public struct CYConfirmSheet: View {
     private let title: String
     private let message: String
@@ -26,10 +26,8 @@ public struct CYConfirmSheet: View {
     private let showsJoinReward: Bool
 
     @Environment(\.dismiss) private var dismiss
-    @QuestifyReduceMotion private var reduceMotion
     @State private var rewarding = false
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @ScaledMetric(relativeTo: .body) private var iconWidth: CGFloat = 24
 
     public init(title: String, message: String, confirmTitle: String,
                 cancelTitle: String? = nil,
@@ -59,7 +57,8 @@ public struct CYConfirmSheet: View {
         let label = Button(action: confirm) {
             Text(confirmTitle).frame(maxWidth: .infinity)
         }
-        .disabled(rewarding || confirmDisabled)
+        .disabled(confirmDisabled)
+        .sensoryFeedback(.success, trigger: rewarding)
         if let confirmIdentifier {
             styled(label).accessibilityIdentifier(confirmIdentifier)
         } else {
@@ -78,65 +77,63 @@ public struct CYConfirmSheet: View {
                 Text("action.cancel").frame(maxWidth: .infinity)
             }
         }
-        .buttonStyle(.cySecondary(fullWidth: true))
+        .buttonStyle(.bordered)
+        .controlSize(.large)
         .pageTemplateControl(label: cancelTitle.map { Text($0) } ?? Text("action.cancel"), traits: .isButton)
         .cyOptionalAccessibilityIdentifier(cancelIdentifier)
     }
 
     @ViewBuilder private func styled(_ label: some View) -> some View {
         if isDestructive {
-            label.buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
+            label.buttonStyle(.borderedProminent).tint(.red).controlSize(.large)
                 .pageTemplateControl(label: Text(verbatim: confirmTitle), traits: .isButton)
         } else {
-            label.buttonStyle(CYPrimaryButtonStyle(isFullWidth: true))
+            label.buttonStyle(.borderedProminent).controlSize(.large)
                 .pageTemplateControl(label: Text(verbatim: confirmTitle), traits: .isButton)
         }
     }
 
+    /// Native r2: a system sheet (`.presentationDetents`, drag indicator, system background). The CYConfirmSheet
+    /// API is a view callers present in their own `.sheet`, so it cannot become `.confirmationDialog` here; inside
+    /// the sheet everything is system: a `.headline` title, `.body` secondary message, the consequences as `Label`
+    /// rows in an inset grouped `Form` section, and system `.borderedProminent` / `.bordered` large buttons.
+    /// No glass, burst or seal animation.
     public var body: some View {
-        ScrollView {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Text(title)
-                .cyText(.sheetTitle)
-                .foregroundStyle(CYColor.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityAddTraits(.isHeader)
-                .cyOptionalAccessibilityIdentifier(titleIdentifier)
-            if !message.isEmpty {
-                Text(message)
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+        Form {
+            Section {
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    Text(title)
+                        .font(.headline)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityAddTraits(.isHeader)
+                        .cyOptionalAccessibilityIdentifier(titleIdentifier)
+                    if !message.isEmpty {
+                        Text(message)
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets())
             }
             if !consequences.isEmpty {
-                VStack(alignment: .leading, spacing: CYSpacing.md) {
+                Section {
                     ForEach(consequences) { item in
-                        HStack(alignment: .top, spacing: CYSpacing.sm) {
-                            Image(systemName: item.systemImage)
-                                .font(CYTypography.body)
-                                .foregroundStyle(CYColor.textSecondary)
-                                .frame(width: iconWidth)
-                                .accessibilityHidden(true)
+                        Label {
                             Text(item.text)
-                                .cyText(.body)
-                                .foregroundStyle(CYColor.textPrimary)
                                 .fixedSize(horizontal: false, vertical: true)
+                        } icon: {
+                            Image(systemName: item.systemImage)
                         }
                     }
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(CYSpacing.md)
-                .background(CYColor.sheetCard, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
                 .accessibilityElement(children: .combine)
                 .accessibilityAddTraits(.isStaticText)
                 .accessibilityIdentifier("confirm.consequences")
             }
         }
-        .frame(maxWidth: .infinity, alignment: .topLeading)
-        .padding(CYSpacing.lg)
-        }
         .scrollBounceBehavior(.basedOnSize)
-        .background(CYColor.sheetGlass.ignoresSafeArea())
         .safeAreaInset(edge: .bottom) {
             Group {
                 if consequences.isEmpty {
@@ -159,41 +156,17 @@ public struct CYConfirmSheet: View {
                     }
                 }
             }
-            .padding(CYSpacing.lg)
-            .background(CYColor.sheetGlass)
+            .padding()
         }
-        .presentationDetents(dynamicTypeSize.isAccessibilitySize ? [.large] : (consequences.isEmpty ? [.fraction(0.36), .large] : [.medium, .large]))
+        .presentationDetents(dynamicTypeSize.isAccessibilitySize ? [.large] : [.medium, .large])
         .presentationDragIndicator(.visible)
-        .overlay { if rewarding { joinReward } }
     }
 
+    /// `showsJoinReward` no longer plays a seal/burst (native r2: no decorative motion); the system success haptic
+    /// marks the moment and the action runs at once.
     private func confirm() {
-        guard showsJoinReward else { onConfirm(); return }
-        withAnimation(reduceMotion ? CYMotion.reduced : CYMotion.entrance) { rewarding = true }
-        Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(reduceMotion ? 180 : 720))
-            onConfirm()
-        }
-    }
-
-    private var joinReward: some View {
-        ZStack {
-            Circle()
-                .fill(LinearGradient(colors: [CYColor.brand, CYColor.brandStrong], startPoint: .top, endPoint: .bottom))
-                .frame(width: 72, height: 72)
-                .shadow(color: CYColor.brand.opacity(0.45), radius: 16)
-                .overlay {
-                    Circle().strokeBorder(CYColor.textOnAccent.opacity(0.7), lineWidth: 3).padding(12)
-                    Image(systemName: "checkmark")
-                        .font(.system(.title2, design: .rounded).weight(.heavy))
-                        .foregroundStyle(CYColor.textOnAccent)
-                }
-                .transition(reduceMotion ? .opacity : .scale(scale: 0.55).combined(with: .opacity))
-            CYBurst(origin: .center, count: 32, duration: 0.9, style: .dust, reach: 140)
-                .frame(width: 200, height: 200)
-        }
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
+        if showsJoinReward { rewarding.toggle() }
+        onConfirm()
     }
 }
 
@@ -203,12 +176,6 @@ private extension View {
     }
 }
 
-#Preview("Player") {
+#Preview("Confirm") {
     CYConfirmSheet(title: "Preview title", message: "Preview message for this confirmation.", confirmTitle: "Continue", onConfirm: {})
-        .themeDomain(.player)
-}
-
-#Preview("Merchant") {
-    CYConfirmSheet(title: "Preview title", message: "Preview message for this confirmation.", confirmTitle: "Continue", onConfirm: {})
-        .themeDomain(.merchant)
 }
