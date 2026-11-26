@@ -356,9 +356,13 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
     public let activities: [TopicActivitySummary]?
     /// Route 「人物」 column. Nil when the topic has no cast.
     public let castConfig: CastConfig?
+    /// R7-PC-B1-12: topic owner `memberId`, used only to match the marketing-consent offer
+    /// (MP pages/topic/index/index.js:2083-2139 `consentOwnerId`; utils/marketing-consent-entry.js:24-41). Not shown.
+    public let ownerMemberID: Int?
     public init(from decoder: Decoder) throws {
         publisherAuthoritySource = try? PublisherTopicAuthoritySource(from: decoder)
         let c = try decoder.container(keyedBy: TopicKey.self)
+        ownerMemberID = c.int("memberId").flatMap { $0 > 0 ? $0 : nil }
         let categories: [TopicCategoryRecord] = try c.list("sysCategoryList")
         categoryNames = categories.compactMap(\.categoryName).filter { !$0.isEmpty }
         // The public topic screen omits person attribution. Collaborators are not

@@ -88,4 +88,15 @@ final class MPGapG1Round4Tests: XCTestCase {
             "/api/merchant/crm/marketing-consents"
         ])
     }
+
+    /// R7-PC-B1-12: MP utils/marketing-consent-entry.js pickOffer (:24-41).
+    func testMarketingConsentPickOffer() {
+        let row: PlayWireValue = .object(["merchantOwnerMemberId": .integer(7), "merchantRowId": .integer(41), "merchantName": .string("咖啡馆")])
+        XCTAssertEqual(MarketingConsentOffer.pick([row], ownerMemberID: 7),
+                       MarketingConsentOffer(merchantRowID: 41, merchantOwnerMemberID: 7, merchantName: "咖啡馆"))
+        XCTAssertNil(MarketingConsentOffer.pick([row, row], ownerMemberID: 7))
+        XCTAssertNil(MarketingConsentOffer.pick([row], ownerMemberID: 8))
+        let opted: PlayWireValue = .object(["merchantOwnerMemberId": .integer(7), "merchantRowId": .integer(41), "inAppOptedIn": .bool(true)])
+        XCTAssertNil(MarketingConsentOffer.pick([opted], ownerMemberID: 7))
+    }
 }

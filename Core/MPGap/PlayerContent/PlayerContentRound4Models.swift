@@ -132,6 +132,15 @@ public final class PlayerContentRound4Service {
         return await send(req)
     }
 
+    /// `R7-PC-B1-12` / `R11-PC-C-3`: `GET /api/merchant/crm/marketing-consents`, then MP `pickOffer`
+    /// (utils/marketing-consent-entry.js:52-72, 24-41). Any failure is nil (silent, fail-closed).
+    public func loadMarketingConsentOffer(ownerMemberID: Int?) async -> MarketingConsentOffer? {
+        guard let ownerMemberID, ownerMemberID > 0,
+              let req = try? makeRequest("api/merchant/crm/marketing-consents", method: "GET") else { return nil }
+        guard let rows = await send(req).data?.array else { return nil }
+        return MarketingConsentOffer.pick(rows, ownerMemberID: ownerMemberID)
+    }
+
     /// `R7-PC-B1-12`: `POST /api/merchant/crm/marketing-consents`
     public func submitMarketingConsent(
         merchantRowID: Int,
@@ -145,11 +154,41 @@ public final class PlayerContentRound4Service {
             json: [
                 "merchantRowId": .integer(Int64(merchantRowID)),
                 "merchantOwnerMemberId": .integer(Int64(merchantOwnerMemberID)),
-                "channel": .string("APP"),
+                // MP utils/marketing-consent-entry.js:83: the in-app channel is `IN_APP`.
+                "channel": .string("IN_APP"),
                 "optedIn": .bool(optedIn),
                 "requestId": .string(requestID)
             ]
         ) else { return .unauthorized }
         return await send(req)
+    }
+}
+
+/// R7-PC-B1-12 / R11-PC-C-3: one opt-in offer (MP utils/marketing-consent-entry.js `pickOffer`, :24-41).
+public struct MarketingConsentOffer: Equatable, Sendable {
+    public let merchantRowID: Int
+    public let merchantOwnerMemberID: Int
+    public let merchantName: String
+
+    public init(merchantRowID: Int, merchantOwnerMemberID: Int, merchantName: String) {
+        self.merchantRowID = merchantRowID
+        self.merchantOwnerMemberID = merchantOwnerMemberID
+        self.merchantName = merchantName
+    }
+
+    /// Exactly one row for the owner; it must not be opted in already and must carry a positive `merchantRowId`.
+    public static func pick(_ rows: [PlayWireValue], ownerMemberID: Int) -> MarketingConsentOffer? {
+        guard ownerMemberID > 0 else { return nil }
+        let matches = rows.filter { $0["merchantOwnerMemberId"].tolerantInteger == ownerMemberID }
+        guard matches.count == 1, let row = matches.first else { return nil }
+        if case .bool(true) = row["inAppOptedIn"] { return nil }
+        guard let rowID = row["merchantRowId"].tolerantInteger, rowID > 0 else { return nil }
+        let name = row["merchantName"].text.flatMap { $0.isEmpty ? nil : $0 } ?? "商家"
+        return MarketingConsentOffer(merchantRowID: rowID, merchantOwnerMemberID: ownerMemberID, merchantName: name)
+    }
+
+    /// MP `newRequestId` (marketing-consent-entry.js:104-108): one id per opt-in intent, reused on retry.
+    public static func newRequestID() -> String {
+        "consent-opt-in-" + String(Int(Date().timeIntervalSince1970 * 1000), radix: 36) + "-" + String(Int.random(in: 0...0xFFFFFF), radix: 36)
     }
 }
