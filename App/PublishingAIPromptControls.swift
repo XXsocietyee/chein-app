@@ -29,8 +29,8 @@ import SwiftUI
         if flow.candidate == nil {
             VStack(alignment: .leading, spacing: Theme.Space.s2) {
                 Text("creatorAIPrompts.title",tableName:"CreatorAIPrompts")
-                    .cyText(.meta)
-                    .foregroundStyle(palette.textSecondary)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
                 if dynamicTypeSize.isAccessibilitySize {
@@ -53,21 +53,14 @@ import SwiftUI
             Button(action:controller.action(suggestion,languageCode:locale.identifier,flow:flow,applied:applied)) {
                 Label {
                     Text(LocalizedStringKey(suggestion.titleKey),tableName:"CreatorAIPrompts")
-                        .cyText(.label)
                         .fixedSize(horizontal: false, vertical: true)
                 } icon: {
                     Image(systemName:"sparkles")
-                        .cyText(.meta)
                         .accessibilityHidden(true)
                 }
-                .foregroundStyle(palette.textPrimary)
-                .padding(.horizontal, CYSpacing.md)
-                .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-                .background(
-                    Capsule(style: .continuous)
-                        .fill(palette.bgPage)
-                )
-            }.buttonStyle(.borderless).disabled(!controller.canSelect(in:flow))
+                .font(.subheadline)
+                .frame(maxWidth: fullWidth ? .infinity : nil, alignment: .leading)
+            }.buttonStyle(.bordered).buttonBorderShape(.capsule).disabled(!controller.canSelect(in:flow))
                 .accessibilityIdentifier("creatorAIPrompts.select." + suggestion.rawValue)
         }
     }

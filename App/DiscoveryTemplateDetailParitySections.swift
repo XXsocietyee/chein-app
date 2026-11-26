@@ -9,22 +9,21 @@ import SwiftUI
 struct DiscoveryTemplateDetailParitySections: View {
     let presentation: DiscoveryPlayTemplateDetailPresentation
     @State private var preview: TemplateNodePreviewState?
-    @Environment(\.cyPalette) private var palette
 
     var body: some View {
         Section {
             if showsPublisherRow { publisherRow }
             if let feedback = presentation.reviewFeedback {
                 Text("discovery.templateDetail.reviewFeedback \(feedback)")
-                    .cyText(.bodyCompact).foregroundStyle(palette.warning)
+                    .font(.subheadline).foregroundStyle(.orange)
                     .accessibilityIdentifier("discovery.templateDetail.reviewFeedback")
             }
             if !stats.isEmpty {
                 HStack(alignment: .top) {
                     ForEach(stats, id: \.kind) { stat in
                         VStack(spacing: 2) {
-                            statValue(stat).cyText(.numericBody).foregroundStyle(palette.textPrimary)
-                            Text(statLabel(stat.kind)).cyText(.caption).foregroundStyle(palette.textSecondary)
+                            statValue(stat).font(.headline).monospacedDigit().foregroundStyle(.primary)
+                            Text(statLabel(stat.kind)).font(.caption).foregroundStyle(.secondary)
                         }
                         .frame(maxWidth: .infinity)
                         .accessibilityElement(children: .combine)
@@ -54,7 +53,7 @@ struct DiscoveryTemplateDetailParitySections: View {
         if let rating = presentation.rating {
             Section {
                 HStack {
-                    Text(verbatim: rating).cyText(.dataXL).monospacedDigit()
+                    Text(verbatim: rating).font(.largeTitle.weight(.semibold)).monospacedDigit()
                     if let count = presentation.commentCount, count > 0 {
                         Text("discovery.templateDetail.reviewCount \(count)")
                     } else {
@@ -94,14 +93,13 @@ struct DiscoveryTemplateDetailParitySections: View {
                 officialBadge
             }
         }
-        .cyText(.label)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("discovery.templateDetail.publisher")
     }
     private var officialBadge: some View {
-        Text("discovery.templateDetail.publisher.official").cyText(.caption, weight: .bold)
-            .padding(.horizontal, 6).padding(.vertical, 2)
-            .background(.tint.opacity(0.15), in: Capsule())
+        Label("discovery.templateDetail.publisher.official", systemImage: "checkmark.seal.fill")
+            .font(.subheadline)
+            .foregroundStyle(.tint)
     }
     /// Round 4 image parity (MP templatedetail.wxml:140-152): 分类与适用场景 is a row of 3D category icons, one per chip.
     @ViewBuilder private func sceneSection(_ chips: [String]) -> some View {
@@ -114,7 +112,7 @@ struct DiscoveryTemplateDetailParitySections: View {
                                 TemplateSceneArt.icon(chip).resizable().scaledToFit()
                                     .accessibilityHidden(true)
                                     .frame(width: 44, height: 44)
-                                Text(verbatim: chip).cyText(.meta).foregroundStyle(palette.textSecondary).lineLimit(1)
+                                Text(verbatim: chip).font(.caption).foregroundStyle(.secondary).lineLimit(1)
                             }
                             .accessibilityElement(children: .combine)
                         }
@@ -128,7 +126,6 @@ struct DiscoveryTemplateDetailParitySections: View {
         if !chips.isEmpty {
             Section {
                 Text(verbatim: chips.joined(separator: " · "))
-                    .cyText(.body).foregroundStyle(palette.textSecondary)
                     .accessibilityIdentifier(id)
             } header: { DiscoverySectionHeader(title, art: art) }.discoveryCardRow()
         }
@@ -154,12 +151,15 @@ struct DiscoveryTemplateDetailParitySections: View {
 
 /// 这是玩法模板，不能直接开团: outside both tabs in the mini-program, so the 能力 tab repeats it (CU-M-130).
 struct DiscoveryTemplateNoticeSection: View {
-    @Environment(\.cyPalette) private var palette
     var body: some View {
         Section {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("discovery.templateDetail.notice.title").cyText(.label)
-                Text("discovery.templateDetail.notice.body.mp").cyText(.meta).foregroundStyle(palette.textSecondary)
+            Label {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("discovery.templateDetail.notice.title")
+                    Text("discovery.templateDetail.notice.body.mp").font(.footnote).foregroundStyle(.secondary)
+                }
+            } icon: {
+                Image(systemName: "info.circle").foregroundStyle(.tint)
             }
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("discovery.templateDetail.notice")
@@ -183,18 +183,18 @@ struct TemplateNodePreviewSheet: View {
             Form {
                 switch state.preview {
                 case .text(let question):
-                    if let question { Text(verbatim: question).cyText(.cardTitle) }
+                    if let question { Text(verbatim: question).font(.headline) }
                     TextField("discovery.templateDetail.preview.answerPlaceholder", text: Binding(get: { state.answer }, set: { state.type($0) }))
                         .accessibilityIdentifier("discovery.templateDetail.preview.answer")
                     completeButton
                 case .choice(let question, let options):
-                    if let question { Text(verbatim: question).cyText(.cardTitle) }
+                    if let question { Text(verbatim: question).font(.headline) }
                     ForEach(options, id: \.key) { option in
                         Button { state.select(option.key) } label: {
                             HStack {
                                 Text(verbatim: "\(option.key). \(option.text)")
                                 Spacer()
-                                if state.selectedOption == option.key { Image(systemName: "checkmark") }
+                                if state.selectedOption == option.key { Image(systemName: "checkmark").foregroundStyle(.tint) }
                             }
                         }
                         .accessibilityIdentifier("discovery.templateDetail.preview.option.\(option.key)")
@@ -208,7 +208,7 @@ struct TemplateNodePreviewSheet: View {
                     }
                 }
                 if hint {
-                    Text("discovery.templateDetail.preview.answerFirst").cyText(.bodyCompact).foregroundStyle(.secondary)
+                    Text("discovery.templateDetail.preview.answerFirst").font(.footnote).foregroundStyle(.secondary)
                         .accessibilityIdentifier("discovery.templateDetail.preview.answerFirst")
                 }
             }
@@ -217,7 +217,7 @@ struct TemplateNodePreviewSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button { close() } label: { Image(systemName: "xmark") }
+                    Button { close() } label: { Label("discovery.templateDetail.preview.close", systemImage: "xmark") }
                         .accessibilityLabel(Text("discovery.templateDetail.preview.close"))
                         .accessibilityIdentifier("discovery.templateDetail.preview.close")
                 }

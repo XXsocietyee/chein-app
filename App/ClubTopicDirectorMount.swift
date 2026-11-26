@@ -28,7 +28,7 @@ extension EnvironmentValues {
     var clubTopicDirectorHost: ClubTopicDirectorHost {
         .init(coordinator: { [weak self] in self?.playDirector(activityID: $0) },
               destination: { [weak self] activityID in
-                  guard let self else { return AnyView(CYEmptyState(systemImage: "gamecontroller", "playx.disabled")) }
+                  guard let self else { return AnyView(ContentUnavailableView("playx.disabled", systemImage: "gamecontroller")) }
                   return AnyView(SessionPlayRuntimeView(session: self, destination: .director(activityID)))
               })
     }
@@ -64,16 +64,21 @@ extension EnvironmentValues {
                 onToggleLeaderboardVisibility: { toggleLeaderboard(model) })
         } else if model.phase == "loading" {
             Section {
-                CYSkeleton()
+                ProgressView()
+                    .frame(maxWidth: .infinity)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Text("club.topic.director.loading"))
                     .accessibilityIdentifier("club.topic.director.loading")
             }
         } else if model.phase == "failed" {
             Section {
-                CYEmptyState(systemImage: "exclamationmark.triangle", "club.topic.director.failed",
-                             actionTitle: "action.retry", actionIdentifier: "club.topic.director.retry",
-                             kind: .failure) { Task { await model.load() } }
+                ContentUnavailableView {
+                    Label("club.topic.director.failed", systemImage: "exclamationmark.triangle")
+                } actions: {
+                    Button("action.retry") { Task { await model.load() } }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("club.topic.director.retry")
+                }
             }
         }
     }

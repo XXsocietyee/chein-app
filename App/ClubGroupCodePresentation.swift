@@ -22,19 +22,19 @@ import UIKit
             if current, scenePhase == .active, value.isActive(at: timeline.date) {
                 if let bytes = value.inlinePNG, let image = UIImage(data: bytes) {
                     // Mini `club-game-code-sheet` card: code on white inside an ink card, then 保存.
-                    VStack(spacing: CYSpacing.sm) {
-                        Text("club.gov.codeAvailable").cyText(.cardTitle)
+                    VStack(spacing: 8) {
+                        Text("club.gov.codeAvailable").font(.headline)
                         CYClubGameCodeCard(state: .ready, name: sessionName) {
                             Image(uiImage: image).interpolation(.none).resizable().scaledToFit()
                                 .accessibilityLabel(Text("groupCode.image", tableName: "ClubGroupCodeDisplay"))
                                 .privacySensitive().accessibilityIdentifier("club.gov.groupCode")
                         }
                         Text("club.gov.codeExpires \(Text(value.expiresAt, style: .timer))")
-                            .cyText(.meta).monospacedDigit()
+                            .font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
                         ShareLink(item: Image(uiImage: image),
                                   preview: SharePreview(Text("groupCode.image", tableName: "ClubGroupCodeDisplay"), image: Image(uiImage: image))) {
                             Label("club.groupCode.save", systemImage: "square.and.arrow.down")
-                                .frame(minHeight: CYSpacing.minTouchTarget)
+                                .frame(minHeight: 44)
                         }
                         .accessibilityHint(Text("club.groupCode.save.hint"))
                         .accessibilityIdentifier("club.groupCode.save")
@@ -43,14 +43,18 @@ import UIKit
                     Text("groupCode.imageUnavailable", tableName: "ClubGroupCodeDisplay")
                 }
             } else {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                VStack(alignment: .leading, spacing: 8) {
                     Label("club.gov.expiredCode", systemImage: "clock.badge.exclamationmark")
                         .accessibilityIdentifier("club.gov.expiredCode")
                     if let onReissue {
-                        CYPillButton("clubR3b.groupCode.reissue", style: .primary, systemImage: "arrow.clockwise", action: onReissue)
-                            .accessibilityIdentifier("club.groupCode.reissue")
+                        Button(action: onReissue) {
+                            Label("clubR3b.groupCode.reissue", systemImage: "arrow.clockwise").frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+                        .accessibilityIdentifier("club.groupCode.reissue")
                     } else {
-                        Text("club.gov.expiredCode.hint").cyText(.bodyCompact).foregroundStyle(.secondary)
+                        Text("club.gov.expiredCode.hint").font(.subheadline).foregroundStyle(.secondary)
                     }
                 }
             }

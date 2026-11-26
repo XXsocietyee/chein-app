@@ -73,13 +73,24 @@ struct DiscoveryArtwork: View {
     var body: some View {
         AsyncImage(url: url) { phase in
             if let image = phase.image { image.resizable().scaledToFill() }
-            else {
-                E1CoverArt(seed: source ?? "discovery", symbol: "sparkles.rectangle.stack", debugLabel: false)
-            }
+            else { DiscoveryArtPlaceholder(systemImage: "sparkles.rectangle.stack") }
         }
         .frame(height: height).frame(maxWidth: .infinity)
-        .clipped().clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .clipped()
         .accessibilityHidden(true)
+    }
+}
+
+/// Native r2: the system artwork placeholder (fill + secondary SF Symbol), replacing generated gradient cover art.
+struct DiscoveryArtPlaceholder: View {
+    var systemImage = "photo"
+    var body: some View {
+        Rectangle().fill(.quaternary)
+            .overlay {
+                Image(systemName: systemImage)
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
+            }
     }
 }
 
@@ -93,21 +104,17 @@ struct DiscoveryTitle: View {
     }
 }
 
+/// Native list row text: title, one secondary meta line, two-line description. The List/NavigationLink draws the chevron.
 struct DiscoveryPlayRow: View {
     let item: DiscoveryPlayTemplate
-    @Environment(\.cyPalette) private var palette
     var body: some View {
-        HStack(alignment: .top, spacing: CYSpacing.md) {
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                DiscoveryTitle(text: item.title, fallback: "discovery.untitledPlay").cyText(.cardTitle)
-                    .foregroundStyle(palette.textPrimary)
-                metaLine
-                if let text = item.description, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    Text(text).lineLimit(2).cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
-                }
+        VStack(alignment: .leading, spacing: 2) {
+            DiscoveryTitle(text: item.title, fallback: "discovery.untitledPlay").font(.body)
+                .foregroundStyle(.primary)
+            metaLine
+            if let text = item.description, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Text(text).lineLimit(2).font(.subheadline).foregroundStyle(.secondary)
             }
-            Spacer(minLength: CYSpacing.sm)
-            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textSecondary).accessibilityHidden(true)
         }
     }
 }
@@ -122,7 +129,7 @@ extension DiscoveryPlayRow {
         ].compactMap { $0 }
         if let first = parts.first {
             parts.dropFirst().reduce(first) { $0 + Text(verbatim: " · ") + $1 }
-                .cyText(.meta).foregroundStyle(palette.textSecondary)
+                .font(.subheadline).foregroundStyle(.secondary)
         }
     }
 }
@@ -131,7 +138,7 @@ struct DiscoveryPlayMetadata: View {
     let item: DiscoveryPlayTemplate
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            if let pack = item.pack { Text(pack.label).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+            if let pack = item.pack { Text(pack.label).font(.subheadline).foregroundStyle(.secondary) }
             if let players = item.playersText {
                 LabeledContent("discovery.players", value: players)
             }
@@ -141,7 +148,7 @@ struct DiscoveryPlayMetadata: View {
             if let difficulty = item.difficulty, !difficulty.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 LabeledContent("discovery.difficulty", value: difficulty)
             }
-        }.cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+        }
     }
 }
 
@@ -153,9 +160,9 @@ struct DiscoveryTopicMetadata: View {
             TopicTotalStops(count: item.locationCount, identifier: "discovery.totalStops.\(item.id)")
             if let seconds = item.totalTime { LabeledContent("discovery.publicSeconds", value: String(seconds)) }
             // Screens r4 · Figma 243:1964 (SR2-20): monochrome, text-only status in the meta line (no flask glyph).
-            if item.previewOnly { Text("discovery.preview").foregroundStyle(CYColor.textTertiary) }
-            else if !item.isVerified { Text("discovery.experimental").foregroundStyle(CYColor.textTertiary) }
-        }.cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+            if item.previewOnly { Text("discovery.preview").foregroundStyle(.tertiary) }
+            else if !item.isVerified { Text("discovery.experimental").foregroundStyle(.tertiary) }
+        }.font(.subheadline).foregroundStyle(.secondary)
     }
 }
 
@@ -185,13 +192,10 @@ extension DiscoveryVerification {
     }
 }
 
-/// Kit styling for system List sections on the detail pages: surface row background, hairline separators, kit header.
+/// Native r2: detail-page List rows keep the system inset-grouped row background, separators and label colour.
+/// Kept as a pass-through so existing call sites stay unchanged.
 struct DiscoveryCardRow: ViewModifier {
-    @Environment(\.cyPalette) private var palette
-    func body(content: Content) -> some View {
-        content.listRowBackground(palette.bgSurface).listRowSeparatorTint(palette.borderSubtle)
-            .foregroundStyle(palette.textPrimary)
-    }
+    func body(content: Content) -> some View { content }
 }
 extension View {
     func discoveryCardRow() -> some View { modifier(DiscoveryCardRow()) }
@@ -203,13 +207,13 @@ struct DiscoverySectionHeader: View {
     init(_ title: LocalizedStringKey, art: Image? = nil) { self.title = title; self.art = art }
     var body: some View {
         if let art {
-            HStack(alignment: .center, spacing: CYSpacing.sm) {
-                art.resizable().scaledToFit().frame(width: 22, height: 22).accessibilityHidden(true)
-                CYSectionHeader(title).textCase(nil)
+            Label {
+                Text(title)
+            } icon: {
+                art.resizable().scaledToFit().frame(width: 20, height: 20).accessibilityHidden(true)
             }
-            .padding(.top, CYSpacing.sm)
         } else {
-            CYSectionHeader(title).textCase(nil).padding(.top, CYSpacing.sm)
+            Text(title)
         }
     }
 }

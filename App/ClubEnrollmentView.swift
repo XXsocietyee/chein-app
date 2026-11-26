@@ -73,7 +73,6 @@ extension EnvironmentValues {
     let focusTopicID: Int?
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
     @ScaledMetric(relativeTo: .headline) private var coverSide: CGFloat = 72  // CLB-enroll-06: MP cover 144 rpx
     @StateObject private var navigation = ClubEnrollmentNavigation()
@@ -96,42 +95,49 @@ extension EnvironmentValues {
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("club.enroll.refreshing")
             } else if reader.loading {
-                VStack(alignment: .leading, spacing: CYSpacing.md) {
-                    CYSkeleton().accessibilityHidden(true)
+                HStack(spacing: 12) {
+                    ProgressView()
                     Text("club.enroll.loading")
-                        .cyText(.meta)
-                        .foregroundStyle(palette.textSecondary)
+                        .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("club.enroll.loading")
-                .clubEnrollRow()
             }
             if let issue = reader.failure {
                 Section {
                     if reader.hasLoaded {
-                        CYNoteBanner(text: Text("club.enroll.stale"), symbol: "exclamationmark.triangle", tone: .warning)
-                            .accessibilityIdentifier("club.enroll.stale")
+                        Label {
+                            Text("club.enroll.stale")
+                        } icon: {
+                            Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange)
+                        }
+                        .accessibilityIdentifier("club.enroll.stale")
                     }
                     // Core's denied title is a Chinese literal; show the localized equivalent.
                     if ClubEnrollmentReader.failureTitle(for: issue) != nil {
                         Text("club.enroll.denied")
-                            .cyText(.cardTitle)
-                            .foregroundStyle(palette.textPrimary)
+                            .font(.headline)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("club.enroll.deniedTitle")
                     }
-                    CYNoteBanner(text: Text(LocalizedStringKey(issue.localizationKey)), symbol: "exclamationmark.circle", tone: .danger)
+                    Label {
+                        Text(LocalizedStringKey(issue.localizationKey))
+                    } icon: {
+                        Image(systemName: "exclamationmark.circle").foregroundStyle(.red)
+                    }
                     if let message = issue.message {
                         Text(verbatim: message)
-                            .cyText(.meta)
-                            .foregroundStyle(palette.textSecondary)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                    // One filled action, and only when the roster itself has not loaded.
-                    CYPillButton("club.enroll.retry", style: reader.hasLoaded ? .secondary : .primary, systemImage: "arrow.clockwise") {
+                    // A Settings-style row action.
+                    Button {
                         Task { await refreshVisible() }
+                    } label: {
+                        Label("club.enroll.retry", systemImage: "arrow.clockwise")
                     }
                     .disabled(reader.loading)
                 }
@@ -141,22 +147,21 @@ extension EnvironmentValues {
                 Section {
                     subLine.accessibilityIdentifier("club.enroll.headerLine")
                     Label("club.enroll.escrow", systemImage: "lock.shield")
-                        .cyText(.meta)
-                        .foregroundStyle(palette.textSecondary)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("club.enroll.escrow")
                 }
                 if reader.teams.isEmpty {
-                    CYEmptyState(systemImage: "person.3", "club.enroll.emptyTeams")
-                        .accessibilityIdentifier("club.enroll.emptyTeams")
-                        .clubEnrollRow()
+                    ContentUnavailableView {
+                        Label { Text("club.enroll.emptyTeams").accessibilityIdentifier("club.enroll.emptyTeams") } icon: { Image(systemName: "person.3") }
+                    }
                 }
                 ForEach(reader.teams) { team in
                     Section {
                         Button { Task { if canRead { await reader.toggle(topicID: team.id) } } } label: {
                             teamHeader(team)
                         }
-                        .buttonStyle(.cyPressTracked)
                         .disabled(reader.loading)
                         .accessibilityValue(Text(reader.expanded.contains(team.id) ? "club.enroll.expanded" : "club.enroll.collapsed"))
                         .accessibilityIdentifier("club.enroll.team.\(team.id)")
@@ -165,9 +170,6 @@ extension EnvironmentValues {
                 }
             }
         }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden).cyDomainPageBackground()
-        .cyGroupedSurface()
         // The enrollment UI test addresses navigationBars["Enrollment roster"].
         // That bar title is the one screen title; a second hero would duplicate it.
         .navigationTitle("club.enroll.title").navigationBarTitleDisplayMode(.inline)
@@ -249,8 +251,8 @@ extension EnvironmentValues {
         let expanded = reader.expanded.contains(team.id)
         let text = VStack(alignment: .leading, spacing: CYSpacing.xs) {
             title(team.name, fallback: "club.enroll.unnamedTeam")
-                .cyText(.cardTitle)
-                .foregroundStyle(palette.textPrimary)
+                .font(.headline)
+                .foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
             ViewThatFits(in: .horizontal) {
                 signupLine(team)
@@ -263,8 +265,8 @@ extension EnvironmentValues {
                     cover(team)
                     text
                     Image(systemName: expanded ? "chevron.down" : "chevron.right")
-                        .cyText(.label)  // CLB-enroll-06
-                        .foregroundStyle(palette.textTertiary)
+                        .font(.footnote.weight(.semibold))  // CLB-enroll-06
+                        .foregroundStyle(.tertiary)
                         .accessibilityHidden(true)
                 }
             } else {
@@ -273,15 +275,14 @@ extension EnvironmentValues {
                     text
                     Spacer(minLength: CYSpacing.sm)
                     Image(systemName: expanded ? "chevron.down" : "chevron.right")
-                        .cyText(.label)  // CLB-enroll-06
-                        .foregroundStyle(palette.textTertiary)
+                        .font(.footnote.weight(.semibold))  // CLB-enroll-06
+                        .foregroundStyle(.tertiary)
                         .accessibilityHidden(true)
                 }
             }
         }
         .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
         .contentShape(Rectangle())
-        .cyPressTracking()
     }
     private func cover(_ team: ClubEnrollmentTeam) -> some View {
         Group {
@@ -302,8 +303,8 @@ extension EnvironmentValues {
             if let count = team.signupCount, count >= 0 { Text("u9cde.clubEnroll.signups \(count)").monospacedDigit() }
             else { Text("club.enroll.signups"); Text("club.enroll.unknown") }
         }
-        .cyText(.meta)
-        .foregroundStyle(palette.textTertiary)
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
         .fixedSize(horizontal: false, vertical: true)
     }
     @ViewBuilder private func detail(_ team: ClubEnrollmentTeam) -> some View {
@@ -311,22 +312,21 @@ extension EnvironmentValues {
             HStack(spacing: CYSpacing.sm) {
                 ProgressView()
                 Text("club.enroll.detailLoading")
-                    .cyText(.meta)
-                    .foregroundStyle(palette.textSecondary)
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
         }
         if let issue = reader.detailFailures[team.id] {
             if reader.rosters[team.id] != nil {
-                Text("club.enroll.stale").cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+                Text("club.enroll.stale").font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
             Text(LocalizedStringKey(issue.localizationKey))
-                .cyText(.body)
-                .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
-            CYPillButton("club.enroll.retry", style: .secondary, systemImage: "arrow.clockwise", fullWidth: false) {
+            Button {
                 Task { if canRead { await reader.loadDetail(topicID: team.id) } }
+            } label: {
+                Label("club.enroll.retry", systemImage: "arrow.clockwise")
             }
             .disabled(reader.detailLoading.contains(team.id))
             .accessibilityIdentifier("club.enroll.retry.\(team.id)")
@@ -339,7 +339,6 @@ extension EnvironmentValues {
                 if let deadline = roster.deadline { fact("club.enroll.deadline", value: Text(verbatim: deadline)) }
                 // CLB-enroll-05: the MP removed the 团状态 row (enroll/index.js teamStatusText is gone).
             }
-            .cyText(.bodyCompact)
             .accessibilityIdentifier("club.enroll.summary.\(team.id)")
             // CLB-enroll-01: MP C-13 per-session money, matched to the books to the cent (owner only).
             if !roster.sessionMoney.isEmpty {
@@ -348,14 +347,12 @@ extension EnvironmentValues {
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             HStack(spacing: CYSpacing.xs) {
                                 if let label = money.label { Text(verbatim: label).lineLimit(1) } else { Text("club.enroll.money.session") }
-                                if money.cancelled { CYStatusChip("club.enroll.money.cancelled", tone: .neutral) }
+                                if money.cancelled { Text("club.enroll.money.cancelled").font(.caption).foregroundStyle(.secondary) }
                             }
-                            .cyText(.bodyCompact)
-                            .foregroundStyle(palette.textPrimary)
                             Text("club.enroll.money.line \(ClubMoneyText.twoDecimals(money.paidText)) \(ClubMoneyText.twoDecimals(money.refundedText)) \(ClubMoneyText.twoDecimals(money.netText))")
-                                .cyText(.numericBody)
+                                .font(.subheadline)
                                 .monospacedDigit()
-                                .foregroundStyle(palette.textSecondary)
+                                .foregroundStyle(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         .accessibilityElement(children: .combine)
@@ -364,7 +361,7 @@ extension EnvironmentValues {
                 }
             }
             if roster.tickets.isEmpty {
-                Text("club.enroll.emptyTickets").cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+                Text("club.enroll.emptyTickets").font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
             ForEach(roster.tickets) { ticket in
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
@@ -381,7 +378,7 @@ extension EnvironmentValues {
                         }
                     }
                     if ticket.registrants.isEmpty {
-                        Text("club.enroll.emptyRegistrants").cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+                        Text("club.enroll.emptyRegistrants").font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     }
                     ForEach(ticket.registrants) { registrant in row(registrant, topicID: team.id) }
                 }
@@ -391,8 +388,7 @@ extension EnvironmentValues {
     }
     private func ticketTitle(_ ticket: ClubEnrollmentTicket) -> some View {
         title(ticket.name, fallback: "club.enroll.unnamedTicket")
-            .cyText(.cardTitle)
-            .foregroundStyle(palette.textPrimary)
+            .font(.headline)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier("club.enroll.ticket.\(ticket.id)")
     }
@@ -408,8 +404,7 @@ extension EnvironmentValues {
                 Text("club.enroll.registrants")
             }
         }
-        .cyText(.numericBody)
-        .foregroundStyle(palette.textSecondary)
+        .foregroundStyle(.secondary)
         .monospacedDigit()
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityIdentifier("club.enroll.capacity.\(ticket.id)")
@@ -426,7 +421,7 @@ extension EnvironmentValues {
         ViewThatFits(in: .horizontal) {
             LabeledContent(title) { value }
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text(title).cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+                Text(title).font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 value
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -468,14 +463,16 @@ extension EnvironmentValues {
     }
     private func checkinChip(_ registrant: ClubEnrollmentRegistrant) -> some View {
         let key: LocalizedStringKey
-        let tone: CYStatusTone
+        let tint: Color
         let symbol: String
         switch registrant.checkin {
-        case .done: key = "club.enroll.checkin.done"; tone = .success; symbol = "checkmark.circle"
-        case .pending: key = "club.enroll.checkin.pending"; tone = .warning; symbol = "ticket"
-        case .unknown: key = "club.enroll.checkin.unknown"; tone = .neutral; symbol = "questionmark.circle"
+        case .done: key = "club.enroll.checkin.done"; tint = .green; symbol = "checkmark.circle"
+        case .pending: key = "club.enroll.checkin.pending"; tint = .orange; symbol = "ticket"
+        case .unknown: key = "club.enroll.checkin.unknown"; tint = .secondary; symbol = "questionmark.circle"
         }
-        return CYStatusChip(key, tone: tone, systemImage: symbol)
+        return Label(key, systemImage: symbol)
+            .font(.subheadline)
+            .foregroundStyle(tint)
     }
     private func attendee(_ value: ClubEnrollmentRegistrant) -> some View {
         HStack(spacing: CYSpacing.sm) {
@@ -488,8 +485,7 @@ extension EnvironmentValues {
             .clipShape(Circle())
             .accessibilityHidden(true)
             title(value.nickname, fallback: "club.enroll.player")
-                .cyText(.body)
-                .foregroundStyle(palette.textPrimary)
+                .foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -500,8 +496,8 @@ extension EnvironmentValues {
             if name.isEmpty { Text("u9cde.clubEnroll.subLineMine \(reader.teams.count)") }
             else { Text("u9cde.clubEnroll.subLine \(name) \(reader.teams.count)") }
         }
-        .cyText(.meta).monospacedDigit()
-        .foregroundStyle(palette.textSecondary)
+        .font(.subheadline).monospacedDigit()
+        .foregroundStyle(.secondary)
         .fixedSize(horizontal: false, vertical: true)
     }
     @ViewBuilder private func title(_ text: String?, fallback: LocalizedStringKey) -> some View {
@@ -510,14 +506,6 @@ extension EnvironmentValues {
     /// Nil is the catalog em dash. A real count, including 0, keeps its digits.
     @ViewBuilder private func number(_ count: Int?) -> some View {
         if let count, count >= 0 { Text(count, format: .number).monospacedDigit() } else { Text("club.enroll.unknown") }
-    }
-}
-
-private extension View {
-    func clubEnrollRow() -> some View {
-        listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
-            .listRowBackground(Color.clear)
-            .listRowSeparator(.hidden)
     }
 }
 

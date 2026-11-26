@@ -24,35 +24,36 @@ import SwiftUI
     }
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Text("template.imageCrop.title").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+            Text("template.imageCrop.title").font(.headline)
             if let rect, let preview = try? TemplateImageCropRenderer.preview(draft.source, rect: rect) {
                 Image(uiImage: preview).resizable()
                     .aspectRatio(CGFloat(draft.source.width) / CGFloat(draft.source.height), contentMode: .fit)
                     .frame(maxHeight: 240)
-                    // Mini stage: image on a near-black ground with a hairline frame.
-                    .overlay(Rectangle().stroke(CYColor.borderStrong, lineWidth: 1))
-                    .frame(maxWidth: .infinity).padding(CYSpacing.sm).background(CYColor.bgPage)
+                    .frame(maxWidth: .infinity)
                     .accessibilityLabel("image.crop.preview")
-                Text("image.crop.horizontal").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Text("image.crop.horizontal").font(.subheadline).foregroundStyle(.secondary)
                 Slider(value: $horizontal, in: 0...1).disabled(zoom == 1)
                     .accessibilityLabel("image.crop.horizontal")
                     .accessibilityIdentifier("template.imageCrop.horizontal")
-                Text("image.crop.vertical").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Text("image.crop.vertical").font(.subheadline).foregroundStyle(.secondary)
                 Slider(value: $vertical, in: 0...1).disabled(zoom == 1)
                     .accessibilityLabel("image.crop.vertical")
                     .accessibilityIdentifier("template.imageCrop.vertical")
-                Text("image.crop.zoom").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Text("image.crop.zoom").font(.subheadline).foregroundStyle(.secondary)
                 Slider(value: $zoom, in: 1...4).accessibilityLabel("image.crop.zoom")
                     .accessibilityIdentifier("template.imageCrop.zoom")
                 // One solid action (mini 选取); reset / use-original / cancel stay quiet.
-                CYPillButton("template.imageCrop.confirm") { confirm(draft.id, rect) }
+                Button { confirm(draft.id, rect) } label: { Text("template.imageCrop.confirm").frame(maxWidth: .infinity) }
+                    .buttonStyle(.borderedProminent).controlSize(.large)
                     .accessibilityIdentifier("template.imageCrop.confirm")
-                CYPillButton("template.imageCrop.reset", style: .tertiary, systemImage: "arrow.counterclockwise") { horizontal = 0.5; vertical = 0.5; zoom = 1 }
+                Button { horizontal = 0.5; vertical = 0.5; zoom = 1 } label: { Label("template.imageCrop.reset", systemImage: "arrow.counterclockwise") }
+                    .buttonStyle(.borderless)
                     .accessibilityIdentifier("template.imageCrop.reset")
                 // Mini pages/crop "使用原图": the identity rect keeps the original bytes unchanged.
                 if let original = try? TemplateImageCropRect(sourceWidth: draft.source.width, sourceHeight: draft.source.height,
                                                              horizontal: 0.5, vertical: 0.5, zoom: 1) {
-                    CYPillButton("publishParity.crop.useOriginal", style: .secondary) { confirm(draft.id, original) }
+                    Button { confirm(draft.id, original) } label: { Text("publishParity.crop.useOriginal").frame(maxWidth: .infinity) }
+                        .buttonStyle(.bordered).controlSize(.large)
                         .accessibilityIdentifier("template.imageCrop.useOriginal")
                 }
             } else {
@@ -60,11 +61,12 @@ import SwiftUI
                 let page = CropPageModel.facts(hasOpener: true, paths: [draft.id.uuidString],
                                                width: Double(draft.source.width), height: Double(draft.source.height),
                                                failed: true)
-                Text(LocalizedStringKey(page.copyKey)).cyText(.body).foregroundStyle(CYColor.textSecondary)
+                Text(LocalizedStringKey(page.copyKey)).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("template.imageCrop.failed")
             }
-            CYPillButton("image.retained.cancel", style: .tertiary) { cancel(draft.id) }
+            Button("image.retained.cancel", role: .cancel) { cancel(draft.id) }
+                .buttonStyle(.borderless)
                 .accessibilityIdentifier("template.imageCrop.cancel")
         }
         .onDisappear { cancel(draft.id) }

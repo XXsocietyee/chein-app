@@ -23,7 +23,6 @@ import SwiftUI
             }
         }
         .cyText(.body)
-        .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .nativeChannelFlowPage()
         .navigationTitle(Text("d7.channelReport.statusTitle"))
         .navigationBarTitleDisplayMode(.inline)
@@ -165,9 +164,7 @@ import SwiftUI
         }
         .formStyle(.grouped)
         .cyText(.body)
-        .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .nativeChannelFlowPage()
-        .cyGroupedSurface()
         .navigationTitle(Text("d7.channelReport.statusTitle"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarItem(placement: .cancellationAction) {

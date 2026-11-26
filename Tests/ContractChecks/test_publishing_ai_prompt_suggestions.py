@@ -22,7 +22,8 @@ class PublishingAIPromptChecks(unittest.TestCase):
   self.assertIn('}.navigationTitle("contextPublish.ai.title").navigationBarTitleDisplayMode(.inline)\n            .modifier(PublishingAIPromptLifetime(',h)
   row=v[v.index('@MainActor struct PublishingAIPromptControls:'):v.index('@MainActor struct PublishingAIPromptLifetime:')]
   for bad in ['onDisappear','onAppear','@StateObject','scenePhase','.sheet(']:self.assertNotIn(bad,row)
-  self.assertIn('if flow.candidate == nil',row);self.assertIn('.buttonStyle(.borderless)',row)
+  # native r2: custom capsule chip on .borderless became the system .bordered capsule button
+  self.assertIn('if flow.candidate == nil',row);self.assertIn('.buttonStyle(.bordered).buttonBorderShape(.capsule)',row)
   self.assertIn('token == self.generation',v);self.assertIn('controller.retire()',v);self.assertIn('.focused($ideaFocused)',h)
  def test_generate_quota_and_candidate_entry_stay_normal(self):
   h=read('App/PublishingAIDraftSheet.swift')

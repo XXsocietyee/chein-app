@@ -19,8 +19,8 @@ public struct ProfileEditGapPhoneBindRow: View {
                     ? (maskedPhone ?? "")
                     : AccountPublishRemainingCopy.bindPhoneTitle
             )
-            .cyText(.body)
         }
+        .foregroundStyle(.primary)
     }
 }
 
@@ -88,9 +88,8 @@ public struct MiniCropGapOverlay: View {
             .accessibilityHidden(true)
 
             Button("fixr8.crop.reset", action: onReset)
-                .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
-                .frame(minHeight: 44)
-                .padding(CYSpacing.md)
+                .buttonStyle(.bordered)
+                .padding()
                 .accessibilityIdentifier("miniCrop.reset")
         }
     }
@@ -107,16 +106,10 @@ public struct SettingsGapComplaintRow: View {
 
     public var body: some View {
         Button(action: onOpenComplaint) {
-            HStack {
-                Text(verbatim: AccountPublishRemainingCopy.settingsComplaint)
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textPrimary)
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
-            }
+            Text(verbatim: AccountPublishRemainingCopy.settingsComplaint)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .foregroundStyle(.primary)
     }
 }
 
@@ -151,29 +144,28 @@ public struct ActivityPublishGapOrganizerAndPOISection: View {
             Section {
                 Button(action: onPickLocation) {
                     LabeledContent("活动地点", value: (pickedPlaceName?.isEmpty == false) ? (pickedPlaceName ?? "") : "选择地点")
-                        .cyText(.body)
                 }
+                .foregroundStyle(.primary)
                 .disabled(isSoldLocked)
             } footer: {
                 if isSoldLocked {
-                    Text(verbatim: AccountPublishRemainingCopy.activitySoldLockNote).cyText(.meta)
+                    Text(verbatim: AccountPublishRemainingCopy.activitySoldLockNote)
                 }
             }
 
             Section {
                 if organizerLoadFailed {
-                    CYEmptyState(
-                        systemImage: "exclamationmark.triangle",
-                        LocalizedStringKey(AccountPublishRemainingCopy.organizerLoadFailed),
-                        actionTitle: LocalizedStringKey(AccountPublishRemainingCopy.retryLoad),
-                        action: onRetryOrganizer
-                    )
+                    ContentUnavailableView {
+                        Label(LocalizedStringKey(AccountPublishRemainingCopy.organizerLoadFailed), systemImage: "exclamationmark.triangle")
+                    } actions: {
+                        Button(LocalizedStringKey(AccountPublishRemainingCopy.retryLoad), action: onRetryOrganizer)
+                            .buttonStyle(.bordered)
+                    }
                 } else if let organizerName, !organizerName.isEmpty {
                     LabeledContent(AccountPublishRemainingCopy.organizerInfoTitle, value: organizerName)
-                        .cyText(.body)
                 }
             } header: {
-                Text(verbatim: AccountPublishRemainingCopy.organizerInfoTitle).cyText(.sectionTitle)
+                Text(verbatim: AccountPublishRemainingCopy.organizerInfoTitle)
             }
         }
     }

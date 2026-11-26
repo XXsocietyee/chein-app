@@ -38,7 +38,7 @@ struct CYStatusChip: View {
     func singleLine() -> CYStatusChip { var copy = self; copy.forcesSingleLine = true; return copy }
 
     /// Native r2: no capsule chrome. A `.footnote` `Label` (tinted SF Symbol when one is given) or plain text:
-    /// `.secondary` for neutral, the matching system colour (green / orange / red / blue / purple) otherwise.
+    /// `.secondary` for neutral, the matching system colour (green / orange / red / blue / indigo) otherwise.
     var body: some View {
         Group {
             if let systemImage {
@@ -72,7 +72,7 @@ struct CYStatusChip: View {
         case .warning: return AnyShapeStyle(Color.orange)
         case .danger: return AnyShapeStyle(Color.red)
         case .info: return AnyShapeStyle(Color.blue)
-        case .rare: return AnyShapeStyle(Color.purple)
+        case .rare: return AnyShapeStyle(Color.indigo)
         }
     }
 

@@ -145,11 +145,11 @@ import SwiftUI
                     Section {
                         ForEach(["leaderName", "phone", "identity", "coFounders"], id: \.self) { applyFieldRow($0) }
                         if applyBlocked, (draft.text["leaderName"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            Text(verbatim: ClubPlayerCopy.applyNameGap(locale)).cyText(.meta).foregroundStyle(CYColor.dangerText)
+                            Text(verbatim: ClubPlayerCopy.applyNameGap(locale)).font(.footnote).foregroundStyle(.red)
                                 .accessibilityIdentifier("club.player.apply.nameGap")
                         }
                         if applyBlocked, (draft.text["phone"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            Text(verbatim: ClubPlayerCopy.applyPhoneGap(locale)).cyText(.meta).foregroundStyle(CYColor.dangerText)
+                            Text(verbatim: ClubPlayerCopy.applyPhoneGap(locale)).font(.footnote).foregroundStyle(.red)
                                 .accessibilityIdentifier("club.player.apply.phoneGap")
                         }
                     } header: { applyStepHeader(1) } footer: { Text("club.host.contactPrivate") }
@@ -159,7 +159,7 @@ import SwiftUI
                     Section {
                         ForEach(["experience", "maxEventSize", "avgEventSize"], id: \.self) { applyFieldRow($0) }
                         if applyBlocked, (draft.text["experience"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            Text(verbatim: ClubPlayerCopy.applyExperienceGap(locale)).cyText(.meta).foregroundStyle(CYColor.dangerText)
+                            Text(verbatim: ClubPlayerCopy.applyExperienceGap(locale)).font(.footnote).foregroundStyle(.red)
                                 .accessibilityIdentifier("club.player.apply.experienceGap")
                         }
                     } header: { applyStepHeader(2) }
@@ -199,7 +199,7 @@ import SwiftUI
                         canEdit: { !busy && !locked && review == nil },
                         applySelection: { member, role in draft.applyClubRolePicker(memberID: member, roleCode: role) })
                     if draft.flags["customerPhoneVisible"] != nil {
-                        Text("club.rolePicker.phoneVisible.hint").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        Text("club.rolePicker.phoneVisible.hint").font(.footnote).foregroundStyle(.secondary)
                             .accessibilityIdentifier("club.rolePicker.phoneVisible.hint")
                     }
                 }
@@ -269,66 +269,61 @@ import SwiftUI
                 // CLB-customer-detail-04 (fix-r3-club-b round 2): MP cy-inline-error 标签与备注没保存成功, the server
                 // sentence (or 请重试), and 重试保存. An unknown outcome (`locked`) never offers the retry.
                 Section {
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        Label { Text("clubR3b.customer.saveFailed") } icon: { Image(systemName: "exclamationmark.circle") }
-                            .cyText(.cardTitle).foregroundStyle(CYColor.dangerText)
-                            .accessibilityIdentifier("club.gov.formError")
-                        if let message = failure.message { Text(verbatim: message).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
-                        else { Text("clubR3b.customer.saveFailedRetry").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
-                        if !locked {
-                            Button("clubR3b.customer.retrySave") { Task { await submitDirectly() } }
-                                .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
-                                .disabled(busy || identity == nil)
-                                .accessibilityIdentifier("club.gov.customer.retrySave")
-                        }
+                    Label { Text("clubR3b.customer.saveFailed") } icon: { Image(systemName: "exclamationmark.circle") }
+                        .font(.headline).foregroundStyle(.red)
+                        .accessibilityIdentifier("club.gov.formError")
+                    if let message = failure.message { Text(verbatim: message).foregroundStyle(.secondary) }
+                    else { Text("clubR3b.customer.saveFailedRetry").foregroundStyle(.secondary) }
+                    if !locked {
+                        Button("clubR3b.customer.retrySave") { Task { await submitDirectly() } }
+                            .disabled(busy || identity == nil)
+                            .accessibilityIdentifier("club.gov.customer.retrySave")
                     }
                 }
             } else if let failure, route.operation == .issueGroupCode {
                 // CLB-r8-group-code-02 (fix-r8-club): MP club-game-code-sheet error state (wxml:15-19): the server
                 // sentence or 团码暂时没能生成，请稍后重试, and 重试 inside the code card.
                 Section {
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        if let message = failure.message { Text(verbatim: message).cyText(.body).foregroundStyle(CYColor.textPrimary) }
-                        else { Text("clubR8b.groupCode.failed").cyText(.body).foregroundStyle(CYColor.textPrimary) }
-                        if !locked {
-                            Button("clubR8b.retry") { Task { await reissueGroupCode() } }
-                                .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
-                                .disabled(busy || identity == nil)
-                                .accessibilityIdentifier("club.gov.groupCode.retry")
-                        }
+                    Group {
+                        if let message = failure.message { Text(verbatim: message) }
+                        else { Text("clubR8b.groupCode.failed") }
                     }
                     .accessibilityIdentifier("club.gov.formError")
+                    if !locked {
+                        Button("clubR8b.retry") { Task { await reissueGroupCode() } }
+                            .disabled(busy || identity == nil)
+                            .accessibilityIdentifier("club.gov.groupCode.retry")
+                    }
                 }
             } else if let failure, route.operation == .hostApply {
                 // CLB-r8-apply-01 (fix-r8-club): MP apply wxml:157 cy-inline-error 提交没有完成 + submitError + 重试.
                 Section {
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        Label { Text("clubR8b.apply.submitFailed") } icon: { Image(systemName: "exclamationmark.circle") }
-                            .cyText(.cardTitle).foregroundStyle(CYColor.dangerText)
-                            .accessibilityIdentifier("club.gov.formError")
-                        if let message = failure.message { Text(verbatim: message).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
-                        else { Text(LocalizedStringKey(failure.localizationKey)).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
-                        if !locked {
-                            Button("clubR8b.retry") {
-                                Task {
-                                    if let pending = review { await confirm(pending) }
-                                    else { await prepare(); if let pending = review { await confirm(pending) } }
-                                }
+                    Label { Text("clubR8b.apply.submitFailed") } icon: { Image(systemName: "exclamationmark.circle") }
+                        .font(.headline).foregroundStyle(.red)
+                        .accessibilityIdentifier("club.gov.formError")
+                    if let message = failure.message { Text(verbatim: message).foregroundStyle(.secondary) }
+                    else { Text(LocalizedStringKey(failure.localizationKey)).foregroundStyle(.secondary) }
+                    if !locked {
+                        Button("clubR8b.retry") {
+                            Task {
+                                if let pending = review { await confirm(pending) }
+                                else { await prepare(); if let pending = review { await confirm(pending) } }
                             }
-                            .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
-                            .disabled(busy || identity == nil || !hostMaterialsReady)
-                            .accessibilityIdentifier("club.player.apply.retrySubmit")
                         }
+                        .disabled(busy || identity == nil || !hostMaterialsReady)
+                        .accessibilityIdentifier("club.player.apply.retrySubmit")
                     }
                 }
             } else if let failure { Section { Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.gov.formError"); if let message = failure.message { Text(verbatim: message) } } }
             if busy, route.operation == .issueGroupCode, groupCode == nil {
                 // CLB-r8-group-code-01 (fix-r8-club): MP sheet state loading shows a 生成中 placeholder in the code slot.
                 Section {
-                    Text("clubR8b.groupCode.generating").cyText(.body).foregroundStyle(CYColor.textSecondary)
-                        .frame(maxWidth: .infinity, minHeight: 200)
-                        .background(RoundedRectangle(cornerRadius: CYRadius.md).fill(CYColor.bgSurfaceSubtle))
-                        .accessibilityIdentifier("club.gov.groupCode.generating")
+                    HStack {
+                        Text("clubR8b.groupCode.generating").foregroundStyle(.secondary)
+                            .accessibilityIdentifier("club.gov.groupCode.generating")
+                        Spacer()
+                        ProgressView()
+                    }
                 }
             } else if busy { ProgressView() }
             if let review, !(Self.directOperations.contains(route.operation) && consequenceReview?.id == review.id) {
@@ -358,9 +353,6 @@ import SwiftUI
                             Text(LocalizedStringKey(access.allowsOfflineWrites ? "club.gov.confirmOffline" : "club.gov.confirmProduction"))
                         }
                     }
-                        .buttonStyle(.questifyPrimary)
-                        .frame(maxWidth: .infinity)
-                        .listRowBackground(Color.clear)
                         .disabled(!coordinator.canDispatch(review.command) || busy || locked).accessibilityIdentifier("club.gov.confirm")
                     if ClubOpsEventWriteGate.state(canDispatch: coordinator.canDispatch(review.command), busy: busy, locked: locked).showsNotAvailableNote {
                         Text("clubOpsEvent.write.notAvailable", tableName: "ClubOpsEvent").cyText(.bodyCompact).foregroundStyle(.secondary)
@@ -375,9 +367,7 @@ import SwiftUI
                         guard !busy, !locked else { return }
                         applyBlocked = false
                         setApplyStep(applyStep - 1)
-                    } label: { Text(verbatim: locale.pick("上一步", "Back")).frame(maxWidth: .infinity) }
-                    .buttonStyle(CYPillButtonStyle(style: .secondary))
-                    .listRowBackground(Color.clear)
+                    } label: { Text(verbatim: locale.pick("上一步", "Back")) }
                     .disabled(busy || locked)
                     .accessibilityIdentifier("club.player.apply.back")
                 }
@@ -390,9 +380,6 @@ import SwiftUI
                             if let pending = review { await confirm(pending) }
                         }
                     }
-                    .buttonStyle(.questifyPrimary)
-                    .frame(maxWidth: .infinity)
-                    .listRowBackground(Color.clear)
                     .disabled(busy || locked || identity == nil || !hostMaterialsReady || !ClubHostApplyPort.canReview(text: draft.text))
                     .accessibilityIdentifier("club.gov.prepare")
                 }
@@ -402,9 +389,6 @@ import SwiftUI
                     Button(LocalizedStringKey(route.operation == .saveCustomer ? "clubR3b.customer.save" : "clubR3b.groupCode.issue")) {
                         Task { await submitDirectly() }
                     }
-                    .buttonStyle(.questifyPrimary)
-                    .frame(maxWidth: .infinity)
-                    .listRowBackground(Color.clear)
                     .disabled(busy || locked || identity == nil || !groupCodeCanIssue)
                     .accessibilityIdentifier("club.gov.prepare")
                 } else if Self.directOperations.contains(route.operation) {
@@ -412,7 +396,7 @@ import SwiftUI
                     // js:435-452, roles js:400-415). Heavy commands still stop once on the consequence sheet (MC-33);
                     // 分配 stays tappable and names the missing field instead of greying out.
                     if let directHint {
-                        Text(LocalizedStringKey(directHint)).cyText(.bodyCompact).foregroundStyle(CYColor.dangerText)
+                        Text(LocalizedStringKey(directHint)).font(.footnote).foregroundStyle(.red)
                             .accessibilityIdentifier("club.gov.directHint")
                     }
                     Button(LocalizedStringKey("club.gov.action." + route.operation.rawValue)) {
@@ -420,9 +404,6 @@ import SwiftUI
                         directHint = nil
                         Task { await submitDirectly() }
                     }
-                    .buttonStyle(.questifyPrimary)
-                    .frame(maxWidth: .infinity)
-                    .listRowBackground(Color.clear)
                     .disabled(busy || locked || identity == nil)
                     .accessibilityIdentifier("club.gov.prepare")
                 } else if route.operation != .hostApply {
@@ -481,7 +462,7 @@ import SwiftUI
                             .accessibilityIdentifier("club.host.receipt.leader")
                     }
                 }
-                if route.operation == .hostApply { Section { ClubCreateMyClubLink(identity: identity) }.listRowBackground(Color.clear) }
+                if route.operation == .hostApply { Section { ClubCreateMyClubLink(identity: identity) } }
             }
         }
         .background {
@@ -503,27 +484,33 @@ import SwiftUI
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { activateHostMaterials() } else { hostMaterials.retire() }
         }
-        .scrollContentBackground(.hidden).cyDomainPageBackground()
-        .cyGroupedSurface()
         .navigationTitle(ClubOpsEventFormCopy.title(route)).navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: Binding(get: { cancelConfirmReview != nil }, set: { if !$0 { cancelConfirmReview = nil } })) {
-            CYConfirmSheet(
-                title: String(localized: LocalizedStringResource("clubOpsEvent.cancel.confirmTitle", table: "ClubOpsEvent", locale: locale)),
-                message: String(localized: LocalizedStringResource("clubOpsEvent.cancel.confirmBody", table: "ClubOpsEvent", locale: locale)),
-                confirmTitle: String(localized: LocalizedStringResource("clubOpsEvent.cancel.confirmAction", table: "ClubOpsEvent", locale: locale)),
-                cancelTitle: String(localized: LocalizedStringResource("clubOpsEvent.cancel.keep", table: "ClubOpsEvent", locale: locale)),
-                isDestructive: true,
-                consequences: [
-                    CYConfirmConsequence(systemImage: "exclamationmark.triangle", text: String(localized: LocalizedStringResource("clubOpsEvent.cancel.consequence1", table: "ClubOpsEvent", locale: locale))),
-                    CYConfirmConsequence(systemImage: "person.2.slash", text: String(localized: LocalizedStringResource("clubOpsEvent.cancel.consequence2", table: "ClubOpsEvent", locale: locale)))
-                ],
-                onCancel: { cancelConfirmReview = nil },
-                onConfirm: {
-                    guard let pending = cancelConfirmReview, pending.id == review?.id else { cancelConfirmReview = nil; return }
-                    cancelConfirmReview = nil; Task { await confirm(pending) }
+            NavigationStack {
+                List {
+                    Section {
+                        Label { Text("clubOpsEvent.cancel.consequence1", tableName: "ClubOpsEvent") } icon: { Image(systemName: "exclamationmark.triangle") }
+                        Label { Text("clubOpsEvent.cancel.consequence2", tableName: "ClubOpsEvent") } icon: { Image(systemName: "person.2.slash") }
+                    } footer: {
+                        Text("clubOpsEvent.cancel.confirmBody", tableName: "ClubOpsEvent")
+                    }
                 }
-            )
-            .cyDomainSheet(detents: [.half, .full])
+                .navigationTitle(Text("clubOpsEvent.cancel.confirmTitle", tableName: "ClubOpsEvent"))
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button { cancelConfirmReview = nil } label: { Text("clubOpsEvent.cancel.keep", tableName: "ClubOpsEvent") }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button(role: .destructive) {
+                            guard let pending = cancelConfirmReview, pending.id == review?.id else { cancelConfirmReview = nil; return }
+                            cancelConfirmReview = nil; Task { await confirm(pending) }
+                        } label: { Text("clubOpsEvent.cancel.confirmAction", tableName: "ClubOpsEvent") }
+                        .foregroundStyle(.red)
+                    }
+                }
+            }
+            .presentationDetents([.medium, .large])
         }
         .sheet(isPresented: Binding(get: { consequenceReview != nil }, set: { if !$0 { consequenceReview = nil } })) {
             if let kind = ClubGovernanceConsequence(route.operation) {
@@ -544,13 +531,13 @@ import SwiftUI
             }
         } }
         .interactiveDismissDisabled(dirty || busy || locked)
-        .sheet(isPresented: $showDiscard) {
-            CYConfirmSheet(
-                title: appLocalized("club.gov.discardTitle", locale: locale),
-                message: locked ? appLocalized("club.gov.unknown", locale: locale) : appLocalized("club.gov.discardBody", locale: locale),
-                confirmTitle: appLocalized("club.gov.discard", locale: locale),
-                isDestructive: true
-            ) { showDiscard = false; retirePresentation(); coordinator.cancelReview(); dismiss() }
+        .confirmationDialog(Text(verbatim: appLocalized("club.gov.discardTitle", locale: locale)), isPresented: $showDiscard, titleVisibility: .visible) {
+            Button(role: .destructive) {
+                showDiscard = false; retirePresentation(); coordinator.cancelReview(); dismiss()
+            } label: { Text(verbatim: appLocalized("club.gov.discard", locale: locale)) }
+            Button(role: .cancel) { showDiscard = false } label: { Text("action.cancel") }
+        } message: {
+            Text(verbatim: locked ? appLocalized("club.gov.unknown", locale: locale) : appLocalized("club.gov.discardBody", locale: locale))
         }
         .sheet(item: $scheduleSession) { session in Group {
             NavigationStack {
@@ -708,29 +695,20 @@ import SwiftUI
     /// CLB-apply-06 (MP apply wxml:15-23): the create wizard's step header: four progress capsules, the 第 n 步 line
     /// and a large headline, on the page rather than in a card.
     @ViewBuilder private func applyStepHeader(_ step: Int) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            HStack(spacing: CYSpacing.xs) {
-                ForEach(1...4, id: \.self) { index in
-                    Capsule(style: .continuous)
-                        .fill(index <= step ? CYColor.textPrimary : CYColor.borderSubtle)
-                        .frame(height: 4)
-                }
-            }
-            .animation(reduceMotion ? nil : .easeOut(duration: 0.22), value: step)
-            .accessibilityHidden(true)
+        VStack(alignment: .leading, spacing: 8) {
+            ProgressView(value: Double(step), total: 4)
+                .accessibilityHidden(true)
             Text(verbatim: ClubPlayerCopy.progressLabel(step, locale: locale))
-                .cyText(.bodyMedium)
-                .foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("club.player.apply.progress")
             Text(verbatim: ClubPlayerCopy.applyTitle(step: step, locale: locale))
-                .cyText(.display)
-                .foregroundStyle(CYColor.textPrimary)
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier("club.player.apply.stepTitle")
         }
         .textCase(nil)
-        .padding(.bottom, CYSpacing.xs)
+        .padding(.bottom, 4)
     }
     private var applyReady: Bool {
         applyStep == 0 || ClubHostApplyPort.canAdvance(step: applyStep, text: draft.text)
@@ -742,11 +720,8 @@ import SwiftUI
             setApplyStep(applyStep + 1)
         } label: {
             Text(verbatim: applyStep == 0 ? ClubPlayerCopy.applyStart(locale) : ClubPlayerCopy.next(locale))
-                .frame(maxWidth: .infinity)
         }
-        .buttonStyle(CYPillButtonStyle())
         .disabled(busy || locked || review != nil)
-        .listRowBackground(Color.clear)
         .accessibilityIdentifier("club.player.apply.next")
     }
     private func setApplyStep(_ next: Int) {
@@ -757,26 +732,20 @@ import SwiftUI
     @ViewBuilder private func applyFieldRow(_ key: String) -> some View {
         if key == "experience", let choices = draft.choices(key) {
             // CLB-apply-06 (MP apply wxml:94-101): 组织经验 is one radio card per option (create-wizard kit).
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                ForEach(choices, id: \.self) { choice in
-                    ClubR1OptionCard(title: Text(LocalizedStringKey("club.gov.choice." + choice)),
-                                     isSelected: draft.text[key] == choice) { textBinding(key).wrappedValue = choice }
-                        .accessibilityIdentifier("club.gov.input.experience.\(choice)")
-                }
+            ForEach(choices, id: \.self) { choice in
+                ClubR1OptionCard(title: Text(LocalizedStringKey("club.gov.choice." + choice)),
+                                 isSelected: draft.text[key] == choice) { textBinding(key).wrappedValue = choice }
+                    .accessibilityIdentifier("club.gov.input.experience.\(choice)")
             }
-            .listRowBackground(Color.clear)
-            .accessibilityElement(children: .contain)
-            .accessibilityLabel(Text(LocalizedStringKey("club.gov.field." + key)))
-            .accessibilityIdentifier("club.gov.input." + key)
         } else if draft.choices(key) != nil {
             fieldRow(key)
         } else {
             let required = ClubHostApplyFieldCopy.required.contains(key)
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            VStack(alignment: .leading, spacing: 4) {
                 (Text(LocalizedStringKey("club.gov.field." + key))
-                 + (required ? Text(verbatim: " *").foregroundColor(CYColor.dangerText) : Text(verbatim: "")))
-                    .cyText(.label)
-                    .foregroundStyle(CYColor.textPrimary)
+                 + (required ? Text(verbatim: " *").foregroundColor(.red) : Text(verbatim: "")))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                     .accessibilityHidden(true)
                 TextField(text: textBinding(key), prompt: Text(LocalizedStringKey("club.host.placeholder." + key))) {
                     Text(LocalizedStringKey("club.gov.field." + key))
@@ -786,7 +755,7 @@ import SwiftUI
                 .accessibilityHint(required ? Text("club.host.requiredHint") : Text("club.host.optionalHint"))
                 .accessibilityIdentifier("club.gov.input." + key)
             }
-            .padding(.vertical, CYSpacing.xs)
+            .padding(.vertical, 2)
         }
     }
     @ViewBuilder private func fieldRow(_ key: String) -> some View {
@@ -802,7 +771,7 @@ import SwiftUI
             // Mini inline "reason required" copy; display only (the command validation still blocks blank reasons).
             if key == "reason", dirty, let mode = Self.reasonMode(route.operation), !ClubGovernanceReportPort.reasonIsValid(draft.text[key] ?? "") {
                 Text(LocalizedStringKey(ClubGovernanceReportPort.reasonRequiredKey(mode)), tableName: "ClubOpsGovernance")
-                    .cyText(.bodyCompact).foregroundStyle(CYColor.dangerText)
+                    .font(.footnote).foregroundStyle(.red)
                     .accessibilityIdentifier("club.gov.reasonRequired")
             }
         }

@@ -84,7 +84,7 @@ enum ClubFEReferenceMoneyWriteGate {
             Group {
                 switch phase {
                 case .loading:
-                    Section { CYLoadingStateView(rows: 1) }
+                    Section { ProgressView().frame(maxWidth: .infinity) }
                 case .failed:
                     Section {
                         // CLB-r9-native-03: system failure state.
@@ -100,7 +100,7 @@ enum ClubFEReferenceMoneyWriteGate {
                     if !items.isEmpty || range.isActive {
                         ClubGapFEReferenceRangeBar(range: $range, isExporting: exporting) { Task { await export() } }
                         if exportFailed {
-                            Section { Text("feReference.exportFailed", tableName: "PayoutReceiver").cyText(.meta).foregroundStyle(CYColor.dangerText) }
+                            Section { Text("feReference.exportFailed", tableName: "PayoutReceiver").font(.subheadline).foregroundStyle(.red) }
                         }
                         ClubGapFEReferenceSettlementSection(role: .payer, items: items,
                             allowsMoneyWrite: ClubFEReferenceMoneyWriteGate.allowsSettle,

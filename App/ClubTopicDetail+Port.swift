@@ -13,7 +13,8 @@ import SwiftUI
                 VStack(alignment: .leading) { tiles }
             }
         } header: {
-            Text("club.topic.verify.title")
+            Text("club.topic.verify.title").textCase(nil)
+                .accessibilityAddTraits(.isHeader)
         }
     }
 

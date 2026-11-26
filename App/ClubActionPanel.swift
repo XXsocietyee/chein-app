@@ -72,10 +72,10 @@ struct ClubActionPanel: View {
                     Text("club.action.unavailable").foregroundStyle(.secondary)
                 }
                 if let reward = rewardAction, reward != .leave {
-                    CYJoinReward(kind: reward == .apply ? .pending : .joined,
-                                 phase: rewardHandedOff ? .chip : rewardPhase,
-                                 plays: !rewardHandedOff)
-                        .listRowBackground(Color.clear)
+                    // The settled join or apply is a status row, like the membership state in Settings.
+                    Label(LocalizedStringKey(reward == .apply ? "club.membership.pending" : "club.membership.joined"),
+                          systemImage: reward == .apply ? "clock" : "checkmark.circle.fill")
+                        .foregroundStyle(reward == .apply ? Color.orange : Color.green)
                         .transition(.opacity)
                 }
                 if !rewardPlaying {
@@ -86,7 +86,7 @@ struct ClubActionPanel: View {
                             }
                                 .disabled(isWorking || state.preventsNewAction)
                                 .accessibilityIdentifier("club.application.message")
-                            Text("club.application.messageHelp").cyText(.meta).foregroundStyle(.secondary)
+                            Text("club.application.messageHelp").font(.footnote).foregroundStyle(.secondary)
                             if !ClubApplicationMessage.isValid(joinMessage, for: .apply) {
                                 Group {
                                     if ClubApplicationMessage.isMissingRequiredMessage(joinMessage) {
@@ -124,8 +124,7 @@ struct ClubActionPanel: View {
         }
         }
         }
-        .animation(reduceMotion ? CYMotion.reduced : CYMotion.standard, value: rewardPhase)
-        .animation(reduceMotion ? CYMotion.reduced : CYMotion.standard, value: rewardHandedOff)
+        .animation(reduceMotion ? nil : .default, value: rewardAction)
     }
     private var confirmationPresented: Binding<Bool> {
         Binding(get: { confirmation != nil }, set: { if !$0 { cancelConfirmation() } })
@@ -134,19 +133,45 @@ struct ClubActionPanel: View {
     /// placement) or the single page-end row (`.pageEnd`, MC-20).
     @ViewBuilder private var confirmationSheet: some View {
         if let value = confirmation {
-            CYConfirmSheet(
-                title: value.action == .leave
-                    ? ChannelCopy.text("退出「\(value.clubName)」？", "Leave “\(value.clubName)”?", locale: locale)
-                    : String(localized: String.LocalizationValue(actionKey(value.action))),
-                message: value.action == .leave
-                    ? String(localized: String.LocalizationValue(confirmationKey(.leave)))
-                    : confirmationMessage(value),
-                confirmTitle: String(localized: String.LocalizationValue(actionKey(value.action))),
-                isDestructive: value.action == .leave,
-                confirmIdentifier: "club.action.confirm",
-                consequences: value.action == .leave ? ClubLeaveConsequences.rows(locale: locale, needsApproval: club.needsApproval) : []
-            ) { submit(value) }
+            let title = value.action == .leave
+                ? ChannelCopy.text("退出「\(value.clubName)」？", "Leave “\(value.clubName)”?", locale: locale)
+                : String(localized: String.LocalizationValue(actionKey(value.action)))
+            let message = value.action == .leave
+                ? String(localized: String.LocalizationValue(confirmationKey(.leave)))
+                : confirmationMessage(value)
+            let consequences = value.action == .leave ? ClubLeaveConsequences.rows(locale: locale, needsApproval: club.needsApproval) : []
+            NavigationStack {
+                List {
+                    if consequences.isEmpty {
+                        Section { Text(verbatim: message) }
+                    } else {
+                        Section {
+                            ForEach(consequences) { row in
+                                Label(row.text, systemImage: row.systemImage)
+                            }
+                        } footer: { Text(verbatim: message) }
+                    }
+                }
+                .navigationTitle(Text(verbatim: title))
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("action.cancel") { cancelConfirmation() }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        confirmButton(value, confirmIdentifier: "club.action.confirm")
+                    }
+                }
+            }
+            .presentationDetents([.medium, .large])
         }
+    }
+    /// The sheet's confirm action (`club.action.confirm`): 退出 reads destructive.
+    private func confirmButton(_ value: ClubActionConfirmation, confirmIdentifier: String) -> some View {
+        Button(role: value.action == .leave ? .destructive : nil) { submit(value) } label: {
+            Text(verbatim: String(localized: String.LocalizationValue(actionKey(value.action))))
+        }
+        .accessibilityIdentifier(confirmIdentifier)
     }
     private var canLeaveHere: Bool {
         guard coordinator.identity == identity, identity.isSignedIn, coordinator.isConfigured, !rewardPlaying,
@@ -170,23 +195,15 @@ struct ClubActionPanel: View {
     @ViewBuilder private func membershipButton(_ action: ClubAction, state: ClubActionState) -> some View {
         let button = Button(role: action == .leave ? .destructive : nil) { prepare(action) } label: {
             Label(LocalizedStringKey(actionKey(action)), systemImage: action == .leave ? "rectangle.portrait.and.arrow.right" : "person.badge.plus")
-                .frame(maxWidth: .infinity)
         }
         .disabled(isWorking || state.preventsNewAction || !ClubApplicationMessage.isValid(action == .apply ? joinMessage : "", for: action))
         .accessibilityIdentifier("club.action.\(action.rawValue)")
-        .listRowBackground(Color.clear)
+        // A Settings-style row action: 退出 reads in the system red (destructive role); 加入 / 申请 in the tint.
+        // The 处理中 progress row below shows the in-flight state.
         if action == .leave {
-            if !leavesAtPageEnd {
-                button.buttonStyle(.cyDomainSecondary(fullWidth: true)).foregroundStyle(CYColor.dangerText).clipShape(Capsule())
-            }
+            if !leavesAtPageEnd { button }
         } else {
-            // Dots while preparing and sending. Success is the seal reward above, not a morph into the chip.
-            CYClubJoinStage(
-                title: LocalizedStringKey(actionKey(action)),
-                state: isWorking ? .working : .idle,
-                seed: "club-\(club.id)", memberCount: nil, identifier: "club.action.\(action.rawValue)") { prepare(action) }
-                .disabled(isWorking || state.preventsNewAction || !ClubApplicationMessage.isValid(action == .apply ? joinMessage : "", for: action))
-                .listRowBackground(Color.clear)
+            button
         }
     }
     @ViewBuilder private func stateContent(_ state: ClubActionState) -> some View {
@@ -298,7 +315,6 @@ struct ClubActionPanel: View {
             }
             guard operation == generation, !Task.isCancelled, coordinator.identity == value.identity else { return }
             isWorking = false; revision &+= 1
-            let reduced = reduceMotion
             let acknowledged: Bool = {
                 if case .acknowledged = coordinator.state(clubID: club.id) { return true }
                 return false
@@ -306,39 +322,14 @@ struct ClubActionPanel: View {
             if value.action == .leave, acknowledged {
                 rewardAction = nil; rewardHandedOff = false; rewardPhase = .landing
             } else if value.action != .leave, acknowledged {
-                if reduced {
-                    // No seal travel and no particles: crossfade straight to the chip.
-                    withAnimation(CYMotion.reduced) {
-                        rewardAction = value.action
-                        rewardHandedOff = true
-                        rewardPhase = .chip
-                    }
-                    CYHaptics.success.play()
-                } else {
-                    withAnimation(.easeOut(duration: CYMotion.Duration.instant)) {
-                        rewardAction = value.action
-                        rewardHandedOff = false
-                        rewardPhase = .landing
-                    }
-                }
+                // The joined / pending status row replaces the button at once; the system haptic marks success.
+                rewardAction = value.action
+                rewardHandedOff = true
+                rewardPhase = .chip
+                CYHaptics.success.play()
             }
             if let readbackGeneration { deliverReadback(identity: value.identity, readbackGeneration: readbackGeneration) }
-            if value.action != .leave, acknowledged, !reduced { await runJoinReward(operation: operation) }
         }
-    }
-    /// Seal lands, lantern reward burst, then the chip. Leave and failures never enter.
-    private func runJoinReward(operation: UInt64) async {
-        func live() -> Bool { operation == generation && !Task.isCancelled }
-        try? await Task.sleep(for: .milliseconds(90))
-        guard live() else { return }
-        withAnimation(.spring(response: 0.22, dampingFraction: 0.58)) { rewardPhase = .burst }
-        CYHaptics.success.play()
-        try? await Task.sleep(for: .milliseconds(760))
-        guard live() else { return }
-        withAnimation(CYMotion.standard) { rewardPhase = .chip }
-        try? await Task.sleep(for: .milliseconds(520))
-        guard live() else { return }
-        withAnimation(CYMotion.standard) { rewardHandedOff = true }
     }
     private func readBack() {
         guard !isWorking, coordinator.identity == identity else { return }

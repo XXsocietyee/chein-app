@@ -46,39 +46,35 @@ struct SearchMapOfflineBannerView: View {
     let state: SearchMapOfflineBanner
     let stillOffline: Bool
     let retry: () -> Void
-    @Environment(\.cyPalette) private var palette
     var body: some View {
         if let key = state.key {
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Label(LocalizedStringKey(key), systemImage: "wifi.slash")
-                    .cyText(.meta, weight: .semibold)
-                    .foregroundStyle(palette.warning)
+            GroupBox {
+              VStack(alignment: .leading, spacing: 6) {
+                Label {
+                    Text(LocalizedStringKey(key)).font(.subheadline.weight(.semibold))
+                } icon: {
+                    Image(systemName: "wifi.slash").foregroundStyle(.orange)
+                }
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("searchMap.w208.offline.message")
                 if case .cached(let date) = state {
                     (Text("searchMap.w208.offline.cachedAt") + Text(verbatim: " ") + Text(date, format: .dateTime.hour().minute()))
-                        .cyText(.caption).foregroundStyle(palette.textSecondary)
+                        .font(.caption).foregroundStyle(.secondary)
                         .accessibilityIdentifier("searchMap.w208.offline.cachedAt")
                 }
                 if stillOffline {
-                    Text("searchMap.w208.offline.stillOffline").cyText(.caption)
-                        .foregroundStyle(palette.warning)
+                    Text("searchMap.w208.offline.stillOffline").font(.caption)
+                        .foregroundStyle(.orange)
                         .accessibilityIdentifier("searchMap.w208.offline.stillOffline")
                 }
                 Button("searchMap.w208.offline.retry", action: retry)
                     .buttonStyle(.bordered)
-                    .tint(palette.warning)
-                    .frame(minHeight: 44)
                     .accessibilityIdentifier("searchMap.w208.offline.retry")
                     .accessibilityLabel(Text("searchMap.w208.offline.retry"))
                     .accessibilityValue(spokenCache)
                     .accessibilityHint(Text(LocalizedStringKey(stillOffline ? "searchMap.w208.offline.stillOffline" : key)))
-            }.padding().frame(maxWidth: .infinity, alignment: .leading)
-                .background(palette.warningSoft, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
-                        .stroke(palette.warning.opacity(0.28), lineWidth: 1)
-                )
+              }.frame(maxWidth: .infinity, alignment: .leading)
+            }
                 .accessibilityElement(children: .contain)
                 .accessibilityLabel(Text(LocalizedStringKey(key)))
                 .accessibilityValue(spokenCache)

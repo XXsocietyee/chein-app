@@ -52,19 +52,14 @@ import SwiftUI
             if controller.saveUnconfirmed { Text("projectNodeGameplay.saveUnconfirmed", tableName: "ProjectNodeGameplayRemoval") }
             else if !controller.available { Text("projectNodeGameplay.unavailable", tableName: "ProjectNodeGameplayRemoval").font(.caption) }
         }
-        .sheet(isPresented: controller.binding(original)) {
-            if let original {
-                CYConfirmSheet(
-                    title: String(localized: LocalizedStringResource("projectNodeGameplay.confirmTitle", table: "ProjectNodeGameplayRemoval", locale: locale)),
-                    message: "\(original.nodeName) · #\(original.templateID)\n"
-                        + String(localized: LocalizedStringResource("projectNodeGameplay.impact", table: "ProjectNodeGameplayRemoval", locale: locale)),
-                    confirmTitle: String(localized: LocalizedStringResource("projectNodeGameplay.confirm", table: "ProjectNodeGameplayRemoval", locale: locale)),
-                    isDestructive: true,
-                    onConfirm: { controller.clear(original) }
-                )
-                .cyDomainSheet(detents: [.half])
-                .themeDomain(.topicEditor)
+        .confirmationDialog(Text("projectNodeGameplay.confirmTitle", tableName: "ProjectNodeGameplayRemoval"),
+                            isPresented: controller.binding(original), titleVisibility: .visible, presenting: original) { pending in
+            Button(role: .destructive) { controller.clear(pending) } label: {
+                Text("projectNodeGameplay.confirm", tableName: "ProjectNodeGameplayRemoval")
             }
+        } message: { pending in
+            Text(verbatim: "\(pending.nodeName) · #\(pending.templateID)\n")
+                + Text("projectNodeGameplay.impact", tableName: "ProjectNodeGameplayRemoval")
         }
         .onChange(of: model.editorIncarnation) { _, _ in controller.retire() }
         .onDisappear { controller.retire() }

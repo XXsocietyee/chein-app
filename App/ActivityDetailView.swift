@@ -59,7 +59,6 @@ struct ActivityDetailView: View {
         .appNavigationTitle("activity.details")
         .navigationBarTitleDisplayMode(.inline)
         .cyPushedChrome(domain: .player)
-        .cyDomainPageBackground()
         .cyHideTabBar()
     }
 
@@ -109,7 +108,6 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
     var guestSignIn: (() -> Void)? = nil
     @State private var openedRegistrationOnLoad = false
     @Environment(\.locale) private var locale
-    @Environment(\.cyPalette) private var palette
     @QuestifyReduceMotion private var reduceMotion
     /// Collapsed by default: the 12 secondary sections live behind one disclosure row.
     @State private var showsMoreInfo = false
@@ -132,7 +130,6 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
     /// Continuity r1 (+): the footer pill is the zoom source of the registration / ticket-wallet sheet it opens. The first
     /// tile (`performPrimaryAction`) opens the same sheets; it sets this so they keep the plain slide-up. Cleared on dismiss.
     @State private var tileOpenedSheet = false
-    @Namespace private var footerHero
     @State private var showsPlay = false
     /// One load lifecycle instead of `access` / `loading` / `failed` (docs/release/state-machines/views.md).
     @State private var phase: CYPhase<ActivityDetailAccess, ActivityDetailLoadIssue> = .idle
@@ -165,25 +162,24 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                 loadingState
             case .failed(let issue, _):
                 if issue == .missing {
-                    CYEmptyState(systemImage: "calendar.badge.exclamationmark", "activity.detail.missing",
-                                 actionTitle: "common.back", action: { dismiss() })
-                        .accessibilityIdentifier("activity.detail.missing")
+                    ContentUnavailableView {
+                        Label { Text("activity.detail.missing") } icon: { Image(systemName: "calendar.badge.exclamationmark") }
+                    } actions: {
+                        Button { dismiss() } label: { Text("common.back") }
+                            .buttonStyle(.bordered)
+                    }
+                    .accessibilityIdentifier("activity.detail.missing")
                 } else {
-                ScrollView {
-                    VStack(spacing: CYSpacing.lg) {
-                        CYStateArt(kind: .failure)
-                        Text("activity.loadFailed")
-                            .cyText(.sectionTitle)
-                            .foregroundStyle(CYColor.textPrimary)
-                            .multilineTextAlignment(.center)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .accessibilityIdentifier("activity.detail.error")
-                        CYPillButton("action.retry") { loads.start { await load() } }
+                    ContentUnavailableView {
+                        Label {
+                            Text("activity.loadFailed")
+                                .accessibilityIdentifier("activity.detail.error")
+                        } icon: { Image(systemName: "exclamationmark.triangle") }
+                    } actions: {
+                        Button { loads.start { await load() } } label: { Text("action.retry") }
+                            .buttonStyle(.borderedProminent)
                             .accessibilityIdentifier("activity.detail.retry")
                     }
-                    .padding(.horizontal, CYSpacing.pageHorizontal)
-                    .padding(.vertical, CYSpacing.xl)
-                }
                 }
             case .loaded(let access):
                 switch access {
@@ -232,7 +228,6 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                     .cySheet()
             }
         }
-        .cyDomainPageBackground()
         .task(id:id) { await loads.run { await load() } }
         .onAppear { gateIsVisible = true; gatePresentationID = UUID(); if startsWithMoreInfoOpen { showsMoreInfo = true } }
         .onDisappear { loads.cancel(); generation += 1; if phase.isLoading { phase = .idle } }
@@ -279,7 +274,6 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
             if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail) }
             }
             .environment(\.registrationPreselectedTicketID, registrationTicketID)
-            .modifier(ActivityFooterHeroDestination(active: !tileOpenedSheet, namespace: footerHero))
             .themeDomain(.player)
             .cySheet(detents: [.large])
         }
@@ -296,7 +290,6 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
             if let session = reader as? AppSession {
                 SessionTicketWalletHost(onClose:{ showsTicketWallet=false })
                     .environmentObject(session)
-                    .modifier(ActivityFooterHeroDestination(active: !tileOpenedSheet, namespace: footerHero))
                     .themeDomain(.player)
                     .cySheet(detents: [.large])
             }
@@ -329,42 +322,24 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
             brand: appLocalized("share.card.brand", locale: locale))
     }
     private var loadingState: some View {
-        ScrollView {
-            CYSkeleton()
-                .accessibilityHidden(true)
-                .padding(.horizontal, CYSpacing.pageHorizontal)
-                .padding(.vertical, CYSpacing.lg)
-        }
-        .accessibilityLabel(Text("activity.loading"))
+        ProgressView()
+            .accessibilityLabel(Text("activity.loading"))
     }
 
     private func clubGate(_ message: String?) -> some View {
-        ScrollView {
-            VStack(spacing: CYSpacing.lg) {
-                CYStateArt(kind: CYStateKind(symbol: "lock"))
+        ContentUnavailableView {
+            Label {
                 Text("activity.clubRequired")
-                    .cyText(.sectionTitle)
-                    .foregroundStyle(CYColor.textPrimary)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("activity.detail.clubGate")
-                if let message, !message.isEmpty {
-                    Text(verbatim: message)
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
-                } else {
-                    Text("activity.clubRequiredHint")
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                if let access { requiredClubAction(access) }
+            } icon: { Image(systemName: "lock") }
+        } description: {
+            if let message, !message.isEmpty {
+                Text(verbatim: message)
+            } else {
+                Text("activity.clubRequiredHint")
             }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.vertical, CYSpacing.xl)
+        } actions: {
+            if let access { requiredClubAction(access) }
         }
     }
 
@@ -384,13 +359,13 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                 Label("activity.requiredClub.open", systemImage: "person.3")
                     .fixedSize(horizontal: false, vertical: true)
             }
-                .buttonStyle(CYPillButtonStyle())
+                .buttonStyle(.borderedProminent)
                 .disabled(requiredClubDestination == nil || renderedScope == nil || !gateIsVisible || requiredClubSelection != nil)
                 .accessibilityIdentifier("activity.requiredClub.open")
                 .accessibilityLabel(Text("activity.requiredClub.open"))
         }
         if requiredClubDestination == nil || renderedScope == nil || (clubID ?? 0) <= 0 {
-            Text("activity.requiredClub.unavailable").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            Text("activity.requiredClub.unavailable").font(.footnote).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("activity.requiredClub.unavailable")
         }
@@ -399,21 +374,20 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
     /// Meta (分类 / 集合点 / 已报名) follows the cancellation notice and precedes 关于这场活动.
     /// Everything else (plays, journeys) sits behind the disclosure; host cancel stays its own section.
     private func detailContent(_ detail:ActivityDetail) -> some View {
-        ScrollViewReader { proxy in
         List {
             Section {
+                // E1ActivityHero / E1ActivityInfoCard draw their own surface (E1ActivityDetailParts.swift); no cell behind them.
                 E1ActivityHero(summary:detail.summary)
-                    .listRowInsets(EdgeInsets()).listRowBackground(Color.clear).listRowSeparator(.hidden)
-                E1ActivityStatsRow(detail: detail)
-                    .questifyCardListRow()
-                E1ActivitySectionTabs(proxy: proxy)
-                    .listRowInsets(EdgeInsets()).listRowBackground(palette.bgPage).listRowSeparator(.hidden)
-                ActivityActionTiles(onDirections: directionsAction(detail),
-                                    onReview: canReview(detail) ? { showsReview = true } : nil)
-                    .listRowInsets(EdgeInsets()).listRowBackground(Color.clear).listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
+            }
+            Section {
                 E1ActivityInfoCard(detail:detail)
                     .questifyCardListRow()
                     .id(E1ActivityAnchor.overview.rawValue)
+            }
+            Section {
+                ActivityActionRows(onDirections: directionsAction(detail),
+                                   onReview: canReview(detail) ? { showsReview = true } : nil)
                 if primaryAction != .signUp, !detail.isCancelled {
                     InGameChannelRowButton(
                         scope: .activity(id: id),
@@ -422,20 +396,17 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                         accessibilityID: "ingame.channel.activity.entry",
                         reloadTrigger: primaryAction
                     )
-                    .questifyCardSurface()
-                    .questifyCardListRow()
                 }
             }
             if detail.isCancelled {
                 Section {
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        CYStatusChip("activity.cancelled.title", tone: .danger, systemImage: "xmark.octagon")
+                    VStack(alignment: .leading, spacing: 6) {
+                        Label { Text("activity.cancelled.title") } icon: { Image(systemName: "xmark.octagon").foregroundStyle(.red) }
+                            .font(.headline)
                         if let reason = detail.cancelReason { Text("activity.cancelled.reason \(reason)").fixedSize(horizontal: false, vertical: true) }
-                        Text("activity.cancelled.hint").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        Text("activity.cancelled.hint").font(.footnote).foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                    .questifyCardSurface()
-                    .questifyCardListRow()
                     .accessibilityIdentifier("activity.detail.cancelled")
                 }
             }
@@ -451,21 +422,17 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                         Marker(detail.summary.name,coordinate:coordinate)
                     }.frame(height:220)
                         .mapStyle(.standard(elevation:.flat,emphasis:.muted))
-                        .environment(\.colorScheme,.light)
-                        .background { CYMapPlaceholder(fog:false) }
-                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                         .accessibilityElement(children:.ignore)
                         .accessibilityLabel(Text("activity.location"))
                         .accessibilityValue(Text(verbatim:ActivityLocationAccessibility.value(name:detail.summary.name,addressName:detail.summary.addressName,address:detail.summary.address)))
                         .accessibilityAddTraits(.isImage)
-                        .questifyCardSurface()
-                        .questifyCardListRow()
+                        .listRowInsets(EdgeInsets())
                 }
             }
             if let topicID = detail.summary.linkedTopicID, let topicDestination {
                 Section {
                     NavigationLink { topicDestination(topicID) } label: {
-                        CYListRow("activity.viewTopic", trailing: .none) { CYRowIcon(systemImage: "map") }
+                        Label("activity.viewTopic", systemImage: "map")
                     }.accessibilityIdentifier("activity.openTopic")
                 }
             }
@@ -473,11 +440,8 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
             if let text=ActivityPresentation.nonempty(detail.summary.description) {
                 Section("activity.about") {
                     Text(verbatim:text)
-                        .cyText(.body)
                         .fixedSize(horizontal:false,vertical:true)
                         .textSelection(.enabled)
-                        .questifyCardSurface()
-                        .questifyCardListRow()
                 }
             }
             ActivityPeopleSection(people: detail.people, onOpenProfile: profileAction(detail),
@@ -486,11 +450,10 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                 if detail.tickets.isEmpty {
                     // Source empty ticket copy: title plus host explanation.
                     Text("activity.source.noTickets")
-                        .foregroundStyle(CYColor.textSecondary)
+                        .foregroundStyle(.secondary)
                 }
                 ForEach(detail.tickets) { ticket in
                     ActivityTicketCard(ticket:ticket)
-                        .questifyCardListRow()
                 }
             } header: { E1IconHeader(systemImage: "ticket", title: CoreLoopCopy(locale: locale).t("票种", "Tickets")) }
             .id(E1ActivityAnchor.tickets.rawValue)
@@ -502,37 +465,31 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                     Button { showsReview = true } label: {
                         CYListRow("context.review.title", trailing: .none) { CYRowIcon(systemImage: "square.and.pencil") }
                     }
-                    .buttonStyle(.cyPressable)
                     .accessibilityIdentifier("activity.openReview")
                 }
+            } footer: {
                 // Mini-program `activity-points`, directly under the reviews.
                 Label {
                     Text("activity.reviewPointsNote")
                         .accessibilityIdentifier("activity.detail.readOnly")
                 } icon: { Image(systemName:"star").accessibilityHidden(true) }
-                .cyText(.meta)
-                .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal:false,vertical:true)
             }
             Section {
                 Button {
                     withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) { showsMoreInfo.toggle() }
                 } label: {
-                    HStack(spacing: CYSpacing.md) {
+                    HStack {
                         Text(showsMoreInfo ? "activity.more.hide" : "activity.more.show")
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.textPrimary)
+                            .foregroundStyle(.primary)
                         Spacer(minLength: 0)
-                        Image(systemName: "chevron.down")
+                        Image(systemName: showsMoreInfo ? "chevron.up" : "chevron.down")
                             .font(.footnote.weight(.semibold))
-                            .foregroundStyle(CYColor.textSecondary)
-                            .rotationEffect(.degrees(showsMoreInfo ? 180 : 0))
+                            .foregroundStyle(.secondary)
                             .accessibilityHidden(true)
                     }
-                    .frame(minHeight: 44)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.cyPressable)
                 .accessibilityIdentifier("activity.more.toggle")
                 .accessibilityAddTraits(.isButton)
                 .accessibilityValue(Text(showsMoreInfo ? "activity.more.expanded" : "activity.more.collapsed"))
@@ -544,11 +501,9 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                 }
             }
         }
-        }
         .listStyle(.insetGrouped)
         .listSectionSpacing(CYSpacing.xl)
-        .scrollContentBackground(.hidden)
-        .background(CYColor.bgPage)
+        .refreshable { await loads.run { await load() } }
         .accessibilityIdentifier("activity.detail.content")
         .cyTracksHeroScroll($heroScrolledAway)
         // PC-B-1-8 / PC-C-1-9 (type-and-chrome §3): the hero is an inset list row, not a full-bleed image, so the page keeps
@@ -574,7 +529,7 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
         if let playReaderForActivity {
             Section {
                 NavigationLink { PlaySessionView(reader:playReaderForActivity(id)) } label: {
-                    CYListRow("play.openSession", trailing: .none) { CYRowIcon(systemImage: "figure.walk") }
+                    Label("play.openSession", systemImage: "figure.walk")
                 }.accessibilityIdentifier("activity.openPlay")
             }
         }
@@ -583,7 +538,7 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
            let card = session.characterCardReadback(topicID: topicID, activityID: id, scope: .activity(id)) {
             Section {
                 NavigationLink { CharacterCardReadbackView(session: session, model: card) } label: {
-                    CYListRow("play.character.card", trailing: .none) { CYRowIcon(systemImage: "person.text.rectangle") }
+                    Label("play.character.card", systemImage: "person.text.rectangle")
                 }.accessibilityIdentifier("activity.openCharacterCard")
             }
         }
@@ -595,10 +550,10 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
         if let session = reader as? AppSession, session.playExperience(for: .activity(id)) != nil {
             Section {
                 NavigationLink { SessionPlayRuntimeView(session: session, destination: .journey(.activity(id))) } label: {
-                    CYListRow("playx.title", trailing: .none) { CYRowIcon(systemImage: "figure.walk.circle") }
+                    Label("playx.title", systemImage: "figure.walk.circle")
                 }.accessibilityIdentifier("activity.openPlayExperience")
                 NavigationLink { SessionPlayRuntimeView(session: session, destination: .director(id)) } label: {
-                    CYListRow("playx.director.title", trailing: .none) { CYRowIcon(systemImage: "person.3.sequence") }
+                    Label("playx.director.title", systemImage: "person.3.sequence")
                 }.accessibilityIdentifier("activity.openPlayDirector")
             }
         }
@@ -667,11 +622,11 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
         return line
     }
     private func registrationAction(_ detail: ActivityDetail) -> some View { CYFooterBar {
-        VStack(spacing: CYSpacing.xs) {
+        VStack(spacing: 8) {
             if let summary = pinnedSummary(detail) {
                 summary
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
                     .accessibilityIdentifier("activity.pinned.summary")
             }
             if let access = hostCancelAccess, !detail.isCancelled,
@@ -679,9 +634,10 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                 // R7-PC-C1-4 (r1 PC-C-1-5): MP host footer is 取消活动并退款, not 立即报名.
                 Button(role: .destructive) { showsHostCancelFromFooter = true } label: {
                     Text(verbatim: CoreLoopCopy(locale: locale).t("取消活动并退款", "Cancel event & refund"))
-                        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                        .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
+                .controlSize(.large)
                 .disabled(!access.enabled)
                 .accessibilityIdentifier("activity.hostCancel.footer")
                 .sheet(isPresented: $showsHostCancelFromFooter) {
@@ -689,7 +645,8 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                         showsHostCancelFromFooter = false
                         await load()
                     }
-                    .cyDomainSheet(detents: [.half, .full])
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
                 }
             } else if primaryAction == .signUp, let block = detail.signUpBlock(now: Date()) {
                 // PC-C-1-3: nothing can be bought; the pill is disabled and names the reason (MP noTicketText).
@@ -700,7 +657,6 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                 CYPillButton(LocalizedStringKey(primaryAction.titleKey)) {
                     if let guestSignIn { guestSignIn() } else { showsRegistration = true }
                 }
-                    .cyHeroSource(ActivityFooterHeroDestination.id, in: footerHero, cornerRadius: CYRadius.pill)
                     .accessibilityIdentifier("activity.openRegistration")
                     .accessibilityLabel(Text(LocalizedStringKey(primaryAction.titleKey)))
             } else if primaryAction == .unavailable {
@@ -716,7 +672,6 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                     if action == .continueExploring, playReaderForActivity != nil { showsPlay = true }
                     else if action != .cancelled, walletAvailable { showsTicketWallet = true }
                 }
-                .cyHeroSource(ActivityFooterHeroDestination.id, in: footerHero, cornerRadius: CYRadius.pill)
                 .disabled(action == .cancelled || (!walletAvailable && !(action == .continueExploring && playReaderForActivity != nil)))
                 .accessibilityIdentifier("activity.primaryAction")
                 .accessibilityLabel(Text(LocalizedStringKey(action.titleKey)))
@@ -797,58 +752,25 @@ enum ActivityLocationAccessibility {
     }
 }
 
-/// Secondary action tiles under the poster: directions and review, each only when available. Sign up lives in the pinned pill
-/// and Share in the top bar, so neither repeats here. Every tile is at least 44 pt tall.
-private struct ActivityActionTiles: View {
+/// Secondary actions under the poster: directions and review, each only when available. Sign up lives in the pinned
+/// button and Share in the top bar, so neither repeats here. Plain List rows.
+private struct ActivityActionRows: View {
     let onDirections: (() -> Void)?
     let onReview: (() -> Void)?
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
 
     var body: some View {
-        let layout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(spacing: CYSpacing.sm))
-            : AnyLayout(HStackLayout(spacing: CYSpacing.sm))
-        if onDirections != nil || onReview != nil {
-            layout {
-                if let onDirections {
-                    tile(Text(verbatim: CYKitCopy(locale: locale)("Directions", "路线")), systemImage: "arrow.triangle.turn.up.right.circle", enabled: true, id: "activity.tile.directions", action: onDirections)
-                }
-                if let onReview {
-                    tile(Text("context.review.title"), systemImage: "square.and.pencil", enabled: true, id: "activity.tile.review", action: onReview)
-                }
+        if let onDirections {
+            Button(action: onDirections) {
+                Label { Text(verbatim: CYKitCopy(locale: locale)("Directions", "路线")) } icon: { Image(systemName: "arrow.triangle.turn.up.right.circle") }
             }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.vertical, CYSpacing.sm)
+            .accessibilityIdentifier("activity.tile.directions")
         }
-    }
-
-    private func tile(_ title: Text, systemImage symbol: String, enabled: Bool, id: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            VStack(spacing: CYSpacing.xs) {
-                Image(systemName: symbol).font(.title3).accessibilityHidden(true)
-                title.cyText(.meta).multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
+        if let onReview {
+            Button(action: onReview) {
+                Label("context.review.title", systemImage: "square.and.pencil")
             }
-            .foregroundStyle(enabled ? CYColor.textPrimary : CYColor.textTertiary)
-            .frame(maxWidth: .infinity, minHeight: 64)
-            .padding(.vertical, CYSpacing.sm)
-            .background(CYColor.bgSurface, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-            .contentShape(Rectangle())
+            .accessibilityIdentifier("activity.tile.review")
         }
-        .buttonStyle(.cyPressable)
-        .disabled(!enabled)
-        .accessibilityIdentifier(id)
-    }
-}
-
-/// Continuity r1 (+): the registration / ticket-wallet sheet zooms out of the footer pill that opened it. Only one pill is
-/// on screen at a time, so one id pairs it with whichever sheet it opened. Inactive (tile opener): the plain slide-up.
-private struct ActivityFooterHeroDestination: ViewModifier {
-    static let id = "footer.primary"
-    let active: Bool
-    let namespace: Namespace.ID
-    @ViewBuilder func body(content: Content) -> some View {
-        if active { content.cyHeroDestination(Self.id, in: namespace) } else { content }
     }
 }

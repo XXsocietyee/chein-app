@@ -68,7 +68,8 @@ import SwiftUI
                     label: { Image(systemName: "chevron.right") }
                     .accessibilityLabel("club.calendar.next").disabled(month.shifted(by: 1) == nil)
             }
-            if model.loading { ProgressView() }
+            .buttonStyle(.borderless)
+            if model.loading { ProgressView().frame(maxWidth: .infinity) }
             if model.failureKey == key, let failure = model.failure {
                 Text(LocalizedStringKey(failure.localizationKey))
             }
@@ -81,15 +82,18 @@ import SwiftUI
                     VStack(alignment: .leading, spacing: 4) {
                         if let name = row.name, !name.isEmpty { Text(verbatim: name) }
                         else { Text("sessions.unnamed", tableName: "ClubCalendarSessions") }
-                        Text(verbatim: row.startDate)
-                        if let end = row.endDate { Text(verbatim: end) }
-                        Text(LocalizedStringKey("sessions.state." + row.state.rawValue), tableName: "ClubCalendarSessions")
+                        Group {
+                            Text(verbatim: row.startDate)
+                            if let end = row.endDate { Text(verbatim: end) }
+                            Text(LocalizedStringKey("sessions.state." + row.state.rawValue), tableName: "ClubCalendarSessions")
+                        }
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                     }.accessibilityIdentifier("club.calendar.session.\(row.activityID)")
                 }
             }
             Button("club.gov.refresh") { Task { await reload() } }.disabled(!loadKey.active || model.loading)
         }
-        .cyGroupedSurface()
         .navigationTitle(Text("sessions.title", tableName: "ClubCalendarSessions")).navigationBarTitleDisplayMode(.inline)
         .task(id: loadKey) {
             model.invalidate(); model.bind(key)

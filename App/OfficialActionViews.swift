@@ -21,7 +21,7 @@ import SwiftUI
             Group {
                 if model.isBound(to: coordinator, command: command) {
                     form
-                } else { CYEmptyState(systemImage: "arrow.clockwise", "officialAction.stale") }
+                } else { ContentUnavailableView("officialAction.stale", systemImage: "arrow.clockwise") }
             }
             .cyPageTitle("officialAction.review")
             .toolbar { ToolbarItem(placement: .cancellationAction) {
@@ -40,12 +40,12 @@ import SwiftUI
         Form {
             Section {
                 Label("officialAction.reviewNotice", systemImage: "lock.shield")
-                Text(LocalizedStringKey(command.titleKey)).cyText(.sectionTitle).accessibilityAddTraits(.isHeader)
+                Text(LocalizedStringKey(command.titleKey)).font(.headline).accessibilityAddTraits(.isHeader)
                 Text("officialAction.noOutcomePromise").foregroundStyle(.secondary)
             }
             if noticeTitleKey != nil || noticeBodyKey != nil {
                 Section {
-                    if let noticeTitleKey { Text(LocalizedStringKey(noticeTitleKey)).cyText(.cardTitle).accessibilityAddTraits(.isHeader) }
+                    if let noticeTitleKey { Text(LocalizedStringKey(noticeTitleKey)).font(.headline).accessibilityAddTraits(.isHeader) }
                     if let noticeBodyKey { Text(LocalizedStringKey(noticeBodyKey)).foregroundStyle(.secondary) }
                 }.accessibilityIdentifier("official.inbox.confirmation.\(command.scope)")
             }
@@ -62,24 +62,26 @@ import SwiftUI
                     }
                 }
                 Section {
-                    CYPillButton("officialAction.confirm") { model.submit(review) }
+                    Button { model.submit(review) } label: { Text("officialAction.confirm").frame(maxWidth: .infinity) }
+                        .buttonStyle(.borderedProminent).controlSize(.large)
                         .disabled(!model.canConfirm)
                         .accessibilityIdentifier("officialAction.confirm").e1ActionRow()
                     if !coordinator.enabled { Text("officialAction.disabled").foregroundStyle(.secondary) }
                 }
             }
             if model.busy {
-                CYSkeletonBlock(height: 18).accessibilityLabel(Text("officialAction.working"))
+                ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("officialAction.working"))
                 // R7-PC-C5-2 (MP official-inbox/index.wxml:32): the inbox card's polite busy line while the write runs.
                 if noticeTitleKey != nil {
-                    Text("official.inbox.submitting").cyText(.caption).foregroundStyle(.secondary)
+                    Text("official.inbox.submitting").font(.caption).foregroundStyle(.secondary)
                         .accessibilityAddTraits(.updatesFrequently).accessibilityIdentifier("official.inbox.submitting")
                 }
             }
             if let message = model.message {
                 Text(LocalizedStringKey(message)).accessibilityIdentifier("officialAction.message")
                 if model.canReview {
-                    CYPillButton("officialAction.review", style: .secondary) { model.readAgain() }
+                    Button { model.readAgain() } label: { Text("officialAction.review").frame(maxWidth: .infinity) }
+                        .buttonStyle(.bordered).controlSize(.large)
                         .accessibilityIdentifier("officialAction.review").e1ActionRow()
                 }
             }
@@ -87,7 +89,6 @@ import SwiftUI
             if let receipt = model.receipt { receiptView(receipt) }
         }
         .formStyle(.grouped)
-        .cyGroupedSurface()
     }
     @ViewBuilder private func receiptView(_ receipt: OfficialActionReceipt) -> some View {
         Section("officialAction.result") {
@@ -140,14 +141,16 @@ import SwiftUI
                 Text("officialAction.rewardWarning").foregroundStyle(.secondary)
             }
             Section {
-                CYPillButton("officialAction.review") {
+                Button {
                     var copy = draft; copy.start = includeDates ? start : nil; copy.end = includeDates ? end : nil
                     reviewed = .publish(copy)
-                }.disabled(draft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                } label: { Text("officialAction.review").frame(maxWidth: .infinity) }
+                .buttonStyle(.borderedProminent).controlSize(.large)
+                .disabled(draft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     .accessibilityIdentifier("officialAction.reviewPublish").e1ActionRow()
                 Text("officialAction.editGap").foregroundStyle(.secondary)
             }
-        }.formStyle(.grouped).cyGroupedSurface().cyPageTitle("officialAction.publish")
+        }.formStyle(.grouped).cyPageTitle("officialAction.publish")
             .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) { Group {
                 if let reviewed { OfficialActionSheet(coordinator: coordinator, command: reviewed) }
             }.cySheet() }
@@ -178,7 +181,7 @@ import SwiftUI
                 Toggle("officialAction.split", isOn: $draft.split)
                 if draft.split {
                     ForEach(OfficialAudience.allCases.filter { draft.audience.contains($0) }, id: \.self) { role in
-                        Text(LocalizedStringKey("officialAction.role." + role.rawValue)).cyText(.cardTitle).accessibilityAddTraits(.isHeader)
+                        Text(LocalizedStringKey("officialAction.role." + role.rawValue)).font(.headline).accessibilityAddTraits(.isHeader)
                         TextField("officialAction.title", text: roleBinding(role, title: true))
                         TextField("officialAction.subtitle", text: roleBinding(role, title: false), axis: .vertical)
                     }
@@ -187,10 +190,11 @@ import SwiftUI
                     TextField("officialAction.subtitle", text: $draft.unified.sub, axis: .vertical)
                 }
             }
-            CYPillButton("officialAction.review") { reviewed = .broadcast(draft) }
+            Button { reviewed = .broadcast(draft) } label: { Text("officialAction.review").frame(maxWidth: .infinity) }
+                .buttonStyle(.borderedProminent).controlSize(.large)
                 .disabled((try? draft.payload()) == nil)
                 .accessibilityIdentifier("officialAction.reviewBroadcast").e1ActionRow()
-        }.formStyle(.grouped).cyGroupedSurface().cyPageTitle("officialAction.broadcast")
+        }.formStyle(.grouped).cyPageTitle("officialAction.broadcast")
             .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) { Group {
                 if let reviewed { OfficialActionSheet(coordinator: coordinator, command: reviewed) }
             }.cySheet() }
@@ -225,7 +229,7 @@ import SwiftUI
     var body: some View {
         Group {
             // Embedded: one row, so the sheet and toast below attach to a single view.
-            if embedded { VStack(alignment: .leading, spacing: CYSpacing.sm) { content } } else { Section("officialAction.respond") { content } }
+            if embedded { VStack(alignment: .leading, spacing: 8) { content } } else { Section("officialAction.respond") { content } }
         }
         .cyToast(verbatimMessage: $toastMessage)
         .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil; reviewedAction = nil } }), onDismiss: {
@@ -236,21 +240,22 @@ import SwiftUI
                 OfficialActionSheet(coordinator: coordinator, command: reviewed,
                                     noticeTitleKey: reviewedAction.map { OfficialInboxPresentation.confirmationTitleKey(invite, action: $0) },
                                     noticeBodyKey: reviewedAction.map { OfficialInboxPresentation.confirmationBodyKey(invite, action: $0) })
-                    .cyDomainSheet(detents: [.half, .full])
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
             }
         }
     }
     @ViewBuilder private var content: some View {
             if actionFailed, let last = lastReviewed {
-                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                VStack(alignment: .leading, spacing: 4) {
                     Label("official.inbox.actionFailed", systemImage: "exclamationmark.circle")
-                        .cyText(.bodyCompact, weight: .semibold).foregroundStyle(CYColor.dangerText)
+                        .font(.subheadline.weight(.semibold)).foregroundStyle(.red)
                     Button("action.retry") {
                         actionFailed = false
                         reviewedAction = last.action
                         reviewed = last.command
                     }
-                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .buttonStyle(.borderless)
                     .accessibilityIdentifier("official.inbox.retry.\(invite.id)")
                 }
                 .accessibilityElement(children: .contain)
@@ -258,18 +263,18 @@ import SwiftUI
             if let window {
                 LabeledContent("official.privateParity.inbox.window") {
                     Text(verbatim: window.sourceText)
-                }.cyText(.bodyCompact).accessibilityIdentifier("official.inbox.actionWindow.\(invite.id)")
+                }.font(.subheadline).accessibilityIdentifier("official.inbox.actionWindow.\(invite.id)")
             }
             if OfficialInboxPresentation.showsOrganizerTransferNotice(invite) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("official.privateParity.inbox.organizerTransferHint").font(.subheadline)
-                    Text("official.privateParity.inbox.organizerTransferDetail").cyText(.bodyCompact).foregroundStyle(.secondary)
+                    Text("official.privateParity.inbox.organizerTransferDetail").font(.subheadline).foregroundStyle(.secondary)
                 }.fixedSize(horizontal: false, vertical: true)
                     .accessibilityElement(children: .combine).accessibilityIdentifier("official.inbox.organizerTransfer.\(invite.id)")
             }
             ForEach(actions, id: \.self) { action in
                 // PC-C-5-2: 接受职责 is the likely action (MP primary); decline / withdraw stay secondary.
-                CYPillButton(LocalizedStringKey(OfficialInboxPresentation.buttonKey(action)), style: action == .accept ? .primary : .secondary) {
+                Button {
                     if OfficialInboxPresentation.requiresOrganizerTransfer(invite, action: action) {
                         transferHint = true
                         toastMessage = PlayCloseCopy.text("请前往主办方转移入口处理", "Handle this in organizer transfer", locale)
@@ -283,13 +288,25 @@ import SwiftUI
                     reviewed = command
                     lastReviewed = (command, action)
                     actionFailed = false
+                } label: {
+                    Text(LocalizedStringKey(OfficialInboxPresentation.buttonKey(action))).frame(maxWidth: .infinity)
                 }
+                    .modifier(OfficialInboxActionButtonStyle(prominent: action == .accept))
                     .accessibilityIdentifier("official.inbox.\(action.rawValue.lowercased()).\(invite.id)").e1ActionRow()
             }
             if transferHint {
-                Text("official.privateParity.inbox.organizerTransferHint").cyText(.bodyCompact).foregroundStyle(.secondary)
+                Text("official.privateParity.inbox.organizerTransferHint").font(.subheadline).foregroundStyle(.secondary)
                     .accessibilityIdentifier("official.inbox.transferHint.\(invite.id)")
             }
+    }
+}
+
+/// PC-C-5-2: 接受职责 is the one prominent button; decline / withdraw are bordered.
+private struct OfficialInboxActionButtonStyle: ViewModifier {
+    let prominent: Bool
+    @ViewBuilder func body(content: Content) -> some View {
+        if prominent { content.buttonStyle(.borderedProminent).controlSize(.large) }
+        else { content.buttonStyle(.bordered).controlSize(.large) }
     }
 }
 
@@ -347,20 +364,11 @@ struct OfficialParticipationPresentation {
         Group { if command != nil || needsSafetyConsent {
         Section("officialAction.participation") {
             if needsSafetyConsent, let title = event.safetyNoticeTitle {
-                // MP cy-consent-check: a checkbox, never pre-checked.
-                Button { safetyConsented.toggle() } label: {
-                    HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-                        Image(systemName: safetyConsented ? "checkmark.square.fill" : "square")
-                            .foregroundStyle(safetyConsented ? CYColor.brand : CYColor.textSecondary)
-                        Text("official.safetyNotice.agree \(title)").cyText(.bodyCompact)
-                            .foregroundStyle(CYColor.textPrimary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-                    .contentShape(Rectangle())
+                // MP cy-consent-check (a checkbox, never pre-checked): the Apple control is a Toggle, off by default.
+                Toggle(isOn: $safetyConsented) {
+                    Text("official.safetyNotice.agree \(title)")
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                .buttonStyle(.plain)
-                .accessibilityAddTraits(safetyConsented ? .isSelected : [])
                 .accessibilityIdentifier("officialAction.safetyNotice.consent")
             }
             // The mini-program signs up through the SIGNUP command with a kept request id.
@@ -368,11 +376,12 @@ struct OfficialParticipationPresentation {
                 OfficialSignupCommandSection(eventID: eventID, onSettled: { onReturn?() },
                                              consented: !needsSafetyConsent || safetyConsented)
             } else if let command {
-                CYPillButton(LocalizedStringKey(command.titleKey)) {
+                Button {
                     // Capture the detail visit at presentation time. A late dismissal
                     // must not use a callback supplied by a newer account or page.
                     presentation.open(command: command, onReturn: onReturn)
-                }
+                } label: { Text(LocalizedStringKey(command.titleKey)).frame(maxWidth: .infinity) }
+                    .buttonStyle(.borderedProminent).controlSize(.large)
                     .disabled(presentation.entry != nil || (needsSafetyConsent && !safetyConsented))
                     .accessibilityIdentifier("officialAction.participationReview").e1ActionRow()
             }
@@ -404,9 +413,10 @@ struct OfficialParticipationPresentation {
                 }
             }
             Text("officialAction.inviteWarning")
-            CYPillButton("officialAction.review") { reviewed = .inviteMerchants(selected.sorted()) }
+            Button { reviewed = .inviteMerchants(selected.sorted()) } label: { Text("officialAction.review").frame(maxWidth: .infinity) }
+                .buttonStyle(.borderedProminent).controlSize(.large)
                 .disabled(selected.isEmpty).e1ActionRow()
-        }.formStyle(.grouped).cyGroupedSurface().cyPageTitle("officialAction.invite")
+        }.formStyle(.grouped).cyPageTitle("officialAction.invite")
             .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) { Group {
                 if let reviewed { OfficialActionSheet(coordinator: coordinator, command: reviewed) }
             }.cySheet() }

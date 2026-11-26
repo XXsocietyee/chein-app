@@ -11,14 +11,14 @@ import SwiftUI
     let reload: () -> Void
     var body: some View {
         Section {
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text("profile.inviteRewards.hero").cyText(.label).foregroundStyle(CYColor.textSecondary)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("profile.inviteRewards.hero").font(.subheadline).foregroundStyle(.secondary)
                 if let points = review.cumulativePoints {
                     Text(verbatim: "+" + NSDecimalNumber(decimal: points).stringValue)
-                        .cyText(.data2XL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                        .font(.largeTitle.bold()).monospacedDigit().foregroundStyle(.primary)
                         .accessibilityIdentifier("profile.inviteRewards.cumulative")
                 } else {
-                    Text("profile.inviteRewards.heroPending").cyText(.sectionTitle).foregroundStyle(CYColor.textSecondary)
+                    Text("profile.inviteRewards.heroPending").font(.title3).foregroundStyle(.secondary)
                         .accessibilityIdentifier("profile.inviteRewards.pending")
                 }
                 Group {
@@ -28,21 +28,28 @@ import SwiftUI
                         Text("profile.inviteRewards.metaInvited \(ProfileInviteHistoryPageReady.countText(total))")
                     }
                 }
-                .cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                .font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
                 .accessibilityIdentifier("social.invites.total")
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .combine)
             if coverageIncomplete {
-                CYStatusChip("social.invites.partial", tone: .warning, systemImage: "hourglass").accessibilityIdentifier("social.invites.partial")
+                Label {
+                    Text("social.invites.partial")
+                } icon: {
+                    Image(systemName: "hourglass").foregroundStyle(.orange)
+                }
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier("social.invites.partial")
             }
             if review.ledgerState != .complete {
-                Text("profile.inviteRewards.incomplete").cyText(.label).fixedSize(horizontal: false, vertical: true)
+                Label("profile.inviteRewards.incomplete", systemImage: "info.circle").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("profile.inviteRewards.incomplete")
-                Button("profile.inviteRewards.reload", action: reload).disabled(isLoading)
+                Button("profile.inviteRewards.reload", action: reload).disabled(isLoading).buttonStyle(.borderless)
                     .accessibilityIdentifier("profile.inviteRewards.reload")
             }
-            Text("profile.inviteRewards.monthScope").cyText(.label).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+            Text("profile.inviteRewards.monthScope").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }
     }
 }
@@ -57,7 +64,7 @@ struct ProfileInviteMonthReward: View {
                 Text(verbatim: String(month.loadedMemberCount))
                 Text("profile.inviteRewards.loadedPeople")
             }
-        }.cyText(.label).monospacedDigit().fixedSize(horizontal: false, vertical: true)
+        }.font(.subheadline).foregroundStyle(.secondary).monospacedDigit().fixedSize(horizontal: false, vertical: true)
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("profile.inviteRewards.month")
     }

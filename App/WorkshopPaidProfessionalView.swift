@@ -62,16 +62,17 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
                     switch controller.phase {
                     case .idle: EmptyView()
                     case .invalidated: professionalText("sessionChanged")
-                    case .loading: CYLoadingStateView(rows: 1).accessibilityLabel(professionalText("loading"))
+                    case .loading: ProgressView().accessibilityLabel(professionalText("loading"))
                     case .submitting:
-                        CYLoadingStateView(rows: 1).accessibilityLabel(professionalText("submitting"))
+                        ProgressView().accessibilityLabel(professionalText("submitting"))
                         professionalText("unknownNote")
                     case .history: history(displayed)
                     case .targets: targets(displayed)
                     case .review: review(displayed)
                     case .operation: operation(displayed)
                     case .unavailable:
-                        CYPillButton(LocalizedStringKey("workshopPaidProfessional.retry"), style: .secondary, tableName: "WorkshopPaidProfessional") { schedule(controller.offerRecovery(displayed)) }
+                        Button { schedule(controller.offerRecovery(displayed)) } label: { professionalText("retry") }
+                            .buttonStyle(.bordered).controlSize(.large)
                     }
                 }
             }
@@ -123,7 +124,7 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
                 Button { schedule(controller.offerInspect(record, displayed: displayed)) } label: {
                     VStack(alignment: .leading) {
                         Text(verbatim: record.command.requestId)
-                        Text(verbatim: "#\(record.command.targetTopicId) · \(record.command.purchasedVersionId)").cyText(.meta)
+                        Text(verbatim: "#\(record.command.targetTopicId) · \(record.command.purchasedVersionId)").font(.subheadline).foregroundStyle(.secondary)
                         professionalText("mode." + record.command.confirmedMode.rawValue)
                     }
                 }.accessibilityIdentifier("workshopPaidProfessional.history." + record.command.requestId)
@@ -133,10 +134,10 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
             }
         } header: { professionalText("history") }
         Section {
-            CYPillButton(LocalizedStringKey("workshopPaidProfessional.startReview"), style: .primary, tableName: "WorkshopPaidProfessional") { schedule(controller.offerNewReview(displayed)) }
+            Button { schedule(controller.offerNewReview(displayed)) } label: { professionalText("startReview") }
+                .buttonStyle(.borderedProminent).controlSize(.large)
                 .accessibilityIdentifier("workshopPaidProfessional.startReview")
-            professionalText("reviewRequirements").cyText(.bodyCompact)
-        }
+        } footer: { professionalText("reviewRequirements") }
     }
     @ViewBuilder private func targets(_ displayed: WorkshopPaidProfessionalAppearance) -> some View {
         Section {
@@ -145,7 +146,7 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
                 Button { schedule(controller.offerSelect(target, displayed: displayed)) } label: {
                     VStack(alignment: .leading) {
                         Text(verbatim: target.name)
-                        Text(verbatim: "#\(target.topicId)").cyText(.meta)
+                        Text(verbatim: "#\(target.topicId)").font(.subheadline).foregroundStyle(.secondary)
                         professionalText("mode." + target.mode.rawValue)
                     }
                 }.disabled(target.mode == .unresolved)
@@ -154,7 +155,8 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
             if controller.nextTargetCursor != nil {
                 Button { schedule(controller.offerMoreTargets(displayed)) } label: { professionalText(controller.issue == nil ? "moreTargets" : "retry") }
             }
-            CYPillButton(LocalizedStringKey("workshopPaidProfessional.cancelReview"), style: .secondary, tableName: "WorkshopPaidProfessional") { schedule(controller.offerRecovery(displayed)) }
+            Button { schedule(controller.offerRecovery(displayed)) } label: { professionalText("cancelReview") }
+                .buttonStyle(.bordered).controlSize(.large)
         } header: { professionalText("chooseTarget") }
     }
     @ViewBuilder private func review(_ displayed: WorkshopPaidProfessionalAppearance) -> some View {
@@ -185,10 +187,12 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
             Section {
                 professionalText("creationLimits")
                 Toggle(isOn: $modeConfirmed) { professionalText("confirmMode") }
-                CYPillButton(LocalizedStringKey("workshopPaidProfessional.confirmCreate"), style: .primary, tableName: "WorkshopPaidProfessional") { schedule(controller.offerSubmit(displayed, confirmedMode: target.mode)) }
+                Button { schedule(controller.offerSubmit(displayed, confirmedMode: target.mode)) } label: { professionalText("confirmCreate") }
+                    .buttonStyle(.borderedProminent).controlSize(.large)
                     .disabled(!modeConfirmed)
                     .accessibilityIdentifier("workshopPaidProfessional.confirmCreate")
-                CYPillButton(LocalizedStringKey("workshopPaidProfessional.cancelReview"), style: .secondary, tableName: "WorkshopPaidProfessional") { schedule(controller.offerRecovery(displayed)) }
+                Button { schedule(controller.offerRecovery(displayed)) } label: { professionalText("cancelReview") }
+                    .buttonStyle(.bordered).controlSize(.large)
             }
         }
     }
@@ -213,14 +217,17 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
                         .accessibilityIdentifier("workshopPaidProfessional.viewGeneratedTemplate")
                     }
                 } else { professionalText("unknownNote") }
-                CYPillButton(LocalizedStringKey("workshopPaidProfessional.checkStatus"), style: .secondary, tableName: "WorkshopPaidProfessional") { schedule(controller.offerRefreshStatus(displayed)) }
+                Button { schedule(controller.offerRefreshStatus(displayed)) } label: { professionalText("checkStatus") }
+                    .buttonStyle(.bordered).controlSize(.large)
                     .accessibilityIdentifier("workshopPaidProfessional.checkStatus")
                 if controller.operation?.state.terminal == true {
-                    CYPillButton(LocalizedStringKey("workshopPaidProfessional.acknowledge"), style: .secondary, tableName: "WorkshopPaidProfessional") { schedule(controller.offerAcknowledge(displayed)) }
+                    Button { schedule(controller.offerAcknowledge(displayed)) } label: { professionalText("acknowledge") }
+                        .buttonStyle(.bordered).controlSize(.large)
                 } else {
                     professionalText("cancelMeaning")
                     Toggle(isOn: $cancelConfirmed) { professionalText("confirmCancel") }
-                    CYPillButton(LocalizedStringKey("workshopPaidProfessional.cancelPending"), style: .secondary, tableName: "WorkshopPaidProfessional") { schedule(controller.offerCancelPending(displayed)) }
+                    Button(role: .destructive) { schedule(controller.offerCancelPending(displayed)) } label: { professionalText("cancelPending") }
+                        .buttonStyle(.bordered).controlSize(.large)
                         .disabled(!cancelConfirmed)
                         .accessibilityIdentifier("workshopPaidProfessional.cancelPending")
                 }
@@ -228,8 +235,7 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
         }
     }
     private func fact(_ key: String, _ value: String) -> some View {
-        RevolutInsetRow(title: professionalLabel(key, locale: locale), value: value)
-            .fixedSize(horizontal: false, vertical: true)
+        LabeledContent(professionalLabel(key, locale: locale), value: value)
     }
     private func schedule(_ action: WorkshopPaidProfessionalController.Action?) {
         guard isVisible, scenePhase == .active, let action else { return }; ownedTask?.cancel(); ownedTask = Task { await action() }

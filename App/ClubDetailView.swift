@@ -113,7 +113,6 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 Section {
                     ClubDetailHeader(club: club, memberText: facts.meta, content: facts.content)
                         .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
                 }
                 if let actionCoordinator {
                     ClubActionPanel(club: club, identity: reader.clubIdentity, coordinator: actionCoordinator, onSignIn: onSignIn,
@@ -174,7 +173,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 }
                 if tab == .posts, community == nil {
                     Section {
-                        CYEmptyState(systemImage: "text.bubble", "club.detail.posts.unavailable")
+                        ContentUnavailableView("club.detail.posts.unavailable", systemImage: "text.bubble")
                             .accessibilityIdentifier("club.detail.posts.unavailable")
                     }
                 }
@@ -193,7 +192,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                         // MP 「发布 +」 / 发布主题 for the owner or `club:activity:manage` (wxml:204-213, CLB-detail-20).
                         Section {
                             NavigationLink { SessionClubProjectLaunchView(session: session, club: club) } label: {
-                                CYListRow("club.detail.events.publish", trailing: .none) { CYRowIcon(systemImage: "plus") }
+                                Label("club.detail.events.publish", systemImage: "plus")
                             }
                             .accessibilityIdentifier("club.detail.events.publish")
                         }
@@ -322,14 +321,14 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                     ForEach(ClubInlineLeaderboardModel.Sort.allCases) { Text($0.titleKey).tag($0) }
                                 }
                             } label: {
-                                HStack(spacing: CYSpacing.xs) {
-                                    Text("club.gov.sort")
-                                    Spacer(minLength: CYSpacing.sm)
-                                    Text(r8Leaderboard.sort.titleKey).foregroundStyle(CYColor.textSecondary)
-                                    Image(systemName: "chevron.down").font(.footnote).foregroundStyle(CYColor.textSecondary)
-                                        .accessibilityHidden(true)
+                                LabeledContent("club.gov.sort") {
+                                    HStack(spacing: CYSpacing.xs) {
+                                        Text(r8Leaderboard.sort.titleKey)
+                                        Image(systemName: "chevron.up.chevron.down").font(.footnote)
+                                            .accessibilityHidden(true)
+                                    }
+                                    .foregroundStyle(.secondary)
                                 }
-                                .frame(minHeight: CYSpacing.minTouchTarget)
                             }
                             .accessibilityIdentifier("club.detail.leaderboard.sort")
                             ClubInlineLeaderboardRows(model: r8Leaderboard, club: club, identity: reader.clubIdentity, governance: governance) {
@@ -357,8 +356,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     // CLB-r7-A-02 (MP wxml:288, D13): say so when the server could not confirm the viewer's role.
                     if club.viewerIdentityUnavailable {
                         Section {
-                            Text("club.detail.identityUnavailable").cyText(.meta).foregroundStyle(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
+                            Text("club.detail.identityUnavailable").font(.subheadline).foregroundStyle(.secondary)
                                 .accessibilityIdentifier("club.detail.identityUnavailable")
                         }
                     }
@@ -418,9 +416,6 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     }
                 }
             }
-            .cyGroupedSurface()
-            .scrollContentBackground(.hidden)
-            .cyDomainPageBackground()
             .cyTracksHeroScroll($heroScrolledAway)
             .onChange(of: club.name, initial: true) { _, name in loadedClubName = name }
             .task(id: "\(club.id)|\(tab.rawValue)|\(club.isOwner)|\(club.canGovern)|\(reader.clubIdentity.accountID ?? 0)") {
@@ -526,7 +521,6 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             }
         }.navigationTitle(navigationTitleText).navigationBarTitleDisplayMode(.inline)
             .cyPushedChrome(domain: viewerDomain)
-            .cyDomainPageBackground()
             .tint(CYDomainPalette(viewerDomain).brand)
             .id(id)
             .onAppear {
@@ -697,7 +691,6 @@ private struct ClubDetailHeader: View {
     let content: ClubDetailPageContent?
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
-    @Environment(\.cyPalette) private var palette
     @ScaledMetric(relativeTo: .title) private var bannerHeight: CGFloat = 160  // CLB-detail-37: MP cover-wrap 160
 
     private static func known(_ value: String?) -> String? {
@@ -731,19 +724,17 @@ private struct ClubDetailHeader: View {
                     if !typeSize.isAccessibilitySize {
                         ClubDetailCover(source: club.logo, seed: club.name, showsSymbol: false, fallback: MPAsset.BrandLogo.dLogo)
                             .frame(width: 56, height: 56)  // CLB-detail-37: MP logo 112 rpx
-                            .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
-                            .overlay(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).stroke(CYNight.glassEdgeTop, lineWidth: 1))
+                            .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                             .accessibilityIdentifier("club.detail.logo")
                     }
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        ClubName(value: club.name).cyText(.pageTitle).foregroundStyle(palette.textPrimary)
+                        ClubName(value: club.name).font(.title2.bold())
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityAddTraits(.isHeader)
                             .accessibilityIdentifier("club.detail.name")
-                            .cyHeroTitleRise()
                         if !metaLine.isEmpty {
                             // CLB-detail-37 (MP .profile-meta-text 16 pt): bodyCompact (15) is the nearest step on the type scale.
-                            Text(verbatim: metaLine).cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
+                            Text(verbatim: metaLine).font(.subheadline).foregroundStyle(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
                                 .accessibilityIdentifier("club.detail.fact.memberCount")
                         }
@@ -759,8 +750,8 @@ private struct ClubDetailHeader: View {
                         if leaderText != nil, cityText != nil { Text(verbatim: "·").accessibilityHidden(true) }
                         if let cityText { Text(verbatim: cityText).accessibilityIdentifier("club.detail.fact.city") }
                     }
-                    .cyText(.meta)
-                    .foregroundStyle(palette.textSecondary)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("club.detail.factsGrid")
                 }
@@ -774,6 +765,7 @@ private struct ClubDetailHeader: View {
                 }
             }
             .padding(.horizontal, CYSpacing.lg)
+            .padding(.bottom, CYSpacing.md)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -782,17 +774,19 @@ private struct ClubDetailHeader: View {
     @ViewBuilder private var statusTags: some View {
         if club.isOwner || club.isJoined || club.joinPending || club.myJoinStatus == 2 || club.viewerIsAdmin {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                HStack(spacing: CYSpacing.sm) {
-                    if club.isOwner { CYStatusChip("club.role.creator", tone: .neutral, systemImage: "person.crop.circle.badge.checkmark") }
-                    else if club.isJoined { CYStatusChip("club.membership.joined", tone: .neutral, systemImage: "checkmark.circle") }
-                    else if club.joinPending { CYStatusChip("club.membership.pending", tone: .warning, systemImage: "clock") }
-                    else if club.myJoinStatus == 2 { CYStatusChip("club.membership.rejected", tone: .danger, systemImage: "xmark.circle") }
-                    if club.viewerIsAdmin { CYStatusChip("club.viewerAdministrator", tone: .neutral, systemImage: "person.badge.shield.checkmark") }
+                HStack(spacing: CYSpacing.md) {
+                    if club.isOwner { Label("club.role.creator", systemImage: "person.crop.circle.badge.checkmark") }
+                    else if club.isJoined { Label("club.membership.joined", systemImage: "checkmark.circle") }
+                    else if club.joinPending { Label("club.membership.pending", systemImage: "clock").foregroundStyle(.orange) }
+                    else if club.myJoinStatus == 2 { Label("club.membership.rejected", systemImage: "xmark.circle").foregroundStyle(.red) }
+                    if club.viewerIsAdmin { Label("club.viewerAdministrator", systemImage: "person.badge.shield.checkmark") }
                 }
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
                 if club.myJoinStatus == 2, let reason = club.myJoinReviewReason {
                     Text(verbatim: locale.pick("申请未通过：\(reason)", "Application not approved: \(reason)"))
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.dangerText)
+                        .font(.subheadline)
+                        .foregroundStyle(.red)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("club.membership.rejectedReason")
                 }

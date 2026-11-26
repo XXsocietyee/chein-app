@@ -68,11 +68,6 @@ public struct NativeChannelProgressTeamOption: Identifiable, Equatable {
     var body: some View {
         List {
             Section {
-                CYHeroHeader(verbatim: boardTitle)
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets())
-            }
-            Section {
                 Picker(selection: $section) {
                     Text("top", tableName: "NativeChannelProgress").tag("top")
                     Text("d7.channelProgress.detail", tableName: "NativeChannelProgress").tag("detail")
@@ -96,8 +91,8 @@ public struct NativeChannelProgressTeamOption: Identifiable, Equatable {
                 }
                 if section == "detail" && board.filterSchemaJson["team_id"] == "int" && teamOptions == nil {
                     Text("teamIndexUnavailable", tableName: "NativeChannelProgress")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityLabel(Text("teamIndexUnavailable", tableName: "NativeChannelProgress"))
                 }
@@ -108,16 +103,32 @@ public struct NativeChannelProgressTeamOption: Identifiable, Equatable {
             if !selections.hasPendingSelection, let page = buffer.page {
                 Section {
                     if !page.visible {
-                        CYEmptyState(systemImage: "eye.slash", "d7.channelProgress.hidden", tableName: "NativeChannelProgress", messageIdentifier: "channelProgress.hidden")
+                        ContentUnavailableView {
+                            Label {
+                                Text("d7.channelProgress.hidden", tableName: "NativeChannelProgress")
+                                    .accessibilityIdentifier("channelProgress.hidden")
+                            } icon: {
+                                Image(systemName: "eye.slash")
+                            }
+                        }
                     } else {
                         if buffer.rows.isEmpty {
-                            CYEmptyState(systemImage: "list.number", "d7.channelProgress.empty", tableName: "NativeChannelProgress", messageIdentifier: "channelProgress.empty")
+                            ContentUnavailableView {
+                                Label {
+                                    Text("d7.channelProgress.empty", tableName: "NativeChannelProgress")
+                                        .accessibilityIdentifier("channelProgress.empty")
+                                } icon: {
+                                    Image(systemName: "list.number")
+                                }
+                            }
                         }
                         ForEach(Array(buffer.rows.enumerated()), id: \.offset) { _, row in NativeChannelProgressRowView(row: row) }
                         if page.nextCursor != nil {
-                            CYPillButton("more", tableName: "NativeChannelProgress") {
+                            Button {
                                 let detail = section == "detail"
                                 actions.run { await model.loadMore(detail: detail) }
+                            } label: {
+                                Text("more", tableName: "NativeChannelProgress")
                             }
                             .disabled(model.busy)
                             .accessibilityLabel(Text("more", tableName: "NativeChannelProgress"))
@@ -126,14 +137,12 @@ public struct NativeChannelProgressTeamOption: Identifiable, Equatable {
                 } footer: {
                     if let asOf = page.asOf {
                         Text("d7.channelProgress.updated \(NativeChannelProgressDateText.text(asOf))", tableName: "NativeChannelProgress")
-                            .cyText(.meta)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
                 if let me = page.me {
                     Section {
                         NativeChannelProgressMeCard(row: me)
-                            .listRowBackground(Color.clear)
                     } header: { NativeChannelSectionTitle(key: "d7.channelProgress.me") }
                 }
             }
@@ -143,22 +152,15 @@ public struct NativeChannelProgressTeamOption: Identifiable, Equatable {
             NativeChannelProgressIssueView(model: model, part: "meter")
             Section {
                 NavigationLink { NativeChannelProgressOwnHistoryView(model: model) } label: {
-                    CYListRow(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.historyTitle"), trailing: .chevron) {
-                        CYRowIcon(systemImage: "clock")
-                    }
+                    Label(NativeChannelProgressCopy.text("d7.channelProgress.historyTitle"), systemImage: "clock")
                 }
-                .questifyHidesLinkIndicator()
                 .disabled(model.busy || selections.hasPendingSelection)
                 .accessibilityIdentifier("channelProgress.historyEntry")
             }
         }
-        .listStyle(.insetGrouped)
-        .contentMargins(.horizontal, CYSpacing.pageHorizontal, for: .scrollContent)
-        .listSectionSpacing(CYSpacing.xxl)
-        .nativeChannelScreen()
-        .cyHeroScreen()
+        .navigationTitle(Text(verbatim: boardTitle))
+        .navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
-        .cyAnimation(value: section)
         .onAppear {
             actions.activate(); selections.activate()
             if period.isEmpty { period = board.period }
@@ -174,8 +176,6 @@ public struct NativeChannelProgressTeamOption: Identifiable, Equatable {
         .toolbar {
             Button { actions.run { await model.checkVersion() } } label: { Image(systemName: "arrow.clockwise") }
                 .disabled(model.busy || selections.hasPendingSelection)
-                .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
-                .contentShape(Rectangle())
                 .accessibilityLabel(Text("refresh", tableName: "NativeChannelProgress"))
         }
     }
@@ -200,7 +200,7 @@ struct NativeChannelProgressRowPresentation {
     let progress: String?
     let state: String?
     let symbol: String
-    let tone: CYStatusTone
+    let tone: Color
     let stateSymbol: String
 
     init(_ row: NativeChannelProgressRow) {
@@ -219,22 +219,22 @@ struct NativeChannelProgressRowPresentation {
         case "UNCONFIRMED":
             state = NativeChannelProgressCopy.text("d7.channelProgress.unconfirmed")
             stateSymbol = "clock"
-            tone = .warning
+            tone = .orange
             symbol = "clock"
         case "NO_COMPLETED_EFFORT":
             state = NativeChannelProgressCopy.text("d7.channelProgress.noCompletedEffort")
             stateSymbol = "circle"
-            tone = .neutral
+            tone = .secondary
             symbol = "circle"
         case "NOT_APPLICABLE":
             state = NativeChannelProgressCopy.text("d7.channelProgress.notApplicable")
             stateSymbol = "minus.circle"
-            tone = .info
+            tone = .blue
             symbol = "minus.circle"
         default:
             state = nil
             stateSymbol = "person"
-            tone = .neutral
+            tone = .secondary
             symbol = row.subjectType == "TEAM" ? "person.3" : "person"
         }
     }
@@ -264,19 +264,29 @@ struct NativeChannelProgressRowPresentation {
 
 struct NativeChannelProgressRowView: View {
     let row: NativeChannelProgressRow
-    @ScaledMetric(relativeTo: .body) private var tile: CGFloat = 40
     private var presented: NativeChannelProgressRowPresentation { .init(row) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            CYListRow(verbatim: presented.title, meta: presented.state == nil ? presented.progress : nil, trailing: .value(presented.rank)) {
-                CYCoverArt(seed: presented.title, symbol: presented.symbol, showsDebugLabel: false, cornerRadius: CYRadius.sm)
-                    .frame(width: tile, height: tile)
-                    .accessibilityHidden(true)
-            }
-            if let state = presented.state {
-                CYStatusChip(verbatim: state, tone: presented.tone, systemImage: presented.stateSymbol)
-                    .accessibilityLabel(Text(verbatim: state))
+        LabeledContent {
+            Text(verbatim: presented.rank)
+                .monospacedDigit()
+        } label: {
+            Label {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(verbatim: presented.title)
+                    if let state = presented.state {
+                        Label(state, systemImage: presented.stateSymbol)
+                            .font(.subheadline)
+                            .foregroundStyle(presented.tone)
+                    } else if let progress = presented.progress {
+                        Text(verbatim: progress)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                    }
+                }
+            } icon: {
+                Image(systemName: presented.symbol)
             }
         }
         .accessibilityElement(children: .combine)
@@ -289,17 +299,23 @@ struct NativeChannelProgressMeCard: View {
     private var presented: NativeChannelProgressRowPresentation { .init(row) }
 
     var body: some View {
-        CYImageCard(verbatim: presented.title, fallback: "d7.channelProgress.me", meta: presented.cardMeta)
-            .accessibilityLabel(Text(verbatim: presented.spoken))
+        LabeledContent {
+            Text(verbatim: presented.cardMeta)
+                .monospacedDigit()
+        } label: {
+            Label(presented.title, systemImage: presented.symbol)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text(verbatim: presented.spoken))
     }
 }
 
 private struct NativeChannelProgressLoadingRow: View {
     var body: some View {
-        CYSkeleton()
+        ProgressView()
+            .frame(maxWidth: .infinity)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text("cy.state.loading"))
-            .listRowBackground(Color.clear)
     }
 }
 
@@ -311,32 +327,23 @@ private struct NativeChannelProgressMeterSection: View {
             if meter.visible, let done = meter.done, let required = meter.required {
                 LabeledContent {
                     Text(verbatim: "\(done)/\(required)")
-                        .cyText(.dataXL)
+                        .font(.title2.weight(.semibold))
                         .monospacedDigit()
-                        .foregroundStyle(CYColor.textPrimary)
-                        .fixedSize(horizontal: false, vertical: true)
+                        .foregroundStyle(.primary)
                 } label: {
                     Text("completed", tableName: "NativeChannelProgress")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
                 }
                 if let percent = meter.percent {
                     LabeledContent {
                         Text(verbatim: "\(percent)%")
-                            .cyText(.numericBody)
                             .monospacedDigit()
-                            .foregroundStyle(CYColor.textPrimary)
-                            .fixedSize(horizontal: false, vertical: true)
                     } label: {
                         Text("d7.channelProgress.percent", tableName: "NativeChannelProgress")
-                            .cyText(.meta)
-                            .foregroundStyle(CYColor.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
             } else {
-                CYStatusChip(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.hidden"), tone: .neutral, systemImage: "eye.slash")
+                Label(NativeChannelProgressCopy.text("d7.channelProgress.hidden"), systemImage: "eye.slash")
+                    .foregroundStyle(.secondary)
                     .accessibilityLabel(Text("d7.channelProgress.hidden", tableName: "NativeChannelProgress"))
             }
         } header: { NativeChannelSectionTitle(key: "ownProgress") }
