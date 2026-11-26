@@ -806,7 +806,9 @@ struct ClubGovernanceReadView: View {
             NavigationStack { ClubGovernanceCommandForm(route: route, identity: identity, access: access, coordinator: coordinator)
                 // CLB-group-code-04 (MP group-code wxml:38-39): the topic-detail 出示团码 carries its session label.
                 .environment(\.clubRoleActivityLabel, groupCodeSessionLabel(route)) }
-                .cyDomainSheet(detents: [.full])
+                // CLB-r10-nat-topic-detail-04: system detents for the editor sheet.
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
         }
         .background {
             if let item = seriesUpdateReturn.item {
@@ -1766,7 +1768,9 @@ struct ClubGovernanceReadView: View {
                     }
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("club.gov.close") { topicQuickSheet = nil } } }
                 }
-                .cyDomainSheet(detents: [.half, .full])
+                // CLB-r10-nat-topic-detail-04: system detents for the quick sheet.
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
             }
             // Mini 核销 card: only for running/ended, uncancelled sessions the server granted `canViewVerify`;
             // the counts come from topic-manage-stats. Missing counts render as an em dash.
