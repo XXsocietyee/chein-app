@@ -11,15 +11,15 @@ import SwiftUI
     var body: some View {
         if operation == .updateSeries {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text("clubOpsEvent.edit.locked", tableName: "ClubOpsEvent").cyText(.meta)
+                Text("clubOpsEvent.edit.locked", tableName: "ClubOpsEvent").font(.footnote)
                     .accessibilityIdentifier("clubOpsEvent.edit.locked")
-                Text("clubOpsEvent.series.note", tableName: "ClubOpsEvent").cyText(.meta).foregroundStyle(.secondary)
-                Text("clubOpsEvent.refundAnchor", tableName: "ClubOpsEvent").cyText(.meta).foregroundStyle(.secondary)
+                Text("clubOpsEvent.series.note", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
+                Text("clubOpsEvent.refundAnchor", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
             }
         } else if operation == .createSeries {
             VStack(alignment: .leading, spacing: 6) {
-                Text("clubOpsEvent.recurrence.note", tableName: "ClubOpsEvent").cyText(.bodyCompact).foregroundStyle(.secondary)
-                Text("clubOpsEvent.refundAnchor", tableName: "ClubOpsEvent").cyText(.bodyCompact).foregroundStyle(.secondary)
+                Text("clubOpsEvent.recurrence.note", tableName: "ClubOpsEvent").font(.subheadline).foregroundStyle(.secondary)
+                Text("clubOpsEvent.refundAnchor", tableName: "ClubOpsEvent").font(.subheadline).foregroundStyle(.secondary)
             }
             // CLB-G15 (MP event-ops wxml:199): the selected topic cannot take online payment for priced sessions.
             if let notice = topicFact?.paymentNotice, !notice.isEmpty {
@@ -27,21 +27,39 @@ import SwiftUI
                     .foregroundStyle(.orange)
                     .accessibilityIdentifier("clubOpsEvent.paymentNotice")
             }
-            if topicFact?.showsCapacity ?? true {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("clubOpsEvent.section.capacity", tableName: "ClubOpsEvent").cyText(.cardTitle)
-                Text("clubOpsEvent.capacity.note", tableName: "ClubOpsEvent").cyText(.bodyCompact).foregroundStyle(.secondary)
-                Text("club.gov.field.capacity")
+            // CLB-r10-nat-event-ops-04: 容量 and 候补 are their own Section (ClubOpsEventCapacitySection).
+        }
+    }
+}
+
+/// CLB-r10-nat-event-ops-04 (MP event-ops wxml:253 人数上限 + 候补): its own Form Section, the capacity
+/// notes and the inline validation in the footer, one labelled TextField (no caption above it).
+@MainActor struct ClubOpsEventCapacitySection: View {
+    @Binding var capacity: String
+    @Binding var waitlist: Bool
+    /// CLB-event-ops-06: a multi-ticket topic keeps each ticket's capacity, so the field is hidden.
+    let showsCapacity: Bool
+    var body: some View {
+        Section {
+            if showsCapacity {
                 TextField(text: $capacity, prompt: Text("clubOpsEvent.capacity.placeholder", tableName: "ClubOpsEvent")) { Text("club.gov.field.capacity") }
                     .keyboardType(.numberPad).accessibilityIdentifier("club.gov.input.capacity")
-                if ClubOpsEventInput.capacityInvalid(capacity) {
-                    Text("clubOpsEvent.capacity.invalid", tableName: "ClubOpsEvent").cyText(.meta).foregroundStyle(.red)
-                        .accessibilityIdentifier("clubOpsEvent.capacity.invalid")
-                }
-                Text("clubOpsEvent.capacity.help", tableName: "ClubOpsEvent").cyText(.meta).foregroundStyle(.secondary)
-            }
             }
             Toggle("club.gov.field.waitlistEnabled", isOn: $waitlist).accessibilityIdentifier("club.gov.input.waitlistEnabled")
+        } header: {
+            Text("clubOpsEvent.section.capacity", tableName: "ClubOpsEvent")
+        } footer: {
+            if showsCapacity { footer }
+        }
+    }
+    private var footer: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("clubOpsEvent.capacity.note", tableName: "ClubOpsEvent")
+            if ClubOpsEventInput.capacityInvalid(capacity) {
+                Text("clubOpsEvent.capacity.invalid", tableName: "ClubOpsEvent").foregroundStyle(.red)
+                    .accessibilityIdentifier("clubOpsEvent.capacity.invalid")
+            }
+            Text("clubOpsEvent.capacity.help", tableName: "ClubOpsEvent")
         }
     }
 }
@@ -59,14 +77,14 @@ import SwiftUI
         if visible {
             // CLB-event-ops-06 (MP event-ops wxml:264, js:233 offerWindowText): the 候补认领时长 readout, e.g. 「1 天」.
             if let readout = offerReadout {
-                Text(verbatim: readout).cyText(.bodyCompact, weight: .semibold)
+                Text(verbatim: readout).font(.subheadline.weight(.semibold))
                     .accessibilityIdentifier("clubOpsEvent.offer.readout")
             }
-            Text("clubOpsEvent.offer.placeholder", tableName: "ClubOpsEvent").cyText(.meta).foregroundStyle(.secondary)
-            Text("clubOpsEvent.offer.help", tableName: "ClubOpsEvent").cyText(.meta).foregroundStyle(.secondary)
+            Text("clubOpsEvent.offer.placeholder", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
+            Text("clubOpsEvent.offer.help", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
         }
         if ClubOpsEventInput.offerInvalid(minutes) {
-            Text("clubOpsEvent.offer.invalid", tableName: "ClubOpsEvent").cyText(.meta).foregroundStyle(.red)
+            Text("clubOpsEvent.offer.invalid", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.red)
                 .accessibilityIdentifier("clubOpsEvent.offer.invalid")
         }
     }
@@ -85,10 +103,10 @@ import SwiftUI
             .accessibilityIdentifier("club.gov.input.reason")
             if !reason.isEmpty, cancel ? ClubOpsEventInput.cancelReasonInvalid(reason) : ClubOpsEventInput.correctionReasonInvalid(reason) {
                 Text(cancel ? "clubOpsEvent.cancel.reasonInvalid" : "clubOpsEvent.correct.reasonInvalid", tableName: "ClubOpsEvent")
-                    .cyText(.meta).foregroundStyle(.red).accessibilityIdentifier("clubOpsEvent.reason.invalid")
+                    .font(.footnote).foregroundStyle(.red).accessibilityIdentifier("clubOpsEvent.reason.invalid")
             }
             if cancel {
-                Text("clubOpsEvent.cancel.subtitle", tableName: "ClubOpsEvent").cyText(.bodyCompact).foregroundStyle(.secondary)
+                Text("clubOpsEvent.cancel.subtitle", tableName: "ClubOpsEvent").font(.subheadline).foregroundStyle(.secondary)
             }
         }
     }

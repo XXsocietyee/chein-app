@@ -20,25 +20,14 @@ struct ClubOperationsReviewView: View {
                 }
             }
             details
-            Section {
-                if canSubmit {
-                    Button {
-                        submitted = true
-                        onConfirm()
-                    } label: {
-                        Text(LocalizedStringKey(isExample ? "club.ops.confirmFixture" : "club.ops.confirmLive"))
-                    }
-                    .disabled(submitted)
-                    .accessibilityIdentifier("club.ops.confirm")
-                    .cyHaptic(.impactMedium, trigger: submitted) { old, new in !old && new }
-                } else {
+            // CLB-r10-nat-create-06: the confirm is the toolbar `.confirmationAction`; this Section keeps only the notes.
+            if !canSubmit {
+                Section {
                     Text("club.ops.writeGated")
                         .foregroundStyle(.secondary)
                 }
-            } footer: {
-                if canSubmit, isExample {
-                    Text("club.ops.fixtureOnly")
-                }
+            } else if isExample {
+                Section {} footer: { Text("club.ops.fixtureOnly") }
             }
         }
         .navigationTitle(Text("club.ops.review"))
@@ -49,8 +38,22 @@ struct ClubOperationsReviewView: View {
                     .disabled(submitted)
                     .accessibilityIdentifier("club.ops.cancelReview")
             }
+            ToolbarItem(placement: .confirmationAction) {
+                if canSubmit {
+                    Button {
+                        submitted = true
+                        onConfirm()
+                    } label: {
+                        Text(LocalizedStringKey(isExample ? "club.ops.confirmFixture" : "club.ops.confirmLive"))
+                    }
+                    .disabled(submitted)
+                    .accessibilityIdentifier("club.ops.confirm")
+                    .cyHaptic(.impactMedium, trigger: submitted) { old, new in !old && new }
+                }
+            }
         }
-        .cyDomainScreen(.player)
+        // CLB-r10-nat-shared-01: Form draws the system grouped background; only the player domain tokens remain.
+        .themeDomain(.player)
     }
     @ViewBuilder private var details: some View {
         switch review.command {

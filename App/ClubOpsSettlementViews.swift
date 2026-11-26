@@ -5,27 +5,26 @@ struct ClubOpsSettlementSummaryCard: View {
     let summary: ClubOpsSettlementSummary
     var body: some View {
         // Mini-program .settled-card: caption, then one large tabular amount; unknown stays 「金额待核验」, never 0.
+        // CLB-r10-nat-settlement-06: a LabeledContent row (amount `.monospacedDigit()`) instead of a hero card.
         Section {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("clubOps.settlement.settledLabel", tableName: "ClubOpsCustomer").font(.subheadline).foregroundStyle(.secondary)
+            LabeledContent {
                 Group {
-                    if let amount = summary.settledAmountText { Text(verbatim: amount).font(.largeTitle.weight(.semibold)).monospacedDigit() }
+                    if let amount = summary.settledAmountText { Text(verbatim: amount).monospacedDigit() }
                     else {
-                        Text(verbatim: ClubOpsGovernanceCount.unknownDisplay).font(.largeTitle.weight(.semibold)).monospacedDigit()
+                        Text(verbatim: ClubOpsGovernanceCount.unknownDisplay).monospacedDigit()
                             .accessibilityLabel(Text("clubOps.settlement.amountUnverified", tableName: "ClubOpsCustomer"))
                     }
                 }
-                .cyWrapText()
                 .accessibilityIdentifier("club.gov.fact.settledAmountStatus")
-                if summary.unverifiedSettledCount > 0 {
-                    Label(String(localized: LocalizedStringResource("clubOps.settlement.unverifiedCount \(summary.unverifiedSettledCount)", table: "ClubOpsCustomer", locale: locale)),
-                          systemImage: "questionmark.circle")
-                        .font(.subheadline)
-                        .foregroundStyle(.orange)
-                }
+            } label: {
+                Text("clubOps.settlement.settledLabel", tableName: "ClubOpsCustomer")
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, 4)
+            if summary.unverifiedSettledCount > 0 {
+                Label(String(localized: LocalizedStringResource("clubOps.settlement.unverifiedCount \(summary.unverifiedSettledCount)", table: "ClubOpsCustomer", locale: locale)),
+                      systemImage: "questionmark.circle")
+                    .font(.subheadline)
+                    .foregroundStyle(.orange)
+            }
         }
     }
 }

@@ -105,6 +105,7 @@ struct ClubOperationsWorkspaceView: View {
     @State private var readbackUnavailable = false
     @State private var ownerID = UUID()
     @State private var artworkRevision = UUID()
+    @ScaledMetric(relativeTo: .body) private var identityCoverSide: CGFloat = 56
     @State private var createReceiptIdentity: ClubReadIdentity?
     @State private var createReceiptClubID: Int?
     @State private var readbackIdentity: ClubReadIdentity?
@@ -221,9 +222,21 @@ struct ClubOperationsWorkspaceView: View {
                         .buttonStyle(.bordered)
                         .accessibilityIdentifier("club.ops.edit.backToClub")
                 }
+            } else if let errorKey, target == .create, snapshot == nil {
+                // Round 4 copy (MP create wxml:16-18): a failed create check is 创建资格未确认 + the reason + 重新检查.
+                // CLB-r10-nat-create-04: shown as a `ContentUnavailableView`.
+                ContentUnavailableView {
+                    Label("club.ops.create.checkFailed", systemImage: "exclamationmark.triangle")
+                } description: {
+                    Text(LocalizedStringKey(errorKey)).accessibilityIdentifier("club.ops.error")
+                } actions: {
+                    if !loading, identity != nil {
+                        Button("club.ops.recheck") { Task { await load() } }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("club.ops.recheck")
+                    }
+                }
             } else if let errorKey {
-                // Round 4 copy (MP create wxml:17): a failed create check is titled 创建资格未确认 above the reason.
-                if target == .create, snapshot == nil { Text("club.ops.create.checkFailed").cyText(.cardTitle).accessibilityAddTraits(.isHeader) }
                 Text(LocalizedStringKey(errorKey)).accessibilityIdentifier("club.ops.error")
                 if !loading, identity != nil {
                     Button("club.ops.recheck") { Task { await load() } }
@@ -348,7 +361,7 @@ struct ClubOperationsWorkspaceView: View {
         scenePhase == .active && screenIdentity == identity && !loading && !state.locksForm && !profileDraftBlocked && review == nil &&
             expected.matches(target: target, identity: identity, access: access, profile: snapshot?.profile, sourceRevision: artworkRevision)
     }
-    /// No cover uploaded: one calm identity card (mark, name, city, role) instead of a half-empty photo card.
+    /// The edit header row: the cover (or the club glyph) beside name, city and role.
     private func clubIdentityHero(_ club: ClubRecord) -> some View {
         Label {
             VStack(alignment: .leading, spacing: 2) {
@@ -361,24 +374,28 @@ struct ClubOperationsWorkspaceView: View {
                     .foregroundStyle(.secondary)
             }
         } icon: {
-            Image(systemName: "person.3.fill")  // CLB-edit-06
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
+            if let cover = QuestifyCardArtwork.safeURL(club.cover) {
+                PlayerFeedRemoteImage(url: cover, maxPixel: 240, placeholder: { identityGlyph }, failure: { identityGlyph })
+                    .frame(width: identityCoverSide, height: identityCoverSide)
+                    .clipped()
+                    .accessibilityHidden(true)
+            } else {
+                identityGlyph
+            }
         }
         .accessibilityElement(children: .combine)
+    }
+    private var identityGlyph: some View {
+        Image(systemName: "person.3.fill")  // CLB-edit-06
+            .foregroundStyle(.secondary)
+            .accessibilityHidden(true)
     }
     @ViewBuilder private func content(_ value: ClubOperationsSnapshot) -> some View {
         if let profile = value.profile {
             Section {
-                if QuestifyCardArtwork.safeURL(profile.club.cover) == nil {
-                    clubIdentityHero(profile.club)
-                } else {
-                QuestifyImageEntityCard(imageSource: profile.club.cover, title: profile.club.name, subtitle: profile.club.city, fallbackSymbol: "person.3.fill", minimumHeight: 230,
-                    progressiveBlur: .cover, artworkIdentity: identity != nil && screenIdentity == identity && access.identity == identity && access.isConfigured && !loading
-                        ? .init(owner: ownerID.uuidString + ":" + String(identity?.accountID ?? 0) + ":" + String(identity?.epoch ?? 0), content: "club:\(profile.club.id)", version: artworkRevision.uuidString) : nil) {
-                    Text(profile.club.isOwner ? "club.ops.owner" : "club.ops.administrator")
-                }.questifyCardListRow()
-                }
+                // CLB-r10-nat-edit-01 (MP scene-club-edit wxml club-head: logo + name + city): one plain row with a
+                // system-size cover beside 名称 / 城市 / 角色, not a full-bleed blurred image card.
+                clubIdentityHero(profile.club)
             }
         }
         if target == .create && !value.canCreate {
@@ -1203,6 +1220,8 @@ private struct ClubOperationsProfileForm: View {
             if !draft.clubType.isEmpty, !ClubOperationsCatalog.types.contains(draft.clubType) {
                 Text(verbatim: draft.clubType)
             }
+        } footer: {
+            // CLB-r10-nat-create-01: the field error is the Section footer (MP create wxml:70 field-error).
             if let createTypeError {
                 fieldError(createTypeError)
                     .accessibilityIdentifier("club.player.create.typeError")
@@ -1228,6 +1247,8 @@ private struct ClubOperationsProfileForm: View {
                 }
                 .accessibilityIdentifier("club.player.create.direction.\(index)")
             }
+        } footer: {
+            // CLB-r10-nat-create-01: the 最多选 3 个 note is the Section footer.
             if let createDirectionNote {
                 fieldError(createDirectionNote)
                     .accessibilityIdentifier("club.player.create.directionLimit")
@@ -1268,7 +1289,12 @@ private struct ClubOperationsProfileForm: View {
                 Text(verbatim: createNameError).font(.footnote).foregroundStyle(.red)
                     .accessibilityIdentifier("club.player.create.nameError")
             }
-        } footer: { counterLabel("description", draft.description) }
+        } footer: {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("club.ops.nameRequired")
+                counterLabel("description", draft.description)
+            }
+        }
     }
     @ViewBuilder private var createCitySection: some View {
         Section {
@@ -1370,7 +1396,7 @@ private struct ClubOperationsProfileForm: View {
     }
     /// Mini-program cy-scene-club-edit order: 基础信息 → 俱乐部介绍 → 定位 → 会员经营配置.
     @ViewBuilder private var editSections: some View {
-        Section("club.ops.basics") {
+        Section {
             // cy-scene-club-edit admin-note: administrators may only edit display information.
             if !isOwner { Text("club.ops.adminNote").cyText(.meta).foregroundStyle(.secondary).accessibilityIdentifier("club.ops.adminNote") }
             // Round 4 copy (MP scene-club-edit wxml:50-72): the edit page has its own labels and placeholders
@@ -1379,7 +1405,7 @@ private struct ClubOperationsProfileForm: View {
             field("city", text: $draft.city, editCopy: true)
             field("keywords", text: $draft.keywords, editCopy: true)
             field("style", text: $draft.style, editCopy: true)
-        }
+        } header: { Text("club.ops.basics") } footer: { Text("club.ops.requiredFooter") }
         Section {
             field("description", text: $draft.description, axis: .vertical, editCopy: true)
         } header: { Text("club.ops.introduction") } footer: { counterLabel("description", draft.description) }
@@ -1450,10 +1476,9 @@ private struct ClubOperationsProfileForm: View {
                 .accessibilityIdentifier("club.ops.counter." + key)
         }
     }
-    /// CLB-create-05 / CLB-edit-04 (parity r2): a persistent label (with * on required fields) above the field, and
-    /// the mini-program placeholder as the prompt, so the label does not vanish once typed.
+    /// CLB-create-05 / CLB-edit-04 (parity r2): a persistent label on the field, and the mini-program placeholder as
+    /// the prompt, so the label does not vanish once typed.
     private static let placeholderKeys: Set<String> = ["name", "description", "city", "keywords", "style"]
-    private static let requiredKeys: Set<String> = ["name", "city"]
     private func field(_ key: String, label: String? = nil, text: Binding<String>, axis: Axis = .horizontal,
                        focus: FocusState<Bool>.Binding? = nil, editCopy: Bool = false) -> some View {
         let labelKey = LocalizedStringKey(label ?? ((editCopy ? "club.ops.edit.label." : "club.ops.") + key))
@@ -1463,18 +1488,27 @@ private struct ClubOperationsProfileForm: View {
                               axis: axis)
             .accessibilityLabel(Text(labelKey))
             .accessibilityIdentifier("club.ops.field." + key)
-        return VStack(alignment: .leading, spacing: 4) {
-            // The edit page's 俱乐部介绍 is the section header (MP sec-label), so its field carries no second label.
-            if !(editCopy && key == "description") {
-                HStack(spacing: 2) {
-                    Text(labelKey)
-                    if Self.requiredKeys.contains(key) { Text(verbatim: "*").foregroundStyle(.red).accessibilityHidden(true) }
+        // CLB-r10-nat-create-05: one-line fields are system-labelled rows (label leading, field trailing); the MP `*`
+        // became the Section footer's required note (club.ops.requiredFooter / club.ops.nameRequired).
+        return Group {
+            if axis == .horizontal {
+                LabeledContent {
+                    if let focus { input.focused(focus) } else { input }
+                } label: {
+                    Text(labelKey).accessibilityHidden(true)
                 }
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
+            } else {
+                VStack(alignment: .leading, spacing: 4) {
+                    // The edit page's 俱乐部介绍 is the section header (MP sec-label), so its field carries no second label.
+                    if !(editCopy && key == "description") {
+                        Text(labelKey)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .accessibilityHidden(true)
+                    }
+                    if let focus { input.focused(focus) } else { input }
+                }
             }
-            if let focus { input.focused(focus) } else { input }
         }
     }
 }

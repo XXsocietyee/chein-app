@@ -31,12 +31,11 @@ struct ClubTopicCustomerRow: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
-            // Contacts-style monogram.
-            Text(verbatim: name.isEmpty ? "·" : String(name.prefix(1)))
-                .font(.headline)
+            // CLB-r10-nat-topic-detail-06: system person glyph, no hand-drawn circle avatar
+            // (MP topic-detail wxml customer row shows name/time/phone only).
+            Image(systemName: "person.crop.circle")
+                .font(.title2)
                 .foregroundStyle(.secondary)
-                .frame(width: 40, height: 40)
-                .background(Circle().fill(.quaternary))
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Group {
@@ -169,7 +168,7 @@ struct ClubTopicStoryCard: View {
                     if let image = phase.image { image.resizable().scaledToFill() } else { Rectangle().fill(.quaternary) }
                 }
                 .frame(width: 96, height: 96)
-                .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                .clipped()
                 .accessibilityHidden(true)
             }
             VStack(alignment: .leading, spacing: 4) {

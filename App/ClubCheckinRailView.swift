@@ -151,7 +151,7 @@ struct ClubCheckinDetailRows: View {
                 if let cover = text("topicCover") {
                     SquareImage(source: cover)
                         .frame(width: 59, height: 40)
-                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                        .clipped()
                         .accessibilityHidden(true)
                 } else {
                     // MP wxml:45 `ckd-cover--empty`. CLB-r10-nat-checkin-01: an SF Symbol in the same footprint (no drawn

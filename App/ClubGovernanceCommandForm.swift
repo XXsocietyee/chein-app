@@ -144,25 +144,19 @@ import SwiftUI
                 if applyStep == 1 {
                     Section {
                         ForEach(["leaderName", "phone", "identity", "coFounders"], id: \.self) { applyFieldRow($0) }
-                        if applyBlocked, (draft.text["leaderName"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            Text(verbatim: ClubPlayerCopy.applyNameGap(locale)).font(.footnote).foregroundStyle(.red)
-                                .accessibilityIdentifier("club.player.apply.nameGap")
-                        }
-                        if applyBlocked, (draft.text["phone"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            Text(verbatim: ClubPlayerCopy.applyPhoneGap(locale)).font(.footnote).foregroundStyle(.red)
-                                .accessibilityIdentifier("club.player.apply.phoneGap")
-                        }
-                    } header: { applyStepHeader(1) } footer: { Text("club.host.contactPrivate") }
+                    } header: { applyStepHeader(1) } footer: { applyContactFooter }
                         .disabled(busy || locked || review != nil)
                 }
                 if applyStep == 2 {
                     Section {
                         ForEach(["experience", "maxEventSize", "avgEventSize"], id: \.self) { applyFieldRow($0) }
+                    } header: { applyStepHeader(2) } footer: {
+                        // CLB-r10-nat-apply-03: the field error sits in the footer (MP apply js 请选择组织经验 toast).
                         if applyBlocked, (draft.text["experience"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            Text(verbatim: ClubPlayerCopy.applyExperienceGap(locale)).font(.footnote).foregroundStyle(.red)
+                            Text(verbatim: ClubPlayerCopy.applyExperienceGap(locale)).foregroundStyle(.red)
                                 .accessibilityIdentifier("club.player.apply.experienceGap")
                         }
-                    } header: { applyStepHeader(2) }
+                    }
                         .disabled(busy || locked || review != nil)
                 }
                 if applyStep == 3 {
@@ -191,73 +185,19 @@ import SwiftUI
                     ClubOpsNotifyContentFields(title: textBinding("title"), content: textBinding("content"))
                 } header: { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.content.section") }
                     .disabled(busy || locked || review != nil)
+            } else if route.operation == .createSeries {
+                // CLB-r10-nat-event-ops-04 (MP event-ops wxml:253): 容量 / 候补 are their own Section between the
+                // schedule rows and the remaining fields; the other operations keep one Section.
+                Section { commandLeadRows }.disabled(busy || locked || review != nil)
+                ClubOpsEventCapacitySection(capacity: textBinding("capacity"), waitlist: flagBinding("waitlistEnabled"),
+                                            showsCapacity: eventTopicFact?.showsCapacity ?? true)
+                    .disabled(busy || locked || review != nil)
+                Section { commandFieldRows }.disabled(busy || locked || review != nil)
             } else {
-            Section {
-                if route.operation == .assignRole {
-                    ClubRoleAssignmentPicker(scope: route.scope, identity: identity, access: access, model: rolePicker,
-                        memberID: textBinding("targetMemberId"), roleCode: textBinding("roleCode"),
-                        canEdit: { !busy && !locked && review == nil },
-                        applySelection: { member, role in draft.applyClubRolePicker(memberID: member, roleCode: role) })
-                    if draft.flags["customerPhoneVisible"] != nil {
-                        Text("club.rolePicker.phoneVisible.hint").font(.footnote).foregroundStyle(.secondary)
-                            .accessibilityIdentifier("club.rolePicker.phoneVisible.hint")
-                    }
-                }
-                if route.operation == .createSeries {
-                    ClubSeriesLeadPicker(scope: route.scope, identity: identity, access: access, model: seriesLeadPicker,
-                        memberID: textBinding("defaultLeadMemberId"), canEdit: { !busy && !locked && review == nil })
-                }
-                if isSeries {
-                    Button("club.schedule.title") {
-                        scheduleSession = .init(form: draft, identity: identity, access: access, now: Date())
-                    }.disabled(identity == nil || identity != access.identity || !access.isConfigured).accessibilityIdentifier("club.schedule.open")
-                    if !(draft.text["startDate"] ?? "").isEmpty {
-                        ClubGovernanceFactRows(value: .object(draft.text.filter { ClubSeriesScheduleDraft.fieldKeys.contains($0.key) }.mapValues(ClubGovernanceValue.string)),
-                            fields: ["recurrenceType", "startDate", "startTime", "occurrenceCount", "customDates"])
-                        if showsCustomDateConversion {
-                            Text("club.schedule.customConversion", tableName: "ClubSeriesSchedule")
-                                .accessibilityIdentifier("club.schedule.formConversion")
-                        }
-                        if let issue = ClubSeriesScheduleDraft(form: draft, now: Date()).issue(now: Date()) {
-                            ClubSeriesScheduleIssueLabel(issue: issue, weeklyHorizon: ClubSeriesScheduleDraft(form: draft, now: Date()).weeklyHorizonMessage(now: Date()))
-                        }
-                    } else { Text("club.schedule.choose") }
-                }
-                if isSeries {
-                    ClubOpsEventSeriesFields(operation: route.operation, capacity: textBinding("capacity"), waitlist: flagBinding("waitlistEnabled"),
-                                             topicFact: eventTopicFact)
-                }
-                if isSeries {
-                    ClubSeriesOfferWindowField(minutes: textBinding("offerMinutes"))
-                        .clubOpsEventVisible(showsOfferWindow)
-                    ClubOpsEventOfferHelp(minutes: draft.text["offerMinutes"] ?? "", visible: showsOfferWindow)
-                }
-                if [.cancelOccurrence, .correctAttendance].contains(route.operation) {
-                    ClubOpsEventReasonField(operation: route.operation, reason: textBinding("reason"))
-                }
-                if route.operation == .saveCustomer {
-                    ClubOpsCustomerTagRemarkEditor(tagsText: textBinding("tags"), remark: textBinding("remark"))
-                }
-                if route.operation == .ban { ClubOpsBanDurationPicker(days: textBinding("banDays")) }
-                ForEach(Array(draft.text.keys).sorted().filter { key in
-                    (route.operation != .ban || key != "banDays") && (route.operation != .revokeRole || key != "reason") &&
-                    (route.operation != .hostApply || key != "certImages") &&
-                    (route.operation != .assignRole || !["targetMemberId", "roleCode"].contains(key)) &&
-                    (!isSeries || (!ClubSeriesScheduleDraft.fieldKeys.contains(key) && key != "offerMinutes")) &&
-                    (route.operation != .createSeries || key != "defaultLeadMemberId") &&
-                    (!isSeries || key != "capacity") && (route.operation != .updateSeries || key != "defaultLeadMemberId") &&
-                    (![.cancelOccurrence, .correctAttendance].contains(route.operation) || key != "reason") &&
-                    (route.operation != .sendNotification || key != "audienceType") &&
-                    (route.operation != .sendNotification || !["title", "content"].contains(key)) &&
-                    (route.operation != .saveCustomer || !["tags", "remark"].contains(key)) &&
-                    // CLB-governance-09 (parity r2): inside a club the report is anchored to that club (MP CU-C-139);
-                    // the user is never asked for a target type or a raw target id.
-                    (route.operation != .report || route.scope.clubID == nil || !["targetType", "targetId"].contains(key))
-                }, id: \.self) { key in fieldRow(key) }
-                ForEach(Array(draft.flags.keys).sorted().filter { !isSeries || $0 != "waitlistEnabled" }, id: \.self) { key in
-                    flagRow(key)
-                }
-            }.disabled(busy || locked || review != nil)
+                Section {
+                    commandLeadRows
+                    commandFieldRows
+                }.disabled(busy || locked || review != nil)
             }
             if let failure, route.operation == .issueGroupCode, ClubGroupCodePort.classify(failure) == .noPermission {
                 // Mini isPermissionDenial: terminal state with an exit, not a retry.
@@ -317,13 +257,13 @@ import SwiftUI
             } else if let failure { Section { Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.gov.formError"); if let message = failure.message { Text(verbatim: message) } } }
             if busy, route.operation == .issueGroupCode, groupCode == nil {
                 // CLB-r8-group-code-01 (fix-r8-club): MP sheet state loading shows a 生成中 placeholder in the code slot.
+                // CLB-r10-nat-group-code-02: one system `ProgressView("生成中")`.
                 Section {
-                    HStack {
-                        Text("clubR8b.groupCode.generating").foregroundStyle(.secondary)
+                    ProgressView {
+                        Text("clubR8b.groupCode.generating")
                             .accessibilityIdentifier("club.gov.groupCode.generating")
-                        Spacer()
-                        ProgressView()
                     }
+                    .frame(maxWidth: .infinity)
                 }
             } else if busy { ProgressView() }
             if let review, !(Self.directOperations.contains(route.operation) && consequenceReview?.id == review.id) {
@@ -684,6 +624,76 @@ import SwiftUI
         route.operation != .createSeries || seriesLeadPicker.canPrepare(scope: route.scope, identity: identity, access: access,
             memberID: draft.text["defaultLeadMemberId"] ?? "")
     }
+    /// Role / lead pickers, the series schedule and the series notes (the first rows of the command Section).
+    @ViewBuilder private var commandLeadRows: some View {
+        if route.operation == .assignRole {
+            ClubRoleAssignmentPicker(scope: route.scope, identity: identity, access: access, model: rolePicker,
+                memberID: textBinding("targetMemberId"), roleCode: textBinding("roleCode"),
+                canEdit: { !busy && !locked && review == nil },
+                applySelection: { member, role in draft.applyClubRolePicker(memberID: member, roleCode: role) })
+            if draft.flags["customerPhoneVisible"] != nil {
+                Text("club.rolePicker.phoneVisible.hint").font(.footnote).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("club.rolePicker.phoneVisible.hint")
+            }
+        }
+        if route.operation == .createSeries {
+            ClubSeriesLeadPicker(scope: route.scope, identity: identity, access: access, model: seriesLeadPicker,
+                memberID: textBinding("defaultLeadMemberId"), canEdit: { !busy && !locked && review == nil })
+        }
+        if isSeries {
+            Button("club.schedule.title") {
+                scheduleSession = .init(form: draft, identity: identity, access: access, now: Date())
+            }.disabled(identity == nil || identity != access.identity || !access.isConfigured).accessibilityIdentifier("club.schedule.open")
+            if !(draft.text["startDate"] ?? "").isEmpty {
+                ClubGovernanceFactRows(value: .object(draft.text.filter { ClubSeriesScheduleDraft.fieldKeys.contains($0.key) }.mapValues(ClubGovernanceValue.string)),
+                    fields: ["recurrenceType", "startDate", "startTime", "occurrenceCount", "customDates"])
+                if showsCustomDateConversion {
+                    Text("club.schedule.customConversion", tableName: "ClubSeriesSchedule")
+                        .accessibilityIdentifier("club.schedule.formConversion")
+                }
+                if let issue = ClubSeriesScheduleDraft(form: draft, now: Date()).issue(now: Date()) {
+                    ClubSeriesScheduleIssueLabel(issue: issue, weeklyHorizon: ClubSeriesScheduleDraft(form: draft, now: Date()).weeklyHorizonMessage(now: Date()))
+                }
+            } else { Text("club.schedule.choose") }
+        }
+        if isSeries {
+            ClubOpsEventSeriesFields(operation: route.operation, capacity: textBinding("capacity"), waitlist: flagBinding("waitlistEnabled"),
+                                     topicFact: eventTopicFact)
+        }
+    }
+    /// The remaining command inputs: offer window, reason, customer, ban, the generic text fields and flags.
+    @ViewBuilder private var commandFieldRows: some View {
+        if isSeries {
+            ClubSeriesOfferWindowField(minutes: textBinding("offerMinutes"))
+                .clubOpsEventVisible(showsOfferWindow)
+            ClubOpsEventOfferHelp(minutes: draft.text["offerMinutes"] ?? "", visible: showsOfferWindow)
+        }
+        if [.cancelOccurrence, .correctAttendance].contains(route.operation) {
+            ClubOpsEventReasonField(operation: route.operation, reason: textBinding("reason"))
+        }
+        if route.operation == .saveCustomer {
+            ClubOpsCustomerTagRemarkEditor(tagsText: textBinding("tags"), remark: textBinding("remark"))
+        }
+        if route.operation == .ban { ClubOpsBanDurationPicker(days: textBinding("banDays")) }
+        ForEach(Array(draft.text.keys).sorted().filter { key in
+            (route.operation != .ban || key != "banDays") && (route.operation != .revokeRole || key != "reason") &&
+            (route.operation != .hostApply || key != "certImages") &&
+            (route.operation != .assignRole || !["targetMemberId", "roleCode"].contains(key)) &&
+            (!isSeries || (!ClubSeriesScheduleDraft.fieldKeys.contains(key) && key != "offerMinutes")) &&
+            (route.operation != .createSeries || key != "defaultLeadMemberId") &&
+            (!isSeries || key != "capacity") && (route.operation != .updateSeries || key != "defaultLeadMemberId") &&
+            (![.cancelOccurrence, .correctAttendance].contains(route.operation) || key != "reason") &&
+            (route.operation != .sendNotification || key != "audienceType") &&
+            (route.operation != .sendNotification || !["title", "content"].contains(key)) &&
+            (route.operation != .saveCustomer || !["tags", "remark"].contains(key)) &&
+            // CLB-governance-09 (parity r2): inside a club the report is anchored to that club (MP CU-C-139);
+            // the user is never asked for a target type or a raw target id.
+            (route.operation != .report || route.scope.clubID == nil || !["targetType", "targetId"].contains(key))
+        }, id: \.self) { key in fieldRow(key) }
+        ForEach(Array(draft.flags.keys).sorted().filter { !isSeries || $0 != "waitlistEnabled" }, id: \.self) { key in
+            flagRow(key)
+        }
+    }
     private var isSeries: Bool { [.createSeries, .updateSeries].contains(route.operation) }
     private var showsOfferWindow: Bool { route.operation == .createSeries && draft.flags["waitlistEnabled"] == true }
     private var showsCustomDateConversion: Bool {
@@ -720,6 +730,22 @@ import SwiftUI
     private var applyReady: Bool {
         applyStep == 0 || ClubHostApplyPort.canAdvance(step: applyStep, text: draft.text)
     }
+    /// CLB-r10-nat-apply-03 (MP apply wxml:63-80): which fields are required, the privacy note, then the field
+    /// errors, all in the step-1 footer instead of a red `*` and red rows between the inputs.
+    @ViewBuilder private var applyContactFooter: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("club.host.requiredFooter")
+            Text("club.host.contactPrivate")
+            if applyBlocked, (draft.text["leaderName"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Text(verbatim: ClubPlayerCopy.applyNameGap(locale)).foregroundStyle(.red)
+                    .accessibilityIdentifier("club.player.apply.nameGap")
+            }
+            if applyBlocked, (draft.text["phone"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Text(verbatim: ClubPlayerCopy.applyPhoneGap(locale)).foregroundStyle(.red)
+                    .accessibilityIdentifier("club.player.apply.phoneGap")
+            }
+        }
+    }
     private var applyAdvanceButton: some View {
         Button {
             guard applyReady else { applyBlocked = true; return }
@@ -734,8 +760,8 @@ import SwiftUI
     private func setApplyStep(_ next: Int) {
         if reduceMotion { applyStep = next } else { withAnimation(.easeInOut(duration: 0.2)) { applyStep = next } }
     }
-    /// CLB-apply-07 (MP apply wxml:63-113): a persistent label above each input (`*` on the two required fields;
-    /// the optional labels already read （选填）) and the MP placeholder inside it. Choice fields keep `fieldRow`.
+    /// CLB-apply-07 (MP apply wxml:63-113): a persistent label on each input (the optional labels already read （选填）)
+    /// and the MP placeholder inside it; the MP `*` became the step footer's required note (nat-apply-03). Choice fields keep `fieldRow`.
     @ViewBuilder private func applyFieldRow(_ key: String) -> some View {
         if key == "experience", let choices = draft.choices(key) {
             // CLB-apply-06 (MP apply wxml:94-101): 组织经验 is one radio card per option (create-wizard kit).
@@ -748,12 +774,8 @@ import SwiftUI
             fieldRow(key)
         } else {
             let required = ClubHostApplyFieldCopy.required.contains(key)
-            VStack(alignment: .leading, spacing: 4) {
-                (Text(LocalizedStringKey("club.gov.field." + key))
-                 + (required ? Text(verbatim: " *").foregroundColor(.red) : Text(verbatim: "")))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .accessibilityHidden(true)
+            // CLB-r10-nat-apply-03: a system-labelled row (label leading, field trailing); required-ness is in the footer.
+            LabeledContent {
                 TextField(text: textBinding(key), prompt: Text(LocalizedStringKey("club.host.placeholder." + key))) {
                     Text(LocalizedStringKey("club.gov.field." + key))
                 }
@@ -761,8 +783,9 @@ import SwiftUI
                 .textInputAutocapitalization(.never).autocorrectionDisabled()
                 .accessibilityHint(required ? Text("club.host.requiredHint") : Text("club.host.optionalHint"))
                 .accessibilityIdentifier("club.gov.input." + key)
+            } label: {
+                Text(LocalizedStringKey("club.gov.field." + key)).accessibilityHidden(true)
             }
-            .padding(.vertical, 2)
         }
     }
     @ViewBuilder private func fieldRow(_ key: String) -> some View {

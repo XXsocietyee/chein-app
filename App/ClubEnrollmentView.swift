@@ -281,7 +281,7 @@ extension EnvironmentValues {
                 }
             }
         }
-        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
     }
     private func cover(_ team: ClubEnrollmentTeam) -> some View {
@@ -291,7 +291,7 @@ extension EnvironmentValues {
             else { MPAsset.BannerCover.routeCityCover.resizable().scaledToFill() }
         }
         .frame(width: coverSide, height: coverSide)
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
+        .clipped()
         .accessibilityHidden(true)
     }
     private func signupLine(_ team: ClubEnrollmentTeam) -> some View {
@@ -315,7 +315,6 @@ extension EnvironmentValues {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
         }
         if let issue = reader.detailFailures[team.id] {
             if reader.rosters[team.id] != nil {
@@ -452,13 +451,11 @@ extension EnvironmentValues {
     @ViewBuilder private func profileControl(_ registrant: ClubEnrollmentRegistrant, source: ClubEnrollmentNavigation.Source?) -> some View {
         Button { open(.checkin, source: source) } label: { attendee(registrant) }
             .buttonStyle(.borderless)
-            .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
             .accessibilityIdentifier("club.enroll.profile.\(registrant.id)")
     }
     private func checkinControl(_ registrant: ClubEnrollmentRegistrant, source: ClubEnrollmentNavigation.Source?) -> some View {
         Button { open(.checkin, source: source) } label: { checkinChip(registrant) }
             .buttonStyle(.borderless)
-            .frame(minHeight: CYSpacing.minTouchTarget)
             .accessibilityIdentifier("club.enroll.checkin.\(registrant.id)")
     }
     private func checkinChip(_ registrant: ClubEnrollmentRegistrant) -> some View {
