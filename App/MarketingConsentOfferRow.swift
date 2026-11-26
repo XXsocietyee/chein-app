@@ -81,3 +81,14 @@ extension AppSession {
         return PlayerContentRound4Service(baseURL: api.baseURL, token: { token }, transport: runtimeHTTPTransport)
     }
 }
+
+private struct MarketingConsentServiceKey: EnvironmentKey {
+    static let defaultValue: (@MainActor () -> PlayerContentRound4Service?)? = nil
+}
+extension EnvironmentValues {
+    /// R11-PC-C-3: the registration sheet's marketing-consent service. Nil hides the opt-in row.
+    var marketingConsentService: (@MainActor () -> PlayerContentRound4Service?)? {
+        get { self[MarketingConsentServiceKey.self] }
+        set { self[MarketingConsentServiceKey.self] = newValue }
+    }
+}
