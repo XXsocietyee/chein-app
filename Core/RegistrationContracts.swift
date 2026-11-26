@@ -61,7 +61,8 @@ public struct RegistrationQuote: Decodable, Equatable {
     /// In `pages/activity/baoming/baoming.js`, `payAmount > 0 && refundableNow === false` triggers the
     /// mandatory 24-hour non-refundable confirmation ("本单不可退").
     public let refundableNow: Bool?
-    /// R7-PC-C2-1: MP baoming.js:1871-1876 shows the 通行证 row when the quote's `mkt.coveredByPass === true`.
+    /// R11-PC-C-1: MP pages/activity/utils/quote-view.js:108 reads the top-level `quote.coveredByPass === true`
+    /// (`mkt` is page data, baoming.js:1155). A nested `mkt.coveredByPass` is kept only as a fallback.
     public let coveredByPass: Bool
     /// R7-PC-C2-1: quote `delivery` (包含内容), MP pages/activity/utils/quote-view.js:20-71. Nil when absent or malformed.
     public let delivery: RegistrationQuoteDelivery?
@@ -82,7 +83,7 @@ public struct RegistrationQuote: Decodable, Equatable {
     private enum CodingKeys: String, CodingKey {
         case payAmount, pointsUsed, pointsDeductYuan, pointsUsable, pointsBalance, availablePoints, userPoints
         case memberDiscountYuan, couponDeductYuan, clubMember, quoteSign
-        case prioritySignupEnabled, refundDeadline, refundableNow, mkt, delivery
+        case prioritySignupEnabled, refundDeadline, refundableNow, mkt, delivery, coveredByPass
         case marketingSign, listAmount, marketingDiscountAmount, marketingAdjustments, completeRewardCoupon
     }
     private struct Marketing: Decodable {
@@ -113,7 +114,8 @@ public struct RegistrationQuote: Decodable, Equatable {
             ? rawDeadline?.trimmingCharacters(in: .whitespacesAndNewlines)
             : nil
         refundableNow = (try? c.decodeIfPresent(Bool.self, forKey: .refundableNow)) ?? nil
-        coveredByPass = ((try? c.decodeIfPresent(Marketing.self, forKey: .mkt)) ?? nil)?.coveredByPass == true
+        let topLevelPass = ((try? c.decodeIfPresent(Bool.self, forKey: .coveredByPass)) ?? nil) == true
+        coveredByPass = topLevelPass || ((try? c.decodeIfPresent(Marketing.self, forKey: .mkt)) ?? nil)?.coveredByPass == true
         delivery = (try? c.decodeIfPresent(RegistrationQuoteDelivery.self, forKey: .delivery)) ?? nil
         marketingSign = RegistrationLenient.string(c, .marketingSign)
         listAmount = RegistrationLenient.decimal(c, .listAmount)

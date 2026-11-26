@@ -310,4 +310,10 @@ final class RegistrationContractTests: XCTestCase {
         let price = CheckoutOrderRebuildRule.classifyCreateFailure(code: 409, message: "价格变了")
         XCTAssertEqual(price, .refreshQuoteAndReconfirm(userMessage: CheckoutOrderRebuildRule.quoteUpdatedUserMessage))
     }
+
+    /// R11-PC-C-1: top-level `coveredByPass` (MP pages/activity/utils/quote-view.js:108); only JSON `true` counts.
+    func testQuoteCoveredByPassIsTopLevel() throws {
+        XCTAssertTrue(try decode(RegistrationQuote.self, #"{"payAmount":0,"quoteSign":"s","coveredByPass":true}"#).coveredByPass)
+        XCTAssertFalse(try decode(RegistrationQuote.self, #"{"payAmount":0,"quoteSign":"s","coveredByPass":"true"}"#).coveredByPass)
+    }
 }
