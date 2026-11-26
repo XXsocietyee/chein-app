@@ -26,8 +26,9 @@ struct RoamMapHomeDependencies {
     var myTeamsDestination: (() -> AnyView)? = nil
     var nearbyTeamsDestination: (() -> AnyView)? = nil
     var nearbyTeamDestination: ((NearbyTeamID) -> AnyView)? = nil
-    /// The search map explorer with a keyword (`SessionLinkedSearchView(startsOnMap: true)`).
-    var searchDestination: ((String) -> AnyView)? = nil
+    /// P-037: the search map reader (`AppSession.searchMapReader`). A submitted search shows its results as pins on
+    /// this map; the explorer is no longer pushed as a second map inside the sheet.
+    var searchReader: (any SearchMapReading)? = nil
     var onChooseArea: (() -> Void)? = nil
     var onOpenAccount: (() -> Void)? = nil
 }
@@ -40,6 +41,8 @@ struct RoamMapHomeDependencies {
     @State private var position: MapCameraPosition = .userLocation(fallback: .automatic)
     @State private var cameraArea: RoamSearchArea?
     @ObservedObject private var cityLinks = CityDeepLinks.shared
+    /// P-035: the peek grows with Dynamic Type so the search field is never clipped.
+    @ScaledMetric(relativeTo: .body) private var peekHeight: CGFloat = RoamMapHomeModel.peekHeight
 
     private var area: RoamSearchArea? { dependencies.entryReader?.searchArea ?? dependencies.roamReader.searchArea }
 
@@ -60,9 +63,9 @@ struct RoamMapHomeDependencies {
     var body: some View {
         GeometryReader { proxy in
             map
-                .safeAreaPadding(.bottom, RoamMapHomePanelMetrics.mapInset(detent: model.detent, available: proxy.size.height))
+                .safeAreaPadding(.bottom, RoamMapHomePanelMetrics.mapInset(detent: model.detent, available: proxy.size.height, peek: peekHeight))
                 .overlay(alignment: .bottom) {
-                    RoamMapHomePanel(detent: $model.detent, available: proxy.size.height) {
+                    RoamMapHomePanel(detent: $model.detent, available: proxy.size.height, peekHeight: peekHeight) {
                         RoamMapHomeSheet(model: model, dependencies: dependencies)
                     }
                 }
@@ -72,6 +75,10 @@ struct RoamMapHomeDependencies {
         .onChange(of: model.officialRoute) { _, route in
             guard let route else { return }
             fit(RoamMapHomePin.make(officialRoute: route).map(\.coordinate))
+        }
+        // P-037: a landed search frames its pins on this map.
+        .onChange(of: model.searchRevision) { _, _ in
+            fit(model.searchPins(center: area?.coordinate).map(\.coordinate))
         }
         .task(id: (dependencies.entryReader?.readKey ?? "") + "|" + String(model.reloadGeneration)) {
             await model.loadEntry(reader: dependencies.entryReader, teams: dependencies.entryTeams)

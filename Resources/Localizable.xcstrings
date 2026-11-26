@@ -315283,7 +315283,6 @@
       }
     },
     "nativeR2.mapHome.searchMap": {
-      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -315294,7 +315293,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在搜索地图中查找"
+            "value": "在地图上搜索"
           }
         }
       }
@@ -322884,6 +322883,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "全屏"
+          }
+        }
+      }
+    },
+    "nativeR2.mapHome.search.announce.count": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%ld search results on the map"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地图上有 %ld 个搜索结果"
+          }
+        }
+      }
+    },
+    "nativeR2.mapHome.search.announce.none": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No search results on the map"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地图上没有搜索结果"
+          }
+        }
+      }
+    },
+    "nativeR2.mapHome.search.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search failed. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索失败,请重试"
+          }
+        }
+      }
+    },
+    "nativeR2.mapHome.card.template": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Game"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩法"
           }
         }
       }

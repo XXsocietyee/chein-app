@@ -14,7 +14,8 @@ class RoamMapDensityContracts(unittest.TestCase):
         self.assertIn('proxy.convert(coordinate(pin.coordinate), to: .local)', self.density)
         self.assertIn('MapMarkerDensity.groups(projected', self.density)
         self.assertIn('MapMarkerDensity.fit(group.members.map', self.density)
-        self.assertIn('else { expand(group) }', self.density)
+        # P-038: a group is one MapKit monogram Marker; selecting it expands the group (no first-member action).
+        self.assertIn('group.members.count > 1 { expand(group) }', self.density)
         self.assertNotIn('onSelect', self.density.split('private func expand(', 1)[1].split('\n    }', 1)[0])
         self.assertIn('guard matches.count == 1, let item = matches.first', self.adapter)
 

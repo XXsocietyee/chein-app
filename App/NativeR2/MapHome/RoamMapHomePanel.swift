@@ -9,15 +9,17 @@ import SwiftUI
     @Binding var detent: PresentationDetent
     /// Height of the tab's safe area (status bar to tab bar).
     let available: CGFloat
+    /// P-035: the peek height already scaled for the current Dynamic Type size.
+    var peekHeight: CGFloat = RoamMapHomeModel.peekHeight
     @ViewBuilder let content: () -> Content
 
     @State private var dragTranslation: CGFloat = 0
     @State private var isDragging = false
 
-    private var restingHeight: CGFloat { RoamMapHomePanelMetrics.height(of: detent, available: available) }
+    private var restingHeight: CGFloat { RoamMapHomePanelMetrics.height(of: detent, available: available, peek: peekHeight) }
     private var currentHeight: CGFloat {
-        let full = RoamMapHomePanelMetrics.height(of: .large, available: available)
-        return min(full, max(RoamMapHomePanelMetrics.height(of: RoamMapHomeModel.peek, available: available), restingHeight - dragTranslation))
+        let full = RoamMapHomePanelMetrics.height(of: .large, available: available, peek: peekHeight)
+        return min(full, max(RoamMapHomePanelMetrics.height(of: RoamMapHomeModel.peek, available: available, peek: peekHeight), restingHeight - dragTranslation))
     }
 
     var body: some View {
@@ -74,7 +76,8 @@ import SwiftUI
 
     private func nearestDetent(to height: CGFloat) -> PresentationDetent {
         RoamMapHomeModel.detents.min { lhs, rhs in
-            abs(RoamMapHomePanelMetrics.height(of: lhs, available: available) - height) < abs(RoamMapHomePanelMetrics.height(of: rhs, available: available) - height)
+            abs(RoamMapHomePanelMetrics.height(of: lhs, available: available, peek: peekHeight) - height)
+                < abs(RoamMapHomePanelMetrics.height(of: rhs, available: available, peek: peekHeight) - height)
         } ?? RoamMapHomeModel.peek
     }
 
@@ -88,17 +91,19 @@ import SwiftUI
 
 /// Detent heights of `RoamMapHomePanel`, outside the generic type so callers need no `Content`.
 @MainActor enum RoamMapHomePanelMetrics {
-    /// Height of the panel at `detent` inside `available` points.
-    static func height(of detent: PresentationDetent, available: CGFloat) -> CGFloat {
-        let full = max(available, RoamMapHomeModel.peekHeight)
+    /// Height of the panel at `detent` inside `available` points. P-035: `peek` is the Dynamic Type scaled peek;
+    /// at the largest sizes it is capped at 40% of the space so the map stays visible above the search field.
+    static func height(of detent: PresentationDetent, available: CGFloat, peek: CGFloat = RoamMapHomeModel.peekHeight) -> CGFloat {
+        let peekLine = min(max(peek, RoamMapHomeModel.peekHeight), max(RoamMapHomeModel.peekHeight, available * 0.4))
+        let full = max(available, peekLine)
         if detent == .large { return full }
-        if detent == .medium { return max(RoamMapHomeModel.peekHeight, full * 0.5) }
-        return min(RoamMapHomeModel.peekHeight, full)
+        if detent == .medium { return max(peekLine, full * 0.5) }
+        return min(peekLine, full)
     }
 
     /// Bottom inset for the map so its controls and the user location stay above the panel.
     /// Past `.medium` the map no longer moves.
-    static func mapInset(detent: PresentationDetent, available: CGFloat) -> CGFloat {
-        min(height(of: detent, available: available), height(of: .medium, available: available))
+    static func mapInset(detent: PresentationDetent, available: CGFloat, peek: CGFloat = RoamMapHomeModel.peekHeight) -> CGFloat {
+        min(height(of: detent, available: available, peek: peek), height(of: .medium, available: available, peek: peek))
     }
 }

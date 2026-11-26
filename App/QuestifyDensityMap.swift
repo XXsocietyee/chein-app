@@ -31,6 +31,7 @@ struct QuestifyDensityMap: View {
     @State private var currentFocusInput: FocusInput
     @ScaledMetric(relativeTo: .body) private var diameter = 44.0
     @ScaledMetric(relativeTo: .body) private var clusterExtra = 28.0
+    @Environment(\.locale) private var locale
     init(area: RoamSearchArea, pins: [SearchMapPin], selectedID: String? = nil,
          polyline: [RoamCoordinate] = [], mapHeight: CGFloat = 300, initialSpan: Double = 0.04,
          interactionID: AnyHashable? = nil,
@@ -86,36 +87,22 @@ struct QuestifyDensityMap: View {
                 MapReader { proxy in
                     let groups = groups(proxy: proxy, size: geometry.size, revision: cameraRevision)
                     ZStack {
-                    Map(position: $position, interactionModes: fog == nil ? .all : [.pan, .zoom]) {
+                    // P-038: MapKit `Marker`s (system balloon, title, selection) instead of drawn pin buttons. The
+                    // density grouping stays (SwiftUI MapKit has no clustering API on iOS 17): a group is one
+                    // monogram `Marker` with its member count; selecting it expands the group as before.
+                    Map(position: $position, interactionModes: fog == nil ? .all : [.pan, .zoom], selection: markerSelection) {
                         ForEach(groups) { group in
                             if let anchor = group.members.first(where: { $0.id == selectedID }) ?? group.members.first {
-                                let renderedInput = focusInput
-                                let request = selectionGate.request(id: anchor.id, suppliedIDs: pins.map(\.id))
-                                Annotation(group.members.count == 1 ? anchor.title : "", coordinate: coordinate(anchor.coordinate)) {
-                                    Button {
-                                        if group.members.count == 1 {
-                                            guard renderedInput == currentFocusInput, let request,
-                                                  let id = selectionGate.consume(request) else { return }
-                                            closeExpansion()
-                                            onSelect?(id)
-                                        }
-                                        else { expand(group) }
-                                    } label: {
-                                        if group.members.count == 1 {
-                                            QuestifyMapPinSymbol(symbol: anchor.symbol, selected: anchor.id == selectedID).mpKind(anchor.category?.markerKind)
-                                        } else {
-                                            VStack(spacing: 0) {
-                                                QuestifyMapPinSymbol(symbol: anchor.id == selectedID ? anchor.symbol : "circle.grid.2x2", selected: anchor.id == selectedID)
-                                                    .mpKind(anchor.category.map { anchor.id == selectedID ? $0.markerKind : .cluster })
-                                                Text(group.members.count, format: .number).cyText(.cardTitle)
-                                                    .padding(.horizontal, 6).background(QuestifyMapAppearance.surface, in: Capsule())
-                                            }
-                                        }
-                                    }.buttonStyle(.plain)
-                                    .accessibilityLabel(group.members.count == 1 ? Text(verbatim: anchor.title) : Text("mapDensity.visiblePlaces") + Text(verbatim: ": \(group.members.count)"))
-                                    .accessibilityHint(group.members.count == 1 ? pinHint(anchor.id) : Text("mapDensity.expandHint"))
-                                    .accessibilityIdentifier(group.members.count == 1 ? "\(pinIdentifierPrefix)\(anchor.id)" : "mapDensity.cluster")
-                                    .accessibilityAddTraits(group.members.contains(where: { $0.id == selectedID }) ? .isSelected : [])
+                                if group.members.count == 1 {
+                                    Marker(anchor.title, systemImage: anchor.symbol, coordinate: coordinate(anchor.coordinate))
+                                        .tint(markerTint(anchor))
+                                        .tag(anchor.id)
+                                } else {
+                                    Marker(clusterTitle(group.members.count),
+                                           monogram: Text(group.members.count, format: .number),
+                                           coordinate: coordinate(anchor.coordinate))
+                                        .tint(.gray)
+                                        .tag(Self.clusterTag(group.id))
                                 }
                             }
                         }
@@ -124,8 +111,6 @@ struct QuestifyDensityMap: View {
                             MapPolyline(coordinates: polyline.map(coordinate)).stroke(QuestifyMapAppearance.route, style: StrokeStyle(lineWidth: 4, dash: [7, 4]))
                         }
                     }.mapStyle(QuestifyMapAppearance.baseStyle)
-                    .environment(\.colorScheme, .light)
-                    .background { CYMapPlaceholder(fog: false) }
                     .mapControls {
                         MapCompass().mapControlVisibility(.visible)
                         MapScaleView()
@@ -246,6 +231,39 @@ struct QuestifyDensityMap: View {
         onViewportChange?(nil)
         position = .region(MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: fit.latitude, longitude: fit.longitude),
             span: MKCoordinateSpan(latitudeDelta: fit.latitudeSpan, longitudeDelta: fit.longitudeSpan)))
+    }
+    private static let clusterPrefix = "\u{1F}mapDensity.cluster\u{1F}"
+    private static func clusterTag(_ ids: [String]) -> String { clusterPrefix + ids.joined(separator: "\u{1F}") }
+    /// The map's marker selection. Reads the parent's selection; a tapped single marker goes through the same
+    /// selection gate as the old pin button, a tapped group marker expands that group (no first-member action).
+    private var markerSelection: Binding<String?> {
+        Binding(get: { selectedID }, set: { tag in
+            guard let tag, focusInput == currentFocusInput else { return }
+            if tag.hasPrefix(Self.clusterPrefix) {
+                let ids = tag.dropFirst(Self.clusterPrefix.count).split(separator: "\u{1F}").map(String.init)
+                let group = Group(members: ids.compactMap { id in currentPins.first { $0.id == id } })
+                if group.members.count == ids.count, group.members.count > 1 { expand(group) }
+                return
+            }
+            guard let request = selectionGate.request(id: tag, suppliedIDs: pins.map(\.id)),
+                  let id = selectionGate.consume(request) else { return }
+            closeExpansion()
+            onSelect?(id)
+        })
+    }
+    private func clusterTitle(_ count: Int) -> String {
+        appLocalized("mapDensity.visiblePlaces", locale: locale) + ": " + String(count)
+    }
+    /// System tints per MP place category; other pins use the app accent.
+    private func markerTint(_ pin: SearchMapPin) -> Color {
+        switch pin.category {
+        case .merchant?: return .orange
+        case .park?: return .green
+        case .street?: return .blue
+        case .shop?: return .pink
+        case .landmark?: return .red
+        case nil: return QuestifyMapAppearance.markerFill
+        }
     }
     private func coordinate(_ value: RoamCoordinate) -> CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: value.latitude, longitude: value.longitude)
