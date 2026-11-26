@@ -5,13 +5,6 @@ import XCTest
     private let bundle = "invalid.example.questify.ios"
     private let realm = "cn-prod"
 
-    override func tearDown() {
-        PublicCatalogHostWiring.host = nil
-        PublicCatalogHostWiring.scope = nil
-        PublicCatalogHostWiring.token = nil
-        super.tearDown()
-    }
-
     func testShippedChinaConstructsTheReadersAndPurchaseStaysUnreachable() async throws {
         let recorder = PathRecorder()
         let composition = RegionalLaunchConfiguration.shippedComposition(build: .init(
@@ -33,9 +26,6 @@ import XCTest
         XCTAssertNotNil(bindings.journeySettle)
         XCTAssertNotNil(bindings.journeyPromo)
         XCTAssertNil(bindings.passGift)
-        PublicCatalogHostWiring.host = host
-        XCTAssertNotNil(PublicCatalogHostWiring.host)
-        XCTAssertFalse(PublicCatalogHostWiring.moneyEnabled)
         XCTAssertFalse(PublicCatalogHost.moneyEnabled)
         XCTAssertFalse(MPCommerceGate.purchasesEnabled)
         XCTAssertFalse(MPCommerceGate.claimsEnabled)
