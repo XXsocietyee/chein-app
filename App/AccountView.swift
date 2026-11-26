@@ -169,7 +169,7 @@ import SwiftUI
                     }
                     .accessibilityIdentifier("account.reportMine")
                 }
-                if WelcomeView.showsMerchantChoice {
+                if WelcomeView.showsMerchantChoice && PlayerLaunch.merchantCenterEnabled { // Lane G: coop row hidden in Release
                 Section {
                     Button { showsCooperation=true } label: {
                         Label("cooperation.title", systemImage: "person.2")
@@ -350,7 +350,8 @@ import SwiftUI
     var body: some View {
         Group {
             if !gatesCreatorByCapability || session.publishingSession != nil { creatorSection }
-            if showsMerchant && themeDomain != .player { merchantSection }
+            // Lane G: merchant rows (overview, projects, 商家工作台, onboarding, mode switch) are hidden in Release.
+            if showsMerchant && PlayerLaunch.merchantCenterEnabled && themeDomain != .player { merchantSection }
         }
         .navigationDestination(isPresented: $showsMerchantApplication) {
             MerchantOnboardingView(session: session, coordinator: session.merchantOnboardingCoordinator)

@@ -198,21 +198,24 @@ enum ClubDetailR8Route: Hashable, Identifiable {
     let open: (ClubDetailR8Route) -> Void
     @Environment(\.locale) private var locale
     var body: some View {
-        ClubGapCoopPoolSection(
-            state: model.coopPool,
-            pendingTopicID: model.coopApplyPendingTopicID,
-            onRetry: { Task { await model.loadCoopPool(key: reloadKey, reader: session.cooperationReader, locale: locale, force: true) } },
-            onApply: { topicID, _, message in
-                Task { await model.applyCoopPool(topicID: topicID, clubID: clubID, message: message, session: session, key: reloadKey, locale: locale) }
-            },
-            onOpenApplication: { _ in open(.myCoop) },
-            onOpenMyCoop: { open(.myCoop) })
-        if let key = model.coopApplyNoticeKey {
-            Section { Text(LocalizedStringKey(key)).font(.subheadline).foregroundStyle(.secondary) }
-                .accessibilityIdentifier("club.coopPool.notice")
-        } else if let notice = model.coopApplyServerNotice {
-            Section { Text(verbatim: notice).font(.subheadline).foregroundStyle(.secondary) }
-                .accessibilityIdentifier("club.coopPool.notice")
+        // Lane G: the club coop pool (可对接的活动 / 我的合作) is a coop entry, hidden in Release.
+        if PlayerLaunch.merchantCenterEnabled {
+            ClubGapCoopPoolSection(
+                state: model.coopPool,
+                pendingTopicID: model.coopApplyPendingTopicID,
+                onRetry: { Task { await model.loadCoopPool(key: reloadKey, reader: session.cooperationReader, locale: locale, force: true) } },
+                onApply: { topicID, _, message in
+                    Task { await model.applyCoopPool(topicID: topicID, clubID: clubID, message: message, session: session, key: reloadKey, locale: locale) }
+                },
+                onOpenApplication: { _ in open(.myCoop) },
+                onOpenMyCoop: { open(.myCoop) })
+            if let key = model.coopApplyNoticeKey {
+                Section { Text(LocalizedStringKey(key)).font(.subheadline).foregroundStyle(.secondary) }
+                    .accessibilityIdentifier("club.coopPool.notice")
+            } else if let notice = model.coopApplyServerNotice {
+                Section { Text(verbatim: notice).font(.subheadline).foregroundStyle(.secondary) }
+                    .accessibilityIdentifier("club.coopPool.notice")
+            }
         }
     }
 }
