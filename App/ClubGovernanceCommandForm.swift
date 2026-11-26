@@ -86,6 +86,9 @@ import SwiftUI
     @State private var groupCode: ClubGovernanceGroupCode?
     /// CLB-notify-05 (fix-r3-club-b round 4): the latest silently re-read status of the campaign in `receipt`.
     @State private var campaignRefresh: ClubGovernanceValue?
+    /// CLB-notify-05 (MP notify wxml:76-78, js:300-325): the inline 刷新 / 刷新中… read and its one-line result.
+    @State private var campaignRefreshing = false
+    @State private var campaignRefreshNotice: LocalizedStringKey?
     @State private var presentation = ClubGovernanceFormLifecycle()
     private var busy: Bool { presentation.busy }
     @State private var dirty = false
@@ -449,8 +452,21 @@ import SwiftUI
                     if [.sendNotification, .retryNotification].contains(route.operation), let campaign = try? ClubOpsNotifyCampaign(value: refreshedCampaign ?? receipt) {
                         ClubOpsNotifyCampaignRows(campaign: campaign, outcome: route.operation)
                     }
-                    if [.sendNotification, .retryNotification].contains(route.operation), let id = receipt["id"].int {
-                        NavigationLink { ClubGovernanceReadView(operation: .notificationStatus, scope: .init(clubID: route.scope.clubID, activityID: route.scope.activityID, campaignID: id), identity: identity, access: access, coordinator: coordinator) } label: { Text("club.gov.notificationStatus") }
+                    if [.sendNotification, .retryNotification].contains(route.operation), notifyCampaignID != nil {
+                        // CLB-notify-05: 投递状态 refreshes in place (MP `refreshCampaign`); no pushed status page.
+                        Button {
+                            Task { await refreshCampaign(silent: false) }
+                        } label: {
+                            Label(campaignRefreshing ? LocalizedStringKey("club.notify.refreshing") : LocalizedStringKey("club.notify.refresh"), systemImage: "arrow.clockwise")
+                        }
+                        .disabled(campaignRefreshing || busy)
+                        .accessibilityIdentifier("club.notify.refreshCampaign")
+                        if let campaignRefreshNotice {
+                            Text(campaignRefreshNotice)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                                .accessibilityIdentifier("club.notify.refreshNotice")
+                        }
                     }
                     ForEach(Array((receipt["failedSessions"].array ?? []).enumerated()), id: \.offset) { _, value in Text(verbatim: value.string ?? "") }
                     // CLB-G15 (MP event-ops wxml:200): the series-create receipt's windowWarning, the server's own sentence.
@@ -589,15 +605,10 @@ import SwiftUI
         // counts left at 处理中 catch up on return from the status page or the background. A failed read keeps the
         // numbers already shown; nothing is announced either way.
         .task(id: "\(notifyCampaignID ?? 0)|\(scenePhase == .active)") {
-            guard [.sendNotification, .retryNotification].contains(route.operation), scenePhase == .active,
-                  identity == access.identity, let id = notifyCampaignID else { return }
-            let scope = ClubGovernanceScope(clubID: route.scope.clubID, activityID: route.scope.activityID, campaignID: id)
-            guard let value = try? await access.read(.notificationStatus, scope: scope, options: [:]).value,
-                  !Task.isCancelled, value["id"].int == id, notifyCampaignID == id,
-                  (try? ClubOpsNotifyCampaign(value: value)) != nil else { return }
-            campaignRefresh = value
+            guard scenePhase == .active else { return }
+            await refreshCampaign(silent: true)
         }
-        .onChange(of: notifyCampaignID) { _, _ in campaignRefresh = nil }
+        .onChange(of: notifyCampaignID) { _, _ in campaignRefresh = nil; campaignRefreshNotice = nil }
         // CLB-group-code-02 (fix-r3-club-b): MP issues the code as the page opens (index.js:93-135).
         .task {
             guard route.operation == .issueGroupCode, groupCodeCanIssue, review == nil, receipt == nil, groupCode == nil, failure == nil else { return }
@@ -629,6 +640,24 @@ import SwiftUI
         ClubNotificationAudienceReadModel.context(scope: route.scope, identity: identity, access: access)
     }
     private var notifyCampaignID: Int? { receipt?["id"].int }
+    /// MP notify `refreshCampaign` (js:300-325): one status read at a time; a failed read keeps the numbers shown.
+    /// Silent reads (onShow) say nothing; the 刷新 button says 投递状态已更新 or 投递状态没读到.
+    private func refreshCampaign(silent: Bool) async {
+        guard [.sendNotification, .retryNotification].contains(route.operation), !campaignRefreshing,
+              identity == access.identity, let id = notifyCampaignID else { return }
+        campaignRefreshing = true
+        defer { campaignRefreshing = false }
+        if !silent { campaignRefreshNotice = nil }
+        let scope = ClubGovernanceScope(clubID: route.scope.clubID, activityID: route.scope.activityID, campaignID: id)
+        guard let value = try? await access.read(.notificationStatus, scope: scope, options: [:]).value,
+              !Task.isCancelled, value["id"].int == id, notifyCampaignID == id,
+              (try? ClubOpsNotifyCampaign(value: value)) != nil else {
+            if !silent, !Task.isCancelled { campaignRefreshNotice = "club.notify.refreshFailed" }
+            return
+        }
+        campaignRefresh = value
+        if !silent { campaignRefreshNotice = "club.notify.refreshed" }
+    }
     /// The silent re-read, only while it belongs to the campaign the receipt names.
     private var refreshedCampaign: ClubGovernanceValue? {
         guard let campaignRefresh, let id = notifyCampaignID, campaignRefresh["id"].int == id else { return nil }
