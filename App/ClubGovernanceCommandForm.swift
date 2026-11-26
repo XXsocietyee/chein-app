@@ -375,6 +375,7 @@ import SwiftUI
                     if [.sendNotification, .retryNotification].contains(route.operation), let campaign = try? ClubOpsNotifyCampaign(value: refreshedCampaign ?? receipt) {
                         ClubOpsNotifyCampaignRows(campaign: campaign, outcome: route.operation)
                     }
+                    notifyRetryLink
                     if [.sendNotification, .retryNotification].contains(route.operation), notifyCampaignID != nil {
                         // CLB-notify-05: 投递状态 refreshes in place (MP `refreshCampaign`); no pushed status page.
                         Button {
@@ -579,6 +580,21 @@ import SwiftUI
         ClubNotificationAudienceReadModel.context(scope: route.scope, identity: identity, access: access)
     }
     private var notifyCampaignID: Int? { receipt?["id"].int }
+    /// CLB-r11-notify-01 (MP notify/index.wxml:107-110, js retryFailed): 只重试失败项 under the receipt card while the
+    /// campaign has failed recipients, pushing the retry command as the status page does (ClubGovernanceViews `edit(.retryNotification)`).
+    @ViewBuilder private var notifyRetryLink: some View {
+        if [.sendNotification, .retryNotification].contains(route.operation), let shownReceipt = receipt,
+           let campaignID = notifyCampaignID,
+           (try? ClubOpsNotifyCampaign(value: refreshedCampaign ?? shownReceipt))?.canRetryFailed == true {
+            let retryScope = ClubGovernanceScope(clubID: route.scope.clubID, activityID: route.scope.activityID, campaignID: campaignID)
+            NavigationLink {
+                ClubGovernanceCommandForm(route: .init(operation: .retryNotification, scope: retryScope),
+                                          identity: identity, access: access, coordinator: coordinator)
+            } label: { Text("club.gov.action.retryNotification") }
+                .disabled(busy || campaignRefreshing)
+                .accessibilityIdentifier("club.notify.retryFailed")
+        }
+    }
     private func endTopicResultText(_ receipt: ClubGovernanceValue) -> String {
         ClubTopicEndSummary.parse(receipt, sentEpoch: draft.anchors["cancellationEpoch"]?.int ?? -1)
             .resultText(chinese: AppLanguage.interfaceIsChinese(locale))
