@@ -14,32 +14,24 @@ import SwiftUI
     init(host: ClubBadgeHost) { _model = StateObject(wrappedValue: ClubBadgeHostModel(host: host)) }
     var body: some View {
         let _ = model.revision
-        ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                // CLB-badges-01 (parity r2): the page-type title is the inline bar title, not a hero in the content.
-                if let flow = model.flow, flow.isCurrent {
-                    // CLB-badges-01 (fix-r3-club-b): MP cy-page-title subtitle = the club name.
-                    if let clubName = flow.club?.name.trimmingCharacters(in: .whitespacesAndNewlines), !clubName.isEmpty {
-                        Text(verbatim: clubName)
-                            .cyText(.meta)
-                            .foregroundStyle(palette.textSecondary)
-                            .lineLimit(2)
-                    }
-                    badgeContent(flow)
-                } else if model.working {
-                    CYSkeleton().accessibilityLabel(Text("loading", tableName: "ClubBadge"))
-                } else {
-                    Text("listError", tableName: "ClubBadge")
-                        .cyText(.body)
-                        .foregroundStyle(palette.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
+        // CLB-r9-native-06: a system inset-grouped List (was a custom ScrollView); failures are ContentUnavailableView.
+        List {
+            // CLB-badges-01 (parity r2): the page-type title is the inline bar title, not a hero in the content.
+            if let flow = model.flow, flow.isCurrent {
+                badgeContent(flow)
+            } else if model.working {
+                ProgressView { Text("loading", tableName: "ClubBadge") }
+                    .frame(maxWidth: .infinity)
+            } else {
+                ContentUnavailableView {
+                    Label { Text("listError", tableName: "ClubBadge") } icon: { Image(systemName: "exclamationmark.triangle") }
+                } actions: {
+                    Button("action.reload") { model.perform { await $0.refresh() } }
+                        .buttonStyle(.bordered)
                 }
             }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.vertical, CYSpacing.lg)
-            .disabled(model.working)
         }
-        .cyDomainScreen(.player)
+        .disabled(model.working)
         .privacySensitive()
         .navigationTitle(Text("title", tableName: "ClubBadge"))
         .navigationBarTitleDisplayMode(.inline)
@@ -69,62 +61,58 @@ import SwiftUI
     }
 
     @ViewBuilder private func badgeContent(_ flow: ClubBadgeManagementFlow) -> some View {
-        if model.working || flow.screenState == .loading {
-            CYSkeleton().accessibilityLabel(Text("loading", tableName: "ClubBadge"))
-        }
-        switch flow.screenState {
-        case .notAvailable:
-            CYEmptyState(systemImage: "medal", "notAvailable", tableName: "ClubBadge")
-        case .error:
-            CYEmptyState(
-                systemImage: "exclamationmark.triangle",
-                "listError",
-                tableName: "ClubBadge",
-                actionTitle: "retry",
-                actionStyle: flow.canCreate ? .secondary : .primary,
-                kind: .failure
-            ) { model.perform { await $0.refresh() } }
-        case .loading:
-            EmptyView()
-        case .empty, .ready:
-            if flow.error != nil || flow.refreshError != nil || flow.memberError != nil {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+        Section {
+            if model.working || flow.screenState == .loading {
+                ProgressView { Text("loading", tableName: "ClubBadge") }
+                    .frame(maxWidth: .infinity)
+            }
+            switch flow.screenState {
+            case .notAvailable:
+                ContentUnavailableView { Label { Text("notAvailable", tableName: "ClubBadge") } icon: { Image(systemName: "medal") } }
+            case .error:
+                ContentUnavailableView {
+                    Label { Text("listError", tableName: "ClubBadge") } icon: { Image(systemName: "exclamationmark.triangle") }
+                } actions: {
+                    Button("action.reload") { model.perform { await $0.refresh() } }
+                        .buttonStyle(.bordered)
+                }
+            case .loading:
+                EmptyView()
+            case .empty, .ready:
+                if flow.error != nil || flow.refreshError != nil || flow.memberError != nil {
                     // CLB-badges-07: MP 列表没刷新成功 for a failed refresh, 勋章列表没加载成功 otherwise.
-                    Text(flow.refreshError != nil ? "refreshError" : "listError", tableName: "ClubBadge")
-                        .cyText(.body)
-                        .foregroundStyle(palette.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    CYPillButton("refresh", style: flow.canCreate ? .secondary : .primary, tableName: "ClubBadge") {
-                        model.perform { await $0.refresh() }
-                    }
+                    Label {
+                        Text(flow.refreshError != nil ? "refreshError" : "listError", tableName: "ClubBadge")
+                    } icon: { Image(systemName: "exclamationmark.triangle") }
+                    Button { model.perform { await $0.refresh() } } label: { Text("refresh", tableName: "ClubBadge") }
                 }
             }
-        }
-        resultStatus(flow.resultPresentation, createIsPrimary: flow.canCreate)
-        if flow.showsOwnerOnlyNotice {
-            Text("ownerOnly", tableName: "ClubBadge")
-                .cyText(.meta)
-                .foregroundStyle(palette.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        if flow.canCreate {
-            CYPillButton("create", style: .primary, systemImage: "plus", tableName: "ClubBadge") {
-                draft = .init(); creating = true
+            resultStatus(flow.resultPresentation, createIsPrimary: flow.canCreate)
+            if flow.canCreate {
+                Button { draft = .init(); creating = true } label: {
+                    Label { Text("create", tableName: "ClubBadge") } icon: { Image(systemName: "plus") }
+                }
             }
+        } header: {
+            // CLB-badges-01 (fix-r3-club-b): MP cy-page-title subtitle = the club name.
+            if let clubName = flow.club?.name.trimmingCharacters(in: .whitespacesAndNewlines), !clubName.isEmpty {
+                Text(verbatim: clubName)
+            }
+        } footer: {
+            if flow.showsOwnerOnlyNotice { Text("ownerOnly", tableName: "ClubBadge") }
         }
         if flow.screenState == .empty {
             // Round 4 image parity: MP cy-state-shell kind="empty" → the MP two-layer empty art.
-            ClubMPEmptyState(title: Text("empty", tableName: "ClubBadge"))
+            Section { ClubMPEmptyState(title: Text("empty", tableName: "ClubBadge")) }
         }
         if !flow.badges.isEmpty {
-            // CLB-badges-06: MP 全部勋章 · N 枚 header.
-            Text("allBadges \(flow.badges.count)", tableName: "ClubBadge")
-                .cyText(.sectionTitle)
-                .monospacedDigit()
-                .foregroundStyle(palette.textPrimary)
-                .accessibilityAddTraits(.isHeader)
+            Section {
+                ForEach(flow.badges) { badge in badgeCard(badge, flow: flow) }
+            } header: {
+                // CLB-badges-06: MP 全部勋章 · N 枚 header.
+                Text("allBadges \(flow.badges.count)", tableName: "ClubBadge").monospacedDigit()
+            }
         }
-        ForEach(flow.badges) { badge in badgeCard(badge, flow: flow) }
     }
 
     private func badgeCard(_ badge: ClubBadgeRecord, flow: ClubBadgeManagementFlow) -> some View {
@@ -162,9 +150,10 @@ import SwiftUI
                 }
             }
             if flow.canGrant {
-                CYPillButton("grant", style: .secondary, systemImage: "person.badge.plus", tableName: "ClubBadge") {
-                    model.perform { await $0.openGrant(badge) }
+                Button { model.perform { await $0.openGrant(badge) } } label: {
+                    Label { Text("grant", tableName: "ClubBadge") } icon: { Image(systemName: "person.badge.plus") }
                 }
+                .buttonStyle(.bordered)
                 // CLB-badges-10: MP aria-label 把 X 颁给成员.
                 .accessibilityLabel(Text("clubR3b.badges.grantA11y \(shownName(badge) ?? badge.badgeCode)"))
             }
