@@ -890,7 +890,7 @@ private struct JourneyInviteSheet: View {
     @MainActor private func renderInviteImage() {
         let renderer = ImageRenderer(content: inviteCard.environment(\.locale, locale).frame(width: 340))
         renderer.scale = 3
-        inviteImage = renderer.uiImage.map { Image(uiImage: $0) }
+        inviteImage = renderer.cgImage.map { Image($0, scale: 3, label: Text("mp.seats.invite.fallbackTitle")) }
     }
 
     private var inviteCard: some View {
