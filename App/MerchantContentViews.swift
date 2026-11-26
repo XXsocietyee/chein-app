@@ -113,7 +113,7 @@ struct MerchantContentBoundary: View {
                     if query == .recruiting, let focusedMerchantID, snapshot.access.merchantID != focusedMerchantID {
                         Text("merchantMarketing.stale").accessibilityIdentifier("merchant.insightNavigation.storeChanged")
                     } else { content(snapshot) }
-                } else if c.busy { CYSkeleton(variant: .card).accessibilityLabel(Text("merchant.loading")) }
+                } else if c.busy { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("merchant.loading")) }
                 }
             }.padding()
         }
@@ -212,16 +212,8 @@ struct MerchantContentBoundary: View {
             if c.locked && allowsRecovery {
                 Button("merchant.content.reconcile") { Task { await model.reconcile() } }.disabled(c.busy)
                 Button("merchant.content.retryOriginal") { confirmsRetry = true }.disabled(c.busy || !c.service.permitsWrites)
-                    .sheet(isPresented: $confirmsRetry) {
-                        CYConfirmSheet(
-                            title: appLocalized("merchant.content.retryOriginalWarning", locale: locale),
-                            message: "",
-                            confirmTitle: appLocalized("merchant.content.retryOriginal", locale: locale),
-                            isDestructive: true,
-                            onConfirm: { Task { await model.retryStation() } }
-                        )
-                        .cyDomainSheet(detents: [.half])
-                        .themeDomain(.merchant)
+                    .confirmationDialog(Text("merchant.content.retryOriginalWarning"), isPresented: $confirmsRetry, titleVisibility: .visible) {
+                        Button("merchant.content.retryOriginal", role: .destructive) { Task { await model.retryStation() } }
                     }
             }
         }
@@ -298,7 +290,7 @@ enum MerchantContentEnumCopy {
         // Keep each row collection in its own concrete identity scope. City nodes and
         // city applications otherwise flatten two offset-zero rows into one lazy parent.
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
-            if rows.isEmpty { CYEmptyState(systemImage: "tray", "merchant.content.empty") }
+            if rows.isEmpty { ContentUnavailableView("merchant.content.empty", systemImage: "tray") }
             ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     if case .query(.recruiting) = kind, let focusedTopicID, row["id"].integer == focusedTopicID {
@@ -515,7 +507,7 @@ enum MerchantContentEnumCopy {
             }
         }
         if value["host"].object == nil && value["join"].object == nil {
-            CYEmptyState(systemImage: "tray", "merchant.content.noWorkspace")
+            ContentUnavailableView("merchant.content.noWorkspace", systemImage: "tray")
         }
         }
         // Mini-program merchantinfo rows: each entry reads as a tappable row with a chevron, not bare link text.
@@ -612,8 +604,11 @@ struct MerchantContentCodeView: View {
                     }
                 }
                 Section {
-                    Button("merchant.content.confirm") { Task { await model.confirm(review); dismiss() } }
-                        .buttonStyle(CYPillButtonStyle(style: .primary))
+                    Button { Task { await model.confirm(review); dismiss() } } label: {
+                        Text("merchant.content.confirm").frame(maxWidth: .infinity)
+                    }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
                         .listRowBackground(Color.clear)
                         .disabled(model.coordinator.busy || !model.coordinator.service.permits(review.command))
                         .accessibilityIdentifier("merchant.content.confirm")
@@ -701,7 +696,7 @@ private struct MerchantChapterReplacementContextKey: EnvironmentKey {
                     }
                 }
             } else if error { Text("merchant.content.supplyLoadFailed").cyText(.meta).foregroundStyle(CYColor.dangerText) }
-            else { CYSkeleton(variant: .row) }
+            else { ProgressView() }
             Text("merchant.content.supplyBoundary").cyText(.caption).foregroundStyle(CYColor.textSecondary)
         }.task(id: service.scope) {
             let captured = service.scope; snapshot = nil; error = false
