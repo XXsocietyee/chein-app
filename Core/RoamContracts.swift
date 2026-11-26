@@ -66,9 +66,12 @@ public struct RoamPlace: Decodable, Equatable, Identifiable {
     public let couponTemplateId: Int?
     public let found: Bool?
     public let pendingRedeem: Bool?
+    /// ROAM-r11-3: 1 普通 / 2 精选 / 3 官方合作 / 4 主题路线. Missing or malformed stays nil (drawn as 普通).
+    /// MP pages/roam/node-level-style.js:31-34 (`getNodeLevelStyle` rounds and clamps to 1…4).
+    public let nodeLevel: Int?
     public var readStatus: RoamPlaceReadStatus { .init(found: found, pendingRedeem: pendingRedeem) }
     public var isSupported: Bool { id > 0 && (type == 1 || type == 2) }
-    enum CodingKeys: String, CodingKey { case id, name, lat, lng, type, radiusM, address, description, xp, couponTemplateId, found, pendingRedeem, tags, coverImg }
+    enum CodingKeys: String, CodingKey { case id, name, lat, lng, type, radiusM, address, description, xp, couponTemplateId, found, pendingRedeem, tags, coverImg, nodeLevel }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decodeIfPresent(Int.self, forKey: .id) ?? 0
@@ -88,6 +91,11 @@ public struct RoamPlace: Decodable, Equatable, Identifiable {
         // A malformed optional fact stays unknown without inventing a negative.
         found = try? c.decode(Bool.self, forKey: .found)
         pendingRedeem = try? c.decode(Bool.self, forKey: .pendingRedeem)
+        if let level = try? c.decode(Double.self, forKey: .nodeLevel), level.isFinite {
+            nodeLevel = max(1, min(4, Int(level.rounded())))
+        } else {
+            nodeLevel = nil
+        }
     }
 }
 
