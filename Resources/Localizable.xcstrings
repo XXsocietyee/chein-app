@@ -315315,6 +315315,23 @@
           }
         }
       }
+    },
+    "club.topicMerchants.phoneCopied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phone number copied"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手机号已复制"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
