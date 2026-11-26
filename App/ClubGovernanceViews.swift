@@ -197,6 +197,8 @@ struct ClubGovernanceReadView: View {
     /// host that owns the read; once it has loaded, the story is pushed one time.
     var opensStoryOnLoad = false
     @State private var storyAutoOpen = false
+    /// CLB-r10-apply-01: 切换到商家端 (MP reLaunch) presents the merchant home as a new root.
+    @State private var merchantRelaunch = false
     @State private var storyAutoOpened = false
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var customerPager = ClubOpsCustomerPager()
@@ -1500,12 +1502,28 @@ struct ClubGovernanceReadView: View {
                 // CLB-apply-04 (MP apply wxml:30-33, js:157-162): the way out is the merchant side, plus 返回.
                 Section {
                     if PlayerLaunch.merchantCenterEnabled { // Lane G: 切换到商家端 / 查看商家入驻 hidden in Release
-                    NavigationLink {
-                        MPReviewedPageScreen(page: merchantActive ? "pages/merchant/index/index" : "pages/merchant/apply/index", query: [:])
-                    } label: {
-                        Text(LocalizedStringKey(merchantActive ? "club.host.merchant.switch" : "club.host.merchant.viewApply"))
+                    if merchantActive {
+                        // CLB-r10-apply-01 (MP apply js:159-162 wx.reLaunch): 切换到商家端 replaces the club stack with the
+                        // merchant home as a new root (full-screen cover) instead of pushing it on top of 成为主理人.
+                        Button("club.host.merchant.switch") { merchantRelaunch = true }
+                            .accessibilityIdentifier("club.host.merchant.switch")
+                            .cyFullScreenCover(isPresented: $merchantRelaunch) {
+                                NavigationStack {
+                                    MPReviewedPageScreen(page: "pages/merchant/index/index", query: [:])
+                                        .toolbar {
+                                            ToolbarItem(placement: .cancellationAction) {
+                                                Button("common.close") { merchantRelaunch = false }
+                                            }
+                                        }
+                                }
+                            }
+                    } else {
+                        // MP apply js:108 navigateTo pages/merchant/apply/index: a push.
+                        NavigationLink { MPReviewedPageScreen(page: "pages/merchant/apply/index", query: [:]) } label: {
+                            Text("club.host.merchant.viewApply")
+                        }
+                        .accessibilityIdentifier("club.host.merchant.viewApply")
                     }
-                    .accessibilityIdentifier(merchantActive ? "club.host.merchant.switch" : "club.host.merchant.viewApply")
                     }
                     Button("action.back") { dismissPage() }
                         .accessibilityIdentifier("club.host.merchant.back")

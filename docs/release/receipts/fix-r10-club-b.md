@@ -12,6 +12,22 @@ grepped before use. Not built on a simulator.
 | CLB-r10-notify-01 | **fixed** | 193356907, fabccf0a7 | send/retry in `clubOps`; paths + preview/status reads on the firewall. Firewall test: Tests/AppUnitTests/MPFirstClubWriteRouteR10Tests.swift (admits the r10 club POSTs, chapter multipart, badges; refuses cancel/end/hours and money keys). |
 | CLB-G13a | **partly** | 6428e0c58 | App/ClubTopicDirectorOpsSections.swift:10, 48; App/ClubTopicDirectorMount.swift:56-57: 通用玩法 rows are disabled while the director phase is not `ready`. **Blocked:** the per-action sheet (fields, 时间为北京时间, ledger rows, 确认并提交). MP `pages/club/topic-detail/index.wxml:204-236` and its JS are not in this repo and `chengyinhub-xcx` is not reachable from this session, so the per-action payloads for `api/game/session/command` can't be ported MP-first. parity-b receipt also notes the director manual actions are outside the player grant. Needs the MP source (or a Core payload spec) before an App sheet. |
 
+## Round 2 (2026-11-26)
+
+Merged `origin/ui/combined-r7` @ 49af0d3ad (coordinator's two compile fixes on the tip). `chengyinhub-xcx` is still not
+reachable (`add_repo` → no access), so CLB-G13a stays **partly / blocked** as above.
+
+| Row | Status | SHA | App / Core file:line |
+|---|---|---|---|
+| Coordinator: exact-body reads | **fixed** | a87621f5d | The `api/club/members` exact-body check the brief describes was not on the tip, so it lands here. App/MPFirstClubApprovals.swift `accepts`: badge paths (incl. `api/club/detail` `{"id"}` and `api/club/members` `{"clubId"}`) pass only when `ClubBadgeManagementRoute(request:baseURL:)` parses them (exact keys); every other review read on the route has a `ReadShape` (exact key set, ids positive non-bool integers) taken from `ClubGovernanceRead.fields`. Tests: MPFirstClubWriteRouteR10Tests `testReadsAdmitOnlyTheirExactBody` (extra `amount`, 0, string, bool, missing, fractional ids all refused). The write paths still use the money-key rule only. |
+| CLB-r10-join-requests-01 | **fixed** (was a real gap) | 03d5694d0 | Traced: `ClubManagementSessionAccess` sends `api/club/join-requests` and `api/club/join-request/approve|reject` (Core/ClubManagementService.swift:20, 41-48, Core/ClubManagementContracts.swift:32-33) and **no** branch of the Release China firewall admitted them (only `api/join-request/*` for channels and `api/club/join-requests/apply`). Added to `MPFirstClubWriteRoute.governancePaths` with exact shapes: list `{clubId}`, approve `{clubId, memberId}`, reject `{clubId, memberId, reviewReason?: String}`. Test `testAdmitsJoinRequestReviewOnItsExactBody`. `api/club/remove-member` is still not admitted (not in this row; flag for the coordinator). |
+| CLB-r10-create-01 | **fixed** | 03d5694d0 | App/ClubOperationsViews.swift:545-547, 800-801: comments now say a taken name shows 去改名称 and the wizard goes back only on tap (no auto-jump). |
+| CLB-r10-roles-01 | **verified, no change** | — | App/ClubGovernanceViews.swift:945-961: a failed re-read after the roles sheet restores the kept snapshot and sets `roleRereadToast = "club.roles.rereadFailed"` (列表没刷新成功，下拉重试), shown by `.clubIslandStatus` at :382. |
+| CLB-r10-apply-01 | **fixed** | (this push) | App/ClubGovernanceViews.swift hostStatus merchant branch: 切换到商家端 is a Button that presents the merchant home as a new root (`cyFullScreenCover` + NavigationStack, 关闭) instead of a push; 查看商家入驻 stays a push (MP navigateTo). Still behind `PlayerLaunch.merchantCenterEnabled` (hidden in Release). |
+| CLB-r10-apply-02 | **blocked** | — | Needs the merchant-status read the MP apply page uses (apply/index.js:99-110); the MP source isn't reachable and Core has no `merchantActive` producer. App keeps `?? true`. |
+| Older P2 rows | already landed | — | gate-04, detail-42, r9-detail-01/03, r7-A-07, r9-native-02/05/07, G13d, topic-detail-05, r9-topic-detail-01/02, topic-story-06, r9-topic-story-01, event-ops-05, r8-governance-01, r9-create-01/03, enroll-08, r9-enroll-01, r9-edit-01, r8-badges-02, workbench-03, r9-payout-receiver-02 carry row-id comments in code from fix-r8/r9 (checked the r9-create-01, topic-story-06, r7-A-07, native-07 lines). Not re-done. |
+| CLB-r9-event-ops-01, r9-create-02, r9-create-04 | **not done** | — | Same reasons as fix-r9-club-a: create-04 reverses owner MC-10 (needs an owner call); create-02 and event-ops-01 need the host-status hand-over / series-create return machinery. |
+
 ## Gates (last run before push)
 
 - `python3 tools/check_scaffold.py`: PASS structural checks.
