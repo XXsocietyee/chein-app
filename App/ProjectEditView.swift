@@ -339,6 +339,15 @@ import SwiftUI
     }
     /// verify-r2 N-01: the topic-editor domain wraps the whole page, so the page ground, the bottom bar and every
     /// modifier in the chain (not only the Form) are light when this is pushed from the dark player shell.
+    /// C-F14b (r9): MP fabu/index.js:6540-6551 `_ticketMissing` — 档期 + 票务 validation keys (+ 实名 cells, which this
+    /// editor does not collect, so 0). Core ids map to the MP keys: start/end/deadline → startDate/endDate/recruitDeadline.
+    private var ticketGapTotal: Int {
+        guard let scope = model.coordinator.snapshot?.scope else { return 0 }
+        let mpKeys: [String: String] = ["start": "startDate", "end": "endDate", "deadline": "recruitDeadline"]
+        let keys = ProjectEditValidation.issues(model.draft, scope: scope).map { mpKeys[$0.id] ?? $0.id }
+        return ProjectEditTicketGap.count(errorKeys: keys, identityRequired: false, identityRegistered: true,
+                                          realName: "", idCard: "", consented: true).total
+    }
     var body: some View {
         pageBody.cyDomainScreen(.topicEditor)
             .sheet(isPresented: $showsSignIn) { LoginView(intent: .player) }
@@ -384,7 +393,13 @@ import SwiftUI
                         }
                     } label: {
                         LabeledContent {
-                            ProjectEditTicketSummaryLabel(summary: EditorTicketSummary(prices: model.draft.tickets.map { Int($0.price) }))
+                            // C-F14b (r9): MP fabu/index.wxml:163-165 swaps 编辑 for the red `* 还有 N 项未填` (index.js:6540 _ticketMissing).
+                            if ticketGapTotal > 0 {
+                                Text("fixr9.ap.tickets.missing \(ticketGapTotal)").foregroundStyle(CYColor.dangerText)
+                                    .accessibilityIdentifier("projectEdit.tickets.missing")
+                            } else {
+                                ProjectEditTicketSummaryLabel(summary: EditorTicketSummary(prices: model.draft.tickets.map { Int($0.price) }))
+                            }
                         } label: { Label("projectEdit.tickets", systemImage: "ticket") }
                     }
                     .buttonStyle(.plain)

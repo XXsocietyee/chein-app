@@ -157,78 +157,188 @@
     "templateAuthor.outcome.completed": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Complete this stop" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "完成节点" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete this stop"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成节点"
+          }
+        }
       }
     },
     "templateAuthor.outcome.d20Success": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Check succeeded" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "检定成功" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check succeeded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检定成功"
+          }
+        }
       }
     },
     "templateAuthor.outcome.d20Failure": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Check failed" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "检定失败" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check failed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检定失败"
+          }
+        }
       }
     },
     "templateAuthor.outcome.unnamed": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Unnamed result" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "未命名结果" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unnamed result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未命名结果"
+          }
+        }
       }
     },
     "templateAuthor.outcome.invalidCode": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "An outcome code uses 1 to 64 letters, numbers, underscores, or hyphens" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "outcomeCode 只能使用1至64位字母、数字、下划线和短横线" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An outcome code uses 1 to 64 letters, numbers, underscores, or hyphens"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "outcomeCode 只能使用1至64位字母、数字、下划线和短横线"
+          }
+        }
       }
     },
     "templateAuthor.outcome.duplicateCode": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Outcome codes can't be repeated" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "outcomeCode 不能重复" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outcome codes can't be repeated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "outcomeCode 不能重复"
+          }
+        }
       }
     },
     "templateAuthor.validation.citynodeInteraction": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Choose how this play appears" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "请选择玩法形态" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose how this play appears"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择玩法形态"
+          }
+        }
       }
     },
     "templateAuthor.citynode.cityStoryCard": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "City story card" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "城市故事卡" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "City story card"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城市故事卡"
+          }
+        }
       }
     },
     "templateAuthor.citynode.hiddenMenu": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Hidden menu" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "隐藏菜单" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hidden menu"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐藏菜单"
+          }
+        }
       }
     },
     "templateAuthor.citynode.photoSpot": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Photo spot" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "拍照点" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo spot"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拍照点"
+          }
+        }
       }
     },
     "templateAuthor.citynode.qrCheckin": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Scan on arrival" } },
-        "zh-Hans": { "stringUnit": { "state": "translated", "value": "到店扫码" } }
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan on arrival"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到店扫码"
+          }
+        }
       }
     },
     "fixr9.ap.share": {
@@ -652,6 +762,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "添加分支"
+          }
+        }
+      }
+    },
+    "fixr9.ap.square.medals %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld medals"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 枚奖牌"
+          }
+        }
+      }
+    },
+    "fixr9.ap.tickets.missing %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "* %lld items still empty"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "* 还有 %lld 项未填"
           }
         }
       }
