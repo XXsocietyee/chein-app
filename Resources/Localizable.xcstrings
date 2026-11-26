@@ -315332,6 +315332,23 @@
           }
         }
       }
+    },
+    "club.story.missingTopic": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Topic details are missing. Open it again from the club page."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "缺少主题信息，请从俱乐部页面重新进入"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

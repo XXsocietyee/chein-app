@@ -370,6 +370,9 @@ import SwiftUI
                     clubRead(.topicOverview, scope, needsClub: false)
                         .environment(\.clubTopicDirectorHost, scope.activityID == nil ? nil : session.clubTopicDirectorHost)
                 }
+            } else if page == "pages/club/topic-story/index" {
+                // CLB-r9-topic-story-01 (MP topic-story js:160-166, 203-206): no topicId is final; the way out is 返回.
+                MemberMissingLinkState(title: "club.story.missingTopic", identifier: "club.story.missingTopic")
             } else { unavailable }
         case "pages/club/governance/index":
             // MP governance onLoad (ClubGovernanceEntryRoute): manage → the governance workspace; report / appeal → 我的平台工单.
