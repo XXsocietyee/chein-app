@@ -95,6 +95,7 @@ Since the r10 audit the native-r2 sweeps on the tip rebuilt the shared wrappers 
 ## Round 2 (2026-11-26)
 
 - Merged `origin/ui/combined-r7` (05caead53) first, then again before push.
+- Gates at round-2 push: `check_scaffold.py` PASS structural checks (5191 Swift files, 19496 keys); `check_a11y_lint.py` PASS 0 new; `contract_ratchet.py --check` 192 failing, baseline 192, **new 0**. Swift build / XCUITest: NOT_RUN (no compiler).
 - Closed the 儿童年龄 half of R7-PC-C2-1 (af0db705a). Still open in this slice: 包含内容 (R7-PC-C2-1), R9-PC-D4-1 主办分润 segment (UIKit `WalletEarningsAccessibleTabs` + 3 pinned tests, needs a simulator), and the native rows marked blocked (design paused).
 - C-N16 (`emptyRow`) and D-N16 (outbox `ScrollView`) re-read: both follow the MP layout on purpose (cy-empty title row in a list section; outbox strip scrolls). Left as is.
 - account-publish §4 P2 rows not fixed by acct-a/acct-b: A3-10 (partly — 更换背景 in the profile editor needs the local-cover owner plumbed through 6 `ProfileEditView` call sites; acct-b's open row, not taken to avoid a collision), C-F16-r7 (simulator: 45 XCUITest refs pin `textFields`), B-SZ-10 (needs the MP shezhi.wxml order; `add_repo hengyin/chengyinhub-xcx` denied again this round), B-AG-04 (owner). None taken.
