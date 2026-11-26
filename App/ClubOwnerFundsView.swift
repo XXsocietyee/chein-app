@@ -221,13 +221,13 @@ struct ClubOwnerFundsSection: View {
     var body: some View {
         let offered = parent.ticket(current: currentSource(), active: current, otherPresented: otherPresented())
         Section("club.ownerFunds.title") {
-            Text("club.ownerFunds.accountScope").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            Text("club.ownerFunds.accountScope").font(.footnote).foregroundStyle(.secondary)
             if workflow.loading {
-                CYSkeletonLocal()
-                Text("wallet.loading").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                ProgressView { Text("wallet.loading") }
+                    .frame(maxWidth: .infinity)
             }
             if current, let value = workflow.funds, workflow.loadedScope == context.reader?.scope {
-                if !value.amountsKnown { Text("wallet.amountsUnknown").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                if !value.amountsKnown { Text("wallet.amountsUnknown").font(.footnote).foregroundStyle(.secondary) }
                 CYBalanceHeroLocal(
                     label: "wallet.available",
                     amount: value.amountsKnown ? amount(value.withdrawable, currency: value.currency) : "—",
@@ -246,9 +246,9 @@ struct ClubOwnerFundsSection: View {
             if let key = workflow.failure { Text(LocalizedStringKey(key)).accessibilityIdentifier("club.ownerFunds.error") }
             if target.hasSettlementRows {
             if let hint = ClubOpsWithdrawHint(isOwner: true, availability: workflow.availability) {
-                Text(LocalizedStringKey(hint.localizationKey), tableName: "ClubOpsCustomer").cyText(.meta)
+                Text(LocalizedStringKey(hint.localizationKey), tableName: "ClubOpsCustomer").font(.footnote)
                     .accessibilityIdentifier("clubOps.settlement.withdraw." + hint.rawValue)
-            } else { Text("club.ownerFunds.manual").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+            } else { Text("club.ownerFunds.manual").font(.footnote).foregroundStyle(.secondary) }
             // HANDOFF-R1 MC-29 (owner Q-C): withdrawal stays a support hand-off, named and explained.
             ClubWithdrawalHandOffNote()
             Button {
@@ -256,7 +256,6 @@ struct ClubOwnerFundsSection: View {
                 Task { await parent.openContact(offered, access: access, context: context, current: currentSource,
                     active: { current }, otherPresented: otherPresented) }
             } label: { Text(verbatim: clubR1("funds.withdrawViaSupport", locale)) }
-            .buttonStyle(.cyPrimary(fullWidth: true))
             .disabled(offered == nil || workflow.loading || workflow.availability != .positive || context.support == nil)
                 .accessibilityIdentifier("club.ownerFunds.contact")
             }
@@ -265,7 +264,6 @@ struct ClubOwnerFundsSection: View {
                 Task { await parent.load(offered, access: access, context: context, current: currentSource,
                     active: { current }, otherPresented: otherPresented, force: true) }
             }
-            .buttonStyle(.cySecondary(fullWidth: true))
             .disabled(workflow.loading || offered == nil)
                 .accessibilityIdentifier("club.ownerFunds.retry")
         }
@@ -275,25 +273,21 @@ struct ClubOwnerFundsSection: View {
     }
 }
 
-// Local stand-ins for the shared names agreed with CA1. The train replaces the Local suffix.
+/// Available balance: the system grouped-row look (label, large monospaced amount, the pending amount below).
 private struct CYBalanceHeroLocal: View {
     let label: LocalizedStringKey
     let amount: String
     let delta: String
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(label).cyText(.meta).foregroundStyle(CYColor.textSecondary).cyWrapText()
+            Text(label).font(.subheadline).foregroundStyle(.secondary)
             Text(verbatim: amount)
-                .cyText(.data2XL)
-                .foregroundStyle(CYColor.textPrimary)
-                .cyWrapText()
+                .font(.largeTitle.bold())
+                .monospacedDigit()
             Text(verbatim: delta)
-                .cyText(.caption)
-                .foregroundStyle(CYColor.textSecondary)
-                .cyWrapText()
-                .padding(.horizontal, CYSpacing.sm)
-                .padding(.vertical, CYSpacing.xs)
-                .background(CYColor.bgSurfaceSubtle, in: Capsule())
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
@@ -306,80 +300,24 @@ private struct CYMoneyRowLocal: View {
     let amount: String
     let incoming: Bool
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text(title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).cyWrapText()
-                if !detail.isEmpty {
-                    Text(verbatim: detail).cyText(.meta).foregroundStyle(CYColor.textSecondary).cyWrapText()
-                }
-            }
-            Spacer(minLength: CYSpacing.sm)
+        LabeledContent {
             Text(verbatim: amount)
-                .cyText(.numericBody)
-                .foregroundStyle(incoming ? CYColor.successText : CYColor.textPrimary)
-                .cyWrapText(alignment: .trailing)
+                .monospacedDigit()
+                .foregroundStyle(incoming ? AnyShapeStyle(Color.green) : AnyShapeStyle(HierarchicalShapeStyle.primary))
+        } label: {
+            Text(title)
+            if !detail.isEmpty {
+                Text(verbatim: detail)
+            }
         }
-        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
         .accessibilityElement(children: .combine)
     }
 }
 
-private struct CYSkeletonLocal: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous)
-                .fill(CYColor.bgRaised)
-                .frame(maxWidth: .infinity, minHeight: CYSpacing.sm, alignment: .leading)
-            RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous)
-                .fill(CYColor.bgRaised)
-                .frame(maxWidth: .infinity, minHeight: CYSpacing.xxl, alignment: .leading)
-            RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous)
-                .fill(CYColor.bgRaised)
-                .frame(maxWidth: .infinity, minHeight: CYSpacing.md, alignment: .leading)
-        }
-        .accessibilityHidden(true)
-    }
-}
-
-private struct CYConfirmSheetLocal: View {
-    let title: LocalizedStringKey
-    let message: LocalizedStringKey
-    let confirmTitle: LocalizedStringKey
-    let onConfirm: () -> Void
-    @Environment(\.dismiss) private var dismiss
-    var body: some View {
-        NavigationStack {
-            VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                Text(title).cyText(.sheetTitle).foregroundStyle(CYColor.textPrimary)
-                Text(message).cyText(.body).foregroundStyle(CYColor.textSecondary)
-                Spacer(minLength: CYSpacing.lg)
-                Button(confirmTitle) { onConfirm(); dismiss() }
-                    .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
-                Button("action.cancel") { dismiss() }
-                    .buttonStyle(.cySecondary(fullWidth: true))
-            }
-            .padding(CYSpacing.lg)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .background(CYColor.bgPage)
-        }
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
-    }
-}
-
-#Preview("Owner funds tokens") {
-    VStack(alignment: .leading, spacing: CYSpacing.lg) {
+#Preview("Owner funds rows") {
+    List {
         CYBalanceHeroLocal(label: "wallet.available", amount: "128.00", delta: "12.00")
         CYMoneyRowLocal(title: "wallet.pendingSettlement", detail: "Synthetic", amount: "12.00", incoming: true)
         CYMoneyRowLocal(title: "wallet.disputed", detail: "", amount: "—", incoming: false)
-        CYSkeletonLocal()
     }
-    .padding(CYSpacing.lg)
-    .background(CYColor.bgPage)
-    .preferredColorScheme(.dark)
-}
-
-#Preview("Confirm sheet") {
-    CYConfirmSheetLocal(title: "wallet.available", message: "wallet.amountsUnknown", confirmTitle: "action.cancel", onConfirm: {})
-        .preferredColorScheme(.light)
 }

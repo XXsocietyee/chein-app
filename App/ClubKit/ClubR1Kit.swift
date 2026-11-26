@@ -56,121 +56,88 @@ enum ClubR1RowAccessory: Equatable {
     case tag(String)
 }
 
-/// Leading visual, headline, one supporting line, one trailing element. Minimum height 52.
+/// Native list row: leading symbol or initial, title, one supporting line, one trailing element.
 struct ClubR1Row<Trailing: View>: View {
     let title: String
     var subtitle: String?
     var initial: String?
     var systemImage: String?
     @ViewBuilder var trailing: () -> Trailing
-    @Environment(\.cyPalette) private var palette
 
     var body: some View {
-        HStack(spacing: CYSpacing.md) {
-            if let initial {
-                Text(verbatim: String(initial.prefix(1)))
-                    .cyText(.cardTitle)
-                    .foregroundStyle(palette.textPrimary)
-                    .frame(width: 36, height: 36)
-                    .background(Circle().fill(palette.bgRaised))
-                    .accessibilityHidden(true)
-            } else if let systemImage {
-                Image(systemName: systemImage)
-                    .cyText(.cardTitle)
-                    .foregroundStyle(palette.textSecondary)
-                    .frame(width: 24, height: 24)
-                    .accessibilityHidden(true)
-            }
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+        LabeledContent {
+            trailing()
+        } label: {
+            Label {
                 Text(verbatim: clubR1Value(title))
-                    .cyText(.bodyMedium)
-                    .foregroundStyle(palette.textPrimary)
                 if let subtitle, !subtitle.isEmpty {
-                    Text(verbatim: subtitle)
-                        .cyText(.meta)
-                        .foregroundStyle(palette.textTertiary)
-                        .lineLimit(1)
+                    Text(verbatim: subtitle).lineLimit(1)
+                }
+            } icon: {
+                if let initial {
+                    Text(verbatim: String(initial.prefix(1)))
+                        .font(.headline)
+                        .frame(width: 32, height: 32)
+                        .background(.fill.tertiary, in: Circle())
+                        .accessibilityHidden(true)
+                } else if let systemImage {
+                    Image(systemName: systemImage)
+                        .accessibilityHidden(true)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            trailing()
         }
-        .padding(.horizontal, CYSpacing.lg)
-        .frame(minHeight: 52)
         .contentShape(Rectangle())
     }
 }
 
 struct ClubR1AccessoryView: View {
     let accessory: ClubR1RowAccessory
-    @Environment(\.cyPalette) private var palette
 
     var body: some View {
         switch accessory {
         case .chevron:
             Image(systemName: "chevron.right")
-                .cyText(.label, weight: .semibold)
-                .foregroundStyle(palette.textTertiary)
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.tertiary)
                 .accessibilityHidden(true)
         case .check:
-            Image(systemName: "checkmark.circle.fill")
-                .accessibilityHidden(true).cyText(.cardTitle)
-                .foregroundStyle(palette.textPrimary)
+            Image(systemName: "checkmark")
+                .foregroundStyle(.tint)
+                .accessibilityHidden(true)
         case .unchecked:
-            Image(systemName: "circle")
-                .accessibilityHidden(true).cyText(.cardTitle)
-                .foregroundStyle(palette.textTertiary)
+            EmptyView()
         case .tag(let text):
-            CYStatusChip(verbatim: text)
+            Text(verbatim: text).foregroundStyle(.secondary)
         case .none:
             EmptyView()
         }
     }
 }
 
-/// Neutral switch row (owner-confirmed Q-B: neutral, not system green) with one explanation line.
+/// System switch row with one explanation line.
 struct ClubR1SwitchRow: View {
     let title: String
     let explanation: String
     @Binding var isOn: Bool
-    @Environment(\.cyPalette) private var palette
 
     var body: some View {
         Toggle(isOn: $isOn) {
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text(verbatim: title)
-                    .cyText(.bodyMedium)
-                    .foregroundStyle(palette.textPrimary)
-                Text(verbatim: explanation)
-                    .cyText(.meta)
-                    .foregroundStyle(palette.textTertiary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+            Text(verbatim: title)
+            Text(verbatim: explanation)
         }
-        .tint(palette.textSecondary)
-        .padding(.horizontal, CYSpacing.lg)
-        .frame(minHeight: 52)
     }
 }
 
-/// Grouped card surface for rows (content layer, not glass).
+/// A grouped section of rows; place inside a `List` or `Form`.
 struct ClubR1Group<Content: View>: View {
     var header: String?
     @ViewBuilder var content: () -> Content
-    @Environment(\.cyPalette) private var palette
 
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            if let header {
-                Text(verbatim: header)
-                    .cyText(.meta, weight: .semibold)
-                    .foregroundStyle(palette.textTertiary)
-                    .padding(.horizontal, CYSpacing.lg)
-                    .accessibilityAddTraits(.isHeader)
-            }
-            VStack(spacing: 0) { content() }
-                .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(palette.bgElevated))
-                .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+        Section {
+            content()
+        } header: {
+            if let header { Text(verbatim: header) }
         }
     }
 }
@@ -179,17 +146,13 @@ struct ClubR1Group<Content: View>: View {
 struct ClubR1SwitchLabel: View {
     let title: Text
     let explanation: String
-    @Environment(\.cyPalette) private var palette
 
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+        VStack(alignment: .leading, spacing: 2) {
             title
-                .cyText(.body)
-                .foregroundStyle(palette.textPrimary)
             Text(verbatim: explanation)
-                .cyText(.meta)
-                .foregroundStyle(palette.textTertiary)
-                .fixedSize(horizontal: false, vertical: true)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
         }
     }
 }

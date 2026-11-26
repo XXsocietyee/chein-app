@@ -13,24 +13,20 @@ import SwiftUI
                 NativeChannelProgressPrivacyView(model: model, loadsOnAppear: false).id(owner.visitID)
             } else {
                 List {
-                    Section {
-                        CYHeroHeader("privacy", tableName: "NativeChannelProgress")
-                            .listRowBackground(Color.clear)
-                            .listRowInsets(EdgeInsets())
-                    }
                     if owner.attempted {
-                        CYEmptyState(systemImage: "hand.raised", "d7.channelProgress.closed", tableName: "NativeChannelProgress")
+                        ContentUnavailableView {
+                            Label { Text("d7.channelProgress.closed", tableName: "NativeChannelProgress") } icon: { Image(systemName: "hand.raised") }
+                        }
                     } else {
-                        CYSkeleton()
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
                             .accessibilityElement(children: .ignore)
                             .accessibilityLabel(Text("cy.state.loading"))
-                            .listRowBackground(Color.clear)
                     }
                 }
                 .listStyle(.insetGrouped)
-                .contentMargins(.horizontal, CYSpacing.pageHorizontal, for: .scrollContent)
                 .nativeChannelScreen()
-                .cyHeroScreen()
+                .navigationTitle(Text("privacy", tableName: "NativeChannelProgress"))
             }
         }
         .onAppear { isVisible = true; reopen() }
@@ -92,14 +88,10 @@ import SwiftUI
     @State private var showsConfirmation = false
     var body: some View {
         Form {
-            Section {
-                CYHeroHeader("privacy", tableName: "NativeChannelProgress")
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets())
-            }
             if model.busy { NativeChannelProgressPrivacyLoading() }
             if !model.isCurrent {
-                CYStatusChip(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.closed"), tone: .warning, systemImage: "lock")
+                Label { Text(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.closed")) } icon: { Image(systemName: "lock") }
+                    .foregroundStyle(.orange)
                     .accessibilityLabel(Text("d7.channelProgress.closed", tableName: "NativeChannelProgress"))
             }
             if model.isCurrent, let values = draft {
@@ -109,66 +101,63 @@ import SwiftUI
             if let current = model.privacy {
                 Section {
                     if let effective = current.effective {
-                        CYListRow(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.aggregate"), trailing: .value(NativeChannelProgressCopy.text(effective.aggregateScope.rawValue))) {
-                            CYRowIcon(systemImage: "person.3")
-                        }
-                        CYListRow(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.detailScope"), trailing: .value(NativeChannelProgressCopy.text(effective.detailScope.rawValue))) {
-                            CYRowIcon(systemImage: "list.bullet")
-                        }
+                        valueRow(NativeChannelProgressCopy.text("d7.channelProgress.aggregate"),
+                                 value: NativeChannelProgressCopy.text(effective.aggregateScope.rawValue), systemImage: "person.3")
+                        valueRow(NativeChannelProgressCopy.text("d7.channelProgress.detailScope"),
+                                 value: NativeChannelProgressCopy.text(effective.detailScope.rawValue), systemImage: "list.bullet")
                     }
                     if let at = current.updatedAt {
-                        CYListRow(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.updatedLabel"), trailing: .value(NativeChannelProgressDateText.text(at))) {
-                            CYRowIcon(systemImage: "clock")
-                        }
+                        valueRow(NativeChannelProgressCopy.text("d7.channelProgress.updatedLabel"),
+                                 value: NativeChannelProgressDateText.text(at), systemImage: "clock")
                     }
                 } header: { NativeChannelSectionTitle(key: "d7.channelProgress.effective") }
             }
             Section {
                 if let command = model.pendingCommand {
                     Text("d7.channelProgress.originalPending", tableName: "NativeChannelProgress")
-                        .fixedSize(horizontal: false, vertical: true)
                     Text(verbatim: command.requestId)
-                        .cyText(.meta)
+                        .font(.footnote)
                         .monospaced()
-                        .foregroundStyle(CYColor.textSecondary)
+                        .foregroundStyle(.secondary)
                         .textSelection(.enabled)
-                        .fixedSize(horizontal: false, vertical: true)
-                    CYPillButton("d7.channelProgress.checkOriginal", style: .secondary, tableName: "NativeChannelProgress") { actions.run { await model.recoverOriginal() } }
+                    Button { actions.run { await model.recoverOriginal() } } label: { Text("d7.channelProgress.checkOriginal", tableName: "NativeChannelProgress") }
                         .disabled(model.busy)
                         .accessibilityIdentifier("channelProgress.checkOriginal")
                         .accessibilityLabel(Text("d7.channelProgress.checkOriginal", tableName: "NativeChannelProgress"))
-                    CYPillButton("d7.channelProgress.retryOriginal", style: .secondary, tableName: "NativeChannelProgress") { actions.run { await model.recoverOriginal(retryOriginal: true) } }
+                    Button { actions.run { await model.recoverOriginal(retryOriginal: true) } } label: { Text("d7.channelProgress.retryOriginal", tableName: "NativeChannelProgress") }
                         .disabled(model.busy)
                         .accessibilityIdentifier("channelProgress.retryOriginal")
                         .accessibilityLabel(Text("d7.channelProgress.retryOriginal", tableName: "NativeChannelProgress"))
                 }
                 if model.privacyPhase == .unresolved { Text("d7.channelProgress.outcomeUnknown", tableName: "NativeChannelProgress").nativeChannelNotice(systemImage: "clock") }
                 if model.privacyPhase == .conflict {
-                    CYStatusChip(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.privacyConflict"), tone: .danger, systemImage: "exclamationmark.triangle")
+                    Label { Text(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.privacyConflict")) } icon: { Image(systemName: "exclamationmark.triangle") }
+                        .foregroundStyle(.red)
                         .accessibilityLabel(Text("d7.channelProgress.privacyConflict", tableName: "NativeChannelProgress"))
                 }
                 if model.privacyPhase == .persistenceFailed {
-                    CYStatusChip(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.persistenceFailed"), tone: .danger, systemImage: "exclamationmark.circle")
+                    Label { Text(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.persistenceFailed")) } icon: { Image(systemName: "exclamationmark.circle") }
+                        .foregroundStyle(.red)
                         .accessibilityLabel(Text("d7.channelProgress.persistenceFailed", tableName: "NativeChannelProgress"))
                 }
                 if let receipt = model.receipt, receipt.status == "APPLIED" {
-                    CYStatusChip(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.applied"), tone: .success, systemImage: "checkmark.circle")
+                    Label { Text(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.applied")) } icon: { Image(systemName: "checkmark.circle") }
+                        .foregroundStyle(.green)
                         .accessibilityIdentifier("channelProgress.applied")
                         .accessibilityLabel(Text("d7.channelProgress.applied", tableName: "NativeChannelProgress"))
                 }
-                CYPillButton("d7.channelProgress.save", tableName: "NativeChannelProgress") {
+                Button {
                     confirmation.prepare(current: model.privacy, draft: draft, canSave: model.canSavePrivacy)
                     showsConfirmation = confirmation.review != nil
-                }
+                } label: { Text("d7.channelProgress.save", tableName: "NativeChannelProgress") }
                 .disabled(!model.canSavePrivacy || draft == nil)
                 .accessibilityIdentifier("channelProgress.savePrivacy")
                 .accessibilityLabel(Text("d7.channelProgress.save", tableName: "NativeChannelProgress"))
             }
             NativeChannelProgressIssueView(model: model, part: "privacy")
         }
-        .contentMargins(.horizontal, CYSpacing.pageHorizontal, for: .scrollContent)
         .nativeChannelScreen()
-        .cyHeroScreen()
+        .navigationTitle(Text("privacy", tableName: "NativeChannelProgress"))
         .privacySensitive()
         .onAppear { confirmation.enter(); actions.activate() }
         .task {
@@ -186,17 +175,17 @@ import SwiftUI
             if phase != .active { confirmation.leave(); actions.retire(); draft = nil; showsConfirmation = false }
         }
         .refreshable { confirmation.invalidate(); showsConfirmation = false; await model.loadPrivacy() }
-        .sheet(isPresented: $showsConfirmation) {
-            CYConfirmSheet(
-                title: String(localized: LocalizedStringResource("d7.channelProgress.confirmPrivacy", table: "NativeChannelProgress", locale: locale)),
-                message: "",
-                confirmTitle: String(localized: LocalizedStringResource("d7.channelProgress.save", table: "NativeChannelProgress", locale: locale)),
-                cancelTitle: String(localized: LocalizedStringResource("cancel", table: "NativeChannelProgress", locale: locale)),
-                onCancel: { confirmation.invalidate() }
-            ) {
-                confirmSave()
-            }
-            .cyDomainSheet(detents: [.peek, .half])
+        .confirmationDialog(Text("d7.channelProgress.confirmPrivacy", tableName: "NativeChannelProgress"),
+                            isPresented: $showsConfirmation, titleVisibility: .visible) {
+            Button { confirmSave() } label: { Text("d7.channelProgress.save", tableName: "NativeChannelProgress") }
+            Button(role: .cancel) { confirmation.invalidate() } label: { Text("cancel", tableName: "NativeChannelProgress") }
+        }
+    }
+    private func valueRow(_ title: String, value: String, systemImage: String) -> some View {
+        LabeledContent {
+            Text(verbatim: value)
+        } label: {
+            Label { Text(verbatim: title) } icon: { Image(systemName: systemImage) }
         }
     }
     private func synchronizeDraft() {
@@ -216,10 +205,10 @@ import SwiftUI
 }
 private struct NativeChannelProgressPrivacyLoading: View {
     var body: some View {
-        CYSkeleton()
+        ProgressView()
+            .frame(maxWidth: .infinity)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text("cy.state.loading"))
-            .listRowBackground(Color.clear)
     }
 }
 
