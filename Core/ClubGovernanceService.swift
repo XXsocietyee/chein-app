@@ -350,8 +350,12 @@ public extension ClubGovernanceAccess {
         guard let session = currentSession(), session.identity == review.identity, session.storageNamespace == review.storageNamespace else { throw ClubGovernanceFailure.staleReview }
         guard authorizationGeneration == review.authorizationGeneration else { throw ClubGovernanceFailure.staleReview }
         let command = review.command
-        let snapshot = try await service.read(command.operation.reviewRead, scope: command.scope, options: command.reviewOptions, session: session) { try self.check(session); try reviewCheck() }
-        try command.validateReview(snapshot, accountID: session.identity.accountID ?? 0)
+        let snapshot: ClubGovernanceSnapshot
+        if command.skipsReviewRead { snapshot = command.unreadReviewSnapshot }
+        else {
+            snapshot = try await service.read(command.operation.reviewRead, scope: command.scope, options: command.reviewOptions, session: session) { try self.check(session); try reviewCheck() }
+            try command.validateReview(snapshot, accountID: session.identity.accountID ?? 0)
+        }
         guard snapshot == review.snapshot else { throw ClubGovernanceFailure.staleReview }
         if [.createSeries, .updateSeries, .assignRole].contains(command.operation) {
             let members = try await service.read(.members, scope: command.scope, session: session) { try self.check(session); try reviewCheck() }

@@ -149,8 +149,12 @@ public enum ClubGovernanceWriteState: Equatable { case idle, reviewing, prefligh
         guard let identity = access.identity, let accountID = identity.accountID else { throw ClubGovernanceFailure.signedOut }
         guard !isLocked(command, identity: identity) else { throw ClubGovernanceFailure.outcomeLocked }
         generation &+= 1; let revision = generation; let namespace = access.storageNamespace; let authorization = access.authorizationGeneration; review = nil
-        let snapshot = try await access.read(command.operation.reviewRead, scope: command.scope, options: command.reviewOptions)
-        try command.validateReview(snapshot, accountID: accountID)
+        let snapshot: ClubGovernanceSnapshot
+        if command.skipsReviewRead { snapshot = command.unreadReviewSnapshot }
+        else {
+            snapshot = try await access.read(command.operation.reviewRead, scope: command.scope, options: command.reviewOptions)
+            try command.validateReview(snapshot, accountID: accountID)
+        }
         let members = try await memberProof(command)
         guard access.identity == identity, access.storageNamespace == namespace, access.authorizationGeneration == authorization, generation == revision, !Task.isCancelled else { throw ClubGovernanceFailure.staleReview }
         let prepared = ClubGovernanceReview(identity: identity, storageNamespace: namespace, journalRealm: access.journalRealm, authorizationGeneration: authorization, command: command, snapshot: snapshot, supportingMembers: members)
@@ -176,11 +180,15 @@ public enum ClubGovernanceWriteState: Equatable { case idle, reviewing, prefligh
         busy = true; state = .preflighting; let revision = generation
         defer { busy = false }
         do {
-            let fresh = try await access.read(pending.command.operation.reviewRead, scope: pending.command.scope, options: pending.command.reviewOptions)
-            guard let permissions = fresh.permissions, permissions.allows(pending.command.operation.permission, scope: pending.command.scope) else {
-                throw ClubGovernanceFailure.forbidden
+            let fresh: ClubGovernanceSnapshot
+            if pending.command.skipsReviewRead { fresh = pending.command.unreadReviewSnapshot }
+            else {
+                fresh = try await access.read(pending.command.operation.reviewRead, scope: pending.command.scope, options: pending.command.reviewOptions)
+                guard let permissions = fresh.permissions, permissions.allows(pending.command.operation.permission, scope: pending.command.scope) else {
+                    throw ClubGovernanceFailure.forbidden
+                }
+                try pending.command.validateReview(fresh, accountID: accountID)
             }
-            try pending.command.validateReview(fresh, accountID: accountID)
             let members = try await memberProof(pending.command)
             guard fresh == pending.snapshot, members == pending.supportingMembers, generation == revision, access.identity == pending.identity, access.storageNamespace == pending.storageNamespace, access.authorizationGeneration == pending.authorizationGeneration, !Task.isCancelled else { throw ClubGovernanceFailure.staleReview }
         } catch { review = nil; state = .rejected; throw error }

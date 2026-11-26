@@ -164,6 +164,14 @@ public enum ClubGovernanceValidation {
 }
 
 extension ClubGovernanceCommand {
+    /// CLB-r11-group-code-01: MP group-code/index.js:44-62 issues straight away from an activityId link
+    /// (`buildGroupCodeIssuePayload(activityId)` → `issue()`), with no topic to read first. Such a command has no
+    /// review read; the server checks the role and the receipt is validated by activityId (ClubGovernanceGroupCode).
+    public var skipsReviewRead: Bool { operation == .issueGroupCode && scope.topicID == nil && scope.activityID != nil }
+    /// The placeholder snapshot an unread review carries, so prepare and confirm compare like with like.
+    public var unreadReviewSnapshot: ClubGovernanceSnapshot {
+        ClubGovernanceSnapshot(operation: operation.reviewRead, scope: scope, permissions: nil, value: .null)
+    }
     public func validateReview(_ snapshot: ClubGovernanceSnapshot, accountID: Int) throws {
         guard snapshot.operation == operation.reviewRead, snapshot.scope == scope else { throw ClubGovernanceFailure.targetChanged }
         if operation == .appeal {
