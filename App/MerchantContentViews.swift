@@ -604,9 +604,8 @@ struct MerchantContentCodeView: View {
                     }
                 }
                 Section {
-                    Button { Task { await model.confirm(review); dismiss() } } label: {
-                        Text("merchant.content.confirm").frame(maxWidth: .infinity)
-                    }
+                    Button("merchant.content.confirm") { Task { await model.confirm(review); dismiss() } }
+                        .frame(maxWidth: .infinity)
                         .buttonStyle(.borderedProminent)
                         .controlSize(.large)
                         .listRowBackground(Color.clear)
