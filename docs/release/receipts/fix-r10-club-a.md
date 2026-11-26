@@ -84,9 +84,29 @@ CLB-topic-detail-06 (blocked, Cursor Core journal lock), CLB-topic-detail-10 (pa
 | CLB-r10-apply-01 | P2 | merchant release | — | 切换到商家端 is inside `PlayerLaunch.merchantCenterEnabled` (GV:1502), off in Release. |
 | CLB-r10-apply-02 | P2 | merchant release | — | Same branch (查看商家入驻). |
 | CLB-r9-create-04 | P2 | blocked (owner) | — | MP is a TextField, but HANDOFF-R1 MC-10 (comment at App/ClubOperationsViews.swift:1267) made 城市 a picker row; needs an owner call. |
-| CLB-r9-create-02 | P2 | open | — | Auto-push to apply from inside the create List needs programmatic navigation that can't be checked without a compiler (loop on back). |
-| CLB-r9-event-ops-01 | P2 | open | — | Inline topic `Picker(.menu)` needs the topics read moved into the hub; not a one-file edit. |
+| CLB-r9-create-02 | P2 | fixed by club-c | 4f90bc64b | See fix-r10-club-c.md (`ClubCreateHostAutoOpen`). Not re-done here. |
+| CLB-r9-event-ops-01 | P2 | partly by club-c | 0f7ad2d13 | See fix-r10-club-c.md (topic Picker(.menu) in the hub; series form still opens from the pushed topic list). Left to club-c. |
 | Other club.md P2 parity rows | P2 | already carry fix comments on the tip | — | topic-story-06, r9-topic-detail-01, r9-create-01, r8-badges-02, r9-native-02, r9-detail-03 and the rest were fixed in r8/r9 (see the `CLB-…` comments in the app); not re-done. |
+
+### Round 2, pass 3 (merge of origin/ui/combined-r7 ae477be47, clean)
+
+Swept every club.md id against the club-a/b/c/d receipts on origin. Ids no receipt lists, checked on the tip:
+
+| Row | Sev | Status | Note |
+|---|---|---|---|
+| CLB-r10-topic-detail-01 | P1 | fixed (this lane, = CLB-G13a) | 50ebf1367, 91251b38d; see the CLB-G13a sections above. |
+| CLB-r10-club-writes-01 | P1 | covered by CLB-r10-gate-05 (club-b) | Core/ClubGovernanceProduction.swift:37-40 `clubOps` has the series, attendance, settings, chapter, notify and group-code writes. cancelOccurrence / endTopic stay out (refund, owner decision #6). |
+| CLB-r10-customer-detail-01 | P1 | covered by CLB-r10-gate-05 (club-b) | `.saveCustomer` is in `ClubMPFirstGovernance.clubOps`. |
+| CLB-r9-native-01 | P2 | already fixed on tip | No `.lineLimit(1).minimumScaleFactor(0.6)` left in App/ClubTopicDetail+Port.swift. |
+| CLB-r9-native-06 | P2 | already fixed on tip | App/ClubBadgeManagementView.swift:16-31 system List + ContentUnavailableView with 重新加载. |
+| CLB-event-ops-09 | P2 | already fixed on tip | No `CYListRow(trailing: .none)` left in App/ClubOpsEventView.swift. |
+| CLB-topic-story-08 | P2 | already fixed on tip | App/ClubStoryViews.swift:156 list row per stop (numbered symbol, thumbnail, 时间/站名/地址). |
+| CLB-r10-nat-notify-04 | P2 | already fixed on tip | App/ClubGovernanceCommandForm.swift:439-461 inline 刷新 / ProgressView in the campaign Section. |
+| CLB-r10-nat-workbench-01 | P2 | already fixed on tip | App/MPReviewedPageScreen.swift:1146-1163 `ProgressView` entry; failure is ContentUnavailableView 没能进入俱乐部管理 + 重试进入. |
+| CLB-r10-nat-gov-shared-01 | P2 | verified, no change | App/ClubGovernanceViews.swift bodyNavigation: system List (no `.listStyle(.plain)`, no hidden scroll background, no CYSkeleton), `ProgressView` loading, failures with 重试. The 3 remaining `.cyDomainSheet` calls are the design-system wrapper over system `presentationDetents` + drag indicator (App/DesignSystem/CYSheetModal.swift:92-101), so nothing custom is left to swap. |
+| CLB-r10-detail-01 / -02 | P2 | not taken: Cursor Core | Owner column is Cursor Core (composition flags / Core/ClubDetailTabs.swift). |
+
+The club.md slice open to this lane is done. Still open elsewhere: CLB-topic-detail-06 and CLB-customer-detail-04 (Cursor Core journal lock), CLB-r9-event-ops-01 remainder (club-c), CLB-r9-create-04 / nat-create-02 (owner).
 
 ## Gates (before push)
 
