@@ -33,13 +33,17 @@ class FPA2HomeSearchAndPublish(unittest.TestCase):
         self.assertIn('.frame(minHeight: CYSpacing.minTouchTarget)', body)
         self.assertNotIn('.padding(.vertical, 10)', body)
 
-    def test_search_entry_has_search_trait_and_wraps(self):
+    def test_search_entry_is_the_system_search_field(self):
+        # Design backlog P-021: the hand-drawn capsule is gone; 首页 uses the system field (`.searchable`), which
+        # carries the search trait and wraps/scales with Dynamic Type by itself.
         s = src('App/HomeSearchTabParityViews.swift')
-        # Dynamic Type: the player-first placeholder wraps instead of truncating; the search trait stays.
-        entry = s[s.index('searchMap.placeholder.player'):s.index('"homeIndex.hero.searchEntry"')]
-        self.assertIn('.cyWrapText()', entry)
-        self.assertNotIn('.lineLimit(1)', entry)
-        self.assertIn('.accessibilityAddTraits(.isSearchField)', entry)
+        self.assertNotIn('"homeIndex.hero.searchEntry"', s)
+        self.assertNotIn('.accessibilityAddTraits(.isSearchField)', s)
+        home = src('App/SessionHomeFeedView.swift')
+        self.assertIn('.globalSearchField(search)', home)
+        field = src('App/NativeR2/Search/GlobalSearchSession.swift')
+        self.assertIn('.searchable(text: $session.keyword, isPresented: $session.isPresented', field)
+        self.assertIn('prompt: Text("searchMap.placeholder.player")', field)
 
 
 class FPA3ClubChannelMessaging(unittest.TestCase):

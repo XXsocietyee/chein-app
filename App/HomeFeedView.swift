@@ -309,7 +309,6 @@ import UIKit
             .pickerStyle(.segmented)
             .accessibilityIdentifier("homeFeed.kind")
             .accessibilityLabel(Text("homeFeed.content"))
-            .sensoryFeedback(.selection, trigger: kind)
             ForEach(model.pagination.items) { item in
                 row(item, section: "stream")
             }

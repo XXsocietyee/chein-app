@@ -78,7 +78,8 @@ class TopicTemplateNameSearchContracts(unittest.TestCase):
         self.assertNotIn('discovery.topicNameSearch', text)
         self.assertNotIn('"discovery.search"', text)
         self.assertIn('discovery.globalSearch', text)
-        self.assertIn('searchMap.keyword', text)
+        # P-022: the keyword is the system search field (`.searchable`), found as a search field, not a text field.
+        self.assertIn('app.searchFields.firstMatch', text)
         self.assertIn('--uitesting-max-text', text)
         self.assertIn('dynamicTypeSize: "accessibility5"', text)
         self.assertIn(str(ui.relative_to(ROOT)), (ROOT / 'Questify.xcodeproj/project.pbxproj').read_text())

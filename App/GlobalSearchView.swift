@@ -526,7 +526,7 @@ private let globalSearchRecentRoutesKey = "globalSearch.recentRoutes.v1"
 extension View {
     /// A page that owns its search model draws the system field and its own inline title; a hosted page (首页) leaves
     /// the field, title and tab bar to the host.
-    @ViewBuilder fileprivate func globalSearchPageChrome(_ ownSession: GlobalSearchSession?) -> some View {
+    @MainActor @ViewBuilder fileprivate func globalSearchPageChrome(_ ownSession: GlobalSearchSession?) -> some View {
         if let ownSession {
             globalSearchField(ownSession)
                 .appNavigationTitle("searchMap.title").navigationBarTitleDisplayMode(.inline)

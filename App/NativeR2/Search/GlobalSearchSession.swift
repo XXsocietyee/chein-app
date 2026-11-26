@@ -52,12 +52,12 @@ import SwiftUI
 
 extension View {
     /// The one system search field for player search. `prompt` keeps the MP placeholder copy.
-    func globalSearchField(_ session: GlobalSearchSession, placement: SearchFieldPlacement = .navigationBarDrawer(displayMode: .always)) -> some View {
+    @MainActor func globalSearchField(_ session: GlobalSearchSession, placement: SearchFieldPlacement = .navigationBarDrawer(displayMode: .always)) -> some View {
         modifier(GlobalSearchFieldModifier(session: session, placement: placement))
     }
 }
 
-private struct GlobalSearchFieldModifier: ViewModifier {
+@MainActor private struct GlobalSearchFieldModifier: ViewModifier {
     @Bindable var session: GlobalSearchSession
     let placement: SearchFieldPlacement
 
