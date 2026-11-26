@@ -146,9 +146,11 @@ private struct ActivitySummaryMetadata: View {
 struct ActivityTicketCard: View {
     let ticket: ActivityTicket
     @Environment(\.locale) private var locale
+    @ScaledMetric(relativeTo: .subheadline) private var avatarSide: CGFloat = 28
     private var copy: CoreLoopCopy { CoreLoopCopy(locale: locale) }
     var body: some View {
         VStack(alignment:.leading,spacing:6) {
+            VStack(alignment:.leading,spacing:6) {
             ViewThatFits(in: .horizontal) {
                 HStack(alignment: .firstTextBaseline) { name; Spacer(minLength: 8); price }
                 VStack(alignment: .leading, spacing: 4) { name; price }
@@ -182,14 +184,6 @@ struct ActivityTicketCard: View {
                 if let meeting = ActivityPresentation.nonempty(ticket.meetingPoint) {
                     Label { Text(verbatim: meeting) } icon: { Image(systemName: "mappin.and.ellipse") }
                 }
-                // R7-PC-C1-5: MP index.wxml:89-96 — the session's lineup from `cmsRegistrationList`.
-                if !ticket.registrants.isEmpty {
-                    Label {
-                        Text(verbatim: copy.t("已报名：", "Joined: ") + ticket.registrants.map(\.nickname).joined(separator: copy.t("、", ", ")))
-                            .fixedSize(horizontal: false, vertical: true)
-                    } icon: { Image(systemName: "person.2") }
-                        .accessibilityIdentifier("activity.ticket.registrants.\(ticket.id)")
-                }
                 if let description=ActivityPresentation.nonempty(ticket.description) {
                     Text(verbatim:description)
                         .fixedSize(horizontal:false,vertical:true)
@@ -197,8 +191,49 @@ struct ActivityTicketCard: View {
             }
             .font(.subheadline)
             .foregroundStyle(.secondary)
+            }
+            .accessibilityElement(children: .combine)
+            registrantRows
         }
-        .accessibilityElement(children: .combine)
+    }
+    /// R11-PC-C-4: MP scene-play-activity-detail/index.wxml:89-98 — one avatar + nickname per registrant, each opening
+    /// that member's page (`goUserInfo`); an empty lineup says 这个票种还没有人报名. Rows stay outside the combined
+    /// accessibility element so each person stays its own button.
+    @ViewBuilder private var registrantRows: some View {
+        if ticket.registrants.isEmpty {
+            Text(verbatim: copy.t("这个票种还没有人报名", "No one has signed up for this ticket yet"))
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier("activity.ticket.registrants.empty.\(ticket.id)")
+        } else {
+            ForEach(Array(ticket.registrants.enumerated()), id: \.offset) { _, person in
+                if person.memberID > 0 {
+                    NavigationLink {
+                        MPReviewedPageScreen(page: "pages/userinfo/userinfo", query: ["userId": String(person.memberID)])
+                    } label: { registrantLabel(person) }
+                    .buttonStyle(.borderless)
+                    .accessibilityIdentifier("activity.ticket.registrant.\(person.memberID)")
+                } else {
+                    registrantLabel(person)
+                }
+            }
+        }
+    }
+    private func registrantLabel(_ person: TopicRegistrant) -> some View {
+        Label {
+            Text(verbatim: person.nickname.isEmpty ? copy.t("报名用户", "Participant") : person.nickname)
+                .foregroundStyle(.primary)
+        } icon: {
+            AsyncImage(url: person.avatar.flatMap(URL.init(string:))) { image in
+                image.resizable().scaledToFill()
+            } placeholder: {
+                Image(systemName: "person.crop.circle.fill").resizable().foregroundStyle(.secondary)
+            }
+            .frame(width: avatarSide, height: avatarSide)
+            .clipShape(Circle())
+            .accessibilityHidden(true)
+        }
+        .font(.subheadline)
     }
     private var name: some View {
         Text(verbatim:ticket.name).font(.headline).foregroundStyle(.primary).fixedSize(horizontal:false,vertical:true)
