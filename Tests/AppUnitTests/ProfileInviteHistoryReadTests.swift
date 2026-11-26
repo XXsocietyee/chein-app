@@ -50,8 +50,27 @@ import SwiftUI
         await model.appear(reader)?.value; wire.failPageTwoOnce = true
         await model.start(reader, permit: model.permit(reader), reset: false)?.value
         XCTAssertNotNil(model.error); XCTAssertEqual(model.pagination.nextPage, 2); XCTAssertEqual(model.pagination.members.count, 2)
-        await model.start(reader, permit: model.permit(reader), reset: false)?.value
+        await model.start(reader, permit: model.permit(reader), reset: model.pagination.members.isEmpty)?.value
         XCTAssertNil(model.error); XCTAssertEqual(model.pagination.members.count, 3); XCTAssertEqual(wire.invitationPages, [1, 2, 2])
+    }
+    func testEmptyListFailureRetriesTheSameFirstPage() async throws {
+        let reader = ProfileInviteRewardReviewFixtureReader("failure"), model = SocialInviteHistoryModel()
+        await model.appear(reader)?.value
+        XCTAssertNotNil(model.error); XCTAssertTrue(model.pagination.members.isEmpty); XCTAssertEqual(model.pagination.nextPage, 1)
+        XCTAssertEqual(reader.reads, 1)
+        await model.start(reader, permit: model.permit(reader), reset: model.pagination.members.isEmpty)?.value
+        XCTAssertNil(model.error); XCTAssertEqual(model.pagination.members.map(\.id), [201, 202])
+        XCTAssertEqual(model.pagination.nextPage, 2); XCTAssertEqual(reader.reads, 2)
+    }
+    func testNextPageFailureRetriesTheSameLoadMoreEntry() async throws {
+        let reader = ProfileInviteRewardReviewFixtureReader("nextFailure"), model = SocialInviteHistoryModel()
+        await model.appear(reader)?.value
+        XCTAssertEqual(model.pagination.members.map(\.id), [201, 202]); XCTAssertEqual(model.pagination.nextPage, 2)
+        await model.start(reader, permit: model.permit(reader), reset: false)?.value
+        XCTAssertNotNil(model.error); XCTAssertEqual(model.pagination.members.map(\.id), [201, 202]); XCTAssertEqual(model.pagination.nextPage, 2)
+        await model.start(reader, permit: model.permit(reader), reset: model.pagination.members.isEmpty)?.value
+        XCTAssertNil(model.error); XCTAssertEqual(model.pagination.members.map(\.id), [201, 202, 203])
+        XCTAssertEqual(model.pagination.nextPage, 3); XCTAssertEqual(reader.reads, 3)
     }
     func testRewardFailureRetainsInvitationRowsAndUnknownInsteadOfZero() async throws {
         let wire = Wire(), session = try root(wire, Grants()).makeSession(); await login(session); wire.rewardFailure = true
