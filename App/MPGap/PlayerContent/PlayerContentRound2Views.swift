@@ -275,6 +275,10 @@ private struct SocialArticleRemoteImage: View {
                 .frame(maxWidth: .infinity)
                 .aspectRatio(CYCachedAsyncImageRole.cover.aspectRatio, contentMode: .fit)
                 .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                // R9-PC-D3-1: CMS images carry no alt text; VoiceOver names them as article images.
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text("social.article.image"))
+                .accessibilityAddTraits(.isImage)
             }
         }
         .task(id: url) {

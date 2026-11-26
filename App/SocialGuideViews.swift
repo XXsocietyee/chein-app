@@ -93,13 +93,21 @@ import SwiftUI
                         SocialInformationCover(id: article.id, title: article.title, created: page.createTimeDisplay)
                             .onAppear { articleTitle = article.title }
                         if let contents = article.contents, page.bodyKey == nil {
-                            SocialArticleContentView(contents: contents)
-                            // R7-PC-D3-2 (MP infomationdetail.js:116-125 rich-text keeps <img> and <a>): the text renderer stays
-                            // literal; the article's https images and links follow it as native blocks.
-                            let media = SocialArticleMediaBlocks.extract(contents)
-                            if !media.isEmpty {
-                                SocialArticleRichBlocksView(blocks: media)
-                                    .accessibilityIdentifier("social.article.media")
+                            // R9-PC-D3-1 (MP infomationdetail.js:116-125 rich-text keeps <img> and <a> in place): text, images
+                            // and links render in document order. Without media the whole body is one text block, as before.
+                            let segments = SocialArticleMediaBlocks.segments(contents)
+                            if segments.contains(where: \.isMedia) {
+                                ForEach(Array(segments.enumerated()), id: \.offset) { _, segment in
+                                    switch segment {
+                                    case .html(let part):
+                                        if !SocialArticleContent(part).blocks.isEmpty { SocialArticleContentView(contents: part) }
+                                    case .media(let block):
+                                        SocialArticleRichBlocksView(blocks: [block])
+                                            .accessibilityIdentifier("social.article.media")
+                                    }
+                                }
+                            } else {
+                                SocialArticleContentView(contents: contents)
                             }
                         }
                         else { ContentUnavailableView(LocalizedStringKey(InformationDetailPageModel.Copy.noContent), systemImage: "doc.text") }
@@ -196,6 +204,43 @@ private struct SocialInformationTitle: ViewModifier {
 /// R7-PC-D3-2: `<img src>` and `<a href>` from a CMS article, https only, capped. Text stays with `SocialArticleContent`.
 enum SocialArticleMediaBlocks {
     static let maximumBlocks = 24
+    /// R9-PC-D3-1: one article split at each kept https `<img>` / `<a>`, in document order.
+    enum Segment { case html(String), media(SocialArticleRichBlock)
+        var isMedia: Bool { if case .media = self { return true } else { return false } }
+    }
+    static func segments(_ html: String) -> [Segment] {
+        guard html.utf16.count <= 65_536 else { return [.html(html)] }
+        let pattern = #"<img\b[^>]*?\bsrc\s*=\s*["']([^"']+)["'][^>]*>|<a\b[^>]*?\bhref\s*=\s*["']([^"']+)["'][^>]*>(.*?)</a>"#
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive, .dotMatchesLineSeparators]) else { return [.html(html)] }
+        let ns = html as NSString
+        var out: [Segment] = []
+        var cursor = 0
+        var kept = 0
+        for match in regex.matches(in: html, range: NSRange(location: 0, length: ns.length)) {
+            if kept >= maximumBlocks { break }
+            func group(_ index: Int) -> String? {
+                let range = match.range(at: index)
+                return range.location == NSNotFound ? nil : ns.substring(with: range)
+            }
+            let block: SocialArticleRichBlock?
+            if let src = group(1).flatMap(secureURL) {
+                block = .image(id: "img-\(kept)", url: src)
+            } else if let href = group(2).flatMap(secureURL) {
+                let label = (group(3) ?? "").replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                block = .link(id: "a-\(kept)", title: label.isEmpty ? href : String(label.prefix(120)), url: href)
+            } else { block = nil }
+            guard let block else { continue }
+            if match.range.location > cursor {
+                out.append(.html(ns.substring(with: NSRange(location: cursor, length: match.range.location - cursor))))
+            }
+            out.append(.media(block))
+            cursor = match.range.location + match.range.length
+            kept += 1
+        }
+        if cursor < ns.length { out.append(.html(ns.substring(from: cursor))) }
+        return out
+    }
     static func extract(_ html: String) -> [SocialArticleRichBlock] {
         guard html.utf16.count <= 65_536 else { return [] }
         let pattern = #"<img\b[^>]*?\bsrc\s*=\s*["']([^"']+)["'][^>]*>|<a\b[^>]*?\bhref\s*=\s*["']([^"']+)["'][^>]*>(.*?)</a>"#

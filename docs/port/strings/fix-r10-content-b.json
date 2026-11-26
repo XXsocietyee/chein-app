@@ -17,6 +17,23 @@
           }
         }
       }
+    },
+    "social.article.image": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Article image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文章图片"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
