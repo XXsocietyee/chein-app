@@ -30,6 +30,10 @@ reachable (`add_repo` → no access), so CLB-G13a stays **partly / blocked** as 
 
 ## Gates (last run before push)
 
+- Round 2 (after merging combined-r7 @ 05caead53): check_scaffold PASS, a11y lint PASS (0 new), appsession ratchet PASS, contract ratchet `192 failing, baseline 192, new 0`. Not compiled (no Xcode in the cloud); merge conflict in App/MPFirstClubApprovals.swift resolved to this lane's ReadShape/badge-route check, which covers the coordinator's members `{clubId}` rule (60488e930).
+
+Round 1:
+
 - `python3 tools/check_scaffold.py`: PASS structural checks.
 - `python3 -B tools/check_a11y_lint.py`: PASS (0 new).
 - `python3 tools/check_appsession_ratchet.py`: PASS (AppCompositionRoot kept at 4175 lines).
