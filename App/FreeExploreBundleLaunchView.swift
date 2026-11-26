@@ -22,6 +22,11 @@ import SwiftUI
         if case .response(_, _, let businessCode, _)? = model.failure { return businessCode == "BUNDLE_LEDGER_OFF" }
         return false
     }
+    /// R8-MEM-7-3: MP free-explore/index.js:97 `res.msg || '权益加载失败，请重试'`: the server message first, then the fixed copy.
+    private var errorText: Text {
+        if case .response(_, _, _, let message)? = model.failure, let message, !message.isEmpty { return Text(verbatim: message) }
+        return text("error")
+    }
     /// Menu-picker row inside a card: label left, current choice right, 48pt tall.
     private func choice<P: View>(_ label: Text, selected: String?, @ViewBuilder picker: () -> P) -> some View {
         HStack {
@@ -66,7 +71,7 @@ import SwiftUI
                 CYEmptyState(systemImage: "tray", LocalizedStringKey("empty"), tableName: table)
                     .accessibilityIdentifier("freeBundle.empty")
             case .error(.load):
-                CYNoteBanner(text: text("error"), symbol: "exclamationmark.triangle", tone: .warning).accessibilityIdentifier("freeBundle.error")
+                Label { errorText } icon: { Image(systemName: "exclamationmark.triangle") }.accessibilityIdentifier("freeBundle.error")
                 // R7-MEM-7-2 (MP R11 F-7): with the bundle ledger switched off a refresh cannot change anything, so 刷新 is hidden.
                 if !ledgerOff {
                     CYPillButton(LocalizedStringKey("retry"), style: .tertiary, tableName: table) { Task { await model.load() } }
@@ -125,7 +130,7 @@ import SwiftUI
         if facts.refreshing { CYLoadingStateView(rows: 2) }
         if facts.refreshFailed {
             // A failed refresh keeps the last record on screen instead of zeroing it.
-            CYNoteBanner(text: text("error"), symbol: "exclamationmark.triangle", tone: .warning).accessibilityIdentifier("freeBundle.error")
+            Label { errorText } icon: { Image(systemName: "exclamationmark.triangle") }.accessibilityIdentifier("freeBundle.error")
         }
         if facts.saleEnabled == nil {
             CYNoteBanner(text: text("saleUnknown"), symbol: "questionmark.circle", tone: .info)

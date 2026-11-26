@@ -10,7 +10,7 @@ import SwiftUI
     @ObservedObject var session: AppSession
     var onSignIn: () -> Void = {}
 
-    private enum Phase: Equatable { case loading, signedOut, pending, failed, found(Int) }
+    private enum Phase: Equatable { case loading, signedOut, pending, failed(message: String?), found(Int) }
     @State private var phase: Phase = .loading
 
     /// MP `index.js:29`: `/^[A-Za-z0-9_-]{1,64}$/`; anything else is a missing parameter.
@@ -45,14 +45,31 @@ import SwiftUI
                           primaryIdentifier: "freeBundle.receipt.signIn")
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .cyPageTitle("bundle.receipt.title")
-        case .pending, .failed:
-            CYStateLayout(kind: phase == .pending ? .generic : .failure,
-                          title: Text(LocalizedStringKey(phase == .pending ? "freeBundle.receipt.pending" : "freeBundle.receipt.unreadable")),
-                          primary: reloadAction,
-                          primaryIdentifier: "freeBundle.receipt.reload")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .cyPageTitle("bundle.receipt.title")
-                .accessibilityIdentifier(phase == .pending ? "freeBundle.receipt.pending" : "freeBundle.receipt.failed")
+        case .pending:
+            ContentUnavailableView {
+                Label("freeBundle.receipt.pending", systemImage: "clock")
+            } actions: {
+                Button(reloadAction.title, action: reloadAction.action)
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("freeBundle.receipt.reload")
+            }
+            .cyPageTitle("bundle.receipt.title")
+            .accessibilityIdentifier("freeBundle.receipt.pending")
+        case .failed(let message):
+            // R8-MEM-7-3: the server `msg` first, then the fixed copy (MP free-explore/index.js:116).
+            ContentUnavailableView {
+                Label {
+                    if let message, !message.isEmpty { Text(verbatim: message) } else { Text("freeBundle.receipt.unreadable") }
+                } icon: {
+                    Image(systemName: "exclamationmark.triangle")
+                }
+            } actions: {
+                Button(reloadAction.title, action: reloadAction.action)
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("freeBundle.receipt.reload")
+            }
+            .cyPageTitle("bundle.receipt.title")
+            .accessibilityIdentifier("freeBundle.receipt.failed")
         }
     }
 
@@ -89,10 +106,12 @@ import SwiftUI
             switch Self.registrationID(from: data, requestID: requestID) {
             case .some(.some(let id)): phase = .found(id)
             case .some(.none): phase = .pending
-            case .none: phase = .failed
+            case .none: phase = .failed(message: nil)
             }
         case .unauthorized: phase = .signedOut
-        case .refused, .unknown: phase = .failed
+        // R8-MEM-7-3: MP free-explore/index.js:116 `res.msg || '加载失败，请稍后重试'`.
+        case .refused(_, let message): phase = .failed(message: message)
+        case .unknown: phase = .failed(message: nil)
         }
     }
 }
