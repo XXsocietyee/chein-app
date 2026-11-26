@@ -543,7 +543,7 @@ struct ClubOperationsWorkspaceView: View {
             case .rejected(let failure):
                 if target == .create {
                     // CLB-r8-create-01 (fix-r8-club): MP create wxml:134-135 创建没有完成 + the reason + 重试. A taken
-                    // name already sends the wizard back to the name step, so it carries no retry here.
+                    // name shows 去改名称 instead of 重试 (MP wxml:135, js:482 refreshStep(3)); the wizard stays put until tapped.
                     Text("clubR8b.create.failed").font(.headline).foregroundStyle(.red)
                         .accessibilityIdentifier("club.ops.create.failed")
                     Text(verbatim: failure.message ?? appLocalized("clubR8b.create.failedHint", locale: locale))
