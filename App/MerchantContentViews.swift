@@ -461,6 +461,10 @@ enum MerchantContentEnumCopy {
     var readOnly = false
     @Environment(\.merchantGameNodeDestination) private var gameNodeDestination
     var participantsDestination: (() -> AnyView)? = nil
+    /// R11-PC-B-3: free-explore 自己承接 sheet (MP merchantinfo.js:3232-3274).
+    @Environment(\.topicSelfSupplyService) private var selfSupplyService
+    @Environment(\.locale) private var locale
+    @State private var selfSupplyNode: TopicSelfSupplyNode?
     var body: some View {
         // R10-PC-B-N9 / N10: system Sections and rows (no custom row-link style); each NavigationLink gets the list disclosure.
         Group {
@@ -469,6 +473,7 @@ enum MerchantContentEnumCopy {
         if value["host"].object != nil {
             Section {
             recruitRows(value["host"]["recruit"])
+            if !readOnly, let topicID { openNodeRows(value["host"]["recruit"], topicID: topicID) }
             if readOnly, !(value["topic"]["circleThemeCode"].text ?? "").isEmpty {
                 MerchantContentFields(value: value["topic"], names: ["circleReviewedAt"])
             }
@@ -514,6 +519,29 @@ enum MerchantContentEnumCopy {
         if value["host"].object == nil && value["join"].object == nil {
             ContentUnavailableView("merchant.content.noWorkspace", systemImage: "tray")
         }
+        }
+        .sheet(item: $selfSupplyNode) { node in
+            if let topicID, let chapterID = node.chapterID, let selfSupplyService {
+                TopicSelfSupplySheet(topicID: topicID, node: node, chapterID: chapterID, makeService: selfSupplyService,
+                                     onDone: { Task { await model.load() } })
+            }
+        }
+    }
+    /// R11-PC-B-3 (MP project-host/index.wxml:383; merchantinfo.js:3232-3249): 自己承接 per unclaimed node. A free-explore
+    /// host with a chapter opens the perk sheet; otherwise it opens the registration form for that node (MP merchantapply).
+    @ViewBuilder private func openNodeRows(_ recruit: MerchantContentValue, topicID: Int) -> some View {
+        let freeExplore = value["topic"]["productType"].integer == 2
+        ForEach(TopicSelfSupplyNode.openNodes(recruit)) { node in
+            let label = node.nodeName.isEmpty ? appLocalized("topicSelfSupply.unnamedNode", locale: locale) : node.nodeName
+            if freeExplore, node.chapterID != nil, selfSupplyService != nil {
+                Button { selfSupplyNode = node } label: { Text(verbatim: appLocalized("topicSelfSupply.openNode \(label)", locale: locale)) }
+                    .accessibilityIdentifier("merchant.content.selfTake." + String(node.nodeID))
+            } else if !freeExplore {
+                NavigationLink {
+                    MerchantContentEditView(service: service, query: .chapters(topicID: topicID), kind: .registrationCreate(topicID: topicID, nodeID: node.nodeID))
+                } label: { Text(verbatim: appLocalized("topicSelfSupply.openNode \(label)", locale: locale)) }
+                    .accessibilityIdentifier("merchant.content.selfTake." + String(node.nodeID))
+            }
         }
     }
     /// R7-PC-B2-5 (MP pages/topic/components/project-host/index.wxml:18, 64; merchantinfo.js:2516-2545): 已招满 filled/total

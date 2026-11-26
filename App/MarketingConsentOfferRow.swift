@@ -75,8 +75,8 @@ import SwiftUI
 }
 
 extension AppSession {
-    /// R7-PC-B1-12 / R11-PC-C-3: signed-in marketing-consent reads and the opt-in write.
-    func makeMarketingConsentService() -> PlayerContentRound4Service? {
+    /// R7-PC-B1-12 / R11-PC-C-3 / R11-PC-B-3: signed-in marketing-consent reads, the opt-in write and the self-supply write.
+    func makePlayerContentRound4Service() -> PlayerContentRound4Service? {
         guard (account?.id ?? 0) > 0, let token, let api = regionalConfiguration?.apiConfiguration else { return nil }
         return PlayerContentRound4Service(baseURL: api.baseURL, token: { token }, transport: runtimeHTTPTransport)
     }
