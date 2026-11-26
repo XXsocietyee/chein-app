@@ -1,0 +1,54 @@
+# Receipt: fix/r11-content
+
+Brief: `origin/design/handoff-r2:docs/briefs/fix-r11.md` (lane content).
+Slice: `origin/audit/parity-r11-player-content:docs/audit/parity-r11/player-content.md` §3 fix queue, all 27 rows (0 P0, 5 P1, 22 P2). P1 rows went first.
+Base: `origin/ui/combined-r7` @ `b9a9d4d29`, merged again before each push (unchanged during this run).
+MP: `origin/mp-source:chengyinhub-xcx/`. Every change cites MP file:line in a code comment.
+Gates on the tip: `python3 tools/check_scaffold.py` → `PASS structural checks`; `python3 -B tools/check_a11y_lint.py` → PASS (0 new); `python3 -B tools/contract_ratchet.py --check` → baseline 192, new 0.
+There was no compiler in the cloud, so the Swift build, unit tests, XCUITest and VoiceOver were NOT_RUN. I grepped every type and member before using it. New Core unit tests: `TopicPricingXcxTests.testPlatformFeeAndTakeHome`, `MPGapG1Round4Tests.testMarketingConsentPickOffer`, and the `RegistrationContractTests` additions for delivery rows, promotions, 409 copy, `coveredByPass` and payment channels.
+Strings: every new key is in `Resources/Localizable.xcstrings` with zh-Hans and en.
+
+## P1
+
+| id | status | SHA | app file:line | note |
+|---|---|---|---|---|
+| R7-PC-B4-3 (fee / 到手) | fixed | d35f77aa9 | Core/PublisherLifecycleContracts.swift (`platformRate`); Core/TopicPricingXcx.swift (`fee`, `feeTexts`); App/PublisherLifecycleViews.swift (single-ticket rows under 你的终价); App/MPGap/PlayerContent/TopicAndOfficialGapSections.swift (`ticketRow`) | Covers all six parts. Per-ticket finals are built only for guided tickets. A ticket below the floor shows 不能低于最低价 ¥X and blocks confirm. The fee-rate row is gone; the model field stays for the existing test. |
+| R7-PC-B1-6 (merchant cards) | fixed | 3bad97213 | Core/TopicContracts.swift (`TopicMerchant.merchantID/slogan/coverImage`); Core/MPGap/PlayerContent/TopicRouteMapAndPreviewModels.swift (`cards(fromChapters:)`, `overlay(_:catalog:)`); App/TopicXcxSections.swift (`loadMerchantCards`, `onSelectMerchant`); App/TopicDetailView.swift (详情 参与商家 · N 家) | The base cards come from the chapters and need no sign-in. The catalog overlay matches by `merchantId`, then by `merchantName`. Its perk line is `perkName`, falling back to the item name. The full `explorePerkLine` (已含 / 需预约 / 有效期) is not ported. Tapping a card opens the public merchant home through `topicLineupMerchantDestination`. |
+| R7-PC-C2-1 | fixed | 1987a8893 | Core/RegistrationQuoteDelivery.swift; App/RegistrationSheetView.swift:665 (`deliveryItems:`); Core/RegistrationUIFlow.swift:16 (`.childAgeRequired`) | Ports the 包含内容 rows from `quote.delivery`. Submit is blocked with 请选择儿童年龄 until a child age is chosen. |
+| R11-PC-C-2 | partly | abc9ee2b4 | Core/RegistrationContracts.swift; App/RegistrationSheetView.swift:855 (原价 + deduction rows); App/G6CapabilityViews.swift (完局奖励); Core/RegistrationCheckoutPresentation.swift (409 copy) | Everything in the row is done: decode, send `marketingSign`, the rows, and the 409 copy split. **Gap:** nothing in the app calls `CheckoutOrderRebuildRule` / `classifyCreateFailure`, and that was already true before this change. So a 409 on create still ends as "outcome unknown" and does not re-quote. Fixing it means wiring the create flow itself. |
+| R11-PC-D-1 (money) | fixed | 6213fb0e3 | App/WalletCommerceViews.swift:237 (quick 提现), :431 (`wallet.assets.withdraw`); App/WithdrawalSupportLandingView.swift (`offersBankForm = false`) | 提现 always opens `WalletWithdrawPermissionGate()`. The bank form row is hidden. **Owner decision:** keep the bank form only if you want it as an app-only extra (MP removed it, PG-033). |
+
+## P2
+
+| id | status | SHA | app file:line | note |
+|---|---|---|---|---|
+| R7-PC-B1-12 (consent) | fixed | 5fd61db9f | App/MarketingConsentOfferRow.swift; App/TopicSelfPlaySheet.swift (after the reveal); Core/MPGap/PlayerContent/PlayerContentRound4Models.swift (`loadMarketingConsentOffer`, `MarketingConsentOffer.pick`, channel `IN_APP`); Core/TopicContracts.swift (`TopicDetail.ownerMemberID`) | The GET is silent and fails closed. The opt-in is sent once per intent and retries reuse the same request id. Saving / saved / error-with-retry show inline. The opt-in is a system Toggle row under the reveal; `TopicPurchaseRevealCardModel.merchantRowID` is not used. |
+| R7-PC-B1-13 | fixed | e68461c64, f30fd48d8 (pin) | App/TopicSessionSelectionView.swift (`topicSessionRegistrationDestination`); App/ActivityDetailView.swift (`registrationTicketName`, `ticketID(named:in:)`); App/PlatformConsumerSessionOwner.swift | Picking a session pushes the activity with `opensRegistrationOnLoad: true`. The ticket is resolved by name inside the loaded activity and preselected. |
+| R7-PC-B2-5 | fixed | 3019d8205 | App/MerchantContentViews.swift (`recruitRows`) | 已招满 filled/total, a `ProgressView`, and 待审 (hidden when 0). |
+| R10-PC-B-N9 | fixed | 3019d8205 | App/MerchantContentViews.swift (`MerchantContentDocumentView.body`) | `List(.insetGrouped)`. The status, the project host and the join blocks are each a `Section`. Stacked multi-action blocks (rows, recruit, station) use `.buttonStyle(.borderless)` so each action stays its own tap target. `.task` and `.refreshable` are kept. |
+| R10-PC-B-N10 | fixed | 3019d8205 | App/MerchantContentViews.swift | `MerchantContentRowLinkStyle` is deleted; rows use the system disclosure. B2-5, N9 and N10 share one view body, so they landed in one commit. |
+| R11-PC-B-1 | fixed | 56bcc8b38 | App/TopicThemeRecordsView.swift (`runActions`); App/PlatformConsumerSessionOwner.swift (`topicThemeRecordsSession`) | 查看战报 opens `subpackageJourney/pages/report/index` with topicId, runId and topicName. 再玩一局 appears only when `PlayThemeReplayExchange.focus` reports `replayAllowed` and the run is not TEAM. It then calls `PlayThemeReplayProduction.replay()` and opens `SessionPlayRuntimeView(.journey(.topic))`. Both are hidden on entries that do not inject the session. |
+| R11-PC-B-2 | fixed | 54c7df3ed, 64cecf6c2 (pin) | Core/PublisherLifecycleContracts.swift; App/PublisherLifecycleViews.swift | Price starts at `currentPrice` when it is ≥ the floor. `selfPriceError` (无人带) shows in red and disables confirm. A blocked free explore shows `confirmBlockReason`. `priced` shows `saleStatusText ?? 终价已确认`. Pin `test_publisher_pricing_lifetime` updated with an MP citation. |
+| R11-PC-B-3 | fixed | 7997b6b04 | App/MerchantContentViews.swift (`openNodeRows`); App/TopicSelfSupplySheet.swift; Core/MPGap/PlayerContent/PlayerContentRound4Models.swift (`selfSupply`, `TopicSelfSupplyPerk`); App/ProjectOwnedContentViews.swift (env) | One 自己承接 row per `openNodes` entry. On a free explore it opens a `Form` sheet that posts `api/topic/chapter/self-supply`. Otherwise it pushes `MerchantContentEditView(.registrationCreate)`. |
+| R11-PC-C-1 | fixed | c50b6f0be | Core/RegistrationContracts.swift:64 | `coveredByPass` is read from the top level. `mkt` is kept only as a fallback. |
+| R11-PC-C-3 | fixed | 4468e2f2d | App/RegistrationSheetView.swift:289 (`resultOrderSection`); App/SessionRegistrationSheet.swift (env) | Reuses `MarketingConsentOfferRow`, matched to `ActivityDetail.hostMemberID`. |
+| R11-PC-C-4 | fixed | e4bb4fa57, f30fd48d8 | App/ActivityTicketRegistrantRows.swift | Each registrant is an avatar row with a nickname that opens the userinfo page. An empty list says 这个票种还没有人报名. The rows live in their own file so `ActivityPresentationComponents` keeps its presentation-only pins. |
+| R11-PC-C-5 | fixed | a5727e3fe | Core/RegistrationUIFlow.swift:18; App/RegistrationSheetView.swift:154, 527 | Decodes `paymentChannels`. If the list lacks `APP` on a paid quote, pay is blocked with 支付通道未就绪 and the readiness probe is skipped. |
+| R10-PC-C-N8 | fixed | 1cd5e9dcf | App/RegistrationSheetView.swift (ticket and participant pickers as `List` sheets; confirm and 不可退 as `.alert`; 退出候补 as `.confirmationDialog`, :413) | `PlayAreaNonRefundableModal` and `PlayAreaWaitlistQuitModal` are now used only by the design fixtures. |
+| R10-PC-C-N10 | fixed | 82c6009f6, f30fd48d8 (pin) | App/OfficialEventsBrowserView.swift:151-158 | Uses system `.searchable` only on searchable tabs. The system field cannot carry the `official.search` id, so the pins now check `.searchable` and its prompt key. The UI test uses `app.searchFields.firstMatch` (needs a simulator run). |
+| R9-PC-D5-1 | fixed | 6213fb0e3 | App/WalletCommerceViews.swift:237 | Closed by the D-1 change: the gate now applies with money on. |
+| R9-PC-D4-1 | fixed (simulator run needed) | 077975a4d, 1e7cbf4eb, 377abf75d | App/WalletCommerceViews.swift:746 (`WalletIncomeSegment`), `incomeLedger` 4-segment Picker | Deleted `WalletEarningsTabBar`, `App/WalletEarningsAccessibleTabs.swift` and the two hit-area tests; removed them from `tools/current_ci_manifest.json` (retirement reasons added). `WalletEarningsOverviewUITests` now tap `segmentedControls["wallet.income.filter"]`. The income-detail page-ready ids were moved to match. |
+| R9-PC-D9-1 | partly | 0184eb5c8, 4c303eb3f | App/IMExpandedViews.swift:228, 274 | 位置 uses the existing MapKit `IMStaticPlaceMapPicker` and sends the same `.location` intent. 图片 opens the photo picker directly (`selectsOnAppear`). If the user cancels, they land back on the controls page, which still has the 发送图片 row. |
+| R9-PC-D7-2 | fixed | 551f42e52 | App/VideoBountyView.swift; App/VideoBountySession.swift | Dead attribution state, binding requirements and their implementations are removed, including the fixture double. |
+| R10-PC-D-N3 | fixed | b2bd2fcc3 | App/MyProjectTabViews.swift:97 | Now a `ContentUnavailableView` with `.borderedProminent` CTA. The ids are kept. |
+| R10-PC-D-N15 | fixed | 91eb356ca | App/VideoBountyView.swift:165 | One List row per item. The accrual note is now the Section footer. |
+| R10-PC-D-N16 | fixed | dc9281f95 | App/MessagingHomeView.swift:38 | Outbox is now `List(.insetGrouped)`. The `messaging.list.outboxEmpty` id is kept. |
+| R11-PC-D-2 | fixed | d3bf784df | Core/WalletPointsLedgerEmptyState.swift:13; App/WalletCommerceViews.swift | Empty copy follows the filter: `wallet.income.empty` / `.create` / `.brand`. |
+
+No row in this slice is merchant-only, so none is marked `merchant release`. The audit found the merchantinfo host view reachable by a player.
+
+## Notes for the coordinator
+
+- `Tests/ContractChecks/test_merchant_project_workspace_entry.py` already errored on the base (`Changed actual club product: .github/workflows/native-ios.yml`). It is in the ratchet baseline and has nothing to do with this lane.
+- `check_wallet_earnings_overview.py` has two failures I did not cause: a stale hash for `App/CoopFinanceSummarySection.swift`, and the `WalletProductsView` token `model.loading = true`.
+- Shared helper `AppSession.makePlayerContentRound4Service()` (App/MarketingConsentOfferRow.swift) backs the consent rows and the self-supply write.
