@@ -109,6 +109,55 @@ import XCTest
         await model.load(); await model.confirm(original)
         XCTAssertTrue(wire.posts.isEmpty)
     }
+    func testLoadedOrderKeepsValidityHoldExitShopAndCancelFlagWithoutPosting() async throws {
+        let wire = try Wire()
+        wire.bundleFacts = [
+            "units": [["id": 17, "registrationId": 41, "holderMemberId": 7, "chapterId": 3, "status": "AVAILABLE", "validTo": "2026-12-31"]],
+            "chapters": [["chapterId": 3, "name": "章", "content": "正文", "stores": [["offerId": 29, "merchantName": "店"]]]],
+            "reservations": [
+                ["id": 61, "registrationId": 41, "holderMemberId": 7, "unitId": 17, "chapterId": 3, "offerId": 29, "merchantId": 5, "startAt": "2030-03-17T00:00:00Z", "status": "BOOKED", "idempotencyKey": "k", "requestFingerprint": "f"],
+                ["id": 62, "registrationId": 41, "holderMemberId": 7, "unitId": 17, "chapterId": 3, "offerId": 29, "merchantId": 5, "startAt": "2030-03-18T00:00:00Z", "status": "CANCELLED", "idempotencyKey": "k2", "requestFingerprint": "f2"]
+            ],
+            "refundHold": ["state": "PREPARED", "refundId": 9],
+            "exitCases": [["id": 10, "decision": "SWAP_CONSENTED", "unitId": 17], ["id": 11, "decision": "REFUND_UNFULFILLED"]]
+        ]
+        let model = try model(wire, Store())
+        await model.load()
+        let bundle = try XCTUnwrap(model.order?.bundle)
+        XCTAssertEqual(bundle.units.first?.validTo, "2026-12-31")
+        XCTAssertEqual(bundle.chapterContent(chapterID: try id(3)), "正文")
+        XCTAssertEqual(bundle.shopName(offerID: try id(29)), "店")
+        XCTAssertEqual(bundle.refundHold?.state, "PREPARED")
+        XCTAssertEqual(bundle.refundHold?.refundId, "9")
+        XCTAssertEqual(bundle.exitCases.map(\.decision), ["SWAP_CONSENTED", "REFUND_UNFULFILLED"])
+        XCTAssertEqual(bundle.reservations.map(\.canCancel), [true, false])
+        XCTAssertTrue(wire.posts.isEmpty)
+        XCTAssertEqual(FreeExploreBundleLaunchView.reservationHeading(shopName: "店", chapterName: "章", locale: Locale(identifier: "zh-Hans")), "店")
+        XCTAssertEqual(FreeExploreBundleLaunchView.reservationHeading(shopName: "", chapterName: "章", locale: Locale(identifier: "zh-Hans")), "章")
+        XCTAssertNil(FreeExploreBundleLaunchView.refundHoldTitle("NOPE"))
+        XCTAssertNotNil(FreeExploreBundleLaunchView.refundHoldTitle("PREPARED"))
+        XCTAssertNotNil(FreeExploreBundleLaunchView.refundHoldTitle("RECONCILIATION_REQUIRED"))
+        XCTAssertNil(FreeExploreBundleLaunchView.exitCaseTitle("OTHER"))
+        XCTAssertNotNil(FreeExploreBundleLaunchView.exitCaseTitle("SWAP_CONSENTED"))
+        XCTAssertNotNil(FreeExploreBundleLaunchView.exitCaseTitle("REFUND_UNFULFILLED"))
+        var root = URL(fileURLWithPath: #filePath)
+        for _ in 0..<3 { root.deleteLastPathComponent() }
+        let page = try String(contentsOf: root.appendingPathComponent("App/FreeExploreBundleLaunchView.swift"), encoding: .utf8)
+        let catalog = try String(contentsOf: root.appendingPathComponent("Resources/FreeExploreBundleLaunch.xcstrings"), encoding: .utf8)
+        for token in ["chapterContent(chapterID:", "shopName(offerID:", "unit.validTo", "reservation.canCancel",
+                      "reservation.cancel", "reservation.monthlyWaiver", "freeBundle.refundHold", "exitCases.title",
+                      "exitCase.SWAP_CONSENTED", "exitCase.REFUND_UNFULFILLED", "refundHold.PREPARED"] {
+            XCTAssertTrue(page.contains(token), token)
+        }
+        XCTAssertFalse(page.contains("cancel-quote"))
+        XCTAssertFalse(page.contains("makeCancel"))
+        XCTAssertFalse(page.contains("exit-decision"))
+        for copy in ["有效期至 %@", "退款准备中", "退款已申请", "退款已批准", "原路退款已确认到账",
+                     "无现金取消已完成，没有现金退款", "退款未通过，权益暂时冻结", "退款人工处理中，权益暂时冻结",
+                     "退款处理中", "售后记录", "已同意替换商家", "已申请未使用部分退款", "取消预约", "使用每月免费取消", "预约"] {
+            XCTAssertTrue(catalog.contains(copy), copy)
+        }
+    }
     private final class Store: TemplateAuthoringStorage {
         var values: [String: Data] = [:]
         func read(_ key: String) throws -> Data? { values[key] }
@@ -122,6 +171,7 @@ import XCTest
         var failRead = false, hasReceipt = false
         var posts: [FreeExploreLaunchReservationCommand] = []
         var receiptKeys: [String] = []
+        var bundleFacts: [String: Any] = [:]
         var onCatalog: (() -> Void)?
         init() throws {
             session = try .init(baseURL: URL(string: "https://example.test")!, accountID: 7,
@@ -143,10 +193,12 @@ import XCTest
         func order(registrationID: FreeExploreLaunchID) async throws -> FreeExploreLaunchOrder {
             if failRead { throw URLError(.notConnectedToInternet) }
             let reservations = hasReceipt ? posts.last.map { [receiptValue($0)] } ?? [] : []
-            return try decode(["registrationId": 41, "bundle": [
+            var bundle: [String: Any] = [
                 "order": ["registrationId": 41, "holderMemberId": 7, "topicId": 88],
                 "units": [["id": 17, "registrationId": 41, "holderMemberId": 7, "chapterId": 3, "status": "AVAILABLE"]],
-                "reservations": reservations]])
+                "reservations": reservations]
+            for (key, value) in bundleFacts { bundle[key] = value }
+            return try decode(["registrationId": 41, "bundle": bundle])
         }
         func reserve(_ command: FreeExploreLaunchReservationCommand) async throws -> FreeExploreLaunchReservation {
             posts.append(command); throw URLError(.networkConnectionLost)
