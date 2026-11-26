@@ -51,6 +51,7 @@ import SwiftUI
         }
         .onDisappear { arrival?.cancel() }
         .sensoryFeedback(.success, trigger: done) { old, new in !old && new }
+        .sensoryFeedback(.error, trigger: model.arrivalFailure?.nodeID) { _, new in NativeR2Flags.motion && new == nodeID }
         .accessibilityIdentifier("nativeR2.city.punch")
     }
 
@@ -91,6 +92,7 @@ import SwiftUI
             if done {
                 Label("nativeR2.city.punch.done", systemImage: "checkmark.seal.fill")
                     .foregroundStyle(.green)
+                    .nativeR2BounceOnAppear()
                     .accessibilityIdentifier("nativeR2.city.punch.done")
             } else {
                 LabeledContent("nativeR2.city.punch.distance") {

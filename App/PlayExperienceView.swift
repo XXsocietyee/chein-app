@@ -746,7 +746,9 @@ import MapKit
                 model: model, nodeID: target.id, location: cityLocation,
                 onOpenTask: { id in cityPunchNode = nil; selectedNode = id },
                 onNext: { id in cityPunchNode = CityOrientationPunchTarget(id: id) })
+            .nativeR2SheetBackdropSource()
         }
+        .nativeR2SheetBackdrop(isPresented: cityPunchNode != nil)
         .confirmationDialog(Text("playx.run.end"), isPresented: $cityEndDialog, titleVisibility: .visible) {
             Button("playx.run.end", role: .destructive) {
                 Task { await model.endRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) }
@@ -1263,7 +1265,9 @@ import MapKit
             .cyPlayVerdict($verdict)
             .sheet(item: $nr2Result) { target in
                 NR2StageResultSheet(model: model, nodeID: target.nodeID, openNode: openNode)
+                    .nativeR2SheetBackdropSource()
             }
+            .nativeR2SheetBackdrop(isPresented: nr2Result != nil)
             .modifier(JourneyCheckReviewPresentation(model: journey))
             // The optional check initially renders no rows, so its probe belongs to this stable host.
             .task(id: [model.identity, node.map { String($0.id) }, (model.snapshot?.route?.sessionID).map(String.init), (model.snapshot?.route?.version).map(String.init)]) {

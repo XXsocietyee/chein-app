@@ -11115,6 +11115,36 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "E27C3641EC6F0D372A01F7E1";
 		};
+		"6EDE19623419606F154FA674" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Motion/NativeR2Motion.swift";
+			"sourceTree" = "<group>";
+		};
+		"13FC8F63BDF840E4488E03FC" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "6EDE19623419606F154FA674";
+		};
+		"56906E1EBA2E16F73990E793" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Motion/NativeR2RouteReplay.swift";
+			"sourceTree" = "<group>";
+		};
+		"163184AB43EBC49D5EEC5A19" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "56906E1EBA2E16F73990E793";
+		};
+		"E86F80EF256D39DC2B8E7272" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Motion/NativeR2SheetBackdrop.swift";
+			"sourceTree" = "<group>";
+		};
+		"A45CAC8F45BD817BAFD9E2DC" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "E86F80EF256D39DC2B8E7272";
+		};
 		"BDC6CD51FA235EE09E370A32" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -43425,6 +43455,9 @@
 				"E169736470131C52160EC7B3",
 				"644640CBB455060AED3A2921",
 				"E27C3641EC6F0D372A01F7E1",
+				"6EDE19623419606F154FA674",
+				"56906E1EBA2E16F73990E793",
+				"E86F80EF256D39DC2B8E7272",
 				"BDC6CD51FA235EE09E370A32",
 				"C8DD6A179F17ABA4A58F601F",
 				"0A444BAD61C3F7342226F7E5",
@@ -48838,6 +48871,9 @@
 				"194FDC77CC194BED3F127ACA",
 				"8AECE068048B8060E10D73F9",
 				"5685543F114130A97CF7517E",
+				"13FC8F63BDF840E4488E03FC",
+				"163184AB43EBC49D5EEC5A19",
+				"A45CAC8F45BD817BAFD9E2DC",
 				"A084FAC08BD3FF990F58B005",
 				"D98BE47412DFF3797C8859EA",
 				"85F033F4AD08EC34928ABCE9",

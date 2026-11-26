@@ -34,6 +34,9 @@ import SwiftUI
     @State private var showChapterPicker = false
     @State private var showEmergencyHelp = false
     @State private var arrival: PlayArrivalService?
+    /// Motion r1: the store path draws on when the map appears.
+    @State private var draw = NativeR2DrawOn()
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.locale) private var locale
 
     var body: some View {
@@ -114,7 +117,7 @@ import SwiftUI
         Map(position: $position, selection: $mapSelection) {
             UserAnnotation()
             if mappedStops.count > 1 {
-                MapPolyline(coordinates: mappedStops.map(\.coordinate))
+                MapPolyline(coordinates: NativeR2RoutePath.prefix(mappedStops.map(\.coordinate), progress: draw.progress))
                     .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 3, dash: [6, 5]))
             }
             if let snapshot {
@@ -127,6 +130,7 @@ import SwiftUI
                 }
             }
         }
+        .task(id: mappedStops.count) { await draw.run(reduceMotion: reduceMotion) }
     }
 
     private func stopPin(_ state: StopState, font: Font = .title) -> some View {
@@ -142,6 +146,7 @@ import SwiftUI
             .font(font)
             .symbolRenderingMode(.palette)
             .foregroundStyle(Color.white, color)
+            .nativeR2SymbolReplace()
             .accessibilityLabel(Text(LocalizedStringKey(Self.stateKey(state))))
     }
 

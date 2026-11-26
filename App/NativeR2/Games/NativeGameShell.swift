@@ -137,8 +137,9 @@ extension EnvironmentValues {
         }
         .safeAreaInset(edge: .bottom) { submitBar }
         .sensoryFeedback(.error, trigger: wrongReply) { _, next in next != nil }
-        .sheet(isPresented: $resultPresented) { resultSheet }
+        .sheet(isPresented: $resultPresented) { resultSheet.nativeR2SheetBackdropSource() }
         .sheet(isPresented: $hintShown) { hintSheet }
+        .nativeR2SheetBackdrop(isPresented: resultPresented)
         .accessibilityIdentifier(identifier)
     }
 
