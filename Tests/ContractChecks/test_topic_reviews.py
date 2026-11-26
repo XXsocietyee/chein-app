@@ -15,9 +15,9 @@ class TopicReviewChecks(unittest.TestCase):
         self.assertIn('public let reviews: TopicReviews', model)
         self.assertIn('reviews = try TopicReviews(from: decoder)', model)
         view = self.read('App/TopicDetailView.swift')
-        self.assertEqual(view.count('TopicReviewsContent(reviews: value.reviews)'), 1)
+        self.assertEqual(view.count('TopicReviewsContent(reviews: value.reviews)'), 2)  # R9-PC-BN-4: tappable empty card + plain list
         self.assertLess(view.index('Section("topic.comments")'), view.index('TopicReviewsContent('))
-        self.assertIn('CYPillButton("context.review.title", style: .secondary) { asSignedIn { showsReview = true } }', view)
+        self.assertIn('Button("context.review.title") { asSignedIn { showsReview = true } }', view)  # native r2: system button
         self.assertIn('ContextualReviewComposer(target: .topic(id)', view)
         self.assertNotIn('if value.comments.isEmpty', view)
         self.assertNotIn('if let rating = value.averageRating', view)

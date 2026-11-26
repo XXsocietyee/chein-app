@@ -291,9 +291,7 @@ private struct Cur5Down: HTTPTransport {
             onLoad: {},
             onSubmit: { _, _, _, _, _ in },
             onAppeal: { _, _ in },
-            onCancel: { _ in },
-            onSubmissionAttribution: { _ in },
-            onCampaignAttribution: { _, _ in })
+            onCancel: { _ in })
     }
 }
 
