@@ -195,9 +195,15 @@ import SwiftUI
             let ticket = try await reader.ticketDetail(id: id)
             guard !Task.isCancelled, focusPhase == .resolving, focusRegistrationID == id else { return }
             // R8-MEM-21-2: MP index.js:200-203 also needs a paid registration (`registrationStatus == 2`) on a
-            // topic or activity (`ownerType` 1/2); anything else is 未定位到原报名凭证. (`memberId` is not decoded yet.)
+            // topic or activity (`ownerType` 1/2), and a present `memberId` must be the signed-in member
+            // (`row.memberId != null && String(row.memberId) !== owner`); anything else is 未定位到原报名凭证.
             guard ticket.id == id, ticket.registrationStatus == 2, ticket.ownerType == 1 || ticket.ownerType == 2 else {
                 focusPhase = .missing; return
+            }
+            if let memberID = ticket.memberID {
+                guard let owner = session.currentRuntimeDependencyContext?.session.accountID, memberID == String(owner) else {
+                    focusPhase = .missing; return
+                }
             }
             focusPhase = .found
             carouselTicketID = id
