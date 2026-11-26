@@ -32,6 +32,19 @@ struct ProfileOrdersView: View {
     /// The last next-page read failed. The page number stays, and the sentinel does not fire again by itself.
     @State private var historyPageFailed = false
     @State private var historyGeneration = 0
+    /// R7-MEM-16-1: the order whose card 取消订单 / 取消报名 opened the cancel sheet.
+    @State private var cardExit: ProfileOrderCardExit?
+    /// R7-MEM-16-1: MP index.wxml:84-90 shows 取消订单 on unpaid cards and 取消报名 on free registered cards.
+    /// 立即支付 and 取消并退款 are money and stay on the detail page behind the gate.
+    @ViewBuilder private func cardExitButton(_ order: ProfileOrder) -> some View {
+        if let key = order.selfServiceExitKey, key != "profile.orderExit.refund", let lifecycleCoordinator,
+           lifecycleCoordinator.hasReviewedWriter || lifecycleCoordinator.canDispatch || lifecycleCoordinator.canSimulate {
+            Button(role: .destructive) { cardExit = ProfileOrderCardExit(id: order.id) } label: {
+                Label(LocalizedStringKey(key), systemImage: "xmark.circle")
+            }
+            .accessibilityIdentifier("profile.order.cardExit.\(order.id)")
+        }
+    }
     private var filterOwner: ProfileOrderFilterOwner {
         .init(readerID: ObjectIdentifier(reader), identity: reader.identity, isConfigured: reader.isConfigured)
     }
@@ -90,6 +103,10 @@ struct ProfileOrdersView: View {
                                 .buttonStyle(QuestifyCardButtonStyle())
                                 .questifyHidesLinkIndicator()
                                 .accessibilityIdentifier("profile.order.\(order.id)")
+                                // R7-MEM-16-1: MP order-history card 取消订单 / 取消报名 (index.wxml:84-90) as the native
+                                // swipe action and context menu; it opens the reviewed cancel flow (MP confirm + 处理中).
+                                .swipeActions(edge: .trailing, allowsFullSwipe: false) { cardExitButton(order) }
+                                .contextMenu { cardExitButton(order) }
                                 .padding(.horizontal, CYSpacing.pageHorizontal)
                                 .questifyCardListRow()
                             }
@@ -116,6 +133,20 @@ struct ProfileOrdersView: View {
             }
         }
         .environment(\.profileReadShowsRefreshButton, false)
+        .sheet(item: $cardExit) { exit in
+            if let lifecycleCoordinator {
+                NavigationStack {
+                    OrderLifecycleView(id: exit.id, coordinator: lifecycleCoordinator).id(lifecycleCoordinator.scope)
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("action.done") { cardExit = nil }
+                            }
+                        }
+                }
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+            }
+        }
         .appNavigationTitle("profile.orders.title").navigationBarTitleDisplayMode(.inline)
         .cyPushedChrome(domain: .player)
         .onAppear { appearOrderSupport() }
@@ -219,6 +250,11 @@ struct ProfileOrdersView: View {
 
 extension ProfileSessionReader: ProfileOrderPageReading {}
 extension OwnedOrderSessionReader: ProfileOrderPageReading {}
+
+/// R7-MEM-16-1: sheet item for the card cancel action.
+private struct ProfileOrderCardExit: Identifiable {
+    let id: Int
+}
 
 private struct ProfileOrderRow: View {
     let order: ProfileOrder
