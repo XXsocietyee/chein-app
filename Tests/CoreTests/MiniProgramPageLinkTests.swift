@@ -261,20 +261,16 @@ final class MiniProgramPageLinkTests: XCTestCase {
         XCTAssertEqual(link?.query, [:])
     }
 
-    /// The retired rewrite opened 我发布的 and dropped the query. The link now stays on the template author's 我的 page.
+    /// fix-r10 R8-MEM-26-1b: the MP removed mytemplate from app.json (xcx 910de033). Only the redirect is kept:
+    /// a mytemplate link opens 我的发布 and drops the query. The page is not a reviewed page any more.
     func testRetiredMyTemplateOpensMyPublished() {
         let link = MiniProgramPageLink(path: "subpackageMember/mytemplate/mytemplate", query: ["id": "3"])
-        XCTAssertEqual(link?.page, "subpackageMember/mytemplate/mytemplate")
-        XCTAssertEqual(link?.query, ["id": "3"])
-        XCTAssertNotEqual(link?.page, "pages/activity/official-mine/index")
-        XCTAssertNotEqual(link?.query, [:])
-        XCTAssertTrue(MiniProgramPageLink.reviewedPages.keys.contains("subpackageMember/mytemplate/mytemplate"))
-        XCTAssertEqual(MiniProgramPageLink(path: "subpackageMember/mytemplate/mytemplate", query: ["id": "3", "scope": "MERCHANT"])?.query,
-                       ["id": "3", "scope": "MERCHANT"])
+        XCTAssertEqual(link?.page, "pages/activity/official-mine/index")
+        XCTAssertEqual(link?.query, [:])
+        XCTAssertFalse(MiniProgramPageLink.reviewedPages.keys.contains("subpackageMember/mytemplate/mytemplate"))
+        XCTAssertEqual(MiniProgramPageLink(path: "subpackageMember/mytemplate/mytemplate", query: ["id": "3", "scope": "MERCHANT"])?.page,
+                       "pages/activity/official-mine/index")
         XCTAssertEqual(MiniProgramPageLink(path: "subpackageMember/mytemplate/mytemplate", query: [:])?.query, [:])
-        XCTAssertNil(MiniProgramPageLink(path: "subpackageMember/mytemplate/mytemplate", query: ["scope": "PLAYER"]))
-        XCTAssertNil(MiniProgramPageLink(path: "subpackageMember/mytemplate/mytemplate", query: ["id": "03"]))
-        XCTAssertNil(MiniProgramPageLink(path: "subpackageMember/mytemplate/mytemplate", query: ["keyword": "x"]))
         XCTAssertEqual(MiniProgramPageLink(path: "pages/activity/official-mine/index", query: [:])?.page,
                        "pages/activity/official-mine/index")
         XCTAssertNil(MiniProgramPageLink(path: "pages/activity/official-mine/index", query: ["id": "3"]))
