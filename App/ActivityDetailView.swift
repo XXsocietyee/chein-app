@@ -167,26 +167,23 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
             case .idle, .loading, .empty:
                 loadingState
             case .failed(let issue, _):
+                // R9-PC-CN-1: system ContentUnavailableView for the missing and failed reads.
                 if issue == .missing {
-                    CYEmptyState(systemImage: "calendar.badge.exclamationmark", "activity.detail.missing",
-                                 actionTitle: "common.back", action: { dismiss() })
-                        .accessibilityIdentifier("activity.detail.missing")
+                    ContentUnavailableView {
+                        Label("activity.detail.missing", systemImage: "calendar.badge.exclamationmark")
+                    } actions: {
+                        Button("common.back") { dismiss() }.buttonStyle(.bordered)
+                    }
+                    .accessibilityIdentifier("activity.detail.missing")
                 } else {
-                ScrollView {
-                    VStack(spacing: CYSpacing.lg) {
-                        CYStateArt(kind: .failure)
-                        Text("activity.loadFailed")
-                            .cyText(.sectionTitle)
-                            .foregroundStyle(CYColor.textPrimary)
-                            .multilineTextAlignment(.center)
-                            .fixedSize(horizontal: false, vertical: true)
+                    ContentUnavailableView {
+                        Label("activity.loadFailed", systemImage: "exclamationmark.triangle")
                             .accessibilityIdentifier("activity.detail.error")
-                        CYPillButton("action.retry") { loads.start { await load() } }
+                    } actions: {
+                        Button("action.retry") { loads.start { await load() } }
+                            .buttonStyle(.borderedProminent)
                             .accessibilityIdentifier("activity.detail.retry")
                     }
-                    .padding(.horizontal, CYSpacing.pageHorizontal)
-                    .padding(.vertical, CYSpacing.xl)
-                }
                 }
             case .loaded(let access):
                 switch access {
