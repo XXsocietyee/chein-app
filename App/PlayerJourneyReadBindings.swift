@@ -26,31 +26,6 @@ extension AppSession {
                                               passReader: { [weak self] in self?.makePlatformPassReader() },
                                               viewerIsMerchant: { [weak self] in self?.mpViewerIsMerchant ?? false })
     }
-
-    /// Anonymous catalog host for the shipped China composition. A missing host sends nothing.
-    func installPublicCatalogHost() {
-        guard let host = composition.publicCatalogHost() else {
-            PublicCatalogHostWiring.host = nil
-            PublicCatalogHostWiring.scope = nil
-            PublicCatalogHostWiring.token = nil
-            return
-        }
-        PublicCatalogHostWiring.host = host
-        if let token, AuthRequestBuilder.isValidToken(token) {
-            PublicCatalogHostWiring.token = token
-        } else {
-            PublicCatalogHostWiring.token = nil
-        }
-        if let context = currentRuntimeDependencyContext {
-            PublicCatalogHostWiring.scope = try? PWaveSessionScope(accountID: context.session.accountID,
-                                                                   epoch: context.session.epoch,
-                                                                   namespace: context.session.namespace)
-        } else if let namespace = composition.reviewed?.storageScope.service {
-            PublicCatalogHostWiring.scope = try? PWaveSessionScope(accountID: 1, epoch: 1, namespace: namespace)
-        } else {
-            PublicCatalogHostWiring.scope = nil
-        }
-    }
 }
 
 @MainActor @Observable final class PlayerJourneySignInBridge {

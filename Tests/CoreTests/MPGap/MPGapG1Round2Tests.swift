@@ -258,4 +258,15 @@ final class MPGapG1Round2Tests: XCTestCase {
             "/api/orient/scoring/session/99"
         ])
     }
+
+    /// R7-PC-B1-6: MP pages/topic/index/index.js:665-669 merchant cards from the bundle catalog.
+    func testFreeExploreMerchantCardsFromCatalogDedupeAndDropNamelessStores() throws {
+        let json = #"{"items":[{"name":"咖啡券","stores":[{"offerId":7,"merchantName":"咖啡馆"},{"offerId":"8","merchantName":" "},{"offerId":0,"merchantName":"零"}]},{"name":"甜品","stores":[{"offerId":7,"merchantName":"咖啡馆"},{"offerId":9,"merchantName":"甜品店","address":"南京路"}]}]}"#
+        let data = try JSONDecoder().decode(PlayWireValue.self, from: Data(json.utf8))
+        let cards = TopicFreeExploreMerchantCard.cards(fromCatalog: data)
+        XCTAssertEqual(cards.map(\.id), [7, 9])
+        XCTAssertEqual(cards.first?.perkTitle, "咖啡券")
+        XCTAssertEqual(cards.last?.address, "南京路")
+        XCTAssertTrue(TopicFreeExploreMerchantCard.cards(fromCatalog: nil).isEmpty)
+    }
 }

@@ -377,3 +377,27 @@ public enum MerchantHostWorkbenchAction: String, CaseIterable, Identifiable, Sen
         }
     }
 }
+
+extension TopicFreeExploreMerchantCard {
+    /// R7-PC-B1-6: MP pages/topic/index/index.js:665-669 reads `/api/free-explore/bundle/catalog` and lists every store of
+    /// every item. One card per `offerId` (first item wins); the item name is the perk line. Stores without a positive id or a
+    /// name are dropped; nothing is invented.
+    public static func cards(fromCatalog data: PlayWireValue?) -> [TopicFreeExploreMerchantCard] {
+        var seen = Set<Int>()
+        var cards: [TopicFreeExploreMerchantCard] = []
+        for item in data?["items"].array ?? [] {
+            let perk = item["name"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
+            for store in item["stores"].array ?? [] {
+                guard let id = store["offerId"].tolerantInteger, id > 0, !seen.contains(id),
+                      let name = store["merchantName"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty
+                else { continue }
+                seen.insert(id)
+                let address = store["address"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
+                cards.append(TopicFreeExploreMerchantCard(id: id, merchantName: name,
+                                                          address: address?.isEmpty == false ? address : nil,
+                                                          perkTitle: perk?.isEmpty == false ? perk : nil, coverURL: nil))
+            }
+        }
+        return cards
+    }
+}

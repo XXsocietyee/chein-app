@@ -10,8 +10,6 @@ public enum NativeEntryIntent: Equatable {
     case publicMerchant(PublicMerchantHomeTarget)
     /// FP-C3. A parsed destination only; no origin is enabled by it and presentation stays the host's choice.
     case content(NativeContentTarget)
-    /// Public catalog list, filters, or info. Parsing does not enable an origin, a charge, or a read.
-    case publicCatalog(PublicCatalogLink)
     /// A mini-program page with a native parity screen. Parsing grants nothing; the screen keeps its own gating.
     case miniProgramPage(MiniProgramPageLink)
 }
