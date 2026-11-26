@@ -226,9 +226,25 @@ public struct JourneyLoopSource {
 
     // MARK: Money stays off
 
+    /// Synchronous legacy entry: never sends. The live issue is `issueReferralToken` (JREF-r11-1).
     public func issueReferral(targetType: Int, targetID: String, token: String) throws -> JourneyEnvelope {
         _ = (targetType, targetID, token)
         throw JourneyRefusal.moneyOff
+    }
+
+    /// JREF-r11-1: `POST /api/marketing/referral/token` JSON `{targetType, targetId}` (MP
+    /// subpackageJourney/utils/journey-api.js:48). Sent only when the player taps share (MP settle/index.js:264-279,
+    /// report/index.js:132-147). Referral attribution feeds payouts, so it follows the payout money switch
+    /// (`ReleaseMoneyWriteSwitch.payoutEnabled`, on in Release since owner 2026-11-25); with it off nothing is sent.
+    public func issueReferralToken(targetType: Int, targetID: String, token: String) async throws -> JourneyEnvelope {
+        guard ReleaseMoneyWriteSwitch.payoutEnabled else { throw JourneyRefusal.moneyOff }
+        guard targetType == 1 || targetType == 2, Self.isID(targetID), let target = Int(targetID),
+              AuthRequestBuilder.isValidToken(token) else { throw JourneyRefusal.invalidRequest }
+        let path = try resolve(Self.journey(.issueReferral))
+        let body: [String: Any] = ["targetType": NSNumber(value: targetType), "targetId": NSNumber(value: target)]
+        let data = try JSONSerialization.data(withJSONObject: body, options: [.sortedKeys])
+        let request = try make(method: "POST", path: path, query: [], token: token, body: data, contentType: "application/json")
+        return await perform(request, receiptReread: false)
     }
 
     public func giftClaim(token credential: String, requestID: String, sessionToken: String) throws -> JourneyEnvelope {

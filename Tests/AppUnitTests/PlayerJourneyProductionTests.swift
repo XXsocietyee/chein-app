@@ -72,7 +72,11 @@ import XCTest
         // fix-r10 MKT-3-1b: the gift claim is admitted on production (MP `market/gift/index.js:101-123`); the
         // landing journey stub still throws, and the market/gift page sends it through `PlatformPassGiftClaimSource`.
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/marketing/product/gifts/claim"))
-        await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent("api/marketing/referral/token"), #"{"targetId":"1"}"#, token: player.session.token)) }
+        // JREF-r11-1: the share referral token follows the payout switch (MP settle/index.js:264-279).
+        XCTAssertEqual(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/marketing/referral/token"), ReleaseMoneyWriteSwitch.payoutEnabled)
+        if !ReleaseMoneyWriteSwitch.payoutEnabled {
+            await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent("api/marketing/referral/token"), #"{"targetId":"1"}"#, token: player.session.token)) }
+        }
         await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent("api/registration/pay"), #"{"payAmount":1}"#, token: player.session.token)) }
         await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent("api/login"), "{}", token: player.session.token)) }
         await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent("api/roam/presence"), #"{"lat":1}"#, token: player.session.token)) }

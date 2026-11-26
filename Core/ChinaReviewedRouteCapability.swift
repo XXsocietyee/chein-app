@@ -111,6 +111,8 @@ public enum ChinaReviewedRouteCapability {
         // Owner 2026-11-24: platform-pass order reads are on for players. Not a money write.
         if isPlatformPassOrderPath(key) { return true }
         if memberGiftClaimOwnerGrant.contains(key) { return true }
+        // JREF-r11-1: the share referral token follows the payout switch (money ON in Release, owner 2026-11-25).
+        if journeyReferralOwnerGrant.contains(key) { return ReleaseMoneyWriteSwitch.payoutEnabled }
         return g6OwnerGrant.contains(key)
     }
 
@@ -120,6 +122,13 @@ public enum ChinaReviewedRouteCapability {
     /// `wiredPatterns` so `wiredPatternCount` does not move.
     public static let memberGiftClaimOwnerGrant: Set<String> = [
         "/api/marketing/product/gifts/claim"
+    ]
+
+    /// fix-r11 roam JREF-r11-1. MP subpackageJourney/pages/settle/index.js:264-279 and report/index.js:132-147 issue a
+    /// signed referral token on share (`subpackageJourney/utils/journey-api.js:48`). Open only while the payout switch
+    /// is on. Kept outside `wiredPatterns` so `wiredPatternCount` does not move.
+    public static let journeyReferralOwnerGrant: Set<String> = [
+        "/api/marketing/referral/token"
     ]
 
     /// Popup-closure owner grant: reviewed non-money routes surfaced by the popup parity closure pass

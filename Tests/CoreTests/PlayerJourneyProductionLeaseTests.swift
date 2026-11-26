@@ -139,6 +139,7 @@ final class PlayerJourneyProductionLeaseTests: XCTestCase {
         // fix-r10 MKT-3-1b: gift claim is admitted (MP `market/gift/index.js:101-123` sends only the gift token).
         XCTAssertEqual(JourneyProductionLease.refused, [.issueReferral])
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/marketing/product/gifts/claim"))
+        // JREF-r11-1: the referral token is admitted only while the payout switch is on (off in Core tests).
         for path in [
             "/api/marketing/referral/token",
             "/api/public-catalog/map",
