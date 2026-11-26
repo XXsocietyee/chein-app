@@ -214,14 +214,14 @@ struct RoamAlbumReadOwner: Hashable {
                                     // SALBUM-3 (MP stamp-album wxml:18-23): image-only stamps, 4 across, tilted up to ±12°.
                                     // The push keeps the hero zoom, the native form of the MP fly-to-centre.
                                     RoamStampCollageTile(stamp: stamp, offline: reader.isOfflineExample, allowsRemoteImages: allowsRemoteImages)
-                                        .modifier(RoamStampPerforatedTile(seed: stamp.id, enabled: true, maxTilt: 12))
+                                        // N-ALBUM (r10): plain grid tiles, no tilt.
+                                        .modifier(RoamStampPerforatedTile(seed: stamp.id, enabled: true, maxTilt: 0))
                                         .accessibilityLabel(Text("stampAlbum.openStamp \(index + 1)"))
                                 } else {
                                     RoamStampCard(stamp: stamp, offline: reader.isOfflineExample, allowsRemoteImages: allowsRemoteImages, kit: true)
-                                        .modifier(RoamStampPerforatedTile(seed: stamp.id, enabled: hosted))
+                                        .modifier(RoamStampPerforatedTile(seed: stamp.id, enabled: hosted, maxTilt: 0))
                                 }
                             }
-                                .cyFoilSheen()
                                 .cyNewPulse(CYAlbumRecency.isNew(stamp.createTime), text: Text(verbatim: ChannelCopy.text("新", "New", locale: locale)))
                                 .cyHeroSource(stamp.id, in: hero)
                         }.buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("roam.experience.album.stamp")
@@ -243,26 +243,17 @@ struct RoamAlbumReadOwner: Hashable {
             }.padding()
         }.cyDomainPageBackground()
             .cyAlbumChildTitle("roam.experience.album")
-            .overlay(alignment: .bottomTrailing) {
-                // B62 al-fab: the camera is a round + once the album has stamps (the empty state has its own CTA).
-                if hosted, allowsCapture, canShowAlbum, (pager.total ?? pager.stamps.count) > 0 {
-                    NavigationLink { captureDestination } label: {
-                        // SALBUM-7 (MP wxss:31-35): a 52 pt round button with a drop shadow and a press state.
-                        Image(systemName: "plus").cyText(.sectionTitle, weight: .semibold).foregroundStyle(palette.actionPrimaryFg)
-                            .frame(width: 52, height: 52).background(palette.actionPrimaryBg, in: Circle())
-                            .shadow(color: .black.opacity(0.18), radius: 10, y: 4)
-                    }
-                    .buttonStyle(.cyPressable)
-                    .accessibilityLabel(Text("stampAlbum.openCamera"))
-                    .accessibilityIdentifier("roam.experience.album.fab")
-                    .padding(CYSpacing.xl)
-                }
-            }
             .cyHideTabBar()
             .toolbar {
                 if allowsCapture, !hosted {
                     ToolbarItem(placement: .topBarTrailing) {
                         NavigationLink { captureDestination } label: { Label("media.stamp.title", systemImage: "camera") }
+                    }
+                } else if hosted, allowsCapture, canShowAlbum, (pager.total ?? pager.stamps.count) > 0 {
+                    // N-ALBUM (r10): the camera is a toolbar item, not a floating shadowed + (MP stamp-album al-fab).
+                    ToolbarItem(placement: .topBarTrailing) {
+                        NavigationLink { captureDestination } label: { Label("stampAlbum.openCamera", systemImage: "camera") }
+                            .accessibilityIdentifier("roam.experience.album.fab")
                     }
                 }
             }
@@ -535,15 +526,39 @@ private struct RoamStampImage: View {
     var readOnlyScope: RoamStampAlbumReadOnlyScope? = nil
     var allowsRemoteImages = true
     var canShowStamp: Bool { readOnlyScope?.isCurrent ?? true }
+    /// N-ALBUM (r10): the stamp detail as an inset-grouped List: an image row, then LabeledContent
+    /// (MP subpackageP3/stamp-album/index/index.wxml detail: photo, caption, number, date). No flip, foil or gradient.
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                if canShowStamp {
-                    RoamExperienceNotice(offline: offline)
-                    RoamStampCard(stamp: stamp, offline: offline, allowsRemoteImages: allowsRemoteImages && (readOnlyScope?.allowsRemoteImages ?? true))
-                } else { RoamStampReadOnlyUnavailable() }
-            }.padding()
-        }.cyPageTitle("roam.experience.cityStamp").cyHideTabBar()
+        List {
+            if canShowStamp {
+                RoamExperienceNotice(offline: offline)
+                Section {
+                    if offline {
+                        Image(systemName: "building.2.crop.circle").font(.largeTitle).imageScale(.large)
+                            .foregroundStyle(Color.accentColor)
+                            .frame(maxWidth: .infinity, minHeight: 140)
+                            .accessibilityLabel(Text("roam.experience.sampleArt"))
+                    } else if allowsRemoteImages && (readOnlyScope?.allowsRemoteImages ?? true) {
+                        RoamStampImage(source: stamp.picUrl)
+                    } else {
+                        Label("roam.experience.imageUnavailable", systemImage: "photo")
+                    }
+                    if let caption = stamp.caption, !caption.isEmpty {
+                        Text(verbatim: caption).font(.headline).multilineTextAlignment(.leading)
+                    }
+                    LabeledContent {
+                        Text(verbatim: String(format: "NO. %04d", stamp.id % 10000)).monospacedDigit()
+                    } label: {
+                        Label("roam.experience.cityStamp", systemImage: "envelope.badge")
+                    }
+                    if let date = stamp.createTime {
+                        Text(verbatim: date.replacingOccurrences(of: "T", with: " ")).font(.footnote).foregroundStyle(.secondary)
+                    }
+                }
+            } else { RoamStampReadOnlyUnavailable() }
+        }
+        .listStyle(.insetGrouped)
+        .cyPageTitle("roam.experience.cityStamp").cyHideTabBar()
         .cyDomainScreen(.player)
     }
 }
