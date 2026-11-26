@@ -41,7 +41,7 @@ check('Authored lifecycle negative controls and return journey exist', all(x in 
 check('Read-only preview has no pretend selection action', '.disabled(onSelect == nil)' in alternative and '.accessibilityHint(onSelect == nil ? Text("mapList.readOnly")' in alternative and 'onSelect: onSelect.map' in map_view)
 check('Map singleton uses fresh one-shot action instead of an unguarded callback', 'let id = selectionGate.consume(request)' in map_view and 'guard renderedInput == currentFocusInput, let request' in map_view)
 check('Existing explicit focus and cluster choice remain', all(x in map_view for x in ['focusGate.consume(request)', 'mapDensity.member.', 'mapCamera.focusSelected', 'renderedExpansionID == expansionID']))
-check('List and map use same selected ID without local business selection state', 'pin.id == selectedID' in alternative and '@State private var selectedID' not in alternative and 'anchor.id == selectedID' in map_view)
+check('List and map use same selected ID without local business selection state', 'pin.id == selectedID' in alternative and '@State private var selectedID' not in alternative and 'Binding(get: { selectedID }' in map_view)
 check('Selected status is text and an AX trait', 'Text("mapList.selected")' in alternative and '.accessibilityAddTraits(pin.id == selectedID ? .isSelected : [])' in alternative)
 check('Titles are verbatim, wrap vertically and have no line limit', 'Text(verbatim: pin.title).fixedSize(horizontal: false, vertical: true)' in alternative and '.lineLimit(' not in alternative and '.truncationMode(' not in alternative)
 check('Rows keep full-width 44pt minimum targets', '.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)' in alternative and '.contentShape(Rectangle())' in alternative)

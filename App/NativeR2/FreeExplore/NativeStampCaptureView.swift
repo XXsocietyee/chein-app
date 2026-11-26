@@ -16,7 +16,7 @@ import UIKit
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.openURL) private var openURL
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.cyCelebrationCenter) private var celebrations
+    @Environment(\.locale) private var locale
     @Environment(\.offlineWriteSession) private var offlineWriteSession
     @State private var cameraDenied = false
     private enum ExchangePhase: Equatable { case idle, working, failed, done(RoamStampExchangeReceipt) }
@@ -77,7 +77,8 @@ import UIKit
                 .ignoresSafeArea()
             }
         }
-        .onChange(of: revision) { _, _ in celebrateCreatedStamp() }
+        // P-072: a created stamp is the seal's bounce in the form plus one arrival island (was a particle burst).
+        .onChange(of: createdStampID) { _, id in if let id { announceCreatedStamp(id) } }
         .onAppear {
             coordinator?.changed = { revision += 1 }
             // SCAM-2: the MP page opens the viewfinder on arrival.
@@ -354,9 +355,23 @@ import UIKit
         }
     }
 
-    private func celebrateCreatedStamp() {
-        guard let celebrations, case .created(let stampID)? = coordinator?.phase else { return }
-        celebrations.enqueue(.stamp(CYStampPayload(id: "stamp-\(stampID)", place: nil, passportCount: nil)))
+    private func announceCreatedStamp(_ stampID: Int) {
+        guard IslandCenter.isEnabled else {
+            // Without the island, VoiceOver still hears the result the form now shows.
+            AccessibilityNotification.Announcement(appLocalized("scan.stamp.created", locale: locale)).post()
+            return
+        }
+        var actions: [IslandAction] = []
+        if let album, let coordinator,
+           RoamCreatedStampTarget(phase: coordinator.phase, origin: coordinator.scope, reader: album.reader) != nil {
+            actions.append(IslandAction(title: .key("roam.createdStamp.open"), systemImage: "rectangle.stack", prominent: true) {
+                guard createdStampTarget == nil, let current = self.coordinator else { return }
+                createdStampTarget = RoamCreatedStampTarget(phase: current.phase, origin: current.scope, reader: album.reader)
+            })
+        }
+        IslandCenter.shared.show(IslandItem(kind: .arrival, title: .key("scan.stamp.created"),
+                                            systemImage: "checkmark.seal.fill", actions: actions,
+                                            lifetime: .seconds(5), dedupeKey: "stamp.created." + String(stampID)))
     }
 
     private func stop() {

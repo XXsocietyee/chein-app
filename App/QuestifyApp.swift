@@ -359,9 +359,7 @@ struct SessionRootView: View {
             myTeamsDestination: { AnyView(SessionRoamNearbyTeamsView(initialTab: 1, onSignIn: signIn)) },
             nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView().environment(\.nearbyTeamsSignIn, signIn)) },
             nearbyTeamDestination: { AnyView(SessionRoamNearbyTeamsView(focusTeamID: $0, onSignIn: signIn)) },
-            searchDestination: { keyword in
-                AnyView(SessionLinkedSearchView(initialQuery: GlobalSearchQuery(keyword: keyword), startsOnMap: true, onSignIn: signIn))
-            },
+            searchReader: session.searchMapReader,
             onChooseArea: { showsAreaPicker = true },
             onOpenAccount: signIn)
     }

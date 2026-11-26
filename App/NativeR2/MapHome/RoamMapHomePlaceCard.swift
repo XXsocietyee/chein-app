@@ -141,8 +141,13 @@ import QuestifyCore
             return CardAction(titleKey: "nativeR2.mapHome.card.openTeam", systemImage: "person.2", identifier: "roam.mapHome.card.team") {
                 model.teamSheet = RoamMapHomeTeamSheet(teamID: team.teamID)
             }
-        case .officialStop:
+        case .officialStop, .searchNode:
             return nil
+        case .searchActivity(let activity):
+            guard dependencies.eventDestination != nil else { return nil }
+            return CardAction(titleKey: "roam.w208.entry.viewDetail", systemImage: "info.circle", identifier: "roam.mapHome.card.event") {
+                model.push(.event(.activity(activity.id)))
+            }
         }
     }
 
@@ -270,6 +275,27 @@ import QuestifyCore
                     LabeledContent("nativeR2.mapHome.card.stay") {
                         Text(Measurement(value: Double(node.stayMinutes), unit: UnitDuration.minutes), format: .measurement(width: .abbreviated))
                     }
+                }
+            }
+        case .searchNode(let node):
+            let about = node.description?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let tags = node.tags?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            if !about.isEmpty || !tags.isEmpty || node.templateTitle != nil {
+                Section("nativeR2.mapHome.card.section.about") {
+                    if !about.isEmpty { Text(verbatim: about) }
+                    if let template = node.templateTitle, !template.isEmpty {
+                        LabeledContent("nativeR2.mapHome.card.template") { Text(verbatim: template) }
+                    }
+                    if !tags.isEmpty { Text(verbatim: tags).foregroundStyle(.secondary) }
+                }
+            }
+        case .searchActivity(let activity):
+            Section("nativeR2.mapHome.card.section.time") {
+                if let start = activity.startDate, !start.isEmpty {
+                    LabeledContent("nativeR2.mapHome.card.start") { Text(verbatim: start) }
+                }
+                if let end = activity.endDate, !end.isEmpty {
+                    LabeledContent("nativeR2.mapHome.card.end") { Text(verbatim: end) }
                 }
             }
         }
