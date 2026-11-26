@@ -136,6 +136,11 @@ public enum HomeIndexParityPresentation {
         ActionBanner(id: "activity_list", title: "和朋友报名活动", routePath: "pages/activity/list")
     ]
 
+    /// Lane G: the fixed banners the player build shows. `成为商家` (merchant onboarding) is hidden in Release.
+    public static var playerActionBanners: [ActionBanner] {
+        fixedActionBanners.filter { !PlayerLaunch.isHidden(page: $0.routePath) }
+    }
+
     /// E2E-20261113b: the discoverable external HTML game entry. Shown only where the external-games switch is open.
     public static let miniGamesBanner = ActionBanner(id: "mini_games", title: "小游戏", routePath: "native/mini-games")
 

@@ -602,12 +602,14 @@ private struct ParticipationCoverPlaceholder: View {
                     }
                     .buttonStyle(.cyPrimary).controlSize(.large).frame(maxWidth: .infinity)
                     if detail.needsModification {
-                        Button("participation.editMerchantApply") {
-                            guard id > 0 else { return }
-                            merchantApplyID = id
+                        if PlayerLaunch.merchantCenterEnabled { // Lane G: merchant apply editor hidden in Release
+                            Button("participation.editMerchantApply") {
+                                guard id > 0 else { return }
+                                merchantApplyID = id
+                            }
+                            .buttonStyle(.cySecondary(fullWidth: true))
+                            .accessibilityIdentifier("playerJourney.modify")
                         }
-                        .buttonStyle(.cySecondary(fullWidth: true))
-                        .accessibilityIdentifier("playerJourney.modify")
                     }
                 }
                 .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.sm)
