@@ -8,12 +8,12 @@ import FoundationNetworking
 /// Missing-test rows for member pages on hengyin `chengyinhub-xcx` `25eb6a0c`.
 /// Each test quotes the method and the literal fields from that call.
 /// Play, roam, and merchant rows are not in this file.
-/// Pay, gift claim, payout, withdrawal, and paid orders send nothing.
+/// Pay and gift claim send only while payment is on. Payout, withdrawal, and paid orders send nothing.
 /// Cancel, confirm, and refund-apply send only while that TEST derivation is on.
 final class ZzZzCov3MemberContractPinTests: XCTestCase {
     private let base = URL(string: "https://example.com")!
 
-    func testPayGiftPayoutWithdrawalAndPaidOrdersSendNothing() throws {
+    func testPayGiftPayoutWithdrawalAndPaidOrdersSendNothing() async throws {
         defer { ReleaseMoneyWriteSwitch.testDerivation = nil }
         ReleaseMoneyWriteSwitch.testDerivation = nil
         XCTAssertFalse(PlatformPass.moneyEnabled)
@@ -28,29 +28,46 @@ final class ZzZzCov3MemberContractPinTests: XCTestCase {
         XCTAssertEqual("POST", "POST")
         let transport = Cov3MemberPinTransport()
         let client = try passClient(transport)
-        XCTAssertThrowsError(try client.payProductOrder(orderNo: "PP1", token: "session-token")) { error in
+        do {
+            _ = try await client.payProductOrder(orderNo: "PP1", token: "session-token")
+            XCTFail("pay")
+        } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
-        XCTAssertThrowsError(try client.payPassOrder(orderNo: "PP1", jsCode: "js", token: "session-token")) { error in
+        do {
+            _ = try await client.payPassOrder(orderNo: "PP1", jsCode: "js", token: "session-token")
+            XCTFail("pass pay")
+        } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
-        XCTAssertThrowsError(try client.claim(giftToken: "gift", requestID: "req", token: "session-token")) { error in
+        do {
+            _ = try await client.claim(giftToken: "gift", requestID: "req", token: "session-token")
+            XCTFail("claim")
+        } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
         XCTAssertThrowsError(try Adapt5HighRiskWriteSupplement.refuseRegistrationPay(id: "1")) { error in
             XCTAssertEqual(error as? Adapt5PayRefusal, .blocked)
         }
+        XCTAssertTrue(transport.requests.isEmpty)
         ReleaseMoneyWriteSwitch.testDerivation = { $0 == .payment }
         XCTAssertTrue(ReleaseMoneyWriteSwitch.paymentEnabled)
         XCTAssertFalse(ReleaseMoneyWriteSwitch.payoutEnabled)
         XCTAssertFalse(ReleaseMoneyWriteSwitch.withdrawalEnabled)
-        XCTAssertThrowsError(try client.payProductOrder(orderNo: "PP1", token: "session-token")) { error in
-            XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
-        }
-        XCTAssertThrowsError(try client.claim(giftToken: "gift", requestID: "req", token: "session-token")) { error in
-            XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
-        }
-        XCTAssertTrue(transport.requests.isEmpty)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.virtualGoodsEnabled)
+        transport.body = Data(#"{"code":200,"data":{"registrationId":"11"}}"#.utf8)
+        let productPay = try await client.payProductOrder(orderNo: "PP1", token: "session-token")
+        XCTAssertEqual(productPay.orderNo, "PP1")
+        let claimed = try await client.claim(giftToken: "gift", requestID: "req", token: "session-token")
+        XCTAssertEqual(claimed.registrationID, "11")
+        XCTAssertEqual(transport.requests.map { $0.url?.path }, [
+            "/api/marketing/product/orders/PP1/pay",
+            "/api/marketing/product/gifts/claim"
+        ])
+        XCTAssertEqual(transport.requests.map { $0.httpBody }, [
+            Data("{}".utf8),
+            Data(#"{"requestId":"req","token":"gift"}"#.utf8)
+        ])
     }
 
     func testCancelConfirmAndRefundApplySendOnlyUnderTestDerivation() async throws {

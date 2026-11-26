@@ -4,13 +4,14 @@ import CoreFoundation
 import FoundationNetworking
 #endif
 
-/// Read-only platform pass and market client.
+/// Platform pass and market client.
 /// Source: hengyin `chengyinhub-xcx` `1c80c5aea8f721ca8575e6108048495b100f5576`
 /// (`subpackageMember/utils/platform-pass.js`, `pass-library.js`, `market-view.js`,
-/// `market/membership`, `market/library`, `market/passes`).
-/// Purchase, quote, gift claim, cancel, confirm, and refund-apply are compiled on this type.
-/// `moneyEnabled` follows the payment host switch and stays off when no host is installed.
-/// The synchronous entries still throw; they do not build a payment body.
+/// `market/pass`, `market/gift`, `market/membership`, `market/library`, `market/passes`).
+/// Quote, marketing order, product pay, pass pay, and gift claim send only while the payment
+/// host switch is on. A missing host leaves that switch off, and those methods still throw.
+/// Purchase stays refused: that call would pick a payment channel. Virtual goods stay off.
+/// Cancel, confirm, and refund-apply keep their own switch.
 public struct PlatformPass: @unchecked Sendable {
     public static let miniProgramCommit = "1c80c5aea8f721ca8575e6108048495b100f5576"
     public static var moneyEnabled: Bool { ReleaseMoneyWriteSwitch.paymentEnabled }
@@ -73,11 +74,11 @@ public struct PlatformPass: @unchecked Sendable {
     public static let quotePath = "api/marketing/product/quote"
     public static let orderPath = "api/marketing/product/order"
     public static let claimPath = "api/marketing/product/gifts/claim"
-    /// GET `api/marketing/product/orders/{orderNo}` (`market/pass` `_verify`). Read only. Pay stays off.
+    /// GET `api/marketing/product/orders/{orderNo}` (`market/pass` `_verify`). Read only.
     public static let productOrderDetailPath = "api/marketing/product/orders/{}"
-    /// POST `api/marketing/product/orders/{orderNo}/pay`. No `data` key. Compiled, never sent.
+    /// POST `api/marketing/product/orders/{orderNo}/pay`. The page sends no `data` key.
     public static let productOrderPayPath = "api/marketing/product/orders/{}/pay"
-    /// POST `api/platform-pass/orders/{orderNo}/pay` (`platform-pass-pay.js`). Field `jsCode`. Compiled, never sent.
+    /// POST `api/platform-pass/orders/{orderNo}/pay` (`platform-pass-pay.js`). Field `jsCode`, or `{}` when absent.
     public static let passOrderPayPath = "api/platform-pass/orders/{}/pay"
 
     public static var writesReachable: Bool {
@@ -210,42 +211,73 @@ public struct PlatformPass: @unchecked Sendable {
         return PlatformPassJSON.number(data["point"])
     }
 
-    /// Platform-pass purchase. Compiled, never sends.
+    /// Platform-pass purchase. Stays refused: the page only continues for channel `XPAY`, and this client does not pick a provider.
     public func purchase(planCode: String, channel: String, token: String) throws -> Never {
         _ = (planCode, channel, token, Self.moneyEnabled, Self.writesReachable, Self.purchasePath)
         throw PlatformPassWriteRefusal.unreachable
     }
 
-    /// Marketing quote. Compiled, never sends.
-    public func quote(productID: String, token: String) throws -> Never {
-        _ = (productID, token, Self.moneyEnabled, Self.writesReachable, Self.quotePath)
-        throw PlatformPassWriteRefusal.unreachable
+    /// POST `api/marketing/product/quote` `{productId, quantity: 1, fulfillmentKind}`.
+    /// `fulfillmentKind` is the page's 自己用 (1) or 送给好友 (2). Sends only while payment is on.
+    public func quote(productID: String, token: String, fulfillmentKind: Int = 1) async throws -> PlatformPassQuote {
+        try refuseUnlessPayment(Self.quotePath)
+        let productId = try Self.productID(productID)
+        try Self.requireFulfillment(fulfillmentKind)
+        let object = try await postJSON(Self.quotePath, token: token, body: [
+            "productId": productId, "quantity": 1, "fulfillmentKind": fulfillmentKind
+        ])
+        guard let row = PlatformPassJSON.dictionary(PlatformPassJSON.dataValue(object)) else { throw APIError.malformedResponse }
+        return PlatformPassQuote.decode(row, productID: String(productId), fulfillmentKind: fulfillmentKind)
     }
 
-    /// Marketing order. Compiled, never sends.
-    public func order(productID: String, token: String) throws -> Never {
-        _ = (productID, token, Self.moneyEnabled, Self.writesReachable, Self.orderPath)
-        throw PlatformPassWriteRefusal.unreachable
+    /// POST `api/marketing/product/order`. The body is the server quote echoed back (`market-view.js` `orderRequest`).
+    /// `payMode` is the mode the caller already chose from `availablePayModes` (cash 1, points 2). This method does not pick one.
+    public func order(productID: String, token: String, payMode: Int, quoteSign: String, quoteExpiresAt: Int,
+                      requestID: String, fulfillmentKind: Int = 1) async throws -> PlatformPassOrder {
+        try refuseUnlessPayment(Self.orderPath)
+        let productId = try Self.productID(productID)
+        guard payMode == 1 || payMode == 2, quoteExpiresAt > 0, !quoteSign.isEmpty, !requestID.isEmpty else {
+            throw APIError.invalidRequest
+        }
+        try Self.requireFulfillment(fulfillmentKind)
+        let object = try await postJSON(Self.orderPath, token: token, body: [
+            "productId": productId, "payMode": payMode, "quantity": 1, "fulfillmentKind": fulfillmentKind,
+            "quoteSign": quoteSign, "quoteExpiresAt": quoteExpiresAt, "requestId": requestID
+        ])
+        guard let row = PlatformPassJSON.dictionary(PlatformPassJSON.dataValue(object)),
+              let order = PlatformPassOrder.decode(row) else { throw APIError.malformedResponse }
+        return order
     }
 
-    /// Gift claim. Compiled, never sends.
-    public func claim(giftToken: String, requestID: String, token: String) throws -> Never {
-        _ = (giftToken, requestID, token, Self.moneyEnabled, Self.writesReachable, Self.claimPath)
-        throw PlatformPassWriteRefusal.unreachable
+    /// POST `api/marketing/product/gifts/claim` `{token, requestId}`. Sends only while payment is on.
+    public func claim(giftToken: String, requestID: String, token: String) async throws -> PlatformPassClaimReceipt {
+        try refuseUnlessPayment(Self.claimPath)
+        let gift = giftToken.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !gift.isEmpty, !requestID.isEmpty else { throw APIError.invalidRequest }
+        let object = try await postJSON(Self.claimPath, token: token, body: ["token": gift, "requestId": requestID])
+        guard let row = PlatformPassJSON.dictionary(PlatformPassJSON.dataValue(object)) else { throw APIError.malformedResponse }
+        return PlatformPassClaimReceipt(registrationID: PlatformPassJSON.text(row["registrationId"]))
     }
 
-    /// Cash pay for a marketing product order (`market/pass` `_payCash`).
-    /// The page sends no `data` key. Compiled, never sends. `moneyEnabled` stays false.
-    public func payProductOrder(orderNo: String, token: String) throws -> Never {
-        _ = (orderNo, token, Self.moneyEnabled, Self.writesReachable, Self.productOrderPayPath)
-        throw PlatformPassWriteRefusal.unreachable
+    /// POST `api/marketing/product/orders/{orderNo}/pay` (`market/pass` `_payCash`).
+    /// The page sends no `data` key; the JSON body is `{}`. No provider field is added.
+    public func payProductOrder(orderNo: String, token: String) async throws -> PlatformPassPayReceipt {
+        try refuseUnlessPayment(Self.productOrderPayPath)
+        guard PlatformPassSubscriptionOrder.orderNoAllowed(orderNo) else { throw APIError.invalidRequest }
+        let object = try await postJSON("api/marketing/product/orders/\(orderNo)/pay", token: token, body: [:])
+        guard PlatformPassJSON.dictionary(PlatformPassJSON.dataValue(object)) != nil else { throw APIError.malformedResponse }
+        return PlatformPassPayReceipt(orderNo: orderNo)
     }
 
-    /// Virtual-payment pay for a platform-pass order. Field `jsCode`. Compiled, never sends.
-    /// `moneyEnabled` stays false.
-    public func payPassOrder(orderNo: String, jsCode: String, token: String) throws -> Never {
-        _ = (orderNo, jsCode, token, Self.moneyEnabled, Self.writesReachable, Self.passOrderPayPath)
-        throw PlatformPassWriteRefusal.unreachable
+    /// POST `api/platform-pass/orders/{orderNo}/pay`. Body is `{jsCode}` or `{}` when `jsCode` is empty.
+    /// The code is the one the caller already holds. This method does not choose a provider.
+    public func payPassOrder(orderNo: String, jsCode: String, token: String) async throws -> PlatformPassPayReceipt {
+        try refuseUnlessPayment(Self.passOrderPayPath)
+        guard PlatformPassSubscriptionOrder.orderNoAllowed(orderNo) else { throw APIError.invalidRequest }
+        let body: [String: Any] = jsCode.isEmpty ? [:] : ["jsCode": jsCode]
+        let object = try await postJSON("api/platform-pass/orders/\(orderNo)/pay", token: token, body: body)
+        guard PlatformPassJSON.dictionary(PlatformPassJSON.dataValue(object)) != nil else { throw APIError.malformedResponse }
+        return PlatformPassPayReceipt(orderNo: orderNo)
     }
 
     /// `POST api/platform-pass/orders/{orderNo}/cancel` (`market/pass-order` `onCancelOrder`).
@@ -330,6 +362,41 @@ public struct PlatformPass: @unchecked Sendable {
         }
     }
 
+    /// A missing host leaves `paymentEnabled` false. Virtual-goods paths stay refused even if payment is on.
+    private func refuseUnlessPayment(_ path: String) throws {
+        guard let host = configuration.baseURL.host, !host.isEmpty else { throw PlatformPassWriteRefusal.unreachable }
+        guard ReleaseMoneyWriteSwitch.paymentEnabled else { throw PlatformPassWriteRefusal.unreachable }
+        if ReleaseMoneyWriteSwitch.kind(for: path) == .virtualGoods { throw PlatformPassWriteRefusal.unreachable }
+    }
+
+    private static func productID(_ raw: String) throws -> Int {
+        guard let id = Int(raw), id > 0, String(id) == raw else { throw APIError.invalidRequest }
+        return id
+    }
+
+    private static func requireFulfillment(_ kind: Int) throws {
+        guard kind == 1 || kind == 2 else { throw APIError.invalidRequest }
+    }
+
+    private func postJSON(_ path: String, token: String, body: [String: Any]) async throws -> [String: Any] {
+        guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
+        var request = URLRequest(url: try url(path, query: []))
+        request.httpMethod = "POST"
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.timeoutInterval = 20
+        request.httpShouldHandleCookies = false
+        request.setValue(token, forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [.sortedKeys])
+        let (bytes, status) = try await transport.send(request)
+        if status == 401 { throw APIError.unauthorized }
+        guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
+        let object = try PlatformPassJSON.object(bytes)
+        guard PlatformPassJSON.isBizOK(object) else { throw APIError.businessCode(PlatformPassJSON.code(object["code"]) ?? -1) }
+        return object
+    }
+
     private func sendOrderWrite(_ kind: OrderWriteKind, request: () throws -> URLRequest) async throws -> PlatformPassSubscriptionOrder {
         guard Self.orderWriteEnabled(kind) else { throw PlatformPassWriteRefusal.unreachable }
         let built = try request()
@@ -407,6 +474,50 @@ public struct PlatformPass: @unchecked Sendable {
 
 public enum PlatformPassWriteRefusal: Error, Equatable, Sendable {
     case unreachable
+}
+
+/// Marketing quote (`market/pass` `quote`). Amounts stay on the server; the caller does not invent a pay mode.
+public struct PlatformPassQuote: Equatable, Sendable {
+    public let productID: String
+    public let quantity: Int
+    public let fulfillmentKind: Int
+    public let quoteSign: String?
+    public let quoteExpiresAt: Int?
+    public let availablePayModes: [Int]
+
+    public init(productID: String, quantity: Int, fulfillmentKind: Int, quoteSign: String?, quoteExpiresAt: Int?, availablePayModes: [Int]) {
+        self.productID = productID
+        self.quantity = quantity
+        self.fulfillmentKind = fulfillmentKind
+        self.quoteSign = quoteSign
+        self.quoteExpiresAt = quoteExpiresAt
+        self.availablePayModes = availablePayModes
+    }
+
+    static func decode(_ row: [String: Any], productID: String, fulfillmentKind: Int) -> PlatformPassQuote {
+        let modes = PlatformPassJSON.rows(row["availablePayModes"])?.compactMap(PlatformPassJSON.int) ?? []
+        return PlatformPassQuote(
+            productID: PlatformPassJSON.text(row["productId"]) ?? productID,
+            quantity: PlatformPassJSON.int(row["quantity"]) ?? 1,
+            fulfillmentKind: PlatformPassJSON.int(row["fulfillmentKind"]) ?? fulfillmentKind,
+            quoteSign: PlatformPassJSON.text(row["quoteSign"]),
+            quoteExpiresAt: PlatformPassJSON.int(row["quoteExpiresAt"]),
+            availablePayModes: modes)
+    }
+}
+
+/// Pay reply. The server `data` object is accepted and not read for a provider.
+public struct PlatformPassPayReceipt: Equatable, Sendable {
+    public let orderNo: String
+
+    public init(orderNo: String) { self.orderNo = orderNo }
+}
+
+/// Gift claim reply. `registrationId` opens the order page when the server sends one.
+public struct PlatformPassClaimReceipt: Equatable, Sendable {
+    public let registrationID: String?
+
+    public init(registrationID: String?) { self.registrationID = registrationID }
 }
 
 public struct PlatformPassPlan: Equatable, Sendable {

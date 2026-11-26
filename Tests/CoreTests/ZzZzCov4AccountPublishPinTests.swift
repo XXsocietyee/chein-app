@@ -181,7 +181,7 @@ final class ZzZzCov4AccountPublishPinTests: XCTestCase {
 
     /// Quote, registration create, pay, refund execution, payout, withdrawal,
     /// paid orders, and pricing confirm send nothing.
-    func testQuoteCreatePayRefundPayoutWithdrawalAndPricingConfirmSendNothing() throws {
+    func testQuoteCreatePayRefundPayoutWithdrawalAndPricingConfirmSendNothing() async throws {
         ReleaseMoneyWriteSwitch.testDerivation = nil
         XCTAssertFalse(ReleaseMoneyWriteSwitch.paymentEnabled)
         XCTAssertFalse(ReleaseMoneyWriteSwitch.payoutEnabled)
@@ -211,10 +211,16 @@ final class ZzZzCov4AccountPublishPinTests: XCTestCase {
         }
         let transport = Cov4AccountPublishPinTransport()
         let pass = PlatformPass(configuration: try APIConfiguration(baseURL: base), transport: transport)
-        XCTAssertThrowsError(try pass.quote(productID: "9", token: "synthetic")) { error in
+        do {
+            _ = try await pass.quote(productID: "9", token: "synthetic")
+            XCTFail("quote")
+        } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
-        XCTAssertThrowsError(try pass.payPassOrder(orderNo: "NO1", jsCode: "code", token: "synthetic")) { error in
+        do {
+            _ = try await pass.payPassOrder(orderNo: "NO1", jsCode: "code", token: "synthetic")
+            XCTFail("pay")
+        } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
         XCTAssertThrowsError(try pass.refundApplyPassOrder(orderNo: "NO1", reason: "不想要了", token: "synthetic")) { error in
