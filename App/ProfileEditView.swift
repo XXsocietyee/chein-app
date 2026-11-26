@@ -587,6 +587,13 @@ final class ProfileEditModel: ObservableObject {
 
 /// Parent passes its live session revision and retains the coordinator outside navigation.
 struct ProfileEditView: View {
+    /// r11 A3-10: MP gerenziliao.wxml:36-38 更换背景 sits under the name in the first block. Hosts that know the local cover
+    /// owner (AccountView) pass it with `localCover(owner:reader:)`; others keep the page without it.
+    private(set) var localCoverOwner: ProfileLocalCoverOwner? = nil
+    private(set) var localCoverReader: (any SocialAccountReading)? = nil
+    func localCover(owner: ProfileLocalCoverOwner?, reader: any SocialAccountReading) -> Self {
+        var copy = self; copy.localCoverOwner = owner; copy.localCoverReader = reader; return copy
+    }
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
     @StateObject private var model: ProfileEditModel
@@ -644,6 +651,9 @@ struct ProfileEditView: View {
                 if model.coordinator.snapshot != nil {
                     // Mini-program pages/gerenziliao order: avatar, nickname, phone, city signature, works, contact QR, route preferences.
                     ProfileCurrentAvatarView(model: model, reader: savedMedia?.avatar)
+                    if let localCoverReader {
+                        ProfileLocalCoverSection(owner: localCoverOwner, reader: localCoverReader)
+                    }
                     ProfileAvatarDraftSection(model: model, dependencies: avatarDependencies)
                     ProfileCurrentReviewNotice(model: model, reader: currentReviewReader, owner: currentReviewNotice)
                     // Mini-program order (gerenziliao @1c80c5a): [昵称, 个人介绍], then 手机号 in its own group.
