@@ -106,10 +106,12 @@ import UIKit
         local.end = Date(timeIntervalSinceReferenceDate: .infinity)
         XCTAssertFalse(h.apply(local, p)); XCTAssertEqual(h.assignments, 0)
     }
-    func testTicketRangeIsNotAutomaticallyChangedOrMadeValid() throws {
+    /// 45f2b0991 (MP parity): the draft's ticket rows are not rewritten locally, but submit sends every ticket
+    /// window as the activity span, so moving the activity start keeps the draft valid.
+    func testTicketWindowFollowsActivitySpan() throws {
         let h = Harness(); let p = try h.mounted(); var local = p.draft; let tickets = h.draft.tickets
         local.start += 3600; XCTAssertTrue(h.apply(local, p)); XCTAssertEqual(h.draft.tickets, tickets)
-        XCTAssertThrowsError(try h.draft.wire()) { XCTAssertEqual($0 as? PublishModesError, .invalidDraft) }
+        XCTAssertNoThrow(try h.draft.wire())
     }
     func testCurrentBindingReadsCapturedIDAndNilDismissesOnlyIt() throws {
         let h = Harness(); let p = try h.mounted(); let b = h.owner.binding(p, timeZoneID: { h.zone })

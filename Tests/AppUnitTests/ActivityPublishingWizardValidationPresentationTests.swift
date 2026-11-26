@@ -100,12 +100,9 @@ final class ActivityPublishingWizardValidationPresentationTests: XCTestCase {
             (2, "ticketName1", { $0.tickets[1].name = "" }),
             (2, "ticketPrice1", { $0.tickets[1].price = "-1" }),
             (2, "ticketPrice1", { $0.tickets[1].price = "invalid" }),
-            (2, "ticketStock1", { $0.tickets[1].stock = "0" }),
-            (2, "ticketStart1", { $0.tickets[1].start = "invalid" }),
-            (2, "ticketEnd1", { $0.tickets[1].end = "invalid" }),
-            (2, "ticketEnd1", { $0.tickets[1].end = $0.tickets[1].start }),
-            (2, "ticketEnd1", { $0.tickets[1].start = "2030-01-01 08:59" }),
-            (2, "ticketEnd1", { $0.tickets[1].end = "2030-01-01 18:01" })
+            (2, "ticketStock1", { $0.tickets[1].stock = "0" })
+            // 45f2b0991 (MP parity): submit overwrites each ticket window with the activity span, so ticket
+            // start/end no longer block; see ActivityPublishingTimeRangeTests.testTicketWindowFollowsActivitySpan.
         ]
         for (step, expected, change) in cases {
             var draft = readyDraft(); change(&draft)

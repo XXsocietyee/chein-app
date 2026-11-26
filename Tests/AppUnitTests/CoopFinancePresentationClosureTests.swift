@@ -47,7 +47,7 @@ import UIKit
         XCTAssertTrue(ui.contains("if profit.canWithdraw, loadedSession == reader.session { showsSupport = true }"))
         // ui/h-popups-merchant presents the same contact view as a merchant-domain design-system sheet; nothing else is in the sheet.
         XCTAssertTrue(ui.contains("""
-        .sheet(isPresented: $showsSupport) {
+        .cySheet(isPresented: $showsSupport) {
             WithdrawalSupportContactView()
                 .cyDomainSheet(detents: [.half, .full])
                 .themeDomain(.merchant)
