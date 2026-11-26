@@ -112,6 +112,15 @@ Work in the worktree `/Users/fanning/orca/workspaces/native-ios/DES-ag6` on `ui/
 - Cursor: silent since 03:39 UTC; batch re-posted with the new base (gate, ci/acceptance FF + CHECK, acceptance-player, testflight-prep, native unit tests, money source).
 - Gemini terminals term_ba0b…/term_1788… are stale handles (worker channel is cloud now).
 
+
+### Check 11-26 07:45 UTC
+- Tip `ui/combined-r7` = **04f76b02f** (build SUCCEEDED): all 6 native flows merged (owner approved the design 06:35), release gate (Lane G), acceptance-a2, testflight-prep, fix/r9-club-a. CHECK queued on it.
+- Flow merge notes: `NativeR2Flags` keeps the `isEnabled` helper; freeExplore/storyFlow/games flags re-added there; PlayExperienceView story sections live at the top of `orientationSections(native:)`.
+- Gate merge: 承接审核 in the club topic 更多 sheet is also gated by `PlayerLaunch.merchantCenterEnabled`.
+- Waiting: claude/acceptance-a1 (running, conflicts in template contract tests), R3 routines for fix/r9-member, -account-publish, -player-content (07:27, merge tip + r10 queues).
+- Owner 06:35: money on, design approved, owner signs TestFlight. 06:40: Claude does all Cursor lanes.
+- Disk: cleaned 11-26 07:00 (17 GB free). Keep >5 GB.
+
 ## 8. Plan to complete the entire app
 
 The finish line: every MP feature works in the app the way it does in the MP (non-money parity 100% in all 6 areas), acceptance is green, and an internal TestFlight build is out. Money stays TEST-only until the owner says "money on". The phases overlap; a later phase starts as soon as its input exists.
