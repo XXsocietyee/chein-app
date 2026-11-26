@@ -71,6 +71,9 @@ Search: Settings search has no merchant rows. Global search keeps its 商家 tab
   **any App/ file that opens a merchant/coop screen or names a hidden page and is not classified fails**; the Swift
   test pins the same set as the route table; no money switch is gated.
 
+Full Python contract suite (820 files, `python3 -m unittest` per file) on this branch vs. `origin/ui/combined-r7`:
+identical failure set (224 pre-existing FAIL/ERROR lines on both), so no regressions; the new file passes.
+
 Not run here: Swift compile and the Swift test (no compiler in the cloud). `python3 tools/check_scaffold.py` PASS.
 
 ## Hidden pages (route table, Release)
