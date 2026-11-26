@@ -323652,6 +323652,23 @@
           }
         }
       }
+    },
+    "ticketWallet.appleWallet.added": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Added to Apple Wallet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已添加到 Apple 钱包"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
