@@ -45,7 +45,7 @@ class RemainingNativeClients(unittest.TestCase):
  def test_wechat_shared_commit_preserves_existing_sync(self):
   s=read('App/AppSession.swift'); body=s.split('private func commitChannelLogin',1)[1].split('// Official writes',1)[0]
   for text in ['vault.write(result.token)','gate.invalidate()','synchronizeRegistration()','clubGovernanceCoordinator.cancelReview()','merchantOnboardingCoordinator.synchronizeSession()']:self.assertIn(text,body)
-  self.assertIn('session.weChatAuth.cancel(); password="";showsOtherSignIn=true',read('App/LoginView.swift'))
+  self.assertIn('session.weChatAuth.cancel(); password=""; path.append(.phone)',read('App/LoginView.swift'))
  def test_fragment_catalogs_equal_default_table(self):
   main=json.loads(read('Resources/Localizable.xcstrings'))['strings']
   for name in ['MerchantNPC','RetainedImages','WeChatAppAuth']:

@@ -4,11 +4,10 @@ struct LoginView: View {
     let intent: RegistrationIntent
     @EnvironmentObject private var session: AppSession
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @State private var username = ""
     @State private var password = ""
-    @State private var showsOtherSignIn=false
     @State private var consentGranted = UsageConsentEnvironment.policy.granted
-    @State private var legalDocument: AuthEntryLegalSheet?
     @FocusState private var focusedField: Field?
     private enum Field { case username, password }
 
@@ -37,10 +36,21 @@ struct LoginView: View {
 #endif
         return session.isWorking
     }
-    @State private var rootLegal: AuthEntryLegalSheet?
+    /// L1 P-005: one sheet. The phone page and the legal documents push inside this stack instead of stacking sheets.
+    @State private var path: [LoginRoute] = []
+    /// The phone page is on the stack (kept as a name so the integrated-login diagnostics read the same).
+    private var showsOtherSignIn: Bool { path.contains(.phone) }
 
     var body: some View {
-        NavigationStack {
+        // The sign-in sheet owns one `AuthChannelModel`: Sign in with Apple on the first screen and the pushed phone
+        // page share it, so a push never restarts or cancels a running authorization.
+        LoginAuthChannelHost(coordinator: session.authChannels) { model in
+            stack(model)
+        }
+    }
+
+    private func stack(_ model: AuthChannelModel) -> some View {
+        NavigationStack(path: $path) {
             // Native r2: a grouped Form (Settings / Apple ID sign-in style). The brand header is the first section.
             Form {
                 Section {
@@ -55,6 +65,45 @@ struct LoginView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
+                }
+                if !consentGranted {
+                    // Asked here only when the launch agreement was declined (P-008: consent is asked once).
+                    UsageConsentSignInRequirement(market: session.operationalMarket, granted: $consentGranted)
+                }
+                // L1 P-006: Sign in with Apple is on the first screen, Apple's own button.
+                if consentGranted && model.coordinator.appleConfigurationVerified {
+                    Section {
+                        appleButton(model)
+                            .listRowInsets(EdgeInsets())
+                            .listRowBackground(Color.clear)
+                    } footer: {
+                        if let key = model.state.issue?.localizationKey, !showsOtherSignIn {
+                            Label { Text(LocalizedStringKey(key)) } icon: {
+                                Image(systemName: model.state.issue == .appleIncomplete ? "info.circle" : "exclamationmark.circle.fill")
+                            }
+                            .foregroundStyle(model.state.issue == .appleIncomplete ? Color.secondary : Color.red)
+                            .accessibilityIdentifier("auth.channels.error")
+                        }
+                    }
+                }
+                Section {
+                    Button {
+                        session.weChatAuth.cancel(); password=""; path.append(.phone)
+#if DEBUG
+                        recordIntegratedLoginPhase("other_action")
+#endif
+                    } label: {
+                        Label(LocalizedStringKey(session.operationalMarket == .china ? "auth.channels.phoneTitle" : "auth.channels.title"), systemImage: "iphone")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .modifier(LoginOtherChannelsStyle(prominent: !showsPasswordForm && !model.coordinator.appleConfigurationVerified))
+                    .disabled(working || !consentGranted)
+                    .accessibilityIdentifier("auth.otherChannels")
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                }
+                if session.operationalMarket == .china && consentGranted {
+                    WeChatAppAuthSection(coordinator: session.weChatAuth, context: session.authChannelSnapshot)
                 }
                 if showsPasswordForm {
                     Section {
@@ -106,75 +155,86 @@ struct LoginView: View {
                     }
                 }
                 SessionRestorationRetrySection(session: session)
-                if !consentGranted {
-                    UsageConsentSignInRequirement(market: session.operationalMarket, granted: $consentGranted)
-                }
-                if session.operationalMarket == .china && consentGranted {
-                    WeChatAppAuthSection(coordinator: session.weChatAuth, context: session.authChannelSnapshot)
-                }
+                // P-009: the legal note scrolls with the form (no pinned bar to overlap at accessibility sizes).
+                // P-008: the "by signing in you agree" sentence only while the agreement is not yet on record.
+                Section {} footer: { legalFooter }
             }
             .scrollDismissesKeyboard(.interactively)
-            .safeAreaInset(edge: .bottom) {
-                VStack(spacing: 8) {
-                    Button { session.weChatAuth.cancel(); password="";showsOtherSignIn=true
-#if DEBUG
-                        recordIntegratedLoginPhase("other_action")
-#endif
-                    } label: {
-                        Label(LocalizedStringKey(session.operationalMarket == .china ? "auth.channels.phoneTitle" : "auth.channels.title"), systemImage: "iphone")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .modifier(LoginOtherChannelsStyle(prominent: !showsPasswordForm))
-                    .disabled(working || !consentGranted)
-                    .accessibilityIdentifier("auth.otherChannels")
-                    VStack(spacing: 0) {
-                        Text("auth.channels.legalConsent").font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
-                        HStack(spacing: 16) {
-                            Button("auth.channels.userAgreement") { rootLegal = AuthEntryLegalSheet(type: .userAgreement) }
-                            Button("auth.channels.privacyPolicy") { rootLegal = AuthEntryLegalSheet(type: .privacyPolicy) }
-                        }
-                        .buttonStyle(.borderless)
-                        .font(.footnote.weight(.semibold)).frame(minHeight: 44)
-                    }
-                }
-                .padding(.horizontal).padding(.top, 12)
-                .background(.bar)
-            }
 #if DEBUG
             .onAppear { if let o = designOverride, username.isEmpty, !o.username.isEmpty { username = o.username; password = "design-stub" } }
 #endif
-            .cySheet(item: $rootLegal) { sheet in legalNavigation(sheet) { rootLegal = nil } }
+            .navigationDestination(for: LoginRoute.self) { route in
+                switch route {
+                case .phone:
+                    AuthChannelView(embeddedModel: model, sessionSnapshot: session.authChannelSnapshot,
+                                    domesticPhoneVisible: session.supportsDomesticPhoneInput)
+#if DEBUG
+                        .onAppear { recordIntegratedLoginPhase("channels_appear") }
+                        .onDisappear { recordIntegratedLoginPhase("channels_disappear") }
+#endif
+                case .legal(let type):
+                    legalDocument(type)
+                }
+            }
             .themeDomain(.player)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement:.confirmationAction) { LanguageSwitcher() }
                 ToolbarItem(placement:.cancellationAction) {
                     Button("action.close") {
-                        session.cancelPendingLogin();password="";dismiss()
+                        session.cancelPendingLogin(); model.clear(); password=""; dismiss()
                     }
                     .accessibilityIdentifier("auth.close")
                 }
             }
-            .cySheet(isPresented:$showsOtherSignIn) {
-                AuthChannelView(coordinator:session.authChannels,sessionSnapshot:session.authChannelSnapshot,domesticPhoneVisible:session.supportsDomesticPhoneInput,
-                                onOpenAgreement: { legalDocument = AuthEntryLegalSheet(type: .userAgreement) },
-                                onOpenPrivacy: { legalDocument = AuthEntryLegalSheet(type: .privacyPolicy) })
-                    .cySheet(item: $legalDocument) { sheet in legalNavigation(sheet) { legalDocument = nil } }
-                    .presentationDetents([.medium, .large])
-                    .presentationDragIndicator(.visible)
+        }
 #if DEBUG
-                    .onAppear { recordIntegratedLoginPhase("channels_appear") }
-                    .onDisappear { recordIntegratedLoginPhase("channels_disappear") }
+        .onChange(of: showsOtherSignIn) { _, value in recordIntegratedLoginPhase(value ? "presentation_true" : "presentation_false") }
 #endif
+        .interactiveDismissDisabled(session.isWorking)
+        .onChange(of:session.account?.id) { _,newID in if newID != nil { password=""; model.clear(); dismiss() } }
+        .onDisappear { password=""; model.clear(); session.weChatAuth.cancel() }
+    }
+
+    private func appleButton(_ model: AuthChannelModel) -> some View {
+        VStack(spacing: 8) {
+            AuthChannelAppleButton(model: model)
+                .id(colorScheme)
+                .frame(minHeight: 50)
+                .accessibilityIdentifier("auth.channels.appleSignIn")
+            if model.state.work == .appleAuthorization || model.state.work == .appleExchange {
+                ProgressView("auth.channels.appleWorking")
             }
-#if DEBUG
-            .onChange(of: showsOtherSignIn) { _, value in recordIntegratedLoginPhase(value ? "presentation_true" : "presentation_false") }
-#endif
-            .interactiveDismissDisabled(session.isWorking)
-            .onChange(of:session.account?.id) { _,newID in if newID != nil { password="";dismiss() } }
-            .onDisappear { password=""; session.weChatAuth.cancel() }
         }
     }
+
+    @ViewBuilder private var legalFooter: some View {
+        VStack(spacing: 4) {
+            if !consentGranted {
+                Text("auth.channels.legalConsent").multilineTextAlignment(.center)
+            }
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 16) { agreementLink; privacyLink }
+                VStack(spacing: 4) { agreementLink; privacyLink }
+            }
+            .buttonStyle(.borderless)
+            .font(.footnote.weight(.semibold))
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var agreementLink: some View {
+        Button("auth.channels.userAgreement") { path.append(.legal(.userAgreement)) }
+            .frame(minHeight: 44)
+            .accessibilityIdentifier("auth.legal.agreement")
+    }
+
+    private var privacyLink: some View {
+        Button("auth.channels.privacyPolicy") { path.append(.legal(.privacyPolicy)) }
+            .frame(minHeight: 44)
+            .accessibilityIdentifier("auth.legal.privacy")
+    }
+
 #if DEBUG
     private func recordIntegratedLoginPhase(_ phase: String) {
         let args = ProcessInfo.processInfo.arguments
@@ -185,16 +245,10 @@ struct LoginView: View {
         print("INTEGRATED_LOGIN_FIXTURE phase=" + phase)
     }
 #endif
-    private func legalNavigation(_ sheet: AuthEntryLegalSheet, close: @escaping () -> Void) -> some View {
-        NavigationStack {
-            Group {
-                if sheet.type == .privacyPolicy { PrivacyProtectionView(market: session.operationalMarket, legalReader: session.legalReader) }
-                else { SettingsLegalDocumentView(type: sheet.type, market: session.operationalMarket, reader: session.legalReader) }
-            }
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: close) } }
-        }
-        .presentationDetents([.large])
-        .presentationDragIndicator(.visible)
+    /// A legal document pushed inside the sign-in sheet (it used to be a third stacked sheet).
+    @ViewBuilder private func legalDocument(_ type: SettingsLegalType) -> some View {
+        if type == .privacyPolicy { PrivacyProtectionView(market: session.operationalMarket, legalReader: session.legalReader) }
+        else { SettingsLegalDocumentView(type: type, market: session.operationalMarket, reader: session.legalReader) }
     }
     /// Brand mark and wordmark. Both source files are near-black, so they template to the primary text colour.
     private var brandMark: some View {
@@ -235,4 +289,24 @@ private struct LoginOtherChannelsStyle: ViewModifier {
             content.buttonStyle(.bordered).controlSize(.large)
         }
     }
+}
+
+/// Where the sign-in sheet's navigation stack can go.
+private enum LoginRoute: Hashable {
+    case phone
+    case legal(SettingsLegalType)
+}
+
+/// Owns the sign-in sheet's one `AuthChannelModel` for the sheet's lifetime and redraws on its changes.
+@MainActor
+private struct LoginAuthChannelHost<Content: View>: View {
+    @StateObject private var model: AuthChannelModel
+    private let content: @MainActor (AuthChannelModel) -> Content
+
+    init(coordinator: AuthChannelCoordinator, @ViewBuilder content: @escaping @MainActor (AuthChannelModel) -> Content) {
+        _model = StateObject(wrappedValue: AuthChannelModel(coordinator: coordinator))
+        self.content = content
+    }
+
+    var body: some View { content(model) }
 }

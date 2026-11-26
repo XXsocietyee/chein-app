@@ -1,8 +1,10 @@
 import SwiftUI
 
-/// Standalone native sheet. The caller owns the coordinator/session bridge and legal
-/// document navigation. Missing legal release content is visible, never a hidden code
-/// switch that disables all phone functionality. No live endpoint is provided here.
+/// Phone sign-in. Standalone it is its own sheet with a close button. L1 P-005: `LoginView` pushes the embedded
+/// variant inside its one sheet and shares its `AuthChannelModel`, so Sign in with Apple (on the first screen) and
+/// the phone form are one presentation; the embedded page shows no second Apple button and no second legal note.
+/// Missing legal release content is visible, never a hidden code switch that disables all phone functionality.
+/// No live endpoint is provided here.
 @MainActor
 struct AuthChannelView: View {
     @StateObject private var model: AuthChannelModel
@@ -13,6 +15,7 @@ struct AuthChannelView: View {
     private let onOpenPrivacy: (() -> Void)?
     private let legalReleaseContentVerified: Bool
     private let domesticPhoneVisible:Bool
+    private let embedded: Bool
 
     init(coordinator: AuthChannelCoordinator, sessionSnapshot: AuthChannelSessionSnapshot,
          domesticPhoneVisible:Bool=true, legalReleaseContentVerified: Bool = false,
@@ -22,47 +25,73 @@ struct AuthChannelView: View {
         self.domesticPhoneVisible=domesticPhoneVisible
         self.legalReleaseContentVerified = legalReleaseContentVerified
         self.onOpenAgreement = onOpenAgreement; self.onOpenPrivacy = onOpenPrivacy
+        embedded = false
     }
+
+    /// Pushed inside the sign-in sheet's navigation stack; the sheet owns `model` and clears it when it closes.
+    init(embeddedModel: AuthChannelModel, sessionSnapshot: AuthChannelSessionSnapshot, domesticPhoneVisible: Bool = true) {
+        _model = StateObject(wrappedValue: embeddedModel)
+        self.sessionSnapshot = sessionSnapshot
+        self.domesticPhoneVisible = domesticPhoneVisible
+        legalReleaseContentVerified = false
+        onOpenAgreement = nil; onOpenPrivacy = nil
+        embedded = true
+    }
+
     var body: some View {
-        NavigationStack {
-            PhoneSignInForm(
-                phone: $model.phone, code: $model.code,
-                phoneEnabled: domesticPhoneVisible, locked: model.state.isWorking,
-                smsSent: model.state.smsSent,
-                issueKey: model.state.issue?.localizationKey,
-                issueIsSoft: model.state.issue == .appleIncomplete,
-                requiresAppUpdate: model.state.requiresAppUpdate && model.state.issue != .upgradeRequired,
-                cooldown: model.coordinator.smsCooldownRemaining,
-                isSending: model.state.work == .sendingSMS, isSigningIn: model.state.work == .phoneLogin,
-                canStart: model.canStart, hasSentBefore: model.state.nextSMSAllowedAt != nil,
-                notConfigured: !model.coordinator.isConfigured, showsApple: model.coordinator.appleConfigurationVerified,
-                signedIn: model.state.signedIn,
-                onSend: { model.sendCode() }, onSignIn: { model.signIn() },
-                onAgreement: onOpenAgreement, onPrivacy: onOpenPrivacy
-            ) {
-                VStack(spacing: 8) {
-                    AuthChannelAppleButton(model: model)
-                        .id(colorScheme)
-                        .frame(minHeight: 50)
-                        .accessibilityIdentifier("auth.channels.appleSignIn")
-                    if model.state.work == .appleAuthorization || model.state.work == .appleExchange {
-                        ProgressView("auth.channels.appleWorking")
+        if embedded {
+            form
+        } else {
+            NavigationStack {
+                form
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("action.close") { model.clear(); dismiss() }
+                        }
                     }
-                }
+                    .onDisappear { model.clear() }
             }
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("action.close") { model.clear(); dismiss() }
-                }
-            }
-            .onChange(of: model.phone) { _, _ in model.phoneChanged() }
-            .onChange(of: model.state.signedIn) { _, signedIn in
-                if signedIn { model.clear(); dismiss() }
-            }
-            .onChange(of: sessionSnapshot) { _, _ in model.clear(); dismiss() }
-            .onDisappear { model.clear() }
+            .cyDomainScreen(.player)
         }
-        .cyDomainScreen(.player)
+    }
+
+    private var form: some View {
+        PhoneSignInForm(
+            phone: $model.phone, code: $model.code,
+            phoneEnabled: domesticPhoneVisible, locked: model.state.isWorking,
+            smsSent: model.state.smsSent,
+            issueKey: model.state.issue?.localizationKey,
+            issueIsSoft: model.state.issue == .appleIncomplete,
+            requiresAppUpdate: model.state.requiresAppUpdate && model.state.issue != .upgradeRequired,
+            cooldown: model.coordinator.smsCooldownRemaining,
+            isSending: model.state.work == .sendingSMS, isSigningIn: model.state.work == .phoneLogin,
+            canStart: model.canStart, hasSentBefore: model.state.nextSMSAllowedAt != nil,
+            notConfigured: !model.coordinator.isConfigured, showsApple: !embedded && model.coordinator.appleConfigurationVerified,
+            signedIn: model.state.signedIn,
+            onSend: { model.sendCode() }, onSignIn: { model.signIn() },
+            onAgreement: onOpenAgreement, onPrivacy: onOpenPrivacy,
+            showsLegalFootnote: !embedded
+        ) {
+            VStack(spacing: 8) {
+                AuthChannelAppleButton(model: model)
+                    .id(colorScheme)
+                    .frame(minHeight: 50)
+                    .accessibilityIdentifier("auth.channels.appleSignIn")
+                if model.state.work == .appleAuthorization || model.state.work == .appleExchange {
+                    ProgressView("auth.channels.appleWorking")
+                }
+            }
+        }
+        .onChange(of: model.phone) { _, _ in model.phoneChanged() }
+        .onChange(of: model.state.signedIn) { _, signedIn in
+            guard signedIn else { return }
+            model.clear()
+            if !embedded { dismiss() }
+        }
+        .onChange(of: sessionSnapshot) { _, _ in
+            model.clear()
+            if !embedded { dismiss() }
+        }
     }
 }
 
@@ -90,6 +119,8 @@ struct PhoneSignInForm<AppleContent: View>: View {
     var onSignIn: () -> Void = {}
     var onAgreement: (() -> Void)? = nil
     var onPrivacy: (() -> Void)? = nil
+    /// False when the page is pushed inside the sign-in sheet, whose first screen already carries the legal note.
+    var showsLegalFootnote = true
     @ViewBuilder var apple: () -> AppleContent
     @FocusState private var focus: Field?
     @State private var shakes = 0
@@ -149,7 +180,9 @@ struct PhoneSignInForm<AppleContent: View>: View {
                     Label("auth.notConfigured", systemImage: "info.circle").foregroundStyle(.secondary)
                 }
             }
-            Section {} footer: { legalFootnote }
+            if showsLegalFootnote {
+                Section {} footer: { legalFootnote }
+            }
         }
         .scrollDismissesKeyboard(.interactively)
         .navigationTitle(Text("auth.channels.phoneTitle"))

@@ -54,7 +54,7 @@ class Pkg19LoginDeletionChain(unittest.TestCase):
         core = src('Core/AuthChannelCoordinator.swift')
         self.assertIn('appleConfigurationVerified: Bool = false', core)
         self.assertIn('guard appleConfigurationVerified else { reject(.appleNotConfigured); return nil }', core)
-        self.assertIn('domesticPhoneVisible:session.supportsDomesticPhoneInput', src('App/LoginView.swift'))
+        self.assertIn('domesticPhoneVisible: session.supportsDomesticPhoneInput', src('App/LoginView.swift'))
         self.assertIn('var supportsDomesticPhoneInput:Bool { operationalMarket == .china }', session)
         for path in ['App', 'Core']:
             for file in (ROOT / path).glob('*.swift'):
