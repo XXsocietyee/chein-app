@@ -8,6 +8,7 @@ import SwiftUI
     let roster: ClubRosterPresentation
     @Binding var selected: ClubRosterBucket
     let correction: () -> Correction
+    @Environment(\.locale) private var locale
     var body: some View {
         Section {
             // MP cy-tabs variant="chip" (wxml:88-89).
@@ -18,6 +19,18 @@ import SwiftUI
             }
             .pickerStyle(.segmented)
             .accessibilityIdentifier("clubOpsEvent.roster.tabs")
+            // CLB-r11-event-ops-01 (MP event-ops wxml:86-87 correctionWindowText): while corrections are closed the
+            // operable window is stated under the tabs, as on the full roster page (ClubRosterBucketContent).
+            if roster.correctionOperable == false {
+                Group {
+                    if let range = ClubOpsEventClock.correctionRange(start: roster.correctionStart, end: roster.correctionEnd, locale: locale) {
+                        Text("clubOpsEvent.roster.window \(range)", tableName: "ClubOpsEvent")
+                    } else { Text("clubOpsEvent.roster.windowGeneric", tableName: "ClubOpsEvent") }
+                }
+                .font(.subheadline)
+                .foregroundStyle(.orange)
+                .accessibilityIdentifier("clubOpsEvent.roster.inlineWindowClosed")
+            }
             let members = roster.members(in: selected)
             if members.isEmpty {
                 // MP wxml:93 这一段暂时没有成员.
