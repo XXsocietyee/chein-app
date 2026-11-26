@@ -90,6 +90,7 @@ struct DiscoveryArtPlaceholder: View {
                 Image(systemName: systemImage)
                     .font(.title3)
                     .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
             }
     }
 }

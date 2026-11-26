@@ -211,6 +211,6 @@ import UIKit
         .background(Color(uiColor: .systemBackground))
         let renderer = ImageRenderer(content: snapshot)
         renderer.scale = displayScale
-        if let image = renderer.uiImage { shareImage = Image(uiImage: image) }
+        if let image = renderer.uiImage, let cg = image.cgImage { shareImage = Image(decorative: cg, scale: image.scale) }
     }
 }

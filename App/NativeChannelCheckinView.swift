@@ -308,5 +308,6 @@ private struct CheckinAvatar: View {
             .resizable()
             .scaledToFit()
             .foregroundStyle(.secondary)
+            .accessibilityHidden(true)
     }
 }
