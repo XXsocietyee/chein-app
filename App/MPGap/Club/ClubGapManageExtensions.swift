@@ -147,17 +147,25 @@ public struct ClubGapMemberAvatarStrip: View {
         public let id: String
         public let name: String
         public let url: URL?
+        /// CLB-r9-detail-01: the member to open; nil or 0 keeps the tap on 查看全部成员.
+        public let memberID: Int?
+        /// MP `buildMemberStrip`: 主理人 for the owner, 管理员 for role 1, else none.
+        public let roleKey: String?
 
-        public init(id: String, name: String, url: URL?) {
+        public init(id: String, name: String, url: URL?, memberID: Int? = nil, roleKey: String? = nil) {
             self.id = id
             self.name = name
             self.url = url
+            self.memberID = memberID
+            self.roleKey = roleKey
         }
     }
 
     public let avatars: [AvatarItem]
     public let totalCount: Int
     public let onTapAll: () -> Void
+    /// CLB-r9-detail-01 (MP detail wxml:266-277 `goMemberProfile`): nil sends every tap to 查看全部成员.
+    public var onTapMember: ((Int) -> Void)? = nil
 
     public init(avatars: [AvatarItem], totalCount: Int, onTapAll: @escaping () -> Void) {
         self.avatars = avatars
@@ -165,34 +173,58 @@ public struct ClubGapMemberAvatarStrip: View {
         self.onTapAll = onTapAll
     }
 
+    /// CLB-r9-detail-01: the per-member tap.
+    public func memberTap(_ action: ((Int) -> Void)?) -> Self {
+        var copy = self
+        copy.onTapMember = action
+        return copy
+    }
+
+    /// MP `buildMemberStrip` (detail js:375-388): four members with name and role under each, then a 「+N」 slot.
     public var body: some View {
-        Button(action: onTapAll) {
-            HStack(spacing: CYSpacing.sm) {
-                ForEach(Array(avatars.prefix(4))) { item in
-                    CYAvatarView(url: item.url, name: item.name, size: .sm)
+        HStack(alignment: .top) {
+            ForEach(Array(avatars.prefix(4))) { item in
+                Button {
+                    if let memberID = item.memberID, memberID > 0, let onTapMember { onTapMember(memberID) } else { onTapAll() }
+                } label: {
+                    VStack {
+                        CYAvatarView(url: item.url, name: item.name, size: .sm)
+                        Text(verbatim: item.name.isEmpty ? "—" : item.name)
+                            .font(.caption)
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                        if let roleKey = item.roleKey {
+                            Text(LocalizedStringKey(roleKey))
+                                .font(.caption)
+                                .foregroundStyle(.tint)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
                 }
-                let overflow = max(0, totalCount - min(avatars.count, 4))
-                if overflow > 0 {
-                    Text(verbatim: "+\(overflow)")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .padding(.horizontal, CYSpacing.sm)
-                        .padding(.vertical, CYSpacing.xs)
-                        .background(Capsule().fill(CYColor.bgSurfaceSubtle))
-                }
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
+                .buttonStyle(.borderless)
+                .accessibilityIdentifier("club.detail.memberStrip.\(item.id)")
             }
-            .contentShape(Rectangle())
+            let overflow = max(0, totalCount - min(avatars.count, 4))
+            if overflow > 0 {
+                Button(action: onTapAll) {
+                    VStack {
+                        Image(systemName: "person.3")
+                            .imageScale(.large)
+                            .foregroundStyle(.secondary)
+                        Text(verbatim: "+\(overflow)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel(Text("club.strip.all \(totalCount)"))
+                .accessibilityIdentifier("club.detail.memberStrip.more")
+            }
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel("查看全部 \(totalCount) 位成员")
     }
 }
 
-/// Mount hook for `ClubDetailView` — `CLB-G06` (俱乐部设置 sheet) & `CLB-G19` (改为转让主理人).
 public struct ClubGapSettingsSheet: View {
     public let clubName: String
     public let canGovern: Bool

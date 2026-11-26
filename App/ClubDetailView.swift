@@ -42,6 +42,8 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     @State private var delegatedRoleCount = 0
     @State private var showsSettings = false
     @State private var groupCodeToast: LocalizedStringKey?
+    /// CLB-r9-detail-01: the member whose public profile the avatar strip opened.
+    @State private var stripProfileMemberID: Int?
     @Environment(\.clubBadgeHostFactory) private var badgeHost
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
@@ -265,6 +267,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                         // CLB-G08 (MP wxml:265-280): four member avatars and +N above 查看全部成员.
                         if club.canSeeMembers, !r8Mounts.memberAvatars.isEmpty {
                             ClubGapMemberAvatarStrip(avatars: r8Mounts.memberAvatars, totalCount: r8Mounts.memberTotal) { showsMembers = true }
+                                .memberTap(stripProfileAction)
                                 .frame(minHeight: CYSpacing.minTouchTarget)
                                 .accessibilityIdentifier("club.detail.memberStrip")
                         }
@@ -468,6 +471,12 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     }
             }
             .cyToast(message: $groupCodeToast)
+            .navigationDestination(item: $stripProfileMemberID) { memberID in
+                if let profile = management?.governance?.enrollmentProfile {
+                    SocialPublicProfileView(memberID: memberID, reader: profile.reader, squareReader: profile.squareReader,
+                                            actions: profile.actions, isCurrent: { stripProfileMemberID == memberID })
+                }
+            }
             .navigationDestination(item: $r8Route) { route in
                 ClubDetailR8Destination(route: route, club: club, identity: reader.clubIdentity,
                                         session: reader as? AppSession, management: management)
@@ -550,6 +559,13 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
         return (raw == ClubDetailPageModel.unknownMark ? raw : (Int(raw).map { ClubMemberCountLocalization.text($0, locale: locale) } ?? raw), raw, ready.showsChannels, ready)
     }
 
+    /// CLB-r9-detail-01 (MP `goMemberProfile` js:2529-2534): a strip avatar opens that member's public profile when the
+    /// profile reader belongs to this viewer; otherwise the tap stays on 查看全部成员.
+    private var stripProfileAction: ((Int) -> Void)? {
+        guard reader.clubIdentity.isSignedIn, let profile = management?.governance?.enrollmentProfile,
+              profile.reader.isConfigured, profile.reader.identity.accountID == reader.clubIdentity.accountID else { return nil }
+        return { stripProfileMemberID = $0 }
+    }
     /// CLB-G06: the 设置 quick action (typed, not a ternary inside the body).
     private var openSettingsAction: (() -> Void)? {
         guard management?.operations != nil else { return nil }
