@@ -364,7 +364,7 @@ class C11OpsSupportProjectionContracts(unittest.TestCase):
     def test_profile_orders_page_looks_up_the_opened_order(self):
         page = (ROOT / ORDER_PAGE).read_text()
         landing = (ROOT / "App/WithdrawalSupportLandingView.swift").read_text()
-        for token in ["struct ProfileOrdersView", "ForEach(visible)", "ProfileOrderRow(order: order",
+        for token in ["struct ProfileOrdersView", "ForEach(matches)", "ProfileOrderRow(order: order",
                       "struct ProfileOrderDetailView", "var orderLocator: SupportEventLocator?",
                       ".task(id: id) {", "guard readBackForID != id",
                       "readBackForID = id", "openedOrderID = nil",

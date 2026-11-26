@@ -40,7 +40,9 @@ class ProfileOrderFilterChecks(unittest.TestCase):
         block=self.app.split('TimelineView(')[1].split('.appNavigationTitle("profile.orders.title")')[0]
         self.assertNotIn('await ',block);self.assertNotIn('Task {',block)
     def test_visible_links_keep_original_ids(self):
-        self.assertIn('ForEach(visible) { order in',self.app)
+        # G-052: local search narrows the filtered rows; original ids still open the detail.
+        self.assertIn('let matches = ProfileOrderSearch.matches(visible, query: orderQuery)',self.app)
+        self.assertIn('ForEach(matches) { order in',self.app)
         self.assertIn('ProfileOrderDetailView(id: order.id, reader: reader,',self.app)
         self.assertIn('historyState: order.historyState(now: clock.date)',self.app)
     def test_true_empty_and_filter_empty_distinct(self):
