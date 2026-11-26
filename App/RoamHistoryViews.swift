@@ -24,19 +24,17 @@ import SwiftUI
         let records = historyRead.records(for: reader)
         let error = historyRead.error(for: reader)
         let loaded = historyRead.loaded(for: reader)
-        ScrollView {
-            LazyVStack(alignment: .leading, spacing: 16) {
+        // N-RHIST (r10): a system List of NavigationLink rows (MP subpackageRoam/history/index.wxml).
+        List {
                 RoamExperienceNotice(offline: reader.isOfflineExample)
                 if let error {
                     if RoamHistoryErrorPresentation.resolve(error: error) == .denied {
                         Label("roam.history.denied", systemImage: "lock")
-                            .cyText(.body).foregroundStyle(CYColor.textSecondary)
-                            .padding(CYSpacing.lg).frame(maxWidth: .infinity, alignment: .leading)
-                            .cyNightGlass(cornerRadius: CYRadius.md)
+                            .foregroundStyle(.secondary)
                             .accessibilityIdentifier("roam.experience.history.denied")
                     } else { RoamExperienceIssue(error: error, retry: load) }
                 }
-                else if !loaded { CYSkeleton().accessibilityLabel(Text("roamSub.w208.history.loading")) }
+                else if !loaded { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("roamSub.w208.history.loading")) }
                 else if records.isEmpty {
                     RoamHistoryRemoteStatusBanner()   // RHIST-2
                     if toolsReader != nil { RoamHistoryToolsRow(reader: toolsReader, privateTools: privateToolsReader, anniversaryRouteDestination: anniversaryRouteDestination) }
@@ -61,7 +59,7 @@ import SwiftUI
                         Button("roam.experience.live", systemImage: "figure.walk") {
                             liveEntry.activate(reader: reader, hasDestination: liveDestination != nil, presentationID: presentationID)
                         }
-                        .buttonStyle(.cyPrimary(fullWidth: true))
+                        .buttonStyle(.borderedProminent).frame(maxWidth: .infinity)
                         .accessibilityIdentifier("roam.experience.history.live.open")
                     }
                 } else {
@@ -70,7 +68,7 @@ import SwiftUI
                     RoamHistoryRemoteStatusBanner()   // RHIST-2: server page unreadable, local rows only
                     let summary = RoamHistorySummary(records)
                     // Mini-program order: total (big km, then trips and shops), tools, then run cards.
-                    RoamExperienceCard { VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 12) {
                         HStack(alignment: .firstTextBaseline, spacing: 6) {
                             Group {
                                 if let distance = summary.knownKilometers, summary.tripsWithDistance > 0 {
@@ -85,7 +83,7 @@ import SwiftUI
                         .accessibilityElement(children: .combine)
                         // 次漫游 · 家店 · 用时 columns under the total, as in the mini-program.
                         RoamHistoryParityStrip(records: records)
-                    } }
+                    }
                     if toolsReader != nil { RoamHistoryToolsRow(reader: toolsReader, privateTools: privateToolsReader, anniversaryRouteDestination: anniversaryRouteDestination) }
                     ForEach(Array(records.enumerated()), id: \.element.id) { index, record in
                         if RoamHistoryMonthHead.isNewMonth(record, after: index > 0 ? records[index - 1] : nil), let date = record.recordedAt {
@@ -93,7 +91,6 @@ import SwiftUI
                         }
                         // Mini-program RunCard: route sketch on top, then route icon + title with dateCard, three stats, badges.
                         NavigationLink { RoamHistoryDetailView(reader: reader, timestamp: record.ts, hero: hero) } label: {
-                            RoamExperienceCard {
                                 VStack(alignment: .leading, spacing: 12) {
                                     RoamRouteSketchView(record: record)
                                     HStack(alignment: .firstTextBaseline, spacing: 8) {
@@ -105,15 +102,13 @@ import SwiftUI
                                     }
                                     RoamRunCardParityMeta(record: record)
                                 }
-                            }
-                        }.buttonStyle(QuestifyCardButtonStyle())
+                        }
                             .cyHeroSource(record.ts, in: hero)
                             .accessibilityLabel(record.portRunCardAccessibilityLabel)
                             .accessibilityIdentifier("roam.experience.history.record")
                     }
                 }
-            }.padding(CYSpacing.pageHorizontal)
-        }.background(CYColor.bgPage.ignoresSafeArea()).cyPageTitle("roam.experience.history").cyHideTabBar()
+        }.listStyle(.insetGrouped).cyPageTitle("roam.experience.history").cyHideTabBar()
             .task(id: RoamHistoryLiveOwner(reader: reader)) { load() }
             .onAppear { liveEntry.appear() }
             .onDisappear { liveEntry.disappear() }
@@ -327,10 +322,9 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                     ForEach(medals) { medal in
                         Button { showShare = false; selectedMedal = medal } label: {
                             HStack(spacing: CYSpacing.md) {
-                                Image(systemName: "star").font(.title3.weight(.semibold)).foregroundStyle(CYNight.ink0)
-                                    .frame(width: 52, height: 56)
-                                    .background(CYNight.lantern, in: RoamHexagon())
-                                    .accessibilityHidden(true)
+                                // N-RHIST (r10): SF Symbol in the semantic accent, no drawn hexagon.
+                                Image(systemName: "star.fill").font(.title3).foregroundStyle(Color.accentColor)
+                                    .frame(width: 32).accessibilityHidden(true)
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(verbatim: medal.card.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                                     Text("roamSub.w208.session.medalCategory").cyText(.caption).foregroundStyle(CYColor.textSecondary)
@@ -340,7 +334,7 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                             }
                             .frame(minHeight: 44, alignment: .leading)
                         }
-                        .buttonStyle(QuestifyCardButtonStyle())
+                        .buttonStyle(.plain)
                         .accessibilityLabel(Text("roam.medalShare.open") + Text(verbatim: ": " + medal.card.name))
                         .accessibilityIdentifier("roam.medalShare.open." + medal.card.kind.rawValue)
                     }
@@ -350,15 +344,15 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                     }
                     ForEach(Array(record.pois.enumerated()), id: \.offset) { _, place in
                         HStack(spacing: CYSpacing.md) {
-                            Image(systemName: place.cat == "merchant" ? "storefront" : "mappin").font(.title3).foregroundStyle(CYColor.textPrimary)
-                                .frame(width: 52, height: 56).background(CYNight.ink2, in: RoamHexagon()).accessibilityHidden(true)
+                            Image(systemName: place.cat == "merchant" ? "storefront" : "mappin").font(.title3).foregroundStyle(.secondary)
+                                .frame(width: 32).accessibilityHidden(true)
                             RoamTitle(place.name)
                         }
                     }
                     Button { showShare = true } label: {
                         Label("roam.share.title", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.questifyPrimary)
+                    .buttonStyle(.borderedProminent).controlSize(.large)
                     .accessibilityIdentifier("roam.share.open")
                 } else if currentLoaded {
                     // Mini-program empty state: 找不到这次漫游 with one way back to the history list.
