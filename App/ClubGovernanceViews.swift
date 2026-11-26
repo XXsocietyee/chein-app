@@ -1974,7 +1974,7 @@ struct ClubGovernanceReadView: View {
                     .accessibilityIdentifier("club.gov.customers.clearFilters")
             }
             if operation == .topicSettings {
-                if value["canManage"] == .bool(true) { edit(.saveTopicSettings, seed: ["coopOpen": value["coopOpen"], "pinned": value["pinned"], "memberOnly": value["memberOnly"]]); edit(.endTopic) }
+                if value["canManage"] == .bool(true) { edit(.saveTopicSettings, seed: ["coopOpen": value["coopOpen"], "pinned": value["pinned"], "memberOnly": value["memberOnly"]]); edit(.endTopic, seed: ["cancellationEpoch": value["cancellationEpoch"]]) }
                 Section("club.gov.chapters") { ForEach(Array((value["chapters"].array ?? []).enumerated()), id: \.offset) { _, row in
                     ClubGovernanceFactRows(value: row, fields: ["name", "category", "recruiting", "merchantCount", "finishTime"])
                     if let id = row["chapterId"].int, value["canManage"] == .bool(true) {

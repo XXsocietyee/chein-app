@@ -397,6 +397,11 @@ import SwiftUI
                         }
                     }
                     ForEach(Array((receipt["failedSessions"].array ?? []).enumerated()), id: \.offset) { _, value in Text(verbatim: value.string ?? "") }
+                    if route.operation == .endTopic {
+                        // CLB-r11-topic-detail-01: MP topic-detail/index.js:1172 toast(endResultText(d)).
+                        Text(verbatim: endTopicResultText(receipt))
+                            .accessibilityIdentifier("club.gov.endTopic.result")
+                    }
                     // CLB-G15 (MP event-ops wxml:200): the series-create receipt's windowWarning, the server's own sentence.
                     if route.operation == .createSeries, let warning = receipt["windowWarning"].string?.trimmingCharacters(in: .whitespacesAndNewlines), !warning.isEmpty {
                         Label { Text(verbatim: warning) } icon: { Image(systemName: "exclamationmark.triangle") }
@@ -574,6 +579,10 @@ import SwiftUI
         ClubNotificationAudienceReadModel.context(scope: route.scope, identity: identity, access: access)
     }
     private var notifyCampaignID: Int? { receipt?["id"].int }
+    private func endTopicResultText(_ receipt: ClubGovernanceValue) -> String {
+        ClubTopicEndSummary.parse(receipt, sentEpoch: draft.anchors["cancellationEpoch"]?.int ?? -1)
+            .resultText(chinese: AppLanguage.interfaceIsChinese(locale))
+    }
     /// MP notify `refreshCampaign` (js:300-325): one status read at a time; a failed read keeps the numbers shown.
     /// Silent reads (onShow) say nothing; the 刷新 button says 投递状态已更新 or 投递状态没读到.
     private func refreshCampaign(silent: Bool) async {
@@ -904,6 +913,15 @@ import SwiftUI
             let value = try await coordinator.confirm(review)
             guard presentation.owns(activity, in: presentationContext), !Task.isCancelled, revision == generation, expected == identity, expected == access.identity else { return }
             receipt = value; self.review = nil; locked = true
+            if route.operation == .endTopic {
+                // CLB-r11-topic-detail-01 (MP topic-detail/index.js:1150-1176): failedSessions keeps the form open with
+                // 「N 场没能取消：…」; PENDING asks to read the original request back; only DONE shows the result line.
+                let summary = ClubTopicEndSummary.parse(value, sentEpoch: review.command.fields["cancellationEpoch"]?.int ?? -1)
+                if let message = summary.errorText(chinese: AppLanguage.interfaceIsChinese(locale)) {
+                    receipt = nil; locked = coordinator.isLocked(review.command, identity: review.identity)
+                    failure = .unknown(message: message)
+                }
+            }
             if route.operation == .dissolve { profileDraftFlow?.clearAfterConfirmedDissolve() }
             if returnsToRoster { attendanceReturn?.acknowledged(review, value) }
             caseSubmissionReturn?.acknowledged(review)

@@ -27,7 +27,8 @@ public struct ClubTopicEndSummary: Equatable, Sendable {
             return nil
         }
         let unconfirmed = ClubTopicEndSummary(outcome: .unconfirmed, sessionTotal: 0, cancelledSessions: 0, refundedOrders: 0, manualOrders: 0, closedPendingOrders: 0)
-        guard case .integer(let epoch) = value["cancellationEpoch"], epoch == sentEpoch,
+        // MP topic-detail/index.js:1156: the reply epoch may be a number or its decimal string.
+        guard let epoch = value["cancellationEpoch"].int, epoch == sentEpoch,
               let failed = value["failedSessions"].array, failed.allSatisfy({ $0.string != nil }),
               let state = value["cancellationState"].string, state == "PENDING" || state == "DONE",
               let total = count("sessionTotal"), let cancelled = count("cancelledSessions"), let refunded = count("refundedOrders"),

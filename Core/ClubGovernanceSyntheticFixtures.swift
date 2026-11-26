@@ -66,6 +66,7 @@ public enum ClubGovernanceFixtures {
         case .reportHours: draft.text["actualHours"] = "1.5"
         case .submitEvidence: draft.text["evidenceHash"] = String(repeating: "a", count: 64)
         case .dissolve: draft.flags["dissolveConfirmed"] = true; draft.flags["memberConsequencesConfirmed"] = true
+        case .endTopic: draft = .init(operation: mutation, scope: scope, seed: ["cancellationEpoch": .integer(0)])
         default: break
         }
         return try draft.command()
@@ -77,7 +78,7 @@ public enum ClubGovernanceFixtures {
         case .cancelOccurrence: return json(#"{"activityId":101,"refundStatus":"ACCEPTED_WITH_MANUAL_REVIEW"}"#)
         case .sendNotification, .retryNotification: return value(.notificationStatus)
         case .saveTopicSettings: return value(.topicSettings)
-        case .endTopic: return json(#"{"refundedOrders":1,"manualOrders":2,"failedSessions":["Fixture failed session"]}"#)
+        case .endTopic: return json(#"{"cancellationEpoch":"0","cancellationState":"PENDING","sessionTotal":2,"cancelledSessions":1,"refundedOrders":1,"manualOrders":2,"closedPendingOrders":0,"failedSessions":["Fixture failed session"]}"#)
         case .issueGroupCode: return json(#"{"qrcodeUrl":"https://example.com/synthetic.png","code":"SYNTHETIC-NONREDEEMABLE","ttlMs":60000}"#)
         default: return .null
         }

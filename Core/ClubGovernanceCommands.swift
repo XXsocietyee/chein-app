@@ -109,7 +109,9 @@ public struct ClubGovernanceCommand: Equatable {
         case .sendNotification: scopeKeys = ["clubId"]; requiredKeys = ["audienceType", "title", "content", "requestId"]
         case .retryNotification: scopeKeys = ["campaignId"]; requiredKeys = []
         case .saveTopicSettings: scopeKeys = ["clubId", "topicId"]; requiredKeys = ["coopOpen", "pinned", "memberOnly"]
-        case .endTopic: scopeKeys = ["clubId", "topicId"]; requiredKeys = []
+        // CLB-r11-topic-detail-01: MP topic-detail/index.js:1147 sends `{clubId, topicId, cancellationEpoch}`,
+        // the epoch being the topic-setting read's `cancellationEpoch` as a decimal string (utils/topic-cancellation-intent.js:2-8).
+        case .endTopic: scopeKeys = ["clubId", "topicId"]; requiredKeys = ["cancellationEpoch"]
         case .chapterRecruit: scopeKeys = ["chapterId"]; requiredKeys = ["enabled"]; optionalKeys = ["scope"]
         case .chapterFinish: scopeKeys = ["chapterId"]; requiredKeys = []; optionalKeys = ["scope"]
         case .reportHours: scopeKeys = ["clubId", "topicId"]; requiredKeys = ["hourKind", "actualHours"]
@@ -167,6 +169,9 @@ public struct ClubGovernanceCommand: Equatable {
         if operation == .assignRole { guard (scope.activityID == nil ? ClubGovernancePermissions.assignableClubRoles : ClubGovernancePermissions.assignableEventRoles).contains(result["roleCode"]?.string ?? "") else { throw ClubGovernanceFailure.invalidRequest } }
         if operation == .report { guard ["CLUB", "ACTIVITY", "MEMBER"].contains(result["targetType"]?.string ?? "") else { throw ClubGovernanceFailure.invalidRequest } }
         if operation == .sendNotification { try Self.validateNotification(result, scope: scope) }
+        if operation == .endTopic {
+            guard let epoch = result["cancellationEpoch"]?.string, Self.matches(epoch, "^(0|[1-9][0-9]{0,17})$") else { throw ClubGovernanceFailure.invalidRequest }
+        }
         if operation == .chapterRecruit { guard [0, 1].contains(result["enabled"]?.int ?? -1) else { throw ClubGovernanceFailure.invalidRequest } }
         if operation == .ban {
             // Owner 2026-11-24: send the chosen day count. The server clock owns the expiry.

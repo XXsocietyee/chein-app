@@ -18,9 +18,12 @@ public struct ClubGovernanceFormDraft {
         case .unban: anchorKeys = ["banId", "version"]
         case .revokeRole: anchorKeys = ["assignmentId", "version"]
         case .correctAttendance: anchorKeys = ["expectedVersion", "arrived"]
+        case .endTopic: anchorKeys = ["cancellationEpoch"]
         default: anchorKeys = []
         }
         anchors = seed.filter { anchorKeys.contains($0.key) }
+        // CLB-r11-topic-detail-01 (MP utils/topic-cancellation-intent.js:2-8): the epoch goes out as its decimal string.
+        if operation == .endTopic, let epoch = anchors["cancellationEpoch"]?.text { anchors["cancellationEpoch"] = .string(epoch) }
         switch operation {
         case .hostApply:
             for key in ["leaderName", "phone", "identity", "coFounders", "maxEventSize", "avgEventSize", "certImages"] { text[key] = "" }
