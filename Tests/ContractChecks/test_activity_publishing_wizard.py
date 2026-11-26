@@ -21,7 +21,7 @@ STEPS = [
 # (List/Form/LabeledContent/toolbar replace CY rows/pills; same actions, identifiers and request logic).
 QUICK_SHA = "65a1870d689dc9c181dbfa35be9dbfd925ff93451b78227c90f148fb4856c703"
 # fix/r8-player-content: re-pinned for R7-PC-D1-1 (pushed menu 我的项目 → makeProjects) only.
-PREFIX_SHA = "8756625bc83ca914e738eeaf29bef4a8ea37e2884b520d2e1f01a10ae450149a"
+PREFIX_SHA = "ff668a23c35e84e692473af532ab5b4c51fea425386bfc4fc2142cb528611d0f"  # R9-PC-D1-1: passes makeProjects to the activity form
 SUFFIX_SHA = "52c7c5f642c52f20f97ec5443a52d8bd8cfaae574ed11bb378f3cf5ab22da50c"
 
 

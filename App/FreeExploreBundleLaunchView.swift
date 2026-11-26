@@ -36,14 +36,6 @@ import SwiftUI
         if case .response(_, _, _, let message)? = model.failure, let message, !message.isEmpty { return Text(verbatim: message) }
         return text("error")
     }
-    /// Menu-picker row inside a card: label left, current choice right, 48pt tall.
-    private func choice<P: View>(_ label: Text, selected: String?, @ViewBuilder picker: () -> P) -> some View {
-        HStack {
-            label.cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary)
-            Spacer(minLength: CYSpacing.sm)
-            picker().labelsHidden().tint(CYColor.textSecondary)
-        }.frame(minHeight: 48)
-    }
     /// Page model for `subpackageMember/free-explore/index`. Unknown money is an em dash, never 0.
     private var screen: FreeExploreBundlePageReady.Screen {
         let lane: FreeExploreBundlePageReady.Lane
@@ -58,50 +50,52 @@ import SwiftUI
             ? nil : .init(catalog: model.catalog, order: model.order)
         return FreeExploreBundlePageReady.screen(state: lane, failed: model.failure != nil, linkMissing: false, kept: kept)
     }
+    /// NAT-9 (native-r2): MP free-explore/index.wxml as an inset-grouped `List`. Each MP `cy-card` is a `Section`,
+    /// chapter / store choices are `Picker`s, the step indicator is the section header and notes are labelled rows.
     var body: some View {
         let screen = self.screen
-        return CYCardPage {
-            CYArtCoverHeader(title: text("title"), symbol: "shippingbox.fill", seed: "bundle") {
-                if let units = model.order?.bundle?.units.filter({ $0.status == "AVAILABLE" }).count, units > 0 {
+        return List {
+            if let units = model.order?.bundle?.units.filter({ $0.status == "AVAILABLE" }).count, units > 0 {
+                Section {
                     Label { Text(verbatim: ChannelCopy.text("\(units) 个章节可预约", "\(units) chapters ready to book", locale: locale)) } icon: { Image(systemName: "ticket.fill") }
-                        .cyText(.meta, weight: .semibold).foregroundStyle(.white)
-                        .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
-                        .background(CYColor.bgOverlay, in: Capsule())
                 }
             }
-        } content: {
             switch screen {
             case .error(.stale):
                 CYEmptyState(systemImage: "clock.arrow.circlepath", LocalizedStringKey("stale"), tableName: table)
             case .loading:
-                CYLoadingStateView(rows: 2)
+                ProgressView()
+                    .frame(maxWidth: .infinity)
                     .accessibilityIdentifier("freeBundle.loading")
             case .empty:
                 CYEmptyState(systemImage: "tray", LocalizedStringKey("empty"), tableName: table)
                     .accessibilityIdentifier("freeBundle.empty")
             case .error(.load):
-                Label { errorText } icon: { Image(systemName: "exclamationmark.triangle") }.accessibilityIdentifier("freeBundle.error")
-                // R7-MEM-7-2 (MP R11 F-7): with the bundle ledger switched off a refresh cannot change anything, so 刷新 is hidden.
-                if !ledgerOff {
-                    CYPillButton(LocalizedStringKey("retry"), style: .tertiary, tableName: table) { Task { await model.load() } }
-                        .disabled(model.busy).accessibilityIdentifier("freeBundle.reload")
+                Section {
+                    Label { errorText } icon: { Image(systemName: "exclamationmark.triangle") }.accessibilityIdentifier("freeBundle.error")
+                    // R7-MEM-7-2 (MP R11 F-7): with the bundle ledger switched off a refresh cannot change anything, so 刷新 is hidden.
+                    if !ledgerOff {
+                        Button { Task { await model.load() } } label: { text("retry") }
+                            .disabled(model.busy).accessibilityIdentifier("freeBundle.reload")
+                    }
                 }
             case .unknown:
                 if model.state == .outcomeUnknown {
-                    CYInfoCard(title: text("unknown"), symbol: "clock.badge.questionmark") {
-                        CYPillButton(LocalizedStringKey("recover"), style: .primary, tableName: table) { Task { await model.recover() } }.disabled(model.busy)
-                        CYPillButton(LocalizedStringKey("retry"), style: .tertiary, tableName: table) { Task { await model.retryOriginal() } }.disabled(!model.canRetry)
+                    Section {
+                        Button { Task { await model.recover() } } label: { text("recover") }.disabled(model.busy)
+                        Button { Task { await model.retryOriginal() } } label: { text("retry") }.disabled(!model.canRetry)
+                    } header: {
+                        text("unknown")
                     }
                 } else {
                     // Nothing has arrived yet: not an empty shelf and not a price of 0.
-                    CYLoadingStateView(rows: 2)
+                    ProgressView().frame(maxWidth: .infinity)
                 }
             case .ready(let facts):
                 readyContent(facts)
             }
         }
         .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
         .cyPushedChrome(domain: .player)
         .navigationTitle(text("title")).navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
@@ -113,24 +107,31 @@ import SwiftUI
         .cySheet(item: Binding(get: { model.review }, set: { if $0 == nil { model.cancelReview() } })) { review in
             NavigationStack {
                 Form {
-                    text("notice")
-                    LabeledContent { Text(verbatim: model.order?.registrationNo ?? "—").monospacedDigit() } label: { text("order") }
-                    LabeledContent { Text(verbatim: unitName(review.command.unitId)) } label: { text("unit") }
-                    LabeledContent { Text(verbatim: storeName(review.command.offerId)) } label: { text("offer") }
-                    LabeledContent {
-                        Text(Date(timeIntervalSince1970: Double(review.command.startAt) / 1_000), style: .date)
-                        Text(Date(timeIntervalSince1970: Double(review.command.startAt) / 1_000), style: .time)
-                    } label: { text("date") }
-                    CYPillButton(LocalizedStringKey("confirm"), style: .primary, tableName: table) { Task { await model.confirm(review) } }
-                        .disabled(!model.canReserve).listRowBackground(Color.clear)
-                    CYPillButton(LocalizedStringKey("cancel"), style: .tertiary, tableName: table) { model.cancelReview() }
-                        .listRowBackground(Color.clear)
+                    Section {
+                        text("notice")
+                        LabeledContent { Text(verbatim: model.order?.registrationNo ?? "—").monospacedDigit() } label: { text("order") }
+                        LabeledContent { Text(verbatim: unitName(review.command.unitId)) } label: { text("unit") }
+                        LabeledContent { Text(verbatim: storeName(review.command.offerId)) } label: { text("offer") }
+                        LabeledContent {
+                            Text(Date(timeIntervalSince1970: Double(review.command.startAt) / 1_000), style: .date)
+                            Text(Date(timeIntervalSince1970: Double(review.command.startAt) / 1_000), style: .time)
+                        } label: { text("date") }
+                    }
                 }
-                .scrollContentBackground(.hidden)
-                .cyDomainScreen(.player)
                 .navigationTitle(text("review")).navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button { model.cancelReview() } label: { text("cancel") }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button { Task { await model.confirm(review) } } label: { text("confirm") }
+                            .fontWeight(.semibold)
+                            .disabled(!model.canReserve)
+                    }
+                }
             }
-            .cyDomainSheet(detents: [.half, .full])
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
         }
         // MKT-7-3b: sheets, not pushes, so the read host is not retired while an action is open.
         .cySheet(item: $bundleAction) { action in
@@ -155,75 +156,79 @@ import SwiftUI
         // A reopened destination must receive a fresh model from its authorized host.
         .onDisappear { model.cancelReview() }
     }
+    /// NAT-9: the MP step indicator (选章节 → 选商家 → 定时间) as the booking section header.
+    private var stepHeader: Text {
+        let titles = [ChannelCopy.text("选章节", "Chapter", locale: locale), ChannelCopy.text("选商家", "Store", locale: locale),
+                      ChannelCopy.text("定时间", "Time", locale: locale)]
+        let current = unitID == nil ? 0 : offerID == nil ? 1 : 2
+        return Text(verbatim: "\(current + 1)/\(titles.count) · \(titles[current])")
+    }
     @ViewBuilder private func readyContent(_ facts: FreeExploreBundlePageReady.Facts) -> some View {
-        if facts.refreshing { CYLoadingStateView(rows: 2) }
-        if facts.refreshFailed {
-            // A failed refresh keeps the last record on screen instead of zeroing it.
-            Label { errorText } icon: { Image(systemName: "exclamationmark.triangle") }.accessibilityIdentifier("freeBundle.error")
-        }
-        if facts.saleEnabled == nil {
-            CYNoteBanner(text: text("saleUnknown"), symbol: "questionmark.circle", tone: .info)
-                .accessibilityIdentifier("freeBundle.saleUnknown")
-        }
-        if model.state == .confirmed {
-            CYNoteBanner(text: text("confirmed"), symbol: "checkmark.seal.fill", tone: .success)
-        }
-        if model.order?.bundle != nil {
-            CYStepIndicator(titles: [ChannelCopy.text("选章节", "Chapter", locale: locale), ChannelCopy.text("选商家", "Store", locale: locale),
-                                     ChannelCopy.text("定时间", "Time", locale: locale)], current: unitID == nil ? 0 : offerID == nil ? 1 : 2)
-                .padding(.horizontal, CYSpacing.xs)
+        Section {
+            if facts.refreshing { ProgressView().frame(maxWidth: .infinity) }
+            if facts.refreshFailed {
+                // A failed refresh keeps the last record on screen instead of zeroing it.
+                Label { errorText } icon: { Image(systemName: "exclamationmark.triangle") }.accessibilityIdentifier("freeBundle.error")
+            }
+            if facts.saleEnabled == nil {
+                Label { text("saleUnknown") } icon: { Image(systemName: "questionmark.circle") }
+                    .accessibilityIdentifier("freeBundle.saleUnknown")
+            }
+            if model.state == .confirmed {
+                Label { text("confirmed") } icon: { Image(systemName: "checkmark.seal.fill").foregroundStyle(.green) }
+            }
         }
         if let order = model.order, let bundle = order.bundle {
-            CYInfoCard {
-                // Chapters as selectable ticket rows (one tap, haptic) instead of two collapsed menus; the Review pill stays the only primary action.
-                Text("unit", tableName: table).cyText(.meta, weight: .semibold).foregroundStyle(CYColor.textSecondary)
-                ForEach(bundle.units.filter { $0.status == "AVAILABLE" }, id: \.id) { unit in
-                    CYChoiceRow(label: chapterName(unit.chapterId) ?? unit.id.text, selected: unitID == unit.id) {
-                        if unitID != unit.id { offerID = nil }
-                        unitID = unit.id
+            // Booking: chapter and store pickers, the date, then 预约 (the review sheet confirms).
+            Section {
+                Picker(selection: $unitID) {
+                    Text(verbatim: "—").tag(FreeExploreLaunchID?.none)
+                    ForEach(bundle.units.filter { $0.status == "AVAILABLE" }, id: \.id) { unit in
+                        Text(verbatim: chapterName(unit.chapterId) ?? unit.id.text).tag(FreeExploreLaunchID?.some(unit.id))
                     }
-                }
+                } label: { text("unit") }
                 if let unit = bundle.units.first(where: { $0.id == unitID }),
                    let item = model.catalog?.items.first(where: { $0.chapterId == unit.chapterId }) {
-                    Text("offer", tableName: table).cyText(.meta, weight: .semibold).foregroundStyle(CYColor.textSecondary)
-                    ForEach(item.stores, id: \.offerId) { store in
-                        CYChoiceRow(label: store.merchantName ?? store.offerId.text, selected: offerID == store.offerId) { offerID = store.offerId }
-                    }
+                    Picker(selection: $offerID) {
+                        Text(verbatim: "—").tag(FreeExploreLaunchID?.none)
+                        ForEach(item.stores, id: \.offerId) { store in
+                            Text(verbatim: store.merchantName ?? store.offerId.text).tag(FreeExploreLaunchID?.some(store.offerId))
+                        }
+                    } label: { text("offer") }
                 }
-                DatePicker(selection: $date, in: Date()...) { text("date").cyText(.bodyCompact) }
-                CYPillButton(LocalizedStringKey("review"), style: .primary, tableName: table) {
+                DatePicker(selection: $date, in: Date()...) { text("date") }
+                Button {
                     guard let unitID, let offerID else { return }
                     let millis = date.timeIntervalSince1970 * 1_000
                     guard millis.isFinite, millis > 0, millis < Double(Int64.max) else { return }
                     model.prepare(unitID: unitID, offerID: offerID, startAt: Int64(millis))
-                }
+                } label: { text("review") }
                 .disabled(!model.canReserve || unitID == nil || offerID == nil)
-                if !model.canReserve { text("disabled").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+            } header: {
+                if model.order?.bundle != nil { stepHeader }
+            } footer: {
+                if !model.canReserve { text("disabled") }
             }
             // MKT-7-3: every unit with its MP status (`{chapter} · {statusText}`), chapter content, and 有效期至.
             if !bundle.units.isEmpty {
-                CYInfoCard(title: Text("freeBundle.units.title"), symbol: "square.stack.3d.up") {
+                Section {
                     ForEach(Array(bundle.units.enumerated()), id: \.element.id) { index, unit in
-                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                            HStack(spacing: CYSpacing.xs) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack(spacing: 4) {
                                 Text(verbatim: chapterName(unit.chapterId) ?? appLocalized("freeBundle.unit.fallback \(index + 1)", locale: locale))
                                 Text(verbatim: "·")
                                 Self.statusText(unit.status)
                             }
-                            .cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary)
-                            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                             .accessibilityElement(children: .combine)
                             let content = bundle.chapterContent(chapterID: unit.chapterId).trimmingCharacters(in: .whitespacesAndNewlines)
                             if !content.isEmpty {
                                 Text(verbatim: content)
-                                    .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .font(.subheadline).foregroundStyle(.secondary)
                                     .accessibilityIdentifier("freeBundle.unit.content.\(unit.id.text)")
                             }
                             if let validTo = unit.validTo?.trimmingCharacters(in: .whitespacesAndNewlines), !validTo.isEmpty {
                                 Text("unit.validTo \(validTo)", tableName: table)
-                                    .cyText(.meta, monospacedDigit: true).foregroundStyle(CYColor.textSecondary)
-                                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                                    .font(.footnote).monospacedDigit().foregroundStyle(.secondary)
                                     .accessibilityIdentifier("freeBundle.unit.validTo.\(unit.id.text)")
                             }
                         }
@@ -231,106 +236,117 @@ import SwiftUI
                         // MP free-explore/index.wxml:44 更换商家 on RESERVED / AVAILABLE units.
                         if unit.status == "RESERVED" || unit.status == "AVAILABLE", offers(.exitSwap) {
                             Button("freeBundle.action.exitSwap") { bundleAction = .exitSwap }
-                                .buttonStyle(.bordered)
                                 .disabled(model.busy)
                                 .accessibilityIdentifier("freeBundle.unit.exitSwap.\(unit.id.text)")
                         }
                     }
+                } header: {
+                    Text("freeBundle.units.title")
                 }
             }
-            // MKT-7-3: refund hold is a status card. It does not start a refund.
+            // MKT-7-3: refund hold is a status row. It does not start a refund.
             if let hold = bundle.refundHold, let title = Self.refundHoldTitle(hold.state) {
-                CYInfoCard {
-                    title
-                        .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                        .accessibilityIdentifier("freeBundle.refundHold")
+                Section {
+                    title.accessibilityIdentifier("freeBundle.refundHold")
                 }
             }
-            // MKT-7-6: the order card always shows (order number, 实付金额); an empty list reads 暂无预约记录.
-            CYInfoCard(title: text("order"), symbol: "ticket.fill") {
+            // MKT-7-6: the order section always shows (order number, 实付金额); an empty list reads 暂无预约记录.
+            Section {
                 // MKT-7-3: MP `支付：{paymentText} · 报名：{registrationText}` under the order number.
                 Text("freeBundle.order.statusLine \(Self.paymentText(order.paymentStatus)) \(Self.registrationText(order.registrationStatus))")
-                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    .font(.subheadline).foregroundStyle(.secondary)
                     .accessibilityIdentifier("freeBundle.order.statusLine")
                 if bundle.reservations.isEmpty {
-                    text("reservationsEmpty").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                    text("reservationsEmpty").foregroundStyle(.secondary)
                         .accessibilityIdentifier("freeBundle.reservations.empty")
                 }
                 ForEach(bundle.reservations, id: \.id) { reservation in
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        // MP `{shopName || chapterName || 预约} · {statusText}`.
-                        CYListRow(verbatim: "\(reservationHeading(reservation, bundle: bundle)) · \(Self.statusString(reservation.status))", meta: Self.startAtText(reservation.startAt, locale: locale), trailing: .none) { CYRowIcon(systemImage: "calendar.badge.checkmark") }
-                            .accessibilityIdentifier("freeBundle.reservation.\(reservation.id.text)")
-                        // BOOKED only. The cancel goes through the quote → confirm form (BundleCancelView); no refund is sent here.
-                        if reservation.canCancel {
-                            // MKT-7-3b: MP free-explore/index.wxml:58-61 取消预约 (the waiver is the toggle in the quote form).
-                            if offers(.cancel) {
-                                Button(role: .destructive) { bundleAction = .cancel(reservation.id) } label: {
-                                    Text("reservation.cancel", tableName: table)
-                                }
-                                .buttonStyle(.bordered)
-                                .disabled(model.busy)
-                                .accessibilityIdentifier("freeBundle.reservation.canCancel.\(reservation.id.text)")
-                            } else {
+                    // MP `{shopName || chapterName || 预约} · {statusText}` over the start time.
+                    Label {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(verbatim: "\(reservationHeading(reservation, bundle: bundle)) · \(Self.statusString(reservation.status))")
+                            Text(verbatim: Self.startAtText(reservation.startAt, locale: locale))
+                                .font(.subheadline).foregroundStyle(.secondary)
+                        }
+                    } icon: { Image(systemName: "calendar.badge.checkmark") }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("freeBundle.reservation.\(reservation.id.text)")
+                    // BOOKED only. The cancel goes through the quote → confirm form (BundleCancelView); no refund is sent here.
+                    if reservation.canCancel {
+                        // MKT-7-3b: MP free-explore/index.wxml:58-61 取消预约 (the waiver is the toggle in the quote form).
+                        if offers(.cancel) {
+                            Button(role: .destructive) { bundleAction = .cancel(reservation.id) } label: {
                                 Text("reservation.cancel", tableName: table)
-                                    .font(.subheadline).foregroundStyle(.secondary)
-                                    .accessibilityIdentifier("freeBundle.reservation.canCancel.\(reservation.id.text)")
                             }
-                            Text("reservation.monthlyWaiver", tableName: table)
-                                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                                .accessibilityIdentifier("freeBundle.reservation.waiver.\(reservation.id.text)")
+                            .disabled(model.busy)
+                            .accessibilityIdentifier("freeBundle.reservation.canCancel.\(reservation.id.text)")
+                        } else {
+                            Text("reservation.cancel", tableName: table)
+                                .font(.subheadline).foregroundStyle(.secondary)
+                                .accessibilityIdentifier("freeBundle.reservation.canCancel.\(reservation.id.text)")
                         }
-                        // MKT-7-3b: MP free-explore/index.wxml:62 商家评价 (public-home → reviews/public → reviews/create).
-                        if offers(.review) {
-                            Button("freeBundle.action.review") { bundleAction = .review }
-                                .buttonStyle(.bordered)
-                                .accessibilityIdentifier("freeBundle.reservation.review.\(reservation.id.text)")
-                        }
+                        Text("reservation.monthlyWaiver", tableName: table)
+                            .font(.footnote).foregroundStyle(.secondary)
+                            .accessibilityIdentifier("freeBundle.reservation.waiver.\(reservation.id.text)")
+                    }
+                    // MKT-7-3b: MP free-explore/index.wxml:62 商家评价 (public-home → reviews/public → reviews/create).
+                    if offers(.review) {
+                        Button("freeBundle.action.review") { bundleAction = .review }
+                            .accessibilityIdentifier("freeBundle.reservation.review.\(reservation.id.text)")
                     }
                 }
-                if let number = order.registrationNo { Text(verbatim: number).cyText(.meta).foregroundStyle(CYColor.textTertiary).textSelection(.enabled) }
+                if let number = order.registrationNo {
+                    Text(verbatim: number).font(.footnote).monospacedDigit().foregroundStyle(.secondary).textSelection(.enabled)
+                }
                 LabeledContent { Text(verbatim: facts.paidAmountText).monospacedDigit() } label: { text("paidAmount") }
-                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("freeBundle.paidAmount")
+            } header: {
+                text("order")
             }
             if bundle.exitCases.contains(where: { Self.exitCaseTitle($0.decision) != nil }) {
-                CYInfoCard(title: Text("exitCases.title", tableName: table)) {
+                Section {
                     ForEach(bundle.exitCases, id: \.id) { item in
                         if let line = Self.exitCaseTitle(item.decision) {
                             line
-                                .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
-                                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                                 .accessibilityIdentifier("freeBundle.exitCase.\(item.id.text)")
                         }
                     }
+                } header: {
+                    Text("exitCases.title", tableName: table)
                 }
             }
-        } else if model.order != nil { text("legacy").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+        } else if model.order != nil {
+            Section { text("legacy").foregroundStyle(.secondary) }
+        }
         if let catalog = model.catalog {
-            CYInfoCard(title: catalog.topicName.map { Text(verbatim: $0) } ?? text("catalog"), symbol: "list.star") {
+            Section {
                 // R7-MEM-7-1: MP `暂未开售` note under the topic when the catalog is not on sale.
                 if !catalog.saleEnabled {
-                    Text("freeBundle.catalog.notOnSale").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    Text("freeBundle.catalog.notOnSale").font(.subheadline).foregroundStyle(.secondary)
                         .accessibilityIdentifier("freeBundle.catalog.notOnSale")
                 }
                 if catalog.items.isEmpty { CYEmptyState(systemImage: "tray", LocalizedStringKey("empty"), tableName: table) }
                 ForEach(catalog.items, id: \.chapterId) { item in
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        if let name = item.name { Text(verbatim: name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                    VStack(alignment: .leading, spacing: 4) {
+                        if let name = item.name { Text(verbatim: name).font(.headline) }
                         // R7-MEM-7-1: MP `{name} · 每人N次`, 次数待确认 when the server count is not positive.
                         Group {
                             if item.unitsPerHolder > 0 { Text("freeBundle.catalog.unitsPerHolder \(item.unitsPerHolder)") }
                             else { Text("freeBundle.catalog.unitsUnknown") }
                         }
-                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                        if let terms = item.termsMode { Text(verbatim: terms).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
-                        ForEach(item.stores, id: \.offerId) { store in
-                            CYListRow(verbatim: store.merchantName ?? store.offerId.text, meta: store.validEnd, trailing: .none) { CYRowIcon(systemImage: "storefront") }
+                        .font(.subheadline).foregroundStyle(.secondary)
+                        if let terms = item.termsMode { Text(verbatim: terms).font(.subheadline).foregroundStyle(.secondary) }
+                    }
+                    ForEach(item.stores, id: \.offerId) { store in
+                        LabeledContent {
+                            if let end = store.validEnd { Text(verbatim: end).monospacedDigit() }
+                        } label: {
+                            Label { Text(verbatim: store.merchantName ?? store.offerId.text) } icon: { Image(systemName: "storefront") }
                         }
-                    }.frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 }
+            } header: {
+                if let name = catalog.topicName { Text(verbatim: name) } else { text("catalog") }
             }
         }
     }

@@ -59,7 +59,7 @@ import SwiftUI
             }
             Section {
                 if showsActivity {
-                    NavigationLink { ActivityPublishingView(service: service, account: account, placeSearch: placeSearch, draftStore: draftStore, makeIdentityRegistration: makeIdentityRegistration, makeActivityTemplate: makeActivityTemplate, makeActivityCover: makeActivityCover, openResource: openResource) } label: {
+                    NavigationLink { ActivityPublishingView(service: service, account: account, placeSearch: placeSearch, draftStore: draftStore, makeIdentityRegistration: makeIdentityRegistration, makeActivityTemplate: makeActivityTemplate, makeActivityCover: makeActivityCover, openResource: openResource, makeProjects: makeProjects) } label: {
                         Label("publishModes.activity", systemImage: "calendar.badge.plus")
                     }
                 }

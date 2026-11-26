@@ -213,6 +213,7 @@ private struct PassportRollingCount: View {
             .scaledToFit()
             .foregroundStyle(earned ? AnyShapeStyle(.tint) : AnyShapeStyle(.tertiary))
             .frame(width: size, height: size)
+            .accessibilityHidden(true)
         Group {
         if let open = openStamp {
             Button { open(CYPassportStampSelection(index: index, earned: earned)) } label: { seal }

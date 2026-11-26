@@ -107,58 +107,66 @@ private struct CreatorContentIssueView: View {
         MyProjectMerchantScopeExclusiveAdapter.access(entryScope: entryScope, canManageProjects: canManageProjects)
     }
     var body: some View {
-        List {
-            if reader.isOfflineExample { Label("creatorContent.offlineExample", systemImage: "testtube.2").foregroundStyle(.orange) }
-            if !reader.isAuthenticated { issue(.login) }
-            else if !reader.isConfigured { issue(.notConfigured) }
-            else {
-                // Mini-program myproject: three underline tabs 主题 / 活动 / 模板, no owner or state filters.
-                Section {
-                    typeTabs
-                        .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
-                }
-                if let mutation, reader.isAuthenticated {
-                    MyProjectMutationStrip(model: mutation) { Task { await refresh() } }
-                }
-                // Mini myproject template tab reads the separate api/template/my-list own-shelf, never project/my rows.
-                if query.type == "template" { MyProjectTemplateTabSection(shelf: templateShelf) }
-                else if model.state.isLoading, let kept = model.stale,
-                        MyProjectSyncPort.keepsStaleRows(isLoading: true, previousQuery: kept.query, currentQuery: query,
-                                                        previousScope: kept.scope, currentScope: key.scope) {
-                    Text("myProject.syncing").font(.footnote).foregroundStyle(.secondary)
-                        .accessibilityAddTraits(.updatesFrequently).accessibilityIdentifier("myProject.syncing")
-                    ForEach(MyProjectListPresentation.sorted(kept.value.rows)) { project in
-                        card(project).allowsHitTesting(false)
-                    }
-                }
-                else if model.state.isLoading || model.state.loadedScope != key.scope { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("creatorContent.loading")) }
-                else if let failure = model.state.visibleIssue(scope: key.scope) { issue(failure) }
-                else if let page = model.state.visibleValue(scope: key.scope) {
-                    if page.rows.isEmpty { MyProjectEmptyView(type: query.type) }
-                    if page.isTruncated { Text("creatorContent.truncated").accessibilityIdentifier("creatorContent.truncated") }
-                    let rowScope = key.scope
-                    // PC-D-1-5: no 发布单场活动 row above a non-empty list (MP owner ruling m693; the empty state keeps it).
-                    ForEach(MyProjectListPresentation.sorted(page.rows)) { project in
-                        if let destination = project.destination {
-                            Button {
-                                guard model.state.loadedScope == rowScope, reader.scope == rowScope, reader.isAuthenticated,
-                                      model.state.visibleValue(scope: rowScope)?.rows.contains(project) == true else { return }
-                                if let onOpenProject { onOpenProject(project, rowScope, entryScope) } else { onOpen(destination) }
-                            } label: { card(project) }
-                                .buttonStyle(.plain)
-                                .accessibilityIdentifier("creatorContent.project.\(project.id)")
-                                .contextMenu { MyProjectRowOperationsMenu(project: project) }
-                                .overlay(alignment: .topTrailing) { MyProjectRowMoreButton(project: project) }
-                            MyProjectSaveAsTemplateEntry(project: project) { Task { await refresh() } }
-                            MyProjectAuditEntry(project: project)
-                        } else {
-                            card(project)
+        Group {
+            // R7-PC-D1-4: MP myproject 模板 tab (index.wxml:68-114) lists the /api/template/my-list rows in place, with
+            // 提交广场 / 上下架广场 / 审核记录 / 删除 from the same own-shelf host; the type picker stays on top.
+            if query.type == "template", let shelf = templateShelf, reader.isAuthenticated, reader.isConfigured {
+                shelf.make(AnyView(typeTabs.listRowInsets(EdgeInsets()).listRowBackground(Color.clear)))
+            } else {
+                List {
+                    if reader.isOfflineExample { Label("creatorContent.offlineExample", systemImage: "testtube.2").foregroundStyle(.orange) }
+                    if !reader.isAuthenticated { issue(.login) }
+                    else if !reader.isConfigured { issue(.notConfigured) }
+                    else {
+                        // Mini-program myproject: three underline tabs 主题 / 活动 / 模板, no owner or state filters.
+                        Section {
+                            typeTabs
+                                .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
+                        }
+                        if let mutation, reader.isAuthenticated {
+                            MyProjectMutationStrip(model: mutation) { Task { await refresh() } }
+                        }
+                        // Mini myproject template tab reads the separate api/template/my-list own-shelf, never project/my rows.
+                        if query.type == "template" { MyProjectTemplateTabSection(shelf: templateShelf) }
+                        else if model.state.isLoading, let kept = model.stale,
+                                MyProjectSyncPort.keepsStaleRows(isLoading: true, previousQuery: kept.query, currentQuery: query,
+                                                                previousScope: kept.scope, currentScope: key.scope) {
+                            Text("myProject.syncing").font(.footnote).foregroundStyle(.secondary)
+                                .accessibilityAddTraits(.updatesFrequently).accessibilityIdentifier("myProject.syncing")
+                            ForEach(MyProjectListPresentation.sorted(kept.value.rows)) { project in
+                                card(project).allowsHitTesting(false)
+                            }
+                        }
+                        else if model.state.isLoading || model.state.loadedScope != key.scope { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("creatorContent.loading")) }
+                        else if let failure = model.state.visibleIssue(scope: key.scope) { issue(failure) }
+                        else if let page = model.state.visibleValue(scope: key.scope) {
+                            if page.rows.isEmpty { MyProjectEmptyView(type: query.type) }
+                            if page.isTruncated { Text("creatorContent.truncated").accessibilityIdentifier("creatorContent.truncated") }
+                            let rowScope = key.scope
+                            // PC-D-1-5: no 发布单场活动 row above a non-empty list (MP owner ruling m693; the empty state keeps it).
+                            ForEach(MyProjectListPresentation.sorted(page.rows)) { project in
+                                if let destination = project.destination {
+                                    Button {
+                                        guard model.state.loadedScope == rowScope, reader.scope == rowScope, reader.isAuthenticated,
+                                              model.state.visibleValue(scope: rowScope)?.rows.contains(project) == true else { return }
+                                        if let onOpenProject { onOpenProject(project, rowScope, entryScope) } else { onOpen(destination) }
+                                    } label: { card(project) }
+                                        .buttonStyle(.plain)
+                                        .accessibilityIdentifier("creatorContent.project.\(project.id)")
+                                        .contextMenu { MyProjectRowOperationsMenu(project: project) }
+                                        .overlay(alignment: .topTrailing) { MyProjectRowMoreButton(project: project) }
+                                    MyProjectSaveAsTemplateEntry(project: project) { Task { await refresh() } }
+                                    MyProjectAuditEntry(project: project)
+                                } else {
+                                    card(project)
+                                }
+                            }
                         }
                     }
                 }
+                .listStyle(.insetGrouped)
             }
         }
-        .listStyle(.insetGrouped)
         .cyDomainScreen(.topicEditor)
         .cyHideTabBar(true)
         .environment(\.myProjectMerchantScopeAccess, loadedAccess)

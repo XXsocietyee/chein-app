@@ -11,6 +11,9 @@ import SwiftUI
     /// Query kept from `subpackageMember/mytemplate/mytemplate`. `scope=MERCHANT` is the merchant shelf.
     /// A player link omits it. `id` stays on this page and does not open another screen.
     var linkQuery: [String: String] = [:]
+    /// R7-PC-D1-4: set when 我的项目's 模板 tab shows this shelf inline; the host's tab picker leads the list and the
+    /// host keeps its own title and chrome.
+    var embeddedHeader: AnyView? = nil
     @Environment(\.locale) private var creatorLocale
     @State private var selectedCreatorConsent: WorkshopCreatorConsentSelection?
     @State private var selectedMember: MemberPlayTemplateID?
@@ -40,6 +43,7 @@ import SwiftUI
     private var pageDomain: ThemeDomain { shelfOperationScope == "MERCHANT" ? .merchant : .player }
     var body: some View {
         List {
+            if let embeddedHeader { Section { embeddedHeader } }
             // PLY-26-3: the title is the bar's inline title. X12: no 刷新 pill next to pull-to-refresh.
             Section {
                 // PLY-26-2: the mini-program shelf search is gone. The page stays; the keyword field does not.
@@ -118,14 +122,13 @@ import SwiftUI
             if appliedKeyword == keyword, let messageKey { Text(LocalizedStringKey(messageKey)).accessibilityIdentifier("templateAuthor.shelf.status") }
         // PLY-26-5: MP `mytemplate` uses theme-merchant for the merchant scope, theme-dark otherwise.
         }.listStyle(.insetGrouped).themeDomain(pageDomain)
-            .cyPushedChrome(domain: pageDomain).cyPageTitle("templateAuthor.mine")
+            .modifier(TemplateMineChrome(embedded: embeddedHeader != nil, domain: pageDomain))
             .refreshable { await refresh() }
             // Stable typed destination survives invalidation of its source list on push.
             .navigationDestination(item: $selectedMember) { id in
                 if let memberDetail { memberDetail(id) }
             }
             .p04LifecycleSurface()
-            .preferredColorScheme(pageDomain == .merchant ? nil : .dark)
             .navigationDestination(item: $selectedConfiguration) { id in
                 if let ownerConfiguration { ownerConfiguration(id) }
             }
@@ -382,5 +385,14 @@ private struct TemplateMineCover: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(useNum.map { Text("templateAuthor.mine.useNum \($0)") } ?? Text(verbatim: ""))
         .accessibilityHidden(useNum == nil)
+    }
+}
+
+/// Standalone shelf: pushed chrome and its own title. Embedded in 我的项目: the host's chrome and title stay.
+private struct TemplateMineChrome: ViewModifier {
+    let embedded: Bool
+    let domain: ThemeDomain
+    @ViewBuilder func body(content: Content) -> some View {
+        if embedded { content } else { content.cyPushedChrome(domain: domain).cyPageTitle("templateAuthor.mine") }
     }
 }

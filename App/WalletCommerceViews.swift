@@ -236,7 +236,7 @@ enum WalletPayoutCapability {
             // R7-PC-D5-1 MP-first: with payout off the MP 提现 only opens the platform CS popup, no write
             // (subpackageA/pages/assetcenter/earnings/index.js:61-76).
             if showsWithdrawalSupport {
-                out.append(.init(title: "withdrawal.support.title", icon: "arrow.up.right", id: "wallet.withdrawalSupport.open", destination: { AnyView(WithdrawalSupportContactView()) }))
+                out.append(.init(title: "withdrawal.support.title", icon: "arrow.up.right", id: "wallet.withdrawalSupport.open", destination: { AnyView(WalletWithdrawPermissionGate()) }))
             }
             // FIN-19-2: 提现记录 is a read; only the apply entry follows the withdrawal switch.
             out.append(.init(title: "wallet.withdrawals", icon: "list.bullet.rectangle", id: "wallet.withdrawals.open", destination: { AnyView(WithdrawalHistoryView(reader: reader)) }))
@@ -1260,5 +1260,56 @@ enum WalletPointsShortTime {
               chars[11...12].allSatisfy(\.isNumber), chars[14...15].allSatisfy(\.isNumber) else { return text }
         let time = String(chars[11...15])
         return isEnglish ? "\(month)/\(day) \(time)" : "\(month)月\(day)日 \(time)"
+    }
+}
+
+/// R9-PC-D5-1: MP assetcenter/earnings/index.js:61-76 opens the 提现 customer-service popup only when role/info
+/// `permission.withdrawable` is true; otherwise it says 暂无提现权限. No write either way.
+private struct WalletWithdrawPermissionKey: EnvironmentKey {
+    static let defaultValue: (@MainActor () async throws -> Bool?)? = nil
+}
+extension EnvironmentValues {
+    /// nil result: role/info is not readable here, so the page keeps the plain contact view.
+    var walletWithdrawPermission: (@MainActor () async throws -> Bool?)? {
+        get { self[WalletWithdrawPermissionKey.self] }
+        set { self[WalletWithdrawPermissionKey.self] = newValue }
+    }
+}
+
+@MainActor struct WalletWithdrawPermissionGate: View {
+    @Environment(\.walletWithdrawPermission) private var readPermission
+    private enum Phase: Equatable { case loading, allowed, denied, failed }
+    @State private var phase: Phase = .loading
+    var body: some View {
+        Group {
+            switch phase {
+            case .loading: ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+            case .allowed: WithdrawalSupportContactView()
+            case .denied:
+                ContentUnavailableView("wallet.withdraw.noPermission", systemImage: "lock")
+                    .accessibilityIdentifier("wallet.withdraw.noPermission")
+            case .failed:
+                ContentUnavailableView {
+                    Label("wallet.withdraw.permissionFailed", systemImage: "exclamationmark.triangle")
+                } actions: {
+                    Button("action.retry") { Task { await load() } }.buttonStyle(.bordered)
+                }
+            }
+        }
+        .task { await load() }
+    }
+    private func load() async {
+        guard let readPermission else { phase = .allowed; return }
+        phase = .loading
+        do {
+            switch try await readPermission() {
+            case .some(true), .none: phase = .allowed
+            case .some(false): phase = .denied
+            }
+        } catch is CancellationError {
+            return
+        } catch {
+            phase = .failed
+        }
     }
 }

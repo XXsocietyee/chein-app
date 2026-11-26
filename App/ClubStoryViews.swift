@@ -148,7 +148,7 @@ struct ClubStoryChapterHeader: View {
             let _ = seed
             ZStack {
                 Color(uiColor: .secondarySystemFill)
-                Image(systemName: "map.fill").foregroundStyle(.secondary)
+                Image(systemName: "map.fill").foregroundStyle(.secondary).accessibilityHidden(true)
             }
         }
     }

@@ -5,6 +5,8 @@ import SwiftUI
     var onOpenDestination: ((SocialGuideDestination) -> Void)? = nil
     var templateReader: (any DiscoveryReading)? = nil
     var informationDestination: ((SocialInformation) -> AnyView)? = nil
+    /// R7-PC-D2-4: MP infomation.wxml:78-83 hosts 玩法详情 as an in-page sheet that closes back to this list.
+    @State private var openedDoc: SocialInformation?
     var body: some View {
         List {
             // Mini-program order: the three mode cards right under 城瘾玩法 (no hero line, no section title),
@@ -27,10 +29,7 @@ import SwiftUI
                         }
                     }
                     ForEach(rows) { row in
-                        NavigationLink {
-                            if let informationDestination { informationDestination(row) }
-                            else { AnyView(SocialInformationView(id: row.id, reader: reader)) }
-                        } label: {
+                        Button { openedDoc = row } label: {
                             Label {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(verbatim: row.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : row.title)
@@ -41,7 +40,9 @@ import SwiftUI
                             } icon: {
                                 SocialInformationArt(id: row.id).frame(width: 56, height: 56)
                             }
-                        }.accessibilityIdentifier("social.information.\(row.id)")
+                        }
+                        .foregroundStyle(.primary)
+                        .accessibilityIdentifier("social.information.\(row.id)")
                     }
                 }
             } header: {
@@ -50,6 +51,20 @@ import SwiftUI
         }
         .cyPageTitle("social.guide.title") // PC-D-2-3
         .accessibilityIdentifier("social.guide")
+        .cySheet(item: $openedDoc) { row in
+            NavigationStack {
+                Group {
+                    if let informationDestination { informationDestination(row) }
+                    else { AnyView(SocialInformationView(id: row.id, reader: reader)) }
+                }
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("common.done") { openedDoc = nil }.accessibilityIdentifier("social.information.close")
+                    }
+                }
+            }
+            .presentationDetents([.medium, .large])
+        }
     }
 }
 @MainActor struct SocialInformationView: View {

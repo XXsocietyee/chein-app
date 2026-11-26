@@ -175,5 +175,6 @@ enum NR2StoryRoute {
         Image(systemName: "person.crop.circle.fill")
             .resizable().scaledToFit()
             .foregroundStyle(.secondary)
+            .accessibilityHidden(true)
     }
 }

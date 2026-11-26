@@ -15,8 +15,8 @@ class TopicSessionSelectionChecks(unittest.TestCase):
 
     def test_existing_action_bar_opens_sheet_and_return_refreshes_same_topic(self):
         for value in ['TopicXcxActionBar(topic: value, openSessions: { if !showingSessionSelection { showingSessionSelection = true } }',
-                      '.cySheet(isPresented: $showingSessionSelection, onDismiss: { loads.start { await load() } })',
-                      'TopicSessionSelectionView(detail: value, scope: key.scope, activityDestination: activityDestination)',
+                      '.cySheet(isPresented: $showingSessionSelection, onDismiss: { sessionPreferName = nil; loads.start { await load() } })',
+                      'TopicSessionSelectionView(detail: value, scope: key.scope, activityDestination: activityDestination,',
                       'showingSessionSelection = false']:
             self.assertIn(value, self.detail)
         # Loaded topic keeps one action bar. The extra inset is the refused-topic back pill, not a second enroll bar.

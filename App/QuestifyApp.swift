@@ -538,6 +538,11 @@ struct SessionRootView: View {
         .environment(\.playerContentImageUploader, session.makePlayerContentImageUploader())
         .environment(\.topicRouteGapService, { session.makeTopicRouteGapService() })
         .environment(\.merchantApplyShopService, { session.makeMerchantApplyShopService() })
+        .environment(\.walletWithdrawPermission, {
+            let reader = session.memberHomeReader
+            guard reader.isSignedIn, reader.isConfigured, reader.roleInfoAvailable else { return nil }
+            return try await reader.roleInfo().permission.withdrawable == true
+        })
         .environment(\.roamShareSnapshotPublisher, { session.makeRoamShareSnapshotPublisher() })
         .environment(\.externalGameSession, ExternalGameSessionRead.bridge(session))
         .modifier(MPParityPassEnvironment(session: session))

@@ -265,7 +265,7 @@ struct NativeStampAlbumTile: View {
     private func placeholder(systemImage: String) -> some View {
         Circle()
             .fill(.quaternary)
-            .overlay { Image(systemName: systemImage).font(.title2).foregroundStyle(.secondary) }
+            .overlay { Image(systemName: systemImage).font(.title2).foregroundStyle(.secondary).accessibilityHidden(true) }
     }
 
     /// Same rule as the old tile: https with a host and no credentials.
