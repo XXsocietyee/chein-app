@@ -93,9 +93,11 @@ import SwiftUI
                 let units = item.unitsPerHolder > 0
                     ? appLocalized("freeBundle.catalog.unitsPerHolder \(item.unitsPerHolder)", locale: Locale.current)
                     : appLocalized("freeBundle.catalog.unitsUnknown", locale: Locale.current)
-                let closed = store.available ? nil : appLocalized("freeBundle.catalog.storeClosed", locale: Locale.current)
+                // R7-MEM-7-1: MP free-explore/index.wxml:23 prints `{{merchantName}} · 可用 / 暂不可用` for every store.
+                let availability = appLocalized(store.available ? "freeBundle.catalog.storeAvailable" : "freeBundle.catalog.storeUnavailable",
+                                                locale: Locale.current)
                 return FreeExploreCatalogMerchantItem(id: id, merchantName: store.merchantName ?? "—",
-                                                     chapterName: "\(chapter) · \(units)", perkSummary: closed)
+                                                     chapterName: "\(chapter) · \(units)", perkSummary: availability)
             }
         }
     }
