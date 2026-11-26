@@ -28,7 +28,7 @@ class PublicTemplateCompositionContracts(unittest.TestCase):
 
     def test_session_services_and_viewer_projection_stay_on_existing_fenced_path(self):
         session = (ROOT / 'App/AppSession.swift').read_text()
-        self.assertIn('discoveryService=DiscoveryService(configuration:configuration,transport:transport)', session)
+        self.assertIn('discoveryService=DiscoveryService(configuration:configuration,transport:transport,coalescesReads:false)', session)
         self.assertIn('let transport=compositionTransport', session)
         self.assertIn('return try await self.readPublicTopicTemplate(id: id, expiresSession: false)', session)
         self.assertIn('epoch == publicTemplateDetails.epoch', session)
