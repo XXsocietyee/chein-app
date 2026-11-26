@@ -5,11 +5,12 @@
 - **Slice:** §5 has 23 P1 rows. roam-a takes rows 1–12 in table order (PLAY-6a … N-KIT-FORMS). roam-b takes rows 13–23 (N-PLAY-MAP … N-ALBUM), then every P2 row. §5 has no P0 row.
 - **Not compiled:** there is no Swift toolchain in the cloud. Every type and member was grepped before use. Brace and paren balance was checked on the rewritten files.
 - **Round 2 (2026-11-26):** merged `origin/ui/combined-r7` (`05caead53`) and checked `fix-r10-roam-a.md`, which has no overlap with this slice. Closed the remaining `partly` notes on N-RTEAMS, N-MERCHANT and N-TOOLS. N-RSESS stays blocked. The other `partly` rows (N-PLAY-MAP, N-ROAM-MAP, N-ORIENT, N-RNEAR, N-RCODE) are each held by a pinned contract or a stated structural reason in their note.
+- **Round 3 (2026-11-26):** merged `origin/ui/combined-r7` (`2a9d11a4f`). There were two conflicts, both rows that roam-a also closed on the base: N-RTEAMS (`NearbyTeamViews.swift` team card, so the base `.groupBoxWrapped()` is kept and my duplicate `GroupBox {` wrapper is dropped) and N-TOOLS (`RoamRecapWeekChart`, so the base chart with its `weekAxis` is kept). Every row in the slice already has a status. The `partly` rows are unchanged, for the reasons in their notes, which roam-a's receipt also cites.
 - **Gates (last run, before the final push):**
   - `check_scaffold.py`: PASS structural checks.
   - `check_a11y_lint.py`: PASS, 0 new.
   - `check_typography_lint.py`: PASS.
-  - `contract_ratchet.py --check`: 192 failing, baseline 192, new 0, fixed 0 (round 2, after merging `05caead53`).
+  - `contract_ratchet.py --check`: 192 failing, baseline 192, new 0, fixed 0 (round 3, after the merge commit `2a9d11a4f`).
 - **Pinned contracts changed (each with an MP citation in a comment):**
   - `test_city_game_base` (N-ORIENT).
   - `test_design_system_component_contracts`: the RoamHomeTabsView raw-colour allowance goes from 4 to 0 (N-ROAM-HOME).
