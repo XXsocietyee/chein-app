@@ -150989,13 +150989,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Upcoming"
+            "value": "Coming soon"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "即将"
+            "value": "即将上线"
           }
         }
       }

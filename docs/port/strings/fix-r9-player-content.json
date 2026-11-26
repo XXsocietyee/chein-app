@@ -386,6 +386,23 @@
           }
         }
       }
+    },
+    "official.bucket.upcoming": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coming soon"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "即将上线"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
