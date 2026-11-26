@@ -315,8 +315,17 @@ struct TopicXcxActionBar: View {
         .accessibilityElement(children: .contain)
     }
 
+    /// R10-PC-B-N6: a system bottom bar. The host places it in `.safeAreaInset(edge: .bottom)`; the bar is the `.bar`
+    /// material (no CYFooterBar chrome), price on the left, one `.borderedProminent` primary on the right.
     var body: some View {
-        CYFooterBar {
+        barContent
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.vertical, CYSpacing.md)
+            .frame(maxWidth: .infinity)
+            .background(.bar)
+    }
+
+    private var barContent: some View {
             VStack(spacing: 6) {
                 if topic.merchantClosed && !topic.isSignUp { Text("topicXcx.merchantClosed").font(.subheadline).foregroundStyle(.orange) }
                 HStack(alignment: .center, spacing: CYSpacing.md) {
@@ -373,7 +382,6 @@ struct TopicXcxActionBar: View {
                 .controlSize(.large)
                 .accessibilityIdentifier("topic.actionBar")
             }
-        }
     }
 }
 
@@ -381,25 +389,21 @@ struct TopicXcxActionBar: View {
 /// 立即报名 and 查看场次 both open the session sheet but never show together (sign-up vs self-play states), so one id is unique.
 enum TopicBarSheet: Hashable { case sessions, selfPlay, tickets, pricing }
 
-/// `cyHeroSource` for a bar button when the host passed a namespace. Primary buttons clip at the button radius (`CYRadius.md`).
+/// R10-PC-B-N6: the custom zoom source (and its `CYRadius` clip) is gone; the system sheet presentation is the only motion.
+/// Kept as a pass-through so the bar's call sites stay unchanged.
 private struct TopicBarHeroSource: ViewModifier {
     let sheet: TopicBarSheet
     let namespace: Namespace.ID?
     var cornerRadius: CGFloat = CYRadius.md
-    @ViewBuilder func body(content: Content) -> some View {
-        if let namespace { content.cyHeroSource(sheet, in: namespace, cornerRadius: cornerRadius) } else { content }
-    }
+    func body(content: Content) -> some View { content }
 }
 
-/// The sheet's side of the pair: `cyHeroDestination` only when the bar opened this sheet (`origin`). Other openers of the
-/// same sheet (paywall 解锁, contact save) keep the plain slide-up, so a sheet never zooms out of a button it did not come from.
+/// R10-PC-B-N6: pass-through partner of `TopicBarHeroSource` (no source, so no zoom destination either).
 struct TopicBarHeroDestination: ViewModifier {
     let sheet: TopicBarSheet
     let origin: TopicBarSheet?
     let namespace: Namespace.ID
-    @ViewBuilder func body(content: Content) -> some View {
-        if origin == sheet { content.cyHeroDestination(sheet, in: namespace) } else { content }
-    }
+    func body(content: Content) -> some View { content }
 }
 
 /// native r2: decorative recede removed; the system sheet presentation is the only motion. Kept as a pass-through so
