@@ -326093,6 +326093,40 @@
           }
         }
       }
+    },
+    "publisherPricing.priceConfirmed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Final price confirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "终价已确认"
+          }
+        }
+      }
+    },
+    "publisherPricing.notInPricingPhase": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This topic isn't in the pricing phase yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题还没进入定价阶段"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

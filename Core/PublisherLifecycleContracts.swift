@@ -84,6 +84,12 @@ public struct PublisherPricingPreview: Equatable {
     /// R7-PC-B4-3: preview `platformRate`, a fraction (0.06 = 6%). Number or numeric string; nil when empty, NaN or < 0
     /// (MP pages/topic/pricing/index.js:150, 171).
     public let platformRate: Decimal?
+    /// R11-PC-B-2 (MP pages/topic/pricing/index.js:146-147, 169-180, 188): saved `currentPrice`, server `selfPriceError`
+    /// (无人带 only), free-explore `confirmBlockReason`, and `priced` (true only on JSON true).
+    public let currentPrice: Decimal?
+    public let selfPriceError: String?
+    public let confirmBlockReason: String?
+    public let priced: Bool?
     public init(_ data: ProjectEditJSON) throws {
         guard let b = data.object, let floor = PublisherValue.number(b["priceMin"]), !floor.isNaN else { throw PublisherLifecycleError.incomplete }
         minimum = floor; reference = PublisherValue.number(b["cityReferencePrice"])
@@ -96,6 +102,11 @@ public struct PublisherPricingPreview: Equatable {
         let rateText = b["platformRate"]?.text?.trimmingCharacters(in: .whitespaces)
         let rate: Decimal? = PublisherValue.number(b["platformRate"]) ?? rateText.flatMap { $0.isEmpty ? nil : Decimal(string: $0) }
         if let rate, !rate.isNaN, rate >= 0 { platformRate = rate } else { platformRate = nil }
+        let current = PublisherValue.number(b["currentPrice"]) ?? b["currentPrice"]?.text.flatMap { Decimal(string: $0) }
+        currentPrice = current.flatMap { $0.isNaN ? nil : $0 }
+        selfPriceError = b["selfPriceError"]?.text.flatMap { $0.isEmpty ? nil : $0 }
+        confirmBlockReason = b["confirmBlockReason"]?.text.flatMap { $0.isEmpty ? nil : $0 }
+        if case .bool(let value)? = b["priced"] { priced = value } else { priced = nil }
     }
     public func accepts(_ price: Decimal) -> Bool { !price.isNaN && price >= minimum }
 }
