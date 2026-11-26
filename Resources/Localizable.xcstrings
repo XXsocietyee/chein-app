@@ -320924,6 +320924,166 @@
           }
         }
       }
+    },
+    "projectEdit.hostUnlock.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opened by staff"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "由工作人员开幕"
+          }
+        }
+      }
+    },
+    "projectEdit.hostUnlock.on": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A staff member confirms this chapter before a team can start it"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "工作人员确认后，队伍才能开始本章"
+          }
+        }
+      }
+    },
+    "projectEdit.hostUnlock.off": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This chapter can start right away"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本章开始即可进行"
+          }
+        }
+      }
+    },
+    "projectEdit.hostUnlock.display.unsaved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose how this theme is played in topic details, then save"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先在主题详情里选进行方式并保存"
+          }
+        }
+      }
+    },
+    "projectEdit.hostUnlock.display.player": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo play does not use a staff opening"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "个人独立进行不使用工作人员开幕"
+          }
+        }
+      }
+    },
+    "projectEdit.hostUnlock.refuse.mode": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose how this theme is played first"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先选择进行方式"
+          }
+        }
+      }
+    },
+    "projectEdit.hostUnlock.refuse.saveNodes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save the theme and its nodes before setting chapters and arrival"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先保存主题和节点草稿，再设置章节及到达关系"
+          }
+        }
+      }
+    },
+    "projectEdit.hostUnlock.refuse.splitActs": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This chapter already has more than one act. Move each act's tasks into its own chapter first"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本章已有多幕配置，请先将幕内任务分别放入对应章节"
+          }
+        }
+      }
+    },
+    "projectEdit.hostUnlock.refuse.noNodes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This chapter has no ordinary task nodes. Add a node and save it first"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本章没有普通任务节点，请先添加并保存节点"
+          }
+        }
+      }
+    },
+    "projectEdit.hostUnlock.refuse.player": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo play cannot use a staff opening"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "个人独立进行不能设置工作人员开幕"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

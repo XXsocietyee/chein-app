@@ -88,6 +88,11 @@ import SwiftUI
                     model.draft.chapters.first?.id.utf8.elementsEqual(chapterID.utf8) == true {
                     ProjectInitialStateEntry(model: model, chapterID: chapterID).id(Data(chapterID.utf8))
                 }
+                // r10 C-F7d: MP fabu wxml:1324-1334 由工作人员开幕 row (not on the 序章 / prologue).
+                if chapterOverride == nil && mediaScope == nil && starterLease == nil &&
+                    chapter.wrappedValue.preserved["opening"] != .bool(true) {
+                    ProjectEditChapterHostUnlockSection(model: model, chapterID: chapterID)
+                }
                 if chapterOverride == nil && mediaScope == nil && starterLease == nil {
                     ProjectChapterAudioField(model: model, chapterID: chapterID, preview: audioPreview).id(Data(chapterID.utf8))
                 }

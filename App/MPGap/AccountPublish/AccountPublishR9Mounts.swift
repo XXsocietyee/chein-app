@@ -146,3 +146,53 @@ enum R9MiniCropRect {
                                           horizontal: horizontal, vertical: vertical, zoom: zoom)
     }
 }
+
+// MARK: - C-F7d (r10): chapter 由工作人员开幕 (MP pages/publish/fabu/index.wxml:1324-1334,
+// theme-runtime-structure.js:200-201 display, :215-227 onChapterHostUnlock)
+
+/// One `Toggle` row on the chapter page, bound to Core `ProjectEditRuntimeActs` (acts[].hostUnlock).
+/// The subtitle is the MP's disabled reason when there is one, otherwise the on / off summary.
+/// Turning on is blocked while a reason applies; turning off is always allowed (MP js:223).
+/// A refusal from Core shows as the section footer (MP `structureError`). No request: the topic save carries it.
+@MainActor struct ProjectEditChapterHostUnlockSection: View {
+    @ObservedObject var model: ProjectEditModel
+    let chapterID: String
+    @State private var refusalKey: String?
+
+    private var chapterIndex: Int? { model.draft.chapters.firstIndex { $0.id == chapterID } }
+
+    var body: some View {
+        if let index = chapterIndex {
+            let host = ProjectEditRuntimeActs.chapterHost(in: model.draft, chapterIndex: index)
+            Section {
+                Toggle(isOn: Binding(get: { host.enabled }, set: { set($0, index: index) })) {
+                    Label {
+                        Text("projectEdit.hostUnlock.title")
+                        Text(LocalizedStringKey(host.disabledReasonKey ?? host.summaryKey))
+                    } icon: {
+                        Image(systemName: "lock")
+                    }
+                }
+                .disabled(!model.fullEdit || (host.openingBlocked && !host.enabled))
+                .accessibilityIdentifier("projectEdit.chapter.hostUnlock")
+            } footer: {
+                if let refusalKey {
+                    Label(LocalizedStringKey(refusalKey), systemImage: "exclamationmark.circle")
+                        .foregroundStyle(.red)
+                        .accessibilityIdentifier("projectEdit.chapter.hostUnlock.error")
+                }
+            }
+        }
+    }
+
+    private func set(_ enabled: Bool, index: Int) {
+        do {
+            model.draft = try ProjectEditRuntimeActs.setEnabled(enabled, chapterIndex: index, in: model.draft)
+            refusalKey = nil
+        } catch ProjectEditRuntimeActsError.refused(let key) {
+            refusalKey = key
+        } catch {
+            refusalKey = ProjectEditRuntimeActs.Copy.displayUnsaved
+        }
+    }
+}
