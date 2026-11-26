@@ -96,7 +96,8 @@ import MapKit
         scope.teamID = model.snapshot?.result.teamID.map(String.init)
         return scope
     }
-    var body: some View {
+    /// Split from body so the type checker handles the modifier chain in parts.
+    private var navigationLayer: some View {
         Group {
             if model.gameplayMode == .freeExploration || (model.snapshot == nil && presentedMode == .freeExploration) {
                 if NativeR2Flags.freeExplore {
@@ -157,6 +158,9 @@ import MapKit
                 actionRead: routeActionRead ?? heldRouteActionRead)
                 .cyPushedChrome(domain: screenDomain)
         }
+    }
+    private var presentationLayer: some View {
+        navigationLayer
         .toolbar {
             if castModel?.config != nil {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -227,6 +231,9 @@ import MapKit
                 .presentationDragIndicator(.visible)
             }
         }
+    }
+    var body: some View {
+        presentationLayer
         .onChange(of: model.snapshot?.result.topicID) { _, topicID in
             chapterFilter = nil
             presentTitleCardIfNeeded(topicID)
