@@ -892,10 +892,12 @@ import SwiftUI
                 occurrenceCancellationReturn?.acknowledged(review, value)
             }
             if route.operation == .issueGroupCode {
-                guard let clubID = review.command.scope.clubID, let activityID = review.command.scope.activityID,
+                // CLB-group-code-06 (MP group-code/index.js:44-56, 93-135): the issue body is `{activityId}` only and the
+                // MP link carries no clubId, so the receipt is checked by activityId (and by clubId only when known).
+                guard let activityID = review.command.scope.activityID,
                       scenePhase == .active, !Task.isCancelled else { throw ClubGovernanceFailure.staleReview }
                 groupCode = try ClubGovernanceGroupCode(receipt: value, receivedAt: Date(),
-                    expectedClubID: clubID, expectedActivityID: activityID)
+                    expectedClubID: review.command.scope.clubID, expectedActivityID: activityID)
             }
         } catch {
             if presentation.owns(activity, in: presentationContext), !Task.isCancelled, revision == generation && expected == identity {
