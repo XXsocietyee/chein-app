@@ -190,6 +190,7 @@
         "LocalizationCompletenessSectionViewTests",
         "LocationShareAndSideQuestViewTests",
         "MPFirstCMAGrantTests",
+        "MPFirstCoopWritesTests",
         "MPParityPassBindingTests",
         "ManualMapCompositionTests",
         "MapPublicLayerAppIntegrationTests",
