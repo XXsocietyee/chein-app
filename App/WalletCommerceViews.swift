@@ -882,7 +882,9 @@ enum WalletIncomeSegment: Hashable {
             Text("wallet.creationIncome").tag(WalletIncomeSegment.create)
             Text("wallet.brandIncome").tag(WalletIncomeSegment.brand)
             if financeAccess != nil {
-                Text("wallet.earnings.tab.organizer", tableName: "WalletEarningsOverview").tag(WalletIncomeSegment.organizer)
+                Text("wallet.earnings.tab.organizer", tableName: "WalletEarningsOverview")
+                    .accessibilityIdentifier("wallet.earnings.tab.organizer")
+                    .tag(WalletIncomeSegment.organizer)
             }
         }
         .pickerStyle(.segmented)
