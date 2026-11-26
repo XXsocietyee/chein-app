@@ -49,3 +49,23 @@ The audit ran on 82bcf2c2d. Nine rows in this slice were already fixed on the ti
   `tapEditorMenuItem` finds the Menu item by identifier (`projectEdit.saveLocal` / `templateAuthor.saveLocal`).
 - `ProjectEditTopicImageField` reads `\.playerContentImageUploader` (injected at App/QuestifyApp.swift:569). Without it
   (signed out / fixtures) the pickers are disabled and show 登录后可上传图片.
+
+## Round 2 (merged `origin/ui/combined-r7` @ 49af0d3ad)
+
+- **My slice:** no new code. Each open row was checked again on the new tip.
+  - C-T2b is still blocked. `TemplateAuthoringSupportPhase` and `TemplateAdoptionConfirmation` (Core/TemplateAuthoringDomain.swift:61, :66) still have no producer. `OwnedTemplateConfigurationView` reads `api/template/myinfo` only. The support-matrix reader (Core/ProjectAuthorInputReader.swift:60) serves the fabu author inputs, not this page. Binding the phase to `host.loading` would fake the MP state, so this still waits on Cursor Core.
+  - C-F2 (rest) is still blocked. It needs a fixture `SearchMapReading` and a simulator run.
+  - C-T3c is still merchant release.
+  - A1-02 still needs an owner call.
+  - The C-F1b gallery cells still take image references. The MP crop ratio and biz type for story gallery cells (pro-editor-story.js) are not in the audit. The MP repo is not reachable from this lane, so I did not guess them.
+- **acct-b P1 rows not marked fixed** (`origin/fix/r10-acct-b` @ e102fc722, receipt `fix-r10-acct-b.md`):
+  - N-18 is closed here with C-F8b (aa4a2904d).
+  - A8-03 is blocked. It needs the MP wxml, an owner OK and a simulator run, because 4 contract tests and 3 XCUITests pin the sections.
+  - A3-05 waits on the owner (WeChat-only phone bind).
+  - None of these can be done in the cloud without owner input.
+- **Gates on the merged tip:**
+  - `check_scaffold` passes.
+  - `check_a11y_lint` passes (0 new).
+  - `contract_ratchet --check` shows 192 failing against a baseline of 192 (0 new). The round-1 base failure (`test_social_article_content…`) is now fixed on the tip.
+
+**Lane status:** done. The rows left need Core, the owner or a simulator.
