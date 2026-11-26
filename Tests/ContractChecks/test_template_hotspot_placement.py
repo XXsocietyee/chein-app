@@ -16,7 +16,8 @@ class HotspotPlacementChecks(unittest.TestCase):
             self.assertIn(token,self.form)
         self.assertIn('case .rows',self.form)
     def test_actual_image_bounds_and_explicit_load_readiness(self):
-        for token in ['Button("templateHotspots.loadScene"','AsyncImage(url: request.url)','image.resizable().scaledToFit().overlay','SpatialTapGesture()','Double(geometry.size.width)','Double(geometry.size.height)','editor.imageReady(request)','editor.imageFailed(request)','self.isSceneReady']:
+        # native r2: CYPillButton became a system Button with the same loadSceneAction and key
+        for token in ['Button(action: editor.loadSceneAction()) { Label("templateHotspots.loadScene"','AsyncImage(url: request.url)','image.resizable().scaledToFit().overlay','SpatialTapGesture()','Double(geometry.size.width)','Double(geometry.size.height)','editor.imageReady(request)','editor.imageFailed(request)','self.isSceneReady']:
             self.assertIn(token,self.app)
         self.assertIn('requestID == self.scene?.id',self.app)
     def test_normalized_rounded_xy_preserves_radius(self):
