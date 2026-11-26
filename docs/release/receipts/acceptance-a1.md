@@ -1,6 +1,6 @@
 # Acceptance A1 receipt (run 45738766534, lane A1)
 
-Base `origin/ui/combined-r7` 2446657fb. Run 45738766534 checked ci/acceptance `ac509608a` (combined-r7 at 0c80591c0).
+Base `origin/ui/combined-r7` 2446657fb, then merged 6d0e53c13 (native-r2 round 2). Run 45738766534 checked ci/acceptance `ac509608a` (combined-r7 at 0c80591c0).
 Contract tests re-run locally with `python3 -m unittest` and `tools/contract_ratchet.py --check`: no A1 id is NEW or NOW PASSING.
 Core (Swift) tests were fixed by reading the code (there is no compiler here). The CI log tail did not include their assertion lines.
 
@@ -38,6 +38,19 @@ Core (Swift) tests were fixed by reading the code (there is no compiler here). T
 - test_workshop_paid_lifecycle_closure…test_paid_install_follows_the_money_switch: fixed (test). Money is ON per 139e06853: `openMoney` = host installed, so no host means no money. Virtual goods/StoreKit stay off via `virtualGoodsEnabled`. Merchant writes keep the production-closed opener.
 - test_workshop_paid_professional…test_current_generic_draft_cas_reuses_real_reader_with_bounded_paging: tip-new, fixed (test). The MEMBER_TEMPLATE business type comes from 6009e19f3. Note: ci/acceptance `record-contract` appends this id as KNOWN_CONTRACT_FAILURE in record mode. Remove it there, because it now passes.
 - test_workshop_protected_text_lifecycle…test_all_product_bytes_match_original_protected_consumer_delivery: tip-new, fixed (test). View re-pinned for native-r2 c068180c1 (presentation only). Controller and service bytes are unchanged.
+
+### Regressions from the native-r2 round-2 merge (6d0e53c13), in A1 prefixes
+
+- test_club_customer_clear_filters…test_normal_customer_inputs_keep_all_four_filters_and_explicit_search: fixed (test). Segmented Picker on the same binding; the keyword is the bar `.searchable` with an explicit `.onSubmit(of: .search)`.
+- test_club_leaderboard_member_navigation…test_prior_customer_product_spans_are_exact_published_bytes: three spans re-pinned. The changes are ContentUnavailableView/ProgressView, the filter Picker, one dropped font token and the added ClubCustomerKeywordSearch modifier. Retry guards and identifiers are unchanged.
+- test_merchant_club_discovery…test_locality_failure_is_inline_with_retry_not_an_empty_list / test_merchant_owned_joined_create_are_presentation_hidden_only: fixed (test). Uses the system retry Button and the Label row. The merchant-viewer hiding assertions are unchanged.
+- test_merchant_club_accessible_controls…test_unavailable_title_does_not_override_retry_identifier: fixed (test). The title leaf and the retry button keep separate identifiers.
+- test_club_invitation_terms…test_fresh_detail_loading_cannot_render_the_parent_list_target: fixed (test). ContentUnavailableView/ProgressView. The fences are unchanged.
+- test_club_detail_leaderboard_member…test_row_opens_public_profile_and_owner_customer_choice: fixed (test). confirmationDialog uses `Text(..., tableName: "ClubPublicRoster")`.
+- test_club_notification_audience…test_rows_use_current_stamp_and_borderless_hit_regions: fixed (test). The row press style was dropped (system List row). The stamp/disabled guards, contentShape and borderless retry are still asserted.
+- test_club_story_runtime_boundary…test_gameplay_card_identifier_is_a_leaf_and_does_not_replace_title_identifier: fixed (test). `.font(.headline)` on a Group of one Text; the identifier still lands on the leaf.
+- test_wallet_income_analysis_closure…testLocalLayoutReplacesMissingHistoricalHelpers: fixed (test). System LabeledContent replaces the local style. The historical helpers are still absent.
+- The template_* tests touched by round 2 conflicted with this branch. Upstream's round-2 re-pins were taken, and they pass. test_template_preference_draft keeps this branch's scope/MERCHANT fix.
 
 ## Core (Swift)
 
