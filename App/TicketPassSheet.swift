@@ -278,6 +278,15 @@ enum CYPassCardPick {
                 Group {
                     Label { Text(verbatim: nonEmpty(ticket.participateDate)) } icon: { Image(systemName: "calendar") }
                     Label { Text(verbatim: nonEmpty(ticket.addressName)).lineLimit(2) } icon: { Image(systemName: "mappin.and.ellipse") }
+                    // PLY-21-5: MP signup walletCard (index.js:777,784) appends ` · 已核销 x/y 家` and ` · N 大 M 小同享`.
+                    if let progress = ticket.exploreProgress {
+                        Label { Text("ticketPass.exploreProgress \(progress.redeemed) \(progress.required)") } icon: { Image(systemName: "checkmark.seal") }
+                            .accessibilityIdentifier("ticketPass.exploreProgress")
+                    }
+                    if let party = ticket.party, party.childCount > 0 {
+                        Label { Text("ticketPass.party \(party.adultCount) \(party.childCount)") } icon: { Image(systemName: "figure.and.child.holdinghands") }
+                            .accessibilityIdentifier("ticketPass.party")
+                    }
                 }
                 .font(.subheadline).foregroundStyle(.secondary)
             }

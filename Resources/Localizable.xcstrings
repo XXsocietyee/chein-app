@@ -314380,6 +314380,40 @@
           }
         }
       }
+    },
+    "ticketPass.exploreProgress %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld of %2$lld stores redeemed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已核销 %1$lld/%2$lld 家"
+          }
+        }
+      }
+    },
+    "ticketPass.party %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shared by %1$lld adults and %2$lld children"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld 大 %2$lld 小同享"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
