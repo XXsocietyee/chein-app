@@ -18,18 +18,26 @@ struct SocialIssueView: View {
     var body: some View {
         Group {
             if error is URLError {
-                CYEmptyState(systemImage: "wifi.slash", message, messageIdentifier: "social.issue",
-                             actionTitle: retry == nil ? nil : "action.retry",
-                             actionIdentifier: "social.issue.retry",
-                             kind: .offline, action: retry)
+                ContentUnavailableView {
+                    Label { Text(message).accessibilityIdentifier("social.issue") } icon: { Image(systemName: "wifi.slash") }
+                } actions: {
+                    if let retry {
+                        Button("action.retry", action: retry)
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("social.issue.retry")
+                    }
+                }
             } else {
                 VStack(alignment: .leading, spacing: 8) {
                     Label(message, systemImage: "exclamationmark.circle")
                         .fixedSize(horizontal: false, vertical: true)
                     if case SocialAccountFailure.rejected(_, let text) = error, let text {
-                        Text(verbatim: text).cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
+                        Text(verbatim: text).font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     }
-                    if let retry { CYPillButton("action.retry", style: .secondary, systemImage: "arrow.clockwise", fullWidth: false, action: retry) }
+                    if let retry {
+                        Button(action: retry) { Label("action.retry", systemImage: "arrow.clockwise") }
+                            .buttonStyle(.bordered)
+                    }
                 }.accessibilityElement(children: .contain).accessibilityIdentifier("social.issue")
             }
         }
@@ -71,7 +79,7 @@ struct SocialReadPresentationKey: Hashable {
             }
             if requiresSignIn && reader.identity.accountID == nil { SocialIssueView(error: APIError.unauthorized) }
             else if !reader.isConfigured { SocialIssueView(error: APIError.notConfigured) }
-            else if loadedKey != key || busy { CYSkeleton().padding(CYSpacing.lg).frame(maxHeight: .infinity, alignment: .top).accessibilityElement(children: .ignore).accessibilityLabel(Text("social.loading")) }
+            else if loadedKey != key || busy { ProgressView().padding().frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top).accessibilityElement(children: .ignore).accessibilityLabel(Text("social.loading")) }
             else if let error { SocialIssueView(error: error) { loadedKey = nil; loads.start { await reload() } } }
             else if let value { content(value) }
         }

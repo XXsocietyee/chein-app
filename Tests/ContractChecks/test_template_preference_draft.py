@@ -11,7 +11,7 @@ class PreferenceDraftContracts(unittest.TestCase):
         ui = self.source('App/TemplatePreferenceDraftEditor.swift')
         self.assertIn('model.draft.preferenceJson = value', ui)
         self.assertIn('model.changed()', ui)
-        # native-r2 publish: replacing with the example still asks first, now via the system confirmationDialog.
+        # native r2: CYConfirmSheet became a system destructive confirmationDialog
         self.assertIn('.confirmationDialog(appLocalized("templateAuthor.preference.example", locale: locale), isPresented: $replaceExample', ui)
         for forbidden in ['UserDefaults', 'URLSession', 'JSONEncoder', 'OwnedTemplateConfigurationSnapshot']:
             self.assertNotIn(forbidden, ui)
@@ -55,13 +55,9 @@ class PreferenceDraftContracts(unittest.TestCase):
         generated = set(re.findall(r'(?:string|number)\("([^"]+)"', payload)) | set(re.findall(r'p\["([^"]+)"', payload)) | {'title', 'description', 'isSync'}
         helper = source.split('public static func permitsRemoteConfiguration')[1].split('public static func request')[0]
         strings = helper.split('let stringFields: Set<String> = ')[1].split('let numberFields')[0]
-        numbers = helper.split('let numberFields: Set<String> = ')[1].split('let remoteKeys')[0]
+        numbers = helper.split('let numberFields: Set<String> = ')[1].split('guard Set')[0]
         allowed = set(re.findall(r'"([^"]+)"', strings + numbers))
-        # 45f2b0991: merchant mytemplate sends scope=MERCHANT. `MERCHANT` is the literal value, not a field;
-        # `scope` itself stays in the allowlist and any other scope value is refused.
-        self.assertIn('if let scope = fields["scope"], scope != .string("MERCHANT") { return false }', source)
-        self.assertIn('let remoteKeys = Set(fields.keys).subtracting(["scope"])\n        guard remoteKeys.isSubset(of: stringFields.union(numberFields)) else { return false }', source)
-        self.assertEqual(generated - {'id', 'MERCHANT', 'scope'}, allowed)
+        self.assertEqual(generated - {'id'}, allowed)
         self.assertEqual(len(allowed), 40)
     def test_preference_ui_and_bilingual_scope(self):
         self.assertIn('TemplatePreferenceDraftEditor(model: model)', self.source('App/TemplateAuthoringDetailForms.swift'))

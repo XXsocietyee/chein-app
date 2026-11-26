@@ -4,7 +4,6 @@ import MapKit
 struct IMStaticLocationCardView: View {
     let place: IMStaticLocation
     @State private var showMap = false
-    @Environment(\.cyPalette) private var palette
 
     private var placeTitle: String {
         let name = place.name.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -17,12 +16,9 @@ struct IMStaticLocationCardView: View {
             details
         }
         .frame(maxWidth: 280)
-        .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
-                .strokeBorder(palette.borderSubtle, lineWidth: 1)
-        }
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+        // Messages-style location bubble: system hierarchical fill, system bubble shape.
+        .background(.quaternary)
+        .clipShape(.rect(cornerRadius: 18, style: .continuous))
         .privacySensitive()
         .onDisappear { showMap = false }
     }
@@ -33,9 +29,7 @@ struct IMStaticLocationCardView: View {
             span: 0.01))) {
             Marker(placeTitle, coordinate: CLLocationCoordinate2D(latitude: place.lat, longitude: place.lng))
         }
-        .mapStyle(.standard(elevation: .flat, emphasis: .muted))
-        .environment(\.colorScheme, .light)
-        .background { CYMapPlaceholder(fog: false) }
+        .mapStyle(.standard(elevation: .flat))
         .frame(height: 150)
         .allowsHitTesting(false)
         .accessibilityLabel(Text(verbatim: placeTitle))
@@ -44,38 +38,29 @@ struct IMStaticLocationCardView: View {
     /// The map service only sees this place once the person asks for the map: a drawn tile stands in until then.
     private var cover: some View {
         Button { showMap = true } label: {
-            ZStack(alignment: .bottomTrailing) {
-                CYCoverArt(seed: placeTitle, symbol: "mappin.and.ellipse")
-                Text("d7.imLocationCard.showMap")
-                    .cyText(.caption, weight: .semibold)
-                    .foregroundStyle(Color.white)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, CYSpacing.md)
-                    .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-                    .background(palette.overlay, in: Capsule())
-                    .padding(CYSpacing.lg)
-            }
-            .frame(height: 140)
-            .contentShape(Rectangle())
+            Label("d7.imLocationCard.showMap", systemImage: "map")
+                .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.bordered)
+        .controlSize(.large)
+        .padding([.horizontal, .top], 12)
         .accessibilityLabel(Text("d7.imLocationCard.showMap"))
     }
 
     private var details: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+        VStack(alignment: .leading, spacing: 2) {
             Text(verbatim: placeTitle)
-                .cyText(.bodyMedium)
-                .foregroundStyle(palette.textPrimary)
+                .font(.body.weight(.medium))
+                .foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
             if !place.address.isEmpty {
                 Text(verbatim: place.address)
-                    .cyText(.meta)
-                    .foregroundStyle(palette.textSecondary)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .padding(CYSpacing.lg)
+        .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

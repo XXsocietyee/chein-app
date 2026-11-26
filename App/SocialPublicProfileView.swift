@@ -23,7 +23,6 @@ import SwiftUI
     /// MP `userinfo?tab=` (A2-06): `projects` is the MP key for 我的; unknown keys keep the default 帖文.
     var initialTab: String? = nil
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
     private enum Tab: String, CaseIterable { case mine, posts, achievements, about }
     @State private var authorPosts = ProfileAuthorPostsRefreshController()
@@ -77,16 +76,15 @@ import SwiftUI
             }
             if memberID <= 0 {
                 // Mini-program userinfo missing-param state: centred empty state with a back-to-home CTA.
-                CYEmptyState(
-                    systemImage: "link.badge.plus",
-                    "profile.incompleteLink.title",
-                    detail: "social.incompleteLink",
-                    messageIdentifier: "social.incompleteLink.title",
-                    actionTitle: "profile.incompleteLink.backHome",
-                    actionIdentifier: "social.incompleteLink.backHome",
-                    actionStyle: .primary
-                ) { dismiss() }
-                .frame(maxWidth: .infinity).padding(.vertical, CYSpacing.xl)
+                ContentUnavailableView {
+                    Label { Text("profile.incompleteLink.title").accessibilityIdentifier("social.incompleteLink.title") } icon: { Image(systemName: "link.badge.plus") }
+                } description: {
+                    Text("social.incompleteLink")
+                } actions: {
+                    Button { dismiss() } label: { Text("profile.incompleteLink.backHome") }
+                        .buttonStyle(.borderedProminent)
+                        .accessibilityIdentifier("social.incompleteLink.backHome")
+                }
                 .accessibilityIdentifier("social.incompleteLink")
             }
             else {
@@ -131,12 +129,12 @@ import SwiftUI
                         HStack(spacing: CYSpacing.lg) {
                             ProfilePublicAvatar(source: profile.avatar, name: profile.nickname)
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                if let name = profile.nickname { Text(verbatim: name).cyText(.pageTitle).accessibilityAddTraits(.isHeader).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
-                                else { Text("square.unknownAuthor").cyText(.pageTitle).accessibilityAddTraits(.isHeader).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
+                                if let name = profile.nickname { Text(verbatim: name).font(.title2.bold()).accessibilityAddTraits(.isHeader).fixedSize(horizontal: false, vertical: true) }
+                                else { Text("square.unknownAuthor").font(.title2.bold()).accessibilityAddTraits(.isHeader).fixedSize(horizontal: false, vertical: true) }
                                 HStack(spacing: 6) {
                                     Text(verbatim: profile.level.map { "Lv.\($0)" } ?? "—")
                                     Text("member.card.levelTitle", tableName: "MemberProfile")
-                                }.cyText(.bodyCompact, monospacedDigit: true).foregroundStyle(CYColor.textSecondary).accessibilityElement(children: .combine)
+                                }.cyText(.bodyCompact, monospacedDigit: true).foregroundStyle(.secondary).accessibilityElement(children: .combine)
                             }
                         }
                         if profile.id == memberID, reader.identity.accountID == memberID {
@@ -147,9 +145,9 @@ import SwiftUI
                             // Self / read-only viewers keep the relationship line; for other members it lives on the 关注 button (A2-03).
                             LabeledContent("social.followStatus") {
                                 switch profile.isFollowed {
-                                case true: CYStatusChip("social.following", tone: .success, systemImage: "checkmark")
-                                case false: CYStatusChip("social.notFollowing", tone: .neutral)
-                                case nil: CYStatusChip("social.relationshipUnknown", tone: .neutral, systemImage: "questionmark")
+                                case true: Label("social.following", systemImage: "checkmark").foregroundStyle(.secondary)
+                                case false: Text("social.notFollowing").foregroundStyle(.secondary)
+                                case nil: Label("social.relationshipUnknown", systemImage: "questionmark").foregroundStyle(.secondary)
                                 }
                             }
                         }
@@ -175,7 +173,8 @@ import SwiftUI
                                     }
                                 }
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.bordered)
+                            .controlSize(.large)
                         }
                         if reader.identity.accountID != profile.id, profile.id > 0 {
                             UGCProfileSafetyActionsSection(memberID: profile.id, displayName: profile.nickname)
@@ -207,8 +206,6 @@ import SwiftUI
                             .accessibilityElement(children: .contain)
                             .accessibilityLabel(Text("social.profileSection"))
                             .accessibilityIdentifier("social.profile.tabs")
-                            .listRowInsets(EdgeInsets(top: 0, leading: CYSpacing.pageHorizontal, bottom: 0, trailing: CYSpacing.pageHorizontal))
-                            .listRowBackground(Color.clear)
                     }
                     switch tab {
                     case .mine:
@@ -277,14 +274,14 @@ import SwiftUI
                         }
                         Section("social.introduction") {
                             if let introduction = profile.introduction { Text(verbatim: introduction).textSelection(.enabled).fixedSize(horizontal: false, vertical: true) }
-                            else { Text("social.noIntroduction").foregroundStyle(CYColor.textSecondary) }
+                            else { Text("social.noIntroduction").foregroundStyle(.secondary) }
                             if selfEditContext != nil {
-                                CYPillButton("profile.selfEdit.open", style: .secondary) { selfEditNavigation.open(selfEditContext) }
+                                Button("profile.selfEdit.open") { selfEditNavigation.open(selfEditContext) }
                                     .accessibilityIdentifier("profile.selfEdit.open")
                             }
                         }
                         Section("social.interests") {
-                            if profile.interests.isEmpty { Text("social.noInterests").foregroundStyle(CYColor.textSecondary) }
+                            if profile.interests.isEmpty { Text("social.noInterests").foregroundStyle(.secondary) }
                             ForEach(profile.interests) { item in Label { Text(verbatim: item.name) } icon: { Image(systemName: "tag") } }
                         }
                         // A1-05: MP 关于 › 加入时间; hidden when the server sent none.
@@ -315,7 +312,6 @@ import SwiftUI
                 }
             }
         }
-        .cyGroupedSurface()
         }
             .cyPageTitle("social.profile")
             .cyHideTabBar()
@@ -367,21 +363,19 @@ import SwiftUI
                 if context == nil && tab == .mine && selfProjectsAccess?.context(memberID: memberID, accountReader: reader, isCurrent: isCurrent()) == nil { tab = .posts }
             }
     }
-    private func profilePill(_ title: Text, systemImage: String?) -> some View {
-        HStack(spacing: CYSpacing.xs) {
-            if let systemImage { Image(systemName: systemImage).accessibilityHidden(true) }
-            title
+    /// Label for the side-by-side bordered 关注 / 发消息 buttons.
+    @ViewBuilder private func profilePill(_ title: Text, systemImage: String?) -> some View {
+        Group {
+            if let systemImage { Label { title } icon: { Image(systemName: systemImage) } }
+            else { title }
         }
-        .cyText(.bodyMedium).foregroundStyle(palette.textPrimary)
-        .frame(maxWidth: .infinity, minHeight: 44)
-        .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous))
-        .contentShape(RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous))
+        .frame(maxWidth: .infinity)
     }
     private func profileCounter(_ value: Int?, id: String, label: () -> Text) -> some View {
         VStack(spacing: 2) {
             // A2-09: MP pc-stat-n is 18 bold → sectionTitle.
-            Text(verbatim: value.map(String.init) ?? "—").cyText(.sectionTitle).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-            label().cyText(.meta).foregroundStyle(CYColor.textSecondary).cyWrapText(alignment: .center)
+            Text(verbatim: value.map(String.init) ?? "—").cyText(.sectionTitle).monospacedDigit()
+            label().cyText(.meta).foregroundStyle(.secondary).cyWrapText(alignment: .center)
         }
         .frame(maxWidth: .infinity, minHeight: 56)
         .accessibilityElement(children: .combine)
@@ -534,8 +528,6 @@ struct ProfileSelfCouponContext: Hashable {
 @MainActor private struct ProfilePublicAvatar: View {
     let source: String?
     let name: String?
-    @Environment(\.cyPalette) private var palette
-    @Environment(\.themeDomain) private var themeDomain
     var body: some View {
         Group {
             if let url = MemberIdentityCardSection.remoteAvatarURL(source) {
@@ -545,11 +537,6 @@ struct ProfileSelfCouponContext: Hashable {
             } else { placeholder }
         }
         .frame(width: 64, height: 64).clipShape(Circle())
-        .overlay {
-            if themeDomain == .player {
-                Circle().strokeBorder(palette.avatarRing, lineWidth: 3)
-            }
-        }
         .accessibilityHidden(true)
     }
     /// MP cy-profile: a player without an avatar shows `/images/d_profile.png` (`MPAsset.AvatarDefault.dProfile`).
@@ -583,13 +570,12 @@ struct ProfileSelfCouponContext: Hashable {
                 else if followed == true { label(Text("social.following"), "checkmark") }
                 else { label(Text("social.editor.follow"), "plus") }
             }
-            .buttonStyle(.plain)
             .disabled(busy || followed == nil || coordinator.identity.accountID == nil)
             .accessibilityValue(busy ? Text("social.follow.pending") : Text(verbatim: ""))
             .accessibilityHint(followed == true ? Text("social.editor.unfollow") : Text(verbatim: ""))
             .accessibilityIdentifier("social.profile.follow")
             if failed {
-                Text("social.follow.failed").cyText(.meta).foregroundStyle(CYColor.dangerText)
+                Text("social.follow.failed").font(.footnote).foregroundStyle(.red)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("social.profile.follow.failed")
             }
@@ -652,12 +638,11 @@ extension EnvironmentValues {
                 if busy { label(Text("social.follow.pending"), nil) }
                 else { label(Text("social.editor.startChat"), "message") }
             }
-            .buttonStyle(.plain)
             .disabled(busy || coordinator.identity.accountID == nil)
             .accessibilityValue(busy ? Text("social.follow.pending") : Text(verbatim: ""))
             .accessibilityIdentifier("social.profile.startChat")
             if failed {
-                Text("social.startChat.failed").cyText(.meta).foregroundStyle(CYColor.dangerText)
+                Text("social.startChat.failed").font(.footnote).foregroundStyle(.red)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("social.profile.startChat.failed")
             }

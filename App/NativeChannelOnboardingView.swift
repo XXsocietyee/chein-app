@@ -13,19 +13,13 @@ import SwiftUI
             if let flow {
                 NativeChannelOnboardingView(flow: flow, openWelcome: { welcomeVisit.wrappedValue = true })
             } else {
-                VStack(alignment: .leading, spacing: CYSpacing.xl) {
-                    CYHeroHeader("d7.channelOnboarding.title") { ChannelOnboardingCover() }
-                    CYEmptyState(
-                        systemImage: "list.bullet.clipboard",
-                        "d7.channelOnboarding.unavailable",
-                        actionTitle: "d7.channelOnboarding.skip",
-                        actionStyle: .primary
-                    ) { welcomeVisit.wrappedValue = true }
-                    .disabled(!parentRouteIsActive() || !channels.isCurrent)
+                ContentUnavailableView {
+                    Label("d7.channelOnboarding.unavailable", systemImage: "list.bullet.clipboard")
+                } actions: {
+                    Button("d7.channelOnboarding.skip") { welcomeVisit.wrappedValue = true }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(!parentRouteIsActive() || !channels.isCurrent)
                 }
-                .padding(.horizontal, CYSpacing.pageHorizontal)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                .background(CYColor.bgPage.ignoresSafeArea())
             }
         }
         .task { reopen() }
@@ -33,7 +27,7 @@ import SwiftUI
         .onChange(of: scene) { _, value in if value == .active { reopen() } else { close() } }
         .onChange(of: channels.isCurrent) { _, current in if !current { close() } }
         .nativeChannelFlowPage()
-        .cyHeroScreen()
+        .navigationTitle(Text("d7.channelOnboarding.title"))
         .onChange(of: parentRouteIsActive()) { _, current in if !current { welcomeRoute.isPresented = false; close() } }
         .navigationDestination(isPresented: welcomeVisit) {
             NativeChannelWelcomeEntry(session: session, channels: channels, parentRouteIsActive: { welcomeVisit.wrappedValue }).id(welcomeRoute.visitID)
@@ -52,34 +46,22 @@ import SwiftUI
     let flow: NativeChannelOnboardingFlow
     let openWelcome: () -> Void
     @State private var selections: [String: Set<String>] = [:]
-    /// The commit control (check, confirm, or review) is the one primary. Skip takes that role only when no commit is on screen.
-    private var hasCommit: Bool {
-        if flow.pending != nil { return true }
-        if flow.review != nil { return true }
-        if flow.snapshot != nil && flow.canPrepare { return true }
-        return false
-    }
     var body: some View {
         Form {
-            Section {
-                CYHeroHeader("d7.channelOnboarding.title") { ChannelOnboardingCover() }
-                    .channelKitInset(clear: true)
-            }
             if flow.isCurrent {
                 if flow.confirmed != nil || flow.issue != nil || flow.busy {
                     Section {
-                        if let confirmed = flow.confirmed { notice(confirmed, symbol: "checkmark.circle", tone: CYColor.successText) }
-                        if let issue = flow.issue { notice(issue, symbol: "exclamationmark.circle", tone: CYColor.dangerText) }
-                        if flow.busy { CYSkeleton().channelKitInset(clear: true) }
+                        if let confirmed = flow.confirmed { notice(confirmed, symbol: "checkmark.circle.fill", tone: .green) }
+                        if let issue = flow.issue { notice(issue, symbol: "exclamationmark.circle", tone: .red) }
+                        if flow.busy { ProgressView().frame(maxWidth: .infinity) }
                     }
                 }
                 if flow.pending != nil {
                     Section {
                         NativeChannelFlowNotice(title: Text("d7.channelOnboarding.pending"), symbol: "clock.arrow.circlepath")
-                        CYPillButton("d7.channelOnboarding.checkStatus") { Task { await flow.refresh() } }
+                        Button("d7.channelOnboarding.checkStatus") { Task { await flow.refresh() } }
                             .disabled(flow.busy)
                             .accessibilityLabel(Text("d7.channelOnboarding.checkStatus"))
-                            .channelKitInset(clear: true)
                     }
                 } else if let review = flow.review {
                     Section {
@@ -87,31 +69,28 @@ import SwiftUI
                             reviewAnswer(answer, review: review)
                         }
                     } header: {
-                        CYSectionHeader("d7.channelOnboarding.yourAnswers")
+                        Text("d7.channelOnboarding.yourAnswers")
                     }
                     Section {
-                        CYPillButton("d7.channelOnboarding.confirm") { selections = [:]; Task { await flow.confirm() } }
+                        Button("d7.channelOnboarding.confirm") { selections = [:]; Task { await flow.confirm() } }
                             .disabled(flow.busy)
                             .accessibilityLabel(Text("d7.channelOnboarding.confirm"))
-                            .channelKitInset(clear: true)
-                        CYPillButton("d7.channelOnboarding.edit", style: .secondary) { flow.cancelReview(); selections = [:] }
+                        Button("d7.channelOnboarding.edit") { flow.cancelReview(); selections = [:] }
                             .disabled(flow.busy)
                             .accessibilityLabel(Text("d7.channelOnboarding.edit"))
-                            .channelKitInset(clear: true)
                     }
                 } else if let snapshot = flow.snapshot {
                     Section {
                         LabeledContent("d7.channelOnboarding.status") {
-                            CYStatusChip(
-                                snapshot.submitted == 1 ? "d7.channelOnboarding.done" : "d7.channelOnboarding.notDone",
-                                tone: snapshot.submitted == 1 ? .success : .neutral,
-                                systemImage: snapshot.submitted == 1 ? "checkmark.circle" : "circle"
+                            Label(
+                                LocalizedStringKey(snapshot.submitted == 1 ? "d7.channelOnboarding.done" : "d7.channelOnboarding.notDone"),
+                                systemImage: snapshot.submitted == 1 ? "checkmark.circle.fill" : "circle"
                             )
                         }
                         if snapshot.answerState == "SOURCE_CHANGED" {
                             Text("d7.channelOnboarding.changed")
-                                .cyText(.meta)
-                                .foregroundStyle(CYColor.textSecondary)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                     }
@@ -126,26 +105,22 @@ import SwiftUI
                     }
                     if flow.canPrepare {
                         Section {
-                            CYPillButton("d7.channelOnboarding.review") { flow.prepare(selections) }
+                            Button("d7.channelOnboarding.review") { flow.prepare(selections) }
                                 .accessibilityLabel(Text("d7.channelOnboarding.review"))
-                                .channelKitInset(clear: true)
                         }
                     }
                 }
                 Section {
-                    CYPillButton("d7.channelOnboarding.skip", style: hasCommit ? .tertiary : .primary, action: openWelcome)
+                    Button("d7.channelOnboarding.skip", action: openWelcome)
                         .accessibilityLabel(Text("d7.channelOnboarding.skip"))
-                        .channelKitInset(clear: true)
                 }
             } else {
-                CYEmptyState(systemImage: "lock.shield", "d7.channelOnboarding.expired")
-                    .channelKitInset(clear: true)
+                Section { ContentUnavailableView("d7.channelOnboarding.expired", systemImage: "lock.shield") }
             }
         }
         .refreshable { selections = [:]; await flow.refresh() }
         .nativeChannelFlowPage()
-        .cyGroupedSurface()
-        .cyHeroScreen()
+        .navigationTitle(Text("d7.channelOnboarding.title"))
         .privacySensitive()
         .task { await flow.activate() }
         .onDisappear { selections = [:]; flow.deactivate() }
@@ -153,21 +128,44 @@ import SwiftUI
     private func optionRow(_ prompt: NativeOnboardingSnapshot.Prompt, _ option: NativeOnboardingSnapshot.Option) -> some View {
         let selected = selections[prompt.id]?.contains(option.id) == true
         let saved = prompt.selected.contains(option.id)
-        return VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            CYChoiceRow(
-                label: optionLabel(option),
-                selected: selected,
-                multi: !prompt.singleSelect,
-                enabled: flow.canPrepare
-            ) { choose(prompt, option.id, !selected) }
+        return VStack(alignment: .leading, spacing: 4) {
+            Button { choose(prompt, option.id, !selected) } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(verbatim: optionHead(option)).foregroundStyle(.primary)
+                        if !option.description.isEmpty {
+                            Text(verbatim: option.description).font(.subheadline).foregroundStyle(.secondary)
+                        }
+                    }
+                    .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 8)
+                    if prompt.singleSelect {
+                        if selected { Image(systemName: "checkmark").foregroundStyle(.tint) }
+                    } else {
+                        Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                            .foregroundStyle(selected ? AnyShapeStyle(.tint) : AnyShapeStyle(.tertiary))
+                    }
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.borderless)
+            .disabled(!flow.canPrepare)
+            .accessibilityElement(children: .ignore)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAddTraits(selected ? .isSelected : [])
             .accessibilityLabel(Text(verbatim: optionLabel(option)))
             .accessibilityValue(Text(selected ? LocalizedStringKey("d7.channelOnboarding.selected") : LocalizedStringKey("d7.channelOnboarding.notSelected")))
             if saved {
-                CYStatusChip("d7.channelOnboarding.saved", tone: .success, systemImage: "checkmark")
+                Label("d7.channelOnboarding.saved", systemImage: "checkmark")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                     .accessibilityLabel(Text("d7.channelOnboarding.saved"))
             }
         }
-        .channelKitInset()
+    }
+    private func optionHead(_ option: NativeOnboardingSnapshot.Option) -> String {
+        let titled = option.emoji.isEmpty ? option.label : option.emoji + " " + option.label
+        return titled.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : titled
     }
     private func optionLabel(_ option: NativeOnboardingSnapshot.Option) -> String {
         let titled = option.emoji.isEmpty ? option.label : option.emoji + " " + option.label
@@ -175,50 +173,41 @@ import SwiftUI
         return option.description.isEmpty ? head : head + "\n" + option.description
     }
     private func promptHeader(_ prompt: NativeOnboardingSnapshot.Prompt) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
             Text(verbatim: prompt.title.isEmpty ? "—" : prompt.title)
-                .cyText(.sectionTitle)
-                .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
             if prompt.required {
-                CYStatusChip("d7.channelOnboarding.required", tone: .warning, systemImage: "asterisk")
+                Text("d7.channelOnboarding.required").foregroundStyle(.orange)
             }
         }
-        .textCase(nil)
     }
     @ViewBuilder private func reviewAnswer(_ answer: NativeOnboardingAnswer, review: NativeChannelOnboardingFlow.Command) -> some View {
         if let snapshot = flow.snapshot, snapshot.configurationHash == review.configurationHash,
            let prompt = snapshot.prompts.first(where: { $0.id == answer.promptID }) {
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                CYListRow(verbatim: prompt.title, trailing: CYListRowTrailing.none) {
-                    CYRowIcon(systemImage: "text.quote")
+            Label {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(verbatim: prompt.title)
+                    ForEach(prompt.options.filter { answer.optionIDs.contains($0.id) }) { option in
+                        Text(verbatim: option.label.isEmpty ? "—" : option.label)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
-                ForEach(prompt.options.filter { answer.optionIDs.contains($0.id) }) { option in
-                    Text(verbatim: option.label.isEmpty ? "—" : option.label)
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textPrimary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            } icon: { Image(systemName: "text.quote") }
         } else {
-            CYListRow(verbatim: "—", trailing: CYListRowTrailing.none) {
-                CYRowIcon(systemImage: "questionmark")
-            }
+            Label { Text(verbatim: "—") } icon: { Image(systemName: "questionmark") }
         }
     }
     private func notice(_ text: String, symbol: String, tone: Color) -> some View {
         let shown = text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : text
-        return HStack(alignment: .top, spacing: CYSpacing.sm) {
-            Image(systemName: symbol).foregroundStyle(tone).accessibilityHidden(true)
+        return Label {
             Text(verbatim: shown)
-                .cyText(.body)
-                .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: .infinity, alignment: .leading)
+        } icon: {
+            Image(systemName: symbol).foregroundStyle(tone).accessibilityHidden(true)
         }
-        .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text(verbatim: shown))
     }
@@ -230,33 +219,5 @@ import SwiftUI
             if selected { values.insert(option) } else { values.remove(option) }
             selections[prompt.id] = values
         }
-    }
-}
-
-private struct ChannelOnboardingCover: View {
-    var body: some View {
-        Color.clear
-            .aspectRatio(16.0 / 9.0, contentMode: .fit)
-            .overlay {
-                CYCoverArt(seed: "channel-onboarding", symbol: "list.bullet.clipboard", showsDebugLabel: false, cornerRadius: CYRadius.lg)
-            }
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-            .accessibilityHidden(true)
-    }
-}
-
-private struct ChannelKitInset: ViewModifier {
-    var clear = false
-    func body(content: Content) -> some View {
-        content
-            .listRowSeparator(.hidden)
-            .listRowBackground(clear ? Color.clear : CYColor.bgElevated)
-            .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.lg, bottom: CYSpacing.md, trailing: CYSpacing.lg))
-    }
-}
-
-private extension View {
-    func channelKitInset(clear: Bool = false) -> some View {
-        modifier(ChannelKitInset(clear: clear))
     }
 }

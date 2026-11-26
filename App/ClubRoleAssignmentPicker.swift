@@ -111,7 +111,7 @@ import SwiftUI
                 Group {
                     if let activityLabel { Text(verbatim: activityLabel) } else { Text("club.rolePicker.untitledSession") }
                 }
-                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                .cyText(.meta).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("club.rolePicker.eventLabel")
             } else { Text("club.rolePicker.clubScope").cyText(.bodyCompact) }
@@ -164,7 +164,7 @@ import SwiftUI
                                         Spacer()
                                         if roleCode == role.code { Image(systemName: "checkmark").accessibilityLabel("club.rolePicker.selected") }
                                     }
-                                    Text(LocalizedStringKey(role.summaryKey)).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                                    Text(LocalizedStringKey(role.summaryKey)).cyText(.bodyCompact).foregroundStyle(.secondary)
                                 }.contentShape(Rectangle())
                             }.accessibilityIdentifier("club.rolePicker.role.\(role.code)")
                         }

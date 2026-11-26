@@ -7,7 +7,6 @@ import SwiftUI
     /// FIN-20-4: MP 登录 on the signed-out state. Nil keeps the state without a button.
     var onSignIn: (() -> Void)? = nil
     @StateObject private var model = SocialInviteHistoryModel()
-    @Environment(\.cyPalette) private var palette
     /// A2-03: re-applied on each pushed profile so 发消息 opens the chat in place.
     @Environment(\.socialConversationDestination) private var conversationDestination
     private var groups: [(String, [SocialInvitedMember])] {
@@ -28,10 +27,10 @@ import SwiftUI
         let binding = model.bind(reader)
         let permit = model.permit(reader)
         List {
-            if reader.isOfflineExample { CYStatusChip("social.offline", tone: .neutral, systemImage: "wifi.slash") }
+            if reader.isOfflineExample { Label("social.offline", systemImage: "wifi.slash").foregroundStyle(.secondary) }
             if reader.identity.accountID == nil { ProfileInviteHistoryIssueView(error: APIError.unauthorized) }
             else if !reader.isConfigured { SocialIssueView(error: APIError.notConfigured) }
-            else if !model.matches(reader) { CYLoadingStateView(rows: 1).accessibilityLabel(Text("social.loading")) }
+            else if !model.matches(reader) { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("social.loading")) }
             else if model.accessDenied, let error = model.error {
                 ProfileInviteHistoryIssueView(error: error)
             }
@@ -66,12 +65,12 @@ import SwiftUI
                     }
                 }
                 if !model.loading && model.pagination.members.isEmpty && model.error == nil { ProfileInviteHistoryEmptyView() }
-                if model.loading { CYLoadingStateView(rows: 1).accessibilityLabel(Text("social.loading")) }
+                if model.loading { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("social.loading")) }
                 if let error = model.error, !model.pagination.members.isEmpty {
                     // MP myinvite: the failure copy stays where 加载更多 sits; the button below is that same entry.
                     ProfileInviteHistoryIssueView(error: error)
                 }
-                if model.pagination.continuationInvalid { CYStatusChip("social.invites.continuationInvalid", tone: .danger, systemImage: "exclamationmark.triangle") }
+                if model.pagination.continuationInvalid { Label("social.invites.continuationInvalid", systemImage: "exclamationmark.triangle").foregroundStyle(.red) }
                 if !model.loading && model.pagination.hasMore && (model.error == nil || !model.pagination.members.isEmpty) {
                     samePageEntry(permit: permit, failed: model.error != nil)
                 }
@@ -106,7 +105,7 @@ import SwiftUI
     /// Next-page failure keeps the 加载更多 entry and reads that same page again.
     private func samePageEntry(permit: SocialInviteHistoryModel.LoadPermit?, failed: Bool) -> some View {
         let title: LocalizedStringKey = failed ? "action.retry" : "wallet.loadMore"
-        return CYPillButton(title, style: .secondary) { model.start(reader, permit: permit, reset: false) }
+        return Button { model.start(reader, permit: permit, reset: false) } label: { Text(title) }
             .accessibilityIdentifier("social.invites.more")
     }
     private var latestEarn: (SocialInvitedMember, SocialInviteReward)? {
@@ -116,24 +115,25 @@ import SwiftUI
     }
     private func memberRow(_ member: SocialInvitedMember) -> some View {
         // Source myinvite row: initial avatar, name over the timeline line, reward chip on the right.
-        HStack(alignment: .top, spacing: CYSpacing.md) {
+        HStack(alignment: .top, spacing: 12) {
             CYAvatarView(url: member.avatar.flatMap { URL(string: $0) }, name: member.nickname ?? "—", size: .md)
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                if let nickname = member.nickname { Text(verbatim: nickname).cyText(.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true) }
-                else { Text("profile.inviteHistory.nicknameUnknown").cyText(.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true) }
+            VStack(alignment: .leading, spacing: 4) {
+                if let nickname = member.nickname { Text(verbatim: nickname).font(.headline).fixedSize(horizontal: false, vertical: true) }
+                else { Text("profile.inviteHistory.nicknameUnknown").font(.headline).fixedSize(horizontal: false, vertical: true) }
                 ProfileInviteTimelineDates(invitationTime: member.createdAt,
                     reward: model.scan?.rewards[String(member.id)])
             }
-            Spacer(minLength: CYSpacing.sm)
-            VStack(alignment: .trailing, spacing: CYSpacing.xs) {
+            Spacer(minLength: 8)
+            VStack(alignment: .trailing, spacing: 4) {
                 if let reward = model.scan?.rewards[String(member.id)] {
-                    // Source reward pill: +N 积分.
+                    // Source reward: +N 积分.
                     Text("u9cde.invite.points \(NSDecimalNumber(decimal: reward.points).stringValue)")
-                        .cyText(.numericBody).monospacedDigit().foregroundStyle(palette.textPrimary)
-                        .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
-                        .background(Capsule().fill(palette.actionSecondaryBg))
-                    CYStatusChip("social.invites.earned", tone: .success, systemImage: "checkmark")
-                } else { CYStatusChip(LocalizedStringKey(model.scan?.isComplete == true ? "social.invites.pending" : "social.invites.synchronizing"), tone: .neutral, systemImage: "clock") }
+                        .font(.subheadline.weight(.semibold)).monospacedDigit()
+                    Label("social.invites.earned", systemImage: "checkmark").font(.caption).foregroundStyle(.green)
+                } else {
+                    Label(LocalizedStringKey(model.scan?.isComplete == true ? "social.invites.pending" : "social.invites.synchronizing"), systemImage: "clock")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
             }
         }.accessibilityElement(children: .combine)
     }

@@ -105,23 +105,20 @@ import UIKit
     @ObservedObject var owner: ActivityTemplateSelectionOwner
     let apply: (UUID) -> Bool
     let createAvailable: Bool
-    @Environment(\.cyPalette) private var palette
     var body: some View {
         let stamp = owner.actionID
         Section {
-            HStack(spacing: CYSpacing.sm) {
-                Image(systemName: "magnifyingglass").foregroundStyle(palette.textTertiary).accessibilityHidden(true)
+            // A search field inside a Form section (`.searchable` belongs to a whole navigation page, not one section).
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass").foregroundStyle(.secondary).accessibilityHidden(true)
                 TextField(text: owner.keywordBinding()) { Text("search", tableName: "ActivityTemplateSelection") }
                     .submitLabel(.search)
+                    .autocorrectionDisabled()
                     .onSubmit { owner.requestRead(expected: stamp) }.accessibilityIdentifier("activityTemplate.search")
             }
-            .padding(.horizontal, CYSpacing.lg).frame(minHeight: 48)
-            .background(palette.bgRaised, in: Capsule(style: .continuous))
-            .listRowSeparator(.hidden)
             Button { owner.requestRead(expected: stamp) } label: {
                 Label { Text("search", tableName: "ActivityTemplateSelection") } icon: { Image(systemName: "magnifyingglass") }
-                    .frame(minHeight: 44)
-            }.foregroundStyle(palette.textPrimary)
+            }
             PublishingStatusRow(title: Text(LocalizedStringKey("status." + owner.status.rawValue), tableName: "ActivityTemplateSelection"),
                 symbol: owner.status == .empty ? "tray" : owner.status == .failed ? "exclamationmark.triangle" : "info.circle",
                 isError: owner.status == .failed)
@@ -130,41 +127,39 @@ import UIKit
             ForEach(owner.rows) { row in
                 let isSelected = owner.selected == row
                 Button { owner.select(row, expected: stamp) } label: {
-                    HStack(spacing: CYSpacing.md) {
-                        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                            Text(row.title).cyText(.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(row.title).foregroundStyle(.primary).fixedSize(horizontal: false, vertical: true)
                             ActivityTemplateChoiceMeta(row: row)
                             if row.availability != .available {
                                 Text(LocalizedStringKey(row.availability.rawValue), tableName: "ActivityTemplateSelection")
-                                    .cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+                                    .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                             }
                         }
-                        Spacer(minLength: CYSpacing.sm)
-                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                            .foregroundStyle(isSelected ? palette.textPrimary : palette.textTertiary)
-                            .accessibilityHidden(true)
+                        Spacer(minLength: 8)
+                        // Settings-style selection: a checkmark on the chosen row.
+                        if isSelected {
+                            Image(systemName: "checkmark")
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.tint)
+                                .accessibilityHidden(true)
+                        }
                     }
-                    .padding(CYSpacing.lg).frame(minHeight: 56)
-                    .background(isSelected ? palette.bgRaised : palette.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                    .overlay { RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).stroke(isSelected ? palette.borderStrong : .clear, lineWidth: 1) }
-                }.buttonStyle(.plain)
-                    .listRowSeparator(.hidden)
+                    .contentShape(Rectangle())
+                }
                     .disabled(owner.status != .ready || row.availability != .available)
                     .accessibilityIdentifier("activityTemplate.row.\(row.id.rawValue)")
                     .accessibilityValue(isSelected ? Text("publishModes.selected") : Text("publishModes.notSelected"))
                     .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
             Button { _ = apply(stamp) } label: { Text("apply", tableName: "ActivityTemplateSelection") }
-                .buttonStyle(CYPillButtonStyle(style: .secondary))
                 .disabled(!owner.canApply).accessibilityIdentifier("activityTemplate.apply")
             Button { owner.create(expected: stamp, available: createAvailable) } label: { Text("create", tableName: "ActivityTemplateSelection") }
-                .buttonStyle(CYPillButtonStyle(style: .tertiary))
                 .disabled(!createAvailable).accessibilityIdentifier("activityTemplate.create")
             PublishingStatusRow(title: Text("creationNotice", tableName: "ActivityTemplateSelection"))
             Button { owner.close(stamp) } label: { Text("cancel", tableName: "ActivityTemplateSelection") }
-                .buttonStyle(CYPillButtonStyle(style: .tertiary))
                 .accessibilityIdentifier("activityTemplate.cancel")
-        } header: { Text("title", tableName: "ActivityTemplateSelection").cyText(.label).foregroundStyle(palette.textSecondary) }
+        } header: { Text("title", tableName: "ActivityTemplateSelection") }
     }
 }
 
@@ -237,7 +232,6 @@ extension ActivityTemplateSelectionOwner {
 /// only when the duration is positive. Nothing is drawn when the server row has neither.
 struct ActivityTemplateChoiceMeta: View {
     let row: ActivityTemplateChoice
-    @Environment(\.cyPalette) private var palette
     @ScaledMetric(relativeTo: .caption) private var icon: CGFloat = 14
 
     private var players: String? {
@@ -248,7 +242,7 @@ struct ActivityTemplateChoiceMeta: View {
 
     var body: some View {
         if players != nil || minutes != nil {
-            HStack(spacing: CYSpacing.md) {
+            HStack(spacing: 12) {
                 if let players {
                     Label { Text(verbatim: players) } icon: { MPAsset.FeatureIcon.dMbico1.resizable().scaledToFit().frame(width: icon, height: icon) }
                 }
@@ -257,7 +251,7 @@ struct ActivityTemplateChoiceMeta: View {
                 }
             }
             .labelStyle(.titleAndIcon)
-            .cyText(.meta).foregroundStyle(palette.textSecondary)
+            .font(.footnote).foregroundStyle(.secondary)
             .accessibilityElement(children: .combine)
         }
     }

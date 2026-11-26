@@ -36,24 +36,25 @@ struct HomeHeroHeaderSectionView: View {
                 if let onOpenUnifiedSearch {
                     // One search entry, in the home top bar. It opens pages/search2 (list) or the map.
                     // The feed no longer draws a second field under 更多玩法.
-                    HStack(spacing: 0) {
+                    HStack(spacing: CYSpacing.sm) {
                         Button {
                             onOpenUnifiedSearch(.list)
                         } label: {
                             HStack(spacing: 8) {
                                 Image(systemName: "magnifyingglass")
-                                    .foregroundStyle(CYColor.textSecondary)
+                                    .foregroundStyle(.secondary)
                                 Text(LocalizedStringResource("searchMap.placeholder.player", defaultValue: "Search topics, activities and clubs")) // player-first: no merchants
-                                    .cyText(.bodyCompact)
-                                    .foregroundStyle(CYColor.textSecondary)
+                                    .foregroundStyle(.secondary)
                                     .cyWrapText()
                                 Spacer(minLength: 0)
                             }
-                            .padding(.leading, CYSpacing.md)
-                            .frame(maxWidth: .infinity, minHeight: 52)
+                            .frame(maxWidth: .infinity)
                             .contentShape(Rectangle())
                         }
-                        .buttonStyle(CYPressScaleStyle(scale: 0.98))
+                        // System bordered capsule button: it opens the search screen, so it is a button, not a field.
+                        .buttonStyle(.bordered)
+                        .buttonBorderShape(.capsule)
+                        .controlSize(.large)
                         .accessibilityAddTraits(.isSearchField)
                         .pageTemplateControl(
                             label: Text("searchMap.placeholder.player"),
@@ -67,12 +68,10 @@ struct HomeHeroHeaderSectionView: View {
                             onOpenUnifiedSearch(.map)
                         } label: {
                             Image(systemName: "map")
-                                .font(.body.weight(.semibold))
-                                .foregroundStyle(CYColor.textPrimary)
-                                .frame(width: 52, height: 52)
-                                .contentShape(Rectangle())
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.bordered)
+                        .buttonBorderShape(.circle)
+                        .controlSize(.large)
                         .pageTemplateControl(
                             label: Text(verbatim: UnifiedSearchExperience.PresentationMode.map.title(locale: locale)),
                             hint: Text("homeSearch.mapHint"),
@@ -80,7 +79,6 @@ struct HomeHeroHeaderSectionView: View {
                         )
                         .accessibilityIdentifier("homeIndex.hero.mapSearchEntry")
                     }
-                    .background(CYColor.bgElevated, in: Capsule())
                     .modifier(HomeSearchSourceField(context: searchSource))
                     .onChange(of: searchSource?.returnFocus) { _, _ in searchEntryFocused = true }
                 }
@@ -99,7 +97,7 @@ struct HomeHeroHeaderSectionView: View {
                                     if isMerchantViewer { Image(systemName: "storefront.fill") }
                                     else { MPAsset.FeatureIcon.iconMember.resizable().scaledToFit().frame(width: 16, height: 16).accessibilityHidden(true) }
                                 }
-                                    .foregroundStyle(CYColor.brand)
+                                    .foregroundStyle(.tint)
                             }
                             if hasCity {
                                 if let onSelectCity {
@@ -122,7 +120,7 @@ struct HomeHeroHeaderSectionView: View {
                                         } icon: {
                                             Image(systemName: "location.fill")
                                         }
-                                        .foregroundStyle(CYColor.textSecondary)
+                                        .foregroundStyle(.secondary)
                                         .frame(minHeight: CYSpacing.minTouchTarget)
                                     }
                                     .accessibilityIdentifier("homeIndex.hero.city")
@@ -132,12 +130,12 @@ struct HomeHeroHeaderSectionView: View {
                                     } icon: {
                                         Image(systemName: "location.fill")
                                     }
-                                    .foregroundStyle(CYColor.textSecondary)
+                                    .foregroundStyle(.secondary)
                                     .accessibilityIdentifier("homeIndex.hero.city")
                                 }
                             }
                         }
-                        .cyText(.bodyMedium)
+                        .font(.subheadline)
                     }
                     Spacer(minLength: 0)
                     // PC-A-1-4: MP `goUser` — the avatar opens 我的 (a control, not decoration).
@@ -174,8 +172,8 @@ struct HomeHeroHeaderSectionView: View {
                             .cyWrapText()
                         Image(systemName: "chevron.down").font(.caption.weight(.bold))
                     }
-                    .cyText(.label)
-                    .foregroundStyle(CYColor.textSecondary)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                     .frame(minHeight: CYSpacing.minTouchTarget)
                 }
                 .accessibilityIdentifier("homeIndex.actionBanner.menu")
@@ -249,7 +247,6 @@ private struct HomeHeroAvatar: View {
         }
         .frame(width: 48, height: 48)
         .clipShape(Circle())
-        .overlay { Circle().strokeBorder(CYColor.borderSubtle, lineWidth: 1) }
         .accessibilityHidden(true)
     }
     /// MP asset (pages/index/index.wxml:38): a missing avatar is `/images/d_profile.png`.
@@ -286,16 +283,16 @@ struct PlayContinuationBannerView: View {
             if let messageKey = readAvailability.messageKey, readAvailability != .unauthenticated {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Image(systemName: readAvailability == .failed ? "exclamationmark.triangle" : "info.circle")
-                        .accessibilityHidden(true).cyText(.caption)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .accessibilityHidden(true).font(.footnote)
+                        .foregroundStyle(.secondary)
                     Text(LocalizedStringKey(messageKey))
-                        .cyText(.caption)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                         .accessibilityIdentifier("homeIndex.continuation.availability.\(readAvailability.rawValue)")
                     Spacer()
                     if readAvailability == .failed, let onRetry {
                         Button("homeFeed.retry", action: onRetry)
-                            .buttonStyle(.cySecondary)
+                            .buttonStyle(.bordered)
                             .accessibilityIdentifier("homeIndex.continuation.retry")
                     }
                 }
@@ -308,42 +305,34 @@ struct PlayContinuationBannerView: View {
                         onOpen?(card.destination)
                     }
                 } label: {
-                    // Photo-led "continue" card: cover art (generated until the route has a photo), scrim, text over it.
-                    ZStack(alignment: .bottomLeading) {
-                        CYCoverArt(seed: card.localizedTitle(locale: locale), symbol: "figure.walk", showsDebugLabel: false)
-                        LinearGradient(stops: [.init(color: .clear, location: 0.2), .init(color: .black.opacity(0.72), location: 1)], startPoint: .top, endPoint: .bottom)
-                        HStack(alignment: .bottom, spacing: 12) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(verbatim: card.kind.badgeTitle(locale: locale))
-                                    .cyText(.meta, weight: .bold)
-                                    .foregroundStyle(.white.opacity(0.85))
-                                Text(verbatim: card.localizedTitle(locale: locale))
-                                    .font(.system(.title3, design: .rounded).weight(.heavy))
-                                    .foregroundStyle(.white)
-                                    .fixedSize(horizontal: false, vertical: true)
-                                if let subtitle = card.localizedSubtitle(locale: locale) {
-                                    Text(verbatim: subtitle)
-                                        .cyText(.caption)
-                                        .foregroundStyle(.white.opacity(0.85))
-                                }
+                    // System row: badge, title and subtitle, with a tinted play symbol trailing.
+                    HStack(alignment: .center, spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(verbatim: card.kind.badgeTitle(locale: locale))
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                            Text(verbatim: card.localizedTitle(locale: locale))
+                                .font(.headline)
+                                .foregroundStyle(.primary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            if let subtitle = card.localizedSubtitle(locale: locale) {
+                                Text(verbatim: subtitle)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
                             }
-                            Spacer(minLength: 0)
-                            Image(systemName: "play.circle.fill")
-                                .cyText(.dataXL)
-                                .foregroundStyle(.white)
-                                .shadow(color: .black.opacity(0.4), radius: 6, y: 2)
-                                .accessibilityHidden(true)
                         }
-                        .padding(CYSpacing.lg)
+                        Spacer(minLength: 0)
+                        Image(systemName: "play.circle.fill")
+                            .font(.title)
+                            .foregroundStyle(.tint)
+                            .accessibilityHidden(true)
                     }
-                    .frame(maxWidth: .infinity, minHeight: 132)
-                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-                    .shadow(color: .black.opacity(0.35), radius: 8, y: 4)
+                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                    .contentShape(Rectangle())
                 }
-                .buttonStyle(CYPressScaleStyle(scale: 0.98))
+                .buttonStyle(.plain)
                 .pageTemplateGroupedCard(label: continuationLabel(card), traits: .isButton)
                 .accessibilityIdentifier("homeIndex.continuation.\(card.id)")
-                .questifyCardListRow()
             }
         } header: {
             Text(verbatim: HomeIndexParityPresentation.continuationSectionTitle(locale: locale))
@@ -370,7 +359,7 @@ struct HomeIndexShelfHeaderView: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
             Text(verbatim: shelf.title(locale: locale))
-                .cyText(.cardTitle)
+                .font(.headline)
                 .accessibilityIdentifier("homeIndex.shelfHeader.\(shelf.rawValue)")
             Spacer()
             if let onAction {
@@ -379,10 +368,9 @@ struct HomeIndexShelfHeaderView: View {
                         Text(verbatim: shelf.actionHint(locale: locale))
                         Image(systemName: "chevron.right")
                     }
-                    .cyText(.bodyCompact)
-                    .foregroundStyle(CYColor.textSecondary)
+                    .font(.subheadline)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.borderless)
                 .accessibilityIdentifier("homeIndex.shelfAction.\(shelf.rawValue)")
             }
         }
@@ -438,48 +426,49 @@ struct HomeIndexEmptyStateView: View {
     var onRetry: (() -> Void)? = nil
 
     var body: some View {
-        VStack(spacing: 12) {
-            switch phase {
-            case .loading:
+        switch phase {
+        case .loading:
+            VStack(spacing: 12) {
                 ProgressView()
                     .accessibilityHidden(true)
                 Text(verbatim: HomeIndexParityPresentation.loadingCopy(locale: locale))
                     .accessibilityAddTraits(.updatesFrequently)
-                    .cyText(.bodyCompact)
-                    .foregroundStyle(CYColor.textSecondary)
+                    .foregroundStyle(.secondary)
                     .accessibilityIdentifier("homeIndex.state.loading")
-            case .empty:
-                Image(systemName: "tray")
-                    .font(.title2)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .accessibilityHidden(true)
-                Text(verbatim: HomeIndexParityPresentation.emptyStateTitle(locale: locale))
-                    .cyText(.cardTitle)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 24)
+        case .empty:
+            ContentUnavailableView {
+                Label {
+                    Text(verbatim: HomeIndexParityPresentation.emptyStateTitle(locale: locale))
+                } icon: {
+                    Image(systemName: "tray")
+                }
+            } description: {
                 Text(verbatim: HomeIndexParityPresentation.emptyStateHint(locale: locale))
-                    .cyText(.bodyCompact)
-                    .foregroundStyle(CYColor.textSecondary)
-                .accessibilityIdentifier("homeIndex.state.empty")
-            case .error:
-                Image(systemName: "exclamationmark.triangle")
-                    .font(.title2)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .accessibilityHidden(true)
-                Text(verbatim: HomeIndexParityPresentation.errorCopy(locale: locale))
-                    .cyText(.bodyCompact)
-                    .foregroundStyle(CYColor.textSecondary)
-                .accessibilityIdentifier("homeIndex.state.error")
+                    .accessibilityIdentifier("homeIndex.state.empty")
+            }
+        case .error:
+            ContentUnavailableView {
+                Label {
+                    Text(verbatim: HomeIndexParityPresentation.errorCopy(locale: locale))
+                        .accessibilityIdentifier("homeIndex.state.error")
+                } icon: {
+                    Image(systemName: "exclamationmark.triangle")
+                }
+            } description: {
+                EmptyView()
+            } actions: {
                 if let onRetry {
                     Button(action: onRetry) {
                         Text(verbatim: HomeIndexParityPresentation.retryButtonTitle(locale: locale))
                     }
                     .buttonStyle(.bordered)
-                    .frame(minHeight: 44)
                     .accessibilityIdentifier("homeIndex.state.retry")
                 }
             }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 24)
     }
 }
 
@@ -498,12 +487,10 @@ struct MerchantRootModeSwitchBannerView: View {
                     onSelectMode?(.consumer)
                 } label: {
                     Text("rootMode.consumer")
-                        .cyText(.meta, weight: .semibold)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
+                        .font(.footnote.weight(.semibold))
                 }
                 .buttonStyle(.bordered)
-                .tint(state.mode == .consumer ? CYColor.brand : .secondary)
+                .tint(state.mode == .consumer ? Color.accentColor : .secondary)
                 .accessibilityIdentifier("rootTabBar.mode.consumer")
 
                 if canSwitchToMerchant || state.mode == .merchant {
@@ -511,12 +498,10 @@ struct MerchantRootModeSwitchBannerView: View {
                         onSelectMode?(.merchant)
                     } label: {
                         Text("rootMode.merchant")
-                            .cyText(.meta, weight: .semibold)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
+                            .font(.footnote.weight(.semibold))
                     }
                     .buttonStyle(.bordered)
-                    .tint(state.mode == .merchant ? CYColor.brand : .secondary)
+                    .tint(state.mode == .merchant ? Color.accentColor : .secondary)
                     .accessibilityIdentifier("rootTabBar.mode.merchant")
                 }
                 Spacer()
@@ -538,7 +523,7 @@ struct MerchantRootModeSwitchBannerView: View {
                         .padding(.vertical, 6)
                     }
                     .buttonStyle(.plain)
-                    .foregroundStyle(isSelected ? CYColor.brand : .secondary)
+                    .foregroundStyle(isSelected ? Color.accentColor : .secondary)
                     .accessibilityIdentifier("rootTabBar.tab.\(state.mode.rawValue).\(descriptor.index)")
                 }
             }
@@ -1235,13 +1220,13 @@ struct MerchantAccountModeSwitchRow: View {
 
             if modeSwitch.isVerifying {
                 ProgressView("merchant.checkingAccess")
-                    .cyText(.meta)
+                    .font(.footnote)
                     .accessibilityIdentifier("merchant.rootMode.verifying")
             }
 
             if let errorKey = modeSwitch.errorKey {
                 Text(LocalizedStringKey(errorKey))
-                    .cyText(.bodyCompact)
+                    .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("merchant.rootMode.error")
             }
@@ -1445,7 +1430,6 @@ struct SessionMerchantRootContainerView: View {
         }
         .id(coordinator.merchantContainerGeneration)
         .cyScreenStyle()
-        .cyDomainTabBar(.merchant)
         .cyTabBarAccessibilityIdentifiers(["rootTabBar.tab.merchant.0", "rootTabBar.tab.merchant.1", "rootTabBar.tab.merchant.2", "rootTabBar.tab.merchant.3", "rootTabBar.tab.merchant.4"])
         .cyTabSelectionFeedback(coordinator.selectedMerchantTab)
         .roleTheme(.merchant)
@@ -1486,25 +1470,20 @@ struct PublishTabFloatingButton: View {
     var title: String = PublishTabFloatingSheetParity.fabButtonTitle
     var action: () -> Void
     @Environment(\.locale) private var locale
-    @Environment(\.cyPalette) private var palette
 
     var body: some View {
+        // System prominent capsule button (the one primary action on the tab).
         Button(action: action) {
             Label {
                 Text(verbatim: CoreLoopCopy(locale: locale).tr(title))
-                    .cyText(.bodyMedium)
             } icon: {
                 Image(systemName: "plus.circle.fill")
-                    .font(.title3)
             }
-            .padding(.horizontal, 16)
             .frame(minHeight: CYSpacing.minTouchTarget)
-            .background(palette.actionPrimaryBg, in: Capsule())
             .foregroundStyle(CYColor.textOnAccent)
-            .shadow(radius: 4, y: 2)
-            .contentShape(Capsule())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.borderedProminent)
+        .buttonBorderShape(.capsule)
         .accessibilityIdentifier("publishTab.floatingButton")
     }
 }
@@ -1520,52 +1499,57 @@ struct PublishTabFloatingSheetView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                    if let quotaBadgeText = presentation.quotaBadgeText {
-                        CYStatusChip(LocalizedStringKey(copy.tr(quotaBadgeText)), systemImage: "sparkles")
-                            .accessibilityIdentifier("publishTab.sheet.quotaBadge")
+            List {
+                if let quotaBadgeText = presentation.quotaBadgeText {
+                    Section {
+                        Label {
+                            Text(verbatim: copy.tr(quotaBadgeText))
+                        } icon: {
+                            Image(systemName: "sparkles").foregroundStyle(.tint)
+                        }
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("publishTab.sheet.quotaBadge")
                     }
+                }
+                Section {
                     ForEach(presentation.actions) { item in
                         Button {
                             guard item.isEnabled else { return }
                             onSelectAction?(item.kind)
                         } label: {
                             HStack(spacing: CYSpacing.md) {
-                                CYRowIcon(systemImage: item.systemImage)
-                                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                                    Text(verbatim: copy.tr(item.title))
-                                        .cyText(.cardTitle)
-                                        .foregroundStyle(item.isEnabled ? CYColor.textPrimary : CYColor.textSecondary)
-                                    Text(verbatim: copy.tr(item.subtitle))
-                                        .cyText(.meta)
-                                        .foregroundStyle(CYColor.textSecondary)
-                                    if let reason = item.disabledReason, !item.isEnabled {
-                                        Text(verbatim: copy.tr(reason))
-                                            .cyText(.micro)
-                                            .foregroundStyle(CYColor.warningText)
-                                            .accessibilityIdentifier("publishTab.sheet.disabledReason.\(item.id)")
+                                Label {
+                                    VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                                        Text(verbatim: copy.tr(item.title))
+                                            .foregroundStyle(item.isEnabled ? Color.primary : Color.secondary)
+                                        Text(verbatim: copy.tr(item.subtitle))
+                                            .font(.subheadline)
+                                            .foregroundStyle(.secondary)
+                                        if let reason = item.disabledReason, !item.isEnabled {
+                                            Text(verbatim: copy.tr(reason))
+                                                .font(.footnote)
+                                                .foregroundStyle(.orange)
+                                                .accessibilityIdentifier("publishTab.sheet.disabledReason.\(item.id)")
+                                        }
                                     }
+                                } icon: {
+                                    Image(systemName: item.systemImage)
                                 }
                                 Spacer(minLength: CYSpacing.sm)
                                 Image(systemName: "chevron.right")
                                     .font(.footnote.weight(.semibold))
-                                    .foregroundStyle(CYColor.textSecondary)
+                                    .foregroundStyle(.tertiary)
                                     .accessibilityHidden(true)
                             }
-                            .frame(minHeight: CYSpacing.minTouchTarget)
-                            .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
                             .contentShape(Rectangle())
                         }
-                        .buttonStyle(.plain)
                         .disabled(!item.isEnabled)
                         .accessibilityIdentifier("publishTab.sheet.action.\(item.id)")
                     }
                 }
-                .padding(.horizontal, CYSpacing.pageHorizontal)
-                .padding(.vertical, CYSpacing.lg)
             }
-            .cyDomainPageBackground()
+            .listStyle(.insetGrouped)
             .navigationTitle(Text(verbatim: copy.tr(presentation.sheetTitle))).navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if let onClose {

@@ -88,17 +88,8 @@ import SwiftUI
                 }
             }
         }
-        .overlay {
-            if unavailable {
-                CYModal(
-                    title: String(localized: LocalizedStringResource("message.unavailable", table: "NativeChannelMessage", locale: locale)),
-                    message: "",
-                    cancelTitle: nil,
-                    confirmTitle: appLocalized("d7.channelChat.ok", locale: locale),
-                    onCancel: { unavailable = false },
-                    onConfirm: { unavailable = false }
-                )
-            }
+        .alert(Text("message.unavailable", tableName: "NativeChannelMessage"), isPresented: $unavailable) {
+            Button { unavailable = false } label: { Text(verbatim: appLocalized("d7.channelChat.ok", locale: locale)) }
         }
         .privacySensitive()
     }

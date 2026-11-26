@@ -6,19 +6,19 @@ import SwiftUI
     @StateObject private var model: TeamScreenModel
     @State private var size = 2
     @State private var inviteOnly = false
-    @Environment(\.cyPalette) private var palette
     init(activityID: Int, coordinator: TeamCoordinator) { self.activityID = activityID; _model = StateObject(wrappedValue: TeamScreenModel(coordinator)) }
     var body: some View {
         Form {
             Section { TeamNotice(coordinator: model.coordinator) }
-            if model.running { CYLoadingStateView(rows: 1).accessibilityLabel(Text("team.loading")) }
+            if model.running { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("team.loading")) }
             if let context = model.coordinator.creation {
-                Section("team.create.activity") { Text(verbatim: context.title).cyText(.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true) }
-                Section("team.create.settings") {
+                Section("team.create.activity") { Text(verbatim: context.title).font(.headline).fixedSize(horizontal: false, vertical: true) }
+                Section {
                     Picker("team.size", selection: $size) { ForEach(context.sizes, id: \.self) { Text(verbatim: "\($0)").tag($0) } }
                         .accessibilityIdentifier("team.create.size")
                     Toggle("team.invitationOnly", isOn: $inviteOnly).accessibilityIdentifier("team.create.inviteOnly")
-                    Text(inviteOnly ? "team.create.privateHelp" : "team.create.publicHelp").cyText(.meta).foregroundStyle(palette.textSecondary)
+                } header: { Text("team.create.settings") } footer: {
+                    Text(LocalizedStringKey(inviteOnly ? "team.create.privateHelp" : "team.create.publicHelp"))
                 }.disabled(model.actionLocked)
                 Section {
                     Text("team.create.consequence").fixedSize(horizontal: false, vertical: true)
@@ -28,13 +28,13 @@ import SwiftUI
             } else if !model.coordinator.canSubmit, !model.running {
                 Section {
                     leaseClosedNote
-                    CYPillButton("team.create.review") { model.refuseClosedLease() }
+                    Button("team.create.review") { model.refuseClosedLease() }
                         .disabled(model.actionLocked)
                         .accessibilityIdentifier("team.create.review")
                 }
             }
             if model.coordinator.pending != nil {
-                CYPillButton("team.checkOutcome", style: .secondary) {
+                Button("team.checkOutcome") {
                     let permit = model.captureRun()
                     Task { await model.run(permit: permit) { await model.coordinator.checkOutcome() } }
                 }
@@ -50,11 +50,11 @@ import SwiftUI
             }
             .sheet(item: model.reviewBinding) { TeamReviewSheet(model: model, review: $0).cySheet() }
             .onDisappear { model.leave() }
-        .cyDomainScreen(.player)
+        .themeDomain(.player)
     }
 
     private func reviewButton(_ context: TeamCreationContext) -> some View {
-        CYPillButton("team.create.review") {
+        Button("team.create.review") {
             if model.coordinator.canSubmit {
                 model.prepare(.create(context: context, size: size, inviteOnly: inviteOnly))
             } else {
@@ -67,8 +67,8 @@ import SwiftUI
 
     private var leaseClosedNote: some View {
         Text("team.create.leaseClosed")
-            .cyText(.meta)
-            .foregroundStyle(palette.textSecondary)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
             .accessibilityIdentifier("team.create.leaseClosed")
     }
 }

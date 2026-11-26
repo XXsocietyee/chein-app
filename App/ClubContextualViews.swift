@@ -16,44 +16,34 @@ struct ClubOperatingRulesView: View {
         ("refund", ["redeemed", "deadline", "window", "missing"]),
         ("pause", ["reason", "backup", "blocked", "scope", "fallback", "resume"]),
         ("cancel", ["whole"])]
-    @Environment(\.cyPalette) private var palette
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.xxl) {
-                CYHeroHeader("context.rules.title")
-                CYNoteBanner(text: Text("context.rules.notice"), symbol: "info.circle", tone: .info)
-                ForEach(sections, id: \.0) { section in
-                    VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        CYSectionHeader(LocalizedStringKey("context.rules." + section.0))
-                        ForEach(section.1, id: \.self) { row in
-                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                Text(LocalizedStringKey("context.rules." + section.0 + "." + row + ".title"))
-                                    .cyText(.cardTitle)
-                                    .foregroundStyle(palette.textPrimary)
-                                    .fixedSize(horizontal: false, vertical: true)
-                                Text(LocalizedStringKey("context.rules." + section.0 + "." + row + ".body"))
-                                    .cyText(.body)
-                                    .foregroundStyle(palette.textSecondary)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .cyDomainCard()
+        List {
+            Section {
+                Label("context.rules.notice", systemImage: "info.circle")
+            }
+            ForEach(sections, id: \.0) { section in
+                Section {
+                    ForEach(section.1, id: \.self) { row in
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                            Text(LocalizedStringKey("context.rules." + section.0 + "." + row + ".title"))
+                                .font(.headline)
+                            Text(LocalizedStringKey("context.rules." + section.0 + "." + row + ".body"))
+                                .foregroundStyle(.secondary)
                         }
                     }
+                } header: {
+                    Text(LocalizedStringKey("context.rules." + section.0))
                 }
             }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.vertical, CYSpacing.lg)
         }
-        .cyDomainPageBackground()
+        .navigationTitle(Text("context.rules.title"))
+        .navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("club.context.rules")
         .cyDomainScreen(.player)
     }
 }
 
 @MainActor struct ClubOpsTimeView: View {
-    @Environment(\.cyPalette) private var palette
-    @Environment(\.locale) private var locale
     let activityID: Int
     let original: String
     let owner: ClubOpsTimeCoordinator?
@@ -72,88 +62,87 @@ struct ClubOperatingRulesView: View {
     private var state: ClubOpsTimeState { let _ = revision; return owner?.state ?? .idle }
     private var canPreview: Bool { !busy && state != .unknown && ClubOpsTimeRequest.date(original) != nil }
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                CYHeroHeader("context.ops.title")
-                VStack(alignment: .leading, spacing: CYSpacing.md) {
-                    Text("context.ops.policy")
-                        .cyText(.body)
-                        .foregroundStyle(palette.textPrimary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Text("context.ops.timezone")
-                        .cyText(.meta)
-                        .foregroundStyle(palette.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    DatePicker("context.ops.time", selection: $date, displayedComponents: [.date, .hourAndMinute])
-                        .environment(\.timeZone, TimeZone(identifier: "Asia/Shanghai")!)
-                        .disabled(busy || state == .unknown)
-                    if let serverDate {
-                        LabeledContent("context.ops.serverTime") {
-                            Text(verbatim: serverDate).monospacedDigit()
-                        }
+        Form {
+            Section {
+                Text("context.ops.policy")
+                DatePicker("context.ops.time", selection: $date, displayedComponents: [.date, .hourAndMinute])
+                    .environment(\.timeZone, TimeZone(identifier: "Asia/Shanghai")!)
+                    .disabled(busy || state == .unknown)
+                if let serverDate {
+                    LabeledContent("context.ops.serverTime") {
+                        Text(verbatim: serverDate).monospacedDigit()
                     }
                 }
-                .cyDomainCard()
-                if owner?.service.isConfigured != true {
-                    CYNoteBanner(text: Text("context.ops.disabled"), symbol: "nosign", tone: .neutral)
+            } footer: {
+                Text("context.ops.timezone")
+            }
+            if owner?.service.isConfigured != true || state == .unknown || state == .acknowledged || state == .rejected || readFailed {
+                Section {
+                    if owner?.service.isConfigured != true {
+                        Label("context.ops.disabled", systemImage: "nosign").foregroundStyle(.secondary)
+                    }
+                    if state == .unknown {
+                        Label("context.ops.unknown", systemImage: "clock").foregroundStyle(.orange)
+                    }
+                    if state == .acknowledged {
+                        Label("context.ops.acknowledged", systemImage: "checkmark.circle").foregroundStyle(.green)
+                    }
+                    if state == .rejected {
+                        Label("context.ops.rejected", systemImage: "exclamationmark.circle").foregroundStyle(.red)
+                    }
+                    if readFailed {
+                        Label("context.ops.readFailed", systemImage: "arrow.clockwise").foregroundStyle(.orange)
+                    }
                 }
-                if state == .unknown {
-                    CYNoteBanner(text: Text("context.ops.unknown"), symbol: "clock", tone: .warning)
-                }
-                if state == .acknowledged {
-                    CYNoteBanner(text: Text("context.ops.acknowledged"), symbol: "checkmark.circle", tone: .success)
-                }
-                if state == .rejected {
-                    CYNoteBanner(text: Text("context.ops.rejected"), symbol: "exclamationmark.circle", tone: .danger)
-                }
-                if readFailed {
-                    CYNoteBanner(text: Text("context.ops.readFailed"), symbol: "arrow.clockwise", tone: .warning)
-                }
+            }
+            Section {
                 if busy {
                     ProgressView()
-                        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                        .frame(maxWidth: .infinity)
                         .accessibilityLabel(Text("club.loading"))
                 }
-                CYPillButton("context.review.preview", systemImage: "eye") {
+                Button {
                     review = try? ClubOpsTimeRequest(activityID: activityID, startDate: ClubOpsTimeRequest.submissionTime(date))
                     captured = owner?.service.session
+                } label: {
+                    Label("context.review.preview", systemImage: "eye")
                 }
                 .disabled(!canPreview)
                 if owner?.service.isConfigured == true {
-                    CYPillButton("context.ops.readback", style: .secondary, systemImage: "arrow.clockwise") {
+                    Button {
                         Task { await readback() }
+                    } label: {
+                        Label("context.ops.readback", systemImage: "arrow.clockwise")
                     }
                     .disabled(busy)
                 }
             }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.vertical, CYSpacing.lg)
         }
-        .cyDomainPageBackground()
-        .sheet(isPresented: Binding(get: { review != nil }, set: { if !$0 { review = nil; captured = nil } })) {
-            if let review {
-                CYConfirmSheet(
-                    title: appLocalized("context.ops.confirm", locale: locale),
-                    message: review.startDate,
-                    confirmTitle: appLocalized("context.ops.save", locale: locale),
-                    cancelTitle: appLocalized("action.cancel", locale: locale),
-                    confirmDisabled: owner?.canSave != true,
-                    onCancel: {
-                        self.review = nil
-                        captured = nil
-                    },
-                    onConfirm: { Task { await save() } }
-                )
-                .cyDomainSheet(detents: [.peek, .half])
+        .navigationTitle(Text("context.ops.title"))
+        .navigationBarTitleDisplayMode(.inline)
+        .alert(Text("context.ops.confirm"),
+               isPresented: Binding(get: { review != nil }, set: { if !$0 { review = nil; captured = nil } }),
+               presenting: review) { pending in
+            Button("action.cancel", role: .cancel) {
+                self.review = nil
+                captured = nil
             }
+            Button("context.ops.save") {
+                // The alert clears `review` as it closes: hand the reviewed request and session to the save.
+                let session = captured
+                Task { await save(pending, captured: session) }
+            }
+            .disabled(owner?.canSave != true)
+        } message: { pending in
+            Text(verbatim: pending.startDate)
         }
         .onChange(of: owner?.service.session) { _, _ in review = nil; captured = nil; serverDate = nil; revision += 1 }
         .cyHaptic(.success, trigger: state) { _, new in new == .acknowledged }
         .cyHaptic(.warning, trigger: state) { _, new in new == .rejected }
         .cyDomainScreen(.player)
     }
-    private func save() async {
-        guard let owner, let review, let captured, owner.service.session == captured else { return }
+    private func save(_ review: ClubOpsTimeRequest, captured: ClubOpsTimeSession?) async {
+        guard let owner, owner.canSave, let captured, owner.service.session == captured else { return }
         busy = true; await owner.save(review, expected: captured); busy = false; self.review = nil; revision += 1
         guard owner.service.session == captured else { return }
         if state == .acknowledged || state == .unknown { await readback(); onReadback() }

@@ -14,11 +14,12 @@ import SwiftUI
         Section("club.ownerFunds.title") {
             switch phase {
             case .loading:
-                CYLoadingStateView(rows: 1)
+                ProgressView()
+                    .frame(maxWidth: .infinity)
                     .accessibilityLabel(Text("wallet.loading"))
             case .failed:
                 HStack {
-                    Text("wallet.failed").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                    Text("wallet.failed").foregroundStyle(.secondary)
                     Spacer()
                     Button("wallet.retry") { Task { await load() } }
                         .buttonStyle(.borderless)
@@ -26,7 +27,7 @@ import SwiftUI
                 }
             case .ready(let value):
                 if !value.amountsKnown {
-                    Text("wallet.amountsUnknown").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    Text("wallet.amountsUnknown").font(.subheadline).foregroundStyle(.secondary)
                 }
                 row("wallet.available", value.amountsKnown ? money(value.withdrawable) : "—")
                 if value.pendingSettlement.value > 0 { row("wallet.pendingSettlement", money(value.pendingSettlement)) }
@@ -36,7 +37,7 @@ import SwiftUI
                     } label: {
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             Text("wallet.complaintPeriod")
-                            Text(verbatim: item.availableDate).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            Text(verbatim: item.availableDate).font(.subheadline).foregroundStyle(.secondary)
                         }
                     }
                 }

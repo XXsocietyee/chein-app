@@ -38,7 +38,7 @@ import SwiftUI
                             if let selected {
                                 ban(selected, banDays)
                             } else {
-                                Text("clubOpsGov.card.banAction").foregroundStyle(CYColor.textTertiary)
+                                Text("clubOpsGov.card.banAction").foregroundStyle(.tertiary)
                             }
                         } label: { Text("clubOpsGov.card.banReason") }
                         .accessibilityIdentifier("clubOpsGov.card.ban")
@@ -48,12 +48,12 @@ import SwiftUI
                             if let selected {
                                 transfer(selected)
                             } else {
-                                Text("club.rolePicker.member").foregroundStyle(CYColor.textTertiary)
+                                Text("club.rolePicker.member").foregroundStyle(.tertiary)
                             }
                         } label: {
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                 Text("club.gov.action.transferOwner")
-                                ClubOpsGovernanceCopy.text("clubOpsGov.transfer.hint").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                                ClubOpsGovernanceCopy.text("clubOpsGov.transfer.hint").font(.subheadline).foregroundStyle(.secondary)
                             }
                         }
                         .accessibilityIdentifier("clubOpsGov.card.transfer")

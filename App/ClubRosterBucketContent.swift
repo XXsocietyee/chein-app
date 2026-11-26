@@ -25,8 +25,6 @@ import SwiftUI
         Section {
             ClubRosterCard(model: .roster(roster, locale: locale), coverSeed: "roster-\(roster.scope.activityID ?? 0)")
                 .accessibilityIdentifier("club.roster.card")
-                .listRowInsets(EdgeInsets())
-                .listRowBackground(Color.clear)
         }
         Section {
             Text("clubOpsEvent.roster.title \(roster.rosterTotal)", tableName: "ClubOpsEvent").cyText(.cardTitle)
@@ -46,7 +44,7 @@ import SwiftUI
                     if let range = ClubOpsEventClock.correctionRange(start: roster.correctionStart, end: roster.correctionEnd, locale: locale) {
                         Text("clubOpsEvent.roster.window \(range)", tableName: "ClubOpsEvent")
                     } else { Text("clubOpsEvent.roster.windowGeneric", tableName: "ClubOpsEvent") }
-                }.cyText(.bodyCompact).foregroundStyle(CYColor.warningText).accessibilityIdentifier("club.roster.windowClosed")
+                }.font(.subheadline).foregroundStyle(.orange).accessibilityIdentifier("club.roster.windowClosed")
             }
         }
         Section(LocalizedStringKey(selected.localizationKey)) {

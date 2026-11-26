@@ -60,19 +60,14 @@ struct ClubManagementView: View {
         List {
             // X1 (parity r2): inline bar title, no hero in the content.
             if identity == nil {
-                CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "club.management.signin", kind: .inbox)
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
+                ContentUnavailableView("club.management.signin", systemImage: "person.crop.circle.badge.exclamationmark")
             } else if !access.isConfigured {
-                CYEmptyState(systemImage: "network.slash", "club.management.unconfigured", kind: .offline)
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
+                ContentUnavailableView("club.management.unconfigured", systemImage: "network.slash")
             } else {
                 if loading && snapshot == nil {
-                    CYSkeleton()
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
                         .accessibilityLabel(Text("club.management.loading"))
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
                 }
                 let loadIssue = ClubOpsJoinRequestCopy.loadIssue(failed: failed, denied: denied, stale: stale, hasSnapshot: contextMatches && snapshot != nil)
                 if let issue = loadIssue {
@@ -82,8 +77,7 @@ struct ClubManagementView: View {
                     // The mini page title replaces the generic unavailable line; denial keeps its own copy.
                     if denied || loadIssue == nil {
                         Text(LocalizedStringKey(denied ? "club.management.denied" : "club.management.unavailable"))
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.textSecondary)
+                            .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     if let serverReadMessage { serverMessage(serverReadMessage) }
@@ -93,16 +87,18 @@ struct ClubManagementView: View {
                     // Mini-program club/join-requests: title, the 「N 条待审 · 可直接通过或拒绝」 line, then the cards.
                     Section {
                         if snapshot.requests.isEmpty {
-                            CYEmptyState(systemImage: "person.badge.clock", "club.management.empty", detail: "club.management.emptyHint", kind: .inbox)
-                                .listRowBackground(Color.clear)
-                                .listRowSeparator(.hidden)
+                            ContentUnavailableView(
+                                "club.management.empty",
+                                systemImage: "person.badge.clock",
+                                description: Text("club.management.emptyHint")
+                            )
                         }
                         ForEach(snapshot.requests) { request in
                             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                                 Button { selection = .request(request.id) } label: {
                                     requestRow(request)
                                 }
-                                .buttonStyle(.cyPressable)
+                                .buttonStyle(.plain)
                                 .accessibilityIdentifier("club.management.request.\(request.id)")
                                 // CLB-join-requests-02 (parity r2), MC-21: visible 拒绝 / 通过 on the row; the swipe stays.
                                 if snapshot.allows(.approve, memberID: request.id) {
@@ -117,25 +113,20 @@ struct ClubManagementView: View {
                                     Button {
                                         Task { await prepare(.approve, memberID: request.id, attachment: attachment, source: source) }
                                     } label: { Label { Text(verbatim: clubR1("request.approve", locale)) } icon: { Image(systemName: "checkmark") } }
-                                    .tint(CYColor.successText)
+                                    .tint(.green)
                                     Button {
                                         Task { await prepare(.reject, memberID: request.id, attachment: attachment, source: source) }
                                     } label: { Label { Text(verbatim: clubR1("request.reject", locale)) } icon: { Image(systemName: "xmark") } }
                                     // CLB-join-requests-08 (fix-r3-club-b): a legible danger tint for 拒绝.
-                                    .tint(CYColor.dangerText)
+                                    .tint(.red)
                                 }
                             }
-                            .listRowInsets(Self.gutterInsets)
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
                         }
                     } header: {
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             // The requests-only page already carries 入会申请 as its bar title.
                             if !joinRequestsOnly {
                                 Text("club.management.requests")
-                                    .cyText(.sectionTitle)
-                                    .foregroundStyle(CYColor.textPrimary)
                                     .accessibilityAddTraits(.isHeader)
                             }
                             if !snapshot.requests.isEmpty,
@@ -146,35 +137,25 @@ struct ClubManagementView: View {
                                     .accessibilityValue(Text(verbatim: pendingText))
                             }
                         }
-                        .textCase(nil)
                     }
                     if snapshot.club.isOwner, !joinRequestsOnly {
                         Section {
                             if snapshot.members.isEmpty {
-                                CYEmptyState(
-                                    systemImage: "person.2",
+                                ContentUnavailableView(
                                     LocalizedStringKey(snapshot.club.memberCount > 0 ? "club.management.members_unavailable" : "club.management.members_empty"),
-                                    kind: .generic
+                                    systemImage: "person.2"
                                 )
-                                .listRowBackground(Color.clear)
-                                .listRowSeparator(.hidden)
                             }
                             ForEach(snapshot.members) { member in
                                 Button { selection = .member(member.id) } label: {
                                     managementMemberRow(member)
                                 }
-                                .buttonStyle(.cyPressable)
+                                .buttonStyle(.plain)
                                 .accessibilityIdentifier("club.management.member.\(member.id)")
-                                .listRowInsets(Self.gutterInsets)
-                                .listRowBackground(Color.clear)
-                                .listRowSeparator(.hidden)
                             }
                         } header: {
                             Text("club.management.members")
-                                .cyText(.sectionTitle)
-                                .foregroundStyle(CYColor.textPrimary)
                                 .accessibilityAddTraits(.isHeader)
-                                .textCase(nil)
                         }
                     }
                 }
@@ -182,19 +163,14 @@ struct ClubManagementView: View {
                 // fix-r8-club: the MP join-requests page (requests only) has no bottom 刷新 at all; the full management
                 // list keeps the pill its UI tests drive.
                 if !joinRequestsOnly {
-                Button("club.management.refresh") { Task { await refresh() } }
-                    .buttonStyle(CYPillButtonStyle(style: .secondary))
-                    .disabled(loading || state == .checking || state == .awaitingConfirmation || state == .submitting)
-                    .accessibilityIdentifier("club.management.refresh")
-                    .listRowInsets(Self.gutterInsets)
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
+                    Section {
+                        Button("club.management.refresh") { Task { await refresh() } }
+                            .disabled(loading || state == .checking || state == .awaitingConfirmation || state == .submitting)
+                            .accessibilityIdentifier("club.management.refresh")
+                    }
                 }
             }
         }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
-        .cyDomainScreen(.player)
         .cyPageTitle(joinRequestsOnly ? "club.management.requests" : "club.management.title")
         .refreshable { await refresh() }
         // CLB-join-requests-05 (fix-r3-club-b), MC-21: a handled card slides out when the readback replaces the list.
@@ -214,7 +190,6 @@ struct ClubManagementView: View {
             else if detailHostVisible { reviewOwner.appear(reviewContext) }
         }
         .onDisappear { if selection == nil { leaveScreen() } }
-        .cyDomainScreen(.player)
     }
     @ViewBuilder private func detail(_ selected: DetailSelection) -> some View {
         let presentedAttachment = reviewOwner.attachment
@@ -242,13 +217,11 @@ struct ClubManagementView: View {
                                     action(.reject, memberID: id)
                                 }
                             }
-                            .listRowInsets(Self.gutterInsets)
-                            .listRowBackground(Color.clear)
                         }
                     }
                 case .member(let id):
                     if let member = snapshot.members.first(where: { $0.id == id }) {
-                        managementMemberRow(member)
+                        managementMemberRow(member, showsChevron: false)
                             .accessibilityElement(children: .combine)
                         if snapshot.allows(.remove, memberID: id) { action(.remove, memberID: id) }
                     }
@@ -256,20 +229,16 @@ struct ClubManagementView: View {
             }
             if failed {
                 Text(LocalizedStringKey(denied ? "club.management.denied" : "club.management.unavailable"))
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textSecondary)
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if let serverReadMessage { serverMessage(serverReadMessage) }
             }
-            Button("club.management.refresh") { Task { await refresh() } }
-                .buttonStyle(CYPillButtonStyle(style: .tertiary))
-                .disabled(loading || state == .checking || state == .awaitingConfirmation || state == .submitting)
-                .accessibilityIdentifier("club.management.detail.refresh")
-                .listRowInsets(Self.gutterInsets)
-                .listRowBackground(Color.clear)
+            Section {
+                Button("club.management.refresh") { Task { await refresh() } }
+                    .disabled(loading || state == .checking || state == .awaitingConfirmation || state == .submitting)
+                    .accessibilityIdentifier("club.management.detail.refresh")
+            }
         }
-        .scrollContentBackground(.hidden)
-        .cyDomainPageBackground()
         .cyPageTitle(detailTitle)
         // The root List's task is suspended while this destination is pushed.
         // Invalidate its selection here, where viewer changes are still observed.
@@ -297,7 +266,6 @@ struct ClubManagementView: View {
             }
         }
     }
-    private static let gutterInsets = EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal)
     /// A blank name is unknown. CLB-join-requests-04 / X10: internal ids are never shown to people.
     private static func namedID(_ name: String, _ id: Int) -> String {
         let shown = name.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -317,12 +285,12 @@ struct ClubManagementView: View {
         let attachment = reviewOwner.attachment, source = reviewContext
         let busy = loading || state == .checking || state == .awaitingConfirmation || state == .submitting
         return VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text("clubR8b.join.rowFailed").cyText(.body, weight: .semibold).foregroundStyle(CYColor.dangerText)
-            if let message = failure.message { Text(verbatim: message).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+            Text("clubR8b.join.rowFailed").font(.body.weight(.semibold)).foregroundStyle(.red)
+            if let message = failure.message { Text(verbatim: message).font(.footnote).foregroundStyle(.secondary) }
             if let row = failedRow {
                 Button("clubR8b.retry") { Task { await prepare(row.action, memberID: request.id, attachment: attachment, source: source) } }
-                    .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
-                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
                     .disabled(busy)
                     .accessibilityIdentifier("club.management.row.retry.\(request.id)")
             }
@@ -339,12 +307,15 @@ struct ClubManagementView: View {
             Button {
                 Task { await prepare(.reject, memberID: request.id, attachment: attachment, source: source) }
             } label: { Text(verbatim: clubR1("request.reject", locale)) }
-            .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
+            .buttonStyle(.bordered)
+            .controlSize(.small)
             .accessibilityIdentifier("club.management.row.reject.\(request.id)")
             Button {
                 Task { await prepare(.approve, memberID: request.id, attachment: attachment, source: source) }
             } label: { Text(verbatim: clubR1("request.approve", locale)) }
-            .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: false, compact: true))
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .tint(.green)
             .accessibilityIdentifier("club.management.row.approve.\(request.id)")
         }
         .disabled(busy)
@@ -354,21 +325,20 @@ struct ClubManagementView: View {
             personAvatar(raw: request.avatar, fallback: ClubOpsJoinRequestPresentation.displayName(request.nickname) ?? "\(request.id)")
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 ClubOpsJoinRequestRowText(request: request)
-                    .cyText(.cardTitle)
-                    .foregroundStyle(CYColor.textPrimary)
+                    .font(.headline)
                     .fixedSize(horizontal: false, vertical: true)
                 Group {
                     if let time = request.requestTimeText { Text("club.management.requestedAt \(time)") }
                     else { Text("club.management.timeUnknown") }
                 }
-                .cyText(.meta)
-                .foregroundStyle(CYColor.textSecondary)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 // CLB-join-requests-03 (parity r2): the applicant's join message on the row (MP wxml:43).
                 if let message = request.joinMessage?.trimmingCharacters(in: .whitespacesAndNewlines), !message.isEmpty {
                     Text(verbatim: message)
-                        .cyText(.bodyCompact)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                         .lineLimit(3)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -376,7 +346,7 @@ struct ClubManagementView: View {
             Spacer(minLength: CYSpacing.sm)
             Image(systemName: "chevron.right")
                 .font(.footnote.weight(.semibold))
-                .foregroundStyle(CYColor.textTertiary)
+                .foregroundStyle(.tertiary)
                 .accessibilityHidden(true)
         }
         .frame(minHeight: CYSpacing.minTouchTarget)
@@ -388,15 +358,15 @@ struct ClubManagementView: View {
                 personAvatar(raw: request.avatar, fallback: ClubOpsJoinRequestPresentation.displayName(request.nickname) ?? "\(request.id)")
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     if let name = ClubOpsJoinRequestPresentation.displayName(request.nickname) {
-                        Text(verbatim: name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                        Text(verbatim: name).font(.headline).fixedSize(horizontal: false, vertical: true)
                     } else {
                         Text("clubOpsJN.join.playerFallback", tableName: "ClubOpsJoinNotify")
-                            .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                            .font(.headline).fixedSize(horizontal: false, vertical: true)
                     }
                     if let time = request.requestTimeText {
                         Text("club.management.requestedAt \(time)")
-                            .cyText(.meta)
-                            .foregroundStyle(CYColor.textSecondary)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
@@ -404,12 +374,10 @@ struct ClubManagementView: View {
             if let message = request.joinMessage, !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Text("club.application.messageReceived")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                     Text(verbatim: message)
-                        .cyText(.body)
-                        .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("club.management.joinMessage")
                 }
@@ -417,20 +385,22 @@ struct ClubManagementView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
-    private func managementMemberRow(_ member: ClubMember) -> some View {
+    private func managementMemberRow(_ member: ClubMember, showsChevron: Bool = true) -> some View {
         HStack(alignment: .center, spacing: CYSpacing.md) {
             personAvatar(raw: member.avatar, fallback: ClubOpsJoinRequestPresentation.displayName(member.nickname) ?? "\(member.id)")
             if let name = ClubOpsJoinRequestPresentation.displayName(member.nickname) {
-                Text(verbatim: name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: name).fixedSize(horizontal: false, vertical: true)
             } else {
                 Text("clubOpsJN.join.playerFallback", tableName: "ClubOpsJoinNotify")
-                    .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: CYSpacing.sm)
-            Image(systemName: "chevron.right")
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(CYColor.textTertiary)
-                .accessibilityHidden(true)
+            if showsChevron {
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+                    .accessibilityHidden(true)
+            }
         }
         .frame(minHeight: CYSpacing.minTouchTarget)
         .contentShape(Rectangle())
@@ -479,24 +449,20 @@ struct ClubManagementView: View {
     }
     /// Status copy stays a `Text` so existing UI tests can find the static text by identifier.
     private func statusLine(_ key: LocalizedStringKey, symbol: String, identifier: String? = nil) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-            Image(systemName: symbol)
-                .cyText(.body, weight: .semibold)
-                .foregroundStyle(CYColor.textSecondary)
-                .accessibilityHidden(true)
+        Label {
             Text(key)
-                .cyText(.body)
-                .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .modifier(CYOptionalAccessibilityIdentifier(identifier: identifier))
+        } icon: {
+            Image(systemName: symbol)
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
         }
-        .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
     }
     private func serverMessage(_ message: String) -> some View {
         let shown = message.trimmingCharacters(in: .whitespacesAndNewlines)
         return Text(verbatim: shown.isEmpty ? "—" : shown)
-            .cyText(.body)
-            .foregroundStyle(CYColor.textSecondary)
+            .foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
             .textSelection(.enabled)
     }
@@ -505,25 +471,35 @@ struct ClubManagementView: View {
         if action == .approve {
             Button {
                 Task { await prepare(action, memberID: memberID, attachment: attachment, source: source) }
-            } label: { ClubOpsJoinRequestActionLabel(action: action, progressKey: progressKey(action, memberID: memberID)) }
-            .buttonStyle(CYPillButtonStyle(style: .primary))
+            } label: {
+                ClubOpsJoinRequestActionLabel(action: action, progressKey: progressKey(action, memberID: memberID))
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
             .disabled(loading || stale || !contextMatches || state.preventsNewAction)
             .accessibilityIdentifier("club.management.\(action.rawValue).\(memberID)")
-            .listRowInsets(Self.gutterInsets)
-            .listRowBackground(Color.clear)
         } else {
             // HANDOFF-R1 MC-21: 拒绝 is the quiet secondary beside 通过; 移除 keeps the red style.
-            let button = Button(role: .destructive) {
-                Task { await prepare(action, memberID: memberID, attachment: attachment, source: source) }
-            } label: { ClubOpsJoinRequestActionLabel(action: action, progressKey: progressKey(action, memberID: memberID)) }
             Group {
-                if action == .remove { button.buttonStyle(CYDestructiveButtonStyle(isFullWidth: true)) }
-                else { button.buttonStyle(CYPillButtonStyle(style: .secondary)) }
+                if action == .remove {
+                    // A Settings-style destructive row in the detail Form.
+                    Button(role: .destructive) {
+                        Task { await prepare(action, memberID: memberID, attachment: attachment, source: source) }
+                    } label: { ClubOpsJoinRequestActionLabel(action: action, progressKey: progressKey(action, memberID: memberID)) }
+                } else {
+                    Button(role: .destructive) {
+                        Task { await prepare(action, memberID: memberID, attachment: attachment, source: source) }
+                    } label: {
+                        ClubOpsJoinRequestActionLabel(action: action, progressKey: progressKey(action, memberID: memberID))
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                }
             }
             .disabled(loading || stale || !contextMatches || state.preventsNewAction)
             .accessibilityIdentifier("club.management.\(action.rawValue).\(memberID)")
-            .listRowInsets(Self.gutterInsets)
-            .listRowBackground(Color.clear)
         }
     }
     @ViewBuilder private func confirmControl(_ pending: ClubManagementConfirmation, item: ClubManagementReviewOwner.Item) -> some View {
@@ -532,8 +508,12 @@ struct ClubManagementView: View {
                 guard reviewOwner.claim(item, context: reviewContext, active: scenePhase == .active) else { return }
                 state = .submitting
                 Task { await confirm(pending, item: item) }
-            } label: { ClubOpsJoinRequestActionLabel(action: pending.action, progressKey: progressKey(pending.action, memberID: pending.memberID)) }
-            .buttonStyle(CYPillButtonStyle(style: .primary))
+            } label: {
+                ClubOpsJoinRequestActionLabel(action: pending.action, progressKey: progressKey(pending.action, memberID: pending.memberID))
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
             .disabled(pending.action == .reject && !ClubOpsJoinReviewReason.isValid(reviewReasonDraft))
             .accessibilityIdentifier("club.management.confirm")
         } else {
@@ -541,8 +521,12 @@ struct ClubManagementView: View {
                 guard reviewOwner.claim(item, context: reviewContext, active: scenePhase == .active) else { return }
                 state = .submitting
                 Task { await confirm(pending, item: item) }
-            } label: { ClubOpsJoinRequestActionLabel(action: pending.action, progressKey: progressKey(pending.action, memberID: pending.memberID)) }
-            .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
+            } label: {
+                ClubOpsJoinRequestActionLabel(action: pending.action, progressKey: progressKey(pending.action, memberID: pending.memberID))
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
             .disabled(pending.action == .reject && !ClubOpsJoinReviewReason.isValid(reviewReasonDraft))
             .accessibilityIdentifier("club.management.confirm")
         }
@@ -566,28 +550,15 @@ struct ClubManagementView: View {
         if contextMatches, reviewOwner.current(item, context: reviewContext, active: scenePhase == .active) {
             NavigationStack {
                 Form {
-                    Section {
-                        // CLB-join-requests-09 (fix-r3-club-b): a sheet title, not a 34 pt hero.
-                        Text(LocalizedStringKey("club.management." + pending.action.rawValue))
-                            .cyText(.sheetTitle)
-                            .foregroundStyle(CYColor.textPrimary)
-                            .accessibilityAddTraits(.isHeader)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .listRowInsets(Self.gutterInsets)
-                    .listRowBackground(Color.clear)
                     if pending.action == .remove {
                         Text(LocalizedStringKey("club.management." + String(pending.action.rawValue) + ".body"))
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.textSecondary)
+                            .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     } else { ClubOpsJoinReviewNotes(action: pending.action) }
-                    LabeledContent("club.management.club") { Text(verbatim: Self.namedID(pending.clubName, pending.clubID)).cyText(.numericBody) }
-                    LabeledContent("club.management.target") { Text(verbatim: Self.namedID(pending.memberName, pending.memberID)).cyText(.numericBody) }
+                    LabeledContent("club.management.club") { Text(verbatim: Self.namedID(pending.clubName, pending.clubID)) }
+                    LabeledContent("club.management.target") { Text(verbatim: Self.namedID(pending.memberName, pending.memberID)) }
                     if pending.action == .reject { ClubOpsJoinRejectReasonField(text: $reviewReasonDraft).disabled(state == .submitting || state.preventsNewAction) }
                     confirmControl(pending, item: item)
-                        .listRowInsets(Self.gutterInsets)
-                        .listRowBackground(Color.clear)
                         .cyHaptic(.impactMedium, trigger: state) { old, new in
                             if case .submitting = new {
                                 if case .submitting = old { return false }
@@ -596,9 +567,9 @@ struct ClubManagementView: View {
                             return false
                         }
                 }
-                .scrollContentBackground(.hidden)
-                .cyDomainPageBackground()
-                .cyHeroScreen()
+                // CLB-join-requests-09 (fix-r3-club-b): a sheet title, not a 34 pt hero.
+                .navigationTitle(Text(LocalizedStringKey("club.management." + pending.action.rawValue)))
+                .navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .cancellationAction) {
                     Button("club.management.cancel") {
                         if reviewOwner.cancel(item) { cancelReview(item) }

@@ -6,27 +6,26 @@ struct ClubOpsSettlementSummaryCard: View {
     var body: some View {
         // Mini-program .settled-card: caption, then one large tabular amount; unknown stays 「金额待核验」, never 0.
         Section {
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Text("clubOps.settlement.settledLabel", tableName: "ClubOpsCustomer").cyText(.label).foregroundStyle(CYColor.textSecondary)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("clubOps.settlement.settledLabel", tableName: "ClubOpsCustomer").font(.subheadline).foregroundStyle(.secondary)
                 Group {
-                    if let amount = summary.settledAmountText { Text(verbatim: amount).cyText(.data2XL).monospacedDigit() }
+                    if let amount = summary.settledAmountText { Text(verbatim: amount).font(.largeTitle.weight(.semibold)).monospacedDigit() }
                     else {
-                        Text(verbatim: ClubOpsGovernanceCount.unknownDisplay).cyText(.data2XL).monospacedDigit()
+                        Text(verbatim: ClubOpsGovernanceCount.unknownDisplay).font(.largeTitle.weight(.semibold)).monospacedDigit()
                             .accessibilityLabel(Text("clubOps.settlement.amountUnverified", tableName: "ClubOpsCustomer"))
                     }
                 }
-                .foregroundStyle(CYColor.textPrimary)
                 .cyWrapText()
                 .accessibilityIdentifier("club.gov.fact.settledAmountStatus")
                 if summary.unverifiedSettledCount > 0 {
-                    CYStatusChip(verbatim: String(localized: LocalizedStringResource("clubOps.settlement.unverifiedCount \(summary.unverifiedSettledCount)", table: "ClubOpsCustomer", locale: locale)),
-                                 tone: .warning, systemImage: "questionmark.circle")
+                    Label(String(localized: LocalizedStringResource("clubOps.settlement.unverifiedCount \(summary.unverifiedSettledCount)", table: "ClubOpsCustomer", locale: locale)),
+                          systemImage: "questionmark.circle")
+                        .font(.subheadline)
+                        .foregroundStyle(.orange)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .cyDomainCard(radius: CYRadius.hero, padding: CYSpacing.lg)
-            .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
-            .listRowBackground(Color.clear)
+            .padding(.vertical, 4)
         }
     }
 }
@@ -37,8 +36,9 @@ struct ClubOpsSettlementOwnerOnlyWithdraw: View {
     @Environment(\.locale) private var locale
     var body: some View {
         Section {
-            CYStatusChip(verbatim: String(localized: LocalizedStringResource(String.LocalizationValue(ClubOpsWithdrawHint.ownerOnly.localizationKey), table: "ClubOpsCustomer", locale: locale)),
-                         tone: .neutral, systemImage: "lock")
+            Label(String(localized: LocalizedStringResource(String.LocalizationValue(ClubOpsWithdrawHint.ownerOnly.localizationKey), table: "ClubOpsCustomer", locale: locale)),
+                  systemImage: "lock")
+                .foregroundStyle(.secondary)
                 .accessibilityIdentifier("clubOps.settlement.withdraw.ownerOnly")
         }
     }
@@ -46,7 +46,7 @@ struct ClubOpsSettlementOwnerOnlyWithdraw: View {
 
 struct ClubOpsSettlementFootnote: View {
     var body: some View {
-        Text("clubOps.settlement.footnote", tableName: "ClubOpsCustomer").cyText(.caption).foregroundStyle(CYColor.textTertiary)
+        Text("clubOps.settlement.footnote", tableName: "ClubOpsCustomer").font(.footnote).foregroundStyle(.secondary)
             .accessibilityIdentifier("clubOps.settlement.footnote")
     }
 }

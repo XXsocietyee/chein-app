@@ -71,9 +71,7 @@ import SwiftUI
     @State private var destination: ClubEventTopicRoute?
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
-    @Environment(\.cyPalette) private var palette
     @ScaledMetric(relativeTo: .body) private var daySide: CGFloat = 44
-    @ScaledMetric(relativeTo: .headline) private var coverSide: CGFloat = 56
     private var readContext: ClubGovernanceReadContext {
         .init(operation: .topics, scope: .init(clubID: clubID), identity: identity,
               viewerRevision: governance.viewerRevision, authorizationGeneration: governance.access.authorizationGeneration,
@@ -93,16 +91,16 @@ import SwiftUI
             }
             .pickerStyle(.segmented)
             .accessibilityIdentifier("club.calendar.mode")
-            .clubCalendarRow()
             if model.loading {
-                CYSkeleton()
+                ProgressView()
+                    .frame(maxWidth: .infinity)
                     .accessibilityIdentifier("club.calendar.loading")
-                    .clubCalendarRow()
             }
             if let failure = model.failure {
-                CYNoteBanner(text: Text(LocalizedStringKey(failure.localizationKey)), symbol: "exclamationmark.triangle", tone: .danger)
+                Label { Text(LocalizedStringKey(failure.localizationKey)) } icon: { Image(systemName: "exclamationmark.triangle") }
+                    .foregroundStyle(.red)
+                    .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("club.calendar.error")
-                    .clubCalendarRow()
             }
             if let snapshot = accepted {
                 if calendarMode { calendar(snapshot) }
@@ -119,15 +117,10 @@ import SwiftUI
                 ClubCalendarSessionsView(context: readContext, access: governance.access)
             } label: { sessionsRow }
                 .accessibilityIdentifier("club.calendar.sessions.open")
-                .clubCalendarRow()
-            CYPillButton("club.gov.refresh", style: model.failure == nil ? .secondary : .primary, systemImage: "arrow.clockwise") { refresh() }
+            Button { refresh() } label: { Label("club.gov.refresh", systemImage: "arrow.clockwise") }
                 .disabled(model.loading)
                 .accessibilityIdentifier("club.calendar.refresh")
-                .clubCalendarRow()
         }
-        .listStyle(.plain)
-        .cyGroupedSurface()
-        .cyDomainPageBackground()
         .cyHaptic(.selection, trigger: selectedDay?.id ?? "")
         .background {
             if let item = reportPresentation.presented {
@@ -171,66 +164,65 @@ import SwiftUI
             HStack {
                 Button { shift(-1) } label: { Image(systemName: "chevron.left") }
                     .buttonStyle(.borderless)
-                    .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                    .frame(minWidth: 44, minHeight: 44)
                     .disabled(month.shifted(by: -1) == nil)
                     .accessibilityLabel("club.calendar.previous")
                     .accessibilityIdentifier("club.calendar.previous")
-                Spacer(minLength: CYSpacing.sm)
+                Spacer(minLength: 8)
                 Text(verbatim: month.key)
-                    .cyText(.sectionTitle)
-                    .foregroundStyle(palette.textPrimary)
+                    .font(.headline)
                     .monospacedDigit()
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("club.calendar.month")
                     .accessibilityAddTraits(.isHeader)
-                Spacer(minLength: CYSpacing.sm)
+                Spacer(minLength: 8)
                 Button { shift(1) } label: { Image(systemName: "chevron.forward") }
                     .buttonStyle(.borderless)
-                    .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                    .frame(minWidth: 44, minHeight: 44)
                     .disabled(month.shifted(by: 1) == nil)
                     .accessibilityLabel("club.calendar.next")
                     .accessibilityIdentifier("club.calendar.next")
             }
             Text("club.calendar.startDates")
-                .cyText(.meta)
-                .foregroundStyle(palette.textSecondary)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             let cells = month.cells(events: snapshot.events)
             if dynamicTypeSize.isAccessibilitySize {
                 // Keep long names and every event reachable with large text.
                 ForEach(cells.filter { !$0.events.isEmpty }) { cell in
                     Text(verbatim: cell.day.id)
-                        .cyText(.cardTitle)
-                        .foregroundStyle(palette.textPrimary)
+                        .font(.headline)
                         .fixedSize(horizontal: false, vertical: true)
                     ForEach(cell.events) { event in eventRow(event, showDate: false) }
                 }
             } else {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: CYSpacing.xs), count: 7), spacing: CYSpacing.sm) {
+                // Calendar-style month grid (no system month view shows per-day events); system colours and fonts only.
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 7), spacing: 8) {
                     ForEach(1...7, id: \.self) { day in
                         Text(LocalizedStringKey("club.calendar.weekday." + String(day)))
-                            .cyText(.caption)
-                            .foregroundStyle(palette.textTertiary)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityHidden(true)
                     }
                     ForEach(cells) { cell in
                         let selected = selectedDay == cell.day
                         Button { selectedDay = cell.day } label: {
-                            VStack(spacing: CYSpacing.xxs) {
+                            VStack(spacing: 2) {
                                 Text(cell.day.day, format: .number)
-                                    .font(selected ? CYTypography.numericBody : CYTypography.meta)
+                                    .font(selected ? Font.body.weight(.semibold) : Font.body)
                                     .monospacedDigit()
-                                    .foregroundStyle(selected ? palette.actionPrimaryFg : (cell.inMonth ? palette.textPrimary : palette.textTertiary))
+                                    .foregroundStyle(selected ? Color.white : (cell.inMonth ? Color.primary : Color.secondary))
                                     .frame(minWidth: daySide, minHeight: daySide)
                                     .fixedSize(horizontal: false, vertical: true)
-                                    .background(selected ? palette.actionPrimaryBg : Color.clear, in: Circle())
+                                    .background(selected ? Color.accentColor : Color.clear, in: Circle())
                                 Circle()
-                                    .fill(cell.events.isEmpty ? Color.clear : palette.info)
+                                    .fill(cell.events.isEmpty ? Color.clear : Color.secondary)
                                     .frame(width: 5, height: 5)
                                     .accessibilityHidden(true)
                             }
-                            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                            .frame(maxWidth: .infinity, minHeight: 44)
                             .contentShape(Rectangle())
                         }
                         .buttonStyle(.borderless)
@@ -241,39 +233,37 @@ import SwiftUI
                 }
                 if let selectedDay {
                     Text(verbatim: selectedDay.id)
-                        .cyText(.sectionTitle)
-                        .foregroundStyle(palette.textPrimary)
+                        .font(.headline)
                         .monospacedDigit()
                         .fixedSize(horizontal: false, vertical: true)
-                        .padding(.top, CYSpacing.sm)
                         .accessibilityAddTraits(.isHeader)
                     let events = snapshot.events.filter { $0.startDay == selectedDay }
                     if events.isEmpty {
                         Label("club.calendar.noDayEvents", systemImage: "calendar.badge.clock")
-                            .cyText(.meta)
-                            .foregroundStyle(palette.textSecondary)
-                            .labelStyle(.titleAndIcon)
+                            .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
-                            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
                     }
                     ForEach(events) { event in eventRow(event, showDate: false) }
                 } else {
                     Text("club.calendar.pickDay")
-                        .cyText(.meta)
-                        .foregroundStyle(palette.textSecondary)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
             if !cells.contains(where: { $0.inMonth && !$0.events.isEmpty }) {
-                CYEmptyState(systemImage: "calendar", "club.calendar.noMonthEvents")
-                    .accessibilityIdentifier("club.calendar.monthEmpty")
+                ContentUnavailableView {
+                    Label { Text("club.calendar.noMonthEvents").accessibilityIdentifier("club.calendar.monthEmpty") } icon: {
+                        Image(systemName: "calendar")
+                    }
+                }
             }
         }
         if !snapshot.undated.isEmpty {
             Section("club.calendar.undated") {
                 Text("club.calendar.undatedHint")
-                    .cyText(.meta)
-                    .foregroundStyle(palette.textSecondary)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 ForEach(snapshot.undated) { event in eventRow(event, showDate: false) }
             }
@@ -289,29 +279,33 @@ import SwiftUI
     private func eventLabel(_ event: ClubCalendarEvent, showDate: Bool) -> some View {
         let title = event.name ?? appLocalized("club.calendar.untitled", locale: locale)
         let meta: String? = showDate ? (event.startDay?.id ?? appLocalized("club.calendar.dateUnknown", locale: locale)) : nil
-        return CYListRow(verbatim: title, meta: meta, trailing: governance.topicDestination != nil ? .chevron : .none) {
-            CYCoverArt(seed: event.name ?? String(event.id), symbol: "calendar", showsDebugLabel: false)
-                .frame(width: coverSide, height: coverSide)
-                .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
-                .accessibilityHidden(true)
+        let shown = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        return HStack(spacing: 8) {
+            Label {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(verbatim: shown.isEmpty ? "—" : shown)
+                    if let meta { Text(verbatim: meta).font(.subheadline).foregroundStyle(.secondary) }
+                }
+            } icon: { Image(systemName: "calendar") }
+            Spacer(minLength: 0)
+            if governance.topicDestination != nil {
+                // Same disclosure as a NavigationLink row; the Button keeps the route guard in `select`.
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+                    .accessibilityHidden(true)
+            }
         }
+        .foregroundStyle(Color.primary)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
     }
     /// The sessions title lives in ClubCalendarSessions, not the default catalog.
     private var sessionsRow: some View {
-        HStack(spacing: CYSpacing.md) {
-            CYRowIcon(systemImage: "calendar.badge.clock")
+        Label {
             Text("sessions.title", tableName: "ClubCalendarSessions")
-                .cyText(.cardTitle)
-                .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: CYSpacing.sm)
-            Image(systemName: "chevron.right")
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(palette.textTertiary)
-                .accessibilityHidden(true)
-        }
-        .frame(minHeight: CYSpacing.minTouchTarget)
-        .contentShape(Rectangle())
+        } icon: { Image(systemName: "calendar.badge.clock") }
     }
     private func reportSource(_ topicID: Int) -> ClubActivityReportSource? {
         guard reportPresentation.canOpen(reportHost), destination == nil, let reportClub, let reportReader,
@@ -376,13 +370,5 @@ import SwiftUI
     private func current(_ route: ClubEventTopicRoute) -> Bool {
         governance.topicDestination != nil && model.accepted(readContext, access: governance.access) &&
         route.isCurrent(snapshot: accepted, context: readContext, snapshotGeneration: model.snapshotGeneration)
-    }
-}
-
-private extension View {
-    func clubCalendarRow() -> some View {
-        listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
-            .listRowBackground(Color.clear)
-            .listRowSeparator(.hidden)
     }
 }

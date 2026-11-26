@@ -10,13 +10,11 @@ import SwiftUI
         if teamID > 0, let access, access.enabled {
             Button { presented = true } label: {
                 Text("mpfresh.teamReport.entry", tableName: "MpFresh")
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .underline()
-                    .frame(minHeight: 44)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
-            .buttonStyle(.plain)
-            .frame(maxWidth: .infinity)
+            .buttonStyle(.borderless)
+            .frame(maxWidth: .infinity, minHeight: 44)
             .accessibilityLabel(Text("mpfresh.teamReport.title", tableName: "MpFresh"))
             .accessibilityIdentifier("nearby.team.report.\(teamID)")
             .sheet(isPresented: $presented) { Group { TeamReportReasonSheet(teamID: teamID) }.cySheet() }
@@ -29,8 +27,6 @@ import SwiftUI
     let teamID: Int
     @Environment(\.teamOrientBoardAccess) private var access
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.locale) private var locale
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var selected: Int?
     @State private var state: TeamReportState = .idle
     static let reasonKeys = ["mpfresh.teamReport.reason.ads", "mpfresh.teamReport.reason.illegal", "mpfresh.teamReport.reason.fraud",
@@ -39,112 +35,96 @@ import SwiftUI
     static let sourceReasons = ["广告或营销骚扰", "色情低俗或违法内容", "诈骗或虚假信息", "辱骂或人身攻击", "其他问题"]
 
     var body: some View {
-        CYSheetContainer(
-            title: String(localized: LocalizedStringResource("mpfresh.teamReport.title", table: "MpFresh", locale: locale)),
-            onClose: state == .submitting ? nil : { dismiss() }
-        ) {
+        NavigationStack {
             Group {
                 switch state {
                 case .submitting:
-                    VStack(spacing: CYSpacing.md) {
-                        ProgressView { Text("mpfresh.teamReport.busy", tableName: "MpFresh") }
-                    }
-                    .frame(maxWidth: .infinity, minHeight: 160)
-                    .accessibilityIdentifier("teamReport.busy")
+                    ProgressView { Text("mpfresh.teamReport.busy", tableName: "MpFresh") }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .accessibilityIdentifier("teamReport.busy")
                 case .submitted:
-                    result(icon: "checkmark.circle.fill", tint: CYColor.successText, title: "mpfresh.teamReport.ok.title",
+                    result(icon: "checkmark.circle.fill", tint: .green, title: "mpfresh.teamReport.ok.title",
                            detail: "mpfresh.teamReport.ok.detail", primary: "mpfresh.teamReport.ok.done") { dismiss() }
                         .accessibilityIdentifier("teamReport.ok")
                 case .unavailable:
-                    result(icon: "exclamationmark.triangle", tint: CYColor.warningText, title: "mpfresh.teamReport.fail.title",
+                    result(icon: "exclamationmark.triangle", tint: .orange, title: "mpfresh.teamReport.fail.title",
                            detail: "mpfresh.teamReport.unavailable", primary: "mpfresh.teamReport.ok.done") { dismiss() }
                         .accessibilityIdentifier("teamReport.unavailable")
                 case .failed(let failure):
-                    VStack(spacing: CYSpacing.md) {
-                        result(icon: "xmark.octagon", tint: CYColor.dangerText, title: "mpfresh.teamReport.fail.title",
-                               detail: failureKey(failure), primary: "mpfresh.teamReport.retry") { Task { await submit() } }
-                        Button { dismiss() } label: { Text("mpfresh.teamReport.cancel", tableName: "MpFresh") }
-                            .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
-                    }
-                    .accessibilityIdentifier("teamReport.fail")
+                    result(icon: "xmark.octagon", tint: .red, title: "mpfresh.teamReport.fail.title",
+                           detail: failureKey(failure), primary: "mpfresh.teamReport.retry", showsCancel: true) { Task { await submit() } }
+                        .accessibilityIdentifier("teamReport.fail")
                 case .idle:
                     picker
                 }
             }
-        }
-        .cyDomainSheet(detents: [.half, .full])
-        .interactiveDismissDisabled(state == .submitting)
-    }
-
-    private var picker: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            ScrollView {
-                VStack(spacing: CYSpacing.xs) {
-                    ForEach(Self.reasonKeys.indices, id: \.self) { index in
-                        Button {
-                            withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) { selected = index }
-                        } label: {
-                            HStack(spacing: CYSpacing.sm) {
-                                Text(LocalizedStringKey(Self.reasonKeys[index]), tableName: "MpFresh")
-                                    .cyText(.body)
-                                    .foregroundStyle(CYColor.textPrimary)
-                                    .fixedSize(horizontal: false, vertical: true)
-                                Spacer()
-                                if selected == index {
-                                    Image(systemName: "checkmark")
-                                        .foregroundStyle(CYColor.brand)
-                                        .transition(.scale.combined(with: .opacity))
-                                }
-                            }
-                            .padding(.horizontal, CYSpacing.md)
-                            .padding(.vertical, CYSpacing.sm)
-                            .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-                            .background(CYColor.sheetCard, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityAddTraits(selected == index ? [.isSelected] : [])
-                        .accessibilityIdentifier("teamReport.reason.\(index)")
+            .navigationTitle(Text("mpfresh.teamReport.title", tableName: "MpFresh"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                if state != .submitting {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button { dismiss() } label: { Text("mpfresh.teamReport.cancel", tableName: "MpFresh") }
+                    }
+                }
+                if state == .idle {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button { Task { await submit() } } label: { Text("mpfresh.teamReport.submit", tableName: "MpFresh") }
+                            .disabled(selected == nil)
+                            .accessibilityIdentifier("teamReport.submit")
                     }
                 }
             }
-            .scrollBounceBehavior(.basedOnSize)
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+        .interactiveDismissDisabled(state == .submitting)
+    }
 
-            Button { Task { await submit() } } label: {
-                Text("mpfresh.teamReport.submit", tableName: "MpFresh")
+    /// Settings-style single choice: one row per reason, checkmark on the chosen one.
+    private var picker: some View {
+        List {
+            Section {
+                ForEach(Self.reasonKeys.indices, id: \.self) { index in
+                    Button { selected = index } label: {
+                        HStack {
+                            Text(LocalizedStringKey(Self.reasonKeys[index]), tableName: "MpFresh")
+                                .foregroundStyle(.primary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Spacer()
+                            if selected == index {
+                                Image(systemName: "checkmark")
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(.tint)
+                            }
+                        }
+                    }
+                    .accessibilityAddTraits(selected == index ? [.isSelected] : [])
+                    .accessibilityIdentifier("teamReport.reason.\(index)")
+                }
             }
-            .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true))
-            .disabled(selected == nil)
-            .accessibilityIdentifier("teamReport.submit")
-
-            Button { dismiss() } label: {
-                Text("mpfresh.teamReport.cancel", tableName: "MpFresh")
-            }
-            .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
         }
     }
 
     private func result(icon: String, tint: Color, title: String, detail: String, primary: String,
-                        action: @escaping () -> Void) -> some View {
-        VStack(spacing: CYSpacing.md) {
-            Image(systemName: icon).font(.largeTitle).imageScale(.large).foregroundStyle(tint).accessibilityHidden(true)
-            Text(LocalizedStringKey(title), tableName: "MpFresh")
-                .cyText(.sectionTitle)
-                .foregroundStyle(CYColor.textPrimary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
+                        showsCancel: Bool = false, action: @escaping () -> Void) -> some View {
+        ContentUnavailableView {
+            Label {
+                Text(LocalizedStringKey(title), tableName: "MpFresh")
+            } icon: {
+                Image(systemName: icon).foregroundStyle(tint)
+            }
+        } description: {
             Text(LocalizedStringKey(detail), tableName: "MpFresh")
-                .cyText(.bodyCompact)
-                .foregroundStyle(CYColor.textSecondary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
+        } actions: {
             Button(action: action) {
                 Text(LocalizedStringKey(primary), tableName: "MpFresh")
             }
-            .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true))
+            .buttonStyle(.borderedProminent)
+            if showsCancel {
+                Button { dismiss() } label: { Text("mpfresh.teamReport.cancel", tableName: "MpFresh") }
+                    .buttonStyle(.bordered)
+            }
         }
-        .padding(.vertical, CYSpacing.md)
-        .frame(maxWidth: .infinity)
     }
 
     private func failureKey(_ failure: TeamReportFailure) -> String {

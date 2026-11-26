@@ -64,13 +64,13 @@ import SwiftUI
                         if flow.memberReadUnavailable { Text("d7.channelRoles.membersUnavailable").foregroundStyle(.secondary) }
                         ForEach(flow.members) { row in
                             VStack(alignment:.leading,spacing:Theme.Space.s1) {
-                                Text(verbatim:row.nickname).cyText(.sectionTitle).fixedSize(horizontal:false,vertical:true)
+                                Text(verbatim:row.nickname).font(.headline)
                                 Text(verbatim:roleNames(row.roleIDs,in:flow)).font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
-                                if let joined=row.joinTime { Text(verbatim:joined).cyText(.meta).foregroundStyle(.secondary) }
+                                if let joined=row.joinTime { Text(verbatim:joined).font(.footnote).foregroundStyle(.secondary) }
                             }
                             .swipeActions(edge:.trailing) {
                                 if !flow.hasPending {
-                                    Button("d7.channelRoles.editMemberRoles") { member=row.id;operation = .memberRoles;flow.cancelReview() }.tint(CYColor.textPrimary)
+                                    Button("d7.channelRoles.editMemberRoles") { member=row.id;operation = .memberRoles;flow.cancelReview() }.tint(.gray)
                                     if operation == .roleMembers {
                                         Button("d7.channelRoles.addToList") {
                                             var ids=completeIDs.split(separator:",").map { $0.trimmingCharacters(in:.whitespacesAndNewlines) }
@@ -153,12 +153,12 @@ import SwiftUI
                                 Toggle("d7.channelRoles.wholeSpace",isOn:$options.guildScope)
                                 Toggle("d7.channelRoles.setExpiry",isOn:$timed)
                                 if timed { DatePicker("d7.channelRoles.expires",selection:$expiry,in:Date()...,displayedComponents:[.date,.hourAndMinute]) }
-                                Text("d7.channelRoles.replaceWarning").foregroundStyle(CYColor.dangerText).fixedSize(horizontal:false,vertical:true)
+                                Text("d7.channelRoles.replaceWarning").foregroundStyle(.red).fixedSize(horizontal:false,vertical:true)
                             }
                         }
                         Section {
                             TextField("d7.channelRoles.reason",text:$reason,axis:.vertical).lineLimit(2...6)
-                            if localIssue { Text("d7.channelRoles.invalid").foregroundStyle(CYColor.dangerText).fixedSize(horizontal:false,vertical:true) }
+                            if localIssue { Text("d7.channelRoles.invalid").foregroundStyle(.red).fixedSize(horizontal:false,vertical:true) }
                         }
                         Section {
                             Button("d7.channelRoles.review") {
@@ -181,17 +181,9 @@ import SwiftUI
                     }
                 }
                 .refreshable { await flow.refresh() }
-                .sheet(isPresented: $retryConfirmation) {
-                    CYConfirmSheet(
-                        title: appLocalized("d7.channelRoles.retryTitle", locale: locale),
-                        message: "",
-                        confirmTitle: appLocalized("d7.channelRoles.retry", locale: locale),
-                        cancelTitle: appLocalized("d7.channelRoles.cancel", locale: locale),
-                        isDestructive: true
-                    ) {
-                        Task { await flow.retryOriginal() }
-                    }
-                    .cyDomainSheet(detents: [.peek, .half])
+                .confirmationDialog(Text("d7.channelRoles.retryTitle"), isPresented: $retryConfirmation, titleVisibility: .visible) {
+                    Button("d7.channelRoles.retry", role: .destructive) { Task { await flow.retryOriginal() } }
+                    Button("d7.channelRoles.cancel", role: .cancel) {}
                 }
             } else {
                 ContentUnavailableView {
@@ -202,7 +194,6 @@ import SwiftUI
             }
         }
         .nativeChannelFlowPage()
-        .cyGroupedSurface()
         .navigationTitle("d7.channelRoles.title").navigationBarTitleDisplayMode(.inline)
         .task { await open() }
         .task { while !Task.isCancelled { if let flow,!flow.isCurrent { close() };do { try await Task.sleep(nanoseconds:500_000_000) } catch { return } } }

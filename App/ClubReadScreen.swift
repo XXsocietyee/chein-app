@@ -47,10 +47,16 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
         return !(loadedIdentity == reader.clubIdentity && value != nil)
     }
     var body: some View {
-        CYLoadSlot(isLoading: isInitialLoading, label: "club.loading", identifier: accessibilityPrefix + ".loading", announces: true) {
-            readBody
+        Group {
+            if isInitialLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .accessibilityLabel(Text("club.loading"))
+                    .accessibilityIdentifier(accessibilityPrefix + ".loading")
+            } else {
+                readBody
+            }
         }
-        .background(CYColor.bgPage.ignoresSafeArea())
         .refreshable { await reload() }
         .toolbar {
             if showsToolbarRefresh {
@@ -72,16 +78,19 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
         Group {
             if !reader.isClubConfigured {
                 // One way forward: the Passport tab hosts Settings and the account.
-                CYEmptyState(
-                    systemImage: "network.slash",
-                    "club.unavailable",
-                    detail: "auth.notConfigured",
-                    messageIdentifier: accessibilityPrefix + ".unavailable",
-                    actionTitle: rootTabSwitch.isAvailable ? "settings.title" : nil,
-                    actionIdentifier: rootTabSwitch.isAvailable ? accessibilityPrefix + ".openSettings" : nil,
-                    kind: .offline,
-                    action: rootTabSwitch.isAvailable ? { rootTabSwitch(.mine) } : nil
-                )
+                ContentUnavailableView {
+                    Label { Text("club.unavailable").accessibilityIdentifier(accessibilityPrefix + ".unavailable") } icon: {
+                        Image(systemName: "network.slash")
+                    }
+                } description: {
+                    Text("auth.notConfigured")
+                } actions: {
+                    if rootTabSwitch.isAvailable {
+                        Button("settings.title") { rootTabSwitch(.mine) }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier(accessibilityPrefix + ".openSettings")
+                    }
+                }
             } else if requiresSignIn && !reader.clubIdentity.isSignedIn {
                 issueView(ClubLoadIssue(ClubReadFailure.unauthorized(message: nil)))
             } else if issueIdentity == reader.clubIdentity, let issue {
@@ -98,19 +107,20 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
     }
     @ViewBuilder private func issueView(_ issue: ClubLoadIssue) -> some View {
         if usesClubPageStates, let sentence = issue.rejectionMessage {
-            CYEmptyState(
-                systemImage: "exclamationmark.triangle",
-                LocalizedStringKey(sentence),
-                messageIdentifier: accessibilityPrefix + ".error",
-                actionTitle: "action.back",
-                actionIdentifier: accessibilityPrefix + ".back",
-                kind: .generic
-            ) { dismiss() }
+            ContentUnavailableView {
+                Label { Text(LocalizedStringKey(sentence)).accessibilityIdentifier(accessibilityPrefix + ".error") } icon: {
+                    Image(systemName: "exclamationmark.triangle")
+                }
+            } actions: {
+                Button("action.back") { dismiss() }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier(accessibilityPrefix + ".back")
+            }
         } else {
             defaultIssueView(issue)
         }
     }
-    private func defaultIssueView(_ issue: ClubLoadIssue) -> some View {
+    @ViewBuilder private func defaultIssueView(_ issue: ClubLoadIssue) -> some View {
         let symbol = issue.needsSignIn ? "person.crop.circle.badge.exclamationmark" : "exclamationmark.triangle"
         let actionTitle: LocalizedStringKey? = issue.needsSignIn ? (onSignIn == nil ? nil : "club.signIn") : (issue.canRetry ? "action.retry" : nil)
         let actionID = issue.needsSignIn ? accessibilityPrefix + ".signIn" : accessibilityPrefix + ".retry"
@@ -119,17 +129,23 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
             else { Task { await reload() } }
         }
         let signInPage = usesClubPageStates && issue.needsSignIn
-        return CYEmptyState(
-            systemImage: symbol,
-            LocalizedStringKey(signInPage ? "club.detail.signIn" : issue.titleKey),
-            detail: signInPage ? nil : (issue.message == nil ? LocalizedStringKey(issue.hintKey) : nil),
-            detailVerbatim: signInPage ? nil : issue.message,
-            messageIdentifier: accessibilityPrefix + ".error",
-            actionTitle: actionTitle,
-            actionIdentifier: actionTitle == nil ? nil : actionID,
-            kind: issue.canRetry && !issue.needsSignIn ? .failure : nil,
-            action: action
-        )
+        ContentUnavailableView {
+            Label {
+                Text(LocalizedStringKey(signInPage ? "club.detail.signIn" : issue.titleKey))
+                    .accessibilityIdentifier(accessibilityPrefix + ".error")
+            } icon: { Image(systemName: symbol) }
+        } description: {
+            if !signInPage {
+                if let message = issue.message { Text(verbatim: message) }
+                else { Text(LocalizedStringKey(issue.hintKey)) }
+            }
+        } actions: {
+            if let actionTitle, let action {
+                Button(action: action) { Text(actionTitle) }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier(actionID)
+            }
+        }
     }
     private func reload() async {
         // A cancelled refresh must not retire a newer read or clear its accepted state.

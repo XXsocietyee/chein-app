@@ -31,7 +31,7 @@ import SwiftUI
     private func requiredLabel(_ key: String) -> some View {
         HStack(spacing: 2) {
             invoiceText(key)
-            Text(verbatim: "*").foregroundStyle(CYColor.dangerText).accessibilityHidden(true)
+            Text(verbatim: "*").foregroundStyle(.red).accessibilityHidden(true)
         }
     }
 
@@ -49,9 +49,9 @@ import SwiftUI
                 // R7-MEM-14-1: shown only when the shared state section is not already stating it.
                 // Source 保存结果未确认 · 确认前请勿重复保存. The request number is never shown (FIN-15-2).
                 Section {
-                    invoiceText("write.save.unknown").cyText(.bodyMedium)
+                    invoiceText("write.save.unknown").font(.body)
                     invoiceText("write.save.unknown.sub")
-                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        .font(.footnote).foregroundStyle(.secondary)
                         .accessibilityIdentifier("invoice.title.pendingRequest")
                 }
             }
@@ -68,18 +68,18 @@ import SwiftUI
                         .textInputAutocapitalization(.characters).autocorrectionDisabled()
                         .privacySensitive().accessibilityIdentifier("invoice.title.tax")
                     if !tax.isEmpty, !InvoiceLaunchTitleRules.isValidTax(tax) {
-                        invoiceText("taxInvalid").cyText(.bodyCompact).foregroundStyle(.secondary)
+                        invoiceText("taxInvalid").font(.subheadline).foregroundStyle(.secondary)
                             .accessibilityIdentifier("invoice.title.taxHint")
                     }
                 }
                 Toggle(isOn: $isDefault) { invoiceText("setDefault") }
                 if case .ready(let form) = screen {
-                    Text(verbatim: form.taxNoMaskedText).cyText(.meta).foregroundStyle(.secondary)
+                    Text(verbatim: form.taxNoMaskedText).font(.footnote).foregroundStyle(.secondary)
                         .accessibilityIdentifier("invoice.title.taxMask")
                 }
-            } footer: { invoiceText("requiredHint").cyText(.meta) }
+            } footer: { invoiceText("requiredHint") }
             .disabled(!model.allows(.saveTitle) || saveLocked)
-            if invalid { invoiceText("notSaved").cyText(.bodyCompact).foregroundStyle(CYColor.dangerText) }
+            if invalid { Label { invoiceText("notSaved") } icon: { Image(systemName: "exclamationmark.circle") }.foregroundStyle(.red) }
             // A server refusal keeps the form and says why: 发票抬头未保存 · reason (FIN-15-3).
             if let notice = model.writeNotice, notice.action == .saveTitle, notice.kind != .unknown {
                 Section { InvoiceLaunchWriteNoticeView(notice: notice) }
@@ -88,21 +88,23 @@ import SwiftUI
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if model.allows(.saveTitle), !saveLocked {
                 CYFooterBar {
-                    CYPillButton("save", style: .primary, tableName: "InvoiceLaunchUI") {
+                    Button {
                         do {
                             let draft = try InvoiceLaunchTitleRules.draft(id: title?.id, type: type,
                                 name: name, tax: tax, isDefault: isDefault)
                             invalid = false
                             Task { if await model.save(draft) { tax = ""; dismiss() } }
                         } catch { invalid = true }
+                    } label: {
+                        Text("save", tableName: "InvoiceLaunchUI").frame(maxWidth: .infinity)
                     }
+                    .buttonStyle(.borderedProminent).controlSize(.large)
                     .disabled(!InvoiceLaunchTitleRules.canSubmit(type: type, name: name, tax: tax))
                     .accessibilityIdentifier("invoice.title.save")
                 }
             }
         }
         .cyPushedChrome(domain: .player)
-        .cyDomainPageBackground()
         // MP invoice-title-edit: `cy-page-title title="发票抬头"` for both new and edit.
         .cyPageTitle(verbatim: invoiceString("titles"))
         .onChange(of: type) { _, _ in tax = "" }

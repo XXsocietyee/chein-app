@@ -2,7 +2,6 @@ import SwiftUI
 
 /// F31 explicit, bounded picker over the SAME original F16 partitions; no recommendation, contact discovery or automatic selection.
 @MainActor struct NativeFriendPickerView: View {
-    @Environment(\.cyPalette) private var palette
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let flow: any NativeFriendPickerSource
     @State private var search = ""
@@ -12,14 +11,9 @@ import SwiftUI
     }
     var body: some View {
         Section {
-            HStack {
-                Text("d7.friendPicker.selected \(flow.selected.count)")
-                    .cyText(.numericBody)
-                    .foregroundStyle(palette.textSecondary)
-                    .monospacedDigit()
-                Spacer(minLength: CYSpacing.sm)
-            }
-            .accessibilityElement(children: .combine)
+            Text("d7.friendPicker.selected \(flow.selected.count)")
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
             Picker("d7.friendPicker.section", selection: Binding(get: { flow.section }, set: { next in search = ""; Task { await flow.chooseSection(next) } })) {
                 Text("d7.friendPicker.together").tag(NativeFriendDirectorySection.together)
                 Text("d7.friendPicker.recent").tag(NativeFriendDirectorySection.recent)
@@ -27,69 +21,66 @@ import SwiftUI
             }
             .pickerStyle(.segmented).labelsHidden()
             .disabled(flow.busy || flow.hasPickerReview)
-            HStack(spacing: CYSpacing.sm) {
-                Image(systemName: "magnifyingglass").foregroundStyle(palette.textTertiary).accessibilityHidden(true)
+            // A row inside the host's Form: `.searchable` belongs to the host's navigation container, so the
+            // filter stays a system text field with the search symbol.
+            Label {
                 TextField("d7.friendPicker.search", text: $search)
-                    .cyText(.body)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .submitLabel(.search)
                     .disabled(flow.busy)
+            } icon: {
+                Image(systemName: "magnifyingglass").foregroundStyle(.secondary).accessibilityHidden(true)
             }
-            .frame(minHeight: CYSpacing.minTouchTarget)
             if flow.busy && visible.isEmpty {
-                CYSkeleton().accessibilityLabel(Text("cy.state.loading"))
+                ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("cy.state.loading"))
             }
             ForEach(visible) { row in
                 let name = shownName(row)
+                let selected = flow.selected.contains(row)
                 Button { flow.toggle(row) } label: {
-                    HStack(spacing: CYSpacing.md) {
-                        personArt(name)
-                        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                            Text(verbatim: name)
-                                .cyText(.cardTitle)
-                                .foregroundStyle(palette.textPrimary)
-                                .fixedSize(horizontal: false, vertical: true)
-                            if row.alreadyMember {
-                                Text("d7.friendPicker.unavailable")
-                                    .cyText(.meta)
-                                    .foregroundStyle(palette.textTertiary)
-                                    .fixedSize(horizontal: false, vertical: true)
+                    HStack {
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(verbatim: name)
+                                    .foregroundStyle(.primary)
+                                if row.alreadyMember {
+                                    Text("d7.friendPicker.unavailable")
+                                        .font(.footnote)
+                                        .foregroundStyle(.secondary)
+                                }
                             }
+                        } icon: {
+                            Image(systemName: "person.crop.circle.fill")
+                                .foregroundStyle(.secondary)
+                                .accessibilityHidden(true)
                         }
-                        Spacer(minLength: CYSpacing.sm)
-                        Image(systemName: flow.selected.contains(row) ? "checkmark.circle.fill" : "circle")
-                            .font(.body.weight(.semibold))
-                            .foregroundStyle(flow.selected.contains(row) ? palette.textPrimary : palette.textTertiary)
+                        Spacer(minLength: 8)
+                        Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                            .foregroundStyle(selected ? AnyShapeStyle(.tint) : AnyShapeStyle(.tertiary))
                             .accessibilityHidden(true)
                     }
-                    .frame(minHeight: CYSpacing.minTouchTarget)
                     .contentShape(Rectangle())
                 }
-                .modifier(FriendPickerSelectionTrait(selected: flow.selected.contains(row)))
-                .disabled(!flow.canWrite || row.alreadyMember || (!flow.selected.contains(row) && flow.selected.count >= 10) || flow.hasPickerReview)
+                .modifier(FriendPickerSelectionTrait(selected: selected))
+                .disabled(!flow.canWrite || row.alreadyMember || (!selected && flow.selected.count >= 10) || flow.hasPickerReview)
             }
-            if visible.isEmpty && !flow.busy { CYEmptyState(systemImage: "person.2", "d7.friendPicker.empty") }
-            CYPillButton("d7.friendPicker.next", systemImage: "arrow.right") { flow.prepareCreate() }
+            if visible.isEmpty && !flow.busy { ContentUnavailableView("d7.friendPicker.empty", systemImage: "person.2") }
+            Button("d7.friendPicker.next", systemImage: "arrow.right") { flow.prepareCreate() }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
                 .disabled(!flow.canWrite || flow.selected.isEmpty || flow.hasPickerReview)
-                .listRowBackground(Color.clear)
         } header: {
-            CYSectionHeader("d7.friendPicker.title")
+            Text("d7.friendPicker.title")
         }
-        .cyText(.body)
         .onChange(of: flow.isCurrent) { _, valid in if !valid { search = "" } }
         .onDisappear { search = "" }
         .privacySensitive()
         .transaction { if reduceMotion { $0.disablesAnimations = true } }
-        .tint(palette.brand)
     }
     private func shownName(_ row: NativeFriendPickerItem) -> String {
         let name = row.friend.displayName.trimmingCharacters(in: .whitespacesAndNewlines)
         return name.isEmpty ? "—" : name
-    }
-    private func personArt(_ seed: String) -> some View {
-        Color.clear
-            .frame(width: 40, height: 40)
-            .overlay { CYCoverArt(seed: seed == "—" ? "friend" : seed, symbol: "person.fill", showsDebugLabel: false) }
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
-            .accessibilityHidden(true)
     }
 }
 

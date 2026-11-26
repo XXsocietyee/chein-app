@@ -50,77 +50,75 @@ import SwiftUI
     @State private var arrived = false
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: CYSpacing.xl) {
-                    VStack(spacing: CYSpacing.md) {
-                        CYBadgeMedal(seed: value.club.name.isEmpty ? "club" : value.club.name, symbol: "person.3.fill", size: 116)
-                            .cyStampSlam(trigger: true)
-                            .overlay { CYConfettiBurst(fireOnAppear: true).frame(height: 200) }
-                            .overlay { CYOrbitDots(fire: arrived, radius: 70, spread: 22) }
-                            .padding(.top, CYSpacing.lg)
+            List {
+                Section {
+                    VStack(spacing: 12) {
+                        Image(systemName: "person.3.fill")
+                            .font(.largeTitle)
+                            .imageScale(.large)
+                            .foregroundStyle(.tint)
+                            .accessibilityHidden(true)
                         // CLB-detail-29 (parity r2): MP 欢迎加入「name」 as one title.
                         Group {
                             if value.club.name.isEmpty { Text("welcome.title", tableName: "ClubMemberWelcome") }
                             else { Text("welcome.titleNamed \(value.club.name)", tableName: "ClubMemberWelcome") }
                         }
-                        .cyText(.sheetTitle)  // CLB-detail-40: MP welcome title is the sheet title size
-                        .foregroundStyle(CYColor.textPrimary)
+                        .font(.title2.weight(.bold))
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityAddTraits(.isHeader)
                     }
                     .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
                     .cyHaptic(.success, trigger: arrived)
-                    if let note = value.club.welcomeNote, !note.isEmpty {
-                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                            Text("welcome.note", tableName: "ClubMemberWelcome").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                            Text(verbatim: note).cyText(.body).foregroundStyle(CYColor.textPrimary).textSelection(.enabled)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(CYSpacing.lg)
-                        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+                }
+                if let note = value.club.welcomeNote, !note.isEmpty {
+                    Section {
+                        Text(verbatim: note).textSelection(.enabled)
+                    } header: {
+                        Text("welcome.note", tableName: "ClubMemberWelcome")
                     }
-                    if let perk = value.memberPricePerk {
+                }
+                if let perk = value.memberPricePerk {
+                    Section {
                         Text(verbatim: perk)
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.textSecondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .foregroundStyle(.secondary)
                             .accessibilityIdentifier("club.welcome.memberPrice")
                     }
-                    VStack(alignment: .leading, spacing: 0) {
-                        step("text.bubble", Text(LocalizedStringKey(value.postingKey), tableName: "ClubMemberWelcome"))
-                        Divider().overlay(CYColor.borderSubtle).padding(.leading, 52)
-                        step("calendar", Text(LocalizedStringKey(value.eventsKey), tableName: "ClubMemberWelcome"))
-                        Divider().overlay(CYColor.borderSubtle).padding(.leading, 52)
-                        step("person.3", Text("welcome.overview", tableName: "ClubMemberWelcome"))
-                        if let memberPriceText {
-                            // cursor/core-club hand-off (CLB-detail-29): the member price perk, shown only when Core
-                            // has one. Owner decision 9: two decimals through the shared `MoneyDisplay`.
-                            Divider().overlay(CYColor.borderSubtle).padding(.leading, 52)
-                            step("tag", Text("club.welcome.memberPrice \(memberPriceText)"))
-                                .accessibilityIdentifier("club.welcome.memberPrice")
-                        }
-                    }
-                    .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                 }
-                .padding(.horizontal, CYSpacing.xxl)
-                .padding(.bottom, CYSpacing.lg)
+                Section {
+                    step("text.bubble", Text(LocalizedStringKey(value.postingKey), tableName: "ClubMemberWelcome"))
+                    step("calendar", Text(LocalizedStringKey(value.eventsKey), tableName: "ClubMemberWelcome"))
+                    step("person.3", Text("welcome.overview", tableName: "ClubMemberWelcome"))
+                    if let memberPriceText {
+                        // cursor/core-club hand-off (CLB-detail-29): the member price perk, shown only when Core
+                        // has one. Owner decision 9: two decimals through the shared `MoneyDisplay`.
+                        step("tag", Text("club.welcome.memberPrice \(memberPriceText)"))
+                            .accessibilityIdentifier("club.welcome.memberPrice")
+                    }
+                }
             }
             .safeAreaInset(edge: .bottom) {
-                VStack(spacing: CYSpacing.sm) {
-                    Button(action: goEvents) { Text("welcome.events", tableName: "ClubMemberWelcome") }
-                        .buttonStyle(.cyPrimary)
-                        .accessibilityIdentifier("club.welcome.events")
-                    Button(action: close) { Text("welcome.gotIt", tableName: "ClubMemberWelcome").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget) }
-                        .cyText(.bodyMedium)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .accessibilityIdentifier("club.welcome.close")
+                VStack(spacing: 8) {
+                    Button(action: goEvents) {
+                        Text("welcome.events", tableName: "ClubMemberWelcome")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .accessibilityIdentifier("club.welcome.events")
+                    Button(action: close) {
+                        Text("welcome.gotIt", tableName: "ClubMemberWelcome")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderless)
+                    .controlSize(.large)
+                    .accessibilityIdentifier("club.welcome.close")
                 }
-                .padding(.horizontal, CYSpacing.xxl)
-                .padding(.vertical, CYSpacing.md)
-                .background(CYColor.bgPage)
+                .padding(.horizontal)
+                .padding(.vertical, 12)
+                .background(.bar)
             }
-            .background(CYColor.bgPage)
             .onAppear { arrived = true }
             .navigationBarTitleDisplayMode(.inline)
             // CLB-detail-29: two exits are enough (去看活动 / 知道了, plus the drag); no toolbar 关闭.
@@ -136,11 +134,10 @@ import SwiftUI
     }
 
     private func step(_ symbol: String, _ text: Text) -> some View {
-        HStack(spacing: CYSpacing.md) {
-            Image(systemName: symbol).accessibilityHidden(true).foregroundStyle(CYColor.textPrimary).frame(width: 24)
-            text.cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+        Label {
+            text.fixedSize(horizontal: false, vertical: true)
+        } icon: {
+            Image(systemName: symbol).accessibilityHidden(true)
         }
-            .padding(CYSpacing.lg)
-            .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

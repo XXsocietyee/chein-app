@@ -241,7 +241,7 @@ import UIKit
                 .overlay(alignment: .topTrailing) {
                     if zoom.scale > 1 {
                         Button("club.postImages.reset") { zoom.reset() }
-                            .padding(8).background(.regularMaterial, in: Capsule()).padding(8)
+                            .buttonStyle(.bordered).buttonBorderShape(.capsule).padding(8)
                             .accessibilityIdentifier("club.postImages.reset")
                     }
                 }

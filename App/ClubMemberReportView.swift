@@ -20,34 +20,30 @@ import SwiftUI
             if isCurrent {
                 VStack(alignment: .leading, spacing: 0) {
                     // The report form owns the one bar title (`club.gov.action.report`). A second hero would repeat it.
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text("club.memberReport.target")
-                            .cyText(.meta)
-                            .foregroundStyle(CYColor.textSecondary)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
-                        if let name = target.displayName {
-                            Text(verbatim: name)
-                                .cyText(.sectionTitle)
-                                .foregroundStyle(CYColor.textPrimary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        } else {
-                            Text("club.memberReport.unnamed")
-                                .cyText(.sectionTitle)
-                                .foregroundStyle(CYColor.textPrimary)
-                                .fixedSize(horizontal: false, vertical: true)
+                        Group {
+                            if let name = target.displayName {
+                                Text(verbatim: name)
+                            } else {
+                                Text("club.memberReport.unnamed")
+                            }
                         }
+                        .font(.headline)
+                        .fixedSize(horizontal: false, vertical: true)
                         Text("club.memberReport.explanation")
-                            .cyText(.meta)
-                            .foregroundStyle(CYColor.textSecondary)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(CYSpacing.lg)
-                    .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).strokeBorder(CYColor.borderSubtle, lineWidth: 1))
-                    .padding(.horizontal, CYSpacing.pageHorizontal)
-                    .padding(.top, CYSpacing.lg)
-                    .padding(.bottom, CYSpacing.sm)
+                    .padding(.horizontal)
+                    .padding(.top, 12)
+                    .padding(.bottom, 4)
+                    .background(Color(uiColor: .systemGroupedBackground))
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("club.memberReport.target")
                     ClubGovernanceCommandForm(route: .init(operation: .report, scope: target.scope,
@@ -55,12 +51,10 @@ import SwiftUI
                                               identity: identity, access: governance.access, coordinator: governance.coordinator)
                         .id(target.id)
                 }
-                .cyDomainPageBackground()
             } else {
                 Text("club.gov.changed")
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .padding(CYSpacing.pageHorizontal)
+                    .foregroundStyle(.secondary)
+                    .padding()
                     .onAppear { closeStale() }
             }
         }

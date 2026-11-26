@@ -42,7 +42,7 @@ class TemplateSampleCoverageContracts(unittest.TestCase):
 
     def test_fixed_d6_adapter_and_reset(self):
         self.assertIn('configuration.sample(pips: configuration.diceCount == 2 ? [5, 4] : [5])', self.app)
-        # native-r2 publish group 5 (225fd1fb8): system Button, same key and reset action.
+        # native r2: CYPillButton became a system Button with the same reset action
         self.assertIn('Button("creator.reset") { sample = nil }.accessibilityIdentifier("templateSampleCoverage.dice.reset")', self.app)
         self.assertIn('if let action = sample.action', self.app)
         self.assertIn('Text("templateD6.sumOnly")', self.app)
@@ -97,6 +97,7 @@ class TemplateSampleCoverageContracts(unittest.TestCase):
         self.assertNotIn('self.model = model; reload()', self.app)
         self.assertEqual(self.app.count('.sheet(item: controller.presentationBinding)'), 1)
         self.assertIn('controller.close(expected: presentationID)', self.app)
+        # native r2: CY surface/hero modifiers became a system navigationTitle; sheet still hangs off the Form
         self.assertLess(self.app.index('}.formStyle(.grouped).navigationTitle(Text("templateSampleCoverage.open"))'), self.app.index('.sheet(item: controller.presentationBinding)'))
 
     def test_presentation_binding_getter_is_same_captured_visible_identity(self):

@@ -26,22 +26,21 @@ extension EnvironmentValues {
     var body: some View {
         if let destination {
             NavigationLink { destination() } label: {
-                HStack(spacing: CYSpacing.md) {
-                    Image(systemName: "flag.fill").foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
-                    Text("report.history.title", tableName: "MemberReportProgress")
-                        .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
-                    Spacer(minLength: CYSpacing.sm)
+                HStack {
+                    Label {
+                        Text("report.history.title", tableName: "MemberReportProgress")
+                    } icon: {
+                        Image(systemName: "flag.fill").accessibilityHidden(true)
+                    }
+                    Spacer(minLength: 8)
                     if let unread, unread > 0 {
                         Text(verbatim: unread > 99 ? "99+" : String(unread))
-                            .cyText(.caption, weight: .semibold).monospacedDigit()
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
-                            .background(CYColor.dangerText, in: Capsule())
+                            .monospacedDigit().foregroundStyle(.secondary)
                     }
-                    Image(systemName: "chevron.right").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                    Image(systemName: "chevron.forward").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary).accessibilityHidden(true)
                 }
-                .padding(.horizontal, CYSpacing.lg).frame(minHeight: 48)
-                .background(CYColor.bgElevated)
+                .padding(.horizontal).padding(.vertical, 12)
+                .background(.bar)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -91,21 +90,19 @@ extension EnvironmentValues {
     @State private var result: LocalizedStringKey?
     var body: some View {
         if let binding {
-            VStack(alignment: .trailing, spacing: CYSpacing.xxs) {
+            VStack(alignment: .trailing, spacing: 2) {
                 inviteSwitch(binding)
                 if ready && presentation == .unknown {
                     Text("mpd.im.inviteReminder.unknown")
-                        .cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                        .font(.caption).foregroundStyle(.secondary)
                         .accessibilityLabel(Text("mpd.im.inviteReminder.unknownLabel"))
                         .accessibilityIdentifier("im.coopStrip.inviteReminder.unknown")
-                        .transition(.opacity)
                 } else if let result {
-                    Text(result).cyText(.caption).foregroundStyle(CYColor.textTertiary)
-                        .transition(.opacity)
+                    Text(result).font(.caption).foregroundStyle(.secondary)
                 }
                 if offersSettings {
                     Button(action: openNotificationSettings) { Text("d7.notifyPermission.settings") }
-                        .cyText(.caption)
+                        .font(.caption).buttonStyle(.borderless)
                         .accessibilityIdentifier("im.coopStrip.inviteReminder.settings")
                         .accessibilityLabel(Text("d7.notifyPermission.settings"))
                         .accessibilityValue(Text(LocalizedStringKey(presentation == .unknown ? "mpd.im.inviteReminder.unknownLabel" : "mpd.im.inviteReminder.denied")))
@@ -121,7 +118,7 @@ extension EnvironmentValues {
     @ViewBuilder private func inviteSwitch(_ binding: any IMInviteReminderBinding) -> some View {
         Group {
             Toggle(isOn: Binding(get: { presentation == .on }, set: { value in Task { await change(value, binding) } })) {
-                Text("mpd.im.inviteReminder").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Text("mpd.im.inviteReminder").font(.footnote).foregroundStyle(.secondary)
             }
             .toggleStyle(.switch)
         }
@@ -147,7 +144,7 @@ extension EnvironmentValues {
     private func change(_ value: Bool, _ binding: any IMInviteReminderBinding) async {
         busy = true; defer { busy = false }
         _ = await binding.setEnabled(value)
-        withAnimation(CYMotion.standard) { apply(binding, changedTo: value) }
+        apply(binding, changedTo: value)
     }
     private func apply(_ binding: any IMInviteReminderBinding, changedTo value: Bool?) {
         presentation = binding.presentation
@@ -201,28 +198,31 @@ extension EnvironmentValues {
             Section {
                 switch phase {
                 case .loading:
-                    HStack(spacing: CYSpacing.sm) { ProgressView(); Text("mpd.review.loading") }
-                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    HStack(spacing: 8) { ProgressView(); Text("mpd.review.loading") }
+                        .foregroundStyle(.secondary)
                         .accessibilityIdentifier("im.review.record.loading")
                 case .failed:
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        Text("mpd.review.failed").cyText(.meta).foregroundStyle(CYColor.warningText)
-                        Button("mpd.common.retry") { Task { await load(reader, taskID) } }
-                            .accessibilityIdentifier("im.review.record.retry")
-                    }
+                    Label("mpd.review.failed", systemImage: "exclamationmark.triangle")
+                        .foregroundStyle(.orange)
+                    Button("mpd.common.retry") { Task { await load(reader, taskID) } }
+                        .accessibilityIdentifier("im.review.record.retry")
                 case .ready(let record):
                     if let status = record.statusLabel, !status.isEmpty {
-                        CYListRow("mpd.review.status", trailing: .value(status)) { CYRowIcon(systemImage: "checkmark.seal") }
+                        LabeledContent {
+                            Text(verbatim: status)
+                        } label: {
+                            Label("mpd.review.status", systemImage: "checkmark.seal")
+                        }
                     }
                     ForEach(record.timeline) { step in
-                        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                            Text(verbatim: step.label).cyText(.body).foregroundStyle(CYColor.textPrimary)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(verbatim: step.label)
                             Text(verbatim: step.time + ((step.reason ?? "").isEmpty ? "" : " · " + (step.reason ?? "")))
-                                .cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                                .font(.subheadline).foregroundStyle(.secondary)
                         }
                     }
                 }
-            } header: { CYSectionHeader("mpd.review.current") }
+            } header: { Text("mpd.review.current") }
             .task(id: taskID) { await load(reader, taskID) }
         }
     }

@@ -96,13 +96,11 @@ import Combine
     }
     var body: some View {
         Form {
-            Section { CYHeroHeader(LocalizedStringKey(titleKey)) }.e1HeroRow()
             Section {
                 if editor.needsReopen { Text("templateEffects.reopen").accessibilityIdentifier("creator.effects.reopen") }
             }
             ForEach(editor.rows) { row in
                 Section {
-                    Text("templateEffects.rowNumber \(row.id + 1)").cyText(.cardTitle).monospacedDigit()
                     Picker("creator.field.op", selection: editor.operation(row.id)) {
                         if !TemplateEffectList.operations.contains(row.operation) {
                             if row.operation.isEmpty { Text("creator.choose").tag("") }
@@ -123,7 +121,7 @@ import Combine
                             .keyboardType(row.operation == "ADD_TAG" ? .default : .numbersAndPunctuation)
                             .accessibilityIdentifier("creator.effects.value.\(row.id)")
                         Text(LocalizedStringKey(row.operation == "ADD_TAG" ? "templateEffects.tagHint" : "templateEffects.numberHint"))
-                            .cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                            .font(.footnote).foregroundStyle(.secondary)
                     }
                     HStack {
                         Button(action: editor.moveAction(row.id, row.id - 1)) { Label("playkit.sort.up", systemImage: "arrow.up") }.disabled(row.id == 0)
@@ -132,21 +130,25 @@ import Combine
                         Button("creator.remove", role: .destructive, action: editor.removeAction(row.id))
                             .accessibilityIdentifier("creator.effects.remove.\(row.id)")
                     }.buttonStyle(.borderless)
+                } header: {
+                    Text("templateEffects.rowNumber \(row.id + 1)").monospacedDigit()
                 }
             }
             Section {
-                CYPillButton("templateEffects.add", style: .secondary, systemImage: "plus", action: editor.addAction())
-                    .disabled(!editor.canAdd).accessibilityIdentifier("creator.effects.add").e1ActionRow()
-                if editor.rows.isEmpty { Text("templateEffects.empty").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+                Button("templateEffects.add", systemImage: "plus", action: editor.addAction())
+                    .disabled(!editor.canAdd).accessibilityIdentifier("creator.effects.add")
+            } footer: {
+                if editor.rows.isEmpty { Text("templateEffects.empty") }
             }
             if !editor.issues.isEmpty {
                 Section("templateAuthor.validationTitle") {
                     ForEach(editor.issues) { issue in
-                        VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(CYColor.dangerText) }
+                        VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(.red) }
                     }
                 }
             }
-        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen().disabled(!editor.canEdit)
+        }.formStyle(.grouped).disabled(!editor.canEdit)
+            .navigationTitle(Text(LocalizedStringKey(titleKey))).navigationBarTitleDisplayMode(.inline)
             .onAppear { editor.reload() }
             .onDisappear { editor.retire() }
             .onChange(of: model.mediaReviewGeneration) { _, _ in editor.reload() }

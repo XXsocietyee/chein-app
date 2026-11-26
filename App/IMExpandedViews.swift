@@ -135,8 +135,13 @@ struct IMScreenTitle: View {
 
 extension View {
     /// The one solid action. `false` keeps the control and draws it as the secondary style.
-    func imScreenPrimary(_ isPrimary: Bool = true) -> some View {
-        buttonStyle(CYPillButtonStyle(style: isPrimary ? .primary : .secondary, fullWidth: true))
+    /// Native r2: the system prominent (or bordered) button, large control size, centred in its row.
+    @ViewBuilder func imScreenPrimary(_ isPrimary: Bool = true) -> some View {
+        if isPrimary {
+            buttonStyle(.borderedProminent).controlSize(.large).frame(maxWidth: .infinity)
+        } else {
+            buttonStyle(.bordered).controlSize(.large).frame(maxWidth: .infinity)
+        }
     }
 }
 
@@ -210,8 +215,8 @@ func imShownName(_ name: String) -> String {
                 .presentationDragIndicator(.visible)
             }
         }
-        .cyGroupedSurface()
-        .cyHeroScreen().privacySensitive()
+        .navigationTitle(Text("im.full.title")).navigationBarTitleDisplayMode(.inline)
+        .privacySensitive()
         .accessibilityIdentifier("im.full.controls")
         .onAppear { model.observe() }
         .onChange(of: model.state) { _, state in if case .acknowledged(.muted(let value)) = state { acknowledgedMuted = value } }
@@ -222,7 +227,6 @@ func imShownName(_ name: String) -> String {
         .cyDomainScreen(.player)
     }
     @ViewBuilder private var controlsSections: some View {
-            Section { IMScreenTitle(title: "im.full.title") }
             if hasPendingState {
                 Section { pendingRows }
             }
@@ -286,7 +290,7 @@ func imShownName(_ name: String) -> String {
                 }
             }
             if !writerReady && !showsAdmissionEntry && !replyPolicy.isSystemNotice && !hasPendingState {
-                CYEmptyState(systemImage: "bubble.left.and.exclamationmark.bubble.right", "d7.chatInfo.unavailable", kind: .inbox)
+                ContentUnavailableView("d7.chatInfo.unavailable", systemImage: "bubble.left.and.exclamationmark.bubble.right")
             }
         }
     @ViewBuilder private var pendingRows: some View {
@@ -422,11 +426,10 @@ struct IMMutationSummary: View {
 @MainActor struct IMCardActionsView: View {
     let message: MessagingMessage
     let onDestination: (IMCardDestination) -> Void
-    @Environment(\.cyPalette) private var palette
     var body: some View {
         let actions = IMCardAction.displayed(for: message)
         let primaryIndex = actions.firstIndex { !$0.isReject }
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+        VStack(alignment: .leading, spacing: 8) {
             // Actions this version can't open are left out rather than shown disabled.
             ForEach(Array(actions.enumerated()), id: \.offset) { index, action in
                 actionControl(action, primary: index == primaryIndex)
@@ -441,26 +444,18 @@ struct IMMutationSummary: View {
                 actionTitle(action.label)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(CYPillButtonStyle(style: .primary))
+            .buttonStyle(.borderedProminent).controlSize(.large)
             .accessibilityLabel(action.label.hasPrefix("im.full.") ? Text(LocalizedStringKey(action.label)) : Text(verbatim: shown.isEmpty ? "—" : shown))
         } else {
-            Button { onDestination(action.destination) } label: {
-                HStack(spacing: CYSpacing.sm) {
-                    actionTitle(action.label)
-                        .cyText(.cardTitle)
-                        .multilineTextAlignment(.leading)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Spacer(minLength: CYSpacing.sm)
-                    Image(systemName: action.isReject ? "xmark" : "chevron.right")
-                        .font(.footnote.weight(.semibold))
-                        .accessibilityHidden(true)
-                }
-                .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+            Button(role: action.isReject ? .destructive : nil) { onDestination(action.destination) } label: {
+                actionTitle(action.label)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.plain)
-            .foregroundStyle(action.isReject ? palette.danger : palette.textPrimary)
+            .buttonStyle(.bordered).controlSize(.large)
             .accessibilityLabel(action.label.hasPrefix("im.full.") ? Text(LocalizedStringKey(action.label)) : Text(verbatim: shown.isEmpty ? "—" : shown))
         }
     }
@@ -488,8 +483,8 @@ struct IMMutationSummary: View {
     }
     var body: some View {
         Form { startSections }.disabled(identity != model.owner.identity || !model.owner.writer.isConfigured)
-        .cyGroupedSurface()
-        .cyHeroScreen().privacySensitive().accessibilityIdentifier("im.full.start")
+        .navigationTitle(Text("d7.newChat.title")).navigationBarTitleDisplayMode(.inline)
+        .privacySensitive().accessibilityIdentifier("im.full.start")
         .onAppear { model.observe() }
         .onChange(of: model.state) { _, state in if case .acknowledged(.started(let id)) = state { onStarted(id) } }
         .onChange(of: identity) { _, _ in target = ""; model.state = model.owner.visibleState }
@@ -497,10 +492,9 @@ struct IMMutationSummary: View {
         .cyDomainScreen(.player)
     }
     @ViewBuilder private var startSections: some View {
-            Section { IMScreenTitle(title: "d7.newChat.title") }
             if model.owner.writer.isConfigured {
                 Section {
-                    TextField("d7.newChat.memberID", text: $target).keyboardType(.numberPad)
+                    TextField("d7.newChat.memberID", text: $target).keyboardType(.numberPad).submitLabel(.next)
                     Button("d7.newChat.next") { if let id = Int(target) { model.owner.review(targetMemberID: id) } }
                         .disabled(Int(target) == nil)
                 }
@@ -520,7 +514,7 @@ struct IMMutationSummary: View {
                 default: EmptyView()
                 }
             } else {
-                CYEmptyState(systemImage: "bubble.left.and.bubble.right", "d7.newChat.unavailable", kind: .inbox)
+                ContentUnavailableView("d7.newChat.unavailable", systemImage: "bubble.left.and.bubble.right")
             }
         }
 }
@@ -581,8 +575,8 @@ struct IMUploadSubmission: Equatable {
     }
     var body: some View {
         Form { photoSections }.disabled(identity != model.owner.scope.identity || !model.owner.isConfigured || !canReply())
-        .cyGroupedSurface()
-        .cyHeroScreen().privacySensitive().accessibilityIdentifier("im.full.imageCompose")
+        .navigationTitle(Text("d7.imPhoto.title")).navigationBarTitleDisplayMode(.inline)
+        .privacySensitive().accessibilityIdentifier("im.full.imageCompose")
         .onAppear { model.observe() }
         .onChange(of: identity) { _, _ in model.invalidateQueued(); model.owner.clear() }
         .onChange(of: canReply()) { _, allowed in if !allowed { model.invalidateQueued(); model.owner.clear() } }
@@ -590,7 +584,6 @@ struct IMUploadSubmission: Equatable {
         .cyDomainScreen(.player)
     }
     @ViewBuilder private var photoSections: some View {
-            Section { IMScreenTitle(title: "d7.imPhoto.title") }
             if model.owner.isConfigured {
                 Section {
                     switch model.state {
@@ -614,7 +607,7 @@ struct IMUploadSubmission: Equatable {
                     }
                 }
             } else {
-                CYEmptyState(systemImage: "photo", "d7.imPhoto.unavailable", kind: .photos)
+                ContentUnavailableView("d7.imPhoto.unavailable", systemImage: "photo")
             }
         }
     private func submit(_ operation: IMUploadSubmission.Operation) {
@@ -648,7 +641,7 @@ private extension IMOutgoingPayload {
     init(owner: IMExpandedCoordinator,current:@escaping ()->Bool) { _model=StateObject(wrappedValue:IMExpandedViewModel(owner));self.current=current }
     private var available: Bool { phase == .active && current() && model.owner.isCurrent }
     var body: some View {
-        Form { locationSections }.imFlowForm().cyHeroScreen().privacySensitive()
+        Form { locationSections }.imFlowForm().navigationTitle(Text("d7.imLocation.title")).privacySensitive()
          .toolbar { ToolbarItem(placement:.cancellationAction) { Button("action.close") { dismiss() } } }
          .onChange(of:latitude) { _,_ in if pickedMapSignature != latitude+"|"+longitude { confirmedDatum=false;pickedMapSignature=nil } }
          .onChange(of:longitude) { _,_ in if pickedMapSignature != latitude+"|"+longitude { confirmedDatum=false;pickedMapSignature=nil } }
@@ -667,7 +660,6 @@ private extension IMOutgoingPayload {
         .cyDomainScreen(.player)
     }
     @ViewBuilder private var locationSections: some View {
-            Section { IMScreenTitle(title: "d7.imLocation.title") }
             if available {
                 switch model.state {
                 case .idle:
@@ -691,7 +683,7 @@ private extension IMOutgoingPayload {
                             }.imScreenPrimary().disabled(!confirmedDatum)
                         }
                     } else {
-                        CYEmptyState(systemImage: "mappin.slash", "d7.imLocation.unavailable", kind: .location)
+                        ContentUnavailableView("d7.imLocation.unavailable", systemImage: "mappin.slash")
                     }
                 case .reviewing(let mutation):
                     if isLocation(mutation) {
@@ -759,7 +751,7 @@ private extension IMOutgoingPayload {
     private var available:Bool { phase == .active && current() && model.owner.isCurrent }
     private var canShare:Bool { model.owner.writer.canReadRouteShareSource && model.owner.writer.canSendRoute }
     var body:some View {
-        Form { routeSections }.imFlowForm().cyHeroScreen().privacySensitive()
+        Form { routeSections }.imFlowForm().navigationTitle(Text("d7.imRoute.title")).privacySensitive()
         .toolbar { ToolbarItem(placement:.cancellationAction) { Button("action.close") { dismiss() } } }
         .sheet(isPresented:$picking) {
             if available { NavigationStack { ContextualTopicPicker(reader:reader) { row in
@@ -774,7 +766,6 @@ private extension IMOutgoingPayload {
         .cyDomainScreen(.player)
     }
     @ViewBuilder private var routeSections: some View {
-            Section { IMScreenTitle(title: "d7.imRoute.title") }
             if available {
                 switch model.state {
                 case .idle:
@@ -794,7 +785,7 @@ private extension IMOutgoingPayload {
                             }
                         }
                     } else {
-                        CYEmptyState(systemImage: "map", "d7.imRoute.unavailable", kind: .location)
+                        ContentUnavailableView("d7.imRoute.unavailable", systemImage: "map")
                     }
                 case .reviewing(let mutation):
                     if isRoute(mutation),let source=model.owner.selectedRouteShareSource {
@@ -874,14 +865,13 @@ private extension IMOutgoingPayload {
     }
     var body:some View {
         NavigationStack {
-            Form { mapSections }.imFlowForm().cyHeroScreen().privacySensitive()
+            Form { mapSections }.imFlowForm().navigationTitle(Text("d7.imMap.title")).privacySensitive()
             .toolbar { ToolbarItem(placement:.cancellationAction) { Button("action.cancel") { dismiss() } } }
             .onDisappear { retire() }
             .onChange(of:available) { _,valid in if !valid { retire() } }
         }
     }
     @ViewBuilder private var mapSections: some View {
-                Section { IMScreenTitle(title: "d7.imMap.title") }
                 if !available { IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock") }
                 else if !consented {
                     // Loading tiles sends the browsed area to the map service; the consent gate stays explicit.
@@ -898,8 +888,6 @@ private extension IMOutgoingPayload {
                             .frame(maxWidth: .infinity)
                             .frame(height: mapHeight)
                             .mapStyle(.standard(elevation: .flat, emphasis: .muted))
-                            .environment(\.colorScheme, .light)
-                            .background { CYMapPlaceholder(fog: false) }
                             .onMapCameraChange(frequency:.onEnd) { context in
                                 guard available,consented else{return};renderedCenter=context.region.center
                             }
@@ -952,7 +940,7 @@ private func imClock(_ ms: Int) -> String { let s = max(0, ms) / 1000; return "\
 struct IMVoiceCardLabel: View {
     let reference: IMVoiceReference
     var body: some View {
-        CYListRow(verbatim: imClock(reference.durationMS), trailing: .none) { CYRowIcon(systemImage: "play.fill") }
+        Label { Text(verbatim: imClock(reference.durationMS)).monospacedDigit() } icon: { Image(systemName: "play.fill") }
             .accessibilityLabel(Text("messaging.voice.play"))
     }
 }
@@ -961,8 +949,10 @@ struct IMVoiceCardLabel: View {
 struct IMFileCardLabel: View {
     let reference: IMFileReference
     var body: some View {
-        CYListRow(verbatim: reference.name, trailing: .value(Int64(reference.size).formatted(.byteCount(style: .file)))) {
-            CYRowIcon(systemImage: "doc.fill")
+        LabeledContent {
+            Text(verbatim: Int64(reference.size).formatted(.byteCount(style: .file)))
+        } label: {
+            Label { Text(verbatim: imShownName(reference.name)) } icon: { Image(systemName: "doc.fill") }
         }
         .accessibilityLabel(Text("messaging.file.open"))
         .accessibilityValue(Text(verbatim: reference.name))
@@ -972,25 +962,21 @@ struct IMFileCardLabel: View {
 /// Video message row label: generated poster (the real cover is only fetched inside the player), play glyph, duration.
 struct IMVideoCardLabel: View {
     let reference: IMVideoReference
-    @Environment(\.cyPalette) private var palette
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+        VStack(alignment: .leading, spacing: 8) {
             Color.clear
                 .aspectRatio(16.0 / 10.0, contentMode: .fit)
-                .overlay { CYCoverArt(seed: reference.attachmentID, symbol: "film.fill") }
+                .background(.quaternary)
                 .overlay {
-                    Image(systemName: "play.fill")
-                        .font(.title3.weight(.semibold))
-                        .foregroundStyle(.white)
-                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
-                        .background(palette.overlay, in: Circle())
+                    Image(systemName: "play.circle.fill")
+                        .font(.largeTitle)
+                        .foregroundStyle(.secondary)
                         .accessibilityHidden(true)
                 }
-                .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
             Text(verbatim: reference.durationMS.map(imClock) ?? "")
-                .cyText(.meta)
+                .font(.footnote)
                 .monospacedDigit()
-                .foregroundStyle(palette.textSecondary)
+                .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .accessibilityElement(children: .combine)

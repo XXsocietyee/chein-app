@@ -130,13 +130,17 @@ enum SocialGuideTemplateRows {
             else if scenePhase == .active, let snapshot = model.visibleSnapshot(reader: reader) {
                 if snapshot.rows.isEmpty {
                     // Mini-program empty: 还没有上架的现成玩法 with 去发布广场 (the template square).
-                    CYEmptyState(systemImage: "tray", "social.guideTemplates.empty",
-                                 messageIdentifier: "social.guideTemplates.empty",
-                                 actionTitle: "social.guideTemplates.toSquare", action: {
-                                     guard scenePhase == .active else { return }
-                                     openSquare(catalogPermit)
-                                 })
-                        .frame(maxWidth: .infinity).listRowBackground(Color.clear)
+                    ContentUnavailableView {
+                        Label { Text("social.guideTemplates.empty").accessibilityIdentifier("social.guideTemplates.empty") } icon: {
+                            Image(systemName: "tray")
+                        }
+                    } actions: {
+                        Button("social.guideTemplates.toSquare") {
+                            guard scenePhase == .active else { return }
+                            openSquare(catalogPermit)
+                        }
+                        .buttonStyle(.bordered)
+                    }
                 }
                 ForEach(Array(snapshot.rows.enumerated()), id: \.offset) { index, item in
                     Button {
@@ -144,45 +148,47 @@ enum SocialGuideTemplateRows {
                         model.openDetail(index: index, snapshotID: snapshot.id, reader: reader)
                     } label: {
                         // Mini-program `gl-tpl`: cover tile, name, description, then 已玩 N 次 and the 开始 pill.
-                        HStack(alignment: .top, spacing: CYSpacing.md) {
+                        HStack(alignment: .top, spacing: 12) {
                             let title = SocialGuideTemplateRows.text(item.title)
-                            Color.clear.frame(width: 84, height: 84)
+                            Color.clear.frame(width: 72, height: 72)
                                 .overlay { E1CoverArt(seed: title, symbol: "map", imageURL: item.imgUrl, debugLabel: false) }
-                                .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
+                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                                 .accessibilityHidden(true)
-                            VStack(alignment: .leading, spacing: 6) {
-                                Text(verbatim: title).cyText(.bodyMedium).lineLimit(2)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(verbatim: title).font(.headline).lineLimit(2)
                                 let description = SocialGuideTemplateRows.text(item.description)
-                                if !description.isEmpty { Text(verbatim: description).cyText(.label).foregroundStyle(.secondary).lineLimit(2) }
+                                if !description.isEmpty { Text(verbatim: description).font(.subheadline).foregroundStyle(.secondary).lineLimit(2) }
                                 HStack {
                                     // Mini-program `_usedText`: 已玩 N 次, only when it has been played.
                                     if let count = SocialGuideTemplateRows.useCount(item), count > 0 {
-                                        Text("social.guideTemplates.playedTimes \(count)").cyText(.caption).foregroundStyle(.secondary)
+                                        Text("social.guideTemplates.playedTimes \(count)").font(.caption).foregroundStyle(.secondary)
                                     }
                                     Spacer(minLength: 0)
-                                    Text("social.guideTemplates.start").cyText(.label, weight: .semibold)
-                                        .foregroundStyle(CYNight.ink0).padding(.horizontal, CYSpacing.xl).frame(minHeight: 44)
-                                        .background(Color.white, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+                                    Text("social.guideTemplates.start").font(.subheadline.weight(.semibold))
+                                        .foregroundStyle(.tint)
                                 }
                             }
-                        }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).padding(.vertical, 6)
-                    }.buttonStyle(.plain).accessibilityIdentifier("social.guideTemplates.detail.\(item.id)")
+                        }
+                        .foregroundStyle(Color.primary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }.accessibilityIdentifier("social.guideTemplates.detail.\(item.id)")
                 }
             } else if model.phase == .failed {
                 // R7-PC-D2-3 (MP infomation.wxml:33-34): the failure is a state with its 重新加载 action.
-                VStack(spacing: CYSpacing.sm) {
-                    CYEmptyState(systemImage: "exclamationmark.triangle", "social.guideTemplates.failed",
-                                 messageIdentifier: "social.guideTemplates.failed")
+                ContentUnavailableView {
+                    Label { Text("social.guideTemplates.failed").accessibilityIdentifier("social.guideTemplates.failed") } icon: {
+                        Image(systemName: "exclamationmark.triangle")
+                    }
+                } actions: {
                     Button("action.retry") {
                         guard scenePhase == .active else { return }
                         Task { await model.reload(reader: reader, permit: retryPermit) }
                     }
-                    .buttonStyle(.cyPrimary(fullWidth: false))
+                    .buttonStyle(.bordered)
                     .accessibilityIdentifier("social.guideTemplates.retry")
                 }
-                .frame(maxWidth: .infinity).listRowBackground(Color.clear)
             } else {
-                CYLoadingStateView(rows: 3).accessibilityLabel(Text("discovery.loading"))
+                ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("discovery.loading"))
             }
             // 更多玩法 follows the rows only; the empty state carries its own 去发布广场.
             if model.visibleSnapshot(reader: reader)?.rows.isEmpty != true {
