@@ -111,7 +111,8 @@ import SwiftUI
                     }
                 } header: { Text("official.published.eventsHeader \(events.count)") }
                 Section {
-                    if broadcasts.isEmpty { emptyRow("official.published.broadcastsEmpty", "official.published.broadcastsEmptyDetail") }
+                    // R9-PC-C6-1: MP cy-empty title only (pages/activity/official-mine/index.wxml:23).
+                    if broadcasts.isEmpty { emptyRow("official.published.broadcastsEmpty") }
                         ForEach(Array(broadcasts.enumerated()), id: \.offset) { _, broadcast in
                             if broadcast.id > 0 {
                                 // R7-PC-C6-3 (MP official-mine/index.wxml:25-29): tapping the card reads its 复盘 in place.
