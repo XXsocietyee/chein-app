@@ -270990,6 +270990,23 @@
         }
       }
     },
+    "ticketWallet.explore.redeemed %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redeemed %lld/%lld places"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已核销 %lld/%lld 家"
+          }
+        }
+      }
+    },
     "ticketWallet.fixture.signOut": {
       "extractionState": "manual",
       "localizations": {
@@ -271435,6 +271452,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "参与日期"
+          }
+        }
+      }
+    },
+    "ticketWallet.party.share %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld adults and %lld children share this pass"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 大 %lld 小同享"
           }
         }
       }

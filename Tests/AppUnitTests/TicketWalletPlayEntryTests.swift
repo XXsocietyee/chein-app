@@ -14,12 +14,17 @@ import XCTest
 @MainActor final class TicketWalletPlayEntryTests: XCTestCase {
     private func ticket(id: Int = 41, status: Int = 2, type: Int? = 1, owner: Int? = 9,
                         activity: Int? = nil, topic: Int? = nil, verification: Int = 0,
-                        payment: Int? = nil, usable: String? = nil, refundPayout: Int? = nil) throws -> TicketWalletTicket {
+                        payment: Int? = nil, usable: String? = nil, refundPayout: Int? = nil,
+                        memberID: Int? = nil, adult: Int? = nil, child: Int? = nil,
+                        redeemed: Int? = nil, required: Int? = nil) throws -> TicketWalletTicket {
         var value: [String: Any] = ["id": id, "registrationStatus": status, "verificationStatus": verification]
         value["ownerType"] = type; value["ownerId"] = owner; value["activityId"] = activity; value["topicId"] = topic
         if let payment { value["paymentStatus"] = payment }
         if let usable { value["usableState"] = usable }
         if let refundPayout { value["refundApplication"] = ["payoutStatus": refundPayout] }
+        if let memberID { value["memberId"] = memberID }
+        if let adult, let child { value["party"] = ["adultCount": adult, "childCount": child] }
+        if let required { value["exploreProgress"] = ["redeemed": redeemed ?? 0, "required": required] }
         return try JSONDecoder().decode(TicketWalletTicket.self, from: JSONSerialization.data(withJSONObject: value))
     }
     private func provider(_ reader: WalletPlayReaderFixture, revision: UInt64 = 1,
@@ -134,6 +139,33 @@ import XCTest
         XCTAssertNil(entry.target)
         entry.activate(ticket: try ticket(), requestedID: 41, reader: reader, provider: source, presentationID: entry.presentationID)
         XCTAssertNotEqual(entry.target?.id, target.id)
+    }
+    func testSharedPartyAndExploreFactsFollowTheWalletCard() throws {
+        let shared = try ticket(memberID: 12, adult: 1, child: 1, redeemed: 2, required: 4)
+        XCTAssertTrue(shared.showsSharedParty)
+        XCTAssertEqual(shared.party?.adultCount, 1)
+        XCTAssertEqual(shared.party?.childCount, 1)
+        XCTAssertEqual(shared.exploreProgress?.redeemed, 2)
+        XCTAssertEqual(shared.exploreProgress?.required, 4)
+        XCTAssertFalse(try ticket(adult: 2, child: 0).showsSharedParty)
+        XCTAssertNil(try ticket(required: 0).exploreProgress)
+        XCTAssertNil(try ticket().party)
+        XCTAssertNil(try ticket().exploreProgress)
+    }
+    func testOwnerActionsRequireTheSignedInAccountToMatchTheTicketMember() throws {
+        let owned = try ticket(memberID: 12)
+        XCTAssertTrue(TicketWalletTicket.allowsOwnerActions(memberID: owned.memberID, viewerAccountID: 12))
+        XCTAssertFalse(TicketWalletTicket.allowsOwnerActions(memberID: owned.memberID, viewerAccountID: 7))
+        XCTAssertFalse(TicketWalletTicket.allowsOwnerActions(memberID: owned.memberID, viewerAccountID: nil))
+        XCTAssertFalse(TicketWalletTicket.allowsOwnerActions(memberID: owned.memberID, viewerAccountID: 0))
+        let unnamed = try ticket()
+        XCTAssertTrue(TicketWalletTicket.allowsOwnerActions(memberID: unnamed.memberID, viewerAccountID: nil))
+        XCTAssertTrue(TicketWalletTicket.allowsOwnerActions(memberID: unnamed.memberID, viewerAccountID: 12))
+        XCTAssertTrue(TicketWalletPlayEntry.entry(ticket: try ticket(payment: 2, usable: "USABLE"), requestedID: 41) != nil)
+        XCTAssertNil(TicketWalletPlayEntry.entry(ticket: try ticket(payment: 1), requestedID: 41))
+        XCTAssertNil(TicketWalletPlayEntry.entry(ticket: try ticket(usable: "EXPIRED"), requestedID: 41))
+        XCTAssertNil(TicketWalletPlayEntry.entry(ticket: try ticket(payment: 2, refundPayout: 1), requestedID: 41))
+        XCTAssertNil(TicketWalletPlayEntry.entry(ticket: try ticket(payment: 2, usable: "UPCOMING"), requestedID: 41))
     }
     func testRefreshAndOwnerRetirementRevokeSelectionAndOldCallback() throws {
         let reader = WalletPlayReaderFixture(); let source = provider(reader); var entry = try opened(reader, source)

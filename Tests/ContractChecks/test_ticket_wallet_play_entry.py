@@ -101,6 +101,10 @@ class TicketWalletPlayEntryContracts(unittest.TestCase):
         self.assertIn('if ticket.status == .ready && ticket.clearedFlag != true && !ticket.isWalletLocked {', self.screen)
         self.assertIn('.accessibilityIdentifier("ticketWallet.present.open")', self.screen)
         self.assertNotIn('ticketWallet.noCode', self.screen)
+        self.assertIn('ticketWallet.party.share', self.screen)
+        self.assertIn('ticketWallet.explore.redeemed', self.screen)
+        self.assertIn('schedule(permit, confirmPlay: true)', self.screen)
+        self.assertIn('allowsOwnerActions(ticket)', self.screen)
 
 
 if __name__ == '__main__':

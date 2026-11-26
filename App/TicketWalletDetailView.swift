@@ -22,6 +22,8 @@ import SwiftUI
     @State private var playEntry = TicketWalletPlayEntry()
     @State private var playReadOwner: TicketWalletPlayOwner?
     @State private var presenting = false
+    /// Confirmed only after the signed-in account is compared with `memberID`. Starts closed when an owner id exists.
+    @State private var ownerActionsMatch = false
     @Namespace private var presentHero
     private var key: TicketWalletLoadKey { TicketWalletLoadKey(reader: reader, id: id) }
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
@@ -39,18 +41,30 @@ import SwiftUI
                     TicketWalletDetailHeader(ticket: ticket)
                         .cyHeroSource("present", in: presentHero)
                         .questifyCardListRow()
-                    if ticket.status == .ready && ticket.clearedFlag != true && !ticket.isWalletLocked {
-                        // MP: a cleared ticket shows no entry code (PLY-21-4); a locked one cannot be presented yet.
-                        // The pass holder's one primary action. Staff verify; the real code only comes from the injected factory.
-                        CYPillButton(verbatim: c.t("出示票券", "Present pass"), systemImage: "qrcode") { presenting = true }
-                            .accessibilityIdentifier("ticketWallet.present.open")
-                            .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                    if ticket.showsSharedParty, let party = ticket.party {
+                        Text("ticketWallet.party.share \(party.adultCount) \(party.childCount)")
+                            .cyText(.bodyCompact)
+                            .accessibilityIdentifier("ticketWallet.party.\(ticket.id)")
+                    }
+                    if let progress = ticket.exploreProgress {
+                        Text("ticketWallet.explore.redeemed \(progress.redeemed) \(progress.required)")
+                            .cyText(.bodyCompact)
+                            .accessibilityIdentifier("ticketWallet.explore.\(ticket.id)")
+                    }
+                    if allowsOwnerActions(ticket) {
+                        if ticket.status == .ready && ticket.clearedFlag != true && !ticket.isWalletLocked {
+                            // MP: a cleared ticket shows no entry code (PLY-21-4); a locked one cannot be presented yet.
+                            // The pass holder's one primary action. Staff verify; the real code only comes from the injected factory.
+                            CYPillButton(verbatim: c.t("出示票券", "Present pass"), systemImage: "qrcode") { presenting = true }
+                                .accessibilityIdentifier("ticketWallet.present.open")
+                                .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                        }
                     }
                 }
-                if let makeTeamCoordinator {
+                if allowsOwnerActions(ticket), let makeTeamCoordinator {
                     TicketWalletTeamEntrySection(ticket: ticket, requestedID: id, reader: reader, makeCoordinator: makeTeamCoordinator)
                 }
-                if ticket.hasGame, let playProvider, playReadOwner == playProvider.owner,
+                if allowsOwnerActions(ticket), ticket.hasGame, let playProvider, playReadOwner == playProvider.owner,
                    playEntry.canOpen(ticket: ticket, requestedID: id, reader: reader, provider: playProvider) {
                     let presentationID = playEntry.presentationID
                     Section {
@@ -71,7 +85,7 @@ import SwiftUI
                         .accessibilityIdentifier("ticketWallet.play.open")
                     }
                 }
-                if mpParity.journeySeats != nil {
+                if allowsOwnerActions(ticket), mpParity.journeySeats != nil {
                     // Mini-program order detail `goSeats`: the wallet id is the registration id; the lobby gates itself (buyer only).
                     Section {
                         NavigationLink { MPParityDestination(route: .journeySeats(registrationID: String(id))) } label: {
@@ -99,7 +113,7 @@ import SwiftUI
                         }
                     }
                 }
-                if let lifecycleCoordinator {
+                if allowsOwnerActions(ticket), let lifecycleCoordinator {
                     Section {
                         NavigationLink { OrderLifecycleView(id: id, coordinator: lifecycleCoordinator).id(lifecycleCoordinator.scope) } label: {
                             Label("orderLifecycle.title", systemImage: "list.bullet.rectangle")
@@ -157,6 +171,12 @@ import SwiftUI
                 }
             }
         .accessibilityIdentifier("ticketWallet.detail")
+        .background {
+            if !reader.isOfflineExample, let ticket = model.value(owner: key), ticket.id == id,
+               let memberID = ticket.memberID, !memberID.isEmpty {
+                TicketWalletOwnerProbe(memberID: memberID, allowed: $ownerActionsMatch)
+            }
+        }
         .cyPushedChrome(domain: .player)
         .appSwitcherPrivacyShield()
         .modifier(CYOptionalHeroDestination(id: heroID ?? id, namespace: heroNamespace))
@@ -203,6 +223,45 @@ import SwiftUI
                                    presentationID: playEntry.presentationID)
             }
         }
+    }
+
+    /// MP focus read (`signup/index.js`): a present `memberId` must equal the signed-in account before owner actions show.
+    /// Offline examples keep their actions. A missing `memberId` is not treated as a mismatch.
+    private func allowsOwnerActions(_ ticket: TicketWalletTicket) -> Bool {
+        if reader.isOfflineExample { return true }
+        guard let memberID = ticket.memberID, !memberID.isEmpty else { return true }
+        return ownerActionsMatch
+    }
+}
+
+extension TicketWalletTicket {
+    /// MP wallet card: 「N 大 M 小同享」only when a child shares the ticket.
+    var showsSharedParty: Bool {
+        guard let party else { return false }
+        return party.childCount > 0
+    }
+
+    /// A missing owner id stays open. A present id matches only the signed-in account, as decimal text.
+    static func allowsOwnerActions(memberID: String?, viewerAccountID: Int?) -> Bool {
+        guard let memberID, !memberID.isEmpty else { return true }
+        guard let viewerAccountID, viewerAccountID > 0 else { return false }
+        return memberID == String(viewerAccountID)
+    }
+}
+
+/// Reads the signed-in account only when a live ticket names its owner. Fixtures never mount this view.
+@MainActor private struct TicketWalletOwnerProbe: View {
+    let memberID: String
+    @Binding var allowed: Bool
+    @EnvironmentObject private var session: AppSession
+    var body: some View {
+        Color.clear.frame(width: 0, height: 0).accessibilityHidden(true)
+            .task(id: session.account?.id) { publish() }
+            .onChange(of: memberID) { _, _ in publish() }
+    }
+    private func publish() {
+        let next = TicketWalletTicket.allowsOwnerActions(memberID: memberID, viewerAccountID: session.account?.id)
+        if allowed != next { allowed = next }
     }
 }
 
