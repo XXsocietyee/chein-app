@@ -44,6 +44,25 @@ Owner approved **step 1** (switch to Apple's components) and **step 2** (designs
 - swipe actions and context menus where Apple uses them;
 - pull-to-refresh with `.refreshable`.
 
+
+## EVERYTHING native (owner, 2026-11-26 06:00): "Everything is native, not just some things, including input fields, various details, and design style."
+No exceptions per screen. Specifically:
+- **Inputs:**
+  - `TextField` / `SecureField` / `TextEditor` / `Picker` / `DatePicker` / `Toggle` / `Stepper` / `Slider` / `PhotosPicker` inside a `Form` (grouped);
+  - labels as the system draws them;
+  - `.textContentType`, `.keyboardType`, `.submitLabel`;
+  - validation in the section footer;
+  - no custom field boxes, borders, placeholders or counters drawn by us.
+- **Details:**
+  - row heights, insets, separators, disclosure chevrons, swipe actions, context menus, pull-to-refresh, search, toolbars, alerts, confirmation dialogs, share sheet (`ShareLink`), menus (`Menu`), badges (`.badge`), progress (`ProgressView`, `Gauge`): system only;
+  - icons are SF Symbols, except mini-program images via `MPAsset`.
+- **Style:**
+  - system fonts (Dynamic Type text styles), system semantic colours, system accent;
+  - no custom shadows, gradients, corner radii, card chrome or blur layers;
+  - spacing and layout come from `List` / `Form` / `NavigationStack` defaults;
+  - Light and Dark both supported.
+- If a mini-program control has no Apple equivalent, use the closest Apple control and note it in your receipt; never draw a look-alike.
+
 ## Gates (no compiler in the cloud)
 - grep every type, func and modifier you use;
 - `python3 tools/check_scaffold.py` must print `PASS structural checks`;
