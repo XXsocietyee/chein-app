@@ -474,7 +474,6 @@ struct MPParityRegistrationOrder: View {
         } else {
             CYEmptyState(systemImage: "doc.text", "mp.route.unavailable", messageIdentifier: "mp.order.missing")
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(CYNight.ink0.ignoresSafeArea())
         }
     }
 }
