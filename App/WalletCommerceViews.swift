@@ -10,7 +10,7 @@ private struct AppSwitcherPrivacyShieldModifier: ViewModifier {
             .overlay {
                 if scenePhase != .active {
                     ZStack {
-                        Color(uiColor: .systemBackground).ignoresSafeArea()
+                        Rectangle().fill(.background).ignoresSafeArea()
                         Image(systemName: "lock.fill")
                             .font(.largeTitle)
                             .foregroundStyle(.secondary)

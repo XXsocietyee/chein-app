@@ -109,10 +109,10 @@ import SwiftUI
             }
             .sheet(isPresented: $confirms) {
                 if let expected = confirmation {
-                    CYConfirmSheet(title: appLocalized("auth.signOutConfirm", locale: locale),
-                                   message: appLocalized("settings.signOut.message", locale: locale),
-                                   confirmTitle: appLocalized("auth.signOut", locale: locale),
-                                   isDestructive: true, confirmIdentifier: "settings.signOut.confirm") {
+                    MemberConfirmSheet(title: appLocalized("auth.signOutConfirm", locale: locale),
+                                       message: appLocalized("settings.signOut.message", locale: locale),
+                                       confirmTitle: appLocalized("auth.signOut", locale: locale),
+                                       isDestructive: true, confirmIdentifier: "settings.signOut.confirm") {
                         confirmation = nil; confirms = false
                         working = true; failed = false
                         Task {
