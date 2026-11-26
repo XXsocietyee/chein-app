@@ -21,9 +21,12 @@ class RoamAccountEntryContracts(unittest.TestCase):
         self.assertNotIn("AccountView(", section)
 
     def test_normal_root_selects_existing_current_account_tab(self):
-        self.assertIn("onOpenAccount:{ selectedTab = .mine }", self.root)
-        self.assertEqual(self.root.count("onOpenAccount:"), 1)
-        self.assertIn('}.cyFloatingTabBarClearance().tabItem { rootTabLabel(.mine).accessibilityIdentifier("rootTabBar.tab.player.4") }.tag(RootTab.mine)', self.root)
+        # L1 P-004: signed in, the account entry selects 我的; signed out, it opens sign-in in place.
+        self.assertIn("onOpenAccount:{ openAccountOrSignIn() }", self.root)
+        self.assertEqual(self.root.count("onOpenAccount:{"), 1)
+        helper = self.root.split("private func openAccountOrSignIn()", 1)[1].split("\n    }\n", 1)[0]
+        self.assertIn("if session.account == nil { requestSignIn() } else { selectedTab = .mine }", helper)
+        self.assertIn('mineTab.tabItem { rootTabLabel(.mine).accessibilityIdentifier("rootTabBar.tab.player.4") }.tag(RootTab.mine)', self.root)
         self.assertIn("if let account=session.account { PassportView(account:account", self.root)
         self.assertIn("else { WelcomeView() }", self.root)
 
@@ -37,7 +40,7 @@ class RoamAccountEntryContracts(unittest.TestCase):
 
     def test_callback_does_not_change_subject_or_start_a_walk(self):
         action = self.root.split("onOpenAccount:{", 1)[1].split("}", 1)[0].strip()
-        self.assertEqual(action, "selectedTab = .mine")
+        self.assertEqual(action, "openAccountOrSignIn()")
         for token in ["memberID", "profileReader", "makeRoamLive", "start", "request", "token", "grant"]:
             self.assertNotIn(token, action)
 

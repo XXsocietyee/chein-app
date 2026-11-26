@@ -3,9 +3,11 @@ import SwiftUI
 import UIKit
 #endif
 
-/// Native r2 (owner 2026-11-26, "everything native"): an Apple-style welcome screen in the system background. App icon,
-/// large title, three feature rows, the agreement checkbox with both documents, one prominent 创建账号 button and a plain
-/// 先逛一逛 button. No orb, gradient, shader or pager (`OnboardingFlow` stays in the design kit, unused by the app).
+/// Native r2 (owner 2026-11-26, "everything native"): an Apple-style welcome screen in the system background. A live
+/// map with a sample route first (L1 P-007), large title, three feature rows, the agreement checkbox with both
+/// documents (only while the agreement is not on record, P-008), one prominent 创建账号 button and a plain 先逛一逛
+/// button. At accessibility text sizes the buttons scroll with the content instead of pinning (P-009).
+/// No orb, gradient, shader or pager (`OnboardingFlow` stays in the design kit, unused by the app).
 ///
 /// Behaviour is unchanged: 创建账号 opens the existing `LoginView`, which still enforces the usage-consent gate;
 /// 先逛一逛 starts guest browsing; the launch consent sheet (`usageConsentLaunchGate`) is untouched. The checkbox shows
@@ -31,7 +33,15 @@ struct WelcomeView: View {
     @AppStorage("onboarding.completed.v1") private var onboardingCompleted = false
     /// Mirrors the stored usage agreement (MP pages/privacy/index.wxml:10 `我已阅读并同意《用户服务协议》《隐私保护指引》`).
     @State private var consentChecked = false
+    /// P-008: the checkbox appears only once the agreement is found missing; checking it here keeps it visible
+    /// (VoiceOver focus stays put), and an agreement already on record never asks again.
+    @State private var asksConsent = false
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    /// P-009: a pinned footer covers most of the screen at accessibility sizes, so it scrolls with the content there.
+    private var footerScrolls: Bool { dynamicTypeSize.isAccessibilitySize }
 
     private var consentPolicy: UsageConsentPolicy { UsageConsentEnvironment.policy }
 
@@ -83,9 +93,13 @@ struct WelcomeView: View {
     /// Launch welcome (guest browse available).
     private var welcomeContent: some View {
         ScrollView {
-            VStack(spacing: 36) {
+            VStack(spacing: 32) {
+                WelcomeSampleRouteMap()
                 header
                 features
+                // P-008: the launch sheet already asked; the checkbox shows only while nothing is on record.
+                // P-009: it lives in the scrolling content, so 先逛一逛 can no longer sit on top of its footnote.
+                if asksConsent { consentRow }
                 if let key = WelcomeSessionPresentation.upgradeNoticeKey(errorKey: session.errorKey, accountID: session.account?.id) {
                     Label(LocalizedStringKey(key), systemImage: "arrow.up.circle")
                         .font(.footnote)
@@ -93,15 +107,19 @@ struct WelcomeView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .accessibilityIdentifier("welcome.upgradeRequired")
                 }
+                if footerScrolls { actions }
             }
             .padding(.horizontal, 32)
-            .padding(.top, 40)
+            .padding(.top, 16)
             .padding(.bottom, 24)
             .frame(maxWidth: 560)
             .frame(maxWidth: .infinity)
         }
         .scrollBounceBehavior(.basedOnSize)
-        .safeAreaInset(edge: .bottom) { footer }
+        .safeAreaInset(edge: .bottom) {
+            if !footerScrolls { footer }
+        }
+        .animation(reduceMotion ? nil : .default, value: asksConsent)
         .background(Color(uiColor: .systemBackground))
     }
 
@@ -109,7 +127,6 @@ struct WelcomeView: View {
 
     private var header: some View {
         VStack(spacing: 20) {
-            WelcomeAppIcon()
             Text("nativeR2.shell.welcome.title")
                 .font(.largeTitle.bold())
                 .multilineTextAlignment(.center)
@@ -171,9 +188,19 @@ struct WelcomeView: View {
             .accessibilityIdentifier("welcome.consent.privacyGuide")
     }
 
+    /// The pinned bottom bar (regular text sizes).
     private var footer: some View {
+        actions
+            .padding(.horizontal, 32)
+            .padding(.top, 12)
+            .padding(.bottom, 8)
+            .frame(maxWidth: 560)
+            .frame(maxWidth: .infinity)
+            .background(Color(uiColor: .systemBackground))
+    }
+
+    private var actions: some View {
         VStack(spacing: 12) {
-            consentRow
             Button {
                 onboardingCompleted = true
                 destination = .login(.player)
@@ -199,12 +226,6 @@ struct WelcomeView: View {
                 .accessibilityIdentifier("welcome.browse")
             }
         }
-        .padding(.horizontal, 32)
-        .padding(.top, 12)
-        .padding(.bottom, 8)
-        .frame(maxWidth: 560)
-        .frame(maxWidth: .infinity)
-        .background(Color(uiColor: .systemBackground))
     }
 
     /// Language, saved drafts and settings live in one toolbar menu.
@@ -237,6 +258,7 @@ struct WelcomeView: View {
 
     private func refreshConsent() {
         let granted = consentPolicy.granted
+        if !granted && !asksConsent { asksConsent = true }
         if consentChecked != granted { consentChecked = granted }
     }
 
@@ -275,44 +297,6 @@ private struct WelcomeFeatureRow: View {
         }
         .accessibilityElement(children: .combine)
     }
-}
-
-/// The installed app icon (from the bundle's primary icon), as Apple's welcome screens show it. Falls back to an SF Symbol.
-private struct WelcomeAppIcon: View {
-    var body: some View {
-        #if canImport(UIKit)
-        if let image = Self.primaryIcon() {
-            Image(uiImage: image)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 88, height: 88)
-                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                .accessibilityHidden(true)
-        } else {
-            fallback
-        }
-        #else
-        fallback
-        #endif
-    }
-
-    private var fallback: some View {
-        Image(systemName: "building.2.crop.circle.fill")
-            .font(.system(.largeTitle))
-            .imageScale(.large)
-            .foregroundStyle(Color.accentColor)
-            .accessibilityHidden(true)
-    }
-
-    #if canImport(UIKit)
-    private static func primaryIcon() -> UIImage? {
-        guard let icons = Bundle.main.object(forInfoDictionaryKey: "CFBundleIcons") as? [String: Any],
-              let primary = icons["CFBundlePrimaryIcon"] as? [String: Any],
-              let files = primary["CFBundleIconFiles"] as? [String],
-              let name = files.last else { return nil }
-        return UIImage(named: name)
-    }
-    #endif
 }
 
 #Preview("English") { WelcomeView(onBrowse: {}).environmentObject(AppSession()).environment(\.locale, Locale(identifier: "en")) }

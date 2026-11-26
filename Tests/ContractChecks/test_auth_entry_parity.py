@@ -56,9 +56,10 @@ class AuthEntryParitySourceChecks(unittest.TestCase):
     def test_sign_in_channels_require_current_agreement(self):
         login = (ROOT/'App/LoginView.swift').read_text()
         self.assertIn('.disabled(working || !consentGranted)', login)
-        self.assertIn('        return session.isWorking\n    }\n    @State private var rootLegal', login)
+        self.assertIn('if consentGranted && model.coordinator.appleConfigurationVerified {', login)
         self.assertIn('session.operationalMarket == .china && consentGranted', login)
-        self.assertIn('onOpenPrivacy: { legalDocument = AuthEntryLegalSheet(type: .privacyPolicy) }', login)
+        # L1 P-005: the legal documents push inside the one sign-in sheet.
+        self.assertIn('Button("auth.channels.privacyPolicy") { path.append(.legal(.privacyPolicy)) }', login)
 
 
 if __name__ == '__main__':

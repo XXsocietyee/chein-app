@@ -123,7 +123,8 @@ class TestGlobalChromeDomainContract(unittest.TestCase):
         night_bar = read_swift("App/DesignSystem/CYNightTabBar.swift")
         self.assertIn("@Environment(\\.cyTabBarHidden) private var isTabBarHidden", night_bar)
         self.assertIn("if !isTabBarHidden {", night_bar)
-        self.assertIn("isTabBarHidden ? 0 : CYFloatingTabBarClearanceKey.height", night_bar)
+        # L1 P-001: the system TabView insets tab content itself; no per-tab clearance padding.
+        self.assertNotIn("func cyFloatingTabBarClearance", night_bar)
 
         app_root = read_swift("App/QuestifyApp.swift")
         self.assertIn("CYTabBarHiddenPreferenceKey.self", app_root)
