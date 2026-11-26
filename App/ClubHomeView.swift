@@ -126,6 +126,9 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                         clubRows(nearby, identifier: "club.home.nearby", section: .nearby, page: page)
                     }
                 }
+                // r10 N-09b: one system Section for the queued /api/club/join writes (it collapses when there are none),
+                // not a banner inside every club row. MP talent/list/index.wxml has no per-row offline chrome.
+                CYScreenOfflineWriteSection(routes: ["/api/club/join"], session: offlineWriteSession.session)
                 Section {
                     if let governance = management?.governance {
                         ClubGovernanceHomeEntries(feedContext: .init(viewerRevision: management?.viewerRevision ?? governance.viewerRevision,
@@ -307,10 +310,6 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                     Text(LocalizedStringKey(key)).font(.footnote).foregroundStyle(.secondary)
                         .accessibilityIdentifier("club.home.join.notice.\(club.id)")
                 }
-                CYScreenOfflineWriteBanner(
-                    routes: ["/api/club/join"],
-                    session: offlineWriteSession.session
-                )
             }
         }
     }

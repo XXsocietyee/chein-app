@@ -71,10 +71,11 @@ def window(draft):
 
 
 def ticket_ok(ticket, span):
-    start, end = date_time(ticket["start"]), date_time(ticket["end"])
+    # r10 C-A8b: MP pages/publish/activity/index.wxml:158-186 has no per-ticket window; submit sends the activity
+    # span for every ticket (Core/PublishModesDomain.swift ActivityPublishTicket.wire), so ticket start/end are ignored.
     price = decimal_text(ticket["price"])
     return (filled(ticket["name"]) and price is not None and price >= 0 and stock_ok(ticket["stock"])
-            and start is not None and end is not None and end > start and start >= span[0] and end <= span[1])
+            and span[1] > span[0])
 
 
 def collaborators_ok(ids):
@@ -179,10 +180,6 @@ def reason(step, draft):
             return f"ticketPrice{index}"
         if not stock_ok(ticket["stock"]):
             return f"ticketStock{index}"
-        if date_time(ticket["start"]) is None:
-            return f"ticketStart{index}"
-        if date_time(ticket["end"]) is None:
-            return f"ticketEnd{index}"
         if not ticket_ok(ticket, span):
             return f"ticketEnd{index}"
     return None
@@ -332,10 +329,11 @@ class ActivityPublishingWizardContract(unittest.TestCase):
         self.assertEqual(blocking(2, draft), "ticketPrice0")
         draft["tickets"] = [ticket(stock="0")]
         self.assertEqual(blocking(2, draft), "ticketStock0")
-        draft["tickets"] = [ticket(end="2030-01-01 08:00:00")]
-        self.assertEqual(blocking(2, draft), "ticketEnd0")
+        # r10 C-A8b: a ticket's own 开始 / 结束 no longer block (MP activity/index.wxml:158-186 has none).
+        draft["tickets"] = [ticket(start="", end="")]
+        self.assertNotIn(blocking(2, draft), ("ticketStart0", "ticketEnd0"))
         draft["tickets"] = [ticket(end="2030-01-02 18:00:00")]
-        self.assertEqual(blocking(2, draft), "ticketEnd0")
+        self.assertNotIn(blocking(2, draft), ("ticketStart0", "ticketEnd0"))
         draft["collaborators"] = [71, 71]
         draft["tickets"] = [ticket()]
         self.assertEqual(blocking(2, draft), "collaborators")

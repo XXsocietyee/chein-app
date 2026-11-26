@@ -14,49 +14,45 @@ struct CYSquareRouteMapCard: View {
     @Environment(\.squareRouteMap) private var provider
     @State private var phase: Phase = .idle
     @State private var selected: Int?
-    @QuestifyReduceMotion private var reduceMotion
     private enum Phase: Equatable { case idle, loading, ready(CYSquareRoutePreview), empty }
 
+    // r10 N-24 (rest): MP square/components/route-map is a plain map under the post. Native: a MapKit `Map` with
+    // numbered `Marker`s and the road `MapPolyline`s, system loading `ProgressView`, no night palette, stroke or card.
     var body: some View {
         Group {
             switch phase {
             case .ready(let route): card { map(route) } caption: { Text("route.road", tableName: "SocialParity") }
             case .loading:
-                RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYNight.ink1).frame(height: height)
-                    .overlay(CYSkeleton().padding(CYSpacing.lg)).accessibilityIdentifier("square.routeMap.loading")
+                ProgressView()
+                    .frame(maxWidth: .infinity, minHeight: height)
+                    .accessibilityIdentifier("square.routeMap.loading")
             case .idle, .empty:
                 if let snapshotURL, let url = URL(string: snapshotURL), url.scheme == "https" {
                     card {
                         AsyncImage(url: url) { image in
-                            if let loaded = image.image { loaded.resizable().scaledToFill() } else { CYNight.indigo }
+                            if let loaded = image.image { loaded.resizable().scaledToFill() } else { Color(uiColor: .secondarySystemFill) }
                         }
                     } caption: { Text("route.snapshot", tableName: "SocialParity") }
                 }
             }
         }
-        .animation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion), value: phase)
         .task(id: topicID) { await load() }
     }
 
     private func card<M: View, C: View>(@ViewBuilder _ media: () -> M, @ViewBuilder caption: () -> C) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+        VStack(alignment: .leading, spacing: 8) {
             media()
                 .frame(height: height).frame(maxWidth: .infinity)
-                .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
-            HStack(spacing: CYSpacing.sm) {
-                caption().cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                .clipped()
+            HStack(spacing: 8) {
+                caption().font(.caption).foregroundStyle(.secondary)
                 Spacer(minLength: 0)
                 if let onOpenTopic {
                     Button(action: onOpenTopic) {
-                        HStack(spacing: CYSpacing.xxs) {
-                            Text("route.openTopic", tableName: "SocialParity")
-                            Image(systemName: "chevron.right")
-                        }
-                        .cyText(.label).foregroundStyle(CYColor.textSecondary)
-                        .frame(minHeight: CYSpacing.minTouchTarget)
+                        Text("route.openTopic", tableName: "SocialParity")
                     }
-                    .buttonStyle(.cyPressable)
+                    .buttonStyle(.borderless)
+                    .font(.footnote)
                     .accessibilityIdentifier("square.routeMap.openTopic")
                 }
             }
@@ -69,31 +65,16 @@ struct CYSquareRouteMapCard: View {
         let region = CYMapRegion.boundingRegion(
             coordinates: segments.flatMap { $0.map(\.coordinate) } + route.nodes.map(\.coordinate)
         )
-        return Map(initialPosition: .region(region), interactionModes: [.zoom, .pan]) {
+        return Map(initialPosition: .region(region), interactionModes: [.zoom, .pan], selection: $selected) {
             ForEach(Array(segments.enumerated()), id: \.offset) { _, segment in
-                MapPolyline(coordinates: segment.map(\.coordinate)).stroke(CYNight.lantern, lineWidth: 4)
+                MapPolyline(coordinates: segment.map(\.coordinate)).stroke(.tint, lineWidth: 4)
             }
             ForEach(Array(route.nodes.enumerated()), id: \.element.id) { index, node in
-                Annotation(node.title, coordinate: node.coordinate) {
-                    Button { selected = selected == node.id ? nil : node.id } label: {
-                        CYMapMarker(kind: .route, selected: selected == node.id)
-                            .overlay {
-                                Text(verbatim: "\(index + 1)")
-                                    .cyText(.caption, weight: .bold, monospacedDigit: true)
-                                    .foregroundStyle(CYNight.ink0)
-                            }
-                            .scaleEffect(selected == node.id && !reduceMotion ? 1.15 : 1)
-                    }
-                    .buttonStyle(.plain)
-                    .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
-                    .accessibilityLabel(Text(verbatim: node.title))
-                }
-                .annotationTitles(selected == node.id ? .visible : .hidden)
+                Marker(node.title, monogram: Text(verbatim: "\(index + 1)"), coordinate: node.coordinate)
+                    .tag(node.id)
             }
         }
         .mapStyle(.standard(elevation: .flat, emphasis: .muted))
-        .environment(\.colorScheme, .light)
-        .background { CYMapPlaceholder(fog: false) }
     }
 
     private func load() async {
