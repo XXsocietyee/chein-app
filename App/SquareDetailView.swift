@@ -17,7 +17,6 @@ import SwiftUI
     @Environment(\.analyticsEventClient) private var analytics
     @Environment(\.ugcSafetyContext) private var ugcSafety
     @Environment(\.locale) private var locale
-    @State private var shareRoute: ShareRoute?
     private struct ShareRoute: Identifiable { let id = UUID(); let payload: CYSquareSharePayload; let url: URL }
     @State private var showsAuthorProfile = false
     @State private var relatedTopic: SquareRelatedTopicSelection?
@@ -165,13 +164,12 @@ import SwiftUI
         .sheet(item: $editor, onDismiss: { applyFollowReceipt() }) { item in Group {
             if let actions { NavigationStack { SocialActionEditorView(purpose: item.purpose, target: item.target, coordinator: actions, initialText: item.text, contentGeneration: contentGeneration, initialEnabled: item.enabled) }.id(actions.identity) }
         }.cySheet(detents: [.large]) }
-        .sheet(item: $shareRoute) { route in CYSquareShareSheet(payload: route.payload, url: route.url) }
         .navigationDestination(isPresented: $showsAuthorProfile) {
             if let accountReader, let post, post.memberID > 0 {
                 SocialPublicProfileView(memberID: post.memberID, reader: accountReader, squareReader: reader, actions: actions)
             }
         }
-        .onChange(of: key) { _, _ in shareRoute = nil; showsAuthorProfile = false; blockTarget = nil }
+        .onChange(of: key) { _, _ in showsAuthorProfile = false; blockTarget = nil }
         .alert(
             Text(verbatim: String(localized: LocalizedStringResource("ugc.safety.block.confirmTitle", table: "UGCSafety", locale: locale))),
             isPresented: Binding(get: { blockTarget != nil }, set: { if !$0 { blockTarget = nil } }),
@@ -285,12 +283,13 @@ import SwiftUI
                     .accessibilityLabel(Text(LocalizedStringKey(post.isBookmarked == 1 ? "square.bookmark.remove" : "square.bookmark.add"))).accessibilityHint(Text("social.editor.bookmark")).accessibilityIdentifier("square.detail.bookmark")
             }
             // Mini `act-share` sits right after the other actions (owner 2026-11-09, Threads-style).
+            // native-r2 N-24: the system share sheet straight from `ShareLink` (no custom half sheet in between).
             if let route = makeShareRoute(for: post) {
-                Button {
-                    shareRoute = route
-                    MiniProgramAnalytics.track(analytics, "content_share", bizType: "square", bizID: MiniProgramAnalytics.bizID(post.id), pagePath: "/pages/square/detail/index")
-                } label: { Image(systemName: "paperplane") }
+                ShareLink(item: route.url, preview: SharePreview(route.payload.excerpt ?? "城瘾Hub")) { Image(systemName: "paperplane") }
                     .tint(.primary)
+                    .simultaneousGesture(TapGesture().onEnded {
+                        MiniProgramAnalytics.track(analytics, "content_share", bizType: "square", bizID: MiniProgramAnalytics.bizID(post.id), pagePath: "/pages/square/detail/index")
+                    })
                     .accessibilityLabel(Text("share.entry", tableName: "SocialParity")).accessibilityIdentifier("square.detail.share")
             }
             Spacer(minLength: 0)
