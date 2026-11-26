@@ -54,8 +54,14 @@ private struct ChanceSymbolSize {
             .padding(.vertical)
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("playkit.coin.face")
+            // The flip itself is the shell's bottom button (`nativeKitSubmitB`); a shake does the same.
+            .cyOnShake(enabled: context.enabled) { flip() }
+            .sensoryFeedback(.impact, trigger: flips)
+            .sensoryFeedback(.success, trigger: key) { old, next in !next.isEmpty && old != next }
         } header: {
             Text("playkit.coin.kicker")
+        } footer: {
+            if context.enabled { Label("playkit.coin.shakeHint", systemImage: "iphone.gen3.radiowaves.left.and.right") }
         }
         Section {
             ForEach(["heads", "tails"], id: \.self) { face in
@@ -66,22 +72,6 @@ private struct ChanceSymbolSize {
                 }
                 .foregroundStyle(face == key ? AnyShapeStyle(.tint) : AnyShapeStyle(.primary))
             }
-        }
-        Section {
-            Button {
-                flip()
-            } label: {
-                Label("playkit.coin.flip", systemImage: "circle.circle").frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .disabled(!context.enabled)
-            .cyOnShake(enabled: context.enabled) { flip() }
-            .sensoryFeedback(.impact, trigger: flips)
-            .sensoryFeedback(.success, trigger: key) { old, next in !next.isEmpty && old != next }
-            .accessibilityIdentifier("playkit.coin.flip")
-        } footer: {
-            if context.enabled { Label("playkit.coin.shakeHint", systemImage: "iphone.gen3.radiowaves.left.and.right") }
         }
     }
     private func flip() {
@@ -102,6 +92,8 @@ private struct ChanceSymbolSize {
         let values = (raw["pips"].array ?? []).compactMap(\.integer)
         let d20 = raw["mode"].text == "d20"
         Section {
+            // One row: shake and haptics must attach once, not once per List row.
+            VStack(spacing: 12) {
             if values.isEmpty {
                 ContentUnavailableView("playkit.dice.waiting", systemImage: "dice")
                     .symbolEffect(.pulse, isActive: context.busy)
@@ -142,8 +134,16 @@ private struct ChanceSymbolSize {
                faces.indices.contains(pip - 1), let task = faces[pip - 1].text {
                 Text(verbatim: task)
             }
+            }
+            .frame(maxWidth: .infinity)
+            // The roll itself is the shell's bottom button (`nativeKitSubmitB`); a shake does the same.
+            .cyOnShake(enabled: context.enabled) { roll() }
+            .sensoryFeedback(.impact, trigger: rolls)
+            .sensoryFeedback(.success, trigger: values) { old, next in !next.isEmpty && old != next }
         } header: {
             if !d20 { Text("playkit.dice.kicker") }
+        } footer: {
+            if context.enabled { Label("playkit.coin.shakeHint", systemImage: "iphone.gen3.radiowaves.left.and.right") }
         }
         Section {
             if let total = context.projection.diceTotal {
@@ -158,26 +158,6 @@ private struct ChanceSymbolSize {
             }
             if let kept = raw["kept"].integer { LabeledContent("playkit.dice.kept") { Text(verbatim: String(kept)).monospacedDigit() } }
             if d20, let dc = raw["dc"].integer { LabeledContent("playkit.dice.target") { Text(verbatim: String(dc)).monospacedDigit() } }
-            if d20, context.projection.complete, let success = raw["success"].bool {
-                Label(success ? "playkit.result.passed" : "playkit.result.notPassed",
-                      systemImage: success ? "checkmark.circle" : "info.circle")
-            }
-        }
-        Section {
-            Button {
-                roll()
-            } label: {
-                Label("playkit.dice.roll", systemImage: "dice").frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .disabled(!context.enabled)
-            .cyOnShake(enabled: context.enabled) { roll() }
-            .sensoryFeedback(.impact, trigger: rolls)
-            .sensoryFeedback(.success, trigger: values) { old, next in !next.isEmpty && old != next }
-            .accessibilityIdentifier("playkit.dice.roll")
-        } footer: {
-            if context.enabled { Label("playkit.coin.shakeHint", systemImage: "iphone.gen3.radiowaves.left.and.right") }
         }
     }
     private func roll() {
@@ -191,7 +171,6 @@ private struct ChanceSymbolSize {
 
 @MainActor struct ChanceRandomKit: View {
     let context: GamesBKitContext
-    @State private var shownDraw: Int?
     private var raw: PlayWireValue { context.segment }
     private var drawn: [PlayWireValue] { raw["drawn"].array ?? [] }
     var body: some View {
@@ -217,123 +196,6 @@ private struct ChanceSymbolSize {
             }
         } header: {
             if let name = raw["deckName"].text { Text(verbatim: name) }
-        }
-        Section {
-            Button {
-                context.submit("DRAW")
-            } label: {
-                Label("playkit.random.draw", systemImage: "rectangle.stack").frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .disabled(!context.enabled || count <= cards.count)
-            .sensoryFeedback(.success, trigger: cards.count) { old, next in next > old }
-            .accessibilityIdentifier("playkit.random.draw")
-        }
-        .onChange(of: cards.count) { old, next in
-            // The server answered a draw: show the new card as a medium sheet (MP detail card).
-            if next > old { shownDraw = next - 1 }
-        }
-        .sheet(isPresented: Binding(get: { shownDraw != nil }, set: { if !$0 { shownDraw = nil } })) {
-            NavigationStack {
-                List {
-                    if let index = shownDraw, drawn.indices.contains(index) {
-                        let card = drawn[index]
-                        Section {
-                            if let label = card["label"].text { Text(verbatim: label).font(.title2.bold()) }
-                            if let content = card["content"].text { Text(verbatim: content).font(.body) }
-                        }
-                    }
-                }
-                .navigationTitle(Text("playkit.random.thisRound"))
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("nativeR2.gamesB.random.keep") { shownDraw = nil }
-                            .accessibilityIdentifier("nativeR2.gamesB.random.keep")
-                    }
-                }
-            }
-            .presentationDetents([.medium])
-        }
-    }
-}
-
-// MARK: - predict
-
-@MainActor struct ChancePredictKit: View {
-    let context: GamesBKitContext
-    @State private var confirming = false
-    private var raw: PlayWireValue { context.segment }
-    private var pick: Binding<String> {
-        Binding(get: { context.selection.wrappedValue.first ?? "" },
-                set: { context.selection.wrappedValue = $0.isEmpty ? [] : [$0]; context.markDirty() })
-    }
-    private func label(_ id: String) -> String { context.projection.options.first { $0.id == id }?.label ?? id }
-    var body: some View {
-        if let mine = raw["myOptionKey"].text, !mine.isEmpty {
-            Section {
-                LabeledContent {
-                    Text(verbatim: label(mine))
-                } label: {
-                    Label("playkit.predict.mine", systemImage: "lock.fill")
-                }
-                .accessibilityIdentifier("playkit.predict.sealed")
-            }
-        } else {
-            Section {
-                Picker(selection: pick) {
-                    ForEach(context.projection.options) { option in
-                        Text(verbatim: option.label).tag(option.id)
-                    }
-                } label: {
-                    Text("nativeR2.gamesB.predict.pick")
-                }
-                .pickerStyle(.inline)
-                .labelsHidden()
-                .disabled(!context.enabled)
-            } footer: {
-                Text("nativeR2.gamesB.predict.lockedOnceSet")
-            }
-            Section {
-                Button {
-                    confirming = true
-                } label: {
-                    Text("nativeR2.gamesB.predict.commit").frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .disabled(!context.enabled || pick.wrappedValue.isEmpty)
-                .accessibilityIdentifier("playkit.submit.predict")
-            }
-            .confirmationDialog("nativeR2.gamesB.predict.lockedOnceSet", isPresented: $confirming, titleVisibility: .visible) {
-                Button("nativeR2.gamesB.predict.commit") {
-                    context.submit("SUBMIT_PREDICT", ["optionKey": .string(pick.wrappedValue)])
-                }
-                Button("playkit.cancel", role: .cancel) {}
-            } message: {
-                Text(verbatim: label(pick.wrappedValue))
-            }
-        }
-        Section {
-            if let status = raw["settleStatus"].integer {
-                if status == 2 {
-                    Label("playkit.predict.voided", systemImage: "arrow.uturn.backward.circle")
-                } else if status == 1 {
-                    let won = raw["won"].bool == true
-                    Label(won ? "playkit.predict.won" : "playkit.predict.lost", systemImage: won ? "checkmark.seal.fill" : "xmark.seal")
-                    let answer = raw["settledOption"].text ?? ""
-                    LabeledContent("playkit.predict.answer") { Text(verbatim: label(answer)) }
-                } else {
-                    Label("playkit.predict.wait", systemImage: "hourglass")
-                }
-            }
-            if let days = raw["revealDays"].integer, days >= 0 {
-                LabeledContent("playkit.predict.revealDays") { Text(verbatim: String(days)).monospacedDigit() }
-            }
-            if let hour = raw["revealHour"].integer, (0...23).contains(hour) {
-                LabeledContent("playkit.predict.revealHour") { Text(verbatim: String(hour)).monospacedDigit() }
-            }
         }
     }
 }
@@ -383,6 +245,8 @@ private struct ChanceSymbolSize {
                         Text(verbatim: "D20")
                     }
                     .accessibilityIdentifier("journey.check.d20")
+                    .sensoryFeedback(.success, trigger: model.receipt?.success) { _, next in next == true }
+                    .sensoryFeedback(.warning, trigger: model.receipt?.success) { _, next in next == false }
                     if let receipt = model.receipt {
                         if !receipt.dice.isEmpty {
                             LabeledContent("journey.dice") {
@@ -444,6 +308,7 @@ private struct ChanceSymbolSize {
                         .controlSize(.large)
                         .disabled(model.acting || !model.available)
                         .cyOnShake(enabled: !model.acting && model.available) { roll() }
+                        .sensoryFeedback(.impact, trigger: rolls)
                         .accessibilityIdentifier("journey.check.roll")
                     } else if model.receipt?.settled == false {
                         if model.receipt?.canReroll == true {
@@ -475,9 +340,6 @@ private struct ChanceSymbolSize {
                             .accessibilityIdentifier("journey.check.error")
                     }
                 }
-                .sensoryFeedback(.impact, trigger: rolls)
-                .sensoryFeedback(.success, trigger: model.receipt?.success) { _, next in next == true }
-                .sensoryFeedback(.warning, trigger: model.receipt?.success) { _, next in next == false }
             } else if model.problem != nil && !model.nodeDone {
                 Button("journey.check.title") { model.reopen() }.accessibilityIdentifier("journey.check.reopen")
             }

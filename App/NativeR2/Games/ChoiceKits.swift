@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-// Native r2 games-b, Template 6: Story choice & progress.
+// Native r2 games-b, Template 6: Story choice & progress (bingo is drawn by half A).
 // Apple reference: Books reader (text first, choices as plain list rows), Music Now Playing
 // (compact play / pause), Fitness Awards grid (bingo). Same actions and payloads as before.
 
@@ -126,8 +126,6 @@ import UIKit
 
 @MainActor struct ChoiceDailySignKit: View {
     let context: GamesBKitContext
-    /// `PlayKitScreen.avatarURL`, sent as `photoUrl` exactly as before.
-    var photoURL: String = ""
     @State private var revealed = false
     @State private var shareImage: Image?
     @Environment(\.displayScale) private var displayScale
@@ -146,6 +144,9 @@ import UIKit
                 Label("playkit.daily.ticketTitle", systemImage: "ticket")
             }
             .accessibilityIdentifier("playkit.dailySign.ticket")
+            // Single-row anchor for haptics and the share render (not once per revealed line).
+            .sensoryFeedback(.success, trigger: revealed) { _, next in next }
+            .onChange(of: isRevealed, initial: true) { _, next in if next { renderShareImage() } }
         }
         Section {
             if isRevealed {
@@ -165,7 +166,6 @@ import UIKit
         } header: {
             Text("playkit.daily.lineForYou")
         }
-        .sensoryFeedback(.success, trigger: revealed) { _, next in next }
         if let photo = raw["photoUrl"].text, !photo.isEmpty {
             Section { PlayKitArtwork(source: photo, approvedHosts: context.approvedHosts) }
         }
@@ -178,16 +178,8 @@ import UIKit
         } footer: {
             Text("playkit.daily.audience")
         }
+        // Accept (CLAIM_DAILY_SIGN) is the shell's bottom button (`nativeKitSubmitB`).
         Section {
-            Button {
-                context.submit("CLAIM_DAILY_SIGN", ["text": .string(context.text.wrappedValue), "photoUrl": .string(photoURL)])
-            } label: {
-                Text("nativeR2.gamesB.daily.accept").frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .disabled(!context.enabled || context.text.wrappedValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            .accessibilityIdentifier("playkit.submit.dailySign")
             if isRevealed, let rendered = shareImage {
                 ShareLink(item: rendered, preview: SharePreview(Text("playkit.daily.ticketTitle"), image: rendered)) {
                     Label("nativeR2.gamesB.daily.save", systemImage: "square.and.arrow.down")
@@ -195,7 +187,6 @@ import UIKit
                 .accessibilityIdentifier("nativeR2.gamesB.daily.save")
             }
         }
-        .onChange(of: isRevealed, initial: true) { _, next in if next { renderShareImage() } }
     }
     private var ticketRows: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -221,80 +212,5 @@ import UIKit
         let renderer = ImageRenderer(content: snapshot)
         renderer.scale = displayScale
         if let image = renderer.uiImage { shareImage = Image(uiImage: image) }
-    }
-}
-
-// MARK: - bingo
-
-@MainActor struct ChoiceBingoKit: View {
-    let context: GamesBKitContext
-    @State private var detail: Int?
-    private var raw: PlayWireValue { context.segment }
-    var body: some View {
-        let board = PlayKitBingoBoard(raw)
-        Section {
-            Grid(horizontalSpacing: 8, verticalSpacing: 8) {
-                ForEach(0..<3, id: \.self) { row in
-                    GridRow {
-                        ForEach(0..<3, id: \.self) { column in
-                            cell(board, index: row * 3 + column)
-                        }
-                    }
-                }
-            }
-            .padding(.vertical, 4)
-        } header: {
-            if let line = raw["lineReward"].text, !line.isEmpty {
-                Text("playkit.bingo.lineBanner \(line)").accessibilityIdentifier("playkit.bingo.lineBanner")
-            }
-        } footer: {
-            Text("playkit.bingo.footnote")
-        }
-        Section {
-            LabeledContent("playkit.bingo.lines") { Text(verbatim: String(board.completedLines.count)).monospacedDigit() }
-            Text("playkit.bingo.filledCount \(board.filled.count)").monospacedDigit().foregroundStyle(.secondary)
-                .accessibilityIdentifier("playkit.bingo.filledCount")
-            if let full = raw["fullReward"].text, !full.isEmpty { LabeledContent("playkit.bingo.fullReward") { Text(verbatim: full) } }
-        }
-    }
-    private func cell(_ board: PlayKitBingoBoard, index: Int) -> some View {
-        let done = board.filled.contains(index)
-        return Button {
-            detail = index
-        } label: {
-            Label {
-                Text(verbatim: board.title(at: index)).font(.footnote).lineLimit(3).multilineTextAlignment(.center)
-            } icon: {
-                Image(systemName: done ? "checkmark.seal.fill" : "seal")
-            }
-            .labelStyle(.titleAndIcon)
-            .frame(maxWidth: .infinity, minHeight: 64)
-        }
-        .buttonStyle(.bordered)
-        .tint(done ? Color.accentColor : Color.secondary)
-        .accessibilityValue(Text(done ? "playkit.bingo.filled" : "playkit.bingo.empty"))
-        .accessibilityIdentifier("playkit.bingo.cell.\(index)")
-        .popover(isPresented: Binding(get: { detail == index }, set: { if !$0 { detail = nil } })) {
-            NavigationStack {
-                List {
-                    Section {
-                        Label {
-                            Text(verbatim: board.title(at: index)).font(.headline)
-                        } icon: {
-                            Image(systemName: done ? "checkmark.seal.fill" : "seal")
-                        }
-                        Text(verbatim: board.instruction(at: index))
-                        Text(done ? "playkit.bingo.filled" : "playkit.bingo.empty").foregroundStyle(.secondary)
-                        if board.linePositions.contains(index) { Label("playkit.bingo.inLine", systemImage: "line.diagonal") }
-                    }
-                }
-                .navigationTitle(Text(verbatim: "\(index + 1)"))
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .confirmationAction) { Button("nativeR2.gamesB.bingo.done") { detail = nil } }
-                }
-            }
-            .presentationDetents([.medium])
-        }
     }
 }

@@ -44,7 +44,7 @@ private final class JourneyFixtureHTTP: HTTPTransport {
     var body: some View {
         NavigationStack {
             List {
-                ChanceJourneyCheckView(model: model, nodeDone: false)
+                if NativeR2Flags.games { ChanceJourneyCheckView(model: model, nodeDone: false) } else { PlayJourneyCheckView(model: model, nodeDone: false) }
                 Button("Main task remains available") {}.accessibilityIdentifier("journey.fixture.mainTask")
             }.navigationTitle("journey.check.title").navigationBarTitleDisplayMode(.inline)
                 .modifier(JourneyCheckReviewPresentation(model: model))

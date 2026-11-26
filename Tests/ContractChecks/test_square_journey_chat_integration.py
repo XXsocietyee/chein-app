@@ -30,7 +30,7 @@ class SquareJourneyChatIntegration(unittest.TestCase):
   s=read('App/SessionPlayRuntimeView.swift')
   for x in ['session.playDevice(','session.playPlayer(','session.playCircle(','session.playStillness(','session.playPrefab(','session.journeyCheck(','session.journeyAmbient(','session.platformConsumers.audioFactory','session.platformConsumers.mapsFactory']:self.assertIn(x,s)
   self.assertIn('eggs = JourneyEgg.project((try? c.decode',read('Core/PlayContracts.swift'))
-  s=read('App/PlayExperienceView.swift');self.assertIn('ChanceJourneyCheckView(model: journey',s);self.assertIn('PlatformChapterAudioSelection.resolve(snapshot: model.snapshot',s)
+  s=read('App/PlayExperienceView.swift');self.assertIn('PlayJourneyCheckView(model: journey',s);self.assertIn('PlatformChapterAudioSelection.resolve(snapshot: model.snapshot',s)
  def test_journey_server_checks_are_separate_from_local_dice(self):
   s=read('Core/JourneyContentService.swift')
   for x in ['readsEnabled: Bool = false','checksEnabled: Bool = false','collectEnabled: Bool = false']:self.assertIn(x,s)

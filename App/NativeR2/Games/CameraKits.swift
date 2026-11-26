@@ -43,28 +43,28 @@ import VisionKit
     private var denied: Bool { model.issue == .disabled }
 
     var body: some View {
-        Group {
-            if denied {
-                Section {
-                    ContentUnavailableView {
-                        Label("nativeR2.gamesB.camera.denied.title", systemImage: "camera.slash")
-                    } description: {
-                        Text("nativeR2.gamesB.camera.denied.hint")
-                    } actions: {
-                        if let url = CameraKitSettings.url {
-                            Button("playkit.media.openSettings") { openURL(url) }
-                                .buttonStyle(.borderedProminent)
-                                .accessibilityIdentifier("playkit.photo.openSettings")
+        // One row carries the dialogs and lifecycle: modifiers on a multi-row Section or Group
+        // would be applied to every row inside the List (repeated `model.cancel()` on appear).
+        Section {
+            VStack(alignment: .leading, spacing: 12) {
+                if denied {
+                        ContentUnavailableView {
+                            Label("nativeR2.gamesB.camera.denied.title", systemImage: "camera.slash")
+                        } description: {
+                            Text("nativeR2.gamesB.camera.denied.hint")
+                        } actions: {
+                            if let url = CameraKitSettings.url {
+                                Button("playkit.media.openSettings") { openURL(url) }
+                                    .buttonStyle(.borderedProminent)
+                                    .accessibilityIdentifier("playkit.photo.openSettings")
+                            }
+                            if model.supportsLibraryPhotos {
+                                Button("playkitCamera.choosePhoto") { pickFromLibrary() }
+                                    .buttonStyle(.bordered)
+                                    .disabled(!enabled || model.busy)
+                            }
                         }
-                        if model.supportsLibraryPhotos {
-                            Button("playkitCamera.choosePhoto") { pickFromLibrary() }
-                                .buttonStyle(.bordered)
-                                .disabled(!enabled || model.busy)
-                        }
-                    }
                 }
-            }
-            Section {
                 if let bytes = capturedBytes {
                     if let image = UIImage(data: bytes) {
                         Image(uiImage: image)
@@ -134,7 +134,25 @@ import VisionKit
                     .disabled(!enabled || model.busy || judging || !model.supports(.photo))
                     .accessibilityIdentifier("playkit.photo.retake")
                 }
-            } footer: {
+                if let issue = model.issue, !denied { PlayExperienceIssueView(issue: issue) }
+            }
+            .confirmationDialog("playkit.camera.purpose", isPresented: $cameraPurpose, titleVisibility: .visible) {
+                Button("playkit.photo.capture") { takePhoto() }
+                Button("playkit.cancel", role: .cancel) {}
+            } message: { Text("playkit.camera.photoPurpose") }
+            .confirmationDialog("playkit.photo.uploadReview", isPresented: $uploadReview, titleVisibility: .visible) {
+                Button("playkit.photo.upload") {
+                    guard capturedIdentity == identity, enabled else { return }
+                    let expected = identity
+                    Task { await model.uploadPhoto(); if !mounted || identity != expected { model.cancel() } }
+                }
+                Button("playkit.cancel", role: .cancel) {}
+            } message: { Text("playkit.photo.uploadBoundary") }
+            .sensoryFeedback(.success, trigger: uploadedURL != nil) { _, next in next }
+            .onAppear { mounted = true; model.cancel() }
+            .onChange(of: identity) { _, _ in capturedIdentity = nil; cameraPurpose = false; uploadReview = false; model.cancel() }
+            .onDisappear { mounted = false; capturedIdentity = nil; model.cancel() }
+        } footer: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("nativeR2.gamesB.camera.step \(step) \(3)")
                     if capturedBytes != nil, !model.canUpload, model.uploadedPhoto == nil, !model.busy {
@@ -148,27 +166,7 @@ import VisionKit
                     }
                     if model.busy, capturedBytes != nil { Text("nativeR2.gamesB.camera.uploading") }
                 }
-            }
-            if let issue = model.issue, !denied {
-                Section { PlayExperienceIssueView(issue: issue) }
-            }
         }
-        .confirmationDialog("playkit.camera.purpose", isPresented: $cameraPurpose, titleVisibility: .visible) {
-            Button("playkit.photo.capture") { takePhoto() }
-            Button("playkit.cancel", role: .cancel) {}
-        } message: { Text("playkit.camera.photoPurpose") }
-        .confirmationDialog("playkit.photo.uploadReview", isPresented: $uploadReview, titleVisibility: .visible) {
-            Button("playkit.photo.upload") {
-                guard capturedIdentity == identity, enabled else { return }
-                let expected = identity
-                Task { await model.uploadPhoto(); if !mounted || identity != expected { model.cancel() } }
-            }
-            Button("playkit.cancel", role: .cancel) {}
-        } message: { Text("playkit.photo.uploadBoundary") }
-        .sensoryFeedback(.success, trigger: uploadedURL != nil) { _, next in next }
-        .onAppear { mounted = true; model.cancel() }
-        .onChange(of: identity) { _, _ in capturedIdentity = nil; cameraPurpose = false; uploadReview = false; model.cancel() }
-        .onDisappear { mounted = false; capturedIdentity = nil; model.cancel() }
     }
     private func takePhoto() {
         let expected = identity
@@ -231,8 +229,9 @@ import VisionKit
         .accessibilityIdentifier("playkit.scan.capture")
     }
     var body: some View {
-        Group {
-            Section {
+        // One row carries the cover, dialog and lifecycle (see `CameraPhotoInput`).
+        Section {
+            VStack(alignment: .leading, spacing: 12) {
                 if code == nil {
                     scanButton.buttonStyle(.borderedProminent)
                 } else {
@@ -252,11 +251,7 @@ import VisionKit
                     .disabled(!enabled)
                     .accessibilityIdentifier("playkit.scan.submit")
                 }
-            } footer: {
-                Text("playkit.scan.scopeLine")
-            }
-            if let issue = model.issue {
-                Section {
+                if let issue = model.issue {
                     PlayExperienceIssueView(issue: issue)
                     if issue == .disabled, let url = CameraKitSettings.url {
                         Button("playkit.media.openSettings") { openURL(url) }
@@ -265,30 +260,32 @@ import VisionKit
                     }
                 }
             }
-        }
-        .sensoryFeedback(.success, trigger: code) { _, next in next != nil }
-        .fullScreenCover(isPresented: $scanning) {
-            NativeQRScanner { scanned in
-                guard mounted, enabled else { return }
-                liveCode = (identity, scanned)
-                onDirty()
-            }
-        }
-        .confirmationDialog("playkit.camera.purpose", isPresented: $purpose, titleVisibility: .visible) {
-            Button("playkit.scan.capture") {
-                let expected = identity
-                capturedIdentity = expected
-                Task {
-                    await model.capture(.scan)
-                    if !mounted || identity != expected { model.cancel() }
-                    else if let output = model.output, case .scan = output { onDirty() }
+            .sensoryFeedback(.success, trigger: code) { _, next in next != nil }
+            .fullScreenCover(isPresented: $scanning) {
+                NativeQRScanner { scanned in
+                    guard mounted, enabled else { return }
+                    liveCode = (identity, scanned)
+                    onDirty()
                 }
             }
-            Button("playkit.cancel", role: .cancel) {}
-        } message: { Text("playkit.camera.scanPurpose") }
-        .onAppear { mounted = true; model.cancel() }
-        .onChange(of: identity) { _, _ in capturedIdentity = nil; liveCode = nil; purpose = false; scanning = false; model.cancel() }
-        .onDisappear { mounted = false; capturedIdentity = nil; liveCode = nil; model.cancel() }
+            .confirmationDialog("playkit.camera.purpose", isPresented: $purpose, titleVisibility: .visible) {
+                Button("playkit.scan.capture") {
+                    let expected = identity
+                    capturedIdentity = expected
+                    Task {
+                        await model.capture(.scan)
+                        if !mounted || identity != expected { model.cancel() }
+                        else if let output = model.output, case .scan = output { onDirty() }
+                    }
+                }
+                Button("playkit.cancel", role: .cancel) {}
+            } message: { Text("playkit.camera.scanPurpose") }
+            .onAppear { mounted = true; model.cancel() }
+            .onChange(of: identity) { _, _ in capturedIdentity = nil; liveCode = nil; purpose = false; scanning = false; model.cancel() }
+            .onDisappear { mounted = false; capturedIdentity = nil; liveCode = nil; model.cancel() }
+        } footer: {
+            Text("playkit.scan.scopeLine")
+        }
     }
 }
 

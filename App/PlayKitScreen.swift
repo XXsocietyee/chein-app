@@ -228,23 +228,23 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
         case .imageGuess: imageGuessForm
         case .jigsaw: jigsawForm
         case .scratchCard: scratchCardForm
-        case .branch: ChoiceBranchKit(context: gamesBContext, cast: castContext)
+        case .branch: branchForm
         case .estimate: estimateForm
         case .pricePair: pricePairForm
         case .hiddenObject: hiddenObjectForm
-        case .predict: ChancePredictKit(context: gamesBContext)
+        case .predict: predictForm
         case .profile: profileForm
         case .note: noteForm
-        case .photoCheck: cameraPhotoCheckForm
-        case .scan: cameraScanForm
-        case .bingo: ChoiceBingoKit(context: gamesBContext)
+        case .photoCheck: photoCheckForm
+        case .scan: scanForm
+        case .bingo: bingoBoard
         case .walk: walkProgress
         case .steps:
             NativeStepsHostView(advanced: model, segment: raw)
-        case .coinFlip: ChanceCoinFlipKit(context: gamesBContext)
-        case .diceRoll: ChanceDiceRollKit(context: gamesBContext)
-        case .dailySign: ChoiceDailySignKit(context: gamesBContext, photoURL: avatarURL)
-        case .random: ChanceRandomKit(context: gamesBContext)
+        case .coinFlip: coinFace
+        case .diceRoll: diceFaces
+        case .dailySign: dailySignForm
+        case .random: randomDeck
         case .reaction, .countdown, .stopwatch, .typeIn:
             PlayKitTimedChallengeView(kind: kind, segment: segment, enabled: enabled, active: model.isCurrent,
                 onDirty: { dirty = true }, requestReview: prepare,
@@ -255,8 +255,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
             PlayCompareView(segment: segment, revision: runtimeIdentity, enabled: enabled,
                 currentRevision: { runtimeIdentity }, onDirty: { dirty = true }, requestReview: prepare)
                 .id(childReset)
-        case .musicCorner: ChoiceMusicCornerKit(context: gamesBContext, mediaScope: mediaScope, makeAudio: makeAudio)
-        case .blindTaste, .diyName, .silentOrder, .slowTask, .timeWindow: legacyBody
+        case .blindTaste, .diyName, .silentOrder, .slowTask, .musicCorner, .timeWindow: legacyBody
         case .ballShake, .quietHold, .compass, .shout:
             PlayKitSensorChallengeView(kind: kind, segment: segment, enabled: enabled, active: model.isCurrent,
                 onDirty: { dirty = true }, requestReview: prepare,

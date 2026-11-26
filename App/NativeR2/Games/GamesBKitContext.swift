@@ -2,8 +2,8 @@ import SwiftUI
 
 /// Native r2 games-b (templates 4-6: Camera, Chance, Story choice).
 ///
-/// The minimal host contract the B kits are written against until the shared
-/// `NativeGameShell` (games-a lane) lands. It carries only what the existing
+/// The small value the B kits read inside the shared `NativeGameShell` (games-a lane).
+/// It carries only what the existing
 /// `PlayKitScreen` already owns: the segment, the projection, the interaction gate,
 /// the selection state and the single review outlet (`prepare`). No new request,
 /// no new scoring: every kit calls `prepare` with the same action and payload as before.
@@ -21,7 +21,7 @@ import SwiftUI
     /// Free text shared with the shell (`PlayKitScreen.textBinding`).
     let text: Binding<String>
     let markDirty: () -> Void
-    /// The frozen review outlet. Same signature as `PlayKitReviewRequest`.
+    /// The frozen review outlet (`nativePrepare` → `prepare`). Same signature as `PlayKitReviewRequest`.
     let prepare: PlayKitReviewRequest
 
     func submit(_ action: String, _ payload: [String: PlayWireValue] = [:]) {
@@ -42,7 +42,7 @@ extension PlayKitScreen {
             selection: $selected,
             text: textBinding(limit: kind == .dailySign ? PlayKitShortMessageLimit.resolve(raw["textMax"]) : 4096),
             markDirty: { dirty = true },
-            prepare: { action, payload, completion in prepare(action, payload, completion) }
+            prepare: { action, payload, completion in nativePrepare(action, payload, completion) }
         )
     }
 }

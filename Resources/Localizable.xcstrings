@@ -314602,91 +314602,6 @@
         }
       }
     },
-    "nativeR2.gamesB.predict.commit": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Place bet"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "押定"
-          }
-        }
-      }
-    },
-    "nativeR2.gamesB.predict.lockedOnceSet": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Once placed, it can't be changed"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "押定后不能改"
-          }
-        }
-      }
-    },
-    "nativeR2.gamesB.predict.pick": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your prediction"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "你的预测"
-          }
-        }
-      }
-    },
-    "nativeR2.gamesB.random.keep": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This one"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "就这张"
-          }
-        }
-      }
-    },
-    "nativeR2.gamesB.bingo.done": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Done"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "完成"
-          }
-        }
-      }
-    },
     "nativeR2.gamesB.branch.choose": {
       "extractionState": "manual",
       "localizations": {
@@ -314955,6 +314870,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "扫一扫"
+          }
+        }
+      }
+    },
+    "nativeR2.gamesB.hidden.targets": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find these"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要找的东西"
           }
         }
       }
