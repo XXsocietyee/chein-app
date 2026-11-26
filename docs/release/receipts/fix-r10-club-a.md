@@ -110,6 +110,8 @@ The club.md slice open to this lane is done. Still open elsewhere: CLB-topic-det
 
 ## Gates (before push)
 
+Round 2 pass 3 (tip ae477be47 + receipt): check_scaffold PASS; a11y lint PASS (0 new); contract_ratchet 192 failing, baseline 192, **new 0**.
+
 Round 2 (tip a24822471 + receipt): check_scaffold PASS; a11y lint PASS (0 new); contract_ratchet 192 failing, baseline 192, **new 0**.
 
 Round 1:
