@@ -31,7 +31,9 @@ class MPFirstPlayerContentPins(unittest.TestCase):
 
     def test_publisher_grants_issue_mp_writes_not_refunds(self):
         core = read('Core/RuntimeDependencyConfiguration.swift')
-        self.assertIn('return PublisherLifecycleGrants(reads: reads, ownership: ownership, graduation: ownership)', core)
+        # R10 R7-PC-B4-1: pricing confirm is a final-price save, not money (MP pages/topic/pricing/index.js:419-460).
+        self.assertIn('return PublisherLifecycleGrants(reads: reads, pricing: pricing, ownership: ownership, graduation: ownership)', core)
+        self.assertIn('paths.insert("api/topic/pricing/confirm")', core)
         self.assertNotIn('pricing: endpoints', core)
         self.assertNotIn('cancellationRefunds: endpoints', core)
         self.assertIn('publisherReads: true, playReadApprovalID: UUID())', read('App/ReviewedPlayerWriteLeases.swift'))

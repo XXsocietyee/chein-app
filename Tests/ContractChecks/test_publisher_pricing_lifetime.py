@@ -12,22 +12,19 @@ class PublisherPricingLifetimeTests(unittest.TestCase):
         self.assertIn('try await client.pricing(capturedInput)', self.view)
         self.assertIn('price = String(TopicPricingXcx.initialPrice(floor: value.minimum))', self.view)
         self.assertIn('try await coordinator.prepare(action)', self.view)
-        # pages/topic/pricing/index.js:443 posts /api/topic/pricing/confirm. That call stays refused
-        # and money stays off: this view never reaches coordinator.confirm.
-        self.assertNotIn('coordinator.confirm', self.view)
-        self.assertNotIn('consequentialApproval: true', self.view)
-        self.assertIn('POST api/topic/pricing/confirm', self.view)
-        self.assertIn('PublisherLifecycleCopy.outcome(.notSent', self.view)
+        # r10 R8-PC-B4-1: pages/topic/pricing/index.js:441-460 posts /api/topic/pricing/confirm (a final-price save,
+        # not money). The view sends it through the coordinator, which still needs the pricing grant and a fresh review.
+        self.assertIn('await coordinator.confirm(value, consequentialApproval: true)', self.view)
+        self.assertIn('/api/topic/pricing/confirm', self.view)
         self.assertIn('value.action == currentAction', self.view)
 
     def test_queued_work_and_late_results_are_scoped(self):
-        # Preview load and prepare stay fenced. Confirm is synchronous and refused, so it has no late result.
-        self.assertEqual(self.view.count('guard isCurrent(stamp, session, key), !Task.isCancelled'), 6)
-        self.assertEqual(self.view.count('defer { if isCurrent(stamp, session, key) { busy = false } }'), 2)
+        # Preview load, prepare and (r10 R8-PC-B4-1) confirm are each fenced by the same generation/session/form key.
+        self.assertEqual(self.view.count('guard isCurrent(stamp, session, key), !Task.isCancelled'), 8)
+        self.assertEqual(self.view.count('defer { if isCurrent(stamp, session, key) { busy = false } }'), 3)
         self.assertIn('formKey == key', self.view)
         self.assertIn('[String(topicID), String(describing: subtype), cost, team, price]', self.view)
         self.assertIn('resultSession == client.session', self.view)
-        self.assertNotIn('coordinator.confirm', self.view)
 
     def test_leave_account_and_form_changes_retire_reviews(self):
         for item in ['.onChange(of: client.session)', '.onChange(of: topicID)', '.onDisappear { visible = false; invalidate() }', '.onChange(of: price) { _, _ in invalidate(keepPreview: true) }']:
