@@ -1987,7 +1987,7 @@ struct ClubGovernanceReadView: View {
                         Label("club.topic.broadcast", systemImage: "megaphone")
                     }
                     .disabled(!canBroadcast)
-                    .accessibilityIdentifier(canBroadcast ? "club.topic.broadcast" : "club.topic.broadcast.disabled")
+                    .accessibilityIdentifier("club.topic.broadcast")
                 } footer: {
                     if !canBroadcast {
                         Text("club.topic.broadcast.disabled \(appLocalized(String.LocalizationValue(stringLiteral: Self.sessionStatusKey(projection.status)), locale: locale))")
