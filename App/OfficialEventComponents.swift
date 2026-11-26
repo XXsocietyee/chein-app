@@ -39,31 +39,31 @@ struct OfficialIssueView: View {
     var onBack: (() -> Void)? = nil
     /// Round 4 copy: a page may name an issue in its own MP words (nil keeps `issue.key`).
     var label: LocalizedStringKey? = nil
+    // R9-PC-CN-2: system ContentUnavailableView (label, description, one action).
     var body: some View {
-        ScrollView {
-        VStack(alignment: .leading, spacing: 16) {
+        ContentUnavailableView {
             if let copy {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(copy.title).cyText(.cardTitle).accessibilityIdentifier(copy.identifier)
-                    Text(copy.detail).foregroundStyle(.secondary)
-                }.fixedSize(horizontal: false, vertical: true)
+                Label(copy.title, systemImage: symbol).accessibilityIdentifier(copy.identifier)
+            } else {
+                Label(label ?? issue.key, systemImage: symbol).accessibilityIdentifier("official.issue")
             }
-            Label(label ?? issue.key, systemImage: symbol).font(copy == nil ? .headline : .footnote)
-                .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("official.issue")
+        } description: {
+            if let copy {
+                Text(copy.detail)
+                Text(label ?? issue.key).accessibilityIdentifier("official.issue")
+            }
+        } actions: {
             if case .unauthorized = issue, let onLogin {
-                Button("official.signIn", action: onLogin).frame(minHeight: 44)
+                Button("official.signIn", action: onLogin).buttonStyle(.borderedProminent)
                     .accessibilityIdentifier("official.signIn")
             } else if case .failed = issue, let retry {
-                Button("official.retry", action: retry).frame(minHeight: 44)
+                Button("official.retry", action: retry).buttonStyle(.bordered)
                     .accessibilityIdentifier("official.retry")
             } else if case .unavailable = issue, let onBack, let copy, let backTitle = copy.backTitle {
                 // An unrecoverable read offers only the way back, never a retry.
-                Button(backTitle, action: onBack).frame(minHeight: 44)
+                Button(backTitle, action: onBack).buttonStyle(.bordered)
                     .accessibilityIdentifier(copy.backIdentifier)
             }
-        }.frame(maxWidth: .infinity, alignment: .leading)
-            .padding(20).modifier(OfficialFlowActions())
-            .accessibilityElement(children: .contain)
         }
     }
     private var symbol: String {
