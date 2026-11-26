@@ -257,6 +257,36 @@ import XCTest
         XCTAssertEqual(recorder.paths, ["api/verify/dyncode/issue"])
     }
 
+    /// CLB-r11-detail-04 (MP club detail/index.js:971-1010 onClubScan) and CLB-r11-detail-05 (detail/index.js:3813-3847
+    /// applyCoopPool): the club scan-verify POSTs and 申请带队 pass the Release China composition firewall on their MP bodies.
+    func testShippedChinaAdmitsClubScanVerifyAndCoopPoolApply() async throws {
+        let recorder = PlayerWriteRecorder()
+        let composition = RegionalLaunchConfiguration.shippedComposition(build: .init(
+            market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: realm),
+            makeTransport: { recorder })
+        let player = try playerContext(composition)
+        let transport = composition.transport()
+        transport.current = {
+            .init(epoch: player.session.epoch, accountID: player.session.accountID, role: player.role, token: player.session.token)
+        }
+        let base = player.baseURL, token = player.session.token
+        let admitted: [(String, String)] = [
+            ("api/verify/groupcode/redeem", #"{"code":"v1.a.b.c"}"#),
+            ("api/registration/scan_dynamic_code", #"{"code":"dyn-1"}"#),
+            ("api/coupon/verification", #"{"code":"cq1.a.b.c"}"#),
+            ("api/registration/scan_qr_code", #"{"code":"t-1","type":"activity"}"#),
+            ("api/coop/pool/apply", #"{"clubId":9,"message":"想带这条线","topicId":3}"#)
+        ]
+        for (path, body) in admitted {
+            _ = try await transport.send(jsonRequest(base.appendingPathComponent(path), body, token: token))
+        }
+        XCTAssertEqual(recorder.paths, admitted.map(\.0))
+        await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent("api/verify/groupcode/redeem"), #"{"code":"x","payAmount":1}"#, token: token)) }
+        await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent("api/registration/scan_qr_code"), #"{"code":"x","type":"merchant"}"#, token: token)) }
+        await assertClosed { try await transport.send(self.jsonRequest(base.appendingPathComponent("api/coop/pool/apply"), #"{"clubId":9,"topicId":3}"#, token: token)) }
+        XCTAssertEqual(recorder.paths, admitted.map(\.0))
+    }
+
     func testShippedChinaAdmitsFreePlayerWritesAndKeepsMoneyClosed() async throws {
         let recorder = PlayerWriteRecorder()
         let composition = RegionalLaunchConfiguration.shippedComposition(build: .init(

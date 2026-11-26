@@ -111,8 +111,11 @@ enum MPFirstClubWriteRoute {
         // writes and the cancel review read. The writes pass only while `.hostCancelRefund` is on (`accepts`).
         "api/club/event-ops/cancel", "api/club/topic-setting/end", "api/club/event-ops/occurrence/status",
         // CLB-r11-checkin-detail-01 (MP checkin-detail/index.js): the owner refund evidence read.
-        "api/club/crm/checkin/detail"
+        "api/club/crm/checkin/detail",
+        // CLB-r11-detail-05 (MP detail/index.js:3813-3847 applyCoopPool): 申请带队, intent only, not money.
+        coopPoolApplyPath
     ]
+    static let coopPoolApplyPath = "api/coop/pool/apply"
     /// CLB-r11-money-01: the host-cancel refund writes. Gated on `ReleaseMoneyWriteSwitch` `.hostCancelRefund`.
     static let hostCancelRefundPaths: Set<String> = ["api/club/event-ops/cancel", "api/club/topic-setting/end"]
     /// CLB-G13a: the club staff shared-run command (MP topic-detail director.js confirmGenericOps / plan-fallback.js →
@@ -162,6 +165,9 @@ enum MPFirstClubWriteRoute {
         if badgePaths.contains(relative) { return ClubBadgeManagementRoute(request: request, baseURL: baseURL) != nil }
         if let shape = readShapes[relative] {
             if let reason = object["reviewReason"], !(reason is String) { return false }
+            if relative == coopPoolApplyPath {
+                guard let message = object["message"] as? String, message.count <= 500 else { return false }
+            }
             return shape.admits(object)
         }
         return true
@@ -256,7 +262,9 @@ enum MPFirstClubWriteRoute {
         "api/club/event-ops/cancel": .init(ids: ["clubId", "activityId"], required: ["reason", "requestId"]),
         "api/club/topic-setting/end": .init(ids: ["clubId", "topicId"], required: ["cancellationEpoch"]),
         // CLB-r11-checkin-detail-01: the owner refund evidence read (ClubGovernanceRead.checkin keys).
-        "api/club/crm/checkin/detail": .init(ids: ["clubId", "registrationId"])
+        "api/club/crm/checkin/detail": .init(ids: ["clubId", "registrationId"]),
+        // CLB-r11-detail-05: MP detail/index.js:3813-3847 body `{topicId, clubId, message}` (ClubCoopPoolApplyClient).
+        "api/coop/pool/apply": .init(ids: ["topicId", "clubId"], required: ["message"])
     ]
     static func positive(_ value: Any?) -> Bool {
         guard let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() else { return false }
