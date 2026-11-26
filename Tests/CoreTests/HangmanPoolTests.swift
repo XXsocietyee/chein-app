@@ -185,7 +185,7 @@ final class HangmanPoolTests: XCTestCase {
         XCTAssertEqual(PlayKitActionCatalog.actions["hangman"], ["SUBMIT_HANGMAN"])
         let keys = Set(PlayClientCapabilities.keys)
         XCTAssertTrue(keys.isSuperset(of: ["game.hangman", "hangman.pool", "qa.letterPool", "answer.estimate", "answer.pricePair", "answer.hiddenObject"]))
-        XCTAssertFalse(keys.contains("role.views"))
+        XCTAssertTrue(keys.contains("role.views")) // CAP-r11-1: MP client-capabilities.js:22
         XCTAssertFalse(keys.contains("sensor.filter_shot"))
         XCTAssertEqual(PlayClientCapabilities.declaration(["hangman.pool", "game.hangman"]), "game.hangman@1,hangman.pool@1")
     }

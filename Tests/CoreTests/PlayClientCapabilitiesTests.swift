@@ -24,9 +24,11 @@ import XCTest
             "answer.preference", "answer.sensor", "answer.estimate", "answer.pricePair", "answer.hiddenObject",
             "sensor.still", "sensor.steps", "sensor.audio_clip",
             "hangman.pool", "qa.letterPool", "game.hangman",
+            // CAP-r11-1: MP pages/play/utils/client-capabilities.js:20-22.
+            "role.views", "chapter.blocks.branch", "chapter.blocks.line",
         ]
         XCTAssertTrue(keys.isSuperset(of: expected), "missing: \(expected.subtracting(keys).sorted())")
-        for absent in ["role.views", "sensor.filter_shot", "media.photo.record"] {
+        for absent in ["sensor.filter_shot", "media.photo.record"] {
             XCTAssertFalse(keys.contains(absent), absent)
         }
         XCTAssertEqual(PlayClientCapabilities.keys, PlayClientCapabilities.keys.sorted())
@@ -60,6 +62,7 @@ import XCTest
         for key in ["hangman.pool@1", "qa.letterPool@1", "game.hangman@1", "answer.estimate@1", "chapter.blocks@1", "route.branch@1"] {
             XCTAssertTrue(declared.contains(key), key)
         }
-        XCTAssertFalse(declared.contains("role.views@1"))
+        // CAP-r11-1: role cards are rendered, so declared (MP client-capabilities.js:22).
+        XCTAssertTrue(declared.contains("role.views@1"))
     }
 }
