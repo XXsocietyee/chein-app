@@ -228,19 +228,19 @@ struct ClubOwnerFundsSection: View {
             }
             if current, let value = workflow.funds, workflow.loadedScope == context.reader?.scope {
                 if !value.amountsKnown { Text("wallet.amountsUnknown").font(.footnote).foregroundStyle(.secondary) }
-                CYBalanceHeroLocal(
+                ClubOwnerFundsBalanceRow(
                     label: "wallet.available",
                     amount: value.amountsKnown ? amount(value.withdrawable, currency: value.currency) : "—",
                     delta: value.amountsKnown ? amount(value.pendingSettlement, currency: value.currency) : "—"
                 )
                 if value.pendingSettlement.value > 0 {
-                    CYMoneyRowLocal(title: "wallet.pendingSettlement", detail: "", amount: amount(value.pendingSettlement, currency: value.currency), incoming: true)
+                    ClubOwnerFundsMoneyRow(title: "wallet.pendingSettlement", detail: "", amount: amount(value.pendingSettlement, currency: value.currency), incoming: true)
                 }
                 ForEach(Array(value.complaintPeriod.enumerated()), id: \.offset) { _, item in
-                    CYMoneyRowLocal(title: "wallet.complaintPeriod", detail: item.availableDate, amount: amount(item.amount, currency: value.currency), incoming: true)
+                    ClubOwnerFundsMoneyRow(title: "wallet.complaintPeriod", detail: item.availableDate, amount: amount(item.amount, currency: value.currency), incoming: true)
                 }
                 if value.disputed.value > 0 {
-                    CYMoneyRowLocal(title: "wallet.disputed", detail: "", amount: amount(value.disputed, currency: value.currency), incoming: false)
+                    ClubOwnerFundsMoneyRow(title: "wallet.disputed", detail: "", amount: amount(value.disputed, currency: value.currency), incoming: false)
                 }
             }
             if let key = workflow.failure { Text(LocalizedStringKey(key)).accessibilityIdentifier("club.ownerFunds.error") }
@@ -273,10 +273,11 @@ struct ClubOwnerFundsSection: View {
     }
 }
 
+/// CLB-r10-nat-settlement-05: plain LabeledContent rows (the CY*Local look-alikes are gone; money writes stay gated).
 /// G-034 (design P1): the available balance is a plain grouped row, as Wallet's Apple Cash card lists its balance:
 /// `LabeledContent` with the amount in a large monospaced title; the pending amount is its own row below.
 /// The amount rolls with `.numericText()` when a reload changes it (instant under Reduce Motion).
-private struct CYBalanceHeroLocal: View {
+private struct ClubOwnerFundsBalanceRow: View {
     let label: LocalizedStringKey
     let amount: String
     let delta: String
@@ -297,7 +298,7 @@ private struct CYBalanceHeroLocal: View {
     }
 }
 
-private struct CYMoneyRowLocal: View {
+private struct ClubOwnerFundsMoneyRow: View {
     let title: LocalizedStringKey
     let detail: String
     let amount: String
@@ -319,8 +320,8 @@ private struct CYMoneyRowLocal: View {
 
 #Preview("Owner funds rows") {
     List {
-        CYBalanceHeroLocal(label: "wallet.available", amount: "128.00", delta: "12.00")
-        CYMoneyRowLocal(title: "wallet.pendingSettlement", detail: "Synthetic", amount: "12.00", incoming: true)
-        CYMoneyRowLocal(title: "wallet.disputed", detail: "", amount: "—", incoming: false)
+        ClubOwnerFundsBalanceRow(label: "wallet.available", amount: "128.00", delta: "12.00")
+        ClubOwnerFundsMoneyRow(title: "wallet.pendingSettlement", detail: "Synthetic", amount: "12.00", incoming: true)
+        ClubOwnerFundsMoneyRow(title: "wallet.disputed", detail: "", amount: "—", incoming: false)
     }
 }
