@@ -26,7 +26,8 @@ class ClubSeriesOfferWindowContracts(unittest.TestCase):
         cls.tests = (ROOT / 'Tests/AppUnitTests/ClubSeriesScheduleEditorTests.swift').read_text()
 
     def test_both_normal_series_forms_share_only_the_original_offer_binding(self):
-        self.assertIn('if isSeries {\n                    ClubSeriesOfferWindowField(minutes: textBinding("offerMinutes"))', self.form)
+        # CLB-r10-nat-event-ops-04 (MP event-ops wxml:253): the rows moved into `commandFieldRows`, one indent level less.
+        self.assertIn('if isSeries {\n            ClubSeriesOfferWindowField(minutes: textBinding("offerMinutes"))', self.form)
         self.assertIn('[.createSeries, .updateSeries].contains(route.operation)', self.form)
         self.assertIn('!ClubSeriesScheduleDraft.fieldKeys.contains(key) && key != "offerMinutes"', self.form)
         self.assertIn('draft.text[key] = $0; dirty = true; review = nil; coordinator.cancelReview()', self.form)
