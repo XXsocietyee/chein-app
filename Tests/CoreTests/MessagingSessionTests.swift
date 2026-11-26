@@ -100,12 +100,16 @@ final class MessagingSessionTests: XCTestCase {
         let current = try session()
         for unauthorized in [false, true] {
             var expirations = 0
+            // Since 82a8c6126 the service runs the transport inside InFlightReadCoalescer's own Task, so the
+            // transport cancels the caller's task (the reader's), not whatever task the body happens to run on.
+            var caller: Task<[MessagingConversation], Error>?
             let api = try service { _ in
-                withUnsafeCurrentTask { $0?.cancel() }
+                caller?.cancel()
                 return (Data((unauthorized ? #"{"code":401}"# : #"{"code":200,"data":[]}"#).utf8), unauthorized ? 401 : 200)
             }
             let reader = MessagingSessionReader(service: api, currentSession: { current }, onUnauthorized: { _ in expirations += 1 })
             let task = Task { @MainActor in try await reader.messagingConversations() }
+            caller = task
             do { _ = try await task.value; XCTFail() }
             catch { XCTAssertTrue(error is CancellationError) }
             XCTAssertEqual(expirations, 0)
