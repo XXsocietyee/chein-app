@@ -63,7 +63,7 @@ import UIKit
                 ContentUnavailableView("roam.createdStamp.changed", systemImage: "person.crop.circle.badge.exclamationmark")
             }
         }
-        .fullScreenCover(isPresented: $showingCamera) {
+        .cyFullScreenCover(isPresented: $showingCamera) {
             if cameraEnabled {
                 let ticket = captureGeneration
                 RoamNativeStampCamera { result in

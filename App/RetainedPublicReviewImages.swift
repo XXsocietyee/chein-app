@@ -20,7 +20,7 @@ import UIKit
                     .accessibilityValue(Text("\(index + 1) / \(min(urls.count, 9))"))
                     .accessibilityIdentifier("image.retained.reviewPhoto.\(index)")
             }
-        }.sheet(isPresented: Binding(get: { selected != nil }, set: { if !$0 { selected = nil } })) { Group {
+        }.cySheet(isPresented: Binding(get: { selected != nil }, set: { if !$0 { selected = nil } })) { Group {
             NavigationStack {
                 if let selected { RetainedPublicImageTile(raw: selected, reader: reader).padding() }
                 Button("image.retained.close") { selected = nil }

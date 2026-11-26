@@ -101,7 +101,7 @@ import UniformTypeIdentifiers
                         Button { showsActivityPicker = true } label: { Label { Text("activityPicker.entry", tableName: "SocialParity") } icon: { Image(systemName: "flag.checkered") } }
                             .disabled(!coordinator.grants.live)
                             .accessibilityIdentifier("squareWorkspace.activityPicker")
-                            .sheet(isPresented: $showsActivityPicker) {
+                            .cySheet(isPresented: $showsActivityPicker) {
                                 CYSquareActivityPicker(provider: completedActivities) { draft.reference = .init(type: "ACTIVITY", id: $0.id) }
                             }
                     }
@@ -189,7 +189,7 @@ import UniformTypeIdentifiers
                 .accessibilityIdentifier("squareWorkspace.draftsSheet")
             }
         }
-        .sheet(isPresented: $showsDrafts) {
+        .cySheet(isPresented: $showsDrafts) {
             CYSquarePostDraftsSheet(
                 loading: false,
                 drafts: coordinator.local.map { .init(id: $0.id, summary: $0.draft.body, updatedAt: $0.updatedAt, locked: $0.pending) },
@@ -208,7 +208,7 @@ import UniformTypeIdentifiers
                 if let initialPostID { lane = initialLane; draft = try await coordinator.editableDraft(postID: initialPostID, lane: initialLane); editReady = true }
             } catch { issue = true }
         }
-        .sheet(item: Binding(get: { localMedia.pickerRequest }, set: { if $0 == nil { localMedia.cancelPicker() } })) { request in Group {
+        .cySheet(item: Binding(get: { localMedia.pickerRequest }, set: { if $0 == nil { localMedia.cancelPicker() } })) { request in Group {
             SquarePostLocalMediaPicker(request: request) { provider, captured in
                 // Reuse the existing image-only byte bound; it is not a video rule.
                 _ = localMedia.accept(provider: provider, request: captured, maximumImageBytes: SquareWorkspaceService.maximumUploadImageBytes,
@@ -246,7 +246,7 @@ import UniformTypeIdentifiers
                 Text(verbatim: appLocalized("action.cancel", locale: locale))
             }
         }
-        .sheet(isPresented: $showsReview, onDismiss: { coordinator.cancelReview() }) { Group {
+        .cySheet(isPresented: $showsReview, onDismiss: { coordinator.cancelReview() }) { Group {
             if let review = coordinator.review {
                 NavigationStack {
                     Form {

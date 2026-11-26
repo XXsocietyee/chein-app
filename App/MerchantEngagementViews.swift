@@ -131,13 +131,13 @@ import SwiftUI
         .task(id: state.exportTicket?.task.isRunning == true ? state.exportTicket?.task.id : nil) { await model.pollExportsWhileVisible() }
         .onChange(of: reader.scope) { _, _ in pending = nil; editor = nil; model.invalidate() }
         .onDisappear { model.cancel(); model.clearReceipt() }
-        .sheet(item: $editor, onDismiss: { if let command = pending { pending = nil; Task { await model.prepare(command) } } }) { context in
+        .cySheet(item: $editor, onDismiss: { if let command = pending { pending = nil; Task { await model.prepare(command) } } }) { context in
             Group {
                 MerchantEngagementComposer(context: context, filter: filter, segments: model.segments, coupons: model.coupons, canCoupon: allowed("merchant:coupon:manage")) { command in pending = command; editor = nil }
             }
             .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
-        .sheet(item: Binding(get: { state.review }, set: { if $0 == nil && !state.busy { model.cancel() } })) { review in
+        .cySheet(item: Binding(get: { state.review }, set: { if $0 == nil && !state.busy { model.cancel() } })) { review in
             Group {
                 MerchantEngagementReviewView(review: review, enabled: reader.canExecute(review.command, merchantID: review.proof.access.merchantID ?? 0), synthetic: reader.isSyntheticEnabled, busy: state.busy, cancel: model.cancel) { Task { await model.confirm(review) } }
             }

@@ -129,7 +129,7 @@ struct RoamPlaceExtrasSection: View {
             }
         }
         .accessibilityIdentifier("roam.place.extras")
-        .sheet(isPresented: $showingReviewSheet) {
+        .cySheet(isPresented: $showingReviewSheet) {
             PlayCloseSheetHost(
                 title: c.t("评价据点", "Review Place"),
                 detents: [.half],

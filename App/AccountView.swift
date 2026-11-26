@@ -219,7 +219,7 @@ import SwiftUI
             .navigationDestination(isPresented:$showsPassportWallet) { SessionWalletCommerceView().id(session.walletCommerceScope).cyPushedChrome() }
             .navigationDestination(isPresented:$showsPointsLedger) { WalletLedgerView(reader: session.walletHistoryReader, kind: .assetPoints).id(session.walletCommerceScope).cyPushedChrome() }
             .navigationDestination(isPresented:$showsEditProfile) { ProfileEditView(coordinator:session.profileEditCoordinator,sessionRevision:session.contentDetailRevision,categoryReader:session,avatarDependencies:session.profileAvatarDependencies,currentReviewReader:session.profileCurrentReviewReader,nicknameReader:session.profileNicknameReader,savedMedia:session.profileSavedMediaReaders).cyPushedChrome() }
-            .sheet(isPresented:$showsPointsHelp) {
+            .cySheet(isPresented:$showsPointsHelp) {
                 NavigationStack {
                     WalletPointsTasksView(reader: session.walletHistoryReader).id(session.walletCommerceScope)
                         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("common.close") { showsPointsHelp = false }.accessibilityIdentifier("member.pointsHelp.close") } }
@@ -250,7 +250,7 @@ import SwiftUI
             .onChange(of: session.profileFavoritesReader.scope) { _, scope in
                 savedPostOwner.updateScope(scope); savedTopicOwner.updateScope(scope)
             }
-            .sheet(isPresented:$showsSettings, onDismiss: settingsDismissHandler) { Group {
+            .cySheet(isPresented:$showsSettings, onDismiss: settingsDismissHandler) { Group {
                 let presentation = settingsGuideHandoff.presentation
                 let revision = session.sessionRevision
                 SettingsView(onOpenGuideDestination: onOpenGuideDestination.map { open in { destination in
@@ -266,13 +266,13 @@ import SwiftUI
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
             }
-            .sheet(isPresented:$showsCooperation) { Group {
+            .cySheet(isPresented:$showsCooperation) { Group {
                 CooperationBrowserView(reader:session.cooperationReader,onClose:{ showsCooperation=false },peerReader:session.cooperationFlowReader,topicDestination:{ AnyView(SessionTopicDetailView(id:$0,session:session)) }).id(session.cooperationReader.scope)
             }
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
             }
-            .sheet(isPresented:$showsTicketPass, onDismiss: { if opensWalletAfterPass { opensWalletAfterPass = false; showsTickets = true } }) {
+            .cySheet(isPresented:$showsTicketPass, onDismiss: { if opensWalletAfterPass { opensWalletAfterPass = false; showsTickets = true } }) {
                 TicketPassSheet(reader: session.ticketWalletReader, onClose: { showsTicketPass = false },
                                 onOpenWallet: { opensWalletAfterPass = true; showsTicketPass = false },
                                 lifecycleCoordinator: session.orderLifecycleCoordinator, makeTeamCoordinator: { session.makeTeamCoordinator() })
@@ -281,8 +281,8 @@ import SwiftUI
                     .themeDomain(.player)
                     .cySheet(detents: [.large])
             }
-            .sheet(isPresented:$showsTickets) { TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTickets=false },makeTeamCoordinator:{ session.makeTeamCoordinator() },orderLifecycleCoordinator:session.orderLifecycleCoordinator).environment(\.ticketWalletPlayProvider, ticketPlayProvider).environment(\.ticketWalletPendingOrderProvider, ticketPendingOrderProvider).id(session.ticketWalletReader.scope).themeDomain(.player).cySheet(detents: [.large]) }
-            .sheet(isPresented: $confirmsLogout) {
+            .cySheet(isPresented:$showsTickets) { TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTickets=false },makeTeamCoordinator:{ session.makeTeamCoordinator() },orderLifecycleCoordinator:session.orderLifecycleCoordinator).environment(\.ticketWalletPlayProvider, ticketPlayProvider).environment(\.ticketWalletPendingOrderProvider, ticketPendingOrderProvider).id(session.ticketWalletReader.scope).themeDomain(.player).cySheet(detents: [.large]) }
+            .cySheet(isPresented: $confirmsLogout) {
                 if let expected = logoutConfirmation {
                     MemberSignOutConfirmSheet(confirmIdentifier: "auth.signOut.confirm") {
                         logoutConfirmation = nil; confirmsLogout = false

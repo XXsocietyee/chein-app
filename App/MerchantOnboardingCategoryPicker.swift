@@ -12,7 +12,7 @@ struct MerchantOnboardingCategoryRow: View {
         .buttonStyle(.plain)
         .disabled(model.isBusy || model.coordinator.submission.isLocked)
         .accessibilityIdentifier("merchant.onboarding.category")
-        .sheet(isPresented: $showsSheet) {
+        .cySheet(isPresented: $showsSheet) {
             MerchantOnboardingCategorySheet(model: model) { showsSheet = false }
                 .presentationDetents([.medium, .large])
         }

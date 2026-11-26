@@ -71,7 +71,7 @@ extension EnvironmentValues {
     func body(content: Content) -> some View {
         content.background {
             Color.clear.frame(width: 0, height: 0)
-                .sheet(item: model.presentationBinding()) { original in
+                .cySheet(item: model.presentationBinding()) { original in
                     Group {
                         MerchantCityTemplateHandoffHost(model: model, original: original, binding: binding)
                             .id(original.id)

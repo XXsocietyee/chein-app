@@ -693,8 +693,8 @@ struct JourneySeatsView: View {
                                                   accessibilityTitle: "mp.seats.goStart", onStart: onStart).accessibilityIdentifier("journeySeats.start") }
             }
         }
-        .sheet(isPresented: $inviteShown) { JourneyInviteSheet(content: content) }
-        .sheet(item: $transferSeat) { seat in
+        .cySheet(isPresented: $inviteShown) { JourneyInviteSheet(content: content) }
+        .cySheet(item: $transferSeat) { seat in
             if let onTransfer {
                 JourneySeatTransferSheet(seatNo: seat.no, submit: { name, phone, id in await onTransfer(seat.no, name, phone, id) },
                                          onDone: onRetry)

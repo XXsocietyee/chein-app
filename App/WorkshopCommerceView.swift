@@ -181,7 +181,7 @@ import SwiftUI
             Button("确认提交原订单取消", role: .destructive) { Task { await controller.cancel() } }
             Button("返回", role: .cancel) { }
         }
-        .sheet(isPresented: $confirming, onDismiss: { reviewedOffer = nil }) {
+        .cySheet(isPresented: $confirming, onDismiss: { reviewedOffer = nil }) {
             Group {
                 if let reviewedOffer {
                     NavigationStack {

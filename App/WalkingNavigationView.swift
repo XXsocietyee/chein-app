@@ -62,7 +62,7 @@ import Observation
         }
         .appNavigationTitle("walking.title")
         .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $showsSteps, onDismiss: { stepsFocused = model?.route != nil }) {
+        .cySheet(isPresented: $showsSteps, onDismiss: { stepsFocused = model?.route != nil }) {
             NavigationStack {
                 if let model { WalkingStepsDetail(model: model) }
             }

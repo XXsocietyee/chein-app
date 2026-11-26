@@ -212,7 +212,7 @@ enum ProjectEditCastConfig {
                 editing = true
             })
         .disabled(readOnly)
-        .sheet(isPresented: $editing, onDismiss: { ProjectEditCastConfig.setMembers(sheetMembers, in: &preserved) }) {
+        .cySheet(isPresented: $editing, onDismiss: { ProjectEditCastConfig.setMembers(sheetMembers, in: &preserved) }) {
             ProjectEditGapCastEditorSheet(members: $sheetMembers, onPreviewVoice: nil)
                 .cySheet(detents: [.large])
         }
@@ -262,7 +262,7 @@ enum ProjectEditCastConfig {
         Section {
             AccountGapOwnProfileComposerRow(joinDateText: nil) { composing = true }
         }
-        .sheet(isPresented: $composing) {
+        .cySheet(isPresented: $composing) {
             SquareCloudComposerView(coordinator: actions, offline: offline,
                                     joinedHosted: { offline ? .offline : .permission },
                                     completed: { offline ? .offline : .permission },

@@ -20,7 +20,7 @@ class MerchantTemplateAssistSourceTests(unittest.TestCase):
         self.assertIn('fields["extraNote"]?.text', factory)
     def test_sheet_reaches_existing_editor_and_explicit_field_review(self):
         editor, views, sheet = map(read, ['App/MerchantOperationsEditor.swift', 'App/MerchantOperationsViews.swift', 'App/MerchantTemplateAssistSheet.swift'])
-        self.assertIn('.sheet(item: $assist)', editor)
+        self.assertIn('.cySheet(item: $assist)', editor)
         # Template destinations are now opened from the template browser and the city handoff view.
         self.assertEqual(sum(read(path).count('destination: .template(') for path in ['App/MerchantTemplateBrowserView.swift', 'App/MerchantCityTemplateHandoffView.swift']), 2)
         self.assertEqual(views.count('imageHost: imageHost, templateAssistFactory: templateAssistFactory)'), 3)

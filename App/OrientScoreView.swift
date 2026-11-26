@@ -121,7 +121,7 @@ import QuestifyCore
                 }
             }
         }
-        .sheet(isPresented: $showsSignIn, onDismiss: { Task { await model.load() } }) {
+        .cySheet(isPresented: $showsSignIn, onDismiss: { Task { await model.load() } }) {
             if let orientScoreSession { LoginView(intent: .player).environmentObject(orientScoreSession) }
         }
         .task {
@@ -311,7 +311,7 @@ import QuestifyCore
                     .accessibilityIdentifier("orientScore.board.failed")
             }
         }
-        .sheet(item: $board) { content in
+        .cySheet(item: $board) { content in
             OrientScoreLeaderboardSheetView(rows: content.rows, myRow: content.me, onClose: { board = nil })
         }
     }

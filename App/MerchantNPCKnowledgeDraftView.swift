@@ -36,7 +36,7 @@ import SwiftUI
             .accessibilityIdentifier("merchantKnowledge.open")
             Text("merchantKnowledge.boundary").font(.footnote).foregroundStyle(.secondary)
         }
-        .sheet(isPresented: $isPresented, onDismiss: { model.cancel() }) {
+        .cySheet(isPresented: $isPresented, onDismiss: { model.cancel() }) {
             Group {
                 NavigationStack { MerchantNPCKnowledgeDraftView(model: model) }
             }

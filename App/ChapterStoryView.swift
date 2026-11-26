@@ -254,7 +254,7 @@ import UIKit
             }
         }
         }
-        .fullScreenCover(item: $zoomedImage) { item in
+        .cyFullScreenCover(item: $zoomedImage) { item in
             if visible, scenePhase == .active, imageReader?.enabled == true {
                 ChapterStoryImageViewer(image: item.image, alt: item.alt)
             }
@@ -278,7 +278,7 @@ import UIKit
         .modifier(ChapterAtmosphereScheme(atmosphere: !NativeR2Flags.storyFlow && visible ? chapter?.atmosphere : nil))
         .environment(\.questifyCast, castModel?.context)
         .environment(\.playGameStage, gameStage)
-        .sheet(item: $castCard) { target in
+        .cySheet(item: $castCard) { target in
             if let member = castModel?.config?.member(target.memberID) {
                 CastCharacterCard(member: member, trust: castModel?.trust[member.id] ?? 0,
                                   reachedChapters: reachedChapters, line: target.line, chapterID: chapterID,

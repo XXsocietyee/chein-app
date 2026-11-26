@@ -137,7 +137,7 @@ import QuestifyCore
         .appNavigationTitle("creatorStudio.maintenance.title").navigationBarTitleDisplayMode(.inline)
         .task { await model.start(loadTopics: loadTopics) }
         .refreshable { await model.reloadTickets(); await model.reloadFeedback() }
-        .sheet(isPresented: $composing) {
+        .cySheet(isPresented: $composing) {
             Group {
                 CreatorTicketComposeSheet(model: model) { ticket in composing = false; openedID = ticket.ticketId; tab = .tickets }
             }
@@ -332,7 +332,7 @@ struct CreatorStudioWriteIssueText: View {
         .appNavigationTitle("creatorStudio.ticket.detail").navigationBarTitleDisplayMode(.inline)
         .task { await load() }
         .refreshable { await load() }
-        .sheet(item: $closing) { choice in
+        .cySheet(item: $closing) { choice in
             Group {
                 if let ticket {
                     CreatorTicketCloseSheet(service: model.service, ticket: ticket, resolution: choice.resolution) { updated in

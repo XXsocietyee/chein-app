@@ -184,12 +184,12 @@ import MapKit
                 Task { await model.endRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) }
             }
         )
-        .sheet(isPresented: $showEmergencyHelp) {
+        .cySheet(isPresented: $showEmergencyHelp) {
             PlayEmergencyHelpSheet()
                 .cyPlayerSheetGlass()
                 .cyDomainSheet(detents: [.half, .full])
         }
-        .sheet(isPresented: $showChapterPicker) {
+        .cySheet(isPresented: $showChapterPicker) {
             if let snapshot = model.snapshot {
                 PlayChapterPickerSheet(rows: PlayChapterPickRow.rows(snapshot), current: chapterFilter) { picked in
                     withAnimation(CYMotion.standard) { chapterFilter = picked }
@@ -207,7 +207,7 @@ import MapKit
                 stageSettlement = PlayStageSettlementTarget(chapterID: chapterID)
             }
         }
-        .sheet(item: $stageSettlement) { target in
+        .cySheet(item: $stageSettlement) { target in
             if let narrative = narrativeModel?(.stage(chapterID: target.chapterID)) {
                 NavigationStack {
                     JourneyNarrativeView(model: narrative, imageReader: narrativeImageReader, makeAudio: makeAudio, mediaScope: mediaScope)
@@ -266,7 +266,7 @@ import MapKit
                   model.hasCurrentMediaSnapshot, finishShownFor != model.identity else { return }
             finishShownFor = model.identity; finishScreen = true
         }
-        .fullScreenCover(isPresented: $finishScreen) {
+        .cyFullScreenCover(isPresented: $finishScreen) {
             if NativeR2Flags.cityOrientation { cityFinishSummary } else { finishMedalScreen }
         }
         .onChange(of: finishScreen) { _, shown in
@@ -741,7 +741,7 @@ import MapKit
             }
         }
         .environment(\.cityOrientationTeamsSink, { teams in cityTeams = teams })
-        .sheet(item: $cityPunchNode) { target in
+        .cySheet(item: $cityPunchNode) { target in
             CityOrientationPunchSheet(
                 model: model, nodeID: target.id, location: cityLocation,
                 onOpenTask: { id in cityPunchNode = nil; selectedNode = id },
@@ -1097,7 +1097,7 @@ import MapKit
             .environment(\.nativeGameHelp, helpEnabled ? help.map { NativeGameHelpContext(model: $0, teamPool: teamPool, approvedArtworkHosts: approvedArtworkHosts,
                 onPoolTrimmed: { Task { await advanced?.refreshAuthoritative() } }) } : nil)
             // Design hand-off r1 PL-15: the hint ladder is a resizable sheet over the play screen.
-            .sheet(isPresented: Binding(get: { showHelpPanel && helpEnabled }, set: { if !$0 { showHelpPanel = false } })) {
+            .cySheet(isPresented: Binding(get: { showHelpPanel && helpEnabled }, set: { if !$0 { showHelpPanel = false } })) {
                 if let help {
                     PlayHelpLadderPanel(model: help, teamPool: teamPool, approvedArtworkHosts: approvedArtworkHosts,
                                          onPoolTrimmed: { Task { await advanced?.refreshAuthoritative() } },
@@ -1261,7 +1261,7 @@ import MapKit
                 }
             }
             .cyPlayVerdict($verdict)
-            .sheet(item: $nr2Result) { target in
+            .cySheet(item: $nr2Result) { target in
                 NR2StageResultSheet(model: model, nodeID: target.nodeID, openNode: openNode)
             }
             .modifier(JourneyCheckReviewPresentation(model: journey))
@@ -1920,7 +1920,7 @@ extension PlayExperienceView {
                 adoptCast()
             }
             .onChange(of: castOpeningStep) { _, step in castCover = step != nil }
-            .fullScreenCover(isPresented: $castCover) {
+            .cyFullScreenCover(isPresented: $castCover) {
                 if let config = castModel?.config {
                     CastOpeningFlow(config: config, profile: castModel?.profile, routeName: model.snapshot?.result.topicName,
                                     suggestedName: castModel?.profile?.name ?? "", initial: castOpeningStep ?? .playbill,
@@ -1928,7 +1928,7 @@ extension PlayExperienceView {
                                     finish: { castPlaybillSeen = true; castCover = false })
                 }
             }
-            .sheet(isPresented: $showingCastRoster) {
+            .cySheet(isPresented: $showingCastRoster) {
                 if let config = castModel?.config {
                     NavigationStack {
                         CastPlaybillView(config: config, profile: castModel?.profile, routeName: model.snapshot?.result.topicName, start: { showingCastRoster = false })

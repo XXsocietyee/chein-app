@@ -123,7 +123,7 @@ import SwiftUI
         .task { await source.activate() }
         .onDisappear { selected = nil; message = ""; source.deactivate() }
         .onChange(of: source.isCurrent) { _, current in if !current { selected = nil; message = ""; friend.cancelReview() } }
-        .sheet(isPresented: Binding(get: { source.isCurrent && friend.actionReview != nil }, set: { if !$0 { friend.cancelReview() } })) {
+        .cySheet(isPresented: Binding(get: { source.isCurrent && friend.actionReview != nil }, set: { if !$0 { friend.cancelReview() } })) {
             if let review = friend.actionReview {
                 NavigationStack {
                     Form {

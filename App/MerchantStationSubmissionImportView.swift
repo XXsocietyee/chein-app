@@ -148,7 +148,7 @@ struct MerchantStationSubmissionContext: Equatable {
                 }
             }
         }
-        .sheet(item: model.presentationBinding()) { session in
+        .cySheet(item: model.presentationBinding()) { session in
             Group {
                 MerchantStationSubmissionImportSheet(session: session, cancel: { model.cancel(id: session.id) }) {
                     guard session.apply() else { return }

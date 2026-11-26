@@ -179,7 +179,7 @@ import CryptoKit
                 // Rotate only the presentation owner when this visit retires. Opening
                 // its first photo does not change the host identity or loaded rows.
                 Color.clear.frame(width: 0, height: 0)
-                    .sheet(item: model.presentationBinding()) { selected in
+                    .cySheet(item: model.presentationBinding()) { selected in
                         Group {
                             MerchantReviewPhotoGallery(session: selected, owner: owner) { model.cancel(id: selected.id) }
                         }

@@ -81,7 +81,7 @@ import SwiftUI
     var body: some View {
         Button("merchant.featuredPicker.choose") { picker = .init(document: document) }
             .disabled(!editable).accessibilityIdentifier("merchant.featuredPicker.open")
-            .sheet(item: Binding(get: { picker }, set: { value in
+            .cySheet(item: Binding(get: { picker }, set: { value in
                 if value == nil { picker?.cancel() }
                 picker = value
             }), onDismiss: close) { value in

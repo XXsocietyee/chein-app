@@ -111,7 +111,7 @@ import SwiftUI
             .task(id: AnyHashable([AnyHashable(scope), AnyHashable(host.reader.identity), reloadTrigger])) {
                 await model.refresh(scope: scope, host: host)
             }
-            .sheet(
+            .cySheet(
                 item: Binding(get: { model.activeChannel }, set: { if $0 == nil { model.dismiss() } }),
                 onDismiss: { Task { await model.refresh(scope: scope, host: host) } }
             ) { channel in

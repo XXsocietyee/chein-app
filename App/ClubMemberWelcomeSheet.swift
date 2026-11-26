@@ -19,7 +19,7 @@ import SwiftUI
             .onChange(of: role) { _, _ in consider() }
             .onChange(of: current) { _, _ in consider() }
             .onDisappear { flow.clear() }
-            .sheet(item: Binding(get: { current ? flow.presentation : nil }, set: { value in if value == nil { flow.clear() } })) { original in Group {
+            .cySheet(item: Binding(get: { current ? flow.presentation : nil }, set: { value in if value == nil { flow.clear() } })) { original in Group {
                 ClubMemberWelcomeLiveSheet(flow: flow, originalID: original.id, close: { flow.dismiss(original.id) }, goEvents: {
                     guard current, flow.presentation?.id == original.id, original.identity == identity,
                           original.club.id == club.id, original.namespace == namespace else { return }

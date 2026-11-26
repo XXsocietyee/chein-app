@@ -33,7 +33,7 @@ import QuestifyCore
                     }
                     .accessibilityIdentifier("locationTodos.entry")
                 }
-                .sheet(isPresented: $open) {
+                .cySheet(isPresented: $open) {
                     NavigationStack {
                         TopicLocationTodosSheet(model: model, nodes: nodes)
                             .toolbar {
@@ -83,7 +83,7 @@ import QuestifyCore
         .navigationTitle(W8Text.t("地点待办", "Place to-dos"))
         .navigationBarTitleDisplayMode(.inline)
         .refreshable { await model.load() }
-        .sheet(item: $picking) { row in
+        .cySheet(item: $picking) { row in
             NavigationStack {
                 List(nodes, id: \.id) { node in
                     Button {

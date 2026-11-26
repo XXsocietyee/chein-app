@@ -38,7 +38,7 @@ import SwiftUI
                 Text(String(localized: LocalizedStringResource("topicReview.coverSelection.notLoaded", defaultValue: "Image bytes are not loaded by this record view. The author-only locator is not opened as an arbitrary URL.", locale: locale)))
                     .cyText(.bodyCompact).accessibilityIdentifier(id("selectedCover.notLoaded"))
             } header: { Text(String(localized: LocalizedStringResource("topicReview.coverSelection.title", defaultValue: "Captured selected cover", locale: locale))) }
-        .sheet(item: imageController.binding(originalImage)) { original in Group {
+        .cySheet(item: imageController.binding(originalImage)) { original in Group {
             OwnedTopicCoverImageView(original: original) { imageController.close(original) }
         }
         .presentationDetents([.large])

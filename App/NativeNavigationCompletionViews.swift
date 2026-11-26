@@ -107,7 +107,7 @@ private struct TeamInvitationPresentation: Hashable {
             }.disabled(text.isEmpty)
             if invalid { Text("nativeNav.invalid") }
         }.navigationTitle("nativeNav.badge.open").navigationBarTitleDisplayMode(.inline)
-            .sheet(item: $route) { target in Group {
+            .cySheet(item: $route) { target in Group {
                 NavigationStack {
                     ObjectBadgeRoutePreview(parameters: target.parameters, expectedScope: target.scope, currentScope: { scope }, media: media)
                         .toolbar { Button("nativeNav.close") { route = nil } }

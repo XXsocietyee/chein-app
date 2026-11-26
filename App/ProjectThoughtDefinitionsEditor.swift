@@ -111,7 +111,7 @@ import SwiftUI
         let original = controller.presentation
         Button { controller.open() } label: { Text("projectThoughts.title", tableName: "ProjectThoughtDefinitions") }
             .disabled(!model.fullEdit).accessibilityIdentifier("projectThoughts.open")
-            .sheet(item: controller.binding(original)) { original in
+            .cySheet(item: controller.binding(original)) { original in
                 ProjectThoughtDefinitionsSheet(controller: controller, original: original)
                     .cyDomainSheet(detents: [.half, .full])
                     .themeDomain(.topicEditor)

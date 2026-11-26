@@ -132,7 +132,7 @@ public enum SocialEditorPurpose: String, Identifiable {
             if let identity = sessionIdentity { coordinator.leaveScreen(target: target, expectedIdentity: identity, ownerID: ownerID, generation: contentGeneration) }
             text = ""; review = nil; heldReview = nil; preparing = false
         }
-        .sheet(item: $review, onDismiss: {
+        .cySheet(item: $review, onDismiss: {
             if let heldReview { coordinator.cancel(heldReview) }; heldReview = nil; revision += 1
         }) { item in
             NavigationStack {

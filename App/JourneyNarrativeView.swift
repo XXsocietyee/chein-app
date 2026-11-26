@@ -32,7 +32,7 @@ import SwiftUI
         .refreshable { await model.load() }
         .onDisappear { model.dismiss() }
         .onChange(of: model.acknowledgedRevision) { _, _ in Task { await onChanged?() } }
-        .sheet(item: Binding(get: { model.review }, set: { if $0 == nil && model.review != nil { model.cancelReview() } })) { review in
+        .cySheet(item: Binding(get: { model.review }, set: { if $0 == nil && model.review != nil { model.cancelReview() } })) { review in
             NavigationStack {
                 Form {
                     Text(verbatim: review.question.question)

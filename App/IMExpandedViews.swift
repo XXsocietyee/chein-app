@@ -205,7 +205,7 @@ func imShownName(_ name: String) -> String {
     var body: some View {
         Form { controlsSections }
         .disabled(identity != model.owner.scope.identity || !isConversationCurrent())
-        .sheet(isPresented: $showingTopics) {
+        .cySheet(isPresented: $showingTopics) {
             if permitsReply, let topicReader {
                 let appearance = model.appearance
                 NavigationStack { ContextualTopicPicker(reader: topicReader) { row in
@@ -645,7 +645,7 @@ private extension IMOutgoingPayload {
          .toolbar { ToolbarItem(placement:.cancellationAction) { Button("action.close") { dismiss() } } }
          .onChange(of:latitude) { _,_ in if pickedMapSignature != latitude+"|"+longitude { confirmedDatum=false;pickedMapSignature=nil } }
          .onChange(of:longitude) { _,_ in if pickedMapSignature != latitude+"|"+longitude { confirmedDatum=false;pickedMapSignature=nil } }
-         .sheet(isPresented:$pickingMap) {
+         .cySheet(isPresented:$pickingMap) {
              IMStaticPlaceMapPicker(current:{ available && model.appearance != nil }) { place in
                  guard available,model.appearance != nil else{return}
                  name=place.name;address=place.address;latitude=String(place.lat);longitude=String(place.lng)
@@ -753,7 +753,7 @@ private extension IMOutgoingPayload {
     var body:some View {
         Form { routeSections }.imFlowForm().navigationTitle(Text("d7.imRoute.title")).privacySensitive()
         .toolbar { ToolbarItem(placement:.cancellationAction) { Button("action.close") { dismiss() } } }
-        .sheet(isPresented:$picking) {
+        .cySheet(isPresented:$picking) {
             if available { NavigationStack { ContextualTopicPicker(reader:reader) { row in
                 guard available,model.appearance != nil else{return};selected=row
             } }

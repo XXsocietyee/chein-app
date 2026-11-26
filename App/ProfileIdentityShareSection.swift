@@ -240,7 +240,7 @@ struct ProfileIdentityShareSourceTicket: Equatable {
     let preview: ProfileIdentityShareModel.Preview
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
-            .sheet(item: model.previewPresentation(for: preview), onDismiss: { model.close(preview) }) { offered in Group {
+            .cySheet(item: model.previewPresentation(for: preview), onDismiss: { model.close(preview) }) { offered in Group {
                 ProfileIdentitySharePreview(model: model, value: offered)
             }
             .presentationDetents([.large])
@@ -255,7 +255,7 @@ struct ProfileIdentityShareSourceTicket: Equatable {
     let handoff: ProfileIdentityShareModel.Handoff
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
-            .sheet(item: model.handoffPresentation(for: handoff, previewID: previewID),
+            .cySheet(item: model.handoffPresentation(for: handoff, previewID: previewID),
                    onDismiss: { model.finishHandoff(handoff) }) { offered in
                 if model.handoffIsCurrent(offered, previewID: previewID) {
                     ProfileIdentitySystemShare(text: offered.text,

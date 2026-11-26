@@ -37,17 +37,17 @@ enum MerchantGameNodeCopy {
     var body: some View {
         let importID = submissionImport.session?.id
         page
-        .sheet(isPresented: Binding(get: { c.sheet != nil }, set: { if !$0 { c.closeSheet() } })) {
+        .cySheet(isPresented: Binding(get: { c.sheet != nil }, set: { if !$0 { c.closeSheet() } })) {
             sheetContent
                 .cyDomainSheet(detents: [.half, .full])
                 .themeDomain(.merchant)
         }
-        .sheet(isPresented: $showsServiceTime) {
+        .cySheet(isPresented: $showsServiceTime) {
             MerchantGameNodeServiceTimeSheet(model: model)
                 .cyDomainSheet(detents: [.half, .full])
                 .themeDomain(.merchant)
         }
-        .sheet(isPresented: submissionImport.presentationBinding(), onDismiss: {
+        .cySheet(isPresented: submissionImport.presentationBinding(), onDismiss: {
             if let identifier = submissionImport.finishDismissal(id: importID), scenePhase == .active {
                 c.openVerify(submissionID: identifier)
             }
@@ -75,7 +75,7 @@ enum MerchantGameNodeCopy {
                 }
             }
         )
-        .fullScreenCover(isPresented: Binding(get: { c.checkinVisible }, set: { if !$0 { c.closeCheckin() } })) {
+        .cyFullScreenCover(isPresented: Binding(get: { c.checkinVisible }, set: { if !$0 { c.closeCheckin() } })) {
             MerchantGameNodeCheckinView(model: model)
         }
         .onChange(of: scenePhase) { _, phase in
@@ -669,7 +669,7 @@ struct MerchantGameNodeCivilDateField: View {
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button(action: cancel) { MerchantGameNodeCopy.text("merchantGameNode.cancel") }
             } }
-            .sheet(isPresented: $scanning) {
+            .cySheet(isPresented: $scanning) {
                 NativeQRScanner { payload in
                     scanning = false
                     guard session.isCurrent else { return }

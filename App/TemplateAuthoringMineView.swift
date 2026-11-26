@@ -149,7 +149,7 @@ import SwiftUI
             }
             .task(id: sessionRevision) { viewRequest = UUID(); busy = false; rows = []; cardFacts = [:]; review = nil; rowStates = [:]; await refresh() }
             .onDisappear { viewRequest = UUID(); coordinator.shelfReader.leave(); coordinator.leaveShelfScreen(); rows = []; review = nil; busy = false; rowStates = [:]; cardFacts = [:] }
-            .sheet(item: $review, onDismiss: { coordinator.cancelShelfReview() }) { value in
+            .cySheet(item: $review, onDismiss: { coordinator.cancelShelfReview() }) { value in
                 NavigationStack {
                     Form {
                         Section {

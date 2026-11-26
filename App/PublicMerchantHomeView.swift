@@ -99,7 +99,7 @@ import SwiftUI
         // Preserve the link backing a pushed reviews screen; key fencing still hides stale data.
         .onDisappear { generation += 1; loading = false }
         .cyToast(message: $toastMessage, tone: toastTone)
-        .sheet(isPresented: $showsNPCChatSheet) {
+        .cySheet(isPresented: $showsNPCChatSheet) {
             if let home, let npc = home.npc,
                let raw = home.id, let row = PublicMerchantRowID(raw),
                let destination = context.npcDestination {
@@ -139,7 +139,7 @@ import SwiftUI
                 .cyDomainSheet(detents: [.full])
             }
         }
-        .sheet(isPresented: $showsCoopInviteSheet) {
+        .cySheet(isPresented: $showsCoopInviteSheet) {
             if let home,
                let loadTopics = popupActions.loadCoopInviteTopics,
                let loadChapters = popupActions.loadCoopInviteChapters {

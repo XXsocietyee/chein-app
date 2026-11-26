@@ -92,7 +92,7 @@ struct MapCoreEntryHubView: View {
         .navigationTitle(Text("mapCore.title", tableName: "MapCoreEntry"))
         .navigationBarTitleDisplayMode(.inline)
         .themeDomain(.player)
-        .sheet(isPresented: $showsSharingExplainer) { Group {
+        .cySheet(isPresented: $showsSharingExplainer) { Group {
             NavigationStack { LocationShareExplainerView() }
         }.cySheet() }
     }

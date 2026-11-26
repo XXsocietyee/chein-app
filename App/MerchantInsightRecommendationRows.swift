@@ -47,7 +47,7 @@ struct MerchantInsightRecommendationRows: View {
                 }
             }
         }
-        .sheet(item: $pendingTopic) { pending in
+        .cySheet(item: $pendingTopic) { pending in
             NavigationStack {
                 List {
                     Section {

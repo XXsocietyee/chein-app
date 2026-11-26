@@ -211,7 +211,7 @@ struct JourneyCheckDCTrack: View {
 @MainActor private struct JourneyCheckReviewPresenter: ViewModifier {
     @Bindable var model: JourneyCheckCoordinator
     func body(content: Content) -> some View {
-        content.sheet(item: Binding(get: { model.review }, set: { if $0 == nil { model.cancelReview() } })) { review in Group {
+        content.cySheet(item: Binding(get: { model.review }, set: { if $0 == nil { model.cancelReview() } })) { review in Group {
             NavigationStack {
                 Form {
                     Section("journey.review") {

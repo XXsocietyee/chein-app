@@ -334,7 +334,7 @@ struct ReportAppealSection: View {
                 .accessibilityIdentifier("report.appeal.open")
             }
         } header: { Text(verbatim: PlayerCapabilityCopy.text("申诉", "Appeal", locale)) }
-        .sheet(isPresented: showsSheet) {
+        .cySheet(isPresented: showsSheet) {
             ReportAppealSheetView(phase: draft.wrappedValue.phase, reason: reasonText,
                 onToConfirm: {
                     var next = draft.wrappedValue

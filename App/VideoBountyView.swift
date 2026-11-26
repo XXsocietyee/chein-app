@@ -182,10 +182,10 @@ struct VideoBountyView: View {
         .onChange(of: state.submitRevision) { _, _ in
             platform = nil; sourceURL = ""; groupKey = ""; tab = .submissions
         }
-        .sheet(isPresented: Binding(get: { attributionID != nil }, set: { if !$0 { attributionID = nil } })) {
+        .cySheet(isPresented: Binding(get: { attributionID != nil }, set: { if !$0 { attributionID = nil } })) {
             VideoBountyAttributionSheet(load: state.attribution, onRetry: { retryAttribution() }, onClose: { attributionID = nil })
         }
-        .sheet(item: $appealTarget) { target in
+        .cySheet(item: $appealTarget) { target in
             VideoBountyAppealSheet(onSubmit: { note in onAppeal(target.id, note); appealTarget = nil }, onClose: { appealTarget = nil })
         }
         .confirmationDialog(Text("mp.vb.cancel.title"), isPresented: Binding(get: { cancelTarget != nil }, set: { if !$0 { cancelTarget = nil } }), titleVisibility: .visible) {

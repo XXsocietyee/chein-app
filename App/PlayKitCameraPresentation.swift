@@ -45,7 +45,7 @@ import PhotosUI
             Button("playkitCamera.openOverlay") { authorize() }
             Button("playkit.cancel", role: .cancel) {}
         } message: { Text("playkitCamera.overlayPurpose") }
-        .sheet(isPresented: $showing) {
+        .cySheet(isPresented: $showing) {
             ZStack(alignment: .topTrailing) {
                 PlayKitCameraOverlaySurface(overlay: overlay).ignoresSafeArea()
                 Button { showing = false } label: { Label("playkit.close", systemImage: "xmark.circle.fill").padding().background(.ultraThinMaterial, in: Capsule()) }

@@ -105,7 +105,7 @@ public struct MerchantGapOnboardingIntroView: View {
                 .padding(.vertical, CYSpacing.sm)
             }
         }
-        .sheet(isPresented: $showClaimSheet) {
+        .cySheet(isPresented: $showClaimSheet) {
             NavigationStack {
                 Form {
                     TextField("门店名称", text: $claimDraft.storeName).cyText(.body)

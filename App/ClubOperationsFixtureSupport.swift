@@ -31,7 +31,7 @@ import SwiftUI
                 controls
             }.navigationTitle("club.ops.manage").navigationBarTitleDisplayMode(.inline)
         }
-        .sheet(item: $destination) { value in Group {
+        .cySheet(item: $destination) { value in Group {
             NavigationStack {
                 ClubOperationsWorkspaceView(target: value.target, identity: store.identity, access: store.access, coordinator: store.coordinator, hostApplication: hostApplication)
                     .accessibilityIdentifier("club.ops.fixture.workspace")

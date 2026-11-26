@@ -33,7 +33,7 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
                 .accessibilityIdentifier("workshopPaidInstall.entry")
             installText(unavailable ? "notConfigured" : "entryScope").font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }
-        .sheet(item: presented) { captured in
+        .cySheet(item: presented) { captured in
             Group {
                 WorkshopPaidInstallView(controller: captured.controller, appearance: captured.appearance, makeProfessional: makeProfessional, makeText: makeText) {
                     guard selection?.id == captured.id else { return }; presented.wrappedValue = nil

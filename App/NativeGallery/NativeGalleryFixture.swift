@@ -436,7 +436,7 @@ struct NativeGallerySheets: View {
         }
         .navigationTitle("半屏弹层")
         .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $open) {
+        .cySheet(isPresented: $open) {
             NavigationStack {
                 Form {
                     Section("开局前准备") {

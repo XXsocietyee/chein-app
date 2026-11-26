@@ -65,7 +65,7 @@ struct DiscoveryTemplateDetailParitySections: View {
             } header: { DiscoverySectionHeader("discovery.templateDetail.reviews", art: MPAsset.FeatureIcon.star) }.discoveryCardRow()
         }
         DiscoveryTemplateNoticeSection()
-        .sheet(item: $preview) { state in Group {
+        .cySheet(item: $preview) { state in Group {
             TemplateNodePreviewSheet(state: state) { preview = nil }
         }.cySheet() }
     }

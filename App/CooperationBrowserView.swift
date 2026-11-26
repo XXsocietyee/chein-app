@@ -127,7 +127,7 @@ import SwiftUI
                         .environment(\.coopInviteSent, { direction = .sent; composingInvite = false })
                 }
             }
-            .sheet(item: $rowAction) { action in
+            .cySheet(item: $rowAction) { action in
                 Group {
                     NavigationStack { CoopFlowRequestPreview(operation: action.operation) }
                 }

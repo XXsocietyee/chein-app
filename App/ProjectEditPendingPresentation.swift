@@ -53,7 +53,7 @@ import SwiftUI
     @ObservedObject var controller: ProjectEditPendingController
     func body(content: Content) -> some View {
         let original = controller.destination
-        content.sheet(item: Binding<ProjectEditPendingController.Destination?>(get: {
+        content.cySheet(item: Binding<ProjectEditPendingController.Destination?>(get: {
             guard let value = controller.destination, controller.isCurrent(value) else { return nil }; return value
         }, set: { next in if next == nil, let original { controller.close(original) } })) { value in
             Group {

@@ -744,7 +744,7 @@ import SwiftUI
         .refreshable { await reload() }
         .background {
             Color.clear.frame(width: 0, height: 0)
-        .sheet(item: MerchantAftercareDraftReturn.editorBinding($editor, presentedID: presentedEditorID), onDismiss: {
+        .cySheet(item: MerchantAftercareDraftReturn.editorBinding($editor, presentedID: presentedEditorID), onDismiss: {
             recordBusinessLifecycle("editor.onDismiss", presentedID: presentedEditorID)
             guard editor == nil, let presentedEditorID else { return }
             if MerchantAftercareDraftReturn.ownsDismissal(presentedID: presentedEditorID,
@@ -798,7 +798,7 @@ import SwiftUI
         .onDisappear { recordBusinessLifecycle("editorHost.disappeared", presentedID: presentedEditorID) }
         .id(presentedEditorID)
         }
-        .sheet(item: Binding(get: { state.confirmation?.id == presentedReview?.id ? state.confirmation : nil }, set: { value in
+        .cySheet(item: Binding(get: { state.confirmation?.id == presentedReview?.id ? state.confirmation : nil }, set: { value in
             if value == nil, let presentedReview { cancelBusinessReview(presentedReview) }
         })) { review in
             let capture = draftReturn.capture(review)
@@ -836,7 +836,7 @@ import SwiftUI
                     }
                 }
         }
-        .sheet(item: $reviewSourceDestination) { destination in
+        .cySheet(item: $reviewSourceDestination) { destination in
             NavigationStack {
                 MerchantBusinessPage(reader: reader, journal: journal, query: destination.query, reviewSource: destination)
                     .toolbar { ToolbarItem(placement: .cancellationAction) {
@@ -923,7 +923,7 @@ import SwiftUI
                 }
                 .accessibilityLabel(Text("merchant.customerFilters.sheetTitle"))
                 .accessibilityIdentifier("merchant.business.customers.filterDisclosure")
-                .sheet(isPresented: expansion) {
+                .cySheet(isPresented: expansion) {
                     NavigationStack {
                         Form {
                             Section {

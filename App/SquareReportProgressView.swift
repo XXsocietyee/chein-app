@@ -114,7 +114,7 @@ struct MemberReportProgressTimeView: View {
         .cyPushedChrome(domain: .player)
         .navigationTitle(memberReportProgressText("report.history.title")).navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
-        .sheet(isPresented: $showsSignIn, onDismiss: { retire(); start() }) { Group { LoginView(intent: .player).environmentObject(session) }.cySheet(detents: [.large]) }
+        .cySheet(isPresented: $showsSignIn, onDismiss: { retire(); start() }) { Group { LoginView(intent: .player).environmentObject(session) }.cySheet(detents: [.large]) }
         .accessibilityIdentifier("report.progress.history")
         .navigationDestination(item: $selection) { MemberReportProgressDetailView(selection: $0, session: session, returnsToList: true) }
         .onAppear { visible = true; start() }

@@ -495,7 +495,7 @@ import SwiftUI
             .navigationDestination(isPresented: $publishingTopic) {
                 if let topicPublishDestination { topicPublishDestination(operationScope) }
             }
-            .sheet(isPresented: $showEditor) {
+            .cySheet(isPresented: $showEditor) {
                 NavigationStack { CoopFlowBatchInviteEditor(reader: reader, contexts: editing) }
                     .environment(\.coopInviteOutcomeUnknown, { sendOutcomeUnknown = true })
                     // flows-g2 108: only a one-target send leaves the page; with several drafts the others stay sendable.
@@ -678,7 +678,7 @@ import SwiftUI
                 ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("action.done") { typing = false } }
             }
             .interactiveDismissDisabled(dirty)
-            .sheet(isPresented: $discard) {
+            .cySheet(isPresented: $discard) {
                 MemberCoopInviteDiscardConfirmSheet {
                     discard = false
                     dismiss()

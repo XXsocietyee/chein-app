@@ -84,7 +84,7 @@ struct MerchantPerkValidityContext: Equatable {
     func body(content: Content) -> some View {
         content.background {
             Color.clear.frame(width: 0, height: 0)
-        .sheet(item: presentation) { shown in
+        .cySheet(item: presentation) { shown in
             Group {
                 MerchantPerkValiditySheet(session: shown, close: { if session?.id == shown.id { session = nil } }, apply: {
                     guard session?.id == shown.id, let next = shown.apply() else { return }

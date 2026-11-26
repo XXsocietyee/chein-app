@@ -100,7 +100,7 @@ import SwiftUI
         }
         .formStyle(.grouped)
         .refreshable { if directory.isCurrent { directory.reload() } }
-        .sheet(item: selectionBinding, onDismiss: {
+        .cySheet(item: selectionBinding, onDismiss: {
             // An older dismissal must not invalidate a newer sheet's owner.
             if navigation.selection == nil, directory.isCurrent { directory.reload() }
         }) { route in

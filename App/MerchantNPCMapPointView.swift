@@ -213,7 +213,7 @@ import SwiftUI
                 .disabled(!document.coordinator.isCurrent || document.coordinator.isBusy || document.coordinator.isLocked || document.coordinator.confirmation != nil)
                 .accessibilityIdentifier("merchantMapPoint.enter")
         }
-        .sheet(item: $manual, onDismiss: cancelManual) { presentation in
+        .cySheet(item: $manual, onDismiss: cancelManual) { presentation in
             Group {
                 MerchantNPCMapPointManualView(model: presentation.model)
             }

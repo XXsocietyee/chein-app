@@ -375,7 +375,7 @@ struct MerchantContentPopupCompanionModifier: ViewModifier {
                     onConfirm: { showApplyDiscardModal = false }
                 )
             }
-            .sheet(isPresented: $showRouteModeSheet) {
+            .cySheet(isPresented: $showRouteModeSheet) {
                 MerchantCloseSheetHost(
                     title: MerchantCloseCopy.text("路线模式介绍", "Route Mode Guide", locale),
                     closeIdentifier: cyAccessibilityID(id: "popupClose.merchantProject.routeMode"),
@@ -387,7 +387,7 @@ struct MerchantContentPopupCompanionModifier: ViewModifier {
                         .padding(.vertical, CYSpacing.sm)
                 }
             }
-            .sheet(isPresented: $showStationPicker) {
+            .cySheet(isPresented: $showStationPicker) {
                 let items: [CYOptionSheetItem<String>] = [
                     CYOptionSheetItem(id: "station-1", title: MerchantCloseCopy.text("主会场据点", "Main Venue Node", locale)),
                     CYOptionSheetItem(id: "station-2", title: MerchantCloseCopy.text("副节点补给站", "Secondary Supply Stop", locale))
@@ -407,7 +407,7 @@ struct MerchantContentPopupCompanionModifier: ViewModifier {
                 .cyDomainSheet(detents: [.half])
                 .themeDomain(.merchant)
             }
-            .sheet(isPresented: $showApplyResultSheet) {
+            .cySheet(isPresented: $showApplyResultSheet) {
                 PlayCloseResultSheet(
                     title: MerchantCloseCopy.text("提交结果", "Submission Result", locale),
                     message: MerchantCloseCopy.text("申请已提交，可在项目列表查看审核进度。", "Application submitted. Track review status in your project list.", locale),
@@ -440,7 +440,7 @@ struct MerchantVerificationPopupCompanionModifier: ViewModifier {
                     onConfirm: { wrongEntryModal = false }
                 )
             }
-            .sheet(isPresented: Binding(get: { resultSheetInfo != nil }, set: { if !$0 { resultSheetInfo = nil } })) {
+            .cySheet(isPresented: Binding(get: { resultSheetInfo != nil }, set: { if !$0 { resultSheetInfo = nil } })) {
                 if let info = resultSheetInfo {
                     PlayCloseResultSheet(
                         title: info.title,
@@ -502,7 +502,7 @@ struct MerchantOperationsPopupCompanionModifier: ViewModifier {
                     onConfirm: { showTierContactModal = false }
                 )
             }
-            .sheet(isPresented: $showInfoPopSheet) {
+            .cySheet(isPresented: $showInfoPopSheet) {
                 MerchantCloseSheetHost(
                     title: MerchantCloseCopy.text("配置说明", "Configuration Guide", locale),
                     closeIdentifier: cyAccessibilityID(id: "popupClose.merchantOperationsInfo"),
@@ -540,7 +540,7 @@ struct MerchantQuickPublishingPopupCompanionModifier: ViewModifier {
                     .accessibilityIdentifier(cyAccessibilityID(id: "popupClose.quickPublish.menu"))
                 }
             }
-            .sheet(isPresented: $showRecordOptionSheet) {
+            .cySheet(isPresented: $showRecordOptionSheet) {
                 let recordItems: [CYOptionSheetItem<String>] = [
                     CYOptionSheetItem(id: "current", title: MerchantCloseCopy.text("当前草稿", "Current Draft", locale)),
                     CYOptionSheetItem(id: "new", title: MerchantCloseCopy.text("新建起草", "Start Fresh Draft", locale))
@@ -560,7 +560,7 @@ struct MerchantQuickPublishingPopupCompanionModifier: ViewModifier {
                 .cyDomainSheet(detents: [.half])
                 .themeDomain(.topicEditor)
             }
-            .sheet(isPresented: $showRewardCreateSheet) {
+            .cySheet(isPresented: $showRewardCreateSheet) {
                 MerchantCloseSheetHost(
                     title: MerchantCloseCopy.text("创建奖励券", "Create Reward", locale),
                     closeIdentifier: cyAccessibilityID(id: "popupClose.quickPublish.reward"),

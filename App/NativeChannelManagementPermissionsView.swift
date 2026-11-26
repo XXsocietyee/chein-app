@@ -111,7 +111,7 @@ private func ncmPermissionText(_ key: String) -> Text { Text(LocalizedStringKey(
         .navigationBarTitleDisplayMode(.inline)
         .task(id: channelID) { await model.loadPermissions(channelID); selectOriginal() }
         .onChange(of: target) { _, _ in selectOriginal() }
-        .sheet(isPresented: $reviews) {
+        .cySheet(isPresented: $reviews) {
             NavigationStack { NativeChannelManagementReviewView(model: model) }
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)

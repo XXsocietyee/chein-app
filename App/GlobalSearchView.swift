@@ -154,7 +154,7 @@ import SwiftUI
             }
         }
         .cyToast(message: $emptySearchToast)
-        .sheet(isPresented: $showsFilters) {
+        .cySheet(isPresented: $showsFilters) {
             let presentationID = filterPresentationID
             let context = categoryRecovery.context(for: categoryOwner)
             let applyContext = categoryRecovery.presentationContext(for: categoryOwner)

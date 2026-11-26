@@ -37,7 +37,7 @@ import UIKit
                 }
             }
         }
-        .fullScreenCover(item: $selection, onDismiss: {
+        .cyFullScreenCover(item: $selection, onDismiss: {
             focusedImageIndex = returnFocusIndex; returnFocusIndex = nil
         }) { selected in
             NativeMediaGallery(snapshot: selected.snapshot, titleKey: titleKey, reader: reader)

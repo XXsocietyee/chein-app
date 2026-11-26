@@ -57,7 +57,7 @@ import SwiftUI
                 Text("merchantGreetingPreview.unavailable").font(.footnote)
             }
         }
-        .sheet(item: $preview, onDismiss: close) { model in Group { MerchantNPCGreetingPreviewSheet(model: model, document: document) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+        .cySheet(item: $preview, onDismiss: close) { model in Group { MerchantNPCGreetingPreviewSheet(model: model, document: document) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
         .onChange(of: document.revision) { _, _ in if preview?.snapshot == nil { close() } }
         .onChange(of: document.coordinator.reader.scope) { _, _ in close() }
         .onChange(of: document.coordinator.draftIdentity) { _, _ in close() }

@@ -255,7 +255,7 @@ struct JourneyRankBoardView: View {
                 list(board).opacity(state.phase == .ready(board) ? 1 : 0.55)
             }
         }
-        .sheet(isPresented: $moreShown) {
+        .cySheet(isPresented: $moreShown) {
             NavigationStack {
                 List(state.more) { scope in
                     Button {
@@ -491,7 +491,7 @@ struct JourneyReportView: View {
         .background { MPNightGround() }
         .navigationTitle(Text(title))
         .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $rankShown) {
+        .cySheet(isPresented: $rankShown) {
             NavigationStack {
                 ScrollView { JourneyRankBoardView(state: rank, onScope: onRankScope, onPeriod: onRankPeriod, onRetry: onLoadRank).padding(CYSpacing.pageHorizontal) }
                     .background(CYNight.ink0)
@@ -502,7 +502,7 @@ struct JourneyReportView: View {
             .cySheet()
             .onAppear(perform: onLoadRank)
         }
-        .sheet(isPresented: $memoryShown) {
+        .cySheet(isPresented: $memoryShown) {
             NavigationStack {
                 ScrollView { JourneyMemoryTimeline(phase: memory, onRetry: onLoadMemory).padding(CYSpacing.pageHorizontal) }
                     .background(CYNight.ink0)
@@ -513,13 +513,13 @@ struct JourneyReportView: View {
             .cySheet()
             .onAppear(perform: onLoadMemory)
         }
-        .sheet(isPresented: $feedbackShown) { Group {
+        .cySheet(isPresented: $feedbackShown) { Group {
             if case .ready(let report) = phase {
                 JourneyFeedbackSheet(nodes: report.nodes, state: feedback, onSubmit: onSubmitFeedback,
                                      onRecheck: onRecheckFeedback, onReset: onResetFeedback, onClose: { feedbackShown = false })
             }
         }.cySheet(detents: [.large]) }
-        .sheet(item: $nodePhoto) { photo in
+        .cySheet(item: $nodePhoto) { photo in
             // JREPORT-2 (MP `previewNodePhoto` → wx.previewImage over every node photo): paged, opened on the tapped one.
             JourneyNodePhotoPages(photos: nodePhotos, selected: photo.id, onClose: { nodePhoto = nil })
                 .cySheet()

@@ -44,7 +44,7 @@ import SwiftUI
     var body: some View {
         Button("merchant.decorTags.choose") { picker = .init(document: model) }
             .disabled(!editable).accessibilityIdentifier("merchant.decorTags.open")
-            .sheet(item: $picker, onDismiss: { picker?.cancel(); picker = nil }) { value in
+            .cySheet(item: $picker, onDismiss: { picker?.cancel(); picker = nil }) { value in
                 Group {
                     MerchantDecorTagSheet(picker: value) { value.cancel(); picker = nil }
                 }

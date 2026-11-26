@@ -59,7 +59,7 @@ import SwiftUI
         }
         .cyAnimation(CYMotion.standard, value: page.phase)
         .cyPageTitle("characterCard.title")
-        .sheet(isPresented: $login, onDismiss: { Task { await model.load() } }) {
+        .cySheet(isPresented: $login, onDismiss: { Task { await model.load() } }) {
             LoginView(intent: .player).environmentObject(session)
         }
         .task { await model.load() }

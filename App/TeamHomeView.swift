@@ -275,9 +275,9 @@ private struct TeamHomeRow: View {
                 await readOwner.run { await reload() }
             }.refreshable { await readOwner.run { await reload() } }
             .onDisappear { readOwner.deactivate(); model.leave() }
-            .sheet(item: nonJoinReviewBinding) { TeamReviewSheet(model: model, review: $0).cySheet() }
-            .sheet(isPresented: $invitationPreview) { Group { if let team = model.coordinator.detail?.team { TeamInvitePreview(team: team, model: model) } }.cySheet() }
-            .sheet(item: $reformSheet, onDismiss: { let permit = model.captureRun(); readOwner.start { await reload(permit: permit) } }) { sheet in Group { if let reformHooks { TeamReformSheetHost(sheet: sheet, hooks: reformHooks) } }.cySheet(detents: [.large]) }
+            .cySheet(item: nonJoinReviewBinding) { TeamReviewSheet(model: model, review: $0).cySheet() }
+            .cySheet(isPresented: $invitationPreview) { Group { if let team = model.coordinator.detail?.team { TeamInvitePreview(team: team, model: model) } }.cySheet() }
+            .cySheet(item: $reformSheet, onDismiss: { let permit = model.captureRun(); readOwner.start { await reload(permit: permit) } }) { sheet in Group { if let reformHooks { TeamReformSheetHost(sheet: sheet, hooks: reformHooks) } }.cySheet(detents: [.large]) }
         .themeDomain(.player)
     }
     /// C-J5 (MP team/join `.tj-bar`): the invitation's one action sits in the bottom bar, outside the scroll.
@@ -432,7 +432,7 @@ struct TeamInviteQRSheetButton: View {
             Button { shown = true } label: { Label("fixr3.team.qr", systemImage: "qrcode") }
                 .accessibilityLabel(Text("fixr3.team.qr.a11y"))
                 .accessibilityIdentifier("team.qr.open")
-                .sheet(isPresented: $shown) {
+                .cySheet(isPresented: $shown) {
                     NavigationStack {
                         ScrollView { TeamInviteQRSection(teamID: teamID, loadsOnAppear: true).padding() }
                             .navigationTitle(Text("fixr3.team.qr.title")).navigationBarTitleDisplayMode(.inline)

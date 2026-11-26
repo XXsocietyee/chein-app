@@ -72,7 +72,7 @@ import SwiftUI
             else { content }
         }
         .onPreferenceChange(TemplateAuthoringPublishResultPreferenceKey.self) { controller.accept($0) }
-        .sheet(item: controller.presentationBinding()) { value in
+        .cySheet(item: controller.presentationBinding()) { value in
             Group {
                 TemplateAuthoringPublishResultPanel(result: value.signal.result, close: controller.closeAction(value))
             }

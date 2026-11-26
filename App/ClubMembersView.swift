@@ -113,7 +113,7 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
         // CLB-detail-33 (parity r2): a sheet title in the bar; ✕ stays in the toolbar.
         .navigationTitle(Text("club.members"))
         .navigationBarTitleDisplayMode(.inline)
-        .sheet(item: $memberReport) { target in Group {
+        .cySheet(item: $memberReport) { target in Group {
             if let governance, currentReport(target) {
                 NavigationStack { ClubMemberReportView(target: target, identity: reader.clubIdentity, governance: governance) }
             } else {
@@ -128,7 +128,7 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
             if !reportSourceActive { reportSourceActive = true; reportRefreshRevision &+= 1 }
         }
         .onDisappear { reportSourceActive = false; reportReadGeneration &+= 1 }
-        .sheet(isPresented: $choosing) {
+        .cySheet(isPresented: $choosing) {
             if let target = choice {
                 NavigationStack {
                     List {

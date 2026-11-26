@@ -302,7 +302,7 @@ enum OfficialDetailID {
         }
         .appNavigationTitle("official.detail").navigationBarTitleDisplayMode(.inline)
         .cyPushedChrome(domain: .player)
-        .sheet(item: $shareEvent) { event in
+        .cySheet(item: $shareEvent) { event in
             CatalogShareCardView(content: shareContent(event), tint: .sunset)
                 .themeDomain(.player)
                 .cySheet()

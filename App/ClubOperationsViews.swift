@@ -38,7 +38,7 @@ struct ClubOperationsEntryButton: View {
                 .lineLimit(1)
         }
             .accessibilityIdentifier("club.ops." + (target == .create ? "openCreate" : "openManage"))
-            .sheet(item: $visit, onDismiss: {
+            .cySheet(item: $visit, onDismiss: {
                 guard visit == nil else { return }
                 defer { pendingReturn = nil; pendingWelcomeReturn = nil; lastVisit = nil }
                 guard let lastVisit, scenePhase == .active,
@@ -283,7 +283,7 @@ struct ClubOperationsWorkspaceView: View {
             if !profileDraftEnabled { Text("club.ops.discardMessage") }
             else { Text("localDraft.closeMessage", tableName: "ClubProfileLocalDraft") }
         }
-        .sheet(item: $review, onDismiss: cancelReview) { pending in Group {
+        .cySheet(item: $review, onDismiss: cancelReview) { pending in Group {
             NavigationStack {
                 ClubOperationsReviewView(review: pending, canSubmit: coordinator.writeAvailability != .unverified, isExample: coordinator.writeAvailability == .syntheticOnly, onCancel: cancelReview) {
                     review = nil; state = .preflighting

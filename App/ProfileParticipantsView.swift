@@ -157,7 +157,7 @@ struct ProfileParticipantsView: View {
             if let recoveryIdentity { coordinator?.discardReadback(expectedIdentity: recoveryIdentity) }
             recoveryIdentity = nil; snapshotIdentity = nil
         }
-        .sheet(isPresented: $showsCreate, onDismiss: { deletedNotice = nil; refreshID = UUID() }) { Group {
+        .cySheet(isPresented: $showsCreate, onDismiss: { deletedNotice = nil; refreshID = UUID() }) { Group {
             if let coordinator {
                 NavigationStack { ParticipantFormView(reader: reader, coordinator: coordinator, boundPhoneLoader: boundPhoneLoader) }
             }
@@ -165,7 +165,7 @@ struct ProfileParticipantsView: View {
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
         }
-        .sheet(item: $editing, onDismiss: { deletedNotice = nil; refreshID = UUID() }) { target in Group {
+        .cySheet(item: $editing, onDismiss: { deletedNotice = nil; refreshID = UUID() }) { target in Group {
             if let coordinator {
                 NavigationStack { ParticipantFormView(id: target.id, reader: reader, coordinator: coordinator, boundPhoneLoader: boundPhoneLoader) }
             }
@@ -173,7 +173,7 @@ struct ProfileParticipantsView: View {
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
         }
-        .sheet(item: $deleting, onDismiss: { refreshID = UUID() }) { target in Group {
+        .cySheet(item: $deleting, onDismiss: { refreshID = UUID() }) { target in Group {
             if let coordinator {
                 NavigationStack { ParticipantListDeleteView(id: target.id, reader: reader, coordinator: coordinator) { deletedNotice = UUID() } }
             }
@@ -382,7 +382,7 @@ struct ParticipantListDeleteView: View {
         }
         .interactiveDismissDisabled(model.busy)
         // Mini-program cy-danger-confirm (utils/danger-actions.js): what, why, irreversible, what stays.
-        .sheet(isPresented: $model.showConfirmation) {
+        .cySheet(isPresented: $model.showConfirmation) {
             MemberParticipantDeleteConfirmSheet(
                 summary: model.confirmationSummary,
                 onCancel: { model.cancelConfirmation() }

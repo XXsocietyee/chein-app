@@ -127,14 +127,14 @@ import SwiftUI
             }.id(revision)
                 .environment(\.couponCodeFactory, codeFactory)
         }
-        .sheet(item: $topicRoute) { route in
+        .cySheet(item: $topicRoute) { route in
             NavigationStack {
                 TopicDetailView(id: route.id, reader: TopicFixtureReader())
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { topicRoute = nil } } }
             }
             .cySheet(detents: [.large])
         }
-        .sheet(item: $postRoute) { saved in
+        .cySheet(item: $postRoute) { saved in
             NavigationStack {
                 SquareDetailView(id: saved.route.id, contentGeneration: saved.route.generation, reader: SquareFixtureReader())
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { postRoute = nil } } }

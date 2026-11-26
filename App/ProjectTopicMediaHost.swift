@@ -24,7 +24,7 @@ import SwiftUI
                     .disabled(!controller.canOpen(.gallery)).accessibilityIdentifier("projectTopicMedia.gallery")
             }
         } header: { if visible { Text("projectTopicMedia.title") } }
-        .sheet(item: controller.binding(original)) { captured in
+        .cySheet(item: controller.binding(original)) { captured in
             Group {
                 ProjectTopicMediaSheet(controller: controller, original: captured)
             }

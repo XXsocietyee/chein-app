@@ -73,7 +73,7 @@ enum CityArrivalCopy {
         .onChange(of: controller.current) { _, current in if !current { controller.invalidate() } }
         .onChange(of: scenePhase) { _, phase in controller.invalidate(); if phase == .active { Task { await controller.load() } } }
         .onDisappear { controller.invalidate() }
-        .sheet(item: Binding(get: { controller.current && scenePhase == .active ? controller.confirmation : nil }, set: { if $0 == nil { controller.cancelConfirmation() } })) { captured in Group {
+        .cySheet(item: Binding(get: { controller.current && scenePhase == .active ? controller.confirmation : nil }, set: { if $0 == nil { controller.cancelConfirmation() } })) { captured in Group {
             NavigationStack {
                 Form {
                     Text(verbatim: captured.pointTitle); CityArrivalCopy.text("confirm." + captured.command.kind.rawValue)

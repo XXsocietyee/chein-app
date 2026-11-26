@@ -98,7 +98,7 @@ struct BundleExitSwapView: View {
             }
         }
         .navigationTitle(PlayerCapabilityCopy.text("更换商家", "Swap merchant", locale)).navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: Binding(get: { confirming != nil }, set: { if !$0 { confirming = nil } })) {
+        .cySheet(isPresented: Binding(get: { confirming != nil }, set: { if !$0 { confirming = nil } })) {
             if let target = confirming {
                 MemberBundleSwapConfirmSheet(merchantName: target.merchantName ?? "—") {
                     confirming = nil

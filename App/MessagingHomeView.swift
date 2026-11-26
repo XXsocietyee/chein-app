@@ -144,10 +144,10 @@ private struct MessagingConversationListView: View {
             MessagingHistoryView(conversationID: id, reader: reader, sender: senderForConversation?(id), mediaReader: mediaReader, expanded: expanded,
                 onConversationMutationAccepted: conversationInvalidation(for: id))
         }
-        .sheet(isPresented: $showsSquare) {
+        .cySheet(isPresented: $showsSquare) {
             if let squareDestination { squareDestination { showsSquare = false } }
         }
-        .sheet(item: $rowAction) { presentation in
+        .cySheet(item: $rowAction) { presentation in
             let owner = listModel
             IMConversationRowActionsView(actions: presentation.actions) { [weak owner] in
                 // The retained list owner validates exact source/account even if
@@ -155,13 +155,13 @@ private struct MessagingConversationListView: View {
                 owner?.invalidate(reader: reader, identity: presentation.actions.identity)
             }
         }
-        .sheet(item: $readAll) { presentation in
+        .cySheet(item: $readAll) { presentation in
             let owner = listModel
             IMConversationReadAllView(batch: presentation.batch) { [weak owner] in
                 owner?.invalidate(reader: reader, identity: presentation.batch.identity)
             }
         }
-        .sheet(item: $safety) { presentation in
+        .cySheet(item: $safety) { presentation in
             let owner = listModel
             IMSafetyReviewView(owner: presentation.owner) { [weak owner] action in
                 // Hidden rows leave only through a fresh /conversations reread.

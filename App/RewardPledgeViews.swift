@@ -1418,7 +1418,7 @@ public struct RewardPledgeReviewItem: Identifiable, Equatable {
             guard let entry, entry.current()?.preview == true, !model.awardsLoaded else { return }
             await model.loadStoreAwards(entry: entry)
         }
-        .sheet(isPresented: $scanning) { Group {
+        .cySheet(isPresented: $scanning) { Group {
             NativeQRScanner { value in
                 scanning = false
                 guard let entry else { return }

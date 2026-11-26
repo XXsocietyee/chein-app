@@ -87,7 +87,7 @@ private struct ProfileFavoriteRemovalLifecycleEvidence: ViewModifier {
                 }
             }
         }
-        .sheet(item: $presentation) { value in Group {
+        .cySheet(item: $presentation) { value in Group {
             ProfileFavoriteRemovalSheet(presentation: value, contents: post.contents, controller: controller,
                 isCurrent: isCurrent, onRemoved: onRemoved, diagnostics: lifecycle)
         }
@@ -183,7 +183,7 @@ private struct ProfileFavoriteRemovalLifecycleEvidence: ViewModifier {
                 }
             }
         }
-        .sheet(item: $presentation) { value in Group {
+        .cySheet(item: $presentation) { value in Group {
             ProfileFavoriteRemovalSheet(presentation: value, controller: controller,
                 isCurrent: isCurrent, onRemoved: onRemoved, diagnostics: lifecycle)
         }

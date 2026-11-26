@@ -79,7 +79,7 @@ import SwiftUI
                 }
             }
         }
-        .sheet(isPresented: $showsConfirmation, onDismiss: { presentation.cancel() }) {
+        .cySheet(isPresented: $showsConfirmation, onDismiss: { presentation.cancel() }) {
             CYConfirmSheet(
                 title: appLocalized("merchantNPCRecovery.confirmTitle", locale: locale),
                 message: appLocalized("merchantNPCRecovery.abandonConsequences", locale: locale),

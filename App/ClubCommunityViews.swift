@@ -478,11 +478,11 @@ struct ClubCommunityFeedView: View {
         // Pushing a row destination must not remove the NavigationLink that owns it.
         // Identity changes still clear all private snapshots in the task above.
         .onDisappear { model.suspend() }
-        .sheet(isPresented: $composing, onDismiss: { Task { await model.reviewPendingDraft() } }) {
+        .cySheet(isPresented: $composing, onDismiss: { Task { await model.reviewPendingDraft() } }) {
             if let clubID { ClubCommunityComposer(model: model, clubID: clubID, post: nil) }
         }
         .cyToast(message: $toastMessage, tone: .info)
-        .sheet(item: $model.review, onDismiss: { model.cancelReview() }) { review in
+        .cySheet(item: $model.review, onDismiss: { model.cancelReview() }) { review in
             ClubCommunityReviewView(review: review, model: model, refresh: operation) { settled in
                 toastMessage = ClubCommunityToast.message(for: settled)
             }
@@ -728,7 +728,7 @@ struct ClubCommunityPostTile: View {
             evidence = nil
             if let clubID, let fresh = try? await model.context.evidence(clubID, post, nil), fresh.identity == identity { evidence = fresh }
         }
-        .sheet(isPresented: $editing, onDismiss: { Task { await model.reviewPendingDraft() } }) { if let clubID { ClubCommunityComposer(model: model, clubID: clubID, post: post) } }
+        .cySheet(isPresented: $editing, onDismiss: { Task { await model.reviewPendingDraft() } }) { if let clubID { ClubCommunityComposer(model: model, clubID: clubID, post: post) } }
     }
     @ViewBuilder private func tileActions<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         if typeSize.isAccessibilitySize {
@@ -865,7 +865,7 @@ struct ClubCommunityPostDetailView: View {
         }
         .onDisappear { model.suspend() }
         .cyToast(message: $toastMessage, tone: .info)
-        .sheet(item: $model.review, onDismiss: { model.cancelReview() }) { review in
+        .cySheet(item: $model.review, onDismiss: { model.cancelReview() }) { review in
             ClubCommunityReviewView(review: review, model: model, refresh: commentsOperation) { settled in
                 toastMessage = ClubCommunityToast.message(for: settled)
             }
@@ -1207,7 +1207,7 @@ struct ClubCommunityCommentsView: View {
             if let fresh = try? await model.context.evidence(clubID, post, nil), fresh.identity == identity { evidence = fresh }
         }
         .onDisappear { model.invalidate(); content = ""; evidence = nil }
-        .sheet(item: $model.review, onDismiss: { model.cancelReview() }) { review in ClubCommunityReviewView(review: review, model: model, refresh: operation) }
+        .cySheet(item: $model.review, onDismiss: { model.cancelReview() }) { review in ClubCommunityReviewView(review: review, model: model, refresh: operation) }
     }
 }
 

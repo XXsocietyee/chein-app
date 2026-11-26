@@ -169,7 +169,7 @@ enum ApprovedReleaseOriginalRecoveryText: String, CaseIterable {
                     .accessibilityIdentifier("approvedRelease.recovery.open")
             }
         }
-        .sheet(item: controller.binding(original)) { captured in Group {
+        .cySheet(item: controller.binding(original)) { captured in Group {
             ApprovedReleaseOriginalRecoveryView(original: captured, close: { controller.close(captured) })
         }
         .presentationDetents([.large])
@@ -221,7 +221,7 @@ enum ApprovedReleaseOriginalRecoveryText: String, CaseIterable {
             } }
         }
         .task(id: original.id) { reader.reload() }
-        .sheet(item: reader.resultBinding(inspection)) { captured in Group {
+        .cySheet(item: reader.resultBinding(inspection)) { captured in Group {
             // The existing result view uses the saved summary and never loads current preparation/media.
             if reader.isInspecting(captured) {
                 ApprovedReleaseSummaryResultView(original: captured, close: reader.dismiss)

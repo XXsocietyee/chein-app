@@ -50,7 +50,7 @@ struct IAExploreCreateFixture: View {
                             .labelStyle(.iconOnly).frame(minWidth: 44, minHeight: 44)
                     }
                 }
-                .sheet(isPresented: $showsCreate) { Group {
+                .cySheet(isPresented: $showsCreate) { Group {
                     Text(verbatim: "Synthetic fixture: former Publish tab content").padding()
                     }
                     .presentationDetents([.medium, .large])

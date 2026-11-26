@@ -75,7 +75,7 @@ import SwiftUI
     }
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
-            .sheet(isPresented: controller.presentationBinding(for: session, isCurrent: { current }),
+            .cySheet(isPresented: controller.presentationBinding(for: session, isCurrent: { current }),
                    onDismiss: { controller.close(expectedID: session.id) }) {
                 NavigationStack {
                     ClubProfileChoiceEditor(session: session, isCurrent: { current },

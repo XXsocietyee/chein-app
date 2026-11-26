@@ -184,7 +184,7 @@ import SwiftUI
             }
             .accessibilityIdentifier("compliance.open.\(ComplianceDestination.cancellation.rawValue)")
         } footer: { Text("settings.danger.footer") }
-        .sheet(item: $selected) { destination in Group {
+        .cySheet(item: $selected) { destination in Group {
             NavigationStack {
                 AccountComplianceSheet(coordinator: makeCoordinator(), destination: destination, market: market, legalReader: legalReader)
             }
@@ -192,7 +192,7 @@ import SwiftUI
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
         }
-        .sheet(item: $npcChatData) { presentation in Group { NPCChatDataView(coordinator: presentation.coordinator) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+        .cySheet(item: $npcChatData) { presentation in Group { NPCChatDataView(coordinator: presentation.coordinator) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
     }
 }
 /// B-DR-07: the compliance sheet in its own navigation stack, shared by the Settings row and the Settings search result.
@@ -328,7 +328,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             else if let intent = model.cancellationIntent(resume: true) { Task { await loadCancellation(intent) } }
             else { model.coordinator.noteSignedOut() }
         }
-        .sheet(isPresented: $cancelReview) {
+        .cySheet(isPresented: $cancelReview) {
             if let intent = cancelIntent {
                 MemberDeregistrationCancelConfirmSheet {
                     cancelReview = false

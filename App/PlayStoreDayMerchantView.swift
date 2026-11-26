@@ -43,7 +43,7 @@ import SwiftUI
         .background(CYColor.bgPage)
         .modifier(PlayStoreDayTitle(hero: model.phase == .loaded && model.node != nil, name: model.node?.name, scrolledAway: heroScrolledAway))
         .task(id: model.nodeID) { await model.load() }
-        .sheet(item: sheet) { item in
+        .cySheet(item: sheet) { item in
             switch item {
             case .game:
                 gameSheet

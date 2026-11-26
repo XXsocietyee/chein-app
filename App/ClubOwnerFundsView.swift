@@ -189,7 +189,7 @@ extension EnvironmentValues {
     let returned: () -> Void
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
-            .sheet(isPresented: owner.binding(item, current: current, active: active), onDismiss: {
+            .cySheet(isPresented: owner.binding(item, current: current, active: active), onDismiss: {
                 if owner.dismissed(item, current: current(), active: active()) { returned() }
             }) {
                 Group {

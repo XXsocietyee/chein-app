@@ -12,7 +12,7 @@ import SwiftUI
             .id(session.teamViewIdentity)
             .onAppear { if recoveryWriter == nil { recoveryWriter = session.teamRecoveryWriter() } }
             .onChange(of: session.teamViewIdentity) { _, _ in recoveryWriter = session.teamRecoveryWriter() }
-            .sheet(isPresented: $login) { LoginView(intent: .player) }
+            .cySheet(isPresented: $login) { LoginView(intent: .player) }
     }
 }
 /// Integration destination for a verified internal team ID or parsed invitation code.
@@ -29,7 +29,7 @@ import SwiftUI
             .environment(\.teamCommandWriter, recoveryWriter)
             .onAppear { if recoveryWriter == nil { recoveryWriter = session.teamRecoveryWriter() } }
             .onChange(of: session.teamViewIdentity) { _, _ in recoveryWriter = session.teamRecoveryWriter() }
-            .sheet(isPresented: $login) { LoginView(intent: .player) }
+            .cySheet(isPresented: $login) { LoginView(intent: .player) }
     }
 }
 /// Owned-registration team creation. The screen stays on screen when the write lease is closed;

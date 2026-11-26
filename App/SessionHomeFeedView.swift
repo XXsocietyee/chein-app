@@ -38,14 +38,14 @@ import SwiftUI
         .task(id:session.homeFeedReader.scope) { await cityConsent.refresh(session) }
         .task(id:session.sessionRevision) { await cityConsent.refresh(session) }
         .cyToast(message: $cityConsent.toast)
-        .sheet(isPresented:$showsTodayTickets) {
+        .cySheet(isPresented:$showsTodayTickets) {
             SessionTicketWalletHost(onClose:{ showsTodayTickets=false }).environmentObject(session)
                 .cyPlayerSheetGlass()
         }
         .onChange(of:session.homeFeedReader.scope) { _,_ in resetForHomeScopeChange() }
         .onChange(of:session.officialEventReader.scope) { _,_ in showsOfficialEvents=false }
         .onChange(of:session.sessionRevision) { _,_ in resetForSessionRevisionChange() }
-        .sheet(isPresented:$showsProjectEditor) { Group {
+        .cySheet(isPresented:$showsProjectEditor) { Group {
             NavigationStack {
                 ProjectEditLaunchView().toolbar {
                     ToolbarItem(placement:.cancellationAction) {
@@ -57,7 +57,7 @@ import SwiftUI
             .themeDomain(.topicEditor)
         }.cySheet(detents: [.large])
         }
-        .sheet(isPresented:$showsOfficialEvents) {
+        .cySheet(isPresented:$showsOfficialEvents) {
             NavigationStack {
             OfficialEventsBrowserView(reader:session.officialEventReader,actions:session.officialActionCoordinator,onClose:{ showsOfficialEvents=false },onLogin:{
                 showsOfficialEvents=false
@@ -66,8 +66,8 @@ import SwiftUI
             }.id(session.officialEventReader.scope)
             .cyPlayerSheetGlass()
         }
-        .sheet(isPresented:$showsSquare) { SessionSquareBrowserView(session: session, onClose: { showsSquare = false }, onSignIn: { showsSquare = false; onSignIn?() }).id(session.squareReader.scope).cyPlayerSheetGlass() }
-        .sheet(isPresented:$showsCreate) {
+        .cySheet(isPresented:$showsSquare) { SessionSquareBrowserView(session: session, onClose: { showsSquare = false }, onSignIn: { showsSquare = false; onSignIn?() }).id(session.squareReader.scope).cyPlayerSheetGlass() }
+        .cySheet(isPresented:$showsCreate) {
             NavigationStack {
                 DiscoveryTemplateBrowserView(reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) }, authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext,
                     publishDestination: { AnyView(SessionPublishingModesView().environmentObject(session).id(session.publishingSession?.epoch)) },
@@ -83,7 +83,7 @@ import SwiftUI
             .id(session.templateAuthoringViewIdentity)
             .cyPlayerSheetGlass()
         }
-        .sheet(isPresented:$showsTemplates) {
+        .cySheet(isPresented:$showsTemplates) {
             NavigationStack {
                 // PC-A-2-6: 浏览模板 keeps 发布 like the 发布 tab entry.
                 DiscoveryTemplateBrowserView(reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) }, authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext,
@@ -178,9 +178,9 @@ import SwiftUI
         .overlay { searchLayer }
         .onChange(of:activeContinuationScope) { _,next in if next == nil { Task { await reloadContinuationCards() } } }
         .onChange(of:router.homePath) { _,next in if next.isEmpty { Task { await reloadContinuationCards() } } }
-        .sheet(isPresented:$showsClubApplication) { clubApplicationSheet.cyPlayerSheetGlass() }
-        .sheet(isPresented:$showsMerchantApplication) { merchantApplicationSheet.themeDomain(.merchant).cySheet(detents: [.large]) }
-        .sheet(isPresented: $showsSearchMap) {
+        .cySheet(isPresented:$showsClubApplication) { clubApplicationSheet.cyPlayerSheetGlass() }
+        .cySheet(isPresented:$showsMerchantApplication) { merchantApplicationSheet.themeDomain(.merchant).cySheet(detents: [.large]) }
+        .cySheet(isPresented: $showsSearchMap) {
             NavigationStack {
                 SessionLinkedSearchView(startsOnMap: true, onSignIn: { showsSearchMap = false; onSignIn?() })
                     .toolbar {
@@ -193,7 +193,7 @@ import SwiftUI
             .environmentObject(session)
             .cyPlayerSheetGlass()
         }
-        .sheet(isPresented: $showsMiniGames) {
+        .cySheet(isPresented: $showsMiniGames) {
             NavigationStack {
                 ScrollView { ExternalGameLibrarySection(store: ExternalGameStore()).padding(.horizontal, CYSpacing.pageHorizontal) }
                     .navigationTitle(Text(verbatim: HomeIndexParityPresentation.miniGamesBanner.title(locale: locale)))

@@ -257,7 +257,7 @@ enum NativeWebhookSheet: String, Identifiable {
                 }
         }
         .task { await model.start() }
-        .sheet(item: model.sheetBinding) { sheet in
+        .cySheet(item: model.sheetBinding) { sheet in
             NavigationStack {
                 switch sheet {
                 case .subscriptionEditor: NativeWebhookSubscriptionEditor(model: model, resource: model.editing)

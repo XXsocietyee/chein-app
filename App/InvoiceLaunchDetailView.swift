@@ -99,7 +99,7 @@ import SwiftUI
             await model.loadDetail(applicationID)
         }
         .refreshable { await model.loadDetail(applicationID) }
-        .sheet(isPresented: $confirmsCancel) {
+        .cySheet(isPresented: $confirmsCancel) {
             MemberInvoiceWithdrawConfirmSheet(confirmIdentifier: "invoice.withdraw.confirm") {
                 confirmsCancel = false
                 Task { if await model.cancel(applicationID) { await model.loadDetail(applicationID) } }

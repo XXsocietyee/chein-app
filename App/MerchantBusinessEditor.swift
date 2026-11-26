@@ -201,7 +201,7 @@ struct MerchantBusinessEditorContext: Identifiable {
 
     private var editorEvidencePresentation: some View {
         editorDecisionLifecycle
-            .sheet(item: $evidenceFlow, onDismiss: { retireEvidenceFlow() }) { flow in
+            .cySheet(item: $evidenceFlow, onDismiss: { retireEvidenceFlow() }) { flow in
                 MerchantAftercareEvidenceSheet(model: flow)
                     .cyDomainSheet(detents: [.half, .full])
                     .themeDomain(.merchant)

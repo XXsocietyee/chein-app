@@ -396,7 +396,7 @@ struct MerchantOperationsDocumentView: View {
                 model.discard(); Task { await model.load() }
             }
         )
-        .sheet(item: Binding(get: { coordinator.isCurrent ? coordinator.confirmation : nil }, set: { if $0 == nil { model.cancel() } })) { confirmation in
+        .cySheet(item: Binding(get: { coordinator.isCurrent ? coordinator.confirmation : nil }, set: { if $0 == nil { model.cancel() } })) { confirmation in
             MerchantOperationsConfirmationView(model: model, confirmation: confirmation)
                 .cyDomainSheet(detents: [.half, .full])
                 .themeDomain(.merchant)

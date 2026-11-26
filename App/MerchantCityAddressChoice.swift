@@ -68,7 +68,7 @@ import UIKit
     let apply: (MerchantCityAddressChoice.Source, PublishingPlace) -> Bool
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
-            .sheet(item: owner.binding(original, current: current)) { shown in
+            .cySheet(item: owner.binding(original, current: current)) { shown in
                 Group {
                     PublishingPlacePicker(provider: shown.provider) { place in
                         _ = owner.confirm(place, original: shown, current: current, apply: apply)

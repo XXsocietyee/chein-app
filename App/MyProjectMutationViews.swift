@@ -66,7 +66,7 @@ import QuestifyCore
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .sheet(
+        .cySheet(
             isPresented: Binding(
                 get: { if case .awaitingConfirmation = model.state { return true } else { return false } },
                 set: { if !$0 { model.dismiss() } }

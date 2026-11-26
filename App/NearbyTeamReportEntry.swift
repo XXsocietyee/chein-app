@@ -20,7 +20,7 @@ import SwiftUI
             .buttonStyle(.plain)
             .accessibilityLabel(Text(verbatim: c.t("举报这支队伍", "Report this team")))
             .accessibilityIdentifier("nearby.team.report.\(teamID)")
-            .sheet(isPresented: $presented) { TeamReportReasonSheet(teamID: teamID) }
+            .cySheet(isPresented: $presented) { TeamReportReasonSheet(teamID: teamID) }
         }
     }
 }

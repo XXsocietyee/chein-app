@@ -55,11 +55,11 @@ import SwiftUI
                 }
             }
         }
-        .sheet(isPresented: $showingPins,onDismiss:finishLocation) {
+        .cySheet(isPresented: $showingPins,onDismiss:finishLocation) {
             NavigationStack { NativeChannelMessagePinsView(coordinator: coordinator, locateOriginal: {pendingLocation=$0;showingPins=false}) }
                 .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }
-        .sheet(isPresented: $showingSearch,onDismiss:finishLocation) {
+        .cySheet(isPresented: $showingSearch,onDismiss:finishLocation) {
             NavigationStack { NativeChannelMessageSearchView(model: coordinator.search, locateOriginal: {pendingLocation=$0;showingSearch=false}) }
                 .presentationDragIndicator(.visible)
         }

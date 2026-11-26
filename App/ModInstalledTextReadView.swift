@@ -35,7 +35,7 @@ import SwiftUI
         }
         .onAppear { visible = true }
         .onDisappear { visible = false; reader?.retire(); reader = nil }
-        .sheet(item: presented) { captured in
+        .cySheet(item: presented) { captured in
             Group {
                 ModInstalledTextReadView(reader: captured) {
                     captured.retire(); guard reader === captured else { return }; presented.wrappedValue = nil

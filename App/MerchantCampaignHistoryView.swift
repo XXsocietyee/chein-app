@@ -69,7 +69,7 @@ struct MerchantCampaignHistoryView: View {
             .navigationBarTitleDisplayMode(.inline)
             .cyDomainScreen(.merchant)
             .cyToast(verbatimMessage: $toastMessage)
-            .sheet(item: $selected) { task in
+            .cySheet(item: $selected) { task in
                 MerchantCampaignDetailSheet(model: model, task: task)
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)

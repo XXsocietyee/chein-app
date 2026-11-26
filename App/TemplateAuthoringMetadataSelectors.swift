@@ -139,7 +139,7 @@ enum TemplateMetadataField: String, CaseIterable, Identifiable {
                 Text("templateLocalCategories.open", tableName: "TemplateLocalCategoryRemoval")
             }.accessibilityIdentifier("templateLocalCategories.open")
         }
-        .sheet(item: $presented) { field in
+        .cySheet(item: $presented) { field in
             Group {
                 NavigationStack { TemplateAuthoringMetadataSelector(model: model, reader: reader, field: field) }
             }
@@ -287,7 +287,7 @@ enum TemplateMetadataField: String, CaseIterable, Identifiable {
             .disabled(!model.canEdit || model.busy || model.coordinator.review != nil)
             .accessibilityIdentifier("templateVenue.open")
         }
-        .sheet(item: $presented) { presentation in
+        .cySheet(item: $presented) { presentation in
             Group {
                 NavigationStack { TemplateAuthoringVenueSelector(model: model).id(presentation.id) }
             }

@@ -54,7 +54,7 @@ struct MerchantOperationsEditor: View {
         .scrollDismissesKeyboard(.immediately)
         .disabled(coordinator.isBusy)
         .accessibilityIdentifier("merchant.operations.editor")
-        .sheet(item: $assist) { presentation in Group { MerchantTemplateAssistSheet(document: model, flow: presentation.flow) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+        .cySheet(item: $assist) { presentation in Group { MerchantTemplateAssistSheet(document: model, flow: presentation.flow) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
         .modifier(MerchantTemplateCategoryPresentation(document: model, picker: $categoryPicker))
         .modifier(MerchantBrandImagesPresentation(document: model))
         .modifier(MerchantStoreFieldStablePresentation(document: model, presentation: storeFieldPresentation))

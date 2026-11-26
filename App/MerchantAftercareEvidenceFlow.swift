@@ -321,7 +321,7 @@ struct MerchantAftercareEvidenceDraft: Equatable {
                 Button("action.cancel") { model.retire(); dismiss() }.disabled(model.busy)
             } }
             .interactiveDismissDisabled(model.busy)
-            .sheet(isPresented: $selecting) {
+            .cySheet(isPresented: $selecting) {
                 Group {
                     NavigationStack {
                         MerchantEvidenceSelectionView(refundID: model.refundID, selectedScope: model.owner.scope,

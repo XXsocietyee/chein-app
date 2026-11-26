@@ -72,7 +72,7 @@ extension EnvironmentValues {
                 .padding(.top, 8)
             }
             .sensoryFeedback(.success, trigger: inHighlight) { old, new in !old && new }
-            .sheet(isPresented: $sheetShown) {
+            .cySheet(isPresented: $sheetShown) {
                 panel()
                     .presentationDetents([.height(120), .medium, .large], selection: $detent)
                     .presentationBackgroundInteraction(.enabled(upThrough: .medium))

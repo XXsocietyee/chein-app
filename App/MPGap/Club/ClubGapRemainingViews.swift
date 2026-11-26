@@ -43,7 +43,7 @@ struct ClubGapPlayRecordPickerRow: View {
             .frame(minHeight: 44)
             .accessibilityIdentifier("club.community.postRef")
         }
-        .sheet(isPresented: $showPicker) {
+        .cySheet(isPresented: $showPicker) {
             NavigationStack {
                 List { pickerContent }
                     .navigationTitle(Text("club.postRef.pick"))

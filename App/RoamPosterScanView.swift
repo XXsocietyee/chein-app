@@ -56,7 +56,7 @@ import SwiftUI
                     .accessibilityFocused($focusedControl, equals: .scan)
             }
         }.cyGroupedSurface().navigationTitle("media.poster.title").navigationBarTitleDisplayMode(.inline)
-            .fullScreenCover(isPresented: $showingScanner, onDismiss: {
+            .cyFullScreenCover(isPresented: $showingScanner, onDismiss: {
                 guard scenePhase == .active, cameraEnabled else { return }
                 focusedControl = canScan ? .scan : .status
             }) {

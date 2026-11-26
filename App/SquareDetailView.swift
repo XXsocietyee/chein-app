@@ -161,7 +161,7 @@ import SwiftUI
         }
         .onChange(of: key) { _, _ in relatedTopic = nil }
         .onChange(of: relatedTopicContext?.reader.scope) { _, _ in relatedTopic = nil }
-        .sheet(item: $editor, onDismiss: { applyFollowReceipt() }) { item in Group {
+        .cySheet(item: $editor, onDismiss: { applyFollowReceipt() }) { item in Group {
             if let actions { NavigationStack { SocialActionEditorView(purpose: item.purpose, target: item.target, coordinator: actions, initialText: item.text, contentGeneration: contentGeneration, initialEnabled: item.enabled) }.id(actions.identity) }
         }.cySheet(detents: [.large]) }
         .navigationDestination(isPresented: $showsAuthorProfile) {
@@ -190,14 +190,14 @@ import SwiftUI
         } message: { _ in
             Text(verbatim: String(localized: LocalizedStringResource("ugc.safety.block.confirmMessage", table: "UGCSafety", locale: locale)))
         }
-        .sheet(item: $reportTarget) { item in
+        .cySheet(item: $reportTarget) { item in
             NavigationStack { SquareReportView(target: item.target, context: reportContext) }
                 .cySheet(detents: [.large])
         }
-        .sheet(isPresented: $showsWorkspaceEdit) { Group {
+        .cySheet(isPresented: $showsWorkspaceEdit) { Group {
             if let workspace { NavigationStack { SquareWorkspaceView(coordinator: workspace, initialPostID: id, initialLane: contentGeneration == .communityV1 ? .communityV1 : .legacy) }.id(workspace.session) }
         }.cySheet(detents: [.large]) }
-        .sheet(item: deletionBinding) { item in Group {
+        .cySheet(item: deletionBinding) { item in Group {
             if let deletion {
                 SquareDeletionConfirmView(target: item.target, excerpt: SquareDeletionConfirmView.excerpt(post?.contents), coordinator: deletion)
             }

@@ -76,11 +76,11 @@ import SwiftUI
                 model.actions?.suspend()
             }
         }
-        .sheet(item: $selection, onDismiss: { discardQuantities = [:]; actionError = nil }) { choice in
+        .cySheet(item: $selection, onDismiss: { discardQuantities = [:]; actionError = nil }) { choice in
             actionReview(choice)
                 .cyDomainSheet(detents: [.half, .full])
         }
-        .sheet(item: $inspectedItem) { item in
+        .cySheet(item: $inspectedItem) { item in
             PlayCloseSheetHost(
                 title: itemName(item.name),
                 detents: [.half],

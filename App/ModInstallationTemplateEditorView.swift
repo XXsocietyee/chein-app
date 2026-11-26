@@ -144,13 +144,13 @@ import SwiftUI
             }
         }
         .task { if editor.state == nil { await editor.open() } }
-        .sheet(item: $rehearsal, onDismiss: { editor.invalidateSavedRehearsal() }) { visit in
+        .cySheet(item: $rehearsal, onDismiss: { editor.invalidateSavedRehearsal() }) { visit in
             Group {
                 ModInstallationSavedRehearsalView(rehearsal: visit)
             }
             .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
-        .sheet(item: $review) { original in
+        .cySheet(item: $review) { original in
             Group {
                 NavigationStack {
                     Cloud25Screen(title: installationString("templateEdit.title", locale: locale), seed: original.command.editRequestId, symbol: "checkmark.seal") {

@@ -36,7 +36,7 @@ struct NPCChatDataReadPresentation: Identifiable {
             .foregroundStyle(CYColor.textPrimary)
             .accessibilityIdentifier("npcData.open")
         }
-        .sheet(isPresented: $showsOptions) {
+        .cySheet(isPresented: $showsOptions) {
             MemberAIChatRecordsOptionSheet(onSelect: { option in
                 showsOptions = false
                 let targetIdentity = pendingIdentity ?? session.npcChatDataReadIdentity
@@ -70,7 +70,7 @@ struct NPCChatDataReadPresentation: Identifiable {
             })
             .cyDomainSheet(detents: [.peek, .half])
         }
-        .sheet(isPresented: $confirmsClear) {
+        .cySheet(isPresented: $confirmsClear) {
             MemberNPCLogDeleteConfirmSheet {
                 confirmsClear = false
                 Task {
@@ -98,7 +98,7 @@ struct NPCChatDataReadPresentation: Identifiable {
             }
             .cyDomainSheet(detents: [.half])
         }
-        .sheet(item: $presentation) { NPCChatDataReadVisit(presentation: $0, session: session) }
+        .cySheet(item: $presentation) { NPCChatDataReadVisit(presentation: $0, session: session) }
         .cyToast(message: $toastMessage, tone: toastTone)
         .onChange(of: session.npcChatDataReadIdentity) { _, _ in retire() }
         .onDisappear { retire() }

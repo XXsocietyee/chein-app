@@ -104,7 +104,7 @@ import Combine
     @ViewBuilder let content: () -> Content
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
-            .sheet(isPresented: owner.binding(item, context: context, active: active, cancelled: cancelled),
+            .cySheet(isPresented: owner.binding(item, context: context, active: active, cancelled: cancelled),
                    onDismiss: { owner.dismissed(item) }) {
                 content()
             }

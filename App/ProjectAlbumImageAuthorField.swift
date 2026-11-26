@@ -26,7 +26,7 @@ import SwiftUI
                     .accessibilityIdentifier("projectAlbumImage.unavailable." + blockID)
             }
         }
-        .sheet(item: images.binding(original)) { captured in
+        .cySheet(item: images.binding(original)) { captured in
             Group {
                 ProjectStoryImageAuthorView(original: captured, apply: { images.apply($0) }, close: { images.close(captured) })
             }

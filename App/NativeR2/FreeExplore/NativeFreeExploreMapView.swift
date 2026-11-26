@@ -45,7 +45,7 @@ import SwiftUI
                 MapScaleView()
             }
             .toolbar { toolbar }
-            .sheet(isPresented: $showsSheet, onDismiss: openPendingStore) { sheet }
+            .cySheet(isPresented: $showsSheet, onDismiss: openPendingStore) { sheet }
             .navigationDestination(item: $selectedStore) { id in storeDestination(id) }
             .onAppear {
                 if arrival == nil { arrival = PlayArrivalService(runtime: model, location: arrivalLocation) }
@@ -181,14 +181,14 @@ import SwiftUI
         .presentationBackgroundInteraction(.enabled(upThrough: .medium))
         .presentationDragIndicator(.visible)
         .interactiveDismissDisabled()
-        .sheet(item: arrivalItem) { item in
+        .cySheet(item: arrivalItem) { item in
             if let arrival {
                 NativeFreeExploreArrivalSheet(model: model, arrival: arrival, nodeID: item.id,
                                               onOpenStore: { open(item.id) })
             }
         }
-        .sheet(isPresented: $showEmergencyHelp) { PlayEmergencyHelpSheet() }
-        .sheet(isPresented: $showChapterPicker) {
+        .cySheet(isPresented: $showEmergencyHelp) { PlayEmergencyHelpSheet() }
+        .cySheet(isPresented: $showChapterPicker) {
             if let snapshot {
                 PlayChapterPickerSheet(rows: PlayChapterPickRow.rows(snapshot), current: chapterFilter) { picked in
                     chapterFilter = picked; focusedStore = nil; skipped = []

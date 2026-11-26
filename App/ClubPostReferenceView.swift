@@ -47,7 +47,7 @@ import SwiftUI
             } else { referenceLabel }
         }
         .buttonStyle(.borderless)
-        .sheet(item: $selected) { target in
+        .cySheet(item: $selected) { target in
             ClubPostReferenceDestination(target: target, identity: identity, topics: topics, model: model)
                 .presentationDetents([.large]).presentationCompactAdaptation(.sheet)
         }

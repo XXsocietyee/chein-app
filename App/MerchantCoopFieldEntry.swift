@@ -41,7 +41,7 @@ import SwiftUI
         let shownID = route?.id
         content.background {
             Color.clear.frame(width: 0, height: 0)
-        .sheet(item: Binding(get: { route }, set: { value in
+        .cySheet(item: Binding(get: { route }, set: { value in
             if value == nil, let shownID { close(shownID) }
         })) { selected in
             MerchantCoopFieldSheet(session: selected) { close(selected.id) }

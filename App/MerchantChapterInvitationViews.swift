@@ -59,7 +59,7 @@ import SwiftUI
         .cyPageTitle("merchantChapterInvitation.title")
         .task(id: service.scope) { await model.load() }
         .onDisappear { model.suspend(); onReturn?() }
-        .sheet(item: Binding(get: { c.isCurrent ? c.review : nil }, set: { if $0 == nil { model.cancel() } })) { value in Group { MerchantContentReviewView(model: model, review: value) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+        .cySheet(item: Binding(get: { c.isCurrent ? c.review : nil }, set: { if $0 == nil { model.cancel() } })) { value in Group { MerchantContentReviewView(model: model, review: value) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
         .cyDomainScreen(.merchant)
     }
     private func prepare(_ invitation: MerchantChapterInvitation, accepted: Bool) {

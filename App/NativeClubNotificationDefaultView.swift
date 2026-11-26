@@ -125,7 +125,7 @@ import SwiftUI
             review = nil; selection = model?.clubDefault?.level ?? .mentions
         }
         .onDisappear { clear() }
-        .sheet(item: $review) { item in
+        .cySheet(item: $review) { item in
             NavigationStack {
                 Form {
                     Section {

@@ -52,7 +52,7 @@ import SwiftUI
                 }
             }
         }
-        .sheet(isPresented: $editing) {
+        .cySheet(isPresented: $editing) {
             NavigationStack {
                 Form {
                     Section {
@@ -72,7 +72,7 @@ import SwiftUI
             }.privacySensitive().onDisappear { editRecallGeneration += 1 }
             .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }
-        .sheet(isPresented: $recalling) {
+        .cySheet(isPresented: $recalling) {
             NavigationStack {
                 Form {
                     Section {
@@ -93,7 +93,7 @@ import SwiftUI
             }.privacySensitive().onDisappear { editRecallGeneration += 1; reason = "" }
             .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }
-        .sheet(isPresented: $revisions) {
+        .cySheet(isPresented: $revisions) {
             NavigationStack { NativeChannelMessageRevisionView(client: coordinator.client, messageID: snapshot.id) }
                 .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }

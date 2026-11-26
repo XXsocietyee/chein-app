@@ -142,7 +142,7 @@ import SwiftUI
         .task(id: target.id) { active = true; await reader.load(page: 1, isCurrent: { current }) }
         .onChange(of: current) { _, valid in trace(valid ? "current-true" : "current-false"); if !valid { fullComments = false; reader.invalidate() } }
         .onDisappear { trace("panel-disappear"); active = false; reader.invalidate() }
-        .sheet(isPresented: $fullComments, onDismiss: { trace("sheet-dismiss"); load(reader.page) }) {
+        .cySheet(isPresented: $fullComments, onDismiss: { trace("sheet-dismiss"); load(reader.page) }) {
             ClubPostFullComments(target: target, source: source)
                 .presentationDetents([.large]).presentationCompactAdaptation(.sheet)
                 .onAppear { trace("sheet-appear") }

@@ -183,7 +183,7 @@ import SwiftUI
         .cyPushedChrome(domain: .player)
         .appSwitcherPrivacyShield()
         .modifier(CYOptionalHeroDestination(id: heroID ?? id, namespace: heroNamespace))
-        .fullScreenCover(isPresented: $presenting) {
+        .cyFullScreenCover(isPresented: $presenting) {
             if let ticket = model.value(owner: key), ticket.id == id {
                 TicketPassPresentView(ticket: ticket) { presenting = false }
                     .cyHeroDestination("present", in: presentHero)

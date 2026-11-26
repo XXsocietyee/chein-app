@@ -76,7 +76,7 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
                 }
             }
         }
-        .sheet(isPresented: $showFilters) {
+        .cySheet(isPresented: $showFilters) {
             NavigationStack {
                 Form {
                     Picker("merchant.order.status", selection: $draftFilter.status) {
@@ -107,7 +107,7 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
             .cyDomainSheet(detents: [.half, .full])
             .themeDomain(.merchant)
         }
-        .sheet(item: $selection) { selected in
+        .cySheet(item: $selection) { selected in
             NavigationStack {
                 if reader.isSignedIn && selected.revision == reader.sessionRevision {
                     MerchantOrderSummary(order: selected.order)

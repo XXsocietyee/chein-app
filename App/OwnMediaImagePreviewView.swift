@@ -147,7 +147,7 @@ private struct OwnMediaImagePreviewViewIdentity: Hashable {
     }
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
-            .sheet(item: binding, onDismiss: { model.close(offered) }) { item in Group {
+            .cySheet(item: binding, onDismiss: { model.close(offered) }) { item in Group {
                 OwnMediaImagePreviewSheet(model: model, offered: item.id)
             }
             .presentationDetents([.large])

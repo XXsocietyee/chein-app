@@ -21,7 +21,7 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
             Label { professionalText("entry") } icon: { Image(systemName: "doc.badge.gearshape") }
         }.accessibilityIdentifier("workshopPaidProfessional.entry")
         if presentation.unavailable { professionalText("notConfigured").cyText(.bodyCompact) }
-        Color.clear.frame(height: 0).sheet(item: presented) { captured in
+        Color.clear.frame(height: 0).cySheet(item: presented) { captured in
             Group {
                 WorkshopPaidProfessionalView(controller: captured.controller, appearance: captured.appearance) { presentation.dismiss(captured) }.id(captured.id)
             }
@@ -84,7 +84,7 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
             } }
         }
         .disabled(scenePhase != .active)
-        .sheet(item: generatedPresentation) { selection in
+        .cySheet(item: generatedPresentation) { selection in
             Group {
                 WorkshopGeneratedDetailSheet(selection: selection, controller: controller, appearance: displayed)
             }

@@ -170,7 +170,7 @@ import SwiftUI
         .appNavigationTitle(key: mode == .city ? "searchMap.mapTitle" : "searchMap.nearby")
         .navigationBarTitleDisplayMode(.inline)
         .modifier(SearchMapKeywordSearch(enabled: mode == .city, text: $filter.keyword))
-        .sheet(isPresented: $showsAllResults) {
+        .cySheet(isPresented: $showsAllResults) {
             let renderedContext = pinSelectionContext
             SearchMapAllResultsSheet(rows: visibleCityResults == nil ? [] : pagination.rows, loading: loading,
                                      failed: visibleCityResults?.activityFailure != nil,
@@ -225,12 +225,12 @@ import SwiftUI
         .onChange(of: publicLayerNavigation) { _, next in
             if next == nil { reader.publicLayerCoordinator?.returnFromDetail() }
         }
-        .sheet(isPresented: $showsArea) { Group {
+        .cySheet(isPresented: $showsArea) { Group {
             RoamAreaPicker { selected in
                 reader.selectManualArea(selected); area = selected; mapEnabled = false; mapCameraIdentityArea = nil; invalidate(); reader.publicLayerCoordinator?.purgeAllState()
             }
         }.cySheet() }
-        .sheet(isPresented: $showsFilters) {
+        .cySheet(isPresented: $showsFilters) {
             SearchMapFilterSheet(filter: filter, categories: categories, categoryFailed: categoryFailed,
                                  tag: tag, cityRole: cityRole, sortType: sortType,
                                  applyCityOptions: { tag = $0; cityRole = $1; sortType = $2 }) { filter = $0; invalidate() }

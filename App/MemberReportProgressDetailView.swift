@@ -259,7 +259,7 @@ import SwiftUI
             }
         }
         .task(id: session.memberReportProgressIdentity) { await resolve() }
-        .sheet(isPresented: $showsSignIn, onDismiss: { Task { await resolve() } }) { Group { LoginView(intent: .player).environmentObject(session) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+        .cySheet(isPresented: $showsSignIn, onDismiss: { Task { await resolve() } }) { Group { LoginView(intent: .player).environmentObject(session) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
     }
 
     @ViewBuilder private var state: some View {

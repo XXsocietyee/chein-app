@@ -33,7 +33,7 @@ struct OwnerDraftGuestView: View {
                 CYPillButton("ownerDraft.signIn") { showsLogin = true }.listRowBackground(Color.clear).accessibilityIdentifier("ownerDraft.signIn")
             }
         }.appNavigationTitle("ownerDraft.title").navigationBarTitleDisplayMode(.inline)
-            .sheet(isPresented: $showsLogin) { Group { LoginView(intent: .player) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+            .cySheet(isPresented: $showsLogin) { Group { LoginView(intent: .player) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
     }
 }
 

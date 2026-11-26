@@ -7,7 +7,7 @@ def text(name): return (r/name).read_text()
 def expect(name,*parts):
  s=text(name)
  for p in parts: assert p in s,(name,p)
-expect('App/NativeMediaGallery.swift','fullScreenCover(item:', 'TabView(selection:', 'NativeZoomImage', 'RetainedImageSanitizer.sanitize', 'self.reader = reader ?? RetainedPublicImageReader()', 'maximumZoomScale = 5')
+expect('App/NativeMediaGallery.swift','cyFullScreenCover(item:', 'TabView(selection:', 'NativeZoomImage', 'RetainedImageSanitizer.sanitize', 'self.reader = reader ?? RetainedPublicImageReader()', 'maximumZoomScale = 5')
 assert 'AsyncImage' not in text('App/NativeMediaGallery.swift')
 expect('Core/RoamMerchant.swift','case id, name, cityRole, storyTitle, description, tags, gallery','prefix(100)')
 expect('App/RoamItemDetailView.swift','NativeMediaGalleryEntry(sources: merchant.gallery','posterDestination(node)','stampDestination()')

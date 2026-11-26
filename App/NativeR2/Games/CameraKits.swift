@@ -261,7 +261,7 @@ import VisionKit
                 }
             }
             .sensoryFeedback(.success, trigger: code) { _, next in next != nil }
-            .fullScreenCover(isPresented: $scanning) {
+            .cyFullScreenCover(isPresented: $scanning) {
                 NativeQRScanner { scanned in
                     guard mounted, enabled else { return }
                     liveCode = (identity, scanned)

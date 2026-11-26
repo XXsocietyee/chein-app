@@ -192,7 +192,7 @@ import UIKit
     let returned: () -> Void
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
-            .sheet(isPresented: host.binding(item, current: current, access: access), onDismiss: {
+            .cySheet(isPresented: host.binding(item, current: current, access: access), onDismiss: {
                 if host.closed(item, current: current(), access: access) { returned() }
             }) {
                 NavigationStack {

@@ -186,7 +186,7 @@ struct InvoiceLaunchApplyGroup: Identifiable {
         .onChange(of: model.identityRevision) { _, _ in titleID = nil; selected = []; choosingTitle = false; dismiss() }
         .onChange(of: model.overview?.titles) { _, _ in preselectTitle() }
         .onAppear { preselectTitle() }
-        .sheet(isPresented: $choosingTitle) {
+        .cySheet(isPresented: $choosingTitle) {
             titlePicker
                 .themeDomain(.player)
                 .presentationDetents([.medium, .large])

@@ -177,7 +177,7 @@ typealias WorkshopPurchasedUpgradeFactory = () -> WorkshopPurchasedUpgradeHandle
         .onChange(of: handlers.flow?.accountLease) { _, _ in
             Self.performAccountChanged(item: item, handlers: handlers, armed: &armedFlow, compareToken: &compareToken, draftSaved: &draftSaved, receipt: &receipt, showing: &showing, checking: &checking)
         }
-        .sheet(isPresented: $showing, onDismiss: {
+        .cySheet(isPresented: $showing, onDismiss: {
             Self.performInvalidate(compareToken: &compareToken, flow: armedFlow)
             armedFlow = nil
         }) {

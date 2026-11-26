@@ -115,20 +115,20 @@ import SwiftUI
                     }
                 }
             }
-            .sheet(item: model.review) { review in
+            .cySheet(item: model.review) { review in
                 NearbyTeamReviewView(model: model, snapshot: review)
                     .presentationDetents([.large])
                     .presentationDragIndicator(.hidden)
                     .presentationBackground(.clear)
             }
-            .sheet(isPresented: $showingRange) {
+            .cySheet(isPresented: $showingRange) {
                 PlayAreaNearbyRangeSheet(radii: NearbyQueryContext.radii, selected: radius, onSelect: { picked in
                     radius = picked
                     showingRange = false
                     toastMessage = PlayCloseCopy.text("已切换范围 \(picked / 1000) km", "Range updated to \(picked / 1000) km", locale)
                 }, onClose: { showingRange = false })
             }
-            .sheet(isPresented: $showingMapStyle) {
+            .cySheet(isPresented: $showingMapStyle) {
                 PlayAreaNearbyMapStyleSheet(selected: mapStyle, onSelect: { picked in
                     mapStyle = picked
                     showingMapStyle = false
@@ -169,7 +169,7 @@ import SwiftUI
             .onChange(of: joinedTeams) { _, _ in ownedReadVisit = UUID(); recruitAfterOwnedRead() }
             .onChange(of: mine.loading) { _, loading in if !loading { recruitAfterOwnedRead() } }
             .onDisappear { ownedReadVisible = false; ownedReadVisit = UUID(); discovery.cancel(); coordinator.leave() }
-            .sheet(item: $discoverySelection, onDismiss: {
+            .cySheet(item: $discoverySelection, onDismiss: {
                 if ownedReadVisible { reloadDiscovery(force: true) }
             }) { selection in Group {
                 if scenePhase == .active, let sources = discoverySources,

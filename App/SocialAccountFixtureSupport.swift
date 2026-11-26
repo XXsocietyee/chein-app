@@ -119,7 +119,7 @@ import Observation
                     case "editorSheet":
                         Button("social.editor.createPost") { showsEditor = true }
                             .accessibilityIdentifier("social.fixture.openEditor")
-                            .sheet(isPresented: $showsEditor) {
+                            .cySheet(isPresented: $showsEditor) {
                                 NavigationStack { SocialActionEditorView(purpose: .createPost, target: .newPost, coordinator: actions) }
                             }
                     case "editor": SocialActionEditorView(purpose: .createPost, target: .newPost, coordinator: actions)

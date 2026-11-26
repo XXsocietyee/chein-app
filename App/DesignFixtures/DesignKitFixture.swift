@@ -144,7 +144,7 @@ private struct DesignKitCanvas: View {
             undoTitle: "action.undo",
             onUndo: {}
         )
-        .sheet(isPresented: $showFullSheet) {
+        .cySheet(isPresented: $showFullSheet) {
             CYOptionSheet(
                 title: "选择核验方式",
                 items: [

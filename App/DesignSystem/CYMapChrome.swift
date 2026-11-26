@@ -357,7 +357,7 @@ private struct CYMapSheetModifier<Sheet: View>: ViewModifier {
     @State private var selection: PresentationDetent = .height(236)
 
     func body(content: Content) -> some View {
-        content.sheet(isPresented: $isPresented) {
+        content.cySheet(isPresented: $isPresented) {
             sheet()
                 .presentationDetents(detents, selection: $selection)
                 .presentationDragIndicator(.visible)

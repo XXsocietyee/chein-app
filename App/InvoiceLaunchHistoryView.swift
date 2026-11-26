@@ -98,7 +98,7 @@ import SwiftUI
         .navigationDestination(isPresented: $openApply) { InvoiceLaunchApplyView(model: model, onSignIn: onSignIn) }
         .cyPageTitle(verbatim: invoiceString("history"))
         .task { await model.refresh() }.refreshable { await model.refresh() }
-        .sheet(isPresented: Binding(
+        .cySheet(isPresented: Binding(
             get: { withdraw.confirming != nil }, set: { if !$0 { withdraw.cancelAsk() } })) {
             MemberInvoiceWithdrawConfirmSheet(confirmIdentifier: "invoice.history.withdraw.confirm") {
                 // Success is announced only after the service returns success.

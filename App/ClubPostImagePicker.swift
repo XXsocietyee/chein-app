@@ -444,7 +444,7 @@ struct ClubPostImageSectionView: View {
         }
         Color.clear
             .frame(height: 0)
-            .sheet(
+            .cySheet(
                 isPresented: Binding(
                     get: { bridge.previewingCandidate != nil },
                     set: { if !$0 { bridge.closePreview() } }

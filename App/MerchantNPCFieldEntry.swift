@@ -37,7 +37,7 @@ import SwiftUI
     func body(content: Content) -> some View {
         content.background {
             Color.clear.frame(width: 0, height: 0)
-                .sheet(item: presentation.presentationBinding()) { selected in
+                .cySheet(item: presentation.presentationBinding()) { selected in
                     Group {
                         MerchantNPCFieldSheet(session: selected) { presentation.close(selected.id) }
                     }

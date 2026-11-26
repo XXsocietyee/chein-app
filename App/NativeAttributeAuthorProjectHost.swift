@@ -189,7 +189,7 @@ extension EnvironmentValues {
                 }
             }
         }
-        .sheet(item: Binding<NativeAttributeAuthorProjectPresentation?>(get: {
+        .cySheet(item: Binding<NativeAttributeAuthorProjectPresentation?>(get: {
             guard scenePhase == .active, let presentation, presentation.visit.isCurrent else { return nil }; return presentation
         }, set: { next in if next == nil, let original { close(original) } })) { original in Group {
             NavigationStack {

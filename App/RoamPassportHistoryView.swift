@@ -121,7 +121,7 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
         .onChange(of: RoamPassportHistoryOwner(reader)) { _, _ in selected = nil; model.suspend() }
         .onDisappear { model.suspend() }
         .refreshable { await model.read(refresh) }
-        .sheet(item: $selected) { selected in Group {
+        .cySheet(item: $selected) { selected in Group {
             if selected.owner == RoamPassportHistoryOwner(reader) {
                 NavigationStack { RoamPassportRecordView(reader: reader, sessionID: selected.id, localReader: localReader, owner: selected.owner) }
             } else { passportText("changed") }

@@ -262,7 +262,7 @@ struct SettingsView: View {
             .labelStyle(SettingsTileLabelStyle())
             }
             }
-            .sheet(isPresented: $showsSignIn) { Group { LoginView(intent: .player) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+            .cySheet(isPresented: $showsSignIn) { Group { LoginView(intent: .player) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("settings.search.prompt"))
             .modifier(ProfileSettingsProfileNavigation(session: session, owner: profileOwner))
             .modifier(ProfileSettingsFavoritesNavigation(session: session, owner: favoritesOwner))
@@ -405,7 +405,7 @@ private struct SettingsSearchResults: View {
             }
         }
         .labelStyle(SettingsTileLabelStyle())
-        .sheet(item: $sheetDestination) { destination in Group {
+        .cySheet(item: $sheetDestination) { destination in Group {
             if let c = session.accountComplianceCoordinator {
                 AccountComplianceSheetStack(coordinator: c, destination: destination, market: session.operationalMarket, legalReader: session.legalReader)
             }

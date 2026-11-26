@@ -117,7 +117,7 @@ import SwiftUI
             }
         }
         .transaction { if reduceMotion { $0.disablesAnimations = true } }
-        .sheet(isPresented: $purpose) {
+        .cySheet(isPresented: $purpose) {
             NavigationStack {
                 Form {
                     Section {
@@ -267,7 +267,7 @@ import SwiftUI
         .onChange(of: segment) { _, _ in reviewed = nil; Task { await refresh() } }
         .onChange(of: active) { _, current in if !current { reviewed = nil; stage?.invalidate() } }
         .onChange(of: scenePhase) { _, next in if next == .active { Task { await refresh() } } else { reviewed = nil } }
-        .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) {
+        .cySheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) {
             if let reviewed, let stage {
                 NavigationStack {
                     Form {

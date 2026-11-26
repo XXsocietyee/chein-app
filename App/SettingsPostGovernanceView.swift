@@ -15,7 +15,7 @@ import SwiftUI
                 }
                 .accessibilityIdentifier("settings-post-governance")
             }
-            .sheet(isPresented: $presented) {
+            .cySheet(isPresented: $presented) {
                 SettingsPostGovernanceSheet(coordinator: coordinator, access: session.squareGovernanceAccess())
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)

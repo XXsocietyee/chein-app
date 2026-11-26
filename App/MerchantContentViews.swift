@@ -123,7 +123,7 @@ struct MerchantContentBoundary: View {
         // Clearing the source rows here would remove the pushed NavigationLink's owner.
         // Scope changes still invalidate via load(), and isCurrent rejects stale display data.
         .onDisappear { model.suspend() }
-        .sheet(item: Binding(get: { c.isCurrent && model.projectActionsAreCurrent ? c.review : nil }, set: { if $0 == nil { model.cancel() } })) { value in Group { MerchantContentReviewView(model: model, review: value) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+        .cySheet(item: Binding(get: { c.isCurrent && model.projectActionsAreCurrent ? c.review : nil }, set: { if $0 == nil { model.cancel() } })) { value in Group { MerchantContentReviewView(model: model, review: value) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
     }
     @ViewBuilder private func content(_ s: MerchantContentSnapshot) -> some View {
         switch query {
@@ -212,7 +212,7 @@ struct MerchantContentBoundary: View {
             if c.locked && allowsRecovery {
                 Button("merchant.content.reconcile") { Task { await model.reconcile() } }.disabled(c.busy)
                 Button("merchant.content.retryOriginal") { confirmsRetry = true }.disabled(c.busy || !c.service.permitsWrites)
-                    .sheet(isPresented: $confirmsRetry) {
+                    .cySheet(isPresented: $confirmsRetry) {
                         CYConfirmSheet(
                             title: appLocalized("merchant.content.retryOriginalWarning", locale: locale),
                             message: "",

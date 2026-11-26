@@ -86,7 +86,7 @@ import CryptoKit
         .privacySensitive()
         .accessibilityIdentifier("nativeEnrollment.host")
         .task { await model.load() }
-        .sheet(item: $review) { action in
+        .cySheet(item: $review) { action in
             NavigationStack {
                 Form {
                     Section {

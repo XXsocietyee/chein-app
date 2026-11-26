@@ -116,7 +116,7 @@ struct TopicDetailView: View {
         .task(id: key) { await loads.run { await load() } }
         .task(id: key) { await seedFavorite() }
         .onDisappear { loads.cancel(); generation += 1; settleLoading() }
-        .sheet(isPresented: $showsReview) {
+        .cySheet(isPresented: $showsReview) {
             NavigationStack { ContextualReviewComposer(target: .topic(id), owner: reviewOwner) { loads.start { await load() } } }
                 .cyPlayerSheetGlass()
                 .cyDomainSheet(detents: [.half, .full])
@@ -125,14 +125,14 @@ struct TopicDetailView: View {
         .navigationDestination(isPresented: $showingPlay) {
             if let playDestination { playDestination(id) }
         }
-        .sheet(isPresented: $showingTickets, onDismiss: { barSheetOrigin = nil }) {
+        .cySheet(isPresented: $showingTickets, onDismiss: { barSheetOrigin = nil }) {
             if let ticketWalletDestination {
                 ticketWalletDestination(id)
                     .modifier(TopicBarHeroDestination(sheet: .tickets, origin: barSheetOrigin, namespace: barHero))
                     .cyDomainSheet(detents: [.half, .full])
             }
         }
-        .sheet(isPresented: $showingSelfPlay, onDismiss: { barSheetOrigin = nil }) {
+        .cySheet(isPresented: $showingSelfPlay, onDismiss: { barSheetOrigin = nil }) {
             Group {
                 if let detail {
                     if let selfPlayDestination { selfPlayDestination(detail) }
@@ -143,7 +143,7 @@ struct TopicDetailView: View {
             .cyPlayerSheetGlass()
             .cyDomainSheet(detents: [.half, .full])
         }
-        .sheet(isPresented: $showingClubTransferPicker) {
+        .cySheet(isPresented: $showingClubTransferPicker) {
             NavigationStack {
                 List(transferClubs) { club in
                     Button {
@@ -180,7 +180,7 @@ struct TopicDetailView: View {
             }
             .presentationDetents([.medium, .large])
         }
-        .sheet(isPresented: $showingContactSheet) {
+        .cySheet(isPresented: $showingContactSheet) {
             NavigationStack {
                 Form {
                     Section {
@@ -593,21 +593,21 @@ struct TopicDetailView: View {
                               openTickets: ticketWalletDestination == nil ? nil : { barSheetOrigin = .tickets; showingTickets = true },
                               heroNamespace: barHero)
         }
-        .sheet(isPresented: $showingSessionSelection, onDismiss: { sessionPreferName = nil; loads.start { await load() } }) {
+        .cySheet(isPresented: $showingSessionSelection, onDismiss: { sessionPreferName = nil; loads.start { await load() } }) {
             TopicSessionSelectionView(detail: value, scope: key.scope, activityDestination: activityDestination,
                                       preferredTicketName: sessionPreferName)
                 .modifier(TopicBarHeroDestination(sheet: .sessions, origin: .sessions, namespace: barHero)) // only the bar opens it
                 .cyPlayerSheetGlass()
                 .cyDomainSheet(detents: [.half, .full])
         }
-        .sheet(isPresented: $showsEditor) {
+        .cySheet(isPresented: $showsEditor) {
             if let editorDestination, case .editor(let scope) = TopicXcxFacts.ownerSaleRoute(value) {
                 NavigationStack { editorDestination(value.id, scope) }
                     .cyPlayerSheetGlass()
                     .cyDomainSheet(detents: [.full])
             }
         }
-        .sheet(isPresented: $showsPricing, onDismiss: { barSheetOrigin = nil }) {
+        .cySheet(isPresented: $showsPricing, onDismiss: { barSheetOrigin = nil }) {
             if let pricingDestination {
                 NavigationStack {
                     pricingDestination(value.id)

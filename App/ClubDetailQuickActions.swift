@@ -57,7 +57,7 @@ import SwiftUI
                 scanning = true
                 onConsumeAutoStart()
             }
-            .sheet(isPresented: $scanning) {
+            .cySheet(isPresented: $scanning) {
                 NativeQRScanner { raw in
                     scanning = false
                     Task { await handle(raw) }

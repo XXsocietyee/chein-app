@@ -62,7 +62,7 @@ import QuestifyCore
                 .fixedSize(horizontal: false, vertical: true)
         }
         .cyDomainCard()
-        .fullScreenCover(isPresented: $showingCamera) {
+        .cyFullScreenCover(isPresented: $showingCamera) {
             let ticket = generation
             RoamNativeStampCamera { result in
                 guard ticket == generation, scenePhase == .active else { return }

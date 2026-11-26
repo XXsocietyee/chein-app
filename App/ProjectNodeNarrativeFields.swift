@@ -115,7 +115,7 @@ struct ProjectNodeNarrativeHostIdentity: Hashable {
             Text("projectNodeNarrative.hint").cyText(.bodyCompact).foregroundStyle(.secondary)
             if opening == nil { Text("projectNodeNarrative.unavailable").cyText(.bodyCompact) }
         }
-        .sheet(item: Binding(get: {
+        .cySheet(item: Binding(get: {
             controller.matchesHost(model: model, chapterID: chapterID, nodeID: nodeID) ? controller.destination : nil
         }, set: { next in
             if next == nil, let original { controller.close(original) }

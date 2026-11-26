@@ -140,7 +140,7 @@ import UIKit
     let changed: () -> Void
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
-            .sheet(item: model.binding(value, allowed: allowed), onDismiss: { model.close(value) }) { item in Group {
+            .cySheet(item: model.binding(value, allowed: allowed), onDismiss: { model.close(value) }) { item in Group {
                 Group {
                     if model.current(item, allowed: allowed) {
                         switch item.kind {

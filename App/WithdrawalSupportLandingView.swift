@@ -85,7 +85,7 @@ struct WithdrawalOrderLookupRequest {
             .onAppear { appearOrderLookup() }
             .refreshable { await load() }
             .onDisappear { generation += 1; loading = false }
-            .sheet(isPresented: $showContact) { WithdrawalSupportContactView() }
+            .cySheet(isPresented: $showContact) { WithdrawalSupportContactView() }
             .accessibilityIdentifier("withdrawal.support.landing")
     }
     private func amount(_ value: WalletAmount, currency: String?) -> String {

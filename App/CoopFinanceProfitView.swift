@@ -50,7 +50,7 @@ extension EnvironmentValues {
         .refreshable { await load() }
         .onDisappear { generation = UUID() }
         .onChange(of: reader.session) { _, _ in showsSupport = false }
-        .sheet(isPresented: $showsSupport) {
+        .cySheet(isPresented: $showsSupport) {
             WithdrawalSupportContactView()
                 .cyDomainSheet(detents: [.half, .full])
                 .themeDomain(.merchant)

@@ -42,7 +42,7 @@ import SwiftUI
         .navigationDestination(isPresented: Binding(get: { originalResult != nil }, set: { if !$0 { originalResult = nil } })) {
             if let originalResult { CityNeutralTaskResultRecoveryView(controller: originalResult) }
         }
-        .sheet(item: Binding(get: { controller.current && scenePhase == .active ? controller.confirmation : nil }, set: { if $0 == nil { controller.cancelConfirmation() } })) { captured in Group {
+        .cySheet(item: Binding(get: { controller.current && scenePhase == .active ? controller.confirmation : nil }, set: { if $0 == nil { controller.cancelConfirmation() } })) { captured in Group {
             NavigationStack {
                 Form {
                     Text(LocalizedStringKey(captured.command.kind == .accept ? "cityNeutral.accept" : "cityNeutral.submit"), tableName: table)

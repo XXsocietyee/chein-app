@@ -31,13 +31,13 @@ import SwiftUI
         }
         .task(id: runtimeGap?.activityID) { await reload() }
         .onChange(of: scenePhase) { _, phase in if phase == .active { Task { await reload() } } }
-        .sheet(item: Binding(get: { help.map(HelpSheetID.init) }, set: { if $0 == nil { closeHelp() } })) { _ in
+        .cySheet(item: Binding(get: { help.map(HelpSheetID.init) }, set: { if $0 == nil { closeHelp() } })) { _ in
             if let help {
                 PlayCoopHelpSheet(flow: help) { closeHelp() }
                     .cyDomainSheet(detents: [.half, .full])
             }
         }
-        .sheet(item: Binding(get: { tradeForm.map { TradeSheetID(key: $0.tradeKey) } }, set: { if $0 == nil { tradeForm = nil } })) { _ in
+        .cySheet(item: Binding(get: { tradeForm.map { TradeSheetID(key: $0.tradeKey) } }, set: { if $0 == nil { tradeForm = nil } })) { _ in
             if case .loaded(let snapshot) = read, let form = tradeForm {
                 PlayTeamTradePreviewSheet(form: form, snapshot: snapshot, client: { runtimeGap?.client() },
                                           reload: { await reload(); if case .loaded(let next) = read { return next }; return nil })

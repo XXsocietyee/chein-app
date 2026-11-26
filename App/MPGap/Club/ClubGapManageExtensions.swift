@@ -45,7 +45,7 @@ public struct ClubGapCoopPoolSection: View {
         } header: {
             Text(verbatim: ClubCoopPoolCopy.sectionTitle)
         }
-        .sheet(item: $applyingItem) { item in
+        .cySheet(item: $applyingItem) { item in
             NavigationStack {
                 Form {
                     Section {

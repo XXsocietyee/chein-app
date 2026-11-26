@@ -121,7 +121,7 @@ import SwiftUI
     @ObservedObject var controller: ProjectChapterRemovalController
     func body(content: Content) -> some View {
         let original = controller.confirmation
-        content.sheet(item: controller.binding(original)) { value in
+        content.cySheet(item: controller.binding(original)) { value in
             NavigationStack {
                 Form {
                     if controller.isCurrent(value) {

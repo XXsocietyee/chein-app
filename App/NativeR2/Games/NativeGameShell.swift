@@ -137,8 +137,8 @@ extension EnvironmentValues {
         }
         .safeAreaInset(edge: .bottom) { submitBar }
         .sensoryFeedback(.error, trigger: wrongReply) { _, next in next != nil }
-        .sheet(isPresented: $resultPresented) { resultSheet }
-        .sheet(isPresented: $hintShown) { hintSheet }
+        .cySheet(isPresented: $resultPresented) { resultSheet }
+        .cySheet(isPresented: $hintShown) { hintSheet }
         .accessibilityIdentifier(identifier)
     }
 

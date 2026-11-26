@@ -206,7 +206,7 @@ enum SquarePostLocalMediaPresentationState: Equatable {
         }
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityIdentifier("squarePostLocalMedia.state")
-        .sheet(isPresented: Binding(get: { model.previewRequest != nil }, set: { if !$0 { model.closePreview() } })) { Group {
+        .cySheet(isPresented: Binding(get: { model.previewRequest != nil }, set: { if !$0 { model.closePreview() } })) { Group {
             if let request = model.previewRequest {
                 NavigationStack {
                     Group {

@@ -98,10 +98,10 @@ extension EnvironmentValues {
         .navigationTitle("verification.title").navigationBarTitleDisplayMode(.inline)
         .privacySensitive().scrollDismissesKeyboard(.interactively)
         .task(id: flow.scope) { raw = ""; await flow.activate() }
-        .sheet(isPresented: $camera) {
+        .cySheet(isPresented: $camera) {
             NativeQRScanner { value in raw = ""; Task { await flow.prepare(raw: value) } }
         }
-        .sheet(item: Binding(get: { flow.review }, set: { if $0 == nil { flow.cancelReview() } })) { review in
+        .cySheet(item: Binding(get: { flow.review }, set: { if $0 == nil { flow.cancelReview() } })) { review in
             NativeVerificationReviewView(review: review, canConfirm: flow.canConfirm,
                 confirm: { Task { await flow.confirm(review) } }, cancel: { flow.cancelReview() })
         }

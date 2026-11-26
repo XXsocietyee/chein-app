@@ -36,7 +36,7 @@ import SwiftUI
             }
             if let issue { Text(LocalizedStringKey(issue)).foregroundStyle(.secondary) }
         }.cyPageTitle("merchant.engagement.evidence")
-        .sheet(isPresented: $showingCamera) {
+        .cySheet(isPresented: $showingCamera) {
             MerchantEvidenceCameraCapture { bytes in
                 showingCamera = false
                 guard cameraSelectionEnabled, currentScope() == selectedScope, let bytes else { return }

@@ -151,7 +151,7 @@ import SwiftUI
         .navigationDestination(isPresented: $applyingMerchant) {
             MPReviewedPageScreen(page: "pages/merchant/apply/index", query: [:])
         }
-        .sheet(item: $detailItem) { item in
+        .cySheet(item: $detailItem) { item in
             NavigationStack {
                 CouponManagementDetailView(model: model, id: item.id, scope: scope)
                     .toolbar {
@@ -164,7 +164,7 @@ import SwiftUI
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
         }
-        .sheet(isPresented: $creating) {
+        .cySheet(isPresented: $creating) {
             NavigationStack { CouponManagementEditor(model: model) }
                 .themeDomain(.topicEditor)
                 .presentationDetents([.large])
@@ -377,7 +377,7 @@ private struct CouponManagementDetailItem: Identifiable {
                 .background(.bar)
             }
         }
-        .sheet(isPresented: $discard) {
+        .cySheet(isPresented: $discard) {
             MemberCouponDiscardConfirmSheet {
                 discard = false
                 model.core.discardDraft()
@@ -385,7 +385,7 @@ private struct CouponManagementDetailItem: Identifiable {
                 dismiss()
             }
         }
-        .sheet(item: $rangeEditor, onDismiss: {
+        .cySheet(item: $rangeEditor, onDismiss: {
             // Mini-program toast 时间设置完成 after a confirmed range, shown inline instead of a toast.
             if let baseline = rangeBaseline, baseline != rangeDates, model.core.draft.startTime != nil, model.core.draft.endTime != nil {
                 rangeCompleted = true

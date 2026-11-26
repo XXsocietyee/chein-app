@@ -85,7 +85,7 @@ import SwiftUI
                 .buttonStyle(.borderless).disabled(capture == nil).accessibilityIdentifier("projectNodeOverview.open")
             if let reason = projection.reason { Text(LocalizedStringKey("projectNodeOverview.reason." + reason.rawValue), tableName: "ProjectDraftNodeOverview").font(.caption) }
         }
-        .sheet(item: controller.binding(original)) { original in
+        .cySheet(item: controller.binding(original)) { original in
             Group {
                 ProjectDraftNodeOverview(controller: controller, original: original)
                     .themeDomain(.topicEditor)

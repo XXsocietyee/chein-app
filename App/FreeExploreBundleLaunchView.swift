@@ -110,7 +110,7 @@ import SwiftUI
         .onChange(of: unitID) { _, _ in offerID = nil; model.cancelReview() }
         .onChange(of: offerID) { _, _ in model.cancelReview() }
         .onChange(of: date) { _, _ in model.cancelReview() }
-        .sheet(item: Binding(get: { model.review }, set: { if $0 == nil { model.cancelReview() } })) { review in
+        .cySheet(item: Binding(get: { model.review }, set: { if $0 == nil { model.cancelReview() } })) { review in
             NavigationStack {
                 Form {
                     text("notice")
@@ -133,7 +133,7 @@ import SwiftUI
             .cyDomainSheet(detents: [.half, .full])
         }
         // MKT-7-3b: sheets, not pushes, so the read host is not retired while an action is open.
-        .sheet(item: $bundleAction) { action in
+        .cySheet(item: $bundleAction) { action in
             if let host {
                 NavigationStack {
                     FreeExploreBundleActionSheet(action: action, host: host, model: model)

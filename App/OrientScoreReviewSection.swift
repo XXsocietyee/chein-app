@@ -117,7 +117,7 @@ struct OrientScoreReviewSheetTarget: Identifiable, Equatable {
                 statusView
             }
         }
-        .sheet(item: $sheet, onDismiss: {
+        .cySheet(item: $sheet, onDismiss: {
             guard let pending = pendingReview else { return }
             pendingReview = nil
             model.review(kind: pending.kind, reason: pending.reason)
@@ -131,7 +131,7 @@ struct OrientScoreReviewSheetTarget: Identifiable, Equatable {
                 },
                 onClose: { sheet = nil })
         }
-        .sheet(isPresented: Binding(
+        .cySheet(isPresented: Binding(
             get: { if case .awaitingConfirmation = model.state { return true } else { return false } },
             set: { if !$0 { model.cancel() } })
         ) {

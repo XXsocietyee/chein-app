@@ -64,7 +64,7 @@ import SwiftUI
             if model.coordinator.unresolved { Text("merchantVoice.unknown").accessibilityIdentifier("merchantVoice.unknown") }
             MerchantNPCIssue(failure: model.coordinator.failure)
         }
-        .sheet(isPresented: Binding(
+        .cySheet(isPresented: Binding(
             get: { resetVisible && scenePhase == .active && reset != nil && model.coordinator.resetReview?.id == reset?.id },
             set: { showing in if !showing, let reset { model.coordinator.cancelLocalReset(reset.id) } }
         )) {

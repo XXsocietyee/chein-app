@@ -31,7 +31,7 @@ import SwiftUI
             .environment(\.ticketWalletPlayProvider, SessionTicketWalletProviders.play(session))
             .environment(\.ticketWalletPendingOrderProvider, SessionTicketWalletProviders.pendingOrder(session))
             .id(session.ticketWalletReader.scope)
-            .sheet(isPresented: $login) { LoginView(intent: .player) }
+            .cySheet(isPresented: $login) { LoginView(intent: .player) }
             .onChange(of: session.sessionRevision) { _, _ in login = false }
     }
 }

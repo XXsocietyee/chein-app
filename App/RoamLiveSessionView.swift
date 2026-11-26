@@ -131,7 +131,7 @@ import QuestifyCore
                     .accessibilityIdentifier("roam.live.tools")
             }
         }
-        .sheet(isPresented: $showTools) {
+        .cySheet(isPresented: $showTools) {
             RoamSessionToolsSheetView(runners: runners, presenceEnabled: owner.presenceEnabled,
                                       fogOn: fogOnBinding, mapKind: mapKindBinding, reduceMotion: reducedMotionBinding)
         }
@@ -426,7 +426,7 @@ import QuestifyCore
                 withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) { revealToastShown = false }
             }
         }
-        .sheet(isPresented: $showingLocationPriming, onDismiss: {
+        .cySheet(isPresented: $showingLocationPriming, onDismiss: {
             guard locationPrimingAllowed else { return }
             locationPrimingAllowed = false
             Task {
@@ -452,10 +452,10 @@ import QuestifyCore
                 }, onCancel: { confirmFinish = false })
             }
         }
-        .sheet(isPresented: $showRules) {
+        .cySheet(isPresented: $showRules) {
             NavigationStack { RoamLiveRulesView() }.cySheet()
         }
-        .sheet(item: $checkin) { target in Group { RoamCheckinSheet(target: target) }.cySheet(detents: [.large]) }
+        .cySheet(item: $checkin) { target in Group { RoamCheckinSheet(target: target) }.cySheet(detents: [.large]) }
         .background {
             RoamPausedBrowseLifetimeAnchor(presentation: browse).frame(width: 0, height: 0)
         }
@@ -1231,7 +1231,7 @@ struct RoamPausedBrowseCopy {
     let reader: (any RoamExperienceReading)?
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
-            .sheet(item: presentation.binding(for: target, owner: owner, reader: reader),
+            .cySheet(item: presentation.binding(for: target, owner: owner, reader: reader),
                    onDismiss: { presentation.close(id: target.id) }) { offered in Group {
                 NavigationStack {
                     if presentation.matches(offered, owner: owner, reader: reader) {

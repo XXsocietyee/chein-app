@@ -13,7 +13,7 @@ import SwiftUI
             .environment(\.bundleCommercePublicMerchant, session.publicMerchantHomeContext)
             .environment(\.profileOrderInvoicePresentation, { [weak session] in session?.makeInvoiceLaunchPresentation() })
             .id(session.ownedOrderReader.identity)
-            .sheet(isPresented: $showsSignIn) { Group { LoginView(intent: .player).environmentObject(session) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+            .cySheet(isPresented: $showsSignIn) { Group { LoginView(intent: .player).environmentObject(session) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
     }
 }
 
@@ -60,7 +60,7 @@ import SwiftUI
             .environment(\.bundleCommercePublicMerchant, session.publicMerchantHomeContext)
             .environment(\.profileOrderInvoicePresentation, { [weak session] in session?.makeInvoiceLaunchPresentation() })
             .id(session.ownedOrderReader.identity)
-            .sheet(isPresented: $showsSignIn) { Group { LoginView(intent: .player).environmentObject(session) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+            .cySheet(isPresented: $showsSignIn) { Group { LoginView(intent: .player).environmentObject(session) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
     }
 }
 

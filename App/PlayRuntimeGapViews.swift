@@ -171,7 +171,7 @@ import SwiftUI
                                 icon: { Image(systemName: setup.closed ? "clock" : setup.ready(ticked: ticked) ? "checkmark.circle" : "info.circle") }
                         }.accessibilityIdentifier("play.prep.row")
                     }
-                    .sheet(isPresented: $showing) {
+                    .cySheet(isPresented: $showing) {
                         sheet(setup)
                             .cyDomainSheet(detents: [.half, .full])
                             .themeDomain(.player)

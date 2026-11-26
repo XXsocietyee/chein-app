@@ -52,7 +52,7 @@ struct ActivityDetailView: View {
                 sessionDetail(guestSignIn: nil)
             }
         }
-        .sheet(isPresented: $showsGuestLogin) {
+        .cySheet(isPresented: $showsGuestLogin) {
             Group { LoginView(intent: .player).environmentObject(session) }.presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .onChange(of: session.account == nil) { _, signedOut in if !signedOut { showsGuestLogin = false } }
@@ -231,7 +231,7 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
             }
         }
         .environment(\.ugcSafetySubjectID, id)
-        .sheet(isPresented: $showsShare) {
+        .cySheet(isPresented: $showsShare) {
             if let access, case .allowed(let detail) = access {
                 CatalogShareCardView(content: shareContent(detail), tint: .sunset)
                     .themeDomain(.player)
@@ -274,12 +274,12 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                 ContentUnavailableView("social.changed", systemImage: "person.crop.circle.badge.exclamationmark")
             }
         }
-        .sheet(isPresented: $showsReview) {
+        .cySheet(isPresented: $showsReview) {
             NavigationStack { ContextualReviewComposer(target: .activity(id), owner: (reader as? AppSession)?.contextualReviews?.coordinator(.activity(id))) { loads.start { await load() } } }
                 .themeDomain(.player)
                 .cySheet()
         }
-        .sheet(isPresented:$showsRegistration, onDismiss: { tileOpenedSheet = false }) {
+        .cySheet(isPresented:$showsRegistration, onDismiss: { tileOpenedSheet = false }) {
             Group {
             if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail) }
             }
@@ -298,7 +298,7 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                 SessionPlayRuntimeView(session: session, destination: .journey(.activity(id)))
             } else if let playReaderForActivity { PlaySessionView(reader: playReaderForActivity(id)) }
         }
-        .sheet(isPresented:$showsTicketWallet, onDismiss: { tileOpenedSheet = false }) {
+        .cySheet(isPresented:$showsTicketWallet, onDismiss: { tileOpenedSheet = false }) {
             // Source: a registered viewer's CTA opens the ticket wallet (subpackageMember/signup).
             if let session = reader as? AppSession {
                 SessionTicketWalletHost(onClose:{ showsTicketWallet=false })
@@ -559,7 +559,7 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                 }
             }
         }
-        .sheet(isPresented: $showsHostCancelFromFooter) {
+        .cySheet(isPresented: $showsHostCancelFromFooter) {
             if let access = hostCancelAccess {
                 ActivityHostCancelSheet(detail: detail, access: access) {
                     showsHostCancelFromFooter = false
@@ -719,7 +719,7 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                 .controlSize(.large)
                 .disabled(!access.enabled)
                 .accessibilityIdentifier("activity.hostCancel.footer")
-                .sheet(isPresented: $showsHostCancelFromFooter) {
+                .cySheet(isPresented: $showsHostCancelFromFooter) {
                     ActivityHostCancelSheet(detail: detail, access: access) {
                         showsHostCancelFromFooter = false
                         await load()

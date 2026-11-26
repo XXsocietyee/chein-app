@@ -100,7 +100,7 @@ import SwiftUI
             .navigationTitle("merchant.contactFlow.title").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("merchant.contactFlow.close") { flow.invalidate(); dismiss() } } }
         }
-        .sheet(item: Binding(get: { flow.coordinator.review }, set: { if $0 == nil && !flow.coordinator.busy { flow.cancelReview() } })) { review in
+        .cySheet(item: Binding(get: { flow.coordinator.review }, set: { if $0 == nil && !flow.coordinator.busy { flow.cancelReview() } })) { review in
             Group {
                 MerchantEngagementReviewView(review: review,
                     enabled: flow.isCurrent && flow.reader.canExecute(review.command, merchantID: flow.selection.merchantID),

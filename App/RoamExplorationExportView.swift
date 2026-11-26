@@ -240,7 +240,7 @@ private struct RoamExportFileSaveLink: View {
                 }.id(ticket.id)
             }
         }
-        .sheet(item: $shareOffer) { offer in
+        .cySheet(item: $shareOffer) { offer in
             RoamExportActivityShare(file: offer.file, lease: offer.lease, token: offer.token, context: deliveryContext,
                                     isCurrent: { owner.active && model.deliveryLease === offer.lease && model.fileForDelivery(foreground: scenePhase == .active) != nil },
                                     finish: { saved in

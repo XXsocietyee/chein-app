@@ -350,7 +350,7 @@ import SwiftUI
     }
     var body: some View {
         pageBody.themeDomain(.topicEditor)
-            .sheet(isPresented: $showsSignIn) { LoginView(intent: .player) }
+            .cySheet(isPresented: $showsSignIn) { LoginView(intent: .player) }
     }
     @ViewBuilder private var pageBody: some View {
         let opening = model.captureStarterLease()
@@ -751,32 +751,32 @@ import SwiftUI
                 publisherHost(destination.receipt.resource)
             } else { Text("discovery.templateSessionChanged") }
         }
-        .sheet(item: modeReview.binding(modePresentation)) { original in
+        .cySheet(item: modeReview.binding(modePresentation)) { original in
             ProjectEditModeReviewSheet(controller: modeReview, original: original, finished: { created in
                 copiedCoordinator = created; showingCopy = true; modeCopyFailed = false
             }, failed: { modeCopyFailed = true })
             .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
             .themeDomain(.topicEditor)
         }
-        .sheet(item: submissionBinding(presentedSubmission: presentedSubmission, submissionIncarnation: submissionIncarnation)) { receipt in
+        .cySheet(item: submissionBinding(presentedSubmission: presentedSubmission, submissionIncarnation: submissionIncarnation)) { receipt in
             submissionResult(receipt: receipt, submissionIncarnation: submissionIncarnation)
                 .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
                 .themeDomain(.topicEditor)
         }
-        .sheet(item: ownedCover.binding(coverPresentation)) { original in
+        .cySheet(item: ownedCover.binding(coverPresentation)) { original in
             OwnedTopicCoverAuthorView(original: original, mayChange: { ownedCover.mayChange(original.opening) },
                 selected: { ownedCover.acceptedSelection($0); reviewRequest.retire(); approvedRelease.retire() }, close: { ownedCover.close(original) }, picker: ownedCoverPicker?())
                 .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
                 .themeDomain(.topicEditor)
         }
-        .sheet(item: approvedRelease.binding(releasePresentation)) { original in
+        .cySheet(item: approvedRelease.binding(releasePresentation)) { original in
             if approvedRelease.isPresented(original) {
                 ApprovedReleasePreparationView(original: original) { approvedRelease.close(original) }
                     .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
                     .themeDomain(.topicEditor)
             }
         }
-        .sheet(item: reviewRequest.binding(reviewRequestPresentation)) { original in
+        .cySheet(item: reviewRequest.binding(reviewRequestPresentation)) { original in
             Group {
                 if reviewRequest.isPresented(original) { ApprovedTopicReviewRequestView(original: original) { reviewRequest.close(original) } }
             }.presentationDetents([.medium, .large]).presentationDragIndicator(.visible)

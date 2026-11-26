@@ -73,7 +73,7 @@ struct PublicCatalogView: View {
                 }
             }
         }
-        .sheet(isPresented: $cityPickerShown) { citySheet }
+        .cySheet(isPresented: $cityPickerShown) { citySheet }
         .refreshable { onRetry() }
     }
 

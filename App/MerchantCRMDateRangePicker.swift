@@ -25,7 +25,7 @@ import SwiftUI
             guard let context else { return }
             editor = .init(context: context, original: .init(start: start, end: end))
         }.disabled(context == nil).accessibilityIdentifier("merchant.crmDate.open")
-        .sheet(item: $editor) { captured in
+        .cySheet(item: $editor) { captured in
             Group {
                 MerchantCRMDateRangeSheet(initial: captured.original, cancel: { editor = nil }) { value in
                     guard context == captured.context, start == captured.original.start, end == captured.original.end,

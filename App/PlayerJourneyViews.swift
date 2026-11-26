@@ -94,7 +94,7 @@ extension AppSession {
         .environment(\.participationCharacterProbe, { [weak session] topicID in await session?.probeCharacterCard(topicID: topicID) ?? false })
         .environment(\.participationModifyEditor, { [weak session] id in session?.participationModifyEditor(registrationID: id) ?? AnyView(EmptyView()) })
         .navigationDestination(item: $route) { route in PlayerJourneyRouteDestination(route: route) }
-        .sheet(isPresented: $login) { Group { LoginView(intent: .player) }.cySheet(detents: [.large]) }
+        .cySheet(isPresented: $login) { Group { LoginView(intent: .player) }.cySheet(detents: [.large]) }
         .modifier(MerchantVerificationPopupCompanionModifier(flow: session.nativeVerificationFlow))
         .onChange(of: session.sessionRevision) { _, _ in route = nil; login = false }
     }
@@ -366,7 +366,7 @@ extension AppSession {
             Task { quietReload = true; await load(); quietReload = false }
         }
         .onDisappear { generation = UUID() }
-        .sheet(item: $selected, onDismiss: {
+        .cySheet(item: $selected, onDismiss: {
             let pending = nextRoute; nextRoute = nil
             if let pending {
                 returnFocusID = nil

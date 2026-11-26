@@ -30,7 +30,7 @@ import SwiftUI
                     .disabled(!canRetry).accessibilityIdentifier("ordinary.receipt.reviewRetry")
             }
         }
-        .sheet(isPresented: $showingConfirmation, onDismiss: { reviewedID = nil }) {
+        .cySheet(isPresented: $showingConfirmation, onDismiss: { reviewedID = nil }) {
             CYConfirmSheet(
                 title: String(localized: LocalizedStringResource("ordinary.receipt.confirmTitle", table: "OrdinaryIMSendReceipt", locale: locale)),
                 message: String(localized: LocalizedStringResource("ordinary.receipt.confirmHint", table: "OrdinaryIMSendReceipt", locale: locale)),

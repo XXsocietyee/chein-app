@@ -75,7 +75,7 @@ extension EnvironmentValues {
             }
         }
         .buttonStyle(.borderless)
-        .sheet(item: $selected) { target in
+        .cySheet(item: $selected) { target in
             if let host {
                 ClubPostPlayDestination(target: target, identity: identity, host: host, model: model)
                     .presentationDetents([.large]).presentationCompactAdaptation(.sheet)
@@ -146,7 +146,7 @@ extension EnvironmentValues {
             }
         }
         .privacySensitive()
-        .sheet(isPresented: $showingLogin) { LoginView(intent: .player) }
+        .cySheet(isPresented: $showingLogin) { LoginView(intent: .player) }
         .onChange(of: current) { _, valid in
             if !valid { showingLogin = false; dismiss() }
         }

@@ -188,7 +188,7 @@ struct MessagingMessageDetailView: View {
         .navigationDestination(item: $selectedTopicID) { id in
             if reader.identity == identity, currentSnapshot?.isPayloadVisible == true, let expanded { TopicDetailView(id: id, reader: expanded.topicReader) }
         }
-        .sheet(isPresented: Binding(get: { selectedReview != nil }, set: { if !$0 { selectedReview = nil } })) {
+        .cySheet(isPresented: Binding(get: { selectedReview != nil }, set: { if !$0 { selectedReview = nil } })) {
             if reader.identity == identity, currentSnapshot?.isPayloadVisible == true, let result = selectedReview {
                 NavigationStack {
                     List {

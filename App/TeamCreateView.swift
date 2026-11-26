@@ -48,7 +48,7 @@ import SwiftUI
                 guard !sizes.contains(size), let first = sizes.first else { return }
                 size = first
             }
-            .sheet(item: model.reviewBinding) { TeamReviewSheet(model: model, review: $0).cySheet() }
+            .cySheet(item: model.reviewBinding) { TeamReviewSheet(model: model, review: $0).cySheet() }
             .onDisappear { model.leave() }
         .themeDomain(.player)
     }

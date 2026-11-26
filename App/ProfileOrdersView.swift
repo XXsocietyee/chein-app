@@ -129,7 +129,7 @@ struct ProfileOrdersView: View {
             }
         }
         .environment(\.profileReadShowsRefreshButton, false)
-        .sheet(item: $cardExit) { exit in
+        .cySheet(item: $cardExit) { exit in
             if let lifecycleCoordinator {
                 NavigationStack {
                     OrderLifecycleView(id: exit.id, coordinator: lifecycleCoordinator).id(lifecycleCoordinator.scope)

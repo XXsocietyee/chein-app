@@ -485,7 +485,7 @@ import SwiftUI
             if phase == .active { activateHostMaterials() } else { hostMaterials.retire() }
         }
         .navigationTitle(ClubOpsEventFormCopy.title(route)).navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: Binding(get: { cancelConfirmReview != nil }, set: { if !$0 { cancelConfirmReview = nil } })) {
+        .cySheet(isPresented: Binding(get: { cancelConfirmReview != nil }, set: { if !$0 { cancelConfirmReview = nil } })) {
             NavigationStack {
                 List {
                     Section {
@@ -512,7 +512,7 @@ import SwiftUI
             }
             .presentationDetents([.medium, .large])
         }
-        .sheet(isPresented: Binding(get: { consequenceReview != nil }, set: { if !$0 { consequenceReview = nil } })) {
+        .cySheet(isPresented: Binding(get: { consequenceReview != nil }, set: { if !$0 { consequenceReview = nil } })) {
             if let kind = ClubGovernanceConsequence(route.operation) {
                 kind.sheet(locale: locale, name: route.operation == .revokeRole ? route.seed["roleName"]?.string
                                                  : (route.operation == .ban ? route.seed["targetNickname"]?.string : nil)) {
@@ -539,7 +539,7 @@ import SwiftUI
         } message: {
             Text(verbatim: locked ? appLocalized("club.gov.unknown", locale: locale) : appLocalized("club.gov.discardBody", locale: locale))
         }
-        .sheet(item: $scheduleSession) { session in Group {
+        .cySheet(item: $scheduleSession) { session in Group {
             NavigationStack {
                 ClubSeriesScheduleEditor(session: session, canApply: { canApplySchedule(session) }, apply: { selection in
                     guard canApplySchedule(session), let next = try? selection.applying(to: draft, now: Date()) else { return false }
