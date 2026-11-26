@@ -43,7 +43,8 @@ final class ProjectEditRichStoryFlowTests: XCTestCase {
     func testDreamImageAdditionIsLocalAndDoesNotPublish() {
         let app = launch(); openAlbum(app)
         let add = app.buttons["projectEdit.rich.addImage"]; find(add, in: app); add.tap()
-        XCTAssertTrue(app.textFields["projectEdit.rich.image.1"].exists)
+        // r11 C-F18: the album photo is a PhotosPicker row now (MP fabu/index.js:1733), not a typed URL field.
+        XCTAssertTrue(app.descendants(matching: .any)["projectEdit.rich.image.1"].exists)
         XCTAssertFalse(app.buttons["projectEdit.confirmLive"].exists)
     }
 }
