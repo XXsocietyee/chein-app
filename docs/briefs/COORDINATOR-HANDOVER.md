@@ -139,6 +139,8 @@ The finish line: every MP feature works in the app the way it does in the MP (no
 
 **Rule for both editors:** edit only your own section (Claude: §1–§6; Cursor: §7). Before every edit: `git pull --rebase origin design/handoff-r2`. Commit small and push right away. On a push conflict, rebase again; never force-push.
 
+Owner 2026-11-25: money is on for payment, refund, payout, and withdrawal on `www.chengyinhub.com`, including Release. Virtual goods and password login stay off. TestFlight is authorized and not uploaded yet. Merged r10 worktrees were removed; the data volume then had about 9.9Gi free.
+
 | Lane | Branch | Base | Status | SHA | Notes |
 |---|---|---|---|---|---|
 | r9-play-roam | `cursor/r9-play-roam` | `d9115273d` | merged | `92b6bf4f5267` | ROAM-7. Already inside `dd3622219`. PR 1302 merged by `liboyang42-cpu`. |
