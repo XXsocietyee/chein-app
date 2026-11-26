@@ -326144,6 +326144,23 @@
           }
         }
       }
+    },
+    "clubR11.customer.cancelEdit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

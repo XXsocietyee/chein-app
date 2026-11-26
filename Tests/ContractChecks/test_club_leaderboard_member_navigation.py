@@ -100,7 +100,7 @@ class ClubLeaderboardMemberNavigationTests(unittest.TestCase):
             # fix-r3-club-b: this span also holds the notify retry footnote (CLB-notify-09/-10) and the check-in
             # error-phase guard (CLB-checkin-detail-03); the customer rows inside it are unchanged. Round 4: the customer
             # 编辑 button keeps 编辑标签与备注 as its VoiceOver label.
-            ('        } else if operation == .customer {', '        } else {\n            if operation == .customers {', '979eb8ef4c95cc37c2a2ca77b0c83872b898d677494e1cbc71d8e3a21f442def'),  # native-r2 club round 2: only the paid-amount font token dropped
+            ('        } else if operation == .customer {', '        } else {\n            if operation == .customers {', '0ceaf7a18cc0a860e1a9e7d995e0d9c1865ae36d7d8607677628e4f969e1f9a1'),  # native-r2 club round 2: only the paid-amount font token dropped; fix-r11 club-a CLB-customer-detail-04 (MP customer-detail/index.wxml:83-118): the 编辑 button became the inline editor (customerInlineEditor)
             ('/// P044 keyword-only scheduling.', '/// Mount independently of legacy', 'f9fa4c8b1a6654e0e65a6a3b11f2676cfc949f38d22e029c29676c98f35ea6b4'),  # native-r2 club round 2: adds only the ClubCustomerKeywordSearch modifier (bar search, explicit submit)
         ]
         for start, end, expected in spans:
