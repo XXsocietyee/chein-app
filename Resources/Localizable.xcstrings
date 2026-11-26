@@ -150972,13 +150972,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Joined"
+            "value": "Mine"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "我参与的"
+            "value": "我的"
           }
         }
       }
