@@ -8,7 +8,7 @@ import VisionKit
 // coordinator), Code Scanner (VisionKit `DataScannerViewController` via `NativeQRScanner`).
 // Upload, server judging and the purpose / upload-review dialogs are unchanged.
 
-private enum CameraKitSettings {
+@MainActor private enum CameraKitSettings {
     static var url: URL? { URL(string: UIApplication.openSettingsURLString) }
 }
 
