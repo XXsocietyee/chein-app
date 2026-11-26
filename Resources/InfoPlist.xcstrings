@@ -22,13 +22,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use your location when you choose to roam, play a location-based activity or find nearby places. When you tap I've arrived, location is read once to confirm you are near the start or a place you are visiting. While a roam walk you started is running, your route keeps recording in the background, also when the screen is locked, and the system shows the location indicator; it stops when you pause or finish the walk, sign out, or withdraw roam location in Privacy. Your location is never shared with other players."
+            "value": "Use your location when you choose to roam, play a location-based activity or find nearby places. When you tap I've arrived, location is read once to confirm you are near the start or a place you are visiting. While a roam walk you started is running, your route keeps recording in the background, also when the screen is locked, and the system shows the location indicator; it stops when you pause or finish the walk, sign out, or withdraw roam location in Privacy. While a city orientation run you started is in progress, its walked distance keeps counting in the background, also when the screen is locked, and the system shows the location indicator; it stops when the run ends. Your location is never shared with other players."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅在你主动选择漫游、参与基于位置的玩法或查找附近地点时使用你的位置。点「我已到达」时只读取一次位置，用来确认你在起点或要到访的地点附近。你开启的漫游进行中，锁屏后仍会记录轨迹，系统会显示定位指示；暂停或结束漫游、退出登录或在隐私页撤回漫游定位后即停止。不会把你的位置分享给其他玩家。"
+            "value": "仅在你主动选择漫游、参与基于位置的玩法或查找附近地点时使用你的位置。点「我已到达」时只读取一次位置，用来确认你在起点或要到访的地点附近。你开启的漫游进行中，锁屏后仍会记录轨迹，系统会显示定位指示；暂停或结束漫游、退出登录或在隐私页撤回漫游定位后即停止。你开始的城市定向赛进行中，锁屏后仍会累计步行距离，系统会显示定位指示；比赛结束即停止。不会把你的位置分享给其他玩家。"
           }
         }
       }
