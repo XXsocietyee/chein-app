@@ -176,8 +176,9 @@ struct RegistrationSheetView: View {
             .modifier(RegistrationPlayerSheetHeader(onClose: { flow.leave(); dismiss() }))
             .overlay { registrationPopups }
             .cyToast(verbatimMessage: $toastMessage)
-            .cySheet(isPresented: $showingTicketSheet) { Group { ticketSheetContent }.cySheet() }
-            .cySheet(isPresented: $showingParticipantSheet) { Group { participantSheetContent }.cySheet() }
+            .sheet(isPresented: $showingTicketSheet) { ticketSheetContent }
+            .sheet(isPresented: $showingParticipantSheet) { participantSheetContent }
+            .background { systemDialogs }
             .modifier(RegistrationOrderAndLifecycleModifier(
                 flow: flow,
                 preselectedTicketID: preselectedTicketID,
@@ -199,45 +200,59 @@ struct RegistrationSheetView: View {
         .accessibilityIdentifier("registration.form.sheet")
         .cyDomainScreen(.player)
     }
+    /// R10-PC-C-N8: 选择票种 is a system `List` in a `.sheet` (MP baoming.wxml ticket sheet, `openTicketSheet`); it commits on tap.
     private var ticketSheetContent: some View {
-        CYOptionSheet(
-            title: PlayCloseCopy.text("选择票种", "Select ticket", locale),
-            items: flow.activity.tickets.map { ticket in
-                CYOptionSheetItem(
-                    id: ticket.id,
-                    title: ticket.name,
-                    subtitle: gatedPayAmount(ticket.price),
-                    systemImage: "ticket"
-                )
-            },
-            selectedID: flow.selectedTicketID,
-            closeIdentifier: cyAccessibilityID(id: "registration.ticketSheet.close"),
-            onSelect: { id in
-                showingTicketSheet = false
-                if flow.selectTicket(id: id) { Task { await flow.requestQuote() } }
-            },
-            onClose: { showingTicketSheet = false }
-        )
-        // Design hand-off r1 §3: 选择票种 is a `fit` sheet (it commits on tap, so no 完成 / 选这张 button).
-        .cyFitSheetDetent()
-        .roleThemedPresentation()
+        NavigationStack {
+            List {
+                ForEach(flow.activity.tickets) { ticket in
+                    Button {
+                        showingTicketSheet = false
+                        if flow.selectTicket(id: ticket.id) { Task { await flow.requestQuote() } }
+                    } label: {
+                        RegistrationPickerRow(title: ticket.name, subtitle: gatedPayAmount(ticket.price),
+                                              selected: ticket.id == flow.selectedTicketID)
+                    }
+                    .accessibilityIdentifier("registration.ticketSheet.row.\(ticket.id)")
+                }
+            }
+            .listStyle(.insetGrouped)
+            .navigationTitle(PlayCloseCopy.text("选择票种", "Select ticket", locale))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(appLocalized("action.cancel", locale: locale)) { showingTicketSheet = false }
+                        .accessibilityIdentifier("registration.ticketSheet.close")
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
     }
+    /// R10-PC-C-N8: 选择参与人信息 as a system `List` in a `.sheet`.
     private var participantSheetContent: some View {
-        CYOptionSheet(
-            title: PlayCloseCopy.text("选择参与人信息", "Select participant", locale),
-            items: flow.participants.map { row in
-                CYOptionSheetItem(id: row.id, title: row.fullName, subtitle: row.mobilePhone, systemImage: "person")
-            },
-            selectedID: flow.selectedParticipantID,
-            closeIdentifier: cyAccessibilityID(id: "registration.participantSheet.close"),
-            onSelect: { id in
-                showingParticipantSheet = false
-                flow.selectParticipant(id: id)
-                toastMessage = PlayCloseCopy.text("已选择参与人", "Participant selected", locale)
-            },
-            onClose: { showingParticipantSheet = false }
-        )
-        .cyDomainSheet(detents: [.half, .full])
+        NavigationStack {
+            List {
+                ForEach(flow.participants, id: \.id) { row in
+                    Button {
+                        showingParticipantSheet = false
+                        flow.selectParticipant(id: row.id)
+                        toastMessage = PlayCloseCopy.text("已选择参与人", "Participant selected", locale)
+                    } label: {
+                        RegistrationPickerRow(title: row.fullName, subtitle: row.mobilePhone,
+                                              selected: row.id == flow.selectedParticipantID)
+                    }
+                }
+            }
+            .listStyle(.insetGrouped)
+            .navigationTitle(PlayCloseCopy.text("选择参与人信息", "Select participant", locale))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(appLocalized("action.cancel", locale: locale)) { showingParticipantSheet = false }
+                        .accessibilityIdentifier("registration.participantSheet.close")
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
     }
     @ViewBuilder private var recoveredOrderSection: some View {
         if let destination = flow.recoveredOrderDestination, let orderReader {
@@ -382,56 +397,94 @@ struct RegistrationSheetView: View {
         if amount == .zero { return CoreLoopCopy(locale: locale).t("免费", "Free") }
         return RegistrationUIMoney.display(amount, locale: locale) ?? "—"
     }
-    @ViewBuilder private var registrationPopups: some View {
-        if showingNonRefundable, PlayAreaPopupCopy.paymentsOpen {
-            PlayAreaNonRefundableModal(onConfirm: {
-                nonRefundableConfirmed = true
-                showingNonRefundable = false
-                showingConfirmation = true
-            }, onCancel: {
-                showingNonRefundable = false
-                flow.cancelConfirmation()
-            })
-        } else if showingConfirmation, let review = flow.confirmation {
-            let titleKey = flow.creationPolicy.isOfflineFixture ? "registration.form.confirmTitle" : "registration.waitlist.confirmTitle"
-            let confirmKey = flow.creationPolicy.isOfflineFixture ? "registration.form.confirmCreate" : "registration.waitlist.confirmCreate"
-            let base = "\(flow.activity.summary.name)\n\(flow.selectedTicket?.name ?? "")\n\(review.draft.trimmedName)\n\(review.draft.trimmedPhone)\n"
-            let nonRefundableSuffix = (!PlayAreaPopupCopy.paymentsOpen && review.quote.requiresNonRefundableConfirmation)
-                ? "\n\(CoreLoopCopy(locale: locale).tr(NonRefundable24hNotice.modalTitle)): \(CoreLoopCopy(locale: locale).tr(NonRefundable24hNotice.modalContent))"
-                : ""
-            CYModal(
-                title: appLocalized(String.LocalizationValue(stringLiteral: titleKey), locale: locale),
-                message: base + gatedPayAmount(review.quote.payAmount) + nonRefundableSuffix,
-                cancelTitle: appLocalized("action.cancel", locale: locale),
-                confirmTitle: appLocalized(String.LocalizationValue(stringLiteral: confirmKey), locale: locale),
-                confirmIdentifier: "registration.form.confirm",
-                onCancel: { showingConfirmation = false; flow.cancelConfirmation() },
-                onConfirm: {
-                    let isPaidRegistration = review.quote.payAmount.map { $0 > .zero } ?? true
-                    showingConfirmation = false
-                    Task {
-                        if isPaidRegistration {
-                            await flow.confirmAndReadBack()
-                        } else {
-                            await SessionOfflineSyncModel.shared.performWriteOptIn(
-                                environmentSession: offlineWriteSession.session,
-                                routes: ["/api/registration/create", "/api/compliance/consents"]
-                            ) {
-                                await flow.confirmAndReadBack()
-                            }
-                        }
-                    }
+    /// R10-PC-C-N8: confirm, 本单不可退 and 退出候补 are system dialogs (MP uses `wx.showModal`, a native alert).
+    private var systemDialogs: some View {
+        Color.clear
+            .alert(Text(verbatim: CoreLoopCopy(locale: locale).tr(NonRefundable24hNotice.modalTitle)),
+                   isPresented: Binding(get: { showingNonRefundable && PlayAreaPopupCopy.paymentsOpen },
+                                        set: { if !$0 { showingNonRefundable = false } })) {
+                nonRefundableButtons
+            } message: { Text(verbatim: CoreLoopCopy(locale: locale).tr(NonRefundable24hNotice.modalContent)) }
+            .alert(Text(verbatim: confirmationTitle),
+                   isPresented: Binding(get: { showingConfirmation && !(showingNonRefundable && PlayAreaPopupCopy.paymentsOpen) && flow.confirmation != nil },
+                                        set: { if !$0 { showingConfirmation = false } })) {
+                confirmationButtons
+            } message: { Text(verbatim: confirmationMessage) }
+            .confirmationDialog(Text(verbatim: PlayAreaPopupCopy.text("退出候补队列?", "Leave the waitlist?", locale: locale)),
+                                isPresented: Binding(get: { showingWaitlistCancellation },
+                                                     set: { if !$0 && showingWaitlistCancellation { showingWaitlistCancellation = false; flow.dismissWaitlistCancellation() } }),
+                                titleVisibility: .visible) {
+                waitlistQuitButtons
+            } message: {
+                Text(verbatim: PlayAreaPopupCopy.text(
+                    "已保留的名额会立即让给下一位。之后还想来,可以重新排队,顺位从头算。",
+                    "The place you were holding goes to the next person. You can join again later, and your place starts over.",
+                    locale: locale))
+            }
+    }
+    @ViewBuilder private var nonRefundableButtons: some View {
+        let copy = CoreLoopCopy(locale: locale)
+        Button(copy.tr(NonRefundable24hNotice.confirmButtonTitle)) {
+            nonRefundableConfirmed = true
+            showingNonRefundable = false
+            showingConfirmation = true
+        }
+        .accessibilityIdentifier("registration.nonRefundable.confirm")
+        Button(copy.tr(NonRefundable24hNotice.cancelButtonTitle), role: .cancel) {
+            showingNonRefundable = false
+            flow.cancelConfirmation()
+        }
+    }
+    private var confirmationTitle: String {
+        let titleKey = flow.creationPolicy.isOfflineFixture ? "registration.form.confirmTitle" : "registration.waitlist.confirmTitle"
+        return appLocalized(String.LocalizationValue(stringLiteral: titleKey), locale: locale)
+    }
+    private var confirmationMessage: String {
+        guard let review = flow.confirmation else { return "" }
+        let base = "\(flow.activity.summary.name)\n\(flow.selectedTicket?.name ?? "")\n\(review.draft.trimmedName)\n\(review.draft.trimmedPhone)\n"
+        let nonRefundableSuffix = (!PlayAreaPopupCopy.paymentsOpen && review.quote.requiresNonRefundableConfirmation)
+            ? "\n\(CoreLoopCopy(locale: locale).tr(NonRefundable24hNotice.modalTitle)): \(CoreLoopCopy(locale: locale).tr(NonRefundable24hNotice.modalContent))"
+            : ""
+        return base + gatedPayAmount(review.quote.payAmount) + nonRefundableSuffix
+    }
+    @ViewBuilder private var confirmationButtons: some View {
+        let confirmKey = flow.creationPolicy.isOfflineFixture ? "registration.form.confirmCreate" : "registration.waitlist.confirmCreate"
+        Button(appLocalized(String.LocalizationValue(stringLiteral: confirmKey), locale: locale)) { confirmRegistration() }
+            .accessibilityIdentifier("registration.form.confirm")
+        Button(appLocalized("action.cancel", locale: locale), role: .cancel) {
+            showingConfirmation = false; flow.cancelConfirmation()
+        }
+    }
+    private func confirmRegistration() {
+        guard let review = flow.confirmation else { showingConfirmation = false; return }
+        let isPaidRegistration = review.quote.payAmount.map { $0 > .zero } ?? true
+        showingConfirmation = false
+        Task {
+            if isPaidRegistration {
+                await flow.confirmAndReadBack()
+            } else {
+                await SessionOfflineSyncModel.shared.performWriteOptIn(
+                    environmentSession: offlineWriteSession.session,
+                    routes: ["/api/registration/create", "/api/compliance/consents"]
+                ) {
+                    await flow.confirmAndReadBack()
                 }
-            )
-        } else if showingWaitlistCancellation {
-            PlayAreaWaitlistQuitModal(onConfirm: {
-                showingWaitlistCancellation = false
-                Task { await flow.cancelWaitlist() }
-            }, onCancel: {
-                showingWaitlistCancellation = false
-                flow.dismissWaitlistCancellation()
-            })
-        } else if showingPaymentPending, PlayAreaPopupCopy.paymentsOpen {
+            }
+        }
+    }
+    @ViewBuilder private var waitlistQuitButtons: some View {
+        Button(PlayAreaPopupCopy.text("退出候补", "Leave waitlist", locale: locale), role: .destructive) {
+            showingWaitlistCancellation = false
+            Task { await flow.cancelWaitlist() }
+        }
+        .accessibilityIdentifier("registration.waitlist.confirmCancel")
+        Button(PlayAreaPopupCopy.text("取消", "Cancel", locale: locale), role: .cancel) {
+            showingWaitlistCancellation = false
+            flow.dismissWaitlistCancellation()
+        }
+    }
+    @ViewBuilder private var registrationPopups: some View {
+        if showingPaymentPending, PlayAreaPopupCopy.paymentsOpen {
             PlayPaymentPendingModal(
                 detailed: flow.resultOrderDestination == nil,
                 onGoOrders: {
@@ -917,6 +970,25 @@ struct RegistrationSheetView: View {
             }
             if flow.block == .confirmationChanged { Text("registration.form.confirmationChanged").foregroundStyle(.secondary) }
         } footer: { Text("registration.form.sharingPurpose") }
+    }
+}
+
+/// R10-PC-C-N8: a system list row with a trailing checkmark for the picked value.
+private struct RegistrationPickerRow: View {
+    let title: String
+    let subtitle: String?
+    let selected: Bool
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: title).foregroundStyle(.primary)
+                if let subtitle, !subtitle.isEmpty { Text(verbatim: subtitle).font(.subheadline).foregroundStyle(.secondary) }
+            }
+            Spacer()
+            if selected { Image(systemName: "checkmark").foregroundStyle(.tint).accessibilityHidden(true) }
+        }
+        .contentShape(Rectangle())
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }
 
