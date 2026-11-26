@@ -36,11 +36,19 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
     @State var sessionIdentity: Int?
     @State var loaded = false
     @State var lifetime = UUID()
-    @Environment(\.dismiss) private var dismiss
+    // Native r2 games (App/NativeR2/Games): result sheet, sort/match drafts and the child kit's bottom-bar action.
+    @State var nativeResultShown = false
+    @State var nativeExpectResult = false
+    @State var nativeOrder: [String] = []
+    @State var nativePlacement: [String: String] = [:]
+    @State var nativeIndex: Int?
+    @State var nativeChildSubmit: NativeGameSubmit?
+    @Environment(\.dismiss) var dismiss
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.offlineWriteSession) private var offlineWriteSession
+    @Environment(\.offlineWriteSession) var offlineWriteSession
     @Environment(\.analyticsEventClient) private var analytics
-    @Environment(\.playGameStage) private var stage
+    @Environment(\.playGameStage) var stage
+    @Environment(\.nativeGameHelp) var nativeHelp
     @Environment(\.questifyCast) var castContext
     @QuestifyReduceMotion private var reduceMotion
     private var segment: PlayWireValue {
@@ -54,7 +62,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
     var body: some View {
         screenContainer
         .scrollDismissesKeyboard(.interactively)
-        .modifier(PlayKitScreenChrome(presentation: presentation, kind: kind, dirty: dirty, close: {
+        .modifier(PlayKitScreenChrome(presentation: presentation, kind: kind, dirty: dirty, native: usesNativeGame, close: {
             if dirty { leaveReview = true } else { dismiss() }
         }))
         .privacySensitive()
@@ -74,7 +82,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
             .cyDomainSheet(detents: [.half, .full])
         }
         .safeAreaInset(edge: .bottom) {
-            if presentation == .sheet, let item = review { reviewPanel(item) }
+            if presentation == .sheet, !usesNativeGame, let item = review { reviewPanel(item) }
         }
         .cyModalConfirm(
             isPresented: leaveReview,
@@ -112,7 +120,8 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
     }
     /// A nested review sheet only when the kit itself is not already the sheet.
     private var stackedReview: Binding<PlayKitActionReview?> {
-        Binding(get: { presentation == .sheet ? nil : review }, set: { review = $0 })
+        // Native r2 games: the review is always its own sheet over the game (the shell owns the bottom bar).
+        Binding(get: { presentation == .sheet && !usesNativeGame ? nil : review }, set: { review = $0 })
     }
     @ViewBuilder private func reviewReadback(_ item: PlayKitActionReview) -> some View {
         if let question = item.compareQuestion { PlayCompareReview(question: question, marked: (item.payload["marked"]?.array ?? []).compactMap(\.text)) }
@@ -157,7 +166,8 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
         .accessibilityIdentifier("playkit.review.panel")
     }
     @ViewBuilder private var screenContainer: some View {
-        if presentation == .inline { contents }
+        if usesNativeGame { nativeGameContainer }
+        else if presentation == .inline { contents }
         else {
             ScrollView { contents.padding().frame(maxWidth: 720).frame(maxWidth: .infinity) }
                 .accessibilityIdentifier("playkit.screen." + kind.rawValue)
@@ -322,6 +332,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
         if kind == .photoCheck { model.clearObjectCardReceipt() }
         lifetime = UUID(); review = nil; reviewedCompletion = nil; text = ""; selected = []; answers = [:]; avatarURL = ""; profileStep = 0
         dirty = false; reasoningFeedback = .init(); childReset = UUID(); device?.cancel()
+        nativeResultShown = false; nativeExpectResult = false; nativeOrder = []; nativePlacement = [:]; nativeIndex = nil; nativeChildSubmit = nil
     }
 }
 
@@ -379,9 +390,19 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
 }
 
 private struct PlayKitScreenChrome: ViewModifier {
-    let presentation: PlayKitNativePresentation; let kind: PlayKitScreenKind; let dirty: Bool; let close: () -> Void
+    let presentation: PlayKitNativePresentation; let kind: PlayKitScreenKind; let dirty: Bool
+    /// Native r2 games: `NativeGameShell` draws its own title, close and hint buttons.
+    var native = false
+    let close: () -> Void
     @ViewBuilder func body(content: Content) -> some View {
         if presentation == .inline { content }
+        else if native {
+            if presentation == .sheet {
+                content.cyDomainScreen(.game).cyHideTabBar(true)
+            } else {
+                content.cyGuardedBack(when: dirty, onBack: close).cyDomainScreen(.game).cyHideTabBar(true)
+            }
+        }
         else if presentation == .sheet {
             // A sheet has no back: 关闭 is its exit (with the unsaved-answer review when dirty).
             content.navigationTitle(Text(LocalizedStringKey("playkit.kind." + kind.rawValue)))
