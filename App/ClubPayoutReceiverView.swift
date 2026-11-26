@@ -65,7 +65,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
             Text(verbatim: String(localized: LocalizedStringResource("clubR3b.payout.unbindDetail", locale: locale)))
         }
         .appSwitcherPrivacyShield()
-        .cyDomainScreen(.player)
+        .themeDomain(.player) // CLB-r10-nat-settlement-01: List draws the system background.
     }
 
     @ViewBuilder private var content: some View {
@@ -235,7 +235,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
         .navigationBarTitleDisplayMode(.inline)
         .refreshable { await load() }
         .task { await load() }
-        .cyDomainScreen(.player)
+        .themeDomain(.player) // CLB-r10-nat-settlement-01: List draws the system background.
     }
     private func load() async {
         guard PayoutReceiverBridge.readsOpen(session) else { return }
@@ -297,7 +297,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
         .navigationBarTitleDisplayMode(.inline)
         .refreshable { await load() }
         .task { await load() }
-        .cyDomainScreen(.player)
+        .themeDomain(.player) // CLB-r10-nat-settlement-01: List draws the system background.
     }
 
     @ViewBuilder private func ready(_ summary: ClubSettlementSummaryView) -> some View {
