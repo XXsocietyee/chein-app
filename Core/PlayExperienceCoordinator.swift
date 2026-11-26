@@ -24,7 +24,7 @@ import FoundationNetworking
         guard completion.value.state == .dispatching, completion.value.intent.owner.matches(session), completion.value.intent.gameplayMode != nil else { throw PlayExperienceError.persistenceUnavailable }
         let intent = completion.value.intent
         request = try service.completionRequest(scope: scope, nodeID: intent.nodeID, evidence: intent.evidence,
-            advance: intent.advance, token: session.token, boundary: intent.id.uuidString)
+            advance: intent.advance, token: session.token, boundary: intent.id.uuidString, start: intent.startFields)
         baseURL = service.configuration.baseURL; capability = .classicCompletion; proof = .completion(store, completion)
         key = PlayRunStorageKey.make(session: session, scope: scope); self.isCurrent = isCurrent
     }
@@ -82,9 +82,14 @@ public struct PlayCompletionReview: Equatable {
     let routeSessionID: Int?
     let gameplayMode: PlayGameplayMode?
     let id: UUID
-    init(nodeID: Int, evidence: PlayCompletionEvidence, advance: PlayRouteAdvance?, session: PlayExperienceSession, generation: UInt64, routeSessionID: Int?, id: UUID = UUID(), gameplayMode: PlayGameplayMode? = nil) {
+    /// START-r11-1 (CG-ALL-11): `startMode` / `altStationId` for the run's first `/api/play/arrive`. Journaled with
+    /// the intent, so a retry replays the same body. Nil for every other command (request shape unchanged).
+    /// MP pages/play/utils/run-start-mode.js:33-37 (`arriveParams`), pages/play/index.js:6371.
+    let startFields: [String: String]?
+    init(nodeID: Int, evidence: PlayCompletionEvidence, advance: PlayRouteAdvance?, session: PlayExperienceSession, generation: UInt64, routeSessionID: Int?, id: UUID = UUID(), gameplayMode: PlayGameplayMode? = nil, startFields: [String: String]? = nil) {
         self.nodeID = nodeID; self.evidence = evidence; self.advance = advance; self.session = session
         self.generation = generation; self.routeSessionID = routeSessionID; self.id = id; self.gameplayMode = gameplayMode
+        self.startFields = startFields
     }
     /// UG-09: the same review carrying the server's action context. A branch review keeps the action
     /// id and expected version it was reviewed with; a linear review gets one new action id here,
@@ -94,7 +99,7 @@ public struct PlayCompletionReview: Equatable {
             expectedVersion: self.advance?.expectedVersion ?? context.expectedRouteVersion,
             routeSessionID: context.routeSessionID, runtimeInstance: context.runtimeInstance, authorityEpoch: context.authorityEpoch)
         return .init(nodeID: nodeID, evidence: evidence, advance: advance, session: session, generation: generation,
-                     routeSessionID: routeSessionID, id: id, gameplayMode: gameplayMode)
+                     routeSessionID: routeSessionID, id: id, gameplayMode: gameplayMode, startFields: startFields)
     }
 }
 /// Independent of the existing linear-answer reader. A successful write invalidates the
@@ -435,11 +440,29 @@ public struct PlayCompletionReview: Equatable {
         advancedReadyNodeIDs.insert(state.nodeID)
     }
     /// UI/provider callbacks must present the authority captured when offered.
-    public func review(nodeID: Int, evidence: PlayCompletionEvidence, context: PlayInteractionContext?) throws -> PlayCompletionReview {
+    public func review(nodeID: Int, evidence: PlayCompletionEvidence, context: PlayInteractionContext?, start: PlayRunStartRequest? = nil) throws -> PlayCompletionReview {
         guard accepts(context) else { throw PlayExperienceError.staleSession }
-        return try review(nodeID: nodeID, evidence: evidence)
+        return try review(nodeID: nodeID, evidence: evidence, start: start)
     }
-    public func review(nodeID: Int, evidence: PlayCompletionEvidence) throws -> PlayCompletionReview {
+    /// START-r11-1: 换个方式开局 is offered only in city orientation, before the run has started and while the server
+    /// has not recorded a start mode (MP pages/play/utils/run-start-mode.js:51-54 `_startModesAvailable`).
+    public func runStartModesAvailable(nodeID: Int) -> Bool {
+        guard gameplayMode == .cityOrientation, let snapshot, snapshot.availability == .active,
+              snapshot.result.mode == 1, snapshot.result.runStartMode == nil else { return false }
+        if let done = snapshot.displayedDoneCount, done > 0 { return false }
+        if snapshot.visibleNodes.contains(where: { snapshot.isDone($0) || $0.arrived == true }) { return false }
+        return snapshot.visibleNodes.contains { $0.id == nodeID }
+    }
+    public func review(nodeID: Int, evidence: PlayCompletionEvidence, start: PlayRunStartRequest? = nil) throws -> PlayCompletionReview {
+        var startFields: [String: String]?
+        if let start {
+            switch evidence {
+            case .location, .stationArrival: break
+            default: throw PlayExperienceError.invalidAction
+            }
+            guard runStartModesAvailable(nodeID: nodeID) else { throw PlayExperienceError.invalidAction }
+            startFields = start.fields
+        }
         guard service.enabled.contains(.classicCompletion), canWrite, let session = loadedSession, let snapshot,
               snapshot.availability == .active,
               let node = snapshot.visibleNodes.first(where: { $0.id == nodeID }),
@@ -491,7 +514,7 @@ public struct PlayCompletionReview: Equatable {
             advance = try PlayRouteAdvance(actionID: UUID().uuidString, expectedVersion: version)
         } else { advance = nil }
         phase = .reviewing
-        return PlayCompletionReview(nodeID: nodeID, evidence: evidence, advance: advance, session: session, generation: generation, routeSessionID: snapshot.route?.sessionID, gameplayMode: gameplayMode)
+        return PlayCompletionReview(nodeID: nodeID, evidence: evidence, advance: advance, session: session, generation: generation, routeSessionID: snapshot.route?.sessionID, gameplayMode: gameplayMode, startFields: startFields)
     }
     /// F-05: the reason `review` refuses (or would refuse) this stop, for the screen to show. Nil when the
     /// stop can be reviewed. Read-only: it never changes the phase and never sends anything. Without

@@ -112,7 +112,7 @@ public struct PlayExperienceService {
             try persist()
         })
     }
-    func completionRequest(scope: PlaySessionScope, nodeID: Int, evidence: PlayCompletionEvidence, advance: PlayRouteAdvance?, token: String, boundary: String) throws -> URLRequest {
+    func completionRequest(scope: PlaySessionScope, nodeID: Int, evidence: PlayCompletionEvidence, advance: PlayRouteAdvance?, token: String, boundary: String, start: [String: String]? = nil) throws -> URLRequest {
         guard nodeID > 0 else { throw APIError.invalidRequest }
         var fields = try scopeFields(scope)
         fields["nodeId"] = String(nodeID)
@@ -157,6 +157,10 @@ public struct PlayExperienceService {
             return try makeRequest("api/play/sensor-result", json: json, token: token)
         }
         fields.merge(advance?.fields ?? [:]) { _, new in new }
+        // START-r11-1: only the first arrive carries startMode / altStationId (MP pages/play/index.js:6371).
+        if let start, evidence.path == "arrive" {
+            for key in ["startMode", "altStationId"] { if let value = start[key] { fields[key] = value } }
+        }
         return try makeRequest("api/play/" + evidence.path, form: fields, token: token, boundary: boundary)
     }
     public func hint(scope: PlaySessionScope, nodeID: Int, level: Int?, token: String) async throws -> PlayHintReceipt {

@@ -135,23 +135,34 @@ enum PlayArrivalProjection {
         return snapshot.visibleNodes.contains { snapshot.isDone($0) || $0.arrived == true }
     }
 
-    public func arrive(nodeID: Int, context: PlayInteractionContext?) async {
+    /// START-r11-1: alternate stations the 换个方式开局 sheet offers for this start, or nil when it is not offered.
+    /// MP pages/play/utils/run-start-mode.js:51-54, :28-31 (`startChoices`: alt stations with a name, then 桌面完成).
+    public func startChoices(for nodeID: Int) -> [PlayAltStation]? {
+        guard offer(for: nodeID) == .start, runtime.runStartModesAvailable(nodeID: nodeID),
+              let snapshot = runtime.snapshot else { return nil }
+        return snapshot.result.altStations.filter { !($0.name ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    }
+
+    /// `start` is the 换个方式开局 choice: DESK sends no location (MP `_deskStart` skips the fix, index.js:6254);
+    /// ALT sends the fix plus `altStationId`, and the server checks the 300 m radius around that station.
+    public func arrive(nodeID: Int, context: PlayInteractionContext?, start: PlayRunStartRequest? = nil) async {
         guard !isBusy, phase != .unknown, let kind = offer(for: nodeID) else { return }
+        if start != nil, kind != .start { return }
         generation &+= 1
         let request = generation
         self.nodeID = nodeID
         guard runtime.canSubmitArrival else { phase = .unavailable; return }
         let evidence: PlayCompletionEvidence
-        if kind == .stationTap {
+        if kind == .stationTap || start?.mode == .desk {
             evidence = .stationArrival
         } else {
-            guard let located = await locatedFix(kind: kind, nodeID: nodeID, request: request) else { return }
+            guard let located = await locatedFix(kind: kind, nodeID: nodeID, request: request, precheckDistance: start == nil) else { return }
             evidence = .location(longitude: located.longitude, latitude: located.latitude, coordinateSystem: "GCJ02",
                                   accuracyMeters: located.accuracyMeters, measuredAt: located.measuredAt)
         }
         guard request == generation, offer(for: nodeID) == kind else { phase = .idle; return }
         let review: PlayCompletionReview
-        do { review = try runtime.review(nodeID: nodeID, evidence: evidence, context: context) }
+        do { review = try runtime.review(nodeID: nodeID, evidence: evidence, context: context, start: start) }
         catch { phase = .unavailable; return }
         phase = .submitting
         await runtime.submit(review)
@@ -191,7 +202,8 @@ enum PlayArrivalProjection {
         if phase != .unknown { phase = .idle }
     }
 
-    private func locatedFix(kind: Kind, nodeID: Int, request: UInt64) async -> PlayArrivalFix? {
+    /// `precheckDistance` is false for an ALT start: the radius is around the alt station and the server judges it.
+    private func locatedFix(kind: Kind, nodeID: Int, request: UInt64, precheckDistance: Bool = true) async -> PlayArrivalFix? {
         guard let location else { phase = .locationUnavailable; return nil }
         phase = .locating
         let fix: RoamDeviceFix
@@ -211,7 +223,7 @@ enum PlayArrivalProjection {
             phase = .idle
             return nil
         }
-        if let latitude = node.latitude, let longitude = node.longitude {
+        if precheckDistance, let latitude = node.latitude, let longitude = node.longitude {
             let distance = PlayArrivalPolicy.distanceMeters(latitude: fix.coordinate.latitude, longitude: fix.coordinate.longitude,
                                                             toLatitude: latitude, toLongitude: longitude)
             let verdict = kind == .start

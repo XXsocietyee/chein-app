@@ -28,7 +28,7 @@ final class PlayFullStoryH3Tests: XCTestCase {
         XCTAssertEqual(query["clientPlatform"], "ios-native"); XCTAssertEqual(query["clientVersion"], "1.2.3")
         let tokens = Set((query["capabilities"] ?? "").split(separator: ",").map(String.init))
         XCTAssertTrue(tokens.contains("chapter.blocks.gallery@1")); XCTAssertTrue(tokens.contains("game.coinflip@1"))
-        XCTAssertFalse(tokens.contains("chapter.blocks.branch@1"))
+        XCTAssertTrue(tokens.contains("chapter.blocks.branch@1")) // CAP-r11-1: MP client-capabilities.js:20
         XCTAssertTrue(tokens.contains("answer.estimate@1"))
         XCTAssertTrue(tokens.contains("hangman.pool@1"))
         XCTAssertTrue(tokens.contains("qa.letterPool@1"))

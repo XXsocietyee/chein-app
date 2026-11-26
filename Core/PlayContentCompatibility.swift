@@ -88,10 +88,11 @@ public struct PlayContentCompatibility: Equatable, Sendable {
 public enum PlayClientCapabilities {
     public static let platform = "ios-native"
     public static let version = 1
-    /// Chapter flow blocks `ChapterStoryProjection` renders. `branch` is not listed:
-    /// the player branch-choice sheet does not exist natively (the mini-program does not render it either).
+    /// Chapter flow blocks `ChapterStoryProjection` renders. CAP-r11-1: `branch` (hidden without cast, as in the MP)
+    /// and `line` (Cast v1 lines, `ChapterStoryContracts` "line") are rendered, so they are declared like the MP
+    /// STORY_BLOCKS (MP pages/play/utils/client-capabilities.js:20).
     public static let storyBlocks = ["node", "text", "image", "audio", "dream", "mood", "reveal", "odd", "voice",
-                                     "thought", "divider", "gallery", "cap"]
+                                     "thought", "divider", "gallery", "branch", "cap", "line"]
     /// `PlayNodeTask.resolve`: validationMethod 0–7.
     static let answers = ["answer.arrive", "answer.text", "answer.photo", "answer.choice", "answer.scan",
                           "answer.gps", "answer.preference", "answer.sensor"]
@@ -99,8 +100,9 @@ public enum PlayClientCapabilities {
     static let sensors = ["sensor.still", "sensor.steps", "sensor.audio_clip"]
     /// Kits this build finishes as node answers: estimate, price pair, hidden object.
     static let kitAnswers = ["answer.estimate", "answer.pricePair", "answer.hiddenObject"]
-    /// Letter-pool input on the Questo hangman and on TYPE questions. Role cards stay with P1.
-    static let features = ["hangman.pool", "qa.letterPool"]
+    /// Letter-pool input on the Questo hangman and on TYPE questions, and the role card (`JourneyRoleViewSection`).
+    /// CAP-r11-1: MP FEATURES = hangman.pool, qa.letterPool, role.views (pages/play/utils/client-capabilities.js:22).
+    static let features = ["hangman.pool", "qa.letterPool", "role.views"]
     static let base = ["chapter.blocks", "station.list", "media.image", "media.audio", "media.photo",
                        "location.gps", "route.branch", "theme.runtime"]
     /// Advanced sections rendered by `PlayKitScreenKind` plus the Questo hangman in `PlayAdvancedView`.

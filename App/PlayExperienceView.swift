@@ -295,11 +295,9 @@ import MapKit
         .modifier(PlayExperienceCastMounts(host: self))
         .modifier(PlaySessionLocationHold(identity: model.identity, running: model.clock.phase == .running,
                                           currentIdentity: { [model] in model.identity }))
-        .onChange(of: scenePhase) { _, next in
-            if model.gameplayMode == .cityOrientation, next != .active, model.clock.phase == .running {
-                Task { await model.pauseRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) }
-            }
-        }
+        // BGPAUSE-r11-1 (D-68/D-77): going to the background no longer pauses the city-orientation run. The run clock
+        // keeps going and in-run audio keeps playing; only the explicit pause control or a real exit stops it.
+        // MP pages/play/index.js:1210-1217 (`keepsRunningInBackground`).
         // P-050: city orientation distance is run-scoped. It keeps reading over pushed pages and, while the run is
         // started and not ended, in the background; the run's end stops it.
         .onChange(of: model.clock.phase, initial: true) { _, phase in syncCityRunTracking(phase) }
