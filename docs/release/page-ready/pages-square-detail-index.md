@@ -32,9 +32,9 @@ Source sentences on `pages/square/detail/index` that have no entry in any `Resou
 
 JSON names the completion card reads, and `isFollowTheUser` / `sportSubtitle`, are not on the existing `SquarePost` decoder. The model does not read them and does not substitute `0`. The card’s own note says the backend does not define the medal, distance, shop, duration, kudos, and comment-preview fields.
 
-- medalGold
-- medalSilver
-- medalBronze
+- medalGold (decoded since r8, 45f2b0991; nil when the server omits it)
+- medalSilver (decoded since r8)
+- medalBronze (decoded since r8)
 - distanceText
 - shopText
 - durationText

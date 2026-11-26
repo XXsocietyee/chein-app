@@ -29,6 +29,14 @@ final class DesignR1FoundationTests: XCTestCase {
         XCTAssertEqual(c.a, alpha, accuracy: 0.02, message, line: line)
     }
 
+    private func assertSame(_ lhs: Color, _ rhs: Color, scheme: ColorScheme, _ message: String, line: UInt = #line) {
+        guard let a = rgba(lhs, scheme: scheme), let b = rgba(rhs, scheme: scheme) else { return }
+        XCTAssertEqual(a.r, b.r, accuracy: 0.02, message, line: line)
+        XCTAssertEqual(a.g, b.g, accuracy: 0.02, message, line: line)
+        XCTAssertEqual(a.b, b.b, accuracy: 0.02, message, line: line)
+        XCTAssertEqual(a.a, b.a, accuracy: 0.02, message, line: line)
+    }
+
     // MARK: Handbook fixes (owner ruling 5)
 
     func testLightHandbookFixesAreAdopted() {
@@ -54,11 +62,15 @@ final class DesignR1FoundationTests: XCTestCase {
     // MARK: Tab bar (PL-01)
 
     func testSelectedTabIsNeutralInkWithA12PercentCapsule() {
+        // Native iOS r2 (82bcf2c2d): player and merchant follow the system appearance, and the selected tab uses the
+        // system accent like Apple's own tab bars; the capsule stays that tint at 12%.
         for domain in [ThemeDomain.player, .merchant] {
             let palette = CYDomainPalette(domain)
-            let scheme = domain.colorScheme
-            assertHex(palette.tabSelectedTint, domain == .player ? 0xF8F8F8 : 0x000000, scheme: scheme, "\(domain) selected tab ink")
-            assertHex(palette.tabSelectedCapsule, domain == .player ? 0xF8F8F8 : 0x000000, alpha: 0.12, scheme: scheme, "\(domain) capsule 12%")
+            XCTAssertTrue(palette.followsSystem, "\(domain)")
+            XCTAssertEqual(palette.tabSelectedTint, .accentColor, "\(domain) selected tab ink")
+            for scheme in [ColorScheme.light, .dark] {
+                assertSame(palette.tabSelectedCapsule, Color.accentColor.opacity(0.12), scheme: scheme, "\(domain) capsule 12%")
+            }
         }
     }
 
@@ -72,19 +84,28 @@ final class DesignR1FoundationTests: XCTestCase {
     // MARK: Player/Button (PL-10, PL-12)
 
     func testPlayerPrimaryIsAWhitePillAndSecondaryADarkPill() {
+        // Native iOS r2 (82bcf2c2d): the player is no longer forced dark. The primary pill is the system accent with a
+        // white label; secondary and tertiary use the light/dark-adaptive secondary tokens. Only the play stage stays dark.
         let player = CYDomainPalette(.player)
+        XCTAssertFalse(player.isDarkDomain)
         let primary = CYPillButtonStyle.tokens(style: .primary, isEnabled: true, in: player)
-        assertHex(primary.fill, 0xF8F8F8, scheme: .dark, "primary white pill")
-        assertHex(primary.foreground, 0x0A0A0A, scheme: .dark, "primary black label")
+        XCTAssertEqual(primary.fill, .accentColor, "primary accent pill")
+        XCTAssertEqual(primary.foreground, .white, "primary white label")
         let secondary = CYPillButtonStyle.tokens(style: .secondary, isEnabled: true, in: player)
-        assertHex(secondary.fill, 0x1C1C1E, scheme: .dark, "secondary #1C1C1E pill")
-        assertHex(secondary.foreground, 0xFFFFFF, scheme: .dark, "secondary white label (system label), never dark on grey")
         let onSheet = CYPillButtonStyle.tokens(style: .secondary, isEnabled: true, in: player, onSheet: true)
-        assertHex(onSheet.fill, 0x3B3B3D, scheme: .dark, "secondary steps up to surface-3 on a sheet")
         let tertiary = CYPillButtonStyle.tokens(style: .tertiary, isEnabled: true, in: player)
-        assertHex(tertiary.foreground, 0xFFFFFF, alpha: 0.7, scheme: .dark, "tertiary text at 70% of the system label")
+        for scheme in [ColorScheme.light, .dark] {
+            assertSame(secondary.fill, player.actionSecondaryBg, scheme: scheme, "secondary pill fill (\(scheme))")
+            assertSame(secondary.foreground, player.textPrimary, scheme: scheme, "secondary label is the system label (\(scheme))")
+            assertSame(onSheet.fill, player.actionSecondaryBg, scheme: scheme, "secondary on a sheet (\(scheme))")
+            assertSame(tertiary.foreground, player.textSecondary, scheme: scheme, "tertiary text (\(scheme))")
+        }
         let merchant = CYPillButtonStyle.tokens(style: .primary, isEnabled: true, in: CYDomainPalette(.merchant))
-        assertHex(merchant.fill, 0x000000, scheme: .light, "merchant primary black pill")
+        XCTAssertEqual(merchant.fill, .accentColor, "merchant primary accent pill")
+        // The play stage keeps the forced-dark white pill.
+        let game = CYPillButtonStyle.tokens(style: .primary, isEnabled: true, in: CYDomainPalette(.game))
+        XCTAssertTrue(CYDomainPalette(.game).isDarkDomain)
+        XCTAssertNotEqual(game.fill, .accentColor)
     }
 
     // MARK: Status tag (PL-14)
