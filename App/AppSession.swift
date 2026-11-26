@@ -7327,7 +7327,7 @@ final class AppSession: ObservableObject {
             accountCollectionService=AccountCollectionService(configuration:configuration,transport:transport)
             cooperationService=CooperationService(configuration:configuration,transport:transport)
             topicService=TopicService(configuration:configuration,transport:transport)
-            discoveryService=DiscoveryService(configuration:configuration,transport:transport)
+            discoveryService=DiscoveryService(configuration:configuration,transport:transport,coalescesReads:false)
             profileService=ProfileService(configuration:configuration,transport:transport)
             merchantService=MerchantService(configuration:configuration,transport:transport)
             merchantEngagementService=MerchantEngagementService(configuration:configuration,readTransport:transport)

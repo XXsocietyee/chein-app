@@ -113,9 +113,11 @@ public enum OwnedOrderReadRoute: Equatable {
             let name = String(rest[..<quote])
             let after = rest[rest.index(after: quote)...]
             guard after.hasPrefix("\r\n\r\n") else { return nil }
-            var value = String(after.dropFirst(4))
+            // "\r\n" is ONE Swift Character: trim by Character counts (same bug as the
+            // ticket-wallet parser fixed in db3a2af14; "01" crashed removeLast(2)).
+            var value = String(after.dropFirst("\r\n\r\n".count))
             guard value.hasSuffix("\r\n") else { return nil }
-            value.removeLast(2)
+            value.removeLast("\r\n".count)
             guard fields[name] == nil, !name.isEmpty, !value.contains("\r"), !value.contains("\n") else { return nil }
             fields[name] = value
         }
