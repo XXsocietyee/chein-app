@@ -326059,6 +326059,142 @@
           }
         }
       }
+    },
+    "exploreRevisit.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Come back next time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下次再来"
+          }
+        }
+      }
+    },
+    "exploreRevisit.hostClub": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Host club"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主办俱乐部"
+          }
+        }
+      }
+    },
+    "exploreRevisit.followed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Following the host club"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已关注主办俱乐部"
+          }
+        }
+      }
+    },
+    "exploreRevisit.followFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't follow. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关注失败，请重试"
+          }
+        }
+      }
+    },
+    "exploreRevisit.join": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Join club"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入俱乐部"
+          }
+        }
+      }
+    },
+    "exploreRevisit.joined": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Joined the club"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已加入俱乐部"
+          }
+        }
+      }
+    },
+    "exploreRevisit.nextFallback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next edition"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下一期"
+          }
+        }
+      }
+    },
+    "exploreRevisit.nextPending": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The next edition will appear here when it goes on sale"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下一期开售后会在这里出现"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

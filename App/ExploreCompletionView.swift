@@ -188,17 +188,9 @@ struct ExploreCompletionProvider {
                 }.fixedSize(horizontal: false, vertical: true)
             }
         }
+        // R11-MEM-17-3: MP 下次再来 card (scene-member-order-detail/index.wxml:314-327).
         if let revisit = value.revisit, let clubID = revisit.clubID {
-            Section("exploreCompletion.revisit") {
-                if let name = revisit.clubName, !name.isEmpty { Text(verbatim: name).font(.headline) }
-                else { LabeledContent("exploreCompletion.club", value: String(clubID)) }
-                Text(LocalizedStringKey(revisit.followed ? "exploreCompletion.followed" : "exploreCompletion.notFollowed"))
-                Text(LocalizedStringKey(revisit.joined ? "exploreCompletion.joined" : "exploreCompletion.notJoined"))
-                if let next = revisit.nextEdition {
-                    LabeledContent("exploreCompletion.nextEdition", value: next.name ?? String(next.topicID))
-                    if let date = next.startDate { recordedTime(date).font(.caption) }
-                } else { Text("exploreCompletion.nextPending") }
-            }
+            ExploreCompletionRevisitSection(revisit: revisit, clubID: clubID)
         }
     }
     @ViewBuilder private func recordedTime(_ time: ExploreCompletionTime) -> some View {
