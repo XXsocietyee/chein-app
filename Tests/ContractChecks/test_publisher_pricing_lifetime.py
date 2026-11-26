@@ -10,7 +10,11 @@ class PublisherPricingLifetimeTests(unittest.TestCase):
 
     def test_server_price_and_original_writer_are_preserved(self):
         self.assertIn('try await client.pricing(capturedInput)', self.view)
-        self.assertIn('price = String(TopicPricingXcx.initialPrice(floor: value.minimum))', self.view)
+        # r11 R11-PC-B-2: MP pages/topic/pricing/index.js:146-149 starts from the saved currentPrice when it is at or above
+        # ceil(floor); otherwise from ceil(floor).
+        self.assertIn('let floorStart = TopicPricingXcx.initialPrice(floor: value.minimum)', self.view)
+        self.assertIn('if let current = value.currentPrice, current >= Decimal(floorStart)', self.view)
+        self.assertIn('price = String(floorStart)', self.view)
         self.assertIn('try await coordinator.prepare(action)', self.view)
         # r10 R8-PC-B4-1: pages/topic/pricing/index.js:441-460 posts /api/topic/pricing/confirm (a final-price save,
         # not money). The view sends it through the coordinator, which still needs the pricing grant and a fresh review.
