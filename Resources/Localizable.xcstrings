@@ -326042,6 +326042,23 @@
           }
         }
       }
+    },
+    "club.topic.paidSessionsBlocked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This topic cannot take payments online yet, so players cannot sign up for paid sessions online."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个主题暂不能在线收款，玩家无法在线报名付费场次"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

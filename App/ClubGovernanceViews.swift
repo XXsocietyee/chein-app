@@ -1785,7 +1785,7 @@ struct ClubGovernanceReadView: View {
                     ClubTopicStoryCard(value: value, nodeCount: stats["nodeCount"].int)
                 }.accessibilityIdentifier("club.gov.openStory")
             } header: { Text("club.topic.card.title") }
-            Section("club.topic.upcoming") {
+            Section {
                 let sessions = value["activityList"].array ?? []
                 let groupCodePage = ClubGroupCodePage.project(value: value, scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope))
                 if sessions.isEmpty { ContentUnavailableView("club.topic.noSessions", systemImage: "calendar") }
@@ -1832,6 +1832,9 @@ struct ClubGovernanceReadView: View {
                         }
                     }
                 }
+            } header: { Text("club.topic.upcoming") } footer: {
+                // CLB-r11-topic-detail-02 (MP topic-detail/index.js:419, wxml:316): paidSessionsBlocked → paymentNotice.
+                if stats["paidSessionsBlocked"] == .bool(true) { Text("club.topic.paidSessionsBlocked") }
             }
             ClubTerminalSessionEntry(snapshot: snapshot, context: terminalContext, snapshotGeneration: terminalGeneration,
                 host: terminalSessions, access: access, sourceIsCurrent: {
