@@ -55,7 +55,10 @@ Strings: `Resources/Localizable.xcstrings` + `docs/port/strings/fix-r9-player-co
 | R7-PC-C4-5 | fixed | b3c239088 | `official.detail` | 活动详情 |
 | R9-PC-C4-1 | fixed | ec64ed4ef | App/OfficialEventDetailView.swift | leaderboard after 我的活动任务; `official.leaderboard.provisional/.final` |
 | R9-PC-C6-1 | fixed | 1f06c015d | App/OfficialPrivateViews.swift | 还没发过通知 only |
-| other P2 rows | open | — | — | A1-1, A1-7, A2-6, A3-4, A4-3, A5-6, B1-13, B2-5, R8-B6-1, C1-1, C4-4, C5-2, D9-1, D4-1, D5-1, D1-1, D3-1, D2-4, D9-2, D7-1 |
+| R9-PC-D7-1 | fixed | 9e02e49a6 | App/VideoBountyView.swift (body, `form`) | inset-grouped List; platform Picker + TextFields in a Section; footer validation; per-chip ids become `videoBounty.platform` / `videoBounty.tab` |
+| R9-PC-D9-2 | fixed | d87b7f6ec | App/CommunityMemberReportSheet.swift (body, `content`, `form`, `result`) | Form; counter in footer; 提交 in toolbar; ContentUnavailableView for load-failed and results |
+| R7-PC-B1-13 | partly | 4cc1461c6 | App/TopicDetailView.swift (`sessionPreferName`); App/TopicSessionSelectionView.swift (`preferredTicketName`) | the picker marks the tapped ticket; the activity hand-off takes only an activity id, so the ticket is not preselected on the activity page yet |
+| other P2 rows | open | — | — | A1-1, A1-7, A2-6, A3-4, A4-3, A5-6, B2-5, R8-B6-1, C1-1, C4-4, C5-2, D9-1, D4-1, D5-1, D1-1, D3-1, D2-4 |
 
 ## Merge notes
 - `98585f77c`: `App/GlobalSearchView.swift` kept both empty-search prompts (`emptySearchToast` R7-PC-A3-2 and the tip's `emptySearchNotice` PC-A-3-3).
