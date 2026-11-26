@@ -55,9 +55,12 @@ import SwiftUI
         let captured = controller.capture(projection)
         let original = controller.presentation
         Section {
-            CYPillButton("projectDraftStoryPreview.open", style: .secondary, tableName: "ProjectDraftStoryPreview") {
+            Button {
                 if let captured { controller.open(captured) }
-            }.listRowBackground(Color.clear).disabled(captured == nil || original != nil).accessibilityIdentifier("projectDraftStoryPreview.open")
+            } label: {
+                Label { Text("projectDraftStoryPreview.open", tableName: "ProjectDraftStoryPreview") } icon: { Image(systemName: "book") }
+            }
+            .disabled(captured == nil || original != nil).accessibilityIdentifier("projectDraftStoryPreview.open")
             if let reason = projection.reason {
                 Text(LocalizedStringKey("projectDraftStoryPreview.reason." + reason.rawValue), tableName: "ProjectDraftStoryPreview").font(.caption)
             }
@@ -66,8 +69,6 @@ import SwiftUI
             Group {
                 ProjectDraftStoryPreviewView(controller: controller, original: original)
                     .themeDomain(.topicEditor)
-                    .presentationCornerRadius(CYRadius.sheet)
-                    .presentationBackground(CYDomainPalette(.topicEditor).sheetGlass)
             }
             .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
@@ -95,8 +96,8 @@ import SwiftUI
                         Color.clear.frame(height: 0).id("storyPreviewTop")
                         if controller.isCurrent(original) {
                             VStack(alignment: .leading, spacing: 8) {
-                                if projection.title.isEmpty { text("untitledTopic").cyText(.display).accessibilityAddTraits(.isHeader) }
-                                else { Text(verbatim: projection.title).cyText(.display).accessibilityAddTraits(.isHeader) }
+                                if projection.title.isEmpty { text("untitledTopic").font(.largeTitle.bold()).accessibilityAddTraits(.isHeader) }
+                                else { Text(verbatim: projection.title).font(.largeTitle.bold()).accessibilityAddTraits(.isHeader) }
                                 if !projection.subtitle.isEmpty { Text(verbatim: projection.subtitle).font(.subheadline) }
                                 text("scope").font(.footnote)
                                 text("mediaScope").font(.footnote).foregroundStyle(.secondary)
@@ -104,39 +105,45 @@ import SwiftUI
                                     LabeledContent { Text(verbatim: String(projection.excludedPendingCount)) } label: { text("pendingExcluded") }
                                 }
                             }
-                            if projection.chapters.isEmpty { CYEmptyState(systemImage: "book", "projectDraftStoryPreview.empty", tableName: "ProjectDraftStoryPreview") }
+                            if projection.chapters.isEmpty {
+                                ContentUnavailableView { Label { text("empty") } icon: { Image(systemName: "book") } }
+                            }
                             else if projection.chapters.indices.contains(controller.selectedChapter) {
                                 chapter(projection.chapters[controller.selectedChapter])
                             }
-                        } else { CYEmptyState(systemImage: "clock.arrow.circlepath", "projectDraftStoryPreview.stale", tableName: "ProjectDraftStoryPreview") }
+                        } else {
+                            ContentUnavailableView { Label { text("stale") } icon: { Image(systemName: "clock.arrow.circlepath") } }
+                        }
                     }.padding().frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .onChange(of: controller.selectedChapter) { _, _ in scroll.scrollTo("storyPreviewTop", anchor: .top) }
             }
             .navigationTitle(text("title"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { controller.close(original) } } }
-            .safeAreaInset(edge: .bottom) {
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("action.close") { controller.close(original) } }
                 if controller.isCurrent(original), !projection.chapters.isEmpty {
-                    VStack(spacing: 8) {
+                    // Books-style bottom toolbar: previous · chapter menu · next.
+                    ToolbarItemGroup(placement: .bottomBar) {
+                        Button { _ = controller.select(controller.selectedChapter - 1, in: original) } label: {
+                            Label { text("previous") } icon: { Image(systemName: "chevron.backward") }
+                        }
+                        .disabled(controller.selectedChapter == 0).accessibilityIdentifier("projectDraftStoryPreview.previous")
+                        Spacer()
                         Picker(selection: Binding(get: { controller.selectedChapter }, set: { _ = controller.select($0, in: original) })) {
                             ForEach(projection.chapters.indices, id: \.self) { index in
                                 Text(verbatim: "\(index + 1) · " + projection.chapters[index].title).tag(index)
                             }
                         } label: { text("chapter") }
+                        .pickerStyle(.menu)
                         .accessibilityIdentifier("projectDraftStoryPreview.chapter")
-                        HStack {
-                            CYPillButton("projectDraftStoryPreview.previous", style: .secondary, fullWidth: false, tableName: "ProjectDraftStoryPreview") { _ = controller.select(controller.selectedChapter - 1, in: original) }
-                                .disabled(controller.selectedChapter == 0).accessibilityIdentifier("projectDraftStoryPreview.previous")
-                            Spacer()
-                            Text(verbatim: "\(controller.selectedChapter + 1) / \(projection.chapters.count)")
-                                .accessibilityLabel(text("chapterPosition"))
-                                .accessibilityValue(Text(verbatim: "\(controller.selectedChapter + 1) / \(projection.chapters.count)"))
-                            Spacer()
-                            CYPillButton("projectDraftStoryPreview.next", style: .secondary, fullWidth: false, tableName: "ProjectDraftStoryPreview") { _ = controller.select(controller.selectedChapter + 1, in: original) }
-                                .disabled(controller.selectedChapter + 1 >= projection.chapters.count).accessibilityIdentifier("projectDraftStoryPreview.next")
+                        .accessibilityValue(Text(verbatim: "\(controller.selectedChapter + 1) / \(projection.chapters.count)"))
+                        Spacer()
+                        Button { _ = controller.select(controller.selectedChapter + 1, in: original) } label: {
+                            Label { text("next") } icon: { Image(systemName: "chevron.forward") }
                         }
-                    }.padding().background(.regularMaterial)
+                        .disabled(controller.selectedChapter + 1 >= projection.chapters.count).accessibilityIdentifier("projectDraftStoryPreview.next")
+                    }
                 }
             }
             .onDisappear { controller.close(original) }
@@ -145,8 +152,8 @@ import SwiftUI
     @ViewBuilder private func chapter(_ chapter: ProjectDraftStoryPreview.Chapter) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             text("role." + chapter.role.rawValue).font(.subheadline).foregroundStyle(.secondary)
-            if chapter.title.isEmpty { text("untitledChapter").cyText(.sheetTitle) }
-            else { Text(verbatim: chapter.title).cyText(.sheetTitle) }
+            if chapter.title.isEmpty { text("untitledChapter").font(.title2.bold()) }
+            else { Text(verbatim: chapter.title).font(.title2.bold()) }
             if chapter.role == .ending { text("endingScope").font(.footnote) }
         }.accessibilityAddTraits(.isHeader)
         if chapter.unsupported { text("unsupportedChapter") }

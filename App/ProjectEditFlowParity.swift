@@ -23,32 +23,31 @@ struct ProjectEditScheduleSpan: View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             HStack(spacing: CYSpacing.sm) {
                 column("projectSchedule.start", startDate)
-                Image(systemName: "arrow.right").font(.footnote).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                Image(systemName: "arrow.right").font(.footnote).foregroundStyle(.tertiary).accessibilityHidden(true)
                 column("projectSchedule.end", endDate)
             }
             if let days {
-                CYStatusChip(verbatim: appLocalized("projectSchedule.span \(days)", locale: locale))
+                Label(appLocalized("projectSchedule.span \(days)", locale: locale), systemImage: "calendar")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                     .accessibilityIdentifier("projectSchedule.span")
             } else if let startDate, let endDate, endDate < startDate {
                 Label("projectSchedule.endBeforeStart", systemImage: "exclamationmark.circle")
-                    .cyText(.meta).foregroundStyle(CYColor.dangerText)
+                    .font(.footnote).foregroundStyle(.red)
                     .accessibilityIdentifier("projectSchedule.endBeforeStart")
             }
         }
-        .padding(.vertical, CYSpacing.xs)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("projectSchedule.summary")
     }
     private func column(_ title: LocalizedStringKey, _ date: Date?) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-            Text(title).cyText(.meta).textCase(.uppercase).foregroundStyle(CYColor.textTertiary)
-            Text(verbatim: date.map(format) ?? "—").cyText(.bodyMedium).monospacedDigit()
-                .foregroundStyle(date == nil ? CYColor.textTertiary : CYColor.textPrimary)
+            Text(title).font(.caption).foregroundStyle(.secondary)
+            Text(verbatim: date.map(format) ?? "—").font(.body).monospacedDigit()
+                .foregroundStyle(date == nil ? Color.secondary : Color.primary)
                 .lineLimit(1).minimumScaleFactor(0.7)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(CYSpacing.md)
-        .background(CYColor.textTertiary.opacity(0.08), in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
     }
     private func format(_ date: Date) -> String {
         date.formatted(.dateTime.locale(locale).month(.abbreviated).day().weekday(.abbreviated))
@@ -60,15 +59,17 @@ struct ProjectEditNotLoadedState: View {
     let reload: () -> Void
     var body: some View {
         // C-F15-r7 (MP fabu wxml:24-38): 这份主题加载失败 with one full-width 重新加载.
-        VStack(spacing: CYSpacing.lg) {
-            CYEmptyStateView(systemImage: "doc.badge.clock", title: "fixr3.projectEdit.notLoaded",
-                             description: "projectEdit.notLoaded.detail")
-                .accessibilityIdentifier("projectEdit.notLoaded")
+        ContentUnavailableView {
+            Label("fixr3.projectEdit.notLoaded", systemImage: "doc.badge.clock")
+        } description: {
+            Text("projectEdit.notLoaded.detail")
+        } actions: {
             Button(action: reload) { Text("projectEdit.reload") }
-                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
                 .accessibilityIdentifier("projectEdit.reload")
         }
-        .frame(maxWidth: .infinity)
+        .accessibilityIdentifier("projectEdit.notLoaded")
     }
 }
 
@@ -131,7 +132,6 @@ extension EnvironmentValues {
     @State private var saveFailed = false
     @State private var confirmLeave = false
     @State private var showResultSheet = false
-    @State private var toastMessage: String?
     @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
     private var dirty: Bool { form != baseline }
@@ -142,15 +142,18 @@ extension EnvironmentValues {
         Form {
             Section {
                 Text(verbatim: nodeName.isEmpty ? appLocalized("projectEdit.untitledNode", locale: locale) : nodeName)
-                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    .font(.footnote).foregroundStyle(.secondary)
             }
             switch phase {
             case .loading:
-                Section { CYSkeleton().accessibilityIdentifier("projectNodeNPC.loading") }
+                Section { ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("projectNodeNPC.loading") }
             case .failed:
                 Section {
-                    CYEmptyStateView(systemImage: "exclamationmark.triangle", title: "projectNodeNPC.loadFailed",
-                                     actionTitle: "projectEdit.reload") { Task { await load() } }
+                    ContentUnavailableView {
+                        Label("projectNodeNPC.loadFailed", systemImage: "exclamationmark.triangle")
+                    } actions: {
+                        Button("projectEdit.reload") { Task { await load() } }
+                    }
                 }
             case .ready, .saving:
                 Section("projectNodeNPC.name") {
@@ -164,16 +167,21 @@ extension EnvironmentValues {
                             Button { form.presetID = preset.id } label: {
                                 MerchantNPCPresetArtwork(avatar: preset)
                                     .frame(width: 64, height: 64)
-                                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
-                                    .overlay(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)
-                                        .strokeBorder(form.presetID == preset.id ? CYColor.textPrimary : .clear, lineWidth: 3))
+                                    .clipShape(.rect(cornerRadius: CYRadius.sm))
+                                    .overlay(alignment: .bottomTrailing) {
+                                        if form.presetID == preset.id {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .foregroundStyle(.white, Color.accentColor)
+                                                .accessibilityHidden(true)
+                                        }
+                                    }
                             }
-                            .buttonStyle(.cyPressable)
+                            .buttonStyle(.plain)
                             .accessibilityLabel(Text(LocalizedStringKey(preset.titleKey)))
                             .accessibilityAddTraits(form.presetID == preset.id ? .isSelected : [])
                             .accessibilityIdentifier("projectNodeNPC.preset." + preset.id)
                         }
-                    }.padding(.vertical, CYSpacing.xs)
+                    }
                 }
                 Section {
                     TextField("projectNodeNPC.greeting.placeholder", text: $form.greeting, axis: .vertical).lineLimit(2...5)
@@ -181,7 +189,7 @@ extension EnvironmentValues {
                         .accessibilityIdentifier("projectNodeNPC.greeting")
                 } header: { Text("projectNodeNPC.greeting") } footer: { Text("projectNodeNPC.optional") }
                 if saveFailed {
-                    Section { Label("projectNodeNPC.saveFailed", systemImage: "exclamationmark.circle").foregroundStyle(CYColor.dangerText) }
+                    Section { Label("projectNodeNPC.saveFailed", systemImage: "exclamationmark.circle").foregroundStyle(.red) }
                 }
             }
         }
@@ -197,26 +205,16 @@ extension EnvironmentValues {
             }
         }
         .interactiveDismissDisabled(dirty)
-        .cyModalConfirm(
-            isPresented: confirmLeave,
-            title: appLocalized("chapterStory.discardQuestion", locale: locale),
-            cancelTitle: appLocalized("chapterStory.keepEditing", locale: locale),
-            confirmTitle: appLocalized("chapterStory.discard", locale: locale),
-            isDestructive: true,
-            onCancel: { confirmLeave = false },
-            onConfirm: { confirmLeave = false; dismiss() }
-        )
-        .sheet(isPresented: $showResultSheet) {
-            PlayCloseResultSheet(
-                title: MerchantCloseCopy.text("节点NPC已保存", "Node NPC Saved", locale),
-                message: MerchantCloseCopy.text("NPC设定已写入当前节点。", "NPC configuration saved to this node.", locale),
-                detail: nil,
-                closeIdentifier: "projectNodeNPC.result.close",
-                onClose: { showResultSheet = false }
-            )
-            .themeDomain(.topicEditor)
+        .confirmationDialog(appLocalized("chapterStory.discardQuestion", locale: locale), isPresented: $confirmLeave, titleVisibility: .visible) {
+            Button(appLocalized("chapterStory.discard", locale: locale), role: .destructive) { confirmLeave = false; dismiss() }
+            Button(appLocalized("chapterStory.keepEditing", locale: locale), role: .cancel) { confirmLeave = false }
         }
-        .cyToast(verbatimMessage: $toastMessage)
+        .alert(MerchantCloseCopy.text("节点NPC已保存", "Node NPC Saved", locale), isPresented: $showResultSheet) {
+            Button(PlayCloseCopy.close(locale)) { showResultSheet = false }
+                .accessibilityIdentifier("projectNodeNPC.result.close")
+        } message: {
+            Text(verbatim: MerchantCloseCopy.text("NPC设定已写入当前节点。", "NPC configuration saved to this node.", locale))
+        }
         .task { await load() }
         .cyDomainScreen(.topicEditor)
     }
@@ -233,7 +231,6 @@ extension EnvironmentValues {
         do {
             try await authoring.save(form, chapterID: chapterID, nodeID: nodeID)
             baseline = form; phase = .ready
-            toastMessage = MerchantCloseCopy.text("已保存", "Saved", locale)
             showResultSheet = true
         }
         catch { saveFailed = true; phase = .ready }

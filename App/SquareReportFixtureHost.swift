@@ -55,7 +55,7 @@ import SwiftUI
             return try await actions.snapshot(target: target, generation: .communityV1)
         })
         VStack(spacing: 0) {
-            Text(verbatim: scenario).cyText(.meta).accessibilityIdentifier("squareReport.fixture.scenario")
+            Text(verbatim: scenario).font(.caption).accessibilityIdentifier("squareReport.fixture.scenario")
             Button("social.fixtureSwitchAccount") { account.switchAccount(); epoch += 1 }
                 .accessibilityIdentifier("squareReport.fixture.switch")
             SquareBrowserView(reader: reader, accountReader: account, actions: SocialActionCoordinator(access: actions))

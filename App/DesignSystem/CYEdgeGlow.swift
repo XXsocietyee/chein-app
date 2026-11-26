@@ -37,24 +37,9 @@ struct CYEdgeGlow: View, Animatable {
         set { sweep = newValue.first; ring = newValue.second }
     }
 
+    /// Native r2: no edge glow. Draws nothing.
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-        ZStack {
-            if solid {
-                shape.strokeBorder(color.opacity(ring), lineWidth: 2)
-            } else {
-                if sweep > 0 && sweep < 1 {
-                    if !cheap { shape.strokeBorder(comet, lineWidth: 12).blur(radius: 8).opacity(0.9) }
-                    shape.strokeBorder(comet, lineWidth: 6).blur(radius: cheap ? 0 : 3)
-                }
-                shape.strokeBorder(color.opacity(0.6 * ring), lineWidth: 1.5)
-                if !cheap { shape.strokeBorder(color.opacity(0.45 * ring), lineWidth: 5).blur(radius: 7) }
-            }
-        }
-        .ignoresSafeArea()
-        .blendMode(.screen)
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
+        EmptyView()
     }
 
     /// A tail that fades in over the last half turn and a near-white head at the leading point.
@@ -125,6 +110,7 @@ private struct CYEdgeGlowDriver: View {
 extension View {
     /// Sweeps `color` once around the display edge whenever `trigger` changes. Mount at a screen root.
     func cyEdgeGlow(trigger: Int, color: Color = CYNight.verify) -> some View {
-        overlay { CYEdgeGlowDriver(trigger: trigger, color: color) }
+        // Native r2: no decorative edge light; the content is shown as is.
+        self
     }
 }

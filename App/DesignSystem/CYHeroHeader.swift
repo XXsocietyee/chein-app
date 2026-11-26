@@ -1,14 +1,12 @@
 import SwiftUI
 
-/// Large heavy headline with optional subtitle and optional illustration slot (X-style onboarding hero).
-/// Role-aware: colours come from `@Environment(\.cyPalette)`.
+/// Native r2: an optional image (the illustration slot) above a plain system title (`.title` bold) and a
+/// `.secondary` body subtitle. No gradient, no custom colours.
 struct CYHeroHeader<Illustration: View>: View {
     private let title: Text
     private let subtitle: Text?
     private let titleIdentifier: String?
     private let illustration: Illustration
-
-    @Environment(\.cyPalette) private var palette
 
     init(
         _ title: LocalizedStringKey,
@@ -41,15 +39,14 @@ struct CYHeroHeader<Illustration: View>: View {
             illustration
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 title
-                    .cyText(.pageTitle)
-                    .foregroundStyle(palette.textPrimary)
+                    .font(.title.bold())
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
                     .modifier(CYOptionalAccessibilityIdentifier(identifier: titleIdentifier))
                 if let subtitle {
                     subtitle
-                        .cyText(.body)
-                        .foregroundStyle(palette.textSecondary)
+                        .font(.body)
+                        .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -87,21 +84,8 @@ struct CYOptionalAccessibilityIdentifier: ViewModifier {
     }
 }
 
-#Preview("Hero · player dark") {
-    CYHeroHeader("Find your next quest", subtitle: "Real places, real rewards.") {
-        RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)
-            .fill(.gray.opacity(0.3)).frame(height: 120)
-    }
-    .padding(CYSpacing.pageHorizontal)
-    .frame(maxHeight: .infinity, alignment: .top)
-    .cyDomainPageBackground()
-    .themeDomain(.player)
-}
-
-#Preview("Hero · merchant light") {
-    CYHeroHeader("Run your shop", subtitle: "Orders, tickets and coupons in one place.")
-        .padding(CYSpacing.pageHorizontal)
+#Preview("Hero") {
+    CYHeroHeader("Find your next quest", subtitle: "Real places, real rewards.")
+        .padding()
         .frame(maxHeight: .infinity, alignment: .top)
-        .cyDomainPageBackground()
-        .themeDomain(.merchant)
 }

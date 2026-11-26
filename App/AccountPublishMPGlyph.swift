@@ -22,21 +22,17 @@ struct AccountPublishMPGlyph: View {
     }
 }
 
-/// `CYRowIcon` tile with mini-program artwork instead of an SF Symbol (same 40 / 56 pt tile).
+/// Mini-program artwork as a plain list-row icon (native r2: no tile chrome; the system `Label` draws the row).
 struct AccountPublishMPRowIcon: View {
     let image: Image
-    @Environment(\.cyPalette) private var palette
-    @Environment(\.dynamicTypeSize) private var typeSize
+    @ScaledMetric(relativeTo: .body) private var side: CGFloat = 22
     init(_ image: Image) { self.image = image }
-    private var side: CGFloat { typeSize.isAccessibilitySize ? 56 : 40 }
     var body: some View {
         image
             .resizable()
             .scaledToFit()
-            .foregroundStyle(palette.textPrimary)
-            .padding(side * 0.2)
+            .foregroundStyle(.tint)
             .frame(width: side, height: side)
-            .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(palette.bgRaised))
             .accessibilityHidden(true)
     }
 }

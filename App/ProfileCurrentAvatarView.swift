@@ -32,8 +32,7 @@ import Observation
     }
     private var editBadge: some View {
         Image(systemName: "pencil.circle.fill").font(.title2)
-            .symbolRenderingMode(.palette).foregroundStyle(CYColor.textPrimary, CYColor.bgRaised)
-            .background(Circle().fill(CYColor.bgPage))
+            .symbolRenderingMode(.hierarchical).foregroundStyle(.tint)
             .accessibilityHidden(true)
     }
     private struct Load: Hashable {
@@ -44,30 +43,36 @@ import Observation
     var body: some View {
         let load = Load(key: key, retry: retry, lifetime: visibility.lifetime)
         VStack(spacing: 8) {
+            // MP gerenziliao.wxml:20 `.rv-bg` (default `/pages/gerenziliao/images/mer1.jpg`, js:71): kept as the one plain
+            // header image of the first section (native r2: no fade, no overlay).
+            Color.clear
+                .frame(height: 120)
+                .overlay { MPAsset.BannerCover.pagesGerenziliaoImagesMer1.resizable().scaledToFill() }
+                .clipped()
+                .accessibilityHidden(true)
             if let key, loadedKey == key, let image {
                 Image(uiImage: image).resizable().scaledToFill()
                     .frame(width: 112, height: 112).clipShape(Circle())
-                    .overlay(Circle().strokeBorder(CYDomainPalette(.player).avatarRing, lineWidth: 3))
                     .overlay(alignment: .bottomTrailing) { editBadge }
                     .accessibilityLabel(Text("profile.currentAvatar.saved", tableName: "ProfileCurrentMediaUI"))
             } else if let key, failedKey == key {
                 Label { Text("profile.currentAvatar.failed", tableName: "ProfileCurrentMediaUI") } icon: { Image(systemName: "person.crop.circle.badge.exclamationmark") }
-                CYPillButton("action.retry", style: .secondary, fullWidth: false) { retry += 1 }
+                Button("action.retry") { retry += 1 }
+                    .buttonStyle(.bordered)
                     .accessibilityIdentifier("profile.avatar.current.retry")
             } else if key != nil {
-                CYSkeletonBlock(height: 112, cornerRadius: 56).frame(width: 112)
+                ProgressView().frame(width: 112, height: 112)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Text("profile.currentAvatar.loading", tableName: "ProfileCurrentMediaUI"))
                     .accessibilityIdentifier("profile.avatar.current.loading")
             } else {
                 // MP gerenziliao.wxml:28 `avatarSrc || '/images/d_profile.png'`.
                 MPAsset.AvatarDefault.dProfile.resizable().scaledToFill()
-                    .frame(width: 112, height: 112).background(CYColor.bgRaised, in: Circle()).clipShape(Circle())
-                    .overlay(Circle().strokeBorder(CYDomainPalette(.player).avatarRing, lineWidth: 3))
+                    .frame(width: 112, height: 112).clipShape(Circle())
                     .overlay(alignment: .bottomTrailing) { editBadge }
                     .accessibilityHidden(true)
                 (model.savedAvatarReadSnapshot?.avatar.isEmpty == true ? Text("profile.currentAvatar.empty", tableName: "ProfileCurrentMediaUI") : Text("profile.currentAvatar.unavailable", tableName: "ProfileCurrentMediaUI"))
-                    .cyText(.bodyCompact).foregroundStyle(.secondary)
+                    .font(.subheadline).foregroundStyle(.secondary)
                     .accessibilityIdentifier("profile.avatar.current.unavailable")
             }
             // A3-10 (gerenziliao.wxml:31 `.rv-name`): the saved nickname under the centred avatar, 城瘾玩家 when empty.
@@ -78,28 +83,14 @@ import Observation
                     Text("member.card.defaultName", tableName: "MemberProfile")
                 }
             }
-            .cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
+            .font(.title2.weight(.semibold)).foregroundStyle(.primary)
             .multilineTextAlignment(.center)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier("profile.avatar.current.name")
-            Text("profile.currentAvatar.saved", tableName: "ProfileCurrentMediaUI").cyText(.meta).foregroundStyle(.secondary)
+            Text("profile.currentAvatar.saved", tableName: "ProfileCurrentMediaUI").font(.footnote).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, CYSpacing.md)
-        // MP gerenziliao.wxml:20 `.rv-bg`: the page cover (default `/pages/gerenziliao/images/mer1.jpg`, js:71) under a fade.
-        .listRowBackground(
-            MPAsset.BannerCover.pagesGerenziliaoImagesMer1
-                .resizable()
-                .scaledToFill()
-                .accessibilityHidden(true)
-                .overlay {
-                    LinearGradient(stops: [.init(color: CYColor.bgPage.opacity(0.35), location: 0),
-                                           .init(color: CYColor.bgPage.opacity(0.75), location: 0.6),
-                                           .init(color: CYColor.bgPage, location: 1)],
-                                   startPoint: .top, endPoint: .bottom)
-                }
-                .clipped()
-        )
+        .padding(.vertical, 8)
         .accessibilityIdentifier("profile.avatar.current")
         .privacySensitive()
         .task(id: load) {

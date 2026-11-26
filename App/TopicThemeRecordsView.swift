@@ -14,26 +14,32 @@ import SwiftUI
     var body: some View {
         List {
             Section { Text(verbatim: topicName).font(.subheadline).foregroundStyle(.secondary) }
-            if loading && rows.isEmpty { CYLoadingStateView(rows: 1).accessibilityLabel(Text("topicXcx.records.loading")) }
+            if loading && rows.isEmpty { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("topicXcx.records.loading")) }
             else if failed && rows.isEmpty {
-                Text("topicXcx.records.failed").accessibilityIdentifier("topic.records.failed")
-                CYPillButton("topicXcx.records.reload", style: .secondary) { Task { await load(reset: true) } }
+                ContentUnavailableView {
+                    Label { Text("topicXcx.records.failed").accessibilityIdentifier("topic.records.failed") } icon: { Image(systemName: "exclamationmark.triangle") }
+                } actions: {
+                    Button { Task { await load(reset: true) } } label: { Text("topicXcx.records.reload") }
+                        .buttonStyle(.bordered)
+                }
             } else if rows.isEmpty && loadedScope == reader.scope {
-                Text("topicXcx.records.empty").accessibilityIdentifier("topic.records.empty")
+                ContentUnavailableView {
+                    Label { Text("topicXcx.records.empty").accessibilityIdentifier("topic.records.empty") } icon: { Image(systemName: "clock") }
+                }
             }
             ForEach(rows) { row in
                 NavigationLink { TopicThemeCardView(sessionID: row.sessionID, reader: reader) } label: {
                     VStack(alignment: .leading, spacing: 3) {
                         switch row.title {
-                        case .server(let text): Text(verbatim: text).cyText(.cardTitle)
-                        case .completed: Text("topicXcx.records.completed").cyText(.cardTitle)
-                        case .ended: Text("topicXcx.records.ended").cyText(.cardTitle)
-                        case .playing: Text("topicXcx.records.playing").cyText(.cardTitle)
+                        case .server(let text): Text(verbatim: text).font(.headline)
+                        case .completed: Text("topicXcx.records.completed").font(.headline)
+                        case .ended: Text("topicXcx.records.ended").font(.headline)
+                        case .playing: Text("topicXcx.records.playing").font(.headline)
                         }
-                        if let scene = row.sceneName { Text(verbatim: scene).cyText(.meta) }
-                        if let ended = row.endedAt { Text(verbatim: ended).cyText(.meta).foregroundStyle(.secondary) }
-                        else { Text("topicXcx.records.playing").cyText(.meta).foregroundStyle(.secondary) }
-                        if let summary = row.summary { Text(verbatim: summary).cyText(.bodyCompact).lineLimit(2) }
+                        if let scene = row.sceneName { Text(verbatim: scene).font(.subheadline) }
+                        if let ended = row.endedAt { Text(verbatim: ended).font(.subheadline).foregroundStyle(.secondary) }
+                        else { Text("topicXcx.records.playing").font(.subheadline).foregroundStyle(.secondary) }
+                        if let summary = row.summary { Text(verbatim: summary).font(.subheadline).lineLimit(2) }
                     }
                 }.accessibilityIdentifier("topic.records.row.\(row.sessionID)")
             }
@@ -45,6 +51,7 @@ import SwiftUI
         .appNavigationTitle("topicXcx.records.title")
         .navigationBarTitleDisplayMode(.inline)
         .task(id: reader.scope) { await load(reset: true) }
+        .refreshable { await load(reset: true) }
         .accessibilityIdentifier("topic.records")
         .cyDomainScreen(.player)
     }
@@ -73,7 +80,7 @@ import SwiftUI
         List {
             if let card {
                 Section {
-                    if let title = card.title { Text(verbatim: title).cyText(.sectionTitle) } else { Text("topicXcx.records.cardTitle").cyText(.sectionTitle) }
+                    if let title = card.title { Text(verbatim: title).font(.title3.weight(.semibold)) } else { Text("topicXcx.records.cardTitle").font(.title3.weight(.semibold)) }
                     if let scene = card.scene { LabeledContent { Text(verbatim: scene) } label: { Text("topicXcx.records.scene") } }
                     if let summary = card.summary { Text(verbatim: summary) }
                 }
@@ -93,17 +100,22 @@ import SwiftUI
                 if !card.epilogues.isEmpty {
                     Section("topicXcx.records.epilogues") {
                         ForEach(Array(card.epilogues.enumerated()), id: \.offset) { _, row in
-                            VStack(alignment: .leading) { Text(verbatim: row.name).cyText(.cardTitle); if let line = row.line { Text(verbatim: line) } }
+                            VStack(alignment: .leading) { Text(verbatim: row.name).font(.headline); if let line = row.line { Text(verbatim: line) } }
                         }
                     }
                 }
                 if let next = card.nextScene { Text("topicXcx.records.nextScene \(next)") }
             } else if failed {
-                Text("topicXcx.records.cardFailed").accessibilityIdentifier("topic.records.cardFailed")
-                CYPillButton("topicXcx.records.cardReload", style: .secondary) { Task { await load() } }
-            } else { CYLoadingStateView(rows: 1).accessibilityLabel(Text("topicXcx.records.cardLoading")) }
+                ContentUnavailableView {
+                    Label { Text("topicXcx.records.cardFailed").accessibilityIdentifier("topic.records.cardFailed") } icon: { Image(systemName: "exclamationmark.triangle") }
+                } actions: {
+                    Button { Task { await load() } } label: { Text("topicXcx.records.cardReload") }
+                        .buttonStyle(.bordered)
+                }
+            } else { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("topicXcx.records.cardLoading")) }
         }
         .task(id: reader.scope) { await load() }
+        .refreshable { await load() }
         .accessibilityIdentifier("topic.records.card")
         .cyDomainScreen(.player)
     }

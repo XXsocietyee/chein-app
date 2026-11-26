@@ -23,56 +23,30 @@ struct QuickPublishingInterest: Identifiable {
 }
 
 enum QuickPublishingPalette {
-    static func selection(in domain: ThemeDomain) -> Color {
-        // Topic-editor selection reads CYColor.infoText for this domain.
-        // CYColor.brand stays neutral. CYColor.tabSelected stays on the selected tab.
-        Theme.Generated.color("--cy-color-status-info", in: domain) ?? Theme.Color.accent(in: domain)
-    }
+    /// Native r2: selection uses the system accent.
+    static func selection(in domain: ThemeDomain) -> Color { .accentColor }
 }
 
+/// Native r2: the MP interest bubbles have no Apple equivalent; the closest system control is a
+/// multi-select list of rows with a checkmark (Settings / Reminders pattern). Row-shaped: host it in a Section.
 struct QuickPublishingInterestPicker: View {
     let selected: Set<String>
     let toggle: (String) -> Void
     @Environment(\.locale) private var locale
-    @Environment(\.themeDomain) private var domain
-    @Environment(\.dynamicTypeSize) private var typeSize
     private var chinese: Bool { locale.language.languageCode?.identifier == "zh" }
     var body: some View {
-        if typeSize >= .xxxLarge {
-            VStack(alignment: .leading, spacing: Theme.Space.s2) {
-                ForEach(QuickPublishingInterest.all) { item in interest(item, diameter: nil) }
-            }
-        } else {
-            GeometryReader { geometry in
-                let scale = geometry.size.width / 750
-                ZStack(alignment: .topLeading) {
-                    ForEach(QuickPublishingInterest.all) { item in
-                        let edge = item.diameter * scale
-                        interest(item, diameter: edge)
-                            .position(x: geometry.size.width * item.x / 100, y: item.y * scale + edge / 2)
-                    }
-                }.frame(maxWidth: .infinity, maxHeight: .infinity)
-            }.aspectRatio(750.0 / 440.0, contentMode: .fit)
-        }
+        ForEach(QuickPublishingInterest.all) { item in interest(item) }
     }
-    private func interest(_ item: QuickPublishingInterest, diameter: CGFloat?) -> some View {
+    private func interest(_ item: QuickPublishingInterest) -> some View {
         let on = selected.contains(item.id)
         return Button { toggle(item.id) } label: {
-            Group {
-                if let diameter {
-                    Image(systemName: item.symbol).font(on ? .title2.weight(.semibold) : .title3.weight(.semibold))
-                        .frame(width: max(44, diameter), height: max(44, diameter))
-                        .background(on ? QuickPublishingPalette.selection(in: domain) : Theme.Color.bgSurface(in: domain), in: Circle())
-                        .scaleEffect(on ? 1.08 : 1)
-                } else {
-                    Label(item.title(chinese: chinese), systemImage: item.symbol)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                        .padding(.horizontal, Theme.Space.s3)
-                        .background(on ? QuickPublishingPalette.selection(in: domain) : Theme.Color.bgSurface(in: domain), in: RoundedRectangle(cornerRadius: Theme.Radius.md))
-                }
-            }.foregroundStyle(on ? Theme.Color.bgSurface(in: domain) : Theme.Color.textPrimary(in: domain))
-        }.buttonStyle(.plain)
+            HStack {
+                Label(item.title(chinese: chinese), systemImage: item.symbol)
+                    .foregroundStyle(.primary)
+                Spacer()
+                if on { Image(systemName: "checkmark").foregroundStyle(.tint).accessibilityHidden(true) }
+            }
+        }
             .accessibilityLabel(Text(verbatim: item.title(chinese: chinese)))
             .accessibilityValue(on ? Text("publishModes.selected") : Text("publishModes.notSelected"))
             .accessibilityAddTraits(on ? .isSelected : [])
@@ -80,34 +54,22 @@ struct QuickPublishingInterestPicker: View {
     }
 }
 
-/// The reference's blue/pink/green canvas is decorative content. Existing domain
-/// tokens keep light/dark and increased contrast behavior; no global token edits.
+/// Native r2: the reference's decorative canvas is gone; the ground is the system grouped background.
 struct QuickPublishingCanvas: View {
-    @Environment(\.themeDomain) private var domain
-    @Environment(\.colorSchemeContrast) private var contrast
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                Theme.Color.bgPage(in: domain)
-                if contrast != .increased {
-                    RadialGradient(colors: [QuickPublishingPalette.selection(in: domain).opacity(0.16), .clear], center: .init(x: 0.08, y: 0.45), startRadius: 0, endRadius: geometry.size.width * 0.9)
-                    RadialGradient(colors: [Theme.Color.danger(in: domain).opacity(0.09), .clear], center: .init(x: 0.92, y: 0.20), startRadius: 0, endRadius: geometry.size.width * 0.85)
-                    RadialGradient(colors: [Theme.Color.success(in: domain).opacity(0.12), .clear], center: .init(x: 0.60, y: 0.80), startRadius: 0, endRadius: geometry.size.width)
-                }
-            }
-        }.allowsHitTesting(false).accessibilityHidden(true)
+        Color(.systemGroupedBackground)
+            .allowsHitTesting(false).accessibilityHidden(true)
     }
 }
 
 /// Presentation helpers shared only by the publishing journey. They own no state,
 /// permissions or request callbacks.
+/// Native r2: a system form row — the label as the system draws it (`LabeledContent`), the control trailing.
 struct PublishingField<Content: View>: View {
     let title: Text
     let content: Content
     var required = false
     @Environment(\.locale) private var locale
-    @Environment(\.themeDomain) private var domain
-    @Environment(\.cyPalette) private var palette
     init(_ key: LocalizedStringKey, required: Bool = false, @ViewBuilder content: () -> Content) {
         title = Text(key); self.required = required; self.content = content()
     }
@@ -115,18 +77,12 @@ struct PublishingField<Content: View>: View {
         self.title = title; self.required = required; self.content = content()
     }
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Space.s2) {
-            HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s1) {
-                title.cyText(.label).foregroundStyle(palette.textSecondary)
-                if required {
-                    Text(verbatim: "*").foregroundStyle(Theme.Color.danger(in: domain))
-                        .accessibilityHidden(true)
-                }
-            }.accessibilityElement(children: .ignore)
+        LabeledContent {
+            content
+        } label: {
+            title
                 .accessibilityLabel(title + Text(verbatim: required ? (locale.language.languageCode?.identifier == "zh" ? "，必填" : ", required") : ""))
-            content.cyText(.body)
-        }.frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, Theme.Space.s1)
+        }
     }
 }
 
@@ -134,32 +90,26 @@ struct PublishingStatusRow: View {
     let title: Text
     var symbol = "info.circle"
     var isError = false
-    @Environment(\.themeDomain) private var domain
     var body: some View {
         Label {
-            title.fixedSize(horizontal: false, vertical: true)
+            title
         } icon: {
             Image(systemName: symbol).accessibilityHidden(true)
         }
         .font(isError ? .body : .footnote)
-        .foregroundStyle(isError ? Theme.Color.danger(in: domain) : Theme.Color.textSecondary(in: domain))
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical, Theme.Space.s1)
+        .foregroundStyle(isError ? AnyShapeStyle(Color.red) : AnyShapeStyle(.secondary))
         .accessibilityElement(children: .combine)
     }
 }
 
+/// Native r2: system grouped Form background; only keyboard dismissal remains.
 struct PublishingFormSurface: ViewModifier {
-    @Environment(\.themeDomain) private var domain
     func body(content: Content) -> some View {
-        content.scrollContentBackground(.hidden)
-            .scrollDismissesKeyboard(.interactively)
-            .background(Theme.Color.bgPage(in: domain))
+        content.scrollDismissesKeyboard(.interactively)
     }
 }
 
 @MainActor struct PublishingModePickerSheet: View {
-    @Environment(\.themeDomain) private var domain
     @Environment(\.dismiss) private var dismiss
     @State private var selection: ProjectEditProduct
     let confirm: (ProjectEditProduct) -> Void
@@ -169,20 +119,20 @@ struct PublishingFormSurface: ViewModifier {
     var body: some View {
         NavigationStack {
             Form {
-                CYHeroHeader("contextPublish.mode.choose")
-                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
-                Picker("contextPublish.mode.choose", selection: $selection) {
-                    Text("projectEdit.city").tag(ProjectEditProduct.city)
-                    Text("projectEdit.freeExplore").tag(ProjectEditProduct.freeExplore)
-                }.pickerStyle(.inline)
-                Text("contextPublish.mode.cityDetail")
-                    .cyText(.bodyCompact).foregroundStyle(Theme.Color.textSecondary(in: domain))
-                    .fixedSize(horizontal: false, vertical: true)
-                Text("contextPublish.mode.exploreDetail")
-                    .cyText(.bodyCompact).foregroundStyle(Theme.Color.textSecondary(in: domain))
-                    .fixedSize(horizontal: false, vertical: true)
-            }.modifier(PublishingFormSurface()).cyText(.body).tint(Theme.Color.accent(in: domain))
-                .cyHeroScreen()
+                Section {
+                    Picker("contextPublish.mode.choose", selection: $selection) {
+                        Text("projectEdit.city").tag(ProjectEditProduct.city)
+                        Text("projectEdit.freeExplore").tag(ProjectEditProduct.freeExplore)
+                    }.pickerStyle(.inline).labelsHidden()
+                } footer: {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("contextPublish.mode.cityDetail")
+                        Text("contextPublish.mode.exploreDetail")
+                    }
+                }
+            }.modifier(PublishingFormSurface())
+                .navigationTitle(Text("contextPublish.mode.choose"))
+                .navigationBarTitleDisplayMode(.inline)
                 .cyDomainScreen(.topicEditor)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { dismiss() } }
@@ -192,7 +142,6 @@ struct PublishingFormSurface: ViewModifier {
     }
 }
 @MainActor struct PublishingSubmissionResultSheet: View {
-    @Environment(\.themeDomain) private var domain
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var lifecycle = ProjectSubmissionResultLifecycle()
     let receipt: PublishingSubmissionHandoff
@@ -215,49 +164,68 @@ struct PublishingFormSurface: ViewModifier {
     }
     @ViewBuilder private func result(capture: UUID?) -> some View {
         if let acknowledgment = receipt.bundleAcknowledgment {
-            ScrollView {
-                VStack(alignment: .leading, spacing: Theme.Space.s4) {
-                    CYStatusChip("contextPublish.result.acknowledged", tone: .success, systemImage: "checkmark.circle.fill")
-                    Text("contextPublish.result.acknowledged").cyText(.sectionTitle)
-                        .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
-                    Text(verbatim: receipt.title).cyText(.cardTitle)
-                        .fixedSize(horizontal: false, vertical: true)
-                    if let statusLoader {
+            List {
+                Section {
+                    Label("contextPublish.result.acknowledged", systemImage: "checkmark.circle.fill")
+                        .font(.headline)
+                        .foregroundStyle(.green)
+                        .accessibilityAddTraits(.isHeader)
+                    Text(verbatim: receipt.title)
+                }
+                if let statusLoader {
+                    Section {
                         TopicPublicationStatusPanel(topicID: acknowledgment.topicID, load: statusLoader)
                     }
+                }
+                Section {
                     ProjectSubmissionEvidenceView(acknowledgment: acknowledgment, currentVerificationConfigured: canVerifyRelease)
-                    CYPillButton("action.done") { if let capture { lifecycle.finish(capture, action: close) } }
-                        .disabled(capture == nil)
-                        .accessibilityIdentifier("projectSubmission.done")
-                }.frame(maxWidth: .infinity, alignment: .leading).padding(Theme.Space.pageX)
-                    .cyText(.body).tint(Theme.Color.accent(in: domain))
+                }
+                Section {
+                    Button { if let capture { lifecycle.finish(capture, action: close) } } label: {
+                        Text("action.done").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .disabled(capture == nil)
+                    .accessibilityIdentifier("projectSubmission.done")
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                }
             }
+            .listStyle(.insetGrouped)
             .cyDomainScreen(.topicEditor)
             .accessibilityIdentifier("projectSubmission.receipt")
             .interactiveDismissDisabled()
         } else { legacyResult(capture: capture) }
     }
     private func legacyResult(capture: UUID?) -> some View {
-        ScrollView {
-        VStack(alignment: .leading, spacing: Theme.Space.s4) {
-            CYStatusChip("contextPublish.result.acknowledged", tone: .success, systemImage: "checkmark.circle.fill")
-            Label("contextPublish.result.acknowledged", systemImage: "checkmark.circle").cyText(.sectionTitle)
-                .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
-            Text(verbatim: receipt.title).cyText(.cardTitle)
-                .fixedSize(horizontal: false, vertical: true)
-            LabeledContent("contextPublish.result.chapters") {
-                Text(verbatim: String(receipt.chapterCount)).cyText(.bodyCompact, monospacedDigit: true)
+        List {
+            Section {
+                Label("contextPublish.result.acknowledged", systemImage: "checkmark.circle.fill")
+                    .font(.headline)
+                    .foregroundStyle(.green)
+                    .accessibilityAddTraits(.isHeader)
+                Text(verbatim: receipt.title)
+                LabeledContent("contextPublish.result.chapters") {
+                    Text(verbatim: String(receipt.chapterCount)).monospacedDigit()
+                }
+            } footer: {
+                Text("contextPublish.result.readStatus")
             }
-            .cyDomainCard()
-            Text("contextPublish.result.readStatus").cyText(.body)
-                .foregroundStyle(Theme.Color.textSecondary(in: domain)).fixedSize(horizontal: false, vertical: true)
             if !canNavigate {
-                CYPillButton("action.done") { if let capture { lifecycle.finish(capture, action: close) } }
+                Section {
+                    Button { if let capture { lifecycle.finish(capture, action: close) } } label: {
+                        Text("action.done").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
                     .disabled(capture == nil)
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                }
             }
-        }.frame(maxWidth: .infinity, alignment: .leading).padding(Theme.Space.pageX)
-            .cyText(.body).tint(Theme.Color.accent(in: domain))
         }
+        .listStyle(.insetGrouped)
         .cyDomainScreen(.topicEditor)
         .interactiveDismissDisabled()
     }

@@ -9,7 +9,6 @@ import SwiftUI
 
 /// Opened only from a real row in the normal friends list. No numeric peer entry or parallel relationship store.
 @MainActor struct NativeFriendMetadataView: View {
-    @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -42,22 +41,17 @@ import SwiftUI
         if flow.isCurrent, !flow.groups.isEmpty { return .saveGroup }
         return nil
     }
-    private func pillStyle(_ candidate: Focus) -> CYPillStyle {
-        focus == candidate && candidate != .delete ? .primary : .secondary
+    private func isPrimary(_ candidate: Focus) -> Bool {
+        focus == candidate && candidate != .delete
     }
     var body: some View {
         Form {
-            Section {
-                CYHeroHeader(LocalizedStringKey(flow.peerID == 0 ? "friendMeta.recoveryEntry" : "friendMeta.title"), tableName: "NativeFriendMetadata")
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets())
-                    .listRowSeparator(.hidden)
-            }
             if flow.canPresentPeer { Section {
-                CYListRow(verbatim: nickname, trailing: .none) { personArt(nickname) }
+                Label(nickname, systemImage: "person.crop.circle")
             } }
             if flow.busy {
-                CYSkeleton()
+                ProgressView()
+                    .frame(maxWidth: .infinity)
                     .accessibilityLabel(Text("cy.state.loading"))
                     .accessibilityIdentifier("friendMeta.loading")
             }
@@ -67,35 +61,38 @@ import SwiftUI
             if flow.pending != nil {
                 Section {
                     if !flow.hasResolvedPending { notice("friendMeta.unknown") }
-                    metaAction(flow.hasResolvedPending ? "friendMeta.retryCleanup" : "friendMeta.recover", style: pillStyle(.recover), enabled: flow.canRecover, identifier: "friendMeta.recover") {
+                    metaAction(flow.hasResolvedPending ? "friendMeta.retryCleanup" : "friendMeta.recover", prominent: isPrimary(.recover), enabled: flow.canRecover, identifier: "friendMeta.recover") {
                         performPresented { await flow.recover() }
                     }
                 }
             }
             if flow.isCurrent, flow.resolvedIdentity != nil {
                 if flow.didApply {
-                    CYStatusChip(verbatim: localized("friendMeta.saved"), tone: .success, systemImage: "checkmark")
+                    Label(localized("friendMeta.saved"), systemImage: "checkmark")
+                        .foregroundStyle(.green)
                         .accessibilityIdentifier("friendMeta.saved")
                 } else {
-                    CYStatusChip(verbatim: localized("friendMeta.notApplied"), tone: .neutral, systemImage: "circle")
+                    Label(localized("friendMeta.notApplied"), systemImage: "circle")
+                        .foregroundStyle(.secondary)
                         .accessibilityIdentifier("friendMeta.notApplied")
                 }
             }
             if let command = flow.review {
                 Section {
                     reviewDetails(command)
-                    metaAction("friendMeta.confirm", style: pillStyle(.confirm), enabled: flow.canConfirm, identifier: "friendMeta.confirm") {
+                    metaAction("friendMeta.confirm", prominent: isPrimary(.confirm), enabled: flow.canConfirm, identifier: "friendMeta.confirm") {
                         performPresented { await flow.confirm(expected: command) }
                     }
-                    metaAction("friendMeta.cancel", style: .tertiary, enabled: !flow.busy) { flow.cancelReview() }
+                    metaAction("friendMeta.cancel", prominent: false, enabled: !flow.busy) { flow.cancelReview() }
                 } header: { sectionTitle("friendMeta.reviewTitle") }
             }
             if flow.canPresentPeer && flow.metadata != nil {
                 Section {
                     TextField(localized("d7.friendMeta.remarkPrompt"), text: $remark)
-                        .cyText(.body)
+                        .textContentType(.nickname)
+                        .submitLabel(.done)
                         .accessibilityIdentifier("friendMeta.remark")
-                    metaAction("friendMeta.review", style: pillStyle(.remark), enabled: flow.canEdit, identifier: "friendMeta.review") {
+                    metaAction("friendMeta.review", prominent: isPrimary(.remark), enabled: flow.canEdit, identifier: "friendMeta.review") {
                         flow.reviewMetadata(remark: remark, groupID: nil, starred: false)
                     }
                 } header: { sectionTitle("friendMeta.preferences") }.disabled(!flow.canEdit)
@@ -105,36 +102,31 @@ import SwiftUI
                             text("friendMeta.defaultGroup").tag(Int64?.none)
                             ForEach(flow.groups.filter { $0.isDefault == 0 }) { group in groupLabel(group).tag(group.id) }
                         }
-                        metaAction("friendMeta.review", style: .secondary, enabled: flow.canAssignGroup) { flow.reviewAssignment(groupID) }
+                        metaAction("friendMeta.review", prominent: false, enabled: flow.canAssignGroup) { flow.reviewAssignment(groupID) }
                     } header: { sectionTitle("friendMeta.group") }.disabled(!flow.canAssignGroup)
                 }
                 Section {
                     Toggle(isOn: $starred) { text("friendMeta.starred") }.accessibilityIdentifier("friendMeta.starred")
-                    metaAction("friendMeta.review", style: .secondary, enabled: flow.canEditStar, identifier: "friendMeta.reviewStar") { flow.reviewStar(starred) }
+                    metaAction("friendMeta.review", prominent: false, enabled: flow.canEditStar, identifier: "friendMeta.reviewStar") { flow.reviewStar(starred) }
                 }.disabled(!flow.canEditStar)
                 Section {
                     Toggle(isOn: $sharesProgress) { text("d7.friendMeta.shareProgress") }
-                    metaAction("friendMeta.review", style: .secondary, enabled: flow.canEditProgress) { flow.reviewProgress(sharesProgress) }
+                    metaAction("friendMeta.review", prominent: false, enabled: flow.canEditProgress) { flow.reviewProgress(sharesProgress) }
                 }.disabled(!flow.canEditProgress)
             }
             if flow.isCurrent && !flow.groups.isEmpty {
                 Section {
                     ForEach(flow.groups) { group in
-                        HStack(spacing: CYSpacing.sm) {
+                        HStack {
                             groupLabel(group)
-                                .cyText(.cardTitle)
-                                .foregroundStyle(palette.textPrimary)
-                                .fixedSize(horizontal: false, vertical: true)
-                            Spacer(minLength: CYSpacing.sm)
+                            Spacer(minLength: 8)
                             if let count = group.friendCount {
                                 Text("d7.friendMeta.friendCount \(count)", tableName: "NativeFriendMetadata")
-                                    .cyText(.numericBody)
-                                    .foregroundStyle(palette.textSecondary)
+                                    .foregroundStyle(.secondary)
                                     .monospacedDigit()
                             } else {
                                 Text(verbatim: "—")
-                                    .cyText(.numericBody)
-                                    .foregroundStyle(palette.textTertiary)
+                                    .foregroundStyle(.tertiary)
                             }
                             if group.isDefault == 0 {
                                 Menu {
@@ -146,9 +138,6 @@ import SwiftUI
                                     }
                                 } label: {
                                     Image(systemName: "ellipsis.circle")
-                                        .font(.body.weight(.semibold))
-                                        .foregroundStyle(palette.textSecondary)
-                                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                                         .accessibilityLabel(Text("friendMeta.rename", tableName: "NativeFriendMetadata"))
                                 }
                                 .buttonStyle(.borderless)
@@ -158,13 +147,13 @@ import SwiftUI
                     }
                 } header: { sectionTitle("d7.friendMeta.myGroups") }
                 Section {
-                    TextField(localized("friendMeta.groupName"),text:$groupName).cyText(.body)
+                    TextField(localized("friendMeta.groupName"),text:$groupName).submitLabel(.done)
                     Stepper(value:$position,in:0...Int(Int32.max)) { Text("d7.friendMeta.order \(position)", tableName: "NativeFriendMetadata").monospacedDigit() }
-                    metaAction(editingGroupID == nil ? "friendMeta.createGroup" : "friendMeta.saveGroup", style: pillStyle(.saveGroup), enabled: flow.canManageGroups) {
+                    metaAction(editingGroupID == nil ? "friendMeta.createGroup" : "friendMeta.saveGroup", prominent: isPrimary(.saveGroup), enabled: flow.canManageGroups) {
                         flow.reviewGroup(id:editingGroupID,name:groupName,position:position)
                     }
                     if editingGroupID != nil {
-                        metaAction("friendMeta.newGroup", style: .tertiary, enabled: flow.canManageGroups) { editingGroupID=nil;groupName="";position=1 }
+                        metaAction("friendMeta.newGroup", prominent: false, enabled: flow.canManageGroups) { editingGroupID=nil;groupName="";position=1 }
                     }
                 } header: { sectionTitle(editingGroupID == nil ? "friendMeta.pendingGroupCreate" : "friendMeta.pendingGroupEdit") }
                     .disabled(!flow.canManageGroups)
@@ -175,18 +164,15 @@ import SwiftUI
                             text("friendMeta.defaultGroup").tag(Int64?.none)
                             ForEach(flow.groups.filter { $0.isDefault == 0 && $0.id != source }) { group in groupLabel(group).tag(group.id) }
                         }
-                        Button(role:.destructive) { flow.reviewDeleteGroup(id:source,moveTo:destinationID) } label: { text("friendMeta.reviewDelete").frame(maxWidth: .infinity) }
-                            .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
-                            .listRowBackground(Color.clear)
-                        metaAction("friendMeta.cancel", style: .tertiary, enabled: flow.canManageGroups) { deletingGroupID=nil;destinationID=nil }
+                        Button(role:.destructive) { flow.reviewDeleteGroup(id:source,moveTo:destinationID) } label: { text("friendMeta.reviewDelete") }
+                        metaAction("friendMeta.cancel", prominent: false, enabled: flow.canManageGroups) { deletingGroupID=nil;destinationID=nil }
                     } header: { sectionTitle("friendMeta.delete") }.disabled(!flow.canManageGroups)
                 }
             }
         }
         .formStyle(.grouped)
-        .cyText(.body)
-        .cyGroupedSurface()
-        .cyHeroScreen()
+        .navigationTitle(Text(LocalizedStringKey(flow.peerID == 0 ? "friendMeta.recoveryEntry" : "friendMeta.title"), tableName: "NativeFriendMetadata"))
+        .navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("friendMeta.editor").privacySensitive()
         .transaction { if reduceMotion { $0.disablesAnimations = true } }
         .onAppear { visible = true }
@@ -221,42 +207,30 @@ import SwiftUI
                 break
             }
         }
-        .tint(palette.brand)
     }
-    private func metaAction(_ key: String, style: CYPillStyle, enabled: Bool, identifier: String? = nil, action: @escaping () -> Void) -> some View {
-        CYPillButton(LocalizedStringKey(key), style: style, tableName: "NativeFriendMetadata", action: action)
+    private func metaAction(_ key: String, prominent: Bool, enabled: Bool, identifier: String? = nil, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(LocalizedStringKey(key), tableName: "NativeFriendMetadata")
+                .fontWeight(prominent ? .semibold : .regular)
+        }
             .disabled(!enabled)
             .modifier(CYOptionalAccessibilityIdentifier(identifier: identifier))
-            .listRowBackground(Color.clear)
     }
-    private func sectionTitle(_ key: String) -> some View {
+    private func sectionTitle(_ key: String) -> Text {
         text(key)
-            .cyText(.sectionTitle)
-            .foregroundStyle(palette.textPrimary)
-            .fixedSize(horizontal: false, vertical: true)
-            .accessibilityAddTraits(.isHeader)
     }
     private func notice(_ key: String, symbol: String? = nil, identifier: String? = nil) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+        Label {
+            text(key)
+                .foregroundStyle(.secondary)
+                .modifier(CYOptionalAccessibilityIdentifier(identifier: identifier))
+        } icon: {
             if let symbol {
                 Image(systemName: symbol)
-                    .foregroundStyle(palette.warning)
+                    .foregroundStyle(.orange)
                     .accessibilityHidden(true)
             }
-            text(key)
-                .cyText(.body)
-                .foregroundStyle(palette.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .modifier(CYOptionalAccessibilityIdentifier(identifier: identifier))
         }
-    }
-    private func personArt(_ seed: String) -> some View {
-        Color.clear
-            .frame(width: 40, height: 40)
-            .overlay { CYCoverArt(seed: seed.isEmpty ? "friend" : seed, symbol: "person.fill", showsDebugLabel: false) }
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
-            .accessibilityHidden(true)
     }
     private func performPresented(_ action: @escaping @MainActor () async -> Void) {
         guard visible, scenePhase == .active, let capturedVisit = visit else { return }

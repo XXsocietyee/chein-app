@@ -52,36 +52,36 @@ import SwiftUI
                 // 我的草稿 and 举报进度 are demoted into the toolbar menu; governance keeps its own entry.
                 if let context = governanceContext(postID: nil) { SquareGovernanceEntryView(context: context) }
                 Section {
-                    if reader.isOfflineExample { Text("square.offlineExample").cyText(.caption).foregroundStyle(CYColor.textSecondary) }
+                    if reader.isOfflineExample { Text("square.offlineExample").font(.caption).foregroundStyle(.secondary) }
                     Picker("square.feed", selection: $query.mode) {
                         ForEach(SquareFeedMode.visible, id: \.self) { mode in Text(mode.labelKey).tag(mode) }
                     }.accessibilityIdentifier("square.feed")
-                    .listRowBackground(Color.clear)
                     filters
                 }
                 if let upcomingReader, reader.isConfigured { SquareXcxUpcomingStrip(reader: upcomingReader, destination: upcomingDestination) }
                 if !reader.isConfigured { squareState(APIError.notConfigured, retry: nil) }
-                else if gatePending { CYLoadingStateView(rows: 3).accessibilityIdentifier("square.loading") }
+                else if gatePending { loadingRow }
                 else if communityClosed {
-                    CYStateLayout(
-                        kind: .generic,
-                        title: Text("square.xcx.closedTitle"),
-                        detail: Text("square.xcx.closedDetail"),
-                        primary: (title: "square.retry", action: { gateScope = nil; Task { await loadGate(); await load(reset: true) } }),
-                        primaryIdentifier: "square.retry"
-                    )
-                    .accessibilityIdentifier("square.communityClosed")
+                    ContentUnavailableView {
+                        Label { Text("square.xcx.closedTitle").accessibilityIdentifier("square.communityClosed") } icon: { Image(systemName: "lock") }
+                    } description: {
+                        Text("square.xcx.closedDetail")
+                    } actions: {
+                        Button("square.retry") { gateScope = nil; Task { await loadGate(); await load(reset: true) } }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("square.retry")
+                    }
                 }
                 else if query.mode.requiresAccount && !reader.isSignedIn { squareState(SquareReadFailure.signInRequired, retry: nil) }
-                else if loadedKey != key { CYLoadingStateView(rows: 3).accessibilityIdentifier("square.loading") }
+                else if loadedKey != key { loadingRow }
                 else {
                     if let issue { squareState(issue, retry: { Task { await load(reset: !pagination.hasLoadedPage) } }) }
                     if pagination.items.isEmpty && !loading && issue == nil {
                         if query.keyword != nil {
-                            CYEmptyState(systemImage: "magnifyingglass", "square.empty", messageIdentifier: "square.empty")
+                            feedEmpty("square.empty", systemImage: "magnifyingglass", messageIdentifier: "square.empty")
                         } else {
                             // Source empty feed: 广场还很安静 / 成为第一个发布创意路线的人吧.
-                            CYEmptyState(systemImage: "square.and.pencil", "square.xcx.emptyTitle", detail: "square.xcx.emptyDetail", messageIdentifier: "square.empty")
+                            feedEmpty("square.xcx.emptyTitle", detail: "square.xcx.emptyDetail", systemImage: "square.and.pencil", messageIdentifier: "square.empty")
                         }
                     }
                     ForEach(pagination.items) { post in
@@ -106,9 +106,11 @@ import SwiftUI
                         }
                     }
                     if pagination.continuationInvalid { Text("square.invalidCursor").accessibilityIdentifier("square.invalidCursor") }
-                    if loading { CYLoadingStateView(rows: 2).accessibilityIdentifier("square.loading") }
+                    if loading { loadingRow }
                     else if pagination.hasMore && issue == nil {
-                        CYPillButton("square.loadMore", style: .secondary) { Task { await load(reset: false) } }.accessibilityIdentifier("square.loadMore")
+                        Button { Task { await load(reset: false) } } label: { Text("square.loadMore").frame(maxWidth: .infinity) }
+                            .buttonStyle(.borderless)
+                            .accessibilityIdentifier("square.loadMore")
                     }
                 }
             }
@@ -163,8 +165,7 @@ import SwiftUI
             }.cySheet(detents: [.large]) }
             .navigationDestination(isPresented: $showsReportProgress) { reportProgressDestination?() }
             .environment(\.squareCloudFeed, cloudFeed)
-            .scrollContentBackground(.hidden)
-            .background(CYColor.bgPage)
+            .listStyle(.insetGrouped)
             .searchable(text: $keyword, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "square.search")
             .onSubmit(of: .search) { query.keyword = keyword.isEmpty ? nil : keyword }
             .onChange(of: keyword) { _, value in if value.isEmpty { query.keyword = nil } }
@@ -191,14 +192,25 @@ import SwiftUI
             let trimmed = text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             return trimmed.isEmpty ? nil : trimmed
         }()
-        CYStateLayout(
-            kind: offline ? .offline : .failure,
-            title: Text(squareIssueKey(error)),
-            detail: message.map { Text(verbatim: $0) },
-            primary: retry.map { action in (title: "square.retry", action: action) },
-            primaryIdentifier: retry == nil ? nil : "square.retry"
-        )
-        .accessibilityIdentifier("square.error")
+        ContentUnavailableView {
+            Label { Text(squareIssueKey(error)).accessibilityIdentifier("square.error") } icon: { Image(systemName: offline ? "wifi.slash" : "exclamationmark.triangle") }
+        } description: {
+            if let message { Text(verbatim: message) }
+        } actions: {
+            if let retry { Button("square.retry", action: retry).buttonStyle(.bordered).accessibilityIdentifier("square.retry") }
+        }
+    }
+
+    private func feedEmpty(_ title: LocalizedStringKey, detail: LocalizedStringKey? = nil, systemImage: String, messageIdentifier: String) -> some View {
+        ContentUnavailableView {
+            Label { Text(title).accessibilityIdentifier(messageIdentifier) } icon: { Image(systemName: systemImage) }
+        } description: {
+            if let detail { Text(detail) }
+        }
+    }
+
+    private var loadingRow: some View {
+        ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("square.loading")
     }
 
     private func squareIssueKey(_ error: Error) -> LocalizedStringKey {

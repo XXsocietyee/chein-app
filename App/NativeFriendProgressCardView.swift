@@ -1,7 +1,6 @@
 import SwiftUI
 
 @MainActor struct NativeFriendProgressCardView: View {
-    @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -11,37 +10,37 @@ import SwiftUI
     var body: some View {
         Section {
             switch model.state {
-            case .awaitingIndex: channelChip("friendIndexPending", tone: .info, systemImage: "clock")
+            case .awaitingIndex: channelChip("friendIndexPending", tint: .accentColor, systemImage: "clock")
             case .loading:
-                CYSkeleton().accessibilityLabel(Text("cy.state.loading"))
-            case .hidden: channelChip("hidden", tone: .neutral, systemImage: "eye.slash")
-            case .unconfirmed: channelChip("unconfirmed", tone: .warning, systemImage: "questionmark")
-            case .closed: channelChip("closed", tone: .neutral, systemImage: "xmark")
+                ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("cy.state.loading"))
+            case .hidden: channelChip("hidden", tint: .secondary, systemImage: "eye.slash")
+            case .unconfirmed: channelChip("unconfirmed", tint: .orange, systemImage: "questionmark")
+            case .closed: channelChip("closed", tint: .secondary, systemImage: "xmark")
             case .visible(let rows):
-                if rows.isEmpty { CYEmptyState(systemImage: "person.2", "friendEmpty", tableName: "NativeChannelProgress") }
+                if rows.isEmpty {
+                    ContentUnavailableView {
+                        Label { Text("friendEmpty", tableName: "NativeChannelProgress") } icon: { Image(systemName: "person.2") }
+                    }
+                }
                 ForEach(rows) { row in progressRow(row) }
             }
             if model.state != .loading {
-                CYPillButton("d7.friendProgress.refresh", style: .secondary, systemImage: "arrow.clockwise") { Task { await model.activate() } }
-                    .listRowBackground(Color.clear)
+                Button { Task { await model.activate() } } label: {
+                    Label("d7.friendProgress.refresh", systemImage: "arrow.clockwise")
+                }
             }
         } header: {
             Text("friendProgress", tableName: "NativeChannelProgress")
-                .cyText(.sectionTitle)
-                .foregroundStyle(palette.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
         }
-        .cyText(.body)
         .privacySensitive().accessibilityIdentifier("friendProgress.card")
         .transaction { if reduceMotion { $0.disablesAnimations = true } }
         .task { await model.activate() }
         .onDisappear { model.invalidate() }
         .onChange(of: scenePhase) { _, phase in if phase == .active { Task { await model.activate() } } else { model.invalidate() } }
-        .tint(palette.brand)
     }
-    private func channelChip(_ key: String, tone: CYStatusTone, systemImage: String) -> some View {
-        CYStatusChip(verbatim: channel(key), tone: tone, systemImage: systemImage)
+    private func channelChip(_ key: String, tint: Color, systemImage: String) -> some View {
+        Label(channel(key), systemImage: systemImage).foregroundStyle(tint)
     }
     private func channel(_ key: String) -> String {
         String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: key), table: "NativeChannelProgress", locale: locale))
@@ -51,65 +50,55 @@ import SwiftUI
         let shown = title.isEmpty ? "—" : title
         return Group {
             if typeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                VStack(alignment: .leading) {
                     progressTitle(shown, asOf: row.meter.asOf)
                     progressFigures(row)
                 }
             } else {
-                HStack(alignment: .center, spacing: CYSpacing.md) {
-                    personArt(shown)
-                    progressTitle(shown, asOf: row.meter.asOf)
-                    Spacer(minLength: CYSpacing.sm)
+                HStack {
+                    Label {
+                        progressTitle(shown, asOf: row.meter.asOf)
+                    } icon: {
+                        Image(systemName: "figure.walk").accessibilityHidden(true)
+                    }
+                    Spacer(minLength: 0)
                     progressFigures(row)
                 }
             }
         }
-        .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
         .accessibilityElement(children: .combine)
     }
     private func progressTitle(_ title: String, asOf: String?) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+        VStack(alignment: .leading) {
             Text(verbatim: title)
-                .cyText(.cardTitle)
-                .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             if let asOf {
                 let stamp = asOf.trimmingCharacters(in: .whitespacesAndNewlines)
                 Text(verbatim: stamp.isEmpty ? "—" : stamp)
-                    .cyText(.meta)
-                    .foregroundStyle(palette.textTertiary)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
     @ViewBuilder private func progressFigures(_ row: NativeFriendProgressItem) -> some View {
         let alignment: HorizontalAlignment = typeSize.isAccessibilitySize ? .leading : .trailing
-        VStack(alignment: alignment, spacing: CYSpacing.xxs) {
+        VStack(alignment: alignment) {
             if let done = row.meter.done, let required = row.meter.required {
                 Text(verbatim: copy.format("p31.friend.fraction", copy.number(done), copy.number(required)))
-                    .cyText(.numericBody)
-                    .foregroundStyle(palette.textSecondary)
+                    .foregroundStyle(.secondary)
                     .monospacedDigit()
             }
             if let percent = row.meter.percent {
                 Text(verbatim: copy.format("p31.friend.percent", copy.number(percent)))
-                    .cyText(.numericBody)
-                    .foregroundStyle(palette.textSecondary)
+                    .foregroundStyle(.secondary)
                     .monospacedDigit()
             }
             if row.meter.done == nil && row.meter.percent == nil {
                 Text(verbatim: "—")
-                    .cyText(.numericBody)
-                    .foregroundStyle(palette.textTertiary)
+                    .foregroundStyle(.tertiary)
             }
         }
-    }
-    private func personArt(_ seed: String) -> some View {
-        Color.clear
-            .frame(width: 40, height: 40)
-            .overlay { CYCoverArt(seed: seed == "—" ? "friend-progress" : seed, symbol: "figure.walk", showsDebugLabel: false) }
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
-            .accessibilityHidden(true)
     }
 }
 

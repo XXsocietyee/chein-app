@@ -6,27 +6,28 @@ import SwiftUI
 @MainActor struct BundleReservationsView: View {
     let order: BundleOrderReadModel
     @Environment(\.locale) private var locale
-    @ScaledMetric(relativeTo: .largeTitle) private var artHeight: CGFloat = 112
     private let table = BundleOrderStatusPresentation.table
     private func text(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: table) }
 
     var body: some View {
-        // Native restyle r1 (spec §3.2): an inset-grouped list with a system inline title.
+        // Native r2: an inset-grouped list with a system inline title.
         List {
-            Section {
-                CYCoverArt(seed: "bundle-reservations", symbol: "calendar", showsDebugLabel: false)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: artHeight)
-                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
-                    .accessibilityHidden(true)
-            }
-            .cyCardRow()
             if order.isLegacy {
-                Section { CYEmptyState(systemImage: "doc.text", "order.legacy", tableName: table) }
-                    .cyCardRow()
+                Section {
+                    ContentUnavailableView {
+                        Label { text("order.legacy") } icon: { Image(systemName: "doc.text") }
+                    }
+                }
             } else if order.reservations.isEmpty {
-                Section { CYEmptyState(systemImage: "calendar", "reservations.empty", tableName: table, messageIdentifier: "bundle.reservations.empty") }
-                    .cyCardRow()
+                Section {
+                    ContentUnavailableView {
+                        Label {
+                            text("reservations.empty").accessibilityIdentifier("bundle.reservations.empty")
+                        } icon: {
+                            Image(systemName: "calendar")
+                        }
+                    }
+                }
             } else {
                 Section {
                     ForEach(order.reservations, id: \.id) { row in reservationRow(row) }
@@ -42,20 +43,24 @@ import SwiftUI
 
     private func reservationRow(_ row: BundleReservationRow) -> some View {
         let tone = statusTone(row.status)
-        return VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            CYListRow(verbatim: statusLine(row), meta: shown(row.startAt), trailing: .none) {
-                CYCoverArt(seed: row.id.text, symbol: tone.symbol, showsDebugLabel: false, cornerRadius: CYRadius.inner)
-                    .frame(width: 44, height: 44)
-                    .accessibilityHidden(true)
+        return Label {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: statusLine(row))
+                Text(verbatim: shown(row.startAt))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Text(verbatim: shown(row.id.text))
+                    .font(.caption)
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .textSelection(.enabled)
+                    .accessibilityLabel(Text(verbatim: shown(row.id.text)))
             }
-            Text(verbatim: shown(row.id.text))
-                .cyText(.caption)
-                .monospacedDigit()
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .textSelection(.enabled)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .accessibilityLabel(Text(verbatim: shown(row.id.text)))
+        } icon: {
+            Image(systemName: tone.symbol)
+                .foregroundStyle(Cloud03Note.tint(tone.tone))
+                .accessibilityHidden(true)
         }
     }
 

@@ -39,17 +39,13 @@ public struct TopicRouteMapAndTeamsSection: View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             if totalCount > 0 {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    HStack {
-                        Text("topicRoute.progress.title")
-                            .cyText(.label)
-                            .foregroundStyle(CYColor.textSecondary)
-                        Spacer()
+                    LabeledContent {
                         Text("\(completedCount)/\(totalCount)")
-                            .cyText(.numericBody, monospacedDigit: true)
-                            .foregroundStyle(CYColor.textPrimary)
+                            .monospacedDigit()
+                    } label: {
+                        Text("topicRoute.progress.title")
                     }
                     ProgressView(value: Double(completedCount), total: Double(max(1, totalCount)))
-                        .tint(CYColor.brand)
                 }
             }
 
@@ -59,56 +55,54 @@ public struct TopicRouteMapAndTeamsSection: View {
                         MapPolyline(coordinates: pins.map {
                             CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude)
                         })
-                        .stroke(CYColor.brand, lineWidth: 3)
+                        .stroke(Color.accentColor, lineWidth: 3)
                     }
                     ForEach(pins) { pin in
                         Annotation(pin.name, coordinate: CLLocationCoordinate2D(latitude: pin.latitude, longitude: pin.longitude)) {
                             Button {
                                 onSelectPin(pin)
                             } label: {
+                                // Numbered map pin (route order); system accent / green when done.
                                 Text("\(pin.sequence)")
-                                    .cyText(.meta, weight: .bold, monospacedDigit: true)
-                                    .foregroundStyle(CYColor.actionPrimaryFg)
+                                    .font(.caption.bold())
+                                    .monospacedDigit()
+                                    .foregroundStyle(.white)
                                     .frame(width: 26, height: 26)
-                                    .background(pin.isCompleted ? CYColor.brand : CYColor.actionPrimaryBg)
-                                    .clipShape(Circle())
+                                    .background(pin.isCompleted ? Color.green : Color.accentColor, in: Circle())
                             }
                             .buttonStyle(.plain)
                         }
                     }
                 }
+                .mapControls {
+                    MapCompass()
+                }
                 .frame(height: 220)
-                .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
             }
 
             if !teams.isEmpty {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     HStack {
                         Text("topicRoute.teams.title")
-                            .cyText(.cardTitle)
-                            .foregroundStyle(CYColor.textPrimary)
+                            .font(.headline)
                         Spacer()
                         Button("topicRoute.teams.viewAll", action: onOpenAllTeams)
-                            .cyText(.label)
+                            .buttonStyle(.borderless)
                     }
                     ForEach(teams) { team in
                         HStack {
                             Text(team.name)
-                                .cyText(.bodyMedium)
-                                .foregroundStyle(CYColor.textPrimary)
                             Spacer()
                             Text("\(team.memberCount) 人")
-                                .cyText(.meta, monospacedDigit: true)
-                                .foregroundStyle(CYColor.textSecondary)
+                                .monospacedDigit()
+                                .foregroundStyle(.secondary)
                             if team.missingCount > 0 {
                                 Text("还差 \(team.missingCount) 人")
-                                    .cyText(.meta, monospacedDigit: true)
-                                    .foregroundStyle(CYColor.brand)
+                                    .monospacedDigit()
+                                    .foregroundStyle(.tint)
                             }
                         }
-                        .padding(CYSpacing.sm)
-                        .background(CYColor.bgSurface)
-                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                        .font(.subheadline)
                     }
                 }
             }
@@ -116,36 +110,32 @@ public struct TopicRouteMapAndTeamsSection: View {
             if isFreeExplore && !merchantCards.isEmpty {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     Text("topicRoute.merchants.title")
-                        .cyText(.cardTitle)
-                        .foregroundStyle(CYColor.textPrimary)
+                        .font(.headline)
                     ForEach(merchantCards) { card in
                         Button {
                             onSelectMerchant(card)
                         } label: {
                             HStack(spacing: CYSpacing.sm) {
-                                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                                     Text(card.merchantName)
-                                        .cyText(.bodyMedium)
-                                        .foregroundStyle(CYColor.textPrimary)
+                                        .foregroundStyle(.primary)
                                     if let perk = card.perkTitle, !perk.isEmpty {
                                         Text(perk)
-                                            .cyText(.meta)
-                                            .foregroundStyle(CYColor.brand)
+                                            .font(.subheadline)
+                                            .foregroundStyle(.tint)
                                     }
                                     if let addr = card.address, !addr.isEmpty {
                                         Text(addr)
-                                            .cyText(.meta)
-                                            .foregroundStyle(CYColor.textSecondary)
+                                            .font(.subheadline)
+                                            .foregroundStyle(.secondary)
                                     }
                                 }
                                 Spacer()
-                                Image(systemName: "chevron.right")
-                                    .cyText(.meta)
-                                    .foregroundStyle(CYColor.textSecondary)
+                                Image(systemName: "chevron.forward")
+                                    .font(.footnote.weight(.semibold))
+                                    .foregroundStyle(.tertiary)
                             }
-                            .padding(CYSpacing.sm)
-                            .background(CYColor.bgSurface)
-                            .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
                     }
