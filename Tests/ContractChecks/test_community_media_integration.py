@@ -5,7 +5,7 @@ R=Path(__file__).resolve().parents[2]
 def read(p):return (R/p).read_text()
 class CommunityMediaIntegration(unittest.TestCase):
  def test_club_public_entry_is_outside_governance(self):
-  s=read('App/ClubDetailView.swift');self.assertLess(s.index('ClubCommunityEntry('),s.index('// V2 governance'))
+  s=read('App/ClubDetailView.swift');self.assertLess(s.index('postsFeed(club: club'),s.index('// V2 governance'))
   self.assertIn('ClubCommunityFeedView(context: community, identity: reader.clubIdentity)',read('App/ClubHomeView.swift'))
  def test_club_evidence_is_fresh_and_exact(self):
   s=read('App/AppSession.swift')
