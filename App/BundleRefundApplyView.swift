@@ -16,31 +16,44 @@ struct BundleRefundApplyView: View {
             seed: model.expectedRoute.isEmpty ? "bundle-refund-apply" : model.expectedRoute,
             symbol: "arrow.uturn.backward"
         ) {
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-                CYListRow(verbatim: phrase("退回路由", "Refund route"), trailing: .value(Cloud03Copy.shown(model.expectedRoute)), card: true) {
-                    CYRowIcon(systemImage: "arrow.uturn.backward")
+            Section {
+                LabeledContent {
+                    Text(verbatim: Cloud03Copy.shown(model.expectedRoute))
+                } label: {
+                    Label(phrase("退回路由", "Refund route"), systemImage: "arrow.uturn.backward")
                 }
                 .accessibilityIdentifier("bundleRefund.apply.route")
-                CYListRow(verbatim: phrase("报价金额", "Quoted amount"), trailing: .value(Cloud03Copy.shown(model.expectedAmount)), card: true) {
-                    CYRowIcon(systemImage: "tag")
+                LabeledContent {
+                    Text(verbatim: Cloud03Copy.shown(model.expectedAmount))
+                } label: {
+                    Label(phrase("报价金额", "Quoted amount"), systemImage: "tag")
                 }
                 .accessibilityIdentifier("bundleRefund.apply.amount")
-                CYNoteBanner(
+            }
+            Section {
+                Cloud03Note(
                     text: Text(verbatim: phrase("暂不可用，不会提交退款。", "Not available yet. No refund is sent.")),
                     symbol: "lock",
                     tone: .warning
                 )
                 .accessibilityIdentifier("bundleRefund.apply.unavailable")
-                CYNoteBanner(
+                Cloud03Note(
                     text: Text(verbatim: phrase("报价仅供查看，资金不会变动。", "Quote only. No money moves.")),
                     symbol: "info.circle",
                     tone: .info
                 )
-                if model.canApply {
-                    CYPillButton(verbatim: phrase("提交退款申请", "Submit refund request"), systemImage: "paperplane") {
+            }
+            if model.canApply {
+                Section {
+                    Button {
                         let key = UUID().uuidString
                         Task { await model.apply(idempotencyKey: key) }
+                    } label: {
+                        Label(phrase("提交退款申请", "Submit refund request"), systemImage: "paperplane")
+                            .frame(maxWidth: .infinity)
                     }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
                     .accessibilityIdentifier("bundleRefund.apply.submit")
                 }
             }

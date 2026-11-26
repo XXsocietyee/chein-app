@@ -49,32 +49,31 @@ extension EnvironmentValues {
         let need = rows.reduce(0) { $0 + missing($1) }
         return VStack(alignment: .leading, spacing: CYSpacing.sm) {
             HStack(alignment: .firstTextBaseline) {
-                Text("topic.teams.count \(rows.count)").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text("topic.teams.count \(rows.count)").font(.headline)
                 Spacer(minLength: CYSpacing.sm)
-                if need > 0 { Text("topic.teams.need \(need)").cyText(.meta, monospacedDigit: true).foregroundStyle(CYColor.brand) }
+                if need > 0 { Text("topic.teams.need \(need)").font(.subheadline).monospacedDigit().foregroundStyle(.tint) }
             }
             ForEach(rows) { team in
                 HStack(spacing: CYSpacing.sm) {
                     NearbyTeamFaces(count: max(1, min(3, team.memberAvatars.count)))
                     VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                        Text(verbatim: title(team)).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                        Text(verbatim: title(team)).foregroundStyle(.primary).lineLimit(1)
                         if !team.addressName.isEmpty {
-                            Text(verbatim: team.addressName).cyText(.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1)
+                            Text(verbatim: team.addressName).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
                         }
                     }
                     Spacer(minLength: CYSpacing.sm)
                     VStack(alignment: .trailing, spacing: CYSpacing.xxs) {
                         Text(verbatim: team.maxMembers > 0 ? "\(team.joinedCount)/\(team.maxMembers)" : "\(team.joinedCount)")
-                            .cyText(.bodyMedium, monospacedDigit: true).foregroundStyle(CYColor.textPrimary)
+                            .monospacedDigit().foregroundStyle(.primary)
                         if missing(team) > 0 {
-                            Text("topic.teams.need \(missing(team))").cyText(.meta, monospacedDigit: true).foregroundStyle(CYColor.brand)
+                            Text("topic.teams.need \(missing(team))").font(.subheadline).monospacedDigit().foregroundStyle(.tint)
                         }
                     }
                 }
             }
             if canOpen {
-                Text("topic.teams.viewAll").cyText(.bodyMedium).foregroundStyle(CYColor.brand)
-                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                Text("topic.teams.viewAll").foregroundStyle(.tint)
             }
         }
         .contentShape(Rectangle())

@@ -28,16 +28,18 @@ import SwiftUI
                     .accessibilityIdentifier(facts.readOnlyIdentifier ?? "invoice.titlesReadOnly")
             }
             if facts.phase == .empty, model.overview != nil {
-                CYEmptyState(systemImage: "tray", "noTitles", tableName: "InvoiceLaunchUI")
-                    .frame(maxWidth: .infinity).listRowBackground(Color.clear)
+                ContentUnavailableView {
+                    Label { Text("noTitles", tableName: "InvoiceLaunchUI") } icon: { Image(systemName: "tray") }
+                }
+                .listRowBackground(Color.clear)
             }
             // R7-MEM-14-1: the shared state section already states an unresolved save with its 查询结果 row.
             if facts.showsPendingSave, !model.unresolved {
                 // Source 上次保存结果未确认 · 确认前请勿修改抬头. Request numbers are never shown or spoken (FIN-14-2).
                 Section {
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        invoiceText("titleSave.unknown").cyText(.bodyMedium)
-                        invoiceText("titleSave.unknown.sub").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    VStack(alignment: .leading) {
+                        invoiceText("titleSave.unknown").font(.body.weight(.medium))
+                        invoiceText("titleSave.unknown.sub").font(.subheadline).foregroundStyle(.secondary)
                     }
                     .accessibilityElement(children: .combine)
                 }
@@ -56,10 +58,17 @@ import SwiftUI
         // Source footer primary 新增发票抬头 (FIN-14-5).
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if facts.canAdd {
-                CYFooterBar {
-                    CYPillButton("addTitleLong", style: .primary, tableName: "InvoiceLaunchUI") { adding = true }
-                        .accessibilityIdentifier("invoice.title.add")
+                VStack(spacing: 0) {
+                    Divider()
+                    Button { adding = true } label: {
+                        Text("addTitleLong", tableName: "InvoiceLaunchUI").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .accessibilityIdentifier("invoice.title.add")
+                    .padding()
                 }
+                .background(.bar)
             }
         }
         .navigationDestination(isPresented: $adding) { InvoiceLaunchTitleEditor(model: model, title: nil) }
@@ -85,7 +94,7 @@ import SwiftUI
     @ViewBuilder private func titleRow(_ title: InvoiceLaunchTitlesPage.Row) -> some View {
         let source = model.overview?.titles.first(where: { $0.id == title.id })
         let name = title.titleName.isEmpty ? InvoiceLaunchTitlesPage.unknownDisplay : title.titleName
-        HStack(spacing: CYSpacing.sm) {
+        HStack {
             if title.canEdit, let source {
                 NavigationLink { InvoiceLaunchTitleEditor(model: model, title: source) } label: { titleLabel(title, name: name) }
                     .accessibilityIdentifier("invoice.title.edit.\(title.id)")
@@ -94,7 +103,7 @@ import SwiftUI
             }
             if title.canDelete {
                 Button { deleteID = title.id } label: {
-                    Image(systemName: "trash").foregroundStyle(CYColor.dangerText)
+                    Image(systemName: "trash").foregroundStyle(.red)
                         .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                         .contentShape(Rectangle())
                 }
@@ -114,13 +123,13 @@ import SwiftUI
         let type = title.typeKey == InvoiceLaunchTitlesPage.unknownDisplay ? "" : invoiceString(title.typeKey)
         let line = [type, title.taxText ?? "", title.showsDefault ? invoiceString("defaultShort") : ""]
             .filter { !$0.isEmpty }.joined(separator: " · ")
-        return VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(verbatim: name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).cyWrapText()
+        return VStack(alignment: .leading) {
+            Text(verbatim: name).foregroundStyle(.primary)
             if !line.isEmpty {
-                Text(verbatim: line).cyText(.meta).foregroundStyle(CYColor.textSecondary).cyWrapText()
+                Text(verbatim: line).font(.subheadline).foregroundStyle(.secondary)
             }
         }
-        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
     }
 }

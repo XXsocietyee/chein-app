@@ -37,7 +37,7 @@ struct SquareIssueView: View {
             Label(key, systemImage: "exclamationmark.circle").accessibilityIdentifier("square.error")
             if let failure = error as? SquareReadFailure, case let .server(_, message) = failure, let message, !message.isEmpty {
                 // Backend messages remain verbatim, including unavailable/moderation responses.
-                Text(verbatim: message).cyText(.meta).textSelection(.enabled)
+                Text(verbatim: message).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
             }
             if let retry { Button("square.retry", action: retry).accessibilityIdentifier("square.retry") }
         }
@@ -71,7 +71,6 @@ struct SquarePostContent: View {
     var onAvatarPick: ((String) -> Void)? = nil
     /// MP square/detail `.gz` 关注 at the end of the post head (C-S8). Nil hides it; only the detail page passes it.
     var onFollow: (() -> Void)? = nil
-    @State private var avatarMenuShown = false
     private static let disclosures: Set<String> = ["SPONSORED", "GIFTED", "MERCHANT_OWNER", "MERCHANT_EMPLOYEE"]
     /// Mini-program `post-head`: avatar, name, time; then the text, media and the post's own facts.
     var body: some View {
@@ -79,30 +78,36 @@ struct SquarePostContent: View {
             HStack(alignment: .center, spacing: 10) {
                 if avatarMenuItems.isEmpty || onAvatarPick == nil { SquareAuthorAvatar(source: post.avatar) }
                 else {
-                    Button { avatarMenuShown = true } label: { SquareAuthorAvatar(source: post.avatar) }
-                        .buttonStyle(.cyPressable)
-                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                    Menu {
+                        ForEach(avatarMenuItems) { item in
+                            Button { onAvatarPick?(item.id) } label: {
+                                if let symbol = item.systemImage {
+                                    Label { Text(item.title, tableName: item.tableName) } icon: { Image(systemName: symbol) }
+                                } else {
+                                    Text(item.title, tableName: item.tableName)
+                                }
+                            }
+                        }
+                    } label: { SquareAuthorAvatar(source: post.avatar) }
                         .accessibilityLabel(Text("avatarMenu.open", tableName: "SocialParity"))
                         .accessibilityIdentifier("square.avatarMenu")
-                        .cyAnchoredMenu(isPresented: $avatarMenuShown, items: avatarMenuItems) { onAvatarPick?($0) }
                 }
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 4) {
-                        if let name = post.nickname, !name.isEmpty { Text(verbatim: name).cyText(.cardTitle) }
-                        else { Text("square.unknownAuthor").cyText(.cardTitle) }
+                        if let name = post.nickname, !name.isEmpty { Text(verbatim: name).font(.headline) }
+                        else { Text("square.unknownAuthor").font(.headline) }
                         if post.verified {
                             // MP: components/cy/post-card/index.wxml:25 (icon_rz.png, .post-card__verified 24rpx)
                             MPAsset.FeatureIcon.iconRz.resizable().scaledToFit().frame(width: 12, height: 12)
                                 .accessibilityLabel(Text("square.verified"))
                         }
                     }
-                    if !post.createTime.isEmpty { SquareXcxRelativeTime(createTime: post.createTime, now: Date()).cyText(.meta).foregroundStyle(.secondary) }
+                    if !post.createTime.isEmpty { SquareXcxRelativeTime(createTime: post.createTime, now: Date()).font(.caption).foregroundStyle(.secondary) }
                 }
                 Spacer(minLength: 0)
                 if let onFollow {
                     Button("fixr3.square.follow", action: onFollow)
                         .buttonStyle(.bordered).buttonBorderShape(.capsule).controlSize(.small)
-                        .frame(minHeight: CYSpacing.minTouchTarget)
                         .accessibilityIdentifier("square.detail.follow")
                 }
             }
@@ -112,7 +117,7 @@ struct SquarePostContent: View {
                     if let badge = post.authorBadge { Text(verbatim: badge) }
                     if let badge = post.noticeBadge { Text(verbatim: badge).bold() }
                 }
-                .cyText(.meta).foregroundStyle(.secondary)
+                .font(.caption).foregroundStyle(.secondary)
             }
             if let contents = post.contents, !contents.isEmpty { Text(verbatim: contents).lineLimit(compact ? 3 : nil).textSelection(.enabled) }
             SquareCloudStravaSection(post: post)
@@ -139,7 +144,7 @@ struct SquarePostContent: View {
                 .font(.subheadline).foregroundStyle(.secondary)
             }
             if Self.disclosures.contains(post.disclosureType) {
-                Label(LocalizedStringKey("squareWorkspace.policy." + post.disclosureType), systemImage: "info.circle").cyText(.meta)
+                Label(LocalizedStringKey("squareWorkspace.policy." + post.disclosureType), systemImage: "info.circle").font(.caption).foregroundStyle(.secondary)
             }
             ForEach(Array(post.safetyLabels.enumerated()), id: \.offset) { _, label in
                 Label { SquareSafetyLabel(value: label) } icon: { Image(systemName: "exclamationmark.triangle") }

@@ -46,7 +46,10 @@ struct MessagingIssueView: View {
             else { Text(LocalizedStringKey(issue.detailKey)) }
         } actions: {
             if issue.canRetry {
-                CYPillButton("messaging.retry", style: .secondary, systemImage: "arrow.clockwise", fullWidth: false, action: retry).accessibilityIdentifier(identifier + ".retry")
+                Button(action: retry) { Label("messaging.retry", systemImage: "arrow.clockwise") }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .accessibilityIdentifier(identifier + ".retry")
             }
         }
     }
@@ -205,10 +208,15 @@ struct MessagingReadScreen<Value, Content: View>: View {
     var body: some View {
         let input = MessagingReadScreenInput(reader: reader, refreshRevision: refreshRevision)
         let appearance = model.appearance
-        CYLoadSlot(isLoading: isShowingLoad(input: input), label: "messaging.loading", identifier: accessibilityPrefix + ".loading", announces: true) {
-            readBody(input: input, appearance: appearance)
+        Group {
+            if isShowingLoad(input: input) {
+                ProgressView { Text("messaging.loading") }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .accessibilityIdentifier(accessibilityPrefix + ".loading")
+            } else {
+                readBody(input: input, appearance: appearance)
+            }
         }
-        .background(CYColor.bgPage.ignoresSafeArea())
         .privacySensitive()
         .refreshable {
             guard let token = model.prepareRefresh(appearance: appearance, input: input) else { return }

@@ -56,10 +56,8 @@ import SwiftUI
                         .navigationTitle(Text(verbatim: screenTitle))
                         .navigationBarTitleDisplayMode(.inline)
                         .toolbar(.visible, for: .navigationBar)
-                        .background(CYColor.bgPage)
                 }
         }
-        .background(CYColor.bgPage)
         .onAppear(perform: open)
         .onChange(of: coordinator.identity) { _, _ in identityChanged() }
         .onDisappear {
@@ -70,57 +68,49 @@ import SwiftUI
         .cyDomainScreen(.player)
     }
 
+    private var showsEditor: Bool {
+        memberID != nil && !(offline || coordinator.availability == .syntheticOnly) && coordinator.availability == .approved
+    }
+
     @ViewBuilder private var root: some View {
         if memberID == nil {
-            status(copy("登录后才能发帖", "Sign in to publish"), copy("这一页不会替你发出去", "This screen will not send a post for you")).accessibilityIdentifier("square.cloud.permission")
+            status(copy("登录后才能发帖", "Sign in to publish"), copy("这一页不会替你发出去", "This screen will not send a post for you"), symbol: "person.crop.circle.badge.questionmark").accessibilityIdentifier("square.cloud.permission")
         } else if offline || coordinator.availability == .syntheticOnly {
-            status(copy("你离线了", "You're offline"), copy("离线示例不会提交广场帖", "The offline example does not submit a square post")).accessibilityIdentifier("square.cloud.offline")
+            status(copy("你离线了", "You're offline"), copy("离线示例不会提交广场帖", "The offline example does not submit a square post"), symbol: "wifi.slash").accessibilityIdentifier("square.cloud.offline")
         } else if coordinator.availability != .approved {
-            status(copy("当前账号未开放广场发布", "Square publishing is not open for this account"), copy("没有可用的发布通道", "No publish channel is available")).accessibilityIdentifier("square.cloud.permission")
+            status(copy("当前账号未开放广场发布", "Square publishing is not open for this account"), copy("没有可用的发布通道", "No publish channel is available"), symbol: "lock").accessibilityIdentifier("square.cloud.permission")
         } else {
             editor
         }
     }
 
     private var editor: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            ScrollView {
-                HStack(alignment: .top, spacing: CYSpacing.md) {
-                    VStack(spacing: CYSpacing.sm) {
-                        Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(.secondary)
-                            .accessibilityHidden(true)
-                        Rectangle().fill(CYColor.bgSurfaceSubtle).frame(width: 2).frame(maxHeight: .infinity)
-                    }
-                    VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        Text(verbatim: displayName).cyText(.cardTitle).foregroundStyle(.primary).cyWrapText()
-                            .accessibilityIdentifier("square.cloud.author")
-                        ZStack(alignment: .topLeading) {
-                            if contents.isEmpty {
-                                Text(verbatim: copy("有什么新鲜好玩的分享吗？", "Share something new?"))
-                                    .foregroundStyle(.secondary)
-                                    .accessibilityHidden(true)
-                            }
-                            TextEditor(text: $contents)
-                                .scrollContentBackground(.hidden)
-                                .frame(minHeight: 120)
-                                .foregroundStyle(.primary)
-                                .disabled(lock.locksComposer)
-                                .accessibilityLabel(Text(verbatim: copy("帖文内容", "Post text")))
-                                .accessibilityIdentifier("square.cloud.text")
-                        }
-                        if let notice {
-                            Text(verbatim: notice).cyText(.bodyCompact).foregroundStyle(.secondary)
-                                .accessibilityIdentifier("square.cloud.notice")
-                        }
-                        previews
-                        tools
-                    }
+        Form {
+            Section {
+                TextField(text: $contents, prompt: Text(verbatim: copy("有什么新鲜好玩的分享吗？", "Share something new?")), axis: .vertical) {
+                    Text(verbatim: copy("帖文内容", "Post text"))
                 }
-                .padding(CYSpacing.lg)
+                .lineLimit(6, reservesSpace: true)
+                .disabled(lock.locksComposer)
+                .accessibilityIdentifier("square.cloud.text")
+            } header: {
+                Label { Text(verbatim: displayName) } icon: { Image(systemName: "person.crop.circle.fill") }
+                    .accessibilityIdentifier("square.cloud.author")
+            } footer: {
+                Text(verbatim: "\(contents.count)/\(SquareComposeRules.maxLength)")
+                    .monospacedDigit()
+                    .accessibilityIdentifier("square.cloud.count")
             }
-            footer
+            if let text = notice {
+                Section {
+                    Label { Text(verbatim: text) } icon: { Image(systemName: "info.circle") }
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("square.cloud.notice")
+                }
+            }
+            previews
+            tools
         }
-        .background(CYColor.bgPage)
         .onChange(of: contents) { _, value in
             if value.count > SquareComposeRules.maxLength { contents = SquareComposeRules.clip(value) }
         }
@@ -128,32 +118,29 @@ import SwiftUI
 
     @ViewBuilder private var previews: some View {
         if !address.isEmpty || selectedActivity != nil {
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Section {
                 if !address.isEmpty {
                     chip(address, "mappin") { address = "" }.accessibilityIdentifier("square.cloud.address")
                 }
-                if let selectedActivity {
-                    chip(selectedActivity.name, "flag") { self.selectedActivity = nil }.accessibilityIdentifier("square.cloud.activityChip")
+                if let activity = selectedActivity {
+                    chip(activity.name, "flag") { selectedActivity = nil }.accessibilityIdentifier("square.cloud.activityChip")
                 }
             }
         }
     }
 
     private func chip(_ title: String, _ symbol: String, clear: @escaping () -> Void) -> some View {
-        HStack(spacing: CYSpacing.sm) {
-            Image(systemName: symbol).accessibilityHidden(true).foregroundStyle(.primary)
-            Text(verbatim: title).cyWrapText().foregroundStyle(.primary)
-            Spacer(minLength: CYSpacing.sm)
-            Button(action: clear) { Image(systemName: "xmark") }
-                .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+        HStack {
+            Label { Text(verbatim: title) } icon: { Image(systemName: symbol) }
+            Spacer(minLength: 0)
+            Button(action: clear) { Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary) }
+                .buttonStyle(.borderless)
                 .accessibilityLabel(Text(verbatim: copy("清除", "Clear")))
         }
-        .padding(.horizontal, CYSpacing.md)
-        .background(CYColor.bgSurface, in: Capsule())
     }
 
     private var tools: some View {
-        HStack(spacing: CYSpacing.lg) {
+        Section {
             if !editing && allowsImages {
                 tool("photo", copy("添加图片", "Add photo")) {
                     notice = copy("图片这一版不会随帖子提交", "Photos are not sent with the post in this version")
@@ -176,55 +163,35 @@ import SwiftUI
                 .accessibilityIdentifier("square.cloud.tool.play")
             }
             if canAnnounce && clubID != nil && !editing {
-                Button { asAnnouncement.toggle() } label: {
-                    Text(verbatim: asAnnouncement ? copy("作为公告发布", "Post as an announcement") : copy("普通动态", "Ordinary post"))
-                        .frame(minHeight: CYSpacing.minTouchTarget)
+                Toggle(isOn: $asAnnouncement) {
+                    Text(verbatim: copy("作为公告发布", "Post as an announcement"))
                 }
-                .buttonStyle(.borderless)
                 .accessibilityIdentifier("square.cloud.announce")
             }
         }
-        .foregroundStyle(.primary)
     }
 
     private func tool(_ symbol: String, _ label: String, _ action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Image(systemName: symbol).frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+            Label { Text(verbatim: label) } icon: { Image(systemName: symbol) }
         }
-        .buttonStyle(.borderless)
-        .accessibilityLabel(Text(verbatim: label))
     }
 
-    private var footer: some View {
-        HStack(spacing: CYSpacing.md) {
-            Image(systemName: "person.crop.circle.fill").foregroundStyle(.secondary).accessibilityHidden(true)
-            Text(verbatim: "\(contents.count)/\(SquareComposeRules.maxLength)")
-                .cyText(.meta, monospacedDigit: true).foregroundStyle(.secondary)
-                .accessibilityIdentifier("square.cloud.count")
-            Spacer(minLength: CYSpacing.sm)
-            if lock.phase == .unknown {
-                Button(action: confirmResult) {
-                    Text(verbatim: copy("确认结果", "Check result")).frame(minHeight: CYSpacing.minTouchTarget)
-                }
-                .buttonStyle(.borderedProminent)
+    /// Mail-style send: the primary action sits in the navigation bar, the counter in the text section footer.
+    @ViewBuilder private var submitAction: some View {
+        if lock.phase == .unknown {
+            Button(action: confirmResult) { Text(verbatim: copy("确认结果", "Check result")) }
                 .accessibilityIdentifier("square.cloud.confirmResult")
-            } else if lock.phase == .receipt {
-                Button(action: onClose) {
-                    Text(verbatim: copy("关闭", "Close")).frame(minHeight: CYSpacing.minTouchTarget)
-                }
+        } else if lock.phase == .receipt {
+            Button(action: onClose) { Text(verbatim: copy("关闭", "Close")) }
                 .accessibilityIdentifier("square.cloud.receiptClose")
-            } else {
-                Button(action: beginPublish) {
-                    Text(verbatim: editing ? copy("保存", "Save") : copy("发布", "Publish"))
-                        .frame(minHeight: CYSpacing.minTouchTarget)
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(!canSubmit || lock.phase == .sending || preparing)
-                .accessibilityIdentifier("square.cloud.publish")
+        } else {
+            Button(action: beginPublish) {
+                Text(verbatim: editing ? copy("保存", "Save") : copy("发布", "Publish"))
             }
+            .disabled(!canSubmit || lock.phase == .sending || preparing)
+            .accessibilityIdentifier("square.cloud.publish")
         }
-        .padding(CYSpacing.lg)
-        .background(CYColor.bgSurface)
     }
 
     @ToolbarContentBuilder private var toolbar: some ToolbarContent {
@@ -241,6 +208,9 @@ import SwiftUI
                     .accessibilityLabel(Text(verbatim: copy("草稿箱", "Drafts")))
                     .accessibilityIdentifier("square.cloud.drafts")
             }
+        }
+        if showsEditor && path.isEmpty {
+            ToolbarItem(placement: .confirmationAction) { submitAction }
         }
     }
 
@@ -263,103 +233,108 @@ import SwiftUI
     }
 
     private var draftsPage: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
+        List {
             if draftsLoading {
-                CYSkeleton().accessibilityLabel(Text(verbatim: copy("正在读取草稿", "Loading drafts")))
+                ProgressView()
+                    .frame(maxWidth: .infinity)
+                    .accessibilityLabel(Text(verbatim: copy("正在读取草稿", "Loading drafts")))
                     .accessibilityIdentifier("square.cloud.drafts.loading")
             } else if drafts.isEmpty {
-                Text(verbatim: copy("还没有草稿", "No drafts yet")).cyText(.cardTitle).foregroundStyle(.primary)
-                    .accessibilityIdentifier("square.cloud.drafts.empty")
-                Text(verbatim: copy("写到一半退出时会自动存成草稿，回到这里就能接着写。", "Leaving mid-write keeps a draft. Come back and continue."))
-                    .font(.subheadline).foregroundStyle(.secondary)
+                ContentUnavailableView {
+                    Label {
+                        Text(verbatim: copy("还没有草稿", "No drafts yet")).accessibilityIdentifier("square.cloud.drafts.empty")
+                    } icon: {
+                        Image(systemName: "doc.text")
+                    }
+                } description: {
+                    Text(verbatim: copy("写到一半退出时会自动存成草稿，回到这里就能接着写。", "Leaving mid-write keeps a draft. Come back and continue."))
+                }
             } else {
-                ForEach(drafts) { row in
-                    HStack(alignment: .top, spacing: CYSpacing.md) {
+                Section {
+                    ForEach(drafts) { row in
                         Button { pick(row) } label: {
-                            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                                HStack {
-                                    Text(verbatim: row.nickname).cyText(.cardTitle).foregroundStyle(.primary).cyWrapText()
-                                    Spacer(minLength: CYSpacing.sm)
-                                    Text(verbatim: row.date).cyText(.meta).foregroundStyle(.secondary)
+                            VStack(alignment: .leading) {
+                                HStack(alignment: .firstTextBaseline) {
+                                    Text(verbatim: row.nickname).font(.headline).foregroundStyle(.primary)
+                                    Spacer(minLength: 0)
+                                    Text(verbatim: row.date).font(.caption).foregroundStyle(.secondary)
                                 }
                                 Text(verbatim: row.summary).font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
                             }
                         }
-                        .buttonStyle(.borderless)
                         .accessibilityLabel(Text(verbatim: copy("继续编辑这条草稿", "Continue this draft")))
                         .accessibilityIdentifier("square.cloud.draft.row")
-                        Button { delete(row) } label: {
-                            Image(systemName: "trash").frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                        .swipeActions(edge: .trailing) {
+                            Button(role: .destructive) { delete(row) } label: {
+                                Label { Text(verbatim: copy("删除这条草稿", "Delete this draft")) } icon: { Image(systemName: "trash") }
+                            }
+                            .accessibilityIdentifier("square.cloud.draft.delete")
                         }
-                        .buttonStyle(.borderless)
-                        .accessibilityLabel(Text(verbatim: copy("删除这条草稿", "Delete this draft")))
-                        .accessibilityIdentifier("square.cloud.draft.delete")
+                        .contextMenu {
+                            Button(role: .destructive) { delete(row) } label: {
+                                Label { Text(verbatim: copy("删除这条草稿", "Delete this draft")) } icon: { Image(systemName: "trash") }
+                            }
+                        }
                     }
+                } footer: {
+                    Text(verbatim: copy("只有 \(drafts.count) 条草稿", "Only \(drafts.count) drafts"))
+                        .accessibilityIdentifier("square.cloud.drafts.count")
                 }
-                Text(verbatim: copy("只有 \(drafts.count) 条草稿", "Only \(drafts.count) drafts"))
-                    .cyText(.meta).foregroundStyle(.secondary)
-                    .accessibilityIdentifier("square.cloud.drafts.count")
             }
-            if let undo {
-                HStack {
-                    Text(verbatim: copy("草稿已删除", "Draft deleted")).foregroundStyle(.primary)
-                    Spacer(minLength: CYSpacing.sm)
-                    Button { restore(undo) } label: { Text(verbatim: copy("撤销", "Undo")) }
-                        .accessibilityIdentifier("square.cloud.draft.undo")
+            if let pending = undo {
+                Section {
+                    HStack {
+                        Text(verbatim: copy("草稿已删除", "Draft deleted"))
+                        Spacer(minLength: 0)
+                        Button { restore(pending) } label: { Text(verbatim: copy("撤销", "Undo")) }
+                            .buttonStyle(.borderless)
+                            .accessibilityIdentifier("square.cloud.draft.undo")
+                    }
+                    .accessibilityIdentifier("square.cloud.draft.undoBar")
                 }
-                .accessibilityIdentifier("square.cloud.draft.undoBar")
             }
-            Spacer(minLength: 0)
         }
-        .padding(CYSpacing.lg)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(CYColor.bgPage)
+        .listStyle(.insetGrouped)
         .accessibilityIdentifier("square.cloud.drafts.page")
     }
 
     private var reviewPage: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.lg) {
-            Text(verbatim: contents).cyText(.body).foregroundStyle(.primary).textSelection(.enabled)
-            if let selectedActivity {
-                Text(verbatim: copy("活动「\(selectedActivity.name)」不会写入这次提交", "Activity “\(selectedActivity.name)” is not part of this submit"))
-                    .font(.subheadline).foregroundStyle(.secondary)
-            }
-            if lock.phase == .unknown {
-                Text(verbatim: copy("结果还没核对。请求号 \(lock.requestID ?? SquareCountDisplay.unknownMark)", "The result is still unchecked. Request \(lock.requestID ?? SquareCountDisplay.unknownMark)"))
-                    .font(.subheadline).foregroundStyle(.primary)
-                    .accessibilityIdentifier("square.cloud.unknown")
-                Button(action: confirmResult) {
-                    Text(verbatim: copy("确认结果", "Check result")).frame(minHeight: CYSpacing.minTouchTarget)
+        Form {
+            Section {
+                Text(verbatim: contents).textSelection(.enabled)
+            } footer: {
+                if let activity = selectedActivity {
+                    Text(verbatim: copy("活动「\(activity.name)」不会写入这次提交", "Activity “\(activity.name)” is not part of this submit"))
                 }
-                .buttonStyle(.borderedProminent)
-                .accessibilityIdentifier("square.cloud.confirmResult")
-            } else if lock.phase == .receipt {
-                Text(verbatim: copy("已收到提交回执。刷新广场核对。这张回执不是新帖子的编号。", "A submit receipt arrived. Refresh the square to check it. The receipt is not a new post id."))
-                    .font(.subheadline).foregroundStyle(.primary)
-                    .accessibilityIdentifier("square.cloud.receipt")
-                Button(action: onClose) { Text(verbatim: copy("关闭", "Close")).frame(minHeight: CYSpacing.minTouchTarget) }
-                    .accessibilityIdentifier("square.cloud.receiptClose")
-            } else if lock.phase == .rejected {
-                Text(verbatim: copy("没有发出去", "It was not sent")).cyText(.cardTitle).foregroundStyle(.primary)
-                    .accessibilityIdentifier("square.cloud.rejected")
-            } else if preparing || lock.phase == .sending {
-                CYSkeleton().accessibilityLabel(Text(verbatim: copy("正在提交", "Submitting")))
-                    .accessibilityIdentifier("square.cloud.submitting")
-            } else {
-                Button { Task { await submit() } } label: {
-                    Text(verbatim: editing ? copy("保存", "Save") : copy("发布", "Publish"))
-                        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(review == nil)
-                .accessibilityIdentifier("square.cloud.reviewPublish")
             }
-            if let notice { Text(verbatim: notice).cyText(.bodyCompact).foregroundStyle(.secondary) }
-            Spacer(minLength: 0)
+            Section {
+                if lock.phase == .unknown {
+                    Text(verbatim: copy("结果还没核对。请求号 \(lock.requestID ?? SquareCountDisplay.unknownMark)", "The result is still unchecked. Request \(lock.requestID ?? SquareCountDisplay.unknownMark)"))
+                        .accessibilityIdentifier("square.cloud.unknown")
+                    Button(action: confirmResult) { Text(verbatim: copy("确认结果", "Check result")) }
+                        .accessibilityIdentifier("square.cloud.confirmResult")
+                } else if lock.phase == .receipt {
+                    Text(verbatim: copy("已收到提交回执。刷新广场核对。这张回执不是新帖子的编号。", "A submit receipt arrived. Refresh the square to check it. The receipt is not a new post id."))
+                        .accessibilityIdentifier("square.cloud.receipt")
+                    Button(action: onClose) { Text(verbatim: copy("关闭", "Close")) }
+                        .accessibilityIdentifier("square.cloud.receiptClose")
+                } else if lock.phase == .rejected {
+                    Label { Text(verbatim: copy("没有发出去", "It was not sent")) } icon: { Image(systemName: "exclamationmark.triangle") }
+                        .accessibilityIdentifier("square.cloud.rejected")
+                } else if preparing || lock.phase == .sending {
+                    ProgressView { Text(verbatim: copy("正在提交", "Submitting")) }
+                        .accessibilityIdentifier("square.cloud.submitting")
+                } else {
+                    Button { Task { await submit() } } label: {
+                        Text(verbatim: editing ? copy("保存", "Save") : copy("发布", "Publish"))
+                    }
+                    .disabled(review == nil)
+                    .accessibilityIdentifier("square.cloud.reviewPublish")
+                }
+            } footer: {
+                if let text = notice { Text(verbatim: text) }
+            }
         }
-        .padding(CYSpacing.lg)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(CYColor.bgPage)
         .task { await prepareReview() }
         .accessibilityIdentifier("square.cloud.review")
     }
@@ -373,15 +348,12 @@ import SwiftUI
         SquareComposeRules.submittable(text: contents, pictureCount: 0, club: clubID != nil, editing: editing)
     }
 
-    private func status(_ title: String, _ detail: String) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Text(verbatim: title).cyText(.cardTitle).foregroundStyle(.primary)
-            Text(verbatim: detail).font(.subheadline).foregroundStyle(.secondary)
-            Spacer(minLength: 0)
+    private func status(_ title: String, _ detail: String, symbol: String) -> some View {
+        ContentUnavailableView {
+            Label { Text(verbatim: title) } icon: { Image(systemName: symbol) }
+        } description: {
+            Text(verbatim: detail)
         }
-        .padding(CYSpacing.lg)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(CYColor.bgPage)
     }
 
     private func open() {

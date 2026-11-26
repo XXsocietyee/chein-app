@@ -22,11 +22,19 @@ import SwiftUI
             if let overview = model.overview {
                 if !overview.applications.isEmpty {
                     // Source cy-tabs variant="chip": 全部 / 处理中 / 已开具 / 已驳回 / 已撤回 (FIN-11-8).
-                    CYTabs(items: InvoiceLaunchHistoryRules.filterKeys.map { CYTabItem(id: $0, title: invoiceString($0)) },
-                           selection: $filter, variant: .chip)
-                        .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets())
+                    // Native r2: a segmented Picker replaces the chip tabs (same keys, same selection).
+                    Section {
+                        Picker(selection: $filter) {
+                            ForEach(InvoiceLaunchHistoryRules.filterKeys, id: \.self) { key in
+                                Text(verbatim: invoiceString(key)).tag(key)
+                            }
+                        } label: {
+                            invoiceText("history")
+                        }
+                        .pickerStyle(.segmented)
+                        .labelsHidden()
                         .accessibilityIdentifier("invoice.history.filter")
+                    }
                 }
                 if withdraw.succeeded != nil {
                     Section {
@@ -35,9 +43,14 @@ import SwiftUI
                     }
                 }
                 if rows.isEmpty {
-                    CYEmptyState(systemImage: "tray", LocalizedStringKey(InvoiceLaunchHistoryRules.emptyKey(total: overview.applications.count, filter: filter)),
+                    ContentUnavailableView {
+                        Label {
+                            Text(LocalizedStringKey(InvoiceLaunchHistoryRules.emptyKey(total: overview.applications.count, filter: filter)),
                                  tableName: "InvoiceLaunchUI")
-                        .frame(maxWidth: .infinity).listRowBackground(Color.clear)
+                        } icon: {
+                            Image(systemName: "tray")
+                        }
+                    }
                 }
                 ForEach(rows, id: \.id) { row in
                     Section {
@@ -56,8 +69,7 @@ import SwiftUI
                         }
                         // Source orderbut1 撤回申请 on SUBMITTED cards: a visible action, swipe stays a shortcut (FIN-11-3).
                         if canWithdraw(row) {
-                            Button(role: .destructive) { withdraw.ask(row.id) } label: { invoiceText("withdraw").cyText(.label) }
-                                .frame(minHeight: CYSpacing.minTouchTarget)
+                            Button(role: .destructive) { withdraw.ask(row.id) } label: { invoiceText("withdraw") }
                                 .accessibilityIdentifier("invoice.history.withdrawButton.\(row.id)")
                         }
                     }
@@ -66,16 +78,18 @@ import SwiftUI
         }
         .listStyle(.insetGrouped)
         // Source cy-footer-bar 管理抬头 + 申请开票 stays visible above the list (FIN-11-9).
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            if model.overview != nil {
-                CYFooterBar {
-                    HStack(spacing: CYSpacing.md) {
-                        CYPillButton("manageTitlesShort", style: .secondary, tableName: "InvoiceLaunchUI") { openTitles = true }
-                            .accessibilityIdentifier("invoice.titles.entry")
-                        if model.allows(.apply) {
-                            CYPillButton("apply", style: .primary, tableName: "InvoiceLaunchUI") { openApply = true }
-                                .accessibilityIdentifier("invoice.apply.entry")
-                        }
+        // Native r2: the system bottom toolbar carries the two actions.
+        .toolbar {
+            ToolbarItemGroup(placement: .bottomBar) {
+                if model.overview != nil {
+                    Button { openTitles = true } label: { Text("manageTitlesShort", tableName: "InvoiceLaunchUI") }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("invoice.titles.entry")
+                    Spacer()
+                    if model.allows(.apply) {
+                        Button { openApply = true } label: { Text("apply", tableName: "InvoiceLaunchUI") }
+                            .buttonStyle(.borderedProminent)
+                            .accessibilityIdentifier("invoice.apply.entry")
                     }
                 }
             }
@@ -111,43 +125,51 @@ import SwiftUI
     }
     /// Source card: status, title, 单位/个人 tag + masked tax, 申请于 time, issuer · N 笔订单, 开票金额 (FIN-11-5).
     private func historyRow(_ row: InvoiceLaunchApplication) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            CYStatusChip(verbatim: invoiceString(row.status.labelKey), tone: row.status.chipTone, systemImage: row.status.chipSymbol)
+        VStack(alignment: .leading, spacing: 4) {
+            Label {
+                Text(verbatim: invoiceString(row.status.labelKey))
+            } icon: {
+                Image(systemName: row.status.chipSymbol).foregroundStyle(row.status.chipTint)
+            }
+            .font(.footnote)
+            .foregroundStyle(.secondary)
             Text(verbatim: row.titleName.isEmpty ? "—" : row.titleName)
-                .cyText(.cardTitle)
-                .cyWrapText()
-            HStack(spacing: CYSpacing.xs) {
+                .font(.headline)
+                .fixedSize(horizontal: false, vertical: true)
+            HStack {
                 if row.titleType == "COMPANY" || row.titleType == "PERSONAL" {
-                    CYStatusChip(verbatim: invoiceString(row.titleType), tone: .neutral)
+                    Text(verbatim: invoiceString(row.titleType))
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
                 Text(verbatim: row.taxNoMasked.flatMap { $0.isEmpty ? nil : $0 } ?? invoiceString("personalTitle"))
-                    .cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                    .font(.footnote).foregroundStyle(.tertiary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             // MP `moh-ico`: d_orderIcon (申请于) and d_orderIcon2 (issuer · N 笔订单), 12 pt at the meta size.
             if row.createTime != nil {
-                HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
+                HStack(alignment: .firstTextBaseline) {
                     metaIcon(MPAsset.FeatureIcon.dOrderIcon)
-                    Text(verbatim: invoiceString("appliedAt") + " " + invoiceTime(row.createTime, locale: locale)).cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .cyWrapText()
+                    Text(verbatim: invoiceString("appliedAt") + " " + invoiceTime(row.createTime, locale: locale))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
+            HStack(alignment: .firstTextBaseline) {
                 metaIcon(MPAsset.FeatureIcon.dOrderIcon2)
-                Text(verbatim: issuerLine(row)).cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .cyWrapText()
+                Text(verbatim: issuerLine(row))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            HStack(spacing: CYSpacing.xs) {
-                invoiceText("invoiceAmount").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            HStack {
+                invoiceText("invoiceAmount").font(.subheadline).foregroundStyle(.secondary)
                 Text(verbatim: invoiceLaunchDisplayedAmount(row.totalAmount, locale: locale))
-                    .cyText(.numericBody)
                     .monospacedDigit()
-                    .foregroundStyle(CYColor.textPrimary)
+                    .foregroundStyle(.primary)
             }
         }
-        .padding(.vertical, CYSpacing.xs)
         .accessibilityElement(children: .combine)
     }
     private func metaIcon(_ image: Image) -> some View {
