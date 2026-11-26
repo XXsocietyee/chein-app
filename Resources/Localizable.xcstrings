@@ -151363,13 +151363,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Official event details"
+            "value": "Event details"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "官方活动详情"
+            "value": "活动详情"
           }
         }
       }

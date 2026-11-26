@@ -420,6 +420,23 @@
           }
         }
       }
+    },
+    "official.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Event details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动详情"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
