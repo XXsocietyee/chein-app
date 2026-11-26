@@ -11,14 +11,10 @@ struct HomeHeroHeaderSectionView: View {
     var isMerchantViewer: Bool = false
     var avatarSource: String? = nil
     var onSelectCity: ((String?, Bool) -> Void)? = nil
-    var onOpenUnifiedSearch: ((UnifiedSearchExperience.PresentationMode) -> Void)? = nil
     var onSelectBanner: ((HomeIndexParityPresentation.ActionBanner) -> Void)? = nil
     @Environment(\.externalGameSession) private var externalGameSession
     @Environment(\.homeMoreMenuContent) private var moreMenuContent
-    /// Continuity r1: the in-page search state borrows this field's box while it stands in for it.
-    @Environment(\.homeSearchSource) private var searchSource
     @Environment(\.rootTabSwitch) private var rootTabSwitch
-    @AccessibilityFocusState private var searchEntryFocused: Bool
     /// The fixed banners, plus Mini games for a signed-in session where the external-games switch is open.
     private var actionBanners: [HomeIndexParityPresentation.ActionBanner] {
         guard let externalGameSession, ExternalGameSessionRead.externalGamesOpen(baseURL: externalGameSession.baseURL)
@@ -33,55 +29,7 @@ struct HomeHeroHeaderSectionView: View {
     var body: some View {
         Section {
             VStack(alignment: .leading, spacing: 14) {
-                if let onOpenUnifiedSearch {
-                    // One search entry, in the home top bar. It opens pages/search2 (list) or the map.
-                    // The feed no longer draws a second field under 更多玩法.
-                    HStack(spacing: CYSpacing.sm) {
-                        Button {
-                            onOpenUnifiedSearch(.list)
-                        } label: {
-                            HStack(spacing: 8) {
-                                Image(systemName: "magnifyingglass")
-                                    .foregroundStyle(.secondary)
-                                Text(LocalizedStringResource("searchMap.placeholder.player", defaultValue: "Search topics, activities and clubs")) // player-first: no merchants
-                                    .foregroundStyle(.secondary)
-                                    .cyWrapText()
-                                Spacer(minLength: 0)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .contentShape(Rectangle())
-                        }
-                        // System bordered capsule button: it opens the search screen, so it is a button, not a field.
-                        .buttonStyle(.bordered)
-                        .buttonBorderShape(.capsule)
-                        .controlSize(.large)
-                        .accessibilityAddTraits(.isSearchField)
-                        .pageTemplateControl(
-                            label: Text("searchMap.placeholder.player"),
-                            hint: Text("homeFeed.search"),
-                            traits: .isButton
-                        )
-                        .accessibilityIdentifier("homeIndex.hero.searchEntry")
-                        .accessibilityFocused($searchEntryFocused)
-
-                        Button {
-                            onOpenUnifiedSearch(.map)
-                        } label: {
-                            Image(systemName: "map")
-                        }
-                        .buttonStyle(.bordered)
-                        .buttonBorderShape(.circle)
-                        .controlSize(.large)
-                        .pageTemplateControl(
-                            label: Text(verbatim: UnifiedSearchExperience.PresentationMode.map.title(locale: locale)),
-                            hint: Text("homeSearch.mapHint"),
-                            traits: .isButton
-                        )
-                        .accessibilityIdentifier("homeIndex.hero.mapSearchEntry")
-                    }
-                    .modifier(HomeSearchSourceField(context: searchSource))
-                    .onChange(of: searchSource?.returnFocus) { _, _ in searchEntryFocused = true }
-                }
+                // P-021: search is the system field in the 首页 bar (`.searchable`), not a capsule drawn here.
                 // Mini-program `v3-hero-greet-row`: name on its own line, then `玩家 · 城市`, avatar trailing.
                 HStack(alignment: .top, spacing: 12) {
                     VStack(alignment: .leading, spacing: 6) {
@@ -180,54 +128,6 @@ struct HomeHeroHeaderSectionView: View {
             }
             .padding(.vertical, 4)
             .listRowBackground(Color.clear)
-        }
-    }
-}
-
-// MARK: - 首页 search continuity (continuity r1)
-
-/// Where the 首页 search field sits in window coordinates, kept by the host so the in-page search state can start its
-/// field exactly on top of it. A plain box: the writes made while the feed scrolls never invalidate a view.
-@MainActor final class HomeSearchSourceBox {
-    var frame: CGRect = .zero
-    init() {}
-}
-
-/// Published by `SessionHomeFeedView` into the feed. Nil (fixtures, other hosts) leaves the field as it always was.
-struct HomeSearchSourceContext {
-    let box: HomeSearchSourceBox
-    /// True while the search state's field stands in for this one: one field on screen, never two.
-    var isHidden: Bool
-    /// Bumped when search closes so VoiceOver focus returns to the field that opened it.
-    var returnFocus: Int
-}
-
-private struct HomeSearchSourceKey: EnvironmentKey { static let defaultValue: HomeSearchSourceContext? = nil }
-
-extension EnvironmentValues {
-    var homeSearchSource: HomeSearchSourceContext? {
-        get { self[HomeSearchSourceKey.self] }
-        set { self[HomeSearchSourceKey.self] = newValue }
-    }
-}
-
-/// Records the field's window frame and hides it, with no fade, while search owns it.
-private struct HomeSearchSourceField: ViewModifier {
-    let context: HomeSearchSourceContext?
-    func body(content: Content) -> some View {
-        if let context {
-            content
-                .background {
-                    GeometryReader { proxy in
-                        Color.clear
-                            .onAppear { context.box.frame = proxy.frame(in: .global) }
-                            .onChange(of: proxy.frame(in: .global)) { _, frame in context.box.frame = frame }
-                    }
-                }
-                .opacity(context.isHidden ? 0 : 1)
-                .accessibilityHidden(context.isHidden)
-        } else {
-            content
         }
     }
 }

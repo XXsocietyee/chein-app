@@ -68,111 +68,27 @@ import UIKit
                 ProgressView("homeFeed.loading")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: CYSpacing.xxl) {
-                    // Design hand-off r1 PL-22: what the player came for first — header and city context, 编辑精选,
-                    // 附近活动 — then the promo swiper as one band, then 即将上线 and the tabbed feed.
-                    // polish-d-r1: header, consent, offline notice and 编辑精选 are one group at `sm` rhythm. The 更多玩法
-                    // menu already keeps a 44 pt target below its text, so the `xxl` section gap read as a hole.
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        if hasHeroHeader {
-                            HomeHeroHeaderSectionView(
-                                nickname: viewerNickname,
-                                selectedCity: localSelectedCity ?? selectedCity,
-                                isNationwide: localIsNationwide,
-                                isMerchantViewer: viewerIsMerchant,
-                                avatarSource: viewerAvatar,
-                                onSelectCity: onSelectCity != nil ? { city, nationwide in
-                                    localSelectedCity = city
-                                    localIsNationwide = nationwide
-                                    onSelectCity?(city, nationwide)
-                                } : nil,
-                                onOpenUnifiedSearch: onOpenUnifiedSearch
-                            ) { banner in
-                                // R7-PC-A1-2: a host that routes banners opens the activity list; without one, show the 活动 stream.
-                                if let onActionBanner { onActionBanner(banner) } else if banner.id == "activity_list" { kind = .activities }
-                            }
-                            .pageTemplateReadingOrder(80)
-                        }
-                        if let consent = cityLocationConsent {
-                            HomeCityLocationConsentCard(onAgree: consent.agree, onDecline: consent.decline)
-                                .pageTemplateReadingOrder(70)
-                        }
-                        CYScreenOfflineWriteBanner(routes: ["/api/compliance/consents"])
-                        if feedDown {
-                            // R1 error state (166:3280): when every rail and the feed failed, one inline error under the
-                            // header, with one retry for all of it; no section titles with nothing under them, no tabs.
-                            retry(Text("homeFeed.feedFailed"), id: "feed") {
-                                for section in HomeFeedSection.allCases { model.schedule(.section(section), reader: reader, permit: permit) }
-                                model.schedule(.page, reader: reader, permit: permit)
-                            }
-                            .padding(.top, CYSpacing.sm)
-                            .pageTemplateReadingOrder(60)
-                        }
-                        // Mini-program order: 编辑精选, 附近活动, 即将上线, then 主题 / 活动.
-                        feedSection(.recommended, order: 2).pageTemplateReadingOrder(60)
-                        if let cityRail { cityRail.pageTemplateReadingOrder(55) }
-                    }
-                    feedSection(.nearby, order: 3).pageTemplateReadingOrder(50)
-                    if !feedDown, model.bannerFailed || !model.banners.isEmpty {
-                        bannerSection
-                            .pageTemplateReadingOrder(45)
-                    }
-                    feedSection(.upcoming, order: 4).pageTemplateReadingOrder(40)
-                    if !feedDown {
-                    VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        // Source pages/index feed tabs are 主题 / 活动: a system segmented picker.
-                        Picker(selection: $kind) {
-                            Text("homeFeed.topics").tag(HomeFeedKind.topics)
-                            Text("homeFeed.activities").tag(HomeFeedKind.activities)
-                        } label: {
-                            Text("homeFeed.content")
-                        }
-                        .pickerStyle(.segmented)
-                        .accessibilityIdentifier("homeFeed.kind")
-                        .accessibilityLabel(Text("homeFeed.content"))
-                        ForEach(Array(model.pagination.items.enumerated()), id: \.element.id) { index, item in
-                            row(item, section: "stream")
-                        }
-                        if model.pageFailed { retry(Text(LocalizedStringKey("mpfresh.home.streamFailed." + (kind == .topics ? "topics" : "activities") + (model.pagination.items.isEmpty ? ".first" : ".more")), tableName: "MpFresh"), id: "page") { model.schedule(.page, reader: reader, permit: permit) } }
-                        if model.loadingPage {
-                            ProgressView("homeFeed.loading")
-                                .frame(maxWidth: .infinity)
-                        }
-                        else if !model.pageFailed && model.pagination.items.isEmpty {
-                            // Source empty titles: 暂时没有主题 / 暂时没有活动. The keyword hint stays only after a search.
-                            ContentUnavailableView {
-                                Label {
-                                    (kind == .topics ? Text("homeFeed.topicsEmpty") : Text("homeFeed.activitiesEmpty"))
-                                        .accessibilityIdentifier("homeFeed.empty")
-                                } icon: {
-                                    Image(systemName: "magnifyingglass")
-                                }
-                            } description: {
-                                if !submittedKeyword.isEmpty { Text("homeFeed.emptyHint") }
-                            }
-                        }
-                        if model.pagination.hasMore && !model.loadingPage && !model.pageFailed {
-                            // R7-PC-A1-6 (r1 PC-A-1-11): MP pages on reach-bottom. The sentinel loads the next page when it
-                            // scrolls into view; a failed page keeps its retry row above.
-                            ProgressView()
-                                .frame(maxWidth: .infinity, minHeight: 44)
-                                .onAppear { model.schedule(.page, reader: reader, permit: permit) }
-                                .accessibilityLabel(Text("homeFeed.loading"))
-                                .accessibilityIdentifier("homeFeed.loadMore")
-                        } else if !model.pagination.hasMore && !model.loadingPage && !model.pageFailed && !model.pagination.items.isEmpty {
-                            Text(verbatim: HomeIndexParityPresentation.noMoreFooterCopy(locale: locale))
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                                .frame(maxWidth: .infinity, alignment: .center)
-                                .accessibilityIdentifier("homeFeed.noMoreFooter")
+                // P-019: a system List of sections and shelves (App Store / Music browse), not a scroll view of cards.
+                // Reading order is the List order; each section owns its title, so VoiceOver's rotor lists them.
+                List {
+                    // P-020: header, then 继续游玩 first — what the player was doing comes before discovery.
+                    if hasHeroHeader {
+                        HomeHeroHeaderSectionView(
+                            nickname: viewerNickname,
+                            selectedCity: localSelectedCity ?? selectedCity,
+                            isNationwide: localIsNationwide,
+                            isMerchantViewer: viewerIsMerchant,
+                            avatarSource: viewerAvatar,
+                            onSelectCity: onSelectCity != nil ? { city, nationwide in
+                                localSelectedCity = city
+                                localIsNationwide = nationwide
+                                onSelectCity?(city, nationwide)
+                            } : nil
+                        ) { banner in
+                            // R7-PC-A1-2: a host that routes banners opens the activity list; without one, show the 活动 stream.
+                            if let onActionBanner { onActionBanner(banner) } else if banner.id == "activity_list" { kind = .activities }
                         }
                     }
-                    .pageTemplateReadingOrder(30)
-                    }
-                    todayCard.pageTemplateReadingOrder(20)
-                    // Mini-program store card (city pass entry): one feed card, never a paywall.
-                    MPPassExploreCard().pageTemplateReadingOrder(15)
                     if !continuationCards.isEmpty {
                         PlayContinuationBannerView(
                             cards: continuationCards,
@@ -190,13 +106,44 @@ import UIKit
                             },
                             onRetry: onRetryContinuation
                         )
-                        .pageTemplateReadingOrder(10)
+                        .homeFeedShelfRows()
                     }
+                    Section {
+                        if let consent = cityLocationConsent {
+                            HomeCityLocationConsentCard(onAgree: consent.agree, onDecline: consent.decline)
+                        }
+                        CYScreenOfflineWriteBanner(routes: ["/api/compliance/consents"])
+                        if feedDown {
+                            // R1 error state (166:3280): when every rail and the feed failed, one inline error under the
+                            // header, with one retry for all of it; no section titles with nothing under them, no tabs.
+                            retry(Text("homeFeed.feedFailed"), id: "feed") {
+                                for section in HomeFeedSection.allCases { model.schedule(.section(section), reader: reader, permit: permit) }
+                                model.schedule(.page, reader: reader, permit: permit)
+                            }
+                        }
                     }
-                    .padding(.horizontal, CYSpacing.pageHorizontal)
-                    .padding(.top, CYSpacing.lg)
-                    .padding(.bottom, CYSpacing.jumbo)
+                    .homeFeedShelfRows()
+                    // Mini-program order: 编辑精选, 附近活动, 即将上线, then 主题 / 活动.
+                    feedSection(.recommended)
+                    if let cityRail {
+                        Section { cityRail }.homeFeedShelfRows(insets: EdgeInsets())
+                    }
+                    feedSection(.nearby)
+                    if !feedDown, model.bannerFailed || !model.banners.isEmpty {
+                        Section { bannerSection }.homeFeedShelfRows()
+                    }
+                    feedSection(.upcoming)
+                    if !feedDown { streamSection }
+                    Section {
+                        todayCard
+                        // Mini-program store card (city pass entry): one feed card, never a paywall.
+                        MPPassExploreCard()
+                    }
+                    .homeFeedShelfRows()
                 }
+                .listStyle(.grouped)
+                .scrollContentBackground(.hidden)
+                .environment(\.defaultMinListRowHeight, 0)
                 .modifier(HomeFeedNavigationSearch(text: $keyword, enabled: !hasHeroHeader, usesDrawer: onOpenUnifiedSearch != nil))
                 .onSubmit(of: .search) { submitFeedSearch() }
                 .onChange(of: keyword) { _, value in if value.isEmpty { submittedKeyword = "" } }
@@ -285,63 +232,29 @@ import UIKit
     /// Mini-program `sec-reco` / `sec-nearby` / `sec-upcoming`: a titled horizontal rail each, with its own
     /// loading and failure state. Source D5 (hengyin 8718d1e22): a rail that loaded with nothing in it disappears
     /// with its title (编辑精选, 附近活动 and 即将上线 alike); there is no in-section empty line any more.
-    @ViewBuilder private func feedSection(_ section: HomeFeedSection, order: Int) -> some View {
+    @ViewBuilder private func feedSection(_ section: HomeFeedSection) -> some View {
         let permit = model.permit(reader)
         let items = model.sections[section]
         let failed = model.failedSections.contains(section)
         let hidesEmpty = !failed && (items?.isEmpty ?? !model.loading)
         if !hidesEmpty, !feedDown {
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-                switch section {
-                case .recommended:
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        sectionHeader(Text("homeFeed.editorsPicks"))
-                        // polish-d-r1: the footnote is the rail's subtitle, above the carousel, so it never sits under the tab bar.
-                        if let items, !items.isEmpty {
-                            Text("homeFeed.editorsPicksFootnote")
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                                .accessibilityIdentifier("homeFeed.editorsPicksFootnote")
-                            if model.loading, !failed {
-                                // Also above the carousel, so it never lands under the tab bar.
-                                Text("homeFeed.updating.recommended")
-                                    .font(.footnote)
-                                    .foregroundStyle(.secondary)
-                                    .accessibilityIdentifier("homeFeed.updating.recommended")
-                            }
-                        }
-                    }
-                case .nearby: sectionHeader(Text("homeFeed.nearbyActivities"))
-                case .upcoming: sectionHeader(Text("homeFeed.upcoming"))
-                }
+            Section {
                 if failed {
                     // Source names the failed rail: 编辑精选加载失败 / 附近活动加载失败 / 即将上线加载失败.
                     retry(Text(LocalizedStringKey("mpfresh.home.sectionFailed." + section.rawValue), tableName: "MpFresh"), id: section.rawValue) { model.schedule(.section(section), reader: reader, permit: permit) }
                 } else if let items {
                     if dynamicTypeSize.isAccessibilitySize {
+                        // AX sizes: one full-width row per item, so nothing is clipped sideways.
                         ForEach(items) { item in row(item, section: section.rawValue, style: .hero) }
-                    } else if section != .nearby {
-                        // Editor picks and upcoming: a system horizontal shelf (App Store style).
-                        carouselRail(items, section: section)
                     } else {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            LazyHStack(alignment: .top, spacing: CYSpacing.md) {
-                                ForEach(items) { item in
-                                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                        row(item, section: section.rawValue, style: .shelf)
-                                        // R7-PC-A1-5: MP 附近活动 `进行中` badge, as a tinted label under the card.
-                                        if item.isLive(at: Date(), sourceTimeZone: sourceTimeZone) { HomeFeedLiveChip() }
-                                    }
-                                }
-                            }
-                            .scrollTargetLayout()
-                        }
-                        .scrollTargetBehavior(.viewAligned)
+                        // A system horizontal shelf (App Store style), one List row edge to edge.
+                        carouselRail(items, section: section)
+                            .listRowInsets(EdgeInsets())
                     }
                 } else if model.loading {
                     ProgressView().frame(maxWidth: .infinity, minHeight: 88)
                 }
-                // Mini-program `正在更新…` line while a loaded rail refreshes, and the editor-picks footnote.
+                // Mini-program `正在更新…` line while a loaded rail refreshes.
                 if model.loading, let items, !items.isEmpty, !failed, section != .recommended {
                     Group {
                         switch section {
@@ -354,8 +267,87 @@ import UIKit
                         .foregroundStyle(.secondary)
                         .accessibilityIdentifier("homeFeed.updating.\(section.rawValue)")
                 }
+            } header: {
+                switch section {
+                case .recommended:
+                    VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                        Text("homeFeed.editorsPicks")
+                        // polish-d-r1: the footnote is the rail's subtitle, above the carousel, so it never sits under the tab bar.
+                        if let items, !items.isEmpty {
+                            Text("homeFeed.editorsPicksFootnote")
+                                .font(.footnote)
+                                .fontWeight(.regular)
+                                .foregroundStyle(.secondary)
+                                .accessibilityIdentifier("homeFeed.editorsPicksFootnote")
+                            if model.loading, !failed {
+                                Text("homeFeed.updating.recommended")
+                                    .font(.footnote)
+                                    .fontWeight(.regular)
+                                    .foregroundStyle(.secondary)
+                                    .accessibilityIdentifier("homeFeed.updating.recommended")
+                            }
+                        }
+                    }
+                case .nearby: Text("homeFeed.nearbyActivities")
+                case .upcoming: Text("homeFeed.upcoming")
+                }
+            }
+            .homeFeedShelfRows()
+        }
+    }
+    /// 主题 / 活动: the system segmented picker, then one List row per card, the paging sentinel and the end line.
+    @ViewBuilder private var streamSection: some View {
+        let permit = model.permit(reader)
+        Section {
+            // Source pages/index feed tabs are 主题 / 活动: a system segmented picker.
+            Picker(selection: $kind) {
+                Text("homeFeed.topics").tag(HomeFeedKind.topics)
+                Text("homeFeed.activities").tag(HomeFeedKind.activities)
+            } label: {
+                Text("homeFeed.content")
+            }
+            .pickerStyle(.segmented)
+            .accessibilityIdentifier("homeFeed.kind")
+            .accessibilityLabel(Text("homeFeed.content"))
+            .sensoryFeedback(.selection, trigger: kind)
+            ForEach(model.pagination.items) { item in
+                row(item, section: "stream")
+            }
+            if model.pageFailed { retry(Text(LocalizedStringKey("mpfresh.home.streamFailed." + (kind == .topics ? "topics" : "activities") + (model.pagination.items.isEmpty ? ".first" : ".more")), tableName: "MpFresh"), id: "page") { model.schedule(.page, reader: reader, permit: permit) } }
+            if model.loadingPage {
+                ProgressView("homeFeed.loading")
+                    .frame(maxWidth: .infinity)
+            }
+            else if !model.pageFailed && model.pagination.items.isEmpty {
+                // Source empty titles: 暂时没有主题 / 暂时没有活动. The keyword hint stays only after a search.
+                ContentUnavailableView {
+                    Label {
+                        (kind == .topics ? Text("homeFeed.topicsEmpty") : Text("homeFeed.activitiesEmpty"))
+                            .accessibilityIdentifier("homeFeed.empty")
+                    } icon: {
+                        Image(systemName: "magnifyingglass")
+                    }
+                } description: {
+                    if !submittedKeyword.isEmpty { Text("homeFeed.emptyHint") }
+                }
+            }
+            if model.pagination.hasMore && !model.loadingPage && !model.pageFailed {
+                // R7-PC-A1-6 (r1 PC-A-1-11): MP pages on reach-bottom. The sentinel row loads the next page when it
+                // scrolls into view; a failed page keeps its retry row above.
+                ProgressView()
+                    .frame(maxWidth: .infinity, minHeight: 44)
+                    .onAppear { model.schedule(.page, reader: reader, permit: permit) }
+                    .accessibilityLabel(Text("homeFeed.loading"))
+                    .accessibilityIdentifier("homeFeed.loadMore")
+            } else if !model.pagination.hasMore && !model.loadingPage && !model.pageFailed && !model.pagination.items.isEmpty {
+                Text(verbatim: HomeIndexParityPresentation.noMoreFooterCopy(locale: locale))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .accessibilityIdentifier("homeFeed.noMoreFooter")
             }
         }
+        .homeFeedShelfRows()
     }
     /// Club label, first category and status in one secondary line; a repeated value shows once.
     static func recoCaption(_ item: HomeFeedItem) -> String {
@@ -372,7 +364,8 @@ import UIKit
     /// Horizontal shelf over the already-loaded section items. Open goes through the same guarded destination as the
     /// nearby cards. 即将上线 keeps the source countdown (还剩N天 / 还剩N小时 / 已开始) under each card.
     private func carouselRail(_ items: [HomeFeedItem], section: HomeFeedSection) -> some View {
-        let capped = Array(items.prefix(12))
+        // 编辑精选 / 即将上线 cap at 12 (MP swiper); 附近活动 shows every nearby item.
+        let capped = section == .nearby ? items : Array(items.prefix(12))
         return ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(alignment: .top, spacing: CYSpacing.md) {
                 ForEach(capped) { item in
@@ -389,6 +382,8 @@ import UIKit
                                     .accessibilityIdentifier("homeFeed.reco.caption.\(item.accessibilityKey)")
                             }
                         }
+                        // R7-PC-A1-5: MP 附近活动 `进行中` badge, as a tinted label under the card.
+                        if section == .nearby, item.isLive(at: Date(), sourceTimeZone: sourceTimeZone) { HomeFeedLiveChip() }
                         if section == .upcoming, let countdown = upcomingCountdown(item) {
                             Text(verbatim: countdown)
                                 .font(.footnote)
@@ -400,9 +395,11 @@ import UIKit
             }
             .scrollTargetLayout()
         }
+        // The shelf row is edge to edge; its first card lines up with the section title.
+        .contentMargins(.horizontal, CYSpacing.pageHorizontal, for: .scrollContent)
         .scrollTargetBehavior(.viewAligned)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel(section == .recommended ? Text("carousel.editorsPicks") : Text("carousel.upcoming"))
+        .accessibilityLabel(section == .recommended ? Text("carousel.editorsPicks") : (section == .nearby ? Text("homeFeed.nearbyActivities") : Text("carousel.upcoming")))
         .accessibilityIdentifier("homeFeed.carousel.\(section.rawValue)")
     }
     /// Source 即将上线 countdown (hengyin 07608d68a, j1 F23): 还剩N天 / 还剩N小时 / 已开始. Unknown start shows nothing.
@@ -414,13 +411,6 @@ import UIKit
         if days >= 1 { return String(localized: LocalizedStringResource("mpfresh.home.countdown.days \(days)", table: "MpFresh", locale: locale)) }
         let hours = max(1, Int(seconds / 3_600))
         return String(localized: LocalizedStringResource("mpfresh.home.countdown.hours \(hours)", table: "MpFresh", locale: locale))
-    }
-    /// Plain section title (mini-program `sec-title`) in the system title style.
-    private func sectionHeader(_ title: Text) -> some View {
-        title
-            .font(.title2.bold())
-            .foregroundStyle(.primary)
-            .accessibilityAddTraits(.isHeader)
     }
     /// MP index.wxml default covers: 编辑精选 reco-hero.jpg (:105), 附近活动 / 即将上线 route_city_cover.png (:151/:188),
     /// the stream home-route-city-placeholder.jpg (:216/:253).
@@ -509,6 +499,19 @@ import UIKit
     }
 }
 
+extension View {
+    /// P-019: a 首页 section in the system List — no cell fill, no separators between shelf rows, the bold
+    /// sentence-case header Apple uses for browse sections.
+    @ViewBuilder func homeFeedShelfRows(insets: EdgeInsets? = nil) -> some View {
+        let base = self
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+            .listSectionSeparator(.hidden)
+            .headerProminence(.increased)
+        if let insets { base.listRowInsets(insets) } else { base }
+    }
+}
+
 /// Keeps the system search only when the navigation bar is showing. The hero top bar owns search
 /// when the bar is hidden, so the feed does not draw a second field.
 private struct HomeFeedNavigationSearch: ViewModifier {
@@ -550,11 +553,9 @@ struct HomeFeedShelfCard: View {
         // Currency + 起/From come from the shared price key; unknown price shows an em dash, never 0.
         let price = HomeFeedMoney.plain(item.amount).map { appLocalized("playx.finishRoute.priceFrom \($0)", locale: locale) } ?? "—"
         let line = [QuestifyCardText.metaLine(date: date, place: item.place), price].compactMap { $0 }.joined(separator: " · ")
-        let card = CYImageCard(LocalizedStringKey(item.name), metaText: line,
-                    imageURL: QuestifyCardArtwork.safeURL(item.imageURL), style: style)
-            // MP asset (index.wxml:216): a card without a cover shows `home-route-city-placeholder.jpg`.
-            .fallbackArtwork(fallback.image)
-            .cachingFeedImage()
+        // P-019: the App Store shelf lockup — cover, then title and one meta line in system type, no scrim or shadow.
+        let card = HomeFeedShelfLockup(title: item.name, meta: line, imageURL: QuestifyCardArtwork.safeURL(item.imageURL),
+                                       fallback: fallback.image, style: style)
         if showsFeaturedFacts, HomeFeedFeaturedFacts.hasAny(item) {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 card
@@ -563,6 +564,59 @@ struct HomeFeedShelfCard: View {
         } else {
             card
         }
+    }
+}
+
+/// P-019: native shelf lockup (App Store / Music). `.shelf` is a fixed-width card for a horizontal shelf (it scales with
+/// Dynamic Type); `.hero` is a full-width row for accessibility sizes. MP default cover when there is no image.
+struct HomeFeedShelfLockup: View {
+    let title: String
+    let meta: String
+    let imageURL: URL?
+    let fallback: Image
+    let style: CYImageCard.Style
+    @ScaledMetric(relativeTo: .body) private var shelfWidth: CGFloat = 260
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Color.clear
+                .aspectRatio(style == .shelf ? 3.0 / 2.0 : 16.0 / 10.0, contentMode: .fit)
+                .overlay { cover }
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .accessibilityHidden(true)
+            Text(verbatim: title)
+                .font(.headline)
+                .foregroundStyle(.primary)
+                .lineLimit(style == .shelf ? 2 : nil)
+                .fixedSize(horizontal: false, vertical: true)
+            if !meta.isEmpty {
+                Text(verbatim: meta)
+                    .font(.subheadline)
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+                    .lineLimit(style == .shelf ? 2 : nil)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .frame(width: style == .shelf ? shelfWidth : nil, alignment: .leading)
+        .frame(maxWidth: style == .shelf ? nil : .infinity, alignment: .leading)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+    }
+
+    @ViewBuilder private var cover: some View {
+        if let imageURL {
+            PlayerFeedRemoteImage(url: imageURL, maxPixel: style == .shelf ? 960 : 1200,
+                                  placeholder: { placeholder }, failure: { placeholder })
+        } else {
+            placeholder
+        }
+    }
+
+    private var placeholder: some View {
+        Rectangle().fill(.fill.tertiary)
+            .overlay { fallback.resizable().scaledToFill() }
+            .clipped()
     }
 }
 

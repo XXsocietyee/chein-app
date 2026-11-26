@@ -17,14 +17,14 @@ final class SearchMapFlowTests: XCTestCase {
         XCTAssertTrue(element.exists, app.debugDescription); XCTAssertTrue(element.isHittable, app.debugDescription)
     }
     private func search(_ text: String = "sample") {
-        let field = app.textFields["searchMap.keyword"]
+        let field = app.searchFields.firstMatch
         XCTAssertTrue(field.waitForExistence(timeout: 5)); field.tap(); field.typeText(text + "\n")
     }
     func testGlobalDomainsAreSeparateAndMerchantDetailUsesMerchantID() {
         launch(); search()
-        let kinds = app.descendants(matching: .any)["searchMap.resultKinds"]
-        XCTAssertTrue(kinds.waitForExistence(timeout: 5), app.debugDescription)
-        let merchantFilter = kinds.buttons["searchMap.kind.merchant"]; reveal(merchantFilter); merchantFilter.tap()
+        // P-022: result kinds are the system search scope bar (`.searchScopes`).
+        let merchantFilter = app.segmentedControls.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Shops")).firstMatch
+        XCTAssertTrue(merchantFilter.waitForExistence(timeout: 5), app.debugDescription); merchantFilter.tap()
         let row = app.buttons["searchMap.result.merchant-71"]; reveal(row); row.tap()
         XCTAssertTrue(app.descendants(matching: .any)["searchMap.merchant.detail"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Synthetic shop"].exists)
@@ -39,7 +39,7 @@ final class SearchMapFlowTests: XCTestCase {
         XCTAssertEqual(first.label, "骑行")
         XCTAssertTrue(app.buttons["searchMap.recommended.7"].exists)
         first.tap()
-        XCTAssertEqual(app.textFields["searchMap.keyword"].value as? String, "骑行")
+        XCTAssertEqual(app.searchFields.firstMatch.value as? String, "骑行")
         let rows = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "searchMap.result."))
         XCTAssertTrue(rows.firstMatch.waitForExistence(timeout: 5), app.debugDescription)
         XCTAssertFalse(app.buttons["searchMap.recommended.0"].exists)
@@ -121,7 +121,7 @@ final class SearchMapFlowTests: XCTestCase {
         openGlobalFilters(); resetFilters(); app.buttons["searchMap.filter.apply"].tap()
         XCTAssertTrue(app.descendants(matching: .any)["searchMap.loading"].waitForExistence(timeout: 5))
         releaseGlobalSearch(); assertCategoryRows(70)
-        XCTAssertEqual(app.textFields["searchMap.keyword"].value as? String, "sample")
+        XCTAssertEqual(app.searchFields.firstMatch.value as? String, "sample")
         XCTAssertFalse(app.buttons["searchMap.result.club-7"].exists)
         XCTAssertFalse(app.buttons["searchMap.result.merchant-7"].exists)
     }

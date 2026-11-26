@@ -17,7 +17,7 @@ final class SearchMapAlternativeListFlowTests: XCTestCase {
         XCTAssertTrue(element.exists, app.debugDescription); XCTAssertTrue(element.isHittable, app.debugDescription)
     }
     private func search(_ text: String = "sample") {
-        let field = app.textFields["searchMap.keyword"]
+        let field = app.searchFields.firstMatch
         XCTAssertTrue(field.waitForExistence(timeout: 5)); field.tap(); field.typeText(text + "\n")
     }
 
