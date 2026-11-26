@@ -183,6 +183,10 @@ func imShownName(_ name: String) -> String {
     @State private var address = ""
     @State private var latitude = ""
     @State private var longitude = ""
+    /// R9-PC-D9-1: MP wx.chooseLocation (subpackageB/pages/im/chat/index.js:745-768) is a system place picker, not typed coordinates.
+    @State private var pickingPlace = false
+    /// R9-PC-D9-1: MP onPickImage (index.js:735-736) opens the photo picker straight from the plus sheet.
+    @State private var showingPhotoCompose = false
     init(coordinator: IMExpandedCoordinator, identity: MessagingReadIdentity?, uploadOwner: IMImageUploadCoordinator? = nil, topicReader: (any TopicReading)? = nil, replyPolicy: IMConversationReplyPolicy? = nil,
          isConversationCurrent: @escaping () -> Bool = { true }, readCursor: Int? = nil,
          admission: ChannelAdmissionRoute? = nil, directory: ChannelDirectoryAdmissionRequest? = nil, showsAdmissionEntry: Bool = false,
@@ -219,12 +223,17 @@ func imShownName(_ name: String) -> String {
                 .presentationDragIndicator(.visible)
             }
         }
+        .cySheet(isPresented: $pickingPlace) { placePicker }
+        .navigationDestination(isPresented: $showingPhotoCompose) {
+            if let uploadOwner { photoCompose(uploadOwner, selectsOnAppear: true) }
+        }
         .navigationTitle(Text("im.full.title")).navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
         .accessibilityIdentifier("im.full.controls")
         .onAppear {
             model.observe()
             if focus == .route, permitsReply, topicReader != nil, selectedTopic == nil { showingTopics = true }
+            if focus == .image, permitsReply, writerReady, uploadOwner != nil, !hasPendingState { showingPhotoCompose = true }
         }
         .onChange(of: model.state) { _, state in if case .acknowledged(.muted(let value)) = state { acknowledgedMuted = value } }
         .onChange(of: identity) { _, _ in clearDrafts(); acknowledgedMuted = nil; model.invalidateQueued(); model.state = model.owner.visibleState }
@@ -262,12 +271,7 @@ func imShownName(_ name: String) -> String {
                 if let uploadOwner, focus == nil || focus == .image {
                     Section {
                         NavigationLink {
-                            IMImageComposeView(owner: uploadOwner, identity: identity, canReply: { permitsReply }) { url in
-                                // The child owns its appearance while this navigation parent is offscreen.
-                                guard permitsReply, model.owner.scope == uploadOwner.scope,
-                                      let intent = try? IMOutgoingIntent(scope: model.owner.scope, payload: .image(url)) else { return false }
-                                return model.owner.review(.send(intent))
-                            }
+                            photoCompose(uploadOwner, selectsOnAppear: false)
                         } label: { Label("d7.chatInfo.sendPhoto", systemImage: "photo") }
                     }
                 }
@@ -287,13 +291,17 @@ func imShownName(_ name: String) -> String {
                 }
                 if focus == nil || focus == .location {
                 Section("d7.chatInfo.location") {
-                    TextField("im.full.name", text: $name)
-                    TextField("im.full.address", text: $address)
-                    TextField("im.full.latitude", text: $latitude).keyboardType(.numbersAndPunctuation)
-                    TextField("im.full.longitude", text: $longitude).keyboardType(.numbersAndPunctuation)
-                    Button("d7.chatInfo.sendLocation") {
-                        if let lat = Double(latitude), let lng = Double(longitude), (-90...90).contains(lat), (-180...180).contains(lng),
-                           let intent = try? IMOutgoingIntent(scope: model.owner.scope, payload: .location(name: name, address: address, latitude: lat, longitude: lng)) { review(.send(intent)) }
+                    Button { if model.appearance != nil && permitsReply { pickingPlace = true } } label: {
+                        Label("d7.imLocation.pickOnMap", systemImage: "map")
+                    }
+                    .accessibilityIdentifier("im.full.pickPlace")
+                    if let lat = Double(latitude), let lng = Double(longitude) {
+                        LabeledContent("im.full.name") { Text(verbatim: name) }
+                        if !address.isEmpty { LabeledContent("im.full.address") { Text(verbatim: address) } }
+                        Button("d7.chatInfo.sendLocation") {
+                            if (-90...90).contains(lat), (-180...180).contains(lng),
+                               let intent = try? IMOutgoingIntent(scope: model.owner.scope, payload: .location(name: name, address: address, latitude: lat, longitude: lng)) { review(.send(intent)) }
+                        }
                     }
                 }
                 }
@@ -373,7 +381,26 @@ func imShownName(_ name: String) -> String {
             onReceipt(receipt)
         }
     }
-    private func clearDrafts() { selectedTopic = nil; showingTopics = false; name = ""; address = ""; latitude = ""; longitude = "" }
+    private func clearDrafts() { selectedTopic = nil; showingTopics = false; pickingPlace = false; name = ""; address = ""; latitude = ""; longitude = "" }
+    /// Shared by the 发送图片 row and the plus-sheet 图片 entry; the upload path is IMImageComposeView's.
+    private func photoCompose(_ uploadOwner: IMImageUploadCoordinator, selectsOnAppear: Bool) -> some View {
+        IMImageComposeView(owner: uploadOwner, identity: identity, canReply: { permitsReply }, selectsOnAppear: selectsOnAppear) { url in
+            // The child owns its appearance while this navigation parent is offscreen.
+            guard permitsReply, model.owner.scope == uploadOwner.scope,
+                  let intent = try? IMOutgoingIntent(scope: model.owner.scope, payload: .image(url)) else { return false }
+            return model.owner.review(.send(intent))
+        }
+    }
+    /// R9-PC-D9-1: the MapKit place picker returns name, address and coordinate (MP index.js:745-757 sendCard location).
+    private var placePicker: some View {
+        IMStaticPlaceMapPicker(current: { permitsReply && model.appearance != nil }) { place in
+            guard permitsReply, model.appearance != nil else { return }
+            name = place.name; address = place.address
+            latitude = String(place.lat); longitude = String(place.lng)
+        }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
+    }
 }
 /// Message duration as m:ss, using the view's locale.
 struct IMDurationText: View {
@@ -579,14 +606,16 @@ struct IMUploadSubmission: Equatable {
     let identity: MessagingReadIdentity?
     let onReviewImage: (URL) -> Bool
     let canReply: () -> Bool
-    init(owner: IMImageUploadCoordinator, identity: MessagingReadIdentity?, canReply: @escaping () -> Bool = { true }, onReviewImage: @escaping (URL) -> Bool) {
-        _model = StateObject(wrappedValue: IMUploadViewModel(owner)); self.identity = identity; self.canReply = canReply; self.onReviewImage = onReviewImage
+    /// R9-PC-D9-1: opened from the plus-sheet 图片 entry, the system picker opens at once (MP index.js:735-736).
+    let selectsOnAppear: Bool
+    init(owner: IMImageUploadCoordinator, identity: MessagingReadIdentity?, canReply: @escaping () -> Bool = { true }, selectsOnAppear: Bool = false, onReviewImage: @escaping (URL) -> Bool) {
+        _model = StateObject(wrappedValue: IMUploadViewModel(owner)); self.identity = identity; self.canReply = canReply; self.selectsOnAppear = selectsOnAppear; self.onReviewImage = onReviewImage
     }
     var body: some View {
         Form { photoSections }.disabled(identity != model.owner.scope.identity || !model.owner.isConfigured || !canReply())
         .navigationTitle(Text("d7.imPhoto.title")).navigationBarTitleDisplayMode(.inline)
         .privacySensitive().accessibilityIdentifier("im.full.imageCompose")
-        .onAppear { model.observe() }
+        .onAppear { model.observe(); if selectsOnAppear, model.state == .idle { submit(.select) } }
         .onChange(of: identity) { _, _ in model.invalidateQueued(); model.owner.clear() }
         .onChange(of: canReply()) { _, allowed in if !allowed { model.invalidateQueued(); model.owner.clear() } }
         .onDisappear { model.retire() }
