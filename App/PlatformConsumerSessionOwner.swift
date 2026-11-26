@@ -85,6 +85,8 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                         guard let owner = PublicMerchantOwnerID(memberID) else { return AnyView(EmptyView()) }
                         return AnyView(PublicMerchantHomeView(target: .ownerMemberID(owner), context: session.publicMerchantHomeContext))
                     })
+                    // R11-PC-B-1: 游玩记录 card 查看战报 / 再玩一局 (MP utils/theme-records.js:35-42, 127-161).
+                    .environment(\.topicThemeRecordsSession, session)
                     // R7-PC-B1-13: a picked session opens checkout with the topic-page ticket chosen (MP index.js:1312-1351).
                     .environment(\.topicSessionRegistrationDestination, { activityID, ticketName in
                         AnyView(ActivityDetailView(id: activityID, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) },

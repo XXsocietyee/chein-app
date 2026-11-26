@@ -326535,6 +326535,57 @@
           }
         }
       }
+    },
+    "topicXcx.records.viewReport": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View run report"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看战报"
+          }
+        }
+      }
+    },
+    "topicXcx.records.replay": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再玩一局"
+          }
+        }
+      }
+    },
+    "topicXcx.records.replayFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This run can't be replayed right now. Check your play records first."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这局暂不能再玩，请先查看游玩记录"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
