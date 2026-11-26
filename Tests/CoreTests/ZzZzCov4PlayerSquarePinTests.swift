@@ -407,7 +407,7 @@ final class ZzZzCov4PlayerSquarePinTests: XCTestCase {
     /// Pricing confirm, quote, registration create, pay, refund, payout, withdrawal, and gift claim
     /// stay off. Nothing is built or sent. Chapter invite, respond, apply, and withdraw stay off.
     /// Station commands stay off.
-    func testMoneyAndChapterWritesStayOff() throws {
+    func testMoneyAndChapterWritesStayOff() async throws {
         ReleaseMoneyWriteSwitch.testDerivation = nil
         PlatformPass.orderWriteTestDerivation = nil
         XCTAssertFalse(PlayerContentMPContract.moneyEnabled)
@@ -444,19 +444,31 @@ final class ZzZzCov4PlayerSquarePinTests: XCTestCase {
         }
         let transport = Cov4PlayerSquarePinTransport()
         let pass = PlatformPass(configuration: try APIConfiguration(baseURL: base), transport: transport)
-        XCTAssertThrowsError(try pass.quote(productID: "9", token: "synthetic")) { error in
+        do {
+            _ = try await pass.quote(productID: "9", token: "synthetic")
+            XCTFail("quote")
+        } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
-        XCTAssertThrowsError(try pass.payPassOrder(orderNo: "NO1", jsCode: "code", token: "synthetic")) { error in
+        do {
+            _ = try await pass.payPassOrder(orderNo: "NO1", jsCode: "code", token: "synthetic")
+            XCTFail("pass pay")
+        } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
-        XCTAssertThrowsError(try pass.payProductOrder(orderNo: "NO1", token: "synthetic")) { error in
+        do {
+            _ = try await pass.payProductOrder(orderNo: "NO1", token: "synthetic")
+            XCTFail("pay")
+        } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
         XCTAssertThrowsError(try pass.refundApplyPassOrder(orderNo: "NO1", reason: "no", token: "synthetic")) { error in
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
-        XCTAssertThrowsError(try pass.claim(giftToken: "g", requestID: "r", token: "synthetic")) { error in
+        do {
+            _ = try await pass.claim(giftToken: "g", requestID: "r", token: "synthetic")
+            XCTFail("claim")
+        } catch {
             XCTAssertEqual(error as? PlatformPassWriteRefusal, .unreachable)
         }
         XCTAssertTrue(transport.requests.isEmpty)
