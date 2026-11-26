@@ -349,7 +349,10 @@ import SwiftUI
         case "pages/club/event-ops/index":
             if let id = clubQueryID(query) {
                 clubGovernance { g in ClubOpsEventView(scope: .init(clubID: id, topicID: queryID(query, "topicId"), activityID: queryID(query, "activityId")), identity: session.clubIdentity, access: g.access, coordinator: g.coordinator) }
-            } else { unavailable }
+            } else {
+                // CLB-event-ops-05 (MP event-ops wxml:12, js:479): no clubId is `missing-param` → 链接已失效 + 返回.
+                MemberMissingLinkState(identifier: "clubOpsEvent.missingParam")
+            }
         case "pages/club/group-code/index":
             if let activity = queryID(query, "activityId") {
                 // MP title = activityName || topicName (index.js:52-56): the code card names the session with it.
