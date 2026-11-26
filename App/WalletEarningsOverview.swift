@@ -60,7 +60,8 @@ enum WalletFundsStagePhase: Equatable {
         VStack(alignment: .leading, spacing: 8) {
             switch phase {
             case .loading:
-                CYSkeleton(variant: .row)
+                ProgressView()
+                    .frame(maxWidth: .infinity)
                     .accessibilityLabel(Text("wallet.earnings.stages.loading", tableName: "WalletEarningsOverview"))
                     .accessibilityIdentifier("wallet.earnings.stages.loading")
             case .signedOut:
@@ -73,7 +74,7 @@ enum WalletFundsStagePhase: Equatable {
                 Text("wallet.earnings.stages.failed", tableName: "WalletEarningsOverview")
                     .accessibilityIdentifier("wallet.earnings.stages.failed")
                 Button(action: retry) { Text("wallet.earnings.stages.retry", tableName: "WalletEarningsOverview") }
-                    .buttonStyle(.bordered).buttonBorderShape(.capsule)
+                    .buttonStyle(.bordered)
                     .accessibilityIdentifier("wallet.earnings.stages.retry")
             case .unknown:
                 Text("wallet.earnings.stages.unknown", tableName: "WalletEarningsOverview")
@@ -111,7 +112,10 @@ enum WalletFundsStagePhase: Equatable {
             }
         }
         LabeledContent {
-            CYStatNumber(text: format.amount(value.withdrawable, currency: value.currency), font: CYTypography.bodyMedium, color: CYColor.textSecondary)
+            Text(verbatim: format.amount(value.withdrawable, currency: value.currency))
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+                .contentTransition(.numericText())
         } label: { Text("wallet.available") }
             .accessibilityIdentifier("wallet.earnings.stages.available")
             .accessibilityLabel(Text("wallet.available"))
@@ -160,10 +164,8 @@ enum WalletOrganizerFinanceIdentity {
     static func key(accountID: Int?, epoch: UInt64?) -> String { "\(accountID ?? 0):\(epoch ?? 0)" }
 }
 private struct WalletContentListStyle: ViewModifier {
-    @Environment(\.themeDomain) private var domain
     func body(content: Content) -> some View {
         content.listStyle(.insetGrouped)
-            .background(Theme.Color.bgPage(in: domain))
             .cyText(.body)
     }
 }
@@ -204,7 +206,7 @@ struct WalletStatusMessage: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("wallet.earnings.finance.separate", tableName: "WalletEarningsOverview")
-                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                .font(.subheadline).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("wallet.earnings.finance.separate")
             if WalletOrganizerFinanceAdmission.showReader(allowsRead: access.allowsRead(), hasSession: access.reader.session != nil, mounted: mounted) {

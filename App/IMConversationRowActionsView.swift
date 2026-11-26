@@ -99,35 +99,28 @@ struct IMConversationRowButtonToken: Equatable {
         let appearance = model.appearance
         let titleKey = model.actions.action?.titleKey ?? "im.row.title"
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: CYSpacing.xxl) {
-                    CYHeroHeader(LocalizedStringKey(titleKey))
-                    if model.actions.isCurrent {
-                        CYCard {
-                            HStack(alignment: .top, spacing: CYSpacing.md) {
-                                CYRowIcon(systemImage: model.actions.action?.symbolName ?? "bubble.left")
-                                MessagingConversationName(conversation: model.actions.conversation)
-                                    .cyText(.cardTitle)
-                                    .foregroundStyle(CYColor.textPrimary)
-                                    .multilineTextAlignment(.leading)
-                                    .fixedSize(horizontal: false, vertical: true)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                            .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-                            .accessibilityElement(children: .combine)
+            List {
+                if model.actions.isCurrent {
+                    Section {
+                        Label {
+                            MessagingConversationName(conversation: model.actions.conversation)
+                                .multilineTextAlignment(.leading)
+                        } icon: {
+                            Image(systemName: model.actions.action?.symbolName ?? "bubble.left")
                         }
-                        phaseContent(appearance)
-                    } else {
-                        CYEmptyState(systemImage: "person.crop.circle", "messaging.signInHint")
+                        .accessibilityElement(children: .combine)
                     }
+                    Section {
+                        phaseContent(appearance)
+                    }
+                } else {
+                    ContentUnavailableView("messaging.signInHint", systemImage: "person.crop.circle")
+                        .listRowBackground(Color.clear)
                 }
-                .padding(.horizontal, CYSpacing.pageHorizontal)
-                .padding(.vertical, CYSpacing.lg)
-                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .cyDomainPageBackground()
-            .cyHeroScreen()
-            .cyAnimation(value: model.state)
+            .listStyle(.insetGrouped)
+            .navigationTitle(Text(LocalizedStringKey(titleKey)))
+            .navigationBarTitleDisplayMode(.inline)
             .cyHaptic(.success, trigger: model.state) { _, new in
                 if case .acknowledged = new { return true }
                 return false
@@ -150,56 +143,69 @@ struct IMConversationRowButtonToken: Equatable {
     @ViewBuilder private func phaseContent(_ appearance: UUID?) -> some View {
         switch model.state {
         case .reviewing:
-            CYPillButton(LocalizedStringKey(model.actions.action?.titleKey ?? "im.full.confirm"), systemImage: model.actions.action?.symbolName) {
+            Button {
                 guard let token = model.prepare(.confirm, appearance: appearance) else { return }
                 Task { _ = await model.perform(token) }
+            } label: {
+                Label {
+                    Text(LocalizedStringKey(model.actions.action?.titleKey ?? "im.full.confirm"))
+                } icon: {
+                    if let symbol = model.actions.action?.symbolName { Image(systemName: symbol) }
+                }
+                .frame(maxWidth: .infinity)
             }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
             .disabled(model.isActionPending)
             .accessibilityIdentifier("im.row.confirm")
         case .submitting:
             loadingBlock("im.full.submitting").accessibilityIdentifier("im.row.submitting")
         case .outcomeUnknown:
             Text("d7.rowActions.unknown")
-                .cyText(.body)
-                .foregroundStyle(CYColor.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-            CYPillButton("d7.rowActions.retry", systemImage: "arrow.clockwise") {
+                .foregroundStyle(.secondary)
+            Button {
                 guard let token = model.prepare(.retryUnchanged, appearance: appearance) else { return }
                 Task { _ = await model.perform(token) }
+            } label: {
+                Label("d7.rowActions.retry", systemImage: "arrow.clockwise")
+                    .frame(maxWidth: .infinity)
             }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
             .disabled(model.isActionPending)
             .accessibilityIdentifier("im.row.retrySame")
         case .acknowledged:
             if model.actions.hasMatchingAcknowledgment {
-                CYStatusChip("d7.rowActions.done", tone: .success, systemImage: "checkmark.circle")
-                    .accessibilityIdentifier("im.row.acknowledged")
+                Label {
+                    Text("d7.rowActions.done")
+                } icon: {
+                    Image(systemName: "checkmark.circle").foregroundStyle(.green)
+                }
+                .accessibilityIdentifier("im.row.acknowledged")
             } else {
                 Text("d7.rowActions.mismatch")
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .foregroundStyle(.secondary)
             }
         case .rejected:
-            CYStatusChip("d7.rowActions.rejected", tone: .danger, systemImage: "xmark.octagon")
+            Label {
+                Text("d7.rowActions.rejected")
+            } icon: {
+                Image(systemName: "xmark.octagon").foregroundStyle(.red)
+            }
         case .closed:
             Text("im.full.closed")
-                .cyText(.body)
-                .foregroundStyle(CYColor.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
+                .foregroundStyle(.secondary)
         case .idle:
             Text("im.full.disabled")
-                .cyText(.body)
-                .foregroundStyle(CYColor.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
+                .foregroundStyle(.secondary)
         }
     }
     private func loadingBlock(_ key: LocalizedStringKey) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
+        HStack {
             Text(key)
-                .cyText(.body)
-                .foregroundStyle(CYColor.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-            CYSkeleton().accessibilityHidden(true)
+                .foregroundStyle(.secondary)
+            Spacer()
+            ProgressView()
         }
         .accessibilityElement(children: .combine)
     }

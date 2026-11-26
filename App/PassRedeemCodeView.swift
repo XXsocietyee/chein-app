@@ -54,24 +54,30 @@ enum PassRedeemCodeOutcome: Equatable {
     @State private var openLibrary = false
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: CYSpacing.lg) {
-                Image(systemName: claimed ? "checkmark" : "gift.fill")
-                    .cyText(.display)
-                    .foregroundStyle(CYNight.lanternHot)
-                    .frame(width: 96, height: 96)
-                    .background { Circle().fill(CYNight.glow(radius: 48)) }
-                    .accessibilityHidden(true)
-                    .padding(.top, CYSpacing.xl)
-                if let title = resultTitle {
-                    title.cyText(.sectionTitle)
-                        .foregroundStyle(isError ? CYColor.dangerText : CYColor.textPrimary)
-                        .multilineTextAlignment(.center)
-                        .accessibilityIdentifier("passRedeem.result")
+        Form {
+            Section {
+                VStack {
+                    Image(systemName: claimed ? "checkmark.circle.fill" : "gift.fill")
+                        .font(.largeTitle)
+                        .imageScale(.large)
+                        .foregroundStyle(.tint)
+                        .accessibilityHidden(true)
+                    if let title = resultTitle {
+                        title.font(.headline)
+                            .foregroundStyle(isError ? Color.red : Color.primary)
+                            .multilineTextAlignment(.center)
+                            .accessibilityIdentifier("passRedeem.result")
+                    }
                 }
-                if codeOn == nil {
-                    ProgressView().frame(minHeight: CYSpacing.minTouchTarget)
-                } else if codeOn == true, !claimed {
+                .frame(maxWidth: .infinity)
+                .listRowBackground(Color.clear)
+            }
+            if codeOn == nil {
+                Section {
+                    ProgressView().frame(maxWidth: .infinity)
+                }
+            } else if codeOn == true, !claimed {
+                Section {
                     TextField("mp.redeem.placeholder", text: $code)
                         .textInputAutocapitalization(.characters)
                         .autocorrectionDisabled()
@@ -81,21 +87,39 @@ enum PassRedeemCodeOutcome: Equatable {
                             if value.count > 64 { code = String(value.prefix(64)) }
                             outcome = nil
                         }
-                        .padding(CYSpacing.md)
-                        .frame(minHeight: CYSpacing.minTouchTarget)
-                        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                         .accessibilityLabel(Text("mp.redeem.title"))
                         .accessibilityIdentifier("passRedeem.code")
-                    CYMorphButton("mp.redeem.submit", state: working ? .working : .idle) { Task { await redeem() } }
-                        .disabled(working || trimmed.isEmpty)
-                        .accessibilityIdentifier("passRedeem.submit")
-                } else if claimed {
-                    CYPillButton("mp.redeem.play", action: play)
-                        .accessibilityIdentifier("passRedeem.play")
+                }
+                Section {
+                    Button { Task { await redeem() } } label: {
+                        Group {
+                            if working {
+                                ProgressView()
+                            } else {
+                                Text("mp.redeem.submit")
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .disabled(working || trimmed.isEmpty)
+                    .accessibilityIdentifier("passRedeem.submit")
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
+                }
+            } else if claimed {
+                Section {
+                    Button(action: play) {
+                        Text("mp.redeem.play").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .accessibilityIdentifier("passRedeem.play")
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
                 }
             }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .frame(maxWidth: .infinity)
         }
         .cyPushedChrome(domain: .player)
         .cyPageTitle("mp.redeem.title")

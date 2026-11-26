@@ -21,7 +21,7 @@ import UIKit
     var body: some View {
         Form {
             Section {
-                VStack(spacing: CYSpacing.md) {
+                VStack {
                     // MP about: `/images/cy_logo_mark.png`, aspectFit, no backdrop.
                     MPAsset.BrandLogo.cyLogoMark
                         .resizable()
@@ -33,7 +33,6 @@ import UIKit
                 .frame(maxWidth: .infinity)
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
-                .listRowInsets(EdgeInsets(top: CYSpacing.xl, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
             }
             Section {
                 SettingsFactRow(title: "settingsNative.about.version", value: appInformation.version == nil ? nil : model.version.text + " (" + model.build.text + ")",
@@ -62,12 +61,12 @@ import UIKit
             if let phone = model.contactPhone {
                 // B-AB-05: the MP about page has no footer bar; copying the number is the contact row's own action.
                 Section {
-                    HStack(spacing: CYSpacing.md) {
+                    HStack {
                         AccountPublishMPGlyph(MPAsset.FeatureIcon.iconHeadset) // MP about 联系我们 = icon_headset
-                            .foregroundStyle(palette.textSecondary)
+                            .foregroundStyle(.secondary)
                         Text(verbatim: phone)
-                            .cyText(.numericBody)
-                            .foregroundStyle(palette.textPrimary)
+                            .monospacedDigit()
+                            .foregroundStyle(.primary)
                             .textSelection(.enabled)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .accessibilityIdentifier("settingsNative.about.contactPhone")
@@ -82,9 +81,8 @@ import UIKit
                     }
                     if let copyStatus {
                         Text(LocalizedStringKey(copyStatus == .copied ? "localCopy.copied" : "localCopy.failed"))
-                            .cyText(.meta)
-                            .foregroundStyle(palette.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                             .accessibilityIdentifier("settingsNative.about.copyPhone." + (copyStatus == .copied ? "copied" : "failed"))
                     }
                 } header: { Text("settingsNative.about.contact") } footer: { Text("settingsNative.about.contactSource") }
@@ -110,24 +108,20 @@ import UIKit
     /// voucher shows the source error copy; nothing generates or requests a code here.
     @ViewBuilder private var playerCodeVoucher: some View {
         let phase = model.playerCode
-        VStack(spacing: CYSpacing.md) {
+        VStack {
             ZStack {
-                RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
-                    .fill(palette.bgRaised)
                 if case .loading = phase {
-                    CYSkeleton()
+                    ProgressView()
                 } else if let url = phase.imageURL {
                     AsyncImage(url: url) { image in
-                        image.resizable().interpolation(.none).scaledToFit().padding(CYSpacing.md)
-                    } placeholder: { CYSkeleton() }
+                        image.resizable().interpolation(.none).scaledToFit().padding()
+                    } placeholder: { ProgressView() }
                     .accessibilityLabel(Text("settingsNative.about.playerCode"))
                 } else {
                     Image(systemName: "qrcode")
-                        .cyText(.pageTitle).imageScale(.large)
-                        .foregroundStyle(palette.textTertiary.opacity(0.5))
+                        .font(.largeTitle).imageScale(.large)
+                        .foregroundStyle(.tertiary)
                         .accessibilityHidden(true)
-                    RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
-                        .strokeBorder(palette.textTertiary.opacity(0.4), style: StrokeStyle(lineWidth: 1, dash: [5, 4]))
                 }
             }
             .frame(width: 168, height: 168)
@@ -135,24 +129,24 @@ import UIKit
             case .ready:
                 EmptyView()
             case .loading:
-                Text("settingsNative.loading").cyText(.meta).foregroundStyle(palette.textSecondary)
+                Text("settingsNative.loading").font(.footnote).foregroundStyle(.secondary)
             case .error:
-                Text("settingsNative.about.playerCodeUnavailable").cyText(.bodyMedium).foregroundStyle(palette.textPrimary)
+                Text("settingsNative.about.playerCodeUnavailable").font(.body.weight(.medium)).foregroundStyle(.primary)
                     .accessibilityIdentifier("settingsNative.about.playerCodeUnavailable")
-                Text("settingsNative.about.playerCodeHint").cyText(.meta).foregroundStyle(palette.textSecondary)
-                    .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                Text("settingsNative.about.playerCodeHint").font(.footnote).foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
             case .empty, .unknown:
-                Text(verbatim: SettingsAboutMetadataPhase.unknownText).cyText(.numericBody).foregroundStyle(palette.textSecondary)
+                Text(verbatim: SettingsAboutMetadataPhase.unknownText).monospacedDigit().foregroundStyle(.secondary)
                     .accessibilityLabel(Text("settingsNative.about.playerCodeUnavailable"))
             }
             if showsPlayerCodePending {
-                CYStatusChip("settingsNative.about.playerCodePending", tone: .neutral, systemImage: "clock")
+                Label("settingsNative.about.playerCodePending", systemImage: "clock")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
                     .accessibilityIdentifier("settingsNative.about.playerCodePending")
-                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, CYSpacing.sm)
         .contentShape(Rectangle())
         // Source bind:retry="explainQrPending": a tap explains, it never requests a code.
         .onTapGesture {
@@ -170,14 +164,13 @@ import UIKit
             }
         }
         .accessibilityIdentifier("settingsNative.about.playerCode")
-        .cyAnimation(CYMotion.standard, value: showsPlayerCodePending)
     }
 
     private var appName: some View {
         // B-AB-04: MP about/index.wxml:24 shows the product name 城瘾 only.
         Text(verbatim: "城瘾")
-            .cyText(.pageTitle)
-            .foregroundStyle(palette.textPrimary)
+            .font(.title2.bold())
+            .foregroundStyle(.primary)
             .multilineTextAlignment(.center)
             .accessibilityAddTraits(.isHeader)
             .accessibilityIdentifier("settingsNative.about.appName")
@@ -189,7 +182,7 @@ import UIKit
 
     private var marketRow: some View {
         LabeledContent {
-            Text(verbatim: SettingsHomePage.marketText(market)).cyText(.numericBody).foregroundStyle(palette.textSecondary)
+            Text(verbatim: SettingsHomePage.marketText(market)).foregroundStyle(.secondary)
         } label: {
             Label("region.market", systemImage: "globe").environment(\.settingsTileTint, SettingsTint.teal)
         }
@@ -232,9 +225,8 @@ private struct SettingsFactRow: View {
 
     @ViewBuilder private var labeledValue: some View {
         let text = Text(verbatim: shown)
-            .cyText(.numericBody)
-            .foregroundStyle(palette.textSecondary)
-            .cyWrapText()
+            .monospacedDigit()
+            .foregroundStyle(.secondary)
         if let value {
             text
                 .accessibilityLabel(Text(title))

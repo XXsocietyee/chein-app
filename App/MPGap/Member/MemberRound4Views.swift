@@ -43,26 +43,26 @@ public struct FreeExploreCatalogBundleView: View {
             } else {
                 Section("bundle.catalog.merchants") {
                     ForEach(items) { item in
-                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        VStack(alignment: .leading) {
                             Text(item.merchantName)
-                                .cyText(.cardTitle)
                             Text(item.chapterName)
-                                .cyText(.meta)
-                                .foregroundStyle(CYColor.textSecondary)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
                             if let perk = item.perkSummary, !perk.isEmpty {
                                 Text(perk)
-                                    .cyText(.meta)
-                                    .foregroundStyle(CYColor.brand)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.tint)
                             }
                         }
-                        .padding(.vertical, CYSpacing.xs)
                     }
                 }
             }
             Section {
-                Button("bundle.catalog.openTopic", action: onOpenTopic)
-                    .buttonStyle(.borderedProminent)
-                    .frame(maxWidth: .infinity)
+                Button(action: onOpenTopic) {
+                    Text("bundle.catalog.openTopic").frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
             }
         }
         .listStyle(.insetGrouped)
@@ -86,40 +86,35 @@ public struct TemplateMineCardCoverView: View {
     }
 
     public var body: some View {
-        ZStack(alignment: .bottomLeading) {
+        // Native r2: the cover, then the rating / quote line as secondary text (no material chip or card corners).
+        VStack(alignment: .leading) {
             if let imageURL, !imageURL.isEmpty {
                 CYCachedAsyncImage(imageURL, role: .shelf)
                     .frame(height: 120)
                     .clipped()
             } else {
-                RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
-                    .fill(CYColor.coverFallback)
+                Color(uiColor: .secondarySystemFill)
                     .frame(height: 120)
                     .overlay {
                         Text(String(title.prefix(1)))
-                            .cyText(.display)
-                            .foregroundStyle(CYColor.textSecondary)
+                            .font(.largeTitle)
+                            .foregroundStyle(.secondary)
                     }
             }
 
-            HStack(spacing: CYSpacing.xs) {
+            HStack {
                 if let ratingText, !ratingText.isEmpty {
                     Text("★ \(ratingText)")
-                        .cyText(.meta, monospacedDigit: true)
+                        .monospacedDigit()
                 }
                 if quoteCount > 0 {
                     Text("\(quoteCount) 次引用")
-                        .cyText(.meta, monospacedDigit: true)
+                        .monospacedDigit()
                 }
             }
-            .foregroundStyle(CYColor.actionPrimaryFg)
-            .padding(.horizontal, CYSpacing.xs)
-            .padding(.vertical, 2)
-            .background(.ultraThinMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
-            .padding(CYSpacing.xs)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
         }
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
     }
 }
 
@@ -143,11 +138,14 @@ public struct CouponForbiddenPlayerActionView: View {
             if isMerchant {
                 Button("common.back", action: onBack)
                     .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
             } else {
                 Button("couponManagement.forbidden.applyMerchant", action: onApplyMerchant)
                     .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
                 Button("common.back", action: onBack)
                     .buttonStyle(.bordered)
+                    .controlSize(.large)
             }
         }
     }
