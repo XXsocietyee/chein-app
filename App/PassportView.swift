@@ -58,19 +58,28 @@ struct PassportBadge: Identifiable, Equatable {
         Section {
             switch stampPhase {
             case .loading:
-                CYLoadingStateView(rows: 1).accessibilityIdentifier("passport.stamps.loading")
+                ProgressView().frame(maxWidth: .infinity)
+                    .accessibilityLabel(Text("cy.state.loading"))
+                    .accessibilityIdentifier("passport.stamps.loading")
             case .offline:
-                CYOfflineBanner { load() }.accessibilityIdentifier("passport.stamps.offline")
+                HStack {
+                    Label("cy.state.offline.title", systemImage: "wifi.slash")
+                    Spacer(minLength: 8)
+                    Button("cy.state.offline.retry") { load() }.buttonStyle(.borderless)
+                }
+                .accessibilityIdentifier("passport.stamps.offline")
             case .failed:
-                CYInlineError("roam.experience.readFailed") { load() }.accessibilityIdentifier("passport.stamps.error")
+                HStack {
+                    Label("roam.experience.readFailed", systemImage: "exclamationmark.circle")
+                    Spacer(minLength: 8)
+                    Button("cy.state.offline.retry") { load() }.buttonStyle(.borderless)
+                }
+                .accessibilityIdentifier("passport.stamps.error")
             case .ready:
                 EmptyView()
             }
             PassportOverviewContent(stampCount: stampCount, badges: badges, onOpenTickets: onOpenTickets, showsTicketsAction: showsTicketsAction, onOpenWallet: onOpenWallet, onOpenMessages: onOpenMessages, onOpenStamps: onOpenStamps, onOpenBadges: onOpenBadges)
         }
-        // No white slab: the section rows are clear and each block below draws its own dark glass card.
-        .listRowBackground(Color.clear)
-        .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: 0, bottom: CYSpacing.sm, trailing: 0))
         .task(id: LoadKey(stamps: ObjectIdentifier(reader), growth: growth.map { ObjectIdentifier($0) }, refresh: refreshToken)) {
             load()
             await loadBadges()
@@ -102,45 +111,27 @@ struct PassportBadge: Identifiable, Equatable {
     }
 }
 
-private extension View {
-    /// Borderless elevated card. Depth comes from the surface step, not a stroke.
-    func passportFlatCard() -> some View { cyDomainCard(radius: Theme.Radius.lg, padding: CYSpacing.lg) }
-}
-
-/// Large rolling "3 of 12" header. Unknown (nil) is an em dash, never 0. Reduce Motion: final number at once.
+/// "3 of 12" header. Unknown (nil) is an em dash, never 0.
 private struct PassportRollingCount: View {
     let value: Int?
     let total: Int
-    @Environment(\.cyPalette) private var palette
-    @QuestifyReduceMotion private var reduceMotion
-    @State private var shown = 0
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
-            if value != nil {
-                Text(verbatim: "\(shown)")
-                    .cyText(.dataXL).monospacedDigit()
-                    .foregroundStyle(palette.textPrimary)
-                    .contentTransition(.numericText(value: Double(shown)))
+        HStack(alignment: .firstTextBaseline, spacing: 4) {
+            if let value {
+                Text(verbatim: "\(PassportStampGrid.earnedSlots(value))")
+                    .font(.largeTitle.bold()).monospacedDigit()
+                    .contentTransition(.numericText(value: Double(PassportStampGrid.earnedSlots(value))))
                 Text("passport.stamps.ofTotal \(total)")
-                    .cyText(.cardTitle).monospacedDigit().foregroundStyle(palette.textSecondary)
+                    .font(.headline).monospacedDigit().foregroundStyle(.secondary)
             } else {
-                Text(verbatim: "—").cyText(.dataXL).foregroundStyle(palette.textTertiary)
+                Text(verbatim: "—").font(.largeTitle.bold()).foregroundStyle(.secondary)
             }
         }
-        .cyWrapText()
-        .onAppear { reveal() }
-        .onChange(of: value) { _, _ in reveal() }
-    }
-
-    private func reveal() {
-        guard let value else { shown = 0; return }
-        let target = PassportStampGrid.earnedSlots(value)
-        if reduceMotion { shown = target } else { withAnimation(CYAlbumMotion.countUp) { shown = target } }
     }
 }
 
-/// Three circular actions, stamp collection (foil seals + ghost silhouettes) and the badge rail. Pure presentation so
+/// Three actions, stamp collection and the badge rail as grouped-list rows. Pure presentation so
 /// fixtures can render every state.
 @MainActor struct PassportOverviewContent: View {
     let stampCount: Int?
@@ -153,25 +144,19 @@ private struct PassportRollingCount: View {
     var onOpenStamps: (() -> Void)? = nil
     var onOpenBadges: (() -> Void)? = nil
     @Environment(\.dynamicTypeSize) private var typeSize
-    @Environment(\.cyPalette) private var palette
     @Environment(\.cyOpenPassportStamp) private var openStamp
-    /// Glass circle scales with the glyph (Dynamic Type) so the icon never outgrows it.
-    @ScaledMetric(relativeTo: .title3) private var actionCircle: CGFloat = 56
-    /// First-load entrance, 50 ms apart, once per screen (continues the identity card's index 0).
-    @State private var stagger = CYStaggerGate()
 
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.lg) {
-            actions.cyStaggeredAppear(index: 1, gate: stagger)
-            stamps.passportFlatCard().cyStaggeredAppear(index: 2, gate: stagger)
-            if badges?.isEmpty != true { badgeRail.passportFlatCard().cyStaggeredAppear(index: 3, gate: stagger).transition(.opacity) }
+        Group {
+            actions
+            stamps
+            if badges?.isEmpty != true { badgeRail }
         }
-        // Badges that arrive after the first frame fade in place.
-        .cyAnimation(CYMotion.standard, value: badges?.count)
     }
 
+    /// Contacts-style action buttons (bordered, symbol over label).
     private var actions: some View {
-        HStack(alignment: .top, spacing: CYSpacing.md) {
+        HStack(alignment: .top, spacing: 8) {
             if showsTicketsAction {
                 action("ticketWallet.title", "ticket", id: "passport.action.tickets", perform: onOpenTickets)
             }
@@ -181,64 +166,57 @@ private struct PassportRollingCount: View {
         .frame(maxWidth: .infinity)
     }
 
-    /// Glass circle button; the label sits under it.
     private func action(_ title: LocalizedStringKey, _ symbol: String, id: String, perform: @escaping () -> Void) -> some View {
         Button(action: perform) {
-            VStack(spacing: CYSpacing.xs) {
+            VStack(spacing: 4) {
                 Image(systemName: symbol)
                     .font(.title3)
-                    .dynamicTypeSize(...DynamicTypeSize.accessibility1) // glyph stops growing before three circles stop fitting in a row
-                    .foregroundStyle(palette.textPrimary)
-                    .frame(width: min(actionCircle, 84), height: min(actionCircle, 84))
-                    .background(Circle().fill(palette.bgElevated))
                     .accessibilityHidden(true)
                 Text(title)
-                    .cyText(.meta)
-                    .foregroundStyle(palette.textSecondary)
+                    .font(.caption)
                     .multilineTextAlignment(.center)
-                    .cyWrapText(alignment: .center)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            .frame(maxWidth: .infinity, minHeight: 44)
-            .contentShape(Rectangle())
+            .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.cyPressable)
+        .buttonStyle(.bordered)
         .accessibilityIdentifier(id)
     }
 
     private var stamps: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text("passport.stamps.title").cyText(.meta).textCase(.uppercase).foregroundStyle(palette.textSecondary)
+        VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("passport.stamps.title").font(.subheadline).foregroundStyle(.secondary)
                 PassportRollingCount(value: stampCount, total: PassportStampGrid.slots)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(stampCount.map { Text("passport.stamps.count \(PassportStampGrid.earnedSlots($0)) \(PassportStampGrid.slots)") } ?? Text(verbatim: "—"))
                     .accessibilityIdentifier("passport.stamps.count")
             }
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: typeSize.isAccessibilitySize ? 88 : 64), spacing: CYSpacing.md)], spacing: CYSpacing.md) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: typeSize.isAccessibilitySize ? 88 : 64), spacing: 12)], spacing: 12) {
                 ForEach(0..<PassportStampGrid.slots, id: \.self) { index in
                     slot(index: index, earned: index < PassportStampGrid.earnedSlots(stampCount))
                 }
             }
             if let onOpenStamps { openRow("roam.experience.history", id: "passport.stamps.open", perform: onOpenStamps) }
         }
+        .padding(.vertical, 4)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("passport.stampGrid")
     }
 
-    /// Earned: foil seal in this stamp's colour with the one-shot sheen. Locked: ghost silhouette, dashed outline, low opacity.
-    /// With a host (`cyPassportStampHost`) the cell is a button: the seal zooms into the stamp detail (the same seal at 3.2x: 44 pt cell to 141 pt hero).
+    /// Earned: filled seal in the accent colour. Locked: outline seal in the tertiary colour.
+    /// With a host (`cyPassportStampHost`) the cell is a button that opens the stamp detail.
     @ViewBuilder private func slot(index: Int, earned: Bool) -> some View {
-        let foil = CYStampSeal.foil(index)
         let size: CGFloat = typeSize.isAccessibilitySize ? 64 : 44
-        let seal = CYStampSeal(index: index, earned: earned)
+        let seal = Image(systemName: earned ? "seal.fill" : "seal")
+            .resizable()
+            .scaledToFit()
+            .foregroundStyle(earned ? AnyShapeStyle(.tint) : AnyShapeStyle(.tertiary))
             .frame(width: size, height: size)
-            .cyFoilSheen(active: earned, trigger: 0, cornerRadius: size / 2, foilStrength: 0.4)
-            .shadow(color: earned ? foil.1.opacity(0.35) : .clear, radius: 6, y: 3)
-            .opacity(earned ? 1 : 0.35)
         Group {
         if let open = openStamp {
             Button { open(CYPassportStampSelection(index: index, earned: earned)) } label: { seal }
-                .buttonStyle(.cyPressable)
+                .buttonStyle(.borderless)
                 .frame(width: size, height: size)
                 .contentShape(Circle())
                 .accessibilityElement(children: .ignore)
@@ -253,29 +231,30 @@ private struct PassportRollingCount: View {
                 .accessibilityIdentifier("passport.stamp.\(index)")
         }
         }
-        // Outside the button so the zoom snapshots the seal, not the pressed label. Radius = exactly half the side (a true circle): a larger radius collapses the clip to a small diamond on iOS 27 and hid the whole seal.
-        // The identifier stays on the seal-sized button. The cell only centres it; its wider frame was the gap MotionTour tapped.
+        // Zoom source for the stamp detail stays on the cell. Radius = exactly half the side (a true circle).
         .cyHeroSourceInherited(index, cornerRadius: size / 2)
         .frame(maxWidth: .infinity, minHeight: size)
     }
 
     private var badgeRail: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            HStack {
-                Text("passport.badges.title").cyText(.meta).textCase(.uppercase).foregroundStyle(palette.textSecondary)
-                Spacer(minLength: CYSpacing.sm)
-                if let badges { Text(verbatim: "\(badges.count)").cyText(.meta).monospacedDigit().foregroundStyle(palette.textSecondary) }
-                else { Text(verbatim: "—").cyText(.meta).foregroundStyle(palette.textTertiary) }
+        VStack(alignment: .leading, spacing: 12) {
+            LabeledContent {
+                if let badges { Text(verbatim: "\(badges.count)").monospacedDigit() }
+                else { Text(verbatim: "—") }
+            } label: {
+                Text("passport.badges.title")
             }
             if let badges {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHStack(alignment: .top, spacing: CYSpacing.md) {
+                    LazyHStack(alignment: .top, spacing: 12) {
                         ForEach(badges) { badge in
-                            VStack(spacing: CYSpacing.xs) {
-                                CYBadgeMedal(seed: badge.name ?? "badge-\(badge.id)", size: 64)
-                                    .cyFoilSheen(cornerRadius: 32)
+                            VStack(spacing: 4) {
+                                Image(systemName: "rosette")
+                                    .font(.largeTitle)
+                                    .foregroundStyle(.tint)
+                                    .accessibilityHidden(true)
                                 Group { if let name = badge.name { Text(verbatim: name) } else { Text("growth.badge.unnamed") } }
-                                    .cyText(.meta).foregroundStyle(palette.textSecondary)
+                                    .font(.caption).foregroundStyle(.secondary)
                                     .multilineTextAlignment(.center).lineLimit(typeSize.isAccessibilitySize ? 4 : 2)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
@@ -288,22 +267,15 @@ private struct PassportRollingCount: View {
             }
             if let onOpenBadges { openRow("growth.title", id: "passport.badges.open", perform: onOpenBadges) }
         }
+        .padding(.vertical, 4)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("passport.badgeRail")
     }
 
-    /// Quiet "see all" row under a card: one tap from the Passport root to the full list.
+    /// "See all" link under a block: one tap from the Passport root to the full list.
     private func openRow(_ title: LocalizedStringKey, id: String, perform: @escaping () -> Void) -> some View {
-        Button(action: perform) {
-            HStack {
-                Text(title).cyText(.meta).foregroundStyle(palette.textSecondary)
-                Spacer(minLength: CYSpacing.sm)
-                Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
-            }
-            .frame(maxWidth: .infinity, minHeight: 44)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier(id)
+        Button(title, action: perform)
+            .buttonStyle(.borderless)
+            .accessibilityIdentifier(id)
     }
 }
