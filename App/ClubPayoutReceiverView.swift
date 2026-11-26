@@ -316,24 +316,25 @@ enum PayoutPageState<Value: Equatable>: Equatable {
             Section {
                 // CLB-settlement-07 (fix-r3-club-b), MC-29: the same card as 管理 → 结算: an unverified total is "—"
                 // (VoiceOver: 金额待核验) and the unverified count is a warning chip.
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("clubSettlement.settled", tableName: "PayoutReceiver").font(.subheadline).foregroundStyle(.secondary)
+                // CLB-r10-nat-settlement-02: a LabeledContent row (amount `.monospacedDigit()`), the warning as plain text.
+                LabeledContent {
                     if let amount = summary.settledAmountText {
-                        Text(verbatim: ClubMoneyText.display(amount)).font(.largeTitle.weight(.semibold)).monospacedDigit()
+                        Text(verbatim: ClubMoneyText.display(amount)).monospacedDigit()
                     } else {
-                        Text(verbatim: ClubOpsGovernanceCount.unknownDisplay).font(.largeTitle.weight(.semibold)).monospacedDigit()
+                        Text(verbatim: ClubOpsGovernanceCount.unknownDisplay).monospacedDigit()
                             .accessibilityLabel(Text("clubSettlement.amountUnverified", tableName: "PayoutReceiver"))
                     }
-                    if summary.unverifiedSettledCount > 0 {
-                        Label(String(localized: LocalizedStringResource("clubSettlement.unverifiedCount \(summary.unverifiedSettledCount)", table: "PayoutReceiver", locale: locale)),
-                              systemImage: "questionmark.circle")
-                            .font(.subheadline)
-                            .foregroundStyle(.orange)
-                    }
+                } label: {
+                    Text("clubSettlement.settled", tableName: "PayoutReceiver")
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("clubSettlement.settledCard")
+                if summary.unverifiedSettledCount > 0 {
+                    Label(String(localized: LocalizedStringResource("clubSettlement.unverifiedCount \(summary.unverifiedSettledCount)", table: "PayoutReceiver", locale: locale)),
+                          systemImage: "questionmark.circle")
+                        .font(.subheadline)
+                        .foregroundStyle(.orange)
+                }
             }
         }
         ClubSettlementSessionsSection(sessions: summary.sessions)
