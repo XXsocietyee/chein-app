@@ -41,99 +41,109 @@ struct LoginView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                    brandMark.padding(.top, CYSpacing.xl)
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        Text("auth.login.headline").cyText(.dataXL).foregroundStyle(CYColor.textPrimary)
+            // Native r2: a grouped Form (Settings / Apple ID sign-in style). The brand header is the first section.
+            Form {
+                Section {
+                    VStack(spacing: 12) {
+                        brandMark
+                        Text("auth.login.headline").font(.title.bold())
+                            .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
-                        Text("auth.login.subtitle").cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                        Text("auth.login.subtitle").font(.subheadline).foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
-                    if showsPasswordForm {
-                        VStack(alignment: .leading, spacing: CYSpacing.md) {
-                            VStack(spacing: 0) {
-                                loginField(icon: "person.fill") {
-                                    TextField("auth.username",text:$username)
-                                        .textContentType(.username).textInputAutocapitalization(.never)
-                                        .autocorrectionDisabled().submitLabel(.next)
-                                        .focused($focusedField,equals:.username)
-                                        .onSubmit { focusedField = .password }
-                                }
-                                Divider().overlay(CYColor.textPrimary.opacity(0.1)).padding(.leading, 56)
-                                loginField(icon: "lock.fill") {
-                                    SecureField("auth.password",text:$password)
-                                        .textContentType(.password).submitLabel(.go)
-                                        .focused($focusedField,equals:.password)
-                                        .onSubmit { submit() }
-                                }
-                            }
-                            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
-                            .overlay(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).strokeBorder(shownErrorKey != nil ? CYColor.dangerText.opacity(0.7) : CYColor.textPrimary.opacity(0.08), lineWidth: 1))
-                            if let key = shownErrorKey {
-                                Label { Text(LocalizedStringKey(key)) } icon: { Image(systemName: "exclamationmark.circle.fill") }
-                                    .font(.footnote.weight(.medium)).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("auth.error")
-                            }
-                            Button { submit() } label: {
-                                HStack(spacing: CYSpacing.sm) {
-                                    if working { ProgressView().tint(CYColor.textOnAccent) }
-                                    Text(working ? "auth.phone.verifying" : "auth.signIn")
-                                }
-                            }
-                            .buttonStyle(.cyPrimary)
-                            .disabled(!showsPasswordForm || working || username.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || password.isEmpty)
-                            .accessibilityIdentifier("auth.signIn")
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                }
+                if showsPasswordForm {
+                    Section {
+                        TextField("auth.username",text:$username)
+                            .textContentType(.username).textInputAutocapitalization(.never)
+                            .autocorrectionDisabled().submitLabel(.next)
+                            .focused($focusedField,equals:.username)
+                            .onSubmit { focusedField = .password }
+                        SecureField("auth.password",text:$password)
+                            .textContentType(.password).submitLabel(.go)
+                            .focused($focusedField,equals:.password)
+                            .onSubmit { submit() }
+                    } footer: {
+                        // Validation sits in the section footer (native r2 inputs rule).
+                        if let key = shownErrorKey {
+                            Label { Text(LocalizedStringKey(key)) } icon: { Image(systemName: "exclamationmark.circle.fill") }
+                                .foregroundStyle(.red).accessibilityIdentifier("auth.error")
                         }
-                    } else if session.operationalMarket != .china {
-                        Text("region.usLoginPending").foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("region.auth.pending")
                     }
-                    if !session.isConfigured {
-                        Label("auth.notConfigured",systemImage:"info.circle").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                    Section {
+                        Button { submit() } label: {
+                            HStack(spacing: 8) {
+                                if working { ProgressView() }
+                                Text(working ? "auth.phone.verifying" : "auth.signIn")
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+                        .disabled(!showsPasswordForm || working || username.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || password.isEmpty)
+                        .accessibilityIdentifier("auth.signIn")
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
                     }
-                    if !showsPasswordForm, let key = shownErrorKey {
-                        Label { Text(LocalizedStringKey(key)) } icon: { Image(systemName: "exclamationmark.circle.fill") }.font(.footnote.weight(.medium)).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("auth.error")
-                    }
-                    SessionRestorationRetrySection(session: session)
-                    if !consentGranted {
-                        UsageConsentSignInRequirement(market: session.operationalMarket, granted: $consentGranted)
-                    }
-                    if session.operationalMarket == .china && consentGranted {
-                        WeChatAppAuthSection(coordinator: session.weChatAuth, context: session.authChannelSnapshot)
+                } else if session.operationalMarket != .china {
+                    Section {
+                        Text("region.usLoginPending").foregroundStyle(.secondary).accessibilityIdentifier("region.auth.pending")
                     }
                 }
-                .padding(.horizontal, CYSpacing.pageHorizontal).padding(.bottom, CYSpacing.xxl)
+                if !session.isConfigured {
+                    Section {
+                        Label("auth.notConfigured",systemImage:"info.circle").foregroundStyle(.secondary)
+                    }
+                }
+                if !showsPasswordForm, let key = shownErrorKey {
+                    Section {
+                        Label { Text(LocalizedStringKey(key)) } icon: { Image(systemName: "exclamationmark.circle.fill") }
+                            .foregroundStyle(.red).accessibilityIdentifier("auth.error")
+                    }
+                }
+                SessionRestorationRetrySection(session: session)
+                if !consentGranted {
+                    UsageConsentSignInRequirement(market: session.operationalMarket, granted: $consentGranted)
+                }
+                if session.operationalMarket == .china && consentGranted {
+                    WeChatAppAuthSection(coordinator: session.weChatAuth, context: session.authChannelSnapshot)
+                }
             }
             .scrollDismissesKeyboard(.interactively)
-            .background(alignment: .top) { AuthArtBackdrop(height: 360) }
             .safeAreaInset(edge: .bottom) {
-                VStack(spacing: CYSpacing.sm) {
+                VStack(spacing: 8) {
                     Button { session.weChatAuth.cancel(); password="";showsOtherSignIn=true
 #if DEBUG
                         recordIntegratedLoginPhase("other_action")
 #endif
                     } label: {
                         Label(LocalizedStringKey(session.operationalMarket == .china ? "auth.channels.phoneTitle" : "auth.channels.title"), systemImage: "iphone")
+                            .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(CYPillButtonStyle(style: showsPasswordForm ? .secondary : .primary))
+                    .modifier(LoginOtherChannelsStyle(prominent: !showsPasswordForm))
                     .disabled(working || !consentGranted)
                     .accessibilityIdentifier("auth.otherChannels")
                     VStack(spacing: 0) {
-                        Text("auth.channels.legalConsent").cyText(.meta).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
-                        HStack(spacing: CYSpacing.lg) {
+                        Text("auth.channels.legalConsent").font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                        HStack(spacing: 16) {
                             Button("auth.channels.userAgreement") { rootLegal = AuthEntryLegalSheet(type: .userAgreement) }
                             Button("auth.channels.privacyPolicy") { rootLegal = AuthEntryLegalSheet(type: .privacyPolicy) }
                         }
-                        .cyText(.meta, weight: .semibold).frame(minHeight: 44)
+                        .buttonStyle(.borderless)
+                        .font(.footnote.weight(.semibold)).frame(minHeight: 44)
                     }
                 }
-                .padding(.horizontal, CYSpacing.pageHorizontal).padding(.top, CYSpacing.md)
+                .padding(.horizontal).padding(.top, 12)
                 .background(.bar)
             }
 #if DEBUG
             .onAppear { if let o = designOverride, username.isEmpty, !o.username.isEmpty { username = o.username; password = "design-stub" } }
 #endif
             .sheet(item: $rootLegal) { sheet in legalNavigation(sheet) { rootLegal = nil } }
-            .scrollContentBackground(.hidden)
-            .background(CYColor.bgPage)
             .themeDomain(.player)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -150,7 +160,8 @@ struct LoginView: View {
                                 onOpenAgreement: { legalDocument = AuthEntryLegalSheet(type: .userAgreement) },
                                 onOpenPrivacy: { legalDocument = AuthEntryLegalSheet(type: .privacyPolicy) })
                     .sheet(item: $legalDocument) { sheet in legalNavigation(sheet) { legalDocument = nil } }
-                    .cySheet()
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
 #if DEBUG
                     .onAppear { recordIntegratedLoginPhase("channels_appear") }
                     .onDisappear { recordIntegratedLoginPhase("channels_disappear") }
@@ -182,11 +193,12 @@ struct LoginView: View {
             }
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: close) } }
         }
-        .cySheet(detents: [.large])
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
     }
     /// Brand mark and wordmark. Both source files are near-black, so they template to the primary text colour.
     private var brandMark: some View {
-        VStack(spacing: CYSpacing.md) {
+        VStack(spacing: 12) {
             MPAsset.BrandLogo.cyLogoMark
                 .renderingMode(.template)
                 .resizable()
@@ -198,25 +210,29 @@ struct LoginView: View {
                 .scaledToFit()
                 .frame(height: 36)
         }
-        .foregroundStyle(CYColor.textPrimary)
+        .foregroundStyle(.primary)
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: "城瘾"))
     }
 
-    private func loginField<Field: View>(icon: String, @ViewBuilder _ field: () -> Field) -> some View {
-        HStack(spacing: CYSpacing.md) {
-            Image(systemName: icon).font(.system(.subheadline, weight: .semibold)).foregroundStyle(CYColor.textSecondary)
-                .frame(width: 28).accessibilityHidden(true)
-            field()
-        }
-        .padding(.horizontal, CYSpacing.lg).frame(minHeight: 60)
-    }
     private func submit() {
         guard showsPasswordForm, session.canUsePassword, !session.isWorking,
               !username.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty, !password.isEmpty else { return }
         focusedField=nil
         let name=username, credential=password
         Task { await session.login(username:name,password:credential);password="" }
+    }
+}
+
+/// The secondary sign-in channel button: the screen's one prominent action when no password form is shown.
+private struct LoginOtherChannelsStyle: ViewModifier {
+    let prominent: Bool
+    @ViewBuilder func body(content: Content) -> some View {
+        if prominent {
+            content.buttonStyle(.borderedProminent).controlSize(.large)
+        } else {
+            content.buttonStyle(.bordered).controlSize(.large)
+        }
     }
 }

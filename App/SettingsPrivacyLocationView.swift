@@ -57,8 +57,8 @@ import SwiftUI
             // Mini-program privacy sheet: the location sentence, the guide, then home city, presence, roam and own media.
             Section {
                 Text("member.privacy.sheetBody", tableName: "MemberProfile")
-                    .cyText(.bodyCompact)
-                    .foregroundStyle(CYColor.textSecondary)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                     .accessibilityIdentifier("member.privacy.sheetBody")
             }
             Section {
@@ -70,7 +70,7 @@ import SwiftUI
                 SettingsHomeCityLocationControls(compliance: compliance)
             } header: { Text("member.privacy.homeCity.title", tableName: "MemberProfile") }
             Section {
-                Text("member.privacy.presence.detail", tableName: "MemberProfile").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                Text("member.privacy.presence.detail", tableName: "MemberProfile").font(.subheadline).foregroundStyle(.secondary)
                 if presenceSharing != false {
                 Button {
                     guard let disablePresence, !disablingPresence else { return }
@@ -109,20 +109,12 @@ import SwiftUI
                 }
             }
             Section {
-                Text("member.privacy.roam.detail", tableName: "MemberProfile").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                Text("member.privacy.roam.detail", tableName: "MemberProfile").font(.subheadline).foregroundStyle(.secondary)
                 if compliance != nil {
-                    // B-PV-02 (native iOS): a plain disclosure row opens the withdrawal sheet; no pill inside a Form.
+                    // B-PV-02 (native iOS): a plain system button row opens the withdrawal sheet; no pill inside a Form.
                     Button { showsRoam = true } label: {
-                        HStack {
-                            Text("member.privacy.roam.withdraw", tableName: "MemberProfile").foregroundStyle(CYColor.textPrimary)
-                            Spacer(minLength: CYSpacing.sm)
-                            Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
-                                .foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
-                        }
-                        .frame(minHeight: CYSpacing.minTouchTarget)
-                        .contentShape(Rectangle())
+                        Text("member.privacy.roam.withdraw", tableName: "MemberProfile")
                     }
-                    .buttonStyle(.plain)
                     .accessibilityIdentifier("member.privacy.roam.withdraw")
                 }
             } header: { Text("member.privacy.roam.title", tableName: "MemberProfile") }
@@ -133,7 +125,6 @@ import SwiftUI
                 }.accessibilityIdentifier("member.privacy.media")
             } header: { Text("member.privacy.media.title", tableName: "MemberProfile") }
         }
-        .cyGroupedSurface()
         // B-PV-03 (T&C §2): pushed page → one inline system title, no in-content hero title.
         .navigationTitle(Text("member.privacy.title", tableName: "MemberProfile")).navigationBarTitleDisplayMode(.inline)
         .cyHideTabBar()
@@ -161,7 +152,8 @@ import SwiftUI
                 NavigationStack {
                     AccountComplianceSheet(coordinator: compliance, destination: .roam, market: market, legalReader: legalReader)
                 }
-                .cyDomainSheet(detents: [.half, .full])
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
             }
         }
         .cyDomainScreen(.player)
@@ -189,20 +181,22 @@ import SwiftUI
     var body: some View {
         List {
             switch controller.phase {
-            case .idle, .loading: CYLoadingStateView(rows: 3).accessibilityIdentifier("member.media.loading")
-            case .signedOut: CYEmptyState(systemImage: "person.crop.circle", "member.media.signedOut", tableName: "MemberProfile", messageIdentifier: "member.media.signedOut")
-            case .unavailable: CYEmptyState(systemImage: "nosign", "member.media.unavailable", tableName: "MemberProfile", messageIdentifier: "member.media.unavailable")
-            case .denied: CYEmptyState(systemImage: "lock", "member.media.denied", tableName: "MemberProfile", messageIdentifier: "member.media.denied")
+            case .idle, .loading:
+                ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("member.media.loading")
+            case .signedOut: mediaState("member.media.signedOut", systemImage: "person.crop.circle")
+            case .unavailable: mediaState("member.media.unavailable", systemImage: "nosign")
+            case .denied: mediaState("member.media.denied", systemImage: "lock")
             case .failed:
                 VStack(alignment: .leading, spacing: 6) {
                     Text("member.media.failed", tableName: "MemberProfile")
-                    CYPillButton("member.media.refresh", style: .secondary, tableName: "MemberProfile") { controller.retry() }
+                    Button { controller.retry() } label: { Text("member.media.refresh", tableName: "MemberProfile") }
+                        .buttonStyle(.bordered)
                         .disabled(!controller.canRetry).accessibilityIdentifier("member.media.retry")
                 }.accessibilityElement(children: .contain)
                     .accessibilityIdentifier("member.media.failed")
             case .ready:
                 if controller.rows.isEmpty {
-                    CYEmptyState(systemImage: "photo.on.rectangle", "member.media.empty", tableName: "MemberProfile", messageIdentifier: "member.media.empty")
+                    mediaState("member.media.empty", systemImage: "photo.on.rectangle")
                 }
                 ForEach(controller.rows) { row in
                     OwnMediaRow(asset: row).accessibilityIdentifier("member.media.row.\(row.id)")
@@ -235,7 +229,6 @@ import SwiftUI
                 }
             }
         }
-        .cyGroupedSurface()
         .navigationTitle(Text("member.privacy.media.title", tableName: "MemberProfile")).navigationBarTitleDisplayMode(.inline)
         .cyHideTabBar()
         .privacySensitive()
@@ -251,20 +244,30 @@ import SwiftUI
         .onChange(of: scenePhase) { _, phase in controller.setForeground(phase == .active) }
         .onChange(of: controller.access) { _, _ in controller.synchronizeAccess() }
     }
+    /// Native r2: the system empty / gated state, its title carrying the old message identifier.
+    private func mediaState(_ key: String, systemImage: String) -> some View {
+        ContentUnavailableView {
+            Label {
+                Text(LocalizedStringKey(key), tableName: "MemberProfile")
+            } icon: {
+                Image(systemName: systemImage)
+            }
+        }
+        .accessibilityIdentifier(key)
+    }
 }
 
 struct OwnMediaRow: View {
-    @Environment(\.cyPalette) private var palette
     let asset: OwnMediaAsset
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 type
-                Text(verbatim: "#\(asset.id)").foregroundStyle(.secondary).cyText(.numericBody)
+                Text(verbatim: "#\(asset.id)").foregroundStyle(.secondary).monospacedDigit()
                 Spacer()
-                state.cyText(.bodyMedium)
+                state.font(.subheadline.weight(.medium))
             }
-            if !asset.reviewReason.isEmpty { Text(verbatim: asset.reviewReason).cyText(.bodyCompact).foregroundStyle(.secondary) }
+            if !asset.reviewReason.isEmpty { Text(verbatim: asset.reviewReason).font(.subheadline).foregroundStyle(.secondary) }
         }.accessibilityElement(children: .combine)
     }
     @ViewBuilder private var type: some View {
@@ -277,9 +280,9 @@ struct OwnMediaRow: View {
     }
     @ViewBuilder private var state: some View {
         switch asset.reviewState {
-        case .hold: Text("member.media.state.hold", tableName: "MemberProfile").foregroundStyle(palette.warning)
-        case .approved: Text("member.media.state.approved", tableName: "MemberProfile").foregroundStyle(palette.success)
-        case .rejected: Text("member.media.state.rejected", tableName: "MemberProfile").foregroundStyle(palette.danger)
+        case .hold: Text("member.media.state.hold", tableName: "MemberProfile").foregroundStyle(.orange)
+        case .approved: Text("member.media.state.approved", tableName: "MemberProfile").foregroundStyle(.green)
+        case .rejected: Text("member.media.state.rejected", tableName: "MemberProfile").foregroundStyle(.red)
         case .unavailable: Text("member.media.state.unavailable", tableName: "MemberProfile").foregroundStyle(.secondary)
         }
     }
@@ -328,8 +331,8 @@ struct OwnMediaRow: View {
         }
         if let shown = messageKey {
             Text(LocalizedStringKey(shown), tableName: "MemberProfile")
-                .cyText(.bodyCompact)
-                .foregroundStyle(CYColor.textSecondary)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
                 .accessibilityIdentifier("member.privacy.homeCity.status")
         }
     }
