@@ -29,6 +29,9 @@ import SwiftUI
     @State private var scannedCode: String?
     /// This sheet submitted a scan, so the coordinator's next issue is shown here.
     @State private var submittedHere = false
+    /// START-r11-1: 换个方式开局 sheet and the 桌面完成 confirmation (MP pages/play/utils/run-start-mode.js:57-79).
+    @State private var startModesShown = false
+    @State private var deskConfirmShown = false
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
 
@@ -98,7 +101,18 @@ import SwiftUI
         }
         .sensoryFeedback(.error, trigger: model.arrivalFailure?.nodeID) { _, new in NativeR2Flags.motion && new == nodeID }
         .sensoryFeedback(.error, trigger: refusal) { _, new in new != nil }
+        .modifier(CityOrientationStartModeDialogs(arrival: arrival, model: model, nodeID: nodeID,
+                                                  startModesShown: $startModesShown, deskConfirmShown: $deskConfirmShown))
         .accessibilityIdentifier("nativeR2.city.punch")
+    }
+
+    /// START-r11-1: after a refused start (too far / no fix) the MP offers 换个方式 (pages/play/index.js:7601-7604).
+    private var offersStartModes: Bool {
+        guard let arrival, arrival.startChoices(for: nodeID) != nil else { return false }
+        switch arrival.phase {
+        case .rejected, .locationUnavailable: return true
+        default: return false
+        }
     }
 
     @ViewBuilder private var content: some View {
@@ -160,6 +174,10 @@ import SwiftUI
                 }
                 .accessibilityIdentifier("nativeR2.city.punch.lock")
                 if let arrival { arrivalPhaseRows(arrival) }
+                if offersStartModes {
+                    Button("playStart.modes.action") { startModesShown = true }
+                        .accessibilityIdentifier("nativeR2.city.punch.startModes")
+                }
             }
         } header: {
             Text("nativeR2.city.punch.arrival")
@@ -309,4 +327,50 @@ import SwiftUI
 /// The control point whose punch sheet is open.
 struct CityOrientationPunchTarget: Identifiable, Hashable {
     let id: Int
+}
+
+/// START-r11-1 (CG-ALL-11): 换个方式开局. One row per alt station (改在「X」开局), then 桌面完成 with its note.
+/// The choice rides on the run's first `/api/play/arrive` (`startMode` / `altStationId`).
+/// MP pages/play/utils/run-start-mode.js:28-31, :67-79; play-help.wxml:70.
+@MainActor struct CityOrientationStartModeDialogs: ViewModifier {
+    let arrival: PlayArrivalService?
+    let model: PlayExperienceCoordinator
+    let nodeID: Int
+    @Binding var startModesShown: Bool
+    @Binding var deskConfirmShown: Bool
+
+    private var stations: [PlayAltStation] { arrival?.startChoices(for: nodeID) ?? [] }
+
+    func body(content: Content) -> some View {
+        content
+            .confirmationDialog(Text("playStart.modes.action"), isPresented: $startModesShown, titleVisibility: .visible) {
+                startButtons
+            }
+            .alert(Text("playStart.modes.desk"), isPresented: $deskConfirmShown) {
+                Button("playStart.modes.deskStart") { start(try? PlayRunStartRequest(mode: .desk)) }
+                    .accessibilityIdentifier("nativeR2.city.punch.deskStart")
+                Button("playStart.modes.deskCancel", role: .cancel) {}
+            } message: {
+                Text("playStart.modes.deskNote")
+            }
+    }
+
+    @ViewBuilder private var startButtons: some View {
+        ForEach(stations) { station in
+            Button {
+                start(try? PlayRunStartRequest(mode: .alt, altStationID: station.id, offered: stations))
+            } label: {
+                Text("playStart.modes.alt \(station.name ?? "")")
+            }
+        }
+        Button("playStart.modes.desk") { deskConfirmShown = true }
+            .accessibilityIdentifier("nativeR2.city.punch.desk")
+        Button("playx.cancel", role: .cancel) {}
+    }
+
+    private func start(_ request: PlayRunStartRequest?) {
+        guard let arrival, let request else { return }
+        let context = model.interactionContext
+        Task { await arrival.arrive(nodeID: nodeID, context: context, start: request) }
+    }
 }

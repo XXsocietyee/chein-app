@@ -26,14 +26,17 @@ public struct PlayCompletionIntent: Codable, Equatable {
     public let gameplayMode: PlayGameplayMode?
     /// Null legacy slots remain readable; non-null retired Venue payloads stay rejected and retained.
     public let modVenue: OperationPendingRecord.RetiredPayload?
+    /// START-r11-1: run start fields for the first arrive. Missing on older journals (decoded as nil, request unchanged).
+    public let startFields: [String: String]?
     init(review: PlayCompletionReview) {
         id = review.id; owner = .init(session: review.session); originEpoch = review.session.epoch
         nodeID = review.nodeID; evidence = review.evidence; advance = review.advance; routeSessionID = review.routeSessionID; gameplayMode = review.gameplayMode; modVenue = nil
+        startFields = review.startFields
     }
     func review(session: PlayExperienceSession, generation: UInt64) throws -> PlayCompletionReview {
         guard owner.matches(session), nodeID > 0 else { throw PlayExperienceError.staleSession }
         return .init(nodeID: nodeID, evidence: evidence, advance: advance, session: session,
-                     generation: generation, routeSessionID: routeSessionID, id: id, gameplayMode: gameplayMode)
+                     generation: generation, routeSessionID: routeSessionID, id: id, gameplayMode: gameplayMode, startFields: startFields)
     }
 }
 public struct PlayPendingCompletion: Codable, Equatable {

@@ -492,8 +492,8 @@ public struct PlayAltStation: Equatable, Identifiable, Sendable {
     }
 }
 
-/// Optional start fields for `/api/play/arrive`. Built here; the live request does not
-/// merge them until the durable journal can store them (see the P2 receipt).
+/// Optional start fields for `/api/play/arrive`. START-r11-1: journaled on `PlayCompletionIntent.startFields` and
+/// merged into the run's first arrive (MP pages/play/utils/run-start-mode.js:33-37).
 public struct PlayRunStartRequest: Equatable {
     public let mode: PlayRunStartMode
     public let altStationID: Int?
