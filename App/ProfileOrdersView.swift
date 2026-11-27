@@ -61,13 +61,14 @@ struct ProfileOrdersView: View {
     }
     /// One history row: the card link, the NIT-R11-1 visible menu, and the R7-MEM-16-1 swipe / context actions.
     @ViewBuilder private func orderListRow(_ order: ProfileOrder, now: Date) -> some View {
+        VStack(alignment: .trailing, spacing: 8) {
         HStack {
             NavigationLink { ProfileOrderDetailView(id: order.id, reader: reader, lifecycleCoordinator: lifecycleCoordinator, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, ticketReader: ticketReader, orderSupport: orderSupport, lookedUpOrderID: lookedUpOrderID, onOpenedOrder: { [owner = filterOwner] in lookupOpenedOrder($0, expectedOwner: owner) }) } label: {
-                ProfileOrderRow(order: order, historyState: order.historyState(now: now), statusKey: order.historyTagKey(now: now))
+                ProfileOrderRow(order: order, historyState: order.historyState(now: now), statusKey: order.historyTagKey(now: now), showsPayButtons: showsPayButtons(order))
             }
             .accessibilityIdentifier("profile.order.\(order.id)")
             // NIT-R11-1: MP order-history card shows its buttons (index.wxml:84-90); a visible menu makes them discoverable.
-            if hasCardAction(order) {
+            if hasCardAction(order), !showsPayButtons(order) {
                 Menu { cardExitButton(order) } label: {
                     Label("profile.orderExit.more", systemImage: "ellipsis.circle").labelStyle(.iconOnly)
                         .frame(minWidth: 44, minHeight: 44)
@@ -76,10 +77,33 @@ struct ProfileOrdersView: View {
                 .accessibilityIdentifier("profile.order.cardMenu.\(order.id)")
             }
         }
+        // mp-mine r3: MP order-history pending card bottom row (index.wxml:83-86): 取消订单 then 立即支付, both on the card.
+        // They open the same reviewed lifecycle sheet as the swipe action, which owns the pay section.
+        if showsPayButtons(order) {
+            HStack(spacing: 12) {
+                if let key = order.cardExitKey {
+                    Button(role: .destructive) { cardExit = ProfileOrderCardExit(id: order.id) } label: {
+                        Text(LocalizedStringKey(key))
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("profile.order.rowCancel.\(order.id)")
+                }
+                Button { cardExit = ProfileOrderCardExit(id: order.id) } label: {
+                    Text("profile.orderExit.payNow")
+                }
+                .buttonStyle(.borderedProminent)
+                .accessibilityIdentifier("profile.order.rowPay.\(order.id)")
+            }
+            .controlSize(.small)
+        }
+        }
         // R7-MEM-16-1: MP order-history card 取消订单 / 取消报名 (index.wxml:84-90) as the native
         // swipe action and context menu; it opens the reviewed cancel flow (MP confirm + 处理中).
         .swipeActions(edge: .trailing, allowsFullSwipe: false) { cardExitButton(order) }
         .contextMenu { cardExitButton(order) }
+    }
+    private func showsPayButtons(_ order: ProfileOrder) -> Bool {
+        hasCardAction(order) && order.cardPayNowShown
     }
     private func hasCardAction(_ order: ProfileOrder) -> Bool {
         guard let lifecycleCoordinator,
@@ -113,9 +137,14 @@ struct ProfileOrdersView: View {
             let orders = displayedOrders(loaded)
             if orders.isEmpty {
                 // G-052: an empty List keeps ProfileReadScreen's pull-to-refresh on the empty state too.
-                List {}
-                .listStyle(.insetGrouped)
-                .overlay {
+                // mp-mine r3: MP scene-member-order-history keeps the filter tabs above the body, so they show here too.
+                let owner = filterOwner
+                List {
+                ProfileOrderFilterSection(selection: Binding(
+                    get: { filterSelection.value(for: filterOwner) },
+                    set: { filterSelection.choose($0, rendered: owner, current: filterOwner) }),
+                    isEmpty: false)
+                Section {
                 ContentUnavailableView {
                     Label("profile.orders.sourceEmpty", systemImage: "tray")
                 } actions: {
@@ -131,6 +160,8 @@ struct ProfileOrdersView: View {
                 }
                 .accessibilityIdentifier("profile.orders.empty")
                 }
+                }
+                .listStyle(.insetGrouped)
             } else {
                 // Local time may move an already-loaded order between categories.
                 // No timer-triggered read or financial action is performed here.
@@ -322,6 +353,8 @@ private struct ProfileOrderRow: View {
     let order: ProfileOrder
     let historyState: OrderLifecycleState
     let statusKey: String
+    /// mp-mine r3: the list draws 取消订单 / 立即支付 under the card, so the card drops its 查看详情 pill.
+    var showsPayButtons: Bool = false
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.openURL) private var openURL
@@ -423,16 +456,21 @@ private struct ProfileOrderRow: View {
             // Source 实付款 ¥x; an unknown amount shows "—", never a currency caveat.
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 // Source: 待付款 while registrationStatus == 1, otherwise 实付款.
+                // MP OR-021: 待付款 reads pendingPayAmount and hides the whole line when it is missing.
+                if order.registrationStatus != 1 || order.pendingPayAmount != nil {
                 Text(order.registrationStatus == 1 ? "u9cde.orders.payable" : "profile.orders.paid").font(.subheadline).foregroundStyle(.secondary)
-                Text(verbatim: order.actualPaidAmount.map(ProfileOrderYuan.text) ?? "—")
+                Text(verbatim: (order.registrationStatus == 1 ? order.pendingPayAmount : order.actualPaidAmount).map(ProfileOrderYuan.text) ?? "—")
                     .font(.title3.weight(.semibold)).monospacedDigit().foregroundStyle(.primary)
                     .cyWrapText()
+                }
             }
             if !typeSize.isAccessibilitySize { Spacer(minLength: 8) }
             // Visual label only: the whole card is the NavigationLink, so there is a single control.
             // Source shows 查看详情 for pending/registered orders, 查看退款详情 for refunds, and nothing on closed orders.
-            // 立即支付 / 取消订单 stay on the detail page behind the payment gate.
-            if historyState == .refunding || historyState == .refunded {
+            // mp-mine r3: with payment on, the pending card's 取消订单 / 立即支付 are drawn by the list under the card.
+            if showsPayButtons {
+                EmptyView()
+            } else if historyState == .refunding || historyState == .refunded {
                 OrderPillLabel(title: Text(verbatim: c.t("查看退款详情", "View refund details")))
             } else if historyState == .manualRefund {
                 // FIN-16-7: MP manual_refund reads 查看处理进度.

@@ -145,6 +145,9 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
     public var registrationState: ProfileRegistrationState { .init(code: registrationStatus) }
     /// Source resolveActualPaidAmount: cash (WeChat) paid first, then the payable amount.
     public var actualPaidAmount: Decimal? { wechatPaymentAmount ?? payableAmount }
+    /// MP scene-member-order-history: `pendingPayAmount = payableAmount` (missing stays nil, no amount drawn).
+    /// Only pending-payment rows (`registrationStatus == 1`) carry one.
+    public var pendingPayAmount: Decimal? { registrationStatus == 1 ? payableAmount : nil }
 
     private enum CodingKeys: String, CodingKey {
         case id, memberId, ticketId, ownerType, ownerId, registrationNo, registrationStatus, verificationStatus, paymentStatus, purchaseKind
