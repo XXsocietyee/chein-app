@@ -77,11 +77,16 @@ public struct RegistrationQuote: Decodable, Equatable {
     public let completeRewardCouponName: String?
     /// R11-PC-C-5: quote `paymentChannels` (MP pages/activity/utils/quote-view.js:79-84). Nil on an old backend.
     public let paymentChannels: [String]?
+    /// US launch r1: quote `currency` (ISO 4217). Nil on an old backend or a China quote; nil stays CNY behaviour.
+    public let currency: String?
     /// MP `paymentChannelState == 'unavailable'`: listed channels, a positive amount, and no app channel (`APP`).
     /// A missing list keeps the payment-readiness probe (baoming.js:1243-1253).
+    /// US launch r1: a USD quote's `APP_STRIPE` / `APPLE_PAY` also count as app channels. China lists never carry them.
     public var paymentChannelUnavailable: Bool {
         guard let paymentChannels, let payAmount, payAmount > .zero else { return false }
         return !paymentChannels.contains("APP")
+            && !paymentChannels.contains(StripePayWire.stripeChannel)
+            && !paymentChannels.contains(StripePayWire.applePayChannel)
     }
     /// MP `marketingView.show`: discount > 0 and at least one adjustment (quote-view.js:102).
     public var showsMarketingAdjustments: Bool {
@@ -92,7 +97,7 @@ public struct RegistrationQuote: Decodable, Equatable {
         case payAmount, pointsUsed, pointsDeductYuan, pointsUsable, pointsBalance, availablePoints, userPoints
         case memberDiscountYuan, couponDeductYuan, clubMember, quoteSign
         case prioritySignupEnabled, refundDeadline, refundableNow, mkt, delivery, coveredByPass
-        case marketingSign, listAmount, marketingDiscountAmount, marketingAdjustments, completeRewardCoupon, paymentChannels
+        case marketingSign, listAmount, marketingDiscountAmount, marketingAdjustments, completeRewardCoupon, paymentChannels, currency
     }
     private struct Marketing: Decodable {
         let coveredByPass: Bool
@@ -135,6 +140,7 @@ public struct RegistrationQuote: Decodable, Equatable {
                                                    amount: amount < 0 ? -amount : amount)
         }
         paymentChannels = (try? c.decodeIfPresent([String].self, forKey: .paymentChannels)) ?? nil
+        currency = RegistrationLenient.string(c, .currency)
         completeRewardCouponName = ((try? c.decodeIfPresent(RegistrationRewardCouponWire.self, forKey: .completeRewardCoupon)) ?? nil)?.name
         guard pointsUsed >= 0 else { throw APIError.malformedResponse }
     }

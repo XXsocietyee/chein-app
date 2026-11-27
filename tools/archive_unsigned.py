@@ -192,14 +192,16 @@ def check_apple_entitlement(failures):
     # Components r1 (C2): the app and the widget extension share one App Group for the widget store.
     group = {"com.apple.security.application-groups": ["group.com.chengyinhub.chengyinApp"]}
     plist = plistlib.loads(path.read_bytes())
-    if plist != {"com.apple.developer.applesignin": ["Default"], **group}:
-        failures.append("entitlement file is not Sign in with Apple Default plus the widget App Group")
+    # US launch r1 (app-pay): plus the Apple Pay merchant id.
+    pay = {"com.apple.developer.in-app-payments": ["merchant.com.chengyinhub.chengyinApp"]}
+    if plist != {"com.apple.developer.applesignin": ["Default"], **pay, **group}:
+        failures.append("entitlement file is not Sign in with Apple Default plus Apple Pay merchant plus the widget App Group")
         return
     widget = plistlib.loads((ROOT / "Config/QuestifyLiveActivity.entitlements").read_bytes())
     if widget != group:
         failures.append("widget entitlement file is not the App Group only")
         return
-    print("Sign in with Apple and widget App Group entitlements: kept. No other entitlement added.")
+    print("Sign in with Apple, Apple Pay merchant and widget App Group entitlements: kept. No other entitlement added.")
 
 
 def xcconfig_version_assignments(text):
