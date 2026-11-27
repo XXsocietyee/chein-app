@@ -372,7 +372,7 @@ Checker kind **silent spinner** widened: also `ProgressView().frame(maxWidth: .i
 Self-test: the pre-fix tree fails in all 30 files above.
 
 Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
-(silent spinner 0, status capsule 29 baselined debt, 76 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0** (look-only hash pins in `test_activity_publishing_wizard` / `test_workshop_protected_text_lifecycle` updated with one-line reasons; their sha rows in `tools/current_ci_manifest.json` updated).
+(silent spinner 0, status capsule 29 baselined debt, 76 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0** (look-only hash pins in `test_activity_publishing_wizard` / `test_workshop_protected_text_lifecycle` updated with one-line reasons; neither is pinned in `tools/current_ci_manifest.json`).
 
 ### Not done (next run)
 | Item | Why not now |
