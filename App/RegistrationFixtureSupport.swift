@@ -98,7 +98,8 @@ private final class RegistrationFixtureStore: RegistrationCoordinatingService, P
     func profileOrder(id: Int) async throws -> ProfileOrder {
         guard scenario.isOrder, id == 9417 else { throw APIError.invalidRequest }
         if scenario == .waitlistOrderError { throw URLError(.notConnectedToInternet) }
-        return try decode(#"{"id":9417,"memberId":9400,"ownerType":2,"ownerId":9400,"ticketId":9401,"registrationNo":"OFFLINE-WAITLIST-9417","registrationStatus":0,"paymentStatus":0,"cmsActivity":{"name":"Synthetic waitlist order"}}"#)
+        let name = Locale.preferredLanguages.first?.hasPrefix("zh") == true ? "运河灯笼夜行" : "Riverside Lantern Walk"
+        return try decode("{\"id\":9417,\"memberId\":9400,\"ownerType\":2,\"ownerId\":9400,\"ticketId\":9401,\"registrationNo\":\"OFFLINE-WAITLIST-9417\",\"registrationStatus\":0,\"paymentStatus\":0,\"cmsActivity\":{\"name\":\"\(name)\"}}")
     }
     func profileBadges() async throws -> ProfileBadgeWall { .init(identities: [], medals: []) }
     private func decode<T: Decodable>(_ json: String) throws -> T { try JSONDecoder().decode(T.self, from: Data(json.utf8)) }
@@ -118,12 +119,21 @@ private final class RegistrationFixtureModel: ObservableObject {
         self.store = store
         coordinator = RegistrationCoordinator(service: store, makeRequestID: { "offline-fixture-retained-intent" })
         try? coordinator.setAccount(id: 9400, token: "offline-fixture-unused-token")
+        // Fixture text follows the UI language (coordinator 22:20: no English data in the Chinese sheet).
+        let zh = Locale.preferredLanguages.first?.hasPrefix("zh") == true
+        let tt: (String, String) -> String = { en, cn in zh ? cn : en }
+        let activityName = tt("Riverside Lantern Walk", "运河灯笼夜行")
+        let venue = tt("Gongchen Bridge, Hangzhou", "杭州拱宸桥")
+        let standard = tt("Standard ticket", "标准票")
+        let gathering = tt("East end of the bridge", "桥东入口")
+        let openPrice = tt("Pay-on-site ticket", "现场定价票")
+        let free = tt("Free ticket", "免费票")
         activity = try? JSONDecoder().decode(ActivityDetail.self, from: Data("""
-        {"id":9400,"name":"Offline fixture activity","startDate":"2026-10-12","endDate":"2026-10-12",\(scenario == .alreadyRegistered ? "\"isSignUp\":1," : "")
-         "addressName":"Synthetic meeting point","omsTicketList":[
-         {"id":9401,"name":"Standard fixture ticket","price":12.5,"remainingInventory":\(scenario == .soldOut || scenario.isWaitlist ? 0 : 4),"startTime":\(scenario == .signupClosed ? "\"2020-01-01 00:00:00\"" : "null")\(scenario == .alreadyRegistered ? ",\"meetingPoint\":\"Synthetic gathering point\"" : "")},
-         {"id":9402,"name":"Unknown-price fixture ticket","price":null,"remainingInventory":null},
-         {"id":9403,"name":"Zero-price fixture ticket","price":0,"remainingInventory":2}]}
+        {"id":9400,"name":"\(activityName)","startDate":"2026-10-12","endDate":"2026-10-12",\(scenario == .alreadyRegistered ? "\"isSignUp\":1," : "")
+         "addressName":"\(venue)","omsTicketList":[
+         {"id":9401,"name":"\(standard)","price":12.5,"remainingInventory":\(scenario == .soldOut || scenario.isWaitlist ? 0 : 4),"startTime":\(scenario == .signupClosed ? "\"2020-01-01 00:00:00\"" : "null")\(scenario == .alreadyRegistered ? ",\"meetingPoint\":\"\(gathering)\"" : "")},
+         {"id":9402,"name":"\(openPrice)","price":null,"remainingInventory":null},
+         {"id":9403,"name":"\(free)","price":0,"remainingInventory":2}]}
         """.utf8))
         if scenario == .waitlistExpiringOffer, let activity {
             expiryFlow = RegistrationUIFlow(activity: activity, coordinator: coordinator,

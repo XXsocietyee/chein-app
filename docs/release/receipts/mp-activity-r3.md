@@ -141,6 +141,15 @@ Merged `ui/combined-r7` (conflicts: `SquareBrowserView.swift` both sides held th
 
 Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · square contract suites 73 OK.
 
+## Round 3 continue (2026-11-27, fourteenth session — sweep 22:11 build 8fa84e4d3, coordinator 22:20)
+Merged `ui/combined-r7` (xcstrings conflict: HEAD side empty, kept theirs' `playkit.predict.*` keys; JSON + duplicate-key check ok).
+| MP page | Native view | MP sections (✓ present / added / reordered) | Optimizations |
+|---|---|---|---|
+| `pages/activity/baoming/baoming` 活动信息 card (wxml:87-100 name → time → 集合点 → address; wxml:118 note: the 标准票 row moved out of this card into 费用明细) | `App/RegistrationSheetView.swift` `activitySection` | screenshot `zh-Hans-t5-baoming`: the card still carried a perforation + 票种 「Standard fixture ticket」 + a bare 「—」 price (money switch closed). **Removed** the ticket row from the card, as the MP did; the ticket and its price stay in the 票种 section / 费用明细 below. Venue keeps the MP `'—'` fallback (wxml:100) | card answers only "which activity"; no lone dash as price |
+| same, fixture data | `App/RegistrationFixtureSupport.swift` | 「Offline fixture activity」, 「Synthetic meeting point」, 「Standard fixture ticket」 (and the unknown/zero-price tickets, 集合点, waitlist order name) were English in the Chinese sheet. Now `tt(en, zh)`: 运河灯笼夜行 / Riverside Lantern Walk, 杭州拱宸桥, 标准票, 现场定价票, 免费票, 桥东入口. No test pins the old names | fixture follows the UI language |
+
+Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · registration contract suites 58 OK.
+
 ## Not done
 - Attendance (player): organizer 联系与签到配置 form (duty phones, window, public-confirm switch, scan, recovery 查询原结果 / 原请求重试 / 终止 / 确认归档) lives in `OfficialOrganizerConsoleView`, not in this section.
 - Square completion card: 探店 (`shopText`) has no backend field. Refused team reads have no server message in `TeamFailure`, so 邀请已失效 is the fixed fallback copy.
