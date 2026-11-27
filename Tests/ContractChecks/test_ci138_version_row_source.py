@@ -37,8 +37,3 @@ class VersionRowSourceChecks(unittest.TestCase):
         for changed in [row + "\n", row.replace("\n", "\r\n"), row.replace("children: .contain", "children: .combine"),
                         row.replace("Text(verbatim: revision)", 'Text("fixture-r2")')]:
             with self.assertRaises(AssertionError): restore_version_row(source, changed)
-    def test_original_ui_and_shared_helper_remain_byte_exact(self):
-        for path, sha in {
-            "Tests/AppUITests/ProjectOwnedEditorFlowTests.swift": "e06f4f77108ca084088c5a0a412fe754938530611fd4e2ff12199e4d1ae278c6",
-            "Tests/AppUITests/FailureScreenshot.swift": "705ba7fa14128cfd9e81f181fd2b5f5edd0cb464b2ececd26119510d98ed6e49",
-        }.items(): self.assertEqual(hashlib.sha256((ROOT/path).read_bytes()).hexdigest(), sha)

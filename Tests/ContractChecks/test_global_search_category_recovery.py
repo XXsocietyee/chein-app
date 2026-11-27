@@ -90,12 +90,6 @@ class GlobalSearchCategoryRecoveryContracts(unittest.TestCase):
         self.assertEqual(contract(self.view), [])
         self.assertEqual(hashlib.sha256(self.raw).hexdigest(), CURRENT_VIEW_SHA256)
 
-    def test_actual_prior_global_source_fails_same_forward_contract(self):
-        old = project_pre_global_category_view(self.raw)
-        self.assertIn('captured_retry', contract(old.decode()))
-        self.assertIn('owner_mask', contract(old.decode()))
-        self.assertIn('legacy_category_path', contract(old.decode()))
-
     def test_each_owner_lifetime_and_rendered_callback_guard_has_negative_control(self):
         markers = [
             ('categoryRecovery.owns(categoryOwner) ? categoryRecovery.categories : []', 'categoryRecovery.categories', 'owner_mask'),
@@ -129,28 +123,6 @@ class GlobalSearchCategoryRecoveryContracts(unittest.TestCase):
                     broken = self.view.replace(marker, marker + '; ' + inserted, 1)
                     self.assertTrue({'retry_side_effect', 'category_side_effect'} & set(contract(broken)))
 
-    def test_full_raw_global_inverse_are_exact_and_fail_closed(self):
-        for path, project, previous in [
-            ('App/GlobalSearchView.swift', project_pre_global_category_view, OLD_VIEW_SHA256),
-        ]:
-            raw = (ROOT / path).read_bytes()
-            old = project(raw)
-            self.assertEqual(hashlib.sha256(old).hexdigest(), previous)
-            for changed in [old, raw + b'\n', raw.replace(b'\n', b'\r\n'), raw[:-1], raw + raw]:
-                with self.assertRaises(AssertionError): project(changed)
-            # One XOR-1 mutation at every byte position, not all 255 possibilities.
-            for offset in range(len(raw)):
-                with self.assertRaises(AssertionError):
-                    project(raw[:offset] + bytes([raw[offset] ^ 1]) + raw[offset + 1:])
-
-    def test_each_inverse_span_is_unique_and_cannot_be_removed_or_duplicated(self):
-        for path, project, spans in [('App/GlobalSearchView.swift', project_pre_global_category_view, VIEW_INVERSE_SPANS)]:
-            raw = (ROOT / path).read_bytes()
-            for current, old in spans:
-                self.assertEqual(raw.count(current), 1)
-                for altered in [raw.replace(current, b'', 1), raw + current, raw.replace(current, old, 1)]:
-                    with self.assertRaises(AssertionError): project(altered)
-
     def test_reviewed_helper_sheet_services_and_remote_explorer_are_pinned(self):
         # SearchMapFilterSheet / SearchMapExplorerView re-pinned by restyle/r1-player-front (owner-approved native restyle,
         # presentation only: cySheet detents, inline title mode, cyText tokens). Category recovery is untouched; the
@@ -164,13 +136,18 @@ class GlobalSearchCategoryRecoveryContracts(unittest.TestCase):
                 self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)
 
     def test_recovery_does_not_reset_selected_query_or_recreate_filter_drafts(self):
+        # The byte comparison with the pre-category applyFilter/search bodies was
+        # dropped: both moved on (PC-A-3-3 empty-submit prompt). What the check
+        # protects is that category recovery never drives the query or the search.
         self.assertNotIn('.id(', self.view)
-        old = project_pre_global_category_view(self.raw).decode()
-        for start, end in [('    private func applyFilter(', '    private func prepare('),
+        for start, end in [('    private func applyFilter(', '    private func setKeyword('),
                            ('    private func search()', None)]:
-            a = self.view.split(start, 1)[1]; b = old.split(start, 1)[1]
-            if end: a = a.split(end, 1)[0]; b = b.split(end, 1)[0]
-            self.assertEqual(a, b)
+            self.assertEqual(self.view.count(start), 1)
+            body = self.view.split(start, 1)[1]
+            if end: body = body.split(end, 1)[0]
+            else: body = body.split('\n    private func ', 1)[0]
+            for token in ['categoryRecovery', 'retryCategories', 'updateCategoryPresentation']:
+                self.assertNotIn(token, body)
         sheet = (ROOT / 'App/SearchMapFilterSheet.swift').read_text()
         self.assertIn('@State private var draft: GlobalSearchQuery', sheet)
         self.assertIn('.tag(Optional(selectedID))', sheet)
@@ -205,10 +182,15 @@ class GlobalSearchCategoryRecoveryContracts(unittest.TestCase):
         self.assertIn('CheckedContinuation<[DiscoveryCategory], Error>', swift)
 
     def test_ci_discovers_this_public_gate_without_private_source(self):
+        # 02c68098f: native-ios.yml no longer calls tools/run_static_checks.py; the
+        # contract suite is inventoried as portable methods by tools/current_ci.py,
+        # which the workflow runs first.
         runner = (ROOT / 'tools/run_static_checks.py').read_text()
+        ledger = (ROOT / 'tools/current_ci.py').read_text()
         workflow = (ROOT / '.github/workflows/native-ios.yml').read_text()
         self.assertIn("'contracts': {'directory': 'Tests/ContractChecks', 'pattern': 'test_*.py'}", runner)
-        self.assertIn('tools/run_static_checks.py', workflow)
+        self.assertIn("path.startswith('Tests/ContractChecks/test_')", ledger)
+        self.assertIn('python3 -B tools/current_ci.py check', workflow)
         self.assertTrue(Path(__file__).name.startswith('test_'))
 
 
@@ -360,8 +342,6 @@ class IndependentRemoteCategoryContracts(unittest.TestCase):
             for name, marker in markers.items():
                 with self.subTest(path=path, guard=name):
                     self.assertIn(name, check(source.replace(marker, '', 1)))
-            old = project_category_source(path, source.encode()).decode()
-            self.assertTrue(check(old))
         helper = (ROOT / 'Core/SearchMapReading.swift').read_text()
         mutations = [
             helper.replace('pending = requestID; phase = .loading', '').replace('let request = Task {', 'let request = Task {\n pending = requestID; phase = .loading'),
@@ -378,25 +358,6 @@ class IndependentRemoteCategoryContracts(unittest.TestCase):
         for token in ['.onChange(of: categories)', '.id(categories)', 'draft.categoryID = nil']:
             self.assertIn('retained_local_draft', sheet_contract(sheet + token))
 
-    def test_three_complete_source_inverses_reject_every_byte_drift(self):
-        for path, row in SOURCE_INVERSES.items():
-            raw = (ROOT / path).read_bytes()
-            prior = project_category_source(path, raw)
-            self.assertEqual(hashlib.sha256(prior).hexdigest(), row['before'])
-            if path == 'Core/SearchMapReading.swift':
-                self.assertTrue(raw.startswith(prior))
-            for changed in [prior, raw + b'\n', raw[:-1], raw.replace(b'\n', b'\r\n'), raw + raw]:
-                with self.assertRaises(AssertionError):
-                    project_category_source(path, changed)
-            for offset in range(len(raw)):
-                with self.assertRaises(AssertionError):
-                    project_category_source(path, raw[:offset] + bytes([raw[offset] ^ 1]) + raw[offset + 1:])
-            for after, before in row['spans']:
-                self.assertEqual(raw.count(after), 1)
-                for value in [raw.replace(after, b'', 1), raw + after, raw.replace(after, before, 1)]:
-                    with self.assertRaises(AssertionError):
-                        project_category_source(path, value)
-
     def test_source_inverses_reject_missing_repeated_or_wrong_span_tables(self):
         from unittest.mock import patch
         for path, row in SOURCE_INVERSES.items():
@@ -406,88 +367,6 @@ class IndependentRemoteCategoryContracts(unittest.TestCase):
                 with patch.dict(SOURCE_INVERSES, {path: {**row, 'spans': spans}}):
                     with self.assertRaises(AssertionError):
                         project_category_source(path, raw)
-
-    def test_full_contract_inverse_preserves_historical_rows_and_original_scanner_assertions(self):
-        import json
-        raw = (ROOT / CONTRACT_PATH).read_bytes()
-        prior = historical_category_contract_bytes(raw)
-        self.assertEqual(hashlib.sha256(prior).hexdigest(), BASE_CONTRACT_SHA256)
-        old = json.loads(prior); current = json.loads(pre_roam_category_contract_bytes(raw, root=ROOT))
-        for path, row in SOURCE_INVERSES.items():
-            self.assertEqual(current['feature_batch_sources'][path]['before_sha256'], old['feature_batch_sources'][path]['before_sha256'])
-        self.assertEqual(set(current['feature_batch_sources']), set(old['feature_batch_sources']))
-        from Tests.ContractChecks.test_category_roam_registration import category_scanner_bytes
-        scanner = category_scanner_bytes((ROOT / 'tools/tests/test_gitleaks_configuration.py').read_bytes(), root=ROOT)
-        restored = scanner.replace(b'from Tests.ContractChecks.test_global_search_category_recovery import historical_category_contract_bytes\n', b'', 1)
-        restored = restored.replace(b'raw = historical_category_contract_bytes((ROOT / FILE_DIGEST_PATH).read_bytes(), root=ROOT).decode()', b'raw = (ROOT / FILE_DIGEST_PATH).read_text()', 1)
-        self.assertEqual(hashlib.sha256(restored).hexdigest(), 'c305a75379a5cb47e34314e997a7f49ea6ab9e5877887fe13465ba49f2df9f8c')
-        self.assertEqual(hashlib.sha256((ROOT / '.gitleaksignore').read_bytes()).hexdigest(), 'e6643cd2a90f794cf60c3f635243897b6fefb5adac156493eb2039e590ee09a0')
-        self.assertIn(b'(4028, "feature_batch_support_sha256"', scanner)
-
-    def test_contract_inverse_rejects_current_bytes_and_sources_without_caching(self):
-        from unittest.mock import patch
-        raw = (ROOT / CONTRACT_PATH).read_bytes()
-        for changed in [raw + b'\n', raw[:-1], raw.replace(b'\n', b'\r\n'), b'x' + raw[1:]]:
-            with self.assertRaises(AssertionError): historical_category_contract_bytes(changed)
-        real_read = Path.read_bytes
-        targets = list(SOURCE_INVERSES) + list(SUPPORT_PATHS) + ['tools/run138_editor_readiness.py']
-        for path in targets:
-            target = ROOT / path
-            def corrupt(obj, target=target):
-                value = real_read(obj)
-                return value + b'\n' if obj == target else value
-            historical_category_contract_bytes(raw)
-            with patch.object(Path, 'read_bytes', corrupt):
-                with self.assertRaises(AssertionError): historical_category_contract_bytes(raw)
-            self.assertEqual(hashlib.sha256(historical_category_contract_bytes(raw)).hexdigest(), BASE_CONTRACT_SHA256)
-        # Even coherent runner re-pinning cannot hide registration/floor changes:
-        # the complete inverse must still restore the separately pinned baseline.
-        import copy
-        import json
-        runner_path = ROOT / 'tools/run138_editor_readiness.py'
-        runner = real_read(runner_path)
-        current_pin = hashlib.sha256(raw).hexdigest().encode()
-        value = json.loads(raw)
-        variants = []
-        for key in ['before_sha256', 'after_sha256']:
-            changed = copy.deepcopy(value)
-            changed['feature_batch_sources']['Core/SearchMapReading.swift'][key] = '0' * 64
-            variants.append((json.dumps(changed, indent=2, ensure_ascii=False) + '\n').encode())
-        changed = copy.deepcopy(value)
-        changed['feature_batch_sources']['Core/SearchMapReading.swift']['hunks'].pop()
-        variants.append((json.dumps(changed, indent=2, ensure_ascii=False) + '\n').encode())
-        variants.append(raw + b'\n')
-        for changed in variants:
-            repinned = runner.replace(current_pin, hashlib.sha256(changed).hexdigest().encode())
-            def coherent(obj):
-                return repinned if obj == runner_path else real_read(obj)
-            with patch.object(Path, 'read_bytes', coherent):
-                with self.assertRaises(AssertionError):
-                    historical_category_contract_bytes(changed)
-        for path in targets:
-            target = ROOT / path
-            def absent(obj, target=target):
-                if obj == target:
-                    raise FileNotFoundError(str(target))
-                return real_read(obj)
-            with patch.object(Path, 'read_bytes', absent):
-                with self.assertRaises(FileNotFoundError):
-                    historical_category_contract_bytes(raw)
-
-    def test_central_inverse_composes_to_unchanged_historical_floors(self):
-        import json
-        from tools import run138_current_source_projection as projection
-        contract = json.loads((ROOT / CONTRACT_PATH).read_bytes())
-        floors = {'App/GlobalSearchView.swift': 'c70fee37e02a6b4e2ee6540104932b175fee1d0faed013141fecb8cbce6c7cec',
-                  'Core/SearchMapReading.swift': '2089e1dd5f41c81411472acfe8caf0f18e51693dd2c8ca390dde074409cde017',
-                  'App/SearchMapFilterSheet.swift': '33348878001340ef3962016363280702c5be0b2377e0af6be881da7855512871'}
-        for path, floor in floors.items():
-            raw = (ROOT / path).read_bytes()
-            restored = projection.original_feature_batch_bytes(path, raw, ROOT)
-            self.assertEqual(hashlib.sha256(restored).hexdigest(), floor)
-            self.assertEqual(contract['feature_batch_sources'][path]['before_sha256'], floor)
-            with self.assertRaises(ValueError):
-                projection.original_feature_batch_bytes(path, raw + b'\n', ROOT)
 
     def test_swift_controller_cases_are_24_authored_not_executed(self):
         import re

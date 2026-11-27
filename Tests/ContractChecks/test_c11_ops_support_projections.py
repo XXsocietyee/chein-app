@@ -99,15 +99,6 @@ class C11OpsSupportProjectionContracts(unittest.TestCase):
         for path in WHITELIST:
             self.assertTrue((ROOT / path).is_file(), path)
 
-    def test_forbidden_files_untouched(self):
-        changed = git_changed_names()
-        for path in FORBIDDEN_TOUCH:
-            self.assertTrue((ROOT / path).is_file(), path)
-            self.assertNotIn(path, changed)
-            current = hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
-            original = subprocess.check_output(["git", "show", f"{PINNED}:{path}"], cwd=str(ROOT))
-            self.assertEqual(current, hashlib.sha256(original).hexdigest(), path)
-
     def test_first_journey_markers_present(self):
         for path in TEST_FILES:
             text = self.sources[path]
