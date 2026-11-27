@@ -26,6 +26,8 @@ match is a queue item (133 at the start). Tab roots first, then their pushed pag
 | Official events (`OfficialReadScreen`: activity list / detail / mine / inbox) | `pages/activity/list` loading | overlay `ProgressView()`, label hidden | `ProgressView { Text("official.loading") }` — 正在加载官方活动 visible |
 | Social reads (`SocialReadScreen`: guides, public profile, invites …) | loading | `ProgressView()`, label hidden | `ProgressView { Text("social.loading") }` — 正在加载… visible |
 | 俱乐部 tab — club list (`ClubHomeView` → `ClubReadScreen usesClubTabStates`) | `pages/talent/list/index.wxml:65` cy-error: 登录后查看我的俱乐部 · 登录 / 当前身份不能查看俱乐部 · 重试 / 俱乐部列表加载失败 · 重试 | generic 请登录后继续 + hint / 暂无俱乐部访问权限 / 俱乐部加载失败 | MP titles (en: Sign in to see your clubs / This identity can’t view clubs / Couldn’t load the club list); same CTA; sign-in drops the extra hint like the MP (no sub) |
+| 我的收藏 — topics + posts (`AccountCollectionFavoritesView` → `AccountCollectionIssueView favorites:`) | `pages/mylike/mylike.wxml:19-20,69-70` cy-empty no-permission 登录后查看收藏 · 登录 / cy-error 收藏加载失败 · sub errorMsg · 重试 | 登录后查看收藏和优惠券 with no button; failure title 这些内容没加载出来 / the raw server sentence as the title | 登录后查看收藏 (Sign in to see your favorites) + `.borderedProminent` 登录 when the host provides sign-in; 收藏加载失败 (Couldn’t load your favorites) title, server/network reason as the description, 重试 |
+| 搜索结果 (`GlobalSearchView`, MP result merged into search2) | `pages/search2/result/index.wxml:23` cy-error 没能完成搜索 · 重试; `:24` cy-empty 没有找到 | failure 结果未能加载 · 重试; empty 没有找到 ✓ | failure 没能完成搜索 (Couldn’t finish the search) · 重试 (only the generic failure key is remapped; sign-in / not-configured keep their own titles) |
 
 ## Gates
 
