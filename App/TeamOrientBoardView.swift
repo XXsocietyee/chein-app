@@ -46,7 +46,7 @@ extension EnvironmentValues {
                     case .failed:
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
                             rankingTitle
-                            failureRow(c.t("队伍排名加载失败", "Team ranking failed to load"))
+                            failureRow(c.t("队伍排名加载失败", "Couldn’t load the team ranking"))
                         }
                         .accessibilityIdentifier("team.orient.rankingError")
                     case .ready:
@@ -79,12 +79,14 @@ extension EnvironmentValues {
                     .accessibilityAddTraits(.isHeader)
                 Spacer()
                 if loading {
-                    ProgressView().controlSize(.small).accessibilityLabel(Text("team.loading"))
+                    // MP team/detail wxml:116 cy-skeleton loading-label 正在加载队伍进度 — words on screen.
+                    ProgressView { Text(verbatim: c.t("正在加载队伍进度", "Loading team progress")) }
+                        .controlSize(.small)
                 }
             }
 
             if loadError && board == nil {
-                failureRow(c.t("进度加载失败", "Failed to load task progress"))
+                failureRow(c.t("队伍进度加载失败", "Couldn’t load team progress"))
                     .accessibilityIdentifier("team.orient.error")
             } else if let board {
                 Text(

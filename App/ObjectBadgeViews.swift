@@ -180,7 +180,15 @@ struct ObjectBadgeWallBadgeLabel: View {
             guard let value = nonempty(value), value.count >= 10 else { return nil }
             let head = String(value.prefix(10))
             guard head.range(of: #"^\d{4}-\d{2}-\d{2}$"#, options: .regularExpression) != nil else { return nil }
-            // zh keeps the MP `YYYY-MM-DD`; other locales read an abbreviated civil date ("Oct 1, 2026").
+            // mp-mine r3 (16:53 check): zh reads 2026年10月1日; other locales read an abbreviated civil date ("Oct 1, 2026").
+            if locale.language.languageCode?.identifier == "zh" {
+                let parts = head.split(separator: "-").compactMap { Int($0) }
+                var calendar = Calendar(identifier: .gregorian)
+                calendar.timeZone = TimeZone(secondsFromGMT: 0) ?? .current
+                if parts.count == 3, let date = calendar.date(from: DateComponents(year: parts[0], month: parts[1], day: parts[2], hour: 12)) {
+                    return date.formatted(Date.FormatStyle(date: .long, time: .omitted, locale: locale, calendar: calendar, timeZone: calendar.timeZone))
+                }
+            }
             return LocaleDisplay.civil(head, locale: locale)
         }
         let condition: String?

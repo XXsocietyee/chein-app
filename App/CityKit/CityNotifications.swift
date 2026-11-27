@@ -17,6 +17,9 @@ enum CityNotifications {
     static let shieldAction = "city.shield.open"
     static let laterAction = "city.shield.later"
     private static let prefix = "city."
+    /// mp-nav r3: a tap lands on the 漫游 tab (the City board is its map mode), routed by MPNotificationTapRouter like
+    /// a subscribe-message `page`; before, the tap only opened the app wherever it was.
+    static let tapPage = "pages/roam/index"
 
     /// Registers the shield category with its two actions (call once at launch or before scheduling).
     static func registerCategories(locale: Locale) {
@@ -36,6 +39,7 @@ enum CityNotifications {
         content.title = copy("\(copy.title(place))的保护结束了", "\(copy.title(place)) is no longer protected")
         content.body = copy("现在可以发起挑战。", "You can challenge it now.")
         content.threadIdentifier = "city"
+        content.userInfo = ["page": tapPage]
         return await schedule("protection-" + place.id, content: content, at: date)
     }
 
@@ -54,7 +58,7 @@ enum CityNotifications {
             content.body = copy("开护盾再保护 12 小时，或者稍后到场守住它。", "Shield it for 12 more hours, or visit it later.")
             content.categoryIdentifier = shieldCategory
             content.threadIdentifier = "city"
-            content.userInfo = ["territoryId": place.territoryId ?? place.id]
+            content.userInfo = ["territoryId": place.territoryId ?? place.id, "page": tapPage]
             _ = await schedule("shield-" + place.id, content: content, at: until.addingTimeInterval(-3600))
         }
         if let rent = store.todayRent, rent > 0, let evening = eightPM(after: now) {
@@ -62,6 +66,7 @@ enum CityNotifications {
             content.title = copy("今天收租 +\(rent)", "Rent today +\(rent)")
             content.body = copy("截至 \(copy.clock(now, now: now))，03:00 核对后入账。", "As of \(copy.clock(now, now: now)); settled after 03:00.")
             content.threadIdentifier = "city"
+            content.userInfo = ["page": tapPage]
             _ = await schedule("rent-" + dayKey(now), content: content, at: evening)
         }
     }
@@ -74,6 +79,7 @@ enum CityNotifications {
         content.title = copy("\(copy.title(place))被拿走了", "\(copy.title(place)) was taken")
         content.body = copy("24 小时内反击，挑战费减半。", "Strike back within 24 h at half the fee.")
         content.threadIdentifier = "city"
+        content.userInfo = ["page": tapPage]
         let request = UNNotificationRequest(identifier: prefix + "lost-" + place.id, content: content, trigger: nil)
         try? await UNUserNotificationCenter.current().add(request)
     }
