@@ -152,8 +152,8 @@ import QuestifyCore
             }
         }
         .listStyle(.insetGrouped)
-        .navigationTitle(Text("tabBar.roam"))
-        .navigationBarTitleDisplayMode(.inline)
+        // mp-nav r3 (OWNER RULE 2): the 漫游 tab root carries the same large top-left title as the other four roots.
+        .cyRootHeader(.roam)
         .searchable(text: $model.query, isPresented: $model.searchActive,
                     placement: .navigationBarDrawer(displayMode: .always),
                     prompt: Text("nativeR2.mapHome.search.prompt"))
