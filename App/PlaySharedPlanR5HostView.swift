@@ -88,11 +88,11 @@ import SwiftUI
             } else { Text("原身份或回执合同尚未确认，不能提交检定。") }
             if let original = model.pending {
                 LabeledContent("原请求", value: original.key).textSelection(.enabled)
-                Text(model.acknowledged ? "已取得本人的原请求回执" : "原请求结果待确认，当前结果不代替原回执")
+                Text(model.acknowledged ? "sharedPlanR5.acknowledged" : "sharedPlanR5.pendingResult")
                 Button("重试同一原请求") { retryConfirmation = true }.disabled(!model.canRetryOriginal)
             }
             if let outcome = model.outcome, let result = outcome.outcome {
-                Text(result == "PASS" ? "原结算：通过" : "原结算：未通过")
+                Text(result == "PASS" ? "sharedPlanR5.result.pass" : "sharedPlanR5.result.fail")
                 if let reply = outcome.reply, !reply.isEmpty { Text(reply) }
             } else if model.outcome?.status == "BLOCKED_COST" { Text("原结算费用尚未满足") }
             CYScreenOfflineWriteBanner(
@@ -106,7 +106,7 @@ import SwiftUI
             title: "确认原检定动作",
             message: "使用当前服务器检定和原版本，不在设备上生成骰点或通过结果。",
             cancelTitle: "取消",
-            confirmTitle: offered.map { "确认" + title($0.action) } ?? "确认",
+            confirmTitle: offered.map { appLocalized("sharedPlanR5.confirm \(title($0.action))", locale: .current) } ?? appLocalized("确认", locale: .current),
             onCancel: { actionConfirmation = false; offered = nil },
             onConfirm: {
                 actionConfirmation = false
@@ -144,6 +144,10 @@ import SwiftUI
         )
     }
     private func title(_ action: String) -> String {
-        switch action { case "ROLL_CHECK": return "投掷"; case "REROLL_CHECK": return "重掷"; default: return "提交检定" }
+        switch action {
+        case "ROLL_CHECK": return appLocalized("sharedPlanR5.action.roll", locale: .current)
+        case "REROLL_CHECK": return appLocalized("sharedPlanR5.action.reroll", locale: .current)
+        default: return appLocalized("sharedPlanR5.action.submit", locale: .current)
+        }
     }
 }

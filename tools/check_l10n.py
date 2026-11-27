@@ -105,8 +105,26 @@ def out_of_scope(rel):
             or 'Preview' in name or name.endswith('Previews.swift'))
 
 
+MAPPED = re.compile(r'"((?:[^"\\\n]|\\.)*)"\s*:\s*"([A-Za-z][A-Za-z0-9_.]*)"')
+
+
+def mapped_literals(localized_keys):
+    """CJK lookup tokens the app maps to a catalog key, e.g. `"生命值": "zeroHP.copy.017"` (i18n r2).
+
+    Such a token is never shown as is: the view resolves it through the key, so the token
+    counts as localized wherever it appears in App/.
+    """
+    tokens = set()
+    for path in sorted((ROOT / 'App').rglob('*.swift')):
+        for m in MAPPED.finditer(path.read_text(encoding='utf-8')):
+            if CJK.search(m.group(1)) and m.group(2) in localized_keys:
+                tokens.add(m.group(1))
+    return tokens
+
+
 def literal_counts(localized_keys):
     counts = {}
+    localized_keys = set(localized_keys) | mapped_literals(localized_keys)
     for path in sorted((ROOT / 'App').rglob('*.swift')):
         rel = str(path.relative_to(ROOT))
         if out_of_scope(rel):
@@ -130,8 +148,9 @@ def literal_counts(localized_keys):
                     continue
                 if text in localized_keys or normalize_literal(text) in localized_keys:
                     continue
-                # Inline bilingual pair such as W8Text.t("中文", "English") or c("English", "中文").
-                after = re.match(r'\s*,\s*"((?:[^"\\\n]|\\.)*)"', line[m.end():])
+                # Inline bilingual pair such as W8Text.t("中文", "English") or c("English", "中文"),
+                # or a translation-table entry "中文": "English" (i18n r2).
+                after = re.match(r'\s*[,:]\s*"((?:[^"\\\n]|\\.)*)"', line[m.end():])
                 before = re.search(r'"((?:[^"\\\n]|\\.)*)"\s*,\s*$', line[:m.start()])
                 if any(x and LATIN.search(x.group(1)) and not CJK.search(x.group(1)) for x in (after, before)):
                     continue

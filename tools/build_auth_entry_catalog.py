@@ -28,7 +28,7 @@ S={
 "authEntry.expiry.message":("Your session has expired. Sign in again, or keep browsing as a guest.","登录已过期，请重新进入。你可以重新登录，或先以游客身份继续浏览。"),
 "authEntry.expiry.signIn":("Sign in again","重新登录"),
 "authEntry.expiry.browse":("Browse first","先逛一逛"),
-"authEntry.deregister.wechatUnavailable":("This account has no bound phone number, so deletion needs WeChat re-confirmation, which the app cannot do. Bind a phone number first, or apply in the Chein (城瘾) WeChat mini program.","此账号未绑定手机号，注销需要通过微信重新确认本人，App 内暂不支持微信确认。请先绑定手机号，或在城瘾小程序中申请注销。"),
+"authEntry.deregister.wechatUnavailable":("This account has no bound phone number, so deletion needs WeChat re-confirmation, which the app cannot do. Bind a phone number first, or apply in the Chengyin WeChat mini program.","此账号未绑定手机号，注销需要通过微信重新确认本人，App 内暂不支持微信确认。请先绑定手机号，或在城瘾小程序中申请注销。"),
 "authEntry.deregister.verificationUnavailable":("Identity verification is unavailable. Please check the deletion conditions again.","身份验证暂不可用，请重新核验注销条件。"),
 "authEntry.deregister.recheck":("Check again","重新核验"),
 "authEntry.deregister.executeAfter":("Scheduled execution","预计执行时间"),

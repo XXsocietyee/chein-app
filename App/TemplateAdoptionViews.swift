@@ -195,7 +195,8 @@ struct TemplateProjectActions: View {
         ) {
             Button(PlayerCapabilityCopy.text("另存为模板", "Save as template", locale)) { Task { await run() } }
         } message: {
-            Text(verbatim: "「" + (title.isEmpty ? "这个主题" : title) + "」会出现在主题模板货架上，其他人可以复制它作为草稿起点。")
+            if title.isEmpty { Text("templateAdoption.shelfNotice.untitled") }
+            else { Text("templateAdoption.shelfNotice \(appQuoted(title, locale: locale))") }
         }
     }
 

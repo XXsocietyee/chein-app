@@ -214,7 +214,7 @@ public struct ClubChannelMessagingView: View {
             }
         }
         .confirmationDialog(
-            copy("举报频道「#\(selectedChannel?.name ?? "")」", "Report Channel #\(selectedChannel?.name ?? "")"),
+            copy("举报频道「#\(selectedChannelName)」", "Report channel #\(selectedChannelName)"),
             isPresented: $showReportChannelDialog,
             titleVisibility: .visible
         ) {
@@ -297,10 +297,23 @@ public struct ClubChannelMessagingView: View {
         .accessibilityIdentifier("club.channel.moderation.banner")
     }
 
+    private var selectedChannelName: String { selectedChannel?.name ?? "" }
+
+    private var composerPlaceholder: String {
+        guard let name = selectedChannel?.name else { return copy("发送消息…", "Message…") }
+        return copy("在 #\(name) 发送消息…", "Message #\(name)…")
+    }
+
+    private func replyLine(_ target: MessagingMessage) -> String {
+        let id = target.senderID ?? 0
+        let name = target.senderName ?? copy("成员 #\(id)", "Member #\(id)")
+        let body = target.content ?? ""
+        return copy("回复 \(name)：\(body)", "Replying to \(name): \(body)")
+    }
+
     private var rulesFullText: String {
         copy(
-            "参与频道发言与治理前，请确认遵守社区安全准则：严禁发布违法违规、骚扰辱骂、欺诈广告及令人反感的内容。被举报内容将在 24 小时内由安全团队审核并处理，违规成员将被删帖并移出或封禁。",
-            "Before posting or moderating, you must agree to our zero-tolerance policy against objectionable content, harassment, and spam. Reported content is reviewed within 24 hours and violators will be removed or banned."
+            "参与频道发言与治理前，请确认遵守社区安全准则：严禁发布违法违规、骚扰辱骂、欺诈广告及令人反感的内容。被举报内容将在 24 小时内由安全团队审核并处理，违规成员将被删帖并移出或封禁。", "Before posting or moderating, you must agree to our zero-tolerance policy against objectionable content, harassment, and spam. Reported content is reviewed within 24 hours and violators will be removed or banned."
         )
     }
 
@@ -624,7 +637,7 @@ public struct ClubChannelMessagingView: View {
                     Image(systemName: "arrowshape.turn.up.left.fill")
                         .accessibilityHidden(true).font(.caption)
                         .foregroundStyle(.tint)
-                    Text(copy("回复 \(replyTarget.senderName ?? "成员 #\(replyTarget.senderID ?? 0)")：\(replyTarget.content ?? "")", "Replying to \(replyTarget.senderName ?? "Member #\(replyTarget.senderID ?? 0)"): \(replyTarget.content ?? "")"))
+                    Text(replyLine(replyTarget))
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
@@ -668,7 +681,7 @@ public struct ClubChannelMessagingView: View {
                 .padding(.vertical, 10)
             } else {
                 HStack(spacing: 8) {
-                    TextField(copy("在 #\(selectedChannel?.name ?? "频道") 发送消息…", "Message #\(selectedChannel?.name ?? "channel")…"), text: $composerText)
+                    TextField(composerPlaceholder, text: $composerText)
                         .textFieldStyle(.roundedBorder)
 
                     Button {

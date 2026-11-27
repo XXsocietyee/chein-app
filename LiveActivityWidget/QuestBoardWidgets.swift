@@ -756,8 +756,17 @@ struct QuestCommunityWidgetView: View {
         switch family {
         case .accessoryCircular: QuestCommunityCircular(unread: unread)
         case .accessoryInline:
-            Label { Text("widget.community.inline \(unread) \(posts)") } icon: {
-                Image(systemName: "bubble.left.and.bubble.right")
+            // i18n-r1-layout: the long English line can clip on small lock screens, so fall back to shorter text.
+            ViewThatFits(in: .horizontal) {
+                Label { Text("widget.community.inline \(unread) \(posts)") } icon: {
+                    Image(systemName: "bubble.left.and.bubble.right")
+                }
+                Label { Text("widget.community.inline.short \(unread) \(posts)") } icon: {
+                    Image(systemName: "bubble.left.and.bubble.right")
+                }
+                Label { Text("widget.community.inline.unread \(unread)") } icon: {
+                    Image(systemName: "bubble.left.and.bubble.right")
+                }
             }
         case .systemMedium:
             HStack(spacing: 16) {

@@ -94,7 +94,7 @@ import SwiftUI
                     CommerceFact("version", offer.releaseId)
                     CommerceTermsFacts(terms: offer.terms)
                     commerceText("purchaseBoundary").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                    if !offer.hasSupportedTerms { Text("原授权范围无法按当前合同解释；不能忽略限制后继续领取或购买。").fixedSize(horizontal: false, vertical: true) }
+                    if !offer.hasSupportedTerms { Text("workshopCommerce.r2.unsupportedTerms").fixedSize(horizontal: false, vertical: true) }
                     Button { reviewedOffer = offer; confirming = true } label: { commerceText(offer.priceMinor == 0 ? "claimFree" : "confirmIntent").frame(maxWidth: .infinity) }.disabled(!controller.canAcquire)
                         .modifier(WorkshopLibraryPrimaryAction())
                 }
@@ -177,8 +177,8 @@ import SwiftUI
             confirming = false; reviewedOffer = nil; confirmingCancellation = false
             if phase == .active { Task { await controller.recover(allowOriginalRequestReplay: false) } }
         }
-        .confirmationDialog("确认取消原未付款订单？这不会申请退款或撤销已授予的许可。", isPresented: $confirmingCancellation) {
-            Button("确认提交原订单取消", role: .destructive) { Task { await controller.cancel() } }
+        .confirmationDialog("workshopCommerce.r2.cancelOrder.title", isPresented: $confirmingCancellation) {
+            Button("workshopCommerce.r2.cancelOrder.confirm", role: .destructive) { Task { await controller.cancel() } }
             Button("返回", role: .cancel) { }
         }
         .cySheet(isPresented: $confirming, onDismiss: { reviewedOffer = nil }) {
@@ -191,8 +191,8 @@ import SwiftUI
                                 Text(verbatim: price(reviewedOffer.currency, minor: reviewedOffer.priceMinor)).font(.headline).monospacedDigit()
                                 CommerceFact("moduleId", reviewedOffer.moduleId)
                                 CommerceFact("version", reviewedOffer.releaseId)
-                                if let accountID = session.account?.id { Text(verbatim: "本次取得许可的账号：\(accountID)") }
-                                Text("本次许可归属当前账号；下列可安装主体与场地范围是独立限制，不代表已取得经营、地点同意或发布权限。").font(.body).fixedSize(horizontal: false, vertical: true)
+                                if let accountID = session.account?.id { Text("workshopCommerce.r2.licenseAccount \(String(accountID))") }
+                                Text("workshopCommerce.r2.licenseScope").font(.body).fixedSize(horizontal: false, vertical: true)
                             }
                             Section { CommerceTermsFacts(terms: reviewedOffer.terms) }
                             commerceText("purchaseBoundary")
@@ -267,42 +267,42 @@ import SwiftUI
                     ModOwnedContentReportLink(reference: .init(licenseId: item.licenseId, moduleId: item.moduleId,
                         releaseId: item.purchasedVersionId, contentHash: item.terms.contentHash, termsHash: item.terms.hash))
                 }
-                Section("原已购版本当前记录") {
+                Section("workshopCommerce.r2.release.section") {
                     if let record = controller.ownedReleaseRecord {
-                        Text(verbatim: "本次版本读取时的许可状态：" + record.licenseState).font(.headline).fixedSize(horizontal: false, vertical: true)
-                        if record.licenseState != item.status { Text("两次读取之间许可状态有变化，请刷新原许可；旧 ACTIVE 不授予继续运行。") }
-                        Text(verbatim: "原使用期限合同：" + record.useDuration)
-                        Text(verbatim: "已购 release：" + record.releaseId)
-                        Text(verbatim: "原版本记录状态：" + record.artifactStatus)
-                        if !record.artifactIdentityMatched { Text("当前版本记录与原购入身份不匹配或缺失，不能用别的版本替代。") }
+                        Text("workshopCommerce.r2.release.licenseState \(record.licenseState)").font(.headline).fixedSize(horizontal: false, vertical: true)
+                        if record.licenseState != item.status { Text("workshopCommerce.r2.release.stateChanged") }
+                        Text("workshopCommerce.r2.release.duration \(record.useDuration)")
+                        Text("workshopCommerce.r2.release.id \(record.releaseId)")
+                        Text("workshopCommerce.r2.release.status \(record.artifactStatus)")
+                        if !record.artifactIdentityMatched { Text("workshopCommerce.r2.release.mismatch") }
                         if let reason = record.blockReason, !reason.isEmpty { Text(verbatim: reason) }
-                        Text("持久许可证与版本可用性分别记录。ACTIVE 不是可运行批准；安装、原运行、内容与地区仍需原服务当前检查。").font(.body).fixedSize(horizontal: false, vertical: true)
-                    } else { Text("原版本记录读取未配置或暂不可用。保留原许可详情，不把它猜成已撤销或仍可运行。") }
-                    Text("退款记录、会话到期或安装预留到期都不自动等于全部持久许可作废；这里不扩展更新版本或使用期限。").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                        Text("workshopCommerce.r2.release.note").font(.body).fixedSize(horizontal: false, vertical: true)
+                    } else { Text("workshopCommerce.r2.release.unavailable") }
+                    Text("workshopCommerce.r2.release.footnote").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 }
-                Section("原退款 / 拒付记录") {
+                Section("workshopCommerce.r2.reversal.section") {
                     if let status = controller.reversalStatus {
-                        Text(verbatim: "当前许可状态：" + (status.licenseState ?? "UNKNOWN"))
-                        Text(verbatim: "拒付查询能力：" + (status.chargebackQueryCapability ?? "NOT_CAPTURED"))
-                        Text("能力字段不是渠道观察。未实现、未配置或旧服务未提供，均不能证明没有拒付；这里不发起渠道查询。").font(.body).fixedSize(horizontal: false, vertical: true)
-                        Text(verbatim: "已确认退款：\(status.currency) \(Decimal(status.refundedBuyerMinor) / Decimal(100))").monospacedDigit()
-                        Text(verbatim: "已确认拒付：\(status.currency) \(Decimal(status.chargedBackBuyerMinor) / Decimal(100))").monospacedDigit()
+                        Text("workshopCommerce.r2.reversal.licenseState \(status.licenseState ?? "UNKNOWN")")
+                        Text("workshopCommerce.r2.reversal.capability \(status.chargebackQueryCapability ?? "NOT_CAPTURED")")
+                        Text("workshopCommerce.r2.reversal.capabilityNote").font(.body).fixedSize(horizontal: false, vertical: true)
+                        Text("workshopCommerce.r2.reversal.refunded \(reversalAmount(status.currency, status.refundedBuyerMinor))").monospacedDigit()
+                        Text("workshopCommerce.r2.reversal.chargedBack \(reversalAmount(status.currency, status.chargedBackBuyerMinor))").monospacedDigit()
                         ForEach(status.reversals, id: \.reversalKey) { item in
                             VStack(alignment: .leading) {
                                 Text(verbatim: item.reversalKey).font(.footnote).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                                 Text(verbatim: item.kind + " / " + item.state).font(.headline)
-                                Text(verbatim: "原查询记录：" + (item.queryObservation ?? "NOT_CAPTURED"))
+                                Text("workshopCommerce.r2.reversal.query \(item.queryObservation ?? "NOT_CAPTURED")")
                                 if item.queryAttempted == true, let at = item.queryAttemptedAt {
-                                    Text(verbatim: "原查询尝试时间：" + at)
+                                    Text("workshopCommerce.r2.reversal.queryAt \(at)")
                                 } else {
-                                    Text("没有本条已捕获的渠道查询尝试；未补造历史查询时间。")
+                                    Text("workshopCommerce.r2.reversal.noQuery")
                                 }
-                                Text(verbatim: "原处理金额：\(status.currency) \(Decimal(item.buyerMinor) / Decimal(100))").monospacedDigit()
+                                Text("workshopCommerce.r2.reversal.amount \(reversalAmount(status.currency, item.buyerMinor))").monospacedDigit()
                             }.fixedSize(horizontal: false, vertical: true)
                         }
-                        if status.reversals.isEmpty { Text("原账暂无处理记录；不代表退款申请已获批准或渠道没有其他待同步事实。") }
-                        Text("这里只读原账。处理中、UNKNOWN 和未读到结果不是退款成功；不会查询渠道或创建/执行退款。").font(.body).fixedSize(horizontal: false, vertical: true)
-                    } else { Text("原退款状态读取未配置或暂不可用；不把它显示成无退款。原许可详情仍可查看。") }
+                        if status.reversals.isEmpty { Text("workshopCommerce.r2.reversal.empty") }
+                        Text("workshopCommerce.r2.reversal.note").font(.body).fixedSize(horizontal: false, vertical: true)
+                    } else { Text("workshopCommerce.r2.reversal.unavailable") }
                 }
 
             } else { WorkshopCommerceLibraryNotice(text: commerceText(controller.licenseSnapshotMessageKey ?? "error.licenseUnavailable"), symbol: "exclamationmark.triangle", isError: true) }
@@ -320,6 +320,8 @@ import SwiftUI
         .onDisappear { controller.closeLicenseSnapshot() }
     }
 }
+/// Refund/chargeback amounts as the ledger states them (currency code + major units); never re-labelled by locale.
+private func reversalAmount(_ currency: String, _ minor: Int64) -> String { "\(currency) \(Decimal(minor) / Decimal(100))" }
 private struct CommerceTermsFacts: View {
     let terms: WorkshopCommerceTerms
     @Environment(\.locale) private var locale
@@ -334,7 +336,7 @@ private struct CommerceTermsFacts: View {
         if let rights = terms.compositionRights {
             CommerceCompositionScopeFacts(rights: rights)
         } else {
-            Text("原条款未提供组合授权。不得推断允许翻译、改编、remix、嵌入分发或任意主体/场地使用；安装仍由原许可与当前权限检查。")
+            Text("workshopCommerce.r2.noComposition")
                 .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -343,30 +345,30 @@ private struct CommerceCompositionScopeFacts: View {
     let rights: WorkshopCommerceCompositionRights
     var body: some View {
         Group {
-            Text("原冻结组合授权范围").font(.headline)
-            Text(verbatim: "合同：" + rights.profile)
-            Text(verbatim: "授权摘要：" + rights.grantHash).font(.footnote).monospaced().fixedSize(horizontal: false, vertical: true)
-            Text(verbatim: "可复用作者：" + ids(rights.scope.authors))
-            Text(verbatim: "可安装主体：" + ids(rights.scope.installationSubjects))
-            Text(verbatim: "经营主体/门店：" + ids(rights.scope.venues))
-            Text(verbatim: "地区：" + rights.scope.regions.joined(separator: ", "))
+            Text("workshopCommerce.r2.composition.title").font(.headline)
+            Text("workshopCommerce.r2.composition.profile \(rights.profile)")
+            Text("workshopCommerce.r2.composition.grantHash \(rights.grantHash)").font(.footnote).monospaced().fixedSize(horizontal: false, vertical: true)
+            Text("workshopCommerce.r2.composition.authors \(ids(rights.scope.authors))")
+            Text("workshopCommerce.r2.composition.subjects \(ids(rights.scope.installationSubjects))")
+            Text("workshopCommerce.r2.composition.venues \(ids(rights.scope.venues))")
+            Text("workshopCommerce.r2.composition.regions \(rights.scope.regions.joined(separator: ", "))")
             if rights.hasExplicitPhysicalVenues, let pois = rights.scope.venuePoiIds {
-                Text(verbatim: "明确许可的地点 POI：" + ids(pois))
+                Text("workshopCommerce.r2.composition.pois \(ids(pois))")
             } else {
-                Text("未提供明确地点 POI 授权；不得把经营主体 ID 当作任意地点许可。")
+                Text("workshopCommerce.r2.composition.noPois")
             }
-            permission("商业使用", rights.scope.commercialUse)
-            permission("翻译", rights.scope.translation)
-            permission("改编", rights.scope.adaptation)
-            permission("Remix", rights.scope.remix)
-            permission("在已批准组合中嵌入分发", rights.scope.embeddedRedistribution)
-            Text("以上只表示原冻结合同范围，不授予原始资产转售/下载、未来所有大版本、额外安装额度或当前地点同意。缺省项不扩权；当前撤权及安全条件仍由原服务检查。")
+            permission("commercial", rights.scope.commercialUse)
+            permission("translation", rights.scope.translation)
+            permission("adaptation", rights.scope.adaptation)
+            permission("remix", rights.scope.remix)
+            permission("embedded", rights.scope.embeddedRedistribution)
+            Text("workshopCommerce.r2.composition.note")
                 .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }
     }
     private func ids(_ values: [Int64]) -> String { values.map { String($0) }.joined(separator: ", ") }
     private func permission(_ name: String, _ allowed: Bool) -> Text {
-        Text(verbatim: name + "：" + (allowed ? "合同范围内允许" : "不允许"))
+        Text(LocalizedStringKey("workshopCommerce.r2.permission." + name + (allowed ? ".allowed" : ".denied")))
     }
 }
 private struct CommerceFact: View {

@@ -336,7 +336,7 @@ enum CYPermissionKind: Equatable {
 
     func benefit(_ t: CYKitCopy) -> String {
         switch self {
-        case .location: t("While you roam, we use your location to light up the map and find stamps nearby. Only while the app is open; you can turn it off anytime.", "漫游时，我们用你的位置点亮地图、找到附近的印章。仅在使用 App 时读取，随时可以关闭。")
+        case .location: t("While you roam, we use your location to light up the map and find stamps nearby. The roam keeps recording in the background until you pause or finish; you can turn it off anytime.", "漫游时，我们用你的位置点亮地图、找到附近的印章。漫游进行中会在后台记录，暂停或结束即停止，随时可以关闭。")
         case .camera: t("Take a photo at the spot to collect its stamp. The photo stays on your phone until you choose to post it.", "在现场拍一张照片即可收集印章。照片在你选择发布之前只保存在手机里。")
         case .notifications: t("Reminders and replies wait for you in your inbox. We never push alerts to your lock screen.", "提醒和回复都会留在站内消息里，我们不会向锁屏推送任何通知。")
         case .photos: t("Pick a picture from your library to attach to a stamp or post. We only see the ones you choose.", "从相册里选一张图片添加到印章或帖子，我们只能看到你选中的照片。")

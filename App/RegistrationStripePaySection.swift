@@ -75,8 +75,7 @@ import SwiftUI
                 case .failed:
                     phase = .notice(c.t("支付未完成，请重试", "Payment not completed. Try again."))
                 default:
-                    phase = .notice(c.t("暂未确认支付结果，请稍后在订单中查看",
-                                        "Payment not confirmed yet. Check the order again shortly."))
+                    phase = .notice(c.t("暂未确认支付结果，请稍后在订单中查看", "Payment not confirmed yet. Check the order again shortly."))
                 }
             }
         }

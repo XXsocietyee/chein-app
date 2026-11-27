@@ -29,11 +29,11 @@ struct CYPermissionPrimerContent: Equatable {
         return CYPermissionPrimerContent(
             glyph: "location.fill",
             title: c("Light up where you walk", "点亮你走过的地方"),
-            body: c("Use your location only while the app is open and when you choose to roam, play a location-based activity, find nearby places, or explicitly start personal location sharing with a selected person. Personal sharing uploads your location to the service for that person until you stop or the approved sharing period ends. Location is never used in the background.",
-                    "仅在应用使用期间，且你主动选择漫游、参与基于位置的玩法、查找附近地点或明确向指定对象开启个人位置分享时使用你的位置。个人分享会将位置上传至服务端并展示给该对象，直到你停止或获准的分享期限结束。不会在后台使用位置。"),
+            body: c("Your location is used when you choose to roam, play a location-based activity, find nearby places, or start sharing your location with someone you pick. During a roam or city orienteering run you started, your route keeps recording in the background, even with the screen locked, and iOS shows the location indicator. It stops when you pause or finish. Sharing sends your location to that person until you stop or the sharing period ends. Your location is never shown to other players otherwise.",
+                    "仅在你主动选择漫游、参与基于位置的玩法、查找附近地点或向指定的人开启位置分享时使用你的位置。你开启的漫游或城市定向赛进行中，锁屏后仍会在后台记录轨迹，系统会显示定位指示；暂停或结束后即停止。位置分享会把你的位置发给该对象，直到你停止或分享期限结束；除此之外不会展示给其他玩家。"),
             points: [
-                c("Only while the app is open", "仅在使用 App 时"),
-                c("Never in the background", "不会在后台定位"),
+                c("Only when you start something", "仅在你主动开始时使用"),
+                c("A roam keeps recording in the background until you pause or finish", "漫游进行中会在后台记录，暂停或结束即停止"),
                 c("You can turn it off anytime in Settings", "随时可在设置里关闭"),
             ],
             primaryTitle: c("Continue", "继续"),
