@@ -11,16 +11,16 @@ import Observation
         let path = request.url?.path ?? ""
         let board: [String: Any] = ["gameId": "game-1", "boardId": "board-1", "regionId": "city-1", "seasonId": "season-1",
             "rulesReleaseId": "release-1", "rulesHash": String(repeating: "a", count: 64), "lifecycle": lifecycle,
-            "title": "Synthetic official city", "revision": 1]
+            "title": mpJourneyFixtureText("West Lake sample city", "西湖示范城市"), "revision": 1]
         var data: [String: Any] = ["contract": "CITY_PLAYER_READ_V1", "scope": "CITY", "status": "AVAILABLE", "board": board, "participationStatus": "JOINED"]
         if path.hasSuffix("/current") { data["regionId"] = "city-1"; data["pointsStatus"] = "AVAILABLE" }
         if path.hasSuffix("/participation") { data["participation"] = ["participationId": "participation-1", "membershipVersion": 1] }
         if path.hasSuffix("/points") {
             data["complete"] = true
             data["points"] = [
-                ["pointId": "point-cafe", "title": "Synthetic cafe", "latitude": 10.0, "longitude": 20.0, "mine": false],
-                ["pointId": "point-park", "title": "Synthetic park", "latitude": 10.001, "longitude": 20.001, "mine": false],
-                ["pointId": "point-shop", "title": "Synthetic bookshop", "latitude": 10.002, "longitude": 20.002, "mine": false],
+                ["pointId": "point-cafe", "title": mpJourneyFixtureText("Lakeside cafe", "湖畔咖啡馆"), "latitude": 10.0, "longitude": 20.0, "mine": false],
+                ["pointId": "point-park", "title": mpJourneyFixtureText("Willow park", "柳浪公园"), "latitude": 10.001, "longitude": 20.001, "mine": false],
+                ["pointId": "point-shop", "title": mpJourneyFixtureText("Old street bookshop", "老街书店"), "latitude": 10.002, "longitude": 20.002, "mine": false],
             ]
         }
         return (try JSONSerialization.data(withJSONObject: ["code": 200, "data": data]), 200)
@@ -47,14 +47,14 @@ import Observation
     func snapshot(for read: CityReadSnapshot) async throws -> CityGameSnapshot {
         let cafe = CityPropertyState(propertyId: "prop-cafe", pointId: "point-cafe", role: .operable, status: cafeHeld ? .held : .available,
             stateVersion: boardVersion, heldByMyTeam: cafeHeld, protectedUntilMillis: nil,
-            services: cafeHeld ? [CityServiceOffer(serviceId: "svc-cafe-clues", title: "Synthetic clue station", memberPointsFee: 0)] : [],
+            services: cafeHeld ? [CityServiceOffer(serviceId: "svc-cafe-clues", title: mpJourneyFixtureText("Clue station", "线索补给站"), memberPointsFee: 0)] : [],
             challenge: nil, taskAttemptKept: false)
         let park = CityPropertyState(propertyId: "prop-park", pointId: "point-park", role: .neutral, status: .available, stateVersion: boardVersion,
             heldByMyTeam: false, protectedUntilMillis: nil, services: [], challenge: nil, taskAttemptKept: parkTaskKept)
         let shop = CityPropertyState(propertyId: "prop-shop", pointId: "point-shop", role: .operable, status: pausedShop ? .paused : .held,
             stateVersion: boardVersion, heldByMyTeam: false, protectedUntilMillis: nil,
-            services: [CityServiceOffer(serviceId: "svc-shop-route", title: "Synthetic route tips", memberPointsFee: 2),
-                       CityServiceOffer(serviceId: "svc-shop-pending", title: "Synthetic undisclosed service", memberPointsFee: nil)],
+            services: [CityServiceOffer(serviceId: "svc-shop-route", title: mpJourneyFixtureText("Route tips", "路线指引"), memberPointsFee: 2),
+                       CityServiceOffer(serviceId: "svc-shop-pending", title: mpJourneyFixtureText("Service to be announced", "待公布服务"), memberPointsFee: nil)],
             challenge: shopChallenge, taskAttemptKept: false)
         let rules = CityRulesSummary(rulesReleaseId: "release-1", ruleVersion: "synthetic-rules-1", validFromMillis: 1_700_000_000_000,
             validUntilMillis: nil, actionsRemaining: actionsRemaining, actionsPerRound: 3, holdingLimit: 2)

@@ -573,3 +573,25 @@ private final class PlayKitTestTransport: HTTPTransport {
     init(_ operation: @escaping @MainActor (URLRequest) async throws -> (Data, Int)) { self.operation = operation }
     func send(_ request: URLRequest) async throws -> (Data, Int) { requests.append(request); return try await operation(request) }
 }
+
+/// mp-journey r3: MP `predict:skip` → SKIP_CLOSED_PREDICT (不选，继续) only for a closed round with no pick.
+final class PlayPredictSkipTests: XCTestCase {
+    private func segment(closed: Bool, skipped: Bool = false, mine: String = "") -> PlayWireValue {
+        .object([
+            "question": .string("Which stall sells out first?"),
+            "options": .array([.object(["key": .string("A"), "label": .string("Tea")]), .object(["key": .string("B"), "label": .string("Cake")])]),
+            "closed": .bool(closed), "skipped": .bool(skipped), "myOptionKey": .string(mine)
+        ])
+    }
+    func testSkipIsOnlyAcceptedForAClosedRound() throws {
+        XCTAssertNoThrow(try PlayKitInputContract.validate(kind: "predict", action: "SKIP_CLOSED_PREDICT", payload: [:], segment: segment(closed: true)))
+        XCTAssertThrowsError(try PlayKitInputContract.validate(kind: "predict", action: "SKIP_CLOSED_PREDICT", payload: [:], segment: segment(closed: false)))
+        XCTAssertThrowsError(try PlayKitInputContract.validate(kind: "predict", action: "SKIP_CLOSED_PREDICT", payload: ["optionKey": .string("A")], segment: segment(closed: true)))
+        XCTAssertEqual(try PlayKitActionCatalog.payload(kind: "predict", action: "SKIP_CLOSED_PREDICT", detail: ["x": .string("y")]), [:])
+    }
+    func testSkippedOrPickedRoundIsComplete() {
+        XCTAssertTrue(PlayKitScreenProjection(kind: .predict, segment: segment(closed: true, skipped: true)).complete)
+        XCTAssertTrue(PlayKitScreenProjection(kind: .predict, segment: segment(closed: false, mine: "A")).complete)
+        XCTAssertFalse(PlayKitScreenProjection(kind: .predict, segment: segment(closed: true)).complete)
+    }
+}

@@ -277,12 +277,8 @@ struct EditorBottomBar<Secondary: View>: View {
                     secondary()
                 }
                 Button(action: primary) {
-                    Group {
-                        if primaryBusy {
-                            ProgressView()
-                        } else {
-                            primaryTitle
-                        }
+                    CYBusyLabel(busy: primaryBusy) {
+                        primaryTitle
                     }
                     .frame(maxWidth: .infinity)
                 }
