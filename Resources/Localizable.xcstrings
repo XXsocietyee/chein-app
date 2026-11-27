@@ -141344,6 +141344,91 @@
         }
       }
     },
+    "mpPublish.rules.replay": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow playing again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许再玩一次"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.replay.teamRefused": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team play doesn't support replaying alone. Turn off Allow playing again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍玩法不支持个人重玩，请关闭再玩一次"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.teamTrail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shared routes in a session"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同场路线"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Game rules"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩法规则"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.unreadable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This topic's game settings couldn't be read. Save the topic and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题玩法配置读取失败，请保存主题后重试"
+          }
+        }
+      }
+    },
     "mpd.aiChat.export": {
       "extractionState": "manual",
       "localizations": {
