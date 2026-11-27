@@ -219,6 +219,16 @@ Base re-merged with `origin/ui/combined-r7` (xcstrings conflict at the file end:
 
 Gates: generate_project OK · check_scaffold PASS (20774 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 
+## Round 3 continue (14) — sweep 19:50 (build 3568fe51b): one title style on the 漫游 tab root
+
+Base re-merged with `origin/ui/combined-r7` (xcstrings conflict at the file end: both sides' keys kept, 20848 keys).
+
+| MP page / scene | Native view | Differences | Status |
+|---|---|---|---|
+| Sweep 19:50 `zh-Hans-d2-roam.jpg` vs `zh-Hans-d6-roam.jpg` (`pages/roam/index`, MP nav title 漫游) | `RoamBrowserView` `RoamBrowserHeader` / `RoamMapBarMaterial` (d2) and `DesignFixtures/D6Fixtures.swift` `roam` (d6) | d2 shows the system inline 漫游 on a material bar with one ⋯; d6 hand-drew a large white `cyText(.pageTitle)` 漫游 plus a glass capsule (护照 + ⋯) over the map — two title styles for the same tab root. | **Fixed (OWNER RULE 2):** d6 roam now sits in a `NavigationStack` with the inline 漫游 on the `.bar` material and one ⋯ toolbar item (`roam.toolbar.more`), map placeholder as the page background; the shipping roam root's over-map bar moved from `.regularMaterial` to `.bar` so both read the same. MP content under the bar (走到哪，雾散到哪 → 规则 · 走起 · 附近) unchanged. |
+
+Gates: generate_project OK · check_scaffold PASS (20848 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no

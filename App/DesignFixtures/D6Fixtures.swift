@@ -82,20 +82,25 @@ struct D6MapFixture: View {
 
     // MARK: Roam: title top-left, passport menu, GO
 
+    /// mp-roam r3 (sweep 19:50): the same tab-root chrome as the shipping roam root over a map (d2-roam):
+    /// inline 漫游 on the `.bar` material with one ⋯ item, never a hand-drawn large title.
     private var roam: some View {
-        VStack {
-            HStack(alignment: .top) {
-                Text(verbatim: t("Roam", "漫游"))
-                    .cyText(.pageTitle).foregroundStyle(.white)
-                Spacer()
-                CYGlassCapsule {
-                    HStack(spacing: CYSpacing.lg) {
-                        Image(systemName: "book.closed").accessibilityLabel(Text(verbatim: t("Passport", "漫游护照")))
-                        Image(systemName: "ellipsis").accessibilityLabel(Text(verbatim: t("More", "更多")))
-                    }.foregroundStyle(.white).cyText(.cardTitle)
+        NavigationStack {
+            roamBody
+                .navigationTitle(Text(verbatim: t("Roam", "漫游")))
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbarBackground(.bar, for: .navigationBar)
+                .toolbarBackground(.visible, for: .navigationBar)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button(action: {}) { Label("roam.toolbar.more", systemImage: "ellipsis.circle") }
+                    }
                 }
-            }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
+        }
+    }
+
+    private var roamBody: some View {
+        VStack {
             Spacer()
             Text(verbatim: t("Walk anywhere — the fog lifts as you go.", "走到哪，雾散到哪。"))
                 .cyText(.body).foregroundStyle(Color.white.opacity(0.75)).padding(.bottom, CYSpacing.lg)
@@ -106,6 +111,8 @@ struct D6MapFixture: View {
             }
             .padding(.bottom, CYSpacing.xxl * 2)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background { CYMapPlaceholder(fog: true).ignoresSafeArea() }
     }
 
     // MARK: Search map: back + search + locate, callouts, one pill primary
