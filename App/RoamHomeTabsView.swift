@@ -196,10 +196,9 @@ struct RoamHomeTabPicker: View {
             // MP aria 正在读取附近活动.
             ProgressView { Text("roam.w208.entry.loading") }.accessibilityIdentifier("roam.home.peek.loading")
         case .failed:
-            VStack(alignment: .leading, spacing: 6) {
-                Label("roam.w208.entry.failed", systemImage: "exclamationmark.triangle")
-                Button("action.retry", action: refresh).frame(minHeight: 44).accessibilityIdentifier("roam.home.peek.retry")
-            }.accessibilityElement(children: .contain).accessibilityIdentifier("roam.home.peek.failed")
+            // MP wxml:164 cy-error load-failure · 重试: one state, retry inside.
+            CYEmptyState(systemImage: "exclamationmark.triangle", "roam.w208.entry.failed", messageIdentifier: "roam.home.peek.failed",
+                         actionTitle: "action.retry", actionIdentifier: "roam.home.peek.retry", kind: .failure, action: refresh)
         case .empty:
             VStack(alignment: .leading, spacing: 4) {
                 Text("roam.w208.entry.empty").cyText(.body)
@@ -563,11 +562,8 @@ struct RoamToolUnavailableView: View {
         let presentation = passportPresentation
         if presentation.read == .error, configuredServerReader != nil, case .failure(let error)? = serverSummary {
             // MP wxml:219 漫游护照读取失败 + 重试.
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text("roam.w208.passport.failed").cyText(.bodyMedium)
-                RoamExperienceIssue(error: error) { Task { await loadServerSummary() } }
-            }
-            .accessibilityIdentifier("roam.home.passport.failed")
+            RoamExperienceIssue(error: error, retry: { Task { await loadServerSummary() } }, failureTitle: "roam.w208.passport.failed")
+                .accessibilityIdentifier("roam.home.passport.failed")
         } else if presentation.read == .error, case .failure(let error)? = currentHome {
             RoamExperienceIssue(error: error, retry: load)
         } else {

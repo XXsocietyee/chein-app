@@ -7,23 +7,50 @@ import SwiftUI
     @Environment(\.cyPalette) private var palette
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var stage: NativeStepCoordinator?
+    /// MP `buildSteps`: today's server steps (never typed in), the merchant goal (locked), and the derived figures.
+    private var todaySteps: Int { max(0, segment["todaySteps"].integer ?? 0) }
+    private var goal: Int { max(0, segment["goal"].integer ?? 0) }
+    private var left: Int { max(0, goal - todaySteps) }
+    private var reached: Bool { goal > 0 && todaySteps > 0 && left == 0 }
+    private var percent: Int { goal > 0 ? min(100, Int((Double(todaySteps) / Double(goal) * 100).rounded())) : 0 }
+    /// MP `co2Of`: 0.00008 kg per step, two decimals; the stat only shows above zero.
+    private var co2: Double { Double(todaySteps) * 0.00008 }
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
-            Label("nativePlatform.steps.title", systemImage: "figure.walk")
+            // MP `playkit-walk` (node play `steps` → `walk`, playkit-view.js:74): heading 还差多少 / 走到了 →
+            // 还差 + remaining steps (步 / 到了) → bar + steps / goal · % → 目标 · 已走 · 少排 → read error / 已跳过 → CTA.
+            Label(LocalizedStringKey(reached ? "playkit.walk.heading.done" : "playkit.walk.heading.left"), systemImage: "figure.walk")
                 .font(.headline)
             .accessibilityElement(children: .combine)
             .accessibilityAddTraits(.isHeader)
             .accessibilityIdentifier("nativePlatform.steps.host")
-            if let goal = segment["goal"].integer {
-                LabeledContent("playkit.walk.goal") {
-                    Text("playkit.steps.goalSteps \(goal)").monospacedDigit()
+            if goal > 0 {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    Text("playkit.walk.left").font(.subheadline).foregroundStyle(.secondary)
+                    HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
+                        Text(left, format: .number).font(.largeTitle.bold()).monospacedDigit()
+                            .contentTransition(.numericText())
+                        Text(LocalizedStringKey(reached ? "playkit.walk.arrived" : "playkit.walk.unit")).font(.subheadline).foregroundStyle(.secondary)
+                    }
+                    ProgressView(value: Double(min(todaySteps, goal)), total: Double(goal))
+                    Text("playkit.walk.progress \(todaySteps.formatted()) \(goal.formatted()) \(percent)")
+                        .font(.footnote).monospacedDigit().foregroundStyle(.secondary)
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("playkit.steps.today")
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: CYSpacing.lg) { walkStats }
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) { walkStats }
                 }
             }
-            ForEach(["co2Label", "remainLabel"], id: \.self) { key in
-                if let line = segment[key].text, !line.isEmpty {
-                    Text(verbatim: line).font(.footnote).foregroundStyle(.secondary)
-                }
+            // MP `readError` (报过失败、还没同步到步数) unless skipped, then the skipped station line.
+            if segment["skipped"].bool == true {
+                Text("playkit.sensor.skipped").font(.footnote).foregroundStyle(.secondary)
+            } else if (segment["failedReads"].integer ?? 0) > 0, todaySteps <= 0, segment["reached"].bool != true {
+                Label("playkit.steps.readError", systemImage: "exclamationmark.triangle")
+                    .font(.footnote).foregroundStyle(.orange)
             }
+            Text("nativePlatform.steps.title").font(.footnote).foregroundStyle(.secondary)
             if let enrollment = runtime?.enrollment {
                 NavigationLink("nativeEnrollment.manage") { NativeEnrollmentView(model: enrollment, privacyURL: runtime?.acceptance.privacyNoticeURL) }
                     .accessibilityIdentifier("nativeEnrollment.open")
@@ -38,6 +65,24 @@ import SwiftUI
         }
         .transaction { if reduceMotion { $0.disablesAnimations = true } }
         .task(id: advanced.state?.sessionID) { await runtime?.enrollment?.load(); if let id = advanced.state?.sessionID { stage = runtime?.stepModel(for: id) } }
+    }
+}
+
+extension NativeStepsHostView {
+    /// MP `wk__stats`: 目标 · 已走 · 少排 N kg (the last only above zero).
+    @ViewBuilder var walkStats: some View {
+        stat("playkit.walk.stat.goal", value: Text(goal, format: .number))
+        stat("playkit.walk.stat.walked", value: Text(todaySteps, format: .number))
+        if co2 > 0 {
+            stat("playkit.walk.stat.co2", value: Text("playkit.walk.co2 \(co2.formatted(.number.precision(.fractionLength(2))))"))
+        }
+    }
+    private func stat(_ title: LocalizedStringKey, value: Text) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title).font(.caption).foregroundStyle(.secondary)
+            value.font(.headline).monospacedDigit()
+        }
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -176,7 +221,11 @@ import SwiftUI
     private var active: Bool { runtime?.isCurrent == true }
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
-            Label("nativePlatform.reminder.title", systemImage: "bell")
+            // MP `playkit-timewindow` body: eyebrow (server, default 时段限定) → glyph + title (server, default 还没到开放时间)
+            // + 开放时段 from – to → clock + 后开播 · 到点提醒我 → footer CTA 订阅开播提醒 / 已订阅 · 到点会提醒你.
+            Text(verbatim: serverText("eyebrow") ?? appLocalized("playkit.window.eyebrow", locale: locale))
+                .font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+            Label { Text(verbatim: serverText("title") ?? appLocalized("playkit.window.title", locale: locale)) } icon: { Image(systemName: "clock") }
                 .font(.headline)
             .accessibilityElement(children: .combine)
             .accessibilityAddTraits(.isHeader)
@@ -198,20 +247,14 @@ import SwiftUI
                 countdown(nil)
                     .accessibilityIdentifier("nativePlatform.reminder.countdown")
             }
-            Text("nativePlatform.reminder.boundary")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
             // Legacy subscribed is deliberately neither read nor written here.
             if let stage {
-                if let window = stage.window {
-                    LabeledContent("nativePlatform.timeZone") { Text(verbatim: window.timeZone.isEmpty ? "—" : window.timeZone) }
-                    LabeledContent("nativePlatform.reminder.next") { Text(verbatim: formatted(window.nextOpenAt, zone: window.timeZone)).monospacedDigit() }
-                    Label(LocalizedStringKey(window.openNow ? "nativePlatform.reminder.open" : "nativePlatform.reminder.closed"), systemImage: window.openNow ? "clock" : "clock.badge.xmark")
-                        .foregroundStyle(window.openNow ? Color.green : Color.secondary)
+                if let window = stage.window, window.openNow {
+                    Label("nativePlatform.reminder.open", systemImage: "clock")
+                        .foregroundStyle(Color.green)
                 }
                 if let scheduled = stage.scheduled {
-                    Label("nativePlatform.reminder.scheduled", systemImage: "bell.badge")
+                    Label("playkit.window.subscribed", systemImage: "bell.badge")
                         .font(.headline)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("nativePlatform.reminder.scheduled")
@@ -226,7 +269,7 @@ import SwiftUI
                         .accessibilityIdentifier("nativePlatform.reminder.cancel")
                 } else {
                     Button { reviewed = stage.window } label: {
-                        Label("nativePlatform.reminder.enable", systemImage: "bell")
+                        Label("playkit.window.subscribe", systemImage: "bell")
                     }
                         .buttonStyle(.borderedProminent)
                         .controlSize(.large)
@@ -239,11 +282,19 @@ import SwiftUI
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("nativePlatform.reminder.issue")
                 }
+                // Under the MP CTA: the next opening in the service zone and what the reminder does (one local alert).
+                if let window = stage.window {
+                    LabeledContent("nativePlatform.reminder.next") { Text(verbatim: formatted(window.nextOpenAt, zone: window.timeZone)).monospacedDigit() }
+                        .font(.footnote)
+                }
+                Text("nativePlatform.reminder.boundary")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
                 Button { Task { await refresh() } } label: {
                     Label("nativePlatform.reminder.refresh", systemImage: "arrow.clockwise")
                 }
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
+                    .buttonStyle(.borderless)
                     .disabled(!active)
                     .accessibilityIdentifier("nativePlatform.reminder.refresh")
             } else {
@@ -295,6 +346,10 @@ import SwiftUI
                 }
             }
         }
+    }
+    private func serverText(_ key: String) -> String? {
+        let value = (segment[key].text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        return value.isEmpty ? nil : value
     }
     private func clock(_ value: String?) -> String {
         let shown = (value ?? "").trimmingCharacters(in: .whitespacesAndNewlines)

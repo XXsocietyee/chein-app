@@ -133,10 +133,16 @@ private struct ClubDirectoryCard: View {
     let onOpen: () -> Void
     let identifier: String
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         let action = club.cardAction(viewerIsMerchant: viewerIsMerchant)
-        HStack(spacing: CYSpacing.md) {
+        // AX sizes: the fixed-width Join / Apply button would squeeze the name to a sliver, so it moves under the row.
+        let stacked = typeSize.isAccessibilitySize
+        let layout = stacked
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
+            : AnyLayout(HStackLayout(spacing: CYSpacing.md))
+        layout {
             Button(action: onOpen) {
                 HStack(spacing: CYSpacing.md) {
                     Label {
@@ -165,7 +171,9 @@ private struct ClubDirectoryCard: View {
             .foregroundStyle(.primary)
             .accessibilityIdentifier(identifier)
             if style == .discover {
-                Spacer(minLength: 0)
+                if !stacked {
+                    Spacer(minLength: 0)
+                }
                 switch action {
                 case .join:
                     Button(action: onOpen) {

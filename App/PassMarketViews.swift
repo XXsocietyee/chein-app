@@ -387,7 +387,7 @@ struct PassMarketView: View {
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(verbatim: row.amount.isEmpty ? MPText.unknown : LocaleDisplay.yuanAmounts(in: MPParityBindings.moneyText(row.amount), locale: locale)).monospacedDigit()
                     if !row.time.isEmpty {
-                        Text(verbatim: row.time).font(.subheadline).foregroundStyle(.secondary).monospacedDigit()
+                        Text(verbatim: LocaleDisplay.civil(row.time, locale: locale)).font(.subheadline).foregroundStyle(.secondary).monospacedDigit()
                     }
                 }
             } label: {
@@ -1104,7 +1104,7 @@ struct PassOrderDetailView: View {
                 fact(Text("mp.passOrder.validTo"), Text(verbatim: order.validTo))
             }
             if !order.time.isEmpty {
-                fact(Text("mp.passOrder.paidTime"), Text(verbatim: order.time))
+                fact(Text("mp.passOrder.paidTime"), Text(verbatim: LocaleDisplay.civil(order.time, locale: locale)))
             }
             Button {
                 LocalPasteboard.copy(order.orderNo)

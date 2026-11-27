@@ -1197,7 +1197,9 @@ private struct ClubSingleOwnedEntry<Reader: ClubReading & ObservableObject, Sing
                         .accessibilityIdentifier("club.workbench.backToClub")
                 }
                 .accessibilityIdentifier("club.workbench.enterFailed")
-            case nil: ProgressView()
+            case nil:
+                ProgressView { Text("cy.state.loading") }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .task(id: attempt) {
@@ -1239,7 +1241,9 @@ private struct ClubFirstOwnedEntry<Reader: ClubReading & ObservableObject, Conte
                         .buttonStyle(.bordered)
                 }
                 .accessibilityIdentifier("club.enroll.ownedFailed")
-            case nil: ProgressView()
+            case nil:
+                ProgressView { Text("cy.state.loading") }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .task(id: attempt) {

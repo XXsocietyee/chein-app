@@ -94,9 +94,8 @@ import QuestifyCore
         List {
             switch state {
             case .loading:
-                ForEach(0..<4, id: \.self) { _ in
-                    Label("nativeR2.mapHome.loading", systemImage: "mappin").redacted(reason: .placeholder)
-                }
+                ProgressView { Text("nativeR2.mapHome.loading") }
+                    .frame(maxWidth: .infinity)
             case .ready(let detail):
                 // MP official-route: title = route name, subtitle = metaText (city · distance · duration), the cover,
                 // then 节点（N） and the stop rows (order, name, address, 参考停留).

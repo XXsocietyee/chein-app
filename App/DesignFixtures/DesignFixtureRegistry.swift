@@ -434,8 +434,8 @@ enum T5PageFixtures {
 
     @MainActor static func make(_ name: String) -> AnyView? {
         switch name {
-        case "t5-baoming": return wrapPlayer(RegistrationFixtureHostView(scenario: .standard))
-        case "t5-baoming-error": return wrapPlayer(RegistrationFixtureHostView(scenario: .quoteError))
+        case "t5-baoming": return wrapPlayer(RegistrationFixtureHostView(scenario: .standard, hidesFixtureNotice: true))
+        case "t5-baoming-error": return wrapPlayer(RegistrationFixtureHostView(scenario: .quoteError, hidesFixtureNotice: true))
         case "t5-pricing": return wrapMerchant(T5PublisherPricingFixtureHost(failed: false))
         case "t5-pricing-error": return wrapMerchant(T5PublisherPricingFixtureHost(failed: true))
         case "t5-partner": return wrapMerchant(T5PublisherPartnerFixtureHost(failed: false))
@@ -834,7 +834,7 @@ private actor T5OrderCenterTransport: HTTPTransport {
                                           "stores": [["offerId": 29, "merchantName": mpJourneyFixtureText("Qinghefang sample teahouse", "清河坊示范茶馆"), "validEnd": "2026-12-31"]]]]])
         }
         func order(registrationID: FreeExploreLaunchID) async throws -> FreeExploreLaunchOrder {
-            try decode(["registrationId": 41, "bundle": [
+            try decode(["registrationId": 41, "registrationNo": "CY2026112700041", "paymentStatus": 2, "registrationStatus": 2, "bundle": [
                 "order": ["registrationId": 41, "holderMemberId": 7, "topicId": 88],
                 "units": [["id": 17, "registrationId": 41, "holderMemberId": 7, "chapterId": 3, "status": "AVAILABLE"]],
                 "reservations": []]])

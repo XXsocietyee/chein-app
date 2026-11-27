@@ -1,5 +1,15 @@
 import SwiftUI
 
+/// Design fixtures (`t5-baoming`) render as a screenshot of the real page: the 离线演示 note is hidden there while
+/// the offline-fixture creation policy still keeps every write offline. UI-test fixtures keep the note.
+private struct RegistrationHidesFixtureNoticeKey: EnvironmentKey { static let defaultValue = false }
+extension EnvironmentValues {
+    var registrationHidesFixtureNotice: Bool {
+        get { self[RegistrationHidesFixtureNoticeKey.self] }
+        set { self[RegistrationHidesFixtureNoticeKey.self] = newValue }
+    }
+}
+
 @MainActor
 private final class RegistrationSheetModel: ObservableObject {
     let flow: RegistrationUIFlow
@@ -20,6 +30,7 @@ struct RegistrationSheetView: View {
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.offlineWriteSession) private var offlineWriteSession
+    @Environment(\.registrationHidesFixtureNotice) private var hidesFixtureNotice
     /// R11-PC-C-3: marketing-consent opt-in after a successful create (MP baoming.wxml:345-351).
     @Environment(\.marketingConsentService) private var marketingConsentService
     @StateObject private var model: RegistrationSheetModel
@@ -89,7 +100,7 @@ struct RegistrationSheetView: View {
         let _ = model.revision
         NavigationStack {
             Form {
-                if flow.creationPolicy.isOfflineFixture {
+                if flow.creationPolicy.isOfflineFixture && !hidesFixtureNotice {
                     Section { Label("registration.form.fixtureNotice", systemImage: "testtube.2").cyText(.body) }
                 }
                 if !flow.hasCurrentSession {
@@ -1466,6 +1477,10 @@ private struct RegistrationPlayerSheetHeader: ViewModifier {
             .foregroundStyle(palette.textPrimary)
             .accessibilityAddTraits(.isHeader)
             .fixedSize()
+            // A bar title: capped like the system inline title so it cannot push the close button off screen at AX sizes;
+            // the Large Content Viewer shows it full size.
+            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+            .accessibilityShowsLargeContentViewer()
     }
 }
 

@@ -840,9 +840,26 @@ import QuestifyCore
                         }
                         arrivalButton(place, shop: false)
                         if place.type == 2 { arrivalButton(place, shop: true) }
+                        if selectedPlaceID == place.id {
+                            placeCardActions(place)
+                        }
                     }.padding(.vertical, 4)
                 }
             }
+        }
+    }
+    /// MP paceCard actions after 确认到点 / 已到达 (pages/roam/index.wxml:412-413): 开始挑战 (city nodes) → 导航 (has a point).
+    @ViewBuilder private func placeCardActions(_ place: RoamPlace) -> some View {
+        if place.type == 1, let challenge = discoverDestinations?.challenge {
+            NavigationLink { challenge(place.id) } label: {
+                Label("nativeR2.mapHome.card.challenge", systemImage: "flag.checkered")
+            }
+            .accessibilityIdentifier("roam.live.place.challenge")
+        }
+        if let point = place.coordinate, let makeMaps = discoverDestinations?.makeExternalMaps, let scope = discoverDestinations?.mapsScope {
+            PlatformExternalMapHost(destination: .init(name: place.name, address: place.address, latitude: point.latitude, longitude: point.longitude),
+                                    scope: scope, makeModel: makeMaps)
+                .accessibilityIdentifier("roam.live.place.navigate")
         }
     }
     /// MP paceCard `distText`: straight-line metres from the current GCJ-02 fix; nil without a fix or place point.

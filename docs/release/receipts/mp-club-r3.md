@@ -31,7 +31,7 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/detail · 帖文 公告 (`components/club-pinned-notice`, `utils/club-pinned-notice.js`) | `ClubCommunityFeedView` (club mode) | MP: section 「公告 · 新人先看」 listing the newest ≤2 pinned 公告 (type 2), each a one-line summary with an unread dot (read ids kept on this device per club, last 50), 「（无文字内容）」 when empty, VoiceOver 「未读公告：…」. Native showed only the first pinned 公告 under a 「公告」 label, no unread state, 「—」 when empty. | **Fixed (pass 6).** `ClubPinnedNoticeReads` (same storage key `cy_club_notice_read_<clubId>`, newest-first, max 2, keep 50; catalogued in `docs/ops-safety/client-data-catalog.json`); a `Section` headed 公告 · 新人先看 with one row per notice (tint dot when unread, `.quaternary` when read, chevron, 44 pt), opening marks it read |
 | club/detail · 活动 | `ClubPublicActivityListView` / `ClubActivityListContent` | Matches: cards, 已报名/节点/路线 stats, 发布 +, empty + 发布主题, 出示团码, 邀约承接. | Matches |
 | club/detail · tabs / default | `Core/ClubDetailTabs.swift` | Matches: 帖文 / 活动 / 概览 (+管理), default 概览. | Matches |
-| club/detail · join | `ClubActionPanel` | MP: a floating 加入 capsule only on 概览 (wxml:1028-1036), with 退出 in the meta row on every tab. Native: a 成员身份 section under the header on every tab. | **Partly fixed (pass 4).** Non-members see the 加入 / 申请加入 / 审核中 section on 概览 only; members keep 退出 on every tab. The floating capsule itself (P17 sticky bottom action) is **not done** (panel lifecycle, contract pins) |
+| club/detail · join | `ClubActionPanel` | MP: a floating 加入 capsule only on 概览 (wxml:1028-1036), with 退出 in the meta row on every tab. Native: a 成员身份 section under the header on every tab. | **Partly fixed (pass 4).** Non-members see the 加入 / 申请加入 / 审核中 section on 概览 only; members keep 退出 on every tab. **Fixed (pass 16):** the floating capsule, see Pass 16 |
 | club/detail · 概览 chat rows | `ClubDetailView` | The MP removed 进入群聊 from the club page (wxml:83). Native keeps chat / IM / channel rows on 概览. | **Not changed.** Earlier decision CLB-detail-14; flagged |
 | club/topic-detail | `ClubGovernanceViews.swift` topicOverview | 未通过原因 must come before 核销 + 台账 (wxml:86 vs 96). | **Fixed** |
 | club/topic-detail | same | 接下来 only when there are sessions (wxml:134); native showed a 还没有场次 placeholder. | **Fixed.** The section is hidden unless there are sessions or 管理场次 is allowed |
@@ -97,7 +97,7 @@ Scan of every `App/Club*.swift` player file:
 
 - Identity header: cover, logo + name, 「类型 · N 名成员 · 入会方式」, a face pile with +N, and 邀请成员 for owner/admin. The host/city line moved to 概览, so the header now reads like P17's identity header.
 - "Next event card with countdown" and "pinned poll" between the header and the feed: the MP has neither on the club page. It has tabs, with 活动 as its own tab, so nothing was added.
-- "Sticky primary action at the bottom": the MP has the floating 加入 capsule on 概览, which native does not have yet (listed above as not done). This is the top candidate for the next round.
+- "Sticky primary action at the bottom": the MP's floating 加入 capsule on 概览 is native since pass 16 (`ClubActionPanel` `.floating`).
 
 ## Strings added (en + zh-Hans)
 
@@ -204,6 +204,20 @@ Most tiles are the launch logo (coordinator 17:40: taken under load, ignore). Re
 | club/enroll (`zh-Hans-d4-enroll.jpg`) | `D4ClubOpsFixture(.enroll)` | Topic row 「Fixture topic」 in the Chinese UI. | **Fixed.** The enroll fixture overrides the `.topics` read with 示例主题 when the UI is Chinese (en unchanged) |
 | d4-badges (`zh-Hans-d4-badges.jpg`) | `ProfileFixtureReader.profileBadges` | Fixture city medal / Fixture achievement / Fixture identity / Synthetic unlock condition in Chinese. | **Fixed.** Names and conditions follow the UI language (same pattern as mp-roam's stamp album fixture); English unchanged for `RoamBadgeWallFlowTests` |
 | club/detail (`zh-Hans-d4-detail.jpg`) | `ClubDetailView` | Header → tab bar gap still visible. | Build bb76e327c predates pass 13 (`3de78d3c3`); re-check after the next combined merge |
+
+## Pass 15: sweep 21:09 UTC (build 405948d58, `docs/sweeps/latest/mp-club/sheet-zh-Hans.jpg`, `sheet-en.jpg`)
+| Screen (shot) | Native view | Seen / difference | Fixed? |
+|---|---|---|---|
+| club/detail 帖文 (`zh-Hans-d4-tab-posts.jpg`, `en-d4-tab-posts.jpg`) | `ClubCommunityViews.swift` post tile action bar | The like button shows its name 「点赞或取消点赞」 and wraps to three lines; in English the row truncates to "Like / Com / Re / Shar". MP `components/cy/post-card/index.wxml:120-148`: the action row is icon-only 赞 / 评论 / 转发 / 分享 with the count beside the icon and nothing at 0 (`{{post.likeCount \|\| ''}}`); the spoken name sits in `aria-label`. | **Fixed.** New `actionCount` helper: icon + count when > 0, icon only at 0 (`.labelStyle(.iconOnly)`); 转发 / 分享 / ··· are icon-only labels. Spoken names stay (`accessibilityLabel` on like/comments, the Label title on the others); every control is ≥ 44 pt. The 收起评论 state keeps its text |
+| club/detail (`zh-Hans-d4-detail.jpg`) | `ClubDetailView` | Header → tab-bar gap is gone (pass 13 landed). | ✓ re-checked |
+| d4-badges, d4-enroll (`zh-Hans-d4-badges.jpg`, `zh-Hans-d4-enroll.jpg`) | fixtures | Fixture names still English in Chinese. | Build 405948d58 predates pass 14 (`67a8a927c`); re-check after the next combined merge |
+
+
+## Pass 16: Not done row club/detail · join (floating 加入 capsule, P17)
+No new coordinator finding for mp-club since 21:20 (latest sweep is still build 405948d58, checked in pass 15).
+| MP page | Native view | MP sections | Optimizations / fix |
+|---|---|---|---|
+| `pages/club/detail` wxml:1028-1036, js:2530-2590 | `ClubDetailView.floatingJoin` → `ClubActionPanel(placement: .floating)` | Floating 加入 / 申请加入 / 重新申请 capsule on 概览 only, bottom-right, hidden for the owner and for members; greyed 等待主理人审核 when pending; guests sign in first (js:2531); apply asks for the required 60-char note (js:2537-2548) | **Fixed.** 概览 no longer draws the 成员身份 section under the header for non-members: the action is a `.borderedProminent` capsule (`.large`) in the List's bottom `safeAreaInset`, trailing like the MP; pending is the same capsule disabled. Status, the 申请留言 field + help/required/too-long text, progress, errors and the unknown-outcome readback sit in one `.regularMaterial` card above the capsule only when there is something to read. The same panel instance stays mounted after a join so the joined chip and the server readback stay visible (members then see nothing there; 退出 stays the page-end row on 概览 and the header row on the other tabs). Same confirmation dialog, identifiers (`club.action.join/apply/gated/signIn`, `club.application.message`) and request path as before, so `ClubActionFlowTests` keep their queries. Not copied: the scroll-to-hide animation (the capsule stays, P17 sticky action). Needs a look on the next sweep (no d4 fixture is a non-member yet) |
 
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.

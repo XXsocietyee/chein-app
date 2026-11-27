@@ -92,7 +92,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Loading public map layers..."
+            "value" : "Loading public map layers…"
           }
         },
         "zh-Hans" : {
@@ -449,7 +449,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Loading story node..."
+            "value" : "Loading story node…"
           }
         },
         "zh-Hans" : {

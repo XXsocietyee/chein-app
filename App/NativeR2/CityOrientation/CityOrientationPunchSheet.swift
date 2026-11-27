@@ -366,10 +366,8 @@ import SwiftUI
             } else {
                 if let arrival, arrival.offer(for: nodeID) != nil {
                     Button { Task { await arrival.arrive(nodeID: nodeID, context: model.interactionContext) } } label: {
-                        Group {
-                            if arrival.isBusy { ProgressView() } else { Label("playArrival.action", systemImage: "location.fill") }
-                        }
-                        .frame(maxWidth: .infinity)
+                        CYBusyLabel(busy: arrival.isBusy) { Label("playArrival.action", systemImage: "location.fill") }
+                            .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled(arrival.isBusy || arrival.phase == .unknown || arrival.phase == .succeeded)

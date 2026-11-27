@@ -178,9 +178,50 @@ re-checked (already `.footnote.weight(.medium)`, brand on bordered fill ~9:1, st
 | `pages/playkit` accusation confirm panel | `PlayKitQuestoViews.swift` (`confirmPanel`) | ✓ (mp-journey owns order) | Suspect initial `.pageTitle` in a fixed 72 pt circle → `@ScaledMetric(relativeTo: .largeTitle)` circle (same as the 52 pt list initial) | Done |
 | VoiceOver, `.onTapGesture` without button trait | `JourneyReportViews`, `CityMomentView`, `SettingsAboutView`, `CYMedalStack`, `CYPlayerKit`, `IMExpandedViews`, `E1TicketCard` | — | Audit: every hit carries `.isButton` / `accessibilityAction` / adjustable action, is a skip-animation tap with a real button beside it, or is a map with `.allowsDirectInteraction` + a VoiceOver button (use map centre). No change | Done |
 
+## Run 11 (2026-11-27, hourly)
+
+Merged `origin/ui/combined-r7` (405948d58). Sweep 21:09 (build 405948d58) a11y sheets read: build predates run 10, so
+`a11y-passport-ax5` still shows the badge wall. `en-a11y-badges-ax5.jpg`: ring grows (run 7 visible) but its unfilled track is
+invisible on the grouped background (bgRaised ≈ page). `en-a11y-roam-ax5.jpg`: large title, ··· / i / Go / map controls ≥ 44 pt, OK.
+Fixed-height scan, multi-line: `.frame(height:)` closing an H/V/ZStack that holds unlimited `Text` (10 hits; 4 real, the rest are
+cover/photo boxes with a centred glyph, a 168 pt QR, a 240 × 150 video thumb or already `lineLimit(1)` + scale).
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `subpackageMember` 徽章墙 / 收集册 progress (`en-a11y-badges-ax5.jpg`) | `DesignSystem/CYCollectible.swift` (`CYCountRing`), `DesignSystem/CYAlbum.swift` (`CYAlbumProgressRing`) | ✓ (mp-mine owns order) | Ring track `bgRaised` → system `.quaternary` so the "remaining" half is visible (non-text contrast) in light and dark | Done |
+| `pages/roam/*` roam-runner sheet head | `MPGap/PlayRoam/RoamRunnerDetailView.swift` | ✓ (mp-roam owns order) | Initial `.headline` in a fixed 52 pt circle → `@ScaledMetric(relativeTo: .headline)` circle, capped 96 | Done |
+| Scratch-card prizes (motion r2 games) | `NativeR2/Motion/MotionR2Games.swift` | ✓ | Three tiles fixed 96 pt high clipped wrapped `.headline` prizes at AX sizes → min 96 pt, grows with text (`fixedSize` vertical), prize scales to 0.7 before wrapping | Done |
+| City dice (`pages/roam` city game) | `DesignSystem/CYCityBoard.swift` (`CYCityDie`) | ✓ | Non-pip value / em dash `.dataXL` in a 56 pt die → one line, scales to 0.4 instead of clipping | Done |
+| Onboarding long-press GO | `DesignSystem/CYOnboarding.swift` | ✓ | "GO" `.cardTitle` in a 52 pt circle → one line, scales to 0.5 at AX sizes | Done |
+| `pages/play` seat lobby (invited / transferable seats) | `JourneyLandingViews.swift` | ✓ (mp-journey owns order) | Seat number `.cardTitle` in a fixed 28 pt column truncated to "…" at AX sizes for 2 digits → `minWidth: 28` | Done |
+| `pages/play` report leaderboard | `JourneyReportViews.swift` | ✓ (mp-journey owns order) | Rank `.cardTitle` fixed 32 pt → `minWidth: 32` | Done |
+| `pages/team` orient board ranking | `TeamOrientBoardView.swift` | ✓ (mp-activity owns order) | "#rank" fixed 32 pt → `minWidth: 32` (name column already wraps) | Done |
+| `subpackageMember` orient score board | `MPGap/Member/OrientScoreGapViews.swift` | ✓ (mp-mine owns order) | Rank fixed 32 pt → `minWidth: 32` | Done |
+
+## Run 12 (2026-11-27, half-hourly)
+
+Merged `origin/ui/combined-r7` (46ebaf0b6, carries runs 7–11 incl. cb788fd86). Latest sweep is still build 405948d58 (read in
+run 11), so the a11y sheets re-read waits for the next sweep. Not done item 3: `.fixedSize()` (both axes) scan, 23 player hits;
+most are short chips, segmented pickers, switches or one-line numbers. 3 real overflows at AX sizes fixed:
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/club/*` club directory, Discover rows | `ClubDirectoryView.swift` (`ClubDirectoryCard`) | ✓ (mp-club owns order) | Fixed-size "Apply to join" / "Join club" button squeezed the club name to a sliver at AX sizes → row stacks (name, then button) at accessibility sizes via `AnyLayout` | Done |
+| `pages/activity` registration sheet header | `RegistrationSheetView.swift` (`RegistrationPlayerSheetHeader`) | ✓ (mp-activity owns order) | Fixed-size bar title "Activity registration" pushed the ✕ off screen at AX5 → capped at `.xxxLarge` like the system inline title, plus Large Content Viewer | Done |
+| `pages/coop/*` cooperation invites strip (inbox) | `IMCoopInviteStripView.swift` (header) | ✓ (mp-activity owns order) | Title + fixed-size "Invite alerts" switch + Received/Sent picker in one row → stacks at AX sizes | Done |
+
+Fixed-width scan (`.frame(width: N)` on stacks / text, 19 player hits; the rest are icons, a 260 pt iPad sidebar, a 240 pt
+share preview, progress bars and art tiles):
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/topic/*` 角色 cast rail | `CastViews.swift` (`TopicCastRow`) | ✓ (mp-publish owns order) | Column fixed 72 pt cut names to 2–3 letters at AX sizes → `@ScaledMetric(relativeTo: .footnote)` width (rail scrolls) | Done |
+| `pages/play` story route cast rail | `NativeR2/Story/NR2StoryRouteSections.swift` | ✓ (mp-journey owns order) | Column fixed 64 pt → scaled `NR2CastColumn` (`relativeTo: .caption`) | Done |
+| `pages/play` city-run finish leaderboard | `NativeR2/CityOrientation/CityOrientationFinishSummaryView.swift` | ✓ (mp-journey owns order) | Rank fixed 32 pt → `minWidth: 32` (same as run 11 leaderboards) | Done |
+
 ## Not done (next run starts here)
-- Re-read the a11y sheets once combined-r7 carries runs 7–10 (ring size at AX5, roam VoiceOver order, `a11y-passport-ax5` now the passport).
-- Dynamic Type: fixed-height containers — the one-line scan (`.frame(height:)` right after a text modifier) is done; next: `.frame(height:)` on `HStack`/`VStack` holding text (multi-line).
+- Re-read the a11y sheets (ring size at AX5, roam VoiceOver order, `a11y-passport-ax5` = passport at AX5) once a sweep build is newer than 405948d58; combined-r7 46ebaf0b6 carries runs 7–11.
+- Dynamic Type: horizontal rails whose cards keep a fixed width and `lineLimit(2)` (`DiscoveryHomeView` banner 260 pt, `DiscoveryTemplateDetailView` nodes 150 pt): check at AX5 whether a scaled width reads better.
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch
