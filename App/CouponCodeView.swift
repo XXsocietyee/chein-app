@@ -116,6 +116,15 @@ extension EnvironmentValues {
                 .accessibilityIdentifier("couponCode.loading")
         case .ready:
             if model.canDisplay {
+                // mp-mine r3: MP scene-qr-coupon voucher head (index.wxml:6): coupon name, then 出示给商家扫码核销.
+                VStack(spacing: 4) {
+                    if let name = model.couponName { Text(verbatim: name).font(.headline) }
+                    Text("couponCode.presentToMerchant").font(.subheadline).foregroundStyle(.secondary)
+                }
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("couponCode.voucherHead")
                 if let token = model.displayToken { CouponLocalQRImage(token: token).frame(maxWidth: .infinity) }
                 else if let bytes = model.imageBytes, let image = UIImage(data: bytes) {
                     Image(uiImage: image).resizable().interpolation(.none).scaledToFit().frame(width: 240, height: 240)

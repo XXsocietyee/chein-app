@@ -319,39 +319,49 @@ extension PlayKitScreen {
     }
 
     // MARK: slowtask (the server owns the day count; the scratch card is dropped)
+    // mp-journey r3: MP `playkit-slowtask` order — eyebrow 慢一点 · 跨日任务 → title (server) → one state block
+    // (startHint / clock + 还有 N 天 + waitHint / ready line / unlocked text) → footer CTA (start · 明天再来 disabled · unlock).
+
+    private func slowText(_ key: String) -> String? {
+        let value = (raw[key].text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        return value.isEmpty ? nil : value
+    }
 
     @ViewBuilder var nativeSlowTask: some View {
         let claimed = raw["claimed"].bool == true
         Group {
-            if claimed {
-                Section {
-                    if let unlockText = raw["unlockText"].text, !unlockText.isEmpty {
+            Section {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("playkit.slow.eyebrow").font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+                    if let title = slowText("title") {
+                        Text(verbatim: title).font(.headline).fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityAddTraits(.isHeader)
+                if claimed {
+                    if let unlockText = slowText("unlockText") {
                         Text(verbatim: unlockText).fixedSize(horizontal: false, vertical: true)
                             .transition(.opacity)
                             .accessibilityIdentifier("playkit.slowTask.unlockText")
                     } else {
                         Text("playkitLegacy.slow.emptyReadback")
                     }
-                } header: {
-                    Label("nativeGames.slow.reward", systemImage: "gift")
-                }
-            } else if raw["started"].bool == true {
-                Section {
+                } else if raw["started"].bool == true {
                     if let days = raw["daysLeft"].integer, days > 0 {
                         Label { Text("playkitLegacy.slow.daysLeftCount \(days)") } icon: { Image(systemName: "clock") }
                             .font(.title2).monospacedDigit()
                             .accessibilityIdentifier("playkit.slowTask.daysLeft")
-                        if let hint = raw["waitHint"].text, !hint.isEmpty { Text(verbatim: hint).foregroundStyle(.secondary) }
+                        Text(verbatim: slowText("waitHint") ?? appLocalized("playkit.slow.waitHint", locale: Locale.current))
+                            .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     } else if raw["daysLeft"].integer == 0 {
-                        Label("playkitLegacy.slow.ready", systemImage: "checkmark.circle")
+                        Label("playkit.slow.ready", systemImage: "checkmark.circle")
                     } else {
                         Text("playkit.configurationInvalid")
                     }
-                }
-            } else {
-                Section {
-                    if let hint = raw["startHint"].text, !hint.isEmpty { Text(verbatim: hint) }
-                    else { Text(LocalizedStringKey("playkit.kind.slowTask")).foregroundStyle(.secondary) }
+                } else {
+                    Text(verbatim: slowText("startHint") ?? appLocalized("playkit.slow.startHint", locale: Locale.current))
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
         }
@@ -361,15 +371,18 @@ extension PlayKitScreen {
     var nativeSlowTaskSubmit: NativeGameSubmit? {
         guard raw["claimed"].bool != true else { return nil }
         if raw["started"].bool == true {
+            // MP: while days remain the footer keeps a disabled 明天再来 button instead of disappearing.
+            if let days = raw["daysLeft"].integer, days > 0 {
+                return nativeSubmit("CLAIM_SLOW_TASK", [:], valid: false, title: Text("playkit.slow.waitCta"),
+                                    identifier: "playkit.slowTask.wait")
+            }
             guard raw["daysLeft"].integer == 0 else { return nil }
-            let label = raw["unlockLabel"].text.flatMap { $0.isEmpty ? nil : $0 }
             return nativeSubmit("CLAIM_SLOW_TASK", [:], valid: true,
-                                title: label.map { Text(verbatim: $0) } ?? Text("playkitLegacy.slow.claim"),
+                                title: slowText("unlockLabel").map { Text(verbatim: $0) } ?? Text("playkit.slow.unlockLabel"),
                                 identifier: "playkit.slowTask.claim")
         }
-        let label = raw["startLabel"].text.flatMap { $0.isEmpty ? nil : $0 }
         return nativeSubmit("START_SLOW_TASK", [:], valid: true,
-                            title: label.map { Text(verbatim: $0) } ?? Text("playkitLegacy.slow.start"),
+                            title: slowText("startLabel").map { Text(verbatim: $0) } ?? Text("playkit.slow.startLabel"),
                             identifier: "playkit.slowTask.start")
     }
 }

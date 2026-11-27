@@ -479,6 +479,32 @@ Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0
 |---|---|
 | zh/en verb mismatches left (`playHelp.sending` 提交中… / Sending…, `audit.attach.uploading` key vs 提交中…) | Needs the MP page wording per screen; next run checks each against `mp-source`. |
 
+## Continue run 15 (2026-11-27, after merging combined-r7 into f0affde33)
+
+Merge clean. No new coordinator row for this lane after 21:20 (22:20 sweep rows are mp-activity / mp-roam).
+
+Run 14 Not done row (zh/en verb mismatches) — checked each against `mp-source`:
+
+| MP page | Native view (call site) | Key | Before | After |
+|---|---|---|---|---|
+| `pages/play/play-help.wxml` + `utils/play-help-panel.js:24` (busyLevel = 「正在解锁」的那一层) | `App/PlayHelpLadderPanel.swift:159`, `App/NativeR2/Games/NativeGameHintSheet.swift:123` (spinner a11y label) | `playHelp.sending` | 提交中… / Sending… (two different verbs) | 正在解锁… / Unlocking… |
+| MP image upload (`pages/play/index.js:8487`, `poi-challenge/index.js:90`, `subpackageRoam/nearby/index.js:1012`: 正在上传) | `App/PlayCreatorTailViews.swift:294` (appeal attachments) | `audit.attach.uploading` | 提交中… / Submitting… (key says uploading) | 正在上传… / Uploading… (same as the 5 other 正在上传… / Uploading… keys) |
+
+No string-manifest JSON pins these two keys (grep clean).
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS (status capsule 29 baselined, 76 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
+Sweep 22:11 checked (`mp-club/sheet-en.jpg`, `mp-mine/sheet-zh-Hans.jpg`): titles, toolbar buttons and segmented pickers
+match the one pattern; no new design-system kind to add this run.
+
+### For other lanes
+| Lane | Item |
+|---|---|
+| mp-mine | `e4-wallet-balance` (余额流水): row dates show raw `2026-11-06 18:20:00` (seconds) while 订单查询 shows `2026-11-14 10:00` and 票夹 `2030年4月20日`. MP `subpackageA/components/scene-asset-income-detail/index.js:15` shows 今天 / 昨天 / M月D日. `LocaleDisplay.civil` passes zh through unchanged on purpose (pinned by `LocaleDisplayTests.swift:47`), so fix at the ledger row, not in the formatter. |
+
+### Not done (next run)
+None from this run.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
