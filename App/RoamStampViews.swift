@@ -509,7 +509,7 @@ struct RoamStampCard: View {
                 } else if allowsRemoteImages { RoamStampImage(source: stamp.picUrl) }
                 else { Label("roam.experience.imageUnavailable", systemImage: "photo") }
                 if let caption = stamp.caption, !caption.isEmpty { Text(verbatim: caption).cyText(.sectionTitle).multilineTextAlignment(.leading) }
-                if let date = stamp.createTime { Text(verbatim: date.replacingOccurrences(of: "T", with: " ")).cyText(.meta).foregroundStyle(.secondary) }
+                if let date = stamp.createTime { Text(verbatim: LocaleDisplay.civil(date.replacingOccurrences(of: "T", with: " "), locale: locale)).cyText(.meta).foregroundStyle(.secondary) }
             }
         }
     }
