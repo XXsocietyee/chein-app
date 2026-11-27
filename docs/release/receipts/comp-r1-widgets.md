@@ -61,7 +61,7 @@ Widget strings: `LiveActivityWidget/Localizable.xcstrings` (34 keys `widget.even
 ## 6. Tests and gates
 
 - `Tests/CoreTests/QuestWidgetBoardTests.swift`: streak / window counts, dedupe + cap, clamps, links parse through `CheinDeepLink` / `MiniProgramPageLink`, event expiry.
-- `check_scaffold.py` PASS structural; `check_a11y_lint.py` 0 new; `contract_ratchet.py --check` new 0 (it exits 1 only because one baseline entry, `test_profile_read_failure_remote_admission…test_raw_creator_positive_contract_is_independent_of_all_history`, already passes on the base; baseline left for the coordinator); `check_privacy_manifest.py` PASS; the five touched contract modules pass.
+- `check_scaffold.py` PASS structural; `check_a11y_lint.py` 0 new; `contract_ratchet.py --check` new 0 (it exits 1 only because one baseline entry, `test_profile_read_failure_remote_admission…test_raw_creator_positive_contract_is_independent_of_all_history`, now passes and is outside this lane's files; baseline left for the coordinator); `check_privacy_manifest.py` PASS; the five touched contract modules pass.
 
 ## 7. Coordinator / owner must do
 
