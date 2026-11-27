@@ -70,7 +70,7 @@ import SwiftUI
                     Button("d7.channelAudit.tryAgain") { Task { await open() } }
                 }
             } else {
-                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+                CYLoadingState().frame(maxHeight: .infinity)
             }
         }
         .nativeChannelFlowPage()

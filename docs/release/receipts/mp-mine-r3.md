@@ -250,3 +250,18 @@ Merged `origin/ui/combined-r7` (clean). The 20:25 sweep includes Continue 7 but 
 - ds-consistency / i18n: `WalletFormatting.amount` still renders "1,234.50 CNY" on the other wallet screens (earnings detail, withdrawal records, cart/checkout). Moving it to `symbolMoney` needs the `WalletNumberLocalizationTests` pins updated together.
 
 Gates (this pass): generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, typography lint PASS, contract ratchet 52 failing / baseline 52 / **new 0** (the ledger detects an unknown delta by `row.changeBalance == nil`; `row.signedText(` stays out of the views per `test_wallet_number_localization`).
+
+## Continue 10 (hourly re-arm, sweep 20:45 UTC build bb76e327c)
+
+Merged `origin/ui/combined-r7` (clean). The 20:45 sweep includes Continue 8 but not Continue 9 (f273b1fd1), so the "CNY" ledger amounts and the grey ticket thumbnails in `sheet-*.jpg` are still the pre-fix state. Confirmed in the sheets: d2-me stacks [开始探索] over [票夹][···] (en) and fits one row (zh); the ia-passport, e4-member and badge-wall titles/appearance are fixed. Screens checked: `docs/sweeps/latest/mp-mine/sheet-en.jpg`, `sheet-zh-Hans.jpg`, `en-e4-self-medals.jpg`.
+
+| Screenshot | MP / brief | Native file | Fixed now |
+|---|---|---|---|
+| `en-e4-self-medals.jpg`: name line reads "— City explorer" | MP `cy/profile` wxml:69 `<text wx:if="{{growthLevel > 0}}">Lv.{{growthLevel}} 城市探索者</text>`; no placeholders as data | `App/SocialPublicProfileView.swift` identity head | **Fixed.** The Lv line shows only for a known level > 0. |
+| `*-e4-self-medals.jpg`: "Looks like you're offline. Showing what's saved." banner on a normal profile | Sweep fixtures are online player screens | `App/ProfileSelfMedalsFixture.swift` | **Fixed.** The design fixture (`showsTestControls: false`) reads online; UI-test hosts keep the offline example. |
+| `*-e4-self-medals.jpg`: 帖文 empty reads 暂无动态。 / "No posts yet." | MP 推文 `cy-empty` copy 还没有帖文 | `App/ProfileAuthorPostsSection.swift` | **Fixed.** Uses the existing `club.tab.feed.empty` (还没有帖文 / No posts yet), identifier unchanged. |
+| same: a "Refresh posts" button row above the posts | MP refreshes by pull-down only | same | **Not done.** `profile.postsRefresh.refresh` is driven by `ProfileAuthorPostsRefreshFlowTests` (taps it twice); moving it to `.refreshable` needs that test rewritten with the pull gesture. |
+
+Still open for the owner: the en Me tab picker falls back to the menu ("Profile section · Projects") because four segments do not fit at 375 pt.
+
+Gates (this pass): generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.

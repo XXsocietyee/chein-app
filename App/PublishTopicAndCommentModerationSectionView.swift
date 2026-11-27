@@ -75,7 +75,7 @@ public struct PublishTopicModerationSnapshot: Sendable, Equatable {
         sectionTitle: String = "主题发布九宫格与评论审核治理看板 (w2-13 / Guideline 1.2)",
         specBadgeText: String = "w2-13 · UGC 1.2",
         nineGridMediaCount: Int = 9,
-        topicDetailEndpoint: String = "api/topic/detail",
+        topicDetailEndpoint: String = "api/topic/info-to-user",
         commentListEndpoint: String = "api/comment/list",
         ugcReportEndpoint: String = "api/community-trust/reports/submit",
         ugcBlockUserEndpoint: String = "api/ugc/block",

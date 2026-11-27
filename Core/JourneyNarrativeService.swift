@@ -34,18 +34,21 @@ public struct JourneyNarrativeService {
         var fields = scope.json; fields["nodeId"] = .int(nodeID); fields["questionId"] = .string(questionID)
         return try JourneyAskReceipt(await api.request("api/play/journey/ask", json: fields, capability: .journeyAsks, token: token), nodeID: nodeID, questionID: questionID)
     }
-    public func dialogue(scope: JourneyNarrativeScope, npcID: Int, utterance: String, routeActionID: String, token: String) async throws -> JourneyDialogueReceipt {
+    /// MP `cy-npc-chat` roam track: `POST /api/ai/npc/chat` `{requestId, bizId, message}` (the old
+    /// npc dialogue path is not served). The reply is the reviewed `safeText` for this request id only.
+    public func dialogue(scope: JourneyNarrativeScope, npcID: Int, utterance: String, routeActionID: String, token: String, requestID: UUID = UUID()) async throws -> JourneyDialogueReceipt {
         guard asksEnabled else { throw PlayExperienceError.disabled }
         let trimmed = utterance.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard npcID > 0, !trimmed.isEmpty, JourneyQuestion.validID(routeActionID) || routeActionID.count <= 64 && !routeActionID.isEmpty else {
+        guard npcID > 0, !trimmed.isEmpty, trimmed.unicodeScalars.count <= G6NPCChat.maxMessageCodePoints,
+              JourneyQuestion.validID(routeActionID) || routeActionID.count <= 64 && !routeActionID.isEmpty else {
             throw APIError.invalidRequest
         }
-        var fields = scope.json
-        fields["npcId"] = .int(npcID)
-        fields["utterance"] = .string(trimmed)
-        fields["routeActionId"] = .string(routeActionID)
+        let requestKey = requestID.uuidString.lowercased()
+        let bizID = scope.activityID > 0 ? scope.activityID : scope.topicID
+        let fields: [String: PlayWireValue] = ["requestId": .string(requestKey), "bizId": .int(bizID), "message": .string(trimmed)]
         return try JourneyDialogueReceipt(
-            await api.request("api/ai/npc/dialogue", json: fields, capability: .journeyAsks, token: token),
+            chat: await api.request("api/ai/npc/chat", json: fields, capability: .journeyAsks, token: token),
+            requestID: requestKey,
             npcID: npcID,
             routeActionID: routeActionID
         )

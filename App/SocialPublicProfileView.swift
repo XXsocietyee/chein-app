@@ -131,10 +131,13 @@ import SwiftUI
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                 if let name = profile.nickname { Text(verbatim: name).font(.title2.bold()).accessibilityAddTraits(.isHeader).fixedSize(horizontal: false, vertical: true) }
                                 else { Text("square.unknownAuthor").font(.title2.bold()).accessibilityAddTraits(.isHeader).fixedSize(horizontal: false, vertical: true) }
-                                HStack(spacing: 6) {
-                                    Text(verbatim: profile.level.map { "Lv.\($0)" } ?? "—")
-                                    Text("member.card.levelTitle", tableName: "MemberProfile")
-                                }.cyText(.bodyCompact, monospacedDigit: true).foregroundStyle(.secondary).accessibilityElement(children: .combine)
+                                // MP cy/profile wxml:69 `wx:if="{{growthLevel > 0}}"`: no level line (never "— 城市探索者") until it is known.
+                                if let level = profile.level, level > 0 {
+                                    HStack(spacing: 6) {
+                                        Text(verbatim: "Lv.\(level)")
+                                        Text("member.card.levelTitle", tableName: "MemberProfile")
+                                    }.cyText(.bodyCompact, monospacedDigit: true).foregroundStyle(.secondary).accessibilityElement(children: .combine)
+                                }
                             }
                         }
                         if profile.id == memberID, reader.identity.accountID == memberID {

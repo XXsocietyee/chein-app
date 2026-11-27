@@ -282,7 +282,7 @@ struct PassMarketView: View {
         } label: {
             VStack(alignment: .leading, spacing: 2) {
                 Text("mp.pass.points").font(.subheadline).foregroundStyle(.secondary)
-                Text(verbatim: String(balance)).font(.largeTitle.weight(.semibold)).monospacedDigit()
+                Text(balance, format: .number).font(.largeTitle.weight(.semibold)).monospacedDigit()
                     .contentTransition(.numericText())
             }
         }

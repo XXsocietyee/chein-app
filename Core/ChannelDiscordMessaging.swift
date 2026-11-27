@@ -3031,8 +3031,7 @@ public enum ClubTabAndAdminParityCatalog {
             surfaceKey: "club.create_edit",
             miniProgramRoute: "pages/club/create/index",
             title: "创建与编辑俱乐部",
-            backendEndpoints: ["api/club/create"],
-            nativeOnlyEndpoints: ["api/club/update"]
+            backendEndpoints: ["api/club/create", "api/club/update-mine"]
         ),
         ClubAdminSurfaceContractStatus(
             surfaceKey: "club.roles",

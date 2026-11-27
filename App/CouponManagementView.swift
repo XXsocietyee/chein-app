@@ -74,7 +74,7 @@ import SwiftUI
                             .accessibilityElement(children: .combine)
                             .accessibilityIdentifier("couponManagement.summary")
                     }
-                    if model.working || model.core.loading { ProgressView().frame(maxWidth: .infinity) }
+                    if model.working || model.core.loading { CYLoadingState() }
                     // A failed read is an error notice above, not an empty list.
                     else if model.core.rows.isEmpty, model.core.issue == nil {
                         ContentUnavailableView("couponManagement.empty", systemImage: "tray")
