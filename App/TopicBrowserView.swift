@@ -33,7 +33,7 @@ struct TopicBrowserView: View {
                     Toggle("topic.recommended", isOn: $recommend)
                 }
                 if !reader.isConfigured { TopicIssueView(issue: .notConfigured) }
-                else if loadedKey != key { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("topic.loading")) }
+                else if loadedKey != key { ProgressView("topic.loading").frame(maxWidth: .infinity) }
                 else {
                     if let issue { TopicIssueView(issue: issue) { Task { await load(reset: pagination.rows.isEmpty) } } }
                     if pagination.rows.isEmpty && !loading && issue == nil { ContentUnavailableView { Label("topic.empty", systemImage: "map") }.accessibilityIdentifier("topic.empty") }
@@ -51,7 +51,7 @@ struct TopicBrowserView: View {
                         }.buttonStyle(QuestifyCardButtonStyle()).questifyHidesLinkIndicator().questifyCardListRow()
                         .accessibilityIdentifier("topic.row.\(item.id)")
                     }
-                    if loading { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("topic.loading")) }
+                    if loading { ProgressView("topic.loading").frame(maxWidth: .infinity) }
                     else if pagination.hasMore && issue == nil {
                         Button("topic.loadMore") { Task { await load(reset: false) } }
                             .accessibilityIdentifier("topic.loadMore")

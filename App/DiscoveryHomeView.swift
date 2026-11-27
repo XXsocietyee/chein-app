@@ -37,9 +37,8 @@ struct DiscoveryHomeView: View {
                         }
                         if home.isLoading {
                             Section {
-                                ProgressView()
+                                ProgressView("discovery.loading")
                                     .frame(maxWidth: .infinity)
-                                    .accessibilityLabel(Text("discovery.loading"))
                             }
                         }
                         if let value = home.value {
@@ -93,9 +92,8 @@ struct DiscoveryHomeView: View {
             }
         } else if banners.isLoading && banners.value == nil {
             Section {
-                ProgressView()
+                ProgressView("discovery.loading")
                     .frame(maxWidth: .infinity)
-                    .accessibilityLabel(Text("discovery.loading"))
             } header: {
                 Text("discovery.banners")
             }

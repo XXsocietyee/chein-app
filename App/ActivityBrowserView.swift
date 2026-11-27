@@ -25,7 +25,7 @@ private struct ActivityListDestination: Hashable { let id: Int }
                         Text(LocalizedStringKey(reader.activityListUnavailableMessageKey ?? "auth.notConfigured"))
                     }
                 } else if model.identity != identity || (model.isLoading && model.items.isEmpty) {
-                    ProgressView().accessibilityLabel(Text("activity.loading"))
+                    ProgressView("activity.loading")
                 } else if model.failed && model.items.isEmpty {
                     ContentUnavailableView {
                         Label { Text("activity.loadFailed").accessibilityIdentifier("activity.list.error") } icon: { Image(systemName: "wifi.exclamationmark") }
@@ -56,7 +56,7 @@ private struct ActivityListDestination: Hashable { let id: Int }
                                 loads.start { await model.load(reader: reader, reset: false, keyword: query) }
                             }.disabled(model.isLoading).accessibilityIdentifier("activity.list.loadMore")
                         }
-                        if model.isLoading { ProgressView().accessibilityLabel(Text("activity.loading")) }
+                        if model.isLoading { ProgressView("activity.loading") }
                     }
                     .listStyle(.insetGrouped)
                     .refreshable { await loads.run { await model.load(reader: reader, reset: true, keyword: query) } }
