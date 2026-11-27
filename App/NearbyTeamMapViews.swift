@@ -287,9 +287,11 @@ struct NearbyRecruitingSection: View {
             case .idle: EmptyView()
             case .loading: CYLoadingStateView(rows: 1, label: "nearby.w208.recruit.loading")
             case .failed:
-                CYPillButton("nearby.w208.recruit.failed", style: .secondary, action: retry).accessibilityIdentifier("nearby.w208.recruit.retry")
+                CYEmptyState(systemImage: "exclamationmark.triangle", "nearby.w208.issue.failed", messageIdentifier: "nearby.w208.recruit.failed",
+                             actionTitle: "action.retry", actionIdentifier: "nearby.w208.recruit.retry", kind: .failure, action: retry)
             case .noArea:
-                CYPillButton("nearby.w208.recruit.noArea", style: .secondary, action: retry).accessibilityIdentifier("nearby.w208.recruit.retry")
+                CYEmptyState(systemImage: "location.slash", "nearby.w208.recruit.noAreaTitle", messageIdentifier: "nearby.w208.recruit.noArea",
+                             actionTitle: "action.retry", actionIdentifier: "nearby.w208.recruit.retry", action: retry)
             case .loaded:
                 if teams.isEmpty { CYEmptyState(systemImage: "person.3", "nearby.w208.recruit.empty", messageIdentifier: "nearby.w208.recruit.empty") }
                 ForEach(teams) { team in row(team) }
