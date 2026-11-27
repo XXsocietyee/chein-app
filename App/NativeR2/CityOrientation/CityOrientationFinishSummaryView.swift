@@ -315,7 +315,7 @@ import MapKit
                     Text(verbatim: rank.map(String.init) ?? "—").monospacedDigit()
                 }
             }
-            .frame(width: 32, alignment: .leading)
+            .frame(minWidth: 32, alignment: .leading)
             if mine, name == nil {
                 Text("playx.leaderboard.me")
             } else if let name, !name.isEmpty {

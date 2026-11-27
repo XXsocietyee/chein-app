@@ -104,10 +104,6 @@ import SwiftUI
                             if let actions, actions.identity.accountID != nil {
                                 postActions(post, actions: actions)
                             }
-                            if post.memberID == 0 {
-                                Text(verbatim: "—").foregroundStyle(.secondary)
-                                    .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("square.author.unknown")
-                            }
                             // The MP detail has no 我的广场 list: the author deletes this post from the ⋯ menu (post-actions 删除).
                             if legacyDeleteFailed {
                                 Label("square.xcx.delete.failed", systemImage: "exclamationmark.triangle").foregroundStyle(.red)

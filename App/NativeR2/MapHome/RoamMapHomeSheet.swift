@@ -435,10 +435,8 @@ import QuestifyCore
     @ViewBuilder private var searchSections: some View {
         Section {
             if pins.isEmpty, model.searchPhase == .loading {
-                ForEach(0..<3, id: \.self) { _ in
-                    Label("nativeR2.mapHome.loading", systemImage: "mappin")
-                        .redacted(reason: .placeholder)
-                }
+                ProgressView { Text("nativeR2.mapHome.loading") }
+                    .frame(maxWidth: .infinity)
             } else if pins.isEmpty {
                 ContentUnavailableView.search(text: model.query)
             } else {

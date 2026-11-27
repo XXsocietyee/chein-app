@@ -294,7 +294,7 @@ import SwiftUI
                         // A1-05: MP 关于 › 加入时间; hidden when the server sent none.
                         if let joinDate = profile.joinDate {
                             Section {
-                                LabeledContent("profile.about.joinDate") { Text(verbatim: joinDate).monospacedDigit() }
+                                LabeledContent("profile.about.joinDate") { Text(verbatim: LocaleDisplay.civil(joinDate, locale: locale)).monospacedDigit() }
                                     .accessibilityIdentifier("profile.about.joinDate")
                             }
                         }

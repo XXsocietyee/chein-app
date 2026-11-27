@@ -1,7 +1,7 @@
 [
   {"key": "carousel.position %lld %lld", "en": "%lld of %lld", "zh-Hans": "第 %lld 个，共 %lld 个"},
   {"key": "carousel.scrub", "en": "Scrub cards", "zh-Hans": "切换卡片"},
-  {"key": "carousel.loading", "en": "Loading", "zh-Hans": "正在加载"},
+  {"key": "carousel.loading", "en": "Loading…", "zh-Hans": "正在加载…"},
   {"key": "carousel.empty", "en": "Nothing here yet", "zh-Hans": "这里还没有内容"},
   {"key": "carousel.error", "en": "Couldn't load this. Check your connection.", "zh-Hans": "加载失败，请检查网络"},
   {"key": "carousel.editorsPicks", "en": "Editor's picks, carousel", "zh-Hans": "编辑精选，轮播"},

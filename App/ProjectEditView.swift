@@ -1053,7 +1053,9 @@ import SwiftUI
             Text("mpPublish.topicDetail.story")
         }
         .disabled(!model.canEdit)
-        // MP topic-detail-sheet.wxml:218-262: 主题通关奖励 → 通关条件 → 发布到创意广场 → 归属俱乐部.
+        // MP topic-detail-sheet.wxml:213-214: 可玩时段 (no 归属俱乐部 only) → 开局前准备.
+        ProjectEditPlaySetupRows(model: model)
+        // MP topic-detail-sheet.wxml:215-262: 主题通关奖励 → 通关条件 → 发布到创意广场 → 归属俱乐部.
         PublishingTopicRewardsForm(rewards: model.rewards, fullEdit: model.fullEdit).id("project-issue-anchor-topicRewards")
         ProjectEditCompletionRulesForm(rules: model.completionRules, city: model.draft.product == .city, fullEdit: model.fullEdit, totalNodes: model.draft.chapters.reduce(0) { $0 + $1.nodes.count }).id("project-issue-anchor-completionRules")
         Section("projectEdit.visibility") {
