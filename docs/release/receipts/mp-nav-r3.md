@@ -90,7 +90,7 @@ Since links / notifications land as a push on 首页 (`HomeLanding`), a page's "
 | pages/play/circle/index (missing topicId) → 返回首页 | circle/index.js:84 `reLaunch /pages/index/index` | only `dismissNativeEntry()`: dead | `leaveForTab(.home)`: pops back to the 首页 root | fixed |
 | pages/square/list/index → toolbar 关闭 | navigateTo page, system back | a 关闭 in `.cancellationAction` that only cleared the (already cleared) entry sheet | no 关闭 (`onClose: nil`, `SessionSquareBrowserView.onClose` is optional now); pushed page keeps system back like every L2 page | fixed |
 | pages/square/list/index → 登录 | goes to sign-in | `onSignIn: {}` (dead) | `signIn()` = clear entry + 我的 tab, same as the other landed pages | fixed |
-| pages/coop/list/index → 关闭 | — | same dead 关闭 | coop is hidden in Release (Lane G, `PlayerLaunch.isHidden`) and owned by mp-activity; left | n/a |
+| pages/coop/list/index → 关闭 (link, and the coop subscribe-message tap `.coopList`) | navigateTo page, system back | same dead 关闭 (MPReviewedPageScreen + SubscribeMessageTapScreens.swift:21) | `onClose: nil`: system back on the push; list content unchanged (mp-activity owns it) | fixed |
 
 ## Route coverage
 

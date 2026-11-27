@@ -587,7 +587,8 @@ import SwiftUI
         case "pages/coop/list/index":
             // MC8-30-1: `topicId` seeds the topic filter; `scope=MERCHANT` is forwarded as the operation scope.
             let listLink = CoopListLink(query)
-            CooperationBrowserView(reader: session.cooperationReader, onClose: { session.dismissNativeEntry() },
+            // mp-nav r3: pushed (link landing on 首页 or an in-app push): system back instead of a dead 关闭.
+            CooperationBrowserView(reader: session.cooperationReader, onClose: nil,
                                    peerReader: session.cooperationFlowReader,
                                    operationScope: listLink.merchantScope ? "MERCHANT" : nil,
                                    initialDirection: listLink.tab == "sent" ? .sent : .received,
