@@ -192,3 +192,17 @@ Not changed, needs a look: the d2-me tab picker shows the menu fallback ("Profil
 ### For other lanes
 - mp-club: `d4-badges`, `d4-stamps` quitting at launch is likely the same cause: check those hosts for a view with `@EnvironmentObject AppSession` and no injection.
 - ds-consistency: `DesignFixtureRegistry.wrapPlayer` (t5 fixtures) still forces `.dark`, and `wrapMerchant` forces `.light`.
+
+## Continue 7 (hourly re-arm, sweep 18:54 UTC build 1300a48db)
+
+Merged `origin/ui/combined-r7` (clean). The 18:54 sweep was built before Continue 6 landed (9ae58daa8 is not in 1300a48db), so the d2-me truncation (en "Star…" and now also zh "开…"), "Points —", "Relationship ? —", "— Friends" and the centred club-host row in `sheet-en.jpg` / `sheet-zh-Hans.jpg` are the pre-fix state; they need the next sweep to confirm. New this pass, from the same sheets:
+
+| Screenshot | MP / brief | Native file | Fixed now |
+|---|---|---|---|
+| `zh-Hans-ia-passport.jpg`: badge rail reads "Night Owl / First Roam / Market" in the Chinese UI; the page renders dark while d2-me is light; inline title on a tab root | Fixture data in the launch language (16:53 sweep rule for e5b); fixtures follow the system appearance (18:15); tab root = large top-left title (OWNER RULE 2) | `App/DesignFixtures/IAFixtures.swift`, `App/DesignFixtures/DesignFixtureRegistry.swift` | **Fixed.** New `iaFixtureText(en, zh)` (same rule as e5b `tt`) for the ia-passport / ia-passport-ax5 badge names (夜猫子 / 第一次漫游 / 菜场常客); `.preferredColorScheme(.dark)` removed; the title goes through the shared `.cyRootHeader(.mine, titleKey: "tabBar.passport")` (large, the typography lint's tab-root rule). |
+| `zh-Hans-e4-tickets.jpg`: card date reads raw `2030-04-20` | MP `subpackageMember/signup/index.js` writes dates as「M月D日」, never the raw server string | `App/TicketWalletView.swift` `TicketWalletRow.participateDateText` | **Fixed.** A `yyyy-MM-dd…` participate date is read as a Beijing calendar day and shown with `Date.FormatStyle(date: .abbreviated)` in the user's locale (2030年4月20日 / Apr 20, 2030); anything else stays as sent. The ticket titles ("Sample exploration ticket") are Core synthetic server data and stay. |
+
+Gates (this pass): generate_project no change, check_scaffold run, a11y lint PASS 0 new, contract ratchet 52 failing / baseline 52 / **new 0**, design consistency PASS, typography lint PASS.
+
+### For other lanes
+- ds-consistency / fixture owners: `tools/check_design_fixture_release_exclusion.py` already fails on `origin/ui/combined-r7` (audit list is missing `CityDiceFixture`, `CityFixtureMonopoly`, `CityKit*`, `D2MeFixture`, `E3PressStyle`, `FixR3PlayRoamBFixtures`, `R3InPlaceKitFixture`, `R4*`). Not changed here; `D2MeFixture` is the only mp-mine one, left so the audit list is updated in one place.
