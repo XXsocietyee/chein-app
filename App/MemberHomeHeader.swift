@@ -509,6 +509,7 @@ import SwiftUI
 /// 加入时间 — from the identity card's own `/api/user/info` read (no second request). Nothing until that read is ready.
 @MainActor struct MemberAboutSection: View {
     let snapshot: MemberIdentitySnapshot?
+    @Environment(\.locale) private var locale
     var onEdit: (() -> Void)? = nil
     var body: some View {
         if let snapshot {
@@ -534,7 +535,7 @@ import SwiftUI
             }
             if let joinDate = snapshot.joinDate, !joinDate.isEmpty {
                 Section {
-                    LabeledContent("profile.about.joinDate") { Text(verbatim: joinDate).monospacedDigit() }
+                    LabeledContent("profile.about.joinDate") { Text(verbatim: LocaleDisplay.civil(joinDate, locale: locale)).monospacedDigit() }
                         .accessibilityIdentifier("member.about.joinDate")
                 }
             }

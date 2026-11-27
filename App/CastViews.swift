@@ -397,6 +397,8 @@ public struct CastRosterButton: View {
 /// P3 mount: route detail 「人物」 row. Empty cast draws nothing.
 public struct TopicCastRow: View {
     public let config: CastConfig
+    /// 72 pt column at the default size, wider with Dynamic Type so names are not cut short at AX sizes (the rail scrolls).
+    @ScaledMetric(relativeTo: .footnote) private var columnWidth: CGFloat = 72
     public init(config: CastConfig) { self.config = config }
     public var body: some View {
         if !config.cast.isEmpty {
@@ -412,7 +414,7 @@ public struct TopicCastRow: View {
                                     Text(verbatim: lead).font(.caption).foregroundStyle(.secondary).lineLimit(2).multilineTextAlignment(.center)
                                 }
                             }
-                            .frame(width: 72)
+                            .frame(width: columnWidth)
                             .accessibilityElement(children: .combine)
                         }
                     }

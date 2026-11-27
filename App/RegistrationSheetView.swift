@@ -1449,6 +1449,10 @@ private struct RegistrationPlayerSheetHeader: ViewModifier {
             .foregroundStyle(palette.textPrimary)
             .accessibilityAddTraits(.isHeader)
             .fixedSize()
+            // A bar title: capped like the system inline title so it cannot push the close button off screen at AX sizes;
+            // the Large Content Viewer shows it full size.
+            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+            .accessibilityShowsLargeContentViewer()
     }
 }
 
