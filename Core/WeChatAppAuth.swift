@@ -109,6 +109,9 @@ public final class WeChatAppAuthCoordinator {
     public var onChange: (() -> Void)?
     public var isWorking: Bool { phase == .authorizing || phase == .exchanging }
     public var canStart: Bool { !isWorking && phase != .signedIn && gate().permitsAuthorization && context().permitsLogin && adapter != nil && service != nil }
+    /// The channel exists in this build (gate open, SDK and exchange wired). When false the login screen hides the row:
+    /// players never see an unavailable sign-in method (round 3 sweep 19:15, OWNER RULE 2: no dead controls).
+    public var isOffered: Bool { gate().permitsAuthorization && adapter != nil && service != nil }
     private let adapter: (any WeChatAppAuthorizing)?
     private let service: (any WeChatAppExchanging)?
     private let gate: () -> WeChatAppAuthGate
