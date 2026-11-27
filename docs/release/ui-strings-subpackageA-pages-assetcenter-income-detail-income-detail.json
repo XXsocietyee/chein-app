@@ -12,7 +12,7 @@
     {"key": "wallet.earnings.tab.income", "en": "Income", "zh-Hans": "收入"},
     {"key": "wallet.earnings.tab.organizer", "en": "Organizer share", "zh-Hans": "主办分润"},
     {"key": "wallet.income.empty", "en": "No earnings records yet", "zh-Hans": "还没有收益记录"},
-    {"key": "wallet.loading", "en": "Loading", "zh-Hans": "加载中"},
+    {"key": "wallet.loading", "en": "Loading…", "zh-Hans": "加载中…"},
     {"key": "wallet.failed", "en": "Couldn't load. Nothing was changed.", "zh-Hans": "没加载出来，记录未被更改"},
     {"key": "wallet.login", "en": "Sign in to view this information", "zh-Hans": "登录后可查看"},
     {"key": "wallet.retry", "en": "Try again", "zh-Hans": "重试"},

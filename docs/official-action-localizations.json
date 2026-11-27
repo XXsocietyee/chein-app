@@ -230,13 +230,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Working"
+            "value": "Working…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "处理中"
+            "value": "处理中…"
           }
         }
       }

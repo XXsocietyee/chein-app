@@ -154,7 +154,7 @@ import SwiftUI
                     if paying {
                         HStack(spacing: CYSpacing.sm) {
                             ProgressView()
-                            Text(verbatim: copy.t("处理中", "processing"))
+                            Text(verbatim: copy.t("处理中…", "Processing…"))
                         }
                     } else {
                         Text(verbatim: copy.t("立即购买", "Buy now"))
