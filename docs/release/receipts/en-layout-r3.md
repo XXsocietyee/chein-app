@@ -119,6 +119,15 @@ Merged `origin/ui/combined-r7` (clean). Sweep is still build 405948d58 (same as 
 |---|---|---|---|---|
 | 46 | Me 关于 tab join date → `MemberHomeHeader.swift` `MemberAboutSection`; public profile About → `SocialPublicProfileView.swift:297`; Me 项目 project start → `ProfileSelfProjectsSection.swift`; withdrawal history row + detail → `WithdrawalHistoryView.swift`; pass market order rows + pass order paid time → `PassMarketViews.swift` (`PassMarketView`, `PassOrderDetailView`); roam stamp detail date → `RoamStampViews.swift` `RoamStampCard`; stamp capture left-at → `NativeR2/FreeExplore/NativeStampCaptureView.swift`; monthly recap occurred-at → `RoamMonthlyRecapDetailView.swift` | English showed raw server text "2026-10-01 14:30:00" / "2026-10-01" | `LocaleDisplay.civil(_, locale:)` (same helper as rows 14/23/37): English "Oct 1, 2026 at 2:30 PM"; Chinese and unparsable text unchanged (MP parity). Text only, no layout/order change | Done |
 
+### Run 11 (2026-11-27, half-hourly)
+
+Merged `origin/ui/combined-r7` (clean). Sweep build 8fa84e4d3 (22:11Z) en: `mp-club/en-d4-tab-posts.jpg` shows the post action bar as one icon row at 375 pt (row 41 confirmed); `en-d4-enroll` "1 group", `en-d4-channel-chat` "Nov 7, 09:00", `en-d4-members` "Joined Feb 3" good.
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 47 | `pages/club/*` feed repost line → `ClubCommunityViews.swift` `ClubCommunityFeedView` (repost time); club calendar sessions (start / end / updated) → `ClubCalendarSessionRows.swift` `ClubCalendarSessionsView` | English showed raw server text "2026-10-01 14:30:00" | `LocaleDisplay.civil(_, locale:)` (same helper as rows 14/23/37/46); Chinese unchanged. Text only | Done |
+| 48 | `SupportTicketReadView`, `CityTaskHistoryView` | Checked: raw timestamps next to raw ids / enum values (`sender_type`, `event_type`, board/season ids) | Diagnostic/record surfaces with ISO instants, not MP player pages; left as sent. No change | Checked |
+
 ## Not done
 
 | Item | Why |
@@ -127,7 +136,7 @@ Merged `origin/ui/combined-r7` (clean). Sweep is still build 405948d58 (same as 
 
 
 ## Next pages (no row yet)
-Re-check rows 23, 37–41, 46 in the next sweep. Still raw (not changed, host/merchant or diagnostic surfaces): `SupportTicketReadView`, `ClubCalendarSessionRows:86`, `ClubCommunityViews:637` repost time, `CityTaskHistoryView:40` (no locale env yet — next run) once this branch is integrated; then publish (`pages/template/*`, no en sheet in the sweep yet: work from code) and nav English sheets.
+Re-check rows 23, 37–41, 46 in the next sweep. Then publish (`pages/template/*`, no en sheet in the sweep yet: work from code) and nav English sheets.
 
 ## For other lanes
 - mp-mine: balance ledger shows "¥" while the Me balance tile shows "CN¥" in English (row 44); public profile role line "— City explorer" shows a dash placeholder (`en-e4-member`).
