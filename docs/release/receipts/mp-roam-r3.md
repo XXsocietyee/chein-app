@@ -136,9 +136,22 @@ Base re-merged with `origin/ui/combined-r7` (xcstrings: both sides' keys kept, o
 | MP page / scene | Native view | Differences | Status |
 |---|---|---|---|
 | `pages/roam/index` intro tickets (`introCards`: 开始漫游 / 打开地图·寻找组队 / 我的队伍, `introTeamsLive`) | `NativeR2/MapHome/RoamMapHomeSheet.swift` `roamSection` | MP has three tickets; native had four rows: an extra native 找队伍 row (narrowed the map/list to teams, with a count) before 打开地图·寻找组队, and the NO.02 row had no live line. | **Fixed:** the 找队伍 row and its 全部 return row are removed; NO.02 = 打开地图 with sub 寻找组队 (`roam.w208.intro.map` / `.sub`, same keys as the legacy tickets) → `subpackageRoam/nearby` push, plus `附近 N 支队伍在组队` (`roam.w208.intro.live %lld`) only when the team read returned rows (MP: empty string hides it). Teams stay as map pins. No new strings. |
-| `pages/roam/index` entry-sheet `activity` (pin tap: cover · title · meta → 报名/查看 → attendees → 一起参加 · N 队正在招募 → 发起组队 → 现场动态) | map home `.event` push → event detail (`eventDestination`) | Native opens the full activity page (pushed in the panel) instead of the MP half-sheet summary. | Not done: compare the event page against these MP half-sheet sections (event page is mp-activity's area; roam side only needs the summary if sections are missing). |
+| `pages/roam/index` entry-sheet `activity` (pin tap: cover · title · meta → 报名/查看 → attendees → 一起参加 · N 队正在招募 → 发起组队 → 现场动态) | map home `.event` push → event detail (`eventDestination`) | Native opens the full activity page (pushed in the panel) instead of the MP half-sheet summary. | Done in continue (7): the pin opens the map-home card, now in MP entry-sheet order. |
 
 Gates: generate_project OK · check_scaffold PASS (20680 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0** (after rebasing onto the parallel run and re-merging the base).
+
+## Round 3 continue (7) — map-home activity card vs MP entry-sheet activity (pages/roam/index.wxml:26–47)
+
+Base re-merged with `origin/ui/combined-r7` (xcstrings: base values kept for shared keys, our new keys added).
+Sweep `docs/sweeps/latest/mp-roam` (build 070117595) was taken under load (coordinator note: ignore); d6-roam is a synthetic fixture.
+
+| MP page / scene | Native view | Differences | Status |
+|---|---|---|---|
+| `pages/roam/index` entry-sheet `activity` main view (pin tap: cover · title · meta → 去报名/查看详情 → N 人参加 → 一起参加 · N 队正在招募 → 发起组队 → 现场动态) | `NativeR2/MapHome/RoamMapHomePlaceCard.swift` (`.activity` pin; pushed in the map-home panel) | 1. No cover when the activity has none (MP uses the route illustration). 2. Registered + open showed 查看详情 as primary; MP shows no primary there and a 发起组队 row after the teams. 3. Participants sat inside the 时间 section. 4. Team header was a generic 队伍; rows showed only `n/max` without 队长审核 and the 申请加入 / 报名后申请 state; every row opened the team page (MP: canApply → team, else 去报名 → activity). 5. No 现场动态 section (Core dropped `postImages`). | **Fixed:** `RoamEntryCover` hero (route-city fallback); primary only when `primaryKey` exists; `N 人参加` row; header `一起参加 · N 队正在招募` (`roam.w208.entry.teams`), MP team rows (same keys as the legacy sheet) with MP targets; `发起组队` row (registered, not ended) → activity; 现场动态 section with up to 3 photos and the count, else 还没有现场动态. Core `RoamEntryActivity.postImageURLs` decodes MP `postImages || imageUrls || images` leniently; `liveMomentFeedState` resolves them (https only). The full event page itself stays mp-activity's. |
+
+New strings (en + zh-Hans, also `docs/port/strings/mp-r3-roam.json`): `roam.w208.entry.momentsTitle`, `roam.w208.entry.moments %lld`, `roam.w208.entry.noMoments`.
+
+Gates: generate_project OK · check_scaffold PASS (20692 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet GATE_RESULT.
 
 ## Not done / next
 
@@ -149,5 +162,4 @@ Gates: generate_project OK · check_scaffold PASS (20680 keys) · a11y lint 0 ne
 - P21 mini bar for a running roam: the live session is a full-screen cover owning its own controller (`makeRoamLiveSessionController()` per presentation); a cross-tab bar needs the controller lifted to the session and a root-tab accessory (nav lane) — compiled pass.
 - Topic half-screen on the live map (see continue (4) row): `RoamPlace` needs `topicId` / `productType` + a topic read.
 - Entry peek `.login` state (map home + legacy peek): MP 11-14 reads public nearby content as a guest and maps 401 to the cy-error retry, never a sign-in prompt. Native shows sign-in when `!isSignedIn && !allowsPublicEntry` (Core `RoamNearbyEventsEntryState`) and on 401; changing it touches Core tests and `RoamHomeTabsFlowTests` (`roam.home.peek.login`) — left for a compiled pass.
-- Map-home activity pin → full event page: compare it against the MP entry-sheet activity sections (see continue 6).
 - No Swift build ran here; integrator compiles.
