@@ -349797,6 +349797,23 @@
           }
         }
       }
+    },
+    "playx.board.loadingLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading the companions board…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载同行者榜…"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
