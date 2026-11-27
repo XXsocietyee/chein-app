@@ -38,7 +38,8 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/badges | `ClubBadgeManagementView.swift` | Matches: list, 全部勋章 · N 枚, create, grant picker, states. | Matches |
 | club/apply | `ClubGovernanceCommandForm` (hostApply) | Submit must read 成为俱乐部主理人 / 提交中… (wxml:164-165); native read 提交申请. | **Fixed** (existing keys `settings.becomeClubHost`, `gap.club.coopPool.submitting`) |
 | club/apply | same | Extra 上一步 button; extra required-fields footer; 状态 row on the done card; done-state loading/error + 可建俱乐部 row. | **Not done** (the done state is large) |
-| club/create | `ClubOperationsViews.swift` | Extra step checklist on the intro; media above the step header on step 3; extra 上一步; 返回上一页 missing on the no-permission, limit and check-failed states. | **Not done.** Step 3 order is large; the rest are small, next round |
+| club/create | `ClubOperationsViews.swift` | 返回上一页 was missing on the no-permission and limit states (wxml:23, 27). | **Fixed.** Secondary `Button("team.page.goBack") { dismiss() }` |
+| club/create | same | Extra step checklist on the intro; media above the step header on step 3; extra 上一步; 返回上一页 on the check-failed state. | **Not done.** Step 3 order is large; the rest are small, next round |
 | club/enroll | `ClubEnrollmentView.swift` | The stale inline error's action should read 重试更新 (wxml:20). | **Fixed** (`club.enroll.retryUpdate`, also added to `ClubEnrollmentLocalizations.fragment.json`) |
 | club/enroll | same | Extra escrow line (pinned by `test_club_member_pages`); the refresh row sits above the sub line; the summary is three rows instead of one line; the ticket count comes from the rows instead of `tk.signups`. | **Not done** |
 | club/checkin-detail | `ClubCheckinRailView` via `ClubGovernanceViews` | The server `errorText` should be the missing title / denied sub-line (wxml:13-16); native dropped it on the loaded path. | **Fixed.** `reason: failure?.message` |
@@ -92,3 +93,4 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 3. Club ops pages: MP wording and gates (join-requests, enroll, checkin-detail, group-code, settlement, apply).
 4. Roles, event-ops and join-requests MP states.
 5. This receipt.
+6. 创建俱乐部 no-permission / limit: 返回上一页.
