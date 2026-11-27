@@ -3,7 +3,7 @@
 Branch `mp/r3-home` from `origin/ui/combined-r7`. Brief: `design/handoff-r2:docs/briefs/round3-1127.md` (row `mp-home`), rules from `round2-1127.md`, principles `design-principles.md`.
 MP source: `origin/mp-source:chengyinhub-xcx` (snapshot of hengyin master 2026-11-24). Pages read: `pages/index/index.{wxml,js}`, `utils/index/{home-action-banner,feed-card}.js`, `pages/activity/list/index.wxml`, `subpackageMember/components/cy/scene-play-activity-detail/index.wxml` (what `pages/activity/detail` hosts), `pages/topic/index/index.wxml`.
 
-Gates (last run on the tip): `tools/generate_project.py` OK · `tools/check_scaffold.py` PASS · `tools/check_a11y_lint.py` PASS (0 new) · `tools/check_typography_lint.py` PASS · `tools/contract_ratchet.py --check` new 0 (re-arm run: the one new raw-colour hit, the avatar ring `Color(.systemBackground)`, fixed to `.background`). No Swift compiler here: edits mirror existing patterns; nothing deployed. Merchant features and the story-flow theme untouched.
+Gates (last run on the tip, r3 continue): `tools/generate_project.py` OK · `tools/check_scaffold.py` PASS · `tools/check_a11y_lint.py` PASS (0 new) · `tools/check_typography_lint.py` PASS · `tools/contract_ratchet.py --check` new 0 (re-arm run: the one new raw-colour hit, the avatar ring `Color(.systemBackground)`, fixed to `.background`). No Swift compiler here: edits mirror existing patterns; nothing deployed. Merchant features and the story-flow theme untouched.
 
 Strings: `docs/port/strings/mp-home-r3.json` (4 keys, en + zh-Hans) merged into `Resources/Localizable.xcstrings`: `homeFeed.type.orienteering` 城市定向 / City orienteering, `homeFeed.type.freeExplore` 自由探索 / Free exploration, `homeFeed.startingSoon` 即将开始 / Starting soon, `homeFeed.loadingMore` 正在加载更多 / Loading more…. (`homeIndex.logo` from the re-arm was removed again in round 3 continue — the logo bar item is gone.)
 
@@ -100,6 +100,9 @@ Merged `origin/ui/combined-r7` (fast-forward). The re-arm's transparent-bar trea
 
 MP content order under the title is unchanged: banner → greeting / 玩家 · city → location card → 编辑精选 → (我的地盘 owner rail) → 附近活动 → 即将上线 → 主题 / 活动 feed.
 
+### `d2-home` fixture = exactly the MP 首页 content (r3 continue)
+
+`App/HomeFeedFixtureSupport.swift` `HomeFeedFixtureHostView`: no continuation card (`fx-continue` removed), no Today seeding (`--design-today` plumbing and `HomeTodayFixtures.activityEvent` removed; `ticket` / `clubEvent` stay for the Today-card previews and wave fixtures), and the reader no longer serves synthetic `/banner` items to the hero fixture. `Tests/AppUITests/MotionTourTests.swift` tour 1 launches `d2-home` without `--design-today`.
+
 ## Not done / follow-ups
 - Needs a simulator pass: 4:3 banner card height under the large title on small phones (first rails should stay near the fold).
-- Fixtures that seed continuation/Today on `d2-home` still pass the inputs; they simply no longer render on 首页.
