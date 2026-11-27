@@ -89,8 +89,13 @@ import SwiftUI
         Group {
             switch kind {
             case .ballShake:
+                // MP `bl__hud`: the server kicker first, then the goal and the 限时 line; 这一站已跳过 when skipped.
+                if let line = segment["kicker"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !line.isEmpty {
+                    Text(verbatim: line).font(.headline).foregroundStyle(.primary)
+                }
                 Text("playkit.ball.kicker \(stage.ball.goal)")
                 if stage.ball.limitSeconds > 0 { Text("playkit.ball.limitLine \(decimal(stage.ball.limitSeconds))") }
+                if segment["skipped"].bool == true { Text("playkit.sensor.skipped") }
             case .quietHold: Text("playkit.quiet.kicker")
             case .shout: Text("playkit.shout.kicker")
             case .compass: Text("playkit.compass.kicker")

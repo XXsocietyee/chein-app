@@ -2199,5 +2199,22 @@
         }
       }
     }
+  },
+  "playkit.sensor.skipped": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This stop was skipped"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这一站已跳过"
+        }
+      }
+    }
   }
 }
