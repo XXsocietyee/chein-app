@@ -3538,7 +3538,7 @@ extension KeychainTokenStore: AppTokenStorage {}
                 && request.value(forHTTPHeaderField: "Authorization") == nil
             guard deployment.contentDetails == .activityAndTopic,
                   (guestRead || captured.isSignedInContentViewer), route.accepts(request) else { throw APIError.notConfigured }
-        } else if OfficialPublicEventReadRoute.accepts(request, baseURL: api.baseURL) {
+        } else if officialPublicEventReadSelection.ownsPublicRead(request, baseURL: api.baseURL, namespace: deployment.storageScope.service) {
             let selection = officialPublicEventReadSelection
             guard deployment.regional.market == .china, deployment.reads.contains(.officialPublicEventCatalogAndDetail),
                   captured.isPublicTemplateViewer, let source = selection.source,

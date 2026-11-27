@@ -87,6 +87,13 @@ public enum OfficialPublicEventReadRoute {
 }
 
 extension OfficialPublicEventReadSelection {
+    /// The composition's public-read branch. ROAM-r11-2 (e696328d5) made `active-for-roam` a public read too; without a
+    /// selected public source it stays on the reviewed player-grant route (PlayerGapService, MP utils/roam-official-active.js).
+    public func ownsPublicRead(_ request: URLRequest, baseURL: URL, namespace: String) -> Bool {
+        guard OfficialPublicEventReadRoute.accepts(request, baseURL: baseURL) else { return false }
+        return activeRevision(baseURL: baseURL, namespace: namespace) != nil
+            || request.url?.path != baseURL.appendingPathComponent("api/official/active-for-roam").path
+    }
     /// Early transport allow-list for the query form. Needs the reviewed grant AND a matching selected source; otherwise default deny.
     public func admitsEarly(_ request: URLRequest, baseURL: URL, namespace: String, granted: Bool) -> Bool {
         granted && activeRevision(baseURL: baseURL, namespace: namespace) != nil

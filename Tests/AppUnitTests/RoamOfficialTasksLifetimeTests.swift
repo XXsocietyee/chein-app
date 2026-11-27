@@ -235,7 +235,9 @@ import UIKit
     func events(city: String?) async throws -> [OfficialEvent] {
         XCTAssertNil(city); calls.append("all")
         if holdAll { return try await withCheckedThrowingContinuation { pendingAll.append($0) } }
-        return empty ? [] : [try Self.row(rowID)]
+        // ROAM-r11-2 (e696328d5): 我的 keeps only sign-ups inside the roam list (MP subpackageRoam/components/cy/
+        // scene-roam-task-list/index.js:51-53), so the list also carries the signed-up row (rowID + 10).
+        return empty ? [] : [try Self.row(rowID), try Self.row(rowID + 10)]
     }
     func myEvents() async throws -> [OfficialEvent] {
         calls.append("mine"); if let mineFailure { throw mineFailure }
