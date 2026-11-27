@@ -29,6 +29,8 @@ import QuestifyCore
     /// The run's own full-screen screen is up (roam live screen, city run, free explore map); the bar then hides.
     private(set) var roamScreenVisible = false
     private(set) var playScreenVisible = false
+    /// `PlayExperienceView` (the game host) is on screen; separate from the map flag its child run views toggle.
+    private(set) var playHostVisible = false
 
     private init() {}
 
@@ -43,7 +45,7 @@ import QuestifyCore
     var visibleEntry: Entry? {
         guard let entry = current else { return nil }
         if entry.kind == .roam && roamScreenVisible { return nil }
-        if entry.kind == .play && playScreenVisible { return nil }
+        if entry.kind == .play && (playScreenVisible || playHostVisible) { return nil }
         return entry
     }
 
@@ -65,6 +67,10 @@ import QuestifyCore
 
     func setPlayScreenVisible(_ visible: Bool) {
         if playScreenVisible != visible { playScreenVisible = visible }
+    }
+
+    func setPlayHostVisible(_ visible: Bool) {
+        if playHostVisible != visible { playHostVisible = visible }
     }
 }
 
@@ -315,6 +321,15 @@ struct ActiveSessionExpandedHUD: View {
         .onAppear {
             if reduceMotion { withAnimation(.easeInOut(duration: 0.2)) { shown = true } } else { shown = true }
         }
+    }
+}
+
+/// Marks the game host screen on screen, so the bar does not sit on top of the run it stands for.
+struct ActiveSessionPlayHostMarker: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .onAppear { ActiveSessionStore.shared.setPlayHostVisible(true) }
+            .onDisappear { ActiveSessionStore.shared.setPlayHostVisible(false) }
     }
 }
 

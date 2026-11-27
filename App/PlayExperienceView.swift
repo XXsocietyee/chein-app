@@ -261,6 +261,7 @@ struct PlayThemeMusicKey: Equatable {
         presentationLayer
         .modifier(PlayNightHintOverlay(receipt: model.reward))
         .modifier(PlayFlyScoreOverlay(receipt: model.reward))
+        .modifier(ActiveSessionPlayHostMarker())
         .onChange(of: model.snapshot?.result.topicID) { _, topicID in
             chapterFilter = nil
             presentTitleCardIfNeeded(topicID)
