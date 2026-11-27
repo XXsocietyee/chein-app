@@ -364,6 +364,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                 }
                 if case .received(let detail) = coordinator.readback(clubID: id), detail.id == id {
                     inlineJoin[id] = detail.isJoined ? .joined : detail.joinPending ? .pending : .notice("club.action.acknowledged")
+                    if detail.isJoined { MotionR2Checklist.shared.mark(.club) } // motion r2 R10
                     return
                 }
                 switch coordinator.state(clubID: id) {

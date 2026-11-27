@@ -48,9 +48,18 @@ import MapKit
         return items
     }
 
+    private var doneCount: Int {
+        guard let snapshot = model.snapshot else { return 0 }
+        return snapshot.visibleNodes.filter { snapshot.isDone($0) }.count
+    }
+    private var totalCount: Int { model.snapshot?.visibleNodes.count ?? 0 }
+
     var body: some View {
         NavigationStack {
             List {
+                // Motion r2 R8/R11/R12: mood hero + completion flame at the finish line.
+                MotionR2FinishHeroSection(walkedMeters: walkedMeters, elapsedSeconds: model.clock.elapsedSeconds,
+                                          doneCount: doneCount, total: totalCount)
                 if !subtitle.isEmpty {
                     Section { Text(verbatim: subtitle).foregroundStyle(.secondary) }
                 }
@@ -119,6 +128,7 @@ import MapKit
             }
         }
         .accessibilityIdentifier("medalScreen")
+        .motionR2EdgeGlowOnAppear()
         .task { await reveal() }
     }
 
@@ -191,6 +201,7 @@ import MapKit
                     rankRow(rank: row.rank, name: row.name, score: row.score, mine: row.id == board.me.id)
                 }
             }
+            .motionR2RankMoves(board.entries.map(\.id))
             .accessibilityIdentifier("nativeR2.city.finish.board")
         } else {
             Section {
@@ -212,7 +223,14 @@ import MapKit
 
     private func rankRow(rank: Int?, name: String?, score: Int, mine: Bool) -> some View {
         HStack {
-            Text(verbatim: rank.map(String.init) ?? "—").monospacedDigit().frame(width: 32, alignment: .leading)
+            Group {
+                if NativeR2Flags.motion2 {
+                    MotionR2RankText(rank: rank) // R14
+                } else {
+                    Text(verbatim: rank.map(String.init) ?? "—").monospacedDigit()
+                }
+            }
+            .frame(width: 32, alignment: .leading)
             if mine, name == nil {
                 Text("playx.leaderboard.me")
             } else if let name, !name.isEmpty {

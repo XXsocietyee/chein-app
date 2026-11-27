@@ -817,8 +817,13 @@ struct SessionRootView: View {
 
 
     /// iOS 17 fallback label: the same title key and SF Symbol as the iOS 18 `Tab`.
-    private func rootTabLabel(_ tab: RootTab) -> some View {
-        Label(LocalizedStringKey(tab.playerTitleKey), systemImage: tab.nativeSystemImage)
+    @ViewBuilder private func rootTabLabel(_ tab: RootTab) -> some View {
+        if NativeR2Flags.motion2TabBounce {
+            // Motion r2 R5 (sub-flag, default off until a simulator check): the symbol bounces when selected.
+            MotionR2TabLabel(titleKey: tab.playerTitleKey, systemImage: tab.nativeSystemImage, selected: selectedTab == tab)
+        } else {
+            Label(LocalizedStringKey(tab.playerTitleKey), systemImage: tab.nativeSystemImage)
+        }
     }
 }
 

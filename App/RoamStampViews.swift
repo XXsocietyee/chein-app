@@ -540,6 +540,7 @@ private struct RoamStampImage: View {
                             .accessibilityLabel(Text("roam.experience.sampleArt"))
                     } else if allowsRemoteImages && (readOnlyScope?.allowsRemoteImages ?? true) {
                         RoamStampImage(source: stamp.picUrl)
+                            .motionR2Tilt() // motion r2 R13: the stamp turns with the phone
                     } else {
                         Label("roam.experience.imageUnavailable", systemImage: "photo")
                     }

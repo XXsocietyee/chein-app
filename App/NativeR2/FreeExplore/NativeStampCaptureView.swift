@@ -79,6 +79,7 @@ import UIKit
         }
         // P-072: a created stamp is the seal's bounce in the form plus one arrival island (was a particle burst).
         .onChange(of: createdStampID) { _, id in if let id { announceCreatedStamp(id) } }
+        .onChange(of: createdStampID) { _, id in if id != nil { MotionR2Checklist.shared.mark(.stamp) } } // motion r2 R10
         .onAppear {
             coordinator?.changed = { revision += 1 }
             // SCAM-2: the MP page opens the viewfinder on arrival.
@@ -130,6 +131,10 @@ import UIKit
                         Label("scan.stamp.created", systemImage: "checkmark.seal.fill")
                             .foregroundStyle(.green)
                             .nativeR2BounceOnAppear()
+                        if NativeR2Flags.motion2 {
+                            // Motion r2 R1: the stamp presses onto the album page, the outline draws under it.
+                            MotionR2StampPress(imageData: coordinator.selection?.jpeg)
+                        }
                     }
                 } footer: {
                     if !pageContract.showsCreate {
@@ -204,6 +209,10 @@ import UIKit
         switch exchangePhase {
         case .done(let receipt):
             let slip = RoamStampSlip(receipt)
+            if slip.got, NativeR2Flags.motion2 {
+                // Motion r2 R6: a stamp received in exchange arrives as a gift box with stickers.
+                Section { MotionR2GiftBox(label: "motion2.gift.stamp") }
+            }
             if slip.got {
                 if let picture = slip.pictureURL, let url = NativeStampAlbumTile.safeURL(picture) {
                     Section {

@@ -337,6 +337,8 @@ extension PlayKitScreen {
             .accessibilityIdentifier("playkit.scratchCard.surface")
         }
         .sensoryFeedback(.success, trigger: isRevealed) { old, next in !old && next }
+        // Motion r2 R3: a selection tick per quarter scratched.
+        .sensoryFeedback(.selection, trigger: Int(tracker.progress * 4)) { old, next in NativeR2Flags.motion2 && next > old }
         .onChange(of: publishKey, initial: true) { _, _ in publish(primaryAction) }
     }
 
@@ -353,6 +355,7 @@ extension PlayKitScreen {
                 PlayKitArtwork(source: url, approvedHosts: approvedHosts)
             }
         }
+        .motionR2HoloSheen(active: isRevealed, cornerRadius: 12) // motion r2 R2: the prize shines once revealed
         .accessibilityHidden(!isRevealed)
     }
 
