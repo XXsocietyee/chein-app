@@ -344324,6 +344324,23 @@
           }
         }
       }
+    },
+    "club.gov.casesAppeal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ban appeal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "封禁申诉"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
