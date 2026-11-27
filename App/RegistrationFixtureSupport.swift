@@ -129,7 +129,7 @@ private final class RegistrationFixtureModel: ObservableObject {
         let openPrice = tt("Pay-on-site ticket", "现场定价票")
         let free = tt("Free ticket", "免费票")
         activity = try? JSONDecoder().decode(ActivityDetail.self, from: Data("""
-        {"id":9400,"name":"\(activityName)","startDate":"2026-10-12","endDate":"2026-10-12",\(scenario == .alreadyRegistered ? "\"isSignUp\":1," : "")
+        {"id":9400,"name":"\(activityName)","startDate":"2026-10-12 19:00:00","endDate":"2026-10-12 21:00:00",\(scenario == .alreadyRegistered ? "\"isSignUp\":1," : "")
          "addressName":"\(venue)","omsTicketList":[
          {"id":9401,"name":"\(standard)","price":12.5,"remainingInventory":\(scenario == .soldOut || scenario.isWaitlist ? 0 : 4),"startTime":\(scenario == .signupClosed ? "\"2020-01-01 00:00:00\"" : "null")\(scenario == .alreadyRegistered ? ",\"meetingPoint\":\"\(gathering)\"" : "")},
          {"id":9402,"name":"\(openPrice)","price":null,"remainingInventory":null},

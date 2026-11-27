@@ -702,9 +702,7 @@ struct RegistrationSheetView: View {
                     focusedField = nil
                     showingParticipantSheet = true
                 } label: {
-                    Text(verbatim: PlayCloseCopy.text("选择参与人信息", "Select participant sheet", locale))
-                        .cyText(.caption, weight: .semibold)
-                        .foregroundStyle(CYColor.brandStrong)
+                    Text(verbatim: PlayCloseCopy.text("选择参与人信息", "Choose a saved participant…", locale))
                 }
                 .disabled(!flow.canEdit)
                 .accessibilityIdentifier("registration.form.openParticipantSheet")
@@ -801,9 +799,7 @@ struct RegistrationSheetView: View {
                     focusedField = nil
                     showingTicketSheet = true
                 } label: {
-                    Text(verbatim: PlayCloseCopy.text("选择票种", "Choose ticket sheet", locale))
-                        .cyText(.caption, weight: .semibold)
-                        .foregroundStyle(CYColor.brandStrong)
+                    Text(verbatim: PlayCloseCopy.text("选择票种", "Choose a ticket…", locale))
                 }
                 .disabled(!flow.canEdit)
                 .accessibilityIdentifier("registration.form.openTicketSheet")
