@@ -124,6 +124,9 @@ import SwiftUI
             if kind == .stopwatch {
                 // MP playkit-stopwatch intro `sw__eyebrow`: server `kicker`, default 精准停表.
                 Text(verbatim: stopwatchEyebrow).accessibilityIdentifier("nativeGames.stopwatch.eyebrow")
+            } else if kind == .reaction {
+                // MP playkit-reaction `rx__k`: server `kicker`, default 变绿就点.
+                Text(verbatim: reactionKicker).accessibilityIdentifier("nativeGames.reaction.kicker")
             }
         } footer: {
             if kind == .stopwatch || kind == .reaction {
@@ -259,6 +262,18 @@ import SwiftUI
                 if reaction.phase == .early {
                     Label("playkit.reaction.early", systemImage: "hare").foregroundStyle(.orange)
                 }
+                if reaction.phase == .betweenRounds, let last = reaction.roundsMilliseconds.last {
+                    // MP between rounds: the round's figure (毫秒) over 「N/M 轮」; the next round starts from the bottom bar.
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(verbatim: PlayTimedDisplayLocalization.milliseconds(last, locale: locale))
+                            .cyText(.pageTitle, weight: .semibold, monospacedDigit: true)
+                        Text("playkit.reaction.roundDone \(reaction.roundsMilliseconds.count) \(reaction.rounds)")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("nativeGames.reaction.lastRound")
+                }
             }
         }
         if !reaction.roundsMilliseconds.isEmpty {
@@ -273,10 +288,12 @@ import SwiftUI
             }
         }
         if reaction.phase == .measured, !reaction.roundsMilliseconds.isEmpty {
-            let avg = reaction.roundsMilliseconds.reduce(0, +) / reaction.roundsMilliseconds.count
+            // MP `bestOf` / `passed`: the fastest round is the result (「N 轮里最快的一次」), pass = fastest ≤ goalMs.
+            let best = reaction.roundsMilliseconds.min() ?? 0
             let goal = segment["goalMs"].integer.flatMap { $0 > 0 ? $0 : nil }
-            resultSection(outcome: goal.map { avg <= $0 }, value: PlayTimedDisplayLocalization.milliseconds(avg, locale: locale),
-                          target: goal.map { PlayTimedDisplayLocalization.milliseconds($0, locale: locale) }, delta: nil)
+            resultSection(outcome: goal.map { best <= $0 }, value: PlayTimedDisplayLocalization.milliseconds(best, locale: locale),
+                          target: goal.map { PlayTimedDisplayLocalization.milliseconds($0, locale: locale) }, delta: nil,
+                          caption: appLocalized("playkit.reaction.bestOf \(reaction.roundsMilliseconds.count)", locale: locale))
                 .sensoryFeedback(.success, trigger: reaction.phase == .measured) { _, now in now }
         }
     }
@@ -306,7 +323,7 @@ import SwiftUI
     }
 
     /// Local pre-review readout only; the server still grades. Unknown tolerance claims no verdict.
-    private func resultSection(outcome: Bool?, value: String, target: String?, delta: String?) -> some View {
+    private func resultSection(outcome: Bool?, value: String, target: String?, delta: String?, caption: String? = nil) -> some View {
         Section {
             Label {
                 Text(verbatim: outcome == true ? ChannelCopy.text("正中目标", "Right on target", locale: locale)
@@ -317,6 +334,9 @@ import SwiftUI
             }
             .foregroundStyle(outcome == true ? Color.green : outcome == false ? Color.orange : Color.secondary)
             Text(verbatim: value).cyText(.pageTitle, weight: .semibold, monospacedDigit: true)
+            if let caption {
+                Text(verbatim: caption).font(.footnote).foregroundStyle(.secondary)
+            }
             if let target {
                 LabeledContent { Text(verbatim: target).monospacedDigit() } label: { Text("playkit.challenge.target") }
             }
@@ -404,6 +424,10 @@ import SwiftUI
     private var countdownKicker: String {
         let text = segment["kicker"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         return text.isEmpty ? ChannelCopy.text("倒计时", "Countdown", locale: locale) : text
+    }
+    private var reactionKicker: String {
+        let text = segment["kicker"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return text.isEmpty ? appLocalized("playkit.reaction.kicker", locale: locale) : text
     }
     private var stopwatchEyebrow: String {
         let text = segment["kicker"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""

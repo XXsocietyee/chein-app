@@ -1570,5 +1570,56 @@
         }
       }
     }
+  },
+  "playkit.reaction.kicker": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Tap on green"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "变绿就点"
+        }
+      }
+    }
+  },
+  "playkit.reaction.roundDone %lld %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Round %1$lld of %2$lld"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%1$lld/%2$lld 轮"
+        }
+      }
+    }
+  },
+  "playkit.reaction.bestOf %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Fastest of %lld rounds"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%lld 轮里最快的一次"
+        }
+      }
+    }
   }
 }
