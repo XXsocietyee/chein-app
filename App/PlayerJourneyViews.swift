@@ -579,15 +579,9 @@ private struct ParticipationCoverPlaceholder: View {
                         }
                     }
                 }
-                Section {
-                    NavigationLink { OrderLifecycleView(id: id, coordinator: lifecycle).id(lifecycle.scope) } label: {
-                        Label(detail.sourceCanCancel() ? "playerJourney.cancellation" : "playerJourney.orderProgress", systemImage: "list.bullet.rectangle")
-                    }.accessibilityIdentifier("playerJourney.orderLifecycle")
-                    if detail.showsContactService() {
-                        NavigationLink { ParticipationSupportView() } label: {
-                            Label("participationSupport.title", systemImage: "message")
-                        }.accessibilityIdentifier("playerJourney.support")
-                    }
+                // mp-mine r3: MP `cyinfobottom` holds 取消参与 and 联系客服, so they live in the bottom bar; 订单进度 (app-only) stays a row.
+                if !detail.sourceCanCancel() {
+                    Section { lifecycleLink(detail) }
                 }
             }
         }.cyGroupedSurface().cyPageTitle("playerJourney.detail")
@@ -606,6 +600,10 @@ private struct ParticipationCoverPlaceholder: View {
                         }
                     }
                     .buttonStyle(.cyPrimary).controlSize(.large).frame(maxWidth: .infinity)
+                    // MP footer order: 开始游戏 → 取消参与 (canCancel) → 去修改 → 联系客服 (showContactService).
+                    if detail.sourceCanCancel() {
+                        lifecycleLink(detail).buttonStyle(.cySecondary(fullWidth: true))
+                    }
                     if detail.needsModification {
                         if PlayerLaunch.merchantCenterEnabled { // Lane G: merchant apply editor hidden in Release
                             Button("participation.editMerchantApply") {
@@ -615,6 +613,13 @@ private struct ParticipationCoverPlaceholder: View {
                             .buttonStyle(.cySecondary(fullWidth: true))
                             .accessibilityIdentifier("playerJourney.modify")
                         }
+                    }
+                    if detail.showsContactService() {
+                        NavigationLink { ParticipationSupportView() } label: {
+                            Label("participationSupport.title", systemImage: "message")
+                        }
+                        .buttonStyle(.cySecondary(fullWidth: true))
+                        .accessibilityIdentifier("playerJourney.support")
                     }
                 }
                 .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.sm)
@@ -641,6 +646,12 @@ private struct ParticipationCoverPlaceholder: View {
         }
         .refreshable { await load() }
         .onDisappear { generation = UUID() }
+    }
+    /// 取消参与 (bottom bar) or 订单进度 (row); both open the reviewed order lifecycle page.
+    private func lifecycleLink(_ detail: ParticipationDetail) -> some View {
+        NavigationLink { OrderLifecycleView(id: id, coordinator: lifecycle).id(lifecycle.scope) } label: {
+            Label(detail.sourceCanCancel() ? "playerJourney.cancellation" : "playerJourney.orderProgress", systemImage: "list.bullet.rectangle")
+        }.accessibilityIdentifier("playerJourney.orderLifecycle")
     }
     private func load() async {
         let request = UUID(); generation = request; let scope = reader.scope

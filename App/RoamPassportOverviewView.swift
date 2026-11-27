@@ -42,7 +42,7 @@ import SwiftUI
         Section("roam.passport.title") {
             switch phase {
             case .unloaded:
-                CYSkeleton().accessibilityLabel(Text("roam.loading")).accessibilityIdentifier("roam.passport.loading")
+                CYSkeleton(label: "roam.loading").accessibilityIdentifier("roam.passport.loading")
             case .failed(let error):
                 RoamExperienceIssue(error: error, retry: retry)
                     .accessibilityIdentifier("roam.passport.error")

@@ -1440,6 +1440,22 @@
           }
         }
       }
+    },
+    "a11y.locateHint": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在聊天中显示这条消息"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shows this message in the chat."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

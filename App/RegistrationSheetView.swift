@@ -113,7 +113,7 @@ struct RegistrationSheetView: View {
                                 CYPillButton("registration.waitlist.readRetainedOrder", style: .secondary) { Task { await flow.readDurableStatus() } }
                                     .disabled(flow.isReadingStatus)
                             }
-                            if flow.isReadingStatus { CYLoadingStateView(rows: 1).accessibilityLabel(Text("registration.form.readingStatus")) }
+                            if flow.isReadingStatus { CYLoadingStateView(rows: 1, label: "registration.form.readingStatus") }
                             if flow.durableStatusFailed {
                                 Text("registration.form.statusUnavailable")
                                     .accessibilityIdentifier("registration.recovered.statusUnavailable")
@@ -687,7 +687,7 @@ struct RegistrationSheetView: View {
             if participantReader?.isConfigured == false {
                 Text("auth.notConfigured")
             } else if flow.participantsState == .loading {
-                CYLoadingStateView(rows: 1).accessibilityLabel(Text("registration.form.loadingParticipants"))
+                CYLoadingStateView(rows: 1, label: "registration.form.loadingParticipants")
             } else if flow.participantsState == .unavailable {
                 Text("registration.form.participantReadFailed").foregroundStyle(.secondary)
                 CYPillButton("registration.form.reloadParticipants", style: .secondary) { Task { await flow.loadParticipants() } }
@@ -867,7 +867,7 @@ struct RegistrationSheetView: View {
                 if !flow.waitlistAvailable {
                     Text("registration.waitlist.disabled").foregroundStyle(.secondary)
                 } else {
-                    if flow.isReadingWaitlist || flow.isMutatingWaitlist { CYLoadingStateView(rows: 1).accessibilityLabel(Text("registration.waitlist.loading")) }
+                    if flow.isReadingWaitlist || flow.isMutatingWaitlist { CYLoadingStateView(rows: 1, label: "registration.waitlist.loading") }
                     if flow.waitlistOutcomeUnknown { Text("registration.waitlist.unknown").foregroundStyle(.secondary) }
                     if let status = flow.waitlistStatus {
                         Text(LocalizedStringKey("registration.waitlist.state." + status.state.rawValue))
@@ -946,7 +946,7 @@ struct RegistrationSheetView: View {
             if !flow.quoteEnabled {
                 Text("registration.form.quoteDisabled").foregroundStyle(.secondary)
             } else if flow.isQuoting {
-                CYLoadingStateView(rows: 1).accessibilityLabel(Text("registration.form.quoting")).accessibilityIdentifier("registration.form.quoting")
+                CYLoadingStateView(rows: 1, label: "registration.form.quoting").accessibilityIdentifier("registration.form.quoting")
             } else {
                 switch flow.quoteState {
                 case .received(let quote):
@@ -1068,7 +1068,7 @@ struct RegistrationSheetView: View {
                     CYPillButton("registration.waitlist.recordConsent", style: .secondary) { Task { await flow.recordSignupConsent() } }
                         .disabled(!flow.canEdit || !flow.consented)
                         .accessibilityIdentifier("registration.waitlist.recordConsent")
-                    if flow.isRecordingConsent { CYLoadingStateView(rows: 1).accessibilityLabel(Text("registration.waitlist.recordingConsent")) }
+                    if flow.isRecordingConsent { CYLoadingStateView(rows: 1, label: "registration.waitlist.recordingConsent") }
                     if flow.block == .missingConsent { Text("registration.waitlist.consentUnknown").foregroundStyle(.secondary) }
                 }
             } else {
@@ -1163,7 +1163,7 @@ private struct RegistrationOperationSections: View {
                 }
             }
         case .submitting:
-            Section { CYLoadingStateView(rows: 1).accessibilityLabel(Text("registration.form.creating")) }
+            Section { CYLoadingStateView(rows: 1, label: "registration.form.creating") }
         case .outcomeUnknown:
             Section("registration.form.outcomeUnknown") {
                 Text("registration.form.outcomeUnknownHint")
@@ -1239,7 +1239,7 @@ private struct RegistrationOperationSections: View {
         }
         switch flow.readbackState {
         case .idle: EmptyView()
-        case .loading: Section { CYLoadingStateView(rows: 1).accessibilityLabel(Text("registration.form.readingStatus")) }
+        case .loading: Section { CYLoadingStateView(rows: 1, label: "registration.form.readingStatus") }
         case .unavailable(_, let issue):
             Section {
                 Text("registration.form.statusUnavailable")
@@ -1300,7 +1300,7 @@ private struct RegistrationUncertainOrdersCheck: View {
         }.disabled(currentScope == nil || reading || evidence != nil).accessibilityIdentifier("registration.checkOrders")
         .onChange(of: currentScope) { _, _ in cache.clear() }
         .onDisappear { cache.clear() }
-        if reading { CYLoadingStateView(rows: 1).accessibilityLabel(Text("registration.form.readingStatus")) }
+        if reading { CYLoadingStateView(rows: 1, label: "registration.form.readingStatus") }
         if failed { Text("registration.w206.checkOrdersFailed").accessibilityIdentifier("registration.checkOrders.failed") }
         switch evidence {
         case .noMatchingOrder?:
