@@ -142,6 +142,20 @@ Merged `origin/ui/combined-r7` (fast-forward). No compiler/simulator here: edits
 | 16:37 / 16:53 `d2-search`: 类别 card renders as one tall narrow pill with an icon | Category capsule = `Label` in a `.bordered` capsule inside `TemplateChipFlow`; nothing pinned the label style or its width, so the row could collapse to the icon / a wrapped name. | **Fixed** — `App/GlobalSearchView.swift`: the capsule label is `.labelStyle(.titleAndIcon)`, `.lineLimit(1)`, `.fixedSize()` (icon + name on one line at natural width; the flow wraps whole capsules). Simulator check still needed. |
 | 16:37 `d2-search`: 推荐搜索 chips are Chinese in the English UI | `GlobalSearchRecommendedKeywords.china` are China-market search terms (they query Chinese content; the US market gets none via `keywords(for:)`). | **Not changed** — market data, not app copy (brief: "if they are server data, fine"). |
 
+## Round 3 continue (4) — hourly re-scan
+
+Merged `origin/ui/combined-r7` (fast-forward). Sweep `docs/sweeps/latest/mp-home/sheet-zh-Hans.jpg` (build 070117595) shows only the launch logo — coordinator 17:40 note: taken under archive load, not a regression; no launch-code change made from it.
+
+| MP page → native | MP sections | Difference | Status |
+|---|---|---|---|
+| `pages/index/index.wxml:44-63` city `cy-dropdown range="{{manualCityOptions}}"` → `App/HomeSearchTabParityViews.swift` `cityControl` | 20 cities `utils/index/home-city-location.js` CITY_OPTIONS (北京 … 合肥), no 全国 | Native menu = 全国 + 6 cities; its 全国 item was a dead tap (`selectHomeCity` returns on nationwide). | **Fixed** — menu lists the 20 MP cities in MP order (`HomeHeroCityNames.manualOptions`, 市 suffix dropped like the located label); 全国 item removed; English names for all 20 (`HomeHeroCityNames.english`, also accepts 北京市 spelling). Core `defaultSupportedCities` untouched. |
+| `onManualCityChange` → `homeCity.saveLastCity` → `App/SessionHomeFeedView.swift` | city survives relaunch | Native kept the pick in `@State` only. | **Fixed** — `@AppStorage("homeIndex.manualCity")`; still a local label, never `session.roamArea`. Pin in `test_fix_r8_mp_first_pc.py` updated with a one-line reason. |
+| `onTapHomeCity` (re-locate when the city came from location) | tap → `getHomeCityLocation({userInitiated})` | Native has no foreground city reverse-geocode path on 首页. | **Not done** — needs a location → city read (`/api/map/reverse-geocode`); listed below. |
+| `v3-locprompt` → `App/HomeCityLocationConsentCard.swift` | title 首页城市定位 · body · 暂不定位 / 同意定位 | — | ✓ matches (GroupBox, `.bordered` / `.borderedProminent`, `ViewThatFits`). |
+| `pages/search2/index` → `App/GlobalSearchView.swift` | field + 筛选 → 搜索历史 (清空) → 推荐搜索 → 类别 (loading / failed / hidden when none) → 在地图上找; 筛选 sheet 日期 / 价格 / 排序 / 重置 · 搜索 | — (submit button shown only with a keyword is the documented d2 choice) | ✓ order, copy (搜索历史 / 清空 / 推荐搜索 / 类别 / 在地图上找) and states match; swipe-to-delete a history row is the P18 addition. |
+| `pages/search2/result` → same view, results branch | scope tabs → skeleton / 没能完成搜索 + 重试 / 没有找到 / 重试本页 → list → 没有更多了 · 重新搜索 | — | ✓ (`globalSearch.failed`, `globalSearch.empty`, `searchMap.retryPage`, `searchMap.endOfResults`, `searchMap.refreshResults`). |
+| `pages/activity/official-*` | — | Owned and done by mp-activity (`mp-activity-r3.md` rows 13–16). | Skipped (other lane). |
+
 ## Not done / follow-ups
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
 - ~~活动列表 邀约 link hidden while loading / failed~~ — closed in continue 3.
@@ -149,3 +163,5 @@ Merged `origin/ui/combined-r7` (fast-forward). No compiler/simulator here: edits
 - Re-scan after the queue (r3 continue): home hero / rails / stream / consent card / activity list / activity detail / topic detail have no `.font(.system(size:))`, `.tracking`/`.kerning`, custom fonts or transparent-bar chrome; 编辑精选 footnote, per-rail 正在更新…, stream failed/empty/loading-more/no-more and 长期开放 all present.
 - Needs a simulator pass: `d2-home` first frame without the launch-screen fade (continue 3) and the 类别 capsules in en + zh-Hans.
 - Needs a simulator pass: 4:3 banner card height under the large title on small phones (first rails should stay near the fold).
+- 首页 city tap-to-relocate (MP `onTapHomeCity`): needs a foreground location → city read; the menu covers manual choice meanwhile.
+- Needs a simulator pass: 20-item city menu in en + zh-Hans.
