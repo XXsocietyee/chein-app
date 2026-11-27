@@ -322,3 +322,7 @@ Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design 
 
 ### For other lanes
 - i18n-r3: `check_l10n.py` fails on combined-r7 in `App/MPGap/AccountPublish/ProjectEditPlaySetupRows.swift`, `App/OfficialPrivateViews.swift`, `App/SquareDetailView.swift`.
+
+### Component coverage (Continue 14)
+
+Remaining `subpackageMember/components/cy/*` without a row were traced to their mounting pages: `team-report-sheet` (`pages/team/detail`, `subpackageRoam/nearby` → mp-activity / mp-roam), `scene-game-coupon-wallet` (`pages/play` → mp-journey), `npc-avatar` / `npc-chat` / `scene-route-content` / `scene-play-activity-detail` (journey), `scene-roam-poi-detail` (roam), `coop-invite-sheet` (coop → mp-activity), `merchant-correction-sheet` (merchant, gated), `scene-deep-link` (mp-nav). `dot-qr` is the 票夹 inline QR (`signup` row: NAT-12, not done on purpose) and `pass-object` is part of `pass-unlock` (gated). Every page in the mp-mine area now has a row; later runs re-check the sweep.
