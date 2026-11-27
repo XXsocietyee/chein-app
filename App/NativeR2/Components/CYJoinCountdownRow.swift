@@ -12,6 +12,7 @@ struct CYJoinCountdownRow: View {
     private let startedKey: LocalizedStringKey
     private let tint: Color
     private let onJoin: () -> Void
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     init(
         title: String,
@@ -34,9 +35,15 @@ struct CYJoinCountdownRow: View {
     }
 
     var body: some View {
-        HStack(spacing: CYSpacing.md) {
+        // Accessibility sizes: the Join button moves under the details (same order) so the title keeps the width.
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
+            : AnyLayout(HStackLayout(spacing: CYSpacing.md))
+        layout {
             details
-            Spacer(minLength: CYSpacing.sm)
+            if !dynamicTypeSize.isAccessibilitySize {
+                Spacer(minLength: CYSpacing.sm)
+            }
             trailing
         }
         .padding(.vertical, CYSpacing.sm)
@@ -53,7 +60,7 @@ struct CYJoinCountdownRow: View {
                 Text(verbatim: subtitle)
                     .cyText(.meta)
                     .foregroundStyle(CYColor.textTertiary)
-                    .lineLimit(1)
+                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
             }
         }
         .accessibilityElement(children: .combine)

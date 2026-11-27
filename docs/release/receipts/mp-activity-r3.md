@@ -88,6 +88,17 @@ Re-scan (sixth session): `d2-square` (Square feed) has no MP page in `pages/squa
 Strings: `mpr3.official.inbox.refreshing` + `mpr3.coop.nearby.{callOpened,callFailed}` (fragments `mp-activity-r3-official.json`, `mp-activity-r3-coop.json` merged with `tools/merge_localization_fragments.py`, en + zh-Hans).
 Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · contract_ratchet 52 / baseline 52 / **new 0** · design consistency PASS.
 
+## Round 3 continue (2026-11-27, eighth session — sweep 18:54 build 1300a48db)
+| MP page | Native view | MP sections (✓ present / added / reordered) | Optimizations |
+|---|---|---|---|
+| (fixture) `subpackagePass` market sheet | `App/DesignFixtures/DesignFixtureRegistry.swift` `T5PageFixtures` | screenshots `en-t5-pass-market` / `zh-Hans-t5-pass-market`: pass names, city and face text were Chinese in the English UI and 「¥19/mo」 in the Chinese UI. Fixture data now follows the UI language (`tt(en, zh)` as E5b fixtures) — Hangzhou Old Town 3-Walk Pass / West Lake Weekend Pass / Hangzhou / ¥19/月 | both languages read well |
+| `pages/activity/baoming/baoming` 参与人信息 (fixture) | `App/RegistrationFixtureSupport.swift` | screenshot `zh-Hans-t5-baoming`: saved participant read 「Fixture Default」 in the Chinese UI → 林佳 / Jamie Lin (guest 陈晓 / Alex Chen) | — |
+
+Sweep 18:54 still shows the pre-fix 合计 "—" bar and dark appearance on `t5-baoming` / `t5-pass-market`: both were fixed in the sixth session (`13aa04c35`, already in `ui/combined-r7`) after that build; recheck in the next sweep.
+Re-scan: `pages/coop/list/index` card lines (`.inv-terms` 对方已拒绝，可再邀其他商家。, 核销据点, contact, deposit strip, message, countdown) all present in `CoopListParitySections.swift` — no change. `subpackagePass` holds only `reveal` + `cy-frames` (rows above).
+
+**For other lanes:** `d2-square` (mp-home feed) shows Core synthetic data 「A synthetic city walk / 一次示例城市漫步」, 「Example walker」, 「Synthetic notice」 in both languages; `Core/SquareSyntheticFixtures.swift` is pinned by Core tests, so the d2 host (`App/SquareFixtureSupport.swift`) would need its own localized posts.
+
 ## Not done
 - Attendance (player): organizer 联系与签到配置 form (duty phones, window, public-confirm switch, scan, recovery 查询原结果 / 原请求重试 / 终止 / 确认归档) lives in `OfficialOrganizerConsoleView`, not in this section.
 - Square completion card: 探店 (`shopText`) has no backend field. Refused team reads have no server message in `TeamFailure`, so 邀请已失效 is the fixed fallback copy.
