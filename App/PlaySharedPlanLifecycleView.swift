@@ -66,7 +66,7 @@ import SwiftUI
                             }.modifier(SharedPlanSelectionMark(selected: selectedEnding == row.endingKey))
                         }.disabled(model.busy || model.pending != nil).accessibilityIdentifier("sharedPlan.row.\(row.endingKey)")
                     }
-                    if p.rows.isEmpty { Text("sharedPlan.empty") }
+                    if p.rows.isEmpty { ContentUnavailableView("sharedPlan.empty", systemImage: "flag.checkered") }
                 }
                 if let row = p.rows.first(where: { $0.endingKey == selectedEnding }) {
                     Section(row.title) {

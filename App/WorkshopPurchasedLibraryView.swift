@@ -41,7 +41,7 @@ struct WorkshopPurchasedAccountLink: View {
             switch browser.phase {
             case .idle, .loading: ProgressView().frame(maxWidth: .infinity).accessibilityLabel(purchasedText("loading"))
             case .notEnabled: PurchasedUnavailableView()
-            case .empty: purchasedText("empty")
+            case .empty: ContentUnavailableView { Label { purchasedText("empty") } icon: { Image(systemName: "bag") } }
             case .failed, .invalidated:
                 purchasedText(browser.phase == .invalidated ? "sessionChanged" : "failed")
                 if browser.phase != .invalidated { Button { if paymentsOpen { navigation.scheduleList(rendered) } } label: { purchasedText("retry") } }

@@ -109,7 +109,7 @@ struct PlaySessionView: View {
             if snapshot.availability != .registrationRequired {
                 Section("play.nodes") {
                     if snapshot.visibleNodes.isEmpty {
-                        Text(LocalizedStringKey(snapshot.result.nodes.isEmpty ? "play.empty.detail" : "play.nodes.hidden")).foregroundStyle(.secondary)
+                        ContentUnavailableView(LocalizedStringKey(snapshot.result.nodes.isEmpty ? "play.empty.detail" : "play.nodes.hidden"), systemImage: "mappin.slash")
                     }
                     ForEach(snapshot.visibleNodes) { node in
                         Button { selectedNodeID = node.id } label: {

@@ -673,7 +673,7 @@ struct PlayThemeMusicKey: Equatable {
                             ForEach(Array(ending.fragments.enumerated()), id: \.offset) { _, fragment in
                                 VStack(alignment: .leading) { Text(verbatim: fragment.name).cyText(.cardTitle); if let text = fragment.text, !text.isEmpty { Text(verbatim: text) } }
                             }
-                        } else { Text("playx.ending.empty").accessibilityIdentifier("playx.ending.empty") }
+                        } else { ContentUnavailableView("playx.ending.empty", systemImage: "book.closed").accessibilityIdentifier("playx.ending.empty") }
                     }
                     if let config = castModel?.config {
                         CastEndingSection(config: config, result: CastEndingResult(raw: model.castPayload))

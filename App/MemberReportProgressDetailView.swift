@@ -102,7 +102,7 @@ import SwiftUI
                         } header: { Text("u9cde.report.progress") }
                     } else {
                         Section {
-                            Text("u9cde.report.progressEmpty").foregroundStyle(.secondary)
+                            ContentUnavailableView("u9cde.report.progressEmpty", systemImage: "clock")
                                 .accessibilityIdentifier("report.timeline.empty")
                         } header: { Text("u9cde.report.progress") }
                     }
