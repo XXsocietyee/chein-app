@@ -677,7 +677,7 @@ import SwiftUI
         case "pages/square/list/index":
             // mp-nav r3: a link lands here as a push on 首页 (system back); no 关闭 that only cleared the old entry sheet,
             // and 登录 opens 我的 like the other landed pages (was a dead `{}`).
-            SessionSquareBrowserView(session: session, onClose: nil, onSignIn: { signIn() })
+            SessionSquareBrowserView(session: session, onClose: nil, onSignIn: { signIn() }, embedsNavigationStack: false)
         case "pages/shezhi/shezhi":
             // B-SZ-12: `?scene=` lands on the Settings row it names (MP shezhi.js:50, 231-244); unknown or
             // unavailable scenes open Settings itself.

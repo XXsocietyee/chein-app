@@ -139,6 +139,7 @@ Test: Tests/CoreTests/IMExpandedTests.swift `testSystemCardMiniProgramPagesOpen`
 | MP page / edge → native | finding | change | status |
 |---|---|---|---|
 | app.json tabBar roots → `ia-tabs` fixture (App/DesignFixtures/IAFixtures.swift, sheet-zh-Hans / sheet-en tile 2) | tab roots showed a centred 首页 / Home plus the debug line "Synthetic fixture" and no large title, so the sweep did not show the real root chrome | each fixture root uses `cyRootHeader(tab)` (large top-left title, OWNER RULE 2) over an empty scroll view with a tertiary tab symbol; debug copy removed | fixed |
+| pages/square/list/index landed from a link / notification (`HomeLanding.page` push on 首页) → App/SquareBrowserView.swift | the page owned `NavigationStack(path: [Int])`: pushed onto 首页's `[AppRoute]` stack it nested a second stack (double bar) and `NavigationLink(value: Int)` post rows had no matching destination in the outer path (dead taps) | `embedsNavigationStack` (default true for the 首页 ⋯ 动态 and 消息 sheets); MPReviewedPageScreen passes false. Post rows are view-destination `NavigationLink`s and governance `openPost` sets `navigationDestination(item:)`, so both work in either host. Sections / order unchanged | fixed |
 | `login-player`, `d2-inbox` tiles | still show 微信登录 / "Fixture conversation N": sweep build a250afd77 predates 81a815048 / 9723767a1 (not yet in `ui/combined-r7`) | — | OK (pending merge) |
 
 ## Route coverage
