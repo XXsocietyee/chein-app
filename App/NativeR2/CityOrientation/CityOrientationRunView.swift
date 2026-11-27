@@ -43,6 +43,8 @@ extension EnvironmentValues {
     @State private var detent: PresentationDetent = .height(120)
     /// P-053: the peek grows with Dynamic Type so the metrics row is never clipped at accessibility sizes.
     @ScaledMetric(relativeTo: .title2) private var peekHeight: CGFloat = 120
+    /// a11y-dt r3: teammate map marker grows with Dynamic Type, capped like Maps pins so it never covers the route.
+    @ScaledMetric(relativeTo: .caption) private var teammateMarkerSize: CGFloat = 28
     /// P-052: a tapped control-point marker opens its punch sheet.
     @State private var selectedStop: Int?
     /// Motion r1: the route and team trails draw on when the run map appears.
@@ -187,8 +189,10 @@ extension EnvironmentValues {
                     Annotation(team.name, coordinate: CLLocationCoordinate2D(latitude: last.latitude, longitude: last.longitude)) {
                         Text(verbatim: teammateInitial(team))
                             .font(.caption.bold())
-                            .frame(width: 28, height: 28)
-                            .background(Circle().fill(Color(uiColor: .tertiarySystemFill)))
+                            .minimumScaleFactor(0.6)
+                            .frame(width: min(teammateMarkerSize, 44), height: min(teammateMarkerSize, 44))
+                            .background(Circle().fill(.regularMaterial))
+                            .accessibilityLabel(Text(verbatim: team.name))
                             .accessibilityIdentifier("nativeR2.city.teammate.\(team.id)")
                     }
                 }

@@ -375,7 +375,8 @@ private struct TicketWalletRow: View {
                     coverIllustration
                 }
             }
-            .frame(width: thumb, height: thumb)
+            // a11y-dt r3: artwork capped at 96 pt (Music list rule) so the title keeps the row width at AX5.
+            .frame(width: min(thumb, 96), height: min(thumb, 96))
             .clipShape(.rect(cornerRadius: 8))
             .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
