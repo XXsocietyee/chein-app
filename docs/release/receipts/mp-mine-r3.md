@@ -276,6 +276,8 @@ Merged `origin/ui/combined-r7` (clean). The 21:09 sweep was built before Continu
 | same: rows read 订单 → 订单号 → 状态 → 金额 → 创建时间 | MP card: title → status → 金额 → 订单号 → 创建时间, then the 联系客服 button | same | **Fixed.** Rows in MP order; a 联系客服 row (`ParticipationSupportView`, the same support page the participation footer opens; id `orderCenter.support`) follows the card. No new strings. |
 | `en-d2-me.jpg`: 账户余额 reads CN¥0.00 | — | — | Kept: the app's i18n r1 rule names the currency outside Chinese (`CN¥`). |
 
+| `components/cy/ai-chat-records` (Settings → AI 对话记录) | option sheet 导出对话记录 / 清除对话记录 (danger); empty export toasts 还没有对话记录 | `App/NPCChatDataReadSettingsEntry.swift` | **Fixed** the empty-export toast (还没有对话记录 / No chat records yet). Kept the app-only 查看 option (data access) first. Not done: MP clear toast names the count (已清除 N 条对话 / 没有需要清除的对话); `clearNPCChatLogs` returns no count. |
+
 Every `subpackageMember` page now has a row; next runs re-scan the components (`ai-chat-records`, `scene-member-withdraw-history`, …).
 
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
