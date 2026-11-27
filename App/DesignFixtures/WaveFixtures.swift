@@ -8,7 +8,6 @@ struct WaveTodayFixture: View {
     enum Kind { case roam, ticket, club }
     let kind: Kind
     @State private var wave = CYPressWaveModel()
-    @State private var taps = 0
     @QuestifyReduceMotion private var reduceMotion
 
     private var choice: HomeTodayChoice {
@@ -22,7 +21,6 @@ struct WaveTodayFixture: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             HomeTodayCard(choice: choice, onTicket: {}, onClubEvent: {}, onStartRoam: {}, waveModel: wave)
-            Text(verbatim: "Synthetic tap × \(taps)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             Spacer(minLength: 0)
         }
         .padding(CYSpacing.pageHorizontal)
@@ -32,7 +30,6 @@ struct WaveTodayFixture: View {
         .task {
             try? await Task.sleep(for: .seconds(1))
             while !Task.isCancelled {
-                taps += 1
                 await wave.simulateTap(at: CGPoint(x: 280, y: 70), waveOn: cyLightAllowed(reduceMotion: reduceMotion), reduceMotion: reduceMotion)
                 try? await Task.sleep(for: .seconds(2.6))
             }

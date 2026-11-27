@@ -99,6 +99,14 @@ Re-scan: `pages/coop/list/index` card lines (`.inv-terms` 对方已拒绝，可�
 
 **For other lanes:** `d2-square` (mp-home feed) shows Core synthetic data 「A synthetic city walk / 一次示例城市漫步」, 「Example walker」, 「Synthetic notice」 in both languages; `Core/SquareSyntheticFixtures.swift` is pinned by Core tests, so the d2 host (`App/SquareFixtureSupport.swift`) would need its own localized posts.
 
+## Round 3 continue (2026-11-27, ninth session — sweep 19:36 build 3568fe51b, coordinator 19:50)
+| MP page | Native view | MP sections (✓ present / added / reordered) | Optimizations |
+|---|---|---|---|
+| `pages/activity/baoming/baoming` (wxml:329 `cy-btn disabled="{{!canPay}}"`) | `App/RegistrationSheetView.swift` checkout bar | screenshot `en-t5-baoming`: Register looked enabled while the footnote said "Tick the confirmation above to continue". Primary now `.disabled(blocked)` (system disabled look) and, as the MP label chain, reads 请先勾选信息共享同意 / 请选择参与人信息 / 报名已截止 while blocked; reason line stays below. Pin `test_review_presentation` updated (blocked = disabled, coordinator 19:50) | system disabled state; matches `testRegistrationProductionPolicyCannotCreate` (`isEnabled == false`) |
+| `pages/square/*` feed time (`formatTimeDifference`, card via `SquareXcxRelativeTime`) | `App/SquareXcxPostCard.swift` | screenshot `en-d2-square`: "330 d ago". Now 1–6 days → 3 days ago / 3天前 (en plural), ≥ 7 days → locale date (Oct 1 / 10月1日, year added outside the current year); hours → 2 hours ago (plural) | `Text(date, format:)` follows the environment locale |
+
+Strings: `mpr3.square.{ageDays,ageHours} %lld` (fragment `mp-activity-r3-square.json`, en plural + zh-Hans).
+
 ## Not done
 - Attendance (player): organizer 联系与签到配置 form (duty phones, window, public-confirm switch, scan, recovery 查询原结果 / 原请求重试 / 终止 / 确认归档) lives in `OfficialOrganizerConsoleView`, not in this section.
 - Square completion card: 探店 (`shopText`) has no backend field. Refused team reads have no server message in `TeamFailure`, so 邀请已失效 is the fixed fallback copy.

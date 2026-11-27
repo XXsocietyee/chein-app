@@ -47,7 +47,7 @@ import SwiftUI
         }
         .overlay {
             if loading {
-                ProgressView()
+                ProgressView { Text("cy.state.loading") }
                     .accessibilityIdentifier("clubOpsEvent.loading")
             } else if isDenied {
                 denied

@@ -89,6 +89,11 @@ final class ClubFixtureReader: ObservableObject, ClubReading {
     let governanceAccess = ClubGovernanceFixtureAccess()
     @Published private(set) var clubIdentity: ClubReadIdentity
     private let scenario: ClubFixtureScenario
+    /// mp-club r3 (19:50 sweep): design fixtures show club data in the UI language; UI tests keep the English pins.
+    var designCopy = false
+    private func dc(_ en: String, _ zh: String) -> String {
+        designCopy && Locale.preferredLanguages.first?.hasPrefix("zh") == true ? zh : en
+    }
     var isLocalityFixture: Bool {
         [.merchantLocality, .merchantLocalityRetry, .merchantLocalityUnknown, .merchantLocalityEmpty, .merchantLocalityDelayed].contains(scenario)
     }
@@ -224,9 +229,9 @@ final class ClubFixtureReader: ObservableObject, ClubReading {
         if scenario == .missingMembers { members = [] }
         else {
             members = try decode([
-                ["memberId": 701, "nickname": "Fixture creator", "role": 1, "isOwner": true,
+                ["memberId": 701, "nickname": dc("Fixture creator", "示例主理人"), "role": 1, "isOwner": true,
                  "levelId": 7, "joinTime": "2026-01-01 09:00:00"],
-                ["memberId": 703, "nickname": "Fixture administrator", "role": 1, "isOwner": false,
+                ["memberId": 703, "nickname": dc("Fixture administrator", "示例管理员"), "role": 1, "isOwner": false,
                  "levelId": 4, "joinTime": "2026-02-03 10:15:00"],
                 ["memberId": 704, "nickname": "", "role": 0, "isOwner": false,
                  "levelId": 0, "joinTime": "  "]
@@ -249,9 +254,9 @@ final class ClubFixtureReader: ObservableObject, ClubReading {
         let owned = id == 81 && !alternateAccount && [.owner, .retry, .missingMembers, .customerOwner, .customerDenied, .customerInvalidHistory].contains(scenario)
         let joined = id == 81 && !alternateAccount && (owned || [.member, .customerAdministrator].contains(scenario))
         return [
-            "id": id, "name": alternateAccount ? "Second account fixture club \(id)" : "Fixture club \(id)",
-            "description": "Offline sample club description.", "style": "An in-memory read-only example",
-            "city": "Fixture city", "leaderName": "Fixture creator", "clubType": "Fixture type",
+            "id": id, "name": alternateAccount ? "Second account fixture club \(id)" : dc("Fixture club \(id)", "示例俱乐部 \(id)"),
+            "description": dc("Offline sample club description.", "离线示例俱乐部简介。"), "style": dc("An in-memory read-only example", "本地只读示例"),
+            "city": dc("Fixture city", "示例城市"), "leaderName": dc("Fixture creator", "示例主理人"), "clubType": dc("Fixture type", "示例类型"),
             "memberCount": 3, "isOwner": owned, "isJoined": joined,
             "viewerIsAdmin": id == 81 && [.administrator, .customerAdministrator].contains(scenario) && !alternateAccount,
             "activityPrefs": "walking,photography", "myJoinStatus": joined ? 1 : 2,

@@ -95,10 +95,14 @@ import SwiftUI
                 CYLoadingState(messageIdentifier: "club.calendar.loading")
             }
             if let failure = model.failure {
-                Label { Text(LocalizedStringKey(failure.localizationKey)) } icon: { Image(systemName: "exclamationmark.triangle") }
-                    .foregroundStyle(.red)
-                    .accessibilityElement(children: .combine)
-                    .accessibilityIdentifier("club.calendar.error")
+                ContentUnavailableView {
+                    Label { Text(LocalizedStringKey(failure.localizationKey)) } icon: { Image(systemName: "exclamationmark.triangle") }
+                } actions: {
+                    Button { refresh() } label: { Text("action.retry") }
+                        .buttonStyle(.bordered)
+                        .disabled(model.loading)
+                }
+                .accessibilityIdentifier("club.calendar.error")
             }
             if let snapshot = accepted {
                 if calendarMode { calendar(snapshot) }

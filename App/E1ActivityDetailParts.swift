@@ -43,8 +43,12 @@ struct E1ActivityHero: View {
         Color.clear
             .aspectRatio(dynamicTypeSize.isAccessibilitySize ? 1.0 : 1.08, contentMode: .fit)
             .overlay {
-                E1CoverArt(seed: summary.name, symbol: ["figure.walk", "music.note", "camera", "leaf", "building.2", "moon.stars", "map"][abs(summary.id) % 7],
-                           imageURL: QuestifyCardArtwork.safeURL(summary.imageURL)?.absoluteString)
+                // mp-home r3 (MP index.wxml:13-14 `activity-hero__fallback`): no photo = the plain subtle surface, not generated art.
+                if let cover = QuestifyCardArtwork.safeURL(summary.imageURL) {
+                    E1CoverArt(seed: summary.name, symbol: "photo", imageURL: cover.absoluteString, debugLabel: false, symbolPoint: nil)
+                } else {
+                    palette.bgSurfaceSubtle
+                }
             }
             .overlay(alignment: .bottomLeading) {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
