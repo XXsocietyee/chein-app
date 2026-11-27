@@ -1127,6 +1127,8 @@ import SwiftUI
                 }
             }
             .id("project-issue-anchor-tickets")
+            // MP step3 RUN-52: 发布者实名 is the last section of 票务设置, only for a paid topic.
+            ProjectEditIdentitySection(model: model)
         }
         .modifier(ProjectEditIssueInitialScroll(anchor: anchor))
         .navigationTitle(Text("mpPublish.ticketSettings.title"))
