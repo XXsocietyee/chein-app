@@ -195,13 +195,14 @@ Base re-merged with `origin/ui/combined-r7` (xcstrings: base values kept, our 15
 
 Gates: generate_project OK · check_scaffold PASS (20731 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 
-## Round 3 continue (12) — C2 分享 sheet (pages/roam/index.wxml:996–1055)
+## Round 3 continue (12) — C2 分享 sheet (wxml:996–1055) + live 地标 · 地点卡 (wxml:387–425)
 
 Base re-merged with `origin/ui/combined-r7` (xcstrings conflict: both sides' keys kept).
 
 | MP page / scene | Native view | Differences | Status |
 |---|---|---|---|
 | `pages/roam/index` C2 分享 sheet (`roam-share`, 业主 P-8): title → one card (route map or 今日足迹 · stats 处到达 / km / 探索度 · watermark 城瘾 · date) → 4 底色 swatches → 谁能看到 公开 / 仅好友 / 仅自己 (real gate) → channels 微信好友 · 朋友圈 · 小红书 · 保存图片 · 发到广场 · 更多 | `App/RoamHistoryShareView.swift` (sheet from `RoamFinishReportView` + `RoamHistoryViews`) over the shared `CYShareComposer` | Card stats were 总距离 · 用时 · 探店 · 探索度 (two extra, 处到达 missing, MP order lost). Rest maps: card preview = export, tint swatches, 谁能看到 segmented gate before the channels, 朋友圈 / 小红书 album guides, 发到广场 only when community write is open and 公开, 更多 = system share sheet; 微信好友 has no native counterpart (system sheet covers it). Route sketch stays opt-in (privacy gate, native) where the MP draws the route by default. | **Fixed:** card stats are the MP three in MP order: 处到达 (`RoamHistoryRecord.footprintCount`, new key `roam.share.card.footprints` en "Places reached") → distance → 探索度. Composer template carousel / ratio / caption are the shared design-system composer (OWNER RULE 2), not touched. |
+| `pages/roam/index` 地标 · 地点卡 half-screen (`paceCard`, wxml:387–425): title → cover / gallery → 演示点 note → category · distance → address (tap = map) → body → reason → 资料来源 → place-note tags → 靠近后可确认地点 → 确认到点 / 已到达 → 开始挑战 → 导航 → 地点记忆 → error + 重试 | `RoamLiveSessionView` pin tap → 附近 list row (`nearbySection`) | Native pin tap only expanded the 附近 list; the tapped place's row showed name → merchant description → 确认到点, no cover, address or body. 地点记忆 is a separate section (`RoamPlaceMemorySection`), already present. | **Fixed:** the selected place's row (`selectedPlaceID`) now carries `RoamLivePlaceCardFacts` under the name in MP order: cover (safe https, 140 pt, ids `roam.live.place.cover`) → address (`roam.live.place.address`) → body (`place.description`, only when no merchant description, `roam.live.place.body`), then the existing arrival buttons. **Not done:** category · distance, reason / 资料来源 / place-note tags, 开始挑战 and 导航 on the live row (导航 needs the reviewed `externalMaps` model wired into the live session) — compiled pass. |
 
 Gates: generate_project OK · check_scaffold PASS (20764 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 

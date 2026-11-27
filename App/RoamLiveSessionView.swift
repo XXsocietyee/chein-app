@@ -832,6 +832,9 @@ import QuestifyCore
                     || owner.actionConfirmed(place, shop: false) || owner.actionConfirmed(place, shop: true) {
                     VStack(alignment: .leading, spacing: 8) {
                         RoamTitle(place.name).cyText(.cardTitle)
+                        if selectedPlaceID == place.id {
+                            RoamLivePlaceCardFacts(place: place, showsBody: owner.merchantDescription(for: place) == nil)
+                        }
                         if let text = owner.merchantDescription(for: place) {
                             RoamLiveMerchantDescriptionRow(text: text)
                         }
@@ -1145,6 +1148,36 @@ struct RoamFinishedStorySection: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("roam.live.finishedStory.text")
         } header: { Text("roam.live.story.title") }
+    }
+}
+
+/// mp-roam r3: MP 地标 · 地点卡 half-screen (pages/roam/index.wxml:387–425) opened by a pin tap. The native pin tap
+/// expands the 附近 list; the tapped place's row carries the MP card facts in MP order under its name:
+/// cover (`pc-cover`, safe https only) → address (`pc-body cy-addr-tap`) → body (`paceCard.body`).
+struct RoamLivePlaceCardFacts: View {
+    let place: RoamPlace
+    let showsBody: Bool
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if let cover = place.coverImage, QuestifyCardArtwork.safeURL(cover) != nil {
+                RoamEntryCover(source: cover)
+                    .frame(height: 140)
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                    .accessibilityHidden(true)
+                    .accessibilityIdentifier("roam.live.place.cover")
+            }
+            if let address = place.address?.trimmingCharacters(in: .whitespacesAndNewlines), !address.isEmpty {
+                Label { Text(verbatim: address) } icon: { Image(systemName: "mappin.and.ellipse") }
+                    .cyText(.meta).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("roam.live.place.address")
+            }
+            if showsBody, let text = place.description?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty {
+                Text(verbatim: text).cyText(.body)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("roam.live.place.body")
+            }
+        }
     }
 }
 
