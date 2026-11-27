@@ -329,7 +329,7 @@ import QuestifyCore
                     Picker(selection: $termsMode) {
                         Text("creatorEditor.terms.perk", tableName: "CreatorEditorUI").tag(TopicChapterSupplyTerms.Mode.perk)
                         Text("creatorEditor.terms.traffic", tableName: "CreatorEditorUI").tag(TopicChapterSupplyTerms.Mode.traffic)
-                    } label: { Text("creatorEditor.terms.mode", tableName: "CreatorEditorUI") }.pickerStyle(.segmented)
+                    } label: { Text("creatorEditor.terms.mode", tableName: "CreatorEditorUI") }.cyAdaptiveSegmented()
                     Stepper(value: $termsMax, in: 0...99) {
                         LabeledContent { Text(verbatim: String(termsMax)) } label: { Text("creatorEditor.terms.max", tableName: "CreatorEditorUI") }
                     }

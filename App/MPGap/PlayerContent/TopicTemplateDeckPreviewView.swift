@@ -69,7 +69,8 @@ public struct TopicTemplateDeckPreviewView: View {
         }
         .cyPageTitle("topicPreview.title")
         .safeAreaInset(edge: .bottom) {
-            HStack(spacing: CYSpacing.sm) {
+            // i18n r1: stacks the two actions when their English titles don't fit side by side.
+            CYAdaptiveButtonRow(spacing: CYSpacing.sm) {
                 Button(action: onViewDetail) {
                     Text("topicPreview.viewDetail").frame(maxWidth: .infinity)
                 }

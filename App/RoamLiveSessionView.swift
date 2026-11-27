@@ -590,7 +590,8 @@ import QuestifyCore
         // Design pass roam (P1/P2): one hero number (distance, rolling) and a quiet row for 用时 / 地盘 under it,
         // instead of three equal list rows. Same readings and identifiers as the MP pcard (用时 / 地盘 / 距离).
         Section {
-            RoamLiveHeroDistance(value: hudDistance, live: active)
+            // i18n r1 locale: miles in the US, km in CN (same unit key as before).
+            RoamLiveHeroDistance(value: hudDistance, unit: LocaleDisplay.usesMiles(locale) ? "unit.mile.abbr" : "roam.live.stat.distance", live: active)
                 .accessibilityIdentifier("roam.live.distance")
             TimelineView(.animation(minimumInterval: RoamLiveTick.interval(reduceMotion: reduceMotion), paused: owner.phase != .active || !owner.foreground)) { _ in
                 RoamLiveSecondaryStats(seconds: owner.record == nil ? nil : owner.localForegroundElapsedSeconds,
@@ -616,7 +617,7 @@ import QuestifyCore
     }
     private var hudDistance: String {
         guard let meters = owner.record?.distanceMeters, meters.isFinite, meters >= 0 else { return "—" }
-        return (meters / 1000).formatted(.number.precision(.fractionLength(1)))
+        return LocaleDisplay.roadNumber(kilometers: meters / 1000, locale: locale).formatted(.number.precision(.fractionLength(1)).locale(locale))
     }
     /// Bottom bar of the session sheet. Every button keeps its identifier and controller call (P-040: system buttons,
     /// a tap on 开始 instead of hold-to-start).
@@ -904,6 +905,7 @@ struct RoamLiveCoverageCopy {
 /// number large and monospaced with its unit on the baseline; it rolls as it grows (P2).
 struct RoamLiveHeroDistance: View {
     let value: String
+    var unit: LocalizedStringKey = "roam.live.stat.distance"
     var live: Bool = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var body: some View {
@@ -926,7 +928,7 @@ struct RoamLiveHeroDistance: View {
                     .animation(reduceMotion ? nil : .snappy, value: value)
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
-                Text("roam.live.stat.distance")
+                Text(unit)
                     .cyText(.label)
                     .foregroundStyle(.secondary)
             }
@@ -935,7 +937,7 @@ struct RoamLiveHeroDistance: View {
         .padding(.vertical, CYSpacing.xs)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("roam.live.hero.distance"))
-        .accessibilityValue(Text(verbatim: value + " ") + Text("roam.live.stat.distance"))
+        .accessibilityValue(Text(verbatim: value + " ") + Text(unit))
     }
 }
 

@@ -336,7 +336,7 @@ import WebKit
                     Text(String(localized: LocalizedStringResource("playx.externalGame.byUrl", defaultValue: "HTTPS Link", locale: locale))).tag("url")
                     Text(String(localized: LocalizedStringResource("playx.externalGame.byQr", defaultValue: "QR Code Content", locale: locale))).tag("qr")
                 }
-                .pickerStyle(.segmented)
+                .cyAdaptiveSegmented()
 
                 Section(mode == "url"
                     ? String(localized: LocalizedStringResource("playx.externalGame.urlSection", defaultValue: "Package HTTPS Address", locale: locale))

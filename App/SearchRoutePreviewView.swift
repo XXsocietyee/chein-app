@@ -48,14 +48,14 @@ import Observation
                         polyline: route.coordinates, offline: offline)
                     Text("searchMap.roadRoute").font(.headline).accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("searchMap.route.kind")
-                    LabeledContent("searchMap.distance") { Text(Measurement(value: route.distanceMeters, unit: UnitLength.meters), format: .measurement(width: .abbreviated)) }
+                    LabeledContent("searchMap.distance") { Text(Measurement(value: route.distanceMeters, unit: UnitLength.meters), format: .measurement(width: .abbreviated, usage: .road)) }
                     if let eta = route.etaSeconds { LabeledContent("searchMap.etaMinutes") { Text(max(1, (eta / 60).rounded()), format: .number.precision(.fractionLength(0))) } }
                     ForEach(Array(route.steps.enumerated()), id: \.offset) { index, step in
                         HStack(alignment: .top, spacing: 12) {
                             Text(verbatim: "\(index + 1)").font(.body).monospacedDigit().foregroundStyle(.tertiary)
                             Text(verbatim: step.instruction).font(.body).fixedSize(horizontal: false, vertical: true)
                             Spacer()
-                            Text(Measurement(value: step.distanceMeters, unit: UnitLength.meters), format: .measurement(width: .abbreviated))
+                            Text(Measurement(value: step.distanceMeters, unit: UnitLength.meters), format: .measurement(width: .abbreviated, usage: .road))
                                 .font(.body).monospacedDigit().foregroundStyle(.secondary)
                         }.accessibilityElement(children: .combine)
                     }

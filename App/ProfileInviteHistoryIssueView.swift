@@ -74,7 +74,8 @@ struct ProfileInviteLatestEarnCard: View {
                     if let nickname = member.nickname, !nickname.isEmpty { Text(verbatim: nickname + " · ") }
                     Text("social.invites.earned")
                 }
-                .font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
+                .font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
             }
             Spacer()
             if let time = reward.createdAt, !time.isEmpty {

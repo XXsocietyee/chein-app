@@ -84,6 +84,8 @@ struct RoamCityGuideCards: View {
     let strip: RoamCityGuideStrip
     let places: [RoamPlace]
     let onOpen: (RoamCityGuidePlace) -> Void
+    /// i18n r1: the card widens with Dynamic Type so the English category · reason line wraps, not clips.
+    @ScaledMetric(relativeTo: .subheadline) private var cardWidth: CGFloat = 240
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
@@ -101,7 +103,7 @@ struct RoamCityGuideCards: View {
                                 .frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                                 .accessibilityHidden(true)
                         }
-                        .frame(width: 240, alignment: .leading)
+                        .frame(width: cardWidth, alignment: .leading)
                         .padding(10)
                         .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                     }

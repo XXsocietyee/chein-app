@@ -27,7 +27,7 @@ struct MemberReportProgressTimeView: View {
                     guard let (original, intent) = rendered else { return }; original.changeFilter(value, intent: intent)
                 })) {
                     ForEach(MemberReportProgressFilter.allCases) { memberReportProgressText("report.filter.\($0.rawValue)").tag($0) }
-                } label: { memberReportProgressText("report.filter.title") }.pickerStyle(.segmented).disabled(flow.busy)
+                } label: { memberReportProgressText("report.filter.title") }.cyAdaptiveSegmented().disabled(flow.busy)
                 ForEach(flow.records) { record in
                     Button {
                         guard let (original, intent) = rendered, let selected = original.select(record, intent: intent) else { return }

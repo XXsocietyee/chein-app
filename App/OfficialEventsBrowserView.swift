@@ -41,7 +41,7 @@ import SwiftUI
                     } label: {
                         Text("official.filter")
                     }
-                    .pickerStyle(.segmented)
+                    .cyAdaptiveSegmented()
                     .accessibilityElement(children: .contain)
                     .accessibilityLabel(Text("official.filter"))
                     .accessibilityIdentifier("official.filter")

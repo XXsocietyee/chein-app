@@ -103,7 +103,7 @@ import SwiftUI
             Text(verbatim: "\(input.utf16.count) / \(fields["maxLength"]?.integer ?? 40)").font(.footnote).foregroundStyle(.secondary)
         case .check:
             Text(verbatim: text("skill"))
-            Picker("creator.selectSample", selection: $sampleIndex) { Text("creator.success").tag(0); Text("creator.failure").tag(1) }.pickerStyle(.segmented)
+            Picker("creator.selectSample", selection: $sampleIndex) { Text("creator.success").tag(0); Text("creator.failure").tag(1) }.cyAdaptiveSegmented()
             Text(verbatim: text(sampleIndex == 0 ? "successText" : "failText"))
         case .slowTask:
             Picker("creator.selectSample", selection: $sampleIndex) { Text("creator.start").tag(0); Text("creator.wait").tag(1); Text("creator.unlock").tag(2) }

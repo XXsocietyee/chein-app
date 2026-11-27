@@ -149,7 +149,7 @@ import QuestifyCore
                     Text(W8Text.t("优势", "Advantage")).tag(DiceCheckEngine.RollMode.advantage)
                     Text(W8Text.t("劣势", "Disadvantage")).tag(DiceCheckEngine.RollMode.disadvantage)
                 }
-                .pickerStyle(.segmented)
+                .cyAdaptiveSegmented()
                 .disabled(rolling)
 
                 Picker(W8Text.t("难度", "Difficulty"), selection: $tier) {

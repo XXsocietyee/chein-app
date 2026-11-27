@@ -53,7 +53,7 @@ import SwiftUI
                 Text("mp.feedback.category.question").tag(PostGameFeedbackCategory.question)
                 Text("mp.feedback.category.other").tag(PostGameFeedbackCategory.other)
             } label: { Text("mp.feedback.category") }
-            .pickerStyle(.segmented)
+            .cyAdaptiveSegmented()
             .disabled(locked)
             .accessibilityIdentifier("journeyFeedback.category")
         }

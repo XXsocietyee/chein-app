@@ -77,14 +77,17 @@ struct ClubMPEmptyState: View {
 enum ClubMoneyText {
     /// club-b round 2 name for the same two-decimal display.
     static func twoDecimals(_ raw: String) -> String { display(raw) }
-    static func display(_ raw: String) -> String {
+    /// i18n r1: the one-argument form follows the app language (`Locale.current`); Chinese output is unchanged.
+    static func display(_ raw: String) -> String { display(raw, locale: .current) }
+    static func display(_ raw: String, locale: Locale) -> String {
         var body = raw.trimmingCharacters(in: .whitespaces)
         var sign = ""
         if body.hasPrefix("-") || body.hasPrefix("+") { sign = String(body.removeFirst()) }
         var hadYuan = false
         if body.hasPrefix("¥") || body.hasPrefix("￥") { body.removeFirst(); hadYuan = true }
         guard body.range(of: #"^[0-9]+(?:\.[0-9]+)?$"#, options: .regularExpression) != nil else { return raw }
-        return sign + (hadYuan ? "¥" : "") + MoneyDisplay.text(body)
+        guard hadYuan, !LocaleDisplay.isChinese(locale) else { return sign + (hadYuan ? "¥" : "") + MoneyDisplay.text(body) }
+        return sign + LocaleDisplay.money(text: body, locale: locale)
     }
 
     /// Fact keys on the governance pages whose value is a money amount.

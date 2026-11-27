@@ -22,6 +22,7 @@ import SwiftUI
     }
 }
 @MainActor struct ProfileSelfGrowthSection: View {
+    @Environment(\.locale) private var locale
     @State private var scopedReader: ProfileSelfGrowthScopedReader
     private var reads: GrowthNormalReadTask { model.overviewReads }
     @StateObject private var model = GrowthCenterScreenModel<GrowthCenterOverview>()
@@ -50,7 +51,7 @@ import SwiftUI
                         if let issue = summary.centerIssue { GrowthCenterIssueView(issue: issue, retry: reload) }
                         GrowthCenterMetricRow("profile.selfGrowth.checkins") { GrowthCenterInteger(value: summary.checkins) }
                         GrowthCenterMetricRow("growth.mileage") {
-                            if let mileage = summary.mileage { HStack(spacing: 2) { Text(mileage, format: .number.precision(.fractionLength(0...1))); Text("roam.history.km") } }
+                            if let mileage = summary.mileage { HStack(spacing: 2) { Text(LocaleDisplay.roadNumber(kilometers: mileage, locale: locale), format: .number.precision(.fractionLength(0...1))); Text(LocalizedStringKey(LocaleDisplay.usesMiles(locale) ? "unit.mile.abbr" : "roam.history.km")) } }
                             else { Text("growth.unknown").accessibilityLabel(Text("growth.unknownValue")) }
                         }
                         GrowthCenterMetricRow("profile.selfGrowth.streak") { GrowthCenterInteger(value: summary.streakDays) }

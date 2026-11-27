@@ -38,7 +38,7 @@ import SwiftUI
         List {
             Section {
                 Picker("publishModes.type", selection: $type) { ForEach(Self.typeFilters, id: \.self) { Text(LocalizedStringKey("publishModes.filter." + $0)).tag($0) } }
-                    .pickerStyle(.segmented)
+                    .cyAdaptiveSegmented()
                 filterPicker("publishModes.state", selection: $state, options: Self.stateFilters)
                 filterPicker("publishModes.owner", selection: $owner, options: Self.ownerFilters)
             }.disabled(busy)

@@ -160,7 +160,9 @@ struct RoamFinishReport: Equatable {
         // Three columns, two rows; values shrink before they truncate (P12).
         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: CYSpacing.sm, alignment: .topLeading), count: 3),
                   alignment: .leading, spacing: CYSpacing.lg) {
-            cell(report.record?.distance.map { $0.formatted(.number.precision(.fractionLength(1))) }, "design.roam.km", id: "distance")
+            // i18n r1 locale: miles in the US, km in CN.
+            cell(report.record?.distance.map { LocaleDisplay.roadNumber(kilometers: $0, locale: locale).formatted(.number.precision(.fractionLength(1)).locale(locale)) },
+                 LocaleDisplay.usesMiles(locale) ? "unit.mile.abbr" : "design.roam.km", id: "distance")
             cell(report.record?.durationText, "roam.live.stat.time", id: "time")
             cell(report.explorePct.map { "\($0)%" }, "u10.roamFinish.explore", id: "explore")
             cell(report.stamps.map(String.init), "u10.roamFinish.stamps", id: "stamps")

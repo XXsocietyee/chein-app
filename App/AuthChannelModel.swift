@@ -8,6 +8,8 @@ final class AuthChannelModel: ObservableObject {
     @Published private(set) var isScheduled = false
     @Published var phone = ""
     @Published var code = ""
+    /// i18n r1: +86 / +1. China sends the bare 11 digits as before; the US sends E.164.
+    @Published var country: PhoneCountryCode = .china
     let coordinator: AuthChannelCoordinator
     private let presentation: AuthChannelPresentation
     private var task: Task<Void, Never>?
@@ -25,14 +27,14 @@ final class AuthChannelModel: ObservableObject {
     var canStart: Bool { coordinator.ownsPresentation(presentation) && !isScheduled && coordinator.canStart }
     func sendCode() {
         guard canStart, let intent = coordinator.captureIntent(for: .sendingSMS) else { return }
-        let value = phone
+        let value = country.wireValue(phone) ?? phone
         schedule { [coordinator] in
             await coordinator.sendSMSCode(phone: value, intent: intent)
         }
     }
     func signIn() {
         guard canStart, let intent = coordinator.captureIntent(for: .phoneLogin) else { return }
-        let phoneValue = phone, codeValue = code
+        let phoneValue = country.wireValue(phone) ?? phone, codeValue = code
         code = ""
         schedule { [coordinator] in
             await coordinator.loginWithPhone(phone: phoneValue, code: codeValue, intent: intent)

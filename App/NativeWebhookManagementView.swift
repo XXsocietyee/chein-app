@@ -16,7 +16,7 @@ import SwiftUI
                         Text(nativeWebhookLocalized("d7.webhook.family.outgoing")).tag(NativeWebhookFamily.subscription)
                         Text(nativeWebhookLocalized("d7.webhook.family.incoming")).tag(NativeWebhookFamily.endpoint)
                     }
-                    .pickerStyle(.segmented).disabled(model.coordinator?.busy == true)
+                    .cyAdaptiveSegmented().disabled(model.coordinator?.busy == true)
                     .accessibilityIdentifier("webhook.family")
                 }
                 NativeWebhookStatusSection(model: model)

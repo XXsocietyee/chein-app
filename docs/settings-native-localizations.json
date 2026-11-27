@@ -171,7 +171,7 @@
   },
   {
     "key": "settingsNative.about.playerCodeHint",
-    "en": "Your 城瘾 identity code, used to show who you are at events. It's still being set up and will appear here automatically once it's ready.",
+    "en": "Your Chengyin ID code, used to show who you are at events. It's still being set up and will appear here automatically once it's ready.",
     "zh-Hans": "你的城瘾身份码，用来在活动现场亮明身份。这项功能还在开通中，开通后会自动出现在这里。"
   },
   {
@@ -236,7 +236,7 @@
   },
   {
     "key": "settingsNative.attribution.context",
-    "en": "Credits for artwork used in 城瘾.",
+    "en": "Credits for artwork used in Chengyin.",
     "zh-Hans": "城瘾所用素材的署名。"
   },
   {

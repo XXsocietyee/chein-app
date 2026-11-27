@@ -102,7 +102,7 @@ import Combine
                 Section("templateCoin.chooseFace") {
                     Picker("templateCoin.chooseFace", selection: controller.selection) {
                         ForEach(TemplateCoinFlipRehearsal.Face.allCases) { face in Text(LocalizedStringKey(face.labelKey)).tag(face) }
-                    }.pickerStyle(.segmented).accessibilityIdentifier("templateCoin.selection")
+                    }.cyAdaptiveSegmented().accessibilityIdentifier("templateCoin.selection")
                     if state.result == nil {
                         Button("templateCoin.show", systemImage: "circle.lefthalf.filled", action: controller.showAction())
                             .buttonStyle(.borderedProminent).controlSize(.large)

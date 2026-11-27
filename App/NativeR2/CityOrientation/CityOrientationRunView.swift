@@ -275,7 +275,8 @@ extension EnvironmentValues {
                         Text("nativeR2.city.banner.to \(stop.order) \(stopTitle(stop))")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
-                            .lineLimit(1)
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
                         // MP index.wxml:600-604: 公里 · 预计 · 到达, estimated at walking pace.
                         if !inHighlight, location.access != .denied {
                             CityOrientationETAText(meters: currentDistance)
