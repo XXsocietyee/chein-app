@@ -344,9 +344,12 @@ extension AppSession {
                             .accessibilityFocused($focusedParticipationID, equals: row.id)
                         // MP mycanyu「查看报名凭证」→ 票夹 focused on this registration (PLY-22-1).
                         // NAT-17 (native-r2): a system bordered button, not a drawn capsule.
-                        Button("playerJourney.viewVoucher") { open(.ticket(registrationID: row.id)) }
-                            .buttonStyle(.bordered)
-                        .accessibilityIdentifier("playerJourney.viewVoucher.\(row.id)")
+                        // mp-mine r3: MP shows it only when the row has a registration id (`voucherAvailable`).
+                        if row.id > 0 {
+                            Button("playerJourney.viewVoucher") { open(.ticket(registrationID: row.id)) }
+                                .buttonStyle(.bordered)
+                            .accessibilityIdentifier("playerJourney.viewVoucher.\(row.id)")
+                        }
                     }
                 }
             } else if let issue { ParticipationIssueView(issue: issue, retry: { Task { await load() } }) }

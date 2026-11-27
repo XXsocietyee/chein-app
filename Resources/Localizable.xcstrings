@@ -305595,7 +305595,6 @@
       }
     },
     "profile.inviteRewards.heroPending": {
-      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -305606,7 +305605,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Syncing"
+            "value": "待同步"
           }
         }
       }

@@ -157,9 +157,13 @@ struct AccountCollectionCouponRow: View {
     @Environment(\.locale) private var locale
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            AccountCollectionCouponBadge(status: coupon.status)
-            AccountCollectionTitle(value: coupon.name, fallback: "accountCollection.coupon.untitled")
-                .font(.headline).foregroundStyle(.primary).fixedSize(horizontal: false, vertical: true)
+            // mp-mine r3: MP coupon card head — name, then the status badge at the end of the same line.
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                AccountCollectionTitle(value: coupon.name, fallback: "accountCollection.coupon.untitled")
+                    .font(.headline).foregroundStyle(.primary).fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 0)
+                AccountCollectionCouponBadge(status: coupon.status)
+            }
             if let description = coupon.displayDescription, !description.isEmpty {
                 Text(verbatim: description).font(.subheadline).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)

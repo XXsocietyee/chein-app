@@ -40,10 +40,13 @@ import SwiftUI
                     inviteHistoryIssue(error, permit: permit)
                 }
                 // FIN-20-2: one hero (首购奖励积分 / 已邀请 N 人 · 已到账 M 人); no duplicate 累计邀请 row.
+                // mp-mine r3: MP myinvite shows the hero only once there are invitees (`groups.length`); none = the empty state alone.
+                if !groups.isEmpty {
                 ProfileInviteRewardReviewSection(review: .init(scan: model.scan), total: model.pagination.total,
                                                  coverageIncomplete: ProfileInviteHistoryPageReady.rewardCoverage(model.scan) != .complete,
                                                  isLoading: model.loading) {
                     model.start(reader, permit: permit, reset: true)
+                }
                 }
                 // R7-MEM-20-1: the latest real first-purchase reward (MP ir-earn), without the scan animation.
                 if let latest = latestEarn { ProfileInviteLatestEarnCard(member: latest.0, reward: latest.1) }

@@ -18,9 +18,9 @@ import SwiftUI
     }
     var body: some View {
         List {
-            InvoiceLaunchStateSection(model: model, onSignIn: onSignIn, loadFailedKey: "historyLoadFailed")
-            if let overview = model.overview {
-                if !overview.applications.isEmpty {
+            // mp-mine r3: MP invoice/index draws the chip tabs first, then the state / recovery banners
+            // (「上次的开票申请结果未确认」). Before the first load there are no tabs, so the state section still leads.
+            if let overview = model.overview, !overview.applications.isEmpty {
                     // Source cy-tabs variant="chip": 全部 / 处理中 / 已开具 / 已驳回 / 已撤回 (FIN-11-8).
                     // Native r2: a segmented Picker replaces the chip tabs (same keys, same selection).
                     Section {
@@ -35,7 +35,9 @@ import SwiftUI
                         .labelsHidden()
                         .accessibilityIdentifier("invoice.history.filter")
                     }
-                }
+            }
+            InvoiceLaunchStateSection(model: model, onSignIn: onSignIn, loadFailedKey: "historyLoadFailed")
+            if let overview = model.overview {
                 if withdraw.succeeded != nil {
                     Section {
                         Label { invoiceText("withdrawn") } icon: { Image(systemName: "checkmark.circle") }
