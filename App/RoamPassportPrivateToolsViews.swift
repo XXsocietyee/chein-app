@@ -543,7 +543,7 @@ struct RoamPrivatePageScope: Hashable {
                 }
             }
             if !model.isBusy && model.items.isEmpty && model.phase == .ready {
-                Text("roam.capsule.empty").foregroundStyle(.secondary).accessibilityIdentifier("roam.capsule.empty")
+                ContentUnavailableView("roam.capsule.empty", systemImage: "archivebox").accessibilityIdentifier("roam.capsule.empty")
             }
             if model.hasMore && !model.isBusy {
                 Button("roam.tools.loadMore") { page.read { await model.load(more: true) } }.accessibilityIdentifier("roam.capsule.more")

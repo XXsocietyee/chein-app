@@ -36,7 +36,7 @@ import SwiftUI
                             .accessibilityLabel(Text("profile.selfMedals.loadedCount"))
                             .accessibilityValue(Text(verbatim: String(medals.count)))
                             .accessibilityIdentifier("profile.selfMedals.count")
-                            if medals.isEmpty { Text("profile.selfMedals.empty").accessibilityIdentifier("profile.selfMedals.empty") }
+                            if medals.isEmpty { ContentUnavailableView("profile.selfMedals.empty", systemImage: "medal").accessibilityIdentifier("profile.selfMedals.empty") }
                             ForEach(Array(medals.enumerated()), id: \.offset) { index, medal in
                                 Label {
                                     if medal.medalName.isEmpty { Text("profile.badges.medals") }

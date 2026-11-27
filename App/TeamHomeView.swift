@@ -210,7 +210,7 @@ private struct TeamHomeRow: View {
                 }
                 Section {
                     if detail.members.isEmpty {
-                        Text("team.page.membersEmpty").foregroundStyle(.secondary)
+                        ContentUnavailableView("team.page.membersEmpty", systemImage: "person.2")
                     }
                     ForEach(detail.members, id: \.id) { member in
                         let action = TeamAction.remove(teamID: detail.team.id, memberID: member.id)

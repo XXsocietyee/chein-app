@@ -67,7 +67,8 @@ struct QuestifyImageEntityCard<Details:View>:View {
         .background {
             GeometryReader { geometry in
                 ZStack(alignment:.topTrailing) {
-                    Color(red:0.16,green:0.17,blue:0.20)
+                    // native-r3-b: system fill (dark variant) instead of a hard-coded RGB placeholder.
+                    Color(uiColor: .systemGray5).environment(\.colorScheme, .dark)
                     if let url=QuestifyCardArtwork.safeURL(imageSource) {
                         if let progressiveBlur {
                             if let artworkIdentity, let origin=ObjectCardMediaPolicy.origin(url.absoluteString) {

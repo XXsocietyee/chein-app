@@ -284,7 +284,7 @@ struct RoamAnniversaryReadIntent {
                 }
             }
             if unavailableError == nil && state.page != nil && !state.isLoading && state.rows.isEmpty && state.error == nil {
-                Section { Text("roam.tools.anniversary.empty").foregroundStyle(.secondary) }
+                Section { ContentUnavailableView("roam.tools.anniversary.empty", systemImage: "calendar") }
                     .accessibilityIdentifier("roam.tools.anniversary.empty")
             }
             if unavailableError == nil, let page = state.page, page.hasMore, !state.isLoading, state.error == nil {
@@ -717,7 +717,7 @@ struct RoamAnniversaryReadIntent {
             }
             if let page {
                 if page.items.isEmpty && !loading && error == nil {
-                    Section { Text("roam.tools.recap.empty").foregroundStyle(.secondary) }
+                    Section { ContentUnavailableView("roam.tools.recap.empty", systemImage: "chart.bar") }
                         .accessibilityIdentifier("roam.tools.recap.empty")
                 } else {
                     Section {

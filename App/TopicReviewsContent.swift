@@ -47,7 +47,7 @@ struct TopicReviewsContent: View {
                 // C13: no 「评价预览 · 最多显示 5 条」 small print under the list.
                 if reviews.preview.isEmpty {
                     if reviews.hasConfirmedNoReviews {
-                        Text("topic.reviews.empty")
+                        ContentUnavailableView("topic.reviews.empty", systemImage: "star.bubble")
                             .accessibilityIdentifier("topic.reviews.empty")
                     } else {
                         Text("topic.reviews.previewUnavailable")

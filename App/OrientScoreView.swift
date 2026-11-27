@@ -338,7 +338,7 @@ import QuestifyCore
     private var timelineCard: some View {
         Section("orientScore.timeline") {
             if summary.timeline.isEmpty {
-                Text("orientScore.timeline.empty").foregroundStyle(.secondary)
+                ContentUnavailableView("orientScore.timeline.empty", systemImage: "clock")
             }
             ForEach(summary.timeline) { row in
                 VStack(alignment: .leading, spacing: 2) {

@@ -84,7 +84,7 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
                     } header: { passportText("summary") }
                     Section {
                         if let error = model.pageError { RoamExperienceIssue(error: error) { Task { await model.read(retry) } } }
-                        if model.loaded && model.items.isEmpty { passportText("empty").accessibilityIdentifier("roam.serverHistory.empty") }
+                        if model.loaded && model.items.isEmpty { ContentUnavailableView { Label { passportText("empty") } icon: { Image(systemName: "figure.walk") } }.accessibilityIdentifier("roam.serverHistory.empty") }
                         ForEach(model.items) { item in
                             Button {
                                 guard model.isVisible, owner == RoamPassportHistoryOwner(reader), model.items.contains(item), selected == nil else { return }

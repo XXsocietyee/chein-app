@@ -94,12 +94,12 @@ import SwiftUI
 
     private func card(_ photo: PlayKitAlbumProjection.Photo) -> some View {
         ZStack {
-            RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(CYColor.bgRaised)
+            // native-r3-b: system secondary background; the custom drop shadow is gone (the 3-D scroll transition separates cards).
+            RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(.background.secondary)
             PlayKitArtwork(source: photo.url, approvedHosts: approvedHosts)
         }
         .aspectRatio(420.0 / 620.0, contentMode: .fit)
         .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-        .shadow(color: CYColor.bgOverlay.opacity(0.5), radius: 6, y: 3)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(photo.line.isEmpty ? Text("playkit.image") : Text(verbatim: photo.line))
     }

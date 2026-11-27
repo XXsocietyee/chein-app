@@ -41,7 +41,7 @@ private func usageEvidenceButton(_ key: String, action: @escaping () -> Void) ->
                     UsageConsentOriginalSection(detail: detail)
                 }
                 Section(header: usageEvidenceText("usageEvidence.history")) {
-                    if coordinator.loaded && coordinator.items.isEmpty { usageEvidenceText("usageEvidence.empty") }
+                    if coordinator.loaded && coordinator.items.isEmpty { ContentUnavailableView { Label { usageEvidenceText("usageEvidence.empty") } icon: { Image(systemName: "doc.text") } } }
                     ForEach(coordinator.items) { record in
                         Button {
                             requestOriginal(record.requestId, read: read)

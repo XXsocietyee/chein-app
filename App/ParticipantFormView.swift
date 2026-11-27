@@ -495,7 +495,7 @@ struct ParticipantOperationSections: View {
                 Section("participant.form.readBackTitle") {
                     switch result {
                     case .list(let rows):
-                        if rows.isEmpty { Text("profile.participants.empty").foregroundStyle(.secondary) }
+                        if rows.isEmpty { ContentUnavailableView("profile.participants.empty", systemImage: "person.text.rectangle") }
                         ForEach(rows) { row in ParticipantReadbackRow(row: row) }
                     case .detail(let row): ParticipantReadbackRow(row: row)
                     }

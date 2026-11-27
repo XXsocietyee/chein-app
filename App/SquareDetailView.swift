@@ -574,7 +574,7 @@ private struct SquareDetailProfileRoute: Identifiable, Hashable {
                 switch phase {
                 case .loading: ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text(verbatim: locale.pick("读取中", "Loading")))
                 case .empty:
-                    Text(verbatim: locale.pick("还没有你发布的广场帖", "You have no square posts")).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    ContentUnavailableView(locale.pick("还没有你发布的广场帖", "You have no square posts"), systemImage: "square.and.pencil")
                 case .failed:
                     Text(verbatim: locale.pick("列表没有读出来，请重试", "The list did not load. Try again.")).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     Button { Task { await reload() } } label: { Text(verbatim: locale.pick("重试", "Try again")) }

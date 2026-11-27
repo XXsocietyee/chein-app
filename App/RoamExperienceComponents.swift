@@ -238,21 +238,15 @@ struct RoamExperienceIssue: View {
             .accessibilityIdentifier("roam.experience.error")
     }
 }
-/// Ink-paper card for the player's own record (history, summary): ink1 over an indigo falloff with a 1 pt night edge.
-/// Content surface, so it is not glass (spec 2.2); the pressed state comes from the enclosing button style.
+/// Card for the player's own record (history, summary). native-r3-b: the system secondary background
+/// (light + dark) replaces the decorative indigo gradient and gradient edge.
 struct RoamNightCard<Content: View>: View {
     let content: Content
     init(@ViewBuilder content: () -> Content) { self.content = content() }
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)
         content.frame(maxWidth: .infinity, alignment: .leading)
             .padding(CYSpacing.lg)
-            .background {
-                shape.fill(CYNight.ink1)
-                    .overlay(shape.fill(LinearGradient(colors: [CYNight.indigo.opacity(0.55), .clear], startPoint: .top, endPoint: .center)))
-            }
-            .overlay { shape.strokeBorder(LinearGradient(colors: [CYNight.glassEdgeTop, CYNight.glassEdgeBottom], startPoint: .top, endPoint: .bottom), lineWidth: 1) }
-            .clipShape(shape)
+            .background(.background.secondary, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
     }
 }
 struct RoamExperienceCard<Content: View>: View {
