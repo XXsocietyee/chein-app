@@ -9,6 +9,8 @@ struct SquareXcxPostCard: View {
     var now: Date = Date()
     /// List rows place the tappable gallery outside their NavigationLink, so the card omits it there.
     var showsMedia = true
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @ScaledMetric(relativeTo: .headline) private var verifiedSize: CGFloat = 12
     private var facts: SquarePostCardFacts { SquarePostCardFacts(post) }
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -44,23 +46,28 @@ struct SquareXcxPostCard: View {
                     else { Text("square.xcx.defaultName").font(.headline) }
                     if post.verified {
                         // MP: components/cy/post-card/index.wxml:25 (icon_rz.png, .post-card__verified 24rpx)
-                        MPAsset.FeatureIcon.iconRz.resizable().scaledToFit().frame(width: 12, height: 12)
+                        MPAsset.FeatureIcon.iconRz.resizable().scaledToFit().frame(width: verifiedSize, height: verifiedSize)
                             .accessibilityLabel(Text("square.verified"))
                     }
                     Spacer(minLength: 4)
                     SquareXcxRelativeTime(createTime: post.createTime, now: now).font(.caption).foregroundStyle(.secondary).lineLimit(1).fixedSize()
                 }
-                HStack(spacing: 6) {
-                    if let club = post.clubName { Text(verbatim: club).font(.caption).foregroundStyle(.secondary).lineLimit(1) }
+                metaLayout {
+                    if let club = post.clubName { Text(verbatim: club).font(.caption).foregroundStyle(.secondary).lineLimit(metaLines) }
                     if let badge = post.noticeBadge ?? post.authorBadge {
-                        Text(verbatim: badge).font(.caption.weight(.semibold)).foregroundStyle(.secondary).lineLimit(1)
+                        Text(verbatim: badge).font(.caption.weight(.semibold)).foregroundStyle(.secondary).lineLimit(metaLines)
                     } else if post.memberLevel > 0 {
-                        Text("square.xcx.level \(post.memberLevel)").font(.caption.weight(.semibold)).foregroundStyle(.secondary).lineLimit(1)
+                        Text("square.xcx.level \(post.memberLevel)").font(.caption.weight(.semibold)).foregroundStyle(.secondary).lineLimit(metaLines)
                     }
                 }
             }
         }
     }
+    /// a11y-dt: club · badge stay one line at normal sizes; at accessibility sizes they stack and may wrap to 2 lines.
+    private var metaLayout: AnyLayout {
+        typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2)) : AnyLayout(HStackLayout(spacing: 6))
+    }
+    private var metaLines: Int { typeSize.isAccessibilitySize ? 2 : 1 }
     @ViewBuilder private var playCard: some View {
         VStack(alignment: .leading, spacing: 4) {
             if post.isTopicTemplate { Text("square.xcx.templateBadge").font(.caption.weight(.semibold)).foregroundStyle(.secondary).accessibilityIdentifier("square.card.templateBadge") }
