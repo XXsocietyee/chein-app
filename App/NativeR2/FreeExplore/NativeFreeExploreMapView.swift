@@ -32,6 +32,8 @@ import SwiftUI
     @State private var selectedStore: Int?
     @State private var arrivalStore: Int?
     @State private var showChapterPicker = false
+    /// Design pass roam (P4): the 已完成 (n) fold of the stop list.
+    @State private var showsDoneStops = false
     @State private var showEmergencyHelp = false
     @State private var arrival: PlayArrivalService?
     /// Motion r1: the store path draws on when the map appears.
@@ -46,8 +48,8 @@ import SwiftUI
     var body: some View {
         map
             .ignoresSafeArea(edges: .bottom)
+            // MP maps set show-location="{{false}}": no locate-me button (fix-r11 N-r11-2).
             .mapControls {
-                MapUserLocationButton()
                 MapCompass()
                 MapScaleView()
             }
@@ -313,6 +315,16 @@ import SwiftUI
         if let node = nextStore {
             Section {
                 VStack(alignment: .leading, spacing: 4) {
+                    // Design pass roam (P1): the distance to the next store leads, large and rolling (P2).
+                    if let meters = distance(to: node) {
+                        distanceText(meters)
+                            .cyText(.dataXL, monospacedDigit: true)
+                            .contentTransition(.numericText(value: meters))
+                            .animation(reduceMotion ? nil : .default, value: meters)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.6)
+                            .accessibilityIdentifier("nativeR2.freeExplore.next.distance")
+                    }
                     FreeExplorationStoreName(name: node.name).font(.title3.weight(.semibold))
                     Text(LocalizedStringKey(FreeExplorationPresentation.state(of: node, in: snapshot).titleKey))
                         .font(.subheadline)
@@ -325,19 +337,11 @@ import SwiftUI
                             .font(.subheadline)
                             .foregroundStyle(.orange)
                     }
-                    // P-070: distance to the next store, rolling as the walker moves.
-                    if let meters = distance(to: node) {
-                        Label { distanceText(meters) } icon: { Image(systemName: "location.fill") }
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .monospacedDigit()
-                            .contentTransition(.numericText(value: meters))
-                            .animation(reduceMotion ? nil : .default, value: meters)
-                            .accessibilityIdentifier("nativeR2.freeExplore.next.distance")
-                    }
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("nativeR2.freeExplore.next")
+                // P3: the one primary action comes first; 步行前往 / 跳过 sit under it, quieter.
+                primaryAction(node)
                 HStack {
                     NativeFreeExploreWalkButton(destination: .init(name: node.name ?? "", address: node.addressHidden == true ? nil : node.address,
                                                                    latitude: node.latitude, longitude: node.longitude),
@@ -352,8 +356,7 @@ import SwiftUI
                     .disabled(openStores(snapshot).count < 2)
                     .accessibilityIdentifier("nativeR2.freeExplore.skip")
                 }
-                .controlSize(.large)
-                primaryAction(node)
+                .controlSize(.regular)
             } header: {
                 Text("nativeR2.freeExplore.map.next")
             }
@@ -412,53 +415,22 @@ import SwiftUI
     // MARK: All stops
 
     private func allStopsSection(_ snapshot: PlaySnapshot) -> some View {
-        Section {
-            ForEach(stores) { node in
-                HStack {
-                Button { open(node.id) } label: {
-                    LabeledContent {
-                        VStack(alignment: .trailing, spacing: 2) {
-                            Text(LocalizedStringKey(FreeExplorationPresentation.state(of: node, in: snapshot).titleKey))
-                            if let meters = distance(to: node) {
-                                distanceText(meters).font(.footnote).foregroundStyle(.secondary).monospacedDigit()
-                            }
-                        }
-                    } label: {
-                        Label {
-                            VStack(alignment: .leading, spacing: 2) {
-                                FreeExplorationStoreName(name: node.name)
-                                if let title = node.gameTitle, !title.isEmpty {
-                                    Text(verbatim: title).font(.footnote).foregroundStyle(.secondary)
-                                }
-                                if let status = node.openStatus, !status.isEmpty {
-                                    Text(verbatim: status).font(.footnote).foregroundStyle(.secondary)
-                                }
-                            }
-                        } icon: {
-                            stopPin(state(of: node, in: snapshot), font: .body)
-                        }
+        // Design pass roam (P4): what is left stays in view; finished stores fold into 已完成 (n).
+        let pending = stores.filter { !snapshot.isDone($0) }
+        let done = stores.filter { snapshot.isDone($0) }
+        return Section {
+            ForEach(pending) { node in stopRow(node, snapshot) }
+            if !done.isEmpty {
+                DisclosureGroup(isExpanded: $showsDoneStops) {
+                    ForEach(done) { node in stopRow(node, snapshot) }
+                } label: {
+                    Label {
+                        Text("design.roam.doneSection \(done.count)")
+                    } icon: {
+                        Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
                     }
                 }
-                .buttonStyle(.borderless)
-                .tint(.primary)
-                .accessibilityIdentifier("playFree.store.\(node.id)")
-                // P-070: 我已到达 is a visible button on the row when the store offers it (was only a swipe action).
-                if arrival?.offer(for: node.id) != nil {
-                    Button { arrivalStore = node.id } label: {
-                        Label("playArrival.action", systemImage: "location.fill").labelStyle(.iconOnly)
-                    }
-                    .buttonStyle(.bordered)
-                    .accessibilityIdentifier("playArrival.action.\(node.id)")
-                }
-                }
-                .swipeActions(edge: .trailing) {
-                    if arrival?.offer(for: node.id) != nil {
-                        Button("playArrival.action") { arrivalStore = node.id }.tint(.accentColor)
-                    }
-                }
-                .contextMenu {
-                    Button("nativeR2.freeExplore.map.showOnMap", systemImage: "map") { focus(node) }
-                }
+                .accessibilityIdentifier("nativeR2.freeExplore.doneStops")
             }
         } header: {
             Text("nativeR2.freeExplore.map.allStops")
@@ -466,6 +438,54 @@ import SwiftUI
             if stores.contains(where: { Self.coordinate($0) == nil }) {
                 Text("nativeR2.freeExplore.map.noCoordinates")
             }
+        }
+    }
+
+    @ViewBuilder private func stopRow(_ node: PlayNode, _ snapshot: PlaySnapshot) -> some View {
+        HStack {
+        Button { open(node.id) } label: {
+            LabeledContent {
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(LocalizedStringKey(FreeExplorationPresentation.state(of: node, in: snapshot).titleKey))
+                    if let meters = distance(to: node) {
+                        distanceText(meters).font(.footnote).foregroundStyle(.secondary).monospacedDigit()
+                    }
+                }
+            } label: {
+                Label {
+                    VStack(alignment: .leading, spacing: 2) {
+                        FreeExplorationStoreName(name: node.name)
+                        if let title = node.gameTitle, !title.isEmpty {
+                            Text(verbatim: title).font(.footnote).foregroundStyle(.secondary)
+                        }
+                        if let status = node.openStatus, !status.isEmpty {
+                            Text(verbatim: status).font(.footnote).foregroundStyle(.secondary)
+                        }
+                    }
+                } icon: {
+                    stopPin(state(of: node, in: snapshot), font: .body)
+                }
+            }
+        }
+        .buttonStyle(.borderless)
+        .tint(.primary)
+        .accessibilityIdentifier("playFree.store.\(node.id)")
+        // P-070: 我已到达 is a visible button on the row when the store offers it (was only a swipe action).
+        if arrival?.offer(for: node.id) != nil {
+            Button { arrivalStore = node.id } label: {
+                Label("playArrival.action", systemImage: "location.fill").labelStyle(.iconOnly)
+            }
+            .buttonStyle(.bordered)
+            .accessibilityIdentifier("playArrival.action.\(node.id)")
+        }
+        }
+        .swipeActions(edge: .trailing) {
+            if arrival?.offer(for: node.id) != nil {
+                Button("playArrival.action") { arrivalStore = node.id }.tint(.accentColor)
+            }
+        }
+        .contextMenu {
+            Button("nativeR2.freeExplore.map.showOnMap", systemImage: "map") { focus(node) }
         }
     }
 

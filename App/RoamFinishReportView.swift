@@ -46,6 +46,11 @@ struct RoamFinishReport: Equatable {
     @Environment(\.locale) private var locale
     @State private var showShare = false
     @State private var trackedRouteStory = false
+    /// Design pass roam (P8): a medal earned on this walk opens its share card.
+    @State private var selectedMedal: RoamMedalShareSelection?
+    /// Design pass roam (P2/P7): the hero number rolls up from 0 once when the report appears.
+    @State private var revealed = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.analyticsEventClient) private var analytics
 
     var body: some View {
@@ -56,6 +61,7 @@ struct RoamFinishReport: Equatable {
                     .accessibilityHidden(true)
                 bigNumber
                 grid.padding(.top, CYSpacing.xl)
+                medalsStrip
                 if let story = report.story {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         Text("u10.roamFinish.story").cyText(.caption).foregroundStyle(CYColor.textTertiary)
@@ -78,7 +84,15 @@ struct RoamFinishReport: Equatable {
             Group { if let record = report.record { NavigationStack { RoamHistoryShareView(record: record, reader: history) } } }
                 .cySheet(detents: [.large])
         }
+        .cySheet(item: $selectedMedal) { medal in
+            Group { NavigationStack { RoamMedalShareView(selection: medal, reader: history) } }
+                .cySheet(detents: [.large])
+        }
         .accessibilityIdentifier("roam.finishReport")
+        .task {
+            guard !revealed else { return }
+            if reduceMotion { revealed = true } else { withAnimation(.smooth(duration: 1.0)) { revealed = true } }
+        }
         .onAppear {
             guard !trackedRouteStory, report.story?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else { return }
             trackedRouteStory = true
@@ -122,25 +136,71 @@ struct RoamFinishReport: Equatable {
             Text(verbatim: "—")
         }
     }
+    /// MP settle__big: 处到达 (`finish.footprints`, pages/roam/index.wxml:900-901), the archived record's unique reached
+    /// places (`RoamHistoryRecord.footprintCount`). Rolls up from 0 once (P2); an unarchived record shows an em dash.
+    private var footprints: Int? { report.record?.footprintCount }
     private var bigNumber: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(verbatim: report.shops.map(String.init) ?? "—")
+            Text(verbatim: footprints.map { String(revealed ? $0 : 0) } ?? "—")
                 .font(.system(.largeTitle, design: .default).weight(.black).italic())
+                .contentTransition(.numericText(value: Double(revealed ? (footprints ?? 0) : 0)))
                 .dynamicTypeSize(.accessibility3)
                 .monospacedDigit()
                 .foregroundStyle(CYColor.textPrimary)
-            Text("u10.roamFinish.shops").cyText(.sheetTitle).foregroundStyle(CYColor.textPrimary)
+            Text("design.roam.footprints").cyText(.sheetTitle).foregroundStyle(CYColor.textPrimary)
         }
         .padding(.top, CYSpacing.xl)
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("roam.finishReport.shops")
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("design.roam.footprints"))
+        .accessibilityValue(Text(verbatim: footprints.map(String.init) ?? "—"))
+        .accessibilityIdentifier("roam.finishReport.footprints")
     }
     private var grid: some View {
-        HStack(alignment: .top, spacing: CYSpacing.sm) {
+        // MP settle__grid: six cells, 公里 · 用时 · 探索度 · 邮票 · 探索值 · 勋章 (pages/roam/index.wxml:903-910).
+        // Three columns, two rows; values shrink before they truncate (P12).
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: CYSpacing.sm, alignment: .topLeading), count: 3),
+                  alignment: .leading, spacing: CYSpacing.lg) {
+            cell(report.record?.distance.map { $0.formatted(.number.precision(.fractionLength(1))) }, "design.roam.km", id: "distance")
+            cell(report.record?.durationText, "roam.live.stat.time", id: "time")
             cell(report.explorePct.map { "\($0)%" }, "u10.roamFinish.explore", id: "explore")
             cell(report.stamps.map(String.init), "u10.roamFinish.stamps", id: "stamps")
             cell(report.xp.map { $0 > 0 ? "+\($0)" : "0" }, "u10.roamFinish.xp", id: "xp")
             cell(String(report.medals), "u10.roamFinish.medals", id: "medals")
+        }
+    }
+    /// Design pass roam (P8 rewards are objects you keep): each medal of this walk is a tile with its name; a tap
+    /// opens its share card (`RoamMedalShareView`), and 漫游记录 below keeps the collection one tap away.
+    @ViewBuilder private var medalsStrip: some View {
+        let medals = report.record.map { RoamMedalShareSelection.selections(for: $0) } ?? []
+        if !medals.isEmpty {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                Text("roam.experience.rewards").cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                    .accessibilityAddTraits(.isHeader)
+                ForEach(medals) { medal in
+                    Button { selectedMedal = medal } label: {
+                        HStack(spacing: CYSpacing.md) {
+                            Image(systemName: medal.card.kind == .shop ? "storefront.circle.fill" : "medal.fill")
+                                .font(.title)
+                                .foregroundStyle(Color.yellow)
+                                .symbolEffect(.bounce, value: revealed && !reduceMotion)
+                                .frame(width: 44, height: 44)
+                                .accessibilityHidden(true)
+                            Text(verbatim: medal.card.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Spacer(minLength: CYSpacing.sm)
+                            Image(systemName: "square.and.arrow.up").foregroundStyle(CYColor.textSecondary)
+                                .accessibilityHidden(true)
+                        }
+                        .padding(CYSpacing.md)
+                        .background(CYNight.ink1, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text("roam.medalShare.open") + Text(verbatim: ": " + medal.card.name))
+                    .accessibilityIdentifier("roam.finishReport.medal." + medal.card.kind.rawValue)
+                }
+            }
+            .padding(.top, CYSpacing.xl)
         }
     }
     private func cell(_ value: String?, _ label: LocalizedStringKey, id: String) -> some View {

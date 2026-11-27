@@ -275,8 +275,8 @@ import QuestifyCore
                     }
                 }
             }
+                // MP maps set show-location="{{false}}": no locate-me button (fix-r11 N-r11-2). Compass + scale stay.
                 .mapControls {
-                    MapUserLocationButton()
                     MapCompass()
                     MapScaleView()
                 }
@@ -587,13 +587,15 @@ import QuestifyCore
     /// as `LabeledContent` rows. Built inline so every controller change redraws it.
     @ViewBuilder private var hud: some View {
         let active = owner.phase == .active
+        // Design pass roam (P1/P2): one hero number (distance, rolling) and a quiet row for 用时 / 地盘 under it,
+        // instead of three equal list rows. Same readings and identifiers as the MP pcard (用时 / 地盘 / 距离).
         Section {
-            TimelineView(.animation(minimumInterval: RoamLiveTick.interval(reduceMotion: reduceMotion), paused: owner.phase != .active || !owner.foreground)) { _ in
-                RoamLiveElapsedRow(seconds: owner.record == nil ? nil : owner.localForegroundElapsedSeconds)
-            }
-            RoamLiveCoverageRow(presentation: .init(controller: owner))
-            RoamLiveStatTile(value: hudDistance, label: "roam.live.stat.distance")
+            RoamLiveHeroDistance(value: hudDistance, live: active)
                 .accessibilityIdentifier("roam.live.distance")
+            TimelineView(.animation(minimumInterval: RoamLiveTick.interval(reduceMotion: reduceMotion), paused: owner.phase != .active || !owner.foreground)) { _ in
+                RoamLiveSecondaryStats(seconds: owner.record == nil ? nil : owner.localForegroundElapsedSeconds,
+                                       coverage: RoamLiveCoveragePresentation(controller: owner))
+            }
         } header: {
             HStack(alignment: .firstTextBaseline) {
                 Text(active ? "roam.live.goal" : phaseText)
@@ -895,6 +897,87 @@ struct RoamLiveCoverageCopy {
     var body: some View {
         RoamLiveStatTile(value: presentation.percentage.map { "\($0)%" } ?? "—", label: "roam.live.stat.turf")
             .accessibilityIdentifier("roam.live.localCoverage")
+    }
+}
+
+/// Design pass roam (P1 one glance, one number): the walk's distance as the hero value. Small label above, the
+/// number large and monospaced with its unit on the baseline; it rolls as it grows (P2).
+struct RoamLiveHeroDistance: View {
+    let value: String
+    var live: Bool = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: CYSpacing.xs) {
+                if live {
+                    Image(systemName: "figure.walk.motion")
+                        .symbolEffect(.pulse, options: .repeating, isActive: !reduceMotion)
+                        .foregroundStyle(.tint)
+                        .accessibilityHidden(true)
+                }
+                Text("roam.live.hero.distance")
+                    .cyText(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
+                Text(verbatim: value)
+                    .cyText(.data2XL, monospacedDigit: true)
+                    .contentTransition(.numericText())
+                    .animation(reduceMotion ? nil : .snappy, value: value)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                Text("roam.live.stat.distance")
+                    .cyText(.label)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, CYSpacing.xs)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("roam.live.hero.distance"))
+        .accessibilityValue(Text(verbatim: value + " ") + Text("roam.live.stat.distance"))
+    }
+}
+
+/// Design pass roam: the quiet row under the hero — 用时 and 地盘 side by side, stacked when they do not fit (P12).
+struct RoamLiveSecondaryStats: View {
+    let seconds: Int?
+    let coverage: RoamLiveCoveragePresentation
+    private var timeValue: String {
+        guard let seconds, seconds >= 0 else { return "—" }
+        return RoamLiveElapsedCopy(locale: Locale(identifier: "en")).value(seconds: seconds)
+    }
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .top, spacing: CYSpacing.lg) { columns }
+            VStack(alignment: .leading, spacing: CYSpacing.sm) { columns }
+        }
+    }
+    @ViewBuilder private var columns: some View {
+        RoamLiveStatColumn(value: timeValue, label: "roam.live.stat.time")
+            .accessibilityIdentifier("roam.live.foregroundElapsed")
+        RoamLiveStatColumn(value: coverage.percentage.map { "\($0)%" } ?? "—", label: "roam.live.stat.turf")
+            .accessibilityIdentifier("roam.live.localCoverage")
+    }
+}
+
+/// One secondary reading: small label above, monospaced value below.
+struct RoamLiveStatColumn: View {
+    let value: String
+    let label: LocalizedStringKey
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label).cyText(.caption).foregroundStyle(.secondary).lineLimit(1)
+            Text(verbatim: value)
+                .cyText(.numericBody, monospacedDigit: true)
+                .contentTransition(.numericText())
+                .animation(reduceMotion ? nil : .snappy, value: value)
+                .lineLimit(1)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(label))
+        .accessibilityValue(Text(verbatim: value))
     }
 }
 
