@@ -191,6 +191,10 @@ private final class D4MemoryBlockedStore: ChannelBlockedUsersStoring, @unchecked
             } else { ProgressView() }
         }
         .task {
+            // mp-club r3 (20:25 sweep): the enroll roster's topic name follows the UI language, like the other club fixtures.
+            if case .enroll = screen, Locale.preferredLanguages.first?.hasPrefix("zh") == true {
+                access.overrideValue[.topics] = ClubGovernanceFixtures.json(#"[{"id":91,"name":"示例主题","signupCount":8}]"#)
+            }
             governance = ClubGovernanceCoordinator(access: access)
             ops = ClubOperationsCoordinator(access: opsAccess)
         }
