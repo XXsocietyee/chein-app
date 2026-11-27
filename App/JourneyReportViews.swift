@@ -987,8 +987,13 @@ struct JourneySettleView: View {
             .frame(maxHeight: .infinity)
             footer(report)
         }
-        .overlay {
-            if thanksPop { thanksCard.transition(.opacity) }
+        // Owner rule 2: the MP `st-pop` popup is a native sheet with a detent. The MP mask does not close it, so
+        // neither does a swipe; 去分享 moves to the share step (`go` clears `thanksPop`).
+        .sheet(isPresented: $thanksPop) {
+            thanksCard
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.hidden)
+                .interactiveDismissDisabled()
         }
         .onChange(of: rate) { _, value in
             if value == .thanks && step == .rate {
@@ -997,12 +1002,9 @@ struct JourneySettleView: View {
         }
     }
 
-    /// MP settle wxml `st-pop` (proto pop-rated): dimmed page, a centred card with the star, 谢谢 and the one 去分享.
-    /// The MP mask does not close it; 去分享 moves to the share step.
+    /// MP settle wxml `st-pop` (proto pop-rated): the star, 谢谢 and the one 去分享, in a medium-detent sheet.
     private var thanksCard: some View {
-        ZStack {
-            Color.black.opacity(0.4).ignoresSafeArea()
-                .accessibilityHidden(true)
+        VStack(spacing: 0) {
             VStack(spacing: 16) {
                 Image(systemName: "star.fill")
                     .font(.largeTitle).imageScale(.large)
@@ -1022,11 +1024,8 @@ struct JourneySettleView: View {
                 .accessibilityIdentifier("journeySettle.thanks.share")
             }
             .padding(24)
-            .frame(maxWidth: 300)
-            .background(.regularMaterial, in: .rect(cornerRadius: 20))
-            .padding(.horizontal, 40)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .accessibilityElement(children: .contain)
-            .accessibilityAddTraits(.isModal)
             .accessibilityIdentifier("journeySettle.thanks")
         }
     }
