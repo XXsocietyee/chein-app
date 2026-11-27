@@ -11,7 +11,7 @@ The 21 MP pages were compared section by section, top to bottom, against their n
 | `python3 tools/generate_project.py` | OK |
 | `python3 tools/check_scaffold.py` | PASS (no FAIL lines; typography lint PASS) |
 | `python3 -B tools/check_a11y_lint.py` | PASS: 0 new |
-| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (after merging combined-r7 again in pass 4), **new 0**, fixed 0 |
+| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (after merging combined-r7 again in pass 5), **new 0**, fixed 0 |
 | `python3 tools/check_design_consistency.py` | PASS |
 
 There is no Swift compiler in this environment. Edits are kept type-simple and reuse existing keys, components and patterns.
@@ -49,7 +49,8 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/create | same | Extra step checklist on the intro; media above the step header on step 3; extra 上一步. | **Not done.** Step 3 order is large |
 | club/enroll | `ClubEnrollmentView.swift` | The stale inline error's action should read 重试更新 (wxml:20). | **Fixed** (`club.enroll.retryUpdate`, also added to `ClubEnrollmentLocalizations.fragment.json`) |
 | club/enroll | same | MP order is sub line → 正在更新报名名册… → stale error (wxml:17-20); native had the sub line last. | **Fixed (pass 2)** |
-| club/enroll | same | Extra escrow line (pinned by `test_club_member_pages`); the summary is three rows instead of one line; the ticket count comes from the rows instead of `tk.signups`. | **Not done** |
+| club/enroll | same | Extra escrow line (pinned by `test_club_member_pages`); the ticket count comes from the rows instead of `tk.signups`. | **Not done** |
+| club/enroll | same | The 已支付 · 可退款 · 截止 summary is one dot line in the MP (wxml:50-53); native shows three `LabeledContent` rows. | **Kept** (same fields, same order; native rows keep each value readable at large Dynamic Type and in English, P12) |
 | club/checkin-detail | `ClubCheckinRailView` via `ClubGovernanceViews` | The server `errorText` should be the missing title / denied sub-line (wxml:13-16); native dropped it on the loaded path. | **Fixed.** `reason: failure?.message` |
 | club/checkin-detail | same | Extra 已退款 note on the rail (MP: the rail is just unlit; the header status says 已退款). | **Fixed (pass 2).** Visible line removed; the sentence is now the rail's VoiceOver hint |
 | club/group-code | `ClubGovernanceCommandForm` (issueGroupCode) | The no-permission exit should be 进入俱乐部管理 (goManage → detail tab=manage); native just dismissed. | **Fixed.** Reuses `ClubGroupCodeMissingLinkView.manageDestination` |
@@ -66,13 +67,14 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/event-ops | same | Inline 日期清单 and 重复方式 forms instead of push rows. | **Not done.** large |
 | club/notify | `ClubGovernanceCommandForm` (sendNotification) | 当前身份不能发通知 | Already present (`ClubOpsNotifyDeniedText`, a `ContentUnavailableView`) |
 | club/notify | `ClubGovernanceCommandForm.swift` | A failed 预览受众 is inline 受众预览失败 + reason + 重试 (wxml:59-62); native showed the generic form error. | **Fixed (pass 3).** Dedicated section before any review, 重试 re-runs the preview (`club.notify.previewFailed`) |
-| club/notify | same | 投递状态 section with 刷新 in the header; extra review fact rows. | **Not done** (send-button wording is a deliberate CLB-notify-01 choice) |
+| club/notify | same | 投递状态 is its own section with 刷新 / 刷新中… in the section head, then the five counts and 只重试失败项 (wxml:72-111); native mixed the counts and a 刷新 row into the generic 已提交 receipt section. | **Fixed (pass 5).** New `Section` headed 投递状态 (`clubOpsJN.notify.status.title`, header trait) with a `.borderless` 刷新 button (`notifyRefreshButton`, same id `club.notify.refreshCampaign`) in the header; counts, 只重试失败项 and the refresh notice moved into it |
+| club/notify | same | Extra review fact rows. | **Not done** (send-button wording is a deliberate CLB-notify-01 choice) |
 | club/governance | `ClubGovernanceViews.swift` (.bans), `ClubOpsMemberActionCard.swift` | Full-page 暂无可治理成员 (wxml:18, js:403: no members and no bans). | **Fixed (pass 3).** The card reports its member count (`onLoaded`); no bans + 0 members shows a `ContentUnavailableView` instead of the records section |
 | club/governance | same | Appeal mode: MP page title 封禁申诉 (js:224); native drew it as an in-content headline section. | **Fixed (pass 3).** Inline bar title via `pageTitleKey` (`club.gov.casesAppeal`); headline section removed (OWNER RULE 2) |
 | club/customers | `ClubOpsCustomerViews.swift` | The count line sits as the list section header after the filter (native pattern; the count follows the filter); the filtered-empty CTA 查看全部客户 is a borderless button under the empty state, not inside it. | **Kept** (the CTA's fences are pinned in place by `test_club_customer_clear_filters`; moving it needs the clear closure threaded into the list view) |
 | club/customer-detail | `ClubOpsCustomerViews.swift`, `ClubCustomerInlineEditor.swift` | In edit mode the editor replaces the card, the heading reads 编辑标签与备注 and 取消 sits in the heading (wxml:82-99). | **Fixed (pass 2).** The editor owns the 标签与备注 section; 取消 moved from a row into the header (VoiceOver: 取消编辑标签与备注) |
 | club/payout-receiver | `ClubPayoutReceiverView.swift` | Binding needs a WeChat code (`PayoutReceiverBridge.payoutOpen`). | Blocked (WeChat/backend), not a view gap |
-| club/edit | `ClubOperationsViews.swift` | 改为转让主理人 is only inside the dissolve confirm in the MP (scene-club-edit `cy-danger-confirm` alt); native shows a permanent row. | Not done (needs the dissolve confirm reworked into one sheet) |
+| club/edit | `ClubOperationsViews.swift` | 改为转让主理人 is only inside the dissolve confirm in the MP (scene-club-edit `cy-danger-confirm` alt, utils/danger-actions.js `club.dissolve.alt`); native shows a permanent row. | Not done (pass 5 re-checked: the native confirm is `ClubGovernanceConsequence.sheet` inside the command form, reached through the blockers page; adding the alt there needs a new callback through that shared sheet, too risky without a compiler) |
 | club/workbench | `MPReviewedPageScreen.swift` redirect | MP error state 没能进入俱乐部管理 + 重试进入 + 返回俱乐部. | Already present (CLB-workbench-03, CLB-r11-workbench-01) |
 
 ## Pass 2: OWNER RULE 2 (navigation + one design system)
@@ -128,4 +130,5 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 10. Pass 3: governance 暂无可治理成员 full-page empty state; topic-detail director-ended review hides 核销/主题/接下来.
 11. Pass 3: governance appeal-mode title 封禁申诉 in the nav bar.
 12. Pass 4: merge combined-r7; club detail 加入 section on 概览 only.
+13. Pass 5: merge combined-r7 (xcstrings: both sides' keys, 22 added); notify 投递状态 section with 刷新 in its header.
 8. Pass 2: shared club thumbnail, customer-detail edit heading, create check-failed 返回上一页, enroll order, check-in rail refund note.

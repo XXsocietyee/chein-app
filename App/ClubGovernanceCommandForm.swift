@@ -395,31 +395,6 @@ import SwiftUI
                     // Campaign counts render once, in the notify card, when the receipt parses as a campaign.
                     let campaignReceipt = [.sendNotification, .retryNotification].contains(route.operation) && (try? ClubOpsNotifyCampaign(value: receipt)) != nil
                     ClubGovernanceFactRows(value: receipt, fields: campaignReceipt ? ["id"] : ["id", "activityId", "refundStatus", "totalCount", "successCount", "failedCount", "refundedOrders", "manualOrders"])
-                    if [.sendNotification, .retryNotification].contains(route.operation), let campaign = try? ClubOpsNotifyCampaign(value: refreshedCampaign ?? receipt) {
-                        ClubOpsNotifyCampaignRows(campaign: campaign, outcome: route.operation)
-                    }
-                    notifyRetryLink
-                    if [.sendNotification, .retryNotification].contains(route.operation), notifyCampaignID != nil {
-                        // CLB-notify-05: 投递状态 refreshes in place (MP `refreshCampaign`); no pushed status page.
-                        Button {
-                            Task { await refreshCampaign(silent: false) }
-                        } label: {
-                            // MP notify/index.wxml:76-78: 刷新 / 刷新中… inline; a system spinner while the re-read is in flight.
-                            if campaignRefreshing {
-                                Label { Text("club.notify.refreshing") } icon: { ProgressView() }
-                            } else {
-                                Label("club.notify.refresh", systemImage: "arrow.clockwise")
-                            }
-                        }
-                        .disabled(campaignRefreshing || busy)
-                        .accessibilityIdentifier("club.notify.refreshCampaign")
-                        if let campaignRefreshNotice {
-                            Text(campaignRefreshNotice)
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                                .accessibilityIdentifier("club.notify.refreshNotice")
-                        }
-                    }
                     ForEach(Array((receipt["failedSessions"].array ?? []).enumerated()), id: \.offset) { _, value in Text(verbatim: value.string ?? "") }
                     if route.operation == .endTopic {
                         // CLB-r11-topic-detail-01: MP topic-detail/index.js:1172 toast(endResultText(d)).
@@ -436,6 +411,27 @@ import SwiftUI
                     if route.operation == .hostApply, let leader = draft.text["leaderName"]?.trimmingCharacters(in: .whitespacesAndNewlines), !leader.isEmpty {
                         LabeledContent("club.host.done.leaderLabel") { Text(verbatim: leader) }
                             .accessibilityIdentifier("club.host.receipt.leader")
+                    }
+                }
+                if [.sendNotification, .retryNotification].contains(route.operation), let campaign = try? ClubOpsNotifyCampaign(value: refreshedCampaign ?? receipt) {
+                    // MP notify/index.wxml:72-111: 投递状态 is its own section, 刷新 / 刷新中… in the section head,
+                    // the five count rows, then 只重试失败项 under the card.
+                    Section {
+                        ClubOpsNotifyCampaignRows(campaign: campaign, outcome: route.operation)
+                        notifyRetryLink
+                        if let campaignRefreshNotice {
+                            Text(campaignRefreshNotice)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                                .accessibilityIdentifier("club.notify.refreshNotice")
+                        }
+                    } header: {
+                        HStack(alignment: .firstTextBaseline) {
+                            ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.status.title")
+                                .accessibilityAddTraits(.isHeader)
+                            Spacer(minLength: 8)
+                            if notifyCampaignID != nil { notifyRefreshButton }
+                        }
                     }
                 }
                 if route.operation == .hostApply { Section { ClubCreateMyClubLink(identity: identity) } }
@@ -611,6 +607,23 @@ import SwiftUI
         ClubNotificationAudienceReadModel.context(scope: route.scope, identity: identity, access: access)
     }
     private var notifyCampaignID: Int? { receipt?["id"].int }
+    /// CLB-notify-05: 投递状态 refreshes in place (MP `refreshCampaign`, wxml:76-78); 刷新中… with a system spinner while the read runs.
+    @ViewBuilder private var notifyRefreshButton: some View {
+        Button {
+            Task { await refreshCampaign(silent: false) }
+        } label: {
+            if campaignRefreshing {
+                Label { Text("club.notify.refreshing") } icon: { ProgressView() }
+            } else {
+                Label("club.notify.refresh", systemImage: "arrow.clockwise")
+            }
+        }
+        .buttonStyle(.borderless)
+        .font(.footnote)
+        .textCase(nil)
+        .disabled(campaignRefreshing || busy)
+        .accessibilityIdentifier("club.notify.refreshCampaign")
+    }
     /// CLB-r11-notify-01 (MP notify/index.wxml:107-110, js retryFailed): 只重试失败项 under the receipt card while the
     /// campaign has failed recipients, pushing the retry command as the status page does (ClubGovernanceViews `edit(.retryNotification)`).
     @ViewBuilder private var notifyRetryLink: some View {
