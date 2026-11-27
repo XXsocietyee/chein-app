@@ -45,15 +45,24 @@ import SwiftUI
                                     .foregroundStyle(.secondary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
-                            HStack(spacing: 4) {
-                                Text("u9cde.report.submittedAt")
-                                MemberReportProgressTimeView(value: record.createTime)
-                            }.font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
+                            // MP hides 提交于 when the time is missing (wxml:22).
+                            if record.createTime != nil {
+                                HStack(spacing: 4) {
+                                    Text("u9cde.report.submittedAt")
+                                    MemberReportProgressTimeView(value: record.createTime)
+                                }.font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
+                            }
                             // Round 4: MP head-card ETA line 「预计 … 前给出结论」 (report-detail wxml:23), as on 我的举报.
                             if !record.isDecided, let eta = record.estimatedResolveAt?.display() {
                                 Text("report.eta \(eta)", tableName: "MemberReportProgress")
                                     .font(.subheadline)
                                     .foregroundStyle(.secondary)
+                            }
+                            // MP head card ends with the privacy line (wxml:24), above 处理结论.
+                            if record.anonymityPolicy == "SUBJECT_HIDDEN" {
+                                memberReportProgressText("report.privacy.source")
+                                    .font(.footnote).foregroundStyle(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
                             }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -61,20 +70,7 @@ import SwiftUI
                         .accessibilityIdentifier("report.detail.head")
                     }
                 }
-                if keepsAppeal(flow), let client = session.playerCapabilityClient() {
-                    ReportAppealSection(reportID: Int(original.id), client: client,
-                                        stageLabel: { CommunityTrustPlayerService.stageLabels[$0] },
-                                        readBack: { load(readIntent()) },
-                                        retention: $appealRetention)
-                }
                 if let record = flow.detail {
-                    if record.stageKey == "APPEALED" {
-                        Section {} footer: {
-                            memberReportProgressText("report.appealed.note")
-                                .fixedSize(horizontal: false, vertical: true)
-                                .accessibilityIdentifier("report.detail.appealed")
-                        }
-                    }
                     if let summary = record.decisionSummary, !summary.isEmpty {
                         Section { Text(verbatim: shown(summary)).fixedSize(horizontal: false, vertical: true) } header: { Text("u9cde.report.decision") }
                     }
@@ -84,15 +80,6 @@ import SwiftUI
                                 .fixedSize(horizontal: false, vertical: true)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         } header: { Text("u9cde.report.yourNote") }
-                    }
-                    if record.anonymityPolicy == "SUBJECT_HIDDEN" {
-                        Section {} footer: {
-                            memberReportProgressText("report.privacy.source")
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
-                    if let evidence = record.evidenceAssetIds {
-                        Section { fact(copy("report.evidence.count"), value: String(evidence.count), systemImage: "paperclip") }
                     }
                     if let timeline = record.timeline, !timeline.isEmpty {
                         Section {
@@ -106,6 +93,20 @@ import SwiftUI
                                 .accessibilityIdentifier("report.timeline.empty")
                         } header: { Text("u9cde.report.progress") }
                     }
+                    // mp-mine r3: MP report-detail puts 提交申诉 / 申诉已受理 after the timeline (wxml:42-47).
+                    if record.stageKey == "APPEALED" {
+                        Section {} footer: {
+                            memberReportProgressText("report.appealed.note")
+                                .fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("report.detail.appealed")
+                        }
+                    }
+                }
+                if keepsAppeal(flow), let client = session.playerCapabilityClient() {
+                    ReportAppealSection(reportID: Int(original.id), client: client,
+                                        stageLabel: { CommunityTrustPlayerService.stageLabels[$0] },
+                                        readBack: { load(readIntent()) },
+                                        retention: $appealRetention)
                 }
                 if flow.busy {
                     Section { ProgressView().frame(maxWidth: .infinity) }
