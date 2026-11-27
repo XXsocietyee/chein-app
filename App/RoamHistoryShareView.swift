@@ -18,6 +18,8 @@ import UIKit
     @StateObject private var photoSave: RoamSharePhotoSaveModel
     @StateObject private var presentation: RoamSharePresentationLifetime
     @State private var includeRoute = false
+    /// ROAM-r11-9: this share only; not stored (MP `onShareVisibility`).
+    @State private var shareVisibility: RoamShareVisibility = .public
     @State private var includePlace = false
     @State private var style = CYShareCardStyle(template: .poster, ratio: .story, tint: .ink)
     @State private var caption = ""
@@ -144,6 +146,15 @@ import UIKit
                 Toggle("roam.share.includeRoute", isOn: $includeRoute).tint(.green)
                     .accessibilityIdentifier("roam.share.includeRoute")
             }
+            // ROAM-r11-9: 谁能看到 is a gate, not a label (MP pages/roam/index.wxml:1031-1040, index.js:5045-5050).
+            Picker("roam.share.visibility.title", selection: $shareVisibility) {
+                ForEach(RoamShareVisibility.allCases) { value in
+                    Text(LocalizedStringKey("roam.share.visibility." + value.rawValue)).tag(value)
+                }
+            }
+            .pickerStyle(.segmented)
+            .disabled(isBusy)
+            .accessibilityIdentifier("roam.share.visibility")
             RoamShareChannelPicker(mode: Binding(get: { channelPolicy.mode }, set: { mode in
                 if channelPolicy.select(mode, operationInFlight: isBusy) {
                     // Retire guide callbacks synchronously. The image has not changed, so keep
@@ -226,7 +237,8 @@ import UIKit
         return .init(record: record, includeRoute: includeRoute)
     }
     private func permitsAlbumGuide(_ destination: RoamShareAlbumGuideState.Destination) -> Bool {
-        channelPolicy.permits(destination == .moments ? .momentsGuide : .xiaohongshuGuide)
+        let channel: RoamShareChannelPolicy.Channel = destination == .moments ? .momentsGuide : .xiaohongshuGuide
+        return channelPolicy.permits(channel) && shareVisibility.allows(channel)
     }
     private var allowedAlbumDestinations: [RoamShareAlbumGuideState.Destination] {
         RoamShareAlbumGuideState.Destination.allCases.filter(permitsAlbumGuide)
@@ -383,4 +395,18 @@ import UIKit
         return UIViewController()
     }
     func updateUIViewController(_ controller: UIViewController, context: Context) {}
+}
+
+/// ROAM-r11-9: MP `VISIBILITY_CHANNELS` (utils/roam-route-privacy.js:39-43): 公开 = 广场/朋友圈/小红书/保存,
+/// 仅好友 = 朋友圈/保存, 仅自己 = 保存. 更多 (system share) follows 保存, as the MP `shareMore` does.
+enum RoamShareVisibility: String, CaseIterable, Identifiable {
+    case `public`, friends, `private`
+    var id: Self { self }
+    func allows(_ channel: RoamShareChannelPolicy.Channel) -> Bool {
+        switch channel {
+        case .savePhoto, .systemShare: return true
+        case .momentsGuide: return self != .private
+        case .xiaohongshuGuide: return self == .public
+        }
+    }
 }
