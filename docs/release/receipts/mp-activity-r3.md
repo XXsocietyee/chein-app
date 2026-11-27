@@ -39,5 +39,6 @@ Strings added: `mpr3.coop.invite.*` (fragment `mp-activity-r3-coop.json`), `mpr3
 
 ## Gates
 - `python3 tools/generate_project.py` ok · `python3 tools/check_scaffold.py` PASS · `python3 -B tools/check_a11y_lint.py` PASS (0 new)
-- `python3 -B tools/contract_ratchet.py --check`: 104 failing, baseline 104, **new 0**
+- `python3 -B tools/contract_ratchet.py --check`: 104 failing, baseline 104, **new 0** (first session)
+- Continue session (head after coop detail): `contract_ratchet --check` 52 failing, baseline 52, **new 0**; scaffold PASS, a11y PASS, design + typography lint PASS; square/team/registration/coop contract suites OK (4 coop-adjacent suites fail identically without these changes)
 - Page contract suites (square 12, team 19, official/activity 31, registration 12) pass under `python3 -B -m unittest`. Pins updated with reasons: `test_square_detail_page_ready.py`, `test_official_detail_parity_w2_06.py`, `Tests/AppUITests/TeamPageParityFlowTests.swift`, `Tests/CoreTests/OfficialEventDetailPresentationTests.swift`.
