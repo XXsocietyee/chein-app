@@ -185,6 +185,7 @@ import SwiftUI
     private var mapFirst: Bool { tab == 0 && viewMode == .map && mapCenter != nil }
     @ViewBuilder private var listContent: some View {
         LazyVStack(alignment: .leading, spacing: 20) {
+            if tab == 1 { mineStats }
             Picker("nearby.section", selection: $tab) {
                 Text("nearby.title").tag(0); Text("nearby.mine").tag(1)
             }.cyAdaptiveSegmented().accessibilityIdentifier("nearby.section")
@@ -457,6 +458,29 @@ import SwiftUI
             }
         }
     }
+    /// Same successful current-account read gate as `mineSection`'s `mineReady`.
+    private var mineReadyForStats: Bool {
+        !model.running && !mine.loading && coordinator.authenticated && coordinator.hasLoadedMine && coordinator.messageKey == nil && joinedTeamsStatus.isLoaded && !mine.failed
+    }
+    /// MP my-teams `.mt-stats`: 带队 / 已通过 / 审核中 / 未通过 counts sit under the page title, above the
+    /// 我的 | 附近招募 segment. A row of four zeros repeats the empty state, so the counts stay hidden.
+    @ViewBuilder private var mineStats: some View {
+        let rows = NearbyTeamBridge.myRows(joined: joinedTeamsStatus.isLoaded ? joinedTeams : [], applications: coordinator.myApplications)
+        let groups = NearbyTeamBridge.myGroups(rows, viewerAccountID: coordinator.session?.accountID)
+        let everyStatIsZero = NearbyMyTeamGroup.Kind.statsOrder.allSatisfy { NearbyMyTeamGroup.count($0, in: groups) == 0 }
+        if !everyStatIsZero && mineReadyForStats {
+            HStack(spacing: 8) {
+                ForEach(NearbyMyTeamGroup.Kind.statsOrder, id: \.self) { kind in
+                    VStack(spacing: 2) {
+                        Text(verbatim: String(NearbyMyTeamGroup.count(kind, in: groups))).cyText(.sectionTitle).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                        Text(LocalizedStringKey(kind.statKey)).cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                    }.frame(maxWidth: .infinity)
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("nearby.mine.stat.\(kind.rawValue)")
+                }
+            }.padding(.vertical, 8)
+        }
+    }
     private var mineSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             // RTEAMS-4: MP cy-access-gate — 登录后查看 + 登录, not a red error chip with 重试.
@@ -490,20 +514,6 @@ import SwiftUI
             let rows = NearbyTeamBridge.myRows(joined: joinedTeamsStatus.isLoaded ? joinedTeams : [], applications: coordinator.myApplications)
             let groups = NearbyTeamBridge.myGroups(rows, viewerAccountID: coordinator.session?.accountID)
             let mineReady = !model.running && !mine.loading && coordinator.authenticated && coordinator.hasLoadedMine && coordinator.messageKey == nil && joinedTeamsStatus.isLoaded && !mine.failed
-            // MP my-teams: a row of four zeros repeats the empty state, so the counts stay hidden.
-            let everyStatIsZero = NearbyMyTeamGroup.Kind.statsOrder.allSatisfy { NearbyMyTeamGroup.count($0, in: groups) == 0 }
-            if !everyStatIsZero && mineReady {
-                HStack(spacing: 8) {
-                    ForEach(NearbyMyTeamGroup.Kind.statsOrder, id: \.self) { kind in
-                        VStack(spacing: 2) {
-                            Text(verbatim: String(NearbyMyTeamGroup.count(kind, in: groups))).cyText(.sectionTitle).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-                            Text(LocalizedStringKey(kind.statKey)).cyText(.caption).foregroundStyle(CYColor.textSecondary)
-                        }.frame(maxWidth: .infinity)
-                            .accessibilityElement(children: .combine)
-                            .accessibilityIdentifier("nearby.mine.stat.\(kind.rawValue)")
-                    }
-                }.padding(.vertical, 8)
-            }
             if rows.isEmpty && mine.loaded && mineReady {
                 CYEmptyState(systemImage: "person.3", "nearby.w208.mine.empty", messageIdentifier: "nearby.mine.empty",
                              actionTitle: "nearby.mine.findOnMap", actionIdentifier: "nearby.mine.findOnMap", actionStyle: .primary) { radius = NearbyTeamPresentation.recruitingRadius; tab = 0 }

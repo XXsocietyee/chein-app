@@ -317,7 +317,7 @@ struct RoamRecordedStats: View {
     @Environment(\.locale) private var locale
     let record: RoamHistoryRecord
     var body: some View {
-        // Mini-program kv: 总距离 / 时长 / 探店 / 探索度 rows with hairlines; a missing value shows —.
+        // Mini-program kv: 总距离 / 时长 / 探店 / 到达 / 探索度 rows with hairlines; a missing value shows —.
         VStack(spacing: 0) {
             row("roam.experience.distance") {
                 if let distance = record.distance { Text(LocaleDisplay.roadNumber(kilometers: distance, locale: locale), format: .number.precision(.fractionLength(1))) + Text(verbatim: " ") + Text(LocalizedStringKey(LocaleDisplay.usesMiles(locale) ? "unit.mile.abbr" : "roam.history.km")) }
@@ -327,6 +327,8 @@ struct RoamRecordedStats: View {
             row("roam.experience.shops") {
                 if let shops = record.shops { Text("roamSub.w208.session.shopsValue \(shops)") } else { Text(verbatim: "—") }
             }
+            // MP scene-roam-session `到达 {{footprints}} 处`: unique reached places (`footprintCount`).
+            row("roam.session.arrived") { Text("roam.session.arrivedValue \(record.footprintCount)") }
             row("roam.experience.explorePct") { Text(verbatim: record.explorePct.map { "\($0)%" } ?? "—") }
         }.monospacedDigit()
     }
