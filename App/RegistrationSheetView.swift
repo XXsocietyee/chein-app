@@ -442,14 +442,6 @@ struct RegistrationSheetView: View {
         guard PlayAreaPopupCopy.paymentsOpen else { return "—" }
         return E1Money.yuan(ticket.price, locale: locale) ?? "—"
     }
-    /// Total shown in the pinned summary bar: the server quote when present, else the listed ticket price.
-    private var summaryTotalText: String {
-        let copy = CoreLoopCopy(locale: locale)
-        if flow.quoteEnabled, case .received(let quote) = flow.quoteState {
-            return gatedPayAmount(quote.payAmount)
-        }
-        return ticketPriceText(copy)
-    }
     private func gatedPayAmount(_ amount: Decimal?) -> String {
         guard let amount else { return "—" }
         if amount > .zero, !PlayAreaPopupCopy.paymentsOpen { return "—" }
@@ -615,13 +607,6 @@ struct RegistrationSheetView: View {
         return CYFooterBar {
             VStack(spacing: CYSpacing.sm) {
                 CurA11yActions {
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text(verbatim: copy.t("合计", "Total")).cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                        Text(verbatim: summaryTotalText).cyText(.dataXL).foregroundStyle(CYColor.textPrimary)
-                            .cyWrapText().layoutPriority(1)
-                            .accessibilityLabel(PageTemplateVoiceOver.spoken(summaryTotalText, locale: locale))
-                            .pageTemplateReadingOrder(2)
-                    }
                     TimelineView(.periodic(from: .now, by: 1)) { _ in
                         let blocked = flow.confirmationBlock != nil
                         Button {

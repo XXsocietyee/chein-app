@@ -68,6 +68,12 @@ Re-scan (fourth session, no change needed): `subpackagePass/components/cy-frames
 Strings: `playerGap.signup.safetyBlocked` (override, fragment `mp-activity-r3-official.json`), `nearbyMerchant.locationDenied.{title,detail}` (override, fragment `mp-activity-r3-coop.json`), `mpr3.square.detail.allComments %lld`, `mpr3.coop.nearby.refreshing`, `mpr3.coop.list.viewCooperation`, `mpr3.coop.invite.{topicsForbidden,targetsForbidden}` (fragment `mp-activity-r3-square.json` + catalog, en plural + zh-Hans).
 Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · `test_square_detail_page_ready` OK.
 
+## Round 3 continue (2026-11-27, sixth session — sweep 18:06 build 070117595)
+| MP page | Native view | MP sections (✓ present / added / reordered) | Optimizations |
+|---|---|---|---|
+| `pages/activity/baoming/baoming` (wxml:315-330 `.bmbottom`) | `App/RegistrationSheetView.swift` checkout bar | screenshot `t5-baoming` (zh-Hans + en): bar showed a non-MP 合计 / Total with a placeholder "—" before the quote. MP bottom bar = inline error → 商家暂停营业 → consent → button (no total); the total lives in 费用明细 总计 (wxml:199), which native already has (`registration.form.total`). Bar total **removed** | no placeholder shown as data; one primary in the bar |
+| `subpackagePass/*` market, baoming (fixtures) | `App/DesignFixtures/DesignFixtureRegistry.swift` `wrapPlayer` | screenshots `t5-pass-market`, `t5-baoming` rendered dark while `d2-square` rendered light in the same light-mode run. `wrapPlayer` forced `.preferredColorScheme(.dark)` — **removed**, player fixtures follow the system (coordinator 18:15: fixtures must not force a color scheme). Shared helper: also affects `t5-order-center` (mp-mine) and `t5-free-explore` (mp-journey) | system appearance |
+
 ## Not done
 - Attendance (player): organizer 联系与签到配置 form (duty phones, window, public-confirm switch, scan, recovery 查询原结果 / 原请求重试 / 终止 / 确认归档) lives in `OfficialOrganizerConsoleView`, not in this section.
 - Square completion card: 探店 (`shopText`) has no backend field. Refused team reads have no server message in `TeamFailure`, so 邀请已失效 is the fixed fallback copy.
