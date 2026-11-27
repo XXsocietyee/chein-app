@@ -810,7 +810,14 @@ struct PlayThemeMusicKey: Equatable {
             panel: { cityRunPanel })
         .onAppear { cityRunSheet = true }
         .onDisappear { cityRunSheet = false; cityPunchNode = nil; cityHintNode = nil }
-        .safeAreaInset(edge: .top, spacing: 0) { PlayRunNoticeBanner(snapshot: model.snapshot) }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            VStack(spacing: 0) {
+                PlayRunNoticeBanner(snapshot: model.snapshot)
+                PlayLeadBar(model: model)
+            }
+        }
+        .task(id: model.interactionContext) { await model.probeLead(context: model.interactionContext) }
+        .modifier(PlayLeadProgressPollingModifier(model: model, context: model.interactionContext))
         .modifier(PlayNavBubbleOverlay(model: ambientModel, nodeID: hudStop?.node.id, meters: cityNextStopMeters))
     }
     @ViewBuilder private var cityRunPanel: some View {
