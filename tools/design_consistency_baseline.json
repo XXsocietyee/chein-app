@@ -136,6 +136,12 @@
     },
     "App/SocialPublicProfileView.swift": {
       "hidden nav": "full-screen photo viewer (black stage), system close button"
+    },
+    "App/ClubHomeView.swift": {
+      "silent spinner": "merchant-only locality status above the club list (merchant out of scope); VoiceOver already hears club.locality.loading"
+    },
+    "App/ProjectEditChapterRulesSection.swift": {
+      "silent spinner": "story-flow chapter rule editor placeholder (story-flow theme on hold this round)"
     }
   },
   "baseline": {
