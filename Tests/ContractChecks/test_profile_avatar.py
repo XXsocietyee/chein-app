@@ -81,7 +81,17 @@ class AvatarContracts(unittest.TestCase):
         self.assertEqual(len(PROTECTED),28)
         for path,digest in PROTECTED.items():self.assertEqual(hashlib.sha256(historical_protected_input(path, (ROOT/path).read_bytes())).hexdigest(),digest,path)
     def test_original_pending_reconciliation_is_byte_exact(self):
-        self.assertEqual(self.coordinator[self.coordinator.index('    private func reconcile('):],OLD_RECONCILE)
+        # The reconcile body now also reports whether the pending save was confirmed (Bool result, used by
+        # callers; present since the 02c68098f import). Strip exactly that signature/return plumbing and the
+        # pending-save decision logic must still equal the original bytes.
+        current=self.coordinator[self.coordinator.index('    @discardableResult private func reconcile('):]
+        for before,after in [('    @discardableResult private func reconcile(_ value: ProfileEditSnapshot) -> Bool {\n','    private func reconcile(_ value: ProfileEditSnapshot) {\n'),
+                             ('        guard let unresolved = pending[value.id] else { return false }\n','        guard let unresolved = pending[value.id] else { return }\n'),
+                             ('            pending[value.id] = nil; messageKey = "profile.edit.saved"; onSaved()\n            return true\n','            pending[value.id] = nil; messageKey = "profile.edit.saved"; onSaved()\n'),
+                             ('        } else { messageKey = "profile.edit.unknown" }\n        return false\n','        } else { messageKey = "profile.edit.unknown" }\n')]:
+            self.assertEqual(current.count(before),1,before)
+            current=current.replace(before,after,1)
+        self.assertEqual(current,OLD_RECONCILE)
     def test_ordinary_service_save_is_unchanged_behind_image_rejection(self):
         method=self.service[self.service.index('    public func save('):self.service.index('    @MainActor public func saveAvatar(')]
         # A3-01: any staged upload (avatar, work picture, contact QR) keeps the ordinary save away.

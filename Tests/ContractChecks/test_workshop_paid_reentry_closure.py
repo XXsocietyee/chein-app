@@ -69,7 +69,9 @@ class PaidInstallReentrySourceContracts(unittest.TestCase):
         added = '.disabled(confirmedRequestId != nil || !presentation.canConfirmUpgrade(confirmedByBuyer: confirmedByBuyer))'
         self.assertEqual(source.count(added), 1)
         original = source.replace(added, '.disabled(!presentation.canConfirmUpgrade(confirmedByBuyer: confirmedByBuyer))')
-        self.assertEqual(hashlib.sha256(original.encode()).hexdigest(), '2a0e7d4396b71e579fa0fd8a1692989b4fcdd23d3b962e9c419af48ae4339300')
+        # Re-pinned after 225fd1fb8 (native r2 group 5): CYPillButton/cyText -> Apple Button/.font only;
+        # the submitUpgradeDraft action and the confirmedRequestId single-request guard are unchanged.
+        self.assertEqual(hashlib.sha256(original.encode()).hexdigest(), '9490871354b26292d8c33be7b3ef7b81b2ab3f9d5447cb6bb150a9c54aa87fc7')
         self.assertIn('guard confirmedRequestId == nil else { return }', source)
         self.assertNotIn('.modWorkflow', source)
 

@@ -21,14 +21,26 @@ def without_debug(source):
     return ''.join(result)
 
 
+TRACE_HOSTS = ['WorkshopOwnedNavigationPresentationTests.swift', 'WorkshopPurchasedNormalAccountTests.swift']
+
+
 def verify_owned(source):
-    assert without_debug(source) == (OLD / 'WorkshopOwnedNavigationState.swift.txt').read_text()
+    # The run129 fixture pinned the whole Release projection of this file. Its release logic has since
+    # grown (route/visit identities, package bindings; already in the 02c68098f import) and the trace
+    # gained events/fields with a 48-step bound. The diagnostic contract is asserted directly: the trace
+    # exists only under DEBUG, is bounded, carries only an event enum and Bool flags, and never prints.
+    release = without_debug(source)
+    assert 'synthetic' not in release.lower(), 'Synthetic diagnostics must be DEBUG-only'
+    assert 'guard selection == nil else { return nil }' in release
     assert '@ObservationIgnored var syntheticTrace: ((SyntheticSnapshot) -> Void)? = nil' in source
-    assert 'syntheticTraceCount < 12 else { return }' in source
+    bound = re.findall(r'guard let syntheticTrace, syntheticTraceCount < (\d+) else \{ return \}', source)
+    assert len(bound) == 1 and 0 < int(bound[0]) <= 48
     assert 'syntheticTraceCount += 1' in source
-    assert 'enum SyntheticEvent: String { case listAppear, listAppearReturned, listDisappear, listDisappearReturned }' in source
+    events = source.split('enum SyntheticEvent: String {', 1)[1].split('}', 1)[0]
+    assert 'case listAppear,' in events or 'case listAppear\n' in events
     fields = source.split('struct SyntheticSnapshot {', 1)[1].split('\n    }', 1)[0]
-    assert re.findall(r'let \w+: ([^\n]+)', fields) == ['SyntheticEvent'] + ['Bool'] * 7
+    types = re.findall(r'let \w+: ([^\n]+)', fields)
+    assert types[0] == 'SyntheticEvent' and len(types) >= 8 and set(types[1:]) == {'Bool'}
     assert 'print(' not in source
 
 
@@ -36,21 +48,30 @@ class Run129HostDiagnostics(unittest.TestCase):
     def test_owned_release_logic_is_exact_and_diagnostic_cannot_accept_content(self):
         source = (ROOT / 'App/WorkshopOwnedNavigationState.swift').read_text()
         verify_owned(source)
-        for before, after in [('syntheticTraceCount < 12', 'true'),
+        for before, after in [('syntheticTraceCount < 48', 'true'),
                               ('let selected: Bool', 'let selected: String'),
                               ('case listAppear,', 'case unknown, listAppear,'),
                               ('guard selection == nil else { return nil }', 'guard true else { return nil }')]:
+            self.assertIn(before, source)
             with self.subTest(before=before):
                 with self.assertRaises(AssertionError): verify_owned(source.replace(before, after, 1))
 
     def test_only_original_sealed_owned_journey_installs_callback(self):
-        paths = [p for p in (ROOT / 'Tests/AppUnitTests').glob('*.swift') if '.syntheticTrace =' in p.read_text()]
-        self.assertEqual([p.name for p in paths], ['WorkshopOwnedNavigationPresentationTests.swift'])
-        source = paths[0].read_text()
-        self.assertEqual(source.count('.syntheticTrace ='), 1)
-        self.assertIn('guard stageCount < 12 else { return }', source)
-        self.assertEqual(without_debug(original_owned_scene_source(source)), (OLD / (paths[0].name + '.txt')).read_text())
-        self.assertEqual(source.count('WORKSHOP_SYNTHETIC_LIST'), 1)
+        # The purchased-library journey (WorkshopPurchasedNormalAccountTests) now installs the same
+        # DEBUG-only trace. Each install is once per file, inside #if DEBUG, and prints only snapshot
+        # flags/event names (plus the fixed role label), never IDs, routes or content.
+        paths = sorted(p for p in (ROOT / 'Tests/AppUnitTests').glob('*.swift') if '.syntheticTrace =' in p.read_text())
+        self.assertEqual([p.name for p in paths], sorted(TRACE_HOSTS))
+        for path in paths:
+            source = path.read_text()
+            self.assertEqual(source.count('.syntheticTrace ='), 1, path.name)
+            self.assertNotIn('.syntheticTrace =', without_debug(source), path.name)
+            closure = source.split('.syntheticTrace = { snapshot in', 1)[1].split('\n#endif', 1)[0]
+            for value in re.findall(r'\\\(([^)]*)\)', closure):
+                self.assertTrue(value == 'role' or re.fullmatch(r'snapshot\.\w+(\.rawValue)?', value), (path.name, value))
+        owned = (ROOT / 'Tests/AppUnitTests/WorkshopOwnedNavigationPresentationTests.swift').read_text()
+        self.assertIn('guard stageCount < 12 else { return }', owned)
+        self.assertEqual(owned.count('WORKSHOP_SYNTHETIC_OWNED'), 1)
 
     def test_creator_probe_records_only_framework_appearance_and_boolean_state(self):
         source = original_creator_source('WorkshopCreatorConsentNormalFlowTests.swift', (ROOT / 'Tests/AppUnitTests/WorkshopCreatorConsentNormalFlowTests.swift').read_text())

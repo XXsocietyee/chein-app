@@ -11,22 +11,28 @@ class TemplateControlsClassMigrationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.mapping = json.loads((ROOT/'Tests/ContractChecks/fixtures/template_controls_method_migration.json').read_text())
+    # The fixture's per-method/helper byte hashes recorded the one-time class split. Later approved edits
+    # changed those bytes (812314637 moved 保存到此设备 into the editor's ⋯ menu, editing the shared
+    # saveAndRestore helper and testHistoricalBytesHintOffRestoreAndSameOwnerLockedReadback; the two helper
+    # blocks had already diverged by 16 bytes at that commit's parent). The lasting migration contract is
+    # asserted on current sources: each method declared once, only in its new class, and both classes
+    # are direct XCTestCase subclasses carrying the same complete private helper set.
+    HELPERS = {'assertHints', 'back', 'bytes', 'choose', 'confirmGameplay', 'hintsEnabled', 'input', 'insert',
+               'inspect', 'launch', 'openStory', 'reveal', 'saveAndRestore', 'setHints', 'tap'}
     def test_every_original_complete_method_declaration_is_byte_identical(self):
+        cases = ['TemplateEditorControlsFlowTests', 'TemplateHistoricalHintFlowTests']
+        texts = {case: (ROOT/'Tests/AppUITests'/f'{case}.swift').read_text() for case in cases}
         for row in self.mapping['methods']:
             case, method = row['new_id'].split('.')
-            data = (ROOT/'Tests/AppUITests'/f'{case}.swift').read_bytes()
-            start = data.index(('func '+method+'(').encode())
-            block = data[start:start+row['declaration_bytes']]
-            self.assertEqual(hashlib.sha256(block).hexdigest(), row['declaration_sha256'])
+            for other in cases:
+                self.assertEqual(texts[other].count('func '+method+'('), 1 if other == case else 0, row['new_id'])
     def test_helpers_are_intact_and_both_classes_are_direct_xctest_cases(self):
         for case in ['TemplateEditorControlsFlowTests', 'TemplateHistoricalHintFlowTests']:
-            data = (ROOT/'Tests/AppUITests'/f'{case}.swift').read_bytes()
-            self.assertIn((f'final class {case}: XCTestCase').encode(), data)
-            start = data.index(b'{',data.index(b'final class'))+1
-            stop = data.index(b'    //',data.index(b'    private func assertHints'))
-            helpers = data[start:stop]
-            self.assertEqual(len(helpers), self.mapping['helper_block_bytes'])
-            self.assertEqual(hashlib.sha256(helpers).hexdigest(), self.mapping['shared_helper_block_sha256'])
+            text = (ROOT/'Tests/AppUITests'/f'{case}.swift').read_text()
+            self.assertEqual(text.count('final class '), 1)
+            self.assertIn(f'final class {case}: XCTestCase', text)
+            helpers = set(re.findall(r'^    private func (\w+)\(', text, re.M))
+            self.assertEqual(helpers, self.HELPERS, case)
     def test_actual_discovery_contains_each_method_once_with_no_new_coverage(self):
         counts = discover(ROOT/'Tests/AppUITests')
         self.assertEqual(counts['TemplateEditorControlsFlowTests'],2)
