@@ -247,7 +247,7 @@ struct LoginView: View {
 #endif
     /// A legal document pushed inside the sign-in sheet (it used to be a third stacked sheet).
     @ViewBuilder private func legalDocument(_ type: SettingsLegalType) -> some View {
-        if type == .privacyPolicy { PrivacyProtectionView(market: session.operationalMarket, legalReader: session.legalReader) }
+        if type == .privacyPolicy { PrivacyProtectionView(market: session.operationalMarket, legalReader: session.legalReader, signedIn: session.account != nil) }
         else { SettingsLegalDocumentView(type: type, market: session.operationalMarket, reader: session.legalReader) }
     }
     /// Brand mark and wordmark. Both source files are near-black, so they template to the primary text colour.

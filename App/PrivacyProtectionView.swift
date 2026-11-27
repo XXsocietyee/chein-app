@@ -10,11 +10,13 @@ struct PrivacyProtectionView: View {
         privacyPolicyApproved: RegionalLaunchConfiguration.composition.reviewed?.legalCatalogApproved == true
     )
     @State private var granted: Bool
+    private let signedIn: Bool
     @State private var document: AuthEntryLegalSheet?
 
     init(market: RegionalMarket?, policy: UsageConsentPolicy = UsageConsentEnvironment.policy,
-         legalReader: (any SettingsLegalReading)? = nil) {
+         legalReader: (any SettingsLegalReading)? = nil, signedIn: Bool = false) {
         self.market = market
+        self.signedIn = signedIn
         self.policy = policy
         let resolvedReader = legalReader ?? SettingsBundledLegalReader(
             privacyPolicyApproved: RegionalLaunchConfiguration.composition.reviewed?.legalCatalogApproved == true
@@ -75,6 +77,12 @@ struct PrivacyProtectionView: View {
                     .accessibilityValue(Text(LocalizedStringKey(granted ? "authEntry.privacy.consentGranted" : "authEntry.privacy.consentMissing"), tableName: "AuthEntry"))
                     .accessibilityHint(Text("authEntry.privacy.manage", tableName: "AuthEntry"))
                 Text("authEntry.privacy.manage", tableName: "AuthEntry").font(.footnote).foregroundStyle(.secondary)
+                // MP pages/privacy: agreed while signed out -> recorded once back online.
+                if granted && !signedIn {
+                    Text("usageConsent.offline.signedOut").font(.footnote).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("usageConsent.offline.signedOut")
+                }
                 if granted {
                     Button(role: .destructive) {
                         policy.decline()

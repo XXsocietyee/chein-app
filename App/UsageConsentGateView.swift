@@ -151,22 +151,8 @@ private struct UsageConsentLaunchGate: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            // A bottom inset, not an overlay: an overlay sat on top of the welcome screen's "Browse as a guest"
-            // button (11-27 English screenshot). Localized (was hard-coded Chinese).
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                if !signedIn && policy.granted {
-                    Text("usageConsent.offline.signedOut")
-                        .cyText(.meta)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .padding(.horizontal, CYSpacing.md)
-                        .padding(.vertical, CYSpacing.xs)
-                        .frame(maxWidth: .infinity)
-                        .allowsHitTesting(false)
-                        .accessibilityIdentifier("usageConsent.offline.signedOut")
-                }
-            }
+            // The "agreed while signed out" line lives on the privacy page (MP pages/privacy), not app-wide:
+            // app-wide it covered the welcome screen's Browse-as-guest button (11-27).
             .onAppear { presented = UsageConsentGateDecision.showAtLaunch(granted: policy.granted, signedIn: signedIn, declinedThisLaunch: declinedThisLaunch); presentation?.consentActive = presented }
             .onChange(of: presented) { _, value in presentation?.consentActive = value }
             .cySheet(isPresented: $presented) { Group {
