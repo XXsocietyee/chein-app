@@ -97,7 +97,7 @@ struct MemberReportProgressTimeView: View {
                         .accessibilityIdentifier("report.progress.end")
                 }
                 // R7-MEM-28-1: the skeleton is for the first load only; a refresh over kept rows stays quiet.
-                if flow.busy && flow.records.isEmpty { ProgressView().frame(maxWidth: .infinity) }
+                if flow.busy && flow.records.isEmpty { CYLoadingState() }
                 if let failure = flow.failure, flow.records.isEmpty {
                     let message = LocalizedStringKey("report.error." + String(describing: failure))
                     ContentUnavailableView {

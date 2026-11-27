@@ -345,6 +345,40 @@ Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0
 |---|---|
 | — | Next scan candidate: inline row spinners `ProgressView().controlSize(.small)` without words inside buttons that also change their title (one busy-button pattern). |
 
+## Continue run 12 (2026-11-27, after merging combined-r7 bb76e327c)
+
+Merge: five conflicts where combined-r7 (mp-states) wrote `ProgressView { Text("cy.state.loading") }.frame(maxWidth:)`
+and this branch `CYLoadingState(…)` at the same lines (`BundleReviewListView`, `ChannelRedeemSheet`,
+`ClubEventCalendarView`, `FreeExploreBundleLaunchView`, `ClubGapManageExtensions`) → kept `CYLoadingState` (same words,
+one component). Stale allowed entry dropped: `ClubHomeView` silent spinner (combined-r7 gave it words).
+No coordinator finding for this lane in the 20:55 sweep.
+
+Run 11 lead (busy spinners): the run-11 checker only caught `ProgressView()` with `.frame(maxWidth: .infinity)` on
+the **next** line; 36 player sites write both on **one** line — a wordless spinner stretched as the page / section
+loader or the form "working" row (P10 "never a spinner alone"). All → `CYLoadingState()` (system `ProgressView` + 加载中… /
+Loading…); identifiers that followed directly became `messageIdentifier:`; extra frames kept (`maxHeight: .infinity`,
+`minHeight: 120`). Content, order, conditions and identifiers unchanged (look only).
+
+| MP page / area | Native views (file) | Change |
+|---|---|---|
+| 广场 report / report progress / post video | `SquareReportView` (`squareReport.loading`), `SquareReportProgressView`, `SquarePostVideoViews` | → `CYLoadingState` |
+| 我的 profile edit, wallet income, coupons, member report progress | `ProfileEditView` (`profile.edit.busy`), `WalletIncomeAnalysisView`, `CouponManagementView`, `MemberReportProgressDetailView` | same |
+| 俱乐部 payout receiver (4), FE settlement | `ClubPayoutReceiverView`, `ClubFEReferenceSettlementHost` | same (`payoutReceiver.loading` stays on the Section) |
+| channel role / moderation (2) / onboarding / audit / webhook / friend invite + source / notification log (2) + nudge | `NativeChannelRoleEntry`, `NativeChannelModerationEntry`, `NativeChannelOnboardingView`, `NativeChannelAuditEntry`, `NativeChannelManagementWebhookEntry`, `NativeFriendTeamInviteEntry`, `NativeFriendChannelInviteEntry`, `NativeFriendChannelSourceEntry`, `NativeNotificationDeliveryLogView`, `NativeNotificationPermissionNudgeView` | same |
+| 发布 publishing management / modes (2), story image / audio upload | `PublishingManagementViews`, `PublishingModesViews`, `ProjectStoryImageAuthorView` (`projectStoryImage.busy`), `ProjectStoryAudioAuthorView` (`projectStoryAudio.uploading`) | same |
+| play help ladder receipt, game hint sheet, sensor kit authorizing, city game panel, topic story participation, bundle pay result, workshop paid text | `PlayHelpLadderPanel`, `NativeR2/Games/NativeGameHintSheet`, `NativeR2/Games/NativeGameSensorKit`, `CityGamePanel`, `TopicStoryParticipationHost`, `BundlePayResultView`, `WorkshopPaidInstalledTextView` (VoiceOver label kept) | same |
+
+Checker kind **silent spinner** widened: also `ProgressView().frame(maxWidth: .infinity…` on one line. Baseline 0.
+Self-test: the pre-fix tree fails in all 30 files above.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(silent spinner 0, status capsule 29 baselined debt, 76 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0** (look-only hash pins in `test_activity_publishing_wizard` / `test_workshop_protected_text_lifecycle` updated with one-line reasons; neither is pinned in `tools/current_ci_manifest.json`).
+
+### Not done (next run)
+| Item | Why not now |
+|---|---|
+| Inline busy indicators inside buttons / rows (`if busy { ProgressView() }` next to a title, ~40 sites) | Different pattern (a small spinner beside the action's own title is the system idiom); next run decides one busy-button pattern per site. |
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
