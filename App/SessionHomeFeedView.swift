@@ -27,6 +27,9 @@ import SwiftUI
     @State private var showsMerchantApplication=false
     @State private var showsMiniGames = false
     @State private var showsSearchMap = false
+    /// mp-nav r3: a link / notification page pushed on this stack (see `HomeLanding`).
+    @State private var landingRoute: MPParityRoute?
+    @Environment(RootPresentationCoordinator.self) private var presentation: RootPresentationCoordinator?
     @Environment(\.locale) private var locale
     @StateObject private var cityConsent = HomeCityLocationConsentModel()
     var body:some View {
@@ -106,6 +109,26 @@ import SwiftUI
                 .accessibilityIdentifier("homeFeed.openProjectEditor")
         })
     }
+    /// Opens a landed link page as the only page above 首页, so back returns to the feed (MP home button).
+    private func openHomeLanding() {
+        guard let presentation, let landing = presentation.homeLanding else { return }
+        presentation.homeLanding = nil
+        search.isPresented = false
+        activeContinuationScope = nil
+        showsOfficialEvents = false
+        showsClubApplication = false
+        showsSearchMap = false
+        router.resetHome()
+        switch landing.target {
+        case .page(let route):
+            landingRoute = route
+        case .topic(let id):
+            landingRoute = nil
+            router.pushHome(.topic(id))
+        case .tab:
+            landingRoute = nil
+        }
+    }
     private var navigationRoot: some View {
         NavigationStack(path:$router.homePath) {
             // Unzoned content needs a separately verified event/backend timezone.
@@ -183,6 +206,10 @@ import SwiftUI
                 .navigationDestination(isPresented:$showsClubApplication) {
                     clubApplicationPage
                 }
+                .navigationDestination(item: $landingRoute) { route in
+                    MPParityDestination(route: route)
+                        .cyPushedChrome()
+                }
                 // mp-nav r3: MP pages/searchmap/index is a page (map search, not play): push it with an inline title.
                 .navigationDestination(isPresented:$showsSearchMap) {
                     SessionLinkedSearchView(initialQuery: mapQuery, startsOnMap: true, onSignIn: { showsSearchMap = false; onSignIn?() })
@@ -190,6 +217,7 @@ import SwiftUI
                         .cyPushedChrome()
                 }
         }
+        .onChange(of: presentation?.homeLanding, initial: true) { _, _ in openHomeLanding() }
         .onChange(of:activeContinuationScope) { _,next in if next == nil { Task { await reloadContinuationCards() } } }
         .onChange(of:router.homePath) { _,next in if next.isEmpty { Task { await reloadContinuationCards() } } }
         .cySheet(isPresented:$showsMerchantApplication) { merchantApplicationSheet.themeDomain(.merchant).cySheet(detents: [.large]) }
