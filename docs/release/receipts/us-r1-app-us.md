@@ -53,6 +53,6 @@ No secrets in git.
 
 - `python3 tools/check_scaffold.py`: PASS structural checks (5232 Swift files).
 - `python3 tools/check_a11y_lint.py`: PASS, 0 new.
-- `python3 tools/contract_ratchet.py --check`: see the commit message for the result.
+- `python3 tools/contract_ratchet.py --check`: 104 failing, baseline 104, **new 0**, fixed 0.
 - `python3 tools/check_l2_environment_configs.py`: 15 tests OK (updated for the US production profile).
 - Contract checks touched: `test_pages_shezhi_shezhi`, `test_native_presentation_reuse`, `test_pages_activity_baoming_baoming`, `test_profile_participant_validation`, `test_sign_in_with_apple_flow`: OK. `test_profile_reload_discard` fails at base `origin/i18n/r1-locale` too (2 hash pins), so it isn't from this lane.
