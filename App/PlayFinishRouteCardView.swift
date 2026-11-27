@@ -60,7 +60,7 @@ import SwiftUI
         // i18n r2: the distance argument carries its unit (zh `1.2 公里` / `850 米` unchanged; en-US `0.7 mi` / `500 ft`).
         let distance = card.distanceMeters.map { meters -> String in
             let parts = PlayFinishRouteCard.distanceParts(meters)
-            return LocaleDisplay.distanceArgument(meters: meters, zhText: parts.value + (parts.kilometres ? " 公里" : " 米"), locale: locale)
+            return LocaleDisplay.distanceArgument(meters: meters, zhText: parts.kilometres ? appLocalized("playx.finishRoute.km \(parts.value)", locale: locale) : appLocalized("playx.finishRoute.m \(parts.value)", locale: locale), locale: locale)
         }
         switch (distance, card.address) {
         case (let d?, let address?): return "playx.finishRoute.metaDistance \(d) \(address)"
