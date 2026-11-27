@@ -309,7 +309,8 @@ public struct RoamExploreDay: Decodable, Equatable, Identifiable {
     public let subtitle: String
     public let meetingPoint: String
     public let distanceM: Int?
-    public var isDisplayable: Bool { id > 0 && !title.isEmpty }
+    /// MP `_attachExploreDayCandidate` keeps any positive activity id; an empty title reads 看看自由探索 (wxml:985).
+    public var isDisplayable: Bool { id > 0 }
     enum CodingKeys: String, CodingKey { case activityId, title, subtitle, meetingPoint, distanceM }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)

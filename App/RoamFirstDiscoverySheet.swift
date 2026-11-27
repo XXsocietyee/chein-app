@@ -67,7 +67,11 @@ extension EnvironmentValues {
                     if let exploreDay {
                         NavigationLink { destinations.activity(exploreDay.id) } label: {
                             Label { VStack(alignment: .leading) {
-                                Text(verbatim: exploreDay.title)
+                                if exploreDay.title.isEmpty {
+                                    Text("roam.discover.exploreDayFallback")
+                                } else {
+                                    Text(verbatim: exploreDay.title)
+                                }
                                 Text("roam.discover.exploreDayHint \(exploreDay.distanceM ?? 0)").font(.footnote).foregroundStyle(.secondary)
                             } } icon: { Image(systemName: "point.topleft.down.to.point.bottomright.curvepath") }
                         }
