@@ -38,6 +38,9 @@ and `#Preview { ... }` blocks; comments are ignored) and counts, per file:
   font design     `design: .rounded` / `.serif` or `.fontDesign(.rounded / .serif)` outside App/DesignSystem and
                   App/Theme: a per-page numeral / heading face (stat numbers use `.cyText(.dataXL)`, the one rounded
                   data style; `.monospaced` code editors are fine)
+  custom search   a hand-drawn search field outside App/DesignSystem: an `Image(systemName: "magnifyingglass")`
+                  followed within 3 lines by a `TextField(` (use `.searchable` on the page, or `CYFormSearchRow` for a
+                  filter that is one row of a Form / List section)
 
 Build-break guards (module-wide: App/ and Core/ compile into ONE module, so every file is scanned, merchant and
 fixtures included; there is no Swift compiler in the lanes' cloud sessions):
@@ -84,10 +87,11 @@ LIST_STYLE = 'list style'
 CUSTOM_SHEET = 'custom sheet'
 CUSTOM_TABS = 'custom tabs'
 FONT_DESIGN = 'font design'
+CUSTOM_SEARCH = 'custom search'
 DUPLICATE_TYPE = 'duplicate type'
 UNDECLARED_STATE = 'undeclared state'
 KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, CUSTOM_BACK, BUTTON_STYLE, POPUP_SCRIM,
-         RAW_COLOUR, LIST_STYLE, CUSTOM_SHEET, CUSTOM_TABS, FONT_DESIGN,
+         RAW_COLOUR, LIST_STYLE, CUSTOM_SHEET, CUSTOM_TABS, FONT_DESIGN, CUSTOM_SEARCH,
          DUPLICATE_TYPE, UNDECLARED_STATE)
 
 # The five player tab roots (Core/RootTab.swift, QuestifyApp root TabView) and the files that own their title.
@@ -150,6 +154,8 @@ TABS_SELECTED = re.compile(r'==\s*(?:self\.)?(?:selection|selected\w*|active|cur
                            r'\b(?:isSelected|on)\s*=\s*\w+(?:\.\w+)?\s*==')
 DS_TAB_BAR = re.compile(r'(?<![\w.])(?:CYNightTabBar|CYDomainTabBar)\s*\(')
 APP_ROOT = 'App/QuestifyApp.swift'
+# Hand-drawn search fields: the search symbol drawn next to a TextField.
+SEARCH_GLYPH = re.compile(r'Image\(systemName:\s*"magnifyingglass"\)')
 FONT_DESIGN_PATTERN = re.compile(r'\bdesign\s*:\s*\.(?:rounded|serif)\b|\.fontDesign\s*\(\s*\.(?:rounded|serif)\b')
 COLOUR_PATTERNS = (
     re.compile(r'(?<![\w.])(?:UI)?Color\s*\(\s*red\s*:'),
@@ -279,6 +285,9 @@ def scan_file(rel, text):
             window = ' '.join(c for _, c in lines[index:index + 8])
             if TABS_BUTTON.search(window) and TABS_SELECTED.search(window):
                 hits.append((number, CUSTOM_TABS, code.strip()))
+        for index, (number, code) in enumerate(lines):
+            if SEARCH_GLYPH.search(code) and any('TextField(' in c for _, c in lines[index:index + 4]):
+                hits.append((number, CUSTOM_SEARCH, code.strip()))
     if not design_system and rel not in TITLE_MODE_EXEMPT and not any(ANY_MODE_PATTERN.search(c) for _, c in lines):
         for number, code in lines:
             if TITLE_PATTERN.search(code):

@@ -18,10 +18,8 @@ import QuestifyCore
         List {
             switch state {
             case .loading:
-                ForEach(0..<4, id: \.self) { _ in
-                    Label("nativeR2.mapHome.loading", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
-                        .redacted(reason: .placeholder)
-                }
+                ProgressView { Text("nativeR2.mapHome.loading") }
+                    .frame(maxWidth: .infinity)
             case .ready(let routes):
                 ForEach(routes) { route in
                     NavigationLink(value: RoamMapHomeRoute.officialRoute(route.id)) { row(route) }

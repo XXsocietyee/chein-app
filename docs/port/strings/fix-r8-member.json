@@ -717,9 +717,21 @@
     "extractionState": "manual",
     "localizations": {
       "en": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "Used %lld times"
+        "variations": {
+          "plural": {
+            "one": {
+              "stringUnit": {
+                "state": "translated",
+                "value": "Used %lld time"
+              }
+            },
+            "other": {
+              "stringUnit": {
+                "state": "translated",
+                "value": "Used %lld times"
+              }
+            }
+          }
         }
       },
       "zh-Hans": {

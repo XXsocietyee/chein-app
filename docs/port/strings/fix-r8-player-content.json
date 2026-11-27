@@ -362,9 +362,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Visit all %lld shops in any order while the pass is valid; each one redeems once."
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Visit all %lld shop in any order while the pass is valid; each one redeems once."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Visit all %lld shops in any order while the pass is valid; each one redeems once."
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -396,9 +408,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld stops in all"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld stop in all"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld stops in all"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {

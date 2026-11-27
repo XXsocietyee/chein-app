@@ -293,10 +293,8 @@ enum MPParityRoute: Hashable, Identifiable {
                 // MP cy-empty missing-param: 链接已失效 + 返回 (the deep-link sheet has no system back).
                 MemberMissingLinkState(title: "mp.gift.linkInvalid", identifier: "passGift.missing")
             } else if bindings.isSignedIn?() == false {
-                CYStateLayout(kind: .generic, title: Text("mp.gift.signIn"),
-                              primary: (title: "mp.pass.signIn.action", action: { PlayerJourneySignInBridge.shared.request() }),
-                              primaryStyle: .primary, primaryIdentifier: "passGift.signIn")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                // MP market/gift: a guest still sees 好友送你一份通行证 · 领取; 领取 asks to sign in (`ensureLoginFor`, js:96).
+                PassGiftClaimView(state: PassGiftClaimState(), onClaim: { PlayerJourneySignInBridge.shared.request() }, onOpenGifts: {})
             } else if let make = bindings.passGift { PassGiftClaimHost(binding: make(token)) } else { unavailable }
         case .platformCode:
             PlatformCodeRedeemPage()
