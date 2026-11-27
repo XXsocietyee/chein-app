@@ -27,6 +27,9 @@ import SwiftUI
     /// Parity coop/list P0: the row's two-button `inv-acts` open the reviewed submit page (X1) as a sheet.
     @State private var rowAction: CoopListRowAction?
     @State private var composingInvite = false
+    /// MP coop/list wxml:84-87 `.inv-acts`: a pending received card answers in place (拒绝 / 接受合作) through the
+    /// same reviewed handle editor as the detail page.
+    @State private var listHandle: CoopListHandle?
     /// MC8-30-4 / MC8-30-5: 回邀约 / 发邀约 open the new-invitation page with the recipient and topic fixed.
     @State private var invitePreset: CoopListInvitePreset?
     @Environment(\.cooperationTopicNearbyDestination) private var topicNearbyDestination
@@ -119,6 +122,12 @@ import SwiftUI
                         .cyPushedChrome(domain: .merchant)
                         .environment(\.coopInviteSent, { direction = .sent; composingInvite = false })
                 }
+            }
+            .navigationDestination(item: $listHandle) { item in
+                CoopFlowHandleEditor(inviteID: item.inviteID, action: item.accept ? .accept : .reject, currentStatus: 0,
+                                     supplyStationID: item.stationID, supplyStationName: item.stationName,
+                                     flowReader: item.stationID == nil ? nil : peerReader)
+                    .cyPushedChrome(domain: .merchant)
             }
             .cySheet(item: $rowAction) { action in
                 Group {
@@ -251,6 +260,19 @@ import SwiftUI
                     .accessibilityAction(named: Text("merchantCoop.list.copyPhone")) {
                         if case .visible = CooperationInvitePresentation(invite: row, direction: direction).contact,
                            let phone = row.partner?.phone?.trimmingCharacters(in: .whitespacesAndNewlines), !phone.isEmpty { LocalPasteboard.copy(phone) }
+                    }
+                    if direction == .received, case .decide = CooperationInvitePresentation(invite: row, direction: direction).footer {
+                        // MP wxml:84-87: 拒绝 (secondary) then 接受合作 (the card's one solid action).
+                        HStack(spacing: CYSpacing.sm) {
+                            Button("cooperation.detail.reject") { listHandle = CoopListHandle(row: row, accept: false) }
+                                .buttonStyle(.bordered)
+                                .accessibilityIdentifier("cooperation.invite.received.reject.\(row.id).\(index)")
+                            Button("cooperation.detail.accept") { listHandle = CoopListHandle(row: row, accept: true) }
+                                .buttonStyle(.borderedProminent)
+                                .accessibilityIdentifier("cooperation.invite.received.accept.\(row.id).\(index)")
+                        }
+                        .controlSize(.regular)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
                     }
                     // MC8-30-6 (wxml:225-227 `goInviteOthers`): a declined sent invite offers 再邀别人 → 找商家 for that topic.
                     if direction == .sent, row.status == 2, !row.legacyReadonly, let topic = row.topicId, topic > 0, let topicNearbyDestination {
@@ -450,6 +472,18 @@ struct CoopCloudCoverThumb: View {
         .frame(width: side, height: side)
         .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
         .accessibilityHidden(true)
+    }
+}
+
+struct CoopListHandle: Hashable {
+    let inviteID: Int
+    let accept: Bool
+    let stationID: Int?
+    let stationName: String?
+    init(row: CooperationInvite, accept: Bool) {
+        inviteID = row.id; self.accept = accept
+        stationID = accept ? row.supplyStationId : nil
+        stationName = accept && row.supplyStationId != nil ? row.supplyStationName : nil
     }
 }
 
