@@ -210,9 +210,18 @@ most are short chips, segmented pickers, switches or one-line numbers. 3 real ov
 | `pages/activity` registration sheet header | `RegistrationSheetView.swift` (`RegistrationPlayerSheetHeader`) | ✓ (mp-activity owns order) | Fixed-size bar title "Activity registration" pushed the ✕ off screen at AX5 → capped at `.xxxLarge` like the system inline title, plus Large Content Viewer | Done |
 | `pages/coop/*` cooperation invites strip (inbox) | `IMCoopInviteStripView.swift` (header) | ✓ (mp-activity owns order) | Title + fixed-size "Invite alerts" switch + Received/Sent picker in one row → stacks at AX sizes | Done |
 
+Fixed-width scan (`.frame(width: N)` on stacks / text, 19 player hits; the rest are icons, a 260 pt iPad sidebar, a 240 pt
+share preview, progress bars and art tiles):
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/topic/*` 角色 cast rail | `CastViews.swift` (`TopicCastRow`) | ✓ (mp-publish owns order) | Column fixed 72 pt cut names to 2–3 letters at AX sizes → `@ScaledMetric(relativeTo: .footnote)` width (rail scrolls) | Done |
+| `pages/play` story route cast rail | `NativeR2/Story/NR2StoryRouteSections.swift` | ✓ (mp-journey owns order) | Column fixed 64 pt → scaled `NR2CastColumn` (`relativeTo: .caption`) | Done |
+| `pages/play` city-run finish leaderboard | `NativeR2/CityOrientation/CityOrientationFinishSummaryView.swift` | ✓ (mp-journey owns order) | Rank fixed 32 pt → `minWidth: 32` (same as run 11 leaderboards) | Done |
+
 ## Not done (next run starts here)
 - Re-read the a11y sheets (ring size at AX5, roam VoiceOver order, `a11y-passport-ax5` = passport at AX5) once a sweep build is newer than 405948d58; combined-r7 46ebaf0b6 carries runs 7–11.
-- Dynamic Type: `.frame(width:)` on stacks (not single Text chains, scanned run 11); `.fixedSize()` scan done run 12 (host-only `ClubOpsEventInlineRoster` skipped).
+- Dynamic Type: horizontal rails whose cards keep a fixed width and `lineLimit(2)` (`DiscoveryHomeView` banner 260 pt, `DiscoveryTemplateDetailView` nodes 150 pt): check at AX5 whether a scaled width reads better.
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch
