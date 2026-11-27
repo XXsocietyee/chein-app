@@ -214,5 +214,9 @@
   "growth.board.link": {
     "en": "View leaderboard",
     "zh-Hans": "查看榜单"
+  },
+  "growth.board.loading": {
+    "en": "Loading the leaderboard…",
+    "zh-Hans": "正在加载排行榜…"
   }
 }
