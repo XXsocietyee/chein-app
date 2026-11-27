@@ -33,7 +33,8 @@ enum ClubGovernanceConsequence: Equatable {
         case .transferOwner: return ("crown", "person.crop.circle.badge.minus")
         case .revokeRole: return ("shield.slash", "person.2")
         case .dissolve: return ("trash", "person.3.sequence")
-        case .endTopic: return ("calendar.badge.minus", "arrow.uturn.backward.circle")
+        // mp-club r3 (MP cy/club-topic-end-confirm): 停止售卖并退票, then the lighter alternative 下架就够了; confirm 结束并退款.
+        case .endTopic: return ("arrow.uturn.backward.circle", "eye.slash")
         }
     }
 

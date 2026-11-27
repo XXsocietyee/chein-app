@@ -346457,6 +346457,74 @@
           }
         }
       }
+    },
+    "club.community.pinnedNoticesTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notices · Start here"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公告 · 新人先看"
+          }
+        }
+      }
+    },
+    "club.community.noticeNoText": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(No text)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "（无文字内容）"
+          }
+        }
+      }
+    },
+    "club.community.noticeUnreadA11y %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unread notice: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未读公告：%@"
+          }
+        }
+      }
+    },
+    "club.community.noticeA11y %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notice: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公告：%@"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
