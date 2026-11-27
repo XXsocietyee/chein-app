@@ -73,6 +73,8 @@ struct E1ActivityHero: View {
                 }
                 .padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.lg).padding(.top, dynamicTypeSize.isAccessibilitySize ? CYSpacing.lg : 84)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                // The scrim is always black: resolve `.secondary` (the neutral 已结束 chip) for a dark surface in light mode too.
+                .environment(\.colorScheme, .dark)
                 .background(
                     LinearGradient(
                         stops: [

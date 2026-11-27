@@ -43,7 +43,8 @@ struct ExploreStartsInLine: View {
 
     var body: some View {
         TimelineView(.explicit(wakeDates)) { context in
-            line(now: context.date)
+            // An explicit schedule whose dates are all past hands back a past `context.date`; never treat that as now.
+            line(now: max(context.date, Date()))
         }
     }
 
