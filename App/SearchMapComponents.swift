@@ -89,6 +89,7 @@ struct SearchMapCard: View {
     let row: GlobalSearchRow
     let offline: Bool
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.cyPalette) private var palette
     /// R7-PC-A4-2 (r1 PC-A-4-3): MP result page draws topics and activities as cover cards; clubs and merchants keep rows.
     private var usesCoverCard: Bool { (row.kind == .topic || row.kind == .activity) && !typeSize.isAccessibilitySize }
     var body: some View {
@@ -97,10 +98,24 @@ struct SearchMapCard: View {
     /// One plain header image above the row text (no card chrome); the List row draws the chevron.
     private var coverCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            DiscoveryArtwork(source: offline ? nil : row.imageURL, height: 160)
+            coverImage
             textColumn
         }
         .accessibilityElement(children: .combine)
+    }
+    /// mp-home r3 (19:50 sweep; MP search2/result wxml:31-32, 67-69): no cover = the kind icon on the subtle surface,
+    /// never a grey block with a generic glyph.
+    private var coverImage: some View {
+        AsyncImage(url: offline ? nil : QuestifyCardArtwork.safeURL(row.imageURL)) { phase in
+            if let image = phase.image { image.resizable().scaledToFill() }
+            else {
+                palette.bgSurfaceSubtle
+                    .overlay { Image(systemName: row.kind.symbol).font(.title2).foregroundStyle(.secondary).accessibilityHidden(true) }
+            }
+        }
+        .frame(height: 160).frame(maxWidth: .infinity)
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .accessibilityHidden(true)
     }
     private var rowCard: some View {
         HStack(alignment: .center, spacing: 12) {

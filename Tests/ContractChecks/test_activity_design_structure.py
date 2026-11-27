@@ -48,7 +48,9 @@ class ActivityDesignStructureTests(unittest.TestCase):
         self.assertIn("if let guestSignIn { guestSignIn() } else { tileOpenedSheet = true; showsRegistration = true }", city_cta)
         self.assertIn("var registrationEnabled=false", source)
         self.assertIn(".safeAreaInset(edge:.bottom,spacing:0)", source)
-        self.assertIn("if registrationEnabled { registrationAction(detail) }", source)
+        # mp-home r3 (19:50 sweep): the footer goes through showsFooter, which keeps the registrationEnabled gate and hides the dead MP "—" pill.
+        self.assertIn("if showsFooter(detail) { registrationAction(detail) }", source)
+        self.assertIn("guard registrationEnabled else { return false }", source)
         self.assertEqual(source.count('accessibilityIdentifier("activity.openRegistration")'), 1)
         # MP scene-play-activity-detail/index.wxml:149-153: a cancelled activity is a disabled pill, the host
         # footer is 取消活动并退款, signup shows noTicketText or 立即报名 and is disabled when it cannot confirm,
