@@ -37,14 +37,21 @@ import SwiftUI
     }
 
     private var header: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
+        // AX sizes: title, the fixed-size reminder switch and the direction picker do not fit one row; stack them.
+        let stacked = typeSize.isAccessibilitySize
+        let layout = stacked
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
+            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 12))
+        return layout {
             Text(verbatim: copy("合作邀请", "Cooperation invites"))
                 .font(.headline)
                 .foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
             if direction == .received { IMInviteReminderToggle() }
-            Spacer(minLength: 8)
+            if !stacked {
+                Spacer(minLength: 8)
+            }
             if fixedDirection == nil {
                 Picker(copy("邀请方向", "Invite direction"), selection: $pickedDirection) {
                     Text(verbatim: copy("收到", "Received")).tag(CooperationDirection.received)

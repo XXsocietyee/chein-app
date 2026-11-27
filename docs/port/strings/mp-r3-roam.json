@@ -1154,5 +1154,39 @@
         }
       }
     }
+  },
+  "roam.official.pausedReason %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Event paused: %@"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "活动暂停：%@"
+        }
+      }
+    }
+  },
+  "roam.official.loading": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Loading the event…"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在读取活动…"
+        }
+      }
+    }
   }
 }

@@ -1296,8 +1296,8 @@
     "zh-Hans": "等待核对"
   },
   "playx.phase.submitting": {
-    "en": "Submitting",
-    "zh-Hans": "正在提交"
+    "en": "Submitting…",
+    "zh-Hans": "正在提交…"
   },
   "playx.phase.needsReadback": {
     "en": "Awaiting server readback",

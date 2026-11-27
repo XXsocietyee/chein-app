@@ -281,3 +281,13 @@ Merged `origin/ui/combined-r7` (clean). The 21:09 sweep was built before Continu
 Every `subpackageMember` page now has a row; next runs re-scan the components (`ai-chat-records`, `scene-member-withdraw-history`, …).
 
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+## Continue 12 (hourly re-arm, sweep still 21:09 UTC build 405948d58)
+
+Merged `origin/ui/combined-r7` (clean). No new sweep since Continue 11, so no new visual rows; this pass re-scans the member components.
+
+| MP page | Native view | MP says | Fixed now |
+|---|---|---|---|
+| `components/cy/scene-member-withdraw-history` (+ `tixianjilu` shell) | `App/WithdrawalHistoryView.swift` | Amount: L09-023 `moneyText` = −¥ with the site amount format, ¥0 for zero, never a bare "-12.00"; first load `cy-skeleton type="list" count="4"` | **Fixed.** Rows and the detail sheet use `WithdrawalAmountDisplay` (`.currency(code: "CNY")` in the UI locale: −¥12.30 zh, -CN¥12.30 en; ¥0.00 for zero; "—" when unknown). The skeleton shows four rows. `WithdrawalParityFlowTests` now checks "12.30" + "¥" instead of the bare "-12.30" (pin followed the MP format). Title, empty (还没有发起提现), login / denied / failed copy, statuses, load-more + 更多提现记录加载失败 · 重试 already matched. The day-grouped sections stay (layout, no new content). |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.

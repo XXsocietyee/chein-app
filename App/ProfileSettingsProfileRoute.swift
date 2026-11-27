@@ -102,15 +102,26 @@ struct ProfileSettingsProfileRoute: Hashable {
     @ObservedObject var owner: ProfileSettingsProfileOwner
     func body(content: Content) -> some View {
         content.navigationDestination(for: ProfileSettingsProfileRoute.self) { route in
-            ProfileSettingsProfileDestination(route: route, owner: owner, current: { .current(session) },
-                categoryReader: session, currentReviewReader: session.profileCurrentReviewReader, nicknameReader: session.profileNicknameReader, savedMedia: session.profileSavedMediaReaders, avatarDependencies: session.profileAvatarDependencies, merchantImages: session.retainedMerchantImages,
-                merchantAssist: { [weak session] coordinator in
-                    guard let session, owner.accepts(route, current: .current(session)) else {
-                        return MerchantTemplateAssistFlow(coordinator: coordinator, client: nil)
-                    }
-                    return session.merchantTemplateAssistFlow(coordinator: coordinator)
-                })
+            ProfileSettingsProfileSessionDestination(session: session, route: route, owner: owner)
         }
+    }
+}
+
+/// The profile page for a settings route, read from the session. Used by the value destination above and by
+/// a landed (pushed) Settings page, whose host stack has a typed `[AppRoute]` path and cannot push this route by value.
+@MainActor struct ProfileSettingsProfileSessionDestination: View {
+    let session: AppSession
+    let route: ProfileSettingsProfileRoute
+    @ObservedObject var owner: ProfileSettingsProfileOwner
+    var body: some View {
+        ProfileSettingsProfileDestination(route: route, owner: owner, current: { .current(session) },
+            categoryReader: session, currentReviewReader: session.profileCurrentReviewReader, nicknameReader: session.profileNicknameReader, savedMedia: session.profileSavedMediaReaders, avatarDependencies: session.profileAvatarDependencies, merchantImages: session.retainedMerchantImages,
+            merchantAssist: { [weak session] coordinator in
+                guard let session, owner.accepts(route, current: .current(session)) else {
+                    return MerchantTemplateAssistFlow(coordinator: coordinator, client: nil)
+                }
+                return session.merchantTemplateAssistFlow(coordinator: coordinator)
+            })
     }
 }
 
