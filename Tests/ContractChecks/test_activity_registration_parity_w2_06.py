@@ -47,8 +47,9 @@ class ActivityDetailParityTests(unittest.TestCase):
         fold = source.split("private func detailContent", 1)[1].split("private func moreInfoSections", 1)[0]
         ordered(self, fold, (
             "E1ActivityHero(summary:detail.summary)",
-            "E1ActivityInfoCard(detail:detail)",
+            # mp-home r3: MP shows the cancelled notice right under the hero, before the native info card.
             'accessibilityIdentifier("activity.detail.cancelled")',
+            "E1ActivityInfoCard(detail:detail)",
             "ActivityDetailMetaSection(facts: ActivityDetailHeaderFacts(detail: detail))",
             "detail.summary.hasValidCoordinates",
             'Section("activity.about")',

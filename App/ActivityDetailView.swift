@@ -402,6 +402,19 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                 E1ActivityHero(summary:detail.summary)
                     .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
             }
+            // mp-home r3 (MP scene-play-activity-detail index.wxml:23-27): the cancelled notice sits right under the hero.
+            if detail.isCancelled {
+                Section {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Label { Text("activity.cancelled.title") } icon: { Image(systemName: "xmark.octagon").foregroundStyle(.red) }
+                            .font(.headline)
+                        if let reason = detail.cancelReason { Text("activity.cancelled.reason \(reason)").fixedSize(horizontal: false, vertical: true) }
+                        Text("activity.cancelled.hint").font(.footnote).foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .accessibilityIdentifier("activity.detail.cancelled")
+                }
+            }
             Section {
                 E1ActivityInfoCard(detail:detail)
                     .questifyCardListRow()
@@ -420,21 +433,17 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                     )
                 }
             }
-            if detail.isCancelled {
-                Section {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Label { Text("activity.cancelled.title") } icon: { Image(systemName: "xmark.octagon").foregroundStyle(.red) }
-                            .font(.headline)
-                        if let reason = detail.cancelReason { Text("activity.cancelled.reason \(reason)").fixedSize(horizontal: false, vertical: true) }
-                        Text("activity.cancelled.hint").font(.footnote).foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .accessibilityIdentifier("activity.detail.cancelled")
-                }
-            }
             // MP scene-play-activity-detail activity-meta: 分类 / 集合点 / 已报名
             // follow the cancellation notice and precede 关于这场活动.
             ActivityDetailMetaSection(facts: ActivityDetailHeaderFacts(detail: detail))
+            // mp-home r3: MP 主题路线 is the last fact row (index.wxml:37), so it follows the facts directly.
+            if let topicID = detail.summary.linkedTopicID, let topicDestination {
+                Section {
+                    NavigationLink { topicDestination(topicID) } label: {
+                        Label("activity.viewTopic", systemImage: "map")
+                    }.accessibilityIdentifier("activity.openTopic")
+                }
+            }
             if detail.summary.hasValidCoordinates,
                let latitude=detail.summary.latitude, let longitude=detail.summary.longitude {
                 Section("activity.location") {
@@ -451,13 +460,6 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                         .listRowInsets(EdgeInsets())
                 }
             }
-            if let topicID = detail.summary.linkedTopicID, let topicDestination {
-                Section {
-                    NavigationLink { topicDestination(topicID) } label: {
-                        Label("activity.viewTopic", systemImage: "map")
-                    }.accessibilityIdentifier("activity.openTopic")
-                }
-            }
             // R7-PC-C1-7, MP scene-play-activity-detail index.wxml:41-44: 关于这场活动 sits in the first fold, above the people.
             if let text=ActivityPresentation.nonempty(detail.summary.description) {
                 Section("activity.about") {
@@ -468,6 +470,11 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
             }
             ActivityPeopleSection(people: detail.people, onOpenProfile: profileAction(detail),
                                   organizerShopName: detail.organizerShopName, organizerShopLogo: detail.organizerShopLogo)
+            // mp-home r3 (MP index.wxml:61-78): 关联玩法模板 is on the page between the people and 票种, not behind More info.
+            // Only this successful, current allowed response supplies these rows.
+            if gateScope != nil, detail.summary.id == id {
+                ActivityAssociatedPlaysSection(plays: detail.associatedPlays)
+            }
             Section {
                 if detail.tickets.isEmpty {
                     // Source empty ticket copy: title plus host explanation.
@@ -562,6 +569,10 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
         ) {
             ActivityPeopleSection(people: detail.people, onOpenProfile: profileAction(detail),
                                   organizerShopName: detail.organizerShopName, organizerShopLogo: detail.organizerShopLogo)
+            // mp-home r3: 关联玩法模板 follows the people (MP order); it left moreInfoSections.
+            if gateScope != nil, detail.summary.id == id {
+                ActivityAssociatedPlaysSection(plays: detail.associatedPlays)
+            }
             ActivityReviewsSection(reviews: detail.reviews)
             moreInfoSections(detail)
             if let hostCancelAccess {
@@ -610,12 +621,9 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
     }
     /// Secondary sections behind the "More info" disclosure.
     @ViewBuilder private func moreInfoSections(_ detail: ActivityDetail) -> some View {
-        // Associated plays stay behind More info. Meta rows are in the first fold.
+        // Meta rows and 关联玩法模板 are in the first fold (mp-home r3).
         // Only this successful, current allowed response supplies these rows.
         // A scope/reader/activity/reread invalidation immediately removes them.
-        if gateScope != nil, detail.summary.id == id {
-            ActivityAssociatedPlaysSection(plays: detail.associatedPlays)
-        }
         if let playReaderForActivity {
             Section {
                 NavigationLink { PlaySessionView(reader:playReaderForActivity(id)) } label: {

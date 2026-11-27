@@ -351,16 +351,13 @@ struct TopicDetailView: View {
             }
             // verify-r1 3.1 (`169:6954`): the hero block reads as one page header, not as list rows with dividers.
             .listRowSeparator(.hidden)
-            // 详情 tab (mini-program `det3`): title, one-line subtitle, venue card, then the audio guide.
+            // 详情 tab (mini-program `det3`): title and one-line subtitle (MP owner 10-29 V-22b: no venue card), then the audio guide.
             Section {
                 // Coordinator review: an unknown or zero stop count is not a fact worth a row.
                 if (value.locationCount ?? 0) > 0 {
                     TopicTotalStops(count: value.locationCount, identifier: "topic.totalStops")
                 }
                 if let subtitle = value.subtitle { Text(verbatim: subtitle).font(.headline) }
-                if let venue = TopicXcxFacts.venue(value.addressName) {
-                    Label { VStack(alignment: .leading, spacing: CYSpacing.xxs) { Text(verbatim: venue.name); if let address = venue.address { Text(verbatim: address).font(.subheadline).foregroundStyle(.secondary) } } } icon: { Image(systemName: "mappin.circle.fill").foregroundStyle(.tint) }
-                }
                 if let audio = value.audioURL, !audio.isEmpty { PlatformAudioHost(rawURL: audio, scope: reader.scope, makeModel: makeAudio) }
                 // R7-PC-B1-6: free explore lists 参与商家 · N 家 in 详情 (MP pages/topic/index/index.wxml:190-192, merchantCards).
                 if value.productType == 2 {
@@ -373,8 +370,12 @@ struct TopicDetailView: View {
                     }
                 }
             }.id(TopicXcxTab.details.anchor)
-            if let cast = value.castConfig, !cast.cast.isEmpty {
-                Section("topic.cast") { TopicCastRow(config: cast) }
+            // mp-home r3 (MP topic/index.wxml:190-196): 参与商家, then 开局前准备, then 节点介绍.
+            // 开局前准备 (`GET api/play/setup`): hidden when neither prep items nor a play window are set.
+            // R7-PC-B1-20: MP shows 开局前准备 only to a viewer who has joined (`is_join == 1 && prep.show`).
+            if value.isSignUp {
+                // 开始游玩 hands over to the ticket wallet, where the joined pass starts play (server checks run there).
+                PlayTopicPrepSection(topicID: id, onStart: prepStartAction)
             }
             // 节点介绍 (MP `det4`, owner 2026-11-19): one card per chapter, endings excluded (port plan r1 C9).
             TopicChapterCardsSection(cards: TopicChapterCards.cards(chapters: value.chapters, routeCover: value.imageURL))
@@ -484,13 +485,6 @@ struct TopicDetailView: View {
             if !lineup.isEmpty { Section("topicXcx.section.lineup") { TopicXcxLineup(members: lineup, publicMerchant: publicMerchant) } }
             // RTEAMS-1: 组队 card under the brands (hidden unless this topic has teams near its first stop).
             TopicTeamsCard(topic: value)
-            // 开局前准备 (`GET api/play/setup`): hidden when neither prep items nor a play window are set.
-            // R7-PC-B1-20: MP shows 开局前准备 only to a viewer who has joined (`is_join == 1 && prep.show`).
-            if value.isSignUp {
-                // 开始游玩 hands over to the ticket wallet, where the joined pass starts play (server checks run there).
-                PlayTopicPrepSection(topicID: id, onStart: prepStartAction)
-            }
-            G6TopicCharactersSection(chapters: value.chapters)
             Section("topic.availability") {
                 // Source x-fix2 P-1 (hengyin c878fbb7d): a topic past its sale end only says 已截止, with no sign-up or unlock entry.
                 if saleClosed(value) {
@@ -525,6 +519,10 @@ struct TopicDetailView: View {
                 }
             }
             .environment(\.ugcSafetySubjectID, value.id)
+            // mp-home r3 — 故事 (MP topic/index.wxml:343-372): 人物 row first, then 章节 / 护照, then 主要角色.
+            if let cast = value.castConfig, !cast.cast.isEmpty {
+                Section("topic.cast") { TopicCastRow(config: cast) }
+            }
             Section {
                 if value.chapters.isEmpty {
                     Text("topic.noChapters").foregroundStyle(.secondary)
@@ -576,6 +574,7 @@ struct TopicDetailView: View {
                 }
             }
             TopicStoryParticipationLink(topicID: id, chapters: value.chapters)
+            G6TopicCharactersSection(chapters: value.chapters)
             TopicXcxRouteSection(topic: value).id(TopicXcxTab.route.anchor)
         }
         .listStyle(.insetGrouped)
