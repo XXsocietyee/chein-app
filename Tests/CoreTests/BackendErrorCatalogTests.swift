@@ -58,7 +58,7 @@ final class BackendErrorCatalogTests: XCTestCase {
             ("ARRIVE_GUARD_THROTTLE", "Wait a moment, then locate again.", "请稍等片刻再重新定位。"),
             ("ARRIVE_GUARD_WINDOW_DISTANCE", "Sending again would be refused the same way. Check this on the stop again on site.", "再次发送也会被同样拒绝，请在现场重新核验。"),
             ("ARRIVE_LOCATION_INVALID", "Locate again and send the new reading.", "请重新定位后再提交新的读数。"),
-            ("ARRIVE_LOCATION_MISSING", "Allow location for Questify, then locate again.", "请允许城瘾使用定位，然后重新定位。"),
+            ("ARRIVE_LOCATION_MISSING", "Allow location for Chein, then locate again.", "请允许城瘾使用定位，然后重新定位。"),
             ("ARRIVE_LOCATION_STALE", "Locate again to send a fresh reading.", "请重新定位，提交新的读数。"),
             ("ARRIVE_NOT_RECORDED", "Record your arrival here before answering.", "先记录到达这一站，再作答。"),
             ("ARRIVE_TOO_FAR", "Walk closer to the stop, then locate again.", "请走近这一站后重新定位。"),

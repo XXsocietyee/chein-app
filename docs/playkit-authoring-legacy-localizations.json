@@ -344,7 +344,7 @@
     "zh-Hans": "核对并开始"
   },
   "playkitLegacy.slow.authority": {
-    "en": "The waiting time is tracked by Questify, so changing your device date won't unlock this task.",
+    "en": "The waiting time is tracked by Chein, so changing your device date won't unlock this task.",
     "zh-Hans": "等待天数由城瘾统一计算，修改设备日期不能解锁此任务。"
   },
   "playkitLegacy.silent.boundary": {

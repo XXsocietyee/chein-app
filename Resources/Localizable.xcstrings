@@ -960,7 +960,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chengyin"
+            "value": "Chein"
           }
         },
         "zh-Hans": {
@@ -19938,7 +19938,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reported hours and evidence are reviewed by Chengyin. Confirmation and reconciliation aren't available here yet."
+            "value": "Reported hours and evidence are reviewed by Chein. Confirmation and reconciliation aren't available here yet."
           }
         },
         "zh-Hans": {
@@ -36832,7 +36832,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Submitting may sign you out on all devices. Sign in again to check or cancel a pending application. Eligibility and the deletion date are confirmed by Chengyin."
+            "value": "Submitting may sign you out on all devices. Sign in again to check or cancel a pending application. Eligibility and the deletion date are confirmed by Chein."
           }
         },
         "zh-Hans": {
@@ -50556,7 +50556,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dates are for reference only. Eligibility and status are confirmed by Chengyin."
+            "value": "Dates are for reference only. Eligibility and status are confirmed by Chein."
           }
         },
         "zh-Hans": {
@@ -74479,7 +74479,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chengyin"
+            "value": "Chein"
           }
         },
         "zh-Hans": {
@@ -80213,7 +80213,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your precise location is sent to Chengyin once to set your home city, then located automatically. It is not used to rank nearby results."
+            "value": "Your precise location is sent to Chein once to set your home city, then located automatically. It is not used to rank nearby results."
           }
         },
         "zh-Hans": {
@@ -83287,7 +83287,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chengyin Assistant does not accept replies"
+            "value": "Chein Assistant does not accept replies"
           }
         },
         "zh-Hans": {
@@ -87858,7 +87858,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "I finished %@ on Chengyin."
+            "value": "I finished %@ on Chein."
           }
         },
         "zh-Hans": {
@@ -98132,7 +98132,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Approval means admission only; it isn't an endorsement by Chengyin."
+            "value": "Approval means admission only; it isn't an endorsement by Chein."
           }
         },
         "zh-Hans": {
@@ -107015,7 +107015,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chengyin Assistant"
+            "value": "Chein Assistant"
           }
         },
         "zh-Hans": {
@@ -107083,7 +107083,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chengyin message"
+            "value": "Chein message"
           }
         },
         "zh-Hans": {
@@ -111686,7 +111686,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Send your store details, contact phone, address, business hours and uploaded business license to Chengyin for review. Submitting doesn't mean approval or merchant access."
+            "value": "Send your store details, contact phone, address, business hours and uploaded business license to Chein for review. Submitting doesn't mean approval or merchant access."
           }
         },
         "zh-Hans": {
@@ -111788,7 +111788,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Send the selected business-license image to the configured Chengyin service for merchant application review. The document may include personal information. Uploading alone does not submit your application."
+            "value": "Send the selected business-license image to the configured Chein service for merchant application review. The document may include personal information. Uploading alone does not submit your application."
           }
         },
         "zh-Hans": {
@@ -133099,7 +133099,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chengyin Assistant"
+            "value": "Chein Assistant"
           }
         },
         "zh-Hans": {
@@ -133320,7 +133320,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chengyin"
+            "value": "Chein"
           }
         },
         "zh-Hans": {
@@ -135121,7 +135121,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "30-DAY CHENGYIN PASS"
+            "value": "30-DAY CHEIN PASS"
           }
         },
         "zh-Hans": {
@@ -135480,7 +135480,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "30-day Chengyin pass"
+            "value": "30-day Chein pass"
           }
         },
         "zh-Hans": {
@@ -137174,7 +137174,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Message the Chengyin assistant"
+            "value": "Message the Chein assistant"
           }
         },
         "zh-Hans": {
@@ -141250,7 +141250,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chengyin · My AI chat records"
+            "value": "Chein · My AI chat records"
           }
         },
         "zh-Hans": {
@@ -143137,7 +143137,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chengyin"
+            "value": "Chein"
           }
         },
         "zh-Hans": {
@@ -149419,7 +149419,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not yet on Chengyin"
+            "value": "Not yet on Chein"
           }
         },
         "zh-Hans": {
@@ -152770,7 +152770,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hosted by Chengyin"
+            "value": "Hosted by Chein"
           }
         },
         "zh-Hans": {
@@ -173730,7 +173730,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Turn on location for Questify to share your route with other teams."
+            "value": "Turn on location for Chein to share your route with other teams."
           }
         },
         "zh-Hans": {
@@ -183435,7 +183435,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The waiting time is tracked by Chengyin, so changing your device date won't unlock this task."
+            "value": "The waiting time is tracked by Chein, so changing your device date won't unlock this task."
           }
         },
         "zh-Hans": {
@@ -184283,7 +184283,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The countdown is for reference only. Timeout and completion are confirmed by Chengyin."
+            "value": "The countdown is for reference only. Timeout and completion are confirmed by Chein."
           }
         },
         "zh-Hans": {
@@ -229876,7 +229876,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chengyin"
+            "value": "Chein"
           }
         },
         "zh-Hans": {
@@ -235662,7 +235662,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chengyin"
+            "value": "Chein"
           }
         },
         "zh-Hans": {
@@ -237433,7 +237433,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Point at the venue's chein QR."
+            "value": "Point at the venue's Chein QR."
           }
         },
         "zh-Hans": {
@@ -237449,7 +237449,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not a chein code"
+            "value": "Not a Chein code"
           }
         },
         "zh-Hans": {
@@ -241835,7 +241835,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chengyin"
+            "value": "Chein"
           }
         },
         "zh-Hans": {
@@ -242055,7 +242055,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your Chengyin ID code, used to show who you are at events. It's still being set up and will appear here automatically once it's ready."
+            "value": "Your Chein ID code, used to show who you are at events. It's still being set up and will appear here automatically once it's ready."
           }
         },
         "zh-Hans": {
@@ -242157,7 +242157,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Credits for artwork used in Chengyin."
+            "value": "Credits for artwork used in Chein."
           }
         },
         "zh-Hans": {
@@ -242852,7 +242852,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chengyin"
+            "value": "Chein"
           }
         },
         "zh-Hans": {
@@ -249048,7 +249048,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chengyin player"
+            "value": "Chein player"
           }
         },
         "zh-Hans": {
@@ -279021,7 +279021,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scanning reads the code. Chengyin then checks that it's valid and has uses left."
+            "value": "Scanning reads the code. Chein then checks that it's valid and has uses left."
           }
         },
         "zh-Hans": {
@@ -282982,7 +282982,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose how you would like to join Chengyin."
+            "value": "Choose how you would like to join Chein."
           }
         },
         "zh-Hans": {
@@ -292051,7 +292051,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chengyin"
+            "value": "Chein"
           }
         },
         "zh-Hans": {
@@ -292085,7 +292085,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chengyin points"
+            "value": "Chein points"
           }
         },
         "zh-Hans": {
@@ -301058,7 +301058,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your shop's stand-in in Chengyin"
+            "value": "Your shop's stand-in in Chein"
           }
         },
         "zh-Hans": {
@@ -307348,7 +307348,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last %lld days, Chengyin brought you"
+            "value": "Last %lld days, Chein brought you"
           }
         },
         "zh-Hans": {
@@ -307365,7 +307365,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@, Chengyin brought you"
+            "value": "%@, Chein brought you"
           }
         },
         "zh-Hans": {
@@ -307875,7 +307875,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chengyin Hub - Merchant"
+            "value": "Chein - Merchant"
           }
         },
         "zh-Hans": {
@@ -308028,7 +308028,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You're invited to join the %1$@ operations team. Invite code: %2$@ (open Chengyin › Me › Merchant workspace › Operator team to accept)"
+            "value": "You're invited to join the %1$@ operations team. Invite code: %2$@ (open Chein › Me › Merchant workspace › Operator team to accept)"
           }
         },
         "zh-Hans": {
@@ -314764,7 +314764,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chengyin Hub"
+            "value": "Chein"
           }
         },
         "zh-Hans": {
@@ -314815,7 +314815,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Welcome to chein"
+            "value": "Welcome to Chein"
           }
         },
         "zh-Hans": {
@@ -322697,7 +322697,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bind your payout account in the Chengyin mini-program"
+            "value": "Bind your payout account in the Chein (城瘾) mini program"
           }
         },
         "zh-Hans": {
@@ -326630,7 +326630,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mini-program page path copied. Open the Chengyin mini-program in WeChat and paste it."
+            "value": "Mini-program page path copied. Open the Chein (城瘾) mini program in WeChat and paste it."
           }
         },
         "zh-Hans": {
@@ -329636,7 +329636,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Four firsts in Chengyin"
+            "value": "Four firsts in Chein"
           }
         },
         "zh-Hans": {
@@ -329977,7 +329977,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open a Chengyin page"
+            "value": "Open a Chein page"
           }
         },
         "zh-Hans": {

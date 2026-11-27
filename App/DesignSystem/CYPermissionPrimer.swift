@@ -90,7 +90,7 @@ struct CYPermissionPrimerContent: Equatable {
         return CYPermissionPrimerContent(
             glyph: "bell.badge",
             title: c("Reminders you turn on", "只提醒你打开的事项"),
-            body: c("Chengyin asks to send alerts and sounds for reminders you turn on, such as a play window. It does not send marketing alerts.",
+            body: c("Chein asks to send alerts and sounds for reminders you turn on, such as a play window. It does not send marketing alerts.",
                     "城瘾会申请发送提醒和声音，用于你打开的事项，例如玩法时间窗。不会发送营销通知。"),
             points: [
                 c("Only for reminders you turn on", "仅用于你打开的提醒"),

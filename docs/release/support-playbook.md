@@ -1,12 +1,12 @@
 # Support playbook
 
-Questify **0.1.0 (1)**. English. The zh-Hans text is [`support-playbook.zh-Hans.md`](support-playbook.zh-Hans.md). Community rules are in [`community-guidelines.md`](community-guidelines.md) and [`community-guidelines.zh-Hans.md`](community-guidelines.zh-Hans.md).
+Chein **0.1.0 (1)**. English. The zh-Hans text is [`support-playbook.zh-Hans.md`](support-playbook.zh-Hans.md). Community rules are in [`community-guidelines.md`](community-guidelines.md) and [`community-guidelines.zh-Hans.md`](community-guidelines.zh-Hans.md).
 
 This is an internal script for people answering support. It is not store listing copy, not a privacy policy, and not a filing. It does not change the version. Marketing version stays `0.1.0` and build stays `1` (`Config/Base.xcconfig`). Nothing here is deployed.
 
 Written against `origin/rc/20261108` at `88e981b3308558939e405606cd731b4b29fc9499` (2026-11-09 PT).
 
-The on-screen display name is Questify. Chinese notes in this repository also say 城瘾. Use the name the person used. Do not rename the app.
+The on-screen name is Chein in English and 城瘾 in Chinese (owner decision 2026-11-27: the English brand is Chein). Use the name the person used. Do not rename the app.
 
 ## Placeholders
 
@@ -126,7 +126,7 @@ For those, write down what they describe. Do not promise removal. Review staffin
 
 Keep them short. Do not add an address.
 
-- "This is Questify 0.1.0 (1)."
+- "This is Chein 0.1.0 (1)."
 - "Password sign-in is not available in this version."
 - "Bank-card withdrawal is not available in this version. This screen does not confirm a transfer or an arrival date."
 - "Virtual goods are not offered in this version."

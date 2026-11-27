@@ -9,7 +9,7 @@ S = {
     'mpd.aiChat.title': ('AI chat records', 'AI 对话记录'),
     'mpd.aiChat.export': ('Export my chat records', '导出我的对话记录'),
     'mpd.aiChat.exportHint': ('Copies the loaded records as text.', '把已加载的对话记录复制为文字。'),
-    'mpd.aiChat.exportTitle': ('Chengyin · My AI chat records', '城瘾 · 我的 AI 对话记录'),
+    'mpd.aiChat.exportTitle': ('Chein · My AI chat records', '城瘾 · 我的 AI 对话记录'),
     'mpd.aiChat.exportCount %lld': ('%lld in total', '共 %lld 条'),
     'mpd.aiChat.exportRetention %@': ('Retention: %@', '保留说明：%@'),
     'mpd.aiChat.exportMe %@': ('Me: %@', '我：%@'),
@@ -126,7 +126,7 @@ S = {
     'mpd.replay.busy': ('Starting a new run', '正在开启新一局'),
     'mpd.replay.unconfirmed': ('Not confirmed yet. Check your records before trying again.', '新一局还未确认，请先查看记录再重试'),
     # Title card
-    'mpd.titleCard.brand': ('Chengyin', '城瘾'),
+    'mpd.titleCard.brand': ('Chein', '城瘾'),
     'mpd.titleCard.start': ('Start game', '开始游戏'),
 }
 

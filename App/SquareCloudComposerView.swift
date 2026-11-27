@@ -341,7 +341,7 @@ import SwiftUI
 
     private var displayName: String {
         let trimmed = nickname?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        return trimmed.isEmpty ? copy("城瘾玩家", "Chengyin player") : trimmed
+        return trimmed.isEmpty ? copy("城瘾玩家", "Chein player") : trimmed
     }
 
     private var canSubmit: Bool {

@@ -26,7 +26,7 @@ Limits: name 30, subtitle 30, promotional text 170, description 4000, keywords 1
 en-US (8):
 
 ```text
-Questify
+Chein
 ```
 
 zh-Hans (2):
@@ -35,7 +35,7 @@ zh-Hans (2):
 城瘾
 ```
 
-The built display name is the unlocalized setting `INFOPLIST_KEY_CFBundleDisplayName = Questify` in `Config/Base.xcconfig`. The home-screen name is Questify until that setting is localized. The zh-Hans store name above is the catalog translation of the word Questify (`Localizable.xcstrings`, key `Questify` → 城瘾). The owner confirms both store names.
+Owner decision 2026-11-27: the English brand is **Chein**; Chinese stays 城瘾. The built display name is localized in `Resources/InfoPlist.xcstrings` (`CFBundleDisplayName`: en Chein, zh-Hans 城瘾), with the fallback `INFOPLIST_KEY_CFBundleDisplayName = Chein` in `Config/Base.xcconfig`. In-app, the catalog key `Questify` reads Chein (en) / 城瘾 (zh-Hans) (`Localizable.xcstrings`).
 
 ### Subtitle
 
@@ -70,7 +70,7 @@ zh-Hans (48):
 en-US (1018):
 
 ```text
-Questify is an iPhone and iPad app. The five tabs are Home, Roam, Publish, Clubs, and Me.
+Chein is an iPhone and iPad app. The five tabs are Home, Roam, Publish, Clubs, and Me.
 
 Home is the screen for activities and route topics. It includes search and categories. Opening an item shows that activity or topic.
 
@@ -187,7 +187,7 @@ Live lists depend on the build selecting the reviewed China service. The default
 ## Approval
 
 - [ ] Owner approves the en-US and zh-Hans paste-ready fields.
-- [ ] Owner decides the store name 城瘾 against the unlocalized display name Questify.
+- [x] Store names: en-US Chein, zh-Hans 城瘾 (owner 2026-11-27). Home-screen name localized the same way.
 - [ ] Owner supplies the 6.9-inch and 6.5-inch screenshots, using the captions above, or rejects a row.
 - [ ] Owner fills the blank URLs and the ICP line outside this file, if a submission needs them.
 - [ ] No one submits, signs, or uploads from this draft.

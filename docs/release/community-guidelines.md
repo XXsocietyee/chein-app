@@ -1,12 +1,12 @@
 # Community guidelines
 
-Questify **0.1.0 (1)**. English. The zh-Hans text is [`community-guidelines.zh-Hans.md`](community-guidelines.zh-Hans.md). How to answer a person is in [`support-playbook.md`](support-playbook.md) and [`support-playbook.zh-Hans.md`](support-playbook.zh-Hans.md).
+Chein **0.1.0 (1)**. English. The zh-Hans text is [`community-guidelines.zh-Hans.md`](community-guidelines.zh-Hans.md). How to answer a person is in [`support-playbook.md`](support-playbook.md) and [`support-playbook.zh-Hans.md`](support-playbook.zh-Hans.md).
 
 These notes tell support what they may say about community behavior. They are not a EULA, not a privacy policy, and not an App Store submission. They do not change the version. Marketing version stays `0.1.0` and build stays `1`.
 
 Written against `origin/rc/20261108` at `88e981b3308558939e405606cd731b4b29fc9499` (2026-11-09 PT).
 
-The on-screen display name is Questify. Chinese notes in this repository also say 城瘾.
+The on-screen name is Chein in English and 城瘾 in Chinese (owner decision 2026-11-27: the English brand is Chein).
 
 ## UGC policy
 
@@ -24,7 +24,7 @@ Legal text for the user agreement, the privacy policy, and the cancellation noti
 
 ## Who this covers
 
-People who explore, post, comment, message, and take part in clubs and activities in Questify. It also covers merchants and club organizers when they post in those same spaces.
+People who explore, post, comment, message, and take part in clubs and activities in Chein. It also covers merchants and club organizers when they post in those same spaces.
 
 ## Operating notes
 

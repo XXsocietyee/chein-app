@@ -171,7 +171,7 @@
   },
   {
     "key": "merchant.onboarding.uploadConfirm.message",
-    "en": "Send the selected business-license image to the configured Chengyin service for merchant application review. The document may include personal information. Uploading alone does not submit your application.",
+    "en": "Send the selected business-license image to the configured Chein service for merchant application review. The document may include personal information. Uploading alone does not submit your application.",
     "zh-Hans": "将所选营业执照图片发送给已配置的城瘾服务，用于商家入驻审核。证件可能含有个人信息。单独上传图片不会提交入驻申请。"
   },
   {
@@ -206,7 +206,7 @@
   },
   {
     "key": "merchant.onboarding.submitConfirm.message",
-    "en": "Send your store details, contact phone, address, business hours and uploaded business license to Questify for review. Submitting doesn't mean approval or merchant access.",
+    "en": "Send your store details, contact phone, address, business hours and uploaded business license to Chein for review. Submitting doesn't mean approval or merchant access.",
     "zh-Hans": "将门店资料、联系电话、地址、营业时间和已上传的营业执照提交给城瘾审核。提交不代表审核通过，也不代表已开通商家权限。"
   },
   {

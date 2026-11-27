@@ -305,7 +305,7 @@ import CryptoKit
         defer { try? FileManager.default.removeItem(at: tempDir) }
         let manifest = ExternalGameStore.makeSampleSignedArchive(id: "rpg.report.one", allowedDomains: ["cdn.example.com"]).manifest
         let text = store.reportSummary(for: manifest)
-        for expected in ["id: rpg.report.one", "creator: Questify Workshop", "sha256: \(manifest.sha256)", "allowedDomains: cdn.example.com"] {
+        for expected in ["id: rpg.report.one", "creator: Chein Workshop", "sha256: \(manifest.sha256)", "allowedDomains: cdn.example.com"] {
             XCTAssertTrue(text.contains(expected), expected)
         }
         XCTAssertFalse(text.contains("http"), "no URL or support endpoint is invented")

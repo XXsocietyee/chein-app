@@ -53060,7 +53060,7 @@
 				"SWIFT_EMIT_LOC_STRINGS" = "YES";
 				"INFOPLIST_FILE" = "LiveActivityWidget/Info.plist";
 				"GENERATE_INFOPLIST_FILE" = "YES";
-				"INFOPLIST_KEY_CFBundleDisplayName" = "Questify";
+				"INFOPLIST_KEY_CFBundleDisplayName" = "Chein";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation" = "NO";
 				"ASSETCATALOG_COMPILER_APPICON_NAME" = "";
 				"APPLICATION_EXTENSION_API_ONLY" = "YES";
@@ -53082,7 +53082,7 @@
 				"SWIFT_EMIT_LOC_STRINGS" = "YES";
 				"INFOPLIST_FILE" = "LiveActivityWidget/Info.plist";
 				"GENERATE_INFOPLIST_FILE" = "YES";
-				"INFOPLIST_KEY_CFBundleDisplayName" = "Questify";
+				"INFOPLIST_KEY_CFBundleDisplayName" = "Chein";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation" = "NO";
 				"ASSETCATALOG_COMPILER_APPICON_NAME" = "";
 				"APPLICATION_EXTENSION_API_ONLY" = "YES";

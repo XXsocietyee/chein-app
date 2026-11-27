@@ -647,7 +647,7 @@ public struct OfficialEventLeaderboard: Equatable, Sendable {
         guard !OfficialReadCopy.isChinese(locale) else { return rows }
         return rows.map { row in
             guard row.displayName == Self.unnamedPlayer else { return row }
-            return OfficialEventLeaderboardRow(id: row.id, rank: row.rank, displayName: "Chengyin player", scoreText: row.scoreText, isSelf: row.isSelf)
+            return OfficialEventLeaderboardRow(id: row.id, rank: row.rank, displayName: "Chein player", scoreText: row.scoreText, isSelf: row.isSelf)
         }
     }
     /// Chinese `chipText` stays the source string. English readers get the same rank.

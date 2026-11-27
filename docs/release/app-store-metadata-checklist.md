@@ -14,7 +14,7 @@ Checked against `origin/rc/20261108` at `a6871477c497c6440ce06417035572d7278ea83
 - [x] Sign in with Apple entitlement, because the app target already has the capability slot (`CODE_SIGN_ENTITLEMENTS` on Questify Debug and Release). The file is `com.apple.developer.applesignin` = `[Default]` only. No entitlement was added for a missing slot.
 - [x] Account-deletion path check: `python3 -B tools/check_account_deletion_path.py`. It does not delete an account. The unconfigured composition shows the blocked 账号注销 / Account cancellation row.
 - [x] Unsigned archive script: `python3 -B tools/archive_unsigned.py`. It does not sign or upload. `--archive` is opt-in and still forces `CODE_SIGNING_ALLOWED=NO`.
-- [x] Display name build setting `INFOPLIST_KEY_CFBundleDisplayName = Questify`. Marketing version `0.1.0`, build `1`, in `Config/Base.xcconfig`. The owner confirms what App Store Connect shows.
+- [x] Display name: `INFOPLIST_KEY_CFBundleDisplayName = Chein`, localized in `Resources/InfoPlist.xcstrings` (en Chein, zh-Hans 城瘾; owner 2026-11-27). Marketing version `0.1.0`, build `1`, in `Config/Base.xcconfig`. The owner confirms what App Store Connect shows.
 - [x] Shipped composition calls `shippedComposition(build: .current)`. An empty URL or realm still uses `makeComposition(reviewed: nil, build: .current)`. China `https://www.chengyinhub.com/prod-api/` with realm `cn-prod` is admitted only for market China when the bundle and realm form a storage scope.
 
 ## Owner fills before submission

@@ -108,7 +108,7 @@ public enum BackendErrorCatalog {
         "ARRIVE_GUARD_THROTTLE": .init(en: "Wait a moment, then locate again.", zhHans: "请稍等片刻再重新定位。"),
         "ARRIVE_GUARD_WINDOW_DISTANCE": .init(en: "Sending again would be refused the same way. Check this on the stop again on site.", zhHans: "再次发送也会被同样拒绝，请在现场重新核验。"),
         "ARRIVE_LOCATION_INVALID": .init(en: "Locate again and send the new reading.", zhHans: "请重新定位后再提交新的读数。"),
-        "ARRIVE_LOCATION_MISSING": .init(en: "Allow location for Questify, then locate again.", zhHans: "请允许城瘾使用定位，然后重新定位。"),
+        "ARRIVE_LOCATION_MISSING": .init(en: "Allow location for Chein, then locate again.", zhHans: "请允许城瘾使用定位，然后重新定位。"),
         "ARRIVE_LOCATION_STALE": .init(en: "Locate again to send a fresh reading.", zhHans: "请重新定位，提交新的读数。"),
         "ARRIVE_NOT_RECORDED": .init(en: "Record your arrival here before answering.", zhHans: "先记录到达这一站，再作答。"),
         "ARRIVE_TOO_FAR": .init(en: "Walk closer to the stop, then locate again.", zhHans: "请走近这一站后重新定位。"),

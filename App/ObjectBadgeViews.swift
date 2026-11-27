@@ -260,7 +260,7 @@ struct ObjectBadgeWallBadgeLabel: View {
         .listStyle(.insetGrouped)
         .safeAreaInset(edge: .bottom) {
             if valid, !badge.isLocked {
-                ShareLink(item: ChannelCopy.text("我在「城瘾」点亮了徽章「\(displayName)」", "I earned the “\(displayName)” badge on Chengyin", locale: locale)) {
+                ShareLink(item: ChannelCopy.text("我在「城瘾」点亮了徽章「\(displayName)」", "I earned the “\(displayName)” badge on Chein", locale: locale)) {
                     Label { Text(verbatim: ChannelCopy.text("分享徽章", "Share badge", locale: locale)) } icon: { Image(systemName: "square.and.arrow.up") }
                         .cyText(.cardTitle).foregroundStyle(palette.actionPrimaryFg)
                         .frame(maxWidth: .infinity, minHeight: 56).background(palette.actionPrimaryBg, in: Capsule())

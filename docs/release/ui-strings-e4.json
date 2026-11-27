@@ -14,7 +14,7 @@
   {"key": "settings.danger.footer", "en": "Closing your account is reviewed first. Nothing is deleted until you confirm.", "zh-Hans": "注销账号会先经过审核，你确认之前不会删除任何内容。"},
   {"key": "settingsNative.about.appSection", "en": "This app", "zh-Hans": "本应用"},
   {"key": "settingsNative.about.linksSection", "en": "Legal", "zh-Hans": "法律与隐私"},
-  {"key": "settingsNative.about.brandName", "en": "Chengyin", "zh-Hans": "城瘾"},
+  {"key": "settingsNative.about.brandName", "en": "Chein", "zh-Hans": "城瘾"},
   {"key": "compliance.cancellation.intro", "en": "We review first, and nothing is deleted straight away. Read what will change, verify it's you, then confirm.", "zh-Hans": "我们会先审核，不会立刻删除任何内容。请先了解会发生什么，验证身份后再确认。"},
   {"key": "compliance.step.1", "en": "Review", "zh-Hans": "了解"},
   {"key": "compliance.step.2", "en": "Verify", "zh-Hans": "验证"},
