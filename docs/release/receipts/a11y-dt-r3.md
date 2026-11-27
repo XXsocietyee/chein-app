@@ -131,11 +131,42 @@ Not done list from run 6 worked.
 | `pages/square` publish › pick activity | `DesignSystem/CYSquareActivityPicker.swift` | ✓ | Activity name 1 → 2 lines | Done |
 | Remaining DesignSystem / Components / NativeR2 single hits (`CYTicketPass`, `CYClubCards`, `CYMapChrome`, `CYPurchaseMotion`, `CYScan`, `CYOnboarding`, `CYCelebrationViews`, `CYSharedStates`, `CYShareCard`, `CYLoadingChoreography`, `CYChapterFlip`, `CYInPlaceResult`, `CYBalanceHero`, `CYGlassCarousel`, `CYStepChecklist` ring, `CYRecordStatGrid`, `CYCountdown`, `CYRing`, `CYLiveCounter`, `CYStatPill`, `PassportView` action, `QuestifyMotionComponents`, `MotionR2Metrics`, `IslandOverlay` compact, `NativeGameTimedKit`) | — | ✓ | Audit: numbers / timers / prices with `minimumScaleFactor`, a redacted skeleton, share-card renders (fixed image), the island compact one-liner (system pattern), and the passport action already `ViewThatFits` with a 2-line fallback. No change | Done |
 
+## Run 8 (2026-11-27, hourly)
+
+Merged `origin/ui/combined-r7` (clean). Sweep 19:36 (build 3568fe51b) a11y sheets read: `en-a11y-badges-ax5.jpg` still shows the
+small 3/6 ring because the build predates run 7's ring fix (not yet in combined-r7); `en-a11y-roam-ax5.jpg` OK.
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `.lineLimit(1)` audit, files with 2+ hits | `PlayKitTimedChallengeView.swift`, `JourneyNarrativeView.swift` (+ files already audited in runs 5–7) | ✓ | Audit: clock / result value / found count are numbers with `minimumScaleFactor`. No change | Done |
+| City board status tags + district chips (roam city, `subpackageJourney` city) | `CityKit/CityTokens.swift` (`CityStatusTag`, `CityDistrictChip`) | ✓ (mp-roam / mp-journey own order) | Chip text truncated at AX sizes → wraps (status 3 lines, district 2) and the outline turns from a capsule into a `CYRadius.md` rounded rect so wrapped text is not clipped by the oval | Done |
+| `pages/roam/index` map tab root + every `CYMapScaffold` screen (city run, free explore, nearby teams…) | `DesignSystem/CYMapChrome.swift` (`CYMapScaffold`) | ✓ | VoiceOver order: top controls, floating actions and the panel are now `.contain` groups ranked 3 / 2 / 1 above the map, so the reading order is controls → GO · rules · open map → list panel → map pins (before: rules / open-map sorted in with the map pins by position, only GO was lifted). Layout and hit-testing unchanged | Done (`en-a11y-roam-ax5.jpg`) |
+| `pages/index/index` (Home: banner vs greeting row) | `HomeFeedView.swift`, `HomeSearchTabParityViews.swift` | ✓ (mp-home owns order) | Audit: banner, greeting and feed sit in one scroll in MP order with no floating overlay, so VoiceOver follows the visual order; banner art hidden, title read. No change | Done |
+| Chapter flip gate (`pages/play` chapter transition) | `DesignSystem/CYChapterFlip.swift` | ✓ (mp-journey owns order) | Contrast audit of white-opacity text on the ink0 → indigo #1B1E4A ground (worst case, bottom): "tap to continue" 0.5 → 4.9:1, chapter meta 0.6 → 6.5:1, subtitle 0.72 → 8.7:1 (all ≥ 4.5:1). Only other low-opacity text hit is the DEBUG ART fixture label. No change | Done |
+
+## Run 9 (2026-11-27, hourly)
+
+Merged `origin/ui/combined-r7` (clean). Sweep 20:11 (build a250afd77) a11y sheets read: still predate runs 7–8 (ring 3/6 small at AX5,
+roam OK), so the re-read stays open. 44 pt pass on icon-only `.plain` / `.borderless` buttons (scripted: Button label = SF Symbol only,
+no ≥ 44 frame): 16 hits, 8 real (glyph-sized hit area); the rest are full rows with `contentShape` or already use `editorHitTarget` / 78 pt tiles.
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `subpackageMember` member-area popup (chat / export sheet header) | `MemberAreaPopupSurfaces.swift` | ✓ (mp-mine owns order) | Close ⓧ glyph (`.title2`, ~28 pt) → 44 × 44 hit area, same glyph | Done |
+| `pages/roam/*` official arrival overlay header | `RoamOfficialArrivalSection.swift` | ✓ (mp-roam owns order) | Close ⓧ → 44 × 44 hit area | Done |
+| `pages/roam/*` nearby place sources | `RoamNearbyParityExtras.swift` | ✓ | Copy-source-link glyph → 44 × 44 hit area | Done |
+| `pages/square/*` cloud feed card + composer | `SquareCloudFeedViews.swift`, `SquareCloudComposerView.swift` | ✓ (mp-activity owns order) | Post actions ⋯ and composer chip clear ⓧ → 44 × 44 hit area | Done |
+| Club channel voice message (`pages/club/*` channel) | `NativeChannelInlineMediaViews.swift` | ✓ (mp-club owns order) | Play/stop glyph (`.largeTitle`) → min 44 × 44 so it never drops under at small sizes | Done |
+| `pages/club/*` apply (proof images) | `MPGap/Club/ClubGapRound4Views.swift` | ✓ | Delete-proof trash glyph → 44 × 44 hit area | Done |
+| `pages/publishkit` hint ladder editor | `TemplateHintLadderFields.swift` | ✓ (mp-publish owns order) | Remove-layer ⊖ glyph → 44 × 44 hit area | Done |
+
 ## Not done (next run starts here)
-- `.lineLimit(1)` audit: player files with 2+ hits (`grep -rlc "lineLimit(1)" App` minus Merchant/Fixture/Diagnostics/SectionView/Story), largest first.
-- VoiceOver order pass on tab roots with overlays (Roam map panel vs floating controls, Home banner vs greeting row).
+- Re-read the a11y sheets once combined-r7 carries runs 7–8 (ring size at AX5, roam VoiceOver order).
+- Contrast pass continued: `Text` with palette `.opacity(` foregrounds split over several lines (multi-line modifiers; the one-line grep is done).
+- 44 pt pass continued: icon-only buttons with *no* button style inside `List` rows / toolbars-free `HStack`s (default style, same glyph-sized hit area).
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch
   overlay with the logo watermark at capture time (same symptom as the 16:53 `d2-home` note) — it must never dim a
   tab root. Also the `a11y-passport-ax5` fixture opens the badge wall, not the passport.
+- i18n-r3: `MPGap/Club/ClubGapRound4Views.swift` accessibility label `"删除凭证图片 \(index + 1)"` is a Chinese literal key (no en).

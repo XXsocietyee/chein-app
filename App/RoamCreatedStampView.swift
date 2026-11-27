@@ -136,11 +136,11 @@ struct RoamCreatedStampReadOwner: Hashable {
             CYPillButton("roam.experience.loadMore", style: .secondary) { next() }
                 .accessibilityIdentifier("roam.createdStamp.more")
         case .hidden:
-            Label("roam.createdStamp.hidden", systemImage: "eye.slash")
-            CYPillButton("action.retry", style: .tertiary, systemImage: "arrow.clockwise") { refresh() }
+            CYEmptyState(systemImage: "eye.slash", "roam.createdStamp.hiddenTitle", detail: "roam.createdStamp.hidden",
+                         actionTitle: "action.retry", actionIdentifier: "roam.createdStamp.retry", action: { refresh() })
         case .missing:
-            Text("roam.createdStamp.missing")
-            CYPillButton("action.retry", style: .tertiary, systemImage: "arrow.clockwise") { refresh() }
+            CYEmptyState(systemImage: "magnifyingglass", "roam.createdStamp.missingTitle", detail: "roam.createdStamp.missing",
+                         actionTitle: "action.retry", actionIdentifier: "roam.createdStamp.retry", action: { refresh() })
         case .failed:
             if let error = lookup.error { RoamExperienceIssue(error: error) { next() } }
         case .unavailable:

@@ -542,6 +542,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                              peopleTotal: r8Mounts.memberTotal)
                 .listRowInsets(EdgeInsets())
         }
+        .listSectionSpacing(.compact)
         // MP detail wxml:1028-1036: 加入 / 申请加入 / 等待主理人审核 only on 概览; a member's 退出 (meta row) stays on every tab.
         if let actionCoordinator, tab == .overview || club.isJoined {
             ClubActionPanel(club: club, identity: reader.clubIdentity, coordinator: actionCoordinator, onSignIn: onSignIn,

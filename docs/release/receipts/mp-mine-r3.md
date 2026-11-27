@@ -207,3 +207,46 @@ Gates (this pass): generate_project no change, check_scaffold run, a11y lint PAS
 
 ### For other lanes
 - ds-consistency / fixture owners: `tools/check_design_fixture_release_exclusion.py` already fails on `origin/ui/combined-r7` (audit list is missing `CityDiceFixture`, `CityFixtureMonopoly`, `CityKit*`, `D2MeFixture`, `E3PressStyle`, `FixR3PlayRoamBFixtures`, `R3InPlaceKitFixture`, `R4*`). Not changed here; `D2MeFixture` is the only mp-mine one, left so the audit list is updated in one place.
+
+## Continue 8 (hourly re-arm, sweep 19:36 UTC build 3568fe51b)
+
+Merged `origin/ui/combined-r7` (clean). The 19:36 sweep includes Continue 6 (9ae58daa8) but not Continue 7 (5826cc728), so the ia-passport title/appearance, e4-member title and the ticket date in `sheet-*.jpg` are still the pre-fix state. Screens checked: `docs/sweeps/latest/mp-mine/sheet-en.jpg`, `sheet-zh-Hans.jpg`.
+
+| Screenshot | MP / brief | Native file | Fixed now |
+|---|---|---|---|
+| `zh-Hans-d2-me.jpg`, `en-d2-me.jpg`: the row no longer truncates, but it stacks 开始探索 and 票夹 as two full-width bars and leaves the ··· alone as a small capsule on a third line | MP `pc-actions` (wxml:96-112): 开始探索 is a text-only `pc-primary`, 票夹 has the coupon icon, same size; P22 stack rule | `App/MemberHomeHeader.swift` `actionRow` | **Fixed.** 开始探索 drops the `safari` icon (MP has none), which also gives the one-line row more room. When the row does not fit (or at accessibility sizes), 开始探索 takes the full width and [票夹][···] share the second line, so the ··· never sits alone. Labels in the stacked form may wrap to two lines instead of truncating. Needs a simulator look. |
+| `*-e4-self-medals.jpg`: "Medal reads: 0" and a "Retire synthetic account" link under the public profile | No developer text on a player screen (19:50: "remove debug text from the visible fixture") | `App/ProfileSelfMedalsFixture.swift`, `DesignFixtureRegistry` | **Fixed.** New `showsTestControls` (default true for the UI tests that read the counter); the `e4-self-medals` design fixture passes false. |
+| `*-ia-passport.jpg`: "Synthetic fixture: identity card goes here (MemberIdentityCardSection)" as the first card | Same | `App/DesignFixtures/IAFixtures.swift` | **Fixed.** The placeholder section is removed; the fixture hosts only the passport overview (the identity card is shown by d2-me). |
+| `zh-Hans-e4-wallet-balance.jpg`: ledger reasons are English in the Chinese UI | 19:50: fixture data follows the UI language | `App/WalletCommerceFixtureHost.swift` `designLedger` | **Fixed.** Balance and points reasons go through `iaFixtureText(en, zh)` (周末城市漫步分成, 提现申请 …). The zh dates stay as the server sends them (`LocaleDisplay.civil` keeps Chinese unchanged by design, as the MP does). |
+| `en-t5-order-center.jpg`: 杭州老城畅玩卡 and 已支付 in the English UI | Same | `DesignFixtureRegistry` `T5OrderCenterTransport` | **Fixed.** Title and status follow the launch language. |
+| `*-e5b-badge-wall.jpg` renders dark while d2-me is light | 18:15: fixtures follow the system appearance | `App/DesignFixtures/E5bFixtures.swift` `E5bBadgeWallFixture` | **Fixed.** `.preferredColorScheme(.dark)` removed (the other e5b fixtures belong to mp-roam / a11y-dt and are left). |
+
+Next pages in the area (no row before):
+
+| MP page | Native view | Difference | Fixed? |
+|---|---|---|---|
+| `orient-score` (本局计分) | `App/OrientScoreView.swift` `OrientScoreReadyContent` | Order checked against wxml: 本局计分 · phase + total → dimensions → pending card → 结算结果 → 历史操作人工核对 (when any) → 本场榜单 → 计分时间线 → 计分申诉 → 成绩争议 → form. Native is the same order, inset-grouped `List`, text styles. | — (matches) |
+| `character` (我的角色卡) | `App/CharacterCardReadbackView.swift` | MP puts 刷新角色卡 as the last section in the scroll (wxml:61); native pins it in a custom `safeAreaInset` bar with its own `bgPage` background. `CharacterSheetDetailView` already draws the in-list button when the host is `.refreshable`. | **Not done.** `CharacterCardReadbackView.swift` is byte-pinned in `docs/issue5-hunks/C02-ios-pbx.rnhunk.md` (`test_c02 … test_sha256_manifest_covers_exclusive_sources`); the change (`.refreshable { await model.load() }` + a failure footer on the refresh section) was reverted. Needs the pin owner to re-hash. |
+
+Still open for the owner: in English the four Me tabs (Projects / Posts / Achievements / About) do not fit a segmented control at 375 pt, so `cyAdaptiveSegmented` shows the menu picker ("Profile section · Projects"). zh fits. Options: an English label shorter than "Achievements" (en-layout call) or accept the menu.
+
+Gates (this pass): generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, typography lint PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+### For other lanes
+- mp-roam / a11y-dt: `E5bMomentFixture`, `E5bJoinFixture`, `A11yRoamAX5Fixture` still force `.preferredColorScheme(.dark)`.
+- Core fixture owners: `Core/TicketWalletSyntheticFixtures.swift` ticket names ("Sample exploration ticket") are English in zh-Hans; shared with Core tests, so not changed here.
+
+## Continue 9 (hourly re-arm, sweep 20:25 UTC build a250afd77)
+
+Merged `origin/ui/combined-r7` (clean). The 20:25 sweep includes Continue 7 but was built before Continue 8 (77c732c08), so the ··· layout, the debug lines and the zh ledger reasons are still the pre-fix state there. Screens checked: `docs/sweeps/latest/mp-mine/zh-Hans-e4-tickets.jpg`, `zh-Hans-e4-wallet-balance.jpg`.
+
+| Screenshot | MP / brief | Native file | Fixed now |
+|---|---|---|---|
+| `zh-Hans-e4-wallet-balance.jpg`: hero "128.50 CNY", rows "+58.00 CNY" / "128.50 CNY" | 20:25: amounts in zh as ¥, not "CNY"; MP profile wxml:226 shows ¥ | `App/WalletCommerceViews.swift` `WalletLedgerView` hero + `ledgerRow`; `App/WalletNumberLocalization.swift` | **Fixed.** New `WalletFormatting.symbolMoney(_:currency:)` puts the one-glyph symbol before the number (+¥58.00, ¥128.50) and keeps the sign first. The ledger hero shows ¥ in the leading symbol slot (same as `WalletEarningsHero`), rows and after-balance use it. Currencies without a one-glyph symbol and unknown currencies keep the old code suffix / unknown label. The shared `WalletFormatting.amount` is unchanged (pinned by `WalletNumberLocalizationTests`), so other wallet screens still read "… CNY"; see "For other lanes". |
+| `zh-Hans-e4-tickets.jpg`: thumbnail is an empty grey box with a dot | 20:25: cover, or a `ticket` SF Symbol on `bgSurfaceSubtle` | `App/TicketWalletView.swift` `TicketWalletRow.coverIllustration` | **Fixed.** With no cover (and while / if the cover fails to load) the slot shows `ticket` in `.secondary` on `CYColor.bgSurfaceSubtle`, same size and corner radius. |
+| `zh-Hans-e4-tickets.jpg`: "Sample exploration ticket" in the Chinese UI | 19:50 / 20:25: fixture data follows the UI language | `App/TicketWalletFixtureSupport.swift` | **Fixed.** The fixture reader maps the five Core synthetic names to zh (示例探索票 …) when launched in Chinese. Core JSON is unchanged, so the English UI tests that read "Sample exploration ticket" keep passing. |
+
+### For other lanes
+- ds-consistency / i18n: `WalletFormatting.amount` still renders "1,234.50 CNY" on the other wallet screens (earnings detail, withdrawal records, cart/checkout). Moving it to `symbolMoney` needs the `WalletNumberLocalizationTests` pins updated together.
+
+Gates (this pass): generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, typography lint PASS, contract ratchet 52 failing / baseline 52 / **new 0** (the ledger detects an unknown delta by `row.changeBalance == nil`; `row.signedText(` stays out of the views per `test_wallet_number_localization`).

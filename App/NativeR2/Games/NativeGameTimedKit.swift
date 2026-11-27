@@ -26,6 +26,8 @@ import SwiftUI
     @State private var expired = false
     /// Countdown kit: wall-clock start of the acknowledged run, for the self-updating clock (display only).
     @State private var countdownStart: Date?
+    /// Stopwatch kit: MP `round` (第 N 局), counted per acknowledged start.
+    @State private var stopwatchRound = 0
     @FocusState private var typingFocused: Bool
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
@@ -99,6 +101,14 @@ import SwiftUI
                 if let goal = segment["goalMs"].integer, goal > 0 {
                     LabeledContent { Text(verbatim: PlayTimedDisplayLocalization.milliseconds(goal, locale: locale)).monospacedDigit() } label: { Text("playkit.reaction.goal") }
                 }
+            } else if kind == .typeIn {
+                // MP playkit-typein `ti__attempt`: 第 N / M 次, only with an attempt cap (tries 0 = unlimited, no row).
+                if let tries = segment["tries"].integer, tries > 0 {
+                    let attempt = min(tries, max(0, segment["attempts"].integer ?? 0) + 1)
+                    Text("playkit.type.attemptLabel \(attempt) \(tries)")
+                        .monospacedDigit()
+                        .accessibilityIdentifier("nativeGames.type.attempt")
+                }
             } else if kind != .countdown {
                 // MP playkit-countdown has one thing on screen (kicker + clock); its length is the idle clock itself.
                 LabeledContent {
@@ -109,14 +119,17 @@ import SwiftUI
                         Text(verbatim: segment["toleranceMs"].integer.map { PlayTimedDisplayLocalization.tolerance($0, locale: locale) } ?? "—").monospacedDigit()
                     } label: { Text("playkit.stopwatch.tolerance") }
                 }
-                if kind == .typeIn {
-                    LabeledContent {
-                        Text(verbatim: segment["attempts"].integer.flatMap { $0 >= 0 ? PlayTimedDisplayLocalization.count($0, locale: locale) : nil } ?? "—").monospacedDigit()
-                    } label: { Text("playkit.attempts") }
-                    LabeledContent {
-                        Text(verbatim: segment["tries"].integer.flatMap { $0 >= 0 ? PlayTimedDisplayLocalization.count($0, locale: locale) : nil } ?? "—").monospacedDigit()
-                    } label: { Text("playkit.attemptLimit") }
-                }
+            }
+        } header: {
+            if kind == .stopwatch {
+                // MP playkit-stopwatch intro `sw__eyebrow`: server `kicker`, default 精准停表.
+                Text(verbatim: stopwatchEyebrow).accessibilityIdentifier("nativeGames.stopwatch.eyebrow")
+            } else if kind == .typeIn {
+                // MP playkit-typein `g-kicker`: the node title, default 打出这行字.
+                Text(verbatim: typeInKicker).accessibilityIdentifier("nativeGames.type.kicker")
+            } else if kind == .reaction {
+                // MP playkit-reaction `rx__k`: server `kicker`, default 变绿就点.
+                Text(verbatim: reactionKicker).accessibilityIdentifier("nativeGames.reaction.kicker")
             }
         } footer: {
             if kind == .stopwatch || kind == .reaction {
@@ -134,6 +147,15 @@ import SwiftUI
                     .textSelection(.disabled)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityIdentifier("playkit.type.target")
+                if timing.phase != .running {
+                    // MP `ti__hint` under the target before a run: N 秒内一字不差地打完它, or 不限时 when there is no limit.
+                    Group {
+                        if seconds > 0 { Text("playkit.type.goalLine \(typeInGoal)") } else { Text("playkit.type.noLimit") }
+                    }
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("nativeGames.type.hint")
+                }
                 TextField("playkit.type.input", text: $input, axis: .vertical)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
@@ -145,8 +167,6 @@ import SwiftUI
                 if let howTo = segment["howTo"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !howTo.isEmpty {
                     PlayKitHowToButton(text: howTo, identifier: "playkit.type.howTo")
                 }
-            } header: {
-                Text("playkit.type.goalLine \(typeInGoal)")
             } footer: {
                 Text(segment["caseSensitive"].bool == true ? "playkit.type.caseSensitive" : "playkit.type.caseInsensitive")
             }
@@ -160,6 +180,20 @@ import SwiftUI
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity)
                         .accessibilityIdentifier("nativeGames.countdown.kicker")
+                }
+                if kind == .stopwatch, timing.phase != .idle {
+                    // MP `sw__chip` 第 N 局 while running; `sw__miss` 没停准 once a stop missed the window.
+                    Group {
+                        if stopwatchOutcome == false {
+                            Label { Text("playkit.stopwatch.missed") } icon: { Image(systemName: "xmark.circle.fill") }
+                                .foregroundStyle(.orange)
+                        } else {
+                            Text("playkit.stopwatch.round \(max(1, stopwatchRound))").foregroundStyle(.secondary)
+                        }
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .frame(maxWidth: .infinity)
+                    .accessibilityIdentifier("nativeGames.stopwatch.round")
                 }
                 if let countdownClock {
                     // Components r1: the countdown counts down by itself and the ring empties (MP playkit-countdown).
@@ -175,6 +209,15 @@ import SwiftUI
                 }
                 if kind == .typeIn, seconds > 0 {
                     ProgressView(value: clockProgress).accessibilityHidden(true)
+                }
+                if kind == .stopwatch, timing.phase == .running {
+                    // MP `sw__cap`: 1 秒后数字会藏起来, then 凭感觉 once the numbers are hidden.
+                    Text(LocalizedStringKey(elapsed >= 1000 ? "playkit.stopwatch.capHidden" : "playkit.stopwatch.capOn"))
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("nativeGames.stopwatch.cap")
                 }
                 if let countdownDoneText {
                     // MP `oc__done`: the merchant's line, shown once the countdown reached zero.
@@ -229,6 +272,18 @@ import SwiftUI
                 if reaction.phase == .early {
                     Label("playkit.reaction.early", systemImage: "hare").foregroundStyle(.orange)
                 }
+                if reaction.phase == .betweenRounds, let last = reaction.roundsMilliseconds.last {
+                    // MP between rounds: the round's figure (毫秒) over 「N/M 轮」; the next round starts from the bottom bar.
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(verbatim: PlayTimedDisplayLocalization.milliseconds(last, locale: locale))
+                            .cyText(.pageTitle, weight: .semibold, monospacedDigit: true)
+                        Text("playkit.reaction.roundDone \(reaction.roundsMilliseconds.count) \(reaction.rounds)")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("nativeGames.reaction.lastRound")
+                }
             }
         }
         if !reaction.roundsMilliseconds.isEmpty {
@@ -243,10 +298,12 @@ import SwiftUI
             }
         }
         if reaction.phase == .measured, !reaction.roundsMilliseconds.isEmpty {
-            let avg = reaction.roundsMilliseconds.reduce(0, +) / reaction.roundsMilliseconds.count
+            // MP `bestOf` / `passed`: the fastest round is the result (「N 轮里最快的一次」), pass = fastest ≤ goalMs.
+            let best = reaction.roundsMilliseconds.min() ?? 0
             let goal = segment["goalMs"].integer.flatMap { $0 > 0 ? $0 : nil }
-            resultSection(outcome: goal.map { avg <= $0 }, value: PlayTimedDisplayLocalization.milliseconds(avg, locale: locale),
-                          target: goal.map { PlayTimedDisplayLocalization.milliseconds($0, locale: locale) }, delta: nil)
+            resultSection(outcome: goal.map { best <= $0 }, value: PlayTimedDisplayLocalization.milliseconds(best, locale: locale),
+                          target: goal.map { PlayTimedDisplayLocalization.milliseconds($0, locale: locale) }, delta: nil,
+                          caption: appLocalized("playkit.reaction.bestOf \(reaction.roundsMilliseconds.count)", locale: locale))
                 .sensoryFeedback(.success, trigger: reaction.phase == .measured) { _, now in now }
         }
     }
@@ -276,7 +333,7 @@ import SwiftUI
     }
 
     /// Local pre-review readout only; the server still grades. Unknown tolerance claims no verdict.
-    private func resultSection(outcome: Bool?, value: String, target: String?, delta: String?) -> some View {
+    private func resultSection(outcome: Bool?, value: String, target: String?, delta: String?, caption: String? = nil) -> some View {
         Section {
             Label {
                 Text(verbatim: outcome == true ? ChannelCopy.text("正中目标", "Right on target", locale: locale)
@@ -287,6 +344,9 @@ import SwiftUI
             }
             .foregroundStyle(outcome == true ? Color.green : outcome == false ? Color.orange : Color.secondary)
             Text(verbatim: value).cyText(.pageTitle, weight: .semibold, monospacedDigit: true)
+            if let caption {
+                Text(verbatim: caption).font(.footnote).foregroundStyle(.secondary)
+            }
             if let target {
                 LabeledContent { Text(verbatim: target).monospacedDigit() } label: { Text("playkit.challenge.target") }
             }
@@ -375,6 +435,18 @@ import SwiftUI
         let text = segment["kicker"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         return text.isEmpty ? ChannelCopy.text("倒计时", "Countdown", locale: locale) : text
     }
+    private var typeInKicker: String {
+        let text = segment["title"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return text.isEmpty ? appLocalized("playkit.type.kicker", locale: locale) : text
+    }
+    private var reactionKicker: String {
+        let text = segment["kicker"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return text.isEmpty ? appLocalized("playkit.reaction.kicker", locale: locale) : text
+    }
+    private var stopwatchEyebrow: String {
+        let text = segment["kicker"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return text.isEmpty ? appLocalized("playkit.stopwatch.eyebrow", locale: locale) : text
+    }
     private var countdownDoneText: String? {
         guard kind == .countdown, timing.phase == .measured else { return nil }
         let text = segment["doneText"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
@@ -416,6 +488,7 @@ import SwiftUI
             else {
                 input = ""; elapsed = 0; timing.beginAfterAcknowledgement(now: ProcessInfo.processInfo.systemUptime); typingFocused = kind == .typeIn
                 countdownStart = kind == .countdown ? Date() : nil
+                if kind == .stopwatch { stopwatchRound += 1 }
             }
             ticker = UUID()
         }

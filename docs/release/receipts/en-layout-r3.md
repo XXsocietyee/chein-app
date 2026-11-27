@@ -67,6 +67,28 @@ Sweep `docs/sweeps/latest` build 1300a48db (18:54Z) en sheets: `mp-mine/sheet-en
 | 28 | `subpackageMember/orderinfo` amount → `OrderCenterEntryView.swift:78` | Checked: "Amount 168.00" has no currency sign in English | The order-center contract sends a bare decimal (`OrderCenterDetailService.swift:83`, no currency field); adding ¥/$ would guess the market. No change | Checked |
 | 29 | Square post age (`en-d2-square`) → `SquareXcxPostCard.swift:112` | Checked: "330 d ago" | Same compact family as "h ago" / "min ago" (MP `N天前`); reads correctly. No change | Checked |
 
+### Run 6 (2026-11-27, hourly)
+
+Merged `origin/ui/combined-r7` (conflicts: `LoginView.swift` took the single-mark logo from mp-nav and kept this lane's "Chein" VoiceOver label; `IMInboxViews.swift` took upstream, which already keeps name/preview to one line in English). Sweep build 3568fe51b (19:36Z) en sheets: mp-home, mp-activity, mp-club, mp-mine, mp-journey.
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 30 | `pages/search2/index` 推荐搜索 → fixtures `D2Fixtures.swift` (`d2-search-results`, offline), `SearchMapFixtureSupport.swift` (`d2-search`) | Coordinator 19:50 `en-d2-search`: suggestion chips 骑行 / 城市 / 外滩 … in the English UI | Fixture-only `SearchMapFixtureKeywords.list`: zh-Hans keeps the MP China-market list, English shows the same terms in English ("Cycling", "The Bund", "Suzhou Creek" …). Real app unchanged (`GlobalSearchRecommendedKeywords.keywords(for: market)`, US shows none) | Done |
+| 31 | `subpackageMember/orderinfo` → `T5OrderCenterTransport` fixture (`en-t5-order-center`) | Order "杭州老城畅玩卡", status "已支付", error "订单不存在" in English | Fixture payload follows the UI language ("Hangzhou Old Town Play Pass", "Paid", "Order not found"); zh-Hans unchanged | Done |
+| 32 | `subpackagePass` pass market (`en-t5-pass-market`) | Pass names / city Chinese in English | Already done on `mp/r3-activity` (`tt(en, zh)` in `T5PageFixtures`); not duplicated here to avoid a conflict | Checked |
+| 33 | Ticket wallet date (`en-e4-tickets` "2030-04-20"), channel divider (`en-d4-channel-chat` "11-07 09:00"), enrollment "1 groups" (`en-d4-enroll`) | Still visible in build 3568fe51b | Fixed in rows 21/23/24 on this branch (not yet in that build) | Waiting for integration |
+| 34 | `subpackagePass` pass market product row → `PassMarketViews.swift:485` `PassProductCardView` | Checked: "Includes 3 works · 2 people" + "¥168.00 / 1,200 points" at AX sizes | Already `ViewThatFits`: row form when it fits, stacked otherwise. No change | Checked |
+| 35 | Wallet ledger row → `WalletCommerceViews.swift:706` (`en-e4-wallet-balance`) | Checked: "Weekend city walk share" wraps to 2 lines next to "+58.00 CNY" | The title wraps and the amount stays whole (stacked layout at AX sizes); correct list behaviour. No change | Checked |
+| 36 | Club enrollment roster topic row (`en-d4-enroll`) | Checked: "Date to be set · 8 registered" | Fits on one line at 375 pt in the sweep. No change | Checked |
+
+### Run 7 (2026-11-27, hourly)
+
+Merged `origin/ui/combined-r7` (conflict `LoginView.swift`: kept the "Chein" VoiceOver label and restored the `locale` environment the upstream side dropped). Sweep build a250afd77 (20:11Z) en sheets: rows 21 ("My club · 1 group", `en-d4-enroll`) and 24 ("Nov 7, 09:00", `en-d4-channel-chat`) confirmed; rows 30/31 (search chips, order center) not in that build yet (branch not integrated).
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 37 | Remaining raw server timestamps on player screens: bundle reviews (`BundleReviewListView.swift`), club feed post (`ClubGovernanceFeedPostView.swift`), club roster "Joined …" (`ClubPublicRosterView.swift`), club join requests "Requested …" (`ClubManagementView.swift`, 2 rows), coupon used time (`CouponCodeView.swift`), free-explore story archive "Visited …" (`FreeExplorationViews.swift`, `NativeR2/FreeExplore/NativeFreeExploreMapView.swift`) | English showed "2026-10-02 12:00:00" as the server sent it | `LocaleDisplay.civil(_, locale:)` (same helper as rows 14/23): English "Oct 2, 2026 at 12:00 PM"; Chinese and unparsable text unchanged (MP parity). Text only, no layout/order change | Done |
+
 ## Not done
 
 | Item | Why |
@@ -75,9 +97,11 @@ Sweep `docs/sweeps/latest` build 1300a48db (18:54Z) en sheets: `mp-mine/sheet-en
 
 
 ## Next pages (no row yet)
-Passes market (`en-t5-pass-market`) price rows at AX sizes; club enrollment roster topic row ("Date to be set · 8 registered") wrapping; Club home checked (tabs already adaptive, `ClubDetailTabBar.swift`).
+Re-check rows 23, 30, 31, 37 in the next sweep once this branch is integrated; then publish (`pages/template/*`) and roam English sheets.
 
 ## For other lanes
+- mp-activity: Square fixture post text "A synthetic city walk / 一次示例城市漫步" (`Core/SquareSyntheticFixtures.swift`, shared with Core tests) shows Chinese in English (`en-d2-square`).
+- mp-journey: 19:15 items still visible in `en-*` journey shots (灯笼石门, 西湖夜游漫步, 老城茶街章节, free-explore "—" rows).
 - mp-journey / mp-nav: City root entry reads "CITY ownership and original receipts" (`cityAcquire.entry`, all-caps CITY also in zh) — confirm CITY is the intended product name.
 - `Tests/ContractChecks/check_wallet_earnings_overview.py` fails (2) on `ui/combined-r7` before any en-layout change (debt-r3).
 

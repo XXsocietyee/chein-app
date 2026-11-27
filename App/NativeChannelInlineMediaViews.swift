@@ -159,6 +159,7 @@ import ImageIO
                             .symbolVariant(.circle.fill)
                             .font(.largeTitle)
                             .contentTransition(.symbolEffect(.replace))
+                            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget).contentShape(Rectangle())
                     }
                     .buttonStyle(.borderless)
                     .disabled(!canPlay)

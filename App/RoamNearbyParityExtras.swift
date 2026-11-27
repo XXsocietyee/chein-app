@@ -373,6 +373,7 @@ struct RoamPlaceExtrasSection: View {
                             LocalPasteboard.copy(raw)
                         } label: {
                             Image(systemName: "doc.on.doc")
+                                .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget).contentShape(Rectangle())
                         }
                         .buttonStyle(.borderless)
                         .accessibilityLabel(Text(verbatim: c.t("复制资料链接", "Copy source link")))
