@@ -1,6 +1,7 @@
 import SwiftUI
+import CoreLocation
 
-/// `ROAM-9a/9b`: in-session roam 更多 tools (MP pages/roam/index.wxml roam-settings scene), as a system `Form` sheet.
+/// `ROAM-9a/9b`: in-session roam 更多 drawer (MP pages/roam/index.wxml roam-more → roam-rules / roam-settings), as a system sheet.
 /// - 附近正在走的人: rows from `POST /api/roam/nearby-runners` (pages/roam/index.js:2827-2842). ROAM-r11-4: a row opens
 ///   the runner (`openRunner`, :2905) with 打个招呼 (`POST /api/im/start`, then the chat) and 看 TA 的漫游 (TA 的主页).
 /// - 迷雾: `RoamFogPreference` (`roam_fog_off`, stored true = fog off).
@@ -28,67 +29,38 @@ struct RoamSessionToolsSheetView: View {
     @State private var clearResult: LocalizedStringKey?
     @Environment(\.dismiss) private var dismiss
     @Environment(\.roamRunnerActions) private var runnerActions
+    @Environment(\.openURL) private var openURL
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var locationStatus: CLAuthorizationStatus = .notDetermined
 
     var body: some View {
+        // MP pages/roam/index.wxml roam-more (owner P-31): the drawer holds only 附近正在走的人 / 玩法说明 / 设置.
         NavigationStack {
-            Form {
-                Section {
-                    if !presenceEnabled {
-                        Text("roamTools.runners.needPresence").foregroundStyle(.secondary)
-                    } else if runners.isEmpty {
-                        Text("roamTools.runners.empty").foregroundStyle(.secondary)
-                            .accessibilityIdentifier("roamTools.runners.empty")
-                    } else {
-                        ForEach(runners) { runner in
-                            if let runnerActions {
-                                NavigationLink { RoamRunnerDetailView(runner: runner, actions: runnerActions) } label: { runnerRow(runner) }
-                            } else {
-                                runnerRow(runner)
-                            }
-                        }
-                    }
-                } header: {
-                    Text("roamTools.runners.section")
-                }
-                if let onSetPresence {
-                    presenceSection(onSetPresence)
-                }
-
-                Section("roamTools.map.section") {
-                    Toggle("roamTools.fog", isOn: $fogOn)
-                        .accessibilityIdentifier("roamTools.fog")
-                    Picker("roamTools.mapStyle", selection: $mapKind) {
-                        ForEach(FreeMapKind.allCases, id: \.self) { kind in
-                            Text(LocalizedStringKey("roamTools.mapKind." + kind.rawValue)).tag(kind)
-                        }
-                    }
-                    .accessibilityIdentifier("roamTools.mapKind")
-                    Toggle("roamTools.reduceMotion", isOn: $reduceMotion)
-                        .accessibilityIdentifier("roamTools.reduceMotion")
-                }
-
-                if let onClearLocal {
-                    Section {
-                        Button("roamTools.clearCache", role: .destructive) { clearAsk = true }
-                            .accessibilityIdentifier("roamTools.clearCache")
-                        if let clearResult {
-                            Text(clearResult).font(.footnote).foregroundStyle(.secondary)
-                        }
-                    }
-                    .confirmationDialog("roamTools.clearCache.confirmTitle", isPresented: $clearAsk, titleVisibility: .visible) {
-                        Button("roamTools.clearCache.confirmAction", role: .destructive) { Task { await clearLocal(onClearLocal) } }
-                    } message: {
-                        Text("roamTools.clearCache.confirmMessage")
+            List {
+                NavigationLink {
+                    runnersList
+                } label: {
+                    LabeledContent {
+                        if presenceEnabled, !runners.isEmpty { Text(runners.count, format: .number).monospacedDigit() }
+                    } label: {
+                        Label("roamTools.runners.section", systemImage: "person.2")
                     }
                 }
-
-                if let onOpenLocationSettings {
-                    Section("roamTools.permissions.section") {
-                        Button("roamTools.locationSettings", action: onOpenLocationSettings)
-                    }
+                .accessibilityIdentifier("roamTools.more.runners")
+                NavigationLink {
+                    RoamLiveHowToView()
+                } label: {
+                    Label("roamTools.more.howto", systemImage: "info.circle")
                 }
+                .accessibilityIdentifier("roam.live.rules")
+                NavigationLink {
+                    settingsForm
+                } label: {
+                    Label("roamTools.more.settings", systemImage: "gearshape")
+                }
+                .accessibilityIdentifier("roamTools.more.settings")
             }
-            .navigationTitle(Text("roamTools.title"))
+            .navigationTitle(Text("roamTools.more.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
@@ -98,6 +70,97 @@ struct RoamSessionToolsSheetView: View {
         }
         .presentationDetents([.medium, .large])
         .accessibilityIdentifier("roamTools.sheet")
+    }
+
+    /// MP 附近正在走的人 (`openNearestRunner`): the runners read while the walker shares presence.
+    private var runnersList: some View {
+        List {
+            if !presenceEnabled {
+                Text("roamTools.runners.needPresence").foregroundStyle(.secondary)
+            } else if runners.isEmpty {
+                ContentUnavailableView("roamTools.runners.empty", systemImage: "figure.walk")
+                    .accessibilityIdentifier("roamTools.runners.empty")
+            } else {
+                ForEach(runners) { runner in
+                    if let runnerActions {
+                        NavigationLink { RoamRunnerDetailView(runner: runner, actions: runnerActions) } label: { runnerRow(runner) }
+                    } else {
+                        runnerRow(runner)
+                    }
+                }
+            }
+        }
+        .navigationTitle(Text("roamTools.runners.section"))
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    /// MP roam-settings, rows in MP order: 迷雾 → 地图样式 → 减少动态效果 → 附近的人位置分享 → 位置权限 → 后台持续定位 →
+    /// 到点提醒 → 清空本机缓存. The three location rows follow the system permission and open Settings (MP
+    /// `openRoamLocationSetting`); they are values, not switches.
+    private var settingsForm: some View {
+        Form {
+            Section {
+                Toggle("roamTools.fog", isOn: $fogOn)
+                    .accessibilityIdentifier("roamTools.fog")
+                Picker("roamTools.mapStyle", selection: $mapKind) {
+                    ForEach(FreeMapKind.allCases, id: \.self) { kind in
+                        Text(LocalizedStringKey("roamTools.mapKind." + kind.rawValue)).tag(kind)
+                    }
+                }
+                .accessibilityIdentifier("roamTools.mapKind")
+                Toggle("roamTools.reduceMotion", isOn: $reduceMotion)
+                    .accessibilityIdentifier("roamTools.reduceMotion")
+            }
+            if let onSetPresence {
+                presenceSection(onSetPresence)
+            }
+            Section {
+                locationRow("roamTools.location.permission", on: locationAllowed, identifier: "roamTools.location.permission")
+                locationRow("roamTools.location.background", on: locationStatus == .authorizedAlways, identifier: "roamTools.location.background")
+                locationRow("roamTools.location.arrival", on: locationAllowed, identifier: "roamTools.location.arrival")
+            }
+            if let onClearLocal {
+                Section {
+                    Button("roamTools.clearCache", role: .destructive) { clearAsk = true }
+                        .accessibilityIdentifier("roamTools.clearCache")
+                    if let clearResult {
+                        Text(clearResult).font(.footnote).foregroundStyle(.secondary)
+                    }
+                }
+                .confirmationDialog("roamTools.clearCache.confirmTitle", isPresented: $clearAsk, titleVisibility: .visible) {
+                    Button("roamTools.clearCache.confirmAction", role: .destructive) { Task { await clearLocal(onClearLocal) } }
+                    Button("roamTools.clearCache.keep", role: .cancel) {}
+                } message: {
+                    Text("roamTools.clearCache.confirmMessage")
+                }
+            }
+        }
+        .navigationTitle(Text("roamTools.more.settings"))
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear { locationStatus = CLLocationManager().authorizationStatus }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { locationStatus = CLLocationManager().authorizationStatus }
+        }
+    }
+
+    private var locationAllowed: Bool {
+        locationStatus == .authorizedWhenInUse || locationStatus == .authorizedAlways
+    }
+
+    private func locationRow(_ title: LocalizedStringKey, on: Bool, identifier: String) -> some View {
+        Button {
+            if let onOpenLocationSettings {
+                onOpenLocationSettings()
+            } else if let url = URL(string: UIApplication.openSettingsURLString) {
+                openURL(url)
+            }
+        } label: {
+            LabeledContent(title) {
+                Text(on ? LocalizedStringKey("roamTools.value.on") : LocalizedStringKey("roamTools.value.off"))
+            }
+        }
+        .foregroundStyle(.primary)
+        .accessibilityIdentifier(identifier)
     }
 
     private func presenceSection(_ apply: @escaping @MainActor (Bool) async -> Bool?) -> some View {
@@ -166,5 +229,40 @@ struct RoamSessionToolsSheetView: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("roamTools.runner.\(runner.id)")
+    }
+}
+
+/// MP pages/roam/index.wxml roam-rules (原型 howtoScreen): 怎么玩 — one lede, three rows, one footnote.
+/// The reveal radius is the one the session uses (MP `REVEAL_M` = 55, `RoamLiveSessionController` reveal grid).
+struct RoamLiveHowToView: View {
+    static let revealMeters = 55
+
+    var body: some View {
+        List {
+            Section {
+                Text("roam.howto.lede")
+                    .font(.headline)
+                howToRow(Text("roam.howto.reveal \(Self.revealMeters)"), detail: "roam.howto.revealDetail", systemImage: "figure.walk")
+                howToRow(Text("roam.howto.photo"), detail: "roam.howto.photoDetail", systemImage: "camera")
+                howToRow(Text("roam.howto.colors"), detail: "roam.howto.colorsDetail", systemImage: "person.2")
+            } footer: {
+                Text("roam.howto.mini")
+            }
+        }
+        .navigationTitle(Text("roam.howto.title"))
+        .navigationBarTitleDisplayMode(.inline)
+        .accessibilityIdentifier("roam.live.howto")
+    }
+
+    private func howToRow(_ title: Text, detail: LocalizedStringKey, systemImage: String) -> some View {
+        Label {
+            VStack(alignment: .leading, spacing: 2) {
+                title.font(.body)
+                Text(detail).font(.subheadline).foregroundStyle(.secondary)
+            }
+        } icon: {
+            Image(systemName: systemImage).foregroundStyle(.tint)
+        }
+        .accessibilityElement(children: .combine)
     }
 }
