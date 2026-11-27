@@ -159685,13 +159685,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading order"
+            "value": "Loading order details"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在加载订单"
+            "value": "订单详情加载中"
           }
         }
       }
@@ -350656,6 +350656,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在读取活动…"
+          }
+        }
+      }
+    },
+    "playx.board.loadingLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading the companions board…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载同行者榜…"
+          }
+        }
+      }
+    },
+    "orderLifecycle.unavailableTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This order can’t be viewed right now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订单暂不可查看"
+          }
+        }
+      }
+    },
+    "orderLifecycle.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试"
           }
         }
       }
