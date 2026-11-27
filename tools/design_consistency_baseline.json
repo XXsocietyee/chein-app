@@ -37,9 +37,6 @@
     "App/DesignSystem/CYOnboardingLight.swift": {
       "raw font": "brand wordmark 城瘾 drawn as a logo, not reading text"
     },
-    "App/DesignSystem/CYPlayVerdict.swift": {
-      "raw font": "full-screen game verdict glyph art (game HUD moment)"
-    },
     "App/DesignSystem/CYShareCard.swift": {
       "raw font": "share card is rendered to a fixed-size image for export (ImageRenderer); type must not reflow with Dynamic Type"
     },
