@@ -69,8 +69,8 @@ MP: a page opened from outside (share card, subscribe message, scan) launches as
 | merchant pages, team / merchant invitations, door, badge showroom, unsupported route error | entry sheet | unchanged: invitation / door are MP landing flows with their own sign-in step; merchant out of scope (keeps its discard confirmation); errors keep 返回首页 | OK |
 | link arrives while consent gate or a tab-level sheet (设置, 合作, 票夹) is open | sheet stacked on top | waits, like chein:// links, until the gate / sheet closes, then lands (`onChange` of `hasBlockingSheet` / `consentActive`) | fixed |
 | signed-out launch from a link | sheet over Welcome | `browsingAsGuest = true` (same as the error view's 返回首页), page keeps its own sign-in gate | fixed |
-
-Known gap: `pages/talent/list/index?tab=feed` switches to 俱乐部 but does not preselect the 帖文 sub-tab (the tab root has no external sub-tab input yet).
+| local play-window reminder (PlayAdvancedView 提醒我, `AppleLocalReminderProvider`) | userInfo had no `page` key, so a tap only opened the app where it was | adds `page = pages/topic/index/index?id=<topicID>` (topic id from the reminder identifier `activityID.topicID.nodeID`); the tap routes through `MPNotificationTapRouter` and lands as the topic pushed on 首页 like a subscribe-message page | fixed |
+| `pages/talent/list/index?tab=feed` (帖文 share card, MP index.js:289-290 onLoad) | switched to 俱乐部 but stayed on the 俱乐部 top tab | switches to 俱乐部 and selects the 帖文 top tab via `ClubHomeView.requestedTopTab` (applied once, cleared; QuestifyApp `deepLinkClubTopTab`); `?tab=club` selects 俱乐部 | fixed |
 
 ## Route coverage
 

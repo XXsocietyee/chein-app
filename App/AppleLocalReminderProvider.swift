@@ -50,10 +50,20 @@ import UserNotifications
         let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
         guard let next = trigger.nextTriggerDate(), abs(next.timeIntervalSince(reminder.fireAt)) < 1 else { throw NativePlatformIssue.expired }
         let content = UNMutableNotificationContent(); content.title = title; content.body = body; content.sound = .default
-        content.userInfo = ["owner": reminder.owner, "windowRevision": reminder.windowRevision, "timeZone": reminder.timeZone]
+        var info: [String: String] = ["owner": reminder.owner, "windowRevision": reminder.windowRevision, "timeZone": reminder.timeZone]
+        if let page = Self.topicPage(forIdentifier: reminder.identifier) { info["page"] = page }
+        content.userInfo = info
         cancel(identifier: reminder.identifier)
         try await center.add(UNNotificationRequest(identifier: reminder.identifier, content: content, trigger: trigger))
     }
+    /// mp-nav r3: a tapped window reminder opens the topic that owns the play node (identifier ends in
+    /// `activityID.topicID.nodeID`, see NativePlatformRuntime.reminderModel); it lands pushed on 首页 like any page link.
+    static func topicPage(forIdentifier identifier: String) -> String? {
+        let parts = identifier.split(separator: ".")
+        guard parts.count >= 3, let topicID = Int(parts[parts.count - 2]), topicID > 0 else { return nil }
+        return "pages/topic/index/index?id=\(topicID)"
+    }
+
     func cancel(identifier: String) {
         guard enabled, identifier.hasPrefix(Self.prefix) else { return }
         center.removePendingNotificationRequests(withIdentifiers: [identifier]); center.removeDeliveredNotifications(withIdentifiers: [identifier])

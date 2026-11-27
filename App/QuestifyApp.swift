@@ -280,6 +280,8 @@ struct SessionRootView: View {
     /// W3-6: one-shot presentation requests from a chein:// link; the owning screen clears them when it consumes them.
     @State private var deepLinkTicketPass=false
     @State private var deepLinkClubID: Int?
+    /// mp-nav r3: `talent/list?tab=feed|club` from a link / notification preselects the 发现 top tab.
+    @State private var deepLinkClubTopTab: ClubTabPresentation.TopTab?
     @State private var showsAreaPicker=false
     @State private var presentation = RootPresentationCoordinator()
     @State private var reachability = NetworkReachability()
@@ -402,7 +404,7 @@ struct SessionRootView: View {
     }
 
     @ViewBuilder private var clubTab: some View {
-                    NavigationStack { ClubHomeView(reader:session,onSignIn:{ requestSignIn() },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, publicRoster:session.clubPublicRosterReader, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }, requestedClubID: $deepLinkClubID, authorSquare: session.squareReader).modifier(SessionMessagingToolbarEntry(session: session)) }
+                    NavigationStack { ClubHomeView(reader:session,onSignIn:{ requestSignIn() },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, publicRoster:session.clubPublicRosterReader, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }, requestedClubID: $deepLinkClubID, authorSquare: session.squareReader, requestedTopTab: $deepLinkClubTopTab).modifier(SessionMessagingToolbarEntry(session: session)) }
                         .id(session.sessionRevision)
                         .environment(\.cyTabBarVisibility, clubTabBarVisibility)
     }
@@ -530,7 +532,13 @@ struct SessionRootView: View {
               let entry = session.nativeEntry, let landing = HomeLanding(intent: entry.intent) else { return }
         session.dismissNativeEntry()
         if session.account == nil { browsingAsGuest = true }
-        if case .tab(let tab) = landing.target { selectedTab = tab; return }
+        if case .tab(let tab) = landing.target {
+            if tab == .club, case .miniProgramPage(let link) = entry.intent, let raw = link.query["tab"] {
+                deepLinkClubTopTab = ClubTabPresentation.TopTab(rawValue: raw)
+            }
+            selectedTab = tab
+            return
+        }
         selectedTab = .home
         presentation.homeLanding = landing
     }
