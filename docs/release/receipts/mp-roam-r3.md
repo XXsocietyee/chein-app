@@ -114,7 +114,7 @@ New strings (en + zh-Hans, also `docs/port/strings/mp-r3-roam.json`): `roamTools
 `roam.howto.photoDetail`, `roam.howto.colors`, `roam.howto.colorsDetail`, `roam.howto.mini`; updated `roamTools.clearCache.confirmMessage` (MP copy).
 No motion added. No tests pin the removed rules sheet or the old tools layout.
 
-Gates: generate_project OK · check_scaffold PASS (20645 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+Gates: generate_project OK · check_scaffold PASS (20669 keys, after merging the parallel lane) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 
 ## Round 3 continue (5) — live map maptip stack (pages/roam/index.wxml:465–490)
 
