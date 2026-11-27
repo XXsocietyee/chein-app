@@ -118,7 +118,7 @@ public struct JourneyAskReview: Identifiable, Equatable {
             }
         }
     }
-    public func sendDialogue(npcID: Int, utterance: String, routeActionID: String = UUID().uuidString) async {
+    public func sendDialogue(npcID: Int, utterance: String, routeActionID: String = UUID().uuidString, requestID: UUID = UUID()) async {
         synchronize()
         guard available, service.asksEnabled, !busy, let captured = currentSession(), owner == captured else {
             issue = "journey.record.disabled"; return
@@ -130,7 +130,7 @@ public struct JourneyAskReview: Identifiable, Equatable {
         generation &+= 1; let revision = generation; busy = true; issue = nil
         defer { if revision == generation { busy = false } }
         do {
-            let result = try await service.dialogue(scope: scope, npcID: npcID, utterance: trimmed, routeActionID: routeActionID, token: captured.token)
+            let result = try await service.dialogue(scope: scope, npcID: npcID, utterance: trimmed, routeActionID: routeActionID, token: captured.token, requestID: requestID)
             try check(captured, revision)
             storedDialogueReceipt = result; acknowledgedRevision &+= 1
             do {

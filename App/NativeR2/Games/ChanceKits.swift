@@ -41,9 +41,10 @@ private struct ChanceSymbolSize {
                     .symbolEffect(.pulse, isActive: context.busy)
                     .accessibilityHidden(true)
                 if key.isEmpty {
-                    Text("playkit.coin.waiting").font(.body).foregroundStyle(.secondary)
+                    // MP `cf__big`: 正面还是反面？ before the flip, 翻着… while the server answers.
+                    Text(context.busy ? "playkit.coin.waiting" : "playkit.coin.idle").font(.body).foregroundStyle(.secondary)
                 } else {
-                    Text(verbatim: raw[key]["label"].text ?? (raw["side"].text ?? "")).font(.title.bold())
+                    faceLabel(key).font(.title.bold())
                         .accessibilityIdentifier("playkit.coin.result")
                     if let action = raw[key]["action"].text, !action.isEmpty {
                         Text(verbatim: action).font(.body).multilineTextAlignment(.center)
@@ -59,7 +60,12 @@ private struct ChanceSymbolSize {
             .sensoryFeedback(.impact, trigger: flips)
             .sensoryFeedback(.success, trigger: key) { old, next in !next.isEmpty && old != next }
         } header: {
-            Text("playkit.coin.kicker")
+            // MP `cf__k`: the server `kicker`, default 抛一次，认结果.
+            if let kicker = raw["kicker"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !kicker.isEmpty {
+                Text(verbatim: kicker)
+            } else {
+                Text("playkit.coin.kicker")
+            }
         } footer: {
             if context.enabled { Label("playkit.coin.shakeHint", systemImage: "iphone.gen3.radiowaves.left.and.right") }
         }
@@ -68,11 +74,17 @@ private struct ChanceSymbolSize {
                 LabeledContent {
                     Text(verbatim: raw[face]["action"].text ?? "").foregroundStyle(.secondary)
                 } label: {
-                    Label { Text(verbatim: raw[face]["label"].text ?? "") } icon: { Image(systemName: Self.symbol(face)) }
+                    Label { faceLabel(face) } icon: { Image(systemName: Self.symbol(face)) }
                 }
                 .foregroundStyle(face == key ? AnyShapeStyle(.tint) : AnyShapeStyle(.primary))
             }
         }
+    }
+    /// MP `headsLabel` / `tailsLabel`: the merchant's face name, default 正面 / 反面.
+    private func faceLabel(_ face: String) -> Text {
+        let label = raw[face]["label"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if !label.isEmpty { return Text(verbatim: label) }
+        return Text(face == "heads" ? "playkit.coin.heads" : "playkit.coin.tails")
     }
     private func flip() {
         guard context.enabled else { return }
@@ -88,76 +100,142 @@ private struct ChanceSymbolSize {
     @ScaledMetric(relativeTo: .largeTitle) private var symbolSize: CGFloat = ChanceSymbolSize.base
     @State private var rolls = 0
     private var raw: PlayWireValue { context.segment }
+    private var kicker: String? {
+        let text = raw["kicker"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return text.isEmpty ? nil : text
+    }
     var body: some View {
-        let values = (raw["pips"].array ?? []).compactMap(\.integer)
-        let d20 = raw["mode"].text == "d20"
+        if raw["mode"].text == "d20" { d20Body } else { d6Body }
+    }
+
+    // MP `dz`: kicker → dice → sum → sub line (task / 摇到 N / two-dice total) → hint. No face list (MP: merchant data).
+    @ViewBuilder private var d6Body: some View {
+        let values = (raw["pips"].array ?? []).compactMap(\.integer).filter { (1...6).contains($0) }
+        let count = raw["diceCount"].integer == 2 ? 2 : 1
         Section {
             // One row: shake and haptics must attach once, not once per List row.
             VStack(spacing: 12) {
-            if values.isEmpty {
-                ContentUnavailableView("playkit.dice.waiting", systemImage: "dice")
-                    .symbolEffect(.pulse, isActive: context.busy)
-                    .accessibilityIdentifier("playkit.dice.waiting")
-            } else if d20 {
-                GroupBox {
-                    HStack(spacing: 16) {
-                        ForEach(Array(values.enumerated()), id: \.offset) { _, value in
-                            Text(verbatim: String(value))
-                                .cyText(.dataXL)
-                                .monospacedDigit()
-                                .contentTransition(.numericText())
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                } label: {
-                    Text(verbatim: "D20")
-                }
-            } else {
                 HStack(spacing: 16) {
-                    ForEach(Array(values.enumerated()), id: \.offset) { _, value in
-                        if (1...6).contains(value) {
+                    if values.isEmpty {
+                        ForEach(0..<count, id: \.self) { _ in
+                            Image(systemName: "square")
+                                .resizable().scaledToFit().frame(width: symbolSize, height: symbolSize)
+                                .foregroundStyle(.secondary)
+                                .symbolEffect(.pulse, isActive: context.busy)
+                        }
+                    } else {
+                        ForEach(Array(values.enumerated()), id: \.offset) { _, value in
                             Image(systemName: "die.face.\(value).fill")
                                 .resizable().scaledToFit().frame(width: symbolSize, height: symbolSize)
                                 .foregroundStyle(.tint)
                                 .contentTransition(.symbolEffect(.replace))
-                                .accessibilityLabel(Text(verbatim: String(value)))
-                        } else {
-                            Text(verbatim: String(value)).font(.largeTitle.bold()).monospacedDigit()
                         }
                     }
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 8)
-            }
-            if let action = raw["action"].text, !action.isEmpty { Text(verbatim: action) }
-            if !d20, values.count == 1, let pip = values.first, let faces = raw["faces"].array,
-               faces.indices.contains(pip - 1), let task = faces[pip - 1].text {
-                Text(verbatim: task)
-            }
+                .accessibilityHidden(true)
+                if !values.isEmpty {
+                    Text(verbatim: String(values.reduce(0, +)))
+                        .font(.largeTitle.bold()).monospacedDigit()
+                        .contentTransition(.numericText())
+                        .accessibilityIdentifier("playkit.dice.total")
+                }
+                subLine(values).font(.body).multilineTextAlignment(.center)
+                    .foregroundStyle(values.isEmpty ? AnyShapeStyle(.secondary) : AnyShapeStyle(.primary))
             }
             .frame(maxWidth: .infinity)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("playkit.dice.face")
             // The roll itself is the shell's bottom button (`nativeKitSubmitB`); a shake does the same.
             .cyOnShake(enabled: context.enabled) { roll() }
             .sensoryFeedback(.impact, trigger: rolls)
             .sensoryFeedback(.success, trigger: values) { old, next in !next.isEmpty && old != next }
         } header: {
-            if !d20 { Text("playkit.dice.kicker") }
+            // MP `dz__k`: the server `kicker`, default 掷到几就做第几件事.
+            if let kicker { Text(verbatim: kicker) } else { Text("playkit.dice.kicker") }
         } footer: {
-            if context.enabled { Label("playkit.coin.shakeHint", systemImage: "iphone.gen3.radiowaves.left.and.right") }
+            // MP `dz__hint`: 摇一摇手机 before the roll, 再摇一次 after it.
+            if context.enabled {
+                Label(values.isEmpty ? LocalizedStringKey("playkit.coin.shakeHint") : LocalizedStringKey("playkit.dice.again"), systemImage: "iphone.gen3.radiowaves.left.and.right")
+            }
+        }
+    }
+    /// MP `sub`: one die → the merchant task for that face, else 摇到 N; two dice → only the total counts.
+    private func subLine(_ values: [Int]) -> Text {
+        if values.isEmpty { return Text("playkit.dice.idle") }
+        if values.count == 1, let pip = values.first {
+            let faces = raw["faces"].array ?? []
+            if faces.indices.contains(pip - 1), let task = faces[pip - 1].text?.trimmingCharacters(in: .whitespacesAndNewlines), !task.isEmpty {
+                return Text(verbatim: task)
+            }
+            return Text("playkit.dice.rolled \(pip)")
+        }
+        return Text("playkit.dice.sumLine \(values.map(String.init).joined(separator: " + "))")
+    }
+
+    // MP `d20`: kicker → meta (掷法 · DC · 加值) → die → outcome (total + result text, 检定成功 / 失败). No shake (MP).
+    @ViewBuilder private var d20Body: some View {
+        let values = (raw["pips"].array ?? []).compactMap(\.integer)
+        let rolled = raw["rolled"].bool == true
+        Section {
+            LabeledContent("playkit.d20.rollMode") { rollModeLabel }
+            if let dc = raw["dc"].integer {
+                LabeledContent("playkit.dice.target") { Text(verbatim: String(dc)).monospacedDigit() }
+            }
+            let modifier = raw["modifier"].integer ?? 0
+            LabeledContent("playkit.d20.modifier") {
+                Text(verbatim: modifier >= 0 ? "+\(modifier)" : String(modifier)).monospacedDigit()
+            }
+        } header: {
+            if let kicker { Text(verbatim: kicker) } else { Text("playkit.d20.kicker") }
         }
         Section {
-            if let total = context.projection.diceTotal {
-                LabeledContent("playkit.dice.total") {
-                    Text(verbatim: String(total)).font(.title2.bold()).monospacedDigit().contentTransition(.numericText())
+            VStack(spacing: 12) {
+                if values.isEmpty {
+                    Image(systemName: "dice")
+                        .resizable().scaledToFit().frame(width: symbolSize, height: symbolSize)
+                        .foregroundStyle(.secondary)
+                        .symbolEffect(.pulse, isActive: context.busy)
+                        .accessibilityHidden(true)
+                } else {
+                    HStack(spacing: 16) {
+                        ForEach(Array(values.enumerated()), id: \.offset) { _, value in
+                            Text(verbatim: String(value))
+                                .cyText(.dataXL)
+                                .monospacedDigit()
+                                .foregroundStyle(value == raw["kept"].integer || values.count == 1 ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary))
+                                .contentTransition(.numericText())
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
                 }
-                .accessibilityIdentifier("playkit.dice.total")
-                if values.count > 1 {
-                    Text("playkit.dice.sumLine \(values.map(String.init).joined(separator: " + "))")
-                        .font(.footnote).foregroundStyle(.secondary)
+                if rolled, let total = context.projection.diceTotal {
+                    LabeledContent("playkit.dice.total") {
+                        Text(verbatim: String(total)).font(.title2.bold()).monospacedDigit().contentTransition(.numericText())
+                    }
+                    .accessibilityIdentifier("playkit.dice.total")
+                    if let success = raw["success"].bool {
+                        Label(success ? LocalizedStringKey("playkit.d20.success") : LocalizedStringKey("playkit.d20.failure"),
+                              systemImage: success ? "checkmark.circle.fill" : "xmark.circle.fill")
+                            .foregroundStyle(success ? Color.green : Color.orange)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    if let action = raw["action"].text, !action.isEmpty {
+                        Text(verbatim: action).frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 }
             }
-            if let kept = raw["kept"].integer { LabeledContent("playkit.dice.kept") { Text(verbatim: String(kept)).monospacedDigit() } }
-            if d20, let dc = raw["dc"].integer { LabeledContent("playkit.dice.target") { Text(verbatim: String(dc)).monospacedDigit() } }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .sensoryFeedback(.success, trigger: values) { old, next in !next.isEmpty && old != next }
+        }
+    }
+    private var rollModeLabel: Text {
+        switch raw["rollMode"].text {
+        case "advantage": return Text("playkit.d20.advantage")
+        case "disadvantage": return Text("playkit.d20.disadvantage")
+        default: return Text("playkit.d20.normal")
         }
     }
     private func roll() {
