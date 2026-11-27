@@ -23,7 +23,15 @@ import SwiftUI
     private var review: PublishingAuxiliaryReview?
     private struct Source: Encodable { let account: PublishingSession?; let id: UUID; let draft: ActivityPublishDraft }
     func bind(account: PublishingSession?, draftID: UUID, draft: ActivityPublishDraft) {
-        let bytes = ProjectEditPendingMaterials.exactData(Source(account: account, id: draftID, draft: draft))
+        bind(account: account, draftID: draftID, bytes: ProjectEditPendingMaterials.exactData(Source(account: account, id: draftID, draft: draft)))
+    }
+    private struct TopicSource: Encodable { let account: PublishingSession?; let id: UUID }
+    /// MP fabu step3 发布者实名: the same owner bound to one topic editor visit (票务设置 page). Keyed on the editor,
+    /// not the draft text, so editing a ticket price does not clear a half-filled identity form.
+    func bind(account: PublishingSession?, topicEditor: UUID) {
+        bind(account: account, draftID: topicEditor, bytes: ProjectEditPendingMaterials.exactData(TopicSource(account: account, id: topicEditor)))
+    }
+    private func bind(account: PublishingSession?, draftID: UUID, bytes: Data?) {
         if self.account != account || self.draftID != draftID || source != bytes { retire(); confirmedRegistered = false; self.account = account; self.draftID = draftID; source = bytes }
     }
     func appear(active: Bool) { pageVisible = true; sceneActive = active }

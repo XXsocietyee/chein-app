@@ -145,8 +145,11 @@ private final class RegistrationFixtureModel: ObservableObject {
 struct RegistrationFixtureHostView: View {
     @StateObject private var model: RegistrationFixtureModel
     @State private var presented = true
-    init(scenario: RegistrationFixtureScenario = .standard) {
+    /// Design fixtures: hide the 离线演示 note (writes stay offline).
+    private let hidesFixtureNotice: Bool
+    init(scenario: RegistrationFixtureScenario = .standard, hidesFixtureNotice: Bool = false) {
         _model = StateObject(wrappedValue: RegistrationFixtureModel(scenario: scenario))
+        self.hidesFixtureNotice = hidesFixtureNotice
     }
     var body: some View {
         VStack(spacing: 20) {
@@ -177,7 +180,10 @@ struct RegistrationFixtureHostView: View {
                     }
                     .modifier(AccessibilityFixtureOptions())
             }
-        }.cySheet() }
+        }
+        .environment(\.registrationHidesFixtureNotice, hidesFixtureNotice)
+        // Same detent as the real presentation (`ActivityDetailView` → `SessionRegistrationSheet`, `.large`).
+        .cySheet(detents: [.large]) }
     }
 }
 

@@ -54,7 +54,7 @@ public enum PlayKitActionCatalog {
         "countdown": ["START_CHALLENGE", "SUBMIT_COUNTDOWN"], "stopwatch": ["START_CHALLENGE", "SUBMIT_STOPWATCH"],
         "blindTaste": ["SUBMIT_BLIND_TASTE"], "diyName": ["SUBMIT_DIY_NAME"], "steps": ["SUBMIT_STEPS"],
         "dailySign": ["CLAIM_DAILY_SIGN"], "slowTask": ["START_SLOW_TASK", "CLAIM_SLOW_TASK"], "silentOrder": [],
-        "coinFlip": ["FLIP_COIN"], "diceRoll": ["ROLL_DICE"], "predict": ["SUBMIT_PREDICT"],
+        "coinFlip": ["FLIP_COIN"], "diceRoll": ["ROLL_DICE"], "predict": ["SUBMIT_PREDICT", "SKIP_CLOSED_PREDICT"],
         "reaction": ["START_CHALLENGE", "SUBMIT_REACTION"], "ballShake": ["START_CHALLENGE", "SUBMIT_BALL_SHAKE"],
         "quietHold": ["START_CHALLENGE", "SUBMIT_QUIET_HOLD"], "random": ["DRAW"], "scan": ["SUBMIT_SCAN"],
         "profile": ["SUBMIT_PROFILE"], "photoCheck": ["SUBMIT_PHOTO_CHECK", PlayKitInputContract.recordAction], "note": ["SUBMIT_NOTE"],
@@ -68,6 +68,7 @@ public enum PlayKitActionCatalog {
         guard actions[kind]?.contains(action) == true else { throw PlayExperienceError.unsupported }
         switch action {
         case "FLIP_COIN", "ROLL_DICE": return [:] // Never invent a random outcome client-side.
+        case "SKIP_CLOSED_PREDICT": return [:] // MP `predict:skip`: the server re-checks that the round is closed.
         case "START_CHALLENGE":
             if ["reaction", "ballShake", "quietHold", "typeIn", "countdown", "stopwatch", "shout"].contains(kind) { return ["game": .string(kind)] }
             return detail
