@@ -48,7 +48,7 @@ import SwiftUI
                             .accessibilityIdentifier("ticketWallet.signIn")
                     }
                 } else if !reader.isConfigured { TicketWalletIssueView(issue: .notConfigured) }
-                else if model.isLoading || model.loadedOwner != key { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("mpfresh.ticketWallet.loading", tableName: "MpFresh")) }
+                else if model.isLoading || model.loadedOwner != key { ProgressView { Text("mpfresh.ticketWallet.loading", tableName: "MpFresh") }.frame(maxWidth: .infinity) }
                 else if let issue = model.issue(owner: key) {
                     // Source failure title 票夹没能打开 precedes the specific reason.
                     Text("ticketWallet.parity.error.title").font(.headline)

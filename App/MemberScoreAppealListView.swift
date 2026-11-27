@@ -127,10 +127,8 @@ private struct MemberScorePlayLayer: Hashable, Identifiable {
     }
 
     private var listSkeleton: some View {
-        ProgressView()
+        ProgressView { Text("score.mine.loading", tableName: "MemberScoreAppealList") }
             .frame(maxWidth: .infinity)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text("score.mine.loading", tableName: "MemberScoreAppealList"))
     }
 
     private func emptyState(_ key: String) -> some View {

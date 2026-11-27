@@ -457,12 +457,12 @@ struct HomeIndexEmptyStateView: View {
         switch phase {
         case .loading:
             VStack(spacing: 12) {
-                ProgressView()
-                    .accessibilityHidden(true)
-                Text(verbatim: HomeIndexParityPresentation.loadingCopy(locale: locale))
-                    .accessibilityAddTraits(.updatesFrequently)
-                    .foregroundStyle(.secondary)
-                    .accessibilityIdentifier("homeIndex.state.loading")
+                ProgressView {
+                    Text(verbatim: HomeIndexParityPresentation.loadingCopy(locale: locale))
+                }
+                .accessibilityAddTraits(.updatesFrequently)
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier("homeIndex.state.loading")
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 24)

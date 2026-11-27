@@ -44,11 +44,14 @@ enum TopicScreenIssue {
 struct TopicIssueView: View {
     let issue: TopicScreenIssue
     var retry: (() -> Void)? = nil
+    /// mp-states r3: the one state pattern — ContentUnavailableView with one bordered 重试.
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label(issue.key, systemImage: "exclamationmark.circle")
-            if let retry { Button("topic.retry", action: retry).buttonStyle(.bordered).frame(minHeight: 44) }
-        }.accessibilityIdentifier("topic.error")
+        ContentUnavailableView {
+            Label(issue.key, systemImage: "exclamationmark.triangle")
+        } actions: {
+            if let retry { Button("topic.retry", action: retry).buttonStyle(.bordered).controlSize(.large) }
+        }
+        .accessibilityIdentifier("topic.error")
     }
 }
 

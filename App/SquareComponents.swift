@@ -32,14 +32,24 @@ struct SquareIssueView: View {
         default: return "square.failed"
         }
     }
+    private var serverMessage: String? {
+        if let failure = error as? SquareReadFailure, case let .server(_, message) = failure, let message, !message.isEmpty {
+            return message
+        }
+        return nil
+    }
+    /// mp-states r3: the one state pattern — ContentUnavailableView, the server sentence verbatim as the
+    /// description (unavailable / moderation responses included), one bordered 重试.
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Label(key, systemImage: "exclamationmark.circle").accessibilityIdentifier("square.error")
-            if let failure = error as? SquareReadFailure, case let .server(_, message) = failure, let message, !message.isEmpty {
-                // Backend messages remain verbatim, including unavailable/moderation responses.
-                Text(verbatim: message).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
+        ContentUnavailableView {
+            Label { Text(key).accessibilityIdentifier("square.error") } icon: { Image(systemName: "exclamationmark.triangle") }
+        } description: {
+            if let serverMessage { Text(verbatim: serverMessage).textSelection(.enabled) }
+        } actions: {
+            if let retry {
+                Button("square.retry", action: retry).accessibilityIdentifier("square.retry")
+                    .buttonStyle(.bordered)
             }
-            if let retry { Button("square.retry", action: retry).accessibilityIdentifier("square.retry") }
         }
     }
 }

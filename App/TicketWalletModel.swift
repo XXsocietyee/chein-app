@@ -54,18 +54,20 @@ typealias TicketWalletLoadKey = TicketWalletReadOwner
 struct TicketWalletIssueView: View {
     let issue: TicketWalletIssue
     var retry: (() -> Void)? = nil
+    /// mp-states r3: the one state pattern — ContentUnavailableView with one bordered 重试.
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        ContentUnavailableView {
             Label {
                 if case .server(let text) = issue { Text(verbatim: text) }
                 else { Text(LocalizedStringKey(issue.localizationKey)) }
             } icon: { Image(systemName: issue == .login ? "lock" : "exclamationmark.triangle") }
+        } actions: {
             if let retry {
                 Button("ticketWallet.retry", action: retry)
                     .buttonStyle(.bordered).controlSize(.large)
                     .accessibilityIdentifier("ticketWallet.retry")
             }
-        }.padding(.vertical, 8)
+        }
     }
 }
 
