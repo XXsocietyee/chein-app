@@ -20,6 +20,9 @@ import Foundation
     public private(set) var error: Error?
     public private(set) var presenceError = false
     public private(set) var presenceEnabled = false
+    /// ROAM-r11-7: the shop this walk just found for the first time; the screen clears it after showing the card.
+    public private(set) var firstShopDiscovery: RoamPlace?
+    public func consumeFirstShopDiscovery() { firstShopDiscovery = nil; changed() }
     public private(set) var foreground = true
     public private(set) var busy = false
     public var onChange: (() -> Void)?
@@ -406,6 +409,8 @@ import Foundation
                 let receipt = try await service!.shopVisit(sessionID: id, sourceType: 1, sourceID: place.id, fix: fix)
                 try check(token); guard receipt.recorded else { throw RoamLiveFailure.unresolvedVisit }
                 draft.confirmedShops.append(action)
+                // ROAM-r11-7: a shop found for the first time raises the 首次发现 card (MP pages/roam/index.js:4643-4652).
+                if place.found != true { firstShopDiscovery = place }
             } else {
                 let receipt = try await service!.discover(sessionID: id, poiID: place.id, fix: fix)
                 try check(token); guard receipt.poiId == place.id else { throw APIError.malformedResponse }

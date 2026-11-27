@@ -102,6 +102,7 @@ import QuestifyCore
     @Environment(\.roamOfficialArrival) private var officialArrival
     @Environment(\.roamPresenceVisibility) private var roamPresenceVisibility
     @Environment(\.roamClearLocal) private var roamClearLocal
+    @Environment(\.roamDiscoverDestinations) private var discoverDestinations
     init(controller: RoamLiveSessionController, offlineExample: Bool = false, localHistoryReader: (any RoamExperienceReading)? = nil, albumMetadataReader: RoamAlbumMetadataReader? = nil, browsePresentation: RoamPausedBrowsePresentation? = nil) {
         self.offlineExample = offlineExample; self.localHistoryReader = localHistoryReader; self.albumMetadataReader = albumMetadataReader
         _browse = StateObject(wrappedValue: browsePresentation ?? RoamPausedBrowsePresentation())
@@ -157,6 +158,10 @@ import QuestifyCore
         .presentationContentInteraction(.scrolls)
         .presentationDragIndicator(.visible)
         .interactiveDismissDisabled()
+        // ROAM-r11-7: 首次发现商家 card after the first visit to a shop.
+        .sheet(item: firstDiscoveryBinding) { place in
+            if let discoverDestinations { RoamFirstDiscoverySheet(place: place, destinations: discoverDestinations) }
+        }
         .sheet(isPresented: $showTools) {
             RoamSessionToolsSheetView(runners: runners, presenceEnabled: owner.presenceEnabled,
                                       fogOn: fogOnBinding, mapKind: mapKindBinding, reduceMotion: reducedMotionBinding,
@@ -282,6 +287,10 @@ import QuestifyCore
                 }
                 .accessibilityIdentifier("roam.live.map")
         }
+    }
+    private var firstDiscoveryBinding: Binding<RoamPlace?> {
+        Binding(get: { discoverDestinations == nil ? nil : owner.firstShopDiscovery },
+                set: { if $0 == nil, owner.firstShopDiscovery != nil { owner.consumeFirstShopDiscovery() } })
     }
     /// ROAM-r11-5: the server-confirmed presence change also switches this walk's presence reports.
     private var presenceSwitch: (@MainActor (Bool) async -> Bool?)? {
