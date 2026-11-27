@@ -132,9 +132,11 @@ struct DiscoveryTemplateDetailView: View {
                     }
                     .listRowBackground(Color.clear).listRowSeparator(.hidden)
                     if tab == .details {
-                        DiscoveryPlayMetadata(item: item).discoveryCardRow()
-                        DiscoveryPlayTemplatePresentationView(presentation: .init(item), scope: galleryScope, imageReader: imageReader, showsPublisher: false)
+                        // mp-r3-publish: MP templatedetail.wxml 详情 order — image mosaic, 简介, 审核反馈 + stat cards, 规则,
+                        // 怎么验证, 难度 · 时长 · 人数, 分类与适用场景, 所需物料, 创作者说, 评价, then the notice.
+                        DiscoveryPlayTemplatePresentationView(presentation: .init(item), scope: galleryScope, imageReader: imageReader, showsPublisher: false, part: .media)
                         textSection(parity?.isTopicTemplate == true ? "u10.template.story" : "discovery.introduction", text: item.description, art: MPAsset.FeatureIcon.book)
+                        if let parity { DiscoveryTemplateDetailParitySections(presentation: parity, part: .lead) }
                         if let parity, !parity.ruleSteps.isEmpty {
                             Section {
                                 // R7-PC-A6-4 (MP templatedetail.wxml:96-110): the step list clamps (3 steps) with 更多 / 收起.
@@ -159,15 +161,20 @@ struct DiscoveryTemplateDetailView: View {
                             textSection("discovery.rules", text: item.ruleInstructions, art: MPAsset.FeatureIcon.interaction)
                         }
                         if let parity {
-                            // Carries 怎么验证, 分类与适用场景, 所需物料, 评价 and the 不能直接开团 notice.
+                            DiscoveryTemplateDetailParitySections(presentation: parity, part: .verification)
+                            DiscoveryPlayMetadata(item: item).discoveryCardRow()
+                            DiscoveryTemplateDetailParitySections(presentation: parity, part: .scenes)
                             if parity.materialChips.isEmpty { textSection("discovery.materials", text: item.requiredMaterials, art: MPAsset.FeatureIcon.flashlight) }
-                            DiscoveryTemplateDetailParitySections(presentation: parity)
+                            DiscoveryPlayTemplatePresentationView(presentation: .init(item), scope: galleryScope, imageReader: imageReader, showsPublisher: false, part: .story)
+                            DiscoveryTemplateDetailParitySections(presentation: parity, part: .closing)
                         } else {
-                            textSection("discovery.location", text: item.usageLocation)
-                            textSection("discovery.materials", text: item.requiredMaterials)
                             if let verification = item.verification {
                                 Section { Text(verification.label) } header: { DiscoverySectionHeader("discovery.verification") }.discoveryCardRow()
                             }
+                            DiscoveryPlayMetadata(item: item).discoveryCardRow()
+                            textSection("discovery.location", text: item.usageLocation)
+                            textSection("discovery.materials", text: item.requiredMaterials)
+                            DiscoveryPlayTemplatePresentationView(presentation: .init(item), scope: galleryScope, imageReader: imageReader, showsPublisher: false, part: .story)
                         }
                     } else {
                         Section {
@@ -849,6 +856,14 @@ struct DiscoveryTopicTemplateDeckHost: View {
         return TopicTemplatePreviewData.fromWire(.object(object), templateID: item.id,
                                                  isReadonly: readonly || !TopicTemplateUseFactory.isLive)
     }
+    /// MP topic-preview/intro.js `buildIntro`: only chapters with a name, in order, each with its guide.
+    static func introChapters(_ item: PublicTopicTemplateDetail) -> [TopicTemplateIntroChapter] {
+        item.chapters.compactMap { chapter in
+            let name = (chapter.name ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !name.isEmpty else { return nil }
+            return TopicTemplateIntroChapter(id: String(chapter.id), name: name, guide: TopicTemplateIntroChapter.guide(chapter.description))
+        }
+    }
     var body: some View {
         Group {
             if detail.isInvalidated {
@@ -859,7 +874,8 @@ struct DiscoveryTopicTemplateDeckHost: View {
             } else if let item = detail.value {
                 TopicTemplateDeckPreviewView(preview: Self.previewData(item, readonly: readonly),
                                              onViewDetail: { showsDetail = true },
-                                             onUseTemplate: { adopt(item) })
+                                             onUseTemplate: { adopt(item) },
+                                             introChapters: Self.introChapters(item))
                     .accessibilityIdentifier("discovery.topicPreview.deck")
                     .disabled(useModel.state == .using)
                     .safeAreaInset(edge: .bottom) {
@@ -875,8 +891,9 @@ struct DiscoveryTopicTemplateDeckHost: View {
                     }
             } else {
                 // MP skeleton, not a centred spinner (R7-PC-A7-2); MP status 正在加载主题模板 (topic-preview/index.wxml:7).
-                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .accessibilityLabel(Text("discovery.topicPreview.loading"))
+                // P10: the words are visible, not only spoken.
+                ProgressView { Text("discovery.topicPreview.loading") }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .navigationDestination(isPresented: $showsDetail) {

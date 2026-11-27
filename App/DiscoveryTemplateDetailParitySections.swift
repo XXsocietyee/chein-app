@@ -8,9 +8,23 @@ import SwiftUI
 @MainActor
 struct DiscoveryTemplateDetailParitySections: View {
     let presentation: DiscoveryPlayTemplateDetailPresentation
+    /// mp-r3-publish: the detail places each part where MP templatedetail.wxml has it (lead after 简介, 怎么验证 after
+    /// 规则, scenes/materials after the 难度·时长·人数 chips, 评价 + notice last). `.all` keeps the old single block.
+    enum Part { case all, lead, verification, scenes, closing }
+    var part: Part = .all
     @State private var preview: TemplateNodePreviewState?
 
     var body: some View {
+        if part == .all || part == .lead { leadSection }
+        if part == .all || part == .verification { verificationSection }
+        if part == .all || part == .scenes {
+            sceneSection(presentation.sceneChips)
+            chipSection("discovery.templateDetail.materials", chips: presentation.materialChips, id: "discovery.templateDetail.materials", art: MPAsset.FeatureIcon.flashlight)
+        }
+        if part == .all || part == .closing { closingSections }
+    }
+
+    @ViewBuilder private var leadSection: some View {
         Section {
             if showsPublisherRow { publisherRow }
             if let feedback = presentation.reviewFeedback {
@@ -32,6 +46,9 @@ struct DiscoveryTemplateDetailParitySections: View {
                 }
             }
         }.discoveryCardRow()
+    }
+
+    @ViewBuilder private var verificationSection: some View {
         if presentation.verificationMethodText != nil || presentation.questionText != nil {
             Section {
                 if let method = presentation.verificationMethodText {
@@ -47,9 +64,14 @@ struct DiscoveryTemplateDetailParitySections: View {
                     .accessibilityIdentifier("discovery.templateDetail.previewNode")
                 }
             } header: { DiscoverySectionHeader("discovery.templateDetail.howVerified", art: MPAsset.FeatureIcon.magnifier) }.discoveryCardRow()
+            // The node preview button lives in this section, so its sheet does too.
+            .cySheet(item: $preview) { state in Group {
+                TemplateNodePreviewSheet(state: state) { preview = nil }
+            }.cySheet() }
         }
-        sceneSection(presentation.sceneChips)
-        chipSection("discovery.templateDetail.materials", chips: presentation.materialChips, id: "discovery.templateDetail.materials", art: MPAsset.FeatureIcon.flashlight)
+    }
+
+    @ViewBuilder private var closingSections: some View {
         if let rating = presentation.rating {
             Section {
                 HStack {
@@ -65,9 +87,6 @@ struct DiscoveryTemplateDetailParitySections: View {
             } header: { DiscoverySectionHeader("discovery.templateDetail.reviews", art: MPAsset.FeatureIcon.star) }.discoveryCardRow()
         }
         DiscoveryTemplateNoticeSection()
-        .cySheet(item: $preview) { state in Group {
-            TemplateNodePreviewSheet(state: state) { preview = nil }
-        }.cySheet() }
     }
 
     /// Use count and duration already render in the base metadata/presentation.

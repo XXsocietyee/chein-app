@@ -8,8 +8,17 @@ import SwiftUI
     let imageReader: any RetainedPublicImageReading
     /// The detail head (B57 `xb-head`) already names the publisher; it passes false to avoid a second row.
     var showsPublisher = true
+    /// mp-r3-publish: MP templatedetail puts the image mosaic first and 创作者说 near the end (before 评价), so the
+    /// detail renders `.media` and `.story` at those two places. `.all` keeps everything together.
+    enum Part { case all, media, story }
+    var part: Part = .all
 
     var body: some View {
+        if part != .story { mediaSections }
+        if part != .media { storySection }
+    }
+
+    @ViewBuilder private var mediaSections: some View {
         if showsPublisher, let publisher = presentation.publisher {
             Section {
                 Text(verbatim: publisher)
@@ -39,6 +48,9 @@ import SwiftUI
             }
             .discoveryCardRow()
         }
+    }
+
+    @ViewBuilder private var storySection: some View {
         if presentation.hasStory {
             Section {
                 if let text = presentation.storyText {
