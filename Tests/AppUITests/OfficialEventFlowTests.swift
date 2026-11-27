@@ -48,7 +48,8 @@ final class OfficialEventFlowTests: XCTestCase {
     }
     func testSearchIsLocalAndMineDoesNotRetainInvisibleFilter() {
         launch()
-        let field = app.textFields["official.search"]
+        // R10-PC-C-N10: the system search bar (`.searchable`).
+        let field = app.searchFields.firstMatch
         XCTAssertTrue(field.waitForExistence(timeout: 10), app.debugDescription); field.tap(); field.typeText("No synthetic match\n")
         XCTAssertTrue(app.staticTexts["No matching events"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Try another keyword, or browse other categories"].exists)

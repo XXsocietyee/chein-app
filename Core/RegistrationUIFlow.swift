@@ -12,6 +12,10 @@ public enum RegistrationUIBlock: Equatable {
     case sessionChanged, quotingDisabled, creationDisabled, invalidForm, missingConsent
     case signupClosed, soldOut, quoteUnavailable, confirmationChanged, intentAlreadySubmitted, waitlistUnavailable
     case paymentRequired
+    /// R7-PC-C2-1: MP baoming.js:1714-1719 — a family ticket without a picked 儿童年龄 does not submit (请选择儿童年龄).
+    case childAgeRequired
+    /// R11-PC-C-5: MP quote-view.js:79-84 / baoming.js:1425 — the quote lists channels without the app's; pay stays closed (支付通道未就绪).
+    case paymentChannelUnavailable
 }
 
 /// Immutable review snapshot. This is local UI confirmation, not legal consent evidence.
@@ -162,7 +166,10 @@ public final class RegistrationUIFlow {
                 return .quoteUnavailable
             }
         }
+        if case .received(let quote) = quoteState, quote.paymentChannelUnavailable { return .paymentChannelUnavailable }
         if draft.validation != nil { return .invalidForm }
+        // MP baoming.js:1716 (`familyTicket.isFamily(selectedTicket) && childAge == null`).
+        if selectedTicket?.childAgeRange != nil && childAge == nil { return .childAgeRequired }
         if !consented { return .missingConsent }
         if isQuoting || !coordinator.canConfirm { return .quoteUnavailable }
         return nil

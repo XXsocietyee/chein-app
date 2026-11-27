@@ -58,13 +58,16 @@ struct G6PromotionCatalogLoader: ViewModifier {
 /// or the read failed. Amounts are server text; no price is computed here.
 struct G6PromotionCatalogSection: View {
     let activityID: Int
+    /// R11-PC-C-2: quote `completeRewardCoupon` name → 完局奖励 row (MP baoming.wxml:119, 135-138).
+    var rewardCouponName: String? = nil
     @Environment(\.g6Capabilities) private var g6
 
     var body: some View {
         let catalog = G6SectionStore.shared.catalogs[activityID] ?? .empty
-        if catalog.show, g6.live() != nil {
+        let showsCatalog = catalog.show && g6.live() != nil
+        if showsCatalog || rewardCouponName != nil {
             Section("g6.promo.title") {
-                ForEach(catalog.offers) { offer in
+                ForEach(showsCatalog ? catalog.offers : []) { offer in
                     LabeledContent {
                         if offer.available {
                             if let save = offer.saveYuan { Text("g6.promo.save \(save)").foregroundStyle(CYColor.textPrimary) }
@@ -73,7 +76,7 @@ struct G6PromotionCatalogSection: View {
                         }
                     } label: { Text(verbatim: offer.name) }
                 }
-                ForEach(catalog.promotions) { promotion in
+                ForEach(showsCatalog ? catalog.promotions : []) { promotion in
                     LabeledContent {
                         if promotion.eligible {
                             if let remain = promotion.remain { G6RemainText(remain: remain).foregroundStyle(CYColor.textPrimary) }
@@ -82,10 +85,14 @@ struct G6PromotionCatalogSection: View {
                         }
                     } label: { Text(verbatim: promotion.name) }
                 }
-                ForEach(catalog.tiers) { tier in
+                ForEach(showsCatalog ? catalog.tiers : []) { tier in
                     LabeledContent {
                         Text("g6.promo.tier.price \(tier.unitPrice)").monospacedDigit()
                     } label: { G6TierRangeText(range: tier.range) }
+                }
+                if let rewardCouponName {
+                    LabeledContent("registration.marketing.rewardCoupon") { Text(verbatim: rewardCouponName) }
+                        .accessibilityIdentifier("g6.promo.rewardCoupon")
                 }
             }
             .accessibilityIdentifier("g6.promo.catalog")

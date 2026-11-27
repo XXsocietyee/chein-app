@@ -207,5 +207,7 @@ extension View {
             .environment(\.merchantOfferWithdrawalDestination, { source in
                 AnyView(MerchantOfferWithdrawalHostView(source: source, reader: flowReader, contentService: contentService, executor: executor))
             })
+            // R11-PC-B-3: free-explore 自己承接 (MP utils/fe-author-sale.js:117-128).
+            .environment(\.topicSelfSupplyService, { session.makePlayerContentRound4Service() })
     }
 }

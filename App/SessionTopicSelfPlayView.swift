@@ -10,7 +10,7 @@ import SwiftUI
                 orders: { AnyView(ProfileOrdersView(reader: session.profileReader, lifecycleCoordinator: session.orderLifecycleCoordinator)) },
                 tickets: { AnyView(SessionTicketWalletHost(isPushed: true, focusTopicID: topic.id).environmentObject(session)) },
                 play: { AnyView(SessionPlayRuntimeView(session: session, destination: .journey(.topic(topic.id)))) },
-                consentService: { session.makeMarketingConsentService() })
+                consentService: { session.makePlayerContentRound4Service() })
                 .id(session.sessionRevision)
                 .onAppear {
                     flow.ticketAttribution = ticketSource?.topicID == topic.id ? ticketSource : nil

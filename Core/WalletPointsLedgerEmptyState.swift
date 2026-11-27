@@ -5,8 +5,16 @@ import Foundation
 /// names the missing direction instead of repeating the generic line.
 public enum WalletPointsLedgerEmptyState {
     /// `direction` is the segmented selection: "all", "income" or "expense".
-    public static func key(direction: String, isIncomeLedger: Bool, isPointsLedger: Bool) -> String {
-        if isIncomeLedger { return "wallet.income.empty" }
+    /// R11-PC-D-2: an income ledger names its filter (MP subpackageA/components/scene-asset-income-detail/index.js:62-68:
+    /// `all` → 还没有收益记录, otherwise `<tab label>还没有收益`).
+    public static func key(direction: String, isIncomeLedger: Bool, isPointsLedger: Bool, incomeFilter: WalletIncomeFilter = .all) -> String {
+        if isIncomeLedger {
+            switch incomeFilter {
+            case .all: return "wallet.income.empty"
+            case .create: return "wallet.income.empty.create"
+            case .brand: return "wallet.income.empty.brand"
+            }
+        }
         guard isPointsLedger else { return "wallet.empty" }
         switch direction {
         case "income": return "wallet.points.empty.income"

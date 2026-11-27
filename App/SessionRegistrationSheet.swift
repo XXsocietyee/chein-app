@@ -23,7 +23,7 @@ import SwiftUI
                               availablePoints:{ session.account?.xp },
                               preselectedTicketID:preselectedTicketID)
             // R11-PC-C-3: the post-create 接收商家站内活动消息 opt-in (MP baoming.js:1300-1368).
-            .environment(\.marketingConsentService, { session.makeMarketingConsentService() })
+            .environment(\.marketingConsentService, { session.makePlayerContentRound4Service() })
     }
 
     /// The integrator button opens this sheet. An unapproved session still cannot pay.

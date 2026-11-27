@@ -80,9 +80,13 @@ class WaitlistCancellationReviewContractTests(unittest.TestCase):
         button = view.split('Button("registration.waitlist.cancel", role: .destructive)')[1].split('.accessibilityIdentifier')[0]
         self.assertIn('flow.prepareWaitlistCancellation()', button)
         self.assertNotIn('await flow.cancelWaitlist()', button)
-        self.assertIn('PlayAreaWaitlistQuitModal(onConfirm:', view)
-        surfaces = (ROOT / 'App/PlayAreaPopupSurfaces.swift').read_text()
-        self.assertIn('isDestructive: true,\n            confirmIdentifier: "registration.waitlist.confirmCancel"', surfaces)
+        # R10-PC-C-N8: the leave-waitlist review is a system `.confirmationDialog` with a destructive 退出候补
+        # (MP uses the native `wx.showModal`, pages/activity/baoming/baoming.js); dispatch still happens only there.
+        dialog = view.split('private var waitlistQuitButtons: some View {')[1].split('private var registrationPopups')[0]
+        self.assertIn('role: .destructive', dialog)
+        self.assertIn('await flow.cancelWaitlist()', dialog)
+        self.assertIn('.accessibilityIdentifier("registration.waitlist.confirmCancel")', dialog)
+        self.assertIn('.confirmationDialog(', view)
         flow = (ROOT / 'Core/RegistrationUIFlow.swift').read_text()
         cancel = flow.split('public func cancelWaitlist()')[1].split('private func mutateWaitlist')[0]
         for fence in ('review.identity == openedIdentity', 'review.status == waitlistStatus', 'latest == review.status', 'waitlistStamp == waitlistGeneration', '!Task.isCancelled', 'waitlistCancellation = nil'):

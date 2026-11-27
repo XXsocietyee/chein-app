@@ -149,6 +149,7 @@ struct ActivityTicketCard: View {
     private var copy: CoreLoopCopy { CoreLoopCopy(locale: locale) }
     var body: some View {
         VStack(alignment:.leading,spacing:6) {
+            VStack(alignment:.leading,spacing:6) {
             ViewThatFits(in: .horizontal) {
                 HStack(alignment: .firstTextBaseline) { name; Spacer(minLength: 8); price }
                 VStack(alignment: .leading, spacing: 4) { name; price }
@@ -182,14 +183,6 @@ struct ActivityTicketCard: View {
                 if let meeting = ActivityPresentation.nonempty(ticket.meetingPoint) {
                     Label { Text(verbatim: meeting) } icon: { Image(systemName: "mappin.and.ellipse") }
                 }
-                // R7-PC-C1-5: MP index.wxml:89-96 — the session's lineup from `cmsRegistrationList`.
-                if !ticket.registrants.isEmpty {
-                    Label {
-                        Text(verbatim: copy.t("已报名：", "Joined: ") + ticket.registrants.map(\.nickname).joined(separator: copy.t("、", ", ")))
-                            .fixedSize(horizontal: false, vertical: true)
-                    } icon: { Image(systemName: "person.2") }
-                        .accessibilityIdentifier("activity.ticket.registrants.\(ticket.id)")
-                }
                 if let description=ActivityPresentation.nonempty(ticket.description) {
                     Text(verbatim:description)
                         .fixedSize(horizontal:false,vertical:true)
@@ -197,8 +190,10 @@ struct ActivityTicketCard: View {
             }
             .font(.subheadline)
             .foregroundStyle(.secondary)
+            }
+            .accessibilityElement(children: .combine)
+            ActivityTicketRegistrantRows(ticket: ticket)
         }
-        .accessibilityElement(children: .combine)
     }
     private var name: some View {
         Text(verbatim:ticket.name).font(.headline).foregroundStyle(.primary).fixedSize(horizontal:false,vertical:true)

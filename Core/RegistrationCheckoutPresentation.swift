@@ -564,6 +564,9 @@ public enum CheckoutOrderRebuildRule: Equatable {
     public static var orderExpiredUserMessage: String { W8Text.t("订单已过期,请重新报名", "The order has expired. Please sign up again") }
     public static var quoteUpdatedUserMessage: String { W8Text.t("价格已更新，请重新确认", "The price was updated. Please confirm again") }
     public static let terminalIdempotencyPrefix = "该幂等键对应的报名已"
+    /// R11-PC-C-2: MP pages/activity/utils/quote-view.js:130-140 — a promotion-fingerprint 409 gets its own copy; both re-quote.
+    public static let marketingConflictMarker = "优惠已变化或与本单不一致"
+    public static var marketingConflictUserMessage: String { W8Text.t("优惠已变化或与本单不一致，请重新报价后再提交", "The offer changed or doesn't match this order. Get a new quote and submit again") }
 
     public enum Action: Equatable {
         /// Pay returned 410 or "订单已过期": clear cached registrationId & requestId and rebuild order once.
@@ -600,6 +603,9 @@ public enum CheckoutOrderRebuildRule: Equatable {
             return .rebuildTerminalIdempotencyConflict
         }
         if code == 409 {
+            if message?.contains(marketingConflictMarker) == true {
+                return .refreshQuoteAndReconfirm(userMessage: marketingConflictUserMessage)
+            }
             return .refreshQuoteAndReconfirm(userMessage: quoteUpdatedUserMessage)
         }
         let trimmed = message?.trimmingCharacters(in: .whitespacesAndNewlines)

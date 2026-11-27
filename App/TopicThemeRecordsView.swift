@@ -28,7 +28,7 @@ import SwiftUI
                 }
             }
             ForEach(rows) { row in
-                NavigationLink { TopicThemeCardView(sessionID: row.sessionID, reader: reader) } label: {
+                NavigationLink { TopicThemeCardView(sessionID: row.sessionID, reader: reader, topicID: topicID, topicName: topicName) } label: {
                     VStack(alignment: .leading, spacing: 3) {
                         switch row.title {
                         case .server(let text): Text(verbatim: text).font(.headline)
@@ -74,10 +74,23 @@ import SwiftUI
 @MainActor struct TopicThemeCardView: View {
     let sessionID: Int
     let reader: any TopicThemeRecordsReading
+    /// R11-PC-B-1: the topic, for 查看战报 (MP utils/theme-records.js:35-42 `openThemeRunReport`) and 再玩一局 (:127-161).
+    var topicID: Int = 0
+    var topicName: String = ""
     @State private var card: TopicThemeCard?
     @State private var failed = false
+    @State private var replayAllowed = false
+    @State private var replayBusy = false
+    @State private var replayFailed = false
+    @State private var showsReplayRun = false
+    @Environment(\.topicThemeRecordsSession) private var session
+    private var replayBinding: PlayThemeReplayProduction? {
+        guard let session else { return nil }
+        return PlayThemeReplayBridge.binding(session: session, scope: .topic(topicID), topicID: topicID)
+    }
     var body: some View {
         List {
+            if card != nil, topicID > 0 { runActions }
             if let card {
                 Section {
                     if let title = card.title { Text(verbatim: title).font(.title3.weight(.semibold)) } else { Text("topicXcx.records.cardTitle").font(.title3.weight(.semibold)) }
@@ -115,9 +128,47 @@ import SwiftUI
             } else { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("topicXcx.records.cardLoading")) }
         }
         .task(id: reader.scope) { await load() }
+        .task(id: sessionID) { await loadReplay() }
         .refreshable { await load() }
+        .navigationDestination(isPresented: $showsReplayRun) {
+            if let session { SessionPlayRuntimeView(session: session, destination: .journey(.topic(topicID))) }
+        }
         .accessibilityIdentifier("topic.records.card")
         .cyDomainScreen(.player)
+    }
+    /// R11-PC-B-1: 查看战报 opens the run report for this session; 再玩一局 only when theme state says `replayAllowed` and the
+    /// run is not a TEAM run (`PlayThemeReplayExchange.focus`), then the existing replay write and the topic play page.
+    @ViewBuilder private var runActions: some View {
+        Section {
+            if let session {
+                NavigationLink {
+                    MPReviewedPageScreen(page: "subpackageJourney/pages/report/index",
+                                         query: ["topicId": String(topicID), "runId": String(sessionID), "topicName": topicName])
+                        .environmentObject(session)
+                } label: { Label("topicXcx.records.viewReport", systemImage: "doc.text.magnifyingglass") }
+                    .accessibilityIdentifier("topic.records.viewReport")
+            }
+            if replayAllowed {
+                Button {
+                    Task { await replay() }
+                } label: { Label("topicXcx.records.replay", systemImage: "arrow.counterclockwise") }
+                    .disabled(replayBusy)
+                    .accessibilityIdentifier("topic.records.replay")
+                if replayFailed {
+                    Text("topicXcx.records.replayFailed").font(.footnote).foregroundStyle(.red)
+                }
+            }
+        }
+    }
+    private func loadReplay() async {
+        guard topicID > 0, let binding = replayBinding else { replayAllowed = false; return }
+        replayAllowed = await binding.focus(sessionID: sessionID)
+    }
+    private func replay() async {
+        guard !replayBusy, let binding = replayBinding else { return }
+        replayBusy = true; replayFailed = false
+        defer { replayBusy = false }
+        if await binding.replay() { showsReplayRun = true } else { replayFailed = true; replayAllowed = binding.allowed }
     }
     @ViewBuilder private func quantitySection(_ rows: [TopicThemeCard.Quantity], title: LocalizedStringKey) -> some View {
         if !rows.isEmpty {
@@ -133,5 +184,14 @@ import SwiftUI
         do { let value = try await reader.themeCard(sessionID: sessionID); if scope == reader.scope { card = value } }
         catch is CancellationError { }
         catch { if scope == reader.scope { failed = true } }
+    }
+}
+
+private struct TopicThemeRecordsSessionKey: EnvironmentKey { static let defaultValue: AppSession? = nil }
+extension EnvironmentValues {
+    /// R11-PC-B-1: the signed-in session for the record card's 查看战报 / 再玩一局. Nil hides both.
+    var topicThemeRecordsSession: AppSession? {
+        get { self[TopicThemeRecordsSessionKey.self] }
+        set { self[TopicThemeRecordsSessionKey.self] = newValue }
     }
 }

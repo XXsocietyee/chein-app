@@ -7,6 +7,11 @@ final class WalletEarningsOverviewUITests: XCTestCase {
         XCTAssertEqual(XCTWaiter().wait(for: [expectation], timeout: 5), .completed)
     }
 
+    /// R9-PC-D4-1: the earnings tabs are segments of the native income filter Picker (全部 / 创作 / 品牌 / 主办分润).
+    private func segment(_ app: XCUIApplication, _ label: String) -> XCUIElement {
+        app.segmentedControls["wallet.income.filter"].buttons[label]
+    }
+
     private func launch(_ extra: [String] = [], language: String = "en", locale: String = "en_US") -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--uitesting-reset-language", "--wallet-commerce-fixture", "--wallet-earnings-overview-fixture",
@@ -25,8 +30,8 @@ final class WalletEarningsOverviewUITests: XCTestCase {
         XCTAssertTrue(close.waitForExistence(timeout: 5))
         close.tap()
         XCTAssertTrue(row.waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["wallet.earnings.tab.income"].exists)
-        XCTAssertTrue(app.buttons["wallet.earnings.tab.organizer"].exists)
+        XCTAssertTrue(segment(app, "All").exists)
+        XCTAssertTrue(segment(app, "Organizer share").exists)
     }
 
     func testOrganizerTabReadsSummaryOnceAndReturnsFromSettlementDetail() {
@@ -35,7 +40,7 @@ final class WalletEarningsOverviewUITests: XCTestCase {
         let reads = app.staticTexts["wallet.earnings.finance.reads"]
         XCTAssertTrue(reads.waitForExistence(timeout: 5))
         XCTAssertEqual(reads.label, "0")
-        app.buttons["wallet.earnings.tab.organizer"].tap()
+        segment(app, "Organizer share").tap()
         let settlement = app.buttons["coopflow.settlement.finance.8"]
         XCTAssertTrue(settlement.waitForExistence(timeout: 5))
         XCTAssertTrue(app.descendants(matching: .any)["coopflow.summary.credited"].waitForExistence(timeout: 5))
@@ -49,20 +54,20 @@ final class WalletEarningsOverviewUITests: XCTestCase {
         XCTAssertTrue(settlement.waitForExistence(timeout: 5))
         // The shared reader may refresh when navigation returns. Verify content, not a fixed read count.
         XCTAssertTrue(app.descendants(matching: .any)["coopflow.summary.credited"].exists)
-        app.buttons["wallet.earnings.tab.income"].tap()
+        segment(app, "All").tap()
         XCTAssertTrue(app.buttons["wallet.income.detail.open.4"].waitForExistence(timeout: 5))
-        app.buttons["wallet.earnings.tab.organizer"].tap()
+        segment(app, "Organizer share").tap()
         XCTAssertTrue(settlement.exists)
     }
 
     func testClosedOrganizerTabShowsUnconfiguredAndDoesNotRead() {
         let app = launch(["--wallet-earnings-finance-denied"])
         app.buttons["wallet.fixture.income"].tap()
-        app.buttons["wallet.earnings.tab.organizer"].tap()
+        segment(app, "Organizer share").tap()
         XCTAssertTrue(app.staticTexts["wallet.earnings.finance.unconfigured"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["coopflow.settlement.finance.8"].exists)
         XCTAssertEqual(app.staticTexts["wallet.earnings.finance.reads"].label, "0")
-        app.buttons["wallet.earnings.tab.income"].tap()
+        segment(app, "All").tap()
         XCTAssertTrue(app.buttons["wallet.income.detail.open.4"].waitForExistence(timeout: 5))
     }
 
@@ -107,10 +112,11 @@ final class WalletEarningsOverviewUITests: XCTestCase {
         app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityExtraExtraExtraLarge"]
         app.terminate(); app.launch()
         app.buttons["wallet.fixture.income"].tap()
-        let organizer = app.buttons["wallet.earnings.tab.organizer"]
+        let organizer = segment(app, "主办分润")
         XCTAssertTrue(organizer.waitForExistence(timeout: 5))
         XCTAssertEqual(organizer.label, "主办分润")
-        XCTAssertGreaterThanOrEqual(organizer.frame.height, 44)
+        // R9-PC-D4-1: a system segment; its height is the system control height, not a custom 44pt slot.
+        XCTAssertTrue(organizer.isHittable)
         let unknown = app.staticTexts["wallet.earnings.stages.unknown"]
         XCTAssertEqual(unknown.label, "未知")
         app.terminate()

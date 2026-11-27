@@ -672,7 +672,6 @@
         "WalkingLowPowerPresentationTests",
         "WalkingSavedDestinationAppTests",
         "WalletCivilDateLocalizationTests",
-        "WalletEarningsSegmentHitAreaTests",
         "WalletHistoryCompositionTests",
         "Wave3HandoffStatusSectionViewTests",
         "WeChatAndAppleSignInNonceStateSectionViewTests",

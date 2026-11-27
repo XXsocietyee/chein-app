@@ -81,7 +81,8 @@ public struct TopicPurchaseRevealCardModel: Equatable, Sendable {
 public final class PlayerContentRound4Service {
     public static let paths: Set<String> = [
         "api/coop/contact",
-        "api/merchant/crm/marketing-consents"
+        "api/merchant/crm/marketing-consents",
+        "api/topic/chapter/self-supply"
     ]
 
     public let baseURL: URL
@@ -128,6 +129,26 @@ public final class PlayerContentRound4Service {
             "api/coop/contact",
             method: "POST",
             json: ["id": .integer(Int64(inviteID))]
+        ) else { return .unauthorized }
+        return await send(req)
+    }
+
+    /// `R11-PC-B-3`: free-explore author 自己承接 = `POST /api/topic/chapter/self-supply {topicId, chapterId, perk}`
+    /// (MP utils/fe-author-sale.js:59-77 `selfSupplyBody`, :117-128). The caller validates the perk first.
+    public func selfSupply(topicID: Int, chapterID: Int, perk: TopicSelfSupplyPerk) async -> PlayerGapReply {
+        guard let req = try? makeRequest(
+            "api/topic/chapter/self-supply",
+            method: "POST",
+            json: [
+                "topicId": .integer(Int64(topicID)),
+                "chapterId": .integer(Int64(chapterID)),
+                "perk": .object([
+                    "name": .string(perk.name),
+                    "redeemRule": .string(perk.redeemRule),
+                    "validEnd": .string(perk.validEnd),
+                    "capacity": .integer(Int64(perk.capacity))
+                ])
+            ]
         ) else { return .unauthorized }
         return await send(req)
     }
@@ -191,4 +212,31 @@ public struct MarketingConsentOffer: Equatable, Sendable {
     public static func newRequestID() -> String {
         "consent-opt-in-" + String(Int(Date().timeIntervalSince1970 * 1000), radix: 36) + "-" + String(Int.random(in: 0...0xFFFFFF), radix: 36)
     }
+}
+
+/// R11-PC-B-3: MP `selfSupplyBody` perk (utils/fe-author-sale.js:59-77).
+public struct TopicSelfSupplyPerk: Equatable, Sendable {
+    public enum Problem: Equatable, Sendable { case name, capacity, validEnd }
+    public let name: String
+    public let redeemRule: String
+    public let validEnd: String
+    public let capacity: Int
+
+    /// Trims and validates like MP: a name, a positive whole capacity, and `yyyy-MM-dd`.
+    public static func validate(name: String, redeemRule: String, capacity: String, validEnd: String) -> Result<TopicSelfSupplyPerk, TopicSelfSupplyPerkError> {
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else { return .failure(TopicSelfSupplyPerkError(problem: .name)) }
+        guard let count = Int(capacity.trimmingCharacters(in: .whitespacesAndNewlines)), count > 0 else {
+            return .failure(TopicSelfSupplyPerkError(problem: .capacity))
+        }
+        let end = validEnd.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard end.range(of: #"^\d{4}-\d{2}-\d{2}$"#, options: .regularExpression) != nil else {
+            return .failure(TopicSelfSupplyPerkError(problem: .validEnd))
+        }
+        return .success(TopicSelfSupplyPerk(name: trimmedName, redeemRule: redeemRule.trimmingCharacters(in: .whitespacesAndNewlines),
+                                            validEnd: end, capacity: count))
+    }
+}
+public struct TopicSelfSupplyPerkError: Error, Equatable, Sendable {
+    public let problem: TopicSelfSupplyPerk.Problem
 }

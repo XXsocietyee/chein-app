@@ -61,13 +61,38 @@ public struct RegistrationQuote: Decodable, Equatable {
     /// In `pages/activity/baoming/baoming.js`, `payAmount > 0 && refundableNow === false` triggers the
     /// mandatory 24-hour non-refundable confirmation ("本单不可退").
     public let refundableNow: Bool?
-    /// R7-PC-C2-1: MP baoming.js:1871-1876 shows the 通行证 row when the quote's `mkt.coveredByPass === true`.
+    /// R11-PC-C-1: MP pages/activity/utils/quote-view.js:108 reads the top-level `quote.coveredByPass === true`
+    /// (`mkt` is page data, baoming.js:1155). A nested `mkt.coveredByPass` is kept only as a fallback.
     public let coveredByPass: Bool
+    /// R7-PC-C2-1: quote `delivery` (包含内容), MP pages/activity/utils/quote-view.js:20-71. Nil when absent or malformed.
+    public let delivery: RegistrationQuoteDelivery?
+    /// R11-PC-C-2: §17.6 promotion fingerprint, sent back on create (MP baoming.js:1150-1156, 1447-1459).
+    public let marketingSign: String?
+    /// R11-PC-C-2: struck-through 原价, only meaningful with a discount (quote-view.js:90-110).
+    public let listAmount: Decimal?
+    public let marketingDiscountAmount: Decimal?
+    /// Non-empty labels with amount ≠ 0, shown as abs (quote-view.js:93-101).
+    public let marketingAdjustments: [RegistrationMarketingAdjustment]
+    /// 完局奖励 coupon name (quote-view.js:117-122). Nil hides the row.
+    public let completeRewardCouponName: String?
+    /// R11-PC-C-5: quote `paymentChannels` (MP pages/activity/utils/quote-view.js:79-84). Nil on an old backend.
+    public let paymentChannels: [String]?
+    /// MP `paymentChannelState == 'unavailable'`: listed channels, a positive amount, and no app channel (`APP`).
+    /// A missing list keeps the payment-readiness probe (baoming.js:1243-1253).
+    public var paymentChannelUnavailable: Bool {
+        guard let paymentChannels, let payAmount, payAmount > .zero else { return false }
+        return !paymentChannels.contains("APP")
+    }
+    /// MP `marketingView.show`: discount > 0 and at least one adjustment (quote-view.js:102).
+    public var showsMarketingAdjustments: Bool {
+        (marketingDiscountAmount ?? 0) > 0 && !marketingAdjustments.isEmpty
+    }
 
     private enum CodingKeys: String, CodingKey {
         case payAmount, pointsUsed, pointsDeductYuan, pointsUsable, pointsBalance, availablePoints, userPoints
         case memberDiscountYuan, couponDeductYuan, clubMember, quoteSign
-        case prioritySignupEnabled, refundDeadline, refundableNow, mkt
+        case prioritySignupEnabled, refundDeadline, refundableNow, mkt, delivery, coveredByPass
+        case marketingSign, listAmount, marketingDiscountAmount, marketingAdjustments, completeRewardCoupon, paymentChannels
     }
     private struct Marketing: Decodable {
         let coveredByPass: Bool
@@ -97,7 +122,20 @@ public struct RegistrationQuote: Decodable, Equatable {
             ? rawDeadline?.trimmingCharacters(in: .whitespacesAndNewlines)
             : nil
         refundableNow = (try? c.decodeIfPresent(Bool.self, forKey: .refundableNow)) ?? nil
-        coveredByPass = ((try? c.decodeIfPresent(Marketing.self, forKey: .mkt)) ?? nil)?.coveredByPass == true
+        let topLevelPass = ((try? c.decodeIfPresent(Bool.self, forKey: .coveredByPass)) ?? nil) == true
+        coveredByPass = topLevelPass || ((try? c.decodeIfPresent(Marketing.self, forKey: .mkt)) ?? nil)?.coveredByPass == true
+        delivery = (try? c.decodeIfPresent(RegistrationQuoteDelivery.self, forKey: .delivery)) ?? nil
+        marketingSign = RegistrationLenient.string(c, .marketingSign)
+        listAmount = RegistrationLenient.decimal(c, .listAmount)
+        marketingDiscountAmount = RegistrationLenient.decimal(c, .marketingDiscountAmount)
+        let wires = ((try? c.decodeIfPresent([RegistrationMarketingAdjustmentWire].self, forKey: .marketingAdjustments)) ?? nil) ?? []
+        marketingAdjustments = wires.enumerated().compactMap { index, wire in
+            guard let amount = wire.amount, amount != 0, let label = wire.label, !label.isEmpty else { return nil }
+            return RegistrationMarketingAdjustment(id: (wire.kind ?? "ADJ") + "-" + (wire.code ?? String(index)), label: label,
+                                                   amount: amount < 0 ? -amount : amount)
+        }
+        paymentChannels = (try? c.decodeIfPresent([String].self, forKey: .paymentChannels)) ?? nil
+        completeRewardCouponName = ((try? c.decodeIfPresent(RegistrationRewardCouponWire.self, forKey: .completeRewardCoupon)) ?? nil)?.name
         guard pointsUsed >= 0 else { throw APIError.malformedResponse }
     }
 
@@ -142,6 +180,8 @@ public struct RegistrationCreateIntent: Encodable, Equatable {
     public let usesAppPaymentChannel: Bool
     public let requestID: String
     public let quoteSign: String
+    /// R11-PC-C-2: quote `marketingSign`, echoed as-is; null when the quote has none (MP baoming.js:1458-1459).
+    public let marketingSign: String?
     public let waitlistOffer: RegistrationWaitlistOffer?
     public var ownerType: Int { 2 }
 
@@ -166,13 +206,14 @@ public struct RegistrationCreateIntent: Encodable, Equatable {
         self.usesAppPaymentChannel = usesAppPaymentChannel
         self.requestID = requestID
         self.quoteSign = quote.quoteSign
+        self.marketingSign = quote.marketingSign
         guard selection.waitlistOffer == nil || selection.waitlistOffer == waitlistOffer else { throw APIError.invalidRequest }
         self.waitlistOffer = waitlistOffer
     }
 
     private enum CodingKeys: String, CodingKey {
         case ownerType, ownerId, ticketId, realName, phone, email, participateDate
-        case isUsePoint, quoteSign, payChannel, requestId, waitlistOfferId, waitlistOfferToken, childAge
+        case isUsePoint, quoteSign, payChannel, requestId, waitlistOfferId, waitlistOfferToken, childAge, marketingSign
     }
     public func encode(to encoder: Encoder) throws {
         var c = encoder.container(keyedBy: CodingKeys.self)
@@ -186,6 +227,8 @@ public struct RegistrationCreateIntent: Encodable, Equatable {
         try c.encode(selection.usePoints ? 1 : 0, forKey: .isUsePoint)
         try c.encodeIfPresent(selection.childAge, forKey: .childAge)
         try c.encode(quoteSign, forKey: .quoteSign)
+        // MP baoming.js:1459 `marketingSign: marketingSign || null` — always present, null without a promotion.
+        if let marketingSign { try c.encode(marketingSign, forKey: .marketingSign) } else { try c.encodeNil(forKey: .marketingSign) }
         if usesAppPaymentChannel { try c.encode("APP", forKey: .payChannel) }
         try c.encode(requestID, forKey: .requestId)
         if let waitlistOffer {

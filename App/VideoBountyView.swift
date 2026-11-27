@@ -71,8 +71,6 @@ struct VideoBountyState: Equatable {
     var submitError: String? = nil
     /// Bumps after a successful submit so the view can clear the form and switch tabs.
     var submitRevision = 0
-    /// Nil until the reader asks. Counts inside a ready value are already em dashes when unconfirmed.
-    var attribution: MPLoad<VideoBountyAttributionFact>? = nil
     /// PC-D-7-1: no session token. The page shows one sign-in gate (MP cy-access-gate kind=login), not two 读取失败.
     var signedOut = false
 
@@ -80,19 +78,18 @@ struct VideoBountyState: Equatable {
         lhs.submissions == rhs.submissions && lhs.accruals == rhs.accruals && lhs.submitting == rhs.submitting
             && lhs.fieldError?.field == rhs.fieldError?.field && lhs.fieldError?.text == rhs.fieldError?.text
             && lhs.submitError == rhs.submitError && lhs.submitRevision == rhs.submitRevision
-            && lhs.attribution == rhs.attribution && lhs.signedOut == rhs.signedOut
+            && lhs.signedOut == rhs.signedOut
     }
 }
 
 /// Implemented by `VideoBountySessionModel`: `/api/video-bounty/submission/mine`, `/accrual/mine`, submit, appeal, cancel.
+/// R9-PC-D7-2: MP subpackageA/pages/video-bounty/index.wxml has no attribution block, so the binding has no attribution reads.
 @MainActor protocol VideoBountyBinding: AnyObject, Observable {
     var state: VideoBountyState { get }
     func load()
     func submit(campaignKey: String, topicID: String, platform: VideoBountyPlatform?, sourceURL: String, originGroupKey: String)
     func appeal(submissionID: String, note: String)
     func cancel(submissionID: String)
-    func loadSubmissionAttribution(id: String)
-    func loadCampaignAttribution(campaignID: String, topicID: String)
 }
 
 @MainActor struct VideoBountyHost: View {
@@ -165,6 +162,8 @@ struct VideoBountyView: View {
                     case .submissions: submissions
                     case .accruals: accruals
                     }
+                } footer: {
+                    if showsAccrualNote { accrualNote }
                 }
                 // R7-PC-D7-1 MP-first: subpackageA/pages/video-bounty/index.wxml has no campaign-ID attribution block.
             }
@@ -238,7 +237,8 @@ struct VideoBountyView: View {
             if rows.isEmpty {
                 CYEmptyState(systemImage: "tray", "mp.vb.empty.submissions", messageIdentifier: "videoBounty.submissions.empty")
             } else {
-                MPRows(items: rows) { row in submissionRow(row) }
+                // R10-PC-D-N15: one List row per submission (MP subpackageA/pages/video-bounty/index.wxml list).
+                ForEach(rows) { row in submissionRow(row) }
             }
         }
     }
@@ -276,25 +276,36 @@ struct VideoBountyView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, CYSpacing.lg)
-        .padding(.vertical, CYSpacing.md)
         .accessibilityElement(children: .contain)
     }
 
     // MARK: Accruals (record only)
+
+    private var showsAccrualNote: Bool {
+        guard tab == .accruals, case .ready(let rows) = state.accruals else { return false }
+        return !rows.isEmpty
+    }
+
+    private var accrualNote: some View {
+        Label("mp.vb.accrual.note", systemImage: "lock")
+            .accessibilityIdentifier("videoBounty.payoutOff")
+    }
 
     @ViewBuilder private var accruals: some View {
         MPLoadSwitch(load: state.accruals, errorTitle: "mp.common.readFailed", identifier: "videoBounty.accruals", onRetry: onLoad) { rows in
             if rows.isEmpty {
                 CYEmptyState(systemImage: "tray", "mp.vb.empty.accruals", messageIdentifier: "videoBounty.accruals.empty")
             } else {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    MPRows(items: rows) { row in
-                        MPRow(title: Text(verbatim: MPText.orDash(row.amountText)),
-                              sub: Text("mp.vb.views \(MPText.orDash(row.views)) \(MPText.orDash(row.groupViews))"),
-                              value: Text("mp.vb.accrual.recorded"))
+                // R10-PC-D-N15: one LabeledContent row per accrual; the payout note is the Section footer (accrualNote).
+                ForEach(rows) { row in
+                    LabeledContent {
+                        VStack(alignment: .trailing, spacing: CYSpacing.xs) {
+                            Text("mp.vb.views \(MPText.orDash(row.views)) \(MPText.orDash(row.groupViews))")
+                            Text("mp.vb.accrual.recorded")
+                        }
+                    } label: {
+                        Text(verbatim: MPText.orDash(row.amountText))
                     }
-                    MPGatedNote(text: Text("mp.vb.accrual.note"), identifier: "videoBounty.payoutOff")
                 }
             }
         }

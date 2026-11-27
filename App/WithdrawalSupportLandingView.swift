@@ -25,6 +25,8 @@ struct WithdrawalOrderLookupRequest {
     @State private var loadedScope: WalletCommerceScope?
     @State private var orderEntry: SupportLookupEntry?
     @State private var lookedUpOrderID: Int64?
+    /// R11-PC-D-1: owner decision; MP removed the bank withdrawal form.
+    static let offersBankForm = false
     var body: some View {
         List {
             Section { CYHeroHeader("withdrawal.support.title").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
@@ -68,8 +70,12 @@ struct WithdrawalOrderLookupRequest {
                 }
             }
             Section {
+                // R11-PC-D-1: MP has no bank form (PG-033, subpackageA/pages/assetcenter/earnings/index.js:61-62); hidden
+                // unless the owner opts into it as an app-only extra.
+                if Self.offersBankForm {
                 NavigationLink("bank.withdrawal.title") { if let bankDestination { bankDestination() } else { BankWithdrawalView(reader: reader) } }
                     .accessibilityIdentifier("bank.withdrawal.entry")
+                }
                 CYPillButton("withdrawal.support.contact", style: .secondary) { showContact = true }.accessibilityIdentifier("withdrawal.support.contact")
                 NavigationLink("wallet.withdrawals") { WithdrawalHistoryView(reader: reader) }
                     .accessibilityIdentifier("withdrawal.apply.history")

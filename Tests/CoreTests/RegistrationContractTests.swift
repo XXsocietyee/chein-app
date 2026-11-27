@@ -283,4 +283,45 @@ final class RegistrationContractTests: XCTestCase {
         XCTAssertNil(try decode(ActivityTicket.self, #"{"id":3,"name":"亲子票","childCount":1,"childAgeMin":4}"#).childAgeRange)
         XCTAssertNil(try decode(ActivityTicket.self, #"{"id":3,"name":"亲子票","childCount":"x"}"#).childAgeRange)
     }
+
+    /// R7-PC-C2-1: quote `delivery` rows, MP pages/activity/utils/quote-view.js:29-51.
+    func testQuoteDeliveryRowsPortDeliveryRows() throws {
+        let quote = try decode(RegistrationQuote.self, #"{"payAmount":10,"quoteSign":"s","delivery":{"purchaseKind":"3","ticketName":"单人票","minPeople":2,"maxPeople":4,"needAudit":1,"serviceStartAt":1767225600,"beneficiaryKind":"PAYER_SELF","refundRule":"开场前 24 小时可退"}}"#)
+        let rows = try XCTUnwrap(quote.delivery).rows(locale: Locale(identifier: "zh-Hans"))
+        XCTAssertEqual(rows.map(\.id), ["kind", "people", "audit", "window", "beneficiary", "refundRule"])
+        XCTAssertEqual(rows[0].value, "自由探索票")
+        XCTAssertEqual(rows[1].value, "2–4 人")
+        XCTAssertEqual(rows[3].value, "2026.01.01 08:00 起")
+        let mixed = try decode(RegistrationQuote.self, #"{"payAmount":10,"quoteSign":"s","delivery":{"purchaseKind":9,"refundRule":"x"}}"#)
+        XCTAssertEqual(try XCTUnwrap(mixed.delivery).rows(locale: Locale(identifier: "zh-Hans")).map(\.id), ["perTicket"])
+    }
+
+    /// R11-PC-C-2: §17.6 marketing view (MP pages/activity/utils/quote-view.js:90-122) and the 409 copy split (:130-140).
+    func testQuoteMarketingAdjustmentsAndConflictCopy() throws {
+        let quote = try decode(RegistrationQuote.self, #"{"payAmount":80,"quoteSign":"s","marketingSign":"m1","listAmount":"100","marketingDiscountAmount":20,"marketingAdjustments":[{"kind":"PROMO","code":"A","label":"早鸟","amount":-20},{"label":"","amount":5},{"label":"零","amount":0}],"completeRewardCoupon":{"title":"下次 9 折"}}"#)
+        XCTAssertTrue(quote.showsMarketingAdjustments)
+        XCTAssertEqual(quote.marketingAdjustments.map(\.label), ["早鸟"])
+        XCTAssertEqual(quote.marketingAdjustments.first?.amount, 20)
+        XCTAssertEqual(quote.listAmount, 100)
+        XCTAssertEqual(quote.marketingSign, "m1")
+        XCTAssertEqual(quote.completeRewardCouponName, "下次 9 折")
+        let marketing = CheckoutOrderRebuildRule.classifyCreateFailure(code: 409, message: "优惠已变化或与本单不一致")
+        XCTAssertEqual(marketing, .refreshQuoteAndReconfirm(userMessage: CheckoutOrderRebuildRule.marketingConflictUserMessage))
+        let price = CheckoutOrderRebuildRule.classifyCreateFailure(code: 409, message: "价格变了")
+        XCTAssertEqual(price, .refreshQuoteAndReconfirm(userMessage: CheckoutOrderRebuildRule.quoteUpdatedUserMessage))
+    }
+
+    /// R11-PC-C-1: top-level `coveredByPass` (MP pages/activity/utils/quote-view.js:108); only JSON `true` counts.
+    func testQuoteCoveredByPassIsTopLevel() throws {
+        XCTAssertTrue(try decode(RegistrationQuote.self, #"{"payAmount":0,"quoteSign":"s","coveredByPass":true}"#).coveredByPass)
+        XCTAssertFalse(try decode(RegistrationQuote.self, #"{"payAmount":0,"quoteSign":"s","coveredByPass":"true"}"#).coveredByPass)
+    }
+
+    /// R11-PC-C-5: MP pages/activity/utils/quote-view.js:79-84 paymentChannelState.
+    func testQuotePaymentChannels() throws {
+        XCTAssertTrue(try decode(RegistrationQuote.self, #"{"payAmount":5,"quoteSign":"s","paymentChannels":["JSAPI"]}"#).paymentChannelUnavailable)
+        XCTAssertFalse(try decode(RegistrationQuote.self, #"{"payAmount":5,"quoteSign":"s","paymentChannels":["APP"]}"#).paymentChannelUnavailable)
+        XCTAssertFalse(try decode(RegistrationQuote.self, #"{"payAmount":5,"quoteSign":"s"}"#).paymentChannelUnavailable)
+        XCTAssertFalse(try decode(RegistrationQuote.self, #"{"payAmount":0,"quoteSign":"s","paymentChannels":[]}"#).paymentChannelUnavailable)
+    }
 }

@@ -658,7 +658,6 @@
         "WalkingSavedDestinationAppTests",
         "WalletCivilDateLocalizationTests",
         "WalletEarningsOverviewTests",
-        "WalletEarningsSegmentHitAreaTests",
         "WalletHistoryCompositionTests",
         "WalletIncomeAnalysisClosureTests",
         "WalletNumberLocalizationTests",

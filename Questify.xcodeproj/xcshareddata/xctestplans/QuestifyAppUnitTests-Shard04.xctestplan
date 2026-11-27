@@ -666,7 +666,6 @@
         "WalkingNavigationAppTests",
         "WalkingSavedDestinationAppTests",
         "WalletEarningsOverviewTests",
-        "WalletEarningsSegmentHitAreaTests",
         "WalletHistoryCompositionTests",
         "WalletIncomeAnalysisClosureTests",
         "WalletNumberLocalizationTests",

@@ -34,7 +34,7 @@
     {"key": "wallet.earnings.stages.unknown", "table": "WalletEarningsOverview", "en": "—", "zh-Hans": "—", "accessibilityIdentifier": "wallet.earnings.stages.unknown"},
     {"key": "wallet.available", "table": "Localizable", "en": "Available to withdraw", "zh-Hans": "可提现", "accessibilityIdentifier": "wallet.earnings.stages.available"},
     {"key": "wallet.complaintPeriod", "table": "Localizable", "en": "Complaint period · available on", "zh-Hans": "客诉期中 · 可提现日期", "accessibilityIdentifier": "wallet.earnings.stages.complaint"},
-    {"key": "wallet.earnings.tab.income", "table": "WalletEarningsOverview", "en": "Income", "zh-Hans": "收入", "accessibilityIdentifier": "wallet.earnings.tab.income"},
+    {"key": "wallet.earnings.tab.income", "table": "WalletEarningsOverview", "en": "Income", "zh-Hans": "收入", "accessibilityIdentifier": "wallet.income.filter"},
     {"key": "wallet.earnings.tab.organizer", "table": "WalletEarningsOverview", "en": "Organizer share", "zh-Hans": "主办分润", "accessibilityIdentifier": "wallet.earnings.tab.organizer"},
     {"key": "wallet.earnings.finance.separate", "table": "WalletEarningsOverview", "en": "Organizer share is settled separately, in CNY", "zh-Hans": "主办分润单独结算，以人民币计", "accessibilityIdentifier": "wallet.earnings.finance.separate"},
     {"key": "wallet.earnings.finance.unconfigured", "table": "WalletEarningsOverview", "en": "—", "zh-Hans": "—", "accessibilityIdentifier": "wallet.earnings.finance.unconfigured"},

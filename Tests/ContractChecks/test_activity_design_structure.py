@@ -56,7 +56,9 @@ class ActivityDesignStructureTests(unittest.TestCase):
         self.assertIn("} else if primaryAction == .unavailable {\n                CYPillButton(LocalizedStringKey(primaryAction.titleKey)) {}\n                    .disabled(true)", source)
         # A registered or cancelled activity never reopens the registration sheet.
         self.assertIn("if action != .cancelled, walletAvailable { showsTicketWallet = true }", source)
-        self.assertIn("if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail) }", source)
+        # r11 R7-PC-B1-13: the allowed gate is unchanged; the sheet also gets the topic-page ticket resolved by name
+        # (MP pages/topic/index/index.js:1312-1351).
+        self.assertIn("if let access,case .allowed(let detail)=access {\n                SessionRegistrationSheet(activity:detail)", source)
         sheet = app("SessionRegistrationSheet.swift")
         self.assertIn("creationPolicy:Self.freeWhenUnapproved(session.registrationCreationPolicy(activityID:activity.summary.id))", sheet)
         self.assertIn("if case .disabled = issued { return .free }", sheet)

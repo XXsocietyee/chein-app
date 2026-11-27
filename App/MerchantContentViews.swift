@@ -104,19 +104,19 @@ struct MerchantContentBoundary: View {
     }
     private var c: MerchantContentCoordinator { model.coordinator }
     var body: some View {
-        ScrollView {
-            LazyVStack(alignment: .leading, spacing: 18) {
-                if !model.projectPresentationIsCurrent { Text("merchant.projectWorkspace.changed") }
-                else {
-                MerchantContentStatus(model: model, allowsRecovery: !readOnlyProject)
-                if c.isCurrent, let snapshot = c.snapshot {
-                    if query == .recruiting, let focusedMerchantID, snapshot.access.merchantID != focusedMerchantID {
-                        Text("merchantMarketing.stale").accessibilityIdentifier("merchant.insightNavigation.storeChanged")
-                    } else { content(snapshot) }
-                } else if c.busy { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("merchant.loading")) }
-                }
-            }.padding()
+        // R10-PC-B-N9: a system inset-grouped List (was ScrollView + LazyVStack). Each block is its own row or Section.
+        List {
+            if !model.projectPresentationIsCurrent { Text("merchant.projectWorkspace.changed") }
+            else {
+            Section { MerchantContentStatus(model: model, allowsRecovery: !readOnlyProject) }
+            if c.isCurrent, let snapshot = c.snapshot {
+                if query == .recruiting, let focusedMerchantID, snapshot.access.merchantID != focusedMerchantID {
+                    Text("merchantMarketing.stale").accessibilityIdentifier("merchant.insightNavigation.storeChanged")
+                } else { content(snapshot) }
+            } else if c.busy { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("merchant.loading")) }
+            }
         }
+        .listStyle(.insetGrouped)
         .appNavigationTitle(key: "merchant.content." + query.key).navigationBarTitleDisplayMode(.inline)
         .task(id: service.scope) { await model.load() }
         .refreshable { await model.load() }
@@ -136,7 +136,7 @@ struct MerchantContentBoundary: View {
             let focus = MerchantInsightRecruitingFocus(rows: s.rows, topicID: focusedTopicID)
             if focus.unavailable { Text("merchant.insightNavigation.notLoaded").font(.footnote).accessibilityIdentifier("merchant.insightNavigation.notLoaded") }
             MerchantContentRows(service: service, model: model, rows: focus.rows, kind: .query(query), focusedTopicID: focus.matchedID)
-        case .chapters(let topic): MerchantContentRecruitView(service: service, snapshot: s, topicID: topic)
+        case .chapters(let topic): MerchantContentRecruitView(service: service, snapshot: s, topicID: topic).buttonStyle(.borderless)
         case .project(let topic): MerchantContentProjectView(service: service, model: model, value: s.value, topicID: topic, readOnly: readOnlyProject, participantsDestination: participantsDestination(s))
         case .city:
             let quota = MerchantCityQuota(catalog: s.value)
@@ -175,7 +175,7 @@ struct MerchantContentBoundary: View {
             NavigationLink("merchant.content.voice") { MerchantContentDocumentView(service: service, query: .voice(nodeID: node)) }
             NavigationLink("merchant.content.enrollVoice") { MerchantContentEditView(service: service, query: .npc(nodeID: node), kind: .voice(node)) }
         case .voice: MerchantContentFields(value: s.value, names: ["voiceStatus", "voiceSample"])
-        case .game: MerchantContentStationView(service: service, snapshot: s)
+        case .game: MerchantContentStationView(service: service, snapshot: s).buttonStyle(.borderless)
         case .poster: MerchantContentCodeView(snapshot: s)
         case .liveCode: MerchantStationLiveCodeView(owner: model, snapshot: s).id(s.observedAt)
         case .cityPlacement, .nodeAuthoring: EmptyView()
@@ -307,6 +307,8 @@ enum MerchantContentEnumCopy {
                 .accessibilityIdentifier("merchant.content.row." + rowNamespace + "." + String(index))
             }
         }.id(rowNamespace)
+        // R10-PC-B-N9: inside the List this stack is one row; borderless keeps each row action its own tap target.
+        .buttonStyle(.borderless)
     }
     private var fields: [String] {
         switch kind {
@@ -459,13 +461,19 @@ enum MerchantContentEnumCopy {
     var readOnly = false
     @Environment(\.merchantGameNodeDestination) private var gameNodeDestination
     var participantsDestination: (() -> AnyView)? = nil
+    /// R11-PC-B-3: free-explore 自己承接 sheet (MP merchantinfo.js:3232-3274).
+    @Environment(\.topicSelfSupplyService) private var selfSupplyService
+    @Environment(\.locale) private var locale
+    @State private var selfSupplyNode: TopicSelfSupplyNode?
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-        MerchantContentFields(value: value["topic"], names: ["name", "title", "city"])
+        // R10-PC-B-N9 / N10: system Sections and rows (no custom row-link style); each NavigationLink gets the list disclosure.
+        Group {
+        Section { MerchantContentFields(value: value["topic"], names: ["name", "title", "city"]) }
         // Host and participant are independent source projections; both can be present.
         if value["host"].object != nil {
-            Text("merchant.content.hosting").font(.headline)
-            MerchantContentFields(value: value["host"]["recruit"], names: ["nodeFilled", "nodeTotal", "pendingCount"])
+            Section {
+            recruitRows(value["host"]["recruit"])
+            if !readOnly, let topicID { openNodeRows(value["host"]["recruit"], topicID: topicID) }
             if readOnly, !(value["topic"]["circleThemeCode"].text ?? "").isEmpty {
                 MerchantContentFields(value: value["topic"], names: ["circleReviewedAt"])
             }
@@ -485,9 +493,10 @@ enum MerchantContentEnumCopy {
                 }
             }
             }
+            } header: { Text("merchant.content.hosting") }
         }
         if value["join"].object != nil {
-            Text("merchant.content.joining").font(.headline)
+            Section {
             MerchantContentFields(value: value["join"]["registration"], names: ["addressName", "status", "auditStatus"], registrationStatus: true)
             if !readOnly { NavigationLink("merchant.content.registrations") { MerchantContentDocumentView(service: service, query: .registrations(filter: 0)) } }
             // R7-PC-B2-2, MP merchantinfo.js:3092-3104: 联系主办 = `coop/contact {id: hostInviteId}` → the returned chat. It goes
@@ -505,28 +514,55 @@ enum MerchantContentEnumCopy {
                 NavigationLink { gameNodeDestination(service, .entries(topicID: topicID, focusPause: true)) } label: { MerchantGameNodeCopy.text("merchantGameNode.run.pause") }
                     .accessibilityIdentifier("merchant.content.gameNode.pause")
             }
+            } header: { Text("merchant.content.joining") }
         }
         if value["host"].object == nil && value["join"].object == nil {
             ContentUnavailableView("merchant.content.noWorkspace", systemImage: "tray")
         }
         }
-        // Mini-program merchantinfo rows: each entry reads as a tappable row with a chevron, not bare link text.
-        .buttonStyle(MerchantContentRowLinkStyle())
-    }
-}
-/// A grouped row for navigation entries inside the merchant content pages.
-struct MerchantContentRowLinkStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        HStack(spacing: CYSpacing.xs) {
-            configuration.label.foregroundStyle(CYColor.textPrimary)
-            Spacer(minLength: CYSpacing.xs)
-            Image(systemName: "chevron.right").cyText(.meta, weight: .semibold).foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
+        .sheet(item: $selfSupplyNode) { node in
+            if let topicID, let chapterID = node.chapterID, let selfSupplyService {
+                TopicSelfSupplySheet(topicID: topicID, node: node, chapterID: chapterID, makeService: selfSupplyService,
+                                     onDone: { Task { await model.load() } })
+            }
         }
-        .padding(.horizontal, CYSpacing.md)
-        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-        .background(CYColor.bgSurface, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
-        .opacity(configuration.isPressed ? 0.7 : 1)
-        .contentShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+    }
+    /// R11-PC-B-3 (MP project-host/index.wxml:383; merchantinfo.js:3232-3249): 自己承接 per unclaimed node. A free-explore
+    /// host with a chapter opens the perk sheet; otherwise it opens the registration form for that node (MP merchantapply).
+    @ViewBuilder private func openNodeRows(_ recruit: MerchantContentValue, topicID: Int) -> some View {
+        let freeExplore = value["topic"]["productType"].integer == 2
+        ForEach(TopicSelfSupplyNode.openNodes(recruit)) { node in
+            let label = node.nodeName.isEmpty ? appLocalized("topicSelfSupply.unnamedNode", locale: locale) : node.nodeName
+            if freeExplore, node.chapterID != nil, selfSupplyService != nil {
+                Button { selfSupplyNode = node } label: { Text(verbatim: appLocalized("topicSelfSupply.openNode \(label)", locale: locale)) }
+                    .accessibilityIdentifier("merchant.content.selfTake." + String(node.nodeID))
+            } else if !freeExplore {
+                NavigationLink {
+                    MerchantContentEditView(service: service, query: .chapters(topicID: topicID), kind: .registrationCreate(topicID: topicID, nodeID: node.nodeID))
+                } label: { Text(verbatim: appLocalized("topicSelfSupply.openNode \(label)", locale: locale)) }
+                    .accessibilityIdentifier("merchant.content.selfTake." + String(node.nodeID))
+            }
+        }
+    }
+    /// R7-PC-B2-5 (MP pages/topic/components/project-host/index.wxml:18, 64; merchantinfo.js:2516-2545): 已招满 filled/total
+    /// with a system progress bar, and 待审 only when something waits.
+    @ViewBuilder private func recruitRows(_ recruit: MerchantContentValue) -> some View {
+        let filled = recruit["nodeFilled"].integer ?? 0
+        if let total = recruit["nodeTotal"].integer, total > 0 {
+            LabeledContent("merchant.content.recruitFilled") {
+                Text(verbatim: String(filled) + "/" + String(total)).monospacedDigit()
+            }
+            .accessibilityIdentifier("merchant.content.readField.nodeFilled")
+            ProgressView(value: Double(min(max(filled, 0), total)), total: Double(total))
+                .accessibilityLabel(Text("merchant.content.recruitFilled"))
+        } else if recruit["nodeFilled"].integer != nil {
+            LabeledContent("merchant.content.recruitFilled") { Text(verbatim: String(filled)).monospacedDigit() }
+                .accessibilityIdentifier("merchant.content.readField.nodeFilled")
+        }
+        if let pending = recruit["pendingCount"].integer, pending > 0 {
+            LabeledContent("merchant.content.recruitPending") { Text(verbatim: String(pending)).monospacedDigit() }
+                .accessibilityIdentifier("merchant.content.readField.pendingCount")
+        }
     }
 }
 @MainActor struct MerchantContentStationView: View {
