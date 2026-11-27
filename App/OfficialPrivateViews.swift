@@ -15,7 +15,8 @@ import SwiftUI
     }
     var body: some View {
         OfficialReadScreen(reader: reader, isPrivate: true, requestID: "inbox", onLogin: onLogin,
-                           issueCopy: OfficialInboxView.issueCopy, load: { try await reader.partyInbox() }) { rows in
+                           issueCopy: OfficialInboxView.issueCopy, refreshingLabel: "mpr3.official.inbox.refreshing",
+                           load: { try await reader.partyInbox() }) { rows in
             // pages/activity/official-inbox/index: a path this repo does not mark live stays hidden.
             if let page = OfficialInboxPageModel.state(loading: false, failed: false, rows: rows) {
             List {
