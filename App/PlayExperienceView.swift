@@ -112,7 +112,9 @@ struct PlayThemeMusicKey: Equatable {
     /// Split from body so the type checker handles the modifier chain in parts.
     private var navigationLayer: some View {
         Group {
-            if model.gameplayMode == .freeExploration || (model.snapshot == nil && presentedMode == .freeExploration) {
+            if model.gameplayMode != .freeExploration, let blocked = PlayEmptyKind.blocking(model.snapshot?.availability) {
+                PlayEmptyStateCard(kind: blocked, topicID: model.snapshot?.result.topicID)
+            } else if model.gameplayMode == .freeExploration || (model.snapshot == nil && presentedMode == .freeExploration) {
                 if NativeR2Flags.freeExplore && NativeR2Flags.freeExploreMapHome {
                     NativeFreeExploreMapView(model: model, storeDestination: { AnyView(freeStoreDestination($0)) },
                                              rewardCollectionDestination: rewardCollectionDestination,
@@ -137,11 +139,14 @@ struct PlayThemeMusicKey: Equatable {
                     }
                 } else {
                     VStack(spacing: CYSpacing.md) {
-                        if model.available {
+                        if model.available, let pass = PlayEmptyKind.failure(model.issue) {
+                            PlayEmptyStateCard(kind: pass, topicID: { if case .topic(let id) = model.scope { return id }; return nil }())
+                        } else if model.available {
                             CYEmptyState(systemImage: "exclamationmark.triangle", "playx.error.title", actionTitle: "playx.refresh") {
                                 if model.phase != .submitting { Task { await model.load() } }
                             }
                             if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
+                            PlayBackToDetailButton()
                         } else {
                             CYEmptyState(systemImage: "gamecontroller", "playx.disabled.title")
                             Text("playx.disabled").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
@@ -255,6 +260,7 @@ struct PlayThemeMusicKey: Equatable {
     var body: some View {
         presentationLayer
         .modifier(PlayNightHintOverlay(receipt: model.reward))
+        .modifier(PlayFlyScoreOverlay(receipt: model.reward))
         .onChange(of: model.snapshot?.result.topicID) { _, topicID in
             chapterFilter = nil
             presentTitleCardIfNeeded(topicID)
@@ -2202,6 +2208,44 @@ private struct PlayNightHintOverlay: ViewModifier {
                     try? await Task.sleep(for: .seconds(PlayNightWarning.displaySeconds))
                     guard current == token else { return }
                     withAnimation(reduceMotion ? nil : .easeOut(duration: 0.25)) { shown = false }
+                }
+            }
+    }
+}
+
+/// mp-journey r3: MP `.flyscore` — `+N 探索值` rises once at the completion moment and is gone after the celebrate beat.
+/// Never blocks; VoiceOver hears it once; Reduce Motion shows it in place.
+private struct PlayFlyScoreOverlay: ViewModifier {
+    let receipt: PlayWireValue?
+    @State private var points: Int?
+    @State private var token = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        content
+            .overlay {
+                if let points {
+                    Text("playx.flyScore \(points)")
+                        .font(.title3.weight(.semibold))
+                        .monospacedDigit()
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(.regularMaterial, in: .capsule)
+                        .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
+                        .allowsHitTesting(false)
+                        .accessibilityIdentifier("playx.flyScore")
+                }
+            }
+            .onChange(of: receipt) { _, value in
+                guard let gained = PlayFlyScore.points(value) else { return }
+                token += 1
+                let current = token
+                withAnimation(reduceMotion ? nil : .spring(duration: 0.35)) { points = gained }
+                AccessibilityNotification.Announcement(appLocalized("playx.flyScore \(gained)", locale: .current)).post()
+                Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(PlayFlyScore.displaySeconds))
+                    guard current == token else { return }
+                    withAnimation(reduceMotion ? nil : .easeOut(duration: 0.25)) { points = nil }
                 }
             }
     }

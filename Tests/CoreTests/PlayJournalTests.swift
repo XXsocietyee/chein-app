@@ -35,6 +35,15 @@ final class PlayJournalTests: XCTestCase {
         XCTAssertFalse(PlayNightWarning.isOn(nil))
     }
 
+    func testFlyScoreFollowsTheMPFirstTimeRule() throws {
+        func wire(_ text: String) throws -> PlayWireValue { try JSONDecoder().decode(PlayWireValue.self, from: Data(text.utf8)) }
+        XCTAssertEqual(PlayFlyScore.points(try wire(#"{"nodeId":1,"firstTime":true,"xp":9}"#)), 9)
+        XCTAssertEqual(PlayFlyScore.points(try wire(#"{"nodeId":1,"score":"12"}"#)), 12)
+        XCTAssertNil(PlayFlyScore.points(try wire(#"{"nodeId":1,"firstTime":false,"xp":9}"#)))
+        XCTAssertNil(PlayFlyScore.points(try wire(#"{"nodeId":1,"xp":0}"#)))
+        XCTAssertNil(PlayFlyScore.points(nil))
+    }
+
     private func snapshot(mode: Int, nodes: String) throws -> PlaySnapshot {
         let data = "{\"topicId\":9,\"mode\":\(mode),\"playable\":true,\"registered\":true,\"nodes\":\(nodes),\"chapters\":[{\"chapterId\":8,\"name\":\"Chapter\"}]}"
         let wire = try JSONDecoder().decode(PlayWireValue.self, from: Data(data.utf8))

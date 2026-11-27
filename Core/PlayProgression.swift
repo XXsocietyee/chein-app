@@ -33,7 +33,8 @@ public struct PlaySnapshot: Equatable {
         return result.nodes.filter { visible.contains(route?.nodeStates[$0.id] ?? "") }
     }
     public var availability: PlaySessionAvailability {
-        if result.registered == false { return .registrationRequired }
+        // MP loadData: a lead spectator (运营身份) is never stopped by the 未报名 state.
+        if result.registered == false && result.leadSpectator != true { return .registrationRequired }
         if result.nodes.isEmpty { return .empty }
         if (route?.isBranch != true && result.allDone) || route?.status == "COMPLETED" { return .completed }
         if result.playable == false || (route?.isBranch == true && route?.status != "ACTIVE") { return .unavailable }
