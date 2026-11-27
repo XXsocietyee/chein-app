@@ -10,15 +10,6 @@ enum ActivityPresentation {
     static func place(_ summary: ActivitySummary) -> String? {
         nonempty(summary.addressName) ?? nonempty(summary.address)
     }
-    /// The start instant when it is within the next hour (same parse as `E1ActivityState.of`), for the live
-    /// "距开始 mm:ss" clock (components r1 `CYCountdown`). Further out the row keeps "即将开始".
-    static func imminentStart(_ raw: String?, now: Date = Date()) -> Date? {
-        guard let raw, !raw.isEmpty, let utc = TimeZone(secondsFromGMT: 0),
-              let start = HomeFeedDate.parse(raw, sourceTimeZone: nil) ?? HomeFeedDate.parse(raw, sourceTimeZone: utc)
-        else { return nil }
-        let remaining = start.timeIntervalSince(now)
-        return remaining > 0 && remaining <= 3_600 ? start : nil
-    }
 }
 
 /// Same row rules as home: cover thumbnail, title, one date · place line, starting price. Missing values are left out.
@@ -84,21 +75,11 @@ struct ActivityListCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    @ViewBuilder private func stateLabel(_ state: E1ActivityState) -> some View {
+    private func stateLabel(_ state: E1ActivityState) -> some View {
         switch state {
-        case .upcoming:
-            Label {
-                if let start = ActivityPresentation.imminentStart(item.startDate) {
-                    HStack(spacing: 4) {
-                        Text("comp.kit.startsIn")
-                        CYCountdown(until: start, style: nil, tint: nil, endedKey: "comp.kit.countdown.started")
-                    }
-                } else {
-                    Text(verbatim: copy.t("即将开始", "Upcoming"))
-                }
-            } icon: { Image(systemName: "clock") }
-        case .live: Label { Text(verbatim: copy.t("进行中", "Happening now")) } icon: { Image(systemName: "dot.radiowaves.left.and.right") }
-        case .ended: Label { Text(verbatim: copy.t("已结束", "Ended")) } icon: { Image(systemName: "checkmark") }
+        case .upcoming: return Label { Text(verbatim: copy.t("即将开始", "Upcoming")) } icon: { Image(systemName: "clock") }
+        case .live: return Label { Text(verbatim: copy.t("进行中", "Happening now")) } icon: { Image(systemName: "dot.radiowaves.left.and.right") }
+        case .ended: return Label { Text(verbatim: copy.t("已结束", "Ended")) } icon: { Image(systemName: "checkmark") }
         }
     }
 

@@ -32,11 +32,11 @@ Strings: 8 keys, `comp.kit.*`, in zh-Hans and en. The fragment is `docs/port/str
 | Where | File | Change | MP reference |
 |---|---|---|---|
 | Official event card and detail facts | `App/OfficialEventComponents.swift` (`OfficialCountdownText`, `OfficialEvent.countdownTarget`), `App/OfficialEventDetailView.swift` (`OfficialDetailFactsStrip.countdownTarget`) | Under one hour, "距开始/距结束 N 分钟" becomes a live mm:ss `CYCountdown`, switching to 即将开始/即将结束 at zero. Spans of an hour or more keep the source's rounded units. `.unknown` and every test path are unchanged: the new `target` parameter defaults to nil | `pages/activity/official-detail/index.js` `_countdown` / `_dur` |
-| Activity list card | `App/ActivityPresentationComponents.swift` (`ActivityPresentation.imminentStart`, `stateLabel`) | The "即将开始" chip shows "距开始 mm:ss" when the start is within an hour. It uses the same date parse as `E1ActivityState.of` | `pages/activity/list` status badge |
 | Passport stamp count | `App/PassportView.swift` (`PassportRollingCount`) | The hand-rolled numericText is replaced by `CYLiveCounter(style: .dataXL)`. The em dash for an unknown count is unchanged | passport header |
 | Free exploration "已核销环" | `App/FreeExplorationViews.swift` | `Gauge(.accessoryCircularCapacity)` is replaced by `CYRing` with a `done/total` centre. It stays hidden from VoiceOver, and the combined "已核销 n/m" label is unchanged | MP 已核销环 |
 
 Not adopted, left on purpose:
+- **Activity list card.** I tried a live "距开始 mm:ss" on the 即将开始 chip and reverted it. `Tests/ContractChecks/test_activity_design_structure.py:108` forbids `countdown`, `Timer` and `Date()` in `ActivityPresentationComponents.swift`, and the MP list has no countdown.
 - **Game HUD (C4), run panel (C6), and channel/community like and unread counters (C5).** Those lanes own the files. The components are on this branch for them to adopt.
 - **Wallet.** Its figures are formatted money strings, not Int counts.
 - **Club stats.** These are text `LabeledContent` rows, matching the MP.
@@ -48,7 +48,7 @@ Not adopted, left on purpose:
 - `check_scaffold.py`: PASS (structural checks; 19702 bilingual keys).
 - `check_a11y_lint.py`: PASS, 0 new.
 - `check_typography_lint.py` and `check_design_lint.py`: PASS.
-- `contract_ratchet.py --check`: **new 0**. The command still exits 1, because one baseline entry now passes: `test_profile_read_failure_remote_admission…test_raw_creator_positive_contract_is_independent_of_all_history`. That test is unrelated to this lane (no profile files were touched), so I did not touch the baseline. The coordinator can run `--update`.
+- `contract_ratchet.py --check` on the final tree: **new 0**. Commit `44a8fa91b` had 2 new failures from the activity-card countdown; this commit reverts that change. The command still exits 1, because one baseline entry now passes: `test_profile_read_failure_remote_admission…test_raw_creator_positive_contract_is_independent_of_all_history`. That test is unrelated to this lane (no profile files were touched), so I did not touch the baseline. The coordinator can run `--update`.
 - `check_swift_syntax.py`: not run. Its tree-sitter wheel is pinned to CPython 3.12, which is not this container's Python.
 
 ## For the coordinator
@@ -58,4 +58,4 @@ Not adopted, left on purpose:
   - `CYRing` generic init plus the `where Center == CYRingPercentLabel` extension init.
   - `TimelineView(.explicit([date]))`.
   - `Text(delta, format: .number.sign(strategy: .always()))`.
-  - The `@ViewBuilder` `stateLabel` switch in `ActivityListCard` (it was `return Label…`).
+  - The `where target != nil` switch cases in `OfficialCountdownText`.
