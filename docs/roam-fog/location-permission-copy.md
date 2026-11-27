@@ -23,6 +23,11 @@ sentence is the safer option.
 
 ## Priming and denied cards (`App/DesignSystem/CYPermissionPrimer.swift`)
 
+> i18n-r2-strings (11-27): the "only while the app is open / never in the background" draft below contradicted
+> actual behaviour (roam and city orienteering keep recording in the background via `SessionBackgroundLocationTracker`,
+> as `NSLocationWhenInUseUsageDescription` says). The priming card now says so in both languages; points are
+> "Only when you start something" and "A roam keeps recording in the background until you pause or finish".
+
 Priming (first GO, before the OS prompt): title "Light up where you walk" / 点亮你走过的地方; body is the draft sentence
 above; points "Only while the app is open", "Never in the background", "You can turn it off anytime in Settings";
 buttons Continue / Not now.

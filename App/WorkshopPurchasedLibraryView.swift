@@ -31,8 +31,7 @@ struct WorkshopPurchasedAccountLink: View {
     private var paymentsOpen: Bool { ReviewedAreaSwitch.moneyPayments(apiHost: session.regionalConfiguration?.apiConfiguration?.baseURL.host) }
     private var closedCopy: String {
         locale.language.languageCode?.identifier == "zh"
-            ? "购买读取未开启。列表仍在，本次不请求已购接口。"
-            : "Purchase reads are off. The list stays here and does not request purchased licenses."
+            ? "购买读取未开启。列表仍在，本次不请求已购接口。" : "Purchase reads are off. The list stays here and does not request purchased licenses."
     }
     var body: some View {
         @Bindable var navigation = navigation
