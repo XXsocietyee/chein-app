@@ -78,8 +78,13 @@ class RoamHistoryLiveEntryContracts(unittest.TestCase):
         self.assertEqual(self.history.count('try reader.history()'), 1)
 
     def test_prior_record_detail_navigation_statistics_and_share_remain(self):
-        for token in ['RoamHistoryDetailView(reader: reader, timestamp: record.ts, hero: hero)', 'RoamHistorySummary(records)', 'RoamRouteSketchView(record: record)', 'RoamExperienceIssue(error: error, retry: load)']:
+        # ROAM-r11-10: trip rows draw the real-basemap thumb, which falls back to the schematic sketch
+        # without coordinates (MP subpackageRoam/components/cy/route-thumb/index.js:1-8).
+        for token in ['RoamHistoryDetailView(reader: reader, timestamp: record.ts, hero: hero)', 'RoamHistorySummary(records)', 'RoamRouteThumbView(record: record)', 'RoamExperienceIssue(error: error, retry: load)']:
             self.assertIn(token, self.history)
+        thumb = (ROOT / 'App/RoamRouteThumbView.swift').read_text(encoding='utf-8')
+        self.assertIn('RoamRouteSketchView(record: record)', thumb)
+        self.assertIn('interactionModes: []', thumb)
         self.assertIn('RoamHistoryShareView(record: record, reader: reader)', self.view)
         self.assertIn('RoamRecordedStats(record: record)', self.view)
 

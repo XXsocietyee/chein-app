@@ -90,6 +90,12 @@ import FoundationNetworking
         _ = try await send(legacyRequest(draft: draft, token: token), mutation: true)
         // Legacy acknowledgment contains no guaranteed post ID or publication state.
     }
+    /// ROAM-r11-9: same legacy publish, returning `data.lifecycle` when the server sends one
+    /// (MP pages/roam/index.js:5196 picks 已发到广场 for PUBLISHED, otherwise 已提交审核).
+    public func legacyPublishLifecycle(draft: SquareWorkspaceDraft, token: String) async throws -> String? {
+        let root = try await send(legacyRequest(draft: draft, token: token), mutation: true)
+        return (root["data"] as? [String: Any])?["lifecycle"] as? String
+    }
     public func uploadRequest(bytes: Data, mimeType: String, communityProof: Bool, token: String) throws -> URLRequest {
         guard !bytes.isEmpty, bytes.count <= Self.maximumUploadImageBytes, ["image/jpeg", "image/png"].contains(mimeType) else { throw SquareWorkspaceFailure.invalid }
         var r = try request("POST", "api/common/uploadOSS", token: token)
