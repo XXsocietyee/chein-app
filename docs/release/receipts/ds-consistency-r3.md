@@ -287,7 +287,7 @@ baseline 52, **new 0**.
 ### Not done (next run)
 | Item | Why not now |
 |---|---|
-| — | — |
+| Scan `.buttonStyle(.plain)` buttons whose label draws its own filled `Capsule` / rounded background (like the rank board 更多 fixed above) → `.bordered` / `.borderedProminent` + `.buttonBorderShape`. | Next run: needs a per-site look (cards and map controls legitimately use `.plain` + `QuestifyCardButtonStyle`). |
 
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
