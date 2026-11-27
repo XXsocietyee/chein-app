@@ -33,11 +33,8 @@ import SwiftUI
                 CYEmptyState(systemImage: "person.crop.circle", "orientLobby.signIn")
                     .accessibilityIdentifier("orientLobby.signIn")
             case .failed:
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    Text("orientLobby.failed").cyText(.bodyMedium)
-                    Button("action.retry") { Task { await load() } }.frame(minHeight: 44)
-                }
-                .accessibilityIdentifier("orientLobby.failed")
+                CYEmptyState(systemImage: "exclamationmark.triangle", "orientLobby.failed", messageIdentifier: "orientLobby.failed",
+                             actionTitle: "action.retry", actionIdentifier: "orientLobby.retry", kind: .failure) { Task { await load() } }
             case .loaded(let teams):
                 let open = teams.filter { team in
                     guard let max = team.maxMembers, max > 0, let joined = team.joinedCount else { return true }

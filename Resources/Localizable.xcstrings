@@ -349764,6 +349764,57 @@
         }
       }
     },
+    "nearby.w208.recruit.noAreaTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a roam area to see nearby teams"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要定位才能看附近的队伍"
+          }
+        }
+      }
+    },
+    "nearby.w208.mine.failedTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load your teams"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍没能读到"
+          }
+        }
+      }
+    },
+    "playx.board.loadingLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading the companions board…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载同行者榜…"
+          }
+        }
+      }
+    },
     "playkit.coin.idle": {
       "extractionState": "manual",
       "localizations": {
@@ -350032,40 +350083,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "还没翻开"
-          }
-        }
-      }
-    },
-    "nearby.w208.recruit.noAreaTitle": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Choose a roam area to see nearby teams"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "需要定位才能看附近的队伍"
-          }
-        }
-      }
-    },
-    "nearby.w208.mine.failedTitle": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Couldn't load your teams"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "队伍没能读到"
           }
         }
       }
