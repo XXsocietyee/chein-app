@@ -81,6 +81,7 @@ match is a queue item (133 at the start). Tab roots first, then their pushed pag
 | Hand-built loading rows → labelled `ProgressView`: 我的 identity card (`MemberHomeHeader`), club quick start (`ClubSessionQuickStartView`), role view (`JourneyRoleViewSection`), city fairness (`CityFairnessView`), 关于 player code (`SettingsAboutView`) | MP cy-skeleton / 加载中 | `HStack(ProgressView + Text)`, text-only loading, or text + skeleton | one `ProgressView { <same words> }` |
 | More `HStack(ProgressView + Text)` page loaders: IM compose, bundle redeem, report peer, order meeting point, bundle review compose | MP cy-skeleton / 加载中 | spinner beside a grey footnote | one `ProgressView { <same words> }` (in-button “submitting” spinners left as button content) |
 | `CYPhaseView` / `CYListChoreography` / `CYLoadSlot` (shared phase loader) | page loading words | `CYLoadingStateView` + VoiceOver-only `loadingLabel` | `CYLoadingStateView(label: loadingLabel)` — the caller's words are on screen |
+| 奖励 list (`NonCashRewardViews`) + 奖励承诺 list (`RewardPledgeViews`) — no MP page (native-only surface); one state pattern | MP cy-error pattern: title + 重试 inside the state | rewards: `ContentUnavailableView` with a separate `CYPillButton` 刷新 below it; pledges: a bare 刷新 pill with no error text at all | `AccountCollectionIssueView(retry:, retryIdentifier:)` — one `ContentUnavailableView` with the failure title and its `.bordered` 重试 inside; identifiers `rewards.retry` / `rewards.pledge.retry` kept (new `retryIdentifier` parameter, default unchanged) |
 
 ## For other lanes
 

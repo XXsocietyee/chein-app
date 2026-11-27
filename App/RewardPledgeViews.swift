@@ -1140,8 +1140,8 @@ public struct RewardPledgeReviewItem: Identifiable, Equatable {
                 if entry.current()?.read == true {
                     if !model.awardsLoaded { CYSkeleton() }
                     else if model.listFailed {
-                        CYPillButton("accountCollection.refresh", style: .secondary) { Task { await model.loadAwards(entry: entry) } }
-                            .accessibilityIdentifier("rewards.pledge.retry")
+                        AccountCollectionIssueView(issue: .failure, retry: { Task { await model.loadAwards(entry: entry) } },
+                                                   retryIdentifier: "rewards.pledge.retry")
                     } else if model.awards.isEmpty {
                         CYEmptyState(systemImage: "gift", "rewards.empty")
                     }
