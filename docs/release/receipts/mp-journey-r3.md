@@ -75,7 +75,10 @@ files; `mp/r3-mine` only gated 查看报名凭证 in `PlayerJourneyViews` (not o
 - MP auth empty card (登录已过期 + 重新登录): the app handles login expiry globally.
 - 集合屏 member avatars (no avatar in `PlayLeadProgress`), `lead.freeEntry` not decoded.
 - 游玩工具 本局用时 / 当前得分 values (MP `sessStats` from `/api/orient/scoring/session/{id}` + leaderboard) and the 本局成绩
-  rank on the finish sheet's 本局成绩 row (暂列 / 第 N 名); 联系主办 / 联系商家 (`/api/play/contact`).
+  rank on the finish sheet's 本局成绩 row (暂列 / 第 N 名).
+- 联系主办 / 联系商家: MP puts it in 游玩工具 after the lead rows and only dials (number hidden); natively
+  `PlayContactSection` sits in the page list with the number visible, and the same section clears the server run session
+  on finish, so moving it into the sheet needs that side effect split out first.
 - Pages not ported (story-flow theme, out of scope): `play-topbar` (案件册 / 各站奖励), `play-stage` (玩法开始 / 岔路 popups,
   嵌入故事流), `theme-backpack`, `theme-plan-*`, `theme-player-ops*`, `cast-play`, `play-overlays` 角色卡.
 
