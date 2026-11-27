@@ -198,10 +198,30 @@ cover/photo boxes with a centred glyph, a 168 pt QR, a 240 × 150 video thumb or
 | `pages/team` orient board ranking | `TeamOrientBoardView.swift` | ✓ (mp-activity owns order) | "#rank" fixed 32 pt → `minWidth: 32` (name column already wraps) | Done |
 | `subpackageMember` orient score board | `MPGap/Member/OrientScoreGapViews.swift` | ✓ (mp-mine owns order) | Rank fixed 32 pt → `minWidth: 32` | Done |
 
+## Run 12 (2026-11-27, half-hourly)
+
+Merged `origin/ui/combined-r7` (46ebaf0b6, carries runs 7–11 incl. cb788fd86). Latest sweep is still build 405948d58 (read in
+run 11), so the a11y sheets re-read waits for the next sweep. Not done item 3: `.fixedSize()` (both axes) scan, 23 player hits;
+most are short chips, segmented pickers, switches or one-line numbers. 3 real overflows at AX sizes fixed:
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/club/*` club directory, Discover rows | `ClubDirectoryView.swift` (`ClubDirectoryCard`) | ✓ (mp-club owns order) | Fixed-size "Apply to join" / "Join club" button squeezed the club name to a sliver at AX sizes → row stacks (name, then button) at accessibility sizes via `AnyLayout` | Done |
+| `pages/activity` registration sheet header | `RegistrationSheetView.swift` (`RegistrationPlayerSheetHeader`) | ✓ (mp-activity owns order) | Fixed-size bar title "Activity registration" pushed the ✕ off screen at AX5 → capped at `.xxxLarge` like the system inline title, plus Large Content Viewer | Done |
+| `pages/coop/*` cooperation invites strip (inbox) | `IMCoopInviteStripView.swift` (header) | ✓ (mp-activity owns order) | Title + fixed-size "Invite alerts" switch + Received/Sent picker in one row → stacks at AX sizes | Done |
+
+Fixed-width scan (`.frame(width: N)` on stacks / text, 19 player hits; the rest are icons, a 260 pt iPad sidebar, a 240 pt
+share preview, progress bars and art tiles):
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/topic/*` 角色 cast rail | `CastViews.swift` (`TopicCastRow`) | ✓ (mp-publish owns order) | Column fixed 72 pt cut names to 2–3 letters at AX sizes → `@ScaledMetric(relativeTo: .footnote)` width (rail scrolls) | Done |
+| `pages/play` story route cast rail | `NativeR2/Story/NR2StoryRouteSections.swift` | ✓ (mp-journey owns order) | Column fixed 64 pt → scaled `NR2CastColumn` (`relativeTo: .caption`) | Done |
+| `pages/play` city-run finish leaderboard | `NativeR2/CityOrientation/CityOrientationFinishSummaryView.swift` | ✓ (mp-journey owns order) | Rank fixed 32 pt → `minWidth: 32` (same as run 11 leaderboards) | Done |
+
 ## Not done (next run starts here)
-- Re-read the a11y sheets once combined-r7 carries runs 7–10 (ring size at AX5, roam VoiceOver order, `a11y-passport-ax5` now the passport).
-- Re-read `a11y-passport-ax5` (passport at AX5) once a sweep build carries cb788fd86.
-- Dynamic Type: `.fixedSize()` (both axes) on long text that can overflow at AX5; `.frame(width:)` on stacks (not single Text chains, scanned run 11).
+- Re-read the a11y sheets (ring size at AX5, roam VoiceOver order, `a11y-passport-ax5` = passport at AX5) once a sweep build is newer than 405948d58; combined-r7 46ebaf0b6 carries runs 7–11.
+- Dynamic Type: horizontal rails whose cards keep a fixed width and `lineLimit(2)` (`DiscoveryHomeView` banner 260 pt, `DiscoveryTemplateDetailView` nodes 150 pt): check at AX5 whether a scaled width reads better.
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch

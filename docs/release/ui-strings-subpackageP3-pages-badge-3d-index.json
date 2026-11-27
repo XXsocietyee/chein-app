@@ -19,8 +19,8 @@
     },
     {
       "key": "objects.loading",
-      "en": "Loading",
-      "zh-Hans": "加载中"
+      "en": "Loading…",
+      "zh-Hans": "加载中…"
     },
     {
       "key": "objects.badge3d.hint.drag",

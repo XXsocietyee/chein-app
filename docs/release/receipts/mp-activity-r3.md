@@ -132,12 +132,21 @@ Merged `ui/combined-r7` (conflicts: `SquareBrowserView.swift` kept both the d2 n
 
 Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · registration contract suites 10 OK.
 
+## Round 3 continue (2026-11-27, thirteenth session — sweep 21:09 build 405948d58, no newer sweep)
+Merged `ui/combined-r7` (conflicts: `SquareBrowserView.swift` both sides held the same `SquareBrowserStack` in a different spot, kept ours; xcstrings key union, JSON + duplicate-key check ok). No newer sweep for this lane's fixtures since the twelfth session; the coordinator rows for this lane (19:50) stay closed.
+| MP page | Native view | MP sections (✓ present / added / reordered) | Optimizations |
+|---|---|---|---|
+| `pages/square/detail/index` (wxml:33-44 head: avatar · `memberNickname`, nothing else) | `App/SquareDetailView.swift` | a lone 「—」 row was shown under the action row for posts with `memberID == 0` (placeholder as data; no MP section). **Removed**; author-less posts show the head as the MP does | no placeholder rows (P-states) |
+| `pages/coop/invite/index` (wxml:157 `goEditTopic`) | `App/CooperationFlowEditors.swift` `CoopFlowRequestPreview` | re-checked: the 去编辑主题 exit after a rejected invite send is already present (`coopflow.submit.editTopic`); Not done note narrowed | — |
+
+Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · square contract suites 73 OK.
+
 ## Not done
 - Attendance (player): organizer 联系与签到配置 form (duty phones, window, public-confirm switch, scan, recovery 查询原结果 / 原请求重试 / 终止 / 确认归档) lives in `OfficialOrganizerConsoleView`, not in this section.
 - Square completion card: 探店 (`shopText`) has no backend field. Refused team reads have no server message in `TeamFailure`, so 邀请已失效 is the fixed fallback copy.
 - Official detail: native 参与情况 section kept (contract-pinned, holds signup action).
 - Baoming: native manual name/phone entry kept beside the sheet.
-- Coop (audited, not yet fixed): invite — 俱乐部/商家 picker (kept: native entries without a route kind, e.g. coop list → 去发起邀请, need it) and search field are extra (MP takes the kind from the route); 核销据点 card copy and per-merchant picker; sheet 去编辑主题 exit and inline send result (sends go through the per-recipient reviewed `CoopFlowRequestPreview`; failures stay there, not back on the sheet). List — no in-app 缴纳保证金 / 重试保证金退款 path on accepted cards (no native deposit payment client); 合作池 row kept (MP folded it into club detail, but it is the only native route to the pool and is UI-test pinned); extra per-section headers/empties and extra card fields; Detail — read-receipt row kept (it performs the `invite/read` write the MP sends silently), terms-card grouping, deposit footer. Nearby — consent block is extra (kept: native location-purpose consent before the search); 补位 sheet interaction and per-row chapter terms differ; missing-param state (native routes always pass a scope, no param-less entry).
+- Coop (audited, not yet fixed): invite — 俱乐部/商家 picker (kept: native entries without a route kind, e.g. coop list → 去发起邀请, need it) and search field are extra (MP takes the kind from the route); 核销据点 card copy and per-merchant picker; inline send result on the sheet (the 去编辑主题 exit exists on the review page; sends go through the per-recipient reviewed `CoopFlowRequestPreview`; failures stay there, not back on the sheet). List — no in-app 缴纳保证金 / 重试保证金退款 path on accepted cards (no native deposit payment client); 合作池 row kept (MP folded it into club detail, but it is the only native route to the pool and is UI-test pinned); extra per-section headers/empties and extra card fields; Detail — read-receipt row kept (it performs the `invite/read` write the MP sends silently), terms-card grouping, deposit footer. Nearby — consent block is extra (kept: native location-purpose consent before the search); 补位 sheet interaction and per-row chapter terms differ; missing-param state (native routes always pass a scope, no param-less entry).
 
 ## Gates
 - Fourth session (after merging `ui/combined-r7`, catalog key union): ratchet 52 / baseline 52 / **new 0**; scaffold, a11y, design consistency PASS

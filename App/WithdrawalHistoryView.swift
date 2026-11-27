@@ -106,7 +106,7 @@ struct WithdrawalHistoryRowView: View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text("wallet.withdrawal.rowTitle").cyText(.cardTitle)
-                Text(verbatim: row.createTime ?? "—").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: row.createTime.map { LocaleDisplay.civil($0, locale: locale) } ?? "—").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
             Spacer(minLength: CYSpacing.sm)
             VStack(alignment: .trailing, spacing: CYSpacing.xs) {
@@ -144,7 +144,7 @@ struct WithdrawalHistoryDetailSheet: View {
                         Text(verbatim: WithdrawalAmountDisplay.text(row, locale: locale)).monospacedDigit()
                     }
                     LabeledContent("withdrawal.history.detail.status") { Text(LocalizedStringKey(row.statusKey)) }
-                    LabeledContent("withdrawal.history.detail.created") { Text(verbatim: row.createTime ?? "—") }
+                    LabeledContent("withdrawal.history.detail.created") { Text(verbatim: row.createTime.map { LocaleDisplay.civil($0, locale: locale) } ?? "—") }
                     if let id = row.id {
                         LabeledContent("withdrawal.history.detail.id") { Text(verbatim: String(id)).monospacedDigit() }
                     }
