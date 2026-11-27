@@ -1,5 +1,6 @@
 import SwiftUI
 import MapKit
+import UIKit
 
 /// Plain distance text for the run: "120 m", "1.2 km", or an em dash when unknown.
 enum CityOrientationFormat {
@@ -49,6 +50,7 @@ extension EnvironmentValues {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.openURL) private var openURL
 
     private var route: PlayRouteMapPresentation? {
         guard let snapshot = model.snapshot else { return nil }
@@ -182,8 +184,9 @@ extension EnvironmentValues {
             }
         }
         .mapStyle(.standard(pointsOfInterest: .excludingAll))
+        // fix-r11 N-r11-2 / comp-r1 C6: no locate-me control, as in the MP (subpackageRoam/session/index.wxml:27,
+        // components/cy/route-thumb/index.wxml:6 `show-location="{{false}}"`; only 开启定位 when location is off).
         .mapControls {
-            MapUserLocationButton()
             MapCompass()
             MapPitchToggle()
         }
@@ -247,6 +250,7 @@ extension EnvironmentValues {
                         .nativeR2Bounce(inHighlight)
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 2) {
+                        if model.clock.phase == .paused { CityOrientationPausedTag() }
                         if inHighlight {
                             Text("nativeR2.city.banner.arrived").font(.headline)
                         } else if location.access == .denied {
@@ -261,6 +265,12 @@ extension EnvironmentValues {
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
+                        // MP index.wxml:600-604: 公里 · 预计 · 到达, estimated at walking pace.
+                        if !inHighlight, location.access != .denied {
+                            CityOrientationETAText(meters: currentDistance)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                     Spacer(minLength: 0)
                 }
@@ -275,6 +285,7 @@ extension EnvironmentValues {
         }
     }
     private var bannerSymbol: String {
+        if model.clock.phase == .paused { return "pause.circle" }
         if inHighlight { return "checkmark.circle.fill" }
         if location.access == .denied { return "location.slash" }
         return "figure.walk"
@@ -283,6 +294,13 @@ extension EnvironmentValues {
     private var controls: some View {
         HStack(spacing: 8) {
             Spacer(minLength: 0)
+            // MP pages/roam/index.wxml:150: the only location control is 开启定位, shown while location is off.
+            if location.access == .denied {
+                Button {
+                    if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+                } label: { Label("nativeR2.city.enableLocation", systemImage: "location.slash") }
+                    .accessibilityIdentifier("nativeR2.city.enableLocation")
+            }
             channel()
             if let onOpenRoute {
                 Button(action: onOpenRoute) { Label("playRoute.open", systemImage: "map") }
@@ -399,7 +417,14 @@ extension EnvironmentValues {
         Section("nativeR2.city.next") {
             Button(action: onPunch) {
                 LabeledContent {
-                    Text(verbatim: CityOrientationFormat.distance(distance)).monospacedDigit()
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text(verbatim: CityOrientationFormat.distance(distance))
+                            .monospacedDigit()
+                            .contentTransition(.numericText(value: distance ?? 0))
+                        CityOrientationETAText(meters: distance)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 } label: {
                     Text(verbatim: node.name ?? "#\(node.id)")
                     Text(LocalizedStringKey("playx.task." + PlayNodeTask.resolve(mode: snapshot.result.mode, node: node).rawValue))
@@ -462,14 +487,12 @@ extension EnvironmentValues {
 /// S9 large detent: teams sharing their route on this activity (Find My people rows).
 struct CityOrientationTeammatesSection: View {
     let teams: [TeamTrailTeam]
+    /// Control points on the route; 0 shows the count only (comp-r1 C6 team progress).
+    var total: Int = 0
     var body: some View {
         Section {
             ForEach(teams) { team in
-                LabeledContent {
-                    if team.done > 0 { Text("playerGap.trail.done \(team.done)") }
-                } label: {
-                    Label { Text(verbatim: team.name) } icon: { Image(systemName: "person.crop.circle") }
-                }
+                CityOrientationTeamProgressRow(team: team, total: total)
             }
         } header: {
             Text("nativeR2.city.teammates")

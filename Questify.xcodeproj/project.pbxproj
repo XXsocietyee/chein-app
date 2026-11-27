@@ -10995,6 +10995,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "070A898822B1C0FB44539D91";
 		};
+		"61DBC47B76CBF31D45FD8A12" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/CityOrientation/CityOrientationNavComponents.swift";
+			"sourceTree" = "<group>";
+		};
+		"90ED452DFBED7B2D27039911" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "61DBC47B76CBF31D45FD8A12";
+		};
 		"39394E9E3F808BBBD8CE1D69" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -43813,6 +43823,7 @@
 				"089668C86DC6F8699AD76EB4",
 				"0EF31A330F1E63EB5B43120A",
 				"070A898822B1C0FB44539D91",
+				"61DBC47B76CBF31D45FD8A12",
 				"39394E9E3F808BBBD8CE1D69",
 				"1FC5B0CEB1E0BCC8F3458F24",
 				"70FA33F313F5C86CBC7E6FCB",
@@ -49264,6 +49275,7 @@
 				"BE2108F1CEF16AD6B884275B",
 				"9C7B5D91DD2E8374E9981E4A",
 				"A34C909A8AC488DAD8E192E8",
+				"90ED452DFBED7B2D27039911",
 				"7E5CCE592DF73CA36D44CEBB",
 				"76A7401D7C03FB41D52A79E6",
 				"514F5EE298215E1883EEEB95",

@@ -788,7 +788,9 @@ struct PlayThemeMusicKey: Equatable {
                     } else if let snapshot = model.snapshot {
                         stationsSection(snapshot)
                     }
-                    if case .activity = model.scope { CityOrientationTeammatesSection(teams: cityTeams) }
+                    if case .activity = model.scope {
+                        CityOrientationTeammatesSection(teams: cityTeams, total: model.snapshot?.visibleNodes.count ?? 0)
+                    }
                     orientationSections(native: true)
                 }
                 .refreshable { if model.available && model.phase != .submitting { await model.load() } }
