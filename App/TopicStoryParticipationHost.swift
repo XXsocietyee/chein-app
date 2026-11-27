@@ -55,7 +55,7 @@ import QuestifyCore
                 .padding(.horizontal, CYSpacing.pageHorizontal)
                 .padding(.vertical, CYSpacing.lg)
             } else {
-                ProgressView().frame(maxWidth: .infinity, minHeight: 120)
+                CYLoadingState().frame(minHeight: 120)
             }
         }
         .navigationTitle(W8Text.t("参与剧情", "Join the story"))

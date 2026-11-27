@@ -205,6 +205,14 @@ Merged `origin/ui/combined-r7` first (clean). Build a250afd77 predates `66c41fe9
 | `pages/search2/index` → `d2-search` (`SearchMapFixtureHostView`) | `zh-Hans-d2-search.jpg` / `en-d2-search.jpg`: two UI-test capsules 「示例：游客」「示例：切换账号」 above the search title — not on the MP page. | **Fixed** — `SearchMapFixtureHostView(showsTestControls: false)` for the design fixture; the module fixture (UI tests) keeps them. |
 | `onTapHomeCity` → city relocate | Still open. Native `HomeCityLocationConsentModel.agree` records consent but never locates; `api/map/reverse-geocode` is sent today only inside `SearchMapService.nearby`, and `CompositionHTTPTransport` admits map reads through `ManualMapReadRoute`, which has no reverse-geocode case. | **Not done** — a foreground fix → GCJ-02 → reverse-geocode path needs a transport admission rule for the standalone call and a device check; not safe to add blind (no compiler, precise location leaves the device). |
 
+## Round 3 continue (9) — 20:45 sweep (build bb76e327c), mp-home sheets zh-Hans + en
+| MP page → native view | Difference (screenshot) | Fixed / not |
+|---|---|---|
+| `pages/activity/detail` → `rep3-activity-detail` (`App/ActivityFixtureSupport.swift`) | `en-rep3-activity-detail.jpg` / `zh-Hans-…`: title "Lantern Market Quest (fixture)" / 灯笼集市探索（示例）, meeting point "(fixture)", about text ends "Offline fixture copy." — debug text on screen. | **Fixed** — plain names 灯笼集市探索 / Lantern Market Quest, 灯笼广场 / Lantern Square, no fixture sentence. No test pins these. |
+| `pages/search` → `d2-search` / `d2-search-results` (`App/SearchMapFixtureSupport.swift`) | `en-d2-search.jpg`: category capsule "Synthetic culture"; `en-d2-search-results.jpg`: rows "Synthetic topic" / "Offline Lantern". | **Fixed** — under `--design-fixture` only: categories Culture / Outdoors, rows Lantern Night Walk / Lantern Market Tour / Old Town Walkers, detail "Old Town · Lantern" (zh 老城 · 灯笼). UI-test runs keep the pinned "Synthetic …" values. |
+| `pages/index/index` `onAddressTap`, `onHeroBannerTap` | Re-checked: feed 地点 opens Maps (`HomeFeedView.swift:939-987`); banners → 活动列表 / 成为俱乐部 / (成为商家 merchant, gated). | No change needed. |
+| `d2-search` 示例内容 / Example content line under 筛选 | Honest offline-example marker (`reader.isOfflineExample`), false for the live reader. | Kept (not shown in production). |
+
 ## Not done / follow-ups
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
 - ~~活动列表 邀约 link hidden while loading / failed~~ — closed in continue 3.
@@ -218,3 +226,4 @@ Merged `origin/ui/combined-r7` first (clean). Build a250afd77 predates `66c41fe9
 - Needs a simulator pass: `d2-home-offline` now renders the per-rail failure + feed error states; `d2-search-results` now shows the result list.
 - Needs a simulator pass (continue 7): `rep3-activity-detail` with no footer bar and the plain hero; `d2-search-results` kind-icon covers; zh fixtures on `d2-home` / `wave-today-club`.
 - Needs a simulator pass (continue 8): `d2-home-offline` with the hero above the offline state; `d2-search-results` zh rows; `d2-search` without the test capsules.
+- Needs a simulator pass (continue 9): `rep3-activity-detail` and `d2-search(-results)` without fixture/synthetic names.

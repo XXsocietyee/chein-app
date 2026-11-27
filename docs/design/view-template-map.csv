@@ -725,6 +725,7 @@ App/DesignFixtures/E5bFixtures.swift,E5bBadgeWallFixture,unmapped,unmapped,—,C
 App/DesignFixtures/E5bFixtures.swift,E5bJoinFixture,unmapped,unmapped,—,—,—,—,—,"Design fixture, not a shipped page."
 App/DesignFixtures/E5bFixtures.swift,A11yRoamAX5Fixture,unmapped,unmapped,—,"CYGlassLabel, CYGoLabel, CYMapPlaceholder, CYMapScaffold","CYColor.textPrimary, CYColor.textSecondary","CYTypography.bodyMedium.weight(.semibold), .system(.largeTitle).weight(.heavy)",—,"Design fixture, not a shipped page."
 App/DesignFixtures/E5bFixtures.swift,A11yPassportAX5Fixture,unmapped,unmapped,—,—,—,—,—,"Design fixture, not a shipped page."
+App/DesignFixtures/E5bFixtures.swift,A11yBadgesAX5Fixture,unmapped,unmapped,—,—,—,—,—,"Design fixture, not a shipped page."
 App/DesignFixtures/E5cFixtures.swift,E5cTabsFixture,unmapped,unmapped,—,"CYCoverArt, CYDomainTabLabel",—,"CYTypography.cardTitle, CYTypography.meta",12,"Design fixture, not a shipped page."
 App/DesignFixtures/GParityFixtures.swift,GParityHost,unmapped,unmapped,—,—,—,—,—,"Design fixture, not a shipped page."
 App/DesignFixtures/GParityFixtures.swift,GParityPublishBody,unmapped,unmapped,—,—,—,—,—,"Design fixture, not a shipped page."

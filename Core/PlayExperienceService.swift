@@ -312,9 +312,9 @@ public struct PlayExperienceService {
             ("check/settle", .journeyChecks), ("egg/collect", .journeyEggCollection),
             ("journey/ask", .journeyAsks), ("journey/opening/complete", .journeyOpening)
         ]
-        // NPC dialogue is a journey ask that lives under the AI namespace (h-sys-ainpc); same binding rules.
+        // NPC dialogue is a journey ask on the MP chat route (`cy-npc-chat` roam track); same binding rules.
         let journeyRoutes: [(String, PlayExperienceCapability)] = playJourneyRoutes.map { ("api/play/" + $0.0, $0.1) }
-            + [("api/ai/npc/dialogue", PlayExperienceCapability.journeyAsks)]
+            + [("api/ai/npc/chat", PlayExperienceCapability.journeyAsks)]
         let journeyCapability = journeyRoutes.first {
             configuration.baseURL.appendingPathComponent($0.0) == route.url
         }?.1

@@ -86,7 +86,7 @@ enum ClubFEReferenceMoneyWriteGate {
             Group {
                 switch phase {
                 case .loading:
-                    Section { ProgressView().frame(maxWidth: .infinity) }
+                    Section { CYLoadingState() }
                 case .failed:
                     Section {
                         // CLB-r9-native-03: system failure state.

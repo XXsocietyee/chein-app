@@ -186,7 +186,7 @@ struct ProjectStoryImagePreparedReferences: View {
                 }
                 if flow.state == .failed { Text(text("projectStoryImage.failed", "The local record could not be verified. Existing story references remain available.")) }
                 if flow.state == .unauthorized { Text(text("projectStoryImage.unauthorized", "Sign in again before uploading another story image. The unresolved attempt is retained.")) }
-                if flow.state == .uploading { ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("projectStoryImage.busy") }
+                if flow.state == .uploading { CYLoadingState(messageIdentifier: "projectStoryImage.busy") }
             }
             .navigationTitle(flow.target.isAlbumAppend ? Text("projectAlbumImage.title", tableName: "ProjectAlbumImageAuthor") : Text(text("projectStoryImage.title", "Story image"))).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) {
