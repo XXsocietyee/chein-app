@@ -327418,6 +327418,23 @@
         }
       }
     },
+    "clubR11.customer.cancelEditA11y": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel editing tags and remark"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消编辑标签与备注"
+          }
+        }
+      }
+    },
     "playx.backpack.zeroSync": {
       "extractionState": "manual",
       "localizations": {

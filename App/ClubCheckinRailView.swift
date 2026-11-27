@@ -45,14 +45,20 @@ struct ClubCheckinRailView: View {
     /// CLB-checkin-detail-04 (fix-r3-club-b): the MP rail sits under the order card with no section title.
     private var railSection: some View {
         Section {
+            // mp-club r3 (MP checkin-detail wxml:67-75): a refunded order is the unlit rail with no extra line; the
+            // header status already reads 已退款. VoiceOver still hears why nothing is lit.
             if typeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: CYSpacing.md) {
                     ForEach(rail.stops) { stopView($0, fills: false) }
                 }
+                .accessibilityElement(children: .contain)
+                .accessibilityHint(rail.refunded ? Text("club.checkin.rail.refunded") : Text(verbatim: ""))
             } else {
                 HStack(alignment: .top, spacing: CYSpacing.sm) {
                     ForEach(rail.stops) { stopView($0, fills: true) }
                 }
+                .accessibilityElement(children: .contain)
+                .accessibilityHint(rail.refunded ? Text("club.checkin.rail.refunded") : Text(verbatim: ""))
             }
             if let sessionTime = rail.sessionTimeText {
                 Text(verbatim: LocaleDisplay.civil(sessionTime, locale: locale))
@@ -69,13 +75,6 @@ struct ClubCheckinRailView: View {
                     .monospacedDigit()
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("club.checkin.rail.statusTime")
-            }
-            if rail.refunded {
-                Label("club.checkin.rail.refunded", systemImage: "arrow.uturn.backward")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityIdentifier("club.checkin.rail.refundedNote")
             }
         }
     }

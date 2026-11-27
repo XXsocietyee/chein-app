@@ -8,6 +8,25 @@ struct ClubName: View {
     }
 }
 
+/// Shared club list thumbnail (club home rows and the club directory): logo or cover over the system fill,
+/// a person.3 glyph while the image loads or when there is none. One size and radius for every club list.
+struct ClubRowThumbnail: View {
+    let url: URL?
+
+    var body: some View {
+        ZStack {
+            Image(systemName: "person.3.fill").foregroundStyle(.secondary)
+            if let url {
+                PlayerFeedRemoteImage(url: url, maxPixel: 168, placeholder: { Color.clear }, failure: { Color.clear })
+            }
+        }
+        .frame(width: 48, height: 48)
+        .background(.fill.tertiary)
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .accessibilityHidden(true)
+    }
+}
+
 /// Member-count grammar follows the selected UI locale, without changing source counts.
 /// Both supported languages share the exactly-one selection; their words remain in the catalog.
 enum ClubMemberCountLocalization {

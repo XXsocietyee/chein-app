@@ -100,7 +100,7 @@ class ClubLeaderboardMemberNavigationTests(unittest.TestCase):
             # fix-r3-club-b: this span also holds the notify retry footnote (CLB-notify-09/-10) and the check-in
             # error-phase guard (CLB-checkin-detail-03); the customer rows inside it are unchanged. Round 4: the customer
             # 编辑 button keeps 编辑标签与备注 as its VoiceOver label.
-            ('        } else if operation == .customer {', '        } else {\n            if operation == .customers {', '0ceaf7a18cc0a860e1a9e7d995e0d9c1865ae36d7d8607677628e4f969e1f9a1'),  # native-r2 club round 2: only the paid-amount font token dropped; fix-r11 club-a CLB-customer-detail-04 (MP customer-detail/index.wxml:83-118): the 编辑 button became the inline editor (customerInlineEditor)
+            ('        } else if operation == .customer {', '        } else {\n            if operation == .customers {', 'd8bac386687d6c109f8b27c26265038e911ee388293c68523d068756b0376a47'),  # mp-club r3 pass 2 (MP customer-detail wxml:82-99): the inline editor now owns the 标签与备注 section (editSection, rows passed in) so its heading reads 编辑标签与备注 + 取消; was 0ceaf7a1. native-r2 club round 2: only the paid-amount font token dropped; fix-r11 club-a CLB-customer-detail-04 (MP customer-detail/index.wxml:83-118): the 编辑 button became the inline editor (customerInlineEditor)
             ('/// P044 keyword-only scheduling.', '/// Mount independently of legacy', 'f9fa4c8b1a6654e0e65a6a3b11f2676cfc949f38d22e029c29676c98f35ea6b4'),  # native-r2 club round 2: adds only the ClubCustomerKeywordSearch modifier (bar search, explicit submit)
         ]
         for start, end, expected in spans:
