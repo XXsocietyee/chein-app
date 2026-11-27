@@ -61,6 +61,8 @@ struct PassportBadge: Identifiable, Equatable {
     var onOpenTickets: () -> Void
     /// False when the host already shows 票夹 (the identity card's pill): one entry per destination on the page.
     var showsTicketsAction = true
+    /// False drops the Wallet / Messages capsule row (the 我的 page has both elsewhere: 我的资产 and the toolbar).
+    var showsActions = true
     var onOpenWallet: () -> Void
     var onOpenMessages: () -> Void
     /// Stamp collection and badge rail each get one tap to their existing list (history / growth center); nil = static.
@@ -100,7 +102,7 @@ struct PassportBadge: Identifiable, Equatable {
             case .ready:
                 EmptyView()
             }
-            PassportOverviewContent(stampCount: stampCount, thumbnails: thumbnails, badges: badges, badgeTotal: badgeTotal, onOpenTickets: onOpenTickets, showsTicketsAction: showsTicketsAction, onOpenWallet: onOpenWallet, onOpenMessages: onOpenMessages, onOpenStamps: onOpenStamps, onOpenBadges: onOpenBadges)
+            PassportOverviewContent(stampCount: stampCount, thumbnails: thumbnails, badges: badges, badgeTotal: badgeTotal, onOpenTickets: onOpenTickets, showsTicketsAction: showsTicketsAction, showsActions: showsActions, onOpenWallet: onOpenWallet, onOpenMessages: onOpenMessages, onOpenStamps: onOpenStamps, onOpenBadges: onOpenBadges)
                 .motionR2LoadIn(loading: stampPhase == .loading && stampCount == nil) // motion r2 R17: skeleton → fade in
         }
         .task(id: LoadKey(stamps: ObjectIdentifier(reader), album: album.map { ObjectIdentifier($0) },
@@ -200,6 +202,7 @@ private struct PassportRollingCount: View {
     var badgeTotal: Int? = nil
     var onOpenTickets: () -> Void = {}
     var showsTicketsAction = true
+    var showsActions = true
     var onOpenWallet: () -> Void = {}
     var onOpenMessages: () -> Void = {}
     var onOpenStamps: (() -> Void)? = nil
@@ -209,7 +212,7 @@ private struct PassportRollingCount: View {
 
     var body: some View {
         Group {
-            actions
+            if showsActions { actions }
             stamps
             if badges?.isEmpty != true { badgeRail }
         }

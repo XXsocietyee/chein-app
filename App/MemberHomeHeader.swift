@@ -93,12 +93,15 @@ import SwiftUI
             // sent a balance). Unknown 积分 reads "—", never 0.
             assets
             // The three counters (好友 / 关注 / 粉丝) as one row of plain columns.
-            HStack(spacing: 0) {
-                statCell(snapshot?.friendCountText, id: "friends", key: "member.card.friends")
-                Divider()
-                statCell(snapshot?.followCountText, id: "following", key: "member.card.following")
-                Divider()
-                statCell(snapshot?.fansCountText, id: "fans", key: "member.card.fans")
+            // mp-mine r3 (MP cy-profile wxml:109, 1121 N5): one's own page hides the row while all three are a known 0.
+            if showsCounters {
+                HStack(spacing: 0) {
+                    statCell(snapshot?.friendCountText, id: "friends", key: "member.card.friends")
+                    Divider()
+                    statCell(snapshot?.followCountText, id: "following", key: "member.card.following")
+                    Divider()
+                    statCell(snapshot?.fansCountText, id: "fans", key: "member.card.fans")
+                }
             }
             // Mini-program member header: one full-width 票夹 button under the counters.
             if let onOpenTickets {
@@ -120,6 +123,12 @@ import SwiftUI
     private struct TaskKey: Equatable { let scope: UUID; let refresh: Int; let active: Bool }
 
     private var snapshot: MemberIdentitySnapshot? { if case .ready(let value) = phase { return value }; return nil }
+    /// Unknown counters keep the row (em dashes); only three known zeros hide it, as the MP does.
+    private var showsCounters: Bool {
+        guard let value = snapshot else { return true }
+        let zero = MemberHomeCountFact.value(0)
+        return !(value.friendCountFact == zero && value.followCountFact == zero && value.fansCountFact == zero)
+    }
 
     /// Growth or the identity snapshot when present. A failed read keeps the signed-in account level.
     /// Anything still unknown is an em dash, never a made-up zero.
