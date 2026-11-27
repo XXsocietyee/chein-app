@@ -66,7 +66,7 @@ import SwiftUI
                 if phase != .active {
                     CYEmptyState(systemImage: "lock", LocalizedStringKey(stringLiteral: zh ? "已隐藏私密正文" : "Private content hidden"))
                 } else if reader.loading {
-                    CYSkeleton().accessibilityLabel(Text("cy.state.loading"))
+                    CYSkeleton(label: "cy.state.loading")
                 } else if let value = reader.content, reader.available {
                     identity(value)
                     protected(value)

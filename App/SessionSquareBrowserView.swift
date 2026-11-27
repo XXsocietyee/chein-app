@@ -3,7 +3,7 @@ import SwiftUI
 /// Session publisher tears down every private Square destination on account/epoch change.
 @MainActor struct SessionSquareBrowserView: View {
     @ObservedObject var session: AppSession
-    let onClose: () -> Void
+    let onClose: (() -> Void)?
     let onSignIn: () -> Void
     var body: some View {
         SquareBrowserView(reader: session.squareReader, accountReader: session.socialAccountReader,

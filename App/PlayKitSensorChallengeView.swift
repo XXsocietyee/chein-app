@@ -50,7 +50,7 @@ import UIKit
             Text(LocalizedStringKey("playkit.sensor.phase." + stage.phase.rawValue))
                 .cyText(.cardTitle).accessibilityIdentifier("playkit.sensor.phase")
             if stage.phase == .calibrating {
-                CYSkeleton().accessibilityLabel(Text("playkit.sensor.calibrating"))
+                CYSkeleton(label: "playkit.sensor.calibrating")
                 Text(LocalizedStringKey(kind == .ballShake ? "playkit.ball.calibration" : "playkit.audio.calibration"))
             }
             if stage.phase == .measured {

@@ -326,7 +326,8 @@ import SwiftUI
             }
             .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.7), value: post.isLiked)
             .tint(post.isLiked == 1 ? .red : .primary)
-            .accessibilityLabel(post.likeCount.map { Text("square.xcx.likesA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark)).accessibilityAddTraits(post.isLiked == 1 ? .isSelected : []).accessibilityIdentifier("square.detail.like")
+            .accessibilityLabel(Text(post.isLiked == 1 ? LocalizedStringKey("square.unlike") : LocalizedStringKey("square.like")))
+            .accessibilityValue(post.likeCount.map { Text("square.xcx.likesA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark)).accessibilityAddTraits(post.isLiked == 1 ? .isSelected : []).accessibilityIdentifier("square.detail.like")
             if post.viewerCanComment {
                 Button { editor = .init(purpose: .comment, target: .post(post.id), text: "") } label: {
                     Label { Text(verbatim: SquareCountDisplay.text(post.commentCount)) } icon: { Image(systemName: "bubble.right") }
@@ -908,6 +909,7 @@ struct SquareDetailMedalPill: View {
     let gold: Int?
     let silver: Int?
     let bronze: Int?
+    @ScaledMetric(relativeTo: .subheadline) private var medalHeight: CGFloat = 20
     var body: some View {
         let g = gold ?? 0, s = silver ?? 0, b = bronze ?? 0
         if g > 0 || s > 0 || b > 0 {
@@ -919,7 +921,7 @@ struct SquareDetailMedalPill: View {
                     if s > 0 { MPAsset.BadgeMedal.medalSilver.resizable().scaledToFit() }
                     if b > 0 { MPAsset.BadgeMedal.medalBronze.resizable().scaledToFit() }
                 }
-                .frame(height: 20)
+                .frame(height: min(medalHeight, 40))
                 .accessibilityHidden(true)
             }
             .font(.subheadline)

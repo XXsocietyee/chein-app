@@ -123,7 +123,7 @@ struct RoamCreatedStampReadOwner: Hashable {
         let refresh = presentation.readAction(refresh: true), next = presentation.readAction()
         switch lookup.phase {
         case .idle, .loading:
-            CYSkeleton().accessibilityLabel(Text("roam.loading"))
+            CYSkeleton(label: "roam.loading")
         case .found:
             if let stamp = lookup.stamp, album.reader.isConfigured {
                 RoamStampCard(stamp: stamp, offline: album.reader.isOfflineExample)

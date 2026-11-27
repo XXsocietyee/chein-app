@@ -29,6 +29,10 @@ struct CYDomainPalette {
     private var forcedDark: Bool? { domain.forcedColorScheme.map { $0 == .dark } }
     /// Follows the system appearance and uses the system accent, like Apple's own apps.
     var followsSystem: Bool { forcedDark == nil }
+    /// System accent as a concrete colour. `.accentColor` resolves through the view's tint, and the app root sets
+    /// `.tint(CYColor.brand)` (= this value), so a bar button image resolving it recursed until the stack overflowed
+    /// (d4-badges / d4-stamps crash, 11-27). No AccentColor asset exists, so the system accent is systemBlue.
+    static let systemAccent = Color(uiColor: .systemBlue)
     /// Play runtime overlays `.theme-game` tokens onto the player dark stage rather than light gray merchant chrome.
     private var surfaceDomain: ThemeDomain { domain == .game ? .player : domain }
 
@@ -196,15 +200,15 @@ struct CYDomainPalette {
 
     /// `--cy-color-brand`: `#F8F8F8` (player) / `#33363C` (merchant).
     /// This is also the primary CTA fill. Merchant does not use `--cy-color-action-primary-bg` (`#000000`).
-    var brand: Color { followsSystem ? .accentColor : token("--cy-color-brand", dark: CYRGB(hex: 0xF8F8F8), light: CYRGB(hex: 0x33363C)) }
+    var brand: Color { followsSystem ? Self.systemAccent : token("--cy-color-brand", dark: CYRGB(hex: 0xF8F8F8), light: CYRGB(hex: 0x33363C)) }
     /// `--cy-color-brand-strong`: pressed brand (`#B7B7B7` / `#33363C`).
-    var brandStrong: Color { followsSystem ? .accentColor : token("--cy-color-brand-strong", dark: CYRGB(hex: 0xB7B7B7), light: CYRGB(hex: 0x33363C)) }
+    var brandStrong: Color { followsSystem ? Self.systemAccent : token("--cy-color-brand-strong", dark: CYRGB(hex: 0xB7B7B7), light: CYRGB(hex: 0x33363C)) }
     /// `--cy-color-brand-soft`: `rgba(248,248,248,.12)` / `#EAEBEE`.
     var brandSoft: Color { token("--cy-color-brand-soft", dark: CYRGB(hex: 0xF8F8F8, alpha: 0.12), light: CYRGB(hex: 0xEAEBEE)) }
     /// `--cy-color-selection`: same pair as brand (`#F8F8F8` / `#33363C`).
-    var selection: Color { followsSystem ? .accentColor : token("--cy-color-selection", dark: CYRGB(hex: 0xF8F8F8), light: CYRGB(hex: 0x33363C)) }
+    var selection: Color { followsSystem ? Self.systemAccent : token("--cy-color-selection", dark: CYRGB(hex: 0xF8F8F8), light: CYRGB(hex: 0x33363C)) }
     /// `--cy-color-action-primary-bg`: `#F8F8F8` / `#000000`.
-    var actionPrimaryBg: Color { followsSystem ? .accentColor : token("--cy-color-action-primary-bg", dark: CYRGB(hex: 0xF8F8F8), light: CYRGB(hex: 0x000000)) }
+    var actionPrimaryBg: Color { followsSystem ? Self.systemAccent : token("--cy-color-action-primary-bg", dark: CYRGB(hex: 0xF8F8F8), light: CYRGB(hex: 0x000000)) }
     /// `--cy-color-action-primary-fg`: `#0A0A0A` / `#FFFFFF`.
     var actionPrimaryFg: Color { followsSystem ? .white : token("--cy-color-action-primary-fg", dark: CYRGB(hex: 0x0A0A0A), light: CYRGB(hex: 0xFFFFFF)) }
     /// `--cy-color-action-secondary-bg`: `rgba(255,255,255,.08)` / `#EEEEEE`.
@@ -317,7 +321,7 @@ struct CYDomainPalette {
     /// Selected tab icon/label tint. Neutral since the design hand-off r1 (owner ruling, PL-01): the selected tab is the
     /// primary ink at full opacity (white on the player bar, black on the merchant bar); unselected items stay at 60%.
     /// The MP tab ink (`#F8F8F8` / `#000000`), kept as the brand selected state while body text moves to `label`.
-    var tabSelectedTint: Color { followsSystem ? .accentColor : token("--cy-color-text-primary", dark: CYRGB(hex: 0xF8F8F8), light: CYRGB(hex: 0x000000)) }
+    var tabSelectedTint: Color { followsSystem ? Self.systemAccent : token("--cy-color-text-primary", dark: CYRGB(hex: 0xF8F8F8), light: CYRGB(hex: 0x000000)) }
     /// Selected tab capsule behind the icon and label: ink at 12% (PL-01; was a violet pill, then a blank white one).
     var tabSelectedCapsule: Color { tabSelectedTint.opacity(0.12) }
     /// Profile hero avatar ring (`--cy-comp-profile-avatar-ring` `#7A5CFF`).

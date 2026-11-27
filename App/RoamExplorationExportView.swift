@@ -376,7 +376,7 @@ private struct RoamExportFileSaveLink: View {
         }
         Section {
             if model.phase == .reading {
-                CYSkeleton().accessibilityLabel(Text("roam.export.reading")).accessibilityIdentifier("roam.export.reading")
+                CYSkeleton(label: "roam.export.reading").accessibilityIdentifier("roam.export.reading")
             } else if model.phase != .complete {
                 CYPillButton(LocalizedStringKey(model.read > 0 ? "roam.export.readNext" : "roam.export.startReading")) { owner.readNext() }
                     .listRowBackground(Color.clear)

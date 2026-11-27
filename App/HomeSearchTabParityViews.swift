@@ -181,13 +181,10 @@ struct HomeHeroHeaderSectionView: View {
 
     @ViewBuilder private var cityControl: some View {
         if let onSelectCity {
+            // MP `cy-dropdown range="{{manualCityOptions}}"` (utils/index/home-city-location.js CITY_OPTIONS): the 20 cities
+            // in MP order, no 全国 entry (the old 全国 item was a no-op: the host ignores nationwide).
             Menu {
-                Button {
-                    onSelectCity(nil, true)
-                } label: {
-                    Text(verbatim: cityText(HomeIndexParityPresentation.citySelectorLabel(selectedCity: nil, isNationwide: true, locale: locale)))
-                }
-                ForEach(HomeCitySwitchState.defaultSupportedCities, id: \.self) { city in
+                ForEach(HomeHeroCityNames.manualOptions, id: \.self) { city in
                     Button {
                         onSelectCity(city, false)
                     } label: {
@@ -219,7 +216,9 @@ struct HomeHeroHeaderSectionView: View {
     /// shows 上海 for "Shanghai" and English shows Shanghai for 上海.
     private func cityText(_ name: String) -> String {
         let copy = CoreLoopCopy(locale: locale)
-        guard copy.isChinese else { return copy.tr(name) }
+        guard copy.isChinese else {
+            return HomeHeroCityNames.english[name.trimmingCharacters(in: .whitespacesAndNewlines)] ?? copy.tr(name)
+        }
         return HomeHeroCityNames.chinese[name.trimmingCharacters(in: .whitespacesAndNewlines)] ?? name
     }
 }
@@ -230,7 +229,24 @@ enum HomeHeroCityNames {
         "Shanghai": "上海", "Beijing": "北京", "Hangzhou": "杭州",
         "Shenzhen": "深圳", "Guangzhou": "广州", "Chengdu": "成都",
         "Nationwide": "全国", "Select City": "选择城市",
+        "Chongqing": "重庆", "Wuhan": "武汉", "Xi'an": "西安", "Nanjing": "南京", "Suzhou": "苏州",
+        "Tianjin": "天津", "Changsha": "长沙", "Zhengzhou": "郑州", "Qingdao": "青岛", "Xiamen": "厦门",
+        "Kunming": "昆明", "Shenyang": "沈阳", "Jinan": "济南", "Hefei": "合肥",
     ]
+    /// MP `homeCity.CITY_OPTIONS`, same order, without the 市 suffix (the row reads 上海, as the located city does).
+    static let manualOptions: [String] = [
+        "北京", "上海", "广州", "深圳", "杭州", "成都", "重庆", "武汉", "西安", "南京",
+        "苏州", "天津", "长沙", "郑州", "青岛", "厦门", "昆明", "沈阳", "济南", "合肥",
+    ]
+    /// Chinese → English for the menu and the row in the English UI (also accepts the 市 spelling).
+    static let english: [String: String] = {
+        var map: [String: String] = [:]
+        for (en, zh) in chinese where zh != "全国" && zh != "选择城市" {
+            map[zh] = en
+            map[zh + "市"] = en
+        }
+        return map
+    }()
 }
 
 /// Round account avatar trailing the Home greeting row (MP `v3-avatar`; opens 我的).

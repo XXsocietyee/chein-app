@@ -598,13 +598,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "俱乐部主页、帖子和未开始的活动都会关闭。"
+            "value": "全部成员会被移出俱乐部，同时失去群聊入口"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The club page, posts and upcoming events all close."
+            "value": "Every member is removed from the club and loses the group chat."
           }
         }
       }
@@ -614,13 +614,29 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "所有成员会收到通知，解散后不能恢复。"
+            "value": "俱乐部名下的活动与会员权益一并下架；已报名的不会自动取消，也不会自动退款"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Every member is notified. A dissolved club can't be restored."
+            "value": "The club’s events and member perks are taken down. Existing sign-ups aren’t cancelled or refunded automatically."
+          }
+        }
+      }
+    },
+    "r3club.consequence.dissolve.line3": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作不可撤销，解散后无法恢复这个俱乐部"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This can’t be undone. A dissolved club can’t be restored."
           }
         }
       }
