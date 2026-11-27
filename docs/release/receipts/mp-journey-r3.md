@@ -71,7 +71,7 @@ files; `mp/r3-mine` only gated 查看报名凭证 in `PlayerJourneyViews` (not o
 
 ## Not done (next pass)
 
-- **next run first:** stage-shell 限时 bar needs an owner call (see its row). Stopwatch leftovers: rewardNote, 还有 N 次机会, 再来一局 / 暂停 (see its row).
+- **next run first:** remaining playkit kits one per row, simplest first: `playkit-diceroll`, `playkit-random`, `playkit-predict`, `playkit-ballshake`, `playkit-quiethold`, `playkit-shout`, `playkit-compass`, `playkit-steps`, `playkit-walk`, `playkit-timewindow`, `playkit-slowtask`, then the answer kits (`qa`, `hangman`, `estimate`, `sort`, `match`, `classify`, `compare`, `pricepair`, `hidden`, `branch`, `bingo`) and the 预制人生 kits (`profile`, `photocheck`, `note`, `diyname`, …). Stage-shell 限时 bar needs an owner call (see its row). Stopwatch leftovers: rewardNote, 还有 N 次机会, 再来一局 / 暂停 (see its row).
 - 本局线索 (`gameModule`) is the STORY / club session projection (`gameModule.enabled` is false for ROUTE runs, MP
   `_loadPlayerGameModule`); it belongs to the story-flow theme, out of scope this round. No native row.
 - 旅程手记 `journeyAttributes` rows (branch-route attributes) and branch-graph ordering: Core does not decode
