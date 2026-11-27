@@ -19,6 +19,8 @@ import SwiftUI
     /// Bump from the owning screen's pull-to-refresh to reload identity and growth together.
     var refreshToken: Int = 0
     var avatarAccess: MemberIdentityAvatarAccess? = nil
+    /// mp-mine r3: hands the ready `/api/user/info` snapshot to the 关于 tab (MP reads one userInfo for both). Nil = not needed.
+    var onSnapshot: ((MemberIdentitySnapshot?) -> Void)? = nil
     @State private var readOwner = MemberIdentityCardReadOwner()
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dynamicTypeSize) private var typeSize
@@ -119,6 +121,7 @@ import SwiftUI
         .task(id: TaskKey(scope: reader.scope, refresh: refreshToken, active: scenePhase == .active)) { await load() }
         .onDisappear { readOwner.disappear() }
         .onChange(of: scenePhase) { _, value in readOwner.scene(active: value == .active) }
+        .onChange(of: phase, initial: true) { _, _ in onSnapshot?(snapshot) }
     }
     private struct TaskKey: Equatable { let scope: UUID; let refresh: Int; let active: Bool }
 
@@ -418,6 +421,43 @@ import SwiftUI
               let data = root["data"] as? [String: Any],
               let encoded = try? JSONSerialization.data(withJSONObject: data) else { return nil }
         return try? JSONDecoder().decode(MemberIdentitySnapshot.self, from: encoded)
+    }
+}
+
+/// mp-mine r3: MP cy-profile 关于 (self, player) top-to-bottom — 个人介绍 with 编辑, 兴趣标签 (添加兴趣 when none),
+/// 加入时间 — from the identity card's own `/api/user/info` read (no second request). Nothing until that read is ready.
+@MainActor struct MemberAboutSection: View {
+    let snapshot: MemberIdentitySnapshot?
+    var onEdit: (() -> Void)? = nil
+    var body: some View {
+        if let snapshot {
+            Section("social.introduction") {
+                if snapshot.introduction.isEmpty { Text("social.noIntroduction").foregroundStyle(.secondary) }
+                else { Text(verbatim: snapshot.introduction).fixedSize(horizontal: false, vertical: true) }
+                if let onEdit {
+                    Button("profile.selfEdit.open", action: onEdit)
+                        .accessibilityIdentifier("member.about.editIntro")
+                }
+            }
+            Section("social.interests") {
+                ForEach(snapshot.interests, id: \.self) { item in
+                    Label { Text(verbatim: item) } icon: { Image(systemName: "tag") }
+                }
+                if snapshot.interests.isEmpty, let onEdit {
+                    // MP `pc-tag--add` 添加兴趣: straight to the route preferences in 个人资料.
+                    Button(action: onEdit) {
+                        Label { Text("member.about.addInterest") } icon: { Image(systemName: "plus") }
+                    }
+                    .accessibilityIdentifier("member.about.addInterest")
+                }
+            }
+            if let joinDate = snapshot.joinDate, !joinDate.isEmpty {
+                Section {
+                    LabeledContent("profile.about.joinDate") { Text(verbatim: joinDate).monospacedDigit() }
+                        .accessibilityIdentifier("member.about.joinDate")
+                }
+            }
+        }
     }
 }
 

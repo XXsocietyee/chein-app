@@ -335827,6 +335827,22 @@
           }
         }
       }
+    },
+    "member.about.addInterest": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add interests"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加兴趣"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

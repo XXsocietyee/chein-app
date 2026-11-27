@@ -17,6 +17,8 @@ import SwiftUI
     @State private var showsSettings=false
     /// mp-mine r3: MP cy-profile tab (`activeTab`); self opens on 我的 (projects), as the MP self view does.
     @State private var mineTab = AccountMineTab.mine
+    /// The identity card's ready user-info snapshot, shown on 关于 (MP reads one userInfo for the header and 关于).
+    @State private var aboutSnapshot: MemberIdentitySnapshot?
     @Environment(\.socialRoamCapabilities) private var socialRoamCapabilities
     /// MP profileTabs: 帖文 only when the community is readable (here: the square bundle is injected).
     private var mineTabs: [AccountMineTab] {
@@ -51,7 +53,8 @@ import SwiftUI
                                           // A1-04: the avatar opens 个人资料 (MP onAvatarTap); A1-09: 账户余额 opens the wallet.
                                           onEditProfile: { showsEditProfile = true },
                                           onOpenBalance: { showsPassportWallet = true },
-                                          refreshToken: memberRefreshToken, avatarAccess: session.memberIdentityAvatarAccess)
+                                          refreshToken: memberRefreshToken, avatarAccess: session.memberIdentityAvatarAccess,
+                                          onSnapshot: { aboutSnapshot = $0 })
                 // mp-mine r3: MP cy-profile tabs under the identity card — 我的 · 帖文 · 成就 · 关于 (index.js TAB_LABELS);
                 // a system segmented picker, as on the public profile (SocialPublicProfileView).
                 Section {
@@ -257,6 +260,7 @@ import SwiftUI
 
     /// MP 关于: profile and editing, then 探索与更多 (优惠券, 邀请), 当前权益, and the account rows MP keeps in 设置.
     @ViewBuilder private var aboutTabSections: some View {
+        MemberAboutSection(snapshot: aboutSnapshot, onEdit: { showsEditProfile = true })
         Section {
             NavigationLink { ProfilePublicInfoHost(reader: session.makeProfilePublicInfoReader(memberID: account.id)) { profileReader in
                 SocialPublicProfileView(memberID: account.id, reader: profileReader, squareReader: session.squareReader, actions: session.socialActionCoordinator, selfOrdersAccess: .init(session: session), selfProjectsAccess: .init(session: session), selfGrowthAccess: .init(reader: session.growthCenterReader, owner: session.socialAccountReader.identity), memberAttributesService: session.makeCityMonopolyService(), weeklyPointsAccess: .init(reader: PassMarketPointsBridge.statistics(for: session), owner: session.socialAccountReader.identity), personalToolsAccess: .init(owner: session.socialAccountReader.identity, wallet: session.walletHistoryReader, complaint: session.cooperationFlowReader), selfCouponAccess: .init(reader: session.profileOwnedCouponReader, owner: session.socialAccountReader.identity), selfObjectCardsAccess: .init(reader: session.objectCardReader, owner: session.socialAccountReader.identity), selfMedalsReader: session.profileReader, selfEditAccess: .init(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision, categoryReader: session, nicknameReader: session.profileNicknameReader, currentReviewReader: session.profileCurrentReviewReader, savedMedia: session.profileSavedMediaReaders, avatarDependencies: session.profileAvatarDependencies), localCoverOwner: localCoverOwner, isCurrent: { profileReader.isCurrent })
