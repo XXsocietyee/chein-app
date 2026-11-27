@@ -406,6 +406,9 @@ struct E3MonthGrid: View {
                 }
             }
         }
+        // a11y-dt r3: seven fixed day circles cannot grow to AX sizes without clipping the numbers (as in Calendar's
+        // month grid); the grid stops at xxxLarge and each day still speaks its full label to VoiceOver.
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
         .sensoryFeedback(.selection, trigger: selected)
     }
 }

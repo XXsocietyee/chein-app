@@ -34,16 +34,7 @@ extension PlayKitScreen {
     }
     @ViewBuilder private var blindTasteBody: some View {
         // Three numbered steps (collect, taste with eyes closed, answer); the full sentence stays for VoiceOver.
-        HStack(spacing: CYSpacing.xl) {
-            ForEach(Array(["playkitLegacy.blind.step1", "playkitLegacy.blind.step2", "playkitLegacy.blind.step3"].enumerated()), id: \.offset) { index, key in
-                VStack(spacing: CYSpacing.xs) {
-                    Text(verbatim: String(index + 1)).font(CYTypography.bodyMedium.italic()).monospacedDigit()
-                        .frame(width: 36, height: 36).background(Circle().fill(Color.primary.opacity(0.9)))
-                        .foregroundStyle(CYColor.bgSurface)
-                    Text(LocalizedStringKey(key)).cyText(.caption).foregroundStyle(.secondary)
-                }
-            }
-        }
+        PlayKitBlindSteps(keys: ["playkitLegacy.blind.step1", "playkitLegacy.blind.step2", "playkitLegacy.blind.step3"])
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text(verbatim: stepsSentence))
@@ -202,5 +193,30 @@ extension PlayKitScreen {
 struct PlayKitTrailingIconLabelStyle: LabelStyle {
     func makeBody(configuration: Configuration) -> some View {
         HStack(spacing: CYSpacing.xs) { configuration.title; configuration.icon }
+    }
+}
+
+/// a11y-dt r3: the blind-taste step numbers grow with Dynamic Type (no fixed 36 pt circle), and the three steps
+/// stack vertically when they no longer fit side by side (AX sizes, long English).
+private struct PlayKitBlindSteps: View {
+    let keys: [String]
+    @ScaledMetric(relativeTo: .body) private var badge: CGFloat = 36
+
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: CYSpacing.xl) { steps }
+            VStack(spacing: CYSpacing.md) { steps }
+        }
+    }
+
+    @ViewBuilder private var steps: some View {
+        ForEach(Array(keys.enumerated()), id: \.offset) { index, key in
+            VStack(spacing: CYSpacing.xs) {
+                Text(verbatim: String(index + 1)).font(CYTypography.bodyMedium.italic()).monospacedDigit()
+                    .frame(width: badge, height: badge).background(Circle().fill(Color.primary.opacity(0.9)))
+                    .foregroundStyle(CYColor.bgSurface)
+                Text(LocalizedStringKey(key)).cyText(.caption).foregroundStyle(.secondary)
+            }
+        }
     }
 }
