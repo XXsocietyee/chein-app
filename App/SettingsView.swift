@@ -264,7 +264,8 @@ struct SettingsView: View {
                     Text("notification.global.title", tableName: "NativeChannelNotification")
                 }
                 .environment(\.settingsTileTint, SettingsTint.red)
-                UsageConsentReadSettingsEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
+                // Backend contract 20:40: no 同意记录 row. The MP shezhi list has none and /api/compliance/usage-records is not
+                // served; the agreement on record is read through /api/compliance/consents/latest (registration, deregistration and checkout checks).
                 Section {
                     LabeledContent { Text(verbatim: SettingsHomePage.marketText(RegionalLaunchConfiguration.storefrontMarket ?? session.operationalMarket)).accessibilityIdentifier("region.market.value") } label: { Text("region.market") }
                 }
