@@ -1885,9 +1885,11 @@ struct ClubGovernanceReadView: View {
             // CLB-settlement-01: the same /settlement/summary carries F-16 sessions; show 各场次结算 here too.
             if let sessions = ClubSettlementSummaryView(governanceValue: value)?.sessions { ClubSettlementSessionsSection(sessions: sessions) }
             // WP-01: cy-club-direct-ledger and the owner's 个人收款 entry (mini-program openPayoutReceiver).
-            if let clubID = scope.clubID, clubID > 0 {
+            // mp-club r3 (MP settlement wxml:9): the direct ledger is the owner's only (`summary.isOwner`). The 已入账 card
+            // stays above the funds section because that section carries the withdraw button the MP puts under the card.
+            if let clubID = scope.clubID, clubID > 0, settlementSummary?.isOwner == true {
                 ClubDirectLedgerSection(scope: .club(clubID: clubID, topicID: nil))
-                if settlementSummary?.isOwner == true { ClubPayoutReceiverLink(clubID: clubID) }
+                ClubPayoutReceiverLink(clubID: clubID)
             }
             if let target = ClubOwnerFundsTarget(snapshot: snapshot, context: readContext) {
                 let sourceContext = readContext, sourceGeneration = snapshotGeneration, sourceNamespace = access.storageNamespace
@@ -2055,8 +2057,9 @@ struct ClubGovernanceReadView: View {
                     return nil
                 }()
                 if checkinPage.showsContent {
+                    // mp-club r3 (MP checkin-detail wxml:13-16): the server's errorText is the missing title / denied sub-line.
                     ClubCheckinRailView(rail: .init(railStep: value["railStep"], statusCode: value["statusCode"]), stateKind: checkinKind,
-                                        onReload: { Task { await load() } })
+                                        onReload: { Task { await load() } }, reason: failure?.message)
                 }
                 // CLB-checkin-detail-01: the entry follows server canRefund; dispatch stays behind the coordinator's TEST-only gate.
                 Section {

@@ -137,7 +137,8 @@ extension EnvironmentValues {
                     Button {
                         Task { await refreshVisible() }
                     } label: {
-                        Label("club.enroll.retry", systemImage: "arrow.clockwise")
+                        // mp-club r3 (MP enroll wxml:20): over a loaded roster the inline error's action is 重试更新.
+                        Label(reader.hasLoaded ? "club.enroll.retryUpdate" : "club.enroll.retry", systemImage: "arrow.clockwise")
                     }
                     .disabled(reader.loading)
                 }

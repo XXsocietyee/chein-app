@@ -335895,6 +335895,40 @@
           }
         }
       }
+    },
+    "club.enroll.retryUpdate": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try updating again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试更新"
+          }
+        }
+      }
+    },
+    "club.joinRequests.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading join requests"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载入会申请"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
