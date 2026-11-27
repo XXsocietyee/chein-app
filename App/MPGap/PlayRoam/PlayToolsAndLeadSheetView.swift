@@ -38,6 +38,9 @@ public struct PlayToolsAndLeadSheetView: View {
     /// mp-journey r3: MP mode-2 我的权益 (`merchantCount` 家 · 已核销 `merchantDoneCount` 家). Nil hides the row.
     public var rights: PlayToolsRights? = nil
     public var onRights: () -> Void = {}
+    /// mp-journey r3: MP mode 2 lists only 自动记录足迹, after 旅程手记, with its own copy. Non-nil switches to that row
+    /// (true = perk-only topic: 走过的路会记下来). Needs `locationOn`.
+    public var freeTrackPerkOnly: Bool? = nil
 
     public init(
         lead: PlayLeadToolsState = PlayLeadToolsState(),
@@ -66,8 +69,10 @@ public struct PlayToolsAndLeadSheetView: View {
         teamLead: PlayLeadProgress? = nil,
         journalRows: [PlayJournalRow]? = nil,
         rights: PlayToolsRights? = nil,
-        onRights: @escaping () -> Void = {}
+        onRights: @escaping () -> Void = {},
+        freeTrackPerkOnly: Bool? = nil
     ) {
+        self.freeTrackPerkOnly = freeTrackPerkOnly
         self.rights = rights
         self.onRights = onRights
         self.teamLead = teamLead
@@ -120,7 +125,7 @@ public struct PlayToolsAndLeadSheetView: View {
                     }
                 }
                 teamPositionSection
-                if let locationOn {
+                if let locationOn, freeTrackPerkOnly == nil {
                     // mp-journey r3 (MP pages/play/index.wxml 游玩工具, city orientation): 自动记录足迹, 到点提醒.
                     // Both follow the location permission; an off row reads dimmed and asks for location on tap.
                     Section {
@@ -158,6 +163,13 @@ public struct PlayToolsAndLeadSheetView: View {
                             }
                             .accessibilityIdentifier("playTools.journal")
                         }
+                    }
+                }
+                if let locationOn, let perkOnly = freeTrackPerkOnly {
+                    Section {
+                        locationRow("playTools.loc.track", on: locationOn,
+                                    detail: locationOn ? (perkOnly ? "playTools.loc.free.on.perk" : "playTools.loc.free.on") : "playTools.loc.free.off",
+                                    symbol: "point.topleft.down.to.point.bottomright.curvepath", identifier: "playTools.loc.track")
                     }
                 }
                 // MP pages/play/index.wxml 游玩工具 sheet: 背景音乐 / 到站自动播放 / 减少动态效果.
@@ -212,7 +224,7 @@ public struct PlayToolsAndLeadSheetView: View {
                                     Image(systemName: member.arrived ? "checkmark.circle.fill" : "circle")
                                         .foregroundStyle(member.arrived ? Color.green : Color.secondary)
                                 }
-                                .accessibilityValue(Text(member.arrived ? "playTools.team.arrived" : "playTools.team.notArrived"))
+                                .accessibilityValue(Text(LocalizedStringKey(member.arrived ? "playTools.team.arrived" : "playTools.team.notArrived")))
                             }
                         }
                     }

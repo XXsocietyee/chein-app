@@ -343780,6 +343780,57 @@
           }
         }
       }
+    },
+    "playTools.loc.free.on": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The way you walk is drawn onto the finish card"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "走过的路会画进通关卡"
+          }
+        }
+      }
+    },
+    "playTools.loc.free.on.perk": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The way you walk is kept"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "走过的路会记下来"
+          }
+        }
+      }
+    },
+    "playTools.loc.free.off": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location is off, so your way can't be drawn"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "定位没开，路画不出来"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
