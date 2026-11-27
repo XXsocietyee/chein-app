@@ -850,7 +850,15 @@ struct ClubCommunityPostTile: View {
         if typeSize.isAccessibilitySize {
             VStack(alignment: .leading, spacing: CYSpacing.sm, content: content)
         } else {
-            HStack(spacing: CYSpacing.md, content: content)
+            // en-layout r3: English "Like · Comments · Repost · Share" overflows 375 pt; keep one row, tighter, then icons only.
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: CYSpacing.md, content: content)
+                    .fixedSize(horizontal: true, vertical: false)
+                HStack(spacing: CYSpacing.sm, content: content)
+                    .fixedSize(horizontal: true, vertical: false)
+                HStack(spacing: CYSpacing.md, content: content)
+                    .labelStyle(.iconOnly)
+            }
         }
     }
     /// MP cy-post-card action bar: icon with the count beside it, the icon alone at 0 (`{{post.likeCount || ''}}`).

@@ -379,6 +379,59 @@ Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0
 |---|---|
 | Inline busy indicators inside buttons / rows (`if busy { ProgressView() }` next to a title, ~40 sites) | Different pattern (a small spinner beside the action's own title is the system idiom); next run decides one busy-button pattern per site. |
 
+## Continue run 13 (2026-11-27, after merging combined-r7 into 20b1cb37f)
+
+Merge clean (57 files from mp-nav / mp-roam / mp-states / mp-publish). No sweep row for this lane in the 21:20 sweep
+(no ds-consistency sheet in `docs/sweeps/latest`).
+
+Run 12 Not done row (busy indicators in buttons): ~40 `ProgressView()` sites beside a title. Most already keep their
+words (`HStack { ProgressView(); Text(busy words) }`, the system idiom). The inconsistent group: **10 button labels that
+swap their title for a bare spinner** while the action runs, so the button shrinks and the words vanish (P10). New shared
+`CYBusyLabel(busy:) { title }` in `App/DesignSystem/CYStates.swift` (small system `ProgressView` before the kept title).
+Content, order, conditions, `.disabled`, identifiers and VoiceOver labels unchanged.
+
+| MP page / area | Native view (file:line) | MP sections | Change |
+|---|---|---|---|
+| 发布 editor kit card primary | `App/EditorKitCards.swift:280` | unchanged | `if primaryBusy { ProgressView() } else { primaryTitle }` → `CYBusyLabel` |
+| 漫游 nearby / history 加载更多 | `App/MPGap/PlayRoam/NearbyAndHistoryGapViews.swift:178` | unchanged | same |
+| 俱乐部 customer tag/remark 保存 | `App/ClubCustomerInlineEditor.swift:50` | unchanged | same |
+| 我的 privacy · media 更早 | `App/SettingsPrivacyLocationView.swift:231` | unchanged | same |
+| play team help levels + trade preview | `App/PlayTeamBackpackView.swift:223, 343` | unchanged | same |
+| journey seat transfer 确认 | `App/JourneySeatTransferSheet.swift:74` | unchanged | same |
+| city orientation 到达打卡 | `App/NativeR2/CityOrientation/CityOrientationPunchSheet.swift:369` | unchanged | same |
+| native game submit bar | `App/NativeR2/Games/NativeGameShell.swift:227` | unchanged | same (G-006 comment updated) |
+| theme backpack zero-HP sync | `App/PlayThemeBackpackView.swift:494` | unchanged | same |
+
+Kept (system idiom, checker exempts): toolbar confirmation item that becomes a spinner (`TopicDetailView`,
+`TopicSelfSupplySheet`, `ObjectCardCategoryAndRenameSheets`); `LabeledContent` value spinner with the label kept
+(`RoamMapHomeSheet` 搜索地图); a row's trailing join button replaced by a spinner (`ClubHomeView`); placeholder image
+swap with its caption kept (`PlayGameStageViews`).
+
+New checker kind **busy swap**: `ProgressView()` followed by `} else {` (or the one-line `{ ProgressView() } else {`)
+with a `Button` / `label:` in the 4 lines above and no `ToolbarItem` / `LabeledContent`. Baseline 0. Self-test: the
+pre-fix tree fails in exactly the 9 files / 10 sites above.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS (busy swap 0, silent spinner 0, status capsule 29 baselined debt, 76 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
+### Not done (next run)
+| Item | Why not now |
+|---|---|
+| Busy-word verbs: the same state reads 正在提交… / 提交中… / 处理中 and Sending… / 正在提交… (en and zh name different verbs) across catalogs | Copy choice per screen (MP wording), shared with i18n-r3; next run maps each to its MP page before unifying. |
+
+### Batch 2 — one ellipsis, sentence case in busy words
+Player-visible busy / placeholder words used ASCII `...` next to the `…` used by 200+ strings, and one button said
+lowercase "processing". → `…` and sentence case; wording unchanged.
+
+| Area | File | Change |
+|---|---|---|
+| 套票 detail + order summary pay button | `App/BundleDetailView.swift:157`, `App/BundleOrderSummarySheet.swift:31` | 处理中 / processing → 处理中… / Processing… |
+| external game submit / launch buttons | `App/ExternalGameImportView.swift:568`, `App/PlayNodeDetailView.swift:159` | `...` → `…` (zh + en) |
+| play area join note placeholder | `App/PlayAreaPopupCloseSurfaces.swift:42` | en `...` → `…` |
+| catalogs | `Resources/Localizable.xcstrings` (map layers loading, scratch reveal, audio clip recording / uploading, review placeholder), `MapPublicLayers`, `PayoutReceiver` (检查支付服务…), `ClubOpsCustomer` (加载中… / Loading…) | 10 values `...` → `…` |
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS,
+`contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

@@ -55,13 +55,15 @@ struct MotionR2ScratchTiles: View {
             Text(verbatim: prize)
                 .font(.headline)
                 .multilineTextAlignment(.center)
+                .minimumScaleFactor(0.7)
                 .padding(6)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(.fill.tertiary, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                 .accessibilityHidden(true)
             if !isOpen { cover(index: index).transition(.opacity) }
         }
-        .frame(height: 96)
+        .frame(minHeight: 96)
+        .fixedSize(horizontal: false, vertical: true)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("motion2.scratch.tile \(index + 1)"))
         .accessibilityValue(isOpen ? Text(verbatim: prize) : Text("motion2.scratch.covered"))

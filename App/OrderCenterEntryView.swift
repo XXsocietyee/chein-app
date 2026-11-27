@@ -71,15 +71,23 @@ import QuestifyCore
                 if summary.kind == .registration, let detail = parity.orderDetail {
                     Section { NavigationLink { detail(summary.id) } label: { Text("orderCenter.openRegistration", tableName: "CreatorEditorUI") } }
                 } else {
+                    // MP order-center-entry card order: title → status → 金额 → 订单号 → 创建时间.
                     Section {
                         LabeledContent { Text(verbatim: summary.title) } label: { Text("orderCenter.title", tableName: "CreatorEditorUI") }
-                        LabeledContent { Text(verbatim: summary.orderNo) } label: { Text("orderCenter.orderNo", tableName: "CreatorEditorUI") }
                         LabeledContent { Text(verbatim: summary.statusText) } label: { Text("orderCenter.status", tableName: "CreatorEditorUI") }
-                        LabeledContent { Text(verbatim: summary.amountText).monospacedDigit() } label: { Text("orderCenter.amount", tableName: "CreatorEditorUI") }
+                        // MP order-center-entry wxml:9 `money.amount(summary.amountText)`: the amount carries ¥.
+                        LabeledContent { Text(verbatim: MemberBalanceDisplay.text(summary.amountText, locale: locale)).monospacedDigit() } label: { Text("orderCenter.amount", tableName: "CreatorEditorUI") }
+                        LabeledContent { Text(verbatim: summary.orderNo) } label: { Text("orderCenter.orderNo", tableName: "CreatorEditorUI") }
                         if let created = summary.createdAtText {
                             LabeledContent { Text(verbatim: LocaleDisplay.civil(created, locale: locale)) } label: { Text("orderCenter.created", tableName: "CreatorEditorUI") }
                         }
                     }.accessibilityIdentifier("orderCenter.summary")
+                    // MP `entry-button open-type="contact"` 联系客服 under the summary card.
+                    Section {
+                        NavigationLink { ParticipationSupportView() } label: {
+                            Label("participationSupport.title", systemImage: "message")
+                        }.accessibilityIdentifier("orderCenter.support")
+                    }
                 }
             }
         }

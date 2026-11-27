@@ -228,7 +228,7 @@ import SwiftUI
                         .accessibilityIdentifier("member.media.moreFailed")
                 } else if controller.nextCursor != nil {
                     Button { controller.more() } label: {
-                        if controller.loadingMore { ProgressView() } else { Text("member.media.older", tableName: "MemberProfile") }
+                        CYBusyLabel(busy: controller.loadingMore) { Text("member.media.older", tableName: "MemberProfile") }
                     }.disabled(!controller.canLoadMore).accessibilityLabel(Text("member.media.older", tableName: "MemberProfile")).accessibilityIdentifier("member.media.older")
                 }
             }

@@ -43,15 +43,15 @@ import Observation
                                 actions(model)
                             }
                         } else {
-                            CYEmptyState(systemImage: "figure.walk", "walking.error.unavailable")
-                                .accessibilityIdentifier("walking.unavailable")
                             if restoringDestination != nil {
                                 let offered = restoreReadGate.ticket
-                                Text("walking.saved.restoreUnavailable").cyText(.bodyCompact)
-                                    .fixedSize(horizontal: false, vertical: true)
-                                CYPillButton("walking.saved.retryRead", style: .secondary) { restoreSavedDestination(offered) }
+                                CYEmptyState(systemImage: "figure.walk", "walking.error.unavailable", detail: "walking.saved.restoreUnavailable",
+                                             actionTitle: "walking.saved.retryRead", kind: .failure) { restoreSavedDestination(offered) }
                                     .disabled(offered == nil || !factory.available)
-                                    .accessibilityIdentifier("walking.saved.retryRestore")
+                                    .accessibilityIdentifier("walking.unavailable")
+                            } else {
+                                CYEmptyState(systemImage: "figure.walk", "walking.error.unavailable")
+                                    .accessibilityIdentifier("walking.unavailable")
                             }
                         }
                     }

@@ -335,7 +335,7 @@ struct JourneyRankBoardView: View {
                     Text(verbatim: entry.rank.map(String.init) ?? MPText.unknown)
                         .cyText(.cardTitle).monospacedDigit()
                         .foregroundStyle((entry.rank ?? 99) <= 3 ? CYNight.lantern : CYColor.textSecondary)
-                        .frame(width: 32)
+                        .frame(minWidth: 32)
                     MPAvatar(url: entry.avatarURL, initial: String((entry.name ?? "").prefix(1)), size: 32)
                     (entry.name.map { Text(verbatim: $0) } ?? Text("mp.rank.player")).cyText(.bodyMedium).cyWrapText()
                     Spacer()

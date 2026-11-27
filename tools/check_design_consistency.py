@@ -67,6 +67,10 @@ and `#Preview { ... }` blocks; comments are ignored) and counts, per file:
   silent spinner  a bare `ProgressView()` stretched as the page / section loader (`.frame(maxWidth: .infinity` on the
                   same or the next line) outside App/DesignSystem: P10 "say what's happening in words, never a spinner alone".
                   Use `CYLoadingState(_:messageIdentifier:)` (system `ProgressView` with the MP loading words)
+  busy swap       a button label that swaps its title for a bare `ProgressView()` while the action runs
+                  (`if busy { ProgressView() } else { Text(title) }`): the button shrinks, the words vanish (P10).
+                  Use `CYBusyLabel(busy:) { title }` (small system spinner before the kept title). A toolbar
+                  confirmation item that becomes a spinner (`ToolbarItem` within 4 lines) is the system idiom, allowed
 
 Build-break guards (module-wide: App/ and Core/ compile into ONE module, so every file is scanned, merchant and
 fixtures included; there is no Swift compiler in the lanes' cloud sessions):
@@ -138,11 +142,17 @@ SILENT_SPINNER = 'silent spinner'
 SILENT_SPINNER_PATTERN = re.compile(r'^\s*ProgressView\(\)\s*$')
 SILENT_SPINNER_FRAME = re.compile(r'^\s*\.frame\(maxWidth:\s*\.infinity')
 SILENT_SPINNER_INLINE = re.compile(r'\bProgressView\(\)\s*\.frame\(maxWidth:\s*\.infinity')
+BUSY_SWAP = 'busy swap'
+# One busy-button pattern: `CYBusyLabel` keeps the title beside a small spinner; a label never becomes a bare spinner.
+BUSY_SWAP_ONE_LINE = re.compile(r'\{\s*ProgressView\(\)(?:\s*\.controlSize\([^)]*\))?\s*\}\s*else\s*\{')
+BUSY_SWAP_ELSE = re.compile(r'^\s*\}\s*else\s*\{')
+BUSY_SWAP_BUTTON = re.compile(r'\blabel:|\bButton\b[^{]*\{\s*$|\bButton\s*\{')
+BUSY_SWAP_EXEMPT = re.compile(r'\bToolbarItem\b|\bLabeledContent\b')
 DUPLICATE_TYPE = 'duplicate type'
 UNDECLARED_STATE = 'undeclared state'
 KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, CUSTOM_BACK, BUTTON_STYLE, POPUP_SCRIM,
          RAW_COLOUR, LIST_STYLE, CUSTOM_SHEET, CUSTOM_TABS, FONT_DESIGN, CUSTOM_SEARCH, TEXT_ON_ART, RAW_SEGMENTED,
-         LEADING_ACTION, DONE_LEADING, RAW_RADIUS, LINE_SPACING, STATUS_CAPSULE, SILENT_SPINNER, DUPLICATE_TYPE,
+         LEADING_ACTION, DONE_LEADING, RAW_RADIUS, LINE_SPACING, STATUS_CAPSULE, SILENT_SPINNER, BUSY_SWAP, DUPLICATE_TYPE,
          UNDECLARED_STATE)
 
 # The five player tab roots (Core/RootTab.swift, QuestifyApp root TabView) and the files that own their title.
@@ -343,6 +353,12 @@ def scan_file(rel, text):
             if (SILENT_SPINNER_PATTERN.match(code) and index + 1 < len(lines) and SILENT_SPINNER_FRAME.match(lines[index + 1][1])) \
                     or SILENT_SPINNER_INLINE.search(code):
                 hits.append((number, SILENT_SPINNER, code.strip()))
+            swap = BUSY_SWAP_ONE_LINE.search(code) or (SILENT_SPINNER_PATTERN.match(code) and index + 1 < len(lines)
+                                                       and BUSY_SWAP_ELSE.match(lines[index + 1][1]))
+            if swap:
+                window = [c for _, c in lines[max(0, index - 4):index + 1]]
+                if any(BUSY_SWAP_BUTTON.search(c) for c in window) and not any(BUSY_SWAP_EXEMPT.search(c) for c in window):
+                    hits.append((number, BUSY_SWAP, code.strip()))
         for index, (number, code) in enumerate(lines):
             if not LEADING_PLACEMENT.search(code):
                 continue
