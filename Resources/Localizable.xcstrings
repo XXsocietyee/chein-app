@@ -348010,6 +348010,57 @@
           }
         }
       }
+    },
+    "mpr3.official.inbox.refreshing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Syncing the latest invitations…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在同步最新邀约…"
+          }
+        }
+      }
+    },
+    "mpr3.coop.nearby.callOpened": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dialer opened"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已打开拨号界面"
+          }
+        }
+      }
+    },
+    "mpr3.coop.nearby.callFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The call couldn't be placed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "电话暂时没有拨出"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
