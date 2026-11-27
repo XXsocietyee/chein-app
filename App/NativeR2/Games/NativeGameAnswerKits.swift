@@ -128,42 +128,93 @@ extension PlayKitScreen {
 
     // MARK: predict
 
+    // MP `playkit-predict`: question → option cards (seal on the committed one) → reveal (wait / won / lost / void)
+    // → hint (截止 / 揭晓 time, or 今天这一轮已经截止) → 就选这个 · 已经选了 · 不选，继续 (bottom bar).
     @ViewBuilder var nativePredict: some View {
-        if let mine = raw["myOptionKey"].text, !mine.isEmpty {
-            Section {
-                LabeledContent {
-                    Text(verbatim: projection.options.first { $0.id == mine }?.label ?? mine)
-                } label: {
-                    Label("playkit.predict.mine", systemImage: "lock.fill")
-                }
-            }
-        } else {
-            Section {
-                ForEach(projection.options) { option in nativeChoiceRow(id: option.id, label: option.label) }
-            }
-        }
+        let mine = raw["myOptionKey"].text ?? ""
+        let skipped = raw["skipped"].bool == true
         Section {
-            if let status = raw["settleStatus"].integer {
-                if status == 2 { Text("playkit.predict.voided") }
-                else if status == 1 {
-                    Text(raw["won"].bool == true ? "playkit.predict.won" : "playkit.predict.lost")
-                    let answer = raw["settledOption"].text ?? ""
-                    LabeledContent {
-                        Text(verbatim: projection.options.first { $0.id == answer }?.label ?? answer)
-                    } label: {
-                        Text("playkit.predict.answer")
-                    }
+            ForEach(projection.options) { option in
+                if mine.isEmpty && !skipped && raw["closed"].bool != true {
+                    nativeChoiceRow(id: option.id, label: option.label, marker: option.id)
                 } else {
-                    Label("playkit.predict.wait", systemImage: "hourglass")
+                    LabeledContent {
+                        if option.id == mine {
+                            Label("playkit.predict.mine", systemImage: "seal.fill").foregroundStyle(.tint)
+                        }
+                    } label: {
+                        Text(verbatim: option.label)
+                    }
+                    .accessibilityElement(children: .combine)
                 }
             }
-            if let days = raw["revealDays"].integer, days >= 0 {
-                LabeledContent { Text(verbatim: String(days)).monospacedDigit() } label: { Text("playkit.predict.revealDays") }
-            }
-            if let hour = raw["revealHour"].integer, (0...23).contains(hour) {
-                LabeledContent { Text(verbatim: String(hour)).monospacedDigit() } label: { Text("playkit.predict.revealHour") }
+        } header: {
+            if let question = raw["question"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !question.isEmpty {
+                Text(verbatim: question)
             }
         }
+        if let reveal = nativePredictReveal(mine: mine) {
+            Section {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(reveal.head).font(.headline)
+                    reveal.body.font(.body).foregroundStyle(.secondary)
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("playkit.predict.reveal")
+            }
+        }
+        if !skipped, raw["settleStatus"].integer == nil {
+            if raw["closed"].bool == true && mine.isEmpty {
+                Section { Text("playkit.predict.closedToday").foregroundStyle(.secondary) }
+            } else if !mine.isEmpty, !nativePredictWaitLines.isEmpty {
+                Section {
+                    ForEach(Array(nativePredictWaitLines.enumerated()), id: \.offset) { _, line in
+                        line.foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+    }
+
+    /// MP `revealOf`: three different states, never one 「暂无结果」 line.
+    func nativePredictReveal(mine: String) -> (head: LocalizedStringKey, body: Text)? {
+        guard let status = raw["settleStatus"].integer else { return nil }
+        let shopAnswers = raw["shopAnswers"].bool != false
+        func label(_ key: String) -> String { projection.options.first { $0.id == key }?.label ?? key }
+        switch status {
+        case 2:
+            return ("playkit.predict.voidHead", Text(shopAnswers ? LocalizedStringKey("playkit.predict.voidLate") : LocalizedStringKey("playkit.predict.voidNoAnswer")))
+        case 1:
+            let answer = label(raw["settledOption"].text ?? "")
+            if raw["won"].bool == true { return ("playkit.predict.won", Text("playkit.predict.wonLine \(answer)")) }
+            return ("playkit.predict.lost", Text("playkit.predict.lostLine \(answer) \(label(mine))"))
+        default:
+            guard shopAnswers else { return nil }
+            return ("playkit.predict.wait", Text("playkit.predict.waitLine"))
+        }
+    }
+
+    /// MP `waitLabelOf`: 今天 HH:00 截止 and/or 第 N 天 HH:00 由商家给出答案; nothing when the numbers are not real.
+    var nativePredictWaitLines: [Text] {
+        func hour(_ value: PlayWireValue) -> String? {
+            guard let h = value.integer, (0...23).contains(h) else { return nil }
+            return String(format: "%02d:00", h)
+        }
+        let close = hour(raw["closeAtHour"])
+        if raw["shopAnswers"].bool == false { return close.map { [Text("playkit.predict.closeOnly \($0)")] } ?? [] }
+        var reveal: Text?
+        if let time = hour(raw["revealHour"]), let days = raw["revealDays"].integer, (0...30).contains(days) {
+            switch days {
+            case 0: reveal = Text("playkit.predict.revealToday \(time)")
+            case 1: reveal = Text("playkit.predict.revealTomorrow \(time)")
+            case 2: reveal = Text("playkit.predict.revealDayAfter \(time)")
+            default: reveal = Text("playkit.predict.revealDay \(days) \(time)")
+            }
+        }
+        if let close, let reveal { return [Text("playkit.predict.closeOnly \(close)"), reveal] }
+        if let reveal { return [reveal] }
+        if let close { return [Text("playkit.predict.closeThenShop \(close)")] }
+        return []
     }
 
     // MARK: estimate

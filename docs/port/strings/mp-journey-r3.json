@@ -1944,5 +1944,260 @@
         }
       }
     }
+  },
+  "playkit.predict.voidHead": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This round was cancelled"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这一轮作废了"
+        }
+      }
+    }
+  },
+  "playkit.predict.voidLate": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The shop didn't give an answer in time. No reward this round, and your pick doesn't count."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "商家没有在期限内给出答案。这一轮不发奖，你选的那一下不算数。"
+        }
+      }
+    }
+  },
+  "playkit.predict.voidNoAnswer": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No answer was published for this round. No reward this round, and your pick doesn't count."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这一轮没有公布答案。这一轮不发奖，你选的那一下不算数。"
+        }
+      }
+    }
+  },
+  "playkit.predict.wonLine %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The answer is \"%@\" — that's the one you picked."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "答案是「%@」，你选的就是它。"
+        }
+      }
+    }
+  },
+  "playkit.predict.lostLine %@ %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The answer is \"%1$@\". You picked \"%2$@\"."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "答案是「%1$@」，你选的是「%2$@」。"
+        }
+      }
+    }
+  },
+  "playkit.predict.waitLine": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Once the answer is in, you'll see here whether you got it."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "答案给出来之后，这里会告诉你中没中。"
+        }
+      }
+    }
+  },
+  "playkit.predict.closedToday": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Today's round has closed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "今天这一轮已经截止"
+        }
+      }
+    }
+  },
+  "playkit.predict.closeOnly %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Closes today at %@."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "今天 %@ 截止。"
+        }
+      }
+    }
+  },
+  "playkit.predict.closeThenShop %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Closes today at %@; the shop gives the answer after that."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "今天 %@ 截止，之后由商家给出答案。"
+        }
+      }
+    }
+  },
+  "playkit.predict.revealToday %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The shop gives the answer today at %@."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "今天 %@ 由商家给出答案。"
+        }
+      }
+    }
+  },
+  "playkit.predict.revealTomorrow %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The shop gives the answer tomorrow at %@."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "明天 %@ 由商家给出答案。"
+        }
+      }
+    }
+  },
+  "playkit.predict.revealDayAfter %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The shop gives the answer the day after tomorrow at %@."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "后天 %@ 由商家给出答案。"
+        }
+      }
+    }
+  },
+  "playkit.predict.revealDay %lld %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The shop gives the answer on day %1$lld at %2$@."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "第 %1$lld 天 %2$@ 由商家给出答案。"
+        }
+      }
+    }
+  },
+  "playkit.predict.skip": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Skip and continue"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "不选，继续"
+        }
+      }
+    }
+  },
+  "playkit.predict.commit": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Pick this one"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "就选这个"
+        }
+      }
+    }
   }
 }
