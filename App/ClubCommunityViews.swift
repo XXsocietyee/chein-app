@@ -847,7 +847,15 @@ struct ClubCommunityPostTile: View {
         if typeSize.isAccessibilitySize {
             VStack(alignment: .leading, spacing: CYSpacing.sm, content: content)
         } else {
-            HStack(spacing: CYSpacing.md, content: content)
+            // en-layout r3: English "Like · Comments · Repost · Share" overflows 375 pt; keep one row, tighter, then icons only.
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: CYSpacing.md, content: content)
+                    .fixedSize(horizontal: true, vertical: false)
+                HStack(spacing: CYSpacing.sm, content: content)
+                    .fixedSize(horizontal: true, vertical: false)
+                HStack(spacing: CYSpacing.md, content: content)
+                    .labelStyle(.iconOnly)
+            }
         }
     }
     /// The action's count when there is one (MP shows the number beside the icon), else its name.

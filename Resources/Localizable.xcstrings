@@ -139820,7 +139820,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This level: No. %lld"
+            "value": "Ranked #%lld on this level"
           }
         },
         "zh-Hans": {
@@ -349501,9 +349501,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fastest of %lld rounds"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Fastest of %lld round"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Fastest of %lld rounds"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
