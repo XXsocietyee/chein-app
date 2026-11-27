@@ -17449,6 +17449,23 @@
         }
       }
     },
+    "club.detail.events.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load activities"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动列表加载失败"
+          }
+        }
+      }
+    },
     "club.detail.events.empty": {
       "extractionState": "manual",
       "localizations": {
