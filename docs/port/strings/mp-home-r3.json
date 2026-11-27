@@ -66,5 +66,22 @@
         }
       }
     }
+  },
+  "activity.meetingPoint.openMaps": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Opens directions to the meeting point in Maps"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "导航到集合点"
+        }
+      }
+    }
   }
 }

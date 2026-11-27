@@ -50,8 +50,11 @@ MP order: hero (status, title, date) → cancelled notice → facts (分类 / �
 | Cancelled notice came after the info card and action rows. | **Fixed** — right under the hero; contract pin in `test_activity_registration_parity_w2_06.py` updated with a one-line reason. |
 | 主题路线 was a separate section after the map. | **Fixed** — directly after the facts. |
 | 关联玩法模板 hidden behind "More info". | **Fixed** — between people and 票种 (also on the city-event variant). |
-| Static map section (not in MP; MP 集合点 row opens the map). | **Kept** — pinned by `test_activity_design_structure` / parity order; directions remain the action row. |
-| Native info card + action rows (directions / review / channel) above the facts. | **Kept** — pinned E1 parts (`E1ActivityInfoCard`); no MP counterpart, noted. |
+| Static map section (not in MP; MP 集合点 row opens the map). | **Fixed (r3 continue)** — removed from both variants; the 集合点 fact row is a `Button` that opens Maps when coordinates exist (MP `openLocation`, hint `activity.meetingPoint.openMaps` 导航到集合点 / Opens directions to the meeting point in Maps). |
+| Native info card + action rows (directions / review / channel) above the facts. | **Fixed (r3 continue)** — `E1ActivityInfoCard` and `ActivityActionRows` removed from the page (the card repeated 分类 / 集合点 / 已报名 with duplicate ids; date lives in the hero, price in 票种); 写评价 stays with the reviews; the in-game channel row (native extra, joined players only) moved after the MP sections. |
+| City-event variant (`App/NativeR2/CityOrientation/CityOrientationEventDetailList.swift`, behind `NativeR2Flags.cityOrientation`): map section; people / plays / reviews mounted after 票种 via `more()`. | **Fixed (r3 continue)** — map removed, 集合点 row opens Maps; new `people` / `reviews` slots put 主理人 · N 人已报名 · 关联玩法模板 between 关于 and 票种 and 评价 right after 票种; channel after the MP sections. |
+
+Contract pins updated with one-line reasons (r3 continue): `test_activity_registration_parity_w2_06.py` (fold order without the info card/map; meta has exactly one Button = MP `openLocation`), `test_activity_design_structure.py` (facts instead of the map in the order; no map / info card in the fold), `test_accessibility_hardening_wave.py` (no embedded map; meeting-point hint), `test_activity_reviews.py` (city list: people < 票种 < reviews < more, no map).
 
 ### `pages/topic/index/index` (编辑精选 / 主题 target) → `App/TopicDetailView.swift`
 
@@ -99,5 +102,4 @@ MP content order under the title is unchanged: banner → greeting / 玩家 · c
 
 ## Not done / follow-ups
 - Needs a simulator pass: 4:3 banner card height under the large title on small phones (first rails should stay near the fold).
-- Activity detail map / info card are native extras kept because contracts pin them.
 - Fixtures that seed continuation/Today on `d2-home` still pass the inputs; they simply no longer render on 首页.

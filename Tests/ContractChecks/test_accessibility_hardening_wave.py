@@ -77,8 +77,11 @@ class FPA3ClubChannelMessaging(unittest.TestCase):
 class FPA4ActivityDetail(unittest.TestCase):
     def test_map_is_static_and_has_value(self):
         s = src('App/ActivityDetailView.swift')
-        self.assertIn('interactionModes:[]', s)
-        self.assertIn('.accessibilityValue(Text(verbatim:ActivityLocationAccessibility.value(', s)
+        # mp-home r3 continue: the MP detail has no embedded map (集合点 opens Maps), so no map can trap focus;
+        # the meeting-point row says what it does.
+        self.assertNotIn('Map(initialPosition', s)
+        self.assertIn('accessibilityHint(Text("activity.meetingPoint.openMaps"))', s)
+        self.assertIn('enum ActivityLocationAccessibility', s)
 
     def test_sheets_have_detent_and_indicator_and_labelled_close(self):
         s = src('App/ActivityDetailView.swift')
