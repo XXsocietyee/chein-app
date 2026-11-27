@@ -553,22 +553,15 @@ struct JourneyReportView: View {
                             .font(.headline)
                             .foregroundStyle(result.win ? Color.accentColor : Color.primary)
                     }
-                    // 战报 (204:15044, skill-r2 SR2-07): 本局不计分 is said once, as the subtitle, never again as a tile.
-                    if report.score == nil {
-                        Text("mp.report.notScored").font(.footnote).foregroundStyle(.secondary)
-                            .accessibilityIdentifier("journeyReport.notScored")
-                    }
-                    // A number the report cannot read is left out (SR1-43), so the row holds one to three stats.
-                    let stats = Self.stats(report)
-                    if !stats.isEmpty {
-                        HStack(spacing: 0) {
-                            ForEach(Array(stats.enumerated()), id: \.offset) { _, item in
-                                stat(Text(verbatim: item.value), item.label)
-                            }
+                    // mp-journey r3 (MP report wxml:17-21): always the three MP tiles 完成节点 · 用时 · 解谜分;
+                    // an unread value is a muted "—" and an unscored run says 本局不计分 inside its own tile.
+                    HStack(alignment: .top, spacing: 0) {
+                        ForEach(Array(Self.stats(report).enumerated()), id: \.offset) { index, item in
+                            stat(item, unscoredTile: index == 2 && report.score == nil)
                         }
-                        .padding(.top, CYSpacing.sm)
-                        .accessibilityIdentifier("journeyReport.stats")
                     }
+                    .padding(.top, CYSpacing.sm)
+                    .accessibilityIdentifier("journeyReport.stats")
                 }
                 .frame(maxWidth: .infinity)
             }
@@ -674,21 +667,28 @@ struct JourneyReportView: View {
             .accessibilityHidden(true)
     }
 
-    /// The 战报 stats the report can actually read, in the frame's order: 完成站点, 用时, 得分.
-    static func stats(_ report: JourneyReport) -> [(label: LocalizedStringKey, value: String)] {
-        var rows: [(label: LocalizedStringKey, value: String)] = []
-        if let nodes = report.nodesText, !nodes.isEmpty { rows.append(("mp.report.stat.nodes", nodes)) }
-        if let elapsed = report.elapsedText, !elapsed.isEmpty { rows.append(("mp.report.stat.time", elapsed)) }
-        if let score = report.score { rows.append(("mp.report.stat.score", String(score))) }
-        return rows
+    /// The MP 战报 tiles in MP order (report wxml:17-21): 完成节点, 用时, 解谜分. A value the report
+    /// cannot read is nil and renders muted (MP `is-muted`), never dropped.
+    static func stats(_ report: JourneyReport) -> [(label: LocalizedStringKey, value: String?)] {
+        let nodes = report.nodesText.flatMap { $0.isEmpty ? nil : $0 }
+        let elapsed = report.elapsedText.flatMap { $0.isEmpty ? nil : $0 }
+        return [("mp.report.stat.nodes", nodes), ("mp.report.stat.time", elapsed), ("mp.report.stat.score", report.score.map(String.init))]
     }
 
-    private func stat(_ value: Text, _ label: LocalizedStringKey) -> some View {
+    private func stat(_ item: (label: LocalizedStringKey, value: String?), unscoredTile: Bool) -> some View {
         VStack(spacing: CYSpacing.xxs) {
             // JREPORT-8: a long 用时 (1天 3小时 12分) in a third of the width stays one line and scales down.
-            value.cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-                .lineLimit(1).minimumScaleFactor(0.6).multilineTextAlignment(.center)
-            Text(label).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            if let value = item.value {
+                Text(verbatim: value).cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                    .lineLimit(1).minimumScaleFactor(0.6).multilineTextAlignment(.center)
+            } else if unscoredTile {
+                Text("mp.report.notScored").font(.headline).foregroundStyle(.tertiary)
+                    .lineLimit(2).minimumScaleFactor(0.8).multilineTextAlignment(.center)
+                    .accessibilityIdentifier("journeyReport.notScored")
+            } else {
+                Text(verbatim: MPText.unknown).cyText(.dataXL).foregroundStyle(.tertiary)
+            }
+            Text(item.label).cyText(.meta).foregroundStyle(CYColor.textSecondary)
         }
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
@@ -1193,9 +1193,10 @@ struct JourneySettleView: View {
         MPBottomBar {
             switch step {
             case .overview:
-                // Design hand-off r1 PL-12: 完成 is the primary on the result screen; 看排行榜 is the secondary pill.
-                CYPillButton("action.done", size: .moment, action: onDone).accessibilityIdentifier("journeySettle.done")
-                CYPillButton("mp.settle.toRank", style: .secondary) { go(.rank) }.accessibilityIdentifier("journeySettle.toRank")
+                // mp-journey r3 (MP settle wxml footer, overview): 看排行榜 is the one primary; 完成 is the quiet text link below.
+                CYPillButton("mp.settle.toRank", size: .moment) { go(.rank) }.accessibilityIdentifier("journeySettle.toRank")
+                Button("action.done", action: onDone).cyText(.label).foregroundStyle(CYColor.textSecondary)
+                    .frame(minHeight: CYSpacing.minTouchTarget).accessibilityIdentifier("journeySettle.done")
             case .rank:
                 CYPillButton("mp.settle.toRate") { go(.rate) }.accessibilityIdentifier("journeySettle.toRate")
             case .rate:

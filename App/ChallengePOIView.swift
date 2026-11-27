@@ -59,15 +59,18 @@ import QuestifyCore
                         note(readable(coordinator.errorMessage), symbol: "exclamationmark.triangle.fill", tone: .danger)
                     }
 
-                    if coordinator.state == .photo || node.photoRequired {
+                    // mp-journey r3 (MP poi-challenge: 一次一屏): the photo step and the quiz step never share a screen.
+                    // A confirmed photo moves the coordinator on to .quiz; the photo stays in the checklist above.
+                    if coordinator.state == .photo {
                         photoCard
-                    }
-
-                    if coordinator.state == .quiz || !node.photoRequired {
+                    } else {
                         quizCard(node)
                     }
 
-                    submitArea
+                    // The photo screen of a node that still has a question has no submit: the quiz screen sends both.
+                    if !(coordinator.state == .photo && Self.hasQuiz(node)) {
+                        submitArea
+                    }
                 }
 
             case .done:
@@ -134,6 +137,8 @@ import QuestifyCore
             .cyDomainCard()
         }
     }
+
+    static func hasQuiz(_ node: ChallengePOINode) -> Bool { !node.question.isEmpty || !node.options.isEmpty }
 
     private var photoCard: some View {
         ChallengePOIPhotoCapture(

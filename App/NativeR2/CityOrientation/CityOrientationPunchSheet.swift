@@ -132,9 +132,7 @@ import SwiftUI
                 }
             } else {
                 List {
-                    if let hook = (node.hookText ?? node.address)?.trimmingCharacters(in: .whitespacesAndNewlines), !hook.isEmpty {
-                        Section { Text(verbatim: hook).foregroundStyle(.secondary) }
-                    }
+                    stationHeader(snapshot: snapshot, node: node)
                     arrivalSection(snapshot: snapshot, node: node)
                     if let failure = model.arrivalFailure, failure.nodeID == nodeID, !done {
                         PlayArrivalFailureSection(failure: failure,
@@ -154,6 +152,49 @@ import SwiftUI
             }
         } else {
             ContentUnavailableView("nativeR2.city.punch.missing", systemImage: "mappin.slash")
+        }
+    }
+
+    // MARK: station header (mp-journey r3)
+
+    /// MP pages/play/index.wxml section C, top to bottom: cover (station → chapter → route fallback chain) with the
+    /// 第 N 站 tag and a done stamp, then meta line (address), description, and the place facts (distance · hours).
+    /// The station name stays the navigation title.
+    @ViewBuilder private func stationHeader(snapshot: PlaySnapshot, node: PlayNode) -> some View {
+        Section {
+            PlayStationArtwork(image: PlayStationImageResolver.station(for: node, in: snapshot.result), title: node.name ?? "")
+                .overlay(alignment: .topLeading) {
+                    if let stop = node.sortID, stop > 0, stop < 100 {
+                        Text("u10.template.stopNo \(stop)")
+                            .font(.caption.weight(.semibold))
+                            .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
+                            .background(.regularMaterial, in: Capsule())
+                            .padding(CYSpacing.sm)
+                    }
+                }
+                .overlay(alignment: .topTrailing) {
+                    if done {
+                        Image(systemName: "checkmark.circle.fill").font(.title2).symbolRenderingMode(.multicolor)
+                            .padding(CYSpacing.sm).accessibilityHidden(true)
+                    }
+                }
+                .listRowInsets(EdgeInsets())
+                .accessibilityIdentifier("nativeR2.city.punch.cover")
+            if let meta = (node.hookText ?? node.address)?.trimmingCharacters(in: .whitespacesAndNewlines), !meta.isEmpty {
+                Text(verbatim: meta).font(.subheadline).foregroundStyle(.secondary)
+            }
+            if snapshot.isStoryLocked(node) == false, let body = node.description?.trimmingCharacters(in: .whitespacesAndNewlines), !body.isEmpty {
+                Text(verbatim: body).font(.body).fixedSize(horizontal: false, vertical: true)
+            }
+            if let distance {
+                LabeledContent {
+                    Text(verbatim: PlayHUDGeometry.distanceText(distance, chinese: locale.language.languageCode?.identifier == "zh"))
+                        .monospacedDigit()
+                } label: { Text("nativeR2.city.metric.distance") }
+            }
+            if let hours = node.businessTime?.trimmingCharacters(in: .whitespacesAndNewlines), !hours.isEmpty {
+                LabeledContent { Text(verbatim: hours) } label: { Text("creator.family.timeWindow") }
+            }
         }
     }
 

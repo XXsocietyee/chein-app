@@ -328,8 +328,11 @@ struct JourneyLandingView: View {
                 if let name = content.inviter?.name { Text(verbatim: name).cyText(.label).foregroundStyle(CYColor.textSecondary) }
                 if let title = content.title {
                     // JLAND-9: a long route name wraps to two centred lines instead of overflowing the pill.
+                    // mp-journey r3: MP `jn-pill jl-pill` — the route name sits in a capsule under the inviter.
                     Text(verbatim: title).font(.headline).foregroundStyle(CYColor.textPrimary)
                         .multilineTextAlignment(.center).lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
+                        .background(.fill.tertiary, in: Capsule())
                 }
                 if !content.tiles.isEmpty {
                     JourneyModeTilesView(tiles: content.tiles, active: Binding(get: { content.activeMode }, set: { if let key = $0 { onSelectMode(key) } }))
@@ -621,12 +624,7 @@ struct JourneySeatsView: View {
     private func ready(_ content: JourneySeatsContent) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                // JSEAT-8: 开局大厅 is the navigation title; no eyebrow or large in-content title. The topic name stays as a headline.
-                if let name = content.headName {
-                    Text(verbatim: name).font(.headline)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .accessibilityAddTraits(.isHeader)
-                }
+                // mp-journey r3: MP seats wxml order — 1 主题头 (cover above name) + 以谁身份游玩, 2 一起玩的人, 3 怎么玩.
                 // The cover strip only when the read has a cover: a grey stand-in block would be a placeholder.
                 if content.headCoverURL != nil {
                     CYCachedAsyncImage(content.headCoverURL, role: .cover)
@@ -635,8 +633,12 @@ struct JourneySeatsView: View {
                         .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
                         .accessibilityHidden(true)
                 }
-                if content.showsParty { party(content) }
-                JourneyLobbyHowToCard(stops: content.stopCount, minutes: content.estimatedMinutes)
+                // JSEAT-8: 开局大厅 is the navigation title; no eyebrow or large in-content title. The topic name stays as a headline.
+                if let name = content.headName {
+                    Text(verbatim: name).font(.headline)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityAddTraits(.isHeader)
+                }
                 if let me = content.me, !me.name.isEmpty {
                     // N-JOURNEY-2 (r10): a system GroupBox row with a disclosure chevron.
                     GroupBox {
@@ -653,7 +655,9 @@ struct JourneySeatsView: View {
                     }
                     .accessibilityIdentifier("journeySeats.editMe")
                 }
-
+                if content.showsParty { party(content) }
+                // MP section 3 怎么玩: the route facts card sits in the same slot, above the mode tiles.
+                JourneyLobbyHowToCard(stops: content.stopCount, minutes: content.estimatedMinutes)
                 if content.multi && !content.tiles.isEmpty {
                     JourneyModeTilesView(tiles: content.tiles, active: .constant(nil), showsRules: false, selectable: false)
                 }
