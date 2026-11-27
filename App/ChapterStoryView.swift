@@ -596,7 +596,14 @@ import UIKit
             }
             Button("chapterStory.keepEditing", role: .cancel) { requestedKind = nil }
         } message: { Text("chapterStory.switchBody") }
-        .onDisappear { device?.cancel(); dirty(false) }
+        // PLAY-r11-1: inline station 背景音乐 (MP pages/play/index.js:7948 `_syncStationBgm(view.playKit.backgroundMusic)`).
+        .task(id: PlayThemeMusicKey(url: advanced.state?.playKit["backgroundMusic"]["audioUrl"].text,
+                                    enabled: PlatformBGMPreference.isEnabled(in: .standard))) {
+            let music = advanced.state.map { $0.inline ? $0.playKit["backgroundMusic"] : .null }
+            PlayBackgroundMusic.shared.syncStation(rawURL: music?["audioUrl"].text, loop: music?["loop"].bool != false,
+                                                   enabled: PlatformBGMPreference.isEnabled(in: .standard), approvedHosts: approvedArtworkHosts)
+        }
+        .onDisappear { device?.cancel(); dirty(false); PlayBackgroundMusic.shared.stopStation() }
     }
     @ViewBuilder private func kindNavigation(_ state: PlayAdvancedState, current: PlayKitScreenKind) -> some View {
         let kinds = PlayKitScreenKind.present(in: state)
