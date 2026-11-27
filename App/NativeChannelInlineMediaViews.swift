@@ -130,8 +130,18 @@ import ImageIO
     @State private var playing = false
     @State private var failed = false
     @State private var monitor: Task<Void, Never>?
+    @State private var playStart: Date?
     private var available: Bool {
         current() && owner.isCurrent && message.conversationID == owner.scope.conversationID && IMVoiceReference.read(message) != nil
+    }
+    /// Idle: the clip length. Playing: the time left, counting down (system timer text, no per-second state).
+    @ViewBuilder private func remaining(_ voice: IMVoiceReference) -> some View {
+        if playing, let playStart {
+            Text(timerInterval: playStart...playStart.addingTimeInterval(Double(voice.durationMS) / 1000), countsDown: true)
+                .monospacedDigit()
+        } else {
+            IMDurationText(milliseconds: voice.durationMS)
+        }
     }
     private var canPlay: Bool { owner.service.playbackEnabled && owner.service.playbackStatusEnabled }
     private var toggleSymbol: String {
@@ -154,13 +164,13 @@ import ImageIO
                     .disabled(!canPlay)
                     .accessibilityLabel(Text(LocalizedStringKey(playing || loading ? "d7.imVoice.stop" : "d7.imVoice.play")))
                     .accessibilityIdentifier("channel.voice.toggle")
-                    Image(systemName: "waveform")
-                        .font(.title2)
-                        .foregroundStyle(playing ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(HierarchicalShapeStyle.secondary))
-                        .symbolEffect(.variableColor.iterative, isActive: playing && !reduceMotion)
-                        .accessibilityHidden(true)
+                    // C5 social: bar waveform fills as the clip plays (1 s steps under Reduce Motion).
+                    TimelineView(.animation(minimumInterval: reduceMotion ? 1 : 1.0 / 15, paused: !playing)) { context in
+                        CYSocialVoiceWaveform(seed: message.id, samples: Data(base64Encoded: voice.waveform),
+                            progress: playing ? CYSocialVoiceProgress.fraction(start: playStart, durationMS: voice.durationMS, at: context.date) : 0)
+                    }
                     if loading { ProgressView().accessibilityHidden(true) }
-                    IMDurationText(milliseconds: voice.durationMS)
+                    remaining(voice)
                         .foregroundStyle(.secondary)
                         .accessibilityLabel(Text("d7.imVoice.message"))
                 }
@@ -198,7 +208,7 @@ import ImageIO
                 try await owner.service.authorizePlayback(message: message, scope: owner.scope)
                 guard available, generation == stamp, !Task.isCancelled else { return }
                 try device?.play(bytes, interrupted: { stop() })
-                loading = false; playing = true
+                loading = false; playStart = Date(); playing = true
                 watch(stamp: stamp, durationMS: voice.durationMS)
             } catch { if generation == stamp { fail(error) } }
         }
@@ -234,6 +244,6 @@ import ImageIO
 
     private func stop() {
         generation = UUID(); monitor?.cancel(); monitor = nil
-        device?.cancel(); loading = false; playing = false
+        device?.cancel(); loading = false; playing = false; playStart = nil
     }
 }

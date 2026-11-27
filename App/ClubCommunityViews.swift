@@ -654,14 +654,16 @@ struct ClubCommunityPostTile: View {
             if let clubID = clubID ?? post.clubID.flatMap({ $0 > 0 ? $0 : nil }) {
                 tileActions {
                     Button { Task { await model.prepare(.toggleLike, clubID: clubID, post: post) } } label: {
-                        Label { countedTitle("club.community.like", count: post.likeCount) } icon: { Image(systemName: post.liked ? "heart.fill" : "heart") }
+                        // C5 social: rolling count + heart swap/bounce on the viewer's like (MP cy-post-card 赞 · n).
+                        CYSocialCountLabel(count: post.likeCount, symbol: "heart", active: post.liked, activeSymbol: "heart.fill",
+                                           emptyTitle: "club.community.like")
                     }
                         .accessibilityLabel(Text("club.community.like"))
                         .accessibilityValue(post.likeCount > 0 ? Text(verbatim: String(post.likeCount)) : Text(verbatim: ""))
                         .disabled(!identity.isSignedIn || model.busy || model.context.coordinator?.permitsInjectedWrites != true)
                     Button(action: openComments) {
                         if commentsExpanded { Label("club.discussion.collapse", systemImage: "bubble") }
-                        else { Label { countedTitle("club.community.comments", count: post.commentCount) } icon: { Image(systemName: "bubble") } }
+                        else { CYSocialCountLabel(count: post.commentCount, symbol: "bubble", emptyTitle: "club.community.comments") }
                     }
                         .accessibilityLabel(Text(LocalizedStringKey(commentsExpanded ? "club.discussion.collapse" : "club.community.comments")))
                         .accessibilityValue(!commentsExpanded && post.commentCount > 0 ? Text(verbatim: String(post.commentCount)) : Text(verbatim: ""))
@@ -743,11 +745,8 @@ struct ClubCommunityPostTile: View {
         }
     }
     /// The action's count when there is one (MP shows the number beside the icon), else its name.
-    private func countedTitle(_ key: LocalizedStringKey, count: Int) -> Text {
-        count > 0 ? Text(verbatim: String(count)).monospacedDigit() : Text(key)
-    }
     private func countLabel(_ count: Int, symbol: String) -> some View {
-        Label { Text(verbatim: String(count)).monospacedDigit() } icon: { Image(systemName: symbol).accessibilityHidden(true) }
+        CYSocialCountLabel(count: count, symbol: symbol)
             .font(.subheadline)
             .foregroundStyle(.secondary)
     }

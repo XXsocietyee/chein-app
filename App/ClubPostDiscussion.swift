@@ -89,6 +89,12 @@ import SwiftUI
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
                         Text("club.community.comments").cyText(.cardTitle)
+                        // C5 social: thread count beside the title, rolling when it changes.
+                        if target.post.commentCount > 0 {
+                            Text(target.post.commentCount, format: .number).monospacedDigit()
+                                .cyText(.cardTitle).foregroundStyle(.secondary)
+                                .contentTransition(.numericText(value: Double(target.post.commentCount)))
+                        }
                         Spacer()
                         Button("club.discussion.collapse") { trace("collapse"); active = false; reader.invalidate(); close() }
                             .accessibilityIdentifier("club.discussion.close.\(target.post.id)")
@@ -109,7 +115,10 @@ import SwiftUI
                                         else { Text(verbatim: comment.nickname).cyText(.bodyMedium) }
                                         Text(verbatim: comment.content).textSelection(.enabled)
                                     }
+                                    // C5 social: each comment reads as a received bubble in the thread.
+                                    .padding(.horizontal, 12).padding(.vertical, 8)
                                     .frame(maxWidth: .infinity, alignment: .leading)
+                                    .background(.fill.quaternary, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                                     .accessibilityElement(children: .combine)
                                     .accessibilityIdentifier("club.discussion.comment.\(comment.id)")
                                     if comment.memberID != target.context.identity.accountID {
