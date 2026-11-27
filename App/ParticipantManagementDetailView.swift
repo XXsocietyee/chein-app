@@ -23,7 +23,7 @@ struct ParticipantManagementDetailView: View {
             } else if !model.reader.isConfigured || !model.coordinator.isConfigured {
                 CYEmptyState(systemImage: "network.slash", "profile.unavailable", detail: "auth.notConfigured", kind: .offline)
             } else if model.loading || (model.loaded && !model.hasCurrentProjection) {
-                CYLoadingStateView(rows: 2).accessibilityLabel(Text("profile.loading")).accessibilityIdentifier("participant.detail.loading")
+                CYLoadingStateView(rows: 2, label: "profile.loading").accessibilityIdentifier("participant.detail.loading")
             } else if !model.loaded {
                 ParticipantLoadFailureView(issue: model.issue) { Task { await model.load() } }
             } else {

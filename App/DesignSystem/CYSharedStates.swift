@@ -33,14 +33,17 @@ public struct CYSkeletonBlock: View {
 /// (加载中… / Loading…), the one loading pattern on player screens. `rows` is kept for call sites.
 public struct CYLoadingStateView: View {
     private let rows: Int
+    private let label: LocalizedStringKey
 
-    public init(rows: Int = 3) {
+    /// `label` is the page's own loading words (default 加载中…); they show on screen and VoiceOver reads them.
+    public init(rows: Int = 3, label: LocalizedStringKey = "cy.state.loading") {
         self.rows = max(1, rows)
+        self.label = label
     }
 
     public var body: some View {
         ProgressView {
-            Text("cy.state.loading")
+            Text(label)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, CYSpacing.xxl)
