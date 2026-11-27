@@ -17,6 +17,8 @@ Owner 11-27: references are examples, not specs. Extract why they work, apply th
 | P9 | **The map is the stage, the panel is the script** | Map full-bleed; a draggable panel holds live stats and the one action; map controls minimal (MP: no locate button). Route draws in, position pulses. | Strava, AllTrails, WHOOP, adidas, Runna |
 | P10 | **Status before content** | Before data is ready, say what's happening in words ("Acquiring GPS", "Writing…", "生成中…"), never a blank or a spinner alone; errors say what to do. | Strava acquiring GPS, step checklist live status |
 | P11 | **Invites are cards, answers are one tap** | An invite reads as a small card (what · when · where · who), with two answers and a gentle "later" (Tuck). Saying yes updates everyone's view. | Shared island, GroupMe, Partiful, Apple Invites, Lex RSVP |
+| P13 | **Messages can be things** | In chats, plans, polls, invites and game sessions are interactive cards (title, when/where, avatars "2 going", one-tap answer, live result bars); after someone acts, a quiet system line records it ("Alex is going to Mini Reunion"). | Mobbin 11-27: GroupMe event card + "is going" line, Locals poll with voters, Discord game invitation, Beside calendar event, Lex event in group chat |
+| P14 | **Show the whole collection** | Collections show every item: earned in full color, unearned as named grey silhouettes with what it takes ("Loch Ness · 100 km"), a count ("1/63 visited"), sections by type or season, and share the whole set. Sequences show numbered slots and a deadline ("2 days left"). | Mobbin 11-27: AllTrails national park stamps, Withings distance badges, Duolingo monthly badges, Lyft locked badges, foodpanda stamp card |
 | P12 | **Language-proof layout** | Every element survives English being 2× longer than Chinese and vice versa: wrap, `ViewThatFits`, adaptive stacks, no fixed widths on text. | US launch requirement |
 
 ## Where each principle applies (lanes must cover every row)
@@ -29,8 +31,8 @@ Owner 11-27: references are examples, not specs. Extract why they work, apply th
 | Games (all types) | P1/P2 HUD, P3, P7/P8 result + reward, P10 |
 | Events / activities | P11 (invite card + RSVP), P6 (attendees), P2 ("starts in"), P5 (event in list/detail/island/widget) |
 | Clubs + community feed | P6, P11 (club event cards), P2 (live member/like counters), P7 for first post / milestones |
-| Channels / messages | P6 (presence, typing), P2 (unread, live), P11 (plan/invite messages as cards inside chat), P10 |
-| Me / passport / wallet | P8 (stamps, medals as objects + collection), P1 (wallet balance hero), P5 |
+| Channels / messages | P6 (presence, typing), P2 (unread, live), P11 + P13 (plans, polls, invites, game sessions as cards inside chat; system lines after actions), P10 |
+| Me / passport / wallet | P8 + P14 (stamps, medals, city districts, club badges as a whole collection with locked silhouettes and counts), P1 (wallet balance hero), P5 |
 | Publish / club setup / onboarding | P4 (step checklist), P3, P10, P7 at completion |
 | Widgets, Live Activities, notifications | P1, P2, P5, P6, P11 (all of them are the "small sizes" of in-app objects) |
 | Every screen | P12, accessibility (Dynamic Type, VoiceOver, Reduce Motion) |
@@ -45,3 +47,4 @@ Owner 11-27: references are examples, not specs. Extract why they work, apply th
 
 - 11-26: owner's 20 X motion references (motion r2 R1–R18), rybinandy Drift (story text on blurred image — story theme on hold), widget sheet tobiadonadon_.
 - 11-27: gdwwyn shared Dynamic Island; dimtri_G step checklist; Mobbin (self-found): adidas Running, WHOOP, Strava, Runna, Fitbit, AllTrails live tracking; Canopi, Lex, Partiful, Apple Invites, GroupMe, DICE plans/invites; Runna, (Not Boring) Weather, Duolingo ABC, Cal AI, Discord, pillowtalk reward moments.
+- 11-27 (hour 2, self-found): Locals, Discord, Lex, GroupMe, Beside (structured chat messages → P13); AllTrails stamps, Withings badges, Duolingo monthly badges, Lyft, foodpanda stamp card (collections → P14).
