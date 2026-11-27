@@ -51,6 +51,1876 @@
           }
         }
       }
+    },
+    "上海": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shanghai"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上海"
+          }
+        }
+      }
+    },
+    "北京": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beijing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "北京"
+          }
+        }
+      }
+    },
+    "杭州": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hangzhou"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "杭州"
+          }
+        }
+      }
+    },
+    "成都": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chengdu"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成都"
+          }
+        }
+      }
+    },
+    "西安": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xi'an"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "西安"
+          }
+        }
+      }
+    },
+    "重庆": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chongqing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重庆"
+          }
+        }
+      }
+    },
+    "深圳": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shenzhen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "深圳"
+          }
+        }
+      }
+    },
+    "广州": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guangzhou"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "广州"
+          }
+        }
+      }
+    },
+    "武汉": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wuhan"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "武汉"
+          }
+        }
+      }
+    },
+    "香港": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hong Kong"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "香港"
+          }
+        }
+      }
+    },
+    "厦门": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xiamen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "厦门"
+          }
+        }
+      }
+    },
+    "山阴路": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shanyin Road"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "山阴路"
+          }
+        }
+      }
+    },
+    "上海市虹口区山阴路": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shanyin Road, Hongkou District, Shanghai"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上海市虹口区山阴路"
+          }
+        }
+      }
+    },
+    "看里弄与老公寓的门窗细节，把阅读上海的起点放在居民日常里。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Look at the doors and windows of the lanes and old apartments, and start reading Shanghai from its residents' everyday life."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "看里弄与老公寓的门窗细节，把阅读上海的起点放在居民日常里。"
+          }
+        }
+      }
+    },
+    "鲁迅公园": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lu Xun Park"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "鲁迅公园"
+          }
+        }
+      }
+    },
+    "上海市虹口区四川北路2288号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2288 North Sichuan Road, Hongkou District, Shanghai"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上海市虹口区四川北路2288号"
+          }
+        }
+      }
+    },
+    "在树荫与湖边走一段，听听居民合唱，再接着逛周边的文学街巷。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walk under the trees and by the lake, listen to the residents' choirs, then wander the literary streets nearby."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在树荫与湖边走一段，听听居民合唱，再接着逛周边的文学街巷。"
+          }
+        }
+      }
+    },
+    "1927·鲁迅与内山纪念书局": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1927 Lu Xun & Uchiyama Memorial Bookstore"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1927·鲁迅与内山纪念书局"
+          }
+        }
+      }
+    },
+    "上海市虹口区四川北路2056号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2056 North Sichuan Road, Hongkou District, Shanghai"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上海市虹口区四川北路2056号"
+          }
+        }
+      }
+    },
+    "在老书店延续出的阅读空间里，翻翻海派文化与文学主题的书。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browse books on Shanghai-style culture and literature in a reading room that carries on an old bookshop."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在老书店延续出的阅读空间里，翻翻海派文化与文学主题的书。"
+          }
+        }
+      }
+    },
+    "砖塔胡同": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zhuanta Hutong"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "砖塔胡同"
+          }
+        }
+      }
+    },
+    "北京市西城区砖塔胡同": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zhuanta Hutong, Xicheng District, Beijing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "北京市西城区砖塔胡同"
+          }
+        }
+      }
+    },
+    "从胡同口的古塔读起，沿公共街巷观察老北京院落与街道的关系。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start at the old pagoda by the hutong entrance and follow the lanes to see how old Beijing courtyards meet the street."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从胡同口的古塔读起，沿公共街巷观察老北京院落与街道的关系。"
+          }
+        }
+      }
+    },
+    "万寿公园": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wanshou Park"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "万寿公园"
+          }
+        }
+      }
+    },
+    "北京市西城区白纸坊东街中部路北": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "North side of middle Baizhifang East Street, Xicheng District, Beijing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "北京市西城区白纸坊东街中部路北"
+          }
+        }
+      }
+    },
+    "一座围绕日常休闲展开的小公园，适合把行程放慢，看看树木与邻里生活。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A small park built around everyday leisure. Slow down here and watch the trees and the neighborhood."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一座围绕日常休闲展开的小公园，适合把行程放慢，看看树木与邻里生活。"
+          }
+        }
+      }
+    },
+    "正阳书局（西四店）": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zhengyang Bookstore (Xisi)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正阳书局（西四店）"
+          }
+        }
+      }
+    },
+    "北京市西城区西四南大街43号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "43 Xisi South Street, Xicheng District, Beijing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "北京市西城区西四南大街43号"
+          }
+        }
+      }
+    },
+    "在万松老人塔院内翻一册北京地方文献，从纸页里接着认识眼前的胡同。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leaf through local Beijing history in the Wansong Pagoda courtyard, then get to know the hutong in front of you."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在万松老人塔院内翻一册北京地方文献，从纸页里接着认识眼前的胡同。"
+          }
+        }
+      }
+    },
+    "馒头山社区街巷": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantoushan Neighborhood Lanes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "馒头山社区街巷"
+          }
+        }
+      }
+    },
+    "杭州市上城区凤凰山脚路、馒头山社区周边公共街巷": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fenghuangshan Jiao Road and the public lanes around Mantoushan, Shangcheng District, Hangzhou"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "杭州市上城区凤凰山脚路、馒头山社区周边公共街巷"
+          }
+        }
+      }
+    },
+    "沿山脚走进白墙黑瓦的生活街巷，看杭州山水之外的社区日常。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow the foot of the hill into lanes of white walls and black tiles, and see Hangzhou's everyday life beyond its lakes and hills."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沿山脚走进白墙黑瓦的生活街巷，看杭州山水之外的社区日常。"
+          }
+        }
+      }
+    },
+    "城北体育公园": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chengbei Sports Park"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城北体育公园"
+          }
+        }
+      }
+    },
+    "杭州市拱墅区白石路125号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "125 Baishi Road, Gongshu District, Hangzhou"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "杭州市拱墅区白石路125号"
+          }
+        }
+      }
+    },
+    "把打卡换成一段湖边慢走，在运动场与绿地之间感受城北的日常节奏。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trade the photo stop for a slow lakeside walk and feel the daily rhythm of north Hangzhou between fields and lawns."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把打卡换成一段湖边慢走，在运动场与绿地之间感受城北的日常节奏。"
+          }
+        }
+      }
+    },
+    "中国丝绸博物馆": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "China National Silk Museum"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中国丝绸博物馆"
+          }
+        }
+      }
+    },
+    "杭州市西湖区玉皇山路73-1号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "73-1 Yuhuangshan Road, Xihu District, Hangzhou"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "杭州市西湖区玉皇山路73-1号"
+          }
+        }
+      }
+    },
+    "从织物纹样与服饰看杭州的另一面，留一点时间观察材料与工艺。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See another side of Hangzhou through textile patterns and clothing, and take time with the materials and craft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从织物纹样与服饰看杭州的另一面，留一点时间观察材料与工艺。"
+          }
+        }
+      }
+    },
+    "镋钯街": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tangba Street"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "镋钯街"
+          }
+        }
+      }
+    },
+    "成都市锦江区镋钯街公共道路": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tangba Street, Jinjiang District, Chengdu"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成都市锦江区镋钯街公共道路"
+          }
+        }
+      }
+    },
+    "沿川西街巷的尺度慢走，看看旧街建筑与今日小店如何并排生活。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stroll a western-Sichuan street at walking scale and see old buildings and today's small shops side by side."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沿川西街巷的尺度慢走，看看旧街建筑与今日小店如何并排生活。"
+          }
+        }
+      }
+    },
+    "望江楼公园": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wangjiang Pavilion Park"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "望江楼公园"
+          }
+        }
+      }
+    },
+    "成都市武侯区望江路30号至50号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30–50 Wangjiang Road, Wuhou District, Chengdu"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成都市武侯区望江路30号至50号"
+          }
+        }
+      }
+    },
+    "沿竹林与江边走一段，认识与薛涛有关的城市记忆。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walk through the bamboo and along the river, and meet the city's memories of the poet Xue Tao."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沿竹林与江边走一段，认识与薛涛有关的城市记忆。"
+          }
+        }
+      }
+    },
+    "A4美术馆": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A4 Art Museum"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A4美术馆"
+          }
+        }
+      }
+    },
+    "成都市天府新区麓山大道二段18号麓镇山顶广场": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luzhen Hilltop Plaza, 18 Lushan Avenue Section 2, Tianfu New Area, Chengdu"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成都市天府新区麓山大道二段18号麓镇山顶广场"
+          }
+        }
+      }
+    },
+    "留一个下午给当代艺术，在展厅与社区之间切换观看城市的方式。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Give an afternoon to contemporary art and switch between the galleries and the neighborhood to see the city differently."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "留一个下午给当代艺术，在展厅与社区之间切换观看城市的方式。"
+          }
+        }
+      }
+    },
+    "半坡国际艺术区": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Banpo International Art District"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "半坡国际艺术区"
+          }
+        }
+      }
+    },
+    "西安市灞桥区纺织西街238号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "238 Fangzhi West Street, Baqiao District, Xi'an"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "西安市灞桥区纺织西街238号"
+          }
+        }
+      }
+    },
+    "沿旧纺织厂的公共街巷看厂房、创作空间与工业留下的尺度。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walk the lanes of an old textile mill and see its workshops, studios and industrial scale."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沿旧纺织厂的公共街巷看厂房、创作空间与工业留下的尺度。"
+          }
+        }
+      }
+    },
+    "环城西苑": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Huancheng West Park"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "环城西苑"
+          }
+        }
+      }
+    },
+    "西安市莲湖区环城西路、西门外护城河沿线": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Along the moat outside the West Gate, Huancheng West Road, Lianhu District, Xi'an"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "西安市莲湖区环城西路、西门外护城河沿线"
+          }
+        }
+      }
+    },
+    "在城墙外的公共绿地走走，看护城河、树荫与居民的晨晚活动。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walk the green space outside the city wall and watch the moat, the shade and residents' morning and evening routines."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在城墙外的公共绿地走走，看护城河、树荫与居民的晨晚活动。"
+          }
+        }
+      }
+    },
+    "陕西省美术博物馆": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shaanxi Art Museum"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "陕西省美术博物馆"
+          }
+        }
+      }
+    },
+    "西安市碑林区长安北路14号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "14 Chang'an North Road, Beilin District, Xi'an"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "西安市碑林区长安北路14号"
+          }
+        }
+      }
+    },
+    "用一场美术展切换旅行节奏，从绘画与地方工艺接近陕西文化。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change the pace of your trip with an exhibition and get close to Shaanxi culture through painting and local crafts."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用一场美术展切换旅行节奏，从绘画与地方工艺接近陕西文化。"
+          }
+        }
+      }
+    },
+    "苏家坝步道": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sujiaba Trail"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "苏家坝步道"
+          }
+        }
+      }
+    },
+    "重庆市南岸区铜元局站至双峰山、铜元之光城市阳台一带": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From Tongyuanju Station to Shuangfeng Hill and the Tongyuan Light city terrace, Nan'an District, Chongqing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重庆市南岸区铜元局站至双峰山、铜元之光城市阳台一带"
+          }
+        }
+      }
+    },
+    "沿连接轨道站与山坡社区的步道，观察重庆真实的高差与日常通行。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow the trail linking a metro station to a hillside neighborhood and see how Chongqing really climbs and commutes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沿连接轨道站与山坡社区的步道，观察重庆真实的高差与日常通行。"
+          }
+        }
+      }
+    },
+    "平顶山文化公园": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pingdingshan Culture Park"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平顶山文化公园"
+          }
+        }
+      }
+    },
+    "重庆市沙坪坝区石小路155号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "155 Shixiao Road, Shapingba District, Chongqing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重庆市沙坪坝区石小路155号"
+          }
+        }
+      }
+    },
+    "沿山间步道慢走，在绿荫与观景处看看山城社区的另一种高度。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walk the hill paths slowly and, from the shade and lookouts, see the mountain city's neighborhoods from another height."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沿山间步道慢走，在绿荫与观景处看看山城社区的另一种高度。"
+          }
+        }
+      }
+    },
+    "陈安健交通茶馆": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chen Anjian's Jiaotong Teahouse"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "陈安健交通茶馆"
+          }
+        }
+      }
+    },
+    "重庆市九龙坡区黄桷坪正街7号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7 Huangjueping Main Street, Jiulongpo District, Chongqing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重庆市九龙坡区黄桷坪正街7号"
+          }
+        }
+      }
+    },
+    "在木桌、茶盏与聊天声之间坐一会儿，把看城市的速度交还给日常。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sit a while among wooden tables, teacups and chatter, and let everyday life set the pace."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在木桌、茶盏与聊天声之间坐一会儿，把看城市的速度交还给日常。"
+          }
+        }
+      }
+    },
+    "华侨城创意文化园": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OCT-LOFT Creative Culture Park"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "华侨城创意文化园"
+          }
+        }
+      }
+    },
+    "深圳市南山区华侨城创意文化园公共街巷": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public lanes of OCT-LOFT, Nanshan District, Shenzhen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "深圳市南山区华侨城创意文化园公共街巷"
+          }
+        }
+      }
+    },
+    "沿旧厂房之间的街巷，看设计工作室、展览空间与树木相邻的日常。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walk the lanes between old factory buildings, where design studios, galleries and trees sit side by side."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沿旧厂房之间的街巷，看设计工作室、展览空间与树木相邻的日常。"
+          }
+        }
+      }
+    },
+    "香蜜公园": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xiangmi Park"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "香蜜公园"
+          }
+        }
+      }
+    },
+    "深圳市福田区农园路30号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 Nongyuan Road, Futian District, Shenzhen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "深圳市福田区农园路30号"
+          }
+        }
+      }
+    },
+    "在荔枝林与步道间留一段散步时间，看看深圳社区里的绿意。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Take a walk among the lychee trees and paths and enjoy the green inside Shenzhen's neighborhoods."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在荔枝林与步道间留一段散步时间，看看深圳社区里的绿意。"
+          }
+        }
+      }
+    },
+    "何香凝美术馆": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "He Xiangning Art Museum"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "何香凝美术馆"
+          }
+        }
+      }
+    },
+    "深圳市南山区深南大道9013号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "9013 Shennan Avenue, Nanshan District, Shenzhen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "深圳市南山区深南大道9013号"
+          }
+        }
+      }
+    },
+    "给作品与文献留一点观看时间，从艺术家的经历读到城市之外的世界。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Give the works and archives some time, and read from the artist's life to the world beyond the city."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "给作品与文献留一点观看时间，从艺术家的经历读到城市之外的世界。"
+          }
+        }
+      }
+    },
+    "新河浦公共街巷": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xinhepu Lanes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新河浦公共街巷"
+          }
+        }
+      }
+    },
+    "广州市越秀区新河浦路、恤孤院路周边公共道路": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public streets around Xinhepu Road and Xuguyuan Road, Yuexiu District, Guangzhou"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "广州市越秀区新河浦路、恤孤院路周边公共道路"
+          }
+        }
+      }
+    },
+    "沿红砖洋房与河涌观察建筑细节，读广州近代社区留下的街巷尺度。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow red-brick villas and the creek, notice the details, and read the street scale of Guangzhou's early-modern neighborhoods."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沿红砖洋房与河涌观察建筑细节，读广州近代社区留下的街巷尺度。"
+          }
+        }
+      }
+    },
+    "晓港公园": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xiaogang Park"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "晓港公园"
+          }
+        }
+      }
+    },
+    "广州市海珠区前进路146号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "146 Qianjin Road, Haizhu District, Guangzhou"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "广州市海珠区前进路146号"
+          }
+        }
+      }
+    },
+    "沿竹林、湖面与老树走一段，看看老广日常休息的城市绿地。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walk past bamboo, the lake and old trees in the green space where locals take their daily rest."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沿竹林、湖面与老树走一段，看看老广日常休息的城市绿地。"
+          }
+        }
+      }
+    },
+    "逵园艺术馆": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kuiyuan Art Museum"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "逵园艺术馆"
+          }
+        }
+      }
+    },
+    "广州市越秀区恤孤院路9号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "9 Xuguyuan Road, Yuexiu District, Guangzhou"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "广州市越秀区恤孤院路9号"
+          }
+        }
+      }
+    },
+    "在老洋房里看当代展览，把建筑细节与作品放在一起慢慢看。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See contemporary shows inside an old villa and take in the building and the works together."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在老洋房里看当代展览，把建筑细节与作品放在一起慢慢看。"
+          }
+        }
+      }
+    },
+    "青岛路公共街巷": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qingdao Road Lanes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "青岛路公共街巷"
+          }
+        }
+      }
+    },
+    "武汉市江岸区青岛路、平和打包厂周边公共道路": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public streets around Qingdao Road and the Pinghe Packing Plant, Jiang'an District, Wuhan"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "武汉市江岸区青岛路、平和打包厂周边公共道路"
+          }
+        }
+      }
+    },
+    "沿红砖工业建筑观察老汉口的城市更新，从街道读到曾经的商贸生活。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trace old Hankou's renewal along red-brick industrial buildings, and read its trading past in the streets."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沿红砖工业建筑观察老汉口的城市更新，从街道读到曾经的商贸生活。"
+          }
+        }
+      }
+    },
+    "解放公园": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jiefang Park"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解放公园"
+          }
+        }
+      }
+    },
+    "武汉市江岸区解放大道1861号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1861 Jiefang Avenue, Jiang'an District, Wuhan"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "武汉市江岸区解放大道1861号"
+          }
+        }
+      }
+    },
+    "在湖边与树荫间散步，把看展探店之间的空档留给一段城市绿地。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stroll by the lake and under the trees, and give the gap between galleries and shops to some city green."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在湖边与树荫间散步，把看展探店之间的空档留给一段城市绿地。"
+          }
+        }
+      }
+    },
+    "合美术馆": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "United Art Museum"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合美术馆"
+          }
+        }
+      }
+    },
+    "武汉市洪山区野芷湖西路16号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "16 Yezhihu West Road, Hongshan District, Wuhan"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "武汉市洪山区野芷湖西路16号"
+          }
+        }
+      }
+    },
+    "从当代艺术与青年创作中看另一面的武汉，给一件作品多停留几分钟。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See another Wuhan through contemporary art and young creators, and stay a few extra minutes with one work."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从当代艺术与青年创作中看另一面的武汉，给一件作品多停留几分钟。"
+          }
+        }
+      }
+    },
+    "大南街": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tai Nan Street"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "大南街"
+          }
+        }
+      }
+    },
+    "香港九龙深水埗大南街公共道路": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tai Nan Street, Sham Shui Po, Kowloon, Hong Kong"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "香港九龙深水埗大南街公共道路"
+          }
+        }
+      }
+    },
+    "从皮革、布料与今日创作小店之间，观察深水埗制造业与社区生活的连接。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Among leather, fabric and today's maker shops, see how Sham Shui Po's trades connect with neighborhood life."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从皮革、布料与今日创作小店之间，观察深水埗制造业与社区生活的连接。"
+          }
+        }
+      }
+    },
+    "牛棚艺术公园": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cattle Depot Artist Village"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "牛棚艺术公园"
+          }
+        }
+      }
+    },
+    "香港九龙土瓜湾新山道与东九龙走廊交界、牛棚后方": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Behind the Cattle Depot, at San Shan Road and the East Kowloon Corridor, To Kwa Wan, Kowloon, Hong Kong"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "香港九龙土瓜湾新山道与东九龙走廊交界、牛棚后方"
+          }
+        }
+      }
+    },
+    "在保留工业痕迹的公共休憩空间走走，看看红砖、绿地与艺术社区如何相邻。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walk a public space that keeps its industrial traces, where red brick, green space and an art community meet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在保留工业痕迹的公共休憩空间走走，看看红砖、绿地与艺术社区如何相邻。"
+          }
+        }
+      }
+    },
+    "艺鵠书店": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ACO Books"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "艺鵠书店"
+          }
+        }
+      }
+    },
+    "香港湾仔轩尼诗道365–367号富德楼14楼": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "14/F Foo Tak Building, 365–367 Hennessy Road, Wan Chai, Hong Kong"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "香港湾仔轩尼诗道365–367号富德楼14楼"
+          }
+        }
+      }
+    },
+    "翻翻艺术书与独立出版，从一本小书接近本地创作的日常。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browse art books and independent publishing, and get close to local creative life through a small book."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "翻翻艺术书与独立出版，从一本小书接近本地创作的日常。"
+          }
+        }
+      }
+    },
+    "华新路公共街巷": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Huaxin Road Lanes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "华新路公共街巷"
+          }
+        }
+      }
+    },
+    "厦门市思明区华新路、幸福路周边公共道路": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public streets around Huaxin Road and Xingfu Road, Siming District, Xiamen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "厦门市思明区华新路、幸福路周边公共道路"
+          }
+        }
+      }
+    },
+    "沿华侨老别墅与树荫慢走，看一段仍与居民日常交织的厦门街巷。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stroll past old overseas-Chinese villas in the shade, on Xiamen lanes still woven into residents' lives."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沿华侨老别墅与树荫慢走，看一段仍与居民日常交织的厦门街巷。"
+          }
+        }
+      }
+    },
+    "忠仑公园": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zhonglun Park"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "忠仑公园"
+          }
+        }
+      }
+    },
+    "厦门市湖里区金尚路、吕岭路沿线忠仑公园": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zhonglun Park along Jinshang Road and Lüling Road, Huli District, Xiamen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "厦门市湖里区金尚路、吕岭路沿线忠仑公园"
+          }
+        }
+      }
+    },
+    "沿林间步道与缓坡看看城市绿意，把远行的节奏放回一次日常散步。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow wooded paths and gentle slopes, and bring the pace of travel back to an everyday walk."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沿林间步道与缓坡看看城市绿意，把远行的节奏放回一次日常散步。"
+          }
+        }
+      }
+    },
+    "三影堂厦门摄影艺术中心": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Three Shadows Xiamen Photography Art Center"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "三影堂厦门摄影艺术中心"
+          }
+        }
+      }
+    },
+    "厦门市集美区杏林湾商务营运中心二号楼裙楼301": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Room 301, Podium of Building 2, Xinglin Bay Business Center, Jimei District, Xiamen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "厦门市集美区杏林湾商务营运中心二号楼裙楼301"
+          }
+        }
+      }
+    },
+    "用一场摄影展切换观看方式，在影像里看看城市与人的关系。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Let a photography show change how you look, and see the city and its people through images."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用一场摄影展切换观看方式，在影像里看看城市与人的关系。"
+          }
+        }
+      }
     }
   }
 }

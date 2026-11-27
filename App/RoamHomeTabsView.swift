@@ -113,6 +113,8 @@ struct RoamHomeTabPicker: View {
     var onCount: ((Int?) -> Void)? = nil
     /// ROAM-13: team count of the last successful team read at this centre (nil = not read / failed).
     var onTeamsLive: ((Int?) -> Void)? = nil
+    /// i18n r3: the catalog city name (MP Chinese) resolves through Localizable.xcstrings.
+    @Environment(\.locale) private var locale
     /// ROAM-13 本城推荐 (MP `entryCityStrip`): nil hides the second tab.
     var cityStrip: RoamCityGuideStrip? = nil
     /// Places of the current map read; a matching seed tag gives a city card its cover.
@@ -168,7 +170,7 @@ struct RoamHomeTabPicker: View {
     }
     /// MP `entryCityLabel`: `<城市> · N 处推荐` when the map faces a catalog city, else 本城推荐.
     private func cityTabLabel(_ strip: RoamCityGuideStrip) -> Text {
-        strip.inCity ? Text("roam.cityGuide.tab.inCity \(strip.city.name) \(strip.items.count)") : Text("roam.cityGuide.tab.default")
+        strip.inCity ? Text("roam.cityGuide.tab.inCity \(appLocalized(String.LocalizationValue(strip.city.name), locale: locale)) \(strip.items.count)") : Text("roam.cityGuide.tab.default")
     }
     private func stripTab(_ title: Text, on: Bool, identifier: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {

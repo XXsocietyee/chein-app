@@ -80,6 +80,8 @@ extension RoamPlace {
 }
 
 /// 本城推荐 card row: cover from the matching loaded place (MP `_cityStripWithCovers`), else the MP placeholder.
+/// i18n r3: catalog names, reasons and addresses stay the MP's Chinese data; each Chinese value is a
+/// Localizable.xcstrings key with en + zh-Hans, so the cards show English in en locales.
 struct RoamCityGuideCards: View {
     let strip: RoamCityGuideStrip
     let places: [RoamPlace]
@@ -94,8 +96,8 @@ struct RoamCityGuideCards: View {
                         // N-r11-4: a plain Label row with the MP placeholder art instead of the shelf image card.
                         Label {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(verbatim: item.name).font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
-                                (Text(item.category.labelKey) + Text(verbatim: " · ") + Text(verbatim: item.reason))
+                                Text(LocalizedStringKey(item.name)).font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
+                                (Text(item.category.labelKey) + Text(verbatim: " · ") + Text(LocalizedStringKey(item.reason)))
                                     .font(.caption).foregroundStyle(.secondary).lineLimit(2)
                             }
                         } icon: {
@@ -108,7 +110,7 @@ struct RoamCityGuideCards: View {
                         .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel(Text(verbatim: item.name))
+                    .accessibilityLabel(Text(LocalizedStringKey(item.name)))
                     .accessibilityIdentifier("roam.home.peek.city.\(item.id)")
                 }
             }.padding(.vertical, 4)
