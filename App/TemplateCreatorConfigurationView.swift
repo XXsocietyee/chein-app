@@ -101,6 +101,7 @@ import Combine
         if family == .hiddenObject && field.id == "r" { return true }
         if family == .photoCheck && path == [.field("frameOpacity")] && TemplatePhotoFrameConfiguration(model.draft.advanced).isSupported { return true }
         if family == .compare && field.id == "effects" { return true }
+        if family == .photoCheck && path.count == 1 && ["cardTitle", "cardStyle"].contains(field.id) && object["mode"]?.string != "CARD" { return true }
         if let step = branchStep {
             if ["outcomeCode", "outcomeLabel"].contains(field.id) && !step.terminal { return true }
             if field.id == "options" && step.terminal { return true }

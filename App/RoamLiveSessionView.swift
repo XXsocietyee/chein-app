@@ -81,7 +81,6 @@ import QuestifyCore
     @State private var confirmFinish = false
     @State private var showingLocationPriming = false
     @State private var locationPrimingAllowed = false
-    @State private var showRules = false
     /// ROAM-2: pages/roam `openCheckinView` after a confirmed visit → 城市贴纸 / 今日城市签.
     @State private var checkin: RoamCheckinTarget?
     @State private var revealTick = 0
@@ -129,12 +128,9 @@ import QuestifyCore
                     reloadTrigger: fogMap?.area.label ?? ""
                 )
             }
+            // MP pbar 更多 (roam-more): one entry for 附近正在走的人 / 玩法说明 / 设置; the rules are a row inside it.
             ToolbarItem(placement: .topBarTrailing) {
-                Button { showRules = true } label: { Label("roam.live.rules", systemImage: "info.circle") }
-                    .accessibilityIdentifier("roam.live.rules")
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button { showTools = true } label: { Label("roamTools.title", systemImage: "slider.horizontal.3") }
+                Button { showTools = true } label: { Label("roamTools.more.title", systemImage: "ellipsis.circle") }
                     .accessibilityIdentifier("roam.live.tools")
             }
         }
@@ -203,9 +199,6 @@ import QuestifyCore
                 "足迹和探店都会保存,结算后可领足迹卡。本次漫游立即结算,结束后不能继续这一次漫游。",
                 "Your footprints and shop visits are saved. After settlement you can collect the footprint card. This roam settles now and can't be continued.",
                 locale: locale))
-        }
-        .sheet(isPresented: $showRules) {
-            NavigationStack { RoamLiveRulesView() }.cySheet()
         }
         .sheet(item: $checkin) { target in Group { RoamCheckinSheet(target: target) }.cySheet(detents: [.large]) }
         .background {
@@ -500,9 +493,11 @@ import QuestifyCore
             }
         }
         .onAppear {
+            ActiveSessionStore.shared.setRoamScreenVisible(true)
             purposeAccepted = storedPurposeAccepted; owner.setForeground(scenePhase == .active); owner.prepare(); model.captureFinishAddress(); browse.appear()
         }
         .onDisappear { nearbyExpanded = true; browse.parentHidden(); owner.pause() }
+        .onDisappear { ActiveSessionStore.shared.setRoamScreenVisible(false) }
         .onChange(of: owner.phase) { _, phase in
             if phase != .active { nearbyExpanded = true }
             browse.retireIfStale(owner: owner, reader: currentBrowseReader)
@@ -840,25 +835,6 @@ import QuestifyCore
         return "roam.live.operationError"
     }
 }
-@MainActor private struct RoamLiveRulesView: View {
-    @Environment(\.dismiss) private var dismiss
-    var body: some View {
-        List {
-            Section("roam.live.ruleExploreTitle") { Text("roam.live.ruleExplore") }
-            Section("roam.live.ruleArrivalTitle") { Text("roam.live.ruleArrival") }
-            Section("roam.live.ruleFinishTitle") { Text("roam.live.ruleFinish") }
-            Section("roam.live.rulePrivacyTitle") { Text("roam.live.presencePrivacy"); Text("roam.live.leaveHint") }
-        }
-        .navigationTitle(Text("roam.live.rules")).navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button { dismiss() } label: { Label("action.close", systemImage: "xmark") }
-                    .labelStyle(.iconOnly)
-            }
-        }
-    }
-}
-
 /// A display-only projection of the current controller's accepted in-memory samples.
 /// Saved tile totals and timestamps do not establish this local-area estimate.
 struct RoamLiveCoveragePresentation: Equatable {
