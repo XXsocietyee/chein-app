@@ -53,9 +53,11 @@ struct OwnerDraftBrowserView: View {
             case .empty:
                 CYEmptyState(systemImage: "tray", "ownerDraft.empty", messageIdentifier: "ownerDraft.empty")
             case .failed, .invalidated:
-                OwnerDraftFailureView(issue: browser.issue)
+                // mp-states r3: the failure and its retry are one ContentUnavailableView.
                 if browser.phase != .invalidated {
-                    CYPillButton("action.retry", style: .secondary) { Task { await browser.load() } }.accessibilityIdentifier("ownerDraft.retry")
+                    OwnerDraftFailureView(issue: browser.issue, retry: { Task { await browser.load() } })
+                } else {
+                    OwnerDraftFailureView(issue: browser.issue)
                 }
             case .ready:
                 ForEach(browser.rows) { row in
@@ -119,9 +121,10 @@ private struct OwnerDraftDetailView: View {
                 }.accessibilityIdentifier("ownerDraft.unsupported")
                 if let receipts = detail.installedReceipts { OwnerDraftReceiptSummaryView(summary: receipts) }
             } else if let issue = browser.detailIssue {
-                OwnerDraftFailureView(issue: issue)
                 if issue != .staleSession {
-                    Button("action.retry") { Task { await browser.restore(id: id) } }.accessibilityIdentifier("ownerDraft.detailRetry")
+                    OwnerDraftFailureView(issue: issue, retry: { Task { await browser.restore(id: id) } }, retryIdentifier: "ownerDraft.detailRetry")
+                } else {
+                    OwnerDraftFailureView(issue: issue)
                 }
             }
         }
@@ -144,9 +147,18 @@ private struct OwnerDraftFailureView: View {
         default: return "ownerDraft.error"
         }
     }
+    var retry: (() -> Void)? = nil
+    var retryIdentifier = "ownerDraft.retry"
     var body: some View {
-        Text(LocalizedStringKey(key)).fixedSize(horizontal: false, vertical: true)
-            .accessibilityIdentifier("ownerDraft.error")
+        ContentUnavailableView {
+            Label { Text(LocalizedStringKey(key)).accessibilityIdentifier("ownerDraft.error") } icon: { Image(systemName: "exclamationmark.triangle") }
+        } actions: {
+            if let retry {
+                Button("action.retry", action: retry)
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier(retryIdentifier)
+            }
+        }
     }
 }
 

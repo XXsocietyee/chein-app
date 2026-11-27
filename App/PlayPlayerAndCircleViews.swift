@@ -118,7 +118,7 @@ import SwiftUI
             if sameModel, let offered = actionReview.review {
                 PlayPlayerActionReviewCard(owner: actionReview, offered: offered).id(offered.id)
             }
-            if actionReview.working { CYSkeleton().accessibilityLabel(Text("playerEvidence.working")) }
+            if actionReview.working { CYSkeleton(label: "playerEvidence.working") }
         }.cyGroupedSurface().privacySensitive().cyPageTitle("playx.player.title").accessibilityIdentifier("playx.player.view")
             .task {
                 guard !Task.isCancelled else { return }

@@ -693,20 +693,22 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
     }
     /// "From ¥58 · 24 going"; an unknown price or count is an em dash, never 0.
     /// Known parts only: price and attendee count joined by a dot. Nil (line hidden) when neither is known.
-    private func pinnedSummary(_ detail: ActivityDetail) -> Text? {
+    /// `includeGoing: false` when the going stack right under the line already shows the count (no duplicate "24 going").
+    private func pinnedSummary(_ detail: ActivityDetail, includeGoing: Bool = true) -> Text? {
         let amount = detail.summary.minimumAmount
         var parts: [Text] = []
         if let amount, amount == 0 { parts.append(Text(verbatim: CoreLoopCopy(locale: locale).t("免费", "Free"))) }
         else if let amount, amount > 0 { let yuan = LocaleDisplay.money(amount, locale: locale)  // owner decision 9: ¥12.50
             parts.append(Text("activity.pinned.price \(yuan)")) }
-        if let count = ActivityDetailHeaderFacts(detail: detail).registrationCount { parts.append(Text("activity.pinned.going \(count)")) }
+        if includeGoing, let count = ActivityDetailHeaderFacts(detail: detail).registrationCount { parts.append(Text("activity.pinned.going \(count)")) }
         guard var line = parts.first else { return nil }
         for part in parts.dropFirst() { line = line + Text(verbatim: " · ") + part }
         return line
     }
     private func registrationAction(_ detail: ActivityDetail) -> some View { CYFooterBar {
         VStack(spacing: 8) {
-            if let summary = pinnedSummary(detail) {
+            let goingStackShown = !detail.isCancelled && (detail.people.registrationCount ?? 0) > 0
+            if let summary = pinnedSummary(detail, includeGoing: !goingStackShown) {
                 summary
                     .font(.footnote)
                     .foregroundStyle(.secondary)

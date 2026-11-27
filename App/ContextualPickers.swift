@@ -15,8 +15,23 @@ import SwiftUI
     var body: some View {
         List {
             if busy { ProgressView("topic.loading") }
-            if failed { Button("action.retry") { Task { await load(reset: rows.rows.isEmpty) } } }
-            if !busy, !failed, rows.rows.isEmpty { Text("context.picker.empty") }
+            // mp-states r3 (MP subpackageB/pages/im/chat/index.wxml:231-232): 路线没有加载 · 重试 / 没有找到路线 · 换个关键词试试.
+            if failed, rows.rows.isEmpty {
+                ContentUnavailableView {
+                    Label("context.route.failed", systemImage: "map")
+                } actions: {
+                    Button("action.retry") { Task { await load(reset: true) } }.buttonStyle(.bordered)
+                }
+                .accessibilityIdentifier("context.route.failed")
+            } else if failed { Button("action.retry") { Task { await load(reset: false) } } }
+            if !busy, !failed, loadedScope != nil, rows.rows.isEmpty {
+                ContentUnavailableView {
+                    Label("context.route.empty", systemImage: "magnifyingglass")
+                } description: {
+                    Text("context.route.empty.hint")
+                }
+                .accessibilityIdentifier("context.route.empty")
+            }
             ForEach(rows.rows) { row in
                 Button {
                     guard loadedScope == reader.scope, !busy else { return }

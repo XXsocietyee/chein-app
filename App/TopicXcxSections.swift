@@ -65,6 +65,7 @@ struct TopicXcxTabs: View {
 
 struct TopicXcxHero: View {
     let topic: TopicDetail
+    @Environment(\.dynamicTypeSize) private var typeSize
     /// `TopicDetail.ownerReviewLabel` is the MP's Chinese `ownerStateText`; each value has its own catalog key.
     static func reviewKey(_ label: String) -> String {
         let keys: [String: String] = ["审核中": "topicXcx.review.pending", "未通过": "topicXcx.review.rejected"]
@@ -82,17 +83,23 @@ struct TopicXcxHero: View {
             }
             // R7-PC-B1-9 (MP index.wxml:89-91, 101): publisher row (avatar + name + 发布) and the owner-only review chip.
             if topic.publisher != nil || topic.ownerReviewLabel != nil {
-                HStack(spacing: CYSpacing.sm) {
+                // en-layout r3: at accessibility sizes the review chip ("Under review") moves under the publisher line.
+                (typeSize.isAccessibilitySize
+                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.xs))
+                    : AnyLayout(HStackLayout(spacing: CYSpacing.sm))) {
                     if let publisher = topic.publisher {
-                        CYAvatarView(url: publisher.avatar.flatMap(URL.init(string:)), name: publisher.name, size: .xs)
-                            .accessibilityHidden(true)
-                        Text(verbatim: publisher.name)
-                            .font(.subheadline)
-                            .foregroundStyle(.primary)
-                            .lineLimit(1)
-                        Text("topicXcx.publisher.posted")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                        HStack(spacing: CYSpacing.sm) {
+                            CYAvatarView(url: publisher.avatar.flatMap(URL.init(string:)), name: publisher.name, size: .xs)
+                                .accessibilityHidden(true)
+                            Text(verbatim: publisher.name)
+                                .font(.subheadline)
+                                .foregroundStyle(.primary)
+                                .lineLimit(1)
+                            Text("topicXcx.publisher.posted")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .fixedSize()
+                        }
                     }
                     if let review = topic.ownerReviewLabel {
                         Label(LocalizedStringKey(TopicXcxHero.reviewKey(review)), systemImage: "hourglass")
@@ -504,6 +511,8 @@ extension EnvironmentValues {
 /// Source tab "路线": every stop in order with its walking estimate.
 struct TopicXcxRouteSection: View {
     @Environment(\.locale) private var locale
+    /// a11y-dt r3: stop addresses wrap to 3 lines at AX sizes instead of truncating after a few glyphs.
+    @Environment(\.dynamicTypeSize) private var addressTypeSize
     @Environment(\.rootTabSwitch) private var rootTabSwitch
     @Environment(\.openURL) private var openURL
     /// R7-PC-B1-6: MP `_loadProgress` reads the buyer's own `/api/play/nodes` total/doneCount (bought only; otherwise 0, no fake
@@ -637,12 +646,12 @@ struct TopicXcxRouteSection: View {
                                 if let address = stop.node.address {
                                     if let url = TopicStopMapsLink.url(for: stop.node) {
                                         Link(destination: url) {
-                                            Label { Text(verbatim: address).lineLimit(1) } icon: { Image(systemName: "mappin") }.font(.caption)
+                                            Label { Text(verbatim: address).lineLimit(addressTypeSize.isAccessibilitySize ? 3 : 1) } icon: { Image(systemName: "mappin") }.font(.caption)
                                         }
                                         .accessibilityHint(Text("accountCollection.coupon.openInMaps"))
                                         .accessibilityIdentifier("topic.route.stop.\(stop.id).map")
                                     } else {
-                                        Label { Text(verbatim: address).lineLimit(1) } icon: { Image(systemName: "mappin") }.font(.caption)
+                                        Label { Text(verbatim: address).lineLimit(addressTypeSize.isAccessibilitySize ? 3 : 1) } icon: { Image(systemName: "mappin") }.font(.caption)
                                     }
                                 }
                             }

@@ -201,7 +201,7 @@ import SwiftUI
                 }
                 if discoverySources == nil || discoveryFilter.includesTeams {
                 NearbyTeamCountLine(loaded: discoverySources == nil ? (coordinator.authenticated && !model.running && coordinator.context != nil && coordinator.messageKey == nil) : nearbyCurrentReadSucceeded, count: visibleTeams.count)
-                if model.running { CYLoadingStateView(rows: 1).accessibilityLabel(Text("nearby.loading")) }
+                if model.running { CYLoadingStateView(rows: 1, label: "nearby.loading") }
                 if let issue = NearbyLoadIssue(messageKey: coordinator.messageKey), !model.running {
                     NearbyLoadIssueCard(issue: issue, onSignIn: onSignIn) { Task { await refresh() } }
                 } else if !model.running && coordinator.authenticated && coordinator.context != nil && coordinator.messageKey == nil && visibleTeams.isEmpty && (discoverySources == nil || nearbyCurrentReadSucceeded) {
@@ -494,7 +494,7 @@ import SwiftUI
             }
             switch joinedTeamsStatus {
             case .loading:
-                CYLoadingStateView(rows: 1).accessibilityLabel(Text("team.loading")).accessibilityIdentifier("nearby.mine.owned.loading")
+                CYLoadingStateView(rows: 1, label: "team.loading").accessibilityIdentifier("nearby.mine.owned.loading")
             case .failed where !coordinator.authenticated:
                 EmptyView()
             case .failed(let key):
@@ -505,8 +505,8 @@ import SwiftUI
                 }
             case .loaded: EmptyView()
             }
-            if mine.loading { CYLoadingStateView(rows: 1).accessibilityLabel(Text("nearby.w208.mine.loading")) }
-            else if model.running { CYLoadingStateView(rows: 1).accessibilityLabel(Text("nearby.loading")) }
+            if mine.loading { CYLoadingStateView(rows: 1, label: "nearby.w208.mine.loading") }
+            else if model.running { CYLoadingStateView(rows: 1, label: "nearby.loading") }
             if mine.failed && !model.running, let mineIssue = NearbyLoadIssue(messageKey: coordinator.messageKey), !mineIssue.offersRetry {
                 NearbyLoadIssueCard(issue: mineIssue, onSignIn: onSignIn) {}
             } else if mine.failed && !model.running {

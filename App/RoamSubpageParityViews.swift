@@ -238,7 +238,7 @@ struct RoamShareLinkDormantNotice: View {
             VStack(alignment: .leading, spacing: 20) {
                 switch outcome {
                 case nil:
-                    CYSkeleton().accessibilityLabel(Text("roamSub.w208.shared.loading"))
+                    CYSkeleton(label: "roamSub.w208.shared.loading")
                         .accessibilityIdentifier("roamSub.w208.shared.loading")
                 case .error?:
                     // MP session shared error: 这条足迹无法打开 + 重试, no sub line.
@@ -710,7 +710,7 @@ struct RoamStampSlipPhotoView: View {
                 AsyncImage(url: url) { phase in
                     if let image = phase.image { image.resizable().scaledToFill() }
                     else if phase.error != nil { Label("roam.experience.imageUnavailable", systemImage: "photo.badge.exclamationmark") }
-                    else { CYSkeleton().accessibilityLabel(Text("roam.loading")) }
+                    else { CYSkeleton(label: "roam.loading") }
                 }
             } else {
                 Label("roam.experience.imageUnavailable", systemImage: "photo")

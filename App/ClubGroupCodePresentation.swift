@@ -9,7 +9,7 @@ import UIKit
     /// CLB-group-code-03 (fix-r3-club-b): re-issue in place once the code has expired. Nil while busy.
     var onReissue: (() -> Void)? = nil
     /// CLB-group-code-04 (fix-r3-club-b round 3): MP wxml:38-39 names the session under the code
-    /// (「活动名 · 开始时间」). Nil when the entry did not carry a label; the card then shows the code alone.
+    /// (「活动名 · 开始时间」), between the code and 保存到相册 (club-game-code-sheet wxml:21). Nil when the entry did not carry a label; the card then shows the code alone.
     var sessionName: String? = nil
     @Environment(\.scenePhase) private var scenePhase
     @State private var savedBrightness: CGFloat?
@@ -26,16 +26,17 @@ import UIKit
                     // quiet zone so scanners read it in Dark Mode; no custom ink card. The session name is the Section header.
                     VStack(spacing: 8) {
                         Text("club.gov.codeAvailable").font(.headline)
-                        if let sessionName, !sessionName.isEmpty {
-                            Text(verbatim: sessionName).font(.subheadline).foregroundStyle(.secondary)
-                                .multilineTextAlignment(.center)
-                        }
                         Image(uiImage: image).interpolation(.none).resizable().scaledToFit()
                             .frame(maxWidth: codeSide, maxHeight: codeSide)
                             .padding(12)
                             .background(Color.white)
                             .accessibilityLabel(Text("groupCode.image", tableName: "ClubGroupCodeDisplay"))
                             .privacySensitive().accessibilityIdentifier("club.gov.groupCode")
+                        // mp-club r3 pass 8 (MP club-game-code-sheet wxml:9-24): code card, then the session name, then save.
+                        if let sessionName, !sessionName.isEmpty {
+                            Text(verbatim: sessionName).font(.subheadline).foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
                         Text("club.gov.codeExpires \(Text(value.expiresAt, style: .timer))")
                             .font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
                         ShareLink(item: Image(uiImage: image),

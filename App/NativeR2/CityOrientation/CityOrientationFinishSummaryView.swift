@@ -159,7 +159,7 @@ import MapKit
             .navigationTitle(Text(LocalizedStringKey(titleKey)))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .primaryAction) {
                     ShareLink(item: shareText) { Label("nativeR2.city.finish.share", systemImage: "square.and.arrow.up") }
                         .accessibilityIdentifier("medalScreen.share")
                 }
