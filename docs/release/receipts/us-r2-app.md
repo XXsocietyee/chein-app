@@ -36,6 +36,6 @@ No new user-facing strings (reused `activity.pinned.price %@`, already en + zh-H
 - `python3 tools/generate_project.py` → project unchanged (no new files)
 - `python3 tools/check_scaffold.py` → PASS structural checks (5250 Swift files)
 - `python3 -B tools/check_a11y_lint.py` → PASS, 0 new
-- `python3 -B tools/contract_ratchet.py --check` → RATCHET_RESULT
+- `python3 -B tools/contract_ratchet.py --check` → 104 failing, baseline 104, **new 0**, fixed 0
 
 Nothing deployed. Merchant and story-flow theme untouched.
