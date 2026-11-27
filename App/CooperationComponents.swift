@@ -56,6 +56,7 @@ import SwiftUI
     @ViewBuilder let content: (Value) -> Content
     @StateObject private var model = CooperationScreenModel<Value>()
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.cooperationMissingInvite) private var detailScreen
     @State private var isVisible = false
     private var key: CooperationReadOwner { CooperationReadOwner(reader: reader, resource: resource) }
     var body: some View {
@@ -71,7 +72,8 @@ import SwiftUI
                 content(value)
             } else {
                 // Mini `cy-skeleton type="list"`: a calm centred spinner until rows arrive.
-                ProgressView("cooperation.loading").frame(maxWidth: .infinity, minHeight: 160)
+                // MP invite-detail wxml:26 loading-label 正在加载协作详情.
+                ProgressView(LocalizedStringKey(detailScreen ? "mpr3.coop.detail.loading" : "cooperation.loading")).frame(maxWidth: .infinity, minHeight: 160)
                     .accessibilityIdentifier("cooperation.loading")
             }
         }
@@ -122,6 +124,13 @@ struct CooperationIssueView: View {
     @Environment(\.dismiss) private var dismiss
     /// MP coop/list wxml:46-47: the invitation list says 当前身份不能查看协作邀请 / 协作邀请加载失败, not the directory copy.
     private var titleKey: String {
+        if missingInvite {
+            // MP invite-detail wxml:32 协作详情加载失败.
+            switch issue {
+            case .failure, .server, .malformed: return "mpr3.coop.detail.failed"
+            default: return issue.key
+            }
+        }
         guard listIssues else { return issue.key }
         switch issue {
         case .forbidden: return "mpr3.coop.list.forbidden"
