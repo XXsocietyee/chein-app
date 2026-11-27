@@ -11,8 +11,8 @@ class EntitlementsContract(unittest.TestCase):
 
     def test_sign_in_with_apple_and_widget_app_group_only(self):
         plist = plistlib.loads((ROOT / 'Config/Questify.entitlements').read_bytes())
-        # US launch r1 (app-pay): plus the Apple Pay merchant id.
-        self.assertEqual(plist, {'com.apple.developer.applesignin': ['Default'],
+        # US launch r1 (app-pay): plus the Apple Pay merchant id. Components r1 (C7): plus push for Live Activity tokens.
+        self.assertEqual(plist, {'aps-environment': 'development', 'com.apple.developer.applesignin': ['Default'],
                                  'com.apple.developer.in-app-payments': ['merchant.com.chengyinhub.chengyinApp'],
                                  **self.GROUP})
 
