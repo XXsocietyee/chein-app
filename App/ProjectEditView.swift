@@ -550,13 +550,6 @@ import SwiftUI
                 NativeRpgPassiveRulesAuthorEntry(model: model)
                 Section { NativeStoryWalkingAuthorEntry(model: model) }
                 ProjectTeamConfigurationEntry(model: model)
-                ProjectClubLeadFields(model: model).id("project-issue-anchor-clubLead")
-                ProjectEditCompletionRulesForm(rules: model.completionRules, city: model.draft.product == .city, fullEdit: model.fullEdit, totalNodes: model.draft.chapters.reduce(0) { $0 + $1.nodes.count }).id("project-issue-anchor-completionRules")
-                PublishingTopicRewardsForm(rewards: model.rewards, fullEdit: model.fullEdit).id("project-issue-anchor-topicRewards")
-                Section("projectEdit.visibility") {
-                    Toggle("projectEdit.publishToCreative", isOn: $model.draft.publishToCreative)
-                        .disabled(!model.fullEdit || model.coordinator.snapshot?.topicID != nil)
-                }
                 TopicPublishCheckSection(model: model)
                 if !model.coordinator.issues.isEmpty {
                     Section("projectEdit.fixBeforeReview") {
@@ -1069,7 +1062,7 @@ import SwiftUI
         }
         .disabled(!model.canEdit)
     }
-    /// MP topic-detail-sheet.wxml, after the covers: 画面风格 → 剧情详情 (≤1000) → 伏笔.
+    /// MP topic-detail-sheet.wxml, after the covers: 画面风格 → 剧情详情 (≤1000) → 伏笔, then the topic rules this app edits.
     @ViewBuilder private var storyFields: some View {
         // r8 C-F7 (MP topic-detail-sheet.wxml:79, look-sheet.wxml): 画面风格.
         if model.coordinator.snapshot?.scope != .whitelist {
@@ -1086,6 +1079,14 @@ import SwiftUI
             Text("mpPublish.topicDetail.story")
         }
         .disabled(!model.canEdit)
+        // MP topic-detail-sheet.wxml:218-262: 主题通关奖励 → 通关条件 → 发布到创意广场 → 归属俱乐部.
+        PublishingTopicRewardsForm(rewards: model.rewards, fullEdit: model.fullEdit).id("project-issue-anchor-topicRewards")
+        ProjectEditCompletionRulesForm(rules: model.completionRules, city: model.draft.product == .city, fullEdit: model.fullEdit, totalNodes: model.draft.chapters.reduce(0) { $0 + $1.nodes.count }).id("project-issue-anchor-completionRules")
+        Section("projectEdit.visibility") {
+            Toggle("projectEdit.publishToCreative", isOn: $model.draft.publishToCreative)
+                .disabled(!model.fullEdit || model.coordinator.snapshot?.topicID != nil)
+        }
+        ProjectClubLeadFields(model: model).id("project-issue-anchor-clubLead")
     }
     /// The 主题详情 sheet (MP cy-sheet variant=full): inline title = the topic name, 完成 top-right.
     private func topicDetailSheet(anchor: String?) -> some View {

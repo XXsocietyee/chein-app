@@ -101,7 +101,8 @@ struct ProjectEditTopicDetailRequest: Identifiable {
     let anchor: String?
     /// Issue anchors whose fields live in the sheet (the name stays on page 1).
     static let anchors: Set<String> = ["project-issue-anchor-description", "project-issue-anchor-cover",
-                                       "project-issue-anchor-categories"]
+                                       "project-issue-anchor-categories", "project-issue-anchor-topicRewards",
+                                       "project-issue-anchor-completionRules", "project-issue-anchor-clubLead"]
 }
 
 /// Presents the 主题详情 sheet, and opens it when the root issue list targets one of its fields.
