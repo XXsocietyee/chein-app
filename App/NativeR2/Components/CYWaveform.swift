@@ -9,7 +9,7 @@ struct CYWaveform: View {
     private let isLive: Bool
     private let tint: Color
     private let barWidth: CGFloat
-    @ScaledMetric(relativeTo: .body) private var height: CGFloat
+    @ScaledMetric(relativeTo: .body) private var height: CGFloat = 24
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(
