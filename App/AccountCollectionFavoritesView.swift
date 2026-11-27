@@ -89,7 +89,7 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
     var body: some View {
         List {
             if reader.isOfflineExample { Label("accountCollection.offlineExample", systemImage: "testtube.2").font(.footnote).foregroundStyle(.secondary) }
-            if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
+            if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login, favorites: true) }
             else if !reader.isConfigured { AccountCollectionIssueView(issue: .notConfigured) }
             else if isLoadingNow || skeletonShown {
                 // Loading-to-content (docs/release/motion-spec-loading.md): spinner after 120 ms, held 350 ms.
@@ -97,7 +97,7 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
                     ProgressView { Text("accountCollection.loading") }.frame(maxWidth: .infinity)
                 }
             } else if let issue = model.state.issue {
-                AccountCollectionIssueView(issue: issue, retry: { Task { await refresh() } })
+                AccountCollectionIssueView(issue: issue, retry: { Task { await refresh() } }, favorites: true)
             } else {
                 // mylike.wxml 推荐说明: shown once topics exist; honest that unfavoriting keeps recorded interest.
                 if !model.state.visibleRows(scope: key.scope).filter({ !unliked.contains($0.id) }).isEmpty {
@@ -283,7 +283,7 @@ private struct AccountCollectionFavoriteCard: View {
                     onRemoved: { await refresh() })
             }
             if reader.isOfflineExample { Label("accountCollection.offlineExample", systemImage: "testtube.2").font(.footnote).foregroundStyle(.secondary) }
-            if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
+            if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login, favorites: true) }
             else if !reader.isConfigured { AccountCollectionIssueView(issue: .notConfigured) }
             else if isLoadingNow || skeletonShown {
                 // Loading-to-content (docs/release/motion-spec-loading.md): spinner after 120 ms, held 350 ms.
@@ -291,7 +291,7 @@ private struct AccountCollectionFavoriteCard: View {
                     ProgressView { Text("accountCollection.loading") }.frame(maxWidth: .infinity)
                 }
             } else if let issue = model.state.issue {
-                AccountCollectionIssueView(issue: issue, retry: { Task { await refresh() } })
+                AccountCollectionIssueView(issue: issue, retry: { Task { await refresh() } }, favorites: true)
             } else if case .unknown? = model.pagePhase {
                 // A missing or UNKNOWN list is not an empty collection.
                 ContentUnavailableView {

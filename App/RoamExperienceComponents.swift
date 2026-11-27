@@ -215,10 +215,19 @@ struct RoamExperienceNotice: View {
 struct RoamExperienceIssue: View {
     let error: Error
     var retry: (() -> Void)? = nil
+    /// mp-states r3: the page's own MP failure title and retry words (stamp album: 集邮册无法打开 · 重新载入).
+    /// Sign-in and not-configured keep their shared titles.
+    var failureTitle: LocalizedStringKey? = nil
+    var retryTitle: LocalizedStringKey = "action.retry"
+    private var isGenericFailure: Bool {
+        error as? APIError != .unauthorized && error as? APIError != .notConfigured
+            && error as? RoamExperienceFailure != .historyUnreadable
+    }
     private var key: LocalizedStringKey {
         if error as? APIError == .unauthorized { return "roam.signInRequired" }
         if error as? APIError == .notConfigured { return "roam.notConfigured" }
         if error as? RoamExperienceFailure == .historyUnreadable { return "roam.experience.historyUnreadable" }
+        if let failureTitle { return failureTitle }
         return "roam.experience.readFailed"
     }
     var body: some View {
@@ -227,15 +236,20 @@ struct RoamExperienceIssue: View {
         if canRetry, let retry {
             items.append(RoamHostedAccessibilityItem(identifier: "roam.experience.retry", action: retry))
         }
-        return VStack(alignment: .leading, spacing: 12) {
-            Label(key, systemImage: "exclamationmark.circle").cyText(.body).foregroundStyle(CYColor.textSecondary)
+        // mp-states r3: the one state pattern — system ContentUnavailableView, one bordered retry.
+        return ContentUnavailableView {
+            Label(key, systemImage: isGenericFailure ? "exclamationmark.triangle" : "exclamationmark.circle")
+        } actions: {
             if canRetry, let retry {
-                CYPillButton("action.retry", style: .secondary, fullWidth: false, action: retry)
+                Button(action: retry) { Text(retryTitle) }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
                     .accessibilityIdentifier("roam.experience.retry")
             }
-        }.accessibilityElement(children: .contain)
-            .background { RoamHostedAccessibilityGroup(items: items) }
-            .accessibilityIdentifier("roam.experience.error")
+        }
+        .accessibilityElement(children: .contain)
+        .background { RoamHostedAccessibilityGroup(items: items) }
+        .accessibilityIdentifier("roam.experience.error")
     }
 }
 /// Card for the player's own record (history, summary). native-r3-b: the system secondary background

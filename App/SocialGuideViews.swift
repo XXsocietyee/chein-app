@@ -20,7 +20,8 @@ import SwiftUI
             }
             SocialGuideTemplateSection(reader: templateReader)
             Section {
-                SocialReadScreen(reader: reader, requestKey: "information-list", load: { try await reader.informationList() }) { decoded in
+                // mp-states r3 (MP infomation wxml:63): a failed docs read is 玩法文档加载失败 · 重试.
+                SocialReadScreen(reader: reader, requestKey: "information-list", failureTitle: "guideXcx.docsFailed", load: { try await reader.informationList() }) { decoded in
                     // PlayGuideInformationListPage keeps only usable rows; an all-unusable list is the empty phase.
                     let rows = decoded.filter(\.isUsable)
                     if rows.isEmpty {

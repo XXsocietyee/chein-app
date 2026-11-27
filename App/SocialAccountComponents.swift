@@ -3,6 +3,8 @@ import SwiftUI
 struct SocialIssueView: View {
     let error: Error
     var retry: (() -> Void)? = nil
+    /// mp-states r3: the page's MP failure title (guides: 玩法文档加载失败); sign-in and blocks keep their own words.
+    var failureTitle: LocalizedStringKey? = nil
     private var message: LocalizedStringKey {
         switch error {
         case APIError.notConfigured: return "social.notConfigured"
@@ -12,33 +14,32 @@ struct SocialIssueView: View {
         case SocialActionBlock.commentsClosed: return "social.commentsClosed"
         case SocialActionBlock.pending: return "social.unknown"
         case SocialActionBlock.changed, SocialActionBlock.cancelled: return "social.changed"
-        default: return "social.failed"
+        default: return failureTitle ?? "social.failed"
         }
     }
+    func withFailureTitle(_ title: LocalizedStringKey?) -> SocialIssueView {
+        var copy = self
+        copy.failureTitle = title
+        return copy
+    }
+    private var rejectedText: String? {
+        if case SocialAccountFailure.rejected(_, let text) = error { return text }
+        return nil
+    }
+    /// mp-states r3: one pattern for every social state — ContentUnavailableView, the MP reason under the title,
+    /// one bordered 重试. Offline keeps the wifi.slash symbol.
     var body: some View {
-        Group {
-            if error is URLError {
-                ContentUnavailableView {
-                    Label { Text(message).accessibilityIdentifier("social.issue") } icon: { Image(systemName: "wifi.slash") }
-                } actions: {
-                    if let retry {
-                        Button("action.retry", action: retry)
-                            .buttonStyle(.bordered)
-                            .accessibilityIdentifier("social.issue.retry")
-                    }
-                }
-            } else {
-                VStack(alignment: .leading, spacing: 8) {
-                    Label(message, systemImage: "exclamationmark.circle")
-                        .fixedSize(horizontal: false, vertical: true)
-                    if case SocialAccountFailure.rejected(_, let text) = error, let text {
-                        Text(verbatim: text).font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                    }
-                    if let retry {
-                        Button(action: retry) { Label("action.retry", systemImage: "arrow.clockwise") }
-                            .buttonStyle(.bordered)
-                    }
-                }.accessibilityElement(children: .contain).accessibilityIdentifier("social.issue")
+        ContentUnavailableView {
+            Label { Text(message).accessibilityIdentifier("social.issue") } icon: {
+                Image(systemName: error is URLError ? "wifi.slash" : "exclamationmark.triangle")
+            }
+        } description: {
+            if let rejectedText { Text(verbatim: rejectedText) }
+        } actions: {
+            if let retry {
+                Button("action.retry", action: retry)
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("social.issue.retry")
             }
         }
     }
@@ -61,6 +62,8 @@ struct SocialReadPresentationKey: Hashable {
     let reader: any SocialAccountReading
     let requestKey: String
     var requiresSignIn = false
+    /// mp-states r3: the page's MP failure title, passed to `SocialIssueView`.
+    var failureTitle: LocalizedStringKey? = nil
     let load: () async throws -> Value
     @ViewBuilder var content: (Value) -> Content
     @State private var value: Value?
@@ -81,7 +84,7 @@ struct SocialReadPresentationKey: Hashable {
             if requiresSignIn && reader.identity.accountID == nil { SocialIssueView(error: APIError.unauthorized) }
             else if !reader.isConfigured { SocialIssueView(error: APIError.notConfigured) }
             else if loadedKey != key || busy { ProgressView { Text("social.loading") }.padding().frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top) }
-            else if let error { SocialIssueView(error: error) { loadedKey = nil; loads.start { await reload() } } }
+            else if let error { SocialIssueView(error: error) { loadedKey = nil; loads.start { await reload() } }.withFailureTitle(failureTitle) }
             else if let value { content(value) }
         }
         .task(id: key) { await loads.run { await reload() } }

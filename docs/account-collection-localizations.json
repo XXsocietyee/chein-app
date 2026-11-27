@@ -293,5 +293,15 @@
     "key": "accountCollection.favorites.unknown",
     "en": "Favorites not confirmed",
     "zh-Hans": "收藏状态待确认"
+  },
+  {
+    "key": "accountCollection.favorites.signIn",
+    "en": "Sign in to see your favorites",
+    "zh-Hans": "登录后查看收藏"
+  },
+  {
+    "key": "accountCollection.favorites.failed",
+    "en": "Couldn’t load your favorites",
+    "zh-Hans": "收藏加载失败"
   }
 ]

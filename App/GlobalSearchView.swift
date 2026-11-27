@@ -115,7 +115,8 @@ import SwiftUI
                             .accessibilityIdentifier("searchMap.loading")
                     }
                 }
-                if let issue { Section { SearchMapIssue(key: issue) { Task { await search() } }.questifyCardListRow() } }
+                // mp-states r3 (MP search2/result wxml:23 cy-error): a failed search reads 没能完成搜索 with 重试.
+                if let issue { Section { SearchMapIssue(key: issue == "searchMap.failed" ? "globalSearch.failed" : issue) { Task { await search() } }.questifyCardListRow() } }
                 if let snapshot = retainedResults.snapshot(in: resultContext) {
                     results(snapshot.results, retainedKinds: snapshot.retainedKinds)
                 } else if !loading && issue == nil { suggestions }
