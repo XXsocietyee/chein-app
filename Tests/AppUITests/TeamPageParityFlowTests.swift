@@ -22,8 +22,9 @@ final class TeamPageParityFlowTests: XCTestCase {
 
     func testLeaderDetailShowsSourceCopyInChinese() {
         launch(chinese: true)
-        XCTAssertTrue(any("teamPage.subtitle").waitForExistence(timeout: 10))
-        XCTAssertTrue(any("teamPage.subtitle").label.contains("组队与否不影响活动举行"), app.debugDescription)
+        // MP detail wxml:26 hides `.team-sub` for the captain of a recruiting team (the 公开招募 switch says it).
+        XCTAssertTrue(any("teamPage.meta").waitForExistence(timeout: 10))
+        XCTAssertFalse(any("teamPage.subtitle").exists, app.debugDescription)
         XCTAssertTrue(any("teamPage.meta").label.contains("5月2日 10:00"), app.debugDescription)
         let leave = app.buttons["team.leave"]; reveal(leave)
         XCTAssertEqual(leave.label, "退出并移交队长")
@@ -36,7 +37,8 @@ final class TeamPageParityFlowTests: XCTestCase {
         launch("invitation")
         let route = app.buttons["teamPage.joinRoute"]; reveal(route); route.tap()
         XCTAssertTrue(app.navigationBars["Team invitation"].waitForExistence(timeout: 5))
-        XCTAssertTrue(any("teamPage.inviteExplainer").waitForExistence(timeout: 5))
+        // MP join `.tj-card` facts (当前成员 / 加入方式); the MP page has no explainer note.
+        XCTAssertTrue(any("teamJoin.facts").waitForExistence(timeout: 5))
         reveal(app.buttons["team.join"])
         XCTAssertFalse(app.buttons["team.leave"].exists)
     }

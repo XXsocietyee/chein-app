@@ -116,6 +116,17 @@ private struct TeamHomeRow: View {
     var body: some View {
         List {
             TeamNotice(coordinator: model.coordinator)
+            // MP detail/join wxml:5-14: the unknown-outcome recovery card sits at the top of the page.
+            if !readOnly, let pending = model.coordinator.pending {
+                Section {
+                    Button("team.checkOutcome") {
+                        let permit = model.captureRun()
+                        Task { await model.run(permit: permit) { await model.coordinator.checkOutcome() } }
+                    }
+                        .disabled(model.running || !model.coordinator.canSimulate).accessibilityIdentifier("team.checkOutcome")
+                    teamRecoveryButtons(pending: pending)
+                }
+            }
             if model.running {
                 ProgressView { Text(LocalizedStringKey(TeamPagePresentation.loadingKey(pageKind, hasDetail: model.coordinator.detail != nil))) }
                     .frame(maxWidth: .infinity)
@@ -145,45 +156,46 @@ private struct TeamHomeRow: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("teamMembershipRetired")
             }
-            if let detail = model.coordinator.detail {
-                // Mini-program `team-head` is the one header: title, status, mode, members and start time.
+            if let detail = model.coordinator.detail, invitationCode != nil {
+                // MP team/join: `.tj-head` (title), then the `.tj-card` (seats, 当前成员 / 加入方式, 邀请到期).
+                // The join hint and the one action live in the bottom bar (`.tj-bar`).
+                Section {
+                    TeamPageHeader(detail: detail, kind: .invitation)
+                        .accessibilityElement(children: .contain)
+                        .accessibilityIdentifier("team.detail.card")
+                }
+                Section {
+                    TeamJoinSeatRow(detail: detail)
+                    TeamPageFacts(detail: detail, kind: .invitation)
+                    TeamSeatFactsCard(detail: detail, invitation: true)
+                }
+            } else if let detail = model.coordinator.detail {
+                // MP `.team-head`: status, title, join mode, 当前成员 / 场次开始.
                 Section {
                     TeamPageHeader(detail: detail, kind: pageKind, confirmedJoinMode: model.coordinator.confirmedJoinMode)
                         .accessibilityElement(children: .contain)
                         .accessibilityIdentifier("team.detail.card")
-                    // U06-01: seats, applications and the invitation deadline, separate from the member list.
-                    // C-J6 (MP team-seats): the join page shows joined seats filled and open seats dashed.
-                    if invitationCode != nil { TeamJoinSeatRow(detail: detail) } else { TeamDetailSeatStrip(detail: detail) }
                 }
-                TeamSeatFactsCard(detail: detail)
-                TeamRoleAndSharedSection(role: detail.roleFacts, shared: detail.sharedOutcome)
-                TeamViewerRelationshipLine(detail: detail, invitation: invitationCode != nil)
-                if let channelManagementHooks,
-                   let source = NativeTeamChannelManagementSource(coordinator: model.coordinator, lookup: lookup, readOnly: readOnly) {
-                    NativeChannelManagementTeamEntry(destinations: channelManagementHooks.destinations, detail: source.detail, makeFlow: { selected in
-                        guard source.isCurrent(for: selected) else { return nil }
-                        return channelManagementHooks.makeFlow(selected)
-                    }).disabled(model.running || model.coordinator.busy)
-                }
+                // U06-01 `.tm-seats`: member seats + open seats, then the seat chips and the invitation deadline.
                 Section {
-                    if invitationCode == nil, !readOnly, let code = TeamPagePresentation.joinRouteCode(detail) {
+                    TeamDetailSeatStrip(detail: detail)
+                    TeamSeatFactsCard(detail: detail)
+                }
+                // MP `.team-actions` (status 0): 邀请队友, then 二维码 for members or 加入队伍 for non-members.
+                Section {
+                    if !readOnly, detail.team.status == .recruiting, let code = detail.team.inviteCode, TeamLookup.validInvite(code) {
+                        Button("team.page.inviteTeammates") { invitationPreview = true }.disabled(model.actionLocked).accessibilityIdentifier("team.invitePreview")
+                    }
+                    if !readOnly, detail.team.status == .recruiting, detail.joined == true || detail.leader == true {
+                        // l-misc: the team mini-program code and join code come only from the server reply.
+                        // C-D10: 二维码 opens the 队伍二维码 sheet, which reads the code as it opens.
+                        TeamInviteQRSheetButton(teamID: detail.team.id)
+                    }
+                    if !readOnly, let code = TeamPagePresentation.joinRouteCode(detail) {
                         NavigationLink {
                             TeamDetailView(lookup: .invitation(code), coordinator: makeCoordinator(), makeCoordinator: makeCoordinator, onLogin: onLogin)
                         } label: { Text("team.page.joinTeam") }
                             .disabled(model.actionLocked).accessibilityIdentifier("teamPage.joinRoute")
-                    }
-                    if !readOnly, detail.team.status == .recruiting, let code = detail.team.inviteCode, TeamLookup.validInvite(code) {
-                        // Mini `.team-actions`: 邀请队友 on the detail page; on the invitation page 加入 is the bar's primary.
-                        if invitationCode == nil {
-                            Button("team.page.inviteTeammates") { invitationPreview = true }.disabled(model.actionLocked).accessibilityIdentifier("team.invitePreview")
-                        } else {
-                            Button("team.invitePreview") { invitationPreview = true }.disabled(model.actionLocked).accessibilityIdentifier("team.invitePreview")
-                        }
-                    }
-                    if !readOnly, invitationCode == nil, detail.team.status == .recruiting, detail.joined == true || detail.leader == true {
-                        // l-misc: the team mini-program code and join code come only from the server reply.
-                        // C-D10: 二维码 opens the 队伍二维码 sheet, which reads the code as it opens.
-                        TeamInviteQRSheetButton(teamID: detail.team.id)
                     }
                 }
                 if detail.leader == true, detail.team.status == .recruiting {
@@ -206,7 +218,7 @@ private struct TeamHomeRow: View {
                             .accessibilityIdentifier("team.mode.current")
                     }
                     // r8 C-D2 (MP team/detail wxml:76-95, js:340-376): the leader sees and handles 入队申请 here.
-                    if !readOnly, invitationCode == nil { TeamDetailApplicantsHost(teamID: detail.team.id) }
+                    if !readOnly { TeamDetailApplicantsHost(teamID: detail.team.id) }
                 }
                 Section {
                     if detail.members.isEmpty {
@@ -221,7 +233,7 @@ private struct TeamHomeRow: View {
                     }
                 } header: { Text("team.members.title") }
                 // C-D6: MP order — 队伍进度 / 排名 before the destructive 退出 / 解散 (destructive last).
-                if !readOnly, invitationCode == nil {
+                if !readOnly {
                     TeamReformEntries(detail: detail, hooks: reformHooks) { reformSheet = $0 }.disabled(model.actionLocked)
                 }
                 Section {
@@ -233,18 +245,20 @@ private struct TeamHomeRow: View {
                     }
                 }
                 // C-D3: 举报队伍 for members who are not the leader (the entry hides itself until its access is enabled).
-                if invitationCode == nil, detail.leader != true {
+                if detail.leader != true {
                     TeamReportEntryButton(teamID: detail.team.id)
                 }
-            }
-            if !readOnly, let pending = model.coordinator.pending {
-                Section {
-                    Button("team.checkOutcome") {
-                        let permit = model.captureRun()
-                        Task { await model.run(permit: permit) { await model.coordinator.checkOutcome() } }
-                    }
-                        .disabled(model.running || !model.coordinator.canSimulate).accessibilityIdentifier("team.checkOutcome")
-                    teamRecoveryButtons(pending: pending)
+                // App-only extensions the MP page lacks, after every MP section: they render only when the
+                // server sends story-role / shared-outcome facts, or when team chat management is installed.
+                if detail.roleFacts != nil || detail.sharedOutcome != nil {
+                    TeamRoleAndSharedSection(role: detail.roleFacts, shared: detail.sharedOutcome)
+                }
+                if let channelManagementHooks,
+                   let source = NativeTeamChannelManagementSource(coordinator: model.coordinator, lookup: lookup, readOnly: readOnly) {
+                    NativeChannelManagementTeamEntry(destinations: channelManagementHooks.destinations, detail: source.detail, makeFlow: { selected in
+                        guard source.isCurrent(for: selected) else { return nil }
+                        return channelManagementHooks.makeFlow(selected)
+                    }).disabled(model.running || model.coordinator.busy)
                 }
             }
             // C-D9: 重新加载 only when the read failed; a loaded detail refreshes by pull-to-refresh.
@@ -282,28 +296,37 @@ private struct TeamHomeRow: View {
     }
     /// C-J5 (MP team/join `.tj-bar`): the invitation's one action sits in the bottom bar, outside the scroll.
     @ViewBuilder private func invitationActions(detail: TeamDetail, invitationCode: String) -> some View {
+        let retry = TeamPagePresentation.showsJoinRetry(model.coordinator.writeState, page: pageKind)
+        let blocker = TeamSeatPresentation.blockerKey(detail.viewer, entry: .join)
+        // MP join wxml:52-53: the refused-join error, else the server's join hint while not joined.
+        if retry, model.coordinator.postJoinDetailID == nil, detail.joined != true, TeamPagePresentation.invitationCTA(detail) == .join {
+            TeamJoinRetryNotice(reasonKey: model.coordinator.rejectionCode.map { TeamSeatPresentation.rejectionKey($0) })
+        } else if detail.joined != true, model.coordinator.postJoinDetailID == nil, let blocker {
+            Label(LocalizedStringKey(blocker), systemImage: "exclamationmark.circle")
+                .font(.subheadline).foregroundStyle(.orange)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("teamViewer.joinHint")
+        }
         if let teamID = model.coordinator.postJoinDetailID {
             NavigationLink {
                 TeamDetailView(lookup: .id(teamID), coordinator: makeCoordinator(), makeCoordinator: makeCoordinator, requiresMembership: true, readOnly: true)
-            } label: { Label("team.detail", systemImage: "person.3").frame(maxWidth: .infinity) }
+            } label: { Text("team.page.openTeam").frame(maxWidth: .infinity) }
                 .buttonStyle(.borderedProminent).controlSize(.large).disabled(model.running || model.coordinator.busy)
                 .accessibilityIdentifier("team.postJoin.openDetail")
         }
         else if detail.joined == true {
-            Label("team.alreadyJoined", systemImage: "checkmark.circle").font(.subheadline).foregroundStyle(.green)
+            // MP join wxml:55 查看队伍 (goDetail) is the one action for a member.
             NavigationLink {
                 TeamDetailView(lookup: .id(detail.team.id), coordinator: makeCoordinator(), makeCoordinator: makeCoordinator, requiresMembership: true)
-            } label: { Label("team.detail", systemImage: "person.3").frame(maxWidth: .infinity) }
+            } label: { Text("team.page.openTeam").frame(maxWidth: .infinity) }
                 .buttonStyle(.borderedProminent).controlSize(.large).disabled(model.actionLocked)
                 .accessibilityIdentifier("team.invitation.openDetail")
         }
         else if TeamPagePresentation.invitationCTA(detail) == .join {
-            if TeamPagePresentation.showsJoinRetry(model.coordinator.writeState, page: pageKind) {
-                TeamJoinRetryNotice(reasonKey: model.coordinator.rejectionCode.map { TeamSeatPresentation.rejectionKey($0) })
-            }
-            // C-J2 (MP team/join wxml:55, js goBuyTicket): after a TICKET_REQUIRED rejection on an activity
-            // team (ownerType 2), the primary becomes 去买这一场的票 → that activity's registration page.
-            if TeamSeatPresentation.showsBuyTicket(errorCode: model.coordinator.rejectionCode),
+            // C-J2 (MP team/join wxml:55, js goBuyTicket): a TICKET_REQUIRED rejection, or the `/info` join blocker
+            // TICKET_REQUIRED, on an activity team (ownerType 2) makes the primary 去买这一场的票 → registration page.
+            if TeamSeatPresentation.showsBuyTicket(errorCode: model.coordinator.rejectionCode) || blocker == "team.blocker.TICKET_REQUIRED",
                let owner = detail.team.ownerKey, owner.type == 2 {
                 NavigationLink {
                     MPReviewedPageScreen(page: "pages/activity/baoming/baoming", query: ["activityId": String(owner.id)])
@@ -312,7 +335,7 @@ private struct TeamHomeRow: View {
                     .accessibilityIdentifier("teamPage.buyTicket")
             } else {
                 actionButton(.join(teamID: detail.team.id, inviteCode: invitationCode), detail: detail,
-                             labelKey: TeamPagePresentation.showsJoinRetry(model.coordinator.writeState, page: pageKind) ? "team.page.retryJoin" : nil)
+                             labelKey: retry ? "team.page.retryJoin" : "mpr3.team.acceptJoin")
             }
         }
         else { TeamClosedInvitationButton(cta: TeamPagePresentation.invitationCTA(detail)) }
