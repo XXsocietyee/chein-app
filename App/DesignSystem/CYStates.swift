@@ -116,6 +116,28 @@ struct CYLoadingState: View {
     }
 }
 
+/// The one busy-button label: while the action runs, a small system `ProgressView` sits before the action's own title
+/// (the title never disappears, the button keeps its width, VoiceOver keeps hearing the title). P10: never a spinner alone.
+struct CYBusyLabel<Title: View>: View {
+    private let busy: Bool
+    private let title: Title
+
+    init(busy: Bool, @ViewBuilder title: () -> Title) {
+        self.busy = busy
+        self.title = title()
+    }
+
+    var body: some View {
+        HStack(spacing: CYSpacing.sm) {
+            if busy {
+                ProgressView()
+                    .controlSize(.small)
+            }
+            title
+        }
+    }
+}
+
 struct CYErrorState: View {
     private let message: LocalizedStringKey
     private let retryTitle: LocalizedStringKey

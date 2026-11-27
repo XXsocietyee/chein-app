@@ -220,7 +220,7 @@ import SwiftUI
                                 }
                             }
                         } label: {
-                            if flow.busyLevel == row.level { ProgressView() } else { Text(verbatim: row.actionText) }
+                            CYBusyLabel(busy: flow.busyLevel == row.level) { Text(verbatim: row.actionText) }
                         }
                         .buttonStyle(CYPillButtonStyle(style: row.state == .unlocked ? .tertiary : .secondary, fullWidth: false, compact: true))
                         .disabled(row.state == .off || flow.busyLevel != nil)
@@ -340,7 +340,7 @@ import SwiftUI
                 if let error { Text(verbatim: error).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("playTeam.trade.error") }
                 Section {
                     Button { Task { await runPreview() } } label: {
-                        if busy { ProgressView() } else { Text("playTeam.trade.previewButton") }
+                        CYBusyLabel(busy: busy) { Text("playTeam.trade.previewButton") }
                     }
                     .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
                     .disabled(busy)
