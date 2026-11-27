@@ -237,10 +237,12 @@ Not done item 2 (fixed-width rails at AX5):
 | `pages/template/index` 精选 banner rail | `DiscoveryHomeView.swift` (`DiscoveryHomeBannerCard`) | ✓ (mp-publish owns order) | 260 pt tile + `lineLimit(2)` cut captions to 2–3 words at AX sizes → 300 pt and 4 lines at AX sizes; VoiceOver label = the highlight's own caption (was always "Open highlight n") | Done |
 | (scan) other horizontal rails with fixed widths ≥ 120 pt | `DiscoveryTemplateDetailView` mosaic, `JourneyLandingViews` share render, `CYAlbum`, `CYShareCard`, `ClubChannelMessagingView` iPad sidebar | — | Image-only tiles, off-screen share renders or iPad sidebar: no text to clip; no change | Done (no fix needed) |
 | `pages/templatedetail` 节点 rail | `DiscoveryTemplateDetailView.swift` (`DiscoveryTopicTemplatePreview`) | ✓ (mp-publish owns order) | 150 pt column broke node names letter by letter at AX sizes → 260 pt column at AX sizes (rail scrolls), cover follows the column | Done |
+| `pages/templatedetail` image mosaic + node images | `DiscoveryTemplateDetailView.swift` | ✓ (mp-publish owns order) | VoiceOver heard "Open photo" for every tile → `accessibilityValue` "2 of 5" / "第 2 个，共 5 个" (existing `carousel.position` key) | Done |
+| every MP image strip (shared gallery) | `NativeMediaGallery.swift` | ✓ | Value "1 / 5" was read as "one slash five" → `carousel.position` ("1 of 5" / "第 1 个，共 5 个") | Done |
 
 ## Not done (next run starts here)
 - Re-read the a11y sheets after the next sweep (newer than 8fa84e4d3) to confirm run 13 (badge heading, passport AX rows, roam light map).
-- VoiceOver: image-only rail buttons share one generic label ("Open image", e.g. `DiscoveryTemplateDetailView` mosaic) — add "n of N" so items are distinguishable.
+- VoiceOver: scan other `accessibilityValue(Text("\(a) / \(b)"))` slash values on player screens (read as "slash") → `carousel.position` / domain "n of N" keys.
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch

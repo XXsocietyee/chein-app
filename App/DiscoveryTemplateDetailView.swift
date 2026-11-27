@@ -501,6 +501,8 @@ struct DiscoveryTopicTemplatePreview: View {
                             }
                             .buttonStyle(.plain)
                             .accessibilityLabel(Text("media.destination.openImage"))
+                            // a11y-dt r3: every tile said only "Open photo"; the value tells them apart ("2 of 5").
+                            .accessibilityValue(Text("carousel.position \(index + 1) \(mosaic.count)"))
                             .accessibilityIdentifier("discovery.topicDetail.mosaic.\(index)")
                         }
                     }
@@ -576,6 +578,7 @@ struct DiscoveryTopicTemplatePreview: View {
                                     Button { nodeGallery = NodeGallerySelection(snapshot: .init(sources: gallery, selectedIndex: galleryIndex)) } label: { cover }
                                         .buttonStyle(.plain)
                                         .accessibilityLabel(Text("media.destination.openImage"))
+                                        .accessibilityValue(Text("carousel.position \(galleryIndex + 1) \(gallery.count)"))
                                         .accessibilityIdentifier("discovery.topicDetail.nodeImage.\(index)")
                                 } else {
                                     cover.accessibilityHidden(true)
