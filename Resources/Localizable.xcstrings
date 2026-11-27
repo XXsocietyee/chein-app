@@ -344307,6 +344307,23 @@
           }
         }
       }
+    },
+    "accountCollection.coupon.signIn": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to see your coupons"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后查看我的优惠券"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
