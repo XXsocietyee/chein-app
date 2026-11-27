@@ -144,7 +144,8 @@ Test: Tests/CoreTests/IMExpandedTests.swift `testSystemCardMiniProgramPagesOpen`
 | pages/addressinfo/addressinfo → ParticipantFormView | the screen wrapped the pushed form in its own `NavigationStack` | `Group` instead; the form's 取消 / 保存 stay | fixed |
 | pages/deregister/index and pages/shezhi/shezhi?scene=settings-deregister → AccountComplianceSheet | pushed page showed a `compliance.close` cancellation button next to system back | `showsCloseButton: false` (like pages/shezhi/marketing) | fixed |
 | pages/member/index/index, pages/roam/index reaching MPReviewedPageScreen (tab roots) | rendered a second AccountView / RoamBrowserView with its own stack | `MPTabHandoff` → `rootTabSwitch(.mine / .roam)` like pages/index/index (MP switchTab); hosts without the tab switch keep the old screen | fixed |
-| pages/shezhi/shezhi (plain) → SettingsView; subpackageRoam/poi-detail → RoamItemDetailView | own `NavigationStack` + 完成 / 关闭 `dismiss()` on the landed push | not changed: SettingsView's route owners retire on disappear (see Open); RoamItemDetailView needs an embed flag through RoamPOIDetailHost — next run | open |
+| subpackageRoam/poi-detail/index → RoamPOIDetailHost → RoamItemDetailView | own `NavigationStack` + 关闭 on the landed push | `embedsNavigationStack` (default true: the map place sheet keeps its stack and 关闭); RoamPOIDetailHost passes false, so the push has system back only | fixed |
+| pages/shezhi/shezhi (plain) → SettingsView | own `NavigationStack` + 完成 on the landed push | not changed: SettingsView's route owners retire on disappear and its profile routes use `navigationDestination(for:)` on the inner stack (see Open) | open |
 | `login-player`, `d2-inbox` tiles | still show 微信登录 / "Fixture conversation N": sweep build a250afd77 predates 81a815048 / 9723767a1 (not yet in `ui/combined-r7`) | — | OK (pending merge) |
 
 ## Route coverage
