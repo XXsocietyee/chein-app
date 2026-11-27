@@ -563,18 +563,33 @@ public enum ChannelMessageBurstGrouper {
     public static func formatDivider(_ divider: IMInboxTime.DividerText, locale: Locale = ChannelCopy.defaultLocale) -> String {
         switch divider {
         case let .today(clock):
-            return ChannelCopy.text("今天 \(clock)", "Today \(clock)", locale: locale)
+            return ChannelCopy.text("今天 \(clock)", "Today \(localeClock(clock, locale: locale))", locale: locale)
         case let .yesterday(clock):
-            return ChannelCopy.text("昨天 \(clock)", "Yesterday \(clock)", locale: locale)
+            return ChannelCopy.text("昨天 \(clock)", "Yesterday \(localeClock(clock, locale: locale))", locale: locale)
         case let .date(month, day, clock):
-            // MP `MM-dd HH:mm` in Chinese; English reads "Nov 7, 09:00" (a bare "11-07" reads as a range).
+            // MP `MM-dd HH:mm` in Chinese; English reads "Nov 7, 9:00 AM" (a bare "11-07" reads as a range).
             if ChannelCopy.isChinese(locale) { return String(format: "%02d-%02d %@", month, day, clock) }
             let formatter = DateFormatter()
             formatter.locale = locale
             let months: [String] = formatter.shortMonthSymbols ?? []
             let name = months.indices.contains(month - 1) ? months[month - 1] : String(month)
-            return "\(name) \(day), \(clock)"
+            return "\(name) \(day), \(localeClock(clock, locale: locale))"
         }
+    }
+
+    /// en-layout r3: the MP "HH:mm" clock in the locale's own hour cycle ("9:00 AM" in en-US); unparsable text is kept.
+    static func localeClock(_ clock: String, locale: Locale) -> String {
+        let parts: [Int] = clock.split(separator: ":").compactMap { Int($0) }
+        guard parts.count == 2 else { return clock }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0) ?? calendar.timeZone
+        guard let date = calendar.date(from: DateComponents(year: 2000, month: 1, day: 1, hour: parts[0], minute: parts[1])) else { return clock }
+        let formatter = DateFormatter()
+        formatter.locale = locale
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
+        formatter.setLocalizedDateFormatFromTemplate("jmm")
+        return formatter.string(from: date)
     }
 
     public static func group(

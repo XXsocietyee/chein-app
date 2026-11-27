@@ -283,7 +283,7 @@ func invoiceTime(_ time: InvoiceLaunchTime?, locale: Locale) -> String {
     case nil: return "—"
     }
     let formatter = DateFormatter(); formatter.locale = locale
-    formatter.setLocalizedDateFormatFromTemplate("MMMdHHmm")
+    formatter.setLocalizedDateFormatFromTemplate("MMMdjmm")
     return formatter.string(from: date)
 }
 /// Source base.js `titleLine`: 单位/个人 · 部分税号 · 默认.
