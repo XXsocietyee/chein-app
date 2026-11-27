@@ -206,6 +206,19 @@ Base re-merged with `origin/ui/combined-r7` (xcstrings conflict: both sides' key
 
 Gates: generate_project OK · check_scaffold PASS (20764 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 
+## Round 3 continue (13) — live 地点卡 remaining fields + sweep 18:54 (build 1300a48db)
+
+Base re-merged with `origin/ui/combined-r7` (xcstrings conflict at the file end: both sides' keys kept).
+
+| MP page / scene | Native view | Differences | Status |
+|---|---|---|---|
+| `pages/roam/index` 地标 · 地点卡 (`paceCard`, wxml:397–408), Not done from continue (12) | `App/RoamLiveSessionView.swift` `RoamLivePlaceCardFacts` (tapped place row) | Row lacked `catLabel · distText`, the 推荐理由 quote, 资料来源 and the place-note tags. | **Fixed:** after the cover: kind (商家 / 城市节点, shared map-home keys) · `N m` (straight-line from the current GCJ-02 fix, hidden without a fix), id `roam.live.place.meta` → address → body → `RoamPlaceNoteRows` (catalog reason + folded 资料来源, same as the map-home card) → visible tags (`roam.live.place.tags`, seed tag hidden). No new strings. **Still not done:** 开始挑战 and 导航 on the live row (导航 needs the reviewed `externalMaps` model in the live session) — compiled pass. |
+| Sweep 18:54 `zh-Hans-e2-stamp-album.jpg` | `RoamExperienceFixtureReader.album` / `shopBadge` (`App/RoamExperienceFixtureSupport.swift`) | Stamp captions "Synthetic city stamp" / "Synthetic reviewed stamp" in English in the Chinese UI (same issue the coordinator flagged on the badge wall). | **Fixed:** fixture captions and the shop-badge name follow the UI language (示例城市邮票 / 示例已审核邮票 / 示例探店徽章 when the preferred language is zh); en values unchanged (UI tests pin them). |
+| Sweep 18:54 `*-d2-roam.jpg` | — | Shows the launch logo only (black). Coordinator note: tiles under machine load. Same fixture caveat as continue (11). | Not changed (no app finding). |
+| Sweep 18:54 `*-d6-roam.jpg`, `*-e5b-stamp.jpg` | live start / 盖章成功 | Large 漫游 title top-left, one primary 走起, 完成 `.borderedProminent`; nothing wrong vs MP. | No change. |
+
+Gates: generate_project OK · check_scaffold PASS (20774 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no

@@ -260,6 +260,35 @@ nothing allowed. Self-test: the pre-fix tree fails in all six files (ShopNPC 2).
 Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_typography_lint` PASS,
 `check_design_consistency` PASS (0 debt, 74 allowed, line spacing 0), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
 
+## Continue run 9 (2026-11-27, after merging combined-r7 3568fe51b)
+
+Receipt had no Not done rows. Scan: one status-word pattern (OWNER RULE 2 "one list/card/empty/loading pattern").
+Native r2 status words are `CYStatusChip` (footnote `Label`, system tone colour, **no capsule**; 249 call sites), but
+player pages still drew their own soft-tint capsule chips (opacity 0.12–0.15, padding 6–8 / 1–2). Content, order,
+keys and identifiers unchanged (look only).
+
+| MP page | Native view | MP sections | Change (owner rule 2) |
+|---|---|---|---|
+| 漫游 passport private tools (tile 新 tag) | `App/RoamPassportPrivateToolsViews.swift:99` | unchanged | accent soft capsule → `CYStatusChip("roam.private.new", tone: .info).singleLine()` |
+| 漫游 live topic sheet (免费 / 城市 tag above the title) | `App/RoamLiveTopicSheet.swift:104` | unchanged | `.tint` soft capsule → `CYStatusChip(…, tone: .info)` |
+| map public layer row (marker state) | `App/MapPublicLayerSectionView.swift:196` (in 搜索 map explorer) | unchanged | secondary soft capsule → `CYStatusChip(…)` (neutral) |
+| `pages/play` rank board 更多 scope button | `App/JourneyReportViews.swift:224` | unchanged (scope picker → 更多 → hero → period picker) | hand-drawn capsule (`CYNight.ink2` / selection 0.2 fill, `.plain`) → system `.bordered` + `.buttonBorderShape(.capsule)`, secondary tint until a more-scope is chosen; identifier `rankBoard.more` and 44 pt height kept |
+
+New checker kind **status capsule**: a `Capsule` filled with a colour at opacity 0.05–0.29 (`.fill` or
+`.background(…, in: Capsule())`; stroked rings are not counted) outside App/DesignSystem and App/Theme. Allowed:
+`PlayJourneyContentViews` difficulty scale (three tiers, one lit; a read-only scale, not a status word). Baselined debt
+29, all in internal `*SectionView` / release-ledger diagnostic screens (out of player scope; story-flow
+`StoryWalkingAndFogSectionView` on hold). Self-test: the pre-fix tree fails in the four player files above.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_typography_lint` PASS,
+`check_design_consistency` PASS (status capsule 29 baselined debt, 75 allowed), `contract_ratchet --check` 52 failing,
+baseline 52, **new 0**.
+
+### Not done (next run)
+| Item | Why not now |
+|---|---|
+| Scan `.buttonStyle(.plain)` buttons whose label draws its own filled `Capsule` / rounded background (like the rank board 更多 fixed above) → `.bordered` / `.borderedProminent` + `.buttonBorderShape`. | Next run: needs a per-site look (cards and map controls legitimately use `.plain` + `QuestifyCardButtonStyle`). |
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

@@ -204,7 +204,7 @@ struct OnboardingFlow: View {
 
     private var topBar: some View {
         HStack {
-            Text(verbatim: "城瘾")
+            Text(verbatim: AppLanguage.interfaceIsChinese(locale) ? "城瘾" : "Chein")
                 .font(.system(.title3, design: .rounded).weight(OBType.isChinese(locale) ? .semibold : .heavy))
                 .foregroundStyle(CYColor.textPrimary)
                 .accessibilityAddTraits(.isHeader)
