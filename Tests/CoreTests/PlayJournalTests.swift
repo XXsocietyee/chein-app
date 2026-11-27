@@ -44,6 +44,24 @@ final class PlayJournalTests: XCTestCase {
         XCTAssertNil(PlayFlyScore.points(nil))
     }
 
+    func testRouteNoticeAndTimeLineFollowTheMPBanner() throws {
+        func result(_ text: String) throws -> PlayNodesResult {
+            try JSONDecoder().decode(PlayNodesResult.self, from: Data(text.utf8))
+        }
+        let ended = try result(#"{"playable":true,"nodes":[{"nodeId":7}],"routeState":{"routeMode":"LINEAR","status":"EXPIRED"}}"#)
+        XCTAssertEqual(PlayRunRouteNotice.of(ended.routeState), .ended)
+        XCTAssertNil(PlayRunRouteNotice.of(try result(#"{"nodes":[{"nodeId":7}],"routeState":{"routeMode":"LINEAR","status":"ACTIVE"}}"#).routeState))
+        XCTAssertEqual(PlayRunRouteNotice.timeLine(try result(#"{"playable":false,"timeNote":"活动已结束","nodes":[]}"#)), "活动已结束")
+        XCTAssertNil(PlayRunRouteNotice.timeLine(try result(#"{"playable":true,"timeNote":"活动已结束","nodes":[]}"#)))
+    }
+
+    func testPuzzleSummaryCountsDoneStopsHeldToAHundred() throws {
+        let run = try snapshot(mode: 1, nodes: #"[{"nodeId":1,"done":true,"puzzleScore":140},{"nodeId":2,"done":true,"puzzleScore":30},{"nodeId":3,"done":false,"puzzleScore":90},{"nodeId":4,"done":true}]"#)
+        let summary = PlayPuzzleSummary(snapshot: run)
+        XCTAssertEqual(summary.score, 130)
+        XCTAssertEqual(summary.count, 2)
+    }
+
     private func snapshot(mode: Int, nodes: String) throws -> PlaySnapshot {
         let data = "{\"topicId\":9,\"mode\":\(mode),\"playable\":true,\"registered\":true,\"nodes\":\(nodes),\"chapters\":[{\"chapterId\":8,\"name\":\"Chapter\"}]}"
         let wire = try JSONDecoder().decode(PlayWireValue.self, from: Data(data.utf8))

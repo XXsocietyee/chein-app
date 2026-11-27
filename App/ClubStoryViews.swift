@@ -308,10 +308,8 @@ struct ClubStoryChapterHeader: View {
             ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
             : AnyLayout(HStackLayout(alignment: .center, spacing: 8))
         return layout {
+            // MP play-card: no "no answer" chip; an unanswerable play just has no 查看答案 button.
             methodChip
-            if !play.isAnswerable {
-                Label("club.story.noAnswer", systemImage: "questionmark.circle").foregroundStyle(.orange)
-            }
         }
         .font(.caption)
         .foregroundStyle(.secondary)
