@@ -500,9 +500,11 @@ import QuestifyCore
             }
         }
         .onAppear {
+            ActiveSessionStore.shared.setRoamScreenVisible(true)
             purposeAccepted = storedPurposeAccepted; owner.setForeground(scenePhase == .active); owner.prepare(); model.captureFinishAddress(); browse.appear()
         }
         .onDisappear { nearbyExpanded = true; browse.parentHidden(); owner.pause() }
+        .onDisappear { ActiveSessionStore.shared.setRoamScreenVisible(false) }
         .onChange(of: owner.phase) { _, phase in
             if phase != .active { nearbyExpanded = true }
             browse.retireIfStale(owner: owner, reader: currentBrowseReader)
