@@ -54,7 +54,7 @@ import SwiftUI
 
     var body: some View {
         Form {
-            // Mini-program privacy sheet: the location sentence, the guide, then home city, presence, roam and own media.
+            // Mini-program privacy sheet: the location sentence, the guide, then 更多隐私设置 (home city, own media), presence, roam.
             Section {
                 Text("member.privacy.sheetBody", tableName: "MemberProfile")
                     .font(.subheadline)
@@ -69,6 +69,12 @@ import SwiftUI
             Section {
                 SettingsHomeCityLocationControls(compliance: compliance)
             } header: { Text("member.privacy.homeCity.title", tableName: "MemberProfile") }
+            // mp-settings r3: MP privacy-sheet 「更多隐私设置」 (city location + own media) sits before 附近的人 and 漫游定位.
+            Section {
+                NavigationLink { OwnMediaReviewView(reader: mediaReader, imagePreview: imagePreview, approvedLink: approvedLink, audioPreview: audioPreview, modelPreview: modelPreview) } label: {
+                    Text("member.privacy.media.open", tableName: "MemberProfile")
+                }.accessibilityIdentifier("member.privacy.media")
+            } header: { Text("member.privacy.media.title", tableName: "MemberProfile") }
             Section {
                 Text("member.privacy.presence.detail", tableName: "MemberProfile").font(.subheadline).foregroundStyle(.secondary)
                 if presenceSharing != false {
@@ -119,11 +125,6 @@ import SwiftUI
                 }
             } header: { Text("member.privacy.roam.title", tableName: "MemberProfile") }
             SessionLocationHoldsSection()
-            Section {
-                NavigationLink { OwnMediaReviewView(reader: mediaReader, imagePreview: imagePreview, approvedLink: approvedLink, audioPreview: audioPreview, modelPreview: modelPreview) } label: {
-                    Text("member.privacy.media.open", tableName: "MemberProfile")
-                }.accessibilityIdentifier("member.privacy.media")
-            } header: { Text("member.privacy.media.title", tableName: "MemberProfile") }
         }
         // B-PV-03 (T&C §2): pushed page → one inline system title, no in-content hero title.
         .navigationTitle(Text("member.privacy.title", tableName: "MemberProfile")).navigationBarTitleDisplayMode(.inline)

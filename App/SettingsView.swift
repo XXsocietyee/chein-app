@@ -200,7 +200,6 @@ struct SettingsView: View {
                 // Mini-program pages/shezhi order: 个人资料, 成为俱乐部主理人/成为商家, 城瘾玩法, 我的收藏.
                 accountHeader
                 SettingsIdentityApplicationEntries(session: session, profile: readyAccountProfile).environment(\.settingsTileTint, SettingsTint.orange)
-                AccountRoleSections(gatesCreatorByCapability: true).environment(\.settingsTileTint, SettingsTint.orange)
                 Section {
                     NavigationLink {
                         ProfileGuideHost(reader: session.makeProfileGuideReader(),
@@ -229,6 +228,10 @@ struct SettingsView: View {
                 SettingsSupportSections(market: session.operationalMarket, complianceCoordinator: session.accountComplianceCoordinator)
                     .hidingNPCChatDataEntry() // B-SZ-03: 「AI 对话记录」 above is the one NPC chat data row.
                     .hidingMarketingEntry() // r11 B-SZ-10: 营销消息与优惠券 sits after AI 对话记录 above.
+                    .followingMPShezhiOrder() // mp-settings r3: 用户服务协议 → 账号注销 → 关于, nothing between them.
+                // mp-settings r3: app-only creator rows (no MP shezhi row) follow the MP list instead of splitting
+                // 成为商家 from 城瘾玩法 (shezhi.wxml:19-20).
+                AccountRoleSections(gatesCreatorByCapability: true).environment(\.settingsTileTint, SettingsTint.orange)
                 Section {
                     NativeNotificationPermissionEntry()
                     NativeChannelNotificationSettingsEntry(session: session)
