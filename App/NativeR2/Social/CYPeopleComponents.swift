@@ -103,7 +103,7 @@ struct CYInviteCard<Answers: View>: View {
                         .font(.headline)
                         .foregroundStyle(tint)
                         .frame(width: tileSide, height: tileSide)
-                        .background(tint.opacity(0.16), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .background(tint.opacity(0.16), in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                         .accessibilityHidden(true)
                 }
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
@@ -132,7 +132,7 @@ struct CYInviteCard<Answers: View>: View {
                     .padding(.horizontal, CYSpacing.md)
                     .padding(.vertical, CYSpacing.sm)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(CYColor.warningSoft, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    .background(CYColor.warningSoft, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                     .rotationEffect(.degrees(typeSize.isAccessibilitySize ? 0 : -0.6))
             }
             if !people.isEmpty {

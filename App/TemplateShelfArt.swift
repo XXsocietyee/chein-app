@@ -158,7 +158,7 @@ struct TemplateShelfArtHeroCard: View {
             Color.clear
                 .aspectRatio(16.0 / 10.0, contentMode: .fit)
                 .overlay { art.resizable().scaledToFill().accessibilityHidden(true) }
-                .clipShape(.rect(cornerRadius: 10, style: .continuous)) // image crop only
+                .clipShape(.rect(cornerRadius: CYRadius.inner, style: .continuous)) // image crop only
             VStack(alignment: .leading, spacing: 2) {
                 title.font(.headline).foregroundStyle(.primary).lineLimit(stacked ? nil : 2)
                 if let meta, !meta.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -180,7 +180,7 @@ struct TemplateShelfArtThumb: View {
         art.resizable().scaledToFill()
             // a11y-dt r3: capped like list artwork in Music, so the title keeps the row width at AX sizes.
             .frame(width: min(side, 96), height: min(side, 96))
-            .clipShape(.rect(cornerRadius: 8, style: .continuous)) // image crop only
+            .clipShape(.rect(cornerRadius: CYRadius.inner, style: .continuous)) // image crop only
             .accessibilityHidden(true)
     }
 }

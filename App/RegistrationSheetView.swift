@@ -403,11 +403,22 @@ struct RegistrationSheetView: View {
                                 .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                                 .accessibilityIdentifier("registration.activity.meetingPoint")
                         }
-                        Label {
-                            if let venue = checkout.venue { Text(verbatim: venue) } else { Text(verbatim: "—") }
-                        } icon: { Image(systemName: "mappin.and.ellipse") }
-                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        // MP baoming.wxml:100 `onAddressTap`: the venue line opens the map when the activity has a place.
+                        if let venue = checkout.venue, let mapURL = venueMapURL(venue) {
+                            Link(destination: mapURL) {
+                                Label { Text(verbatim: venue) } icon: { Image(systemName: "mappin.and.ellipse") }
+                                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            }
+                            .buttonStyle(.borderless)
+                            .accessibilityHint(Text(verbatim: copy.t("在地图中打开", "Opens in Maps")))
                             .accessibilityIdentifier("registration.activity.venue")
+                        } else {
+                            Label {
+                                if let venue = checkout.venue { Text(verbatim: venue) } else { Text(verbatim: "—") }
+                            } icon: { Image(systemName: "mappin.and.ellipse") }
+                                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                                .accessibilityIdentifier("registration.activity.venue")
+                        }
                     }
                     Spacer(minLength: 0)
                 }
@@ -436,19 +447,22 @@ struct RegistrationSheetView: View {
             .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0)).listRowBackground(Color.clear)
         } header: { E1IconHeader(systemImage: "calendar", title: copy.t("活动信息", "Activity")) }
     }
+    /// Apple Maps link for the venue: the activity's coordinate when valid, else an address search (MP `openAddress`).
+    private func venueMapURL(_ venue: String) -> URL? {
+        let summary = flow.activity.summary
+        var parts = URLComponents(string: "https://maps.apple.com/")
+        if summary.hasValidCoordinates, let lat = summary.latitude, let lng = summary.longitude {
+            parts?.queryItems = [URLQueryItem(name: "ll", value: "\(lat),\(lng)"), URLQueryItem(name: "q", value: venue)]
+        } else {
+            parts?.queryItems = [URLQueryItem(name: "q", value: venue)]
+        }
+        return parts?.url
+    }
     private func ticketPriceText(_ copy: CoreLoopCopy) -> String {
         guard let ticket = flow.selectedTicket else { return "—" }
         if ticket.price == 0 { return copy.t("免费", "Free") }
         guard PlayAreaPopupCopy.paymentsOpen else { return "—" }
         return E1Money.yuan(ticket.price, locale: locale) ?? "—"
-    }
-    /// Total shown in the pinned summary bar: the server quote when present, else the listed ticket price.
-    private var summaryTotalText: String {
-        let copy = CoreLoopCopy(locale: locale)
-        if flow.quoteEnabled, case .received(let quote) = flow.quoteState {
-            return gatedPayAmount(quote.payAmount)
-        }
-        return ticketPriceText(copy)
     }
     private func gatedPayAmount(_ amount: Decimal?) -> String {
         guard let amount else { return "—" }
@@ -615,13 +629,6 @@ struct RegistrationSheetView: View {
         return CYFooterBar {
             VStack(spacing: CYSpacing.sm) {
                 CurA11yActions {
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text(verbatim: copy.t("合计", "Total")).cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                        Text(verbatim: summaryTotalText).cyText(.dataXL).foregroundStyle(CYColor.textPrimary)
-                            .cyWrapText().layoutPriority(1)
-                            .accessibilityLabel(PageTemplateVoiceOver.spoken(summaryTotalText, locale: locale))
-                            .pageTemplateReadingOrder(2)
-                    }
                     TimelineView(.periodic(from: .now, by: 1)) { _ in
                         let blocked = flow.confirmationBlock != nil
                         Button {

@@ -2628,7 +2628,7 @@ final class AppSession: ObservableObject {
             guard current(), id == conversationID else { return nil }
             guard let scope = try? NativeChannelNotificationScope(type: 1, value: String(id)) else { return nil }
             return self.makeNativeChannelNotificationFlow(scope: scope, sourceCurrent: current)
-        })
+        }, pageDestination: original.pageDestination)
     }
 
     func makeNativeChannelMessageFlow(channels: any NativeChannelManagementIntegrationContextProviding,

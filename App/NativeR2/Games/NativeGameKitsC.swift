@@ -355,7 +355,7 @@ extension PlayKitScreen {
                 PlayKitArtwork(source: url, approvedHosts: approvedHosts)
             }
         }
-        .motionR2HoloSheen(active: isRevealed, cornerRadius: 12) // motion r2 R2: the prize shines once revealed
+        .motionR2HoloSheen(active: isRevealed, cornerRadius: CYRadius.card) // motion r2 R2: the prize shines once revealed
         .accessibilityHidden(!isRevealed)
     }
 

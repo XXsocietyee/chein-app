@@ -141,7 +141,7 @@ import SwiftUI
                     else { Color(uiColor: .tertiarySystemFill) }
                 }
                 .frame(width: 44, height: 44)
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                 .accessibilityHidden(true)
             } else {
                 // HANDOFF-R1 MC-30: a club badge without uploaded art gets the club crest family art.

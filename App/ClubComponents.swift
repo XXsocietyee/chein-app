@@ -90,7 +90,7 @@ struct ClubRow: View {
         }
         .frame(width: logoSide, height: logoSide)
         .background(.fill.tertiary)
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
         .accessibilityHidden(true)
     }
     @ViewBuilder private var statusPill: some View {
