@@ -4,26 +4,30 @@ import SwiftUI
 /// after 我的收藏 as in the source.
 @MainActor struct SettingsPrivacyLocationEntry: View {
     let session: AppSession
+    /// mp-settings r3: shared by this row and MP pages/privacy (城市定位与更多隐私设置) so both open the same controls.
+    static func destination(session: AppSession) -> SettingsPrivacyLocationView {
+        SettingsPrivacyLocationView(
+            mediaReader: session.ownMediaReader,
+            compliance: session.accountComplianceCoordinator,
+            market: session.operationalMarket,
+            imagePreview: session.ownMediaImagePreviewAccess,
+            approvedLink: session.ownMediaApprovedLinkAccess,
+            audioPreview: session.ownMediaAudioPreviewAccess,
+            modelPreview: session.ownMediaModelPreviewAccess,
+            legalReader: session.legalReader,
+            disablePresence: (session.isSignedIn && session.isConfigured) ? {
+                await session.disableRoamPresenceVisibility()
+            } : nil,
+            readPresence: (session.isSignedIn && session.isConfigured) ? {
+                await session.readRoamPresenceVisibility()
+            } : nil
+        )
+    }
     var body: some View {
         if session.account != nil {
             Section {
                 NavigationLink {
-                    SettingsPrivacyLocationView(
-                        mediaReader: session.ownMediaReader,
-                        compliance: session.accountComplianceCoordinator,
-                        market: session.operationalMarket,
-                        imagePreview: session.ownMediaImagePreviewAccess,
-                        approvedLink: session.ownMediaApprovedLinkAccess,
-                        audioPreview: session.ownMediaAudioPreviewAccess,
-                        modelPreview: session.ownMediaModelPreviewAccess,
-                        legalReader: session.legalReader,
-                        disablePresence: (session.isSignedIn && session.isConfigured) ? {
-                            await session.disableRoamPresenceVisibility()
-                        } : nil,
-                        readPresence: (session.isSignedIn && session.isConfigured) ? {
-                            await session.readRoamPresenceVisibility()
-                        } : nil
-                    )
+                    Self.destination(session: session)
                 } label: {
                     Label { Text("member.privacy.title", tableName: "MemberProfile") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcLockKeyhole) }
                 }.accessibilityIdentifier("settings.privacyLocation")
@@ -54,7 +58,7 @@ import SwiftUI
 
     var body: some View {
         Form {
-            // Mini-program privacy sheet: the location sentence, the guide, then 更多隐私设置 (home city, own media), presence, roam.
+            // Mini-program privacy sheet: the location sentence, the guide, then home city, presence, roam and own media.
             Section {
                 Text("member.privacy.sheetBody", tableName: "MemberProfile")
                     .font(.subheadline)
@@ -69,12 +73,6 @@ import SwiftUI
             Section {
                 SettingsHomeCityLocationControls(compliance: compliance)
             } header: { Text("member.privacy.homeCity.title", tableName: "MemberProfile") }
-            // mp-settings r3: MP privacy-sheet 「更多隐私设置」 (city location + own media) sits before 附近的人 and 漫游定位.
-            Section {
-                NavigationLink { OwnMediaReviewView(reader: mediaReader, imagePreview: imagePreview, approvedLink: approvedLink, audioPreview: audioPreview, modelPreview: modelPreview) } label: {
-                    Text("member.privacy.media.open", tableName: "MemberProfile")
-                }.accessibilityIdentifier("member.privacy.media")
-            } header: { Text("member.privacy.media.title", tableName: "MemberProfile") }
             Section {
                 Text("member.privacy.presence.detail", tableName: "MemberProfile").font(.subheadline).foregroundStyle(.secondary)
                 if presenceSharing != false {
@@ -125,6 +123,11 @@ import SwiftUI
                 }
             } header: { Text("member.privacy.roam.title", tableName: "MemberProfile") }
             SessionLocationHoldsSection()
+            Section {
+                NavigationLink { OwnMediaReviewView(reader: mediaReader, imagePreview: imagePreview, approvedLink: approvedLink, audioPreview: audioPreview, modelPreview: modelPreview) } label: {
+                    Text("member.privacy.media.open", tableName: "MemberProfile")
+                }.accessibilityIdentifier("member.privacy.media")
+            } header: { Text("member.privacy.media.title", tableName: "MemberProfile") }
         }
         // B-PV-03 (T&C §2): pushed page → one inline system title, no in-content hero title.
         .navigationTitle(Text("member.privacy.title", tableName: "MemberProfile")).navigationBarTitleDisplayMode(.inline)

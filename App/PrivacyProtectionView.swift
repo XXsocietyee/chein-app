@@ -12,10 +12,15 @@ struct PrivacyProtectionView: View {
     @State private var granted: Bool
     private let signedIn: Bool
     @State private var document: AuthEntryLegalSheet?
+    /// mp-settings r3: MP pages/privacy settled state lists 首页城市自动定位 · 附近的人位置分享 · 漫游定位 · 我的待审媒体
+    /// under the guide link. Signed-in hosts pass the same controls page Settings › 隐私与定位 opens; nil hides the row.
+    var moreSettings: (() -> AnyView)? = nil
 
     init(market: RegionalMarket?, policy: UsageConsentPolicy = UsageConsentEnvironment.policy,
-         legalReader: (any SettingsLegalReading)? = nil, signedIn: Bool = false) {
+         legalReader: (any SettingsLegalReading)? = nil, signedIn: Bool = false,
+         moreSettings: (() -> AnyView)? = nil) {
         self.market = market
+        self.moreSettings = moreSettings
         self.signedIn = signedIn
         self.policy = policy
         let resolvedReader = legalReader ?? SettingsBundledLegalReader(
@@ -66,6 +71,18 @@ struct PrivacyProtectionView: View {
                     .accessibilityLabel(Text("authEntry.gate.openAgreement", tableName: "AuthEntry"))
                     .accessibilityValue(Text("authEntry.gate.lead", tableName: "AuthEntry"))
                     .accessibilityHint(Text("authEntry.privacy.manage", tableName: "AuthEntry"))
+            }
+            if granted, signedIn, let moreSettings {
+                Section {
+                    NavigationLink { moreSettings() } label: {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("privacy.page.moreSettings")
+                            Text("privacy.page.moreSettingsDetail").font(.subheadline).foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    .accessibilityIdentifier("privacy.page.moreSettings")
+                }
             }
             Section {
                 LabeledContent {

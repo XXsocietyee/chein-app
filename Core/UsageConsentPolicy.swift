@@ -160,6 +160,8 @@ public enum PrivacyProtectionPageAccessibility {
     public static let agreement = "authEntry.privacy.agreement"
     public static let offlineSignedOut = "usageConsent.offline.signedOut"
     public static let guideUnavailable = "privacy.page.guideUnavailable"
+    /// mp-settings r3: MP pages/privacy settled-state controls (首页城市自动定位 · 附近的人 · 漫游定位 · 待审媒体).
+    public static let moreSettings = "privacy.page.moreSettings"
     public static let consentStatus = "authEntry.privacy.consentStatus"
     public static let consentGranted = "privacy.page.consentGranted"
     public static let consentMissing = "privacy.page.consentMissing"

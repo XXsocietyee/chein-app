@@ -285,7 +285,7 @@ struct ParticipantFormView: View {
                     ProgressView("participant.form.saving")
                 }
             } else if model.loading || (model.loaded && !model.hasCurrentProjection) {
-                ProgressView("profile.loading")
+                ProgressView("participant.form.loadingFirst") // mp-settings r3: MP addressinfo.wxml loading-label 正在读取参与人信息
                     .accessibilityIdentifier("participant.form.loading")
             } else if !model.loaded {
                 ParticipantLoadFailureView(issue: model.issue) { Task { await model.load() } }

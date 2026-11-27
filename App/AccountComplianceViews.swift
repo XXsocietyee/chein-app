@@ -730,7 +730,11 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
         let page = marketingPage
         return Section {
             if page.phase == .empty {
-                Text("compliance.marketing.empty", tableName: "MarketingConsentOriginalPresentation").accessibilityIdentifier("compliance.marketing.empty")
+                // mp-settings r3: MP marketing-consent cy-empty kind="empty" 还没有商家消息 → system empty view.
+                ContentUnavailableView {
+                    Label { Text("compliance.marketing.empty", tableName: "MarketingConsentOriginalPresentation") } icon: { Image(systemName: "ticket") }
+                }
+                .accessibilityIdentifier("compliance.marketing.empty")
             }
             // B-MK-02: no engineering scope line on the user page.
             ForEach(model.state.marketingOriginalResults) { receipt in
