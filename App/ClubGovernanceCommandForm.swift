@@ -389,7 +389,7 @@ import SwiftUI
                 }
             }
             if let receipt {
-                Section("club.gov.acknowledged") {
+                Section {
                     ClubOpsGovernanceSuccess(operation: route.operation)
                     if route.operation == .correctAttendance { Text("clubOpsEvent.correct.success", tableName: "ClubOpsEvent").accessibilityIdentifier("clubOpsEvent.correct.success") }
                     // Campaign counts render once, in the notify card, when the receipt parses as a campaign.
@@ -437,6 +437,9 @@ import SwiftUI
                         LabeledContent("club.host.done.leaderLabel") { Text(verbatim: leader) }
                             .accessibilityIdentifier("club.host.receipt.leader")
                     }
+                } header: {
+                    // mp-club r3 (MP notify/index.wxml:71-78): a sent campaign is the 投递状态 section, 刷新 beside it.
+                    Text(LocalizedStringKey([.sendNotification, .retryNotification].contains(route.operation) ? "club.notify.deliveryStatus" : "club.gov.acknowledged"))
                 }
                 if route.operation == .hostApply { Section { ClubCreateMyClubLink(identity: identity) } }
             }

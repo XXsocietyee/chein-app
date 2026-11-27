@@ -344902,6 +344902,23 @@
           }
         }
       }
+    },
+    "club.notify.deliveryStatus": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delivery status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "投递状态"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
