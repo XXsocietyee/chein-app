@@ -50,6 +50,7 @@ match is a queue item (133 at the start). Tab roots first, then their pushed pag
 | 个人主页 (`SocialPublicProfileView` → `SocialReadScreen failureTitle:`) | `components/cy/profile-loading/index.wxml:5` cy-error 主页加载失败 · 重试 | generic 加载失败 | 主页加载失败 (Couldn’t load this profile) · 重试; sign-in / blocked keep their own words |
 | 附近 empty (`NearbyTeamViews`) — reviewed, not changed | `subpackageRoam/nearby/index.wxml:71` cy-empty 附近暂无节点 (one strip for teams + places) | native splits teams (附近暂无队伍 + 放大范围 hint) and places/events (`nearby.map.empty`) by layer filter | kept: native lists are per layer, so 节点 would mislabel the team-only list; the hint already carries the MP owner P-38 "enlarge range" intent |
 | 节点详情 商家 block (`RoamItemDetailView.merchantRetrySection`) | `subpackageMember/components/cy/scene-roam-poi-detail/index.wxml:55` cy-error 商家信息无法打开 · 重试 (inline under the hero) | grey 商家信息没有加载出来。 line | 商家信息无法打开 (Couldn’t open the shop details) as a warning `Label` in the same section, 重试 unchanged |
+| Redacted-row loaders → labelled `ProgressView`: 俱乐部项目 (`ClubManagedProjectsSection`), 自由探索通票目录 (`NativeFreeExploreBundleDetailView`), 定向赛大厅 ×2 (`CityOrientationTeamLobbyView`), 地图首页 路线 / 附近 (`RoamMapHomeRoutes`, `RoamMapHomeSheet`) | MP `cy-skeleton` → the brief's loading pattern with the MP words | `.redacted(reason: .placeholder)` fake rows | `ProgressView { Text(<existing loading key>) }` — 正在加载项目 / 加载中… / 正在加载队伍 / 正在核对队伍状态… / 正在加载 |
 
 ## Gates
 

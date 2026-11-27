@@ -331,12 +331,17 @@ import QuestifyCore
         if !pins.isEmpty {
             ForEach(pins) { pin in RoamMapHomePinRow(pin: pin) }
         } else if isLoading {
+<<<<<<< HEAD
             // MP entry-peek skeleton, aria 正在读取附近活动.
             ForEach(0..<4, id: \.self) { _ in
                 Label("nativeR2.mapHome.loading", systemImage: "mappin")
                     .redacted(reason: .placeholder)
                     .accessibilityLabel(Text("roam.w208.entry.loading"))
             }
+=======
+            ProgressView { Text("nativeR2.mapHome.loading") }
+                .frame(maxWidth: .infinity)
+>>>>>>> origin/mp/r3-states
         } else if entryState == .login, model.places.isEmpty {
             ContentUnavailableView {
                 Label("nativeR2.mapHome.signIn.title", systemImage: "person.crop.circle")
