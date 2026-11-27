@@ -303,6 +303,12 @@ import SwiftUI
             .id(session.accountCollectionReader.scope)
         // MP 探索与更多: 我的优惠券 (above) then 邀请好友, before 当前权益.
         Section {
+            // mp-mine r3: MP 邀请好友 (profile wxml:541) opens the personal code (/api/user/player-code), so the code row leads here.
+            if session.playerGapService != nil {
+                NavigationLink { Form { Section { PlayerCodeAndJoinSection() } }.navigationTitle(Text("playerGap.playerCode.title")).navigationBarTitleDisplayMode(.inline).cyPushedChrome() } label: {
+                    Label("account.inviteFriends", systemImage: "gift")
+                }.accessibilityIdentifier("account.playerCode")
+            }
             NavigationLink { SocialInviteHistoryView(reader: session.profileInviteHistoryReader, squareReader: session.squareReader, actions: session.socialActionCoordinator).id(session.profileInviteHistoryReader.identity).cyPushedChrome()
                     .environment(\.socialConversationDestination, session.socialConversationDestination) } label: {
                 Label("social.invites.title", systemImage: "person.2.badge.plus")
@@ -339,11 +345,6 @@ import SwiftUI
             }.accessibilityIdentifier("account.clubs")
             }
             if session.account?.effectiveRole == "club" { PayoutAccountLinks(audience: .club) }
-            if session.playerGapService != nil {
-                NavigationLink { Form { Section { PlayerCodeAndJoinSection() } }.navigationTitle(Text("playerGap.playerCode.title")).navigationBarTitleDisplayMode(.inline).cyPushedChrome() } label: {
-                    Label("playerGap.playerCode.title", systemImage: "qrcode")
-                }.accessibilityIdentifier("account.playerCode")
-            }
         }
         Section {
             PrivateHomeAccountLink(coordinator: privateHomeCoordinator)

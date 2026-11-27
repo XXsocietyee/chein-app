@@ -53,7 +53,8 @@ enum ClubGovernanceConsequence: Equatable {
 
     /// `name`: the member (ban) or the role (revoke) the MP names in its title, or the topic (结束主题) it names
     /// above the body; nil keeps the generic sheet.
-    func sheet(locale: Locale, name: String? = nil, onConfirm: @escaping () -> Void) -> ClubConsequenceSheet {
+    /// `alternative`: mp-club r3 pass 17 (MP utils/danger-actions.js `club.dissolve.alt`): the lighter 改为转让主理人 for 解散.
+    func sheet(locale: Locale, name: String? = nil, alternative: (() -> Void)? = nil, onConfirm: @escaping () -> Void) -> ClubConsequenceSheet {
         let named = name?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyForConsequence
         let text: (String) -> String = { OpsR3Text.string("r3club.consequence.\(key).\($0)", locale: locale) }
         switch self {
@@ -91,6 +92,9 @@ enum ClubGovernanceConsequence: Equatable {
                 objectName: self == .endTopic ? named : nil,
                 consequences: defaultConsequences(text),
                 confirmTitle: text("confirm"),
+                alternativeTitle: self == .dissolve && alternative != nil ? appLocalized("改为转让主理人", locale: locale) : nil,
+                alternativeHint: self == .dissolve && alternative != nil ? appLocalized("club.ops.dissolve.transferHint", locale: locale) : nil,
+                onAlternative: self == .dissolve ? alternative : nil,
                 onConfirm: onConfirm)
         }
     }

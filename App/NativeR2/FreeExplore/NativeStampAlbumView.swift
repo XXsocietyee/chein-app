@@ -241,9 +241,19 @@ struct NativeStampAlbumTile: View {
                     placeholder(systemImage: "photo").redacted(reason: .placeholder)
                 }
             }
+        } else if offline {
+            // mp-roam r3 (sweep 22:20, P24): the labelled offline example shows bundled MP city photos, not grey discs.
+            Self.offlineArt(for: stamp.id, fill: true)
         } else {
-            placeholder(systemImage: offline ? "building.2.crop.circle" : "photo")
+            placeholder(systemImage: "photo")
         }
+    }
+
+    /// Bundled MP photos for the offline example, chosen by stamp id so neighbouring tiles differ.
+    /// Callers label it: the tile hides it (caption speaks), the detail says 示例插图.
+    @ViewBuilder static func offlineArt(for id: Int, fill: Bool) -> some View {
+        let art = id.isMultiple(of: 2) ? MPAsset.BannerCover.cityCamera : MPAsset.BannerCover.event
+        art.resizable().aspectRatio(contentMode: fill ? .fill : .fit)
     }
 
     private func placeholder(systemImage: String) -> some View {
