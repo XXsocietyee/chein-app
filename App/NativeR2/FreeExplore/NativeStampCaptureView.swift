@@ -228,7 +228,7 @@ import UIKit
                     LabeledContent("roamSub.w208.stamp.departure") { Text("roamSub.w208.stamp.defaultPlace") }
                     LabeledContent("roamSub.w208.stamp.serialLabel") { Text(verbatim: slip.serial).monospacedDigit() }
                     LabeledContent("roamSub.w208.stamp.leftBy") { Text("roamSub.w208.stamp.someone") }
-                    LabeledContent("roamSub.w208.stamp.leftAt") { Text(verbatim: slip.leftAt ?? "—").monospacedDigit() }
+                    LabeledContent("roamSub.w208.stamp.leftAt") { Text(verbatim: slip.leftAt.map { LocaleDisplay.civil($0, locale: locale) } ?? "—").monospacedDigit() }
                 }
                 Section("roamSub.w208.stamp.forYou") {
                     if let caption = slip.caption { Text(verbatim: caption) } else { Text("roamSub.w208.stamp.noCaption") }

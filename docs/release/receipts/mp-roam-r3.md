@@ -267,6 +267,18 @@ Base re-merged with `origin/ui/combined-r7` (clean, 79 commits). Sweep 21:09 roa
 
 Gates: generate_project OK · check_scaffold PASS (20875 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 
+## Round 3 continue (18) — re-scan: live 官方活动 · 到达验证 overlay (no row yet)
+
+Base re-merged with `origin/ui/combined-r7`. Sweep unchanged (build 405948d58, reviewed in continue 17). Every MP roam page already has a row; re-scan of roam files for OWNER RULE 2: no `.font(.system(size:))` / `.tracking` / custom fonts / `.large` on pushed pages; one section-level bare spinner left (below). Inline spinners in buttons / image placeholders stay (they sit in a labelled control).
+
+| MP page / scene | Native view | Differences | Status |
+|---|---|---|---|
+| `pages/roam/index` event-overlay (wxml:335–350: 官方活动 · 到达验证 · title · ✕ → 活动暂停：{{pausedReason\|\|'等待运营处理'}} / 报名后的到达才计入活动 → missions (title · sub · 验证到达 / 先移动建立会话 / 已验证 / 自动同步) → feedback) | `App/RoamOfficialArrivalSection.swift` (section in `RoamLiveSessionView`) | 1. The paused line always said 等待运营处理; MP shows the server `pausedReason` and falls back to that text only when it is empty. 2. While the event read ran the section showed a bare `ProgressView` (P10). Rest (header + close, signup hint, mission rows and states, feedback, V1 report) already MP order. | **Fixed:** `OfficialEvent.pausedReason` (trimmed, non-empty) → new key `roam.official.pausedReason %@` (活动暂停：%@ / "Event paused: %@"), else the existing `roam.official.paused`; loading = `ProgressView("roam.official.loading")` (正在读取活动… / "Loading the event…", id `roam.official.loading`). |
+
+New strings (en + zh-Hans, also `docs/port/strings/mp-r3-roam.json`): `roam.official.pausedReason %@`, `roam.official.loading`.
+
+Gates: generate_project OK · check_scaffold PASS (20893 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no

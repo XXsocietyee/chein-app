@@ -23,24 +23,22 @@ struct PlayCompanionBoardView: View {
 
     @ViewBuilder private var content: some View {
         if loading && board == nil {
+            // MP play/index.wxml:2029 board__loading 正在加载同行者榜.
             Section {
-                ForEach(0..<3, id: \.self) { _ in
-                    LabeledContent("playx.board.placeholder") { Text(verbatim: "00") }
-                }
+                ProgressView { Text("playx.board.loadingLabel") }
+                    .frame(maxWidth: .infinity)
             }
-            .redacted(reason: .placeholder)
             .accessibilityIdentifier("playx.board.loading")
         } else if failed {
+            // MP :2031 board.error 榜单加载失败 + 重试: one state, retry inside.
             Section {
-                Text("playx.board.failed").foregroundStyle(.secondary)
-                Button("action.retry") { Task { await load() } }
-                    .accessibilityIdentifier("playx.board.retry")
+                CYEmptyState(systemImage: "exclamationmark.triangle", "playx.board.failed",
+                             actionTitle: "action.retry", actionIdentifier: "playx.board.retry", kind: .failure) { Task { await load() } }
             }
         } else if let board {
             Section {
                 if board.entries.isEmpty {
-                    Text("playx.board.empty").foregroundStyle(.secondary)
-                        .accessibilityIdentifier("playx.board.empty")
+                    CYEmptyState(systemImage: "flag.checkered", "playx.board.empty", messageIdentifier: "playx.board.empty")
                 }
                 ForEach(Array(board.entries.enumerated()), id: \.element.id) { index, row in
                     boardRow(rank: row.rank, name: row.name, score: row.score, first: index == 0)

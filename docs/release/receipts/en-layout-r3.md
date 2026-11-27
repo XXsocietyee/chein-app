@@ -111,6 +111,14 @@ Merged `origin/ui/combined-r7` (clean). Sweep build 405948d58 (21:09Z) en sheets
 | 44 | Me balance (`en-d2-me`) "CN¥0.00" vs balance ledger (`en-e4-wallet-balance`) "¥128.50" | Two CNY spellings in English | Checked: Me follows the i18n r1 rule (non-Chinese UI names the currency, `E1Money.yuan`); the ledger draws a single glyph beside the number (`WalletCurrencySymbol`, `count == 1` checks at `WalletCommerceViews.swift:668`, `WalletNumberLocalization.swift:49`), so switching it needs a wallet layout change. Not changed; listed for mp-mine | Checked |
 | 45 | `pages/playkit/*` reaction game result → `NativeR2/Games/NativeGameTimedKit.swift:306` `playkit.reaction.bestOf %lld` | Merged from mp-journey without plural: "Fastest of 1 rounds"; `check_locale_format.py` FAILED after the merge | `tools/add_i18n_r1_plurals.py`: catalog + `mp-journey-r3.json` fragment ("Fastest of 1 round"); gate PASS | Done |
 
+### Run 10 (2026-11-27, hourly)
+
+Merged `origin/ui/combined-r7` (clean). Sweep is still build 405948d58 (same as run 9), so this run works from code: remaining raw server dates on player screens.
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 46 | Me 关于 tab join date → `MemberHomeHeader.swift` `MemberAboutSection`; public profile About → `SocialPublicProfileView.swift:297`; Me 项目 project start → `ProfileSelfProjectsSection.swift`; withdrawal history row + detail → `WithdrawalHistoryView.swift`; pass market order rows + pass order paid time → `PassMarketViews.swift` (`PassMarketView`, `PassOrderDetailView`); roam stamp detail date → `RoamStampViews.swift` `RoamStampCard`; stamp capture left-at → `NativeR2/FreeExplore/NativeStampCaptureView.swift`; monthly recap occurred-at → `RoamMonthlyRecapDetailView.swift` | English showed raw server text "2026-10-01 14:30:00" / "2026-10-01" | `LocaleDisplay.civil(_, locale:)` (same helper as rows 14/23/37): English "Oct 1, 2026 at 2:30 PM"; Chinese and unparsable text unchanged (MP parity). Text only, no layout/order change | Done |
+
 ## Not done
 
 | Item | Why |
@@ -119,7 +127,7 @@ Merged `origin/ui/combined-r7` (clean). Sweep build 405948d58 (21:09Z) en sheets
 
 
 ## Next pages (no row yet)
-Re-check rows 23, 37–41 in the next sweep once this branch is integrated; then publish (`pages/template/*`, no en sheet in the sweep yet: work from code) and nav English sheets.
+Re-check rows 23, 37–41, 46 in the next sweep. Still raw (not changed, host/merchant or diagnostic surfaces): `SupportTicketReadView`, `ClubCalendarSessionRows:86`, `ClubCommunityViews:637` repost time, `CityTaskHistoryView:40` (no locale env yet — next run) once this branch is integrated; then publish (`pages/template/*`, no en sheet in the sweep yet: work from code) and nav English sheets.
 
 ## For other lanes
 - mp-mine: balance ledger shows "¥" while the Me balance tile shows "CN¥" in English (row 44); public profile role line "— City explorer" shows a dash placeholder (`en-e4-member`).
