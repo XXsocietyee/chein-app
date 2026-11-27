@@ -78,6 +78,7 @@ struct RoamFinishReport: Equatable {
                 }
                 RoamFinishStampStrip(photos: report.record?.photos ?? [])
                 medalsStrip
+                reachedPlaces
                 mapPanel.padding(.top, CYSpacing.xl).padding(.horizontal, -CYSpacing.lg)
             }
             .padding(.horizontal, CYSpacing.lg)
@@ -246,6 +247,31 @@ struct RoamFinishReport: Equatable {
             }
             .padding(.top, CYSpacing.xl)
         }
+    }
+    /// MP `settle__places` (wxml:932, index.js:4861): the reached places of this walk (done, not demo), names only,
+    /// in walk order, before the route map. Unnamed or repeated places are skipped.
+    @ViewBuilder private var reachedPlaces: some View {
+        let names = reachedPlaceNames
+        if !names.isEmpty {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                ForEach(names, id: \.self) { name in
+                    Text(verbatim: name).cyText(.body).foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .padding(.top, CYSpacing.xl)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("roam.finishReport.places")
+        }
+    }
+    private var reachedPlaceNames: [String] {
+        var seen = Set<String>()
+        var names: [String] = []
+        for place in report.record?.pois ?? [] where !place.isDemoEntry {
+            let name = place.name.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !name.isEmpty, seen.insert(name).inserted { names.append(name) }
+        }
+        return names
     }
     private func cell(_ value: String?, _ label: LocalizedStringKey, id: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
