@@ -66,7 +66,7 @@ enum SearchMapFixtureKeywords {
         try check()
         let json = scenario == .categoryDelayed ?
             #"[{"id":7,"categoryName":"Synthetic culture","type":1},{"id":8,"categoryName":"Synthetic outdoors","type":1}]"# : SearchMapSyntheticFixtures.categories
-        return try decode([DiscoveryCategory].self, json)
+        return try decode([DiscoveryCategory].self, SearchMapFixtureLanguage.categories(json))
     }
     func search(_ query: GlobalSearchQuery) async throws -> GlobalSearchResults {
         try check(); try query.validate(); searches += 1
@@ -86,7 +86,7 @@ enum SearchMapFixtureKeywords {
         if scenario == .empty || query.keyword == "missing" { return GlobalSearchResults(rows: []) }
         let kinds = GlobalSearchKind.allCases.filter { (isAuthenticated || $0 != .club) && (scenario != .partial || $0 != .merchant) }
         let sourceID = scenario == .categoryDelayed ? (query.categoryID ?? 70) : 71
-        let rows = kinds.map { kind in GlobalSearchRow(kind: kind, sourceID: sourceID, title: "Synthetic \(kind.rawValue)", detail: "Offline \(query.keyword)") }
+        let rows = kinds.map { kind in GlobalSearchRow(kind: kind, sourceID: sourceID, title: SearchMapFixtureLanguage.rowTitle(kind), detail: SearchMapFixtureLanguage.rowDetail(query.keyword)) }
         return GlobalSearchResults(rows: rows, failedKinds: scenario == .partial ? [.merchant] : [], gatedKinds: isAuthenticated ? [] : [.club])
     }
     func citySearch(_ query: CityNodeSearchQuery) async throws -> CityNodeSearchResults {
@@ -158,7 +158,11 @@ enum SearchMapFixtureKeywords {
     @State private var scope: UUID
     private let entry: String
     @State private var walking: WalkingNavigationFixtureSupport
-    init() {
+    /// mp-home r3 (20:11 sweep, d2-search): the guest / switch-account capsules are UI-test controls; the design
+    /// fixture shows the MP search page only.
+    private let showsTestControls: Bool
+    init(showsTestControls: Bool = true) {
+        self.showsTestControls = showsTestControls
         let args = ProcessInfo.processInfo.arguments
         func argument(_ name: String) -> String? {
             guard let i = args.firstIndex(of: name), args.indices.contains(i + 1) else { return nil }; return args[i + 1]
@@ -170,7 +174,7 @@ enum SearchMapFixtureKeywords {
     }
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
+            if showsTestControls { HStack {
                 Button { reader.becomeGuest(); walking.context = nil; scope = reader.scope } label: {
                     fixtureLabel("searchMap.fixtureGuest", symbol: "person.crop.circle.badge.minus")
                 }.accessibilityIdentifier("searchMap.fixture.guest")
@@ -191,7 +195,7 @@ enum SearchMapFixtureKeywords {
                     Button("Release synthetic search") { reader.releaseCitySearch() }
                         .accessibilityIdentifier("searchMap.fixture.releaseCitySearch")
                 }
-            }.buttonStyle(.bordered).frame(minHeight: 44)
+            }.buttonStyle(.bordered).frame(minHeight: 44) }
             NavigationStack {
                 if entry == "markerStyle" {
                     MapMarkerStyleFixtureView()
@@ -237,6 +241,30 @@ enum SearchMapFixtureKeywords {
         case .club(let id): Text(verbatim: "Synthetic club \(id)").accessibilityIdentifier("searchMap.destination.club.\(id)")
         }
     }
+}
+
+/// mp-home r3 (20:11 sweep, d2-search-results zh): fixture rows and categories follow the UI language; en keeps the
+/// pinned English values the UI tests read.
+enum SearchMapFixtureLanguage {
+    static var isChinese: Bool { Locale.preferredLanguages.first?.hasPrefix("zh") == true }
+    static func rowTitle(_ kind: GlobalSearchKind) -> String {
+        guard isChinese else { return "Synthetic \(kind.rawValue)" }
+        switch kind {
+        case .topic: return "示例主题"
+        case .activity: return "示例活动"
+        case .club: return "示例俱乐部"
+        case .merchant: return "示例商家"
+        }
+    }
+    static func rowDetail(_ keyword: String) -> String {
+        isChinese ? "离线示例 · \(keyword)" : "Offline \(keyword)"
+    }
+    static func categories(_ json: String) -> String {
+        guard isChinese else { return json }
+        return json.replacingOccurrences(of: "Synthetic culture", with: "人文")
+            .replacingOccurrences(of: "Synthetic outdoors", with: "户外")
+    }
+    static var resultsKeyword: String { isChinese ? "灯笼" : "Lantern" }
 }
 
 extension GlobalSearchRecommendedKeywords {
