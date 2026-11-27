@@ -312,7 +312,7 @@ public struct IMComposerPlusMenuButton: View {
             }
         } label: {
             Image(systemName: "plus.circle")
-                .accessibilityLabel(Text(verbatim: "更多"))
+                .accessibilityLabel(Text("更多"))
                 .cyText(.sectionTitle)
                 .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
         }

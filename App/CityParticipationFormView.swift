@@ -54,8 +54,9 @@ struct CityParticipationDisplay {
     var recovery: Recovery = .none
     var recoveryBusy = false
     static func label(_ kind: CityParticipationCommand.Kind) -> String {
-        switch kind { case .create: "创建队伍"; case .join: "加入邀请队伍"; case .lock: "锁定队伍";
-            case .confirm: "确认参与"; case .exit: "退出当前队伍"; case .resume: "恢复原队伍" }
+        switch kind { case .create: appLocalized("创建队伍", locale: .current); case .join: appLocalized("加入邀请队伍", locale: .current)
+            case .lock: appLocalized("锁定队伍", locale: .current); case .confirm: appLocalized("确认参与", locale: .current)
+            case .exit: appLocalized("退出当前队伍", locale: .current); case .resume: appLocalized("恢复原队伍", locale: .current) }
     }
 }
 

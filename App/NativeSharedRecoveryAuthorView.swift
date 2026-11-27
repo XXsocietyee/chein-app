@@ -81,7 +81,7 @@ import SwiftUI
                 }
             }
             if editor == nil {
-                Button { open() } label: { Text(verbatim: "编辑当前共享玩法的恢复定义") }.disabled(!available)
+                Button { open() } label: { Text("编辑当前共享玩法的恢复定义") }.disabled(!available)
             } else if let draft = editor, let editorID = capture?.id {
                 let editRevision = bufferRevision
                 Group {
@@ -94,16 +94,16 @@ import SwiftUI
                     }
                     if draft.recoveries.isEmpty { Text("当前没有恢复方式；不会自动添加默认休息。") }
                     ForEach(Array(draft.recoveries.enumerated()),id:\.offset) { index,_ in recoveryRow(index,draft:draft) }
-                    Button { mutate(editorID, revision: editRevision) { $0.appendBlank() } } label: { Label { Text(verbatim: "添加空白恢复方式") } icon: { Image(systemName: "plus.circle") } }.disabled(draft.recoveries.count >= 20)
+                    Button { mutate(editorID, revision: editRevision) { $0.appendBlank() } } label: { Label { Text("添加空白恢复方式") } icon: { Image(systemName: "plus.circle") } }.disabled(draft.recoveries.count >= 20)
                     ForEach(Array(draft.issues.enumerated()),id:\.offset) { _,issue in NativeAuthorNotice(text: Text(issue), tone: .attention) }
-                    Button { preview(editorID, revision: editRevision) } label: { Text(verbatim: "预览原恢复定义修改") }.disabled(!draft.issues.isEmpty)
+                    Button { preview(editorID, revision: editRevision) } label: { Text("预览原恢复定义修改") }.disabled(!draft.issues.isEmpty)
                     if let review {
                         Text(review.value.text ?? "").font(.caption.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                         Button { apply(review) } label: { Text(verbatim: saveUnconfirmed ? "重试保存原完整项目草稿" : "确认保存原完整项目草稿") }
                     }
                     Text("随后使用原项目保存、同请求结果恢复及发布。保存后的原项目重载显示读取基线；新共享局按发布快照提供恢复方式，旧局和已保存动作不被追改。").nativeAuthorSupportingCopy()
                 }.disabled(!current)
-                Button(role: .cancel) { close(editorID) } label: { Text(verbatim: "关闭恢复定义编辑副本") }
+                Button(role: .cancel) { close(editorID) } label: { Text("关闭恢复定义编辑副本") }
             }
             if let message { NativeAuthorNotice(text: Text(message)) }
         }
