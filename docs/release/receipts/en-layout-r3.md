@@ -22,6 +22,8 @@ No Swift compiler in the cloud: fixes are catalog values and stock SwiftUI modif
 |---|---|
 | `payoutReceiver.bind.mpOnly`, `payoutReceiver.bind.mpPathCopied`, `authEntry.deregister.wechatUnavailable` say "the Chengyin (WeChat) mini program" in English | These name the WeChat mini program, which is searched by its Chinese name; owner to decide whether English shows "Chein", "城瘾" or both. Not changed. |
 
+| `clubR8.lb.meta %lld %@ %@` (club leaderboard row, `ClubDetailR8Mounts.swift:470`) reads "1 runs · …" | Call site runs `String(format: appLocalized(…))`; a plural substitution may not survive that path. Next run: move the call site to interpolated `appLocalized("clubR8.lb.meta \(n) \(a) \(b)")`, then add `runs` to the plural nouns. |
+
 ## Next pages (no row yet)
 Topic detail remaining sections (hero, stat bar, route stops) at AX sizes; Club home; Me tabs; Roam map home place card; ticket wallet dates/currency.
 
