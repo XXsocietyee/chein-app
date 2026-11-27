@@ -30,3 +30,5 @@ Strings: `docs/port/strings/mp-settings-r3.json` (en + zh-Hans) merged into `Res
 
 - 隐私与定位 in Settings combines the MP sheet and `pages/privacy` settled list in one pushed page (sheet copy first, then the controls in `pages/privacy` order). An earlier commit on this branch moved 待审媒体 up; reverted in the next commit because `pages/privacy` lists it last.
 - `Tests/ContractChecks/test_profile_reload_discard.py` fails on the base too (hash pin of `SettingsView.swift`); it is in the ratchet baseline.
+
+Last gate run on the tip (b8414b0af): generate_project OK · check_scaffold PASS · check_a11y_lint 0 new · contract_ratchet 104 failing = baseline 104, **new 0**.
