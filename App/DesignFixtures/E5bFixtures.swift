@@ -68,7 +68,7 @@ struct E5bBadgeWallFixture: View {
             .navigationTitle(Text(verbatim: tt("Badges", "徽章"))).navigationBarTitleDisplayMode(.inline)
         }
         .themeDomain(.player)
-        .preferredColorScheme(.dark)
+        // mp-mine r3 (18:15 rule): fixtures follow the system appearance, no forced scheme.
     }
 }
 

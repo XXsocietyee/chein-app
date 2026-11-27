@@ -19,9 +19,11 @@ import QuestifyCore
         case .detail(owner: false): scenario = .visitor
         case .directory: scenario = .visitor
         }
-        _reader = StateObject(wrappedValue: ClubFixtureReader(scenario: scenario))
+        let fixtureReader = ClubFixtureReader(scenario: scenario)
+        fixtureReader.designCopy = true
+        _reader = StateObject(wrappedValue: fixtureReader)
     }
-    private static let community = try? ClubCommunityFixture.context(identity: ClubReadIdentity(accountID: 701, epoch: 0), clubID: 81)
+    private static let community = try? ClubCommunityFixture.context(identity: ClubReadIdentity(accountID: 701, epoch: 0), clubID: 81, designCopy: true)
     var body: some View {
         NavigationStack {
             switch screen {
@@ -105,26 +107,30 @@ private struct D4JoinStage: View {
         }
         .task { club = try? await reader.clubDetail(id: 81) }
     }
+    // mp-club r3 (19:50 sweep): channel data follows the UI language (fixture data, `tt(en, zh)`); the en UI test pins stay English.
+    private static func tt(_ en: String, _ zh: String) -> String {
+        Locale.preferredLanguages.first?.hasPrefix("zh") == true ? zh : en
+    }
     static let listing = ChannelDirectoryListing(
         clubID: 81,
-        categories: [ChannelDirectoryCategory(id: 10, clubID: 81, name: "Announcements", position: 1),
-                     ChannelDirectoryCategory(id: 20, clubID: 81, name: "Community", position: 2)],
+        categories: [ChannelDirectoryCategory(id: 10, clubID: 81, name: tt("Announcements", "公告"), position: 1),
+                     ChannelDirectoryCategory(id: 20, clubID: 81, name: tt("Community", "社区"), position: 2)],
         channels: [
-            ChannelDirectoryEntry(id: 1001, clubID: 81, categoryID: 10, name: "club-news", kind: 2, visibility: 0, position: 1,
+            ChannelDirectoryEntry(id: 1001, clubID: 81, categoryID: 10, name: tt("club-news", "俱乐部动态"), kind: 2, visibility: 0, position: 1,
                                   myState: ChannelDirectoryMyState(lastReadMessageID: 1, lastReadAt: nil, notifyPref: 0, unreadCount: 2, readStateAvailable: true)),
-            ChannelDirectoryEntry(id: 1002, clubID: 81, categoryID: 20, name: "weekend-walks", kind: 1, visibility: 0, position: 1,
+            ChannelDirectoryEntry(id: 1002, clubID: 81, categoryID: 20, name: tt("weekend-walks", "周末徒步"), kind: 1, visibility: 0, position: 1,
                                   myState: ChannelDirectoryMyState(lastReadMessageID: 1, lastReadAt: nil, notifyPref: 0, unreadCount: 5, readStateAvailable: true)),
-            ChannelDirectoryEntry(id: 1003, clubID: 81, categoryID: 20, name: "photo-spots", kind: 1, visibility: 0, position: 2)
+            ChannelDirectoryEntry(id: 1003, clubID: 81, categoryID: 20, name: tt("photo-spots", "拍照点位"), kind: 1, visibility: 0, position: 2)
         ])
     static let messages: [Int64: [ChannelTranscriptMessage]] = [
         1001: [
-            .make(id: 1, conversationID: 1001, senderID: 701, senderName: "Fixture creator", content: "Saturday route is confirmed. Meet at the east gate at 9:30.", createdAt: "2026-11-07 09:00:00")
+            .make(id: 1, conversationID: 1001, senderID: 701, senderName: tt("Fixture creator", "示例主理人"), content: tt("Saturday route is confirmed. Meet at the east gate at 9:30.", "周六路线已确定，9:30 东门集合。"), createdAt: "2026-11-07 09:00:00")
         ],
         1002: [
-            .make(id: 11, conversationID: 1002, senderID: 703, senderName: "Mina", content: "Anyone up for the river loop this weekend?", createdAt: "2026-11-07 18:02:00"),
-            .make(id: 12, conversationID: 1002, senderID: 703, senderName: "Mina", content: "It is about 6 km, flat, with a tea stop halfway.", createdAt: "2026-11-07 18:03:00"),
-            .make(id: 13, conversationID: 1002, senderID: 701, senderName: "Fixture creator", content: "Count me in. I will bring the stamp book.", createdAt: "2026-11-07 18:10:00"),
-            .make(id: 14, conversationID: 1002, senderID: 704, senderName: "Jun", content: "Joining too!", createdAt: "2026-11-07 18:12:00")
+            .make(id: 11, conversationID: 1002, senderID: 703, senderName: tt("Mina", "米娜"), content: tt("Anyone up for the river loop this weekend?", "这周末有人一起走河边环线吗？"), createdAt: "2026-11-07 18:02:00"),
+            .make(id: 12, conversationID: 1002, senderID: 703, senderName: tt("Mina", "米娜"), content: tt("It is about 6 km, flat, with a tea stop halfway.", "全程约 6 公里，路很平，中途可以喝茶歇脚。"), createdAt: "2026-11-07 18:03:00"),
+            .make(id: 13, conversationID: 1002, senderID: 701, senderName: tt("Fixture creator", "示例主理人"), content: tt("Count me in. I will bring the stamp book.", "算我一个，我带上集邮册。"), createdAt: "2026-11-07 18:10:00"),
+            .make(id: 14, conversationID: 1002, senderID: 704, senderName: tt("Jun", "阿俊"), content: tt("Joining too!", "我也来！"), createdAt: "2026-11-07 18:12:00")
         ]
     ]
 }

@@ -230,7 +230,7 @@ enum E4Fixtures {
         case "e4-participants": return wrap(ParticipantFixtureHostView())
         case "e4-self-projects": return wrap(ProfileSelfProjectsFixtureHost(scenario: "content"))
         case "e4-self-growth": return wrap(ProfileSelfGrowthFixtureHost(scenario: "content"))
-        case "e4-self-medals": return wrap(ProfileSelfMedalsFixtureHost(scenario: "content"))
+        case "e4-self-medals": return wrap(ProfileSelfMedalsFixtureHost(scenario: "content", showsTestControls: false))
         case "e4-template-mine": return wrap(TemplateAuthoringFixtureHostView())
         case "e4-wallet-income": return wrap(WalletCommerceFixtureHost(designPage: "income"))
         case "e4-wallet-points": return wrap(WalletCommerceFixtureHost(designPage: "points"))
@@ -776,10 +776,15 @@ private actor T5OrderCenterTransport: HTTPTransport {
     let failed: Bool
     init(failed: Bool) { self.failed = failed }
     func send(_ request: URLRequest) async throws -> (Data, Int) {
+        // Fixture payload follows the UI language (coordinator 19:50: no Chinese data in the English UI).
+        let zh = Locale.preferredLanguages.first?.hasPrefix("zh") == true
         if failed {
-            return (Data(#"{"code":404,"msg":"订单不存在"}"#.utf8), 404)
+            let error = zh ? #"{"code":404,"msg":"订单不存在"}"# : #"{"code":404,"msg":"Order not found"}"#
+            return (Data(error.utf8), 404)
         }
-        let json = #"{"code":200,"msg":"ok","data":{"kind":"COMMERCE","id":"42","orderNo":"CY20260001","title":"杭州老城畅玩卡","statusText":"已支付","amountText":"168.00","createdAtText":"2026-11-14 10:00"}}"#
+        let json = zh
+            ? #"{"code":200,"msg":"ok","data":{"kind":"COMMERCE","id":"42","orderNo":"CY20260001","title":"杭州老城畅玩卡","statusText":"已支付","amountText":"168.00","createdAtText":"2026-11-14 10:00"}}"#
+            : #"{"code":200,"msg":"ok","data":{"kind":"COMMERCE","id":"42","orderNo":"CY20260001","title":"Hangzhou Old Town Play Pass","statusText":"Paid","amountText":"168.00","createdAtText":"2026-11-14 10:00"}}"#
         return (Data(json.utf8), 200)
     }
 }

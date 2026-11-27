@@ -2395,5 +2395,39 @@
         }
       }
     }
+  },
+  "mpPublish.ticketSettings.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ticket settings"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "票务设置"
+        }
+      }
+    }
+  },
+  "mpPublish.ticketSettings.schedule": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Dates"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "档期"
+        }
+      }
+    }
   }
 }

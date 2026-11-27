@@ -59,7 +59,7 @@ import SwiftUI
             case .error(.stale):
                 CYEmptyState(systemImage: "clock.arrow.circlepath", LocalizedStringKey("stale"), tableName: table)
             case .loading:
-                ProgressView()
+                ProgressView { Text("cy.state.loading") }
                     .frame(maxWidth: .infinity)
                     .accessibilityIdentifier("freeBundle.loading")
             case .empty:
