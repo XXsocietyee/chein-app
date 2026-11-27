@@ -261,6 +261,7 @@ struct PlayThemeMusicKey: Equatable {
         presentationLayer
         .modifier(PlayNightHintOverlay(receipt: model.reward))
         .modifier(PlayFlyScoreOverlay(receipt: model.reward))
+        .modifier(PlayCouponToastOverlay(receipt: model.reward, snapshot: model.snapshot))
         // mp-journey r3: MP loadData → loadTeamProgress after every nodes read, then the 4 s poll while a team exists.
         // One page-level host (the lead section used to own the poll, so it only ran while that row was on screen).
         .task(id: model.interactionContext) { await model.probeLead(context: model.interactionContext) }
@@ -2258,6 +2259,72 @@ private struct PlayFlyScoreOverlay: ViewModifier {
                     try? await Task.sleep(for: .seconds(PlayFlyScore.displaySeconds))
                     guard current == token else { return }
                     withAnimation(reduceMotion ? nil : .easeOut(duration: 0.25)) { points = nil }
+                }
+            }
+    }
+}
+
+/// mp-journey r3: MP `coupontoast` — 已放入卡券包 · 到店出示核销 · 点击查看 at the top for 5 s when the node just completed
+/// carries a coupon; a tap opens the coupon wallet (MP `goCouponWallet`). Heavy haptic, VoiceOver hears it once.
+private struct PlayCouponToastOverlay: ViewModifier {
+    let receipt: PlayWireValue?
+    let snapshot: PlaySnapshot?
+    @State private var shown = false
+    @State private var token = 0
+    @State private var openWallet = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        content
+            .overlay(alignment: .top) {
+                if shown {
+                    Button {
+                        shown = false
+                        openWallet = true
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "ticket.fill")
+                                .font(.title3)
+                                .foregroundStyle(.tint)
+                                .accessibilityHidden(true)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("playx.coupon.title").font(.headline)
+                                Text("playx.coupon.detail").font(.footnote).foregroundStyle(.secondary)
+                            }
+                            Spacer(minLength: 0)
+                            Image(systemName: "chevron.right")
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(.tertiary)
+                                .accessibilityHidden(true)
+                        }
+                        .padding(12)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                    .transition(reduceMotion ? .opacity : .move(edge: .top).combined(with: .opacity))
+                    .accessibilityElement(children: .combine)
+                    .accessibilityAddTraits(.isButton)
+                    .accessibilityIdentifier("playx.coupon.toast")
+                }
+            }
+            .sensoryFeedback(.impact(weight: .heavy), trigger: token)
+            .navigationDestination(isPresented: $openWallet) {
+                MPParityDestination(route: .screen(page: "subpackageMember/coupon-wallet/index", query: [:]))
+            }
+            .onChange(of: receipt) { _, value in
+                guard PlayCouponToast.shows(receipt: value, snapshot: snapshot) else { return }
+                token += 1
+                let current = token
+                withAnimation(reduceMotion ? nil : .spring(duration: 0.35)) { shown = true }
+                AccessibilityNotification.Announcement(appLocalized("playx.coupon.title", locale: .current)).post()
+                Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(PlayCouponToast.displaySeconds))
+                    guard current == token else { return }
+                    withAnimation(reduceMotion ? nil : .easeOut(duration: 0.25)) { shown = false }
                 }
             }
     }
