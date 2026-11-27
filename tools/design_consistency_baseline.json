@@ -3,6 +3,12 @@
     "App/CityKit/CityRoamRootView.swift": {
       "hidden nav": "full-screen City board map (漫游): map chrome owns the top edge"
     },
+    "App/CityKit/CityTerritoryNoticeCard.swift": {
+      "button style": "press-scale feedback on a tappable card (no button chrome; label is the card)"
+    },
+    "App/ClubComponents.swift": {
+      "button style": "E3PressStyle: press scale used only by DEBUG design fixtures"
+    },
     "App/DesignSystem/CYAlbum.swift": {
       "raw font": "procedural art: SF Symbol / numeral sized as a fraction of its own drawn frame (badge, medal, cover), not reading text"
     },
@@ -66,11 +72,20 @@
     "App/NativeStoryWalkingAuthorView.swift": {
       "hidden nav": "unsaved-changes guarded exit (confirmation dialog) in the story authoring flow; story-flow is out of scope"
     },
+    "App/PlayHUD.swift": {
+      "button style": "game HUD circle controls over the live play surface"
+    },
     "App/PlayNativeDeviceProvider.swift": {
       "raw colour": "camera filter rendering (night vision scanlines / pet POV frame) drawn into a photo"
     },
     "App/ProjectEditOverviewKit.swift": {
       "hidden nav": "full-bleed 地图 page: transparent bar over the map, system back and inline title kept"
+    },
+    "App/QuestifyMotion.swift": {
+      "button style": "QuestifyCardButtonStyle: press-scale feedback for tappable cards, not a button look"
+    },
+    "App/QuestifyMotionComponents.swift": {
+      "button style": "QuestifyPrimaryButtonStyle definition kept for merchant call sites (out of scope); player sites now use .borderedProminent"
     },
     "App/QuestifyPalette.swift": {
       "raw colour": "brand tint token definition (light/dark), the palette itself"

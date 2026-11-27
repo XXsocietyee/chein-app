@@ -19,6 +19,8 @@ and `#Preview { ... }` blocks; comments are ignored) and counts, per file:
                   (custom back buttons / MP custom nav chrome)
   custom back     `CYNavBar(` / `CYBareBackButton(` / `CYHeroBackButton(` outside App/DesignSystem
                   (use the system bar; `cyGuardedBack(when:onBack:)` for an unsaved-changes exit)
+  button style    a page-level `struct …: ButtonStyle` outside App/DesignSystem, or `.buttonStyle(.questifyPrimary)`
+                  (one button system: `.borderedProminent` / `.bordered` / `.borderless` or the CY styles)
   raw colour      `Color(red:` / `UIColor(red:` / `Color(hex:` / `"#RRGGBB"` / `0xRRGGBB` outside App/DesignSystem
                   and App/Theme  -> semantic system colours or the CY palette
 
@@ -48,7 +50,8 @@ HIDDEN_NAV = 'hidden nav'
 RAW_COLOUR = 'raw colour'
 CUSTOM_BACK = 'custom back'
 TITLE_MODE = 'title mode'
-KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, CUSTOM_BACK, RAW_COLOUR)
+BUTTON_STYLE = 'button style'
+KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, CUSTOM_BACK, BUTTON_STYLE, RAW_COLOUR)
 
 # The five player tab roots (Core/RootTab.swift, QuestifyApp root TabView) and the files that own their title.
 # 漫游 is the full-screen map home: its chrome is allowed in the baseline instead.
@@ -88,6 +91,11 @@ HIDDEN_PATTERNS = (
 # MP-style custom navigation chrome built from the design kit instead of the system bar (`cyGuardedBack` is the
 # approved guarded exit and lives inside the design system).
 CUSTOM_BACK_PATTERN = re.compile(r'(?<![\w.])(?:CYNavBar|CYBareBackButton|CYHeroBackButton)\s*[(<]')
+# One button system: `.borderedProminent` / `.bordered` / `.borderless` or the CY styles in App/DesignSystem.
+BUTTON_STYLE_PATTERNS = (
+    re.compile(r'\bstruct\s+\w+\s*:\s*(?:Primitive)?ButtonStyle\b'),
+    re.compile(r'\.buttonStyle\s*\(\s*\.questifyPrimary\s*\)'),
+)
 COLOUR_PATTERNS = (
     re.compile(r'(?<![\w.])(?:UI)?Color\s*\(\s*red\s*:'),
     re.compile(r'(?<![\w.])(?:UI)?Color\s*\(\s*hex\s*:'),
@@ -193,6 +201,8 @@ def scan_file(rel, text):
             hits.append((number, HIDDEN_NAV, code.strip()))
         if not design_system and CUSTOM_BACK_PATTERN.search(code):
             hits.append((number, CUSTOM_BACK, code.strip()))
+        if not design_system and any(p.search(code) for p in BUTTON_STYLE_PATTERNS):
+            hits.append((number, BUTTON_STYLE, code.strip()))
         if not colour_exempt and any(p.search(code) for p in COLOUR_PATTERNS):
             hits.append((number, RAW_COLOUR, code.strip()))
     if not design_system and rel not in TITLE_MODE_EXEMPT and not any(ANY_MODE_PATTERN.search(c) for _, c in lines):

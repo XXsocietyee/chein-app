@@ -469,7 +469,7 @@ struct PlayThemeMusicKey: Equatable {
                             )
                         )
                         Button("referenceTask.open") { selectedNode = id }
-                            .buttonStyle(.questifyPrimary)
+                            .buttonStyle(.borderedProminent)
                             .accessibilityIdentifier("referenceTask.open")
                     }
                     .listRowBackground(Color.clear)
@@ -1304,7 +1304,7 @@ struct PlayThemeMusicKey: Equatable {
                             Button(CoreLoopCopy(locale: locale).t("前往盲盒任务", "Open Mystery Task")) {
                                 openNode(dispatched.nodeID)
                             }
-                            .buttonStyle(.questifyPrimary)
+                            .buttonStyle(.borderedProminent)
                             .accessibilityIdentifier("playx.random.openDispatched")
                         }
                     }

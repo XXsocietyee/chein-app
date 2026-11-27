@@ -515,7 +515,7 @@ struct RoamPrivatePageScope: Hashable {
         }
         Section {
             Button("roam.capsule.seal") { guard page.acceptsInput, !page.settlementInFlight else { return }; model.prepareCreate(body: text, unlockDate: unlockDate) }
-                .buttonStyle(.questifyPrimary)
+                .buttonStyle(.borderedProminent)
                 .disabled(model.isBusy || text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || unlockDate.isEmpty || model.pending != nil || !model.canWrite)
                 .accessibilityIdentifier("roam.capsule.seal")
             Button("roam.capsule.later") { composing = false }.disabled(model.isBusy).accessibilityIdentifier("roam.capsule.later")

@@ -76,7 +76,7 @@ struct TemplateAuthoringPublishResultPreferenceKey: PreferenceKey {
             }
             Text("templatePublishResult.destination", tableName: "CreatorPublishResult").cyText(.bodyCompact).foregroundStyle(.secondary)
             Button(action: close) { Text("templatePublishResult.openLibrary", tableName: "CreatorPublishResult").frame(maxWidth: .infinity) }
-                .buttonStyle(.questifyPrimary).accessibilityIdentifier("templatePublishResult.openLibrary")
+                .buttonStyle(.borderedProminent).accessibilityIdentifier("templatePublishResult.openLibrary")
         }.padding(24).presentationDetents([.medium]).interactiveDismissDisabled(true)
             .accessibilityIdentifier("templatePublishResult.panel")
     }

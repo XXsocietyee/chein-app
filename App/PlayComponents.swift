@@ -35,7 +35,7 @@ struct G01JourneyNotice: View {
 struct G01JourneyActionStyle: ViewModifier {
     var primary = false
     @ViewBuilder func body(content: Content) -> some View {
-        if primary { content.buttonStyle(.questifyPrimary).controlSize(.large) }
+        if primary { content.buttonStyle(.borderedProminent).controlSize(.large) }
         else { content.buttonStyle(.bordered).controlSize(.large) }
     }
 }

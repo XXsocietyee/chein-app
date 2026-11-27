@@ -1385,7 +1385,7 @@ private struct RegistrationPlayerSheetHeader: ViewModifier {
     private var closeButton: some View {
         Button("action.close", systemImage: "xmark", action: onClose)
             .labelStyle(.iconOnly)
-            .buttonStyle(RegistrationRoundCloseStyle())
+            .buttonStyle(.bordered).buttonBorderShape(.circle)
             .accessibilityIdentifier("registration.form.close")
     }
 
@@ -1398,17 +1398,3 @@ private struct RegistrationPlayerSheetHeader: ViewModifier {
     }
 }
 
-/// 32 pt grey circle with a bold ✕, in a 44 pt target (Player/Sheet close).
-private struct RegistrationRoundCloseStyle: ButtonStyle {
-    @Environment(\.cyPalette) private var palette
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .cyText(.bodyMedium)
-            .foregroundStyle(palette.textSecondary)
-            .frame(width: 32, height: 32)
-            .background(Circle().fill(palette.bgElevated))
-            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
-            .contentShape(Circle())
-            .opacity(configuration.isPressed ? 0.6 : 1)
-    }
-}

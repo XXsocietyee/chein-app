@@ -332,7 +332,7 @@ struct RoamShareLinkDormantNotice: View {
             if card.primary == .showVoucher {
                 NavigationLink { RoamCityVoucherCodeView(poiID: node.poiId, name: node.name) } label: {
                     Label(LocalizedStringKey(card.primaryKey), systemImage: "qrcode")
-                }.buttonStyle(.questifyPrimary).frame(minHeight: 44)
+                }.buttonStyle(.borderedProminent).frame(minHeight: 44)
                     .accessibilityIdentifier("roamSub.w208.poi.primary")
             } else if card.primary != .interact {
                 // Completed / pending states are status, not an action.
@@ -456,7 +456,7 @@ struct RoamPOIMissingView: View {
             Button {
                 Task { await send() }
             } label: { Text(LocalizedStringKey(working ? "roamSub.w208.stamp.sending" : "roamSub.w208.stamp.send")).frame(maxWidth: .infinity, minHeight: 44) }
-                .buttonStyle(.questifyPrimary).disabled(!canSend && fixtureReceipt == nil)
+                .buttonStyle(.borderedProminent).disabled(!canSend && fixtureReceipt == nil)
                 .accessibilityIdentifier("roamSub.w208.stamp.send")
             if failed { Text("roamSub.w208.stamp.retry").cyText(.bodyCompact).foregroundStyle(.red).accessibilityIdentifier("roamSub.w208.stamp.failed") }
             if exchange == nil && fixtureReceipt == nil && !RoamExperienceCapabilities.stampExchange {
@@ -552,7 +552,7 @@ struct RoamPOIMissingView: View {
             Button {
                 dismiss()
             } label: { Text("roamSub.w208.stamp.done").frame(maxWidth: .infinity, minHeight: 44) }
-                .buttonStyle(.questifyPrimary).disabled(slip.got && !revealed)
+                .buttonStyle(.borderedProminent).disabled(slip.got && !revealed)
                 .accessibilityIdentifier("roamSub.w208.stamp.done")
             if slip.got && !revealed { Text("roamSub.w208.stamp.revealFirst").cyText(.meta).foregroundStyle(.secondary) }
         }
