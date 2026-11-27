@@ -59,6 +59,26 @@ The audit of 14 member subpackage pages was done read-only, and every change bel
 | `tixianjilu`, `orient-score`, `character`, `complaint` | various | Already matched, or covered by the `mp-prme` receipt | — |
 | `signup` | `TicketWalletView` | No avatar → 我的 button; no inline QR flip deck | Not done. This is a deliberate layout (NAT-12). |
 
+## Re-scan of the remaining subpackageMember pages (continue)
+
+Three read-only audits compared each page with the MP `.wxml` and `.js`, and I checked every finding below before acting on it. `free-explore` is covered by the `mp-journey-r3` receipt.
+
+| MP page | Native view | Fixed now | Left (needs Core/network, or is gated) |
+|---|---|---|---|
+| `invoice-detail` | `InvoiceLaunchDetailView.swift` | Issuing-group tag reads 开具中 (new key `detailTag.issuing`). The non-MP big amount is removed from the status card. 抬头类型 hides when empty, and anything other than COMPANY reads 个人. | No skeleton while the detail loads. The shared pending banner is described below. |
+| `invoice-apply` | `InvoiceLaunchApplyView.swift` | 已选订单 reads 「N 笔」 (new key `selectedCountValue %lld`). The bottom bar no longer repeats 总计. | The bar hides instead of disabling (Core `showsApplyAction`). Pending copy is in the top banner rather than in the bar. A confirmed 查询结果 and a successful submit do not go back to 我的发票. Unknown refusal codes drop the server `msg` (Core `InvoiceLaunchIssue`). |
+| `invoice-titles` | `InvoiceLaunchTitlesView.swift` | — | The not-found copy should be 暂未查到这次保存. Add is hidden instead of disabled. There is no empty state while a save is pending. A failed delete ignores the server `msg`. |
+| `invoice-title-edit` | `InvoiceLaunchTitleEditor.swift` | The masked-tax line and the 必填 footer are removed, so the form ends at 设为默认 as in the MP. | 保存 is hidden instead of disabled. There is no 重试 or server `msg` on a failed save. The query does not resend. The page does not re-read titles on open. |
+| all four invoice pages | `InvoiceLaunchPresentation.swift` | — | **Shared:** one `model.unresolved` flag stands for any pending write. A pending apply therefore shows its banner on the title pages and blocks title writes (MP never blocks delete). This needs the coordinator keyed by `pending.kind` (Core `InvoiceLaunchCoordinator`). |
+| `coupon-qr` | `CouponCodeView.swift` | The non-MP 出示给商家扫码核销 line and the 出示核销码不代表已核销 footer are removed. The name/description card shows only on the used, expired and revoked results. | Every error reads one fixed message where the MP gives the specific `errMsg`. Revoked (410) and signed-out have no 重试. The poll-error sub-line is missing. All of these need the coordinator to carry the reason. |
+| `mycanyuinfo` | `PlayerJourneyViews.swift` `ParticipationDetailView` | Sections are in MP order: title and badges → cover → node / 接待时间 → 自由探索权益 → 角色卡 → 定向成绩 → 核销 stats → template → rules. The non-MP 参与日程 block is removed (contract test updated), along with the 核销进度 and 规则说明 headers. The cover is its own row, not a left thumbnail. | The countdown has no hours and no 活动 noun (Core `ProfileParticipationSchedule`). Unknown counts read — where the MP reads 0. 核验扫码, 取消参与 and 联系客服 are list rows, not the footer bar, and 取消参与 has no in-place cancel write. There is no 链接已失效 state for 403/404. 去修改 stays behind the merchant gate. |
+| `report-detail` | `MemberReportProgressDetailView.swift` | The privacy line is inside the head card. 提交申诉 and 申诉已受理 come after the timeline. The evidence-count row is removed. 提交于 hides when the time is unknown. | The unknown-stage hint is missing. Timeline items should read 进入「stage」. A refresh clears the content (Core coordinator keeps no previous detail). There are no 403 or missing-param states. The appeal sheet has an extra 再试一次. |
+| `market/pass` | `PassMarketViews.swift` | The non-MP 首次使用时激活 block is removed. | The 自己用 / 送给好友 tabs never show (`giftAllowed` is not decoded). There is no `/product/quote`: no cash or points rows and no requote state. Group/school products use a separate checkout panel. The error always says 重试. The guest bar is not shown for every product. These are purchase-adjacent and gated. |
+| `market/gift` | `PassMarketViews.swift`, `MPParityKit.swift` | — | A guest sees a sign-in wall where the MP shows the gift and asks for login on 领取. In code mode there is a 兑换码 headline, a dead end for guests, the error does not clear while typing, and there is no hero icon. |
+| `market/membership` | `PassMembershipViews.swift` | The facts list shows without plans. The 购买须知 header and the repeated buy label are removed. | A guest gets 加载失败, because Core `overview(token:)` requires a token. `validToText` is not decoded. The plan tag is not limited to 年卡 / 月卡. The no-channel copy differs (gated). |
+| `market/pass-order` | `PassMarketViews.swift` | — | Refund terms are fixed text rather than read from `/api/platform-pass` `terms`. An empty reason disables 提交 instead of showing 请填写退款原因. |
+| `market/library` | `PassMembershipViews.swift` | The card's top row (¥0 可玩, city) is now above the title, as in the MP. | There is no 城 mark and there are no tag chips (`PassLibraryCard` does not carry `tags`). Error copy is fixed (the server `msg` needs Core). |
+
 ## Not done / next
 
 - 探索作品 images on 关于. The snapshot's `casePictures` can be object keys; the public profile link shows them.

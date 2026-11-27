@@ -145,11 +145,11 @@ struct PassMembershipView: View {
             if !content.plans.isEmpty {
                 Section {
                     planButtons(content)
-                } footer: {
-                    if content.active { renewNote(content) }
                 }
-                termFacts(content)
             }
+            // mp-mine r3: MP membership wxml:51 shows the facts (续费, 退款规则 …) whether or not plans are on sale,
+            // with no 购买须知 header and no repeated buy label under the plans.
+            termFacts(content)
         }
         .listStyle(.insetGrouped)
         .safeAreaInset(edge: .bottom) {
@@ -198,8 +198,6 @@ struct PassMembershipView: View {
             ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
                 LabeledContent { row.1 } label: { row.0 }
             }
-        } header: {
-            Text("mp.member.fact.title")
         }
         .accessibilityIdentifier("membership.terms")
     }
@@ -288,10 +286,6 @@ struct PassMembershipView: View {
         }
     }
 
-    private func renewNote(_ content: PassMembershipContent) -> some View {
-        buyLabel(content)
-            .accessibilityIdentifier("membership.renew")
-    }
 }
 
 /// MP `cy-frames` with `subpackageMember/images/frames/glass-key` (`MPAsset.Other.glassKey`): 24 frames on a
@@ -512,6 +506,19 @@ struct PassLibraryCardView: View {
                 .clipped()
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
+                // mp-mine r3: MP library card top row (wxml:17-22) — ¥0 可玩 and the city — sits above the title.
+                if card.freeWithPass || card.city != nil {
+                    HStack(spacing: 8) {
+                        if card.freeWithPass {
+                            Text("mp.library.free").font(.footnote.weight(.semibold)).foregroundStyle(.tint)
+                        }
+                        if let city = card.city {
+                            // MP `/images/cards/pin.svg`.
+                            Label { Text(verbatim: city) } icon: { MPAsset.FeatureIcon.pin.resizable().scaledToFit().frame(width: pinSize, height: pinSize) }
+                                .font(.footnote).foregroundStyle(.secondary)
+                        }
+                    }
+                }
                 Text(verbatim: card.title).font(.headline).lineLimit(2)
                 if kindText != nil || card.minutes != nil {
                     HStack(spacing: 4) {
@@ -520,14 +527,6 @@ struct PassLibraryCardView: View {
                         if let minutes = card.minutes { Text("mp.library.minutes \(minutes)") }
                     }
                     .font(.subheadline).foregroundStyle(.secondary)
-                }
-                if card.freeWithPass {
-                    Text("mp.library.free").font(.footnote.weight(.semibold)).foregroundStyle(.tint)
-                }
-                if let city = card.city {
-                    // MP `/images/cards/pin.svg`.
-                    Label { Text(verbatim: city) } icon: { MPAsset.FeatureIcon.pin.resizable().scaledToFit().frame(width: pinSize, height: pinSize) }
-                        .font(.footnote).foregroundStyle(.secondary)
                 }
             }
             Spacer(minLength: 0)
