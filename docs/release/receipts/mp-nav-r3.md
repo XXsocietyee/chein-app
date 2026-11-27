@@ -166,6 +166,7 @@ Sweep sheets (en / zh-Hans): inbox inline title, ia-tabs large titles, onboardin
 | 首页 更多玩法 → 动态 = MP pages/square/list/index (navigateTo) → App/SessionHomeFeedView.swift | a `.cySheet` with its own stack and 关闭 | `navigationDestination(isPresented: $showsSquare)` push, `embedsNavigationStack: false`, `onClose: nil` (system back), pushed chrome; 登录 still closes it and opens sign-in | fixed |
 | 首页 更多玩法 → 浏览模板 = MP pages/template/index (tabBar page, switchTab) | a second copy of the 发布 tab root inside a sheet | selects the 发布 tab (`rootTabSwitch(.publish)`); the sheet stays only as the fallback for hosts without a tab switch (pin test_home_composition unchanged) | fixed |
 | 首页 今日票 → MP subpackageMember/signup/index (票夹, navigateTo) | sheet + 关闭 | push of `SessionTicketWalletHost(isPushed: true)` like 我的 → 票夹 | fixed |
+| 首页 小游戏 banner (app-only page, `native/mini-games`) → App/SessionHomeFeedView.swift | the only 首页 banner still opening a sheet + 关闭 (activity list / club apply banners push) | `navigationDestination(isPresented: $showsMiniGames)` push, inline title, system back | fixed |
 | 票夹 empty state + 去探索主题 (MP signup/index.js:701 switchTab 首页) in a pushed wallet → App/SessionTicketWalletHost.swift | on 首页 the tab was already selected, so the pushed wallet stayed open (dead tap) | a pushed host pops (`dismiss`) before selecting 首页, like MP switchTab closing the page | fixed |
 
 ## Route coverage

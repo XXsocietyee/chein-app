@@ -220,6 +220,14 @@ import SwiftUI
                     SessionTicketWalletHost(isPushed: true).environmentObject(session)
                         .cyPushedChrome()
                 }
+                // mp-nav r3: the 小游戏 banner opens a page like the other 首页 banners (activity list, club apply): push, system back.
+                .navigationDestination(isPresented: $showsMiniGames) {
+                    ScrollView { ExternalGameLibrarySection(store: ExternalGameStore()).padding(.horizontal, CYSpacing.pageHorizontal) }
+                        .navigationTitle(Text(verbatim: HomeIndexParityPresentation.miniGamesBanner.title(locale: locale)))
+                        .navigationBarTitleDisplayMode(.inline)
+                        .accessibilityIdentifier("homeIndex.miniGames")
+                        .cyPushedChrome()
+                }
                 // mp-nav r3: MP pages/searchmap/index is a page (map search, not play): push it with an inline title.
                 .navigationDestination(isPresented:$showsSearchMap) {
                     SessionLinkedSearchView(initialQuery: mapQuery, startsOnMap: true, onSignIn: { showsSearchMap = false; onSignIn?() })
@@ -231,21 +239,6 @@ import SwiftUI
         .onChange(of:activeContinuationScope) { _,next in if next == nil { Task { await reloadContinuationCards() } } }
         .onChange(of:router.homePath) { _,next in if next.isEmpty { Task { await reloadContinuationCards() } } }
         .cySheet(isPresented:$showsMerchantApplication) { merchantApplicationSheet.themeDomain(.merchant).cySheet(detents: [.large]) }
-        .cySheet(isPresented: $showsMiniGames) {
-            NavigationStack {
-                ScrollView { ExternalGameLibrarySection(store: ExternalGameStore()).padding(.horizontal, CYSpacing.pageHorizontal) }
-                    .navigationTitle(Text(verbatim: HomeIndexParityPresentation.miniGamesBanner.title(locale: locale)))
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("action.close") { showsMiniGames = false }
-                                .accessibilityIdentifier("miniGames.close")
-                        }
-                    }
-            }
-            .accessibilityIdentifier("homeIndex.miniGames")
-            .cyPlayerSheetGlass()
-        }
     }
     @ViewBuilder private func continuationDestination(_ scope: PlaySessionScope) -> some View {
         if session.playExperience(for: scope) != nil {
