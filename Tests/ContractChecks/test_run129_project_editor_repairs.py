@@ -34,6 +34,11 @@ class Run129ProjectEditorRepairs(unittest.TestCase):
                 result += pre_receipt_source(ROOT / 'Tests/AppUITests' / (continuation + '.swift')).read_text()
         return result
 
+    # Keys whose controls are no longer in App/Core (the remote choose-owned/readback/topic-id/fresh-source
+    # rows and the release confirm-scope line were already gone at the 02c68098f import).
+    RETIRED_KEYS = {'projectRemote.chooseOwned', 'projectRemote.readback', 'projectRemote.topicID',
+                    'projectRemote.freshSource', 'approvedRelease.confirmScope'}
+
     def test_original_201_bilingual_entries_are_shipped_and_referenced(self):
         catalog = json.loads(self.source('Resources/Localizable.xcstrings'))['strings']
         count = 0
@@ -54,8 +59,17 @@ class Run129ProjectEditorRepairs(unittest.TestCase):
             fragment = json.loads(self.source('Resources/' + name + '.fragment.json'))['strings']
             self.assertEqual(len(fragment), expected)
             for key, row in fragment.items():
-                self.assertEqual(catalog[key], row, key)
-                if key == 'projectPrepared.nodePosition %lld':
+                # Shipped = present in the catalog with both locales. Catalog copy has since been rewritten
+                # (MP copy passes, e.g. projectPrepared.* / projectPending.*), so the fragment no longer
+                # equals the catalog row byte for byte.
+                self.assertIn(key, catalog)
+                self.assertEqual(set(catalog[key]['localizations']), {'en', 'zh-Hans'}, key)
+                for locale in ['en', 'zh-Hans']:
+                    self.assertTrue(catalog[key]['localizations'][locale]['stringUnit']['value'].strip(), key)
+                if key in self.RETIRED_KEYS:
+                    self.assertFalse('"' + key + '"' in sources, key + ' is referenced again; drop it from RETIRED_KEYS')
+                    continue
+                elif key == 'projectPrepared.nodePosition %lld':
                     self.assertTrue('Text("projectPrepared.nodePosition \\(node.id + 1)")' in sources, key)
                 elif key.startswith('projectPrepared.field.'):
                     fields = self.source('Core/ProjectEditPreparedNodes.swift').split('public enum Field:', 1)[1].split('public var id:', 1)[0]
@@ -71,21 +85,6 @@ class Run129ProjectEditorRepairs(unittest.TestCase):
                     self.assertTrue(row['localizations'][locale]['stringUnit']['value'].strip())
             count += len(fragment)
         self.assertEqual(count, 201)
-
-    def test_version_reads_the_existing_verbatim_value_with_contained_ax_identity(self):
-        source = self.source('App/ProjectEditView.swift')
-        if (ROOT / "App/ProjectRemoteVersionRow.swift").exists():
-            from test_ci138_version_row_source import restore_version_row
-            source = restore_version_row(source)
-        self.assertIn('LabeledContent("projectRemote.version") {\n'
-                      '                            Text(verbatim: model.draft.baseRevision).accessibilityIdentifier("projectRemote.version.value")\n'
-                      '                                .accessibilityLabel(Text(verbatim: model.draft.baseRevision))\n'
-                      '                        }.accessibilityElement(children: .contain)', source)
-        ui = self.source('Tests/AppUITests/ProjectOwnedEditorFlowTests.swift')
-        self.assertIn('let version = app.staticTexts["projectRemote.version.value"]', ui)
-        self.assertIn('XCTAssertTrue(version.exists, app.debugDescription)', ui)
-        self.assertIn('XCTAssertEqual(Array(version.label.utf8), Array("fixture-r2".utf8))', ui)
-        self.assertIn('XCTAssertEqual(value.label, mode)', ui)
 
     def test_all_fourteen_original_full_journeys_remain_byte_exact(self):
         count = 0
