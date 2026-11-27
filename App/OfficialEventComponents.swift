@@ -140,7 +140,7 @@ struct OfficialIssueView: View {
                 }
         }
         .overlay {
-            if isShowingLoad { ProgressView().accessibilityLabel(Text("official.loading")) }
+            if isShowingLoad { ProgressView { Text("official.loading") } }
         }
         .task(id: key) { await refresh() }
         .refreshable { await refresh() }

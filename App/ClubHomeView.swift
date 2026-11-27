@@ -82,7 +82,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         } else {
-        ClubReadScreen(reader: reader, accessibilityPrefix: "club.home", onSignIn: onSignIn,
+        ClubReadScreen(reader: reader, accessibilityPrefix: "club.home", usesClubTabStates: true, onSignIn: onSignIn,
                        load: { try await loadTab() }) { loaded in
             let home = loaded.home
             let page = loaded.page
