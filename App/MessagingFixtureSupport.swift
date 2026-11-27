@@ -37,12 +37,17 @@ final class MessagingFixtureReader: MessagingReading {
     private func decode<Value: Decodable>(_ type: Value.Type, _ object: Any) throws -> Value {
         try JSONDecoder().decode(type, from: JSONSerialization.data(withJSONObject: object))
     }
+    /// Fixture names follow the UI language (round 3 sweep 19:50: fixture data must not stay English in zh-Hans).
+    private static func fixtureName(_ index: Int) -> String {
+        let zh = Locale.preferredLanguages.first?.hasPrefix("zh") == true
+        return zh ? "示例会话 \(index)" : "Sample conversation \(index)"
+    }
     func messagingConversations() async throws -> [MessagingConversation] {
         try await prepare()
         if scenario == .empty { return [] }
         let rows: [[String: Any]] = (1...35).filter { !hiddenConversationIDs.contains(900 + $0) }.map { index in
             ["conversationId": 900 + index, "type": index <= 4 ? index : 1,
-             "counterparty": ["id": 8000 + index, "nickname": "Fixture conversation \(index)"],
+             "counterparty": ["id": 8000 + index, "nickname": Self.fixtureName(index)],
              "lastMsgType": index == 2 ? 2 : 1,
              "lastMsgText": index == 2 ? "" : "Synthetic preview for account \(accountID)",
              "lastMsgAt": "2026-10-01 10:00:00", "unread": index == 1 ? 3 : 0,

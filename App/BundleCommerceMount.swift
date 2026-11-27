@@ -259,7 +259,7 @@ enum BundleCommerceFailure {
     var body: some View {
         Group {
             if phase == .loading {
-                ProgressView()
+                ProgressView { Text("cy.state.loading") }
                     .accessibilityIdentifier("bundle.commerce.loading")
             } else {
                 ContentUnavailableView {

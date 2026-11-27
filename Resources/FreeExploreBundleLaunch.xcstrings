@@ -646,6 +646,23 @@
           }
         }
       }
+    },
+    "reservations.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reservations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预约记录"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

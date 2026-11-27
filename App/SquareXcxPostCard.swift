@@ -109,10 +109,17 @@ struct SquareXcxRelativeTime: View {
     var body: some View {
         switch SquareRelativeAge.of(createTime, now: now) {
         case .justNow?: Text("square.xcx.justNow")
-        case .days(let days)?: Text("square.xcx.ageDays \(days)")
+        // MP `N天前`; coordinator 19:50: full units within a week, then the locale's absolute date (never "330 d ago").
+        case .days(let days)?:
+            if days < 7 { Text("mpr3.square.ageDays \(days)") }
+            else if let date = SquareXcxTime.date(createTime) {
+                if Calendar.current.isDate(date, equalTo: now, toGranularity: .year) { Text(date, format: .dateTime.month(.abbreviated).day()) }
+                else { Text(date, format: .dateTime.year().month(.abbreviated).day()) }
+            }
+            else { Text("mpr3.square.ageDays \(days)") }
         case .hoursMinutes(let hours, let minutes)?:
             if hours > 0 && minutes > 0 { Text("square.xcx.ageHoursMinutes \(hours) \(minutes)") }
-            else if hours > 0 { Text("square.xcx.ageHours \(hours)") }
+            else if hours > 0 { Text("mpr3.square.ageHours \(hours)") }
             else { Text("square.xcx.ageMinutes \(minutes)") }
         case nil:
             // Unparseable source time is shown verbatim rather than guessed.

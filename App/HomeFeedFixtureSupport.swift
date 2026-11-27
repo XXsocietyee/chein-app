@@ -12,7 +12,8 @@ import SwiftUI
     /// Design fixture only: three synthetic banners without a cover (the pager shows the MP default cover).
     func banners() async throws -> [DiscoveryBanner] {
         guard showsBanners else { return [] }
-        let titles = ["Night market after rain", "Old Town: ten hidden spots", "Riverside lantern walk"]
+        let titles = HomeFixtureLanguage.zh ? ["雨后夜市", "老城：十个隐藏角落", "滨江灯笼漫步"]
+            : ["Night market after rain", "Old Town: ten hidden spots", "Riverside lantern walk"]
         return try (1...3).map { index in
             let json = "{\"id\":\(index),\"picUrl\":null,\"linkType\":0,\"dataId\":null,\"contents\":\"\(titles[index - 1])\"}"
             return try JSONDecoder().decode(DiscoveryBanner.self, from: Data(json.utf8))
@@ -20,12 +21,12 @@ import SwiftUI
     }
     func categories() async throws -> [DiscoveryCategory] {
         if scenario == "offline" { throw URLError(.notConnectedToInternet) }
-        return try JSONDecoder().decode([DiscoveryCategory].self, from: Data(#"[{"id":2,"categoryName":"Sample category"}]"#.utf8))
+        return try JSONDecoder().decode([DiscoveryCategory].self, from: Data("[{\"id\":2,\"categoryName\":\"\(HomeFixtureLanguage.zh ? "示例分类" : "Sample category")\"}]".utf8))
     }
     func section(_ section: HomeFeedSection) async throws -> [HomeFeedItem] {
         if scenario == "empty" { return [] }
         if scenario == "offline" { throw URLError(.notConnectedToInternet) }
-        return try section == .recommended ? [HomeFeedSyntheticFixtures.topic()] : [HomeFeedSyntheticFixtures.activity()]
+        return try section == .recommended ? [HomeFixtureLanguage.topic()] : [HomeFixtureLanguage.activity()]
     }
     func page(query: HomeFeedQuery, number: Int) async throws -> HomeFeedPage {
         if scenario == "offline" { throw URLError(.notConnectedToInternet) }
@@ -34,7 +35,7 @@ import SwiftUI
         if scenario == "empty" || number > 1 || (!query.keyword.isEmpty && !"sample".contains(query.keyword.lowercased())) {
             return HomeFeedPage(items: [], number: number, size: query.pageSize)
         }
-        let item = try query.kind == .topics ? HomeFeedSyntheticFixtures.topic() : HomeFeedSyntheticFixtures.activity()
+        let item = try query.kind == .topics ? HomeFixtureLanguage.topic() : HomeFixtureLanguage.activity()
         // Full raw page of duplicate IDs verifies dedup does not disable next-page probing.
         return HomeFeedPage(items: Array(repeating: item, count: query.pageSize), number: number, size: query.pageSize)
     }
@@ -100,11 +101,36 @@ private struct HomeFeedFixtureHero: ViewModifier {
     }
 }
 
+/// mp-home r3 (19:50 sweep): 首页 fixture data follows the UI language (zh-Hans gets Chinese names).
+enum HomeFixtureLanguage {
+    static var zh: Bool { Locale.preferredLanguages.first?.hasPrefix("zh") == true }
+    static func topic() throws -> HomeFeedItem {
+        guard zh else { return try HomeFeedSyntheticFixtures.topic() }
+        let json = HomeFeedSyntheticFixtures.topicJSON
+            .replacingOccurrences(of: "Sample neighborhood route", with: "示例街区路线")
+            .replacingOccurrences(of: "Sample district", with: "示例街区")
+        return .topic(try JSONDecoder().decode(TopicSummary.self, from: Data(json.utf8)))
+    }
+    static func activity() throws -> HomeFeedItem {
+        guard zh else { return try HomeFeedSyntheticFixtures.activity() }
+        let json = HomeFeedSyntheticFixtures.activityJSON
+            .replacingOccurrences(of: "Sample riverside walk", with: "示例滨江漫步")
+            .replacingOccurrences(of: "Sample meeting point", with: "示例集合点")
+        return .activity(try JSONDecoder().decode(ActivitySummary.self, from: Data(json.utf8)))
+    }
+}
+
 /// Design fixtures for the three Today states (and an unknown-time ticket that must fall back to roam).
 enum HomeTodayFixtures {
     static var now: Date { Date() }
-    static var ticket: HomeTodayCandidate { HomeTodayCandidate(id: "fx-ticket", title: "Riverside lantern walk", start: now.addingTimeInterval(5 * 3600), place: "West Bund", imageURL: nil) }
-    static var clubEvent: HomeTodayCandidate { HomeTodayCandidate(id: "fx-club", title: "Old Town photo walk", start: now.addingTimeInterval(0), place: "Old Town", imageURL: nil) }
+    static var ticket: HomeTodayCandidate {
+        HomeTodayCandidate(id: "fx-ticket", title: HomeFixtureLanguage.zh ? "滨江灯笼漫步" : "Riverside lantern walk", start: now.addingTimeInterval(5 * 3600),
+                           place: HomeFixtureLanguage.zh ? "西岸" : "West Bund", imageURL: nil)
+    }
+    static var clubEvent: HomeTodayCandidate {
+        HomeTodayCandidate(id: "fx-club", title: HomeFixtureLanguage.zh ? "老城摄影漫步" : "Old Town photo walk", start: now.addingTimeInterval(0),
+                           place: HomeFixtureLanguage.zh ? "老城" : "Old Town", imageURL: nil)
+    }
     static var unknownTime: HomeTodayCandidate { HomeTodayCandidate(id: "fx-unknown", title: "Mystery ticket", start: nil, place: nil, imageURL: nil) }
 }
 

@@ -45,7 +45,8 @@ struct Cloud07Cover: View {
         Color.clear
             .aspectRatio(16.0 / 9.0, contentMode: .fit)
             .overlay {
-                CYCoverArt(seed: seed, symbol: symbol, cornerRadius: CYRadius.lg)
+                // mp-journey r3 (sweep 19:15, d2-city): the no-photo fallback is product art, not a debug placeholder.
+                CYCoverArt(seed: seed, symbol: symbol, showsDebugLabel: false, cornerRadius: CYRadius.lg)
             }
             .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
             .accessibilityHidden(true)
