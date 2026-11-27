@@ -57,6 +57,9 @@ and `#Preview { ... }` blocks; comments are ignored) and counts, per file:
                   used 13 different radii (2–48 pt) next to the one scale. Use `CYRadius.inner` / `.sm` (8: thumbnails
                   inside a card, chips, icon tiles), `.card` (12), `.bubble` (18: Messages-style bubbles / composer),
                   `.hero` (20), `.sheet` (24); procedural art drawn to its own frame goes in "allowed"
+  line spacing    a literal `.lineSpacing(N)` outside App/DesignSystem and App/Theme: 7 reading paragraphs set
+                  3/4/5/6/8 pt by hand, fixed points that do not scale with Dynamic Type and override the one
+                  reading leading `.cyText(.body)` already applies (CYTypeSpec lineHeight 1.6, scaled)
 
 Build-break guards (module-wide: App/ and Core/ compile into ONE module, so every file is scanned, merchant and
 fixtures included; there is no Swift compiler in the lanes' cloud sessions):
@@ -116,11 +119,14 @@ LEADING_ACTION_CONTENT = re.compile(r'\bShareLink\(|"arrow\.counterclockwise"|"s
 RAW_RADIUS = 'raw radius'
 # One radius scale (CYRadius: inner/sm 8, card 12, bubble 18, hero 20, sheet 24): a literal non-zero corner radius.
 RAW_RADIUS_PATTERN = re.compile(r'\bcornerRadius:\s*(?!0(?:\.0+)?\b)\d')
+LINE_SPACING = 'line spacing'
+# One reading leading: `.cyText(.body)` applies it (scaled); a literal `.lineSpacing(N)` is a per-page value.
+LINE_SPACING_PATTERN = re.compile(r'\.lineSpacing\(\s*\d')
 DUPLICATE_TYPE = 'duplicate type'
 UNDECLARED_STATE = 'undeclared state'
 KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, CUSTOM_BACK, BUTTON_STYLE, POPUP_SCRIM,
          RAW_COLOUR, LIST_STYLE, CUSTOM_SHEET, CUSTOM_TABS, FONT_DESIGN, CUSTOM_SEARCH, TEXT_ON_ART, RAW_SEGMENTED,
-         LEADING_ACTION, DONE_LEADING, RAW_RADIUS, DUPLICATE_TYPE, UNDECLARED_STATE)
+         LEADING_ACTION, DONE_LEADING, RAW_RADIUS, LINE_SPACING, DUPLICATE_TYPE, UNDECLARED_STATE)
 
 # The five player tab roots (Core/RootTab.swift, QuestifyApp root TabView) and the files that own their title.
 # 漫游 is the full-screen map home: its chrome is allowed in the baseline instead.
@@ -309,6 +315,8 @@ def scan_file(rel, text):
             hits.append((number, RAW_SEGMENTED, code.strip()))
         if not colour_exempt and RAW_RADIUS_PATTERN.search(code):
             hits.append((number, RAW_RADIUS, code.strip()))
+        if not colour_exempt and LINE_SPACING_PATTERN.search(code):
+            hits.append((number, LINE_SPACING, code.strip()))
         if not design_system and rel != APP_ROOT and DS_TAB_BAR.search(code):
             hits.append((number, CUSTOM_TABS, code.strip()))
     if not design_system:

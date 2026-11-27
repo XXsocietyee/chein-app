@@ -56,10 +56,7 @@ import SwiftUI
             } else if model.state.isLoading || model.state.loadedScope != key.scope {
                 CYSkeleton()
             } else if let issue = model.state.issue {
-                AccountCollectionIssueView(issue: issue)
-                if issue != .login {
-                    CYPillButton("accountCollection.refresh", style: .secondary) { Task { await refresh() } }.accessibilityIdentifier("rewards.retry")
-                }
+                AccountCollectionIssueView(issue: issue, retry: { Task { await refresh() } }, retryIdentifier: "rewards.retry")
             } else {
                 if let asOf = model.state.asOf { LabeledContent("rewards.asOf") { Text(asOf, format: .dateTime) } }
                 if model.state.visibleRows(scope: key.scope).isEmpty {

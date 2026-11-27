@@ -498,11 +498,8 @@ import SwiftUI
             case .failed where !coordinator.authenticated:
                 EmptyView()
             case .failed(let key):
-                CYStatusChip(LocalizedStringKey(key), tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("nearby.mine.owned.error")
-                if let retryJoinedTeams {
-                    CYPillButton("action.retry", style: .secondary, action: retryJoinedTeams)
-                        .accessibilityIdentifier("nearby.mine.owned.retry")
-                }
+                CYEmptyState(systemImage: "exclamationmark.triangle", LocalizedStringKey(key), messageIdentifier: "nearby.mine.owned.error",
+                             actionTitle: "action.retry", actionIdentifier: "nearby.mine.owned.retry", kind: .failure, action: retryJoinedTeams)
             case .loaded: EmptyView()
             }
             if mine.loading { CYLoadingStateView(rows: 1, label: "nearby.w208.mine.loading") }

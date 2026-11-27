@@ -20,10 +20,8 @@ private func ncmPermissionText(_ key: String) -> Text { Text(LocalizedStringKey(
                 if model.permissions?.channelID == channelID {
                     Form {
                         if model.busy {
-                            ProgressView()
+                            ProgressView { Text("cy.state.loading") }
                                 .frame(maxWidth: .infinity)
-                                .accessibilityElement(children: .ignore)
-                                .accessibilityLabel(Text("cy.state.loading"))
                         }
                         NativeChannelManagementIssueView(issue: localIssue ?? model.issue)
                         Section {
@@ -74,10 +72,8 @@ private func ncmPermissionText(_ key: String) -> Text { Text(LocalizedStringKey(
                     }
                     .refreshable { await model.loadPermissions(channelID); selectOriginal() }
                 } else if model.busy {
-                    ProgressView()
+                    ProgressView { Text("cy.state.loading") }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .accessibilityElement(children: .ignore)
-                        .accessibilityLabel(Text("cy.state.loading"))
                 } else {
                     ContentUnavailableView {
                         Label {

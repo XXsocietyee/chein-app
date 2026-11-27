@@ -121,10 +121,8 @@ import SwiftUI
                             .listRowSeparator(.hidden)
                     }
                     if model.isLoading && renderedMessages.isEmpty {
-                        ProgressView()
+                        ProgressView { Text("messaging.loading") }
                             .frame(maxWidth: .infinity)
-                            .accessibilityElement(children: .ignore)
-                            .accessibilityLabel(Text("messaging.loading"))
                             .listRowSeparator(.hidden)
                     } else if model.isLoading {
                         ProgressView("messaging.loading").frame(maxWidth: .infinity).listRowSeparator(.hidden)

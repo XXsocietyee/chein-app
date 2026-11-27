@@ -26,10 +26,32 @@ struct ClubDirectoryView<Reader: ClubReading & ObservableObject>: View {
                             Text("club.emptyDirectoryHint")
                         }
                     } else {
-                        ForEach(Array(rows.enumerated()), id: \.offset) { index, club in
-                            ClubDirectoryCard(club: club, prominent: index == 0, viewerIsMerchant: actionCoordinator?.viewerIsMerchant ?? false,
-                                              onOpen: { openedClubID = club.id }, identifier: "club.directory.\(club.id)")
-                                .cyHeroSource(club.id, in: hero)
+                        // P25: the viewer's own clubs are navigation (chevron rows), every other club is a decision
+                        // (one trailing bordered Join); the two never share a row style. Server order is kept inside each.
+                        let merchant = actionCoordinator?.viewerIsMerchant ?? false
+                        let yours = rows.filter { ClubDirectoryCard.isYours($0, viewerIsMerchant: merchant) }
+                        let discover = rows.filter { !ClubDirectoryCard.isYours($0, viewerIsMerchant: merchant) }
+                        if !yours.isEmpty {
+                            Section {
+                                ForEach(yours, id: \.id) { club in
+                                    ClubDirectoryCard(club: club, style: .yours, viewerIsMerchant: merchant,
+                                                      onOpen: { openedClubID = club.id }, identifier: "club.directory.\(club.id)")
+                                        .cyHeroSource(club.id, in: hero)
+                                }
+                            } header: {
+                                Text("club.home.yours").accessibilityAddTraits(.isHeader)
+                            }
+                        }
+                        if !discover.isEmpty {
+                            Section {
+                                ForEach(discover, id: \.id) { club in
+                                    ClubDirectoryCard(club: club, style: .discover, viewerIsMerchant: merchant,
+                                                      onOpen: { openedClubID = club.id }, identifier: "club.directory.\(club.id)")
+                                        .cyHeroSource(club.id, in: hero)
+                                }
+                            } header: {
+                                if !yours.isEmpty { Text("club.home.discover").accessibilityAddTraits(.isHeader) }
+                            }
                         }
                     }
                 }
@@ -74,8 +96,8 @@ struct ClubOwnedView<Reader: ClubReading & ObservableObject>: View {
                             Text("club.emptyOwnedHint")
                         }
                     } else {
-                        ForEach(Array(rows.enumerated()), id: \.offset) { index, club in
-                            ClubDirectoryCard(club: club, prominent: index == 0, viewerIsMerchant: false,
+                        ForEach(rows, id: \.id) { club in
+                            ClubDirectoryCard(club: club, style: .yours, viewerIsMerchant: false,
                                               onOpen: { openedClubID = club.id }, identifier: "club.owned.\(club.id)")
                                 .cyHeroSource(club.id, in: hero)
                         }
@@ -94,11 +116,19 @@ struct ClubOwnedView<Reader: ClubReading & ObservableObject>: View {
     }
 }
 
-/// Native club row for the directory and owned lists: cover thumbnail, name, place and member count, and the
-/// membership state. The row and its Join / Apply button both open the detail; whether a join can be sent is decided there.
+/// Native club row for the directory and owned lists (P25). `.yours`: thumbnail, name, member count, chevron; the row
+/// opens the club. `.discover`: thumbnail, name, one secondary line (member count · description, else style · city) and one
+/// trailing bordered Join / Apply, which opens the detail; whether a join can be sent is decided there.
 private struct ClubDirectoryCard: View {
+    enum Style { case yours, discover }
+    static func isYours(_ club: ClubRecord, viewerIsMerchant: Bool) -> Bool {
+        switch club.cardAction(viewerIsMerchant: viewerIsMerchant) {
+        case .owner, .joined: return true
+        default: return false
+        }
+    }
     let club: ClubRecord
-    var prominent = false
+    var style: Style = .discover
     var viewerIsMerchant = false
     let onOpen: () -> Void
     let identifier: String
@@ -108,41 +138,73 @@ private struct ClubDirectoryCard: View {
         let action = club.cardAction(viewerIsMerchant: viewerIsMerchant)
         HStack(spacing: CYSpacing.md) {
             Button(action: onOpen) {
-                Label {
-                    VStack(alignment: .leading, spacing: 2) {
-                        ClubName(value: club.name).font(.headline).multilineTextAlignment(.leading)
-                        if let place { Text(verbatim: place).font(.subheadline).foregroundStyle(.secondary) }
-                        if let count = club.sourceMemberCount {
-                            Text(verbatim: ClubMemberCountLocalization.text(count, locale: locale))
-                                .font(.subheadline).foregroundStyle(.secondary).monospacedDigit()
+                HStack(spacing: CYSpacing.md) {
+                    Label {
+                        VStack(alignment: .leading, spacing: 2) {
+                            ClubName(value: club.name).font(.headline).multilineTextAlignment(.leading)
+                            if let secondary {
+                                Text(verbatim: secondary)
+                                    .font(.subheadline).foregroundStyle(.secondary)
+                                    .lineLimit(1).monospacedDigit()
+                            }
                         }
+                    } icon: {
+                        ClubRowThumbnail(url: QuestifyCardArtwork.safeURL(club.cover) ?? QuestifyCardArtwork.safeURL(club.logo))
                     }
-                } icon: {
-                    ClubRowThumbnail(url: QuestifyCardArtwork.safeURL(club.cover) ?? QuestifyCardArtwork.safeURL(club.logo))
+                    if style == .yours {
+                        Spacer(minLength: 0)
+                        Image(systemName: "chevron.right")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(.tertiary)
+                            .accessibilityHidden(true)
+                    }
                 }
+                .contentShape(Rectangle())
             }
             .buttonStyle(.borderless)
             .foregroundStyle(.primary)
             .accessibilityIdentifier(identifier)
-            Spacer(minLength: 0)
-            switch action {
-            case .join, .apply:
-                Button(action: onOpen) {
-                    action == .join ? Text("club.action.join") : Text("club.action.apply")
+            if style == .discover {
+                Spacer(minLength: 0)
+                switch action {
+                case .join:
+                    Button(action: onOpen) {
+                        Label("club.action.join", systemImage: "plus")
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .fixedSize()
+                    .accessibilityIdentifier(identifier + ".join")
+                case .apply:
+                    Button("club.action.apply", action: onOpen)
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                        .fixedSize()
+                        .accessibilityIdentifier(identifier + ".join")
+                case .pending:
+                    Label("club.membership.pending", systemImage: "clock")
+                        .font(.subheadline).foregroundStyle(.orange)
+                case .joined, .owner, .none:
+                    EmptyView()
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
-                .accessibilityIdentifier(identifier + ".join")
-            case .pending:
-                Label("club.membership.pending", systemImage: "clock")
-                    .font(.subheadline).foregroundStyle(.orange)
-            case .joined:
-                Label("club.membership.joined", systemImage: "checkmark")
-                    .font(.subheadline).foregroundStyle(.secondary)
-            case .owner, .none:
-                EmptyView()
             }
         }
+    }
+
+    private var memberCount: String? {
+        club.sourceMemberCount.map { ClubMemberCountLocalization.text($0, locale: locale) }
+    }
+
+    private var secondary: String? {
+        let detail: String?
+        if style == .discover {
+            let description = club.description?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            detail = description.isEmpty ? place : description
+        } else {
+            detail = nil
+        }
+        let text = [memberCount, detail].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
+        return text.isEmpty ? nil : text
     }
 
     private var place: String? {

@@ -312,10 +312,8 @@ struct NativeChannelProgressMeCard: View {
 
 private struct NativeChannelProgressLoadingRow: View {
     var body: some View {
-        ProgressView()
+        ProgressView { Text("cy.state.loading") }
             .frame(maxWidth: .infinity)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text("cy.state.loading"))
     }
 }
 

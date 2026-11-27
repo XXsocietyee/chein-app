@@ -18,9 +18,8 @@ import SwiftUI
     var body: some View {
         List {
             if flow.busy {
-                ProgressView()
+                ProgressView { Text("cy.state.loading") }
                     .frame(maxWidth: .infinity)
-                    .accessibilityLabel(Text("cy.state.loading"))
                     .accessibilityIdentifier("blacklist.loading")
             }
             if flow.phase == .closed {

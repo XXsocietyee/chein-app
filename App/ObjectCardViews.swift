@@ -259,6 +259,7 @@ extension EnvironmentValues {
 /// Collection tile: artwork on a raised plate, title, one state chip, place. Foil cards catch the light; a generating card says so.
 @MainActor struct ObjectCardTile: View {
     let card: ObjectCard
+    @Environment(\.dynamicTypeSize) private var typeSize
     var media: (any ObjectCardImageLoading)? = nil
     let expectedScope: UUID
     let currentScope: () -> UUID
@@ -279,7 +280,8 @@ extension EnvironmentValues {
             else if isFoil { CYStatusChip("objects.foil", tone: .info, systemImage: "sparkles") }
             else { CYStatusChip("objects.plain") }
             if !card.place.isEmpty {
-                Text(verbatim: card.place).cyText(.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1)
+                Text(verbatim: card.place).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    .lineLimit(typeSize.isAccessibilitySize ? 2 : 1)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

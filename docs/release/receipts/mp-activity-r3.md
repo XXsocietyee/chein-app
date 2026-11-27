@@ -79,12 +79,21 @@ Re-scan (sixth session): `d2-square` (Square feed) has no MP page in `pages/squa
 
 **For other lanes:** `wrapPlayer` in `DesignFixtureRegistry.swift` no longer forces `.dark` — `t5-order-center` (mp-mine) and `t5-free-explore` (mp-journey) will now render in the system appearance in the next sweep.
 
+## Round 3 continue (2026-11-27, seventh session — sweep 18:06 build 070117595, no new shots for this lane)
+| MP page | Native view | MP sections (✓ present / added / reordered) | Optimizations |
+|---|---|---|---|
+| `pages/activity/official-inbox/index` (wxml:13 `oi-refreshing`) | `OfficialInboxView` (`App/OfficialPrivateViews.swift`), `OfficialReadScreen` (`App/OfficialEventComponents.swift`, + optional `refreshingLabel`, nil keeps `official.refreshing` for every other page) | pull-to-refresh line on loaded invites showed the activity-list copy 正在更新活动列表…; **fixed** to MP 正在同步最新邀约… / Syncing the latest invitations… (Not done row closed) | P10 loading words; additive parameter, other callers unchanged |
+| `pages/coop/nearby/index` (wxml:16-18 action-state, js:419-429 `callMerchant`) | `NearbyMerchantView` (`App/NearbyMerchantView.swift`) | 电话联系 on unlisted leads now reports its result as MP: 已打开拨号界面 status line, or inline error 电话暂时没有拨出 when iOS refuses the `tel:` URL, at the top of the results section **added** (Not done "call receipts missing" closed) | `.bordered` button via `openURL(_:completion:)`; `CYInlineError` without retry (MP has none) |
+
+Strings: `mpr3.official.inbox.refreshing` + `mpr3.coop.nearby.{callOpened,callFailed}` (fragments `mp-activity-r3-official.json`, `mp-activity-r3-coop.json` merged with `tools/merge_localization_fragments.py`, en + zh-Hans).
+Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · contract_ratchet 52 / baseline 52 / **new 0** · design consistency PASS.
+
 ## Not done
 - Attendance (player): organizer 联系与签到配置 form (duty phones, window, public-confirm switch, scan, recovery 查询原结果 / 原请求重试 / 终止 / 确认归档) lives in `OfficialOrganizerConsoleView`, not in this section.
 - Square completion card: 探店 (`shopText`) has no backend field. Refused team reads have no server message in `TeamFailure`, so 邀请已失效 is the fixed fallback copy.
-- Official detail: native 参与情况 section kept (contract-pinned, holds signup action). Inbox refreshing line uses shared `official.refreshing` (`OfficialReadScreen`).
+- Official detail: native 参与情况 section kept (contract-pinned, holds signup action).
 - Baoming: native manual name/phone entry kept beside the sheet.
-- Coop (audited, not yet fixed): invite — 俱乐部/商家 picker (kept: native entries without a route kind, e.g. coop list → 去发起邀请, need it) and search field are extra (MP takes the kind from the route); 核销据点 card copy and per-merchant picker; sheet 去编辑主题 exit and inline send result (sends go through the per-recipient reviewed `CoopFlowRequestPreview`; failures stay there, not back on the sheet). List — no in-app 缴纳保证金 / 重试保证金退款 path on accepted cards (no native deposit payment client); 合作池 row kept (MP folded it into club detail, but it is the only native route to the pool and is UI-test pinned); extra per-section headers/empties and extra card fields; Detail — read-receipt row kept (it performs the `invite/read` write the MP sends silently), terms-card grouping, deposit footer. Nearby — consent block is extra (kept: native location-purpose consent before the search); 补位 sheet interaction and per-row chapter terms differ; call receipts missing; missing-param state (native routes always pass a scope, no param-less entry).
+- Coop (audited, not yet fixed): invite — 俱乐部/商家 picker (kept: native entries without a route kind, e.g. coop list → 去发起邀请, need it) and search field are extra (MP takes the kind from the route); 核销据点 card copy and per-merchant picker; sheet 去编辑主题 exit and inline send result (sends go through the per-recipient reviewed `CoopFlowRequestPreview`; failures stay there, not back on the sheet). List — no in-app 缴纳保证金 / 重试保证金退款 path on accepted cards (no native deposit payment client); 合作池 row kept (MP folded it into club detail, but it is the only native route to the pool and is UI-test pinned); extra per-section headers/empties and extra card fields; Detail — read-receipt row kept (it performs the `invite/read` write the MP sends silently), terms-card grouping, deposit footer. Nearby — consent block is extra (kept: native location-purpose consent before the search); 补位 sheet interaction and per-row chapter terms differ; missing-param state (native routes always pass a scope, no param-less entry).
 
 ## Gates
 - Fourth session (after merging `ui/combined-r7`, catalog key union): ratchet 52 / baseline 52 / **new 0**; scaffold, a11y, design consistency PASS

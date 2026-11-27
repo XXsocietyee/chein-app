@@ -235,9 +235,8 @@ import SwiftUI
     private var draftsPage: some View {
         List {
             if draftsLoading {
-                ProgressView()
+                ProgressView { Text(verbatim: copy("正在读取草稿", "Loading drafts")) }
                     .frame(maxWidth: .infinity)
-                    .accessibilityLabel(Text(verbatim: copy("正在读取草稿", "Loading drafts")))
                     .accessibilityIdentifier("square.cloud.drafts.loading")
             } else if drafts.isEmpty {
                 ContentUnavailableView {

@@ -21,11 +21,11 @@ import SwiftUI
                         switch state {
                         case .available(let guide):
                             Text("shopNPCGuide.source").font(.caption).foregroundStyle(.secondary)
-                            if let rules = guide.rules { Text(verbatim: rules).cyText(.body).lineSpacing(4).textSelection(.enabled).accessibilityIdentifier("shopNPCGuide.rules") }
+                            if let rules = guide.rules { Text(verbatim: rules).cyText(.body).textSelection(.enabled).accessibilityIdentifier("shopNPCGuide.rules") }
                             else { Text("shopNPCGuide.noRules").accessibilityIdentifier("shopNPCGuide.noRules") }
                             if let materials = guide.materials {
                                 Text("shopNPCGuide.materials").font(.headline)
-                                Text(verbatim: materials).cyText(.body).lineSpacing(4).textSelection(.enabled).accessibilityIdentifier("shopNPCGuide.materials")
+                                Text(verbatim: materials).cyText(.body).textSelection(.enabled).accessibilityIdentifier("shopNPCGuide.materials")
                             }
                             Text("shopNPCGuide.noProgress").font(.footnote).foregroundStyle(.secondary)
                         case .unavailable: Text("shopNPCGuide.unavailable").accessibilityIdentifier("shopNPCGuide.unavailable")

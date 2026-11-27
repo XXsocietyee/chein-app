@@ -238,6 +238,28 @@ Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0
 Stale pin updated: `Tests/ContractChecks/test_object_badge_wall_layout.py` detail hash (artwork clip 16 →
 `CYRadius.card`, look only; one-line reason in the test).
 
+## Continue run 8 (2026-11-27, after merging combined-r7 into f3aeebd42)
+
+Receipt had no Not done rows. Scan: one type system, line height (OWNER RULE 2 "fonts, letter spacing … consistent").
+`.cyText(.body)` already applies the one reading leading (CYTypeSpec lineHeight 1.6, scaled with Dynamic Type), but 7
+reading paragraphs set 4 / 5 / 6 / 8 pt by hand on top of it — fixed points that do not scale and differ page to page.
+Content, order, identifiers and text selection unchanged (look only).
+
+| MP page | Native view | MP sections | Change (owner rule 2) |
+|---|---|---|---|
+| 角色 / cast line | `App/CastViews.swift:76` | unchanged | `.font(italic ? .body.italic() : .body).lineSpacing(8)` → `.italic(italic).cyText(.body)` |
+| chapter story text block | `App/ChapterStoryView.swift:369` | unchanged | `.cyText(.body)…lineSpacing(8)` → `.cyText(.body)` only |
+| story reader narration | `App/NativeR2/Story/NR2StoryReaderParts.swift:39` | unchanged | `.font(.body).lineSpacing(6)` → `.cyText(.body)` |
+| play theme intro line | `App/PlayThemePresentation.swift:101` | unchanged | dropped `.lineSpacing(6)` after `.cyText(.body)` |
+| shop NPC guide rules / materials | `App/ShopNPCScriptedGuideView.swift:24, 28` | unchanged | dropped `.lineSpacing(4)` after `.cyText(.body)` |
+| project edit story field | `App/ProjectStoryTextField.swift:93` | unchanged | dropped `.lineSpacing(5)` after `.cyText(.body)` |
+
+New checker kind **line spacing**: a literal `.lineSpacing(N)` outside App/DesignSystem and App/Theme. Baseline 0,
+nothing allowed. Self-test: the pre-fix tree fails in all six files (ShopNPC 2).
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_typography_lint` PASS,
+`check_design_consistency` PASS (0 debt, 74 allowed, line spacing 0), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
