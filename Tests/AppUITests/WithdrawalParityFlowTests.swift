@@ -13,7 +13,7 @@ final class WithdrawalParityFlowTests: XCTestCase {
         let app = launch(); app.buttons["withdrawal.parity.history"].tap()
         let processing = element(app, "withdrawal.history.row.50")
         XCTAssertTrue(processing.waitForExistence(timeout: 5))
-        XCTAssertTrue(processing.label.contains("-12.30")); XCTAssertTrue(processing.label.contains("Withdrawal in progress"))
+        XCTAssertTrue(processing.label.contains("12.30")); XCTAssertTrue(processing.label.contains("¥")); XCTAssertTrue(processing.label.contains("Withdrawal in progress"))
         XCTAssertTrue(element(app, "withdrawal.history.row.52").label.contains("full amount was returned"))
         XCTAssertTrue(element(app, "withdrawal.history.row.53").label.contains("Status unconfirmed"))
         XCTAssertTrue(element(app, "withdrawal.history.row.54").label.contains("—"))
