@@ -2216,5 +2216,90 @@
         }
       }
     }
+  },
+  "playkit.steps.eyebrow": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Low-carbon move · today's steps"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "低碳行动 · 今日步数"
+        }
+      }
+    }
+  },
+  "playkit.steps.icon.walk": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Walk"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "走起来"
+        }
+      }
+    }
+  },
+  "playkit.steps.icon.refresh": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refresh"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "刷新"
+        }
+      }
+    }
+  },
+  "playkit.steps.icon.stamp": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Get the stamp"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "落章"
+        }
+      }
+    }
+  },
+  "playkit.steps.readError": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Steps can't be read yet. Allow step access to count them."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "需要授权读取步数才能计步"
+        }
+      }
+    }
   }
 }

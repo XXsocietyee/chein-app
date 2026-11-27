@@ -9,20 +9,43 @@ import SwiftUI
     @State private var stage: NativeStepCoordinator?
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
-            Label("nativePlatform.steps.title", systemImage: "figure.walk")
+            // MP `playkit-steps` body: eyebrow → 走起来 · 刷新 · 落章 → today / goal 步 → co2 → remain → 刷新步数.
+            Label("playkit.steps.eyebrow", systemImage: "figure.walk")
                 .font(.headline)
             .accessibilityElement(children: .combine)
             .accessibilityAddTraits(.isHeader)
             .accessibilityIdentifier("nativePlatform.steps.host")
-            if let goal = segment["goal"].integer {
-                LabeledContent("playkit.walk.goal") {
-                    Text("playkit.steps.goalSteps \(goal)").monospacedDigit()
+            Text("nativePlatform.steps.title").font(.footnote).foregroundStyle(.secondary)
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: CYSpacing.lg) { stepIcons }
+                VStack(alignment: .leading, spacing: CYSpacing.sm) { stepIcons }
+            }
+            .font(.subheadline)
+            .accessibilityElement(children: .combine)
+            if let goal = segment["goal"].integer, goal > 0 {
+                let today = max(0, segment["todaySteps"].integer ?? 0)
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
+                        Text(today, format: .number).font(.largeTitle.bold()).monospacedDigit()
+                            .contentTransition(.numericText())
+                        Text("playkit.steps.goalSteps \(goal)").font(.subheadline).foregroundStyle(.secondary)
+                    }
+                    ProgressView(value: Double(min(today, goal)), total: Double(goal))
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("playkit.steps.today")
             }
             ForEach(["co2Label", "remainLabel"], id: \.self) { key in
                 if let line = segment[key].text, !line.isEmpty {
                     Text(verbatim: line).font(.footnote).foregroundStyle(.secondary)
                 }
+            }
+            // MP `readError` (报过失败、还没同步到步数) and the skipped station line.
+            if segment["skipped"].bool == true {
+                Text("playkit.sensor.skipped").font(.footnote).foregroundStyle(.secondary)
+            } else if (segment["failedReads"].integer ?? 0) > 0, (segment["todaySteps"].integer ?? 0) <= 0, segment["reached"].bool != true {
+                Label("playkit.steps.readError", systemImage: "exclamationmark.triangle")
+                    .font(.footnote).foregroundStyle(.orange)
             }
             if let enrollment = runtime?.enrollment {
                 NavigationLink("nativeEnrollment.manage") { NativeEnrollmentView(model: enrollment, privacyURL: runtime?.acceptance.privacyNoticeURL) }
@@ -38,6 +61,15 @@ import SwiftUI
         }
         .transaction { if reduceMotion { $0.disablesAnimations = true } }
         .task(id: advanced.state?.sessionID) { await runtime?.enrollment?.load(); if let id = advanced.state?.sessionID { stage = runtime?.stepModel(for: id) } }
+    }
+}
+
+extension NativeStepsHostView {
+    /// MP `stepIcons('steps')`: 走起来 · 刷新 · 落章 (numbered, symbol + short label).
+    @ViewBuilder var stepIcons: some View {
+        Label("playkit.steps.icon.walk", systemImage: "1.circle.fill")
+        Label("playkit.steps.icon.refresh", systemImage: "2.circle.fill")
+        Label("playkit.steps.icon.stamp", systemImage: "3.circle.fill")
     }
 }
 
