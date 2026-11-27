@@ -82,6 +82,7 @@ match is a queue item (133 at the start). Tab roots first, then their pushed pag
 | More `HStack(ProgressView + Text)` page loaders: IM compose, bundle redeem, report peer, order meeting point, bundle review compose | MP cy-skeleton / 加载中 | spinner beside a grey footnote | one `ProgressView { <same words> }` (in-button “submitting” spinners left as button content) |
 | `CYPhaseView` / `CYListChoreography` / `CYLoadSlot` (shared phase loader) | page loading words | `CYLoadingStateView` + VoiceOver-only `loadingLabel` | `CYLoadingStateView(label: loadingLabel)` — the caller's words are on screen |
 | 奖励 list (`NonCashRewardViews`) + 奖励承诺 list (`RewardPledgeViews`) — no MP page (native-only surface); one state pattern | MP cy-error pattern: title + 重试 inside the state | rewards: `ContentUnavailableView` with a separate `CYPillButton` 刷新 below it; pledges: a bare 刷新 pill with no error text at all | `AccountCollectionIssueView(retry:, retryIdentifier:)` — one `ContentUnavailableView` with the failure title and its `.bordered` 重试 inside; identifiers `rewards.retry` / `rewards.pledge.retry` kept (new `retryIdentifier` parameter, default unchanged) |
+| 附近 · 我的 joined teams failure (`NearbyTeamViews`) | `subpackageRoam/nearby/index.wxml:62` cy-error · 重试 | red `CYStatusChip` with the reason + a separate `CYPillButton` 重试 | one `CYEmptyState` (`ContentUnavailableView`, failure kind) with the same reason as the title and `.bordered` 重试 inside; identifiers `nearby.mine.owned.error` / `.retry` kept |
 
 ## For other lanes
 
