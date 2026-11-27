@@ -636,7 +636,7 @@ extension EnvironmentValues {
                                 }
                                 if let createTime = row.createTime, !createTime.isEmpty {
                                     LabeledContent {
-                                        Text(verbatim: createTime)
+                                        Text(verbatim: LocaleDisplay.civil(createTime, locale: locale))
                                     } label: {
                                         Text(verbatim: appLocalized("wallet.ledger.timestamp", locale: locale))
                                     }
@@ -1127,7 +1127,7 @@ enum WalletIncomeSegment: Hashable {
                                 Text("member.wallet.received", tableName: "MemberProfile")
                             }
                         }
-                        if let date = item.createTime { Text(verbatim: date).font(.footnote).foregroundStyle(.secondary) }
+                        if let date = item.createTime { Text(verbatim: LocaleDisplay.civil(date, locale: locale)).font(.footnote).foregroundStyle(.secondary) }
                         if let account = item.maskedAccount { Text(verbatim: account).font(.footnote).foregroundStyle(.secondary) }
                     }.accessibilityElement(children: .combine).accessibilityIdentifier("wallet.withdrawal.\(item.id)")
                 }

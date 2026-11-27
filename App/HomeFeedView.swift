@@ -606,6 +606,7 @@ struct HomeFeedShelfLockup: View {
 /// Each line is omitted when that field is missing. No zero and no placeholder.
 struct HomeFeedFeaturedFacts: View {
     let item: HomeFeedItem
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     static func hasAny(_ item: HomeFeedItem) -> Bool {
         item.isBeta || !item.featuredCategoryTags.isEmpty || item.featuredStatusText != nil || item.featuredClubText != nil
     }
@@ -626,7 +627,7 @@ struct HomeFeedFeaturedFacts: View {
                 Text(verbatim: club)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
                     .accessibilityIdentifier("homeFeed.featured.club")
             }
             if let tagLine {
@@ -685,11 +686,11 @@ struct HomeFeedCard: View {
             .cachingFeedImage()
             // R7-PC-A1-3: MP stream card shows ≤2 category chips (`feedTags`, pages/index/index.wxml:216-253).
             if !item.feedTags.isEmpty {
-                HStack(spacing: CYSpacing.xs) {
+                feedTagLayout {
                     ForEach(Array(item.feedTags.enumerated()), id: \.offset) { _, tag in
                         Text(verbatim: tag)
                             .font(.footnote)
-                            .lineLimit(1)
+                            .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -702,6 +703,12 @@ struct HomeFeedCard: View {
             }
             .accessibilityIdentifier("homeFeed.stream.status")
         }
+    }
+    /// a11y-dt r3: the two MP category chips stack at accessibility sizes instead of truncating side by side.
+    private var feedTagLayout: AnyLayout {
+        dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.xxs))
+            : AnyLayout(HStackLayout(spacing: CYSpacing.xs))
     }
     private var priceRow: some View {
         statusRow("homeFeed.status.price", tabular: true) {

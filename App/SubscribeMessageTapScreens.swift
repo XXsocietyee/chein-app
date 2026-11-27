@@ -18,7 +18,8 @@ import SwiftUI
                 SessionOwnedOrdersView(session: session)
             }
         case .coopList(let direction):
-            CooperationBrowserView(reader: session.cooperationReader, onClose: { session.dismissNativeEntry() },
+            // mp-nav r3: the tap lands as a push on 首页 (HomeLanding): system back, no 关闭 that only cleared the entry.
+            CooperationBrowserView(reader: session.cooperationReader, onClose: nil,
                                    peerReader: session.cooperationFlowReader, initialDirection: direction,
                                    topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) })
         case .myProjects:
