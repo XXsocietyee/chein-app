@@ -14,9 +14,10 @@ class ReviewPresentationTests(unittest.TestCase):
         ticket = view.split('private var ticketSection:')[1].split('private var waitlistSection:')[0]
         for token in ['TimelineView', 'available: flow.waitlistAvailable', 'status: flow.waitlistStatus', 'now: context.date']:
             self.assertIn(token, ticket)
-        # A blocked review keeps the full primary look but the tap is ignored and the reason is announced.
+        # A blocked review is disabled (MP baoming cy-btn disabled=!canPay, coordinator 19:50), the tap is ignored and the reason is announced.
         self.assertIn('let blocked = flow.confirmationBlock != nil', view)
         self.assertIn('if blocked { blockedTaps += 1; return }', view)
+        self.assertIn('.disabled(blocked)', view)
         self.assertIn('.accessibilityHint(blockReason(copy) ?? "")', view)
         self.assertIn('testUnreviewedOfferGuidanceExpiresWhileFormRemainsOpen', self.read('Tests/AppUITests/RegistrationWaitlistUITests.swift'))
     def test_expiry_fixture_is_armed_only_after_the_offered_ui_is_observed(self):

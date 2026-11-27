@@ -75,7 +75,7 @@ public struct ClubGapCoopPoolSection: View {
     private var content: some View {
         switch state {
         case .idle, .loading:
-            ProgressView()
+            ProgressView { Text("cy.state.loading") }
                 .frame(maxWidth: .infinity)
         case .permission(let reason):
             ContentUnavailableView("club.coopPool.permissionTitle", systemImage: "lock", description: Text(verbatim: reason))

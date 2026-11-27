@@ -102,7 +102,36 @@ struct ProjectEditTopicDetailRequest: Identifiable {
     /// Issue anchors whose fields live in the sheet (the name stays on page 1).
     static let anchors: Set<String> = ["project-issue-anchor-description", "project-issue-anchor-cover",
                                        "project-issue-anchor-categories", "project-issue-anchor-topicRewards",
-                                       "project-issue-anchor-completionRules", "project-issue-anchor-clubLead"]
+                                       "project-issue-anchor-completionRules"]
+}
+
+/// MP fabu step3.wxml (page 2 · 票务设置): the 票务 card on page 1 pushes this page. `anchor` scrolls it to a field when
+/// a 发布前检查 row points at 档期, 俱乐部承接 or 票务.
+struct ProjectEditTicketSettingsRequest: Identifiable, Hashable {
+    let id = UUID()
+    let anchor: String?
+    static let anchors: Set<String> = ["project-issue-anchor-start", "project-issue-anchor-end",
+                                       "project-issue-anchor-deadline", "project-issue-anchor-clubLead",
+                                       "project-issue-anchor-tickets"]
+}
+
+/// Pushes the 票务设置 page, and opens it when the root issue list targets one of its fields.
+struct ProjectEditTicketSettingsHost<Page: View>: ViewModifier {
+    @Binding var request: ProjectEditTicketSettingsRequest?
+    let rootRequestID: UUID?
+    let rootAnchor: String?
+    let page: (String?) -> Page
+
+    func body(content: Content) -> some View {
+        content
+            .onChange(of: rootRequestID) { _, _ in
+                guard let rootAnchor, ProjectEditTicketSettingsRequest.anchors.contains(rootAnchor) else { return }
+                request = ProjectEditTicketSettingsRequest(anchor: rootAnchor)
+            }
+            .navigationDestination(item: $request) { value in
+                page(value.anchor)
+            }
+    }
 }
 
 /// Presents the 主题详情 sheet, and opens it when the root issue list targets one of its fields.
