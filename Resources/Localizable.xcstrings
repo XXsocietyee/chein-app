@@ -170633,13 +170633,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sending…"
+            "value": "Unlocking…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "提交中…"
+            "value": "正在解锁…"
           }
         }
       }
