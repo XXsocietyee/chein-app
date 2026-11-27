@@ -49,6 +49,7 @@ Sweep `docs/sweeps/latest` en sheets (build 070117595): `mp-mine/sheet-en.jpg` (
 | 17 | `pages/activity/*` detail hero live line → `NativeR2/Explore/ExploreDesignPass.swift` `ExploreStartsInLine` | `en-rep3-activity-detail`: "In progress · Ends in Ended" on an event that ended Nov 21. The explicit `TimelineView` hands back a past entry date, so the line thought the event was running while the inner countdown (real clock) said Ended | The line compares against `max(context.date, Date())`; an ended event shows no live line (as designed). Shared component (Home / Explore cards too) | Done |
 | 18 | `pages/play/free-explore` → `FreeExploreBundleLaunchView.swift:60` | `en-t5-free-explore`: "1 chapters ready to book" | English singular "1 chapter ready to book" | Done |
 | 19 | City deed card (City tab) → `CityKit/CityDeedCard.swift:446` | "1 points per visit" | English singular form | Done |
+| 20 | MP 余额明细 / ledger rows → `WalletCommerceViews.swift` `WalletLedgerView.ledgerRow` | `en-e4-wallet-balance`: money row time read raw "2026-11-06 18:20:00"; delta and code ran together "+58.00CNY" (2 pt gap) | Money rows: `LocaleDisplay.civil` (points rows keep the MP short time); delta/currency gap 4 pt. Chinese text unchanged | Done |
 
 ## Not done
 
@@ -58,7 +59,7 @@ Sweep `docs/sweeps/latest` en sheets (build 070117595): `mp-mine/sheet-en.jpg` (
 
 
 ## Next pages (no row yet)
-Topic route stop address (1 line at AX sizes); ticket/order currency formats in English; Club home checked (tabs already adaptive, `ClubDetailTabBar.swift`).
+Topic route stop address (1 line at AX sizes); ticket/order currency formats in English (wallet ledger done, row 20); Club home checked (tabs already adaptive, `ClubDetailTabBar.swift`).
 
 ## For other lanes
 - mp-journey / mp-nav: City root entry reads "CITY ownership and original receipts" (`cityAcquire.entry`, all-caps CITY also in zh) — confirm CITY is the intended product name.
