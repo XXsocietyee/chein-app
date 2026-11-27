@@ -61012,13 +61012,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Saved content is still here; new updates wait for the network."
+            "value": "Check your connection and try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已缓存的内容还在；新内容等网络回来后再更新"
+            "value": "检查网络后再试一次"
           }
         }
       }
@@ -61063,13 +61063,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You're offline"
+            "value": "Looks like you’re offline"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你离线了"
+            "value": "网络好像断开了"
           }
         }
       }
@@ -61080,13 +61080,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "We've logged it. Try again."
+            "value": "Try again in a moment."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已经记下来了，再试一次"
+            "value": "过一会儿再试一次"
           }
         }
       }
@@ -61097,13 +61097,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Something broke on our side"
+            "value": "Something went wrong"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这边出了点问题"
+            "value": "出错了"
           }
         }
       }
