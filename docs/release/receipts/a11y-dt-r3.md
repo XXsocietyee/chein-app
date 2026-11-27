@@ -193,11 +193,15 @@ cover/photo boxes with a centred glyph, a 168 pt QR, a 240 × 150 video thumb or
 | Scratch-card prizes (motion r2 games) | `NativeR2/Motion/MotionR2Games.swift` | ✓ | Three tiles fixed 96 pt high clipped wrapped `.headline` prizes at AX sizes → min 96 pt, grows with text (`fixedSize` vertical), prize scales to 0.7 before wrapping | Done |
 | City dice (`pages/roam` city game) | `DesignSystem/CYCityBoard.swift` (`CYCityDie`) | ✓ | Non-pip value / em dash `.dataXL` in a 56 pt die → one line, scales to 0.4 instead of clipping | Done |
 | Onboarding long-press GO | `DesignSystem/CYOnboarding.swift` | ✓ | "GO" `.cardTitle` in a 52 pt circle → one line, scales to 0.5 at AX sizes | Done |
+| `pages/play` seat lobby (invited / transferable seats) | `JourneyLandingViews.swift` | ✓ (mp-journey owns order) | Seat number `.cardTitle` in a fixed 28 pt column truncated to "…" at AX sizes for 2 digits → `minWidth: 28` | Done |
+| `pages/play` report leaderboard | `JourneyReportViews.swift` | ✓ (mp-journey owns order) | Rank `.cardTitle` fixed 32 pt → `minWidth: 32` | Done |
+| `pages/team` orient board ranking | `TeamOrientBoardView.swift` | ✓ (mp-activity owns order) | "#rank" fixed 32 pt → `minWidth: 32` (name column already wraps) | Done |
+| `subpackageMember` orient score board | `MPGap/Member/OrientScoreGapViews.swift` | ✓ (mp-mine owns order) | Rank fixed 32 pt → `minWidth: 32` | Done |
 
 ## Not done (next run starts here)
 - Re-read the a11y sheets once combined-r7 carries runs 7–10 (ring size at AX5, roam VoiceOver order, `a11y-passport-ax5` now the passport).
 - Re-read `a11y-passport-ax5` (passport at AX5) once a sweep build carries cb788fd86.
-- Dynamic Type: fixed `.frame(width:)` (no height) on text-holding stacks in narrow rows; `.fixedSize()` on long text that can overflow at AX5.
+- Dynamic Type: `.fixedSize()` (both axes) on long text that can overflow at AX5; `.frame(width:)` on stacks (not single Text chains, scanned run 11).
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch
