@@ -54,7 +54,7 @@ private final class PlayRoamPinTransport: HTTPTransport {
     }
 
     func testPlayRoamGatesStayOff() async throws {
-        XCTAssertFalse(PlayStageAnalyticsGate.enabled)
+        XCTAssertTrue(PlayStageAnalyticsGate.enabled) // PLAY-r11-3: MP utils/stage-events.js:36-50
         XCTAssertFalse(PlatformPass.moneyEnabled)
         XCTAssertFalse(PlatformPass.writesReachable)
         XCTAssertFalse(MerchantCityNPCParityGates.disabled.storeDayProofWrites)

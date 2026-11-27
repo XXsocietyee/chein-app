@@ -376,8 +376,10 @@ enum JourneyReportPhase: Equatable {
     var phase: JourneyReportPhase { get }
     var memory: JourneyMemoryPhase { get }
     var rank: JourneyRankState { get }
-    /// Landing link from an issued referral, or the public topic link; nil hides Share.
+    /// The public topic link; nil hides Share.
     var shareURL: URL? { get }
+    /// JREF-r11-1: the referral landing link, issued when Share is tapped; nil falls back to `shareURL`.
+    func issueShareURL() async -> URL?
     func load()
     func signIn()
     func loadMemory()
@@ -422,7 +424,8 @@ enum JourneyFeedbackState: Equatable {
                 if case .ready(let report) = binding.phase { settle.runID = report.runID ?? scope.runID }
                 route = .journeySettle(settle)
             },
-            onOpenSeats: { if let id = scope.registrationID { route = .journeySeats(registrationID: id) } })
+            onOpenSeats: { if let id = scope.registrationID { route = .journeySeats(registrationID: id) } },
+            onIssueShare: { await binding.issueShareURL() })
             .task { binding.load() }
             // Reload once the shared sign-in sheet closes (MP onShow re-reads after login).
             .onChange(of: PlayerJourneySignInBridge.shared.presented) { was, now in if was && !now { binding.load() } }
@@ -453,6 +456,8 @@ struct JourneyReportView: View {
     var onResetFeedback: () -> Void = {}
     let onOpenSettle: (() -> Void)?
     let onOpenSeats: () -> Void
+    /// JREF-r11-1: issues the referral link on tap; nil shares `shareURL` as is.
+    var onIssueShare: (@MainActor () async -> URL?)? = nil
     @State private var rankShown = false
     @State private var memoryShown = false
     @State private var feedbackShown = false
@@ -608,8 +613,7 @@ struct JourneyReportView: View {
                     HStack(spacing: CYSpacing.md) {
                         if let onOpenSettle { CYPillButton("mp.report.settle", style: .secondary, action: onOpenSettle).accessibilityIdentifier("journeyReport.settle") }
                         if let shareURL {
-                            ShareLink(item: shareURL) { Text("mp.common.share").frame(maxWidth: .infinity) }
-                                .buttonStyle(.cyPrimary).accessibilityIdentifier("journeyReport.share")
+                            JourneyIssuedShareButton(fallback: shareURL, issue: onIssueShare, identifier: "journeyReport.share")
                         }
                     }
                 }
@@ -810,6 +814,8 @@ enum JourneyRateState: Equatable {
     var rank: JourneyRankState { get }
     var rate: JourneyRateState { get }
     var shareURL: URL? { get }
+    /// JREF-r11-1: the referral landing link, issued when Share is tapped; nil falls back to `shareURL`.
+    func issueShareURL() async -> URL?
     /// Topic name filled from `/api/topic/info-to-user` when the link did not carry it.
     var topicName: String? { get }
     /// JSETTLE-r7-1 完局优惠卡; nil hides it.
@@ -846,7 +852,8 @@ extension JourneySettleBinding {
                               let payload = offer.trackPayload(topicID: scope.topicID)
                               MiniProgramAnalytics.track(session.analyticsEventClient, event, bizType: payload.bizType, bizID: payload.bizID,
                                                          pagePath: "subpackageJourney/settle/index", properties: payload.properties)
-                          })
+                          },
+                          onIssueShare: { await binding.issueShareURL() })
             .mpParityRouteDestination($offerRoute)
             .task { binding.load() }
             // Reload once the shared sign-in sheet closes (MP onShow re-reads after login).
@@ -875,6 +882,8 @@ struct JourneySettleView: View {
     var onOpenOffer: (JourneyFinishOffer) -> Void = { _ in }
     /// `finish_offer_shown` / `finish_offer_click`. Does not turn `PlayStageAnalyticsGate` on.
     var onTrackOffer: (JourneyFinishOffer, String) -> Void = { _, _ in }
+    /// JREF-r11-1: issues the referral link on tap; nil shares `shareURL` as is.
+    var onIssueShare: (@MainActor () async -> URL?)? = nil
 
     enum Step: Int, CaseIterable { case overview, rank, rate, share }
     enum ShareKind: String, CaseIterable, Identifiable { case post, story; var id: String { rawValue } }
@@ -1198,12 +1207,10 @@ struct JourneySettleView: View {
             case .share:
                 HStack(spacing: CYSpacing.md) {
                     if let shareURL {
-                        // JSETTLE-1: the link travels with the rendered card as its preview (mini-program share imageUrl).
-                        ShareLink(item: shareURL,
-                                  preview: SharePreview(topicName.map { Text(verbatim: $0) } ?? Text("mp.settle.thisRun"), image: cardImage(report))) {
-                            Text("mp.common.share").frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.cyPrimary).accessibilityIdentifier("journeySettle.share")
+                        // JSETTLE-1: the link travels with the rendered card (mini-program share imageUrl).
+                        // JREF-r11-1: the referral link is issued on tap (MP settle/index.js:264-279).
+                        JourneyIssuedShareButton(fallback: shareURL, issue: onIssueShare, identifier: "journeySettle.share",
+                                                 image: cardUIImage(report))
                     }
                     CYPillButton("action.done", style: .secondary, action: onDone).accessibilityIdentifier("journeySettle.finish")
                 }
@@ -1212,14 +1219,15 @@ struct JourneySettleView: View {
     }
 
     /// The share card as an image (post or story size), the same face the step shows.
-    @MainActor private func cardImage(_ report: JourneyReport) -> (Image) {
+    /// JREF-r11-1: a `UIImage` for the system share sheet.
+    @MainActor private func cardUIImage(_ report: JourneyReport) -> UIImage? {
         let card = JourneyShareCard(report: report, topicName: topicName, story: shareKind == .story)
             .frame(width: shareKind == .story ? 270 : 360)
             .environment(\.locale, locale)
             .environment(\.colorScheme, .dark)
         let renderer = ImageRenderer(content: card)
         renderer.scale = 3
-        return renderer.uiImage.map(Image.init(uiImage:)) ?? journeySharePhotoFallback()
+        return renderer.uiImage
     }
 
     private func go(_ next: Step) {
@@ -1317,7 +1325,49 @@ struct JourneyShareCard: View {
     }
 }
 
-/// ShareLink item fallback. Kept outside a `View` so the symbol is a value, not a focusable element.
-private func journeySharePhotoFallback() -> Image {
-    Image(systemName: "photo")
+/// JREF-r11-1: Share signs the referral token only when tapped (MP subpackageJourney/pages/settle/index.js:264-279,
+/// report/index.js:132-147, 点分享才签发), then opens the system share sheet with the landing link (`k=r&t=`), or the
+/// public topic link when the issue fails.
+@MainActor struct JourneyIssuedShareButton: View {
+    let fallback: URL
+    let issue: (@MainActor () async -> URL?)?
+    let identifier: String
+    var image: UIImage? = nil
+    @State private var shared: JourneySharedLink?
+    @State private var issuing = false
+
+    var body: some View {
+        Button {
+            guard !issuing else { return }
+            issuing = true
+            Task { @MainActor in
+                let issued = await issue?()
+                issuing = false
+                shared = JourneySharedLink(url: issued ?? fallback)
+            }
+        } label: {
+            Text("mp.common.share").frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.cyPrimary)
+        .disabled(issuing)
+        .accessibilityIdentifier(identifier)
+        .sheet(item: $shared) { link in
+            JourneyActivityShareSheet(items: [link.url] + (image.map { [$0] } ?? []))
+                .presentationDetents([.medium, .large])
+        }
+    }
+}
+
+struct JourneySharedLink: Identifiable {
+    let id = UUID()
+    let url: URL
+}
+
+/// The system share sheet (`UIActivityViewController`).
+struct JourneyActivityShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+    func updateUIViewController(_ controller: UIActivityViewController, context: Context) {}
 }

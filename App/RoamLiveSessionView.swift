@@ -95,6 +95,8 @@ import QuestifyCore
     /// P-040: the session list is a persistent system sheet over the map (Apple Maps / Fitness pattern).
     @State private var sessionSheetShown = false
     @State private var sessionDetent: PresentationDetent = .fraction(0.3)
+    /// ROAM-r11-3: the place marker the player tapped.
+    @State private var selectedPlaceID: Int?
     init(controller: RoamLiveSessionController, offlineExample: Bool = false, localHistoryReader: (any RoamExperienceReading)? = nil, albumMetadataReader: RoamAlbumMetadataReader? = nil, browsePresentation: RoamPausedBrowsePresentation? = nil) {
         self.offlineExample = offlineExample; self.localHistoryReader = localHistoryReader; self.albumMetadataReader = albumMetadataReader
         _browse = StateObject(wrappedValue: browsePresentation ?? RoamPausedBrowsePresentation())
@@ -239,11 +241,30 @@ import QuestifyCore
                            onBaked: fogMap.onBaked, onSelect: { _ in })
                 .ignoresSafeArea()
         } else {
-            Map(initialPosition: .userLocation(fallback: .automatic)) { UserAnnotation() }
+            // ROAM-r11-3: the session's nearby places as markers tinted by node level (普通 / 精选 / 官方合作 / 主题路线),
+            // independent of the fog flag. Tapping one opens the 附近 list. MP pages/roam/index.wxml:301-433,
+            // index.js:2575 (`buildNodeLevelMarkerStyle`), node-level-style.js.
+            Map(initialPosition: .userLocation(fallback: .automatic), selection: $selectedPlaceID) {
+                UserAnnotation()
+                ForEach(owner.places.filter { $0.coordinate != nil }) { place in
+                    if let point = place.coordinate {
+                        Marker(place.name.isEmpty ? appLocalized("roam.unnamed", locale: locale) : place.name,
+                               systemImage: RoamLivePlaceLevel.symbol(place.nodeLevel),
+                               coordinate: CLLocationCoordinate2D(latitude: point.latitude, longitude: point.longitude))
+                            .tint(RoamLivePlaceLevel.tint(place.nodeLevel))
+                            .tag(place.id)
+                    }
+                }
+            }
                 .mapControls {
                     MapUserLocationButton()
                     MapCompass()
                     MapScaleView()
+                }
+                .onChange(of: selectedPlaceID) { _, id in
+                    guard id != nil else { return }
+                    nearbyExpanded = true
+                    if sessionDetent == .fraction(0.3) { sessionDetent = .medium }
                 }
                 .accessibilityIdentifier("roam.live.map")
         }
@@ -1359,5 +1380,26 @@ struct RoamCheckinTarget: Identifiable {
         .presentationDetents([.medium])
         .presentationDragIndicator(.visible)
         .accessibilityIdentifier("roam.checkin.sheet")
+    }
+}
+
+/// ROAM-r11-3: MP pages/roam/node-level-style.js STYLES (1 普通 ● / 2 精选 ◆ / 3 官方合作 ★ / 4 主题路线 ⬟) as
+/// system marker symbols and tints. A missing level is 普通, as `getNodeLevelStyle` does.
+enum RoamLivePlaceLevel {
+    static func symbol(_ level: Int?) -> String {
+        switch level ?? 1 {
+        case 2: return "diamond.fill"
+        case 3: return "star.fill"
+        case 4: return "shield.fill"
+        default: return "circle.fill"
+        }
+    }
+    static func tint(_ level: Int?) -> Color {
+        switch level ?? 1 {
+        case 2: return .teal
+        case 3: return .orange
+        case 4: return .red
+        default: return .blue
+        }
     }
 }

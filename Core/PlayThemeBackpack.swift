@@ -58,6 +58,20 @@ public struct PlayThemeBackpack: Equatable, Sendable {
         public let progress: Int?
         public let required: Int?
         public let message: String?
+        /// ZEROHP-r11-1: 同步恢复状态 is offered while AWAITING_BASELINE / RECOVERING and `allowedActions` has
+        /// ZERO_HP_SYNC (MP pages/play/utils/theme-backpack.js:32). `deadlineAt` / `serverNow` are epoch ms;
+        /// `receivedAt` is when this read landed, so the countdown is an estimate (MP :85-86, :104).
+        public var canSync: Bool = false
+        public var deadlineAt: Int64? = nil
+        public var serverNow: Int64? = nil
+        public var receivedAt: Date = Date()
+        /// Seconds left on the recovery countdown at `now`, or nil without a deadline.
+        public func secondsLeft(now: Date = Date()) -> Int? {
+            guard let deadlineAt, let serverNow else { return nil }
+            let elapsed = now.timeIntervalSince(receivedAt) * 1000
+            let remaining = (Double(deadlineAt - serverNow) - elapsed) / 1000
+            return remaining.isFinite ? max(0, Int(remaining.rounded(.up))) : 0
+        }
     }
 
     public let sessionID: Int?
@@ -133,9 +147,15 @@ public struct PlayThemeBackpack: Equatable, Sendable {
         self.clues = clues
         if let phase = zeroPhase, phase != "HEALTHY" {
             let zero = view["zeroHp"]
-            zeroHP = ZeroHP(policy: zero["effectivePolicy"].text ?? zero["policy"].text, phase: phase,
-                            progress: zero["progress"].integer, required: zero["required"].integer.flatMap { $0 > 0 ? $0 : nil },
-                            message: PlayThemeText.clean(zero["message"].text))
+            var parsed = ZeroHP(policy: zero["effectivePolicy"].text ?? zero["policy"].text, phase: phase,
+                                progress: zero["progress"].integer, required: zero["required"].integer.flatMap { $0 > 0 ? $0 : nil },
+                                message: PlayThemeText.clean(zero["message"].text))
+            let allowed = (zero["allowedActions"].array ?? []).compactMap(\.text)
+            parsed.canSync = ["AWAITING_BASELINE", "RECOVERING"].contains(phase) && allowed.contains("ZERO_HP_SYNC")
+            if phase == "RECOVERING", let deadline = zero["deadlineAt"].integer, let now = zero["serverNow"].integer {
+                parsed.deadlineAt = Int64(deadline); parsed.serverNow = Int64(now)
+            }
+            zeroHP = parsed
         } else { zeroHP = nil }
     }
 

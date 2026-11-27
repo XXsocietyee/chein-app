@@ -135,6 +135,10 @@
     "roamSub.w208.stamp.defaultPlace": {
       "en": "This stop",
       "zh-Hans": "这一站"
+    },
+    "roam.createdStamp.filed": {
+      "en": "Added to your album",
+      "zh-Hans": "已入册"
     }
   },
   "accessibilityIdentifiers": [

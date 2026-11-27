@@ -54,7 +54,7 @@ final class MPGapG1Round4Tests: XCTestCase {
         XCTAssertNil(passTrack?.properties["name"])
         XCTAssertTrue(AnalyticsEventClient.allowedEvents.contains(JourneyFinishOfferAnalytics.shown))
         XCTAssertTrue(AnalyticsEventClient.allowedEvents.contains(JourneyFinishOfferAnalytics.click))
-        XCTAssertFalse(PlayStageAnalyticsGate.enabled)
+        XCTAssertTrue(PlayStageAnalyticsGate.enabled) // PLAY-r11-3: MP utils/stage-events.js:36-50
 
         // Falls back to product covering another route
         let prodOffer = JourneyFinishOfferResolver.resolve(isMerchantView: false, pass: nil, products: [product], currentTopicID: 10)

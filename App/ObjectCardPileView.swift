@@ -70,7 +70,7 @@ import SwiftUI
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(Text(verbatim: card.title))
+        .accessibilityLabel(Text(verbatim: ObjectCardTitleOverrides.shared.title(for: card)))
         .accessibilityIdentifier("objects.card.\(card.id)")
     }
 

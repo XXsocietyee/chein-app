@@ -218,6 +218,13 @@ public enum PlayRunKeepsakes {
             return PlayEvidenceCard(id: node.id, title: node.name, text: String(text.prefix(4_000)))
         }
     }
+    /// PLAY-r11-2: the 游玩工具 证据卡 — finished stations' `passText` (MP pages/play/utils/evidence-cards.js:1-6).
+    public static func passTextEvidence(in snapshot: PlaySnapshot) -> [PlayEvidenceCard] {
+        snapshot.visibleNodes.compactMap { node in
+            guard snapshot.isDone(node), let text = node.passText?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return nil }
+            return PlayEvidenceCard(id: node.id, title: node.name, text: String(text.prefix(4_000)))
+        }
+    }
     public static func photos(in snapshot: PlaySnapshot) -> [PlayRunPhoto] {
         snapshot.visibleNodes.compactMap { node in
             guard node.done == true, let url = node.photoURL?.trimmingCharacters(in: .whitespacesAndNewlines), !url.isEmpty else { return nil }

@@ -528,6 +528,15 @@ public enum PlayThemeGameplayExchange {
         return body
     }
 
+    /// ZEROHP-r11-1: SOLO `ZERO_HP_SYNC` `{sessionId, expectedVersion, actionId, operation}` with no contentId
+    /// (MP pages/play/utils/theme-backpack.js:112-114, :492-494: the undefined contentId is dropped by JSON).
+    public static func zeroHPSyncCommand(view: PlayWireValue, actionID: String) -> [String: PlayWireValue]? {
+        guard view["scope"].text != "TEAM", let session = view["sessionId"].playPositiveID, let version = view["version"].integer,
+              !actionID.isEmpty else { return nil }
+        return ["sessionId": .integer(Int64(session)), "expectedVersion": .integer(Int64(version)),
+                "actionId": .string(actionID), "operation": .string("ZERO_HP_SYNC")]
+    }
+
     public static func newActionID() -> String { "theme_" + UUID().uuidString.lowercased().replacingOccurrences(of: "-", with: "") }
 
     /// `POST api/play/theme/gameplay-action`. Applied only when the receipt names the same session with an integer version.

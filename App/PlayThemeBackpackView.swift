@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Personal backpack keeps the existing read projection and adds explicit native review.
-/// TEAM, trade, plans, chapter actions and zero-HP writes remain outside this page.
+/// TEAM, trade, plans and chapter actions remain outside this page. ZEROHP-r11-1: the SOLO ZERO_HP_SYNC is here.
 @MainActor struct PlayThemeBackpackView: View {
     @Bindable var model: PlayThemeBackpackCoordinator
     var gameplay: PlayThemeGameplayCoordinator? = nil
@@ -24,6 +24,10 @@ import SwiftUI
     @State private var backpackToastMessage: String?
     /// A ROUTE team run shows the TEAM backpack instead of the personal projection.
     @State private var teamActive = false
+    /// ZEROHP-r11-1: the kept ZERO_HP_SYNC command (resent as is after an unknown result), busy flag and error.
+    @State private var zeroSyncCommand: [String: PlayWireValue]?
+    @State private var zeroSyncBusy = false
+    @State private var zeroSyncError: String?
     private struct ActionSelection: Identifiable {
         let id = UUID()
         let operation: PlayThemeBackpackOperation
@@ -456,8 +460,75 @@ import SwiftUI
             if let progress = zero.progress, let required = zero.required {
                 ProgressView(value: Double(min(progress, required)), total: Double(required)) { Text(verbatim: "\(progress) / \(required)") }
             }
+            zeroRecovery(zero)
         }
         .accessibilityIdentifier("playx.backpack.zeroHP")
+        // ZEROHP-r11-1: at the deadline the state is re-synced once; the server still decides (MP theme-backpack.js:103-110).
+        .task(id: zero.deadlineAt) {
+            guard zero.canSync, let left = zero.secondsLeft() else { return }
+            if left > 0 { try? await Task.sleep(nanoseconds: UInt64(left) * 1_000_000_000) }
+            guard !Task.isCancelled else { return }
+            await syncZeroHP()
+        }
+    }
+
+    /// ZEROHP-r11-1: countdown (an estimate) and 同步恢复状态. MP pages/play/theme-backpack.wxml:17-30,
+    /// utils/theme-backpack.js:100-115. STEPS recovery (WeRun) is WeChat-only, so only its policy text shows here.
+    @ViewBuilder private func zeroRecovery(_ zero: PlayThemeBackpack.ZeroHP) -> some View {
+        if zero.deadlineAt != nil {
+            TimelineView(.periodic(from: .now, by: 1)) { context in
+                let left = zero.secondsLeft(now: context.date) ?? 0
+                Group {
+                    if left > 0 { Text("playx.backpack.zeroCountdown \(left / 60) \(left % 60)") }
+                    else { Text("playx.backpack.zeroDue") }
+                }
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+            }
+            .accessibilityIdentifier("playx.backpack.zeroCountdown")
+        }
+        if zero.canSync {
+            Button {
+                Task { await syncZeroHP() }
+            } label: {
+                if zeroSyncBusy { ProgressView() } else { Text("playx.backpack.zeroSync") }
+            }
+            .disabled(zeroSyncBusy)
+            .accessibilityLabel(Text("playx.backpack.zeroSync"))
+            .accessibilityIdentifier("playx.backpack.zeroSync")
+        }
+        if let zeroSyncError { Text(verbatim: zeroSyncError).foregroundStyle(CYColor.dangerText) }
+    }
+
+    /// `ZERO_HP_SYNC` on `api/play/theme/gameplay-action` (SOLO). An unknown result keeps the command for an exact resend.
+    private func syncZeroHP() async {
+        guard !zeroSyncBusy, let gap = runtimeGap, let client = gap.client() else { return }
+        var command = zeroSyncCommand
+        if command == nil {
+            var raw = (gameplay ?? liveGameplay)?.rawView
+            if raw?["sessionId"].playPositiveID == nil { raw = await gap.themeState() }
+            guard let raw else { return }
+            command = PlayThemeGameplayExchange.zeroHPSyncCommand(view: raw, actionID: PlayThemeGameplayExchange.newActionID())
+        }
+        guard let command else { return }
+        zeroSyncCommand = command
+        zeroSyncBusy = true
+        zeroSyncError = nil
+        let outcome = await PlayThemeGameplayExchange.action(client: client, command: command)
+        zeroSyncBusy = false
+        switch outcome {
+        case .applied(let receipt):
+            zeroSyncCommand = nil
+            (gameplay ?? liveGameplay)?.applyView(receipt)
+            await model.refresh()
+            await syncLiveGameplay()
+        case .rejected(let message):
+            zeroSyncCommand = nil
+            zeroSyncError = message
+            await model.refresh()
+        case .unknown:
+            zeroSyncError = appLocalized("playx.backpack.zeroUnknown", locale: locale)
+        }
     }
 
     private func name(_ value: PlayThemeBackpack.ValueName) -> Text {

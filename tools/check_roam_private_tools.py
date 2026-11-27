@@ -79,10 +79,12 @@ check('Share and save stay in the dedicated export file', 'ShareLink(' not in vi
       and export_view.count('UIActivityViewController(') == 1 and '.fileExporter(' in export_view)
 check('Capsule bodies only survive for OPEN capsules', 'body: open ? raw.body : nil, photoURL: open ?' in core)
 check('Capsule list strips content even in the fixture', 'var out = row; out["body"] = nil; out["photoUrl"] = nil; return out' in fixture)
+# TGOALS-r11-1: goal create writes at once with no confirmation (MP subpackageTools/exploration-goals/index.js:35);
+# the capsule seal keeps its dialog.
 check('Create dispatches only from the confirmation dialog',
-      views.count('model.confirmCreate()') == 2 and views.count('.confirmationDialog(') == 4
+      views.count('model.confirmCreate()') == 2 and views.count('.confirmationDialog(') == 3
       and 'Button("roam.capsule.seal") { guard page.acceptsInput, !page.settlementInFlight else { return }; model.prepareCreate(' in views
-      and 'Button("roam.goals.create") { guard page.acceptsInput, !page.settlementInFlight else { return }; model.prepareCreate(' in views)
+      and 'model.prepareCreate(metric: metric, target: target, startDate: startDate, endDateExclusive: endDate)\n                guard model.review != nil else { return }' in views)
 check('Destructive writes are confirmed first',
       'Button("roam.capsule.delete", role: .destructive) { page.settle(write: true, { await model.confirmDelete() }' in views
       and 'Button("roam.goals.cancelGoal", role: .destructive) { page.settle(write: true, { await model.confirmCancel() }' in views)

@@ -36,6 +36,7 @@ class RoamEntryNearbyProductionChecks(unittest.TestCase):
         self.assertNotIn('.send(', claim)
         gate = (ROOT / 'Core/PlayGameStage.swift').read_text()
         analytics = gate[gate.index('public enum PlayStageAnalyticsGate'):gate.index('public enum PlayStageAnalyticsGate') + 240]
-        self.assertIn('enabled: Bool { false }', analytics)
+        # PLAY-r11-3: stage events are on, as in the MP (pages/play/utils/stage-events.js:36-50).
+        self.assertIn('enabled: Bool { true }', analytics)
         passes = (ROOT / 'Core/PlatformPass.swift').read_text()
         self.assertGreaterEqual(passes.count('throw PlatformPassWriteRefusal.unreachable'), 3)

@@ -24,7 +24,7 @@ final class YPlayRoamCov2PinTests: XCTestCase {
     }
 
     func testPlayRoamCov2LeavesWriteGatesOff() {
-        XCTAssertFalse(PlayStageAnalyticsGate.enabled)
+        XCTAssertTrue(PlayStageAnalyticsGate.enabled) // PLAY-r11-3: MP utils/stage-events.js:36-50
         let gates = MerchantCityNPCParityGates.disabled
         XCTAssertFalse(gates.storeDayProofWrites)
         XCTAssertFalse(gates.storeDayConsentWrites)

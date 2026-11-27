@@ -14,6 +14,11 @@ public enum OfficialPublicEventReadRoute {
               baseURL.query == nil, baseURL.fragment == nil,
               let url = request.url, let parts = URLComponents(url: url, resolvingAgainstBaseURL: false),
               parts.user == nil, parts.password == nil, parts.fragment == nil else { return false }
+        // ROAM-r11-2 (D-73): the roam task list reads active-for-roam signed in or not (MP scene-roam-task-list/index.js:62-66).
+        let roamActive = baseURL.appendingPathComponent("api/official/active-for-roam")
+        if parts.path == roamActive.path {
+            return parts.query == nil && roamActive.absoluteString.utf8.elementsEqual(url.absoluteString.utf8)
+        }
         let list = baseURL.appendingPathComponent("api/official/events")
         if parts.path == list.path {
             var expected = URLComponents(url: list, resolvingAgainstBaseURL: false)!

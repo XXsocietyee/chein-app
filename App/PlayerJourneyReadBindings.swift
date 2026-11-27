@@ -97,8 +97,8 @@ struct PlayerJourneySignInSheet: ViewModifier {
     private func claimAllowed(_ primary: JourneyLandingPrimary) -> Bool {
         switch primary {
         case .claimSeat: return MPCommerceGate.seatClaimsEnabled
-        case .checkClaimResult: return link.kind == .seat ? MPCommerceGate.seatClaimsEnabled : MPCommerceGate.claimsEnabled
-        case .claimGift: return MPCommerceGate.claimsEnabled
+        case .checkClaimResult: return link.kind == .seat ? MPCommerceGate.seatClaimsEnabled : MPCommerceGate.journeyGiftClaimsEnabled
+        case .claimGift: return MPCommerceGate.journeyGiftClaimsEnabled
         case .view, .buyOwn, .enterRun: return true
         }
     }
@@ -113,10 +113,11 @@ struct PlayerJourneySignInSheet: ViewModifier {
             let requestID = retainedGiftRequest(token: link.token)
             _ = JourneyGiftClaimBody.fields(token: link.token, requestID: requestID)
             do {
-                let envelope = try source.giftClaim(token: link.token, requestID: requestID, sessionToken: session)
+                // JLAND-r11-2: sent live; the kept request id is resent for 查询领取结果 (MP landing/index.js:201-215).
+                let envelope = try await source.giftClaimLive(token: link.token, requestID: requestID, sessionToken: session)
                 applyClaim(JourneyLandingClaim.gift(envelope, targetID: target.map(\.id)))
             } catch {
-                // `moneyOff`: the body was not sent. Keep the request id. Do not draw a claimed gift.
+                // Refused before send: keep the request id. Do not draw a claimed gift.
                 markClaimBusy(false)
             }
         case .claimSeat, .checkClaimResult:
@@ -430,8 +431,14 @@ struct PlayerJourneySignInSheet: ViewModifier {
     private(set) var memory: JourneyMemoryPhase = .idle
     private(set) var rank = JourneyRankState()
     private(set) var feedback: JourneyFeedbackState = .editing(nil)
-    /// JREPORT-1: set once the report is ready (topic link; the referral token stays a money write, see `PlayerJourneyShare`).
+    /// JREPORT-1: set once the report is ready (topic link). JREF-r11-1: the referral link is issued on tap.
     private(set) var shareURL: URL?
+
+    /// JREF-r11-1: sign the referral token when the player taps share (MP report/index.js:132-147).
+    func issueShareURL() async -> URL? {
+        guard case .ready(let report) = phase else { return nil }
+        return await PlayerJourneyShare.issued(report: report, scope: scope, source: source, token: token())
+    }
     /// `var`: JREPORT-3 fills `teamID` from choices after the report is ready.
     private var scope: JourneyRunScope
     private let source: JourneyLoopSource
@@ -654,6 +661,12 @@ struct PlayerJourneySignInSheet: ViewModifier {
     @ObservationIgnored private var lastRateDraft: (stars: Int, text: String)?
     /// JSETTLE-1: set once the run is ready, so the share step always has 分享 (topic link fallback).
     private(set) var shareURL: URL?
+
+    /// JREF-r11-1: sign the referral token when the player taps share (MP settle/index.js:264-279).
+    func issueShareURL() async -> URL? {
+        guard case .ready(let report) = phase else { return nil }
+        return await PlayerJourneyShare.issued(report: report, scope: scope, source: source, token: token())
+    }
     private(set) var topicName: String?
     /// JSETTLE-r7-1 (MP settle `_loadOffer`, finish-offer.js): one read per page; nil hides the card.
     private(set) var finishOffer: JourneyFinishOffer?
@@ -1388,19 +1401,23 @@ enum PlayerJourneyProjection {
 }
 
 /// JSETTLE-1 / JREPORT-1: one share link for the report and the settle share step (mini-program `onShareAppMessage`).
-/// The issued referral link (`/api/marketing/referral/token`, `k=r&t=`) is a money write that stays off
-/// (`JourneyLoopSource.issueReferral` refuses with `moneyOff`); until it is turned on the share falls back to the
-/// public topic link, exactly as the mini-program does when the issue fails.
+/// `url` is the public topic link shown once the report is ready. JREF-r11-1: `issued` signs a referral token only
+/// when the player taps share (MP settle/index.js:264-279, report/index.js:132-147: 点分享才签发) and returns the
+/// landing link (`k=r&t=`); a failed issue falls back to the topic link, as the mini-program does.
 @MainActor enum PlayerJourneyShare {
     static func url(report: JourneyReport, scope: JourneyRunScope, source: JourneyLoopSource, token: String?) -> URL? {
-        let activity = (report.activityID ?? scope.activityID).flatMap { JourneyLoopSource.isID($0) ? $0 : nil }
+        _ = (source, token)
         let topic = (report.topicID ?? scope.topicID).flatMap { JourneyLoopSource.isID($0) ? $0 : nil }
-        if let token, let target = activity ?? topic,
-           let issued = try? source.issueReferral(targetType: activity != nil ? 2 : 1, targetID: target, token: token),
-           let landing = PlayerJourneyProjection.referralLandingURL(issued) {
-            return landing
-        }
         guard let topic, let id = Int(topic) else { return nil }
         return PublicContentShareLink.topic(id: id)
+    }
+
+    static func issued(report: JourneyReport, scope: JourneyRunScope, source: JourneyLoopSource, token: String?) async -> URL? {
+        let activity = (report.activityID ?? scope.activityID).flatMap { JourneyLoopSource.isID($0) ? $0 : nil }
+        let topic = (report.topicID ?? scope.topicID).flatMap { JourneyLoopSource.isID($0) ? $0 : nil }
+        guard let token, AuthRequestBuilder.isValidToken(token), let target = activity ?? topic,
+              let envelope = try? await source.issueReferralToken(targetType: activity != nil ? 2 : 1, targetID: target, token: token)
+        else { return nil }
+        return PlayerJourneyProjection.referralLandingURL(envelope)
     }
 }

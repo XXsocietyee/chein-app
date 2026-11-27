@@ -25,7 +25,9 @@ import FoundationNetworking
         XCTAssertTrue(OfficialPublicEventReadRoute.accepts(city, baseURL: base))
     }
     func testPrivateReadsWritersEncodedAliasesAndForeignOriginsAreRejected() {
-        let paths = ["api/official/my-events", "api/official/active-for-roam", "api/official/can-publish",
+        // ROAM-r11-2: active-for-roam is a public read now (MP scene-roam-task-list/index.js:62-66, guests included).
+        XCTAssertTrue(OfficialPublicEventReadRoute.accepts(request("api/official/active-for-roam"), baseURL: base))
+        let paths = ["api/official/my-events", "api/official/can-publish",
                      "api/official/my-published", "api/official/v2/party-inbox",
                      "api/official/events/71/signup", "api/official/events/0", "api/official/events/-1",
                      "api/official/events/071", "api/official/events/71/"]

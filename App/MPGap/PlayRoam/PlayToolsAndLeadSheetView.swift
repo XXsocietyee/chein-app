@@ -25,6 +25,8 @@ public struct PlayToolsAndLeadSheetView: View {
     public var onClose: () -> Void = {}
     /// PLAY-6a: false hides 内容 (cast / evidence / rewards / entry code) when the host has no destinations for them.
     public var showsContentRows: Bool = true
+    /// PLAY-r11-2: 证据卡 (station name + passText of finished stations); empty hides the row.
+    public var evidenceCards: [PlayEvidenceCard] = []
 
     public init(
         lead: PlayLeadToolsState = PlayLeadToolsState(),
@@ -46,7 +48,8 @@ public struct PlayToolsAndLeadSheetView: View {
         onOpenRewards: @escaping () -> Void = {},
         onOpenEntryCode: @escaping () -> Void = {},
         onClose: @escaping () -> Void = {},
-        showsContentRows: Bool = true
+        showsContentRows: Bool = true,
+        evidenceCards: [PlayEvidenceCard] = []
     ) {
         self.lead = lead
         self.evidenceCount = evidenceCount
@@ -68,6 +71,7 @@ public struct PlayToolsAndLeadSheetView: View {
         self.onOpenEntryCode = onOpenEntryCode
         self.onClose = onClose
         self.showsContentRows = showsContentRows
+        self.evidenceCards = evidenceCards
     }
 
     public var body: some View {
@@ -75,6 +79,7 @@ public struct PlayToolsAndLeadSheetView: View {
             Form {
                 leadSection
                 contentSection
+                evidenceSection
                 if !thoughts.isEmpty {
                     Section("playTools.thoughts.section") {
                         ForEach(thoughts) { item in
@@ -134,6 +139,27 @@ public struct PlayToolsAndLeadSheetView: View {
                     }
                 }
                 Button("playTools.lead.settle", action: onLeadSettle)
+            }
+        }
+    }
+
+    /// PLAY-r11-2: MP play-help.wxml:58-66 证据卡 sheet, as a pushed system list.
+    @ViewBuilder private var evidenceSection: some View {
+        if !evidenceCards.isEmpty {
+            Section {
+                NavigationLink {
+                    List(evidenceCards) { card in
+                        VStack(alignment: .leading, spacing: 4) {
+                            if let title = card.title { Text(verbatim: title).font(.headline) }
+                            Text(verbatim: card.text).textSelection(.enabled)
+                        }
+                        .accessibilityIdentifier("playTools.evidence.\(card.id)")
+                    }
+                    .navigationTitle(Text("playTools.evidence"))
+                } label: {
+                    LabeledContent("playTools.evidence") { Text(verbatim: "\(evidenceCards.count)").monospacedDigit() }
+                }
+                .accessibilityIdentifier("playTools.evidence.list")
             }
         }
     }

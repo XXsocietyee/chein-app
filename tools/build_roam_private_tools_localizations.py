@@ -77,7 +77,7 @@ KEYS = {
     'roam.goals.collapse': ('Collapse', '收起'),
     'roam.goals.cancelThis': ('Cancel this goal', '取消此目标'),
     'roam.goals.cancelTitle': ('Cancel this goal?', '取消这个目标？'),
-    'roam.goals.cancelMessage': ("Progress stops counting and the goal can't be restored.", '取消后不再统计进度，也无法恢复。'),
+    'roam.goals.cancelMessage': ("Progress stops counting and the goal can't be restored. This can't be undone.", '取消后不再统计进度，也不能恢复。此操作不可撤销。'),
     'roam.goals.cancelGoal': ('Cancel goal', '取消目标'),
     'roam.goals.keep': ('Keep', '保留'),
     'roam.goals.period': ('Period', '时间段'),

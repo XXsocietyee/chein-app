@@ -548,6 +548,7 @@ struct RoamMerchantBusinessStatusLabel: View {
 private struct RoamItemDetailTitle: ViewModifier {
     let name: String?
     @ViewBuilder func body(content: Content) -> some View {
-        if let name { content.cyPageTitle(verbatim: name) } else { content.cyPageTitle("roam.detail") }
+        // RPOI-r11-1: pre-load title is 据点详情 (MP subpackageRoam/poi-detail/index.json:3).
+        if let name { content.cyPageTitle(verbatim: name) } else { content.cyPageTitle("roam.detail.title") }
     }
 }

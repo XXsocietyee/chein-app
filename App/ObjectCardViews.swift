@@ -143,8 +143,10 @@ extension EnvironmentValues {
     @State private var drag: CGFloat = 0
     @State private var flipped = false
     @State private var renamedTitle: String?
+    @State private var renameToast: LocalizedStringKey?
     @Environment(\.locale) private var locale
     private var isFoil: Bool { card.cardStyle != "plain" }
+    private var shownTitle: String { renamedTitle ?? ObjectCardTitleOverrides.shared.title(for: card) }
     var body: some View {
         List {
             if reader.scope != expectedScope || !reader.isAuthenticated { Text("objects.sessionChanged") }
@@ -171,9 +173,14 @@ extension EnvironmentValues {
                 }
                 Section("objects.information") {
                     HStack {
-                        LabeledContent("objects.name", value: renamedTitle ?? card.title)
+                        LabeledContent("objects.name", value: shownTitle)
                         // BL-79: rename; the server's saved title replaces the shown one.
-                        ObjectCardRenameButton(cardID: Int(card.id) ?? 0, title: renamedTitle ?? card.title) { renamedTitle = $0 }
+                        // OCARDS-r11-1: it also updates the grid / pile, with 已改名 (MP object-cards/index/index.js:450-458).
+                        ObjectCardRenameButton(cardID: Int(card.id) ?? 0, title: shownTitle) { saved in
+                            renamedTitle = saved
+                            ObjectCardTitleOverrides.shared.set(saved, for: card.id)
+                            renameToast = "objects.renamed"
+                        }
                     }
                     if !card.category.isEmpty {
                         LabeledContent("objects.category") {
@@ -187,6 +194,7 @@ extension EnvironmentValues {
                 }
             }
         }.cyGroupedSurface().cyPageTitle("objects.item").privacySensitive()
+            .cyToast(message: $renameToast)
             .accessibilityIdentifier("objects.detail")
     }
     private var artwork: some View {
@@ -251,7 +259,7 @@ extension EnvironmentValues {
             }
             .frame(height: 132)
             .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-            Text(verbatim: card.title)
+            Text(verbatim: ObjectCardTitleOverrides.shared.title(for: card))
                 .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 .lineLimit(2).multilineTextAlignment(.leading).fixedSize(horizontal: false, vertical: true)
             if card.generating { CYStatusChip("objects.generating", tone: .info, systemImage: "hourglass") }
@@ -355,5 +363,18 @@ extension ObjectCardCategory {
         case .household: MPAsset.FeatureIcon.daily
         case .other: MPAsset.FeatureIcon.subpackageP3ImagesCatOther
         }
+    }
+}
+
+/// OCARDS-r11-1: titles saved by rename in this app session, keyed by card id, so the grid and pile show the new
+/// name without a re-read (MP subpackageP3/pages/object-cards/index/index.js:450-458 updates the cached card).
+@MainActor @Observable final class ObjectCardTitleOverrides {
+    static let shared = ObjectCardTitleOverrides()
+    private var titles: [String: String] = [:]
+    func title(for card: ObjectCard) -> String { titles[card.id] ?? card.title }
+    func set(_ title: String, for id: String) {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        titles[id] = trimmed
     }
 }

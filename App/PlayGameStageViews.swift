@@ -160,16 +160,20 @@ extension EnvironmentValues {
     var nodeID: Int? = nil
     var kit: String? = nil
     @Environment(\.analyticsEventClient) private var analytics
+    /// PLAY-r11-3: MP toast 已记录 after a report (pages/play/utils/stage-events.js:36-50).
+    @State private var recorded: LocalizedStringKey?
     var body: some View {
         if PlayStageAnalyticsGate.enabled {
             Menu("playkit.issue.open") {
                 ForEach(PlayStageIssueKind.allCases, id: \.self) { kind in
                     Button(LocalizedStringKey(kind.labelKey)) {
                         PlayStageAnalytics.track(analytics, .stageIssueReport, nodeID: nodeID, kit: kit, issueKind: kind)
+                        recorded = "playkit.issue.recorded"
                     }
                 }
             }
             .accessibilityIdentifier("playkit.issue.open")
+            .cyToast(message: $recorded)
         }
     }
 }

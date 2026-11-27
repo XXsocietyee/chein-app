@@ -123,7 +123,8 @@ import UIKit
         XCTAssertEqual(URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems, [.init(name: "city", value: "Example & town/城")])
         transport.current = { .init(epoch: 1, accountID: 7, role: "player", token: "synthetic-7") }
         let paths = ["api/official/my-events", "api/official/v2/party-inbox", "api/official/can-publish",
-                     "api/official/broadcast/71/stats", "api/official/active-for-roam",
+                     "api/official/broadcast/71/stats",
+                     // ROAM-r11-2: api/official/active-for-roam is a public read now (MP scene-roam-task-list/index.js:62-66).
                      "api/official/events/71/signup", "api/official/events/071", "api/official/events/71/"]
         for path in paths {
             var request = URLRequest(url: URL(string: "https://example.test/native")!.appendingPathComponent(path))

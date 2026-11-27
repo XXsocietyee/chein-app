@@ -351,9 +351,9 @@ struct JourneyLandingView: View {
             if content.primary != nil || content.actionError != nil {
                 MPBottomBar {
                     if let primary = content.primary {
-                        // JLAND-r11-1: only the gift claim is still gated; seat claims are live (`seatClaimsEnabled`).
-                        // A 查询领取结果 only follows a sent claim, and gift claims are never sent while gated.
-                        if primary == .claimGift && !MPCommerceGate.claimsEnabled {
+                        // JLAND-r11-1 / -2: seat and gift claims are live (`seatClaimsEnabled`, `journeyGiftClaimsEnabled`).
+                        // A 查询领取结果 only follows a sent claim.
+                        if primary == .claimGift && !MPCommerceGate.journeyGiftClaimsEnabled {
                             MPGatedNote(text: Text("mp.gate.claim"), identifier: "journeyLanding.claimOff")
                         } else {
                             CYMorphButton(primary.title, state: content.claimDone ? .done : (content.busy ? .working : .idle), action: onPrimary)
@@ -1023,9 +1023,8 @@ struct JourneyPromoView: View {
                 if let held = content.heldOrders {
                     LabeledContent { Text("mp.promo.heldCount \(held)") } label: { Text("mp.promo.held") }
                 }
-            } footer: {
-                MPGatedNote(text: Text("mp.gate.payout"), identifier: "journeyPromo.payoutOff")
             }
+            // JPROMO-r11-1: no payout footer; the MP promo page has none (subpackageJourney/pages/promo/index.wxml:6-13).
         }
         if !content.campaigns.isEmpty {
             Section("mp.promo.deals") {
