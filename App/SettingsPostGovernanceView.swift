@@ -50,10 +50,10 @@ struct PostGovernanceRow: Identifiable, Equatable {
     }
     /// `timeText`: ISO strings cut to minutes, epoch millis formatted; anything else empty.
     static func time(_ value: SquareGovernanceJSON) -> String {
-        if let text = value.string { return String(text.prefix(16)).replacingOccurrences(of: "T", with: " ") }
+        if let text = value.string { return LocaleDisplay.civil(String(text.prefix(16)).replacingOccurrences(of: "T", with: " "), locale: .current) }
         if let millis = value.int, millis > 0 {
-            let formatter = DateFormatter(); formatter.dateFormat = "yyyy-MM-dd HH:mm"
-            return formatter.string(from: Date(timeIntervalSince1970: Double(millis) / 1000))
+            // i18n r1: Chinese keeps `yyyy-MM-dd HH:mm`; English reads `Nov 27, 2026, 3:05 PM`.
+            return LocaleDisplay.dayTime(Date(timeIntervalSince1970: Double(millis) / 1000), locale: .current)
         }
         return ""
     }

@@ -143,7 +143,7 @@ public enum LocaleDisplay {
         guard !isChinese(locale), !text.isEmpty else { return raw }
         let utc = TimeZone(secondsFromGMT: 0)!
         let shapes: [(String, String)] = [
-            ("yyyy-MM-dd HH:mm:ss", "yMMMdjmm"), ("yyyy-MM-dd'T'HH:mm:ss", "yMMMdjmm"), ("yyyy-MM-dd HH:mm", "yMMMdjmm"),
+            ("yyyy-MM-dd HH:mm:ss", "yMMMdjmm"), ("yyyy-MM-dd'T'HH:mm:ss", "yMMMdjmm"), ("yyyy-MM-dd HH:mm", "yMMMdjmm"), ("yyyy-MM-dd'T'HH:mm", "yMMMdjmm"), ("yyyy/MM/dd HH:mm", "yMMMdjmm"),
             ("yyyy-MM-dd", "yMMMd"), ("yyyy/MM/dd", "yMMMd"), ("yyyy.MM.dd", "yMMMd"), ("yyyy-MM", "yMMM"),
         ]
         for (pattern, template) in shapes {

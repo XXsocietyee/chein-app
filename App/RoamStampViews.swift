@@ -392,7 +392,7 @@ private struct RoamStampAlbumPage: View {
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
     private var number: String { String(format: "NO. %04d", stamp.id % 10000) }
-    private var day: String? { stamp.createTime.map { String($0.prefix(10)) } }
+    private var day: String? { stamp.createTime.map { LocaleDisplay.civil(String($0.prefix(10)), locale: locale) } }
     var body: some View {
         CYFlipCard(flipped: $flipped, flipActionTitle: Text(verbatim: ChannelCopy.text("翻面", "Flip", locale: locale))) {
             front
@@ -451,6 +451,7 @@ private struct RoamStampAlbumPage: View {
 }
 
 struct RoamStampCard: View {
+    @Environment(\.locale) private var locale
     let stamp: RoamAlbumStamp
     let offline: Bool
     var allowsRemoteImages = true
@@ -473,7 +474,7 @@ struct RoamStampCard: View {
                 Text(verbatim: caption).cyText(.bodyMedium).foregroundStyle(palette.textPrimary).lineLimit(typeSize.isAccessibilitySize ? nil : 2).multilineTextAlignment(.leading)
             }
             Text(verbatim: String(format: "NO. %04d", stamp.id % 10000)).cyText(.caption).monospaced().foregroundStyle(palette.textTertiary)
-            if let date = stamp.createTime { Text(verbatim: String(date.prefix(10))).cyText(.meta).foregroundStyle(palette.textSecondary) }
+            if let date = stamp.createTime { Text(verbatim: LocaleDisplay.civil(String(date.prefix(10)), locale: locale)).cyText(.meta).foregroundStyle(palette.textSecondary) }
         }
         .frame(maxWidth: .infinity, alignment: .leading).padding(CYSpacing.md)
         .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))

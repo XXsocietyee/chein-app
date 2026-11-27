@@ -20,6 +20,10 @@ enum CityOrientationETA {
     static func clockText(minutes: Int, from now: Date) -> String {
         formatter.string(from: now.addingTimeInterval(Double(minutes) * 60))
     }
+    /// i18n r1: Chinese keeps `HH:mm`; English reads the locale clock (`2:32 PM`). Same Beijing zone.
+    static func clockText(minutes: Int, from now: Date, locale: Locale) -> String {
+        LocaleDisplay.time(now.addingTimeInterval(Double(minutes) * 60), locale: locale, timeZone: formatter.timeZone)
+    }
 
     /// MP `dur`: `N分钟`, or `H小时M分` from one hour.
     static func durationText(minutes: Int, locale: Locale) -> String {
@@ -46,7 +50,7 @@ struct CityOrientationETAText: View {
     var body: some View {
         if let minutes = CityOrientationETA.minutes(forMeters: meters) {
             TimelineView(.everyMinute) { context in
-                Text("nativeR2.city.eta \(CityOrientationETA.durationText(minutes: minutes, locale: locale)) \(CityOrientationETA.clockText(minutes: minutes, from: context.date))")
+                Text("nativeR2.city.eta \(CityOrientationETA.durationText(minutes: minutes, locale: locale)) \(CityOrientationETA.clockText(minutes: minutes, from: context.date, locale: locale))")
                     .monospacedDigit()
                     .contentTransition(.numericText())
                     .lineLimit(1)

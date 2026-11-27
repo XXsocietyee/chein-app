@@ -12,7 +12,10 @@ class NearbySourceChecks(unittest.TestCase):
     def test_bilingual(self):
         for key, value in LOCAL.items():
             for language in ['en','zh-Hans']:
-                self.assertTrue(value['localizations'][language]['stringUnit']['value'],(key,language))
+                localization = value['localizations'][language]
+                # i18n r1: English count strings may vary by plural; every form must be non-empty.
+                units = [form['stringUnit'] for form in localization['variations']['plural'].values()] if 'variations' in localization else [localization['stringUnit']]
+                for unit in units: self.assertTrue(unit['value'],(key,language))
     def test_literal_localizations_resolve(self):
         # Accessibility identifiers are not localization keys.
         ui = re.sub(r'\.accessibilityIdentifier\("[^"]*"\)|(?:message|action)?[Ii]dentifier: "[^"]*"', '', UI)

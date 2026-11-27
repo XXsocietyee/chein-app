@@ -54,7 +54,12 @@ def string_units(node):
         child = node.get(name)
         if isinstance(child, dict):
             for item in child.values():
-                yield from string_units(item)
+                if name == 'variations' and isinstance(item, dict):
+                    # variations -> plural/device -> form ("one", "other") -> node
+                    for form in item.values():
+                        yield from string_units(form)
+                else:
+                    yield from string_units(item)
 
 
 def substitution_names(node):
@@ -110,7 +115,11 @@ def catalog_gaps(tables):
                     if not isinstance(wrapped, dict):
                         continue
                     values = [value for _, value in string_units(wrapped) if isinstance(value, str)]
-                    if values and sorted(key_specs) != sorted(specifier_list(' '.join(values))):
+                    if 'variations' in wrapped:
+                        # i18n r1: each plural form is a complete format string with the key's specifiers.
+                        if any(sorted(key_specs) != sorted(specifier_list(value)) for value in values):
+                            mismatches.append((table, key, 'format-identifier', lang))
+                    elif values and sorted(key_specs) != sorted(specifier_list(' '.join(values))):
                         mismatches.append((table, key, 'format-identifier', lang))
             names = INTERP_NAME.findall(key)
             if names:

@@ -31,8 +31,12 @@ def validate_bilingual_catalog(catalog, table, allowed_source_languages=('en',))
     for key,entry in catalog['strings'].items():
         assert set(entry['localizations'])=={'en','zh-Hans'}, (table,key)
         for lang in ['en','zh-Hans']:
-            unit=entry['localizations'][lang]['stringUnit']
-            assert unit['state']=='translated' and unit['value'].strip(), (table,key,lang)
+            localization=entry['localizations'][lang]
+            # i18n r1: an English count string may vary by plural (Xcode `variations.plural`); every form is translated.
+            units=[form['stringUnit'] for form in localization['variations']['plural'].values()] if 'variations' in localization else [localization['stringUnit']]
+            assert 'variations' not in localization or 'other' in localization['variations']['plural'], (table,key,lang)
+            for unit in units:
+                assert unit['state']=='translated' and unit['value'].strip(), (table,key,lang)
     return set(catalog['strings'])
 
 def validate_literal_text_tables(source, root, objects, project_obj):

@@ -614,7 +614,7 @@ import SwiftUI
             if fixed {
                 LabeledContent {
                     HStack(spacing: 4) {
-                        Text(verbatim: "¥")
+                        Text(verbatim: LocaleDisplay.currencySymbol(locale: locale))
                         TextField(text: $fee, prompt: Text(verbatim: "0.00")) { Text("coopflow.field.fixedFee") }.keyboardType(.decimalPad).focused($typing)
                         Text(LocalizedStringKey(isClub ? "cooperation.invite.feeUnit.club" : "cooperation.invite.feeUnit.merchant")).cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     }
