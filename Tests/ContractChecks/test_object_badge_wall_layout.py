@@ -19,7 +19,8 @@ class ObjectBadgeWallLayoutContracts(unittest.TestCase):
         # fix/r10-roam-b N-B3D (play-roam.md §5; MP subpackageP3/badge-3d): route preview -> 2D List, no turntable.
         # fix/r11-roam N-r11-5 (play-roam.md §4; MP subpackageP3/pages/badge-3d): detail -> inset-grouped List with the image
         # row and LabeledContent facts; no CYFlipCard / CYFoilMedal / cyCelebrations; .sensoryFeedback(.success) kept.
-        self.assertEqual(hashlib.sha256(value).hexdigest(), 'ee5d0fcb6a7ebcac3bd447b20b635dcd56a5c5c9a6c84ec3596f55509b6dec4b')
+        # i18n/r1-strings: the badge share text's English half says "on Chengyin" instead of "on 城瘾" (copy only).
+        self.assertEqual(hashlib.sha256(value).hexdigest(), '5e3618d51915c1a90023dccc47fed8fe0c0339712165aa6ce80652e026b68f32')
         self.assertIn('let capturedIdentity = reader.identity', self.wall)
         self.assertIn('ObjectBadgeDetailView(badge: badge, reader: reader, expectedIdentity: capturedIdentity, media: media,', self.wall)
     def test_list_wall_switch_is_not_required(self):
