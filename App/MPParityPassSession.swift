@@ -198,7 +198,8 @@ extension MPParityBindings {
             city: card.city.isEmpty ? nil : card.city,
             kind: kind,
             minutes: card.minuteCount,
-            freeWithPass: card.free)
+            freeWithPass: card.free,
+            tags: card.tags.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty })
     }
 
     static func wholePoints(_ value: Double?) -> Int? { wholePoints(value, allowZero: true) }
