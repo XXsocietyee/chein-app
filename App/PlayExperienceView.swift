@@ -125,8 +125,15 @@ struct PlayThemeMusicKey: Equatable {
                 if NativeR2Flags.cityOrientation { cityOrientationNative } else { orientationContent.cyThemeLook(themeFacts?.look) }
             } else if model.snapshot == nil {
                 if model.phase == .loading {
-                    CYSkeleton().padding(CYSpacing.lg).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    // design-r2-play P10: the first frame says what is happening, not a bare skeleton. The words sit
+                    // beside the skeleton leaf, which keeps its own identifier.
+                    VStack(alignment: .leading, spacing: 0) {
+                        Label("designR2Play.run.loading", systemImage: "hourglass")
+                            .font(.headline).foregroundStyle(.secondary)
+                            .padding([.horizontal, .top], CYSpacing.lg)
+                        CYSkeleton().padding(CYSpacing.lg).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                         .accessibilityIdentifier("playMode.loading")
+                    }
                 } else {
                     VStack(spacing: CYSpacing.md) {
                         if model.available {
@@ -473,7 +480,11 @@ struct PlayThemeMusicKey: Equatable {
                     if let note = snapshot.result.timeNote { Text(verbatim: note).foregroundStyle(palette.textSecondary) }
                 }
                 if !model.available { Text("playx.disabled").accessibilityIdentifier("playx.disabled") }
-                if model.phase == .loading { CYSkeleton().accessibilityIdentifier("playx.loading") }
+                if model.phase == .loading {
+                    // design-r2-play P10: words before content; the skeleton leaf keeps its identifier.
+                    Text("designR2Play.run.loading").foregroundStyle(.secondary)
+                    CYSkeleton().accessibilityIdentifier("playx.loading")
+                }
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
                 if PlayContentCompatibility.isUnsupportedRejection(model.issue) {
                     // The server refused to open this run for this build; nothing was skipped or started.
@@ -771,7 +782,7 @@ struct PlayThemeMusicKey: Equatable {
     }
     @ViewBuilder private var cityRunPanel: some View {
         VStack(spacing: 0) {
-            CityOrientationRunMetricsRow(model: model, walkedMeters: cityLocation.walkedMeters) { cityRunPrimary }
+            CityOrientationRunMetricsRow(model: model, walkedMeters: cityLocation.walkedMeters, nextStopMeters: cityNextStopMeters) { cityRunPrimary }
             NavigationStack {
                 List {
                     if model.hasCurrentMediaSnapshot, !model.unresolved, let snapshot = model.snapshot,
@@ -796,7 +807,7 @@ struct PlayThemeMusicKey: Equatable {
                 }
                 .refreshable { if model.available && model.phase != .submitting { await model.load() } }
                 .toolbar { orientationToolbar }
-                .navigationTitle(Text("playx.title"))
+                // design-r2-play: the run screen's nav bar already reads 城市定向; the panel does not repeat it.
                 .navigationBarTitleDisplayMode(.inline)
                 .accessibilityIdentifier("playx.overview")
             }
@@ -824,6 +835,13 @@ struct PlayThemeMusicKey: Equatable {
         } message: {
             Text("playx.run.end.detail")
         }
+    }
+    /// design-r2-play P1: metres to the current stop, so the paused peek leads with a real value instead of "—".
+    private var cityNextStopMeters: Double? {
+        guard model.hasCurrentMediaSnapshot, !model.unresolved, let snapshot = model.snapshot,
+              let id = PlayTaskSummaryPresentation(snapshot: snapshot).currentNodeID,
+              let node = snapshot.visibleNodes.first(where: { $0.id == id }) else { return nil }
+        return cityLocation.distance(toLatitude: node.latitude, longitude: node.longitude)
     }
     /// P-056: a server hint ladder opens as a sheet over the map; without one, the stop page keeps its legacy hint rows.
     private func openCityHint(_ id: Int) {

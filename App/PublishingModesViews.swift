@@ -96,6 +96,13 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
         // Mini-program publish/simple order: AI draft, the draft (route type, name, story),
         // the stops to confirm on the map, then one primary action into the editor.
         Form {
+            // design-r2-play P4: where the draft stands, "n / 3" + ring (details → stops → editor), from the same
+            // QuickPublishValidation the footer and handoff use; nothing new is gated.
+            Section {
+                CYStepProgressHeader(Text("publishModes.quick"), systemImage: "wand.and.stars",
+                                     done: Self.stepsDone(draft.wrappedValue), total: 3,
+                                     identifier: "publishModes.quick.steps")
+            }
             Section {
                 QuickPublishSimplePageStatus(owner: simplePage)
             }
@@ -164,6 +171,15 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                 QuickPublishingJourneyPresenter(owner: journey, original: original, placeSearch: placeSearch).id(original.id)
             }
         }
+    }
+}
+extension QuickPublishingView {
+    /// Details done = a name; stops done = at least one stop, every stop named and placed. The editor step is the handoff.
+    static func stepsDone(_ draft: QuickPublishDraft) -> Int {
+        let issues = QuickPublishValidation.issues(draft)
+        let detailsDone = !issues.contains(.titleMissing)
+        let stopsDone = !draft.nodes.isEmpty && issues.allSatisfy { $0 == .titleMissing }
+        return (detailsDone ? 1 : 0) + (stopsDone ? 1 : 0)
     }
 }
 @MainActor struct ActivityPublishingView: View {

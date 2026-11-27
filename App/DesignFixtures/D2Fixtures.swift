@@ -41,10 +41,26 @@ struct D2Fixture: View {
             NavigationStack {
                 MessagingHomeView(reader: MessagingFixtureReader(.empty), expanded: nil, squareDestination: { _ in AnyView(EmptyView()) })
             }
-        case .me:
-            AccountView(account: try! JSONDecoder().decode(Account.self, from: Data(#"{"id":81,"nickname":"Mia","role":"player","levelId":2}"#.utf8)))
-                .environmentObject(AppSession())
+        case .me: D2MeFixture()
         case .roam: RoamHomeFixtureHostView()
+        }
+    }
+}
+
+/// design-r2-play: the signed-in 我的 header. A bare `AppSession()` is signed out, which painted the signed-out line and
+/// dash counters under the name "Mia"; the fixture readers are signed in, so name, counters and 积分 (P1 hero) are real values.
+@MainActor struct D2MeFixture: View {
+    @State private var member = MemberHomeFixtureReader(scenario: "ready")
+    @State private var growth = GrowthCenterFixtureReader(scenario: .content)
+    private let account = try! JSONDecoder().decode(Account.self, from: Data(#"{"id":81,"nickname":"Mia","role":"player","levelId":2}"#.utf8))
+    var body: some View {
+        NavigationStack {
+            Form {
+                MemberIdentityCardSection(account: account, reader: member, growth: growth)
+                MemberBenefitsSection(reader: member)
+            }
+            .navigationTitle(Text("account.title"))
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 }

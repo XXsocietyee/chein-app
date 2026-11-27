@@ -40,7 +40,7 @@ struct E5bBadgeWallFixture: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private let badges: [ProfileBadgeSelection]
     init() {
-        let json = #"[{"badgeCode":"A","badgeName":"Night Owl","category":"EXPLORE","unlocked":true,"unlockTime":"2026-10-01 10:00:00"},{"badgeCode":"B","badgeName":"First Stamp","category":"EXPLORE","unlocked":true},{"badgeCode":"C","badgeName":"Market Regular","category":"FOOD","unlocked":true},{"badgeCode":"D","badgeName":"Ten Spots","category":"EXPLORE","unlocked":false},{"badgeCode":"E","badgeName":"Club Founder","category":"SOCIAL","unlocked":false},{"badgeCode":"F","badgeName":"Rainy Day Walker","category":"EXPLORE","unlocked":false}]"#
+        let json = #"[{"badgeCode":"A","badgeName":"Night Owl","category":"EXPLORE","unlocked":true,"unlockTime":"2026-10-01 10:00:00"},{"badgeCode":"B","badgeName":"First Stamp","category":"EXPLORE","unlocked":true},{"badgeCode":"C","badgeName":"Market Regular","category":"FOOD","unlocked":true},{"badgeCode":"D","badgeName":"Ten Spots","category":"EXPLORE","unlockHint":"Check in at 10 spots","unlocked":false},{"badgeCode":"E","badgeName":"Club Founder","category":"SOCIAL","unlockHint":"Create a club","unlocked":false},{"badgeCode":"F","badgeName":"Rainy Day Walker","category":"EXPLORE","unlockHint":"Finish a roam on a rainy day","unlocked":false}]"#
         let list = (try? JSONDecoder().decode([ProfileIdentityBadge].self, from: Data(json.utf8))) ?? []
         badges = list.map { .identity($0) }
     }

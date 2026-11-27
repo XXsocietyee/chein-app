@@ -31,13 +31,22 @@ struct CityOrientationEventCTA {
 
     var body: some View {
         List {
+            // design-r2-play P15: place facts in one line, actions as a pill row (Apple Maps place card).
+            // name → category · area → live status in colour ("Starts in 12 min") → Directions · Share capsules.
             Section {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 6) {
                     Text(verbatim: detail.summary.name).font(.title2.bold())
-                    if let category = facts.categoryText {
-                        Text(verbatim: category).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityAddTraits(.isHeader)
+                    if let line = placeLine {
+                        Text(verbatim: line).foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("activity.detail.category")
                     }
+                    if !detail.isCancelled {
+                        ExploreStartsInLine(startRaw: detail.summary.startDate, endRaw: detail.summary.endDate, tint: CYColor.successText)
+                    }
+                    actionPills
                 }
                 .padding(.vertical, 4)
             }
@@ -77,10 +86,6 @@ struct CityOrientationEventCTA {
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Text("activity.location"))
                     .accessibilityAddTraits(.isImage)
-                    if let onDirections {
-                        Button(action: onDirections) { Label("nativeR2.city.event.directions", systemImage: "arrow.triangle.turn.up.right.diamond") }
-                            .accessibilityIdentifier("nativeR2.city.event.directions")
-                    }
                 }
             }
             if let topicDestination {
@@ -134,6 +139,41 @@ struct CityOrientationEventCTA {
             }
         }
         .accessibilityIdentifier("activity.detail.content")
+    }
+
+    /// P15 "category · area": the MP category names, then the named meeting place when there is one.
+    private var placeLine: String? {
+        var parts: [String] = []
+        if let category = facts.categoryText { parts.append(category) }
+        if case .named(let place) = facts.meetingPoint { parts.append(place) }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    private var shareText: String {
+        [detail.summary.name, timeText].compactMap { $0 }.joined(separator: " · ")
+    }
+
+    /// P15 capsule row. Scrolls sideways when English labels run long (P12); Directions keeps its identifier.
+    private var actionPills: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                if let onDirections, detail.summary.hasValidCoordinates {
+                    Button(action: onDirections) {
+                        Label("nativeR2.city.event.directions", systemImage: "arrow.triangle.turn.up.right.diamond")
+                    }
+                    .accessibilityIdentifier("nativeR2.city.event.directions")
+                }
+                ShareLink(item: shareText) {
+                    Label("nativeR2.city.finish.share", systemImage: "square.and.arrow.up")
+                }
+                .accessibilityIdentifier("activity.detail.share")
+            }
+            .buttonStyle(.bordered)
+            .buttonBorderShape(.capsule)
+            .controlSize(.small)
+            .font(.subheadline.weight(.semibold))
+        }
+        .padding(.top, 4)
     }
 
     private var timeText: String? {

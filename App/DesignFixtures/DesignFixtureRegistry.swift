@@ -59,7 +59,7 @@ enum DesignFixtureRegistry {
         case "ia-tabs": return AnyView(IATabsFixture())
         case "ia-explore-create": return AnyView(IAExploreCreateFixture(hasPublishingSession: true))
         case "ia-explore-no-create": return AnyView(IAExploreCreateFixture(hasPublishingSession: false))
-        case "ia-passport": return AnyView(IAPassportFixture(count: 3, badges: [PassportBadge(id: 0, name: "Night Owl"), PassportBadge(id: 1, name: "First Roam"), PassportBadge(id: 2, name: nil)]))
+        case "ia-passport": return AnyView(IAPassportFixture(count: 3, badges: [PassportBadge(id: 0, name: "Night Owl"), PassportBadge(id: 1, name: "First Roam"), PassportBadge(id: 2, name: "Market Regular")], badgeTotal: 12))
         case "ia-passport-no-badges": return AnyView(IAPassportFixture(count: 3, badges: []))
         case "ia-passport-unknown": return AnyView(IAPassportFixture(count: nil))
         case "ia-passport-ax5": return AnyView(IAPassportFixture(count: 3, badges: [PassportBadge(id: 0, name: "Night Owl"), PassportBadge(id: 1, name: "First Roam")]).environment(\.dynamicTypeSize, .accessibility5))

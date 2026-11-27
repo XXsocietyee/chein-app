@@ -66,10 +66,13 @@ struct PassportBadge: Identifiable, Equatable {
     /// Stamp collection and badge rail each get one tap to their existing list (history / growth center); nil = static.
     var onOpenStamps: (() -> Void)? = nil
     var onOpenBadges: (() -> Void)? = nil
+    /// design-r2-play P14: the badge wall (identities + medals) gives the "n of N" total; nil keeps the plain count.
+    var badgeWall: (any ProfileReading)? = nil
     @State private var stampCount: Int?
     @State private var thumbnails: [PassportStampThumbnail]?
     @State private var stampPhase: StampPhase = .loading
     @State private var badges: [PassportBadge]?
+    @State private var badgeTotal: Int?
     private enum StampPhase { case loading, ready, failed, offline }
     private struct LoadKey: Equatable { var stamps: ObjectIdentifier; var album: ObjectIdentifier?; var growth: ObjectIdentifier?; var refresh: Int }
 
@@ -97,7 +100,7 @@ struct PassportBadge: Identifiable, Equatable {
             case .ready:
                 EmptyView()
             }
-            PassportOverviewContent(stampCount: stampCount, thumbnails: thumbnails, badges: badges, onOpenTickets: onOpenTickets, showsTicketsAction: showsTicketsAction, onOpenWallet: onOpenWallet, onOpenMessages: onOpenMessages, onOpenStamps: onOpenStamps, onOpenBadges: onOpenBadges)
+            PassportOverviewContent(stampCount: stampCount, thumbnails: thumbnails, badges: badges, badgeTotal: badgeTotal, onOpenTickets: onOpenTickets, showsTicketsAction: showsTicketsAction, onOpenWallet: onOpenWallet, onOpenMessages: onOpenMessages, onOpenStamps: onOpenStamps, onOpenBadges: onOpenBadges)
                 .motionR2LoadIn(loading: stampPhase == .loading && stampCount == nil) // motion r2 R17: skeleton → fade in
         }
         .task(id: LoadKey(stamps: ObjectIdentifier(reader), album: album.map { ObjectIdentifier($0) },
@@ -112,6 +115,13 @@ struct PassportBadge: Identifiable, Equatable {
         guard let growth, growth.isConfigured, growth.isAuthenticated,
               let center = (try? await growth.overview())?.center.value, !Task.isCancelled else { badges = nil; return }
         badges = center.badges.enumerated().map { PassportBadge(index: $0.offset, badge: $0.element) }
+        // P14: "3 of 12" like the stamps. The wall is the MP badge-wall list (lit + locked); a failed read keeps the count alone.
+        if let badgeWall, badgeWall.isConfigured, let wall = try? await badgeWall.profileBadges(), !Task.isCancelled {
+            let summary = ObjectBadgeWallSummary(wall: wall)
+            badgeTotal = summary.total > 0 ? summary.total : nil
+        } else {
+            badgeTotal = nil
+        }
     }
 
     /// Album first (server count + thumbnails, one page of 12, the same request the stamp album makes), then the
@@ -186,6 +196,8 @@ private struct PassportRollingCount: View {
     var thumbnails: [PassportStampThumbnail]? = nil
     /// nil = unknown (em dash); empty = known none (rail hidden); otherwise the earned badges.
     var badges: [PassportBadge]? = nil
+    /// design-r2-play P14: all badges on the wall, so the rail reads "n of N" like the stamps; nil = count only.
+    var badgeTotal: Int? = nil
     var onOpenTickets: () -> Void = {}
     var showsTicketsAction = true
     var onOpenWallet: () -> Void = {}
@@ -205,30 +217,37 @@ private struct PassportRollingCount: View {
 
     /// Contacts-style action buttons (bordered, symbol over label).
     private var actions: some View {
+        // design-r2-play P12: one row of equal-height capsules; the tallest label sets the height for all.
         HStack(alignment: .top, spacing: 8) {
             if showsTicketsAction {
                 action("ticketWallet.title", "ticket", id: "passport.action.tickets", perform: onOpenTickets)
             }
-            action("wallet.title", "creditcard", id: "passport.action.wallet", perform: onOpenWallet)
+            action("wallet.title", short: "designR2Play.passport.wallet.short", "creditcard", id: "passport.action.wallet", perform: onOpenWallet)
             action("messaging.title", "bubble.left.and.bubble.right", id: "passport.action.messages", perform: onOpenMessages)
         }
+        .fixedSize(horizontal: false, vertical: true)
         .frame(maxWidth: .infinity)
     }
 
-    private func action(_ title: LocalizedStringKey, _ symbol: String, id: String, perform: @escaping () -> Void) -> some View {
+    /// `short` is the one-line fallback ("Earnings") when the full title would wrap; VoiceOver always hears the full title.
+    private func action(_ title: LocalizedStringKey, short: LocalizedStringKey? = nil, _ symbol: String, id: String, perform: @escaping () -> Void) -> some View {
         Button(action: perform) {
             VStack(spacing: 4) {
                 Image(systemName: symbol)
                     .font(.title3)
                     .accessibilityHidden(true)
-                Text(title)
-                    .font(.caption)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
+                ViewThatFits(in: .horizontal) {
+                    Text(title).font(.caption).lineLimit(1)
+                    Text(short ?? title)
+                        .font(.caption)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .buttonStyle(.bordered)
+        .accessibilityLabel(Text(title))
         .accessibilityIdentifier(id)
     }
 
@@ -353,12 +372,21 @@ private struct PassportRollingCount: View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 Text("passport.badges.title").font(.subheadline).foregroundStyle(.secondary)
-                if let badges { CYLiveCounter(badges.count, style: .dataXL) }
+                if let badges {
+                    // P14: "3 of 12", the same shape as the stamp count.
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        CYLiveCounter(badges.count, style: .dataXL)
+                        if let badgeTotal {
+                            Text("passport.stamps.ofTotal \(badgeTotal)")
+                                .font(.headline).monospacedDigit().foregroundStyle(.secondary)
+                        }
+                    }
+                }
                 else { Text(verbatim: "—").font(.largeTitle.bold()).foregroundStyle(.secondary) }
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text("passport.badges.title"))
-            .accessibilityValue(badges.map { Text($0.count, format: .number) } ?? Text(verbatim: "—"))
+            .accessibilityValue(badgeCountValue)
             .accessibilityIdentifier("passport.badges.count")
             if let badges {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -374,6 +402,12 @@ private struct PassportRollingCount: View {
         .padding(.vertical, 4)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("passport.badgeRail")
+    }
+
+    private var badgeCountValue: Text {
+        guard let badges else { return Text(verbatim: "—") }
+        guard let badgeTotal else { return Text(badges.count, format: .number) }
+        return Text("passport.stamps.count \(badges.count) \(badgeTotal)")
     }
 
     @ViewBuilder private func badgeObject(_ badge: PassportBadge) -> some View {

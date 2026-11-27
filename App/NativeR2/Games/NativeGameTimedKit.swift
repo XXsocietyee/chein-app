@@ -353,7 +353,11 @@ import SwiftUI
     }
     private var clockLabel: String {
         if kind == .stopwatch && timing.phase == .running && elapsed >= 1000 { return "—.—" }
-        if kind == .countdown { return "—" }
+        // design-r2-play P1: before the start the countdown shows the challenge length it will run, not a dash.
+        // Once started the server-acknowledged clock (NativeGameCountdownClock) takes over; nothing is computed here.
+        if kind == .countdown {
+            return timing.phase == .idle && seconds > 0 ? PlayTimedDisplayLocalization.seconds(seconds, precision: .tenths, locale: locale) : "—"
+        }
         if kind == .typeIn {
             if seconds <= 0 { return PlayTimedDisplayLocalization.seconds(Double(elapsed) / 1000, locale: locale) }
             return PlayTimedDisplayLocalization.seconds(max(0, seconds - Double(elapsed) / 1000), precision: .tenths, locale: locale)

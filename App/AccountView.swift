@@ -50,7 +50,8 @@ import SwiftUI
                                             showsTicketsAction: false,
                                             onOpenWallet: { showsPassportWallet = true }, onOpenMessages: { showsPassportMessages = true },
                                             onOpenStamps: session.roamExperienceReader.isConfigured || session.roamAlbumMetadataReader.isConfigured ? { showsPassportStamps = true } : nil,
-                                            onOpenBadges: { showsPassportBadges = true })
+                                            onOpenBadges: { showsPassportBadges = true },
+                                            badgeWall: session.profileReader)
                     MotionR2ChecklistSection() // motion r2 R10: first-run checklist (hidden once done or off)
                 }
                 ProfileAccountLinks(reader:session.profileReader,scoreAppealsDestination:{ AnyView(MemberScoreAppealListView(session: session)) },ordersDestination:{ AnyView(SessionOwnedOrdersView(session: session)) },participantReader:session.participantReader,participantCoordinator:session.participantCoordinator,orderLifecycleCoordinator:session.orderLifecycleCoordinator, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory, part: .orders)

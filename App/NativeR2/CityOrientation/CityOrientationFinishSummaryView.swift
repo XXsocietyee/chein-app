@@ -20,6 +20,8 @@ import MapKit
     /// P-059: the route draws itself on the thumbnail and the metrics roll up from zero once, on appear.
     @State private var draw = NativeR2DrawOn()
     @State private var revealed = false
+    /// design-r2-play P16: when the finish screen opened, for the record's "date · place" line.
+    @State private var finishedAt = Date()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.locale) private var locale
 
@@ -50,6 +52,29 @@ import MapKit
         return items
     }
 
+    /// P16 record title: the route's name (MP topicName); the server result word stays the nav title.
+    private var recordTitle: String? {
+        let name = model.snapshot?.result.topicName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return name.isEmpty ? nil : name
+    }
+    /// P16 place: where the run started (first stop's name, MP stop order).
+    private var startPlace: String? {
+        guard let snapshot = model.snapshot else { return nil }
+        let first = snapshot.visibleNodes.min { ($0.sortID ?? Int.max) < ($1.sortID ?? Int.max) }
+        let name = first?.name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return name.isEmpty ? nil : name
+    }
+    private var dateAndPlace: String {
+        let day = finishedAt.formatted(.dateTime.month(.abbreviated).day().hour().minute().locale(locale))
+        return [day, startPlace].compactMap { $0 }.joined(separator: " · ")
+    }
+    /// 2 columns for 2 or 4 values, otherwise 3; one column at accessibility sizes (P12).
+    private func metricColumns(_ count: Int, accessibility: Bool) -> [GridItem] {
+        let n = accessibility ? 1 : (count == 2 || count == 4 ? 2 : min(3, max(1, count)))
+        return Array(repeating: GridItem(.flexible(), alignment: .leading), count: n)
+    }
+    @Environment(\.dynamicTypeSize) private var typeSize
+
     private var doneCount: Int {
         guard let snapshot = model.snapshot else { return 0 }
         return snapshot.visibleNodes.filter { snapshot.isDone($0) }.count
@@ -59,21 +84,38 @@ import MapKit
     var body: some View {
         NavigationStack {
             List {
-                // Motion r2 R8/R11/R12: mood hero + completion flame at the finish line.
-                MotionR2FinishHeroSection(walkedMeters: walkedMeters, elapsedSeconds: model.clock.elapsedSeconds,
-                                          doneCount: doneCount, total: totalCount)
-                if !subtitle.isEmpty {
-                    Section { Text(verbatim: subtitle).foregroundStyle(.secondary) }
+                // design-r2-play P16: a finished run is a named record. Route on the map first, then the title,
+                // "date · place", the stats grid; share + Done stay in the top bar.
+                if let route, !route.mappedStops.isEmpty {
+                    Section {
+                        routeThumbnail(route)
+                        replayLink(route)
+                    }
+                }
+                Section {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(verbatim: recordTitle ?? appLocalized(String.LocalizationValue(titleKey), locale: locale))
+                            .font(.title2.bold())
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityAddTraits(.isHeader)
+                        Text(verbatim: dateAndPlace).font(.subheadline).foregroundStyle(.secondary)
+                            .accessibilityIdentifier("nativeR2.city.finish.datePlace")
+                        if !subtitle.isEmpty {
+                            Text(verbatim: subtitle).font(.subheadline).foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 4)
                 }
                 if !metrics.isEmpty {
                     Section {
-                        LazyVGrid(columns: [GridItem(.flexible(), alignment: .leading), GridItem(.flexible(), alignment: .leading)],
+                        LazyVGrid(columns: metricColumns(metrics.count, accessibility: typeSize.isAccessibilitySize),
                                   alignment: .leading, spacing: 12) {
                             ForEach(metrics) { metric in
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(LocalizedStringKey(metric.id)).font(.caption).foregroundStyle(.secondary)
                                     Text(verbatim: revealed ? metric.value : Self.zeroed(metric.value))
-                                        .font(.title2.monospacedDigit())
+                                        .font(.title2.bold().monospacedDigit())
+                                        .lineLimit(1).minimumScaleFactor(0.7)
                                         .nativeR2RollingNumber(revealed ? 1 : 0)
                                 }
                                 .accessibilityElement(children: .ignore)
@@ -85,12 +127,9 @@ import MapKit
                         .accessibilityIdentifier("nativeR2.city.finish.metrics")
                     }
                 }
-                if let route, !route.mappedStops.isEmpty {
-                    Section {
-                        routeThumbnail(route)
-                        replayLink(route)
-                    }
-                }
+                // Motion r2 R8/R11/R12: mood hero + completion flame at the finish line (P7 moment, under the record).
+                MotionR2FinishHeroSection(walkedMeters: walkedMeters, elapsedSeconds: model.clock.elapsedSeconds,
+                                          doneCount: doneCount, total: totalCount)
                 if let route { CityOrientationLegsSection(route: route) }
                 if !medals.isEmpty {
                     // Design pass roam (P8 rewards are objects you keep): each medal is a tile with its name and the

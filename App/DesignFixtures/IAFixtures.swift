@@ -66,6 +66,8 @@ struct IAPassportFixture: View {
     let count: Int?
     /// nil = unknown (em dash), [] = known none (rail hidden).
     var badges: [PassportBadge]? = nil
+    /// design-r2-play: the wall total, so the rail reads "n of N" like the stamps.
+    var badgeTotal: Int? = nil
     var body: some View {
         NavigationStack {
             Form {
@@ -73,7 +75,7 @@ struct IAPassportFixture: View {
                     Text(verbatim: "Synthetic fixture: identity card goes here (MemberIdentityCardSection)")
                         .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
-                Section { PassportOverviewContent(stampCount: count, badges: badges) }
+                Section { PassportOverviewContent(stampCount: count, badges: badges, badgeTotal: badgeTotal) }
                     .listRowBackground(CYColor.bgSurface)
             }
             .scrollContentBackground(.hidden)
