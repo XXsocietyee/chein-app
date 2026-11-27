@@ -358,10 +358,10 @@ import QuestifyCore
         } else if area != nil {
             // MP entry-peek__state: 附近暂无活动 · 打开地图寻找附近活动, the tap opens subpackageRoam/nearby.
             ContentUnavailableView {
-                Label("nativeR2.mapHome.nearby.empty", systemImage: "mappin.slash")
+                Label("roam.w208.entry.empty", systemImage: "mappin.slash")
             } actions: {
                 if dependencies.nearbyTeamsDestination != nil {
-                    Button("roam.mapHome.nearby.empty.openMap") { model.push(.nearbyTeams) }
+                    Button("roam.w208.entry.emptyHint") { model.push(.nearbyTeams) }
                         .buttonStyle(.bordered)
                         .accessibilityIdentifier("roam.mapHome.nearby.openMap")
                 }
