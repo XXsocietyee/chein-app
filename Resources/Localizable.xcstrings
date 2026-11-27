@@ -343236,6 +343236,40 @@
           }
         }
       }
+    },
+    "mpr3.baoming.addParticipant": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add participant details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增参与人信息"
+          }
+        }
+      }
+    },
+    "mpr3.baoming.manageParticipants": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage participant details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理参与人信息"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
