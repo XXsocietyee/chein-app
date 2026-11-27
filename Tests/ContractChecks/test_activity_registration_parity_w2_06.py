@@ -47,12 +47,14 @@ class ActivityDetailParityTests(unittest.TestCase):
         fold = source.split("private func detailContent", 1)[1].split("private func moreInfoSections", 1)[0]
         ordered(self, fold, (
             "E1ActivityHero(summary:detail.summary)",
-            # mp-home r3: MP shows the cancelled notice right under the hero, before the native info card.
+            # mp-home r3: MP shows the cancelled notice right under the hero; r3 continue: the native info card and
+            # static map (no MP counterpart) are gone, so the facts and 主题路线 follow directly.
             'accessibilityIdentifier("activity.detail.cancelled")',
-            "E1ActivityInfoCard(detail:detail)",
-            "ActivityDetailMetaSection(facts: ActivityDetailHeaderFacts(detail: detail))",
-            "detail.summary.hasValidCoordinates",
+            "ActivityDetailMetaSection(facts: ActivityDetailHeaderFacts(detail: detail), onOpenLocation: directionsAction(detail))",
+            'accessibilityIdentifier("activity.openTopic")',
             'Section("activity.about")',
+            "ActivityPeopleSection(people:",
+            "ActivityAssociatedPlaysSection(plays:",
             'E1IconHeader(systemImage: "ticket"',
             'accessibilityIdentifier("activity.more.toggle")',
             "if showsMoreInfo { moreInfoSections(detail) }",
@@ -76,7 +78,11 @@ class ActivityDetailParityTests(unittest.TestCase):
                       'accessibilityIdentifier("activity.detail.registeredCount")',
                       ".font(.body)"):
             self.assertIn(token, meta)
-        for forbidden in ("Button", "Task", "URLSession", "?? 0", "lineLimit", "payment", "StoreKit", "WXApi",
+        # mp-home r3 continue: MP 集合点 row is tappable (`openLocation`), so the one Button opens Maps.
+        self.assertEqual(meta.count("Button("), 1)
+        self.assertIn("Button(action: onOpenLocation)", meta)
+        self.assertIn('accessibilityHint(Text("activity.meetingPoint.openMaps"))', meta)
+        for forbidden in ("Task", "URLSession", "?? 0", "lineLimit", "payment", "StoreKit", "WXApi",
                           ".system(size:", ".caption2", "Theme.Font"):
             self.assertNotIn(forbidden, meta)
 

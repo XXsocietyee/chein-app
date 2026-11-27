@@ -3,9 +3,9 @@
 Branch `mp/r3-home` from `origin/ui/combined-r7`. Brief: `design/handoff-r2:docs/briefs/round3-1127.md` (row `mp-home`), rules from `round2-1127.md`, principles `design-principles.md`.
 MP source: `origin/mp-source:chengyinhub-xcx` (snapshot of hengyin master 2026-11-24). Pages read: `pages/index/index.{wxml,js}`, `utils/index/{home-action-banner,feed-card}.js`, `pages/activity/list/index.wxml`, `subpackageMember/components/cy/scene-play-activity-detail/index.wxml` (what `pages/activity/detail` hosts), `pages/topic/index/index.wxml`.
 
-Gates (last run on the tip): `tools/generate_project.py` OK · `tools/check_scaffold.py` PASS · `tools/check_a11y_lint.py` PASS (0 new) · `tools/check_typography_lint.py` PASS · `tools/contract_ratchet.py --check` new 0 (re-arm run: the one new raw-colour hit, the avatar ring `Color(.systemBackground)`, fixed to `.background`). No Swift compiler here: edits mirror existing patterns; nothing deployed. Merchant features and the story-flow theme untouched.
+Gates (last run on the tip, r3 continue): `tools/generate_project.py` OK · `tools/check_scaffold.py` PASS · `tools/check_a11y_lint.py` PASS (0 new) · `tools/check_typography_lint.py` PASS · `tools/contract_ratchet.py --check` new 0 (re-arm run: the one new raw-colour hit, the avatar ring `Color(.systemBackground)`, fixed to `.background`). No Swift compiler here: edits mirror existing patterns; nothing deployed. Merchant features and the story-flow theme untouched.
 
-Strings: `docs/port/strings/mp-home-r3.json` (4 keys, en + zh-Hans) merged into `Resources/Localizable.xcstrings`: `homeFeed.type.orienteering` 城市定向 / City orienteering, `homeFeed.type.freeExplore` 自由探索 / Free exploration, `homeFeed.startingSoon` 即将开始 / Starting soon, `homeFeed.loadingMore` 正在加载更多 / Loading more…. (`homeIndex.logo` from the re-arm was removed again in round 3 continue — the logo bar item is gone.)
+Strings: `docs/port/strings/mp-home-r3.json` (6 keys; r3 continue added `activity.meetingPoint.openMaps`, `activity.hero.when %@`, en + zh-Hans) merged into `Resources/Localizable.xcstrings`: `homeFeed.type.orienteering` 城市定向 / City orienteering, `homeFeed.type.freeExplore` 自由探索 / Free exploration, `homeFeed.startingSoon` 即将开始 / Starting soon, `homeFeed.loadingMore` 正在加载更多 / Loading more…. (`homeIndex.logo` from the re-arm was removed again in round 3 continue — the logo bar item is gone.)
 
 ## MP sections top-to-bottom vs native
 
@@ -50,8 +50,13 @@ MP order: hero (status, title, date) → cancelled notice → facts (分类 / �
 | Cancelled notice came after the info card and action rows. | **Fixed** — right under the hero; contract pin in `test_activity_registration_parity_w2_06.py` updated with a one-line reason. |
 | 主题路线 was a separate section after the map. | **Fixed** — directly after the facts. |
 | 关联玩法模板 hidden behind "More info". | **Fixed** — between people and 票种 (also on the city-event variant). |
-| Static map section (not in MP; MP 集合点 row opens the map). | **Kept** — pinned by `test_activity_design_structure` / parity order; directions remain the action row. |
-| Native info card + action rows (directions / review / channel) above the facts. | **Kept** — pinned E1 parts (`E1ActivityInfoCard`); no MP counterpart, noted. |
+| Static map section (not in MP; MP 集合点 row opens the map). | **Fixed (r3 continue)** — removed from both variants; the 集合点 fact row is a `Button` that opens Maps when coordinates exist (MP `openLocation`, hint `activity.meetingPoint.openMaps` 导航到集合点 / Opens directions to the meeting point in Maps). |
+| Native info card + action rows (directions / review / channel) above the facts. | **Fixed (r3 continue)** — `E1ActivityInfoCard` and `ActivityActionRows` removed from the page (the card repeated 分类 / 集合点 / 已报名 with duplicate ids; date lives in the hero, price in 票种); 写评价 stays with the reviews; the in-game channel row (native extra, joined players only) moved after the MP sections. |
+| City-event variant (`App/NativeR2/CityOrientation/CityOrientationEventDetailList.swift`, behind `NativeR2Flags.cityOrientation`): map section; people / plays / reviews mounted after 票种 via `more()`. | **Fixed (r3 continue)** — map removed, 集合点 row opens Maps; new `people` / `reviews` slots put 主理人 · N 人已报名 · 关联玩法模板 between 关于 and 票种 and 评价 right after 票种; channel after the MP sections. |
+
+| Hero (`E1ActivityHero`, `App/E1ActivityDetailParts.swift`): status + price chips, title, starts-in, place; MP `activity-hero` = status badge, title, 「活动时间 · start - end」. | **Fixed (r3 continue)** — price chip removed (price is in 票种 / the footer), place line replaced by the MP date line (`activity.hero.when %@` 活动时间 · %@ / %@, id `activity.detail.when`); the place is the 集合点 fact right under the hero. Live starts-in line kept (optimization). Date helper extracted to `E1ActivityWhen`. |
+
+Contract pins updated with one-line reasons (r3 continue): `test_activity_registration_parity_w2_06.py` (fold order without the info card/map; meta has exactly one Button = MP `openLocation`), `test_activity_design_structure.py` (facts instead of the map in the order; no map / info card in the fold), `test_accessibility_hardening_wave.py` (no embedded map; meeting-point hint), `test_activity_reviews.py` (city list: people < 票种 < reviews < more, no map).
 
 ### `pages/topic/index/index` (编辑精选 / 主题 target) → `App/TopicDetailView.swift`
 
@@ -97,7 +102,9 @@ Merged `origin/ui/combined-r7` (fast-forward). The re-arm's transparent-bar trea
 
 MP content order under the title is unchanged: banner → greeting / 玩家 · city → location card → 编辑精选 → (我的地盘 owner rail) → 附近活动 → 即将上线 → 主题 / 活动 feed.
 
+### `d2-home` fixture = exactly the MP 首页 content (r3 continue)
+
+`App/HomeFeedFixtureSupport.swift` `HomeFeedFixtureHostView`: no continuation card (`fx-continue` removed), no Today seeding (`--design-today` plumbing and `HomeTodayFixtures.activityEvent` removed; `ticket` / `clubEvent` stay for the Today-card previews and wave fixtures), and the reader no longer serves synthetic `/banner` items to the hero fixture. `Tests/AppUITests/MotionTourTests.swift` tour 1 launches `d2-home` without `--design-today`.
+
 ## Not done / follow-ups
 - Needs a simulator pass: 4:3 banner card height under the large title on small phones (first rails should stay near the fold).
-- Activity detail map / info card are native extras kept because contracts pin them.
-- Fixtures that seed continuation/Today on `d2-home` still pass the inputs; they simply no longer render on 首页.

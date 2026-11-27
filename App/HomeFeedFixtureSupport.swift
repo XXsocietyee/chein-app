@@ -46,30 +46,27 @@ import SwiftUI
     private let hero: Bool
     /// `d2-home` only: the continuity lab (zoom into a real activity detail). The module fixture `home-feed` keeps its plain text destinations.
     private let continuity: Bool
-    /// `--design-today ticket|club|activity` seeds the Today card (`activity`: a club event that opens the activity detail); anything else shows the start-a-roam prompt.
-    private let todayState: String?
     /// Design fixture override. Nil keeps the UI-test argument.
     private let unavailableKey: String?
     init(forceHero: Bool = false, scenario: String? = nil, unavailableMessageKey: String? = nil) {
-        let todayIndex = ProcessInfo.processInfo.arguments.firstIndex(of: "--design-today")
-        todayState = todayIndex.flatMap { ProcessInfo.processInfo.arguments.indices.contains($0 + 1) ? ProcessInfo.processInfo.arguments[$0 + 1] : nil }
         continuity = forceHero
         hero = forceHero || ProcessInfo.processInfo.arguments.contains("--design-hero")
         unavailableKey = unavailableMessageKey
         let args = ProcessInfo.processInfo.arguments
         let index = args.firstIndex(of: "--uitesting-home-feed-scenario")
         let chosen = scenario ?? (index.flatMap { args.indices.contains($0 + 1) ? args[$0 + 1] : nil } ?? "content")
-        _reader = State(initialValue: HomeFeedFixtureReader(scenario: chosen, showsBanners: forceHero && unavailableMessageKey == nil))
+        _reader = State(initialValue: HomeFeedFixtureReader(scenario: chosen))
     }
     var body: some View {
         NavigationStack(path: $path) {
             HomeFeedView(reader: reader, unavailableMessageKey: unavailableKey, viewerNickname: hero ? "Mia" : nil,
                          selectedCity: hero ? "上海" : nil,
                          showsHeroBanners: hero,
-                         continuationCards: hero ? [.init(id: "fx-continue", kind: .continueExploration, destination: .topic(7), title: "Old Town: ten hidden spots", subtitle: "Stop 4 of 10 · 18 min in")] : [],
+                         // mp-home r3: exactly the MP 首页 content — no continuation, Today or `/banner` seeding.
+                         continuationCards: [],
                          onActionBanner: hero ? { _ in } : nil,
-                         todayTicket: todayState == "ticket" ? HomeTodayFixtures.ticket : nil,
-                         todayClubEvent: todayState == "club" ? HomeTodayFixtures.clubEvent : (todayState == "activity" ? HomeTodayFixtures.activityEvent : nil),
+                         todayTicket: nil,
+                         todayClubEvent: nil,
                          onOpenTodayTicket: {}, onOpenTodayClubEvent: {}, onStartRoam: {},
                          onOpenUnifiedSearch: hero ? { _ in } : nil) { path.append($0) }
                 .modifier(HomeFeedFixtureHero(namespace: heroNamespace, enabled: continuity))
@@ -104,8 +101,6 @@ enum HomeTodayFixtures {
     static var now: Date { Date() }
     static var ticket: HomeTodayCandidate { HomeTodayCandidate(id: "fx-ticket", title: "Riverside lantern walk", start: now.addingTimeInterval(5 * 3600), place: "West Bund", imageURL: nil) }
     static var clubEvent: HomeTodayCandidate { HomeTodayCandidate(id: "fx-club", title: "Old Town photo walk", start: now.addingTimeInterval(0), place: "Old Town", imageURL: nil) }
-    /// A club event that is a real activity (id 7 matches the synthetic feed activity): the Today card zooms into its detail.
-    static var activityEvent: HomeTodayCandidate { HomeTodayCandidate(id: "fx-club", title: "Sample riverside walk", start: now.addingTimeInterval(0), place: "Sample meeting point", imageURL: nil, activityID: 7) }
     static var unknownTime: HomeTodayCandidate { HomeTodayCandidate(id: "fx-unknown", title: "Mystery ticket", start: nil, place: nil, imageURL: nil) }
 }
 

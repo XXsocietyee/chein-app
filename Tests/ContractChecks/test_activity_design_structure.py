@@ -17,13 +17,17 @@ class ActivityDesignStructureTests(unittest.TestCase):
         source = app("ActivityDetailView.swift")
         order = [source.index(value) for value in (
             "E1ActivityHero(summary:detail.summary)",
-            "detail.summary.hasValidCoordinates",
+            # mp-home r3 continue: MP detail has no map section; the facts (集合点 opens Maps) follow the hero.
+            "ActivityDetailMetaSection(facts:",
             "ActivityTicketCard(ticket:ticket)",
             "if showsMoreInfo { moreInfoSections(detail) }",
         )]
         self.assertEqual(order, sorted(order))
         # The description is still a real-source section, now behind the "more info" disclosure.
         self.assertLess(source.index('Section("activity.about")'), source.index("ActivityAssociatedPlaysSection"))
+        fold = source.split("private func detailContent", 1)[1].split("private func moreInfoSections", 1)[0]
+        self.assertNotIn("Map(initialPosition", fold)
+        self.assertNotIn("E1ActivityInfoCard", fold)
         self.assertIn(".listStyle(.insetGrouped)", source)
         self.assertIn(".listSectionSpacing(CYSpacing.xl)", source)
 

@@ -13,7 +13,8 @@ struct CityOrientationEventCTA {
 }
 
 /// S2 event detail for a playable (topic-linked) activity: Maps place card layout in an inset grouped
-/// `List` with `LabeledContent` facts and the CTA in the bottom toolbar. Read-only; every action is a
+/// `List` with `LabeledContent` facts and the CTA in the bottom toolbar. Sections follow the MP detail order:
+/// header → cancelled → facts → 主题路线 → 关于 → people / plays → 票种 → 评价; then native extras. Read-only; every action is a
 /// closure supplied by the existing detail screen.
 @MainActor struct CityOrientationEventDetailList<More: View>: View {
     @Environment(\.locale) private var locale
@@ -24,6 +25,10 @@ struct CityOrientationEventCTA {
     var onDirections: (() -> Void)? = nil
     var onReview: (() -> Void)? = nil
     var topicDestination: AnyView? = nil
+    /// MP order (scene-play-activity-detail index.wxml): 主理人 / N 人已报名 / 关联玩法模板 sit between 关于 and 票种.
+    var people: AnyView? = nil
+    /// MP 评价 block follows 票种.
+    var reviews: AnyView? = nil
     var channel: AnyView? = nil
     @ViewBuilder var more: () -> More
 
@@ -63,8 +68,18 @@ struct CityOrientationEventCTA {
                 if let time = timeText {
                     LabeledContent("nativeR2.city.event.time") { Text(verbatim: time) }
                 }
-                LabeledContent("nativeR2.city.event.meetingPoint") { meetingPointText }
+                // MP `openLocation`: the 集合点 row opens Maps (the page has no embedded map).
+                if let onDirections, detail.summary.hasValidCoordinates {
+                    Button(action: onDirections) {
+                        LabeledContent("nativeR2.city.event.meetingPoint") { meetingPointText }
+                            .foregroundStyle(.primary)
+                    }
+                    .accessibilityHint(Text("activity.meetingPoint.openMaps"))
                     .accessibilityIdentifier("activity.detail.meetingPoint")
+                } else {
+                    LabeledContent("nativeR2.city.event.meetingPoint") { meetingPointText }
+                        .accessibilityIdentifier("activity.detail.meetingPoint")
+                }
                 LabeledContent("nativeR2.city.event.registered") {
                     Text(verbatim: facts.registrationCount.map(String.init) ?? "—").monospacedDigit()
                 }
@@ -72,20 +87,6 @@ struct CityOrientationEventCTA {
                 if let priceLine {
                     LabeledContent("nativeR2.city.event.price") { priceLine }
                         .accessibilityIdentifier("activity.pinned.summary")
-                }
-            }
-            if detail.summary.hasValidCoordinates, let latitude = detail.summary.latitude, let longitude = detail.summary.longitude {
-                Section("activity.location") {
-                    let coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
-                    // Static map: an interactive map inside a List traps VoiceOver focus.
-                    Map(initialPosition: .region(CYMapRegion.region(center: coordinate, span: 0.01)), interactionModes: []) {
-                        Marker(detail.summary.name, coordinate: coordinate)
-                    }
-                    .frame(height: 180)
-                    .listRowInsets(EdgeInsets())
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(Text("activity.location"))
-                    .accessibilityAddTraits(.isImage)
                 }
             }
             if let topicDestination {
@@ -99,6 +100,7 @@ struct CityOrientationEventCTA {
                     Text(verbatim: about).textSelection(.enabled)
                 }
             }
+            if let people { people }
             Section("nativeR2.city.event.tickets") {
                 if detail.tickets.isEmpty {
                     Text("activity.source.noTickets").foregroundStyle(.secondary)
@@ -112,7 +114,7 @@ struct CityOrientationEventCTA {
                     }
                 }
             }
-            if let channel { Section { channel } }
+            if let reviews { reviews }
             Section {
                 if let onReview {
                     Button(action: onReview) { Label("context.review.title", systemImage: "square.and.pencil") }
@@ -122,6 +124,8 @@ struct CityOrientationEventCTA {
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("activity.detail.readOnly")
             }
+            // Native extra (no MP section): the in-game channel, after the MP sections.
+            if let channel { Section { channel } }
             more()
         }
         .listStyle(.insetGrouped)
