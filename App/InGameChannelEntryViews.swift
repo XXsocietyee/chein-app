@@ -174,6 +174,7 @@ import SwiftUI
 
     @Environment(\.inGameChannelHost) private var host
     @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var typeSize
     @StateObject private var model = InGameChannelEntryModel()
 
     var body: some View {
@@ -202,7 +203,7 @@ import SwiftUI
                             Text(verbatim: preview)
                                 .cyText(.meta)
                                 .foregroundStyle(palette.textSecondary)
-                                .lineLimit(1)
+                                .lineLimit(typeSize.isAccessibilitySize ? 2 : 1)
                         } else {
                             // i18n r1: the localized hint can run long in English; wrap rather than truncate.
                             Text(subtitleKey)

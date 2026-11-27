@@ -22,10 +22,8 @@ typealias NativeChannelNotificationScreenOperation = @MainActor (NativeChannelNo
                 NativeChannelNotificationEditor(model: model, preference: row,
                     perform: { perform($0, expected: ticket) }).id(row.version)
             } else if model.isBusy {
-                ProgressView()
+                ProgressView { Text("d7.channelNotify.state.loading", tableName: "NativeChannelNotification") }
                     .frame(maxWidth: .infinity)
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(Text("d7.channelNotify.state.loading", tableName: "NativeChannelNotification"))
             }
             Section {
                 NativeChannelNotificationPermissionRow(permission: permission)

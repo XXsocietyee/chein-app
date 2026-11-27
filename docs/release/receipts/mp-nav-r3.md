@@ -118,6 +118,14 @@ Test: Tests/CoreTests/IMExpandedTests.swift `testSystemCardMiniProgramPagesOpen`
 | `onboarding-1` en | header and disc read 城瘾 in the English UI | brand copy belongs to en-layout, see For other lanes | n/a here |
 | `d2-inbox`, `ia-tabs`, `welcome` | inline 消息 title on the pushed inbox, tab roots with large titles, welcome inline | — | OK |
 
+## Re-scan 11-27 19:xx (sweep build 1300a48db)
+
+| MP page / edge → native | finding | change | status |
+|---|---|---|---|
+| subpackageB/pages/im/list/index → App/IMInboxViews.swift (`d2-inbox`, sheet-en / sheet-zh-Hans) | names ("Fixture conversation 3" next to 官方) and the preview line wrapped onto two lines; MP wxss:62-73 keeps both on one line with an ellipsis | `.lineLimit(1)` on the name in the standard row; preview `.lineLimit(1)` (3 at AX sizes, where the row already stacks). Sections / order / swipe actions unchanged | fixed |
+| City local notification 稍后 / Later action (App/CityKit/CityNotifications.swift) → `MPNotificationTapRouter` | the background 稍后 action (and a custom dismiss) still routed the `page`, so the next foreground jumped to 漫游 although the player chose "later" | `MPNotificationTapRouter.nonOpeningActions` (laterAction + `UNNotificationDismissActionIdentifier`) skip routing; default tap and 开护盾 still land on 漫游 | fixed |
+| `login-player` sweep still shows the logo twice | the fix (b9a93003c) is on `mp/r3-nav` but not yet in `ui/combined-r7` (sweep build 1300a48db) | — waits for the integration merge | OK (pending merge) |
+
 ## Route coverage
 
 All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScreen cases or `MPParityDestination`), except four pages that are parsed (`Core/MiniProgramPageLink.swift`) but have no native screen case: `pages/playkit/index/index`, `pages/publishkit/index/index` (MP kit galleries), `pages/crop/index` (MP image-crop utility) and `subpackageP3/pages/badge-3d/index` (MP 3D badge viewer). No native player control links to them; left for the coordinator to confirm they stay unrouted.
@@ -138,5 +146,7 @@ All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScre
 - 漫游护照与工具 hub sheet (owner Q9) and topic 编辑 editor sheet — kept, see the edge table.
 
 ## For other lanes
+
+- mp-states / coordinator: the 消息 inbox preview is always "打开会话查看消息" (`MessagingPreview`, App/MessagingComponents.swift:300; `MessagingConversation` drops `lastMsgText` because recalled text may survive in it). MP `fmtPreview` shows the last message text / [图片] / [系统卡片]. Showing it needs a recall-safe server field first; left as is (privacy decision).
 
 - en-layout: `onboarding-1` (en) header and centre disc show 城瘾; LoginView `brandMark` and SettingsAboutView `appName` use `Text(verbatim: "城瘾")` (en should read Chein).

@@ -64,6 +64,7 @@ struct ClubR1Row<Trailing: View>: View {
     var systemImage: String?
     /// a11y-dt r3: the initial grows with Dynamic Type instead of clipping in a fixed 32 pt circle.
     @ScaledMetric(relativeTo: .headline) private var initialSide: CGFloat = 32
+    @Environment(\.dynamicTypeSize) private var typeSize
     @ViewBuilder var trailing: () -> Trailing
 
     var body: some View {
@@ -73,7 +74,7 @@ struct ClubR1Row<Trailing: View>: View {
             Label {
                 Text(verbatim: clubR1Value(title))
                 if let subtitle, !subtitle.isEmpty {
-                    Text(verbatim: subtitle).lineLimit(1)
+                    Text(verbatim: subtitle).lineLimit(typeSize.isAccessibilitySize ? 2 : 1)
                 }
             } icon: {
                 if let initial {

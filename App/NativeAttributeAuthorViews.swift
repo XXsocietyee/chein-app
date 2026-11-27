@@ -67,10 +67,8 @@ private func nativeAttributeText(_ key: String) -> String {
                         .foregroundStyle(.orange)
                 }
                 if coordinator.busy {
-                    ProgressView()
+                    ProgressView { Text(verbatim: nativeAttributeText("nativeAttribute.loading")) }
                         .frame(maxWidth: .infinity)
-                        .accessibilityElement(children: .ignore)
-                        .accessibilityLabel(Text(verbatim: nativeAttributeText("nativeAttribute.loading")))
                 }
                 if let issue = coordinator.issue {
                     Label(nativeAttributeText(issue), systemImage: "exclamationmark.triangle.fill")

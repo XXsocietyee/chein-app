@@ -30,10 +30,8 @@ import SwiftUI
     var body: some View {
         List {
             if loading {
-                ProgressView()
+                ProgressView { Text("memberTemplate.loading") }
                     .frame(maxWidth: .infinity)
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(Text("memberTemplate.loading"))
             }
             if let failure {
                 Section {

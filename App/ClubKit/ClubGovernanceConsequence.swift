@@ -84,8 +84,10 @@ enum ClubGovernanceConsequence: Equatable {
         default:
             // mp-club r3 pass 8 (MP club-topic-end-confirm, CU-C-154): the title stays 结束主题; the topic name is the
             // first line above the consequences, not part of the title. Only 结束主题 passes a name here.
+            // mp-club r3 pass 10 (MP danger-actions `club.dissolve`): 解散「name」？ when the edit page passed the name.
+            let dissolveTitle = self == .dissolve ? named.map { appLocalized("club.gov.consequence.dissolve.titleNamed \($0)", locale: locale) } : nil
             return ClubConsequenceSheet(
-                title: text("title"),
+                title: dissolveTitle ?? text("title"),
                 objectName: self == .endTopic ? named : nil,
                 consequences: defaultConsequences(text),
                 confirmTitle: text("confirm"),

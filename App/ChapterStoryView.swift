@@ -217,10 +217,9 @@ import UIKit
                         CYPillButton("chapterStory.return") { leave() }
                     }
                 } else if NativeR2Flags.storyFlow && model.phase == .loading && model.snapshot == nil {
-                    ProgressView()
+                    ProgressView { Text("homeFeed.loading") }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 40)
-                        .accessibilityLabel(Text("homeFeed.loading"))
                         .accessibilityIdentifier("chapterStory.loading")
                 } else if NativeR2Flags.storyFlow && model.phase == .failed {
                     ContentUnavailableView {

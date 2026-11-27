@@ -70,10 +70,8 @@ extension EnvironmentValues {
                                           onExportRecap: { Task { if let text = await model.exportRecap() { LocalPasteboard.copy(text) } } })
         } else if model.phase == "loading" {
             Section {
-                ProgressView()
+                ProgressView { Text("club.topic.director.loading") }
                     .frame(maxWidth: .infinity)
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(Text("club.topic.director.loading"))
                     .accessibilityIdentifier("club.topic.director.loading")
             }
         } else if model.phase == "failed" {
