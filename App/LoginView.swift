@@ -4,6 +4,7 @@ struct LoginView: View {
     let intent: RegistrationIntent
     @EnvironmentObject private var session: AppSession
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     @Environment(\.colorScheme) private var colorScheme
     @State private var username = ""
     @State private var password = ""
@@ -261,7 +262,7 @@ struct LoginView: View {
             .foregroundStyle(.primary)
             .frame(maxWidth: .infinity)
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text(verbatim: "城瘾"))
+            .accessibilityLabel(Text(verbatim: AppLanguage.interfaceIsChinese(locale) ? "城瘾" : "Chein"))
     }
 
     private func submit() {

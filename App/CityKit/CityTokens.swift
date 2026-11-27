@@ -11,6 +11,10 @@ enum CityTokens {
     /// District band colours `district/1…6` (the dark-mode values of the Figma `District` collection).
     /// Band labels sit on them in near-black ink (`ink-inv`), 5.6–8.6:1.
     static func district(_ index: Int) -> Color { CYCityPalette.district(index) }
+    /// Chip outline: a capsule on one line; a rounded rectangle when accessibility sizes let the text wrap.
+    static func chipShape(_ typeSize: DynamicTypeSize) -> AnyShape {
+        typeSize.isAccessibilitySize ? AnyShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)) : AnyShape(Capsule())
+    }
 
     /// Ink on a district band (`ink-inv`).
     static let bandInk = CYCityPalette.bandInk
@@ -101,16 +105,17 @@ struct CityStatusTag: View {
     var symbol: String? = nil
     var tone: Tone = .neutral
     @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         HStack(spacing: 4) {
             if let symbol { Image(systemName: symbol).imageScale(.small).accessibilityHidden(true) }
-            Text(verbatim: text).lineLimit(1)
+            Text(verbatim: text).lineLimit(typeSize.isAccessibilitySize ? 3 : 1)
         }
         .cyText(.caption, weight: .semibold)
         .foregroundStyle(foreground)
         .padding(.horizontal, 8).padding(.vertical, 4)
-        .background(background, in: Capsule())
+        .background(background, in: CityTokens.chipShape(typeSize))
     }
 
     private var foreground: Color {
@@ -136,15 +141,16 @@ struct CityDistrictChip: View {
     let index: Int
     let text: String
     @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         HStack(spacing: 5) {
             Circle().fill(CityTokens.district(index)).frame(width: 7, height: 7).accessibilityHidden(true)
-            Text(verbatim: text).lineLimit(1)
+            Text(verbatim: text).lineLimit(typeSize.isAccessibilitySize ? 2 : 1)
         }
         .cyText(.caption, weight: .medium)
         .foregroundStyle(palette.textSecondary)
         .padding(.horizontal, 8).padding(.vertical, 4)
-        .background(palette.bgRaised, in: Capsule())
+        .background(palette.bgRaised, in: CityTokens.chipShape(typeSize))
     }
 }
 

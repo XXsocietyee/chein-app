@@ -604,7 +604,15 @@ struct RegistrationSheetView: View {
     /// mp-activity r3 (MP baoming.wxml bmbottom cy-btn): when nothing blocks, the button says what it will do —
     /// 付款 (priced, quote in hand) / 确认价格并付款 (priced, quote pending) / 确认报名 (free). Blocked keeps the review key; the reason sits below.
     private func submitLabelText(_ copy: CoreLoopCopy, blocked: Bool) -> String? {
-        if blocked { return nil }
+        // MP baoming.wxml:329 cy-btn label while `!canPay`: 请先勾选信息共享同意 / 请选择参与人信息 / 报名已截止.
+        if blocked {
+            switch flow.confirmationBlock {
+            case .missingConsent?: return copy.t("请先勾选信息共享同意", "Tick the sharing consent first")
+            case .invalidForm?: return copy.t("请选择参与人信息", "Choose a participant")
+            case .signupClosed?: return copy.t("报名已截止", "Registration is closed")
+            default: return nil
+            }
+        }
         guard let ticket = flow.selectedTicket else { return nil }
         if flow.quoteEnabled, case .received(let quote) = flow.quoteState, let amount = quote.payAmount {
             if amount == .zero { return copy.t("确认报名", "Confirm sign-up") }
@@ -651,7 +659,8 @@ struct RegistrationSheetView: View {
                             }
                         }
                         .buttonStyle(.cyPrimary)
-                        // Blocked keeps the full primary look (never a grey slab); the flow ignores the tap and the reason sits below.
+                        // MP baoming.wxml:329 `disabled="{{!canPay}}"`: blocked draws the system disabled state; the reason sits below.
+                        .disabled(blocked)
                         .cyHaptic(.warning, trigger: blockedTaps)
                         .onChange(of: blockedTaps) { _, _ in toastMessage = blockReason(copy) }
                         .accessibilityHint(blockReason(copy) ?? "")

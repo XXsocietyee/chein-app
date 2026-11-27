@@ -39,7 +39,9 @@ extension EnvironmentValues {
     let onPunch: (Int) -> Void
     @ViewBuilder var channel: () -> Channel
     @ViewBuilder var panel: () -> Panel
-    @State private var camera: MapCameraPosition = .automatic
+    /// Starts on the player (city-level fallback, never the whole continent) until the stops are fitted once.
+    @State private var camera: MapCameraPosition = .userLocation(fallback: CYMapRegion.defaultPosition)
+    @State private var cameraFitted = false
     @State private var detent: PresentationDetent = .height(120)
     /// P-053: the peek grows with Dynamic Type so the metrics row is never clipped at accessibility sizes.
     @ScaledMetric(relativeTo: .title2) private var peekHeight: CGFloat = 120
@@ -206,6 +208,8 @@ extension EnvironmentValues {
             MapPitchToggle()
         }
         .onAppear { fitCamera() }
+        // mp-journey r3 (sweep 19:15): the route usually lands after the map appears; fit then, never the world view.
+        .onChange(of: route?.mappedStops.compactMap(\.coordinate).count ?? 0) { _, _ in fitCamera() }
         .onChange(of: selectedStop) { _, id in
             guard let id else { return }
             selectedStop = nil
@@ -216,9 +220,10 @@ extension EnvironmentValues {
     }
 
     private func fitCamera() {
-        guard camera == .automatic, let route else { return }
+        guard !cameraFitted, let route else { return }
         let points = route.mappedStops.compactMap(\.coordinate).map { coordinate($0) }
         guard !points.isEmpty else { return }
+        cameraFitted = true
         camera = .region(CYMapRegion.boundingRegion(coordinates: points))
     }
 
