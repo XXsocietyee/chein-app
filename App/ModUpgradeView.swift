@@ -293,39 +293,32 @@ private struct ModUpgradeUnavailable: View {
 /// These are contract facts only: no grant, physical venue consent, publication or run authority.
 @MainActor private struct ModUpgradeFrozenComparisonView: View {
     let candidate: ModUpgradeCandidate
+    /// i18n r3: every label is a `modUpgrade.r3.*` key (en + zh-Hans) in plain words; lists join with the locale's separator.
+    @Environment(\.locale) private var locale
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            fact("比较 hash", candidate.comparisonHash)
-            Text("hash 仅关联原冻结版本，不是客户端核准签名或当前使用许可。")
-                .cyText(.meta)
-                .foregroundStyle(CYColor.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
+            fact("modUpgrade.r3.comparisonHash", candidate.comparisonHash)
+            note("modUpgrade.r3.hashNote")
             upgradeText("changedFields")
                 .cyText(.cardTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .accessibilityAddTraits(.isHeader)
             if candidate.changedFields.isEmpty { upgradeText("noChangedFields").cyText(.body).foregroundStyle(CYColor.textSecondary) }
             ForEach(candidate.changedFields, id: \.self) { field in
-                Text(verbatim: changeLabel(field))
+                changeLabel(field)
                     .cyText(.bodyCompact)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if let comparison = candidate.termsComparison {
-                fact("原权利作者 ID", String(comparison.creatorId))
-                DisclosureGroup("原已购冻结条款") { terms(comparison.source) }
-                DisclosureGroup(candidate.authorization == .authorized ? "目标已购冻结条款" : "目标销售条款（尚未取得）") {
+                fact("modUpgrade.r3.creatorId", String(comparison.creatorId))
+                DisclosureGroup("modUpgrade.r3.sourceTerms") { terms(comparison.source) }
+                DisclosureGroup(LocalizedStringKey(candidate.authorization == .authorized ? "modUpgrade.r3.targetTermsOwned" : "modUpgrade.r3.targetTermsForSale")) {
                     terms(comparison.target)
                 }
-                Text("请逐项比较前后授权。未列入的主体、地点、翻译或改编权不能推定拥有；版本选择不会扩大原许可，旧稿和旧场次不会自动迁移。")
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                note("modUpgrade.r3.compareNote")
             } else {
-                Text("完整冻结条款比较 UNKNOWN。旧响应或旧 journal 没有这些详情，不代表权益相同或全权；不能据此确认新的升级。已存在的原请求仍可只读恢复。")
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                note("modUpgrade.r3.comparisonUnknown")
             }
         }
         .cyText(.body)
@@ -334,69 +327,72 @@ private struct ModUpgradeUnavailable: View {
     }
     @ViewBuilder private func terms(_ terms: WorkshopCommerceTerms) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            fact("条款版本", terms.version)
-            fact("条款 hash", terms.hash)
-            fact("内容 hash", terms.contentHash)
-            fact("商业使用", permission(terms.commercialUse))
-            fact("允许地区", terms.allowedRegions.joined(separator: "、"))
-            fact("冻结安装限额（非当前剩余额度）", String(terms.installationLimit))
-            fact("使用期间", terms.useDuration)
-            fact("版本更新权", terms.updatePolicy)
-            fact("原始素材再分发", terms.redistribution)
-            fact("退款政策引用", terms.refundPolicyReference)
+            fact("modUpgrade.r3.termsVersion", terms.version)
+            fact("modUpgrade.r3.termsHash", terms.hash)
+            fact("modUpgrade.r3.contentHash", terms.contentHash)
+            fact("modUpgrade.r3.commercialUse", permission(terms.commercialUse))
+            fact("modUpgrade.r3.allowedRegions", list(terms.allowedRegions))
+            fact("modUpgrade.r3.installationLimit", String(terms.installationLimit))
+            fact("modUpgrade.r3.useDuration", terms.useDuration)
+            fact("modUpgrade.r3.updatePolicy", terms.updatePolicy)
+            fact("modUpgrade.r3.redistribution", terms.redistribution)
+            fact("modUpgrade.r3.refundPolicy", terms.refundPolicyReference)
             if let rights = terms.compositionRights {
-                fact("组合授权 profile", rights.profile)
-                fact("组合授权 hash", rights.grantHash)
-                fact("作者 / 审核人 ID", "\(rights.author) / \(rights.reviewer)")
-                fact("原申请 / 决定", rights.applicationRequestId + " / " + rights.decisionId)
-                fact("来源 / 原审核", "\(rights.sourceKind):\(rights.sourceId) / \(rights.auditTaskId)")
-                fact("来源 hash", rights.sourceHash)
-                fact("原稿 hash", rights.draftHash)
-                fact("授权包 / 版本", rights.packageId + " / " + rights.packageVersion)
-                fact("授权 release", rights.releaseId)
-                fact("授权内容 hash", rights.contentHash)
-                fact("批准时间", rights.approvedAt)
-                fact("可用作者 ID", ids(rights.scope.authors))
-                fact("可安装主体 ID", ids(rights.scope.installationSubjects))
-                fact("许可商户 ID（非地点同意）", ids(rights.scope.venues))
-                fact("组合许可地区", rights.scope.regions.joined(separator: "、"))
-                fact("组合商业使用", permission(rights.scope.commercialUse))
-                fact("翻译", permission(rights.scope.translation))
-                fact("改编", permission(rights.scope.adaptation))
-                fact("remix", permission(rights.scope.remix))
-                fact("嵌入式再分发（非原素材转售）", permission(rights.scope.embeddedRedistribution))
+                fact("modUpgrade.r3.rightsProfile", rights.profile)
+                fact("modUpgrade.r3.rightsHash", rights.grantHash)
+                fact("modUpgrade.r3.authorReviewer", "\(rights.author) / \(rights.reviewer)")
+                fact("modUpgrade.r3.applicationDecision", rights.applicationRequestId + " / " + rights.decisionId)
+                fact("modUpgrade.r3.sourceReview", "\(rights.sourceKind):\(rights.sourceId) / \(rights.auditTaskId)")
+                fact("modUpgrade.r3.sourceHash", rights.sourceHash)
+                fact("modUpgrade.r3.draftHash", rights.draftHash)
+                fact("modUpgrade.r3.packageVersion", rights.packageId + " / " + rights.packageVersion)
+                fact("modUpgrade.r3.release", rights.releaseId)
+                fact("modUpgrade.r3.rightsContentHash", rights.contentHash)
+                fact("modUpgrade.r3.approvedAt", rights.approvedAt)
+                fact("modUpgrade.r3.scopeAuthors", ids(rights.scope.authors))
+                fact("modUpgrade.r3.scopeSubjects", ids(rights.scope.installationSubjects))
+                fact("modUpgrade.r3.scopeVenues", ids(rights.scope.venues))
+                fact("modUpgrade.r3.scopeRegions", list(rights.scope.regions))
+                fact("modUpgrade.r3.scopeCommercialUse", permission(rights.scope.commercialUse))
+                fact("modUpgrade.r3.translation", permission(rights.scope.translation))
+                fact("modUpgrade.r3.adaptation", permission(rights.scope.adaptation))
+                fact("modUpgrade.r3.remix", permission(rights.scope.remix))
+                fact("modUpgrade.r3.embeddedRedistribution", permission(rights.scope.embeddedRedistribution))
                 if rights.hasExplicitPhysicalVenues, let pois = rights.scope.venuePoiIds {
-                    fact("地点范围版本", rights.scope.venueScopeVersion ?? "UNKNOWN")
-                    fact("许可原 POI ID", ids(pois))
+                    fact("modUpgrade.r3.venueScopeVersion", rights.scope.venueScopeVersion ?? "UNKNOWN")
+                    fact("modUpgrade.r3.venuePois", ids(pois))
                 } else {
-                    Text("原 POI 授权范围 UNKNOWN；不代表任意场地可用，也不代替场地方同意或到场证明。")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                    note("modUpgrade.r3.venuePoisUnknown")
                 }
-                fact("权利依据引用", rights.scope.evidenceReferences.joined(separator: "、"))
+                fact("modUpgrade.r3.evidence", list(rights.scope.evidenceReferences))
             } else {
-                Text("该份冻结条款未包含组合授权；不默认授予主体/地点、翻译、改编、remix 或嵌入式再分发权。")
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                note("modUpgrade.r3.noCompositionRights")
             }
         }.padding(.vertical, CYSpacing.xs)
     }
-    private func fact(_ title: String, _ value: String) -> some View {
-        CYFactRow(label: Text(verbatim: title), value: cyShownValue(value))
+    private func fact(_ title: LocalizedStringKey, _ value: String) -> some View {
+        CYFactRow(label: Text(title), value: cyShownValue(value))
     }
-    private func permission(_ allowed: Bool) -> String { allowed ? "仅冻结范围内允许" : "未授予" }
-    private func ids(_ values: [Int64]) -> String { values.map { String($0) }.joined(separator: "、") }
-    private func changeLabel(_ field: String) -> String {
-        let labels = ["authors": "可用作者", "installationSubjects": "可安装主体", "venues": "许可商户",
-                      "regions": "许可地区", "commercialUse": "商业使用", "translation": "翻译", "adaptation": "改编",
-                      "remix": "remix", "embeddedRedistribution": "嵌入式再分发", "evidenceReferences": "权利依据",
-                      "venueScopeVersion": "地点范围版本", "venuePoiIds": "许可原 POI"]
+    private func note(_ key: LocalizedStringKey) -> some View {
+        Text(key)
+            .cyText(.meta)
+            .foregroundStyle(CYColor.textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+    private func permission(_ allowed: Bool) -> String {
+        appLocalized(allowed ? "modUpgrade.r3.permission.allowed" : "modUpgrade.r3.permission.notGranted", locale: locale)
+    }
+    private func list(_ values: [String]) -> String { values.joined(separator: appLocalized("i18nR3.listSeparator", locale: locale)) }
+    private func ids(_ values: [Int64]) -> String { list(values.map { String($0) }) }
+    /// MP-style change line per composition-rights scope field; unknown fields show the raw field path.
+    private func changeLabel(_ field: String) -> Text {
+        let fields = ["authors", "installationSubjects", "venues", "regions", "commercialUse", "translation", "adaptation",
+                      "remix", "embeddedRedistribution", "evidenceReferences", "venueScopeVersion", "venuePoiIds"]
         let prefix = "terms.compositionRights.scope."
-        if field.hasPrefix(prefix), let label = labels[String(field.dropFirst(prefix.count))] { return "组合授权变化：" + label }
-        if field == "terms.compositionRights" { return "组合授权或其原审核凭证变化（详见前后冻结条款）" }
-        return field
+        let name = field.hasPrefix(prefix) ? String(field.dropFirst(prefix.count)) : ""
+        if fields.contains(name) { return Text(LocalizedStringKey("modUpgrade.r3.change." + name)) }
+        if field == "terms.compositionRights" { return Text("modUpgrade.r3.change.compositionRights") }
+        return Text(verbatim: field)
     }
 }
 private struct UpgradeFact: View {

@@ -23,10 +23,10 @@ public struct CYActivityFeedCard: View {
         title: String,
         subtitle: String,
         imageURL: URL? = nil,
-        capabilityTag: String? = "可直接开局的模板",
+        capabilityTag: String? = CYBusinessCopy.capabilityTag,
         rareTrophyCount: Int? = nil,
-        primaryTitle: String = "开始游玩",
-        secondaryTitle: String = "查看详情",
+        primaryTitle: String = CYBusinessCopy.play,
+        secondaryTitle: String = CYBusinessCopy.details,
         onPrimary: @escaping () -> Void,
         onSecondary: @escaping () -> Void
     ) {
@@ -212,9 +212,9 @@ public enum CYRouteArrivalRequirement: Sendable, Hashable {
 
     var label: String {
         switch self {
-        case .gps: return "GPS 到达"
-        case .qr: return "扫码打卡"
-        case .photo: return "拍照核验"
+        case .gps: return CYBusinessCopy.text("cyBiz.arrival.gps")
+        case .qr: return CYBusinessCopy.text("cyBiz.arrival.qr")
+        case .photo: return CYBusinessCopy.text("cyBiz.arrival.photo")
         case .neutral(let text): return text
         }
     }
@@ -260,7 +260,7 @@ public struct CYRouteNodeRow: View {
         isFirst: Bool = false,
         isLast: Bool = false,
         perkTitle: String? = nil,
-        perkActionTitle: String? = "领取",
+        perkActionTitle: String? = CYBusinessCopy.claim,
         onPerkTap: (() -> Void)? = nil
     ) {
         self.index = index
@@ -404,6 +404,16 @@ public struct CYRouteNodeRow: View {
 }
 
 // MARK: - 3. Task Status (all 6 required states with text, icon, action, and recovery)
+
+/// i18n r3: default titles and status words of the business components, in the system language.
+public enum CYBusinessCopy {
+    public static var capabilityTag: String { text("cyBiz.capabilityTag") }
+    public static var play: String { text("cyBiz.play") }
+    public static var details: String { text("cyBiz.details") }
+    public static var claim: String { text("cyBiz.claim") }
+    public static var confirmSignUp: String { text("cyBiz.reg.confirm") }
+    static func text(_ key: String.LocalizationValue) -> String { appLocalized(key, locale: Locale.current) }
+}
 
 /// i18n r1: default CTA follows the system language (PlayExperienceView passes its own localized title).
 public enum CYTaskStatusCopy {
@@ -686,12 +696,12 @@ public struct CYStoryCluePanel: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             HStack(spacing: CYSpacing.sm) {
-                Text(verbatim: "线索阶梯")
+                Text("cyBiz.clue.title")
                     .cyText(.sectionTitle)
                     .foregroundStyle(palette.textPrimary)
                 Spacer(minLength: CYSpacing.sm)
                 CYStatusChip(
-                    verbatim: freeHintsRemaining.map { "免费提示剩余 \($0)" } ?? "免费提示 —",
+                    verbatim: freeHintsRemaining.map { CYBusinessCopy.text("cyBiz.clue.freeLeft \($0)") } ?? CYBusinessCopy.text("cyBiz.clue.freeUnknown"),
                     tone: (freeHintsRemaining ?? 0) > 0 ? .info : .neutral,
                     systemImage: "lightbulb.fill"
                 )
@@ -703,12 +713,12 @@ public struct CYStoryCluePanel: View {
 
             if let pending = pendingCostTier {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    Text(verbatim: "确认消耗 \(pending.pointsCost) 积分解锁「\(pending.title)」？已解锁线索可免费重看。")
+                    Text(verbatim: CYBusinessCopy.text("cyBiz.clue.confirm \(pending.pointsCost) \(appQuoted(pending.title, locale: Locale.current))"))
                         .cyText(.meta, monospacedDigit: true)
                         .foregroundStyle(palette.textPrimary)
                     HStack(spacing: CYSpacing.md) {
                         Button(action: { pendingCostTier = nil }) {
-                            Text("取消")
+                            Text("cyBiz.cancel")
                         }
                         .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true, size: .sm))
 
@@ -716,7 +726,7 @@ public struct CYStoryCluePanel: View {
                             onUnlockTier(pending)
                             pendingCostTier = nil
                         } label: {
-                            Text(verbatim: "确认消耗 \(pending.pointsCost) 积分")
+                            Text("cyBiz.clue.spend \(pending.pointsCost)")
                         }
                         .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, size: .sm))
                     }
@@ -747,14 +757,14 @@ public struct CYStoryCluePanel: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
 
                     if tier.isUnlocked {
-                        CYStatusChip(verbatim: "已解锁 · 免费重看", tone: .success, systemImage: "lock.open")
+                        CYStatusChip("cyBiz.clue.unlocked", tone: .success, systemImage: "lock.open")
                         Image(systemName: expanded ? "chevron.up" : "chevron.down")
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(palette.textTertiary)
                     } else if (freeHintsRemaining ?? 0) > 0 {
-                        CYStatusChip(verbatim: "使用免费次数", tone: .info, systemImage: "sparkles")
+                        CYStatusChip("cyBiz.clue.useFree", tone: .info, systemImage: "sparkles")
                     } else {
-                        CYStatusChip(verbatim: "\(tier.pointsCost) 积分解锁", tone: .warning, systemImage: "lock")
+                        CYStatusChip("cyBiz.clue.unlockFor \(tier.pointsCost)", tone: .warning, systemImage: "lock")
                     }
                 }
                 .frame(minHeight: CYSpacing.minTouchTarget)
@@ -887,7 +897,7 @@ public struct CYRegistrationSummaryCard: View {
         originalAmountText: String? = nil,
         discountText: String? = nil,
         totalAmountText: String,
-        ctaTitle: String = "确认报名",
+        ctaTitle: String = CYBusinessCopy.confirmSignUp,
         isServerReady: Bool = true,
         blockingReason: String? = nil,
         onSubmit: @escaping () -> Void
@@ -909,7 +919,7 @@ public struct CYRegistrationSummaryCard: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Text(verbatim: "选择场次")
+                Text("cyBiz.reg.session")
                     .cyText(.caption, weight: .semibold)
                     .foregroundStyle(palette.textSecondary)
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -929,7 +939,7 @@ public struct CYRegistrationSummaryCard: View {
             }
 
             HStack {
-                Text(verbatim: "参与人数")
+                Text("cyBiz.reg.people")
                     .cyText(.cardTitle)
                     .foregroundStyle(palette.textPrimary)
                 Spacer()
@@ -954,7 +964,7 @@ public struct CYRegistrationSummaryCard: View {
             VStack(alignment: .trailing, spacing: CYSpacing.xs) {
                 if let originalAmountText {
                     HStack {
-                        Text(verbatim: "原价")
+                        Text("cyBiz.reg.original")
                             .cyText(.meta)
                             .foregroundStyle(palette.textTertiary)
                         Spacer()
@@ -966,7 +976,7 @@ public struct CYRegistrationSummaryCard: View {
                 }
                 if let discountText {
                     HStack {
-                        Text(verbatim: "早鸟/组队优惠")
+                        Text("cyBiz.reg.discount")
                             .cyText(.meta)
                             .foregroundStyle(palette.success)
                         Spacer()
@@ -976,7 +986,7 @@ public struct CYRegistrationSummaryCard: View {
                     }
                 }
                 HStack(alignment: .firstTextBaseline) {
-                    Text(verbatim: "实付合计")
+                    Text("cyBiz.reg.total")
                         .cyText(.cardTitle)
                         .foregroundStyle(palette.textPrimary)
                     Spacer()
@@ -1011,7 +1021,7 @@ public struct CYRegistrationSummaryCard: View {
         }
         .buttonStyle(.plain)
         .disabled(disabled)
-        .accessibilityLabel(Text(verbatim: symbol == "plus" ? "增加人数" : "减少人数"))
+        .accessibilityLabel(symbol == "plus" ? Text("cyBiz.reg.morePeople") : Text("cyBiz.reg.fewerPeople"))
     }
 }
 
@@ -1025,10 +1035,10 @@ public enum CYTeamSeatStatus: String, Sendable, Hashable {
 
     var label: String {
         switch self {
-        case .pending: return "待领取"
-        case .claimed: return "已占位"
-        case .expired: return "已过期"
-        case .revoked: return "已撤回"
+        case .pending: return CYBusinessCopy.text("cyBiz.seat.pending")
+        case .claimed: return CYBusinessCopy.text("cyBiz.seat.claimed")
+        case .expired: return CYBusinessCopy.text("cyBiz.seat.expired")
+        case .revoked: return CYBusinessCopy.text("cyBiz.seat.revoked")
         }
     }
 
@@ -1092,15 +1102,15 @@ public struct CYTeamMemberRow: View {
 
                 VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                     HStack(spacing: CYSpacing.xs) {
-                        Text(verbatim: occupantName?.isEmpty == false ? (occupantName ?? "—") : (isBuyer ? "购票人" : "待成员领取"))
+                        Text(verbatim: occupantName?.isEmpty == false ? (occupantName ?? "—") : CYBusinessCopy.text(isBuyer ? "cyBiz.seat.buyer" : "cyBiz.seat.awaitingMember"))
                             .cyText(.cardTitle)
                             .foregroundStyle(palette.textPrimary)
                         if isBuyer {
-                            CYStatusChip(verbatim: "购票人", tone: .info)
+                            CYStatusChip("cyBiz.seat.buyer", tone: .info)
                         }
                     }
                     if let expiresAtText {
-                        Text(verbatim: "过期时间 \(expiresAtText)")
+                        Text("cyBiz.seat.expires \(expiresAtText)")
                             .cyText(.micro, monospacedDigit: true)
                             .foregroundStyle(palette.textTertiary)
                     }
@@ -1110,7 +1120,7 @@ public struct CYTeamMemberRow: View {
             }
 
             if let issuedInviteToken, !issuedInviteToken.isEmpty {
-                Text(verbatim: "一次性邀请码：\(issuedInviteToken)")
+                Text("cyBiz.seat.inviteCode \(issuedInviteToken)")
                     .cyText(.micro, monospacedDigit: true)
                     .foregroundStyle(palette.textSecondary)
                     .padding(.horizontal, CYSpacing.md)
@@ -1123,13 +1133,13 @@ public struct CYTeamMemberRow: View {
                     Spacer()
                     if status == .pending && canRevoke, let onRevoke {
                         Button(action: onRevoke) {
-                            Text(verbatim: "撤回名额")
+                            Text("cyBiz.seat.revoke")
                         }
                         .buttonStyle(CYSecondaryButtonStyle(isFullWidth: false, size: .sm))
                     }
                     if status == .claimed && canRelease && !isBuyer, let onRelease {
                         Button(action: onRelease) {
-                            Text(verbatim: "释放席位")
+                            Text("cyBiz.seat.release")
                         }
                         .buttonStyle(CYSecondaryButtonStyle(isFullWidth: false, size: .sm))
                     }
