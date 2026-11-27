@@ -50,5 +50,6 @@ class I03NotificationBlacklistCloseoutTests(unittest.TestCase):
             for language in ['en','zh-Hans']:
                 unit=entry['localizations'][language]['stringUnit'];self.assertEqual(unit['state'],'translated');self.assertTrue(unit['value'].strip())
     def testExistingSettingsOwnersAndLocaleLifecycleRemain(self):
-        self.contains('SettingsView',['profileOwner.route(.current(session))','ProfileSettingsProfileNavigation(session: session, owner: profileOwner)','ProfileSettingsFavoritesEntry(session: session, owner: favoritesOwner)','profileOwner.appear()','.onDisappear { profileOwner.retire() }','.modifier(ProfileSettingsFavoritesLifecycle(session: session, owner: favoritesOwner))','.modifier(AppLanguageEnvironment(stored: storedLanguage))'])
+        # mp-nav r3: the sheet form still retires on disappear; a pushed Settings (landed link) leaves the owner with the popped page.
+        self.contains('SettingsView',['profileOwner.route(.current(session))','ProfileSettingsProfileNavigation(session: session, owner: profileOwner)','ProfileSettingsFavoritesEntry(session: session, owner: favoritesOwner)','profileOwner.appear()','if !isPushed { profileOwner.retire() }','.modifier(ProfileSettingsFavoritesLifecycle(session: session, owner: favoritesOwner))','.modifier(AppLanguageEnvironment(stored: storedLanguage))'])
 if __name__=='__main__':unittest.main()
