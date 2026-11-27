@@ -192,7 +192,7 @@ extension EnvironmentValues {
             if let member = row.memberID, let text = invitable.first(where: { $0.memberID == member })?.chapterText {
                 NearbyMerchantChapterLine(text: text)
             }
-            if let distance = NearbyMerchantPage.distanceText(row.distance) { Text(verbatim: distance).cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary) }
+            if let distance = LocaleDisplay.isChinese(locale) ? NearbyMerchantPage.distanceText(row.distance) : row.distance.flatMap({ LocaleDisplay.distance(meters: $0, locale: locale) }) { Text(verbatim: distance).cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary) }
         }
         }
     }

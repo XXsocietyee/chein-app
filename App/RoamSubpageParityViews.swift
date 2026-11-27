@@ -227,6 +227,7 @@ struct RoamShareLinkDormantNotice: View {
 /// Receiver mode of `subpackageRoam/session?shareToken=`: anonymous read of the coarse snapshot.
 /// Without a reviewed reader the page states that it cannot open shared footprints.
 @MainActor struct RoamSharedFootprintView: View {
+    @Environment(\.locale) private var locale
     let token: String
     let reader: (any RoamShareSnapshotReading)?
     var onOpenRoam: (() -> Void)? = nil
@@ -273,7 +274,7 @@ struct RoamShareLinkDormantNotice: View {
                 Text(verbatim: "· " + snapshot.time)
             }.foregroundStyle(.secondary).accessibilityElement(children: .combine)
             HStack(spacing: 20) {
-                metric(snapshot.distance.map { String(format: "%.1f", $0) } ?? "—", Text("roamSub.w208.history.km"))
+                metric(snapshot.distance.map { String(format: "%.1f", LocaleDisplay.roadNumber(kilometers: $0, locale: locale)) } ?? "—", Text(LocalizedStringKey(LocaleDisplay.usesMiles(locale) ? "unit.mile.abbr" : "roamSub.w208.history.km")))
                 metric(snapshot.explorePct.map { "\(Int($0))%" } ?? "--%", Text("roamSub.w208.share.explore"))
                 metric(snapshot.shops.map(String.init) ?? "—", Text("roamSub.w208.share.lit"))
             }

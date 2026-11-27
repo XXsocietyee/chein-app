@@ -37,6 +37,7 @@ extension RootTabSwitch {
 }
 
 @MainActor struct GrowthCenterView: View {
+    @Environment(\.locale) private var locale
     let reader: any GrowthCenterReading
     @Environment(\.growthExploreHomeAction) private var injectedExploreHome
     @Environment(\.rootTabSwitch) private var rootTabSwitch
@@ -207,8 +208,8 @@ extension RootTabSwitch {
             GrowthCenterMetricRow("growth.mileage") {
                 if let mileage = GrowthCenterFormatting.mileage(overview.progress.value?.totalMileage) {
                     HStack(spacing: 2) {
-                        Text(mileage, format: .number.precision(.fractionLength(0...1))).monospacedDigit()
-                        Text(verbatim: "km")   // GROWTH-4: one unit, beside the value (label is 累计距离)
+                        Text(LocaleDisplay.roadNumber(kilometers: mileage, locale: locale), format: .number.precision(.fractionLength(0...1))).monospacedDigit()
+                        Text(verbatim: LocaleDisplay.usesMiles(locale) ? "mi" : "km")   // GROWTH-4: one unit, beside the value (label is 累计距离)
                     }
                 } else { Text("growth.unknown").accessibilityLabel(Text("growth.unknownValue")) }
             }.accessibilityIdentifier("growth.mileage")

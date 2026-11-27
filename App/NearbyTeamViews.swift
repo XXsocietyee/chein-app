@@ -125,7 +125,7 @@ import SwiftUI
                 PlayAreaNearbyRangeSheet(radii: NearbyQueryContext.radii, selected: radius, onSelect: { picked in
                     radius = picked
                     showingRange = false
-                    toastMessage = PlayCloseCopy.text("已切换范围 \(picked / 1000) km", "Range updated to \(picked / 1000) km", locale)
+                    toastMessage = PlayCloseCopy.text("已切换范围 \(picked / 1000) km", "Range updated to \(LocaleDisplay.radius(meters: Double(picked), locale: locale) ?? "\(picked / 1000) km")", locale)
                 }, onClose: { showingRange = false })
             }
             .cySheet(isPresented: $showingMapStyle) {
@@ -328,7 +328,7 @@ import SwiftUI
             }
             HStack {
                 Button { showingRange = true } label: {
-                    Text(verbatim: "\(radius / 1000) km")
+                    Text(verbatim: LocaleDisplay.isChinese(locale) ? "\(radius / 1000) km" : (LocaleDisplay.radius(meters: Double(radius), locale: locale) ?? "\(radius / 1000) km"))
                         .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                 }

@@ -68,6 +68,7 @@ struct FinishRouteAnalyticsModifier: ViewModifier {
 /// Server passport stats: 漫游 / 探店 / 活跃日 / 公里, and the 漫游记录 tile into the server history.
 /// A missing count is an em dash, never zero. A failed read shows the issue, not local numbers.
 @MainActor struct RoamPassportServerSummarySection: View {
+    @Environment(\.locale) private var locale
     let reader: any RoamPassportHistoryReading
     @State private var phase: Phase = .loading
     private enum Phase { case loading, failed(Error), loaded(RoamPassportServerSummary) }
@@ -85,8 +86,8 @@ struct FinishRouteAnalyticsModifier: ViewModifier {
                 LabeledContent("parityB.passport.trips") { Text(summary.trips, format: .number) }
                 LabeledContent("parityB.passport.shops") { count(summary.shops) }
                 LabeledContent("parityB.passport.days") { count(summary.days) }
-                LabeledContent("parityB.passport.km") {
-                    if let meters = summary.distanceM { Text(Double(meters) / 1000, format: .number.precision(.fractionLength(1))) }
+                LabeledContent(LocalizedStringKey(LocaleDisplay.usesMiles(locale) ? "parityB.passport.mi" : "parityB.passport.km")) {
+                    if let meters = summary.distanceM { Text(LocaleDisplay.roadNumber(kilometers: Double(meters) / 1000, locale: locale), format: .number.precision(.fractionLength(1))) }
                     else { Text(verbatim: RoamPassportSummary.unknownText).accessibilityLabel(Text("roam.passport.unknown.a11y")) }
                 }
                 if owner.configured, owner.storageKey != nil {

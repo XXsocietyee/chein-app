@@ -44,7 +44,7 @@ struct RoamDistanceLabel: View {
     let meters: Double
     var body: some View {
         LabeledContent("roam.distanceFromArea") {
-            Text(Measurement(value: meters, unit: UnitLength.meters), format: .measurement(width: .abbreviated))
+            Text(Measurement(value: meters, unit: UnitLength.meters), format: .measurement(width: .abbreviated, usage: .road))
                 .monospacedDigit()
         }
         .cyText(.meta).foregroundStyle(.secondary)

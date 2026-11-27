@@ -619,7 +619,7 @@ struct TopicXcxRouteSection: View {
                     VStack(alignment: .leading, spacing: 2) {
                         // PC-B-1-7: the API has no walking time; say only the straight-line distance (MP 直线约 X).
                         if let meters = stop.straightLineMeters {
-                            Text("topicXcx.route.straightLine \(TopicChapterItinerary.distanceText(meters: meters, chinese: locale.language.languageCode?.identifier == "zh"))")
+                            Text("topicXcx.route.straightLine \(LocaleDisplay.isChinese(locale) ? TopicChapterItinerary.distanceText(meters: meters, chinese: true) : (LocaleDisplay.distance(meters: meters, locale: locale) ?? "—"))")
                                 .font(.footnote).foregroundStyle(.secondary)
                         }
                         HStack(alignment: .top) {

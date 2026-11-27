@@ -189,6 +189,16 @@ public enum LocaleDisplay {
         return style.format(Measurement(value: meters, unit: UnitLength.meters))
     }
 
+    /// True where road distances read in miles (US English). Chinese always reads kilometres.
+    public static func usesMiles(_ locale: Locale) -> Bool {
+        !isChinese(locale) && locale.measurementSystem != .metric
+    }
+
+    /// Kilometres converted to the number that sits beside the locale's unit label (`km` or `mi`).
+    public static func roadNumber(kilometers: Double, locale: Locale) -> Double {
+        usesMiles(locale) ? kilometers / 1.609344 : kilometers
+    }
+
     /// Kilometres the server sent (for example a walked total) in the locale's road unit.
     public static func distance(kilometers: Double, locale: Locale) -> String? {
         distance(meters: kilometers * 1000, locale: locale)
