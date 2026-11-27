@@ -57,10 +57,11 @@ Merged `origin/ui/combined-r7` (clean). Sweep 17:24 (build 070117595) a11y sheet
 | `subpackageMember` im list (inbox, `im/list/index`) | `IMInboxViews.swift` (`IMInboxRow`) | ✓ (mp-mine/mp-nav own order) | Audit: avatar 44 pt at AX sizes, name/time stack ≥ xxLarge, combined row, muted glyph labelled. No change | Done |
 | `subpackageMember` im chat (system notice card) | `MessagingHistoryView.swift` (`MessagingBubble.noticeCard`) | ✓ | Bell tile 36 pt fixed with a `.body` glyph (clipped at AX sizes) → `@ScaledMetric(.body)` capped 60 | Done |
 | Chat message cards | `MessagingMessageDetailView.swift` | ✓ | Audit: icon tile scaled + hidden at AX sizes. No change | Done |
+| Club channel chat (`pages/club/*` channel, `d4-channel-chat`) | `ClubChannelMessagingView.swift` (`ChannelBurstGroupCard`, `ClubChannelMemberRosterSheet`) | ✓ (mp-club owns order) | Sender initial circle 28 pt and roster initial 32 pt (text in a fixed circle, clipped at AX sizes) → `@ScaledMetric(.subheadline)` capped 48 / 52, letter scales down instead of clipping. Send button 44 pt labelled, Reduce Motion respected on scroll: audited. `NativeChannelMessage*` (context avatar 40 pt art, no text) audited, no change | Done |
 
 ## Not done (next run starts here)
-- Next pages without a row: `SessionMessagingEntry` / `NativeChannelMessage*` (club channel chat bubbles, pins,
-  search) AX5 + VoiceOver order pass; `.lineLimit(1)` audit on remaining tab-root rows (P12 + AX5).
+- Next pages without a row: club channel pins / search (`NativeChannelMessagePinsView`, `…SearchView`) VoiceOver
+  order pass; `.lineLimit(1)` audit on remaining tab-root rows (P12 + AX5); square / team pages (`pages/square/*`).
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch
