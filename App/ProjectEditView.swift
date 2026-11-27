@@ -321,6 +321,7 @@ import SwiftUI
     @State private var canvas: ProjectEditCanvas = .list
     @State private var replacingPlace: ProjectEditPlaceTarget?
     @State private var topicDetailRequest: ProjectEditTopicDetailRequest?
+    @State private var ticketSettingsRequest: ProjectEditTicketSettingsRequest?
     @StateObject private var undoCenter = ProjectEditUndoCenter()
     @Environment(\.undoManager) private var undoManager
 
@@ -393,11 +394,11 @@ import SwiftUI
                 Section {
                     LabeledContent {
                         Text(LocalizedStringKey(model.draft.product == .city ? "projectEdit.city" : "projectEdit.freeExplore"))
+                            .accessibilityIdentifier("projectRemote.mode")
                     } label: { Label("projectEdit.mode", systemImage: "flag") }
+                    // MP fabu wxml:163 票务 card → page 2 票务设置 (step3.wxml), pushed with an inline title.
                     Button {
-                        withAnimation {
-                            scrollProxy.scrollTo("project-issue-anchor-tickets", anchor: .top)
-                        }
+                        ticketSettingsRequest = ProjectEditTicketSettingsRequest(anchor: nil)
                     } label: {
                         LabeledContent {
                             // C-F14b (r9): MP fabu/index.wxml:163-165 swaps 编辑 for the red `* 还有 N 项未填` (index.js:6540 _ticketMissing).
@@ -503,41 +504,9 @@ import SwiftUI
                             .disabled(!model.fullEdit).accessibilityIdentifier("publishModes.applySeed")
                     }
                 }
-                // Mini-program publish/fabu order: the topic details live in the 主题详情 sheet (topicDetailSheet);
-                // here the schedule, tickets, the pending area, then the optional topic systems.
-                scheduleFields
-                // Design hand-off r1 CF-38: ticket rows show name, price in 积分 and stock; the section says
-                // `2 种票 · 39 积分起` or `还没设置`; rows reorder by drag or by the "⋯" menu.
-                Section {
-                    ForEach(Array(model.draft.tickets.enumerated()), id: \.element.id) { index, ticket in
-                        HStack(spacing: CYSpacing.xs) {
-                            NavigationLink { ProjectEditTicketView(model: model, ticketID: ticket.id) } label: {
-                                HStack {
-                                    ProjectEditName(value: ticket.name, fallback: "projectEdit.untitledTicket")
-                                    Spacer(minLength: CYSpacing.sm)
-                                    ProjectEditTicketValue(ticket: ticket)
-                                }
-                            }.accessibilityIdentifier("projectEdit.ticket." + ticket.id)
-                            if model.fullEdit {
-                                EditorRowActionsMenu(index: index, count: model.draft.tickets.count) { action in
-                                    ticketAction(action, at: index)
-                                }
-                            }
-                        }
-                        .editorReorderAccessibility(index: index, count: model.draft.tickets.count) { ticketAction($0, at: index) }
-                    }
-                    .onDelete { offsets in if model.fullEdit { removeTickets(at: offsets) } }
-                    .onMove { if model.fullEdit { model.draft.tickets.move(fromOffsets: $0, toOffset: $1) } }
-                    Button("projectEdit.addTicket", systemImage: "plus") { model.draft.tickets.append(.init()) }
-                        .disabled(!model.fullEdit).accessibilityIdentifier("projectEdit.addTicket")
-                } header: {
-                    HStack {
-                        Text("projectEdit.tickets")
-                        Spacer(minLength: CYSpacing.sm)
-                        ProjectEditTicketSummaryLabel(summary: EditorTicketSummary(prices: model.draft.tickets.map { Int($0.price) }))
-                    }
-                }
-                .id("project-issue-anchor-tickets")
+                // Mini-program publish/fabu order: the topic details live in the 主题详情 sheet (topicDetailSheet) and
+                // 档期 · 俱乐部承接 · 玩家组队 · 票务 on the pushed 票务设置 page (ticketSettingsPage); here the pending area,
+                // then the optional topic systems.
                 ProjectEditPendingSection(model: model, controller: pending)
                 ProjectDraftStoryPreviewEntry(model: model)
                 CollectSetAuthorEntry(model: model)
@@ -549,7 +518,6 @@ import SwiftUI
                 NativeRpgGrowthAuthorEntrySection(model: model)
                 NativeRpgPassiveRulesAuthorEntry(model: model)
                 Section { NativeStoryWalkingAuthorEntry(model: model) }
-                ProjectTeamConfigurationEntry(model: model)
                 TopicPublishCheckSection(model: model)
                 if !model.coordinator.issues.isEmpty {
                     Section("projectEdit.fixBeforeReview") {
@@ -709,12 +677,17 @@ import SwiftUI
             discardConfirmation || showingCopy || submittedResource != nil || submission != nil ||
                 modeReview.presentation != nil || ownedCover.presentation != nil || approvedRelease.presentation != nil ||
                 reviewRequest.presentation != nil || starter.destination != nil || pending.destination != nil ||
-                issueNavigation.destination != nil || model.confirmation != nil || topicDetailRequest != nil
+                issueNavigation.destination != nil || model.confirmation != nil || topicDetailRequest != nil ||
+                ticketSettingsRequest != nil
         }))
         .modifier(ProjectEditIssueNavigationPresentation(controller: issueNavigation))
         .modifier(ProjectEditTopicDetailHost(request: $topicDetailRequest, rootRequestID: issueNavigation.rootRequest?.id,
                                              rootAnchor: issueNavigation.rootRequest?.capture.location.anchor) { anchor in
             topicDetailSheet(anchor: anchor)
+        })
+        .modifier(ProjectEditTicketSettingsHost(request: $ticketSettingsRequest, rootRequestID: issueNavigation.rootRequest?.id,
+                                                rootAnchor: issueNavigation.rootRequest?.capture.location.anchor) { anchor in
+            ticketSettingsPage(anchor: anchor)
         })
         .onChange(of: model.revision) { _, _ in
             if model.coordinator.state == .acknowledged, let next = model.submittedHandoff, next.id != handledSubmission {
@@ -1087,7 +1060,6 @@ import SwiftUI
             Toggle("projectEdit.publishToCreative", isOn: $model.draft.publishToCreative)
                 .disabled(!model.fullEdit || model.coordinator.snapshot?.topicID != nil)
         }
-        ProjectClubLeadFields(model: model).id("project-issue-anchor-clubLead")
     }
     /// The 主题详情 sheet (MP cy-sheet variant=full): inline title = the topic name, 完成 top-right.
     private func topicDetailSheet(anchor: String?) -> some View {
@@ -1111,19 +1083,54 @@ import SwiftUI
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
     }
-    private var scheduleFields: some View {
-        Section("projectEdit.schedule") {
-            // Keep the localized field name and its value separately discoverable,
-            // matching the exact-value accessibility contract of the revision row.
-            HStack(alignment: .firstTextBaseline) {
-                Text("projectEdit.mode")
-                Spacer(minLength: 12)
-                Text(LocalizedStringKey(model.draft.product == .city ? "projectEdit.city" : "projectEdit.freeExplore"))
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.trailing)
-                    .accessibilityIdentifier("projectRemote.mode")
+    /// MP fabu step3.wxml (page 2 · 票务设置): 档期 → 俱乐部承接 → 玩家组队 → 票务, pushed from the 票务 card on page 1.
+    private func ticketSettingsPage(anchor: String?) -> some View {
+        Form {
+            scheduleFields
+            ProjectClubLeadFields(model: model).id("project-issue-anchor-clubLead")
+            ProjectTeamConfigurationEntry(model: model)
+            // Design hand-off r1 CF-38: ticket rows show name, price in 积分 and stock; the section says
+            // `2 种票 · 39 积分起` or `还没设置`; rows reorder by drag or by the "⋯" menu.
+            Section {
+                ForEach(Array(model.draft.tickets.enumerated()), id: \.element.id) { index, ticket in
+                    HStack(spacing: CYSpacing.xs) {
+                        NavigationLink { ProjectEditTicketView(model: model, ticketID: ticket.id) } label: {
+                            HStack {
+                                ProjectEditName(value: ticket.name, fallback: "projectEdit.untitledTicket")
+                                Spacer(minLength: CYSpacing.sm)
+                                ProjectEditTicketValue(ticket: ticket)
+                            }
+                        }.accessibilityIdentifier("projectEdit.ticket." + ticket.id)
+                        if model.fullEdit {
+                            EditorRowActionsMenu(index: index, count: model.draft.tickets.count) { action in
+                                ticketAction(action, at: index)
+                            }
+                        }
+                    }
+                    .editorReorderAccessibility(index: index, count: model.draft.tickets.count) { ticketAction($0, at: index) }
+                }
+                .onDelete { offsets in if model.fullEdit { removeTickets(at: offsets) } }
+                .onMove { if model.fullEdit { model.draft.tickets.move(fromOffsets: $0, toOffset: $1) } }
+                Button("projectEdit.addTicket", systemImage: "plus") { model.draft.tickets.append(.init()) }
+                    .disabled(!model.fullEdit).accessibilityIdentifier("projectEdit.addTicket")
+            } header: {
+                HStack {
+                    Text("projectEdit.tickets")
+                    Spacer(minLength: CYSpacing.sm)
+                    ProjectEditTicketSummaryLabel(summary: EditorTicketSummary(prices: model.draft.tickets.map { Int($0.price) }))
+                }
             }
-            .accessibilityElement(children: .contain)
+            .id("project-issue-anchor-tickets")
+        }
+        .modifier(ProjectEditIssueInitialScroll(anchor: anchor))
+        .navigationTitle(Text("mpPublish.ticketSettings.title"))
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar { EditButton().disabled(!model.fullEdit) }
+        .scrollDismissesKeyboard(.interactively)
+    }
+    private var scheduleFields: some View {
+        // MP step3 档期: 开始日期 → 结束日期 → 招商截止日期 (the mode stays on page 1's 模式 row).
+        Section("mpPublish.ticketSettings.schedule") {
             ProjectEditDateField(title: "projectEdit.startDate", value: $model.draft.startDate, identifier: "projectEdit.startDate").dateEditing(.init(model: model, field: .start)).id("project-issue-anchor-start")
             ProjectEditDateField(title: "projectEdit.endDate", value: $model.draft.endDate, identifier: "projectEdit.endDate").dateEditing(.init(model: model, field: .end)).id("project-issue-anchor-end")
             ProjectEditScheduleSpan(start: model.draft.startDate, end: model.draft.endDate)
