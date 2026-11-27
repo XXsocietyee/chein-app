@@ -17,10 +17,11 @@ import SwiftUI
                         .cyStampSlam(trigger: true)
                 }
                 CYSectionHeader("playBadge.receipt")
-                Text("playBadge.readbackHint").cyText(.bodyCompact).foregroundStyle(.secondary)
                 ForEach(targets) { target in
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(verbatim: target.name ?? target.code).fixedSize(horizontal: false, vertical: true)
+                        // mp-journey r3 (MP pages/play/index.wxml `rdrop`): the reward, then 已记在你的收藏里, then 查看收藏 · 继续.
+                        Text(verbatim: target.name ?? target.code).font(.headline).fixedSize(horizontal: false, vertical: true)
+                        Text("playBadge.savedLine").cyText(.bodyCompact).foregroundStyle(.secondary)
                         if let destination {
                             NavigationLink { destination(target) } label: { Label("playBadge.open", systemImage: "medal") }
                                 .accessibilityIdentifier("playBadge.open." + target.code)
