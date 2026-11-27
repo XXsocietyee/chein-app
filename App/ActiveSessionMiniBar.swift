@@ -109,6 +109,8 @@ enum ActiveSessionCopy {
 struct ActiveSessionMiniBar: View {
     let entry: ActiveSessionStore.Entry
     let onExpand: () -> Void
+    /// a11y-dt r3: the icon tile grows with its `.body` glyph (fixed 36 pt clipped it at AX sizes), capped like a Music mini-player artwork.
+    @ScaledMetric(relativeTo: .body) private var tileSide: CGFloat = 36
 
     var body: some View {
         HStack(spacing: CYSpacing.md) {
@@ -117,7 +119,7 @@ struct ActiveSessionMiniBar: View {
                     Image(systemName: ActiveSessionCopy.symbol(entry.kind))
                         .font(.body.weight(.semibold))
                         .foregroundStyle(.tint)
-                        .frame(width: 36, height: 36)
+                        .frame(width: min(tileSide, 52), height: min(tileSide, 52))
                         .background(Color.accentColor.opacity(0.15), in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 2) {

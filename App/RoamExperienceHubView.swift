@@ -248,7 +248,7 @@ struct RoamTileMemoryPageOwner: Equatable, Hashable {
                             .accessibilityIdentifier("roam.experience.tiles.denied")
                     } else { RoamExperienceIssue(error: error, retry: read) }
                 }
-                if presentation.loading { CYSkeleton().accessibilityLabel(Text("roam.loading")) }
+                if presentation.loading { CYSkeleton(label: "roam.loading") }
                 if !presentation.loading && pager.hasMore {
                     CYPillButton(pager.loaded ? "roam.experience.loadMore" : "roam.experience.readTiles", style: .secondary, action: read)
                         .listRowBackground(Color.clear)
@@ -257,7 +257,7 @@ struct RoamTileMemoryPageOwner: Equatable, Hashable {
                 }
                 if reader.identity == nil { Text("roam.signInRequired") }
                 else if !reader.isConfigured { Text("roam.notConfigured") }
-                } else { CYSkeleton().accessibilityLabel(Text("roam.loading")) }
+                } else { CYSkeleton(label: "roam.loading") }
             }
         }.cyGroupedSurface().navigationTitle(showsLiveUnavailable ? "roam.experience.live" : "roam.experience.tileMemory").navigationBarTitleDisplayMode(.inline)
             .refreshable { await refresh() }

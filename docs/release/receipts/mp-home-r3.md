@@ -142,6 +142,31 @@ Merged `origin/ui/combined-r7` (fast-forward). No compiler/simulator here: edits
 | 16:37 / 16:53 `d2-search`: 类别 card renders as one tall narrow pill with an icon | Category capsule = `Label` in a `.bordered` capsule inside `TemplateChipFlow`; nothing pinned the label style or its width, so the row could collapse to the icon / a wrapped name. | **Fixed** — `App/GlobalSearchView.swift`: the capsule label is `.labelStyle(.titleAndIcon)`, `.lineLimit(1)`, `.fixedSize()` (icon + name on one line at natural width; the flow wraps whole capsules). Simulator check still needed. |
 | 16:37 `d2-search`: 推荐搜索 chips are Chinese in the English UI | `GlobalSearchRecommendedKeywords.china` are China-market search terms (they query Chinese content; the US market gets none via `keywords(for:)`). | **Not changed** — market data, not app copy (brief: "if they are server data, fine"). |
 
+## Round 3 continue (4) — hourly re-scan
+
+Merged `origin/ui/combined-r7` (fast-forward). Sweep `docs/sweeps/latest/mp-home/sheet-zh-Hans.jpg` (build 070117595) shows only the launch logo — coordinator 17:40 note: taken under archive load, not a regression; no launch-code change made from it. Gates on `3c349eef2`: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract ratchet 52 / baseline 52, new 0 (the new `@AppStorage` key is catalogued in `docs/ops-safety/client-data-catalog.json`).
+
+| MP page → native | MP sections | Difference | Status |
+|---|---|---|---|
+| `pages/index/index.wxml:44-63` city `cy-dropdown range="{{manualCityOptions}}"` → `App/HomeSearchTabParityViews.swift` `cityControl` | 20 cities `utils/index/home-city-location.js` CITY_OPTIONS (北京 … 合肥), no 全国 | Native menu = 全国 + 6 cities; its 全国 item was a dead tap (`selectHomeCity` returns on nationwide). | **Fixed** — menu lists the 20 MP cities in MP order (`HomeHeroCityNames.manualOptions`, 市 suffix dropped like the located label); 全国 item removed; English names for all 20 (`HomeHeroCityNames.english`, also accepts 北京市 spelling). Core `defaultSupportedCities` untouched. |
+| `onManualCityChange` → `homeCity.saveLastCity` → `App/SessionHomeFeedView.swift` | city survives relaunch | Native kept the pick in `@State` only. | **Fixed** — `@AppStorage("homeIndex.manualCity")`; still a local label, never `session.roamArea`. Pin in `test_fix_r8_mp_first_pc.py` updated with a one-line reason. |
+| `onTapHomeCity` (re-locate when the city came from location) | tap → `getHomeCityLocation({userInitiated})` | Native has no foreground city reverse-geocode path on 首页. | **Not done** — needs a location → city read (`/api/map/reverse-geocode`); listed below. |
+| `v3-locprompt` → `App/HomeCityLocationConsentCard.swift` | title 首页城市定位 · body · 暂不定位 / 同意定位 | — | ✓ matches (GroupBox, `.bordered` / `.borderedProminent`, `ViewThatFits`). |
+| `pages/search2/index` → `App/GlobalSearchView.swift` | field + 筛选 → 搜索历史 (清空) → 推荐搜索 → 类别 (loading / failed / hidden when none) → 在地图上找; 筛选 sheet 日期 / 价格 / 排序 / 重置 · 搜索 | — (submit button shown only with a keyword is the documented d2 choice) | ✓ order, copy (搜索历史 / 清空 / 推荐搜索 / 类别 / 在地图上找) and states match; swipe-to-delete a history row is the P18 addition. |
+| `pages/search2/result` → same view, results branch | scope tabs → skeleton / 没能完成搜索 + 重试 / 没有找到 / 重试本页 → list → 没有更多了 · 重新搜索 | — | ✓ (`globalSearch.failed`, `globalSearch.empty`, `searchMap.retryPage`, `searchMap.endOfResults`, `searchMap.refreshResults`). |
+| `pages/activity/official-*` | — | Owned and done by mp-activity (`mp-activity-r3.md` rows 13–16). | Skipped (other lane). |
+
+## Round 3 continue (5) — 18:06 sweep (build 070117595), `rep3-activity-detail` zh-Hans + en
+
+Screenshot: `docs/sweeps/latest/mp-home/zh-Hans-rep3-activity-detail.jpg`, `en-rep3-activity-detail.jpg`. MP: `subpackageMember/components/cy/scene-play-activity-detail/index.{wxml,js}` (hero, footer `activity-action` wxml:144-150).
+
+| MP page → native | Difference seen | Status |
+|---|---|---|
+| hero `activity-hero` → `App/E1ActivityDetailParts.swift` `E1ActivityHero` + `App/NativeR2/Explore/ExploreDesignPass.swift` `ExploreStartsInLine` | An ended activity (11月21日) read 「进行中 · 还剩 已结束」 / "In progress · Ends in Ended": `TimelineView(.explicit)` with only past dates hands back a past `context.date`, so the line took the start as now. | **Fixed** — the line uses `max(context.date, Date())`; an ended activity shows no live line (status 已结束 + 活动时间 only, as MP). Also fixes the same stale line on 首页 rails. |
+| hero status badge | 已结束 (neutral = `.secondary`) rendered dark grey on the black scrim — unreadable. | **Fixed** — the hero text stack resolves in `.colorScheme(.dark)` (scrim is always black), so neutral reads light grey; tones unchanged. |
+| footer `activity-action` → `App/ActivityDetailView.swift` `registrationAction` | 「¥58.00 起 · 24 人已报名」 and the going stack 「24 人已报名」 said the count twice. MP footer = share + one main button. | **Fixed** — the summary line drops the count when the going stack (P6) shows it; price stays. |
+| footer main button 「—」 | MP `actionFor`: `isSignUp` not 0/1 → `{state:'unavailable', text:'—'}` disabled. | ✓ matches MP (fixture has no `isSignUp`). |
+
 ## Not done / follow-ups
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
 - ~~活动列表 邀约 link hidden while loading / failed~~ — closed in continue 3.
@@ -149,3 +174,7 @@ Merged `origin/ui/combined-r7` (fast-forward). No compiler/simulator here: edits
 - Re-scan after the queue (r3 continue): home hero / rails / stream / consent card / activity list / activity detail / topic detail have no `.font(.system(size:))`, `.tracking`/`.kerning`, custom fonts or transparent-bar chrome; 编辑精选 footnote, per-rail 正在更新…, stream failed/empty/loading-more/no-more and 长期开放 all present.
 - Needs a simulator pass: `d2-home` first frame without the launch-screen fade (continue 3) and the 类别 capsules in en + zh-Hans.
 - Needs a simulator pass: 4:3 banner card height under the large title on small phones (first rails should stay near the fold).
+- 首页 city tap-to-relocate (MP `onTapHomeCity`): needs a foreground location → city read; the menu covers manual choice meanwhile.
+- Needs a simulator pass: 20-item city menu in en + zh-Hans.
+- Needs a simulator pass: `rep3-activity-detail` hero (no live line when ended, light 已结束) and one going count in the footer.
+- `d2-home-offline` shows 「首页暂不可用 · 这项功能还没开通」(feature-off copy) — checking next run whether the fixture means offline (MP `cy-error` 网络 copy + 重试) or a disabled flag.

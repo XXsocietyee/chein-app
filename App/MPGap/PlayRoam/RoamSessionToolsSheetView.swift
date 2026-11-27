@@ -12,6 +12,8 @@ struct RoamSessionToolsSheetView: View {
     let runners: [RoamNearbyRunner]
     /// MP `presenceVisible`: runners are read only while the walker shares presence.
     let presenceEnabled: Bool
+    /// MP f-multi 「你」 row: the walker's own 地盘 % (local reading, clamped 0…99). Nil hides the row (fixtures).
+    var ownExplorePercent: Int? = nil
     @Binding var fogOn: Bool
     @Binding var mapKind: FreeMapKind
     @Binding var reduceMotion: Bool
@@ -81,6 +83,15 @@ struct RoamSessionToolsSheetView: View {
                 ContentUnavailableView("roamTools.runners.empty", systemImage: "figure.walk")
                     .accessibilityIdentifier("roamTools.runners.empty")
             } else {
+                // MP f-multi: 「这片街区有 N 个人在点亮」 counts the walker too; 「你」 leads with the local 地盘 %.
+                Section {
+                    if let ownExplorePercent {
+                        ownRow(max(0, min(99, ownExplorePercent)))
+                    }
+                } header: {
+                    Text("roamTools.runners.lighting \(runners.count + (ownExplorePercent == nil ? 0 : 1))")
+                        .accessibilityIdentifier("roamTools.runners.lighting")
+                }
                 ForEach(runners) { runner in
                     if let runnerActions {
                         NavigationLink { RoamRunnerDetailView(runner: runner, actions: runnerActions) } label: { runnerRow(runner) }
@@ -203,6 +214,22 @@ struct RoamSessionToolsSheetView: View {
     }
 
     /// MP f-multi card row: initial / avatar, nickname, walking time and own 地盘 %.
+    private func ownRow(_ percent: Int) -> some View {
+        HStack(spacing: CYSpacing.md) {
+            ZStack {
+                Circle().fill(CYColor.brandSoft)
+                Image(systemName: "person.fill").foregroundStyle(CYColor.textPrimary)
+            }
+            .frame(width: 36, height: 36)
+            .accessibilityHidden(true)
+            Text("roamTools.runners.you").cyText(.bodyMedium)
+            Spacer(minLength: CYSpacing.sm)
+            Text("roamTools.runners.explore \(percent)").cyText(.meta, monospacedDigit: true)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("roamTools.runners.you")
+    }
+
     private func runnerRow(_ runner: RoamNearbyRunner) -> some View {
         HStack(spacing: CYSpacing.md) {
             ZStack {

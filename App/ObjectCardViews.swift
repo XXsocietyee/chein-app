@@ -65,18 +65,25 @@ extension EnvironmentValues {
             else {
                 Section {
                     if model.loading {
-                        // P10: MP cy-skeleton with words saying what opens.
-                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                            CYSkeleton()
-                            Text("objectCards.loading").font(.footnote).foregroundStyle(.secondary)
-                        }.accessibilityElement(children: .combine)
+                        // P10 / mp-states r3: the one loading pattern, the words on the ProgressView.
+                        ProgressView { Text("objectCards.loading") }
+                            .frame(maxWidth: .infinity)
                     }
+                    // mp-states r3 (MP object-cards wxml:27-29): denied and 藏品册无法打开 · 重试 as ContentUnavailableView.
                     if model.failed, model.access == .denied {
-                        Text("objectCards.denied").accessibilityIdentifier("objects.denied")
+                        ContentUnavailableView {
+                            Label { Text("objectCards.denied").accessibilityIdentifier("objects.denied") } icon: { Image(systemName: "lock") }
+                        }
                     } else if model.failed {
-                        Text(model.collection == nil ? "objectCards.openFailed" : "objects.filterFailed")  // MP 藏品册无法打开
-                            .accessibilityIdentifier("objects.failed")
-                        CYPillButton("objects.retry") { Task { await model.load(category: model.category, reader: reader) } }
+                        ContentUnavailableView {
+                            Label {
+                                Text(LocalizedStringKey(model.collection == nil ? "objectCards.openFailed" : "objects.filterFailed"))
+                                    .accessibilityIdentifier("objects.failed")
+                            } icon: { Image(systemName: "exclamationmark.triangle") }
+                        } actions: {
+                            Button("objects.retry") { Task { await model.load(category: model.category, reader: reader) } }
+                                .buttonStyle(.bordered)
+                        }
                     }
                 }
                 if model.loadedScope == scope, let collection = model.collection {

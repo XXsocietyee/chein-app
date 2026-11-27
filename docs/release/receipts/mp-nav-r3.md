@@ -80,6 +80,18 @@ MP: a page opened from outside (share card, subscribe message, scan) launches as
 | `pages/talent/list/index?tab=feed` (帖文 share card, MP index.js:289-290 onLoad) | switched to 俱乐部 but stayed on the 俱乐部 top tab | switches to 俱乐部 and selects the 帖文 top tab via `ClubHomeView.requestedTopTab` (applied once, cleared; QuestifyApp `deepLinkClubTopTab`); `?tab=club` selects 俱乐部 | fixed |
 | City local notifications (保护结束提醒 / 保护还剩 1 小时 with 开护盾 action / 今天收租 20:00 / 被拿走; App/CityKit/CityNotifications.swift) | no `page` in userInfo: a tap only opened the app where it was | `page = pages/roam/index` on all four: the tap routes through `MPNotificationTapRouter` → `HomeLanding.tab(.roam)` (MP `switchTab`; the City board is a 漫游 map mode, no MP page of its own) | fixed |
 
+## Exits from landed pages (re-scan 11-27 18:10)
+
+Since links / notifications land as a push on 首页 (`HomeLanding`), a page's "leave" action can no longer rely on `session.dismissNativeEntry()` alone: the entry is already cleared, so those buttons did nothing.
+
+| MP page → exit | MP | before | after (App/MPReviewedPageScreen.swift) | status |
+|---|---|---|---|---|
+| subpackageRoam/session/index?shareToken → 去漫游 (shared footprint) | session/index.js:593 `goRoam` = `switchTab /pages/roam/index` | only `dismissNativeEntry()`: dead button on the landed push | `leaveForTab(.roam)`: clear entry, pop the page (`dismiss`), select 漫游; button hidden where no tab switch exists | fixed |
+| pages/play/circle/index (missing topicId) → 返回首页 | circle/index.js:84 `reLaunch /pages/index/index` | only `dismissNativeEntry()`: dead | `leaveForTab(.home)`: pops back to the 首页 root | fixed |
+| pages/square/list/index → toolbar 关闭 | navigateTo page, system back | a 关闭 in `.cancellationAction` that only cleared the (already cleared) entry sheet | no 关闭 (`onClose: nil`, `SessionSquareBrowserView.onClose` is optional now); pushed page keeps system back like every L2 page | fixed |
+| pages/square/list/index → 登录 | goes to sign-in | `onSignIn: {}` (dead) | `signIn()` = clear entry + 我的 tab, same as the other landed pages | fixed |
+| pages/coop/list/index → 关闭 (link, and the coop subscribe-message tap `.coopList`) | navigateTo page, system back | same dead 关闭 (MPReviewedPageScreen + SubscribeMessageTapScreens.swift:21) | `onClose: nil`: system back on the push; list content unchanged (mp-activity owns it) | fixed |
+
 ## Route coverage
 
 All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScreen cases or `MPParityDestination`), except four pages that are parsed (`Core/MiniProgramPageLink.swift`) but have no native screen case: `pages/playkit/index/index`, `pages/publishkit/index/index` (MP kit galleries), `pages/crop/index` (MP image-crop utility) and `subpackageP3/pages/badge-3d/index` (MP 3D badge viewer). No native player control links to them; left for the coordinator to confirm they stay unrouted.

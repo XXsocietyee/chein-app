@@ -22,11 +22,11 @@ PAIRS = {
     'badgeWall.focus.elsewhere': ('This badge is not an identity card; it is recorded in the growth center', '这枚不是身份卡，记在成长中心'),
     'badgeWall.explore': ('Go explore', '去探索'),
     'badgeWall.threeD.open': ('View 3D badge', '查看 3D 徽章'),
-    'objectCards.denied': ('This account cannot view this collection. Go back and open it again.', '当前账号无法查看，请返回后重新进入'),
+    'objectCards.denied': ('This identity can’t view it', '当前身份不能查看'),
     'objectCards.emptyAll': ('You have not collected anything yet', '还没有收过东西'),
     'objectCards.emptyHint': ('Photograph an item at a node you have played; once it passes review it is collected here', '在玩过的节点里拍一件东西，判过就收进这里'),
     'stampAlbum.total %lld': ('Stamps: %lld', '%lld 枚'),
-    'stampAlbum.denied': ('This account cannot view this album. Go back and open it again.', '当前账号无法查看，请返回后重新进入'),
+    'stampAlbum.denied': ('This identity can’t view it', '当前身份不能查看'),
     'stampAlbum.openCamera': ('Open stamp camera', '打开集邮相机'),
 }
 
