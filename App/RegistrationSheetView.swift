@@ -532,6 +532,18 @@ struct RegistrationSheetView: View {
         default: return copy.t("暂时无法继续", "Not available right now")
         }
     }
+    /// mp-activity r3 (MP baoming.wxml bmbottom cy-btn): when nothing blocks, the button says what it will do —
+    /// 付款 (priced, quote in hand) / 确认价格并付款 (priced, quote pending) / 确认报名 (free). Blocked keeps the review key; the reason sits below.
+    private func submitLabelText(_ copy: CoreLoopCopy, blocked: Bool) -> String? {
+        if blocked { return nil }
+        guard let ticket = flow.selectedTicket else { return nil }
+        if flow.quoteEnabled, case .received(let quote) = flow.quoteState, let amount = quote.payAmount {
+            if amount == .zero { return copy.t("确认报名", "Confirm sign-up") }
+            return PlayAreaPopupCopy.paymentsOpen ? copy.t("付款", "Pay") : nil
+        }
+        if ticket.price == 0 { return copy.t("确认报名", "Confirm sign-up") }
+        return PlayAreaPopupCopy.paymentsOpen ? copy.t("确认价格并付款", "Confirm price and pay") : nil
+    }
     private func footerNoticeText(_ notice: RegistrationCheckoutFooterNotice, _ copy: CoreLoopCopy) -> String {
         switch notice {
         case .checkingPrice: return copy.t("正在核对价格…", "Checking the price…")
@@ -569,7 +581,13 @@ struct RegistrationSheetView: View {
                                     showingConfirmation = true
                                 }
                             }
-                        } label: { Text("registration.form.review").frame(maxWidth: .infinity, minHeight: 44) }
+                        } label: {
+                            if let mpLabel = submitLabelText(copy, blocked: blocked) {
+                                Text(verbatim: mpLabel).frame(maxWidth: .infinity, minHeight: 44)
+                            } else {
+                                Text("registration.form.review").frame(maxWidth: .infinity, minHeight: 44)
+                            }
+                        }
                         .buttonStyle(.cyPrimary)
                         // Blocked keeps the full primary look (never a grey slab); the flow ignores the tap and the reason sits below.
                         .cyHaptic(.warning, trigger: blockedTaps)
