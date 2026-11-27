@@ -44,6 +44,9 @@ and `#Preview { ... }` blocks; comments are ignored) and counts, per file:
   text on art     a generated cover `CYCoverArt(` used as the `.background` of a view outside App/DesignSystem
                   (a title / text laid on busy procedural art): put the cover above the text as the hero
                   illustration (`CYHeroHeader { Cloud07Cover(...) }`) and keep text on system backgrounds
+  raw segmented   `.pickerStyle(.segmented)` outside App/DesignSystem: 85 sibling pickers use `.cyAdaptiveSegmented()`
+                  (segmented while every title fits, the system menu for long English titles / accessibility sizes),
+                  so a bare segmented picker truncates where its siblings do not
 
 Build-break guards (module-wide: App/ and Core/ compile into ONE module, so every file is scanned, merchant and
 fixtures included; there is no Swift compiler in the lanes' cloud sessions):
@@ -92,10 +95,12 @@ CUSTOM_TABS = 'custom tabs'
 FONT_DESIGN = 'font design'
 CUSTOM_SEARCH = 'custom search'
 TEXT_ON_ART = 'text on art'
+RAW_SEGMENTED = 'raw segmented'
+RAW_SEGMENTED_PATTERN = re.compile(r'\.pickerStyle\(\s*\.segmented\s*\)')
 DUPLICATE_TYPE = 'duplicate type'
 UNDECLARED_STATE = 'undeclared state'
 KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, CUSTOM_BACK, BUTTON_STYLE, POPUP_SCRIM,
-         RAW_COLOUR, LIST_STYLE, CUSTOM_SHEET, CUSTOM_TABS, FONT_DESIGN, CUSTOM_SEARCH, TEXT_ON_ART,
+         RAW_COLOUR, LIST_STYLE, CUSTOM_SHEET, CUSTOM_TABS, FONT_DESIGN, CUSTOM_SEARCH, TEXT_ON_ART, RAW_SEGMENTED,
          DUPLICATE_TYPE, UNDECLARED_STATE)
 
 # The five player tab roots (Core/RootTab.swift, QuestifyApp root TabView) and the files that own their title.
@@ -281,6 +286,8 @@ def scan_file(rel, text):
             hits.append((number, CUSTOM_SHEET, code.strip()))
         if not font_scale and not design_system and FONT_DESIGN_PATTERN.search(code):
             hits.append((number, FONT_DESIGN, code.strip()))
+        if not design_system and RAW_SEGMENTED_PATTERN.search(code):
+            hits.append((number, RAW_SEGMENTED, code.strip()))
         if not design_system and rel != APP_ROOT and DS_TAB_BAR.search(code):
             hits.append((number, CUSTOM_TABS, code.strip()))
     if not design_system:

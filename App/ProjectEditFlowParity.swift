@@ -146,7 +146,7 @@ extension EnvironmentValues {
             }
             switch phase {
             case .loading:
-                Section { ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("projectNodeNPC.loading") }
+                Section { ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity).accessibilityIdentifier("projectNodeNPC.loading") }
             case .failed:
                 Section {
                     ContentUnavailableView {

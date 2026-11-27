@@ -66,7 +66,7 @@ struct DiscoveryTemplateDetailView: View {
                     Text("auth.notConfigured")
                 }
             } else if detail.isLoading || loadedKey != requestKey {
-                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+                ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity, maxHeight: .infinity)
                     .accessibilityLabel(Text("discovery.loading"))
             } else if let error = detail.error {
                 DiscoveryErrorView(error: error, failureTitle: "discovery.play.openFailed") { Task { await reload() } }
@@ -373,7 +373,7 @@ struct DiscoveryTopicTemplatePreview: View {
                                        description: Text("discovery.templateReopen"))
             } else if detail.isLoading {
                 // R7-PC-A7-2 (r1 PC-A-7-4): MP skeleton, not a centred spinner.
-                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+                ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity, maxHeight: .infinity)
                     .accessibilityLabel(Text("discovery.loading"))
             } else if let error = detail.error {
                 DiscoveryErrorView(error: error, failureTitle: "discovery.topicTemplate.openFailed") { Task { await detail.load() } }

@@ -139,7 +139,7 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
                 }
                 if let issue = model.state.moreIssue {
                     AccountCollectionIssueView(issue: issue, retry: { Task { await loadMore() } })
-                } else if model.state.isLoadingMore { ProgressView().frame(maxWidth: .infinity) }
+                } else if model.state.isLoadingMore { ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity) }
                 else if model.state.pagination.hasMore {
                     Button("accountCollection.loadMore") { Task { await loadMore() } }
                         .accessibilityIdentifier("accountCollection.favorites.loadMore")
@@ -351,7 +351,7 @@ private struct AccountCollectionFavoriteCard: View {
                 }
                 if let issue = model.state.moreIssue {
                     AccountCollectionIssueView(issue: issue, retry: { Task { await loadMore() } })
-                } else if model.state.isLoadingMore { ProgressView().frame(maxWidth: .infinity) }
+                } else if model.state.isLoadingMore { ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity) }
                 else if model.state.pagination.hasMore {
                     Button("accountCollection.loadMore") { Task { await loadMore() } }
                         .accessibilityIdentifier("accountCollection.posts.loadMore")

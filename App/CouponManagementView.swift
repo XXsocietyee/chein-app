@@ -255,7 +255,7 @@ private struct CouponManagementDetailItem: Identifiable {
                     }
                 }
                 if let review = model.core.review { CouponManagementReviewSection(model: model, review: review) }
-            } else if model.working { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("couponManagement.loading")) }
+            } else if model.working { ProgressView { Text("couponManagement.loading") }.frame(maxWidth: .infinity) }
             else { Text("couponManagement.unavailable") }
         }
         .merchantM02Page()

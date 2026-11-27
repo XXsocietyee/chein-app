@@ -587,10 +587,8 @@ extension EnvironmentValues {
                                 deniedKey: income ? "wallet.income.denied" : nil) { Task { await model.load(reader, kind: kind) } }
             }
             if model.pager.isLoading {
-                // MP points-history first load: `cy-skeleton type="list" count="3"`.
-                if points && !model.pager.hasLoadedPage {
-                    ForEach(0..<3, id: \.self) { _ in CYSkeleton(variant: .row) }
-                }
+                // MP points-history first load: `cy-skeleton type="list"` — one labelled loader (加载中).
+                if points && !model.pager.hasLoadedPage { CYSkeleton(variant: .row) }
                 else { ProgressView { Text("wallet.loading") }.frame(maxWidth: .infinity) }
             }
             else if hasLocalMore && model.pager.hasLoadedPage && reader.isConfigured && reader.scope != nil {

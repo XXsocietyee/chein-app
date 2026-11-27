@@ -52,7 +52,7 @@ import SwiftUI
                        (flow.source == .lifecycle ? flow.operations.isEmpty : flow.rows.isEmpty) {
                         ContentUnavailableView { Label("d7.channelAudit.empty", systemImage: "doc.text.magnifyingglass") }
                     }
-                    if flow.state == .loading { ProgressView().frame(maxWidth: .infinity) }
+                    if flow.state == .loading { ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity) }
                     if flow.state == .unavailable {
                         ContentUnavailableView {
                             Label("d7.channelAudit.loadFailed", systemImage: "exclamationmark.triangle")

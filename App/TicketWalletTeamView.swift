@@ -185,7 +185,7 @@ struct TicketWalletTeamContext: Hashable {
                     }
                 }
                 if model.loading {
-                    ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("ticketTeam.loading"))
+                    ProgressView { Text("ticketTeam.loading") }.frame(maxWidth: .infinity)
                 }
                 if model.loaded && model.rows.isEmpty && model.issue == nil {
                     ContentUnavailableView("ticketTeam.empty", systemImage: "person.3", description: Text("ticketTeam.emptyHint"))

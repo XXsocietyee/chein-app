@@ -37,7 +37,7 @@ import SwiftUI
                     Text("roam.album.tab.mine").tag(AlbumTab.mine)
                     Text("roam.album.tab.received").tag(AlbumTab.received)
                 }
-                .pickerStyle(.segmented)
+                .cyAdaptiveSegmented()
                 .padding(.horizontal)
                 .padding(.vertical, 8)
                 .accessibilityIdentifier("roam.experience.album.tabs")

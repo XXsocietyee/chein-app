@@ -324,7 +324,7 @@ private struct RoamExportFileSaveLink: View {
             Button("roam.export.prepare") { saveResult = nil; owner.prepare(startDate: startDate, endDate: endDate) }
                 .frame(maxWidth: .infinity)
                 .disabled(!owner.active || model.isBusy || !RoamExportContract.isValidRange(start: startDate, end: endDate)).accessibilityIdentifier("roam.export.prepare")
-            if model.phase == .preparing { ProgressView().frame(maxWidth: .infinity) }  // N-TOOLS (r10)
+            if model.phase == .preparing { ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity) }  // N-TOOLS (r10)
         }
     }
     @ViewBuilder private var progress: some View {

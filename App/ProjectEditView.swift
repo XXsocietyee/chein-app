@@ -633,7 +633,7 @@ import SwiftUI
             }
             if model.busy {
                 Section {
-                    ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("projectEdit.loading")
+                    ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity).accessibilityIdentifier("projectEdit.loading")
                 }
             }
         }

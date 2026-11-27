@@ -69,7 +69,7 @@ import SwiftUI
                     .accessibilityLabel("club.calendar.next").disabled(month.shifted(by: 1) == nil)
             }
             .buttonStyle(.borderless)
-            if model.loading { ProgressView().frame(maxWidth: .infinity) }
+            if model.loading { ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity) }
             if model.failureKey == key, let failure = model.failure {
                 Text(LocalizedStringKey(failure.localizationKey))
             }
