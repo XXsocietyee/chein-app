@@ -97,13 +97,14 @@ import SwiftUI
         }
         // MP `cy-tabs` 我的 / 收到的 is the segmented tab above; this is the 我的 pane.
         // mp-roam r3: the native-only 全部 / 邮票 / 照片 kind filter is removed (the MP has no such filter).
+        // MP `album-sub` 共 N 枚 sits alone under the tabs; the nav title already says 集邮册 (no repeated label).
         if pager.loaded, let total = pager.total {
-            LabeledContent {
-                Text("stampAlbum.total \(total)").monospacedDigit().contentTransition(.numericText())
-            } label: {
-                Text("roam.experience.album")
-            }
-            .accessibilityIdentifier("roam.experience.album.total")
+            Text("roam.album.sub \(total)")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
+                .contentTransition(.numericText())
+                .accessibilityIdentifier("roam.experience.album.total")
         }
     }
 

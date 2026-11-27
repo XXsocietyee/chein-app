@@ -80,25 +80,25 @@ struct MerchantCorrectionSheet: View {
                 ) {
                     switch stage {
                     case .loading:
-                        VStack(spacing: CYSpacing.md) {
-                            ProgressView()
+                        ProgressView {
                             Text(verbatim: PlayerCapabilityCopy.text("正在读取纠错类型", "Loading issue types", locale))
-                                .cyText(.meta)
-                                .foregroundStyle(CYColor.textSecondary)
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, CYSpacing.lg)
                     case .loadFailed:
-                        VStack(spacing: CYSpacing.md) {
-                            CYEmptyState(
-                                systemImage: "exclamationmark.triangle",
-                                LocalizedStringKey(message.isEmpty ? PlayerCapabilityCopy.text("暂时无法纠错", "Unable to correct info right now", locale) : message),
-                                kind: .failure
-                            )
-                            HStack(spacing: CYSpacing.sm) {
-                                CYPillButton(verbatim: PlayerCapabilityCopy.text("取消", "Cancel", locale), style: .secondary) { dismiss() }
-                                CYPillButton(verbatim: PlayerCapabilityCopy.text("重试", "Retry", locale), style: .primary) { Task { await load() } }
-                            }
+                        // MP merchant-correction-sheet loadfail: title 暂时无法纠错, why = failText, 重试 primary + 取消 secondary.
+                        ContentUnavailableView {
+                            Label(PlayerCapabilityCopy.text("暂时无法纠错", "Unable to correct info right now", locale), systemImage: "exclamationmark.triangle")
+                        } description: {
+                            if !message.isEmpty { Text(verbatim: message) }
+                        } actions: {
+                            Button(PlayerCapabilityCopy.text("重试", "Retry", locale)) { Task { await load() } }
+                                .buttonStyle(.borderedProminent)
+                                .controlSize(.large)
+                                .accessibilityIdentifier("merchant.correction.retry")
+                            Button(PlayerCapabilityCopy.text("取消", "Cancel", locale)) { dismiss() }
+                                .buttonStyle(.bordered)
+                                .controlSize(.large)
                         }
                     case .done:
                         VStack(spacing: CYSpacing.md) {

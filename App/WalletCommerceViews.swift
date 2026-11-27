@@ -665,14 +665,16 @@ extension EnvironmentValues {
             let first = model.pager.rows.first
             let value = points ? first?.afterPoints : first?.afterBalance
             let unit = points ? format.pointsUnit(for: value) : (first?.currency ?? "")
+            let glyph: String? = points ? nil : WalletCurrencySymbol.symbol(first?.currency).flatMap { $0.count == 1 ? $0 : nil }
             VStack(alignment: .leading, spacing: 4) {
                 Text(points ? "wallet.pointsBalance" : "wallet.balanceLedger")
                     .font(.subheadline).foregroundStyle(.secondary)
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                HStack(alignment: .firstTextBaseline, spacing: glyph == nil ? 8 : 2) {
+                    if value != nil, let glyph { Text(verbatim: glyph).font(.title.bold()) }
                     Text(verbatim: value.map { points ? WalletNumberLocalization.text($0.text, locale: locale) : WalletNumberLocalization.money($0.text, locale: locale) } ?? "—")
                         .cyText(.data2XL, monospacedDigit: true)
                         .fixedSize(horizontal: false, vertical: true)
-                    if value != nil { Text(verbatim: unit).font(.headline).foregroundStyle(.secondary) }
+                    if value != nil, glyph == nil { Text(verbatim: unit).font(.headline).foregroundStyle(.secondary) }
                 }
                 .accessibilityElement(children: .combine)
             }
@@ -736,15 +738,21 @@ extension EnvironmentValues {
             Spacer(minLength: 8)
             VStack(alignment: stacked ? .leading : .trailing, spacing: 4) {
                 HStack(spacing: 4) {
-                    Text(verbatim: format.signed(row, points: points, income: income))
-                    if points, row.changePoints != nil { Text(verbatim: format.pointsUnit(for: row.changePoints)) }
-                    else if !points { Text(verbatim: row.currency ?? appLocalized("wallet.currencyUnknown", locale: locale)) }
+                    let signed = format.signed(row, points: points, income: income)
+                    let symbolDelta: String? = (points || row.changeBalance == nil) ? nil : format.symbolMoney(signed, currency: row.currency)
+                    if let symbolDelta {
+                        Text(verbatim: symbolDelta)
+                    } else {
+                        Text(verbatim: signed)
+                        if points, row.changePoints != nil { Text(verbatim: format.pointsUnit(for: row.changePoints)) }
+                        else if !points { Text(verbatim: row.currency ?? appLocalized("wallet.currencyUnknown", locale: locale)) }
+                    }
                 }
                 .font(.body.weight(.medium)).monospacedDigit()
                 // FIN-18-8: MP `.is-income` uses the brand colour on 积分明细 (the system accent).
                 .foregroundStyle(isIn ? (points ? Color.accentColor : Color.green) : Color.primary)
                 if !points, let balance = row.afterBalance {
-                    Text(verbatim: format.amount(balance, currency: row.currency)).font(.footnote).foregroundStyle(.secondary).monospacedDigit()
+                    Text(verbatim: format.symbolMoney(WalletNumberLocalization.money(balance.text, locale: locale), currency: row.currency) ?? format.amount(balance, currency: row.currency)).font(.footnote).foregroundStyle(.secondary).monospacedDigit()
                 }
                 // mp-mine r3: MP points-history puts the after-balance under the delta (right column), not under the reason.
                 if points, !income { Text(verbatim: appLocalized("wallet.points.balanceAfter", locale: locale) + " " + (row.afterPoints.map { format.points($0) } ?? PointsHistoryPageModel.unknownMark)).font(.footnote).foregroundStyle(.secondary).monospacedDigit() }

@@ -47,10 +47,12 @@ import Observation
                     session.makeCityPlayerValueNodeRuntime(visit: visit, owner: owner)
                 })
             } else {
-                VStack(spacing: 12) {
-                    CYEmptyState(systemImage: "chart.bar", LocalizedStringKey("cityValue." + (owner?.reader.notPublished == true ? "notPublished" : "disabled")), tableName: "CityValue")
-                    if owner?.reader.loading == true { CYSkeleton() }
-                    CYPillButton(verbatim: CityPlayerValueCopy.string("refresh"), style: .secondary) { reload() }
+                if owner?.reader.loading == true {
+                    ProgressView { Text("cy.state.loading") }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    CYEmptyState(systemImage: "chart.bar", LocalizedStringKey("cityValue." + (owner?.reader.notPublished == true ? "notPublished" : "disabled")),
+                                 tableName: "CityValue", actionTitle: "cityValue.refresh", actionIdentifier: "cityValue.refresh", action: { reload() })
                         .disabled(retired || phase != .active || owner?.isCurrent != true)
                 }
             }

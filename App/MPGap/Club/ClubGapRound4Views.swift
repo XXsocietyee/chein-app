@@ -83,6 +83,7 @@ public struct ClubGapApplyCertImagesSection: View {
                         draft.failedIndices.remove(index)
                     } label: {
                         Image(systemName: "trash")
+                            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget).contentShape(Rectangle())
                     }
                     .buttonStyle(.borderless)
                     .accessibilityLabel(Text("删除凭证图片 \(index + 1)"))
