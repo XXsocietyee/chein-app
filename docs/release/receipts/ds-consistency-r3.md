@@ -95,3 +95,8 @@ scope).
 - `python3 -B tools/check_design_consistency.py` — PASS (0 debt, 54 allowed)
 - `python3 -B tools/check_typography_lint.py` — PASS
 - `python3 -B tools/contract_ratchet.py --check` — batch 1 (26bb8c423), batch 2 (32de0d542) and the merged tree after combined-r7 32e6d8ebd (batches 3–4 included): 52 failing, baseline 52, **new 0**
+- Continue run (c14786a0f, merged combined-r7 007558f9f): `generate_project` PASS, `check_scaffold` PASS,
+  `check_a11y_lint` PASS (0 new), `check_typography_lint` PASS, `check_design_consistency` PASS (0 debt, 64 allowed,
+  list style / custom sheet / custom tabs 0), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+  Self-test: the pre-fix `PlayKitQuestoViews` (scrim + `.isModal`), `CollectionAlbumViews` and `MPParityKit` (chip tab
+  rows) and `CityTerritoryNoticeCard` (page button style) each fail the checker at the replaced lines.
