@@ -491,7 +491,7 @@ import SwiftUI
             Button {
                 Task { await syncZeroHP() }
             } label: {
-                if zeroSyncBusy { ProgressView() } else { Text("playx.backpack.zeroSync") }
+                CYBusyLabel(busy: zeroSyncBusy) { Text("playx.backpack.zeroSync") }
             }
             .disabled(zeroSyncBusy)
             .accessibilityLabel(Text("playx.backpack.zeroSync"))
