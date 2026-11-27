@@ -38,13 +38,15 @@ SINGULAR = {
 }
 # Keys where the matched word is a verb ("the invite for seat %lld stops working"), not a counted noun.
 VERB_KEYS = {'mp.seats.cancel.message %lld'}
+# Families a contract check reads by prefix (Tests/ContractChecks/test_activity_registration_parity_w2_06.py).
+PINNED_PREFIXES = ('activityParity.', 'registrationParity.')
 ARG = re.compile(r'%(?:\d+\$)?(?:lld|ld|li|d|i|@|f|\.\d+f|u|llu|lu)')
 INT_NOUN = re.compile(r'(%(?:\d+\$)?(?:lld|ld|li|d))(\s+)([A-Za-z][A-Za-z-]*)\b')
 
 
 def pinned_keys():
     """Keys spelled anywhere in tools/, Tests/ or docs/ (contract checks, generators, fragments) stay plain stringUnits."""
-    files = subprocess.run(['git', 'ls-files', '--', 'tools', 'Tests', 'docs'], cwd=ROOT, capture_output=True, text=True).stdout.split()
+    files = subprocess.run(['git', 'ls-files', '--', 'tools', 'Tests', 'docs', 'Resources/*.json'], cwd=ROOT, capture_output=True, text=True).stdout.split()
     blob = []
     for name in files:
         if name.endswith(('.py', '.json', '.swift', '.md', '.txt', '.xcstrings')) and name != 'tools/add_i18n_r1_plurals.py':
@@ -58,7 +60,7 @@ def pinned_keys():
     # Only count strings can be affected, so only their keys are searched (the blob is large).
     candidates = [key for key, entry in catalog.items() if 'variations' in entry['localizations'].get('en', {})
                   or INT_NOUN.search(entry['localizations'].get('en', {}).get('stringUnit', {}).get('value', ''))]
-    return {key for key in candidates if key in text or escaped(key) in text}
+    return {key for key in candidates if key in text or escaped(key) in text or key.startswith(PINNED_PREFIXES)}
 
 
 def convertible(key, entry, pinned):

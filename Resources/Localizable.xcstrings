@@ -4303,21 +4303,9 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld person"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld people"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld people"
           }
         },
         "zh-Hans": {
@@ -27938,21 +27926,9 @@
     "club.ops.clubLimit.count %lld": {
       "localizations": {
         "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "You have created %lld club. Each person can create up to 2. You can manage your existing clubs."
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "You have created %lld clubs. Each person can create up to 2. You can manage your existing clubs."
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "You have created %lld clubs. Each person can create up to 2. You can manage your existing clubs."
           }
         },
         "zh-Hans": {
@@ -34075,21 +34051,9 @@
     "club.story.stopCount %lld": {
       "localizations": {
         "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld stop"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld stops"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld stops"
           }
         },
         "zh-Hans": {
@@ -69344,21 +69308,9 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld day"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld days"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld days"
           }
         },
         "zh-Hans": {
@@ -77290,21 +77242,9 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld day left"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld days left"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld days left"
           }
         },
         "zh-Hans": {
@@ -174314,21 +174254,9 @@
     "playerJourney.parity.countdown %lld": {
       "localizations": {
         "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Route starts in %lld day"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Route starts in %lld days"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route starts in %lld days"
           }
         },
         "zh-Hans": {

@@ -56,7 +56,7 @@ order (`currencyCode`, default `CNY` because no wire contract carries a currency
 - `JourneyRoleViewSection.swift:92`, `PlayerParityBViews.swift:542`, `AccountDeregistrationImpactSection.swift:52` → `LocaleDisplay.list`.
 
 **Plurals**
-- `tools/add_i18n_r1_plurals.py` (new, idempotent): 54 English count strings now vary by plural (`one`/`other`), e.g. `club.story.stopCount %lld`, `d7.checkin.streak.value %lld`, `g6.promo.remain.days %lld`, `club.ops.clubLimit.count %lld`, `activityParity.header.registeredCount %lld`. Rules: one integer argument only, a known noun right after it (verbs like "stops working" excluded), never `merchant.*`, and never a key spelled anywhere in tools/, Tests/ or docs/ (contract checks and fragments compare those as plain stringUnits; 55 more candidates stay plain for that reason and need their fragment/test updated in a later pass). Chinese keeps its single stringUnit.
+- `tools/add_i18n_r1_plurals.py` (new, idempotent): 48 English count strings now vary by plural (`one`/`other`), e.g. `club.story.stopCount %lld`, `d7.checkin.streak.value %lld`, `g6.promo.remain.days %lld`, `club.ops.clubLimit.count %lld`. Rules: one integer argument only, a known noun right after it (verbs like "stops working" excluded), never `merchant.*`, and never a key spelled anywhere in tools/, Tests/ or docs/ (contract checks and fragments compare those as plain stringUnits; 61 more candidates stay plain for that reason and need their fragment/test updated in a later pass). Chinese keeps its single stringUnit.
 - Tools taught to read `variations.plural`: `tools/check_scaffold.py:31-38`, `tools/check_catalog_coverage.py` (`string_units`, per-form specifier check), `tools/check_nearby_team_module.py:15`.
 
 **Catalog keys added** (fragment `docs/port/strings/i18n-r1-locale.json`, merged): `unit.mile.abbr`, `club.activityList.miles`, `parityB.passport.mi`, `auth.phone.country.cn`, `auth.phone.country.us`, `auth.phone.countryCode`, `auth.channels.phone.us`.
@@ -73,7 +73,7 @@ order (`currencyCode`, default `CNY` because no wire contract carries a currency
 | `joined(separator: "、")` | 11 | 8 (remaining: creator/mod tools) |
 | `UnitLength` measurement without `usage:` | 6 | 1 (map-home radius picker, keeps km options on purpose) |
 | literal km / 公里 unit | 13 | 13 (all remaining are Chinese-only branches; English goes through `LocaleDisplay`) |
-| English count strings with plural variants | 0 | 54 (55 more blocked by pinned fragments/tests) |
+| English count strings with plural variants | 0 | 48 (61 more blocked by pinned fragments/tests) |
 | Money/date/distance call sites through `LocaleDisplay` | 0 | 57 |
 
 Gates on the pushed head: `check_scaffold.py` PASS; `check_a11y_lint.py` 0 new; `contract_ratchet.py --check` new 0 (104 baseline);
