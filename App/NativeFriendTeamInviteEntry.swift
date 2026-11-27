@@ -22,7 +22,7 @@ extension EnvironmentValues {
         Group {
             if let flow {
                 List {
-                    if flow.busy { ProgressView().frame(maxWidth: .infinity) }
+                    if flow.busy { CYLoadingState() }
                     if let issue = flow.issue {
                         Section { Label { Text(nativeFriendInviteIssueKey(issue)) } icon: { Image(systemName: "info.circle").foregroundStyle(.secondary) } }
                     }

@@ -45,7 +45,7 @@ extension EnvironmentValues {
                 LabeledContent(target.type == "CONTENT" ? "social.targetPost" : "social.targetComment", value: String(target.id))
                 Text("squareReport.noRemoval").font(.subheadline).foregroundStyle(.secondary)
             }
-            if busy { ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("squareReport.loading") }
+            if busy { CYLoadingState(messageIdentifier: "squareReport.loading") }
             if let message { Text(LocalizedStringKey(message)).accessibilityIdentifier("squareReport.message") }
             if let receipt { receiptSection(receipt) }
             else if locked {

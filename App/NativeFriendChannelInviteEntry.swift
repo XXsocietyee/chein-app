@@ -74,7 +74,7 @@ import SwiftUI
                 if !flow.name.isEmpty {
                     LabeledContent { Text(verbatim: flow.name) } label: { Text(LocalizedStringKey(flow.isTargetChannel ? "d7.channelInvite.channel" : "d7.channelInvite.inviteTo")) }
                 }
-                if flow.busy { ProgressView().frame(maxWidth: .infinity) }
+                if flow.busy { CYLoadingState() }
                 if !flow.isCurrent { Text("d7.friendInvite.expired") }
                 if let issue = flow.issue { Label { Text(nativeFriendInviteIssueKey(issue)) } icon: { Image(systemName: "info.circle").foregroundStyle(.secondary) } }
                 if flow.pending != nil {

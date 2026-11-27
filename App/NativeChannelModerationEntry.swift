@@ -31,7 +31,7 @@ import SwiftUI
                                 NativeChannelFlowNotice(title:Text("d7.channelModeration.unknown"),symbol:"clock.arrow.circlepath")
                             }
                             if flow.state == .unavailable { NativeChannelFlowNotice(title:Text("d7.channelModeration.unavailableState"),symbol:"lock.shield") }
-                            if flow.state == .loading || flow.state == .submitting { ProgressView().frame(maxWidth:.infinity) }
+                            if flow.state == .loading || flow.state == .submitting { CYLoadingState() }
                             if let result = flow.result {
                                 NativeChannelFlowNotice(title:Text("d7.channelModeration.saved"),symbol:"checkmark.circle")
                                 LabeledContent("d7.channelModeration.action") { typeText(result.type) }
@@ -86,7 +86,7 @@ import SwiftUI
                         Section { Button("d7.channelModeration.cancel") { flow.cancelReview() } }
                     }
                     Section("d7.channelModeration.history") {
-                        if flow.readingCurrent { ProgressView().frame(maxWidth:.infinity) }
+                        if flow.readingCurrent { CYLoadingState() }
                         if flow.currentReadFailed { Text("d7.channelModeration.historyFailed").foregroundStyle(.secondary) }
                         ForEach(flow.actions) { action in
                             VStack(alignment:.leading,spacing:Theme.Space.s1) {

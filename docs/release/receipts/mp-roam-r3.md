@@ -242,6 +242,19 @@ Base re-merged with `origin/ui/combined-r7` (clean). The d6-roam tile in this sw
 
 Gates: generate_project OK · check_scaffold PASS (20849 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 
+## Round 3 continue (16) — sweep 20:45 (build bb76e327c): d6-roam vs d2-roam
+
+Base: `origin/mp/r3-roam` (already contains `origin/ui/combined-r7`). Build bb76e327c has continue (14) but not (15); the e2-stamp-album tile still shows the old 集邮册 … 3 枚 header, (15) fixes it.
+
+| MP page / scene | Native view | Differences | Status |
+|---|---|---|---|
+| Sweep 20:45 `*-d6-roam.jpg` vs `*-d2-roam.jpg` (`pages/roam/index` entry map) | `DesignFixtures/D6Fixtures.swift` `D6MapFixture(.roam)` | d6 forced `.preferredColorScheme(.dark)` (dark bar + dark circles) while d2 renders in the system scheme with light material circles; d6 also drew a tagline 走到哪，雾散到哪。 above the floating row — the MP entry map has no such line (only a file comment), and the shipping root (d2) does not show it. | **Fixed:** the roam kind follows the system scheme (no forced dark, no black page fill; play / search / live mocks unchanged — other lanes); tagline removed, so d6 = d2 = MP: inline 漫游 on `.bar` → map → 规则 · 走起 · 附近. |
+| Sweep 20:45 `en-d2-roam.jpg` collapsed panel | `CYMapScaffold` panel (`cyMapPanelColor = .black`) + `RoamBrowserView.peekLine` | Black panel under a light material peek line in light mode. Shared map scaffold (also play, teams, live) — not a roam-only change. | **For other lanes (ds-consistency):** consider a scheme-following panel fill in `App/DesignSystem/CYMapChrome.swift`; not changed here. |
+| Not done (entry peek `.login`): `pages/roam/index` `entry-peek` (`cy-error load-failure` + `retryEntryRead`, wxml comment 2026-11-14 公开附近内容游客直接读,失败只重试,不以登录替代读取) | `Core/RoamEntryNearby.swift` `RoamEntryPeekState(error:)` → `RoamEntryPeekView` / `RoamMapHomeSheet` | A 401 on the entry read became the `.login` state (sign-in prompt + 登录 button) instead of the MP retry error. Guests already read the public endpoint (`allowsPublicEntry` when a deployment exists). | **Fixed:** `.unauthorized` → `.failed` (MP cy-error + 重试); 403 stays `.denied` (MP `no-permission` 当前内容无法查看). Core pin `RoamEntryNearbyTests.testPeekStatesFollowSourceOrder` updated. The `.login` visible state remains only for builds with no deployment (offline fixture `login`, UI test `roam.home.peek.login`) — no player reaches it. |
+| Sweep 20:45 `*-e5b-stamp.jpg` | `CYCelebrationMoment(kind: .stamp)` | Dark full-screen celebration; copy localized in both languages (灯笼门 / Lantern Gate). | No change: the moment is a full-screen overlay by design. |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no
@@ -250,6 +263,6 @@ Gates: generate_project OK · check_scaffold PASS (20849 keys) · a11y lint 0 ne
 - team-recovery per-command rows on my-teams / nearby (needs a persisted team-command store).
 - P21 mini bar for a running roam: the live session is a full-screen cover owning its own controller (`makeRoamLiveSessionController()` per presentation); a cross-tab bar needs the controller lifted to the session and a root-tab accessory (nav lane) — compiled pass.
 - Topic half-screen: MP pins on the live **map** itself (merchant pins) — native has no merchant-pin layer on the live map yet (shops are list rows); the sheet hangs off the row until a pin layer exists. MP also drops `topicId` shops whose `productType != 2` from the merchant layer; native keeps them and labels them 城市定向.
-- Entry peek `.login` state (map home + legacy peek): MP 11-14 reads public nearby content as a guest and maps 401 to the cy-error retry, never a sign-in prompt. Native shows sign-in when `!isSignedIn && !allowsPublicEntry` (Core `RoamNearbyEventsEntryState`) and on 401; changing it touches Core tests and `RoamHomeTabsFlowTests` (`roam.home.peek.login`) — left for a compiled pass.
+- Entry peek `.login`: 401 part done in continue (16); the no-deployment `.login` fixture state stays (not reachable by players).
 - Live map bottom strip P-32 (`pages/roam/index.wxml:534–541`, `liveCards` = the entry read's nearby activity cards + nearby team cards, shown while no shop strip is open; tap → topic / activity detail or the team): `RoamLiveSessionView` has no nearby-events / teams reader. Needs `roamNearbyEventsReader` + teams passed into the three `RoamLiveSessionView(...)` construction sites (QuestifyApp ×2, MPReviewedPageScreen) — compiled pass.
 - No Swift build ran here; integrator compiles.

@@ -245,60 +245,20 @@ public struct IMExpandedService {
         return message
     }
     public var canUploadOrdinaryImage: Bool { writesEnabled && (enabledPaths?.contains("api/common/uploadOSS") ?? true) }
+    /// Upload recovery has no backend route (MP reads the `uploadOSS` response only); always unavailable.
     public func recoverImageUpload(requestID: UUID, sourceSHA256: String, token: String) async throws -> OrdinaryIMImageUploadResult {
-        guard imageUploadReceiptEnabled, enabledPaths?.contains("api/common/uploadOSS/receipt") ?? true,
-              sourceSHA256.range(of: "^[0-9a-f]{64}$", options: .regularExpression) != nil,
-              var parts = URLComponents(url: configuration.baseURL.appendingPathComponent("api/common/uploadOSS/receipt"), resolvingAgainstBaseURL: false) else { throw APIError.notConfigured }
-        parts.queryItems = [.init(name: "request_id", value: requestID.uuidString), .init(name: "source_sha256", value: sourceSHA256)]
-        guard let url = parts.url, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
-        var request = URLRequest(url: url); request.httpMethod = "GET"; request.cachePolicy = .reloadIgnoringLocalCacheData
-        request.timeoutInterval = 20; request.setValue(token, forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        return try imageUploadResult(try await response(request), requestID: requestID, sourceSHA256: sourceSHA256)
-    }
-    private func imageUploadResult(_ data: Data, requestID: UUID, sourceSHA256: String) throws -> OrdinaryIMImageUploadResult {
-        struct Receipt: Decodable {
-            let uploadProtocol: String; let uploadRequestId: String; let sourceSHA256: String; let uploadState: String
-            let url: String?; let fileName: String?; let reviewState: String?
-        }
-        let row = try JSONDecoder().decode(Receipt.self, from: data)
-        guard row.uploadProtocol == "original-upload-request-v1", row.uploadRequestId == requestID.uuidString,
-              row.sourceSHA256 == sourceSHA256 else { throw APIError.malformedResponse }
-        switch row.uploadState {
-        case "NOT_FOUND": guard row.url == nil else { throw APIError.malformedResponse }; return .notFound
-        case "PENDING": guard row.url == nil else { throw APIError.malformedResponse }; return .pending
-        case "UPLOADED":
-            guard row.reviewState == "APPROVED", let raw = row.url, let url = URL(string: raw), let key = row.fileName,
-                  key.range(of: "^upload/[0-9a-f]{32}\\.(jpg|jpeg|png|gif)$", options: .regularExpression) != nil,
-                  let parts = URLComponents(url: url, resolvingAgainstBaseURL: false), parts.percentEncodedPath == "/" + key,
-                  parts.fragment == nil, let origin = SocialMessageMediaService.origin(url), approvedMediaOrigins.contains(origin) else { throw APIError.malformedResponse }
-            return .uploaded(url)
-        default: throw APIError.malformedResponse
-        }
+        throw APIError.notConfigured
     }
     public func upload(_ selection: IMMediaSelection, consent: IMMediaConsent, token: String) async throws -> URL {
         guard writesEnabled, enabledPaths?.contains("api/common/uploadOSS") ?? true else { throw APIError.notConfigured }
         guard consent.selectionID == selection.id, consent.scope == selection.scope, consent.purpose == .upload else { throw IMCapabilityGap.consentRequired }
         try selection.validateImage()
-        if imageUploadReceiptEnabled {
-            // Verify support and the exact original key BEFORE PUT; a legacy backend cannot silently ignore recovery.
-            switch try await recoverImageUpload(requestID: selection.id, sourceSHA256: OrdinaryIMImageJournal.digest(selection.bytes), token: token) {
-            case .uploaded(let url): return url
-            case .notFound: break
-            case .pending: throw ImageUploadJournalFailure.locked
-            }
-        }
         let boundary = "im-" + UUID().uuidString
         var request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent("api/common/uploadOSS"), fields: [:], token: token)
         var body = Data("--\(boundary)\r\nContent-Disposition: form-data; name=\"file\"; filename=\"image.\(selection.fileExtension)\"\r\nContent-Type: \(selection.mimeType)\r\n\r\n".utf8)
         body.append(selection.bytes); body.append(Data("\r\n--\(boundary)--\r\n".utf8))
         request.httpBody = body; request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        if imageUploadReceiptEnabled { request.setValue(selection.id.uuidString, forHTTPHeaderField: "X-Upload-Request-ID") }
         let data = try await response(request)
-        if imageUploadReceiptEnabled {
-            guard case .uploaded(let url) = try imageUploadResult(data, requestID: selection.id, sourceSHA256: OrdinaryIMImageJournal.digest(selection.bytes)) else { throw APIError.malformedResponse }
-            return url
-        }
         struct Receipt: Decodable { let url: String }
         guard let raw = try? JSONDecoder().decode(Receipt.self, from: data).url, let url = URL(string: raw),
               let origin = SocialMessageMediaService.origin(url), approvedMediaOrigins.contains(origin),

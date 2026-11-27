@@ -134,9 +134,9 @@ import SwiftUI
                 TextField("nativeCondition.field.value", text: Binding(get: { values.indices.contains(index) ? values[index].nativeConditionText ?? "" : "" }, set: {
                     if values.indices.contains(index) { values[index] = .string($0) }
                 }), axis: .vertical)
-                Button(role: .destructive) { if values.indices.contains(index) { values.remove(at: index) } } label: { Image(systemName: "minus.circle") }
+                Button(role: .destructive) { if values.indices.contains(index) { values.remove(at: index) } } label: { Image(systemName: "minus.circle").frame(minWidth: 44, minHeight: 44).contentShape(Rectangle()) }
                     .accessibilityLabel("nativeCondition.removeValue").buttonStyle(.borderless)
-                Button { if index > 0 && values.indices.contains(index) { values.swapAt(index, index - 1) } } label: { Image(systemName: "arrow.up") }
+                Button { if index > 0 && values.indices.contains(index) { values.swapAt(index, index - 1) } } label: { Image(systemName: "arrow.up").frame(minWidth: 44, minHeight: 44).contentShape(Rectangle()) }
                     .disabled(index == 0).accessibilityLabel("nativeCondition.moveUp").buttonStyle(.borderless)
             }
         }
