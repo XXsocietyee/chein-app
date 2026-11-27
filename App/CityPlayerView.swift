@@ -90,9 +90,13 @@ struct CityPlayerView: View {
                 case .available(let snapshot):
                     // Board header: title, then season state and my membership as status chips.
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        // Standard hero: generated cover above, title in the system text style below (never text on art).
+                        // Standard hero: the MP no-cover route art (`/images/route_city_cover.png`) above, title in the system text style below.
                         CYHeroHeader(verbatim: snapshot.board.title) {
-                            Cloud07Cover(seed: snapshot.board.regionId, symbol: "building.2.fill")
+                            Color.clear
+                                .aspectRatio(16.0 / 9.0, contentMode: .fit)
+                                .overlay { MPAsset.BannerCover.routeCityCover.resizable().scaledToFill() }
+                                .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                                .accessibilityHidden(true)
                         }
                         ViewThatFits(in: .horizontal) {
                             HStack(spacing: CYSpacing.sm) {
