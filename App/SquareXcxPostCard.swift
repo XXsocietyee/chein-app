@@ -20,7 +20,7 @@ struct SquareXcxPostCard: View {
                     .accessibilityIdentifier("square.card.lifecycle")
             }
             if let contents = post.contents, !contents.isEmpty {
-                Text(verbatim: contents).lineLimit(2)
+                Text(verbatim: contents).lineLimit(6)
                 if facts.bodyExpandable { Text("square.xcx.expand").font(.caption).foregroundStyle(.tint) }
             }
             stravaSection
