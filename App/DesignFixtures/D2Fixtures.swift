@@ -18,7 +18,7 @@ struct D2Fixture: View {
     @ViewBuilder private var host: some View {
         switch screen {
         case .home: HomeFeedFixtureHostView(forceHero: true)
-        case .homeOffline: HomeFeedFixtureHostView(scenario: "empty", unavailableMessageKey: "auth.notConfigured")
+        case .homeOffline: HomeFeedFixtureHostView(scenario: "offline")
         case .search: SearchMapFixtureHostView()
         case .searchResults:
             NavigationStack {
