@@ -166,3 +166,6 @@ App/DesignSystem → use `.searchable` or `CYFormSearchRow`. Baseline 0; allowed
 - Continue run 3 (e0bd7724b, merged combined-r7): `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint`
   PASS (0 new), `check_design_consistency` PASS (0 debt, 63 allowed), `contract_ratchet --check` 52 failing, baseline
   52, **new 0**.
+- Continue run 3, batch 2 (d8d04c09e): `generate_project` PASS, `check_scaffold` PASS (includes design consistency:
+  0 debt, 64 allowed, custom search 0), `check_a11y_lint` PASS (0 new), `contract_ratchet --check` 52 failing,
+  baseline 52, **new 0**.
