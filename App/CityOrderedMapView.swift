@@ -61,6 +61,8 @@ struct CityOrderedMapContent: View {
     let select: (String?) -> Void
     let refresh: () -> Void
     let canRefresh: Bool
+    /// a11y-dt r3: the stop number grows with Dynamic Type instead of clipping in a fixed 28 pt circle.
+    @ScaledMetric(relativeTo: .footnote) private var stopBadge: CGFloat = 28
     var body: some View {
         CYCardPage {
             CYArtCoverHeader(title: Text("城市地图更新"), subtitle: Text(verbatim: snapshot.board.title), symbol: "map.fill", seed: "ordered") {
@@ -104,7 +106,7 @@ struct CityOrderedMapContent: View {
             HStack(alignment: .top, spacing: CYSpacing.md) {
                 VStack(spacing: 0) {
                     Text(verbatim: "\(index + 1)").cyText(.meta, weight: .bold).foregroundStyle(on ? CYColor.textInverse : CYColor.textPrimary)
-                        .frame(width: 28, height: 28).background(on ? CYColor.textPrimary : CYColor.bgRaised, in: Circle())
+                        .frame(width: stopBadge, height: stopBadge).background(on ? CYColor.textPrimary : CYColor.bgRaised, in: Circle())
                     if !last { Rectangle().fill(CYColor.bgRaised).frame(width: 2).frame(maxHeight: .infinity) }
                 }
                 VStack(alignment: .leading, spacing: 2) {

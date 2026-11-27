@@ -23,15 +23,8 @@ import SwiftUI
             .disabled(flow.busy || flow.hasPickerReview)
             // A row inside the host's Form: `.searchable` belongs to the host's navigation container, so the
             // filter stays a system text field with the search symbol.
-            Label {
-                TextField("d7.friendPicker.search", text: $search)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .submitLabel(.search)
-                    .disabled(flow.busy)
-            } icon: {
-                Image(systemName: "magnifyingglass").foregroundStyle(.secondary).accessibilityHidden(true)
-            }
+            CYFormSearchRow(prompt: Text("d7.friendPicker.search"), text: $search, identifier: "d7.friendPicker.search")
+                .disabled(flow.busy)
             if flow.busy && visible.isEmpty {
                 ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("cy.state.loading"))
             }

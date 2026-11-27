@@ -20,6 +20,13 @@ public struct OfficialAttendanceSnapshot: Equatable {
     public let credential: String
     public let checkedAtText: String
     public let activeParticipation: Bool
+    /// MP `config.meetingAt / checkinOpenAt / checkinCloseAt`, `serverNow` (epoch ms) and `mine.qrImage / bib`.
+    public var meetingAtMs: Double? = nil
+    public var checkinOpenAtMs: Double? = nil
+    public var checkinCloseAtMs: Double? = nil
+    public var serverNowMs: Double? = nil
+    public var qrImage: String = ""
+    public var bib: String = ""
 
     public init(dutyState: String = "", configVersion: Int? = nil, meetingName: String = "",
                 meetingAddress: String = "", latitude: Double? = nil, longitude: Double? = nil,
@@ -49,8 +56,95 @@ public struct OfficialAttendanceSnapshot: Equatable {
         phone = str(cfg, "phone")
         backupPhone = str(cfg, "backupPhone")
         credential = str(mine, "credential")
-        checkedAtText = str(mine, "checkedAt")
+        if let n = mine["checkedAt"] as? NSNumber { checkedAtText = n.stringValue } else { checkedAtText = str(mine, "checkedAt") }
         activeParticipation = (raw["activeParticipation"] as? Bool) ?? false
+        meetingAtMs = dbl(cfg, "meetingAt")
+        checkinOpenAtMs = dbl(cfg, "checkinOpenAt")
+        checkinCloseAtMs = dbl(cfg, "checkinCloseAt")
+        serverNowMs = dbl(raw, "serverNow")
+        qrImage = str(mine, "qrImage")
+        bib = (mine["bib"] as? NSNumber)?.stringValue ?? str(mine, "bib")
+    }
+}
+
+/// MP `event-attendance/index.js` `playerView`: the player rows of 集合与联系 and 到场签到 (Beijing time).
+public struct OfficialAttendancePlayerView: Equatable {
+    public enum CheckinChip: Equatable {
+        case done
+        case closed
+        /// Opens at the given Beijing `HH:mm`.
+        case opensAt(String)
+        case open
+    }
+
+    public struct Checkin: Equatable {
+        public let done: Bool
+        public let doneAt: String
+        public let show: Bool
+        public let ok: Bool
+        public let chip: CheckinChip
+    }
+
+    /// Meeting place name without the 集合 suffix; empty when there is none.
+    public let meetName: String
+    /// `M/d HH:mm` parts of the meeting time (Beijing), nil when unset.
+    public let meetMonth: Int?
+    public let meetDay: Int?
+    public let meetTime: String
+    public let canNavigate: Bool
+    public let hostName: String
+    public let phone: String
+    public let checkin: Checkin?
+
+    public init(snapshot s: OfficialAttendanceSnapshot, contact: OfficialPlayContact?, now: Date = Date()) {
+        meetName = s.meetingName
+        if !s.meetingName.isEmpty, let at = s.meetingAtMs, let parts = Self.beijingParts(at) {
+            meetMonth = parts.month; meetDay = parts.day; meetTime = parts.time
+        } else {
+            meetMonth = nil; meetDay = nil; meetTime = ""
+        }
+        canNavigate = s.latitude != nil && s.longitude != nil
+        hostName = contact?.name.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        phone = contact?.phone ?? ""
+        let nowMs = s.serverNowMs ?? now.timeIntervalSince1970 * 1000
+        if s.activeParticipation, let open = s.checkinOpenAtMs {
+            let done = !s.checkedAtText.isEmpty
+            let before = nowMs < open
+            let closed = !done && (s.checkinCloseAtMs.map { nowMs >= $0 } ?? false)
+            let chip: CheckinChip
+            if done { chip = .done } else if closed { chip = .closed } else if before { chip = .opensAt(Self.beijingParts(open)?.time ?? "") } else { chip = .open }
+            checkin = Checkin(done: done, doneAt: done ? Self.clock(s.checkedAtText) : "", show: !done && !closed,
+                              ok: done || (!before && !closed), chip: chip)
+        } else {
+            checkin = nil
+        }
+    }
+
+    /// MP `hm`: epoch ms, or a date-time string read as Beijing time when it has no zone.
+    public static func clock(_ value: String) -> String {
+        if let ms = Double(value) { return beijingParts(ms)?.time ?? "" }
+        let text = value.replacingOccurrences(of: " ", with: "T")
+        let iso = ISO8601DateFormatter()
+        iso.formatOptions = [.withInternetDateTime]
+        if let date = iso.date(from: text) { return beijingParts(date.timeIntervalSince1970 * 1000)?.time ?? "" }
+        let local = DateFormatter()
+        local.locale = Locale(identifier: "en_US_POSIX")
+        local.timeZone = TimeZone(secondsFromGMT: 8 * 3600)
+        for format in ["yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm"] {
+            local.dateFormat = format
+            if let date = local.date(from: text) { return beijingParts(date.timeIntervalSince1970 * 1000)?.time ?? "" }
+        }
+        return ""
+    }
+
+    static func beijingParts(_ ms: Double) -> (month: Int, day: Int, time: String)? {
+        guard ms.isFinite else { return nil }
+        var calendar = Calendar(identifier: .gregorian)
+        guard let zone = TimeZone(secondsFromGMT: 8 * 3600) else { return nil }
+        calendar.timeZone = zone
+        let c = calendar.dateComponents([.month, .day, .hour, .minute], from: Date(timeIntervalSince1970: ms / 1000))
+        guard let month = c.month, let day = c.day, let hour = c.hour, let minute = c.minute else { return nil }
+        return (month, day, String(format: "%02d:%02d", hour, minute))
     }
 }
 

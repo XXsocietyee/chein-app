@@ -36,9 +36,9 @@ enum NativeFreeExploreBundleState: Equatable {
     @ViewBuilder private var content: some View {
         switch state {
         case .loading:
-            placeholderList
-                .redacted(reason: .placeholder)
-                .disabled(true)
+            // mp-states r3: the one loading pattern, a labelled ProgressView.
+            ProgressView { Text("cy.state.loading") }
+                .frame(maxWidth: .infinity)
                 .accessibilityIdentifier("freeBundle.topicCatalog.loading")
         case .signedOut:
             ContentUnavailableView {

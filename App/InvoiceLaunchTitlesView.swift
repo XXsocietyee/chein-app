@@ -57,7 +57,8 @@ import SwiftUI
         .listStyle(.insetGrouped)
         // Source footer primary 新增发票抬头 (FIN-14-5).
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            if facts.canAdd {
+            // MP keeps 新增发票抬头 visible once loaded and only disables it while a save is pending or writing.
+            if facts.showsAdd {
                 VStack(spacing: 0) {
                     Divider()
                     Button { adding = true } label: {
@@ -65,6 +66,7 @@ import SwiftUI
                     }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
+                    .disabled(!facts.canAdd)
                     .accessibilityIdentifier("invoice.title.add")
                     .padding()
                 }

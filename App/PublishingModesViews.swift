@@ -1119,16 +1119,33 @@ struct ActivityPublishingTimeRangeDraft {
     @State private var busy = false
     @State private var failed = false
     @State private var generation = 0
+    /// MP `publish/components/collaborator-picker`: 选择合作者, the settlement notice, its own loading / failure / empty words and 关注：N.
+    private var isCollaborator: Bool { kind == "collaborator" }
     var body: some View {
         NavigationStack {
             List {
-                if busy { ProgressView().frame(maxWidth: .infinity) }
+                if isCollaborator {
+                    Section { Text("activityPublishing.review.collaboratorNotice").font(.footnote).foregroundStyle(.secondary) }
+                }
+                if busy {
+                    if isCollaborator {
+                        ProgressView { Text("publishModes.collaborator.loading") }.frame(maxWidth: .infinity)
+                    } else {
+                        ProgressView().frame(maxWidth: .infinity)
+                    }
+                }
                 if failed {
                     ContentUnavailableView {
-                        Label("publishModes.readFailed", systemImage: "exclamationmark.triangle")
+                        Label(LocalizedStringKey(isCollaborator ? "publishModes.collaborator.failed" : "publishModes.readFailed"), systemImage: "exclamationmark.triangle")
                     } actions: { Button("publishModes.retry") { Task { await load() } } }
                 }
-                if !busy && !failed && rows.isEmpty { ContentUnavailableView("publishModes.empty", systemImage: "magnifyingglass") }
+                if !busy && !failed && rows.isEmpty {
+                    if isCollaborator {
+                        ContentUnavailableView("publishModes.collaborator.empty", systemImage: "person.2")
+                    } else {
+                        ContentUnavailableView("publishModes.empty", systemImage: "magnifyingglass")
+                    }
+                }
                 ForEach(rows) { row in
                     Button {
                         if selected.contains(row.id) { selected.removeAll { $0 == row.id } }
@@ -1137,7 +1154,13 @@ struct ActivityPublishingTimeRangeDraft {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(row.name).foregroundStyle(Color.primary)
-                                if !row.detail.isEmpty { Text(row.detail).font(.footnote).foregroundStyle(.secondary) }
+                                if !row.detail.isEmpty {
+                                    if isCollaborator {
+                                        Text("publishModes.collaborator.follows \(row.detail)").font(.footnote).foregroundStyle(.secondary)
+                                    } else {
+                                        Text(row.detail).font(.footnote).foregroundStyle(.secondary)
+                                    }
+                                }
                             }
                             Spacer()
                             if selected.contains(row.id) { Image(systemName: "checkmark").foregroundStyle(Color.accentColor) }
@@ -1146,7 +1169,7 @@ struct ActivityPublishingTimeRangeDraft {
                 }
             }.searchable(text: $keyword).onSubmit(of: .search) { Task { await load() } }
             .onChange(of: keyword) { _, value in if value.isEmpty { Task { await load() } } }
-            .navigationTitle(Text(LocalizedStringKey(kind == "category" ? "publishParity.activity.type" : kind == "collaborator" ? "publishModes.collaborators" : "publishModes.template")))
+            .navigationTitle(Text(LocalizedStringKey(kind == "category" ? "publishParity.activity.type" : kind == "collaborator" ? "publishModes.collaborator.title" : "publishModes.template")))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("publishModes.cancel") { dismiss() } }; ToolbarItem(placement: .confirmationAction) { Button("publishModes.done") { onConfirm(selected) } } }
             .task { await load() }.onDisappear { generation += 1 }

@@ -291,6 +291,8 @@ private struct GrowthLeaderboardPodiumView: View {
     @Environment(\.cyPalette) private var palette
     let entries: [GrowthLeaderboardEntry]
     let metric: GrowthBoardMetric
+    /// a11y-dt r3: the podium place grows with Dynamic Type instead of clipping in a fixed 28 pt circle.
+    @ScaledMetric(relativeTo: .caption) private var placeBadge: CGFloat = 28
     @Environment(\.themeDomain) private var themeDomain
     var body: some View {
         HStack(alignment: .bottom, spacing: CYSpacing.md) {
@@ -315,7 +317,7 @@ private struct GrowthLeaderboardPodiumView: View {
                 GrowthRankedAvatar(entry: entry, size: place == 1 ? .xl : .lg)
                     .overlay(Circle().strokeBorder(ring, lineWidth: 3))
                 Text(place, format: .number).cyText(.label, weight: .bold).foregroundStyle(palette.textInverse)
-                    .frame(width: 28, height: 28).background(palette.textPrimary, in: Circle())
+                    .frame(width: placeBadge, height: placeBadge).background(palette.textPrimary, in: Circle())
                     .offset(y: 12)
                     .accessibilityHidden(true)
             }
