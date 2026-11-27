@@ -260,6 +260,7 @@ struct PlayThemeMusicKey: Equatable {
     var body: some View {
         presentationLayer
         .modifier(PlayNightHintOverlay(receipt: model.reward))
+        .modifier(PlayFlyScoreOverlay(receipt: model.reward))
         .onChange(of: model.snapshot?.result.topicID) { _, topicID in
             chapterFilter = nil
             presentTitleCardIfNeeded(topicID)
@@ -2206,6 +2207,44 @@ private struct PlayNightHintOverlay: ViewModifier {
                     try? await Task.sleep(for: .seconds(PlayNightWarning.displaySeconds))
                     guard current == token else { return }
                     withAnimation(reduceMotion ? nil : .easeOut(duration: 0.25)) { shown = false }
+                }
+            }
+    }
+}
+
+/// mp-journey r3: MP `.flyscore` — `+N 探索值` rises once at the completion moment and is gone after the celebrate beat.
+/// Never blocks; VoiceOver hears it once; Reduce Motion shows it in place.
+private struct PlayFlyScoreOverlay: ViewModifier {
+    let receipt: PlayWireValue?
+    @State private var points: Int?
+    @State private var token = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        content
+            .overlay {
+                if let points {
+                    Text("playx.flyScore \(points)")
+                        .font(.title3.weight(.semibold))
+                        .monospacedDigit()
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(.regularMaterial, in: .capsule)
+                        .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
+                        .allowsHitTesting(false)
+                        .accessibilityIdentifier("playx.flyScore")
+                }
+            }
+            .onChange(of: receipt) { _, value in
+                guard let gained = PlayFlyScore.points(value) else { return }
+                token += 1
+                let current = token
+                withAnimation(reduceMotion ? nil : .spring(duration: 0.35)) { points = gained }
+                AccessibilityNotification.Announcement(appLocalized("playx.flyScore \(gained)", locale: .current)).post()
+                Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(PlayFlyScore.displaySeconds))
+                    guard current == token else { return }
+                    withAnimation(reduceMotion ? nil : .easeOut(duration: 0.25)) { points = nil }
                 }
             }
     }

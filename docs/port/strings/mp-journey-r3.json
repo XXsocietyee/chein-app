@@ -933,5 +933,22 @@
         }
       }
     }
+  },
+  "playx.flyScore %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "+%lld Explore XP"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "+%lld 探索值"
+        }
+      }
+    }
   }
 }
