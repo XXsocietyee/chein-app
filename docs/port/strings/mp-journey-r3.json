@@ -746,5 +746,39 @@
         }
       }
     }
+  },
+  "playFree.tile.chapterNo %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Chapter %lld"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "第 %lld 章"
+        }
+      }
+    }
+  },
+  "playFree.tile.chapter %lld %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Chapter %1$lld · %2$@"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "第 %1$lld 章 · %2$@"
+        }
+      }
+    }
   }
 }

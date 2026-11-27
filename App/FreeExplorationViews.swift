@@ -59,6 +59,10 @@ import SwiftUI
                             Button { onSelect(node.id) } label: {
                                 VStack(alignment: .leading, spacing: 12) {
                                     Image(systemName: "storefront.fill").font(.title).foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
+                                    // mp-journey r3 (MP `fx-tile__chap`): one chapter per shop; the chapter is the card's identity.
+                                    if let label = Self.chapterLabel(for: node, in: snapshot) {
+                                        label.font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                                    }
                                     FreeExplorationStoreName(name: node.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                                     if let title = node.gameTitle, !title.isEmpty { Text(verbatim: title).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                                     if let open = node.openStatus, !open.isEmpty { Text(verbatim: open).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary) }
@@ -103,6 +107,18 @@ extension FreeExplorationExperienceView {
 extension FreeExplorationCardBrowser {
     /// MP `fx-pass`: the topic name as the claim, the description under it, then the ring (已完成 done/total) or, for a
     /// story-gated topic, 已解锁 x / y 章, and the meta lines (自由探索中 · 有效期至 …, N 章 · M 家商家).
+    /// MP `chapterLabel`: 第 N 章 · title, or the title alone when it already starts with 第…章. Nil without a chapter.
+    static func chapterLabel(for node: PlayNode, in snapshot: PlaySnapshot) -> Text? {
+        guard let chapterID = node.chapterID,
+              let index = snapshot.result.chapters.firstIndex(where: { $0.id == chapterID }) else { return nil }
+        let title = (snapshot.result.chapters[index].name ?? "").trimmingCharacters(in: .whitespaces)
+        if title.isEmpty { return Text("playFree.tile.chapterNo \(index + 1)") }
+        if title.range(of: "^第\\s*[0-9一二三四五六七八九十百]+\\s*章", options: .regularExpression) != nil {
+            return Text(verbatim: title)
+        }
+        return Text("playFree.tile.chapter \(index + 1) \(title)")
+    }
+
     @ViewBuilder fileprivate func passHead(_ presentation: FreeExplorationPresentation) -> some View {
         let facts = FreeExplorationStoryFacts(snapshot: snapshot)
         let claim = snapshot.result.topicName ?? snapshot.result.chapters.first?.name

@@ -43,7 +43,7 @@ files; `mp/r3-mine` only gated 查看报名凭证 in `PlayerJourneyViews` (not o
   `routeState.attributes`; linear order is used.
 - 队伍位置 tap in the MP opens 队长广播 (text prompt); natively the row pushes the member list and the broadcast stays in
   the page's lead section (leader `playx.lead.broadcast`, member `LeadMemberActionsSection`).
-- Free-explore tiles: MP station photo per tile (image chain + host policy) and the chapter label on the tile; the
+- Free-explore tiles: MP station photo per tile (image chain + host policy); the chapter label (第 N 章 · title) is done; the
   hero's 3D card face and the chapter story stream (`fx-story`, story-flow theme).
 - 集合屏 member avatars (no avatar in `PlayLeadProgress`), `lead.freeEntry` not decoded.
 - 游玩工具 mode-2 自动记录足迹 row (perk-only copy 走过的路会记下来). 我的权益 (n 家 · 已核销 m 家, closes onto the grid) is done.
@@ -53,10 +53,10 @@ files; `mp/r3-mine` only gated 查看报名凭证 in `PlayerJourneyViews` (not o
 - `python3 tools/generate_project.py` — ok
 - `python3 tools/check_scaffold.py` — PASS
 - `python3 -B tools/check_a11y_lint.py` — PASS, 0 new
-- `python3 -B tools/contract_ratchet.py --check` — 52 failing, baseline 52, **new 0**, fixed 0 (after merging `ui/combined-r7`; repinned `test_play_gameplay_mode_separation` playFree key count 48 → 62 and the pass id, and catalogued the free host preferences in `docs/ops-safety/client-data-catalog.json`)
+- `python3 -B tools/contract_ratchet.py --check` — 52 failing, baseline 52, **new 0**, fixed 0 (after merging `ui/combined-r7`; repinned `test_play_gameplay_mode_separation` playFree key count 48 → 64 and the pass id, and catalogued the free host preferences in `docs/ops-safety/client-data-catalog.json`)
 
 New strings (en + zh-Hans) in `Resources/Localizable.xcstrings` and `docs/port/strings/mp-journey-r3.json`:
-`playTools.journal*` (7), `playTools.team*` (4), `playx.nightHint`, `playFree.nodes.header`, `playFree.selfPlayBanner %@`, `playFree.meta.*` (2), `playFree.hero.*` (10), `playx.right.default|fragment`, `playTools.rights`, `playTools.rights.value %lld %lld`;
+`playTools.journal*` (7), `playTools.team*` (4), `playx.nightHint`, `playFree.nodes.header`, `playFree.selfPlayBanner %@`, `playFree.meta.*` (2), `playFree.hero.*` (10), `playFree.tile.chapter %lld %@|chapterNo %lld`, `playx.right.default|fragment`, `playTools.rights`, `playTools.rights.value %lld %lld`;
 `playTools.loc.*` (8), `playx.lead.gathering|checkedIn|waitLeader`, `playx.finish.banner.lit %lld|claim`, `playBadge.savedLine`.
 Reused keys: `u10.template.stopNo`, `nativeR2.city.metric.distance`, `creator.family.timeWindow`,
 `mp.report.notScored`, `action.done`, `mp.settle.toRank`, `playTools.entryCode`, `playerGap.lead.arrived`.

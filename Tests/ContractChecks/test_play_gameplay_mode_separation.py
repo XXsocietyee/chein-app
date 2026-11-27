@@ -63,8 +63,8 @@ class PlayGameplayModeSeparationContracts(unittest.TestCase):
         keys=[key for key in strings if key.startswith('playFree.') or key.startswith('playMode.')]
         # Port plan C1/C2 (P2): story lock, offline archive, and visit steps added 21 playFree keys
         # to the original 27. Each still needs en and zh-Hans.
-        # mp-journey r3: +14 for the MP fx-pass meta lines, 探索节点 and the fx-hero sections (本店权益, 本站游戏, 小瘾说).
-        self.assertEqual(len(keys),62)
+        # mp-journey r3: +16 for the MP fx-pass meta lines, 探索节点, the tile chapter label and the fx-hero sections (本店权益, 本站游戏, 小瘾说).
+        self.assertEqual(len(keys),64)
         for key in keys:
             for language in ['en','zh-Hans']:self.assertTrue(strings[key]['localizations'][language]['stringUnit']['value'])
         tests=self.read('Tests/AppUITests/PlayExperienceFlowTests.swift')
