@@ -1,7 +1,7 @@
 # Receipt: design pass, clubs + social (`design/pass-social`)
 
 Brief: scheduled lane prompt. Principles from `origin/design/handoff-r2:docs/briefs/design-principles.md` (P2, P5, P6, P7, P11, P12 for this lane). Rules and gates from `components-r1.md` and `COORDINATOR-HANDOVER.md` §4.
-Base: `origin/ui/combined-r7` @ `fc95e6a19`. `origin/comp/r1-kit` and `origin/comp/r1-social` were merged first, but both were already part of combined-r7 ("Already up to date").
+Base: `origin/ui/combined-r7` @ `fc95e6a19`, then merged up to `77c566c6c`. `origin/comp/r1-kit` and `origin/comp/r1-social` were merged first, but both were already part of combined-r7 ("Already up to date").
 Date: 2026-11-27. There is no compiler in the cloud. Every API was checked by grep and by hand against the §4 traps. **Run `build_sim` before merging.**
 
 ## New shared pieces (`App/NativeR2/Social/CYPeopleComponents.swift`)
@@ -47,7 +47,8 @@ Strings: 5 keys (`comp.social.*`) in zh-Hans and en. Fragment `docs/port/strings
 - `python3 tools/generate_project.py`: the new file was added under `App/NativeR2/**`.
 - `python3 -B tools/check_scaffold.py`: PASS structural checks (19775 bilingual keys). The typography lint flagged `.caption2` in the face pile; I fixed it to `.caption`.
 - `python3 -B tools/check_a11y_lint.py`: PASS, 0 new.
-- `python3 -B tools/contract_ratchet.py --check`: baseline before my changes was 104 failing / new 0. The result after is in the commit message.
+- `python3 -B tools/contract_ratchet.py --check` on the merged tree (combined-r7 @ `77c566c6c` + this lane): **104 failing, baseline 104, new 0, fixed 0**. An earlier run overlapped a `git merge` and reported spurious failures; this clean rerun replaces it.
+- Merging combined-r7 conflicted only in `Localizable.xcstrings`. I took theirs and re-applied the 5-key fragment (pure additions). Upstream's miles/km change in `ClubActivityCard.stats` merges cleanly with the rolling `stat`.
 
 ## For the coordinator
 
