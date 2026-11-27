@@ -84,7 +84,7 @@ struct CityPlayerView: View {
                 switch reader.state {
                 case .unavailable:
                     CYEmptyState(systemImage: "building.2", "city.read.unavailable", detail: "city.read.unavailable.hint")
-                case .loading: CYSkeleton().accessibilityLabel(Text("city.read.loading"))
+                case .loading: CYSkeleton(label: "city.read.loading")
                 case .notPublished:
                     CYEmptyState(systemImage: "building.2", "city.read.notPublished")
                 case .available(let snapshot):

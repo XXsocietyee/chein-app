@@ -45,7 +45,7 @@ import SwiftUI
                     .cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
             }
             if let controller, controller.isCurrent {
-                if controller.busy { CYSkeleton().accessibilityLabel(Text("cy.state.loading")) }
+                if controller.busy { CYSkeleton(label: "cy.state.loading") }
                 if let target = controller.target { targetCard(controller, target) }
                 if let pending = controller.pending { receiptCard(pending) }
                 if !controller.message.isEmpty {

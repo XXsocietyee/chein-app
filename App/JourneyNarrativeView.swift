@@ -11,7 +11,7 @@ import SwiftUI
     var body: some View {
         List {
             CYCoverHeaderSection(LocalizedStringKey(model.query.titleKey), symbol: "book.closed.fill", seed: model.query.key)
-            if model.busy { CYSkeleton().accessibilityLabel(Text("journey.working")) }
+            if model.busy { CYSkeleton(label: "journey.working") }
             if let issue = model.issue { Text(LocalizedStringKey(issue)).accessibilityIdentifier("journey.record.error") }
             if !model.pending.isEmpty { Text("journey.record.unknown").accessibilityIdentifier("journey.record.pending") }
             if let receipt = model.receipt {

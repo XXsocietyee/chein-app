@@ -77,6 +77,7 @@ match is a queue item (133 at the start). Tab roots first, then their pushed pag
 | 藏品册 (`ObjectCardsView`) | `subpackageP3/pages/object-cards/index/index.wxml:27-30` 当前身份不能查看 / cy-error 藏品册无法打开 / cy-skeleton | plain `Text` lines + `CYPillButton` 重试; skeleton + separate footnote | denied and failure as `ContentUnavailableView` (当前身份不能查看 — This identity can’t view it; 藏品册无法打开 · `.bordered` 重试); loading `ProgressView { 正在打开藏品册… }`. Same denied title on 集邮册 (`StampAlbumDeniedNotice`, MP stamp-album wxml:28), now a `ContentUnavailableView` instead of a bare `Label` |
 | 草稿箱 (`OwnerDraftBrowserView`) | MP cy-error · 重试 (publish drafts) | plain `Text` failure line + a separate `CYPillButton` 重试 | `OwnerDraftFailureView` is a `ContentUnavailableView` with its `.bordered` 重试 inside (list + detail) |
 | `CYLoadingStateView(...).accessibilityLabel(Text(key))` sites (18: nearby, team, session nearby, IM, roam …) | page loading words | visible 加载中… while VoiceOver read a different page key | `CYLoadingStateView(label:)` — the page key is the visible label and the spoken one |
+| `CYSkeleton(...).accessibilityLabel(Text(key))` sites (48: roam hub, cooperation, play kits, mod installation, roam share …) | page loading words | visible 加载中… while VoiceOver read the page key | `CYSkeleton(label:)` — the page key is shown and spoken |
 
 ## Gates
 

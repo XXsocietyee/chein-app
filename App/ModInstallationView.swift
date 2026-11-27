@@ -279,7 +279,7 @@ import SwiftUI
                     .accessibilityLabel(installationText("state." + fact.state))
             }
             if originalReader != nil {
-                if originalReadBusy { CYSkeleton().accessibilityLabel(Text("cy.state.loading")) }
+                if originalReadBusy { CYSkeleton(label: "cy.state.loading") }
                 if originalReadUnknown {
                     CYNoteBanner(text: installationText("unknown"), symbol: "questionmark.circle", tone: .warning)
                 }
@@ -369,7 +369,7 @@ import SwiftUI
 
     private var messageCard: some View {
         CYInfoCard {
-            if controller.busy { CYSkeleton().accessibilityLabel(Text("cy.state.loading")) }
+            if controller.busy { CYSkeleton(label: "cy.state.loading") }
             if controller.messageKey == "error.readCapacity" {
                 CYNoteBanner(text: Text(verbatim: phrase(
                     "原选项或安装历史尚未完整读取，超过本次安全读取容量。不能据此认定没有在途请求或新建安装；原请求和回执保留，请重试原回查。",

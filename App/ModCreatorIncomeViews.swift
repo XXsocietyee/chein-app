@@ -32,7 +32,7 @@ import SwiftUI
                         .cyText(.label)
                 }
             }
-            if model.loading { CYSkeleton().accessibilityLabel(Text("uiCloud24.income.loading")) }
+            if model.loading { CYSkeleton(label: "uiCloud24.income.loading") }
             if let issue = model.issue {
                 Section {
                     CYEmptyState(
@@ -168,7 +168,7 @@ import SwiftUI
                 .listRowInsets(EdgeInsets())
             }
             ModCreatorIncomeBoundary()
-            if model.loading { CYSkeleton().accessibilityLabel(Text("uiCloud24.incomeDetail.loading")) }
+            if model.loading { CYSkeleton(label: "uiCloud24.incomeDetail.loading") }
             if !model.isCurrentScope {
                 Text(verbatim: modSettlementText(ModSettlementIssue.stale.localizationKey, locale: locale))
                     .cyText(.body)

@@ -35,7 +35,7 @@ struct WithdrawalOrderLookupRequest {
                 CYCard(variant: .elevated) {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("withdrawal.support.balanceCard").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
-                        if loading { CYSkeleton(variant: .merchantMetric).accessibilityLabel(Text("wallet.loading")) }
+                        if loading { CYSkeleton(variant: .merchantMetric, label: "wallet.loading") }
                         else if let balance, loadedScope == reader.scope {
                             Text(verbatim: amount(balance.balance, currency: balance.currency))
                                 .cyText(.data2XL).monospacedDigit()
