@@ -109,10 +109,17 @@ Merged `origin/ui/combined-r7` (clean). Sweep index still 18:06 (build 070117595
 | Club detail inline leaderboard | `ClubDetailR8Mounts.swift` (`ClubInlineLeaderboardRows`) | ✓ | Nickname 1 → 2 lines at AX sizes (meta line already wraps) | Done |
 | In-game channel entry (`pages/play` chat row) | `InGameChannelEntryViews.swift` (`InGameChannelRowButton`) | ✓ (mp-journey owns order) | Last-message preview 1 → 2 lines at AX sizes (Messages pattern) | Done |
 | Single-hit files A–G (`ActivityPublishingWizardView`, `BundleShelfView`, `CastViews`, `CityArrivalEvidenceView`, `CityGamePanel`, `CityDiceKit`, `CityLiveOnMap`, `ClubEnrollmentView`, `ClubOperationsViews`, `ClubPostImagePicker`, `E1CommerceComponents`, `FreeExplorationViews`, `GlobalSearchView`, `GrowthLeaderboardView`) | — | ✓ | Audit: hits are prices / codes / counts with `minimumScaleFactor`, monograms in scaled circles, short button labels, or the search capsule that must stay one line (16:37 sweep fix). No change | Done |
+| Play tools › journal (`pages/play` lead sheet) | `MPGap/PlayRoam/PlayToolsAndLeadSheetView.swift` (`PlayJournalListView`) | ✓ (mp-journey owns order) | Entry excerpt 1 → 3 lines at AX sizes | Done |
+| Object card collection tile | `ObjectCardViews.swift` (`ObjectCardTile`) | ✓ | Place line 1 → 2 lines at AX sizes (grid already single-column there) | Done |
+| `pages/templatedetail` head | `TemplateDetailXbChrome.swift` (`TemplateXbHead`) | ✓ (mp-publish owns order) | Publisher 1 → 2 lines at AX sizes (head already stacks) | Done |
+| Object card pile / grid (`pages/playkit`) | `MPGap/PlayRoam/PlayRoamRound4Views.swift` (`ObjectCardPileAndGridView`) | ✓ | Grid tile title 1 → 2 lines at AX sizes | Done |
+| Club detail member strip (MP `buildMemberStrip`) | `MPGap/Club/ClubGapManageExtensions.swift` (`ClubGapMemberAvatarStrip`) | ✓ (mp-club owns order) | Four names under avatars 1 → 2 lines at AX sizes (each slot ≈ 70 pt) | Done |
+| Single-hit files M–T (`ClubGapRemainingViews`, `PlayNavBubbleOverlay`, `PlayRoamRound2Views`, `MPPassEntries`, `CityOrientationFinishSummaryView`, `CityOrientationNavComponents`, `NativeFreeExploreMapView`, `PlayKitQuestionForms`, `ProjectEditFlowParity`, `RequestReferenceRow`, `RoamExplorationExportView`, `RoamFinishReportView`) | — | ✓ | Audit: numbers/ETA/dates/reference codes with `minimumScaleFactor`, a map bubble (short by design), cover chips, file name with middle truncation, picker ticks. No change | Done |
 
 ## Not done (next run starts here)
-- Continue single-hit `.lineLimit(1)` audit from `App/MPGap/Club/ClubGapManageExtensions.swift` onward (alphabetical list:
-  `grep -rln "lineLimit(1)" App` minus Merchant/Fixture/Diagnostics/SectionView/Story), then `App/DesignSystem/*` hits.
+- `.lineLimit(1)` audit: `App/DesignSystem/*` single hits and `App/NativeR2/Components/*` (CYCountdown, CYJoinCountdownRow,
+  CYLiveCounter, CYRecordStatGrid, CYRing), `NativeGameTimedKit`, `IslandOverlay`, `MotionR2Metrics`, `PassportView`,
+  `QuestifyMotionComponents`, then files with 2+ hits (`grep -rln "lineLimit(1)" App` minus Merchant/Fixture/Diagnostics/SectionView/Story).
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch
