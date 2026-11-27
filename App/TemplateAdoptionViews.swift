@@ -119,7 +119,7 @@ struct TemplateLocationTodosSection: View {
                             if !row.issueText.isEmpty { Text(verbatim: row.issueText).font(.footnote).foregroundStyle(.orange) }
                             if let error = rowError[row.slotKey] { Text(verbatim: error).font(.footnote).foregroundStyle(.red) }
                             Button(PlayerCapabilityCopy.text("选节点绑定", "Bind a node", locale)) {
-                                if bindableNodes.isEmpty { rowError[row.slotKey] = "先在章节里给节点设置这座城市的地点并保存" }
+                                if bindableNodes.isEmpty { rowError[row.slotKey] = PlayerCapabilityCopy.text("先在章节里给节点设置这座城市的地点并保存", "First set a place in this city for a node in your chapters, then save", locale) }
                                 else { picking = row }
                             }
                             .buttonStyle(.borderless)
@@ -155,9 +155,9 @@ struct TemplateLocationTodosSection: View {
             try await TemplateAdoptionService(client: client).bind(topicID: topicID, scope: scope, slotKey: row.slotKey,
                                                                    nodeID: nodeID, expectedRevision: row.revision)
         } catch PlayerCapabilityFailure.outcomeUnknown {
-            rowError[row.slotKey] = "绑定结果未确认，已重新读取"
+            rowError[row.slotKey] = PlayerCapabilityCopy.text("绑定结果未确认，已重新读取", "Couldn't confirm the binding, so we reloaded it", locale)
         } catch {
-            rowError[row.slotKey] = PlayerCapabilityCopy.failure(error, fallback: "绑定失败")
+            rowError[row.slotKey] = PlayerCapabilityCopy.failure(error, fallback: PlayerCapabilityCopy.text("绑定失败", "Couldn't bind", locale))
         }
         busySlot = nil
         await load()
@@ -205,11 +205,11 @@ struct TemplateProjectActions: View {
         busy = true; toast = nil
         let service = TemplateAdoptionService(client: client)
         do {
-            if kind == .topic { try await service.saveAsTemplate(topicID: id, scope: scope); toast = "已另存为主题模板" }
-            else { try await service.submitToMarket(templateID: id, scope: scope); toast = "已提交广场审核" }
+            if kind == .topic { try await service.saveAsTemplate(topicID: id, scope: scope); toast = PlayerCapabilityCopy.text("已另存为主题模板", "Saved as a template", locale) }
+            else { try await service.submitToMarket(templateID: id, scope: scope); toast = PlayerCapabilityCopy.text("已提交广场审核", "Submitted to the market for review", locale) }
             reload()
         } catch {
-            toast = PlayerCapabilityCopy.failure(error, fallback: kind == .topic ? "另存为模板失败" : "提交失败")
+            toast = PlayerCapabilityCopy.failure(error, fallback: kind == .topic ? PlayerCapabilityCopy.text("另存为模板失败", "Couldn't save as a template", locale) : PlayerCapabilityCopy.text("提交失败", "Couldn't submit", locale))
         }
         busy = false
     }

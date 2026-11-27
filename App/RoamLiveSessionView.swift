@@ -880,15 +880,9 @@ struct RoamLiveCoverageCopy {
     let unknown: String
     let hint: String
     init(locale: Locale) {
-        if locale.language.languageCode?.identifier == "zh" {
-            title = "本地片区探索度"
-            unknown = "—"
-            hint = "仅反映当前内存保留的局部片区，不代表全城覆盖或服务器确认结果。恢复记录不能还原这一比例。"
-        } else {
-            title = "Local area explored"
-            unknown = "—"
-            hint = "Based on the local area retained in memory, not citywide coverage or a server-confirmed result. Recovery records cannot reconstruct this percentage."
-        }
+        title = appLocalized("roamLive.r3.coverage.title", locale: locale)
+        unknown = "—"
+        hint = appLocalized("roamLive.r3.coverage.hint", locale: locale)
     }
 }
 
@@ -1004,12 +998,9 @@ struct RoamLiveStatTile: View {
 struct RoamLiveElapsedCopy {
     let locale: Locale
     private var chinese: Bool { locale.language.languageCode?.identifier == "zh" }
-    var title: String { chinese ? "本次前台用时" : "Foreground time" }
+    var title: String { appLocalized("roamLive.r3.elapsed.title", locale: locale) }
     var unknown: String { "—" }
-    var hint: String {
-        chinese ? "仅累计本次打开期间的前台漫游时间，暂停或进入后台即停止。恢复记录无法还原用时，也不代表服务器确认的成绩。"
-            : "Counts this walk's foreground time while open. Pausing or backgrounding stops the clock. Recovery cannot restore this value; it is not a server-confirmed result."
-    }
+    var hint: String { appLocalized("roamLive.r3.elapsed.hint", locale: locale) }
     func value(seconds: Int?) -> String {
         guard let seconds, seconds >= 0 else { return unknown }
         let minutes = seconds / 60, remainder = seconds % 60
@@ -1055,19 +1046,11 @@ struct RoamFinishedMedalsCopy {
     let unavailable: String
     let hint: String
     init(locale: Locale) {
-        if locale.language.languageCode?.identifier == "zh" {
-            title = "本次结算的勋章信息"
-            journey = "漫游勋章"
-            shop = "探店勋章"
-            unavailable = "本次结算未提供"
-            hint = "仅显示本次已保存结算返回的信息。缺失字段不代表没有获得勋章。"
-        } else {
-            title = "Medal details from this settlement"
-            journey = "Journey medal"
-            shop = "Shop medal"
-            unavailable = "Not provided in this settlement"
-            hint = "Only information returned with this saved settlement is shown. A missing field does not mean no medal was awarded."
-        }
+        title = appLocalized("roamLive.r3.medals.title", locale: locale)
+        journey = appLocalized("roamLive.r3.medals.journey", locale: locale)
+        shop = appLocalized("roamLive.r3.medals.shop", locale: locale)
+        unavailable = appLocalized("roamLive.r3.medals.unavailable", locale: locale)
+        hint = appLocalized("roamLive.r3.medals.hint", locale: locale)
     }
 }
 
@@ -1092,11 +1075,8 @@ struct RoamPlaceMemoryCopy {
     let title: String
     let close: String
     init(locale: Locale) {
-        if locale.language.languageCode?.identifier == "zh" {
-            title = "地点记忆"; close = "关闭地点提示"
-        } else {
-            title = "Place memory"; close = "Close place note"
-        }
+        title = appLocalized("roamLive.r3.placeMemory.title", locale: locale)
+        close = appLocalized("roamLive.r3.placeMemory.close", locale: locale)
     }
 }
 struct RoamPlaceMemorySection: View {
@@ -1135,13 +1115,8 @@ struct RoamFinishedStoryCopy {
     let title: String
     let hint: String
     init(locale: Locale) {
-        if locale.language.languageCode?.identifier == "zh" {
-            title = "这段足迹"
-            hint = "来自本次已保存的结算回顾。"
-        } else {
-            title = "This walk"
-            hint = "A reflection returned with this saved settlement."
-        }
+        title = appLocalized("roamLive.r3.story.title", locale: locale)
+        hint = appLocalized("roamLive.r3.story.hint", locale: locale)
     }
 }
 struct RoamFinishedStorySection: View {
@@ -1177,15 +1152,11 @@ struct RoamLiveMerchantDescriptionRow: View {
 struct RoamNearbyVisibilityCopy {
     let hide, show, expanded, collapsed, hint: String
     init(locale: Locale) {
-        if locale.language.languageCode?.identifier == "zh" {
-            hide = "收起附近卡片"; show = "展开附近卡片"
-            expanded = "已展开"; collapsed = "已收起"
-            hint = "只收起普通卡片。到场状态、待确认结果和重试仍会显示。"
-        } else {
-            hide = "Hide nearby cards"; show = "Show nearby cards"
-            expanded = "Expanded"; collapsed = "Collapsed"
-            hint = "Only ordinary cards are hidden. Arrival status, pending results and retries stay visible."
-        }
+        hide = appLocalized("roamLive.r3.nearbyVisibility.hide", locale: locale)
+        show = appLocalized("roamLive.r3.nearbyVisibility.show", locale: locale)
+        expanded = appLocalized("roamLive.r3.nearbyVisibility.expanded", locale: locale)
+        collapsed = appLocalized("roamLive.r3.nearbyVisibility.collapsed", locale: locale)
+        hint = appLocalized("roamLive.r3.nearbyVisibility.hint", locale: locale)
     }
 }
 struct RoamNearbyVisibilityButton: View {
@@ -1203,19 +1174,11 @@ struct RoamNearbyVisibilityButton: View {
 struct RoamLiveRouteOverviewCopy {
     let pausedHint, finishedHint, missing, onePoint, recordedPoints: String
     init(locale: Locale) {
-        if locale.language.languageCode?.identifier == "zh" {
-            pausedHint = "暂停时可查看本次内存中已有的路线。继续仍需点击原来的继续按钮。"
-            finishedHint = "本次结算已保存。这里只展示本次内存中保留的路线点，可能不完整；离开或切到后台后不再保留。"
-            missing = "本次内存中没有路线点。恢复记录不能还原之前的路线。"
-            onePoint = "目前只有一个路线点，尚不足以画出路线。"
-            recordedPoints = "本机路线点"
-        } else {
-            pausedHint = "While paused, review the route already held for this walk. Use the existing Resume button to continue."
-            finishedHint = "This settlement is saved. Only route points held for this walk are shown and they may be incomplete. They are discarded when you leave or enter the background."
-            missing = "No route points are held for this walk. A recovery record cannot restore the earlier route."
-            onePoint = "Only one route point is available, so no route line can be drawn yet."
-            recordedPoints = "Local route points"
-        }
+        pausedHint = appLocalized("roamLive.r3.routeOverview.pausedHint", locale: locale)
+        finishedHint = appLocalized("roamLive.r3.routeOverview.finishedHint", locale: locale)
+        missing = appLocalized("roamLive.r3.routeOverview.missing", locale: locale)
+        onePoint = appLocalized("roamLive.r3.routeOverview.onePoint", locale: locale)
+        recordedPoints = appLocalized("roamLive.r3.routeOverview.recordedPoints", locale: locale)
     }
 }
 struct RoamLiveRouteOverviewSection: View {
@@ -1388,15 +1351,11 @@ struct RoamPausedBrowseContext: Equatable {
 struct RoamPausedBrowseCopy {
     let title, hint, history, settings, album: String
     init(locale: Locale) {
-        if locale.language.languageCode?.identifier == "zh" {
-            title = "暂停后查看"
-            hint = "打开前会先暂停本次漫游。返回后不会自动继续，仍需使用原来的继续按钮。"
-            history = "查看本机漫游历史"; settings = "查看定位设置"; album = "只读查看集邮册"
-        } else {
-            title = "Pause and review"
-            hint = "This walk pauses before opening. Returning does not resume it; use the existing Resume button when ready."
-            history = "View local walk history"; settings = "View location settings"; album = "View stamp album (read-only)"
-        }
+        title = appLocalized("roamLive.r3.pausedBrowse.title", locale: locale)
+        hint = appLocalized("roamLive.r3.pausedBrowse.hint", locale: locale)
+        history = appLocalized("roamLive.r3.pausedBrowse.history", locale: locale)
+        settings = appLocalized("roamLive.r3.pausedBrowse.settings", locale: locale)
+        album = appLocalized("roamLive.r3.pausedBrowse.album", locale: locale)
     }
     func label(_ kind: RoamPausedBrowseKind) -> String {
         switch kind { case .history: return history; case .settings: return settings; case .album: return album }

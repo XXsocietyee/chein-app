@@ -89,13 +89,18 @@ class TeamMeetingRecoveryContract(unittest.TestCase):
         flow = self.text("Core/TeamMeetingFlow.swift")
         entries = between(views, "struct TeamReformEntries", "struct TeamReformSheetHost")
         self.assertIn("teamReform.meeting.recovery", entries)
-        self.assertIn("查原会面请求", entries)
+        # i18n r3: the copy moved to Localizable.xcstrings (en + zh-Hans); the view holds the key, the catalog the MP zh.
+        catalog = self.text("Resources/Localizable.xcstrings")
+        self.assertIn("teamReform.r3.meeting.recovery", entries)
+        self.assertIn("查原会面请求", catalog)
         self.assertNotIn("submitScanned", entries)
         handshake = between(views, "private var handshake", "private func scanIssueKey")
         self.assertLess(handshake.index("blocksResend"), handshake.index("simulateScan"))
-        self.assertIn("确认已发出但结果未知，不能重发。请查原请求。", views)
-        self.assertIn("确认尚未发送，已在本地取消。", views)
-        self.assertIn("会面已确认，取消不会再次确认。", views)
+        for key, zh in (("teamReform.r3.meeting.sentUnknown", "确认已发出但结果未知，不能重发。请查原请求。"),
+                        ("teamReform.r3.meeting.notSent", "确认尚未发送，已在本地取消。"),
+                        ("teamReform.r3.meeting.alreadyConfirmed", "会面已确认，取消不会再次确认。")):
+            self.assertIn(key, views)
+            self.assertIn(zh, catalog)
         self.assertIn("onDismiss:", home)
         self.assertIn("await reload(permit: permit)", home)
         self.assertIn("journal: TeamMeetingPendingJournal? = nil", flow)

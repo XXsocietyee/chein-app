@@ -53,7 +53,7 @@ struct TeamReformEntries: View {
             }
             if hooks.capabilities.allows(.teamFirstMeeting), let owner = hooks.meetingOwner, let journal = hooks.meetingJournal,
                journal.outstanding(owner: owner, teamId: String(detail.team.id)) != nil {
-                Button { open(.meeting(teamID: detail.team.id)) } label: { Text(verbatim: "查原会面请求") }
+                Button { open(.meeting(teamID: detail.team.id)) } label: { Text("teamReform.r3.meeting.recovery") }
                     .accessibilityIdentifier("teamReform.meeting.recovery")
             }
         }
@@ -233,19 +233,19 @@ struct TeamReformSheetHost: View {
             case .confirmationPending:
                 Text("teamReform.meeting.pending").accessibilityIdentifier("teamReform.meeting.pending")
                 if flow.cancelCase == .sentUnknown {
-                    Text(verbatim: "确认已发出但结果未知，不能重发。请查原请求。").accessibilityIdentifier("teamReform.meeting.cancel.sentUnknown")
+                    Text("teamReform.r3.meeting.sentUnknown").accessibilityIdentifier("teamReform.meeting.cancel.sentUnknown")
                 }
                 Button("teamReform.meeting.checkResult") { Task { await box.run { await $0.readBackConfirmation() } } }
                     .disabled(flow.busy).accessibilityIdentifier("teamReform.meeting.checkResult")
             case .met:
                 statusLabel("teamReform.meeting.met", systemImage: "checkmark.seal.fill", tint: .green).accessibilityIdentifier("teamReform.meeting.met")
                 if flow.cancelCase == .confirmed {
-                    Text(verbatim: "会面已确认，取消不会再次确认。").accessibilityIdentifier("teamReform.meeting.cancel.confirmed")
+                    Text("teamReform.r3.meeting.alreadyConfirmed").accessibilityIdentifier("teamReform.meeting.cancel.confirmed")
                 }
             case .cancelled:
                 statusLabel("teamReform.meeting.cancelled", systemImage: "xmark.octagon", tint: .secondary).accessibilityIdentifier("teamReform.meeting.cancelled")
                 if flow.cancelCase == .notSent {
-                    Text(verbatim: "确认尚未发送，已在本地取消。").accessibilityIdentifier("teamReform.meeting.cancel.notSent")
+                    Text("teamReform.r3.meeting.notSent").accessibilityIdentifier("teamReform.meeting.cancel.notSent")
                 }
                 if flow.cancelUnknown { Text("teamReform.meeting.cancelUnknown") }
             case .expired: statusLabel("teamReform.meeting.expired", systemImage: "clock.badge.xmark", tint: .orange)

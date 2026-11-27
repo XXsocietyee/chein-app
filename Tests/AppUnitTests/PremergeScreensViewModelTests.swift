@@ -319,7 +319,7 @@ final class PremergeScreensViewModelTests: XCTestCase {
         access.cancelHandler = { _, _ in .rejected(" ") }
         let rejectedOK = await model.submit()
         XCTAssertFalse(rejectedOK)
-        XCTAssertEqual(model.submitError, "取消失败")
+        XCTAssertEqual(model.submitError, appLocalized("i18nR3.cancelFailed", locale: .current)) // i18n r3: catalog key, zh 取消失败
 
         access.cancelHandler = { _, _ in .cancelled("已退回全部报名费") }
         let cancelledOK = await model.submit()

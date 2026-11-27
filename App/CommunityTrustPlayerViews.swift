@@ -186,13 +186,13 @@ struct MerchantCorrectionSheet: View {
 
     private func load() async {
         stage = .loading
-        guard merchantID > 0 else { message = "商家信息不完整，暂时无法纠错"; stage = .loadFailed; return }
+        guard merchantID > 0 else { message = PlayerCapabilityCopy.text("商家信息不完整，暂时无法纠错", "This shop's details are incomplete, so you can't suggest a fix right now", locale); stage = .loadFailed; return }
         do {
             issues = try await service.contributionIssueTypes()
             stage = issues.isEmpty ? .loadFailed : .pickType
-            if issues.isEmpty { message = "暂时无法纠错" }
+            if issues.isEmpty { message = PlayerCapabilityCopy.text("暂时无法纠错", "You can't suggest a fix right now", locale) }
         }
-        catch { message = "纠错类型没有读取成功，请稍后再试"; stage = .loadFailed }
+        catch { message = PlayerCapabilityCopy.text("纠错类型没有读取成功，请稍后再试", "Couldn't load the fix types. Try again later.", locale); stage = .loadFailed }
     }
 
     private func submit() async {
@@ -203,9 +203,9 @@ struct MerchantCorrectionSheet: View {
             let receipt = try await service.submitContribution(merchantID: merchantID, issueType: issue, description: text, idempotencyKey: key)
             key = ""; message = receipt.text; stage = .done
         } catch PlayerCapabilityFailure.outcomeUnknown {
-            message = "网络异常，结果未确认；再次提交会沿用同一编号"; stage = .unknown
+            message = PlayerCapabilityCopy.text("网络异常，结果未确认；再次提交会沿用同一编号", "Network problem: we don't know if it went through. Sending again reuses the same request, so it won't be sent twice.", locale); stage = .unknown
         } catch {
-            key = ""; message = PlayerCapabilityCopy.failure(error, fallback: "纠错没有提交成功，请稍后再试"); stage = .failed
+            key = ""; message = PlayerCapabilityCopy.failure(error, fallback: PlayerCapabilityCopy.text("纠错没有提交成功，请稍后再试", "Your fix wasn't sent. Try again later.", locale)); stage = .failed
         }
     }
 }
@@ -235,12 +235,12 @@ struct MerchantSafetyRatingSheet: View {
         NavigationStack {
             Form {
                 if let receipt {
-                    Label { Text(verbatim: receipt.isEmpty ? "评价已提交" : receipt) } icon: { Image(systemName: "checkmark.circle") }
+                    Label { Text(verbatim: receipt.isEmpty ? PlayerCapabilityCopy.text("评价已提交", "Rating sent", locale) : receipt) } icon: { Image(systemName: "checkmark.circle") }
                         .accessibilityIdentifier("merchant.safety.receipt")
                 } else if loading {
                     ProgressView().frame(maxWidth: .infinity)
                 } else if levels.isEmpty {
-                    Text(verbatim: error.isEmpty ? "评价选项暂时不可用" : error).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: error.isEmpty ? PlayerCapabilityCopy.text("评价选项暂时不可用", "Rating options aren't available right now", locale) : error).foregroundStyle(CYColor.textSecondary)
                     Button(PlayerCapabilityCopy.text("重试", "Retry", locale)) { Task { await load() } }
                 } else {
                     Section(PlayerCapabilityCopy.text("到访安全感受", "How safe did it feel", locale)) {
@@ -274,19 +274,19 @@ struct MerchantSafetyRatingSheet: View {
     private func load() async {
         loading = true; error = ""
         do { levels = try await CommunityTrustPlayerService(client: client).safetyLevels() }
-        catch { self.error = PlayerCapabilityCopy.failure(error, fallback: "网络异常，评价选项没有加载") }
+        catch { self.error = PlayerCapabilityCopy.failure(error, fallback: PlayerCapabilityCopy.text("网络异常，评价选项没有加载", "Network problem: rating options didn't load", locale)) }
         loading = false
     }
 
     private func submit() async {
-        guard canSubmit, merchantID > 0 else { error = "没有找到这家商家"; return }
+        guard canSubmit, merchantID > 0 else { error = PlayerCapabilityCopy.text("没有找到这家商家", "We couldn't find this shop", locale); return }
         submitting = true; error = ""
         if key.isEmpty { key = CommunityTrustPlayerService.safetyKey(merchantID: merchantID) }
         do {
             receipt = try await CommunityTrustPlayerService(client: client)
                 .submitSafetyRating(merchantID: merchantID, level: level, reason: reason, idempotencyKey: key)
         } catch {
-            self.error = PlayerCapabilityCopy.failure(error, fallback: "评价没有提交成功，请稍后重试")
+            self.error = PlayerCapabilityCopy.failure(error, fallback: PlayerCapabilityCopy.text("评价没有提交成功，请稍后重试", "Your rating wasn't sent. Try again later.", locale))
         }
         submitting = false
     }

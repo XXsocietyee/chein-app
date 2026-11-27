@@ -116,7 +116,7 @@ struct BundleExitSwapView: View {
             let made = try host.makeExitSwap()
             tools = made
             await reload()
-        } catch { self.error = "可换商家加载失败" }
+        } catch { self.error = PlayerCapabilityCopy.text("可换商家加载失败", "Couldn't load other merchants", locale) }
     }
 
     private func reload() async {
@@ -124,14 +124,14 @@ struct BundleExitSwapView: View {
         do {
             let order = try await tools.service.order(registrationID: host.registrationID)
             units = order.bundle?.units ?? []
-        } catch { self.error = "权益加载失败，请重试" }
+        } catch { self.error = PlayerCapabilityCopy.text("权益加载失败，请重试", "Couldn't load your passes. Try again.", locale) }
     }
 
     private func loadOptions(_ unit: FreeExploreLaunchID) async {
         guard let tools, pendingKey == nil else { return }
         options = nil; error = nil
         do { options = try await tools.client.exitOptions(registrationID: host.registrationID, unitID: unit) }
-        catch { self.error = "可换商家加载失败" }
+        catch { self.error = PlayerCapabilityCopy.text("可换商家加载失败", "Couldn't load other merchants", locale) }
     }
 
     private func swap(_ target: BundleExitOptions.Target) async {
@@ -145,11 +145,11 @@ struct BundleExitSwapView: View {
             let command = try BundleExitDecisionCommand(unitId: options.unitId, decision: .swapConsented,
                                                         targetOfferId: target.offerId, idempotencyKey: String(key.prefix(64)))
             let row = try await tools.client.exitDecision(command)
-            if row.targetOfferId == target.offerId { pendingKey = nil; self.options = nil; notice = "已更换商家"; await reload() }
+            if row.targetOfferId == target.offerId { pendingKey = nil; self.options = nil; notice = PlayerCapabilityCopy.text("已更换商家", "Merchant changed", locale); await reload() }
         } catch FreeExploreLaunchFailure.response(_, _, let business, _) where business.map(Self.definiteRefusals.contains) == true {
-            pendingKey = nil; self.options = nil; self.error = "更换未成功，请刷新"
+            pendingKey = nil; self.options = nil; self.error = PlayerCapabilityCopy.text("更换未成功，请刷新", "The swap didn't go through. Refresh and try again.", locale)
         } catch {
-            notice = "换店结果确认中，请稍后刷新"
+            notice = PlayerCapabilityCopy.text("换店结果确认中，请稍后刷新", "Confirming the swap. Refresh in a moment.", locale)
         }
         busy = false
     }

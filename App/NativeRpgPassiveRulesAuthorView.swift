@@ -91,7 +91,7 @@ import SwiftUI
                 }.disabled(!current)
                 Button { close(editorID) } label: { Text("关闭被动编辑副本") }
             }
-            if let message { NativeAuthorNotice(text: Text(message)) }
+            if let message { NativeAuthorNotice(text: Text(LocalizedStringKey(message))) }
         }
         .onChange(of: scenePhase) { _, phase in if phase != .active { retire() } }
         .onChange(of: current) { _, valid in if !valid { retire() } }

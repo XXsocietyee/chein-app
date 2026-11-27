@@ -20,7 +20,7 @@ enum PlayerCapabilityCopy {
         if case PlayerCapabilityFailure.rejected(_, let message?) = error, !message.trimmingCharacters(in: .whitespaces).isEmpty {
             return message
         }
-        if case PlayerCapabilityFailure.signedOut = error { return "请先登录" }
+        if case PlayerCapabilityFailure.signedOut = error { return appLocalized("i18nR3.signInFirst", locale: .current) }
         return fallback
     }
 }

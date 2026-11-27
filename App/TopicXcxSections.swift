@@ -67,11 +67,8 @@ struct TopicXcxHero: View {
     let topic: TopicDetail
     /// `TopicDetail.ownerReviewLabel` is the MP's Chinese `ownerStateText`; each value has its own catalog key.
     static func reviewKey(_ label: String) -> String {
-        switch label {
-        case "审核中": return "topicXcx.review.pending"
-        case "未通过": return "topicXcx.review.rejected"
-        default: return "topicXcx.review.unlisted"
-        }
+        let keys: [String: String] = ["审核中": "topicXcx.review.pending", "未通过": "topicXcx.review.rejected"]
+        return keys[label] ?? "topicXcx.review.unlisted"
     }
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
@@ -538,9 +535,8 @@ struct TopicXcxRouteSection: View {
         routeProgress = (min(total, max(0, data["doneCount"].tolerantInteger ?? 0)), total)
     }
     private var routeNoteText: String {
-        let zh = locale.language.languageCode?.identifier == "zh"
-        let separator = zh ? "，" : ", "
-        let end = zh ? "。" : "."
+        let separator = appLocalized("i18nR3.clauseSeparator", locale: locale)
+        let end = appLocalized("i18nR3.sentenceEnd", locale: locale)
         if topic.productType == 2 {
             let shops = topic.merchantCount ?? 0
             return shops > 0 ? appLocalized("topicXcx.routeNote.freeShops \(shops)", locale: locale)
@@ -551,7 +547,7 @@ struct TopicXcxRouteSection: View {
         if stops > 0 { parts.append(appLocalized("topicXcx.routeNote.stops \(stops)", locale: locale)) }
         if let km = topic.totalMileage, km > 0 {
             let value = km.formatted(.number.precision(.fractionLength(0...1)))
-            let walk = LocaleDisplay.distanceArgument(meters: km * 1000, zhText: value + " 公里", locale: locale)
+            let walk = LocaleDisplay.distanceArgument(meters: km * 1000, zhText: appLocalized("playx.finishRoute.km \(value)", locale: locale), locale: locale)
             parts.append(appLocalized("topicXcx.routeNote.walkDistance \(walk)", locale: locale))
         }
         let gifts = TopicXcxFacts.giftStopCount(topic)
@@ -686,7 +682,7 @@ struct TopicXcxNodeFootView: View {
         let foot = TopicXcxFacts.nodeFoot(node)
         if let merchant = foot.merchant {
             HStack(spacing: 4) {
-                Text(verbatim: merchant + "（" + foot.node + "）").font(.subheadline)
+                Text("topicXcx.nodeFoot \(merchant) \(foot.node)").font(.subheadline)
                 if foot.merchantCount > 1 { Text("topicXcx.moreMerchants \(foot.merchantCount)").font(.footnote).foregroundStyle(.secondary) }
             }.accessibilityIdentifier("topic.nodeFoot")
         }

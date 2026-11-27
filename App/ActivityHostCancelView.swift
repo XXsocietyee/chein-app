@@ -65,13 +65,13 @@ import SwiftUI
                 phase = .cancelled(msg)
                 return true
             case .rejected(let msg):
-                submitError = msg?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? msg : "取消失败"
+                submitError = msg?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? msg : appLocalized("i18nR3.cancelFailed", locale: .current)
                 return false
             }
         } catch is CancellationError {
             return false
         } catch {
-            submitError = "取消失败"
+            submitError = appLocalized("i18nR3.cancelFailed", locale: .current)
             return false
         }
     }

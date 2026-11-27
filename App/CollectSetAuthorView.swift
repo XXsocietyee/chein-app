@@ -60,7 +60,7 @@ import SwiftUI
                 .cyText(.body)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
-            if let error { NativeAuthorNotice(text: Text(verbatim: error), tone: .failure) }
+            if let error { NativeAuthorNotice(text: Text(LocalizedStringKey(error)), tone: .failure) }
             if isCurrent {
                 if nodes.isEmpty {
                     NativeAuthorNotice(text: Text("请先在原编辑器保存并回读点位，再配置套组。"))

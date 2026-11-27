@@ -71,6 +71,7 @@ struct GeocodedAddressButton: View {
     let city: String
     let client: PlayerCapabilityClient
     @Environment(\.openURL) private var openURL
+    @Environment(\.locale) private var locale
     @State private var missed = false
     @State private var busy = false
 
@@ -85,7 +86,7 @@ struct GeocodedAddressButton: View {
                 busy = false
             }
         } label: {
-            Label { Text(verbatim: missed ? "暂时无法定位" : address) } icon: { Image(systemName: "mappin.and.ellipse") }
+            Label { Text(verbatim: missed ? PlayerCapabilityCopy.text("暂时无法定位", "Can't find this place right now", locale) : address) } icon: { Image(systemName: "mappin.and.ellipse") }
         }
         .disabled(busy || address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         .accessibilityIdentifier("map.geocode.open")
@@ -123,7 +124,7 @@ struct UnifiedSearchResultsView: View {
             }
             if hasMore { Button(PlayerCapabilityCopy.text("加载更多", "Load more", locale)) { Task { await load(page + 1) } }.disabled(loading) }
             if let error { Text(verbatim: error).foregroundStyle(CYColor.textSecondary) }
-            if unavailable { Text(verbatim: "内容搜索暂未开放，可稍后重试").foregroundStyle(CYColor.textSecondary) }
+            if unavailable { Text(verbatim: PlayerCapabilityCopy.text("内容搜索暂未开放，可稍后重试", "Content search isn't open yet. Try again later.", locale)).foregroundStyle(CYColor.textSecondary) }
         }
         .task(id: keyword + "|" + cityCode) { items = []; page = 0; await load(1) }
     }
@@ -139,9 +140,9 @@ struct UnifiedSearchResultsView: View {
         } catch PlayerCapabilityFailure.rejected(let code, _) where code == 503 || code == 404 {
             unavailable = true; hasMore = false
         } catch PlayerCapabilityFailure.rejected(let code, _) where code == 403 {
-            items = []; self.error = "当前账号无法读取这些内容"
+            items = []; self.error = PlayerCapabilityCopy.text("当前账号无法读取这些内容", "This account can't view these results", locale)
         } catch {
-            self.error = "内容搜索未完成，重试本页"
+            self.error = PlayerCapabilityCopy.text("内容搜索未完成，重试本页", "Search didn't finish. Try this page again.", locale)
         }
         loading = false
     }

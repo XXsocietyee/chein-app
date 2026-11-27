@@ -284773,13 +284773,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Uses the current server check and the original version; no roll or pass result is generated on the device."
+            "value": "The server rolls and decides the result for this version; nothing is rolled on your phone."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "使用当前服务器检定和原版本，不在设备上生成骰点或通过结果。"
+            "value": "由服务器按当前版本检定，不在手机上生成骰点或结果。"
           }
         }
       }
@@ -285640,13 +285640,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original start result is not yet confirmed. The original log is kept; nothing is restarted and no session is guessed."
+            "value": "We haven't confirmed that the start went through. Your record is kept; nothing restarts and no session is guessed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原启动结果尚未确认。保留原日志，不会重新启动或猜测场次。"
+            "value": "开始结果尚未确认。记录已保留，不会重新开始，也不会猜测场次。"
           }
         }
       }
@@ -285895,13 +285895,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original server roll"
+            "value": "Server roll"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原服务器骰点"
+            "value": "服务器骰点"
           }
         }
       }
@@ -285997,13 +285997,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original check"
+            "value": "Check"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原检定"
+            "value": "检定"
           }
         }
       }
@@ -286082,13 +286082,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original settlement cost is not yet met"
+            "value": "The cost to settle isn't met yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原结算费用尚未满足"
+            "value": "结算所需费用尚未满足"
           }
         }
       }
@@ -286354,13 +286354,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original identity or receipt contract is not confirmed, so the check cannot be submitted."
+            "value": "We're still confirming who you are and your permission, so the check can't be sent yet."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原身份或回执合同尚未确认，不能提交检定。"
+            "value": "身份或参与权限尚未确认，暂时不能提交检定。"
           }
         }
       }
@@ -286456,13 +286456,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original question set"
+            "value": "Question set"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原题组"
+            "value": "题组"
           }
         }
       }
@@ -286473,13 +286473,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original question set unavailable"
+            "value": "Question set unavailable"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原题组暂不可用"
+            "value": "题组暂不可用"
           }
         }
       }
@@ -286660,13 +286660,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only the current plan's real node and session are used. If the start response is lost, the original record is kept and nothing is redone automatically."
+            "value": "Uses this plan's own stop and session. If the start reply gets lost, your record is kept and nothing is redone automatically."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "只使用当前方案的真实节点与场次。启动响应丢失时会保留原记录，不自动重做。"
+            "value": "只使用当前方案的节点与场次。开始的回应丢失时会保留记录，不会自动重做。"
           }
         }
       }
@@ -286762,13 +286762,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only the saved original request and original ID are replayed; no new check is created."
+            "value": "Only the saved request is sent again with the same number; no new check is created."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "只重放已保存的原请求与原编号，不创建新的检定。"
+            "value": "只重发已保存的请求和编号，不会创建新的检定。"
           }
         }
       }
@@ -287306,13 +287306,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The real session is kept; the original identity and receipt contract are not yet confirmed."
+            "value": "Your session is kept; we're still confirming who you are and your permission to play."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已保留真实场次，原始身份与回执合同尚未确认。"
+            "value": "已保留场次，正在确认你的身份和参与权限。"
           }
         }
       }
@@ -287527,13 +287527,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start original question set"
+            "value": "Start question set"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "开始原题组"
+            "value": "开始题组"
           }
         }
       }
@@ -287544,13 +287544,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start the current original question set?"
+            "value": "Start this question set?"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "开始当前原题组？"
+            "value": "开始当前题组？"
           }
         }
       }
@@ -287561,13 +287561,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start the original advanced question set for the current plan"
+            "value": "Start this plan's advanced question set"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "开始当前方案的原高级题组"
+            "value": "开始当前方案的高级题组"
           }
         }
       }
@@ -289193,13 +289193,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review original record"
+            "value": "Check my record"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核对原记录"
+            "value": "核对记录"
           }
         }
       }
@@ -289414,13 +289414,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This node has another original request awaiting confirmation; return to the original entry to recover."
+            "value": "Another request at this stop is still being confirmed. Go back to where you started it to pick it up."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此节点另有原请求待确认，请返回原入口恢复。"
+            "value": "这个节点还有一个请求待确认，请回到发起的入口继续。"
           }
         }
       }
@@ -289924,13 +289924,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm original check action"
+            "value": "Confirm check"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "确认原检定动作"
+            "value": "确认检定"
           }
         }
       }
@@ -289941,13 +289941,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm retry of original request"
+            "value": "Confirm retry"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "确认原请求重试"
+            "value": "确认重试"
           }
         }
       }
@@ -290247,13 +290247,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waiting for the original receipt contract and write-permission approval"
+            "value": "Waiting for permission to take part"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "等待原始回执合同与写权限批准"
+            "value": "等待参与权限确认"
           }
         }
       }
@@ -291301,13 +291301,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retry the same original request"
+            "value": "Retry the same request"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重试同一原请求"
+            "value": "重试同一请求"
           }
         }
       }
@@ -291318,13 +291318,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retry the same original request?"
+            "value": "Retry the same request?"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重试同一原请求？"
+            "value": "重试同一请求？"
           }
         }
       }
@@ -291437,13 +291437,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Requires a real plan ticket, read approval and safe-recovery storage."
+            "value": "This needs a valid plan ticket, permission to read it and safe storage to resume from."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "需要真实方案票据、读取批准及安全恢复存储。"
+            "value": "需要有效的方案票据、读取权限和可恢复的本机存储。"
           }
         }
       }
@@ -335824,6 +335824,4987 @@
           "stringUnit": {
             "state": "translated",
             "value": "提交检定"
+          }
+        }
+      }
+    },
+    "i18nR3.clauseSeparator": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", "
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "，"
+          }
+        }
+      }
+    },
+    "i18nR3.sentenceEnd": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "。"
+          }
+        }
+      }
+    },
+    "topicXcx.nodeFoot %@ %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ (%2$@)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@（%2$@）"
+          }
+        }
+      }
+    },
+    "上海": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shanghai"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上海"
+          }
+        }
+      }
+    },
+    "北京": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beijing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "北京"
+          }
+        }
+      }
+    },
+    "成都": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chengdu"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成都"
+          }
+        }
+      }
+    },
+    "西安": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xi'an"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "西安"
+          }
+        }
+      }
+    },
+    "重庆": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chongqing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重庆"
+          }
+        }
+      }
+    },
+    "深圳": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shenzhen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "深圳"
+          }
+        }
+      }
+    },
+    "广州": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guangzhou"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "广州"
+          }
+        }
+      }
+    },
+    "武汉": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wuhan"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "武汉"
+          }
+        }
+      }
+    },
+    "香港": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hong Kong"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "香港"
+          }
+        }
+      }
+    },
+    "厦门": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xiamen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "厦门"
+          }
+        }
+      }
+    },
+    "山阴路": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shanyin Road"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "山阴路"
+          }
+        }
+      }
+    },
+    "上海市虹口区山阴路": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shanyin Road, Hongkou District, Shanghai"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上海市虹口区山阴路"
+          }
+        }
+      }
+    },
+    "看里弄与老公寓的门窗细节，把阅读上海的起点放在居民日常里。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Look at the doors and windows of the lanes and old apartments, and start reading Shanghai from its residents' everyday life."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "看里弄与老公寓的门窗细节，把阅读上海的起点放在居民日常里。"
+          }
+        }
+      }
+    },
+    "鲁迅公园": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lu Xun Park"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "鲁迅公园"
+          }
+        }
+      }
+    },
+    "上海市虹口区四川北路2288号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2288 North Sichuan Road, Hongkou District, Shanghai"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上海市虹口区四川北路2288号"
+          }
+        }
+      }
+    },
+    "在树荫与湖边走一段，听听居民合唱，再接着逛周边的文学街巷。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walk under the trees and by the lake, listen to the residents' choirs, then wander the literary streets nearby."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在树荫与湖边走一段，听听居民合唱，再接着逛周边的文学街巷。"
+          }
+        }
+      }
+    },
+    "1927·鲁迅与内山纪念书局": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1927 Lu Xun & Uchiyama Memorial Bookstore"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1927·鲁迅与内山纪念书局"
+          }
+        }
+      }
+    },
+    "上海市虹口区四川北路2056号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2056 North Sichuan Road, Hongkou District, Shanghai"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上海市虹口区四川北路2056号"
+          }
+        }
+      }
+    },
+    "在老书店延续出的阅读空间里，翻翻海派文化与文学主题的书。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browse books on Shanghai-style culture and literature in a reading room that carries on an old bookshop."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在老书店延续出的阅读空间里，翻翻海派文化与文学主题的书。"
+          }
+        }
+      }
+    },
+    "砖塔胡同": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zhuanta Hutong"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "砖塔胡同"
+          }
+        }
+      }
+    },
+    "北京市西城区砖塔胡同": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zhuanta Hutong, Xicheng District, Beijing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "北京市西城区砖塔胡同"
+          }
+        }
+      }
+    },
+    "从胡同口的古塔读起，沿公共街巷观察老北京院落与街道的关系。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start at the old pagoda by the hutong entrance and follow the lanes to see how old Beijing courtyards meet the street."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从胡同口的古塔读起，沿公共街巷观察老北京院落与街道的关系。"
+          }
+        }
+      }
+    },
+    "万寿公园": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wanshou Park"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "万寿公园"
+          }
+        }
+      }
+    },
+    "北京市西城区白纸坊东街中部路北": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "North side of middle Baizhifang East Street, Xicheng District, Beijing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "北京市西城区白纸坊东街中部路北"
+          }
+        }
+      }
+    },
+    "一座围绕日常休闲展开的小公园，适合把行程放慢，看看树木与邻里生活。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A small park built around everyday leisure. Slow down here and watch the trees and the neighborhood."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一座围绕日常休闲展开的小公园，适合把行程放慢，看看树木与邻里生活。"
+          }
+        }
+      }
+    },
+    "正阳书局（西四店）": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zhengyang Bookstore (Xisi)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正阳书局（西四店）"
+          }
+        }
+      }
+    },
+    "北京市西城区西四南大街43号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "43 Xisi South Street, Xicheng District, Beijing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "北京市西城区西四南大街43号"
+          }
+        }
+      }
+    },
+    "在万松老人塔院内翻一册北京地方文献，从纸页里接着认识眼前的胡同。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leaf through local Beijing history in the Wansong Pagoda courtyard, then get to know the hutong in front of you."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在万松老人塔院内翻一册北京地方文献，从纸页里接着认识眼前的胡同。"
+          }
+        }
+      }
+    },
+    "馒头山社区街巷": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantoushan Neighborhood Lanes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "馒头山社区街巷"
+          }
+        }
+      }
+    },
+    "杭州市上城区凤凰山脚路、馒头山社区周边公共街巷": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fenghuangshan Jiao Road and the public lanes around Mantoushan, Shangcheng District, Hangzhou"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "杭州市上城区凤凰山脚路、馒头山社区周边公共街巷"
+          }
+        }
+      }
+    },
+    "沿山脚走进白墙黑瓦的生活街巷，看杭州山水之外的社区日常。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow the foot of the hill into lanes of white walls and black tiles, and see Hangzhou's everyday life beyond its lakes and hills."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沿山脚走进白墙黑瓦的生活街巷，看杭州山水之外的社区日常。"
+          }
+        }
+      }
+    },
+    "城北体育公园": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chengbei Sports Park"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城北体育公园"
+          }
+        }
+      }
+    },
+    "杭州市拱墅区白石路125号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "125 Baishi Road, Gongshu District, Hangzhou"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "杭州市拱墅区白石路125号"
+          }
+        }
+      }
+    },
+    "把打卡换成一段湖边慢走，在运动场与绿地之间感受城北的日常节奏。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trade the photo stop for a slow lakeside walk and feel the daily rhythm of north Hangzhou between fields and lawns."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把打卡换成一段湖边慢走，在运动场与绿地之间感受城北的日常节奏。"
+          }
+        }
+      }
+    },
+    "中国丝绸博物馆": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "China National Silk Museum"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中国丝绸博物馆"
+          }
+        }
+      }
+    },
+    "杭州市西湖区玉皇山路73-1号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "73-1 Yuhuangshan Road, Xihu District, Hangzhou"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "杭州市西湖区玉皇山路73-1号"
+          }
+        }
+      }
+    },
+    "从织物纹样与服饰看杭州的另一面，留一点时间观察材料与工艺。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See another side of Hangzhou through textile patterns and clothing, and take time with the materials and craft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从织物纹样与服饰看杭州的另一面，留一点时间观察材料与工艺。"
+          }
+        }
+      }
+    },
+    "镋钯街": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tangba Street"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "镋钯街"
+          }
+        }
+      }
+    },
+    "成都市锦江区镋钯街公共道路": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tangba Street, Jinjiang District, Chengdu"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成都市锦江区镋钯街公共道路"
+          }
+        }
+      }
+    },
+    "沿川西街巷的尺度慢走，看看旧街建筑与今日小店如何并排生活。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stroll a western-Sichuan street at walking scale and see old buildings and today's small shops side by side."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沿川西街巷的尺度慢走，看看旧街建筑与今日小店如何并排生活。"
+          }
+        }
+      }
+    },
+    "望江楼公园": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wangjiang Pavilion Park"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "望江楼公园"
+          }
+        }
+      }
+    },
+    "成都市武侯区望江路30号至50号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30–50 Wangjiang Road, Wuhou District, Chengdu"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成都市武侯区望江路30号至50号"
+          }
+        }
+      }
+    },
+    "沿竹林与江边走一段，认识与薛涛有关的城市记忆。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walk through the bamboo and along the river, and meet the city's memories of the poet Xue Tao."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沿竹林与江边走一段，认识与薛涛有关的城市记忆。"
+          }
+        }
+      }
+    },
+    "A4美术馆": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A4 Art Museum"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A4美术馆"
+          }
+        }
+      }
+    },
+    "成都市天府新区麓山大道二段18号麓镇山顶广场": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luzhen Hilltop Plaza, 18 Lushan Avenue Section 2, Tianfu New Area, Chengdu"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成都市天府新区麓山大道二段18号麓镇山顶广场"
+          }
+        }
+      }
+    },
+    "留一个下午给当代艺术，在展厅与社区之间切换观看城市的方式。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Give an afternoon to contemporary art and switch between the galleries and the neighborhood to see the city differently."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "留一个下午给当代艺术，在展厅与社区之间切换观看城市的方式。"
+          }
+        }
+      }
+    },
+    "半坡国际艺术区": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Banpo International Art District"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "半坡国际艺术区"
+          }
+        }
+      }
+    },
+    "西安市灞桥区纺织西街238号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "238 Fangzhi West Street, Baqiao District, Xi'an"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "西安市灞桥区纺织西街238号"
+          }
+        }
+      }
+    },
+    "沿旧纺织厂的公共街巷看厂房、创作空间与工业留下的尺度。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walk the lanes of an old textile mill and see its workshops, studios and industrial scale."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沿旧纺织厂的公共街巷看厂房、创作空间与工业留下的尺度。"
+          }
+        }
+      }
+    },
+    "环城西苑": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Huancheng West Park"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "环城西苑"
+          }
+        }
+      }
+    },
+    "西安市莲湖区环城西路、西门外护城河沿线": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Along the moat outside the West Gate, Huancheng West Road, Lianhu District, Xi'an"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "西安市莲湖区环城西路、西门外护城河沿线"
+          }
+        }
+      }
+    },
+    "在城墙外的公共绿地走走，看护城河、树荫与居民的晨晚活动。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walk the green space outside the city wall and watch the moat, the shade and residents' morning and evening routines."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在城墙外的公共绿地走走，看护城河、树荫与居民的晨晚活动。"
+          }
+        }
+      }
+    },
+    "陕西省美术博物馆": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shaanxi Art Museum"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "陕西省美术博物馆"
+          }
+        }
+      }
+    },
+    "西安市碑林区长安北路14号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "14 Chang'an North Road, Beilin District, Xi'an"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "西安市碑林区长安北路14号"
+          }
+        }
+      }
+    },
+    "用一场美术展切换旅行节奏，从绘画与地方工艺接近陕西文化。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change the pace of your trip with an exhibition and get close to Shaanxi culture through painting and local crafts."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用一场美术展切换旅行节奏，从绘画与地方工艺接近陕西文化。"
+          }
+        }
+      }
+    },
+    "苏家坝步道": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sujiaba Trail"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "苏家坝步道"
+          }
+        }
+      }
+    },
+    "重庆市南岸区铜元局站至双峰山、铜元之光城市阳台一带": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From Tongyuanju Station to Shuangfeng Hill and the Tongyuan Light city terrace, Nan'an District, Chongqing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重庆市南岸区铜元局站至双峰山、铜元之光城市阳台一带"
+          }
+        }
+      }
+    },
+    "沿连接轨道站与山坡社区的步道，观察重庆真实的高差与日常通行。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow the trail linking a metro station to a hillside neighborhood and see how Chongqing really climbs and commutes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沿连接轨道站与山坡社区的步道，观察重庆真实的高差与日常通行。"
+          }
+        }
+      }
+    },
+    "平顶山文化公园": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pingdingshan Culture Park"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平顶山文化公园"
+          }
+        }
+      }
+    },
+    "重庆市沙坪坝区石小路155号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "155 Shixiao Road, Shapingba District, Chongqing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重庆市沙坪坝区石小路155号"
+          }
+        }
+      }
+    },
+    "沿山间步道慢走，在绿荫与观景处看看山城社区的另一种高度。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walk the hill paths slowly and, from the shade and lookouts, see the mountain city's neighborhoods from another height."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沿山间步道慢走，在绿荫与观景处看看山城社区的另一种高度。"
+          }
+        }
+      }
+    },
+    "陈安健交通茶馆": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chen Anjian's Jiaotong Teahouse"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "陈安健交通茶馆"
+          }
+        }
+      }
+    },
+    "重庆市九龙坡区黄桷坪正街7号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7 Huangjueping Main Street, Jiulongpo District, Chongqing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重庆市九龙坡区黄桷坪正街7号"
+          }
+        }
+      }
+    },
+    "在木桌、茶盏与聊天声之间坐一会儿，把看城市的速度交还给日常。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sit a while among wooden tables, teacups and chatter, and let everyday life set the pace."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在木桌、茶盏与聊天声之间坐一会儿，把看城市的速度交还给日常。"
+          }
+        }
+      }
+    },
+    "华侨城创意文化园": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OCT-LOFT Creative Culture Park"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "华侨城创意文化园"
+          }
+        }
+      }
+    },
+    "深圳市南山区华侨城创意文化园公共街巷": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public lanes of OCT-LOFT, Nanshan District, Shenzhen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "深圳市南山区华侨城创意文化园公共街巷"
+          }
+        }
+      }
+    },
+    "沿旧厂房之间的街巷，看设计工作室、展览空间与树木相邻的日常。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walk the lanes between old factory buildings, where design studios, galleries and trees sit side by side."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沿旧厂房之间的街巷，看设计工作室、展览空间与树木相邻的日常。"
+          }
+        }
+      }
+    },
+    "香蜜公园": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xiangmi Park"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "香蜜公园"
+          }
+        }
+      }
+    },
+    "深圳市福田区农园路30号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 Nongyuan Road, Futian District, Shenzhen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "深圳市福田区农园路30号"
+          }
+        }
+      }
+    },
+    "在荔枝林与步道间留一段散步时间，看看深圳社区里的绿意。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Take a walk among the lychee trees and paths and enjoy the green inside Shenzhen's neighborhoods."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在荔枝林与步道间留一段散步时间，看看深圳社区里的绿意。"
+          }
+        }
+      }
+    },
+    "何香凝美术馆": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "He Xiangning Art Museum"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "何香凝美术馆"
+          }
+        }
+      }
+    },
+    "深圳市南山区深南大道9013号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "9013 Shennan Avenue, Nanshan District, Shenzhen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "深圳市南山区深南大道9013号"
+          }
+        }
+      }
+    },
+    "给作品与文献留一点观看时间，从艺术家的经历读到城市之外的世界。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Give the works and archives some time, and read from the artist's life to the world beyond the city."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "给作品与文献留一点观看时间，从艺术家的经历读到城市之外的世界。"
+          }
+        }
+      }
+    },
+    "新河浦公共街巷": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xinhepu Lanes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新河浦公共街巷"
+          }
+        }
+      }
+    },
+    "广州市越秀区新河浦路、恤孤院路周边公共道路": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public streets around Xinhepu Road and Xuguyuan Road, Yuexiu District, Guangzhou"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "广州市越秀区新河浦路、恤孤院路周边公共道路"
+          }
+        }
+      }
+    },
+    "沿红砖洋房与河涌观察建筑细节，读广州近代社区留下的街巷尺度。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow red-brick villas and the creek, notice the details, and read the street scale of Guangzhou's early-modern neighborhoods."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沿红砖洋房与河涌观察建筑细节，读广州近代社区留下的街巷尺度。"
+          }
+        }
+      }
+    },
+    "晓港公园": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xiaogang Park"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "晓港公园"
+          }
+        }
+      }
+    },
+    "广州市海珠区前进路146号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "146 Qianjin Road, Haizhu District, Guangzhou"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "广州市海珠区前进路146号"
+          }
+        }
+      }
+    },
+    "沿竹林、湖面与老树走一段，看看老广日常休息的城市绿地。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walk past bamboo, the lake and old trees in the green space where locals take their daily rest."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沿竹林、湖面与老树走一段，看看老广日常休息的城市绿地。"
+          }
+        }
+      }
+    },
+    "逵园艺术馆": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kuiyuan Art Museum"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "逵园艺术馆"
+          }
+        }
+      }
+    },
+    "广州市越秀区恤孤院路9号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "9 Xuguyuan Road, Yuexiu District, Guangzhou"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "广州市越秀区恤孤院路9号"
+          }
+        }
+      }
+    },
+    "在老洋房里看当代展览，把建筑细节与作品放在一起慢慢看。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See contemporary shows inside an old villa and take in the building and the works together."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在老洋房里看当代展览，把建筑细节与作品放在一起慢慢看。"
+          }
+        }
+      }
+    },
+    "青岛路公共街巷": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qingdao Road Lanes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "青岛路公共街巷"
+          }
+        }
+      }
+    },
+    "武汉市江岸区青岛路、平和打包厂周边公共道路": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public streets around Qingdao Road and the Pinghe Packing Plant, Jiang'an District, Wuhan"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "武汉市江岸区青岛路、平和打包厂周边公共道路"
+          }
+        }
+      }
+    },
+    "沿红砖工业建筑观察老汉口的城市更新，从街道读到曾经的商贸生活。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trace old Hankou's renewal along red-brick industrial buildings, and read its trading past in the streets."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沿红砖工业建筑观察老汉口的城市更新，从街道读到曾经的商贸生活。"
+          }
+        }
+      }
+    },
+    "解放公园": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jiefang Park"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解放公园"
+          }
+        }
+      }
+    },
+    "武汉市江岸区解放大道1861号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1861 Jiefang Avenue, Jiang'an District, Wuhan"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "武汉市江岸区解放大道1861号"
+          }
+        }
+      }
+    },
+    "在湖边与树荫间散步，把看展探店之间的空档留给一段城市绿地。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stroll by the lake and under the trees, and give the gap between galleries and shops to some city green."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在湖边与树荫间散步，把看展探店之间的空档留给一段城市绿地。"
+          }
+        }
+      }
+    },
+    "合美术馆": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "United Art Museum"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合美术馆"
+          }
+        }
+      }
+    },
+    "武汉市洪山区野芷湖西路16号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "16 Yezhihu West Road, Hongshan District, Wuhan"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "武汉市洪山区野芷湖西路16号"
+          }
+        }
+      }
+    },
+    "从当代艺术与青年创作中看另一面的武汉，给一件作品多停留几分钟。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See another Wuhan through contemporary art and young creators, and stay a few extra minutes with one work."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从当代艺术与青年创作中看另一面的武汉，给一件作品多停留几分钟。"
+          }
+        }
+      }
+    },
+    "大南街": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tai Nan Street"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "大南街"
+          }
+        }
+      }
+    },
+    "香港九龙深水埗大南街公共道路": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tai Nan Street, Sham Shui Po, Kowloon, Hong Kong"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "香港九龙深水埗大南街公共道路"
+          }
+        }
+      }
+    },
+    "从皮革、布料与今日创作小店之间，观察深水埗制造业与社区生活的连接。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Among leather, fabric and today's maker shops, see how Sham Shui Po's trades connect with neighborhood life."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从皮革、布料与今日创作小店之间，观察深水埗制造业与社区生活的连接。"
+          }
+        }
+      }
+    },
+    "牛棚艺术公园": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cattle Depot Artist Village"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "牛棚艺术公园"
+          }
+        }
+      }
+    },
+    "香港九龙土瓜湾新山道与东九龙走廊交界、牛棚后方": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Behind the Cattle Depot, at San Shan Road and the East Kowloon Corridor, To Kwa Wan, Kowloon, Hong Kong"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "香港九龙土瓜湾新山道与东九龙走廊交界、牛棚后方"
+          }
+        }
+      }
+    },
+    "在保留工业痕迹的公共休憩空间走走，看看红砖、绿地与艺术社区如何相邻。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walk a public space that keeps its industrial traces, where red brick, green space and an art community meet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在保留工业痕迹的公共休憩空间走走，看看红砖、绿地与艺术社区如何相邻。"
+          }
+        }
+      }
+    },
+    "艺鵠书店": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ACO Books"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "艺鵠书店"
+          }
+        }
+      }
+    },
+    "香港湾仔轩尼诗道365–367号富德楼14楼": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "14/F Foo Tak Building, 365–367 Hennessy Road, Wan Chai, Hong Kong"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "香港湾仔轩尼诗道365–367号富德楼14楼"
+          }
+        }
+      }
+    },
+    "翻翻艺术书与独立出版，从一本小书接近本地创作的日常。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browse art books and independent publishing, and get close to local creative life through a small book."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "翻翻艺术书与独立出版，从一本小书接近本地创作的日常。"
+          }
+        }
+      }
+    },
+    "华新路公共街巷": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Huaxin Road Lanes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "华新路公共街巷"
+          }
+        }
+      }
+    },
+    "厦门市思明区华新路、幸福路周边公共道路": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Public streets around Huaxin Road and Xingfu Road, Siming District, Xiamen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "厦门市思明区华新路、幸福路周边公共道路"
+          }
+        }
+      }
+    },
+    "沿华侨老别墅与树荫慢走，看一段仍与居民日常交织的厦门街巷。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stroll past old overseas-Chinese villas in the shade, on Xiamen lanes still woven into residents' lives."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沿华侨老别墅与树荫慢走，看一段仍与居民日常交织的厦门街巷。"
+          }
+        }
+      }
+    },
+    "忠仑公园": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zhonglun Park"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "忠仑公园"
+          }
+        }
+      }
+    },
+    "厦门市湖里区金尚路、吕岭路沿线忠仑公园": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zhonglun Park along Jinshang Road and Lüling Road, Huli District, Xiamen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "厦门市湖里区金尚路、吕岭路沿线忠仑公园"
+          }
+        }
+      }
+    },
+    "沿林间步道与缓坡看看城市绿意，把远行的节奏放回一次日常散步。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow wooded paths and gentle slopes, and bring the pace of travel back to an everyday walk."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沿林间步道与缓坡看看城市绿意，把远行的节奏放回一次日常散步。"
+          }
+        }
+      }
+    },
+    "三影堂厦门摄影艺术中心": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Three Shadows Xiamen Photography Art Center"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "三影堂厦门摄影艺术中心"
+          }
+        }
+      }
+    },
+    "厦门市集美区杏林湾商务营运中心二号楼裙楼301": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Room 301, Podium of Building 2, Xinglin Bay Business Center, Jimei District, Xiamen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "厦门市集美区杏林湾商务营运中心二号楼裙楼301"
+          }
+        }
+      }
+    },
+    "用一场摄影展切换观看方式，在影像里看看城市与人的关系。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Let a photography show change how you look, and see the city and its people through images."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用一场摄影展切换观看方式，在影像里看看城市与人的关系。"
+          }
+        }
+      }
+    },
+    "i18nR3.listSeparator": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", "
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "、"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.comparisonHash": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comparison hash"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "比较 hash"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.hashNote": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This hash only links to the original frozen version. It isn't an approval signature or a license to use."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hash 仅关联原冻结版本，不是客户端核准签名或当前使用许可。"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.creatorId": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original rights holder ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原权利作者 ID"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.sourceTerms": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terms you bought (frozen)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原已购冻结条款"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.targetTermsOwned": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New version terms you own (frozen)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标已购冻结条款"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.targetTermsForSale": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New version sale terms (not yet yours)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标销售条款（尚未取得）"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.compareNote": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compare the old and new rights line by line. Anything not listed — people, places, translation or adaptation — isn't included. Choosing a version never widens your license, and old drafts and sessions don't move over automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请逐项比较前后授权。未列入的主体、地点、翻译或改编权不能推定拥有；版本选择不会扩大原许可，旧稿和旧场次不会自动迁移。"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.comparisonUnknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The full terms comparison isn't available: an older response or saved record has no details. That doesn't mean the rights are the same or unlimited, so a new upgrade can't be confirmed from it. An existing request can still be viewed read-only."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完整冻结条款比较暂不可知。旧响应或旧记录没有这些详情，不代表权益相同或全权；不能据此确认新的升级。已存在的原请求仍可只读恢复。"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.termsVersion": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terms version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "条款版本"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.termsHash": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terms hash"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "条款 hash"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.contentHash": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Content hash"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内容 hash"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.commercialUse": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Commercial use"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商业使用"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.allowedRegions": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allowed regions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许地区"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.installationLimit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install limit at purchase (not what's left now)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冻结安装限额（非当前剩余额度）"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.useDuration": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use period"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用期间"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.updatePolicy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version updates"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "版本更新权"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.redistribution": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redistributing original assets"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原始素材再分发"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.refundPolicy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refund policy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退款政策引用"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.rightsProfile": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combination license profile"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "组合授权 profile"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.rightsHash": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combination license hash"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "组合授权 hash"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.authorReviewer": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Author / reviewer ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "作者 / 审核人 ID"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.applicationDecision": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Application / decision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原申请 / 决定"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.sourceReview": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source / review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源 / 原审核"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.sourceHash": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source hash"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来源 hash"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.draftHash": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft hash"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原稿 hash"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.packageVersion": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "License package / version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "授权包 / 版本"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.release": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licensed release"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "授权 release"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.rightsContentHash": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licensed content hash"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "授权内容 hash"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.approvedAt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "批准时间"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.scopeAuthors": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Author IDs allowed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可用作者 ID"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.scopeSubjects": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Who can install (IDs)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可安装主体 ID"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.scopeVenues": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licensed merchant IDs (not venue consent)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "许可商户 ID（非地点同意）"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.scopeRegions": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combination regions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "组合许可地区"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.scopeCommercialUse": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combination commercial use"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "组合商业使用"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.translation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Translation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "翻译"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.adaptation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adaptation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "改编"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.remix": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remix"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "remix"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.embeddedRedistribution": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Embedded redistribution (no resale of original assets)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "嵌入式再分发（非原素材转售）"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.venueScopeVersion": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Place scope version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地点范围版本"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.venuePois": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licensed place (POI) IDs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "许可原 POI ID"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.venuePoisUnknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The licensed places aren't known. That doesn't make every venue available, and it never replaces the venue's consent or proof of being there."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原 POI 授权范围暂不可知；不代表任意场地可用，也不代替场地方同意或到场证明。"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.evidence": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rights evidence"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "权利依据引用"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.noCompositionRights": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These terms include no combination license, so people/places, translation, adaptation, remix and embedded redistribution aren't granted by default."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该份冻结条款未包含组合授权；不默认授予主体/地点、翻译、改编、remix 或嵌入式再分发权。"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.permission.allowed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allowed within the frozen scope only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅冻结范围内允许"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.permission.notGranted": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not granted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未授予"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.change.authors": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combination license changed: authors allowed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "组合授权变化：可用作者"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.change.installationSubjects": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combination license changed: who can install"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "组合授权变化：可安装主体"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.change.venues": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combination license changed: licensed merchants"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "组合授权变化：许可商户"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.change.regions": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combination license changed: regions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "组合授权变化：许可地区"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.change.commercialUse": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combination license changed: commercial use"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "组合授权变化：商业使用"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.change.translation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combination license changed: translation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "组合授权变化：翻译"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.change.adaptation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combination license changed: adaptation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "组合授权变化：改编"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.change.remix": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combination license changed: remix"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "组合授权变化：remix"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.change.embeddedRedistribution": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combination license changed: embedded redistribution"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "组合授权变化：嵌入式再分发"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.change.evidenceReferences": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combination license changed: rights evidence"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "组合授权变化：权利依据"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.change.venueScopeVersion": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combination license changed: place scope version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "组合授权变化：地点范围版本"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.change.venuePoiIds": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combination license changed: licensed places"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "组合授权变化：许可原 POI"
+          }
+        }
+      }
+    },
+    "modUpgrade.r3.change.compositionRights": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combination license or its review record changed (compare the old and new terms)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "组合授权或其原审核凭证变化（详见前后冻结条款）"
+          }
+        }
+      }
+    },
+    "cyBiz.capabilityTag": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready to play"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可直接开局的模板"
+          }
+        }
+      }
+    },
+    "cyBiz.play": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始游玩"
+          }
+        }
+      }
+    },
+    "cyBiz.details": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看详情"
+          }
+        }
+      }
+    },
+    "cyBiz.claim": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claim"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "领取"
+          }
+        }
+      }
+    },
+    "cyBiz.cancel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        }
+      }
+    },
+    "cyBiz.arrival.gps": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GPS arrival"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GPS 到达"
+          }
+        }
+      }
+    },
+    "cyBiz.arrival.qr": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan to check in"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫码打卡"
+          }
+        }
+      }
+    },
+    "cyBiz.arrival.photo": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo check"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拍照核验"
+          }
+        }
+      }
+    },
+    "cyBiz.clue.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clue ladder"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "线索阶梯"
+          }
+        }
+      }
+    },
+    "cyBiz.clue.freeLeft %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld free hints left"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "免费提示剩余 %lld"
+          }
+        }
+      }
+    },
+    "cyBiz.clue.freeUnknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free hints —"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "免费提示 —"
+          }
+        }
+      }
+    },
+    "cyBiz.clue.confirm %lld %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spend %1$lld points to unlock %2$@? Unlocked clues can be reread for free."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认消耗 %1$lld 积分解锁%2$@？已解锁线索可免费重看。"
+          }
+        }
+      }
+    },
+    "cyBiz.clue.spend %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spend %lld points"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认消耗 %lld 积分"
+          }
+        }
+      }
+    },
+    "cyBiz.clue.unlocked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlocked · free to reread"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已解锁 · 免费重看"
+          }
+        }
+      }
+    },
+    "cyBiz.clue.useFree": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use a free hint"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用免费次数"
+          }
+        }
+      }
+    },
+    "cyBiz.clue.unlockFor %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock for %lld points"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 积分解锁"
+          }
+        }
+      }
+    },
+    "cyBiz.reg.session": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a session"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择场次"
+          }
+        }
+      }
+    },
+    "cyBiz.reg.people": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "People"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参与人数"
+          }
+        }
+      }
+    },
+    "cyBiz.reg.original": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original price"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原价"
+          }
+        }
+      }
+    },
+    "cyBiz.reg.discount": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Early-bird / team discount"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "早鸟/组队优惠"
+          }
+        }
+      }
+    },
+    "cyBiz.reg.total": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "实付合计"
+          }
+        }
+      }
+    },
+    "cyBiz.reg.morePeople": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a person"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "增加人数"
+          }
+        }
+      }
+    },
+    "cyBiz.reg.fewerPeople": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove a person"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "减少人数"
+          }
+        }
+      }
+    },
+    "cyBiz.reg.confirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm sign-up"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认报名"
+          }
+        }
+      }
+    },
+    "cyBiz.seat.pending": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting to be claimed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待领取"
+          }
+        }
+      }
+    },
+    "cyBiz.seat.claimed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taken"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已占位"
+          }
+        }
+      }
+    },
+    "cyBiz.seat.expired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expired"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已过期"
+          }
+        }
+      }
+    },
+    "cyBiz.seat.revoked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdrawn"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已撤回"
+          }
+        }
+      }
+    },
+    "cyBiz.seat.buyer": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ticket buyer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "购票人"
+          }
+        }
+      }
+    },
+    "cyBiz.seat.awaitingMember": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for a member"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待成员领取"
+          }
+        }
+      }
+    },
+    "cyBiz.seat.expires %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expires %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "过期时间 %@"
+          }
+        }
+      }
+    },
+    "cyBiz.seat.inviteCode %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One-time invite code: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一次性邀请码：%@"
+          }
+        }
+      }
+    },
+    "cyBiz.seat.revoke": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdraw spot"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤回名额"
+          }
+        }
+      }
+    },
+    "cyBiz.seat.release": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Release seat"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "释放席位"
+          }
+        }
+      }
+    },
+    "topicReveal.kind.free": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chengyin · Free Explore pass"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城瘾 · 自由探索通行证"
+          }
+        }
+      }
+    },
+    "topicReveal.kind.city": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chengyin · City Orienteering pass"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城瘾 · 城市定向通行证"
+          }
+        }
+      }
+    },
+    "topicReveal.duration %lld %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Playable until %1$lld/%2$lld · Days left: %3$lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可玩至 %1$lld 月 %2$lld 日 · 还剩 %3$lld 天"
+          }
+        }
+      }
+    },
+    "topicReveal.durationTopicEnd %lld %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Playable until %1$lld/%2$lld (when the topic ends) · Days left: %3$lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可玩至 %1$lld 月 %2$lld 日（主题结束） · 还剩 %3$lld 天"
+          }
+        }
+      }
+    },
+    "teamReform.r3.meeting.recovery": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check your meet-up request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查原会面请求"
+          }
+        }
+      }
+    },
+    "teamReform.r3.meeting.sentUnknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your confirmation was sent but we don't know the result yet, so it can't be sent again. Check your request."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认已发出但结果未知，不能重发。请查原请求。"
+          }
+        }
+      }
+    },
+    "teamReform.r3.meeting.alreadyConfirmed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The meet-up is already confirmed. Cancelling won't confirm it again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会面已确认，取消不会再次确认。"
+          }
+        }
+      }
+    },
+    "teamReform.r3.meeting.notSent": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The confirmation wasn't sent, so it was cancelled on this device."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认尚未发送，已在本地取消。"
+          }
+        }
+      }
+    },
+    "i18nR3.favorite": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收藏"
+          }
+        }
+      }
+    },
+    "i18nR3.actionFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That didn't work"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "操作失败"
+          }
+        }
+      }
+    },
+    "i18nR3.actionUnknownRetry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We couldn't confirm the result. Tap to retry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "操作结果未确认，点击重试"
+          }
+        }
+      }
+    },
+    "cityParticipation.r3.inTeam": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In the team"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前在队"
+          }
+        }
+      }
+    },
+    "cityParticipation.r3.left": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Left"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已退出"
+          }
+        }
+      }
+    },
+    "cityParticipation.r3.confirmed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已确认"
+          }
+        }
+      }
+    },
+    "cityParticipation.r3.unconfirmed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not confirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未确认"
+          }
+        }
+      }
+    },
+    "clubApply.r3.uploading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uploading…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上传中…"
+          }
+        }
+      }
+    },
+    "clubApply.r3.uploaded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uploaded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已上传"
+          }
+        }
+      }
+    },
+    "clubApply.r3.certSection %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credentials / case photos (%1$lld/%2$lld)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "资质 / 案例图片（%1$lld/%2$lld）"
+          }
+        }
+      }
+    },
+    "i18nR3.parenOpen": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " ("
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "（"
+          }
+        }
+      }
+    },
+    "i18nR3.parenClose": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ")"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "）"
+          }
+        }
+      }
+    },
+    "i18nR3.cancelFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消失败"
+          }
+        }
+      }
+    },
+    "i18nR3.createRejected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your create request was declined"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原创建请求已拒绝"
+          }
+        }
+      }
+    },
+    "i18nR3.signInFirst": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in first"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先登录"
+          }
+        }
+      }
+    },
+    "i18nR3.choosePlace": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a place"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择地点"
+          }
+        }
+      }
+    },
+    "i18nR3.dialogueAndDividers": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dialogue and dividers"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对白与分割线"
+          }
+        }
+      }
+    },
+    "i18nR3.thisPlayer": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This player"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这位玩家"
+          }
+        }
+      }
+    },
+    "附近共有 %lld 支队伍": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld teams nearby"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "附近共有 %lld 支队伍"
+          }
+        }
+      }
+    },
+    "队长 %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leader: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队长 %@"
+          }
+        }
+      }
+    },
+    "手机号": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phone number"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手机号"
+          }
+        }
+      }
+    },
+    "附近共 %lld 个结果 · 最近": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld results nearby · Nearest first"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "附近共 %lld 个结果 · 最近"
+          }
+        }
+      }
+    },
+    "有效期至 %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valid until %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有效期至 %@"
+          }
+        }
+      }
+    },
+    "标记已线下结清？": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark as settled offline?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标记已线下结清？"
+          }
+        }
+      }
+    },
+    "roamLive.r3.coverage.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local area explored"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地片区探索度"
+          }
+        }
+      }
+    },
+    "roamLive.r3.coverage.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Based on the local area retained in memory, not citywide coverage or a server-confirmed result. Recovery records cannot reconstruct this percentage."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅反映当前内存保留的局部片区，不代表全城覆盖或服务器确认结果。恢复记录不能还原这一比例。"
+          }
+        }
+      }
+    },
+    "roamLive.r3.medals.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medal details from this settlement"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次结算的勋章信息"
+          }
+        }
+      }
+    },
+    "roamLive.r3.medals.journey": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Journey medal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "漫游勋章"
+          }
+        }
+      }
+    },
+    "roamLive.r3.medals.shop": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shop medal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "探店勋章"
+          }
+        }
+      }
+    },
+    "roamLive.r3.medals.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not provided in this settlement"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次结算未提供"
+          }
+        }
+      }
+    },
+    "roamLive.r3.medals.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only information returned with this saved settlement is shown. A missing field does not mean no medal was awarded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅显示本次已保存结算返回的信息。缺失字段不代表没有获得勋章。"
+          }
+        }
+      }
+    },
+    "roamLive.r3.placeMemory.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Place memory"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地点记忆"
+          }
+        }
+      }
+    },
+    "roamLive.r3.placeMemory.close": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close place note"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭地点提示"
+          }
+        }
+      }
+    },
+    "roamLive.r3.story.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This walk"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这段足迹"
+          }
+        }
+      }
+    },
+    "roamLive.r3.story.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A reflection returned with this saved settlement."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来自本次已保存的结算回顾。"
+          }
+        }
+      }
+    },
+    "roamLive.r3.nearbyVisibility.hide": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide nearby cards"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收起附近卡片"
+          }
+        }
+      }
+    },
+    "roamLive.r3.nearbyVisibility.show": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show nearby cards"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "展开附近卡片"
+          }
+        }
+      }
+    },
+    "roamLive.r3.nearbyVisibility.expanded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expanded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已展开"
+          }
+        }
+      }
+    },
+    "roamLive.r3.nearbyVisibility.collapsed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collapsed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已收起"
+          }
+        }
+      }
+    },
+    "roamLive.r3.nearbyVisibility.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only ordinary cards are hidden. Arrival status, pending results and retries stay visible."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只收起普通卡片。到场状态、待确认结果和重试仍会显示。"
+          }
+        }
+      }
+    },
+    "roamLive.r3.routeOverview.pausedHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "While paused, review the route already held for this walk. Use the existing Resume button to continue."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停时可查看本次内存中已有的路线。继续仍需点击原来的继续按钮。"
+          }
+        }
+      }
+    },
+    "roamLive.r3.routeOverview.finishedHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This settlement is saved. Only route points held for this walk are shown and they may be incomplete. They are discarded when you leave or enter the background."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次结算已保存。这里只展示本次内存中保留的路线点，可能不完整；离开或切到后台后不再保留。"
+          }
+        }
+      }
+    },
+    "roamLive.r3.routeOverview.missing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No route points are held for this walk. A recovery record cannot restore the earlier route."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次内存中没有路线点。恢复记录不能还原之前的路线。"
+          }
+        }
+      }
+    },
+    "roamLive.r3.routeOverview.onePoint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only one route point is available, so no route line can be drawn yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目前只有一个路线点，尚不足以画出路线。"
+          }
+        }
+      }
+    },
+    "roamLive.r3.routeOverview.recordedPoints": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local route points"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机路线点"
+          }
+        }
+      }
+    },
+    "roamLive.r3.pausedBrowse.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause and review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停后查看"
+          }
+        }
+      }
+    },
+    "roamLive.r3.pausedBrowse.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This walk pauses before opening. Returning does not resume it; use the existing Resume button when ready."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开前会先暂停本次漫游。返回后不会自动继续，仍需使用原来的继续按钮。"
+          }
+        }
+      }
+    },
+    "roamLive.r3.pausedBrowse.history": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View local walk history"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看本机漫游历史"
+          }
+        }
+      }
+    },
+    "roamLive.r3.pausedBrowse.settings": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View location settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看定位设置"
+          }
+        }
+      }
+    },
+    "roamLive.r3.pausedBrowse.album": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View stamp album (read-only)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只读查看集邮册"
+          }
+        }
+      }
+    },
+    "roamLive.r3.elapsed.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Foreground time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次前台用时"
+          }
+        }
+      }
+    },
+    "roamLive.r3.elapsed.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Counts this walk's foreground time while open. Pausing or backgrounding stops the clock. Recovery cannot restore this value; it is not a server-confirmed result."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅累计本次打开期间的前台漫游时间，暂停或进入后台即停止。恢复记录无法还原用时，也不代表服务器确认的成绩。"
+          }
+        }
+      }
+    },
+    "需要现存 schema2 RPG 规则；缺失、旧版或非原字符串配置保留，不用空模板替换。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This needs the project's existing RPG rules (schema 2). Missing, older or non-text settings are kept as they are and never replaced with an empty template."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要项目现有的 RPG 规则（schema 2）；缺失、旧版或非文本的配置会原样保留，不会用空模板替换。"
+          }
+        }
+      }
+    },
+    "成长配置未完整满足原合同：检查启用角色、等级、技能点和严格递增阈值；未写回。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The growth settings aren't complete: check the enabled roles, levels, skill points and that each threshold is higher than the last. Nothing was written back."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成长配置还不完整：请检查启用的角色、等级、技能点，以及阈值是否逐级递增；未写回。"
+          }
+        }
+      }
+    },
+    "配置未变，保留原草稿字节；没有新增保存或发布。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing changed, so your draft stays as it was. Nothing new was saved or published."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置未变，草稿保持原样；没有新的保存或发布。"
+          }
+        }
+      }
+    },
+    "原本地保存未确认；完整成长编辑与确认预览仍保留，可重试本地保存。尚未保存服务器或发布。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We couldn't confirm the local save. Your growth edits and preview are kept, so you can retry. Nothing has been saved to the server or published yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地保存未确认；成长编辑和预览仍保留，可以重试本地保存。尚未保存到服务器或发布。"
+          }
+        }
+      }
+    },
+    "已由原保存器保存完整本地草稿，尚未保存服务器或发布。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your full draft is saved on this device. It hasn't been saved to the server or published yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完整草稿已保存在本机，尚未保存到服务器或发布。"
+          }
+        }
+      }
+    },
+    "原项目或配置已变化，没有覆盖。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The project or its settings changed, so nothing was overwritten."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "项目或配置已变化，没有覆盖。"
+          }
+        }
+      }
+    },
+    "重试保存原项目本地草稿": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry saving the draft on this device"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试保存本地草稿"
+          }
+        }
+      }
+    },
+    "确认写回并保存原项目草稿": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply and save the draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认写回并保存草稿"
+          }
+        }
+      }
+    },
+    "须已有原 TEAM 主题、任务与幕目录，且恢复定义符合当前 REST／RESCUE 合同。新版或未知定义保留原文，不自动创建、降级或改写。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This needs an existing team topic with tasks and acts, and recovery rules in the current REST/RESCUE format. Newer or unknown rules are kept as written; nothing is created, downgraded or rewritten automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要已有的团队主题、任务和幕目录，且恢复定义符合当前的 REST／RESCUE 格式。新版或未知定义会原样保留，不会自动创建、降级或改写。"
+          }
+        }
+      }
+    },
+    "sharedRecovery.r3.row %@ %@ %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@ · %3$@ times"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@ · %3$@次"
+          }
+        }
+      }
+    },
+    "sharedRecovery.r3.acts %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limited to acts: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原限用幕：%@"
+          }
+        }
+      }
+    },
+    "sharedRecovery.r3.actRemoved %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ (no longer in the act list — remove it)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@（已不在原幕目录，须移除）"
+          }
+        }
+      }
+    },
+    "sharedRecovery.r3.hpDelta %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HP gained: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生命增加量：%@"
+          }
+        }
+      }
+    },
+    "sharedRecovery.r3.hpFloor %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HP floor: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生命下限：%@"
+          }
+        }
+      }
+    },
+    "原规则：不限定幕": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current rule: any act"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原规则：不限定幕"
+          }
+        }
+      }
+    },
+    "原规则：无效果仍消耗次数。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current rule: a use with no effect still counts."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原规则：无效果仍消耗次数。"
+          }
+        }
+      }
+    },
+    "原规则：无效果不消耗次数。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current rule: a use with no effect doesn't count."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原规则：无效果不消耗次数。"
+          }
+        }
+      }
+    },
+    "当前不限定幕；可从原幕目录选择限用范围。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Any act for now; you can limit it to acts from the act list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前不限定幕；可从原幕目录选择限用范围。"
+          }
+        }
+      }
+    },
+    "仅限以下已勾选原幕。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the acts checked below."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅限以下已勾选原幕。"
+          }
+        }
+      }
+    },
+    "须已有原 schema2 规则；不覆盖缺失、旧版或未识别配置。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This needs the project's existing rules (schema 2). Missing, older or unrecognized settings are never overwritten."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要项目现有的规则（schema 2）；不会覆盖缺失、旧版或无法识别的配置。"
+          }
+        }
+      }
+    },
+    "请按原合同明确配置；未写回。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fill in every setting explicitly. Nothing was written back."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请逐项明确配置；未写回。"
+          }
+        }
+      }
+    },
+    "配置未变，保留原字节；没有新增保存或发布。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing changed, so your draft stays as it was. Nothing new was saved or published."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置未变，草稿保持原样；没有新的保存或发布。"
+          }
+        }
+      }
+    },
+    "原完整本地草稿保存未确认；编辑和预览保留，可重试本地保存。尚未保存服务器或发布。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We couldn't confirm the local save. Your edits and preview are kept, so you can retry. Nothing has been saved to the server or published yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地草稿保存未确认；编辑和预览仍保留，可以重试本地保存。尚未保存到服务器或发布。"
+          }
+        }
+      }
+    },
+    "原保存器已保存完整本地草稿，尚未保存服务器或发布。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your full draft is saved on this device. It hasn't been saved to the server or published yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完整草稿已保存在本机，尚未保存到服务器或发布。"
+          }
+        }
+      }
+    },
+    "原项目或配置已变化，未覆盖。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The project or its settings changed, so nothing was overwritten."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "项目或配置已变化，没有覆盖。"
+          }
+        }
+      }
+    },
+    "原套组配置无法读取，请返回检查草稿": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't read the set settings. Go back and check your draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "套组配置无法读取，请返回检查草稿"
+          }
+        }
+      }
+    },
+    "草稿暂未保存，请重试": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The draft isn't saved yet. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿暂未保存，请重试"
+          }
+        }
+      }
+    },
+    "请填写名称，并为每组选择有效且不重复的点位": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a name and pick a valid, different spot for each group"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写名称，并为每组选择有效且不重复的点位"
           }
         }
       }

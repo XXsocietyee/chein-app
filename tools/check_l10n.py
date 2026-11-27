@@ -122,6 +122,42 @@ def mapped_literals(localized_keys):
     return tokens
 
 
+CATALOG_KEY = re.compile(r'[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z0-9_]+)+(?: %\S+)*')
+
+
+def english_half(text):
+    """English text, not CJK and not a dotted catalog key such as `zeroHP.copy.017`."""
+    return bool(LATIN.search(text)) and not CJK.search(text) and not CATALOG_KEY.fullmatch(text)
+
+
+SPLIT_TAIL = re.compile(r'\s*,?\s*$')
+SPLIT_NEXT = re.compile(r'\s*[:,]?\s*"((?:[^"\\\n]|\\.)*)"')
+
+
+def split_pair(lines, index, rest):
+    """A bilingual pair split over two lines (i18n r3), e.g. `text(\n "中文",\n "English"` or
+    `zh\n ? "中文"\n : "English"`: the CJK literal ends its line and the next line opens with an
+    English-only literal."""
+    if not SPLIT_TAIL.fullmatch(rest) or index + 1 >= len(lines):
+        return False
+    nxt = SPLIT_NEXT.match(lines[index + 1])
+    if not nxt or re.match(r'\s*:', lines[index + 1][nxt.end():]):
+        return False  # the next line opens a dictionary entry ("KEY": ...), not the English half
+    return english_half(nxt.group(1))
+
+
+SPLIT_PREV = re.compile(r'"((?:[^"\\\n]|\\.)*)"\s*,\s*$')
+
+
+def split_pair_after(lines, index, head):
+    """The reverse split (i18n r3), e.g. `c("English",\n "中文")`: the CJK literal opens its line and the
+    previous line ends with an English-only literal and a comma."""
+    if head.strip() or index == 0:
+        return False
+    prev = SPLIT_PREV.search(lines[index - 1])
+    return bool(prev and english_half(prev.group(1)))
+
+
 def literal_counts(localized_keys):
     counts = {}
     localized_keys = set(localized_keys) | mapped_literals(localized_keys)
@@ -131,7 +167,8 @@ def literal_counts(localized_keys):
             continue
         n = 0
         in_preview = False
-        for line in path.read_text(encoding='utf-8').split('\n'):
+        lines = path.read_text(encoding='utf-8').split('\n')
+        for index, line in enumerate(lines):
             stripped = line.strip()
             if stripped.startswith('#Preview'):
                 in_preview = True
@@ -153,6 +190,8 @@ def literal_counts(localized_keys):
                 after = re.match(r'\s*[,:]\s*"((?:[^"\\\n]|\\.)*)"', line[m.end():])
                 before = re.search(r'"((?:[^"\\\n]|\\.)*)"\s*,\s*$', line[:m.start()])
                 if any(x and LATIN.search(x.group(1)) and not CJK.search(x.group(1)) for x in (after, before)):
+                    continue
+                if split_pair(lines, index, line[m.end():]) or split_pair_after(lines, index, line[:m.start()]):
                     continue
                 n += 1
         if n:
