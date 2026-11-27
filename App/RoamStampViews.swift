@@ -500,9 +500,9 @@ struct RoamStampCard: View {
                 }
                 if offline {
                     ZStack {
-                        if kit { CYCoverArt(seed: String(stamp.id), symbol: "building.2.crop.circle.fill", cornerRadius: 12) }
+                        if kit { CYCoverArt(seed: String(stamp.id), symbol: "building.2.crop.circle.fill", cornerRadius: CYRadius.card) }
                         else {
-                            RoundedRectangle(cornerRadius: 12).fill(Color.accentColor.opacity(0.13))
+                            RoundedRectangle(cornerRadius: CYRadius.card).fill(Color.accentColor.opacity(0.13))
                             Image(systemName: "building.2.crop.circle").font(.largeTitle).imageScale(.large).foregroundStyle(Color.accentColor)
                         }
                     }.frame(height: 140).accessibilityLabel(Text("roam.experience.sampleArt"))

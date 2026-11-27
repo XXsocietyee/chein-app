@@ -62,7 +62,7 @@ extension PlayKitScreen {
                 Text(verbatim: items.first { $0.id == id }?.label ?? id).frame(maxWidth: .infinity, alignment: .leading)
                 Button { move(index, -1) } label: { Image(systemName: "arrow.up") }.accessibilityLabel(Text("playkit.sort.up")).disabled(!enabled || index == 0)
                 Button { move(index, 1) } label: { Image(systemName: "arrow.down") }.accessibilityLabel(Text("playkit.sort.down")).disabled(!enabled || index == order.count - 1)
-            }.padding().background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
+            }.padding().background(.thinMaterial, in: RoundedRectangle(cornerRadius: CYRadius.card))
                 .accessibilityElement(children: .contain)
                 .accessibilityAction(named: Text("playkit.sort.up")) { move(index, -1) }
                 .accessibilityAction(named: Text("playkit.sort.down")) { move(index, 1) }

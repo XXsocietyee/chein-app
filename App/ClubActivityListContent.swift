@@ -64,7 +64,7 @@ private struct ClubActivityCard: View {
                 }
             }
             .frame(maxWidth: .infinity).frame(height: 130)
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
             .accessibilityHidden(true)
             Label {
                 Text(LocalizedStringKey("club.activityList.status." + row.status.rawValue))

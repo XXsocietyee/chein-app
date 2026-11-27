@@ -124,7 +124,7 @@ import PhotosUI
                         else if phase.error != nil { Text("playkit.imageUnavailable").padding().background(.ultraThinMaterial) }
                         else { ProgressView("playkit.imageLoading") }
                     }.frame(width: geometry.size.width * CGFloat(overlay.widthFraction), height: geometry.size.height * 0.55)
-                    if !overlay.reply.isEmpty { Text(verbatim: overlay.reply).padding().background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16)) }
+                    if !overlay.reply.isEmpty { Text(verbatim: overlay.reply).padding().background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: CYRadius.card)) }
                     Spacer()
                 }.frame(maxWidth: .infinity).padding(.vertical, 60)
             }.allowsHitTesting(false)

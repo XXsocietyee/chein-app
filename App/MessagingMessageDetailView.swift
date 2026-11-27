@@ -290,7 +290,7 @@ private struct MessagingCardContent: View {
                     .font(.headline)
                     .foregroundStyle(tint)
                     .frame(width: tileSide, height: tileSide)
-                    .background(tint.opacity(0.16), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+                    .background(tint.opacity(0.16), in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                     .accessibilityHidden(true)
             }
             VStack(alignment: .leading, spacing: 6) {

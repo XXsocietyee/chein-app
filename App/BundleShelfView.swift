@@ -96,7 +96,7 @@ private struct BundleShelfRow: View {
             }
         }
         .frame(width: thumb, height: thumb)
-        .clipShape(.rect(cornerRadius: 8))
+        .clipShape(.rect(cornerRadius: CYRadius.inner))
         .accessibilityHidden(true)
     }
     private var text: some View {

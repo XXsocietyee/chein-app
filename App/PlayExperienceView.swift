@@ -2311,7 +2311,7 @@ private struct PlayCouponToastOverlay: ViewModifier {
                         }
                         .padding(12)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
