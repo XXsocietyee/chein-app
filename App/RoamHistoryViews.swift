@@ -300,7 +300,7 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 RoamExperienceNotice(offline: reader.isOfflineExample)
-                if let error = currentError { RoamExperienceIssue(error: error, retry: load) }
+                if let error = currentError { RoamExperienceIssue(error: error, retry: load, failureTitle: "roam.session.openFailed") }
                 else if let record = currentRecord {
                     // Mini-program scene-roam-session: date · time under 本次漫游, the 本次路线 replay card,
                     // the 总距离 / 时长 / 探店 / 探索度 rows, then 解锁奖励 and 点亮地点, each with its own empty line.

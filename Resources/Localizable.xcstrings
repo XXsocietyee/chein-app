@@ -230271,13 +230271,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Shop details didn't load."
+            "value": "Couldn’t open the shop details"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "商家信息没有加载出来。"
+            "value": "商家信息无法打开"
           }
         }
       }
@@ -345290,6 +345290,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "节点无法打开"
+          }
+        }
+      }
+    },
+    "roam.session.openFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t open this roam"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这次漫游无法打开"
+          }
+        }
+      }
+    },
+    "activity.detail.openFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t open this event"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动详情无法打开"
+          }
+        }
+      }
+    },
+    "profile.public.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load this profile"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主页加载失败"
           }
         }
       }
