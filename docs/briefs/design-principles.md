@@ -21,18 +21,20 @@ Owner 11-27: references are examples, not specs. Extract why they work, apply th
 | P14 | **Show the whole collection** | Collections show every item: earned in full color, unearned as named grey silhouettes with what it takes ("Loch Ness · 100 km"), a count ("1/63 visited"), sections by type or season, and share the whole set. Sequences show numbered slots and a deadline ("2 days left"). | Mobbin 11-27: AllTrails national park stamps, Withings distance badges, Duolingo monthly badges, Lyft locked badges, foodpanda stamp card |
 | P15 | **Place facts in one line, actions as a pill row** | A place/venue/checkpoint header reads name → category · area → live status in color ("Open until 6 PM", "Starts in 12 min"), then a horizontal row of capsule actions (Directions · Share · Save · More) instead of stacked buttons; photos as a scrollable strip; social proof ("Saved by 3 friends") right under it. | Mobbin 11-27: Swarm, Apple Maps place card, corner, Beli, Honest Greens |
 | P16 | **A finished activity is a named record** | After a walk/run/game: route on the map at top, a title ("Morning Roam", "My first city run"), date · place line, then 3–6 stats in a 2- or 3-column grid with small labels above big values; share + save at the top bar, one Done. Firsts get a celebratory headline (P7). The same record later appears in history unchanged (P5). | Mobbin 11-27: Strava, Gentler Streak, Runna "My First Run", Slopes, Citizen session summary |
+| P17 | **A group page answers "what's next, who's here, what's new" in that order** | Club/community home: identity header (cover, name, type · member count, face pile + Invite); then the next event as a card with a live countdown ("In 2m") and its one action (Check in / RSVP); then pinned items (an open poll shows "Vote now · 4 days left"); then the feed with a type filter. One sticky primary action at the bottom ("Post to the club"). | Mobbin 11-27: Meetup home (Incoming + "In 2m" + Check in), Insight Timer group, X community, Glassdoor bowl pinned poll, WhatsApp community |
+| P18 | **Search starts before typing** | The empty search screen is useful on its own: "Nearby" first (or a map tile asking for location with the reason), recent searches with per-row delete and "Clear all", then category capsules. Each result row: name, distance · area. Never a blank page under the field. | Mobbin 11-27: Swarm explore, Tripadvisor (Explore nearby + recents with photos), Viator, Skip, Bolt Food |
 | P12 | **Language-proof layout** | Every element survives English being 2× longer than Chinese and vice versa: wrap, `ViewThatFits`, adaptive stacks, no fixed widths on text. | US launch requirement |
 
 ## Where each principle applies (lanes must cover every row)
 
 | Surface | Principles to apply now |
 |---|---|
-| Explore / home feed / search | P1 (event cards lead with time-to-start or distance), P5, P6 (friends going), P10, P15 (venue/checkpoint detail) |
+| Explore / home feed / search | P1 (event cards lead with time-to-start or distance), P5, P6 (friends going), P10, P15 (venue/checkpoint detail), P18 (empty search) |
 | Roam (free walk) + map | P9, P1/P2 (distance, time, places revealed), P3 (Pause), P5 (same run in widget + island), P7 (reveal moments), P8 (stamps), P16 (roam summary) |
 | City orientation run | P9, P4 (stops as steps), P2 (deadline countdown), P6 (team progress), P3 |
 | Games (all types) | P1/P2 HUD, P3, P7/P8 result + reward, P10 |
 | Events / activities | P11 (invite card + RSVP), P6 (attendees), P2 ("starts in"), P5 (event in list/detail/island/widget) |
-| Clubs + community feed | P6, P11 (club event cards), P2 (live member/like counters), P7 for first post / milestones |
+| Clubs + community feed | P17 (club home order), P6, P11 (club event cards), P2 (live member/like counters), P7 for first post / milestones |
 | Channels / messages | P6 (presence, typing), P2 (unread, live), P11 + P13 (plans, polls, invites, game sessions as cards inside chat; system lines after actions), P10 |
 | Me / passport / wallet | P8 + P14 (stamps, medals, city districts, club badges as a whole collection with locked silhouettes and counts), P1 (wallet balance hero), P5 |
 | Publish / club setup / onboarding | P4 (step checklist), P3, P10, P7 at completion |
@@ -51,3 +53,4 @@ Owner 11-27: references are examples, not specs. Extract why they work, apply th
 - 11-27: gdwwyn shared Dynamic Island; dimtri_G step checklist; Mobbin (self-found): adidas Running, WHOOP, Strava, Runna, Fitbit, AllTrails live tracking; Canopi, Lex, Partiful, Apple Invites, GroupMe, DICE plans/invites; Runna, (Not Boring) Weather, Duolingo ABC, Cal AI, Discord, pillowtalk reward moments.
 - 11-27 (hour 2, self-found): Locals, Discord, Lex, GroupMe, Beside (structured chat messages → P13); AllTrails stamps, Withings badges, Duolingo monthly badges, Lyft, foodpanda stamp card (collections → P14).
 - 11-27 (hour 3, self-found): Swarm, Apple Maps, corner, Beli, Honest Greens place details (→ P15); Strava, Gentler Streak, Runna, Slopes, Citizen activity summaries (→ P16; also games result + city run finish).
+- 11-27 (hour 4, self-found): Meetup, Insight Timer, X communities, Glassdoor, WhatsApp communities (→ P17); Swarm, Tripadvisor, Viator, Skip, Bolt Food search (→ P18).
