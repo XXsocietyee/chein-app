@@ -924,6 +924,15 @@
       "purpose": "Read-only: resolves a roam history stamp photo path (RoamHistoryRecord.photos) relative to Documents and reads that existing file to show it in the finish report; writes, copies or caches nothing",
       "retention": "n/a (reads files owned by the roam history archive)",
       "deletion": "n/a (no own data; the files follow the roam history they belong to)"
+    },
+    {
+      "file": "App/FreeExplorationViews.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "mp-journey r3: the free-exploration 游玩工具 sheet reads and writes the same MP preferences as the city run (play.bgmOn, play.narrationOn, play_reduced_motion + legacy roam_reduced_motion), three Bools set by the player",
+      "retention": "Until app data is deleted or the app is reinstalled",
+      "deletion": "Deleted with app data; each toggle overwrites its own key"
     }
   ]
 }

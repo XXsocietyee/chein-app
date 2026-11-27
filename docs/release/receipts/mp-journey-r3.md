@@ -53,7 +53,7 @@ files; `mp/r3-mine` only gated 查看报名凭证 in `PlayerJourneyViews` (not o
 - `python3 tools/generate_project.py` — ok
 - `python3 tools/check_scaffold.py` — PASS
 - `python3 -B tools/check_a11y_lint.py` — PASS, 0 new
-- `python3 -B tools/contract_ratchet.py --check` — 104 failing, baseline 104, **new 0**, fixed 0
+- `python3 -B tools/contract_ratchet.py --check` — 52 failing, baseline 52, **new 0**, fixed 0 (after merging `ui/combined-r7`; repinned `test_play_gameplay_mode_separation` playFree key count 48 → 62 and the pass id, and catalogued the free host preferences in `docs/ops-safety/client-data-catalog.json`)
 
 New strings (en + zh-Hans) in `Resources/Localizable.xcstrings` and `docs/port/strings/mp-journey-r3.json`:
 `playTools.journal*` (7), `playTools.team*` (4), `playx.nightHint`, `playFree.nodes.header`, `playFree.selfPlayBanner %@`, `playFree.meta.*` (2), `playFree.hero.*` (10), `playx.right.default|fragment`;
