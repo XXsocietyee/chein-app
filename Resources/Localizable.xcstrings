@@ -344511,6 +344511,40 @@
           }
         }
       }
+    },
+    "roam.session.openFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t open this roam"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这次漫游无法打开"
+          }
+        }
+      }
+    },
+    "roam.receivedStamp.openFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t open received stamps"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收到的邮票无法打开"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
