@@ -31,3 +31,5 @@ No compiler or simulator was available. Every change was checked by reading the 
 - RoamAnniversaryHostRestorationTests/testUninjectedBrowserKeepsSuccessfulHistoryCardButRouteUnavailable — left — `.noDestination` already shows routeUnavailable (App/RoamPassportToolsViews.swift:267-283,369-388). The failure is hosted-only.
 
 Totals: 11 fixed-test, 5 fixed-code (speculative, needs a Mac run), 9 left.
+
+Re-check 2026-11-27: merged `origin/ui/combined-r7` at a0de1bd16 (21 new commits; this lane's earlier work was already in it). The baseline on `origin/ci/acceptance` is unchanged (266cddbb7), so this lane still covers the same 14 classes. The new App/Core changes (ObjectBadge, Journey, Roam recap/share/city guide, ProjectEditHTTPService) don't touch any test or code path listed above, and no line in this receipt changes. Gates were re-run on the merged tree.
