@@ -109,7 +109,7 @@ struct DiscoveryTemplateBrowserView: View {
                         }.cyAdaptiveSegmented().accessibilityIdentifier("discovery.shelf")
                             .pageTemplateReadingOrder(30)
                         // MP pages/template/index.js goSearch → /pages/search2/index. One entrance, both shelves.
-                        NavigationLink { templateShelfSearch } label: {
+                        NavigationLink { templateShelfSearch.cyPushedChrome() } label: {
                             Label {
                                 if isPlayerShelf { Text("discovery.player.searchAll") } else { Text("discovery.searchAll") }
                             } icon: {
@@ -134,7 +134,7 @@ struct DiscoveryTemplateBrowserView: View {
                 // R7-PC-A2-8 MP-first: pages/template/index.wxml:39 shows the 发布 + only when
                 // `isMerchant && canManageMerchantProjects`; players never see it.
                 if let publishDestination, templateTabScope == .merchant(canManageProjects: true) {
-                    NavigationLink { publishDestination() } label: {
+                    NavigationLink { publishDestination().cyPushedChrome() } label: {
                         Label("discovery.templateTab.publish", systemImage: "plus")
                     }.pageTemplateControl(label: Text("discovery.templateTab.publish"), traits: .isButton)
                         .accessibilityIdentifier("discovery.templateTab.publish")
@@ -142,7 +142,7 @@ struct DiscoveryTemplateBrowserView: View {
             }
             ToolbarItem(placement: .topBarTrailing) {
                 if let inboxDestination {
-                    NavigationLink { inboxDestination() } label: {
+                    NavigationLink { inboxDestination().cyPushedChrome() } label: {
                         Label("discovery.templateTab.inbox", systemImage: "bell")
                     }
                     .accessibilityLabel(Text("discovery.templateTab.inbox"))
