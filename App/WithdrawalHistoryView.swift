@@ -90,11 +90,12 @@ import SwiftUI
 
 struct WithdrawalHistoryRowView: View {
     let row: WithdrawalHistoryRow
+    @Environment(\.locale) private var locale
     var body: some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text("wallet.withdrawal.rowTitle").cyText(.cardTitle)
-                Text(verbatim: row.createTime ?? "—").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: row.createTime.map { LocaleDisplay.civil($0, locale: locale) } ?? "—").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
             Spacer(minLength: CYSpacing.sm)
             VStack(alignment: .trailing, spacing: CYSpacing.xs) {
@@ -123,6 +124,7 @@ struct WithdrawalHistorySelection: Identifiable {
 struct WithdrawalHistoryDetailSheet: View {
     let row: WithdrawalHistoryRow
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     var body: some View {
         NavigationStack {
             List {
@@ -131,7 +133,7 @@ struct WithdrawalHistoryDetailSheet: View {
                         Text(verbatim: row.amountText ?? "—").monospacedDigit()
                     }
                     LabeledContent("withdrawal.history.detail.status") { Text(LocalizedStringKey(row.statusKey)) }
-                    LabeledContent("withdrawal.history.detail.created") { Text(verbatim: row.createTime ?? "—") }
+                    LabeledContent("withdrawal.history.detail.created") { Text(verbatim: row.createTime.map { LocaleDisplay.civil($0, locale: locale) } ?? "—") }
                     if let id = row.id {
                         LabeledContent("withdrawal.history.detail.id") { Text(verbatim: String(id)).monospacedDigit() }
                     }
