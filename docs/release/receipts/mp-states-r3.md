@@ -92,6 +92,14 @@ match is a queue item (133 at the start). Tab roots first, then their pushed pag
 | 商家信息纠错 sheet (`CommunityTrustPlayerViews` `MerchantCorrectionSheet`, from 我的 / merchant profile) | `subpackageMember/components/cy/merchant-correction-sheet/index.wxml:1-3` cy-result-sheet loading 正在读取纠错类型 / fail 暂时无法纠错 · why failText · 重试 (primary) · 取消 (secondary) | spinner stacked over a separate grey footnote; failure used the raw server message as the title (MP title lost) with a `CYPillButton` 取消/重试 row outside the state | `ProgressView { 正在读取纠错类型 }` (Loading issue types); `ContentUnavailableView` titled 暂时无法纠错 (Unable to correct info right now), failText as description, `.borderedProminent` 重试 + `.bordered` 取消 inside, MP order |
 | 城市价值 (`SessionCityPlayerValueView`, CITY player value page) — no MP page (native CITY surface); one state pattern | MP cy-skeleton 加载中 / cy-empty title + one CTA inside | while reading: the 未启用 / 尚无已发布城市棋盘 empty state shown together with a skeleton (said "not available" before the read finished), plus a separate `CYPillButton` 重新读取 under it | loading = `ProgressView { 加载中… }` alone; finished = `CYEmptyState` (`ContentUnavailableView`) with `.bordered` 重新读取 (Reload) inside (`cityValue.refresh`), same disabled rule |
 
+## Contract cleanup (brief 20:40 UTC, rows owned by mp-states)
+
+| Path | Caller | Done |
+|---|---|---|
+| `/api/common/uploadOSS/receipt` | `Core/IMExpandedService.swift` `recoverImageUpload` / `upload`, `App/AppSession.swift` IM writer + image coordinator | **Dropped.** The IM writer no longer requests `.imImageUploadReceipt`; `upload` reads the `uploadOSS` reply `url` only (as the MP does); `recoverImageUpload` always throws `notConfigured`; the image coordinator gets no original-upload journal, so `isConfigured` no longer depends on receipt recovery. |
+| `/api/host/tip` | `Core/OfflineIdempotentWriteQueue.swift:50` | **Dropped** from the money-marker list. |
+| `/api/im/ingame/resolve`, `/api/im/ingame/summary` | `App/ReviewedPlayerWriteLeases.swift` route lease, `App/SessionInGameChannels.swift` reader | **Dropped** (no MP feature): lease removed, `inGameChannelReader` is always unconfigured (`service: nil`), so game screens hide the channel entry. The feature enum and `Core/InGameChannels.swift` service type stay (unreferenced at runtime). |
+
 ## For other lanes
 
 - mp-settings: 营销同意 (`AccountComplianceViews.marketing`) has no visible loading words (MP 正在加载…) and its failure is a 当前状态未确认 line instead of the MP cy-inline-error 营销同意状态加载失败 · 重试.

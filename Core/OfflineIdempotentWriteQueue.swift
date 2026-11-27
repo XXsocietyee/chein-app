@@ -47,7 +47,7 @@ public enum BackendIdempotentWriteRouteCatalog {
         "/api/merchant/payout-account/", "/api/cart/", "/api/mod-commerce/", "/api/fund/preflight",
         "/api/coupon/publish", "/api/coupon/stop", "/api/coop/deposit/", "/api/invoice/",
         "/api/platform-pass/orders", "/api/rewards/noncash/claims/recover",
-        "/api/ai/npc/voice-chat", "/api/video-bounty/accrual", "/api/host/tip"
+        "/api/ai/npc/voice-chat", "/api/video-bounty/accrual"
     ]
 
     /// True if `path` is a payment, payout, withdrawal, refund, deposit, settlement, coupon-lifecycle,
