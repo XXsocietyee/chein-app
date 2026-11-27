@@ -80,10 +80,8 @@ struct NativeChannelContextSelection: Identifiable {let id:NativeChannelMessageI
         .onChange(of:phase){_,value in if value != .active {readTask?.cancel();readTask=nil}}
     }
     private var loading: some View {
-        ProgressView()
+        ProgressView { Text("cy.state.loading") }
             .frame(maxWidth: .infinity)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text("cy.state.loading"))
     }
     private func stateRow<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
         content()

@@ -66,10 +66,9 @@ import SwiftUI
             }
             if flow.busy {
                 Section {
-                    ProgressView()
+                    ProgressView { Text("cloud31.loading.friends") }
                         .frame(maxWidth: .infinity)
                         .accessibilityIdentifier("friend.loading")
-                        .accessibilityLabel(Text("cloud31.loading.friends"))
                 }
             }
             if let issue = flow.issue {

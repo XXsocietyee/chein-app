@@ -14,9 +14,8 @@ import SwiftUI
             switch model.state {
             case .idle, .loading:
                 Section {
-                    ProgressView()
+                    ProgressView { text("bundle.voucher.loading") }
                         .frame(maxWidth: .infinity)
-                        .accessibilityLabel(text("bundle.voucher.loading"))
                 }
                 .listRowBackground(Color.clear)
             case .unavailable:
