@@ -390,7 +390,12 @@ import SwiftUI
             CoopInviteReceiptSections(reader: reader, kind: model.kind, topicID: model.topic?.id, merchantMemberIDs: model.candidates.filter { model.selected.contains($0.id) && $0.kind == .merchant }.map(\.recipient.id),
                                       showsRequests: sendOutcomeUnknown)
             Section("mpr3.coop.invite.topicTitle") {
-                if model.topicsFailed { Button("action.retry") { Task { await model.retryTopics(permit) } }.disabled(model.topicsBusy) }
+                // MP wxml:31-34, 43: 正在刷新主题… while a loaded list re-reads; 主题加载失败 + 重试 on failure.
+                if model.topicsBusy, !model.topics.isEmpty { Text("mpr3.coop.invite.topicsRefreshing").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+                if model.topicsFailed {
+                    CYInlineError("mpr3.coop.invite.topicsFailed", retryTitle: "action.retry") { Task { await model.retryTopics(permit) } }
+                        .disabled(model.topicsBusy)
+                }
                 if let locked = model.lockedTopic {
                     CoopInviteLockedRow(title: locked.name, detail: "merchantCoop.invite.lockedTopicScope", identifier: "cooperation.invite.lockedTopic")
                 } else if model.topicsLoadedEmpty {
@@ -443,7 +448,11 @@ import SwiftUI
                 // MC8-31-4: 已选定，发送前不可更换.
                 CoopInviteLockedRow(title: lockedTargetTitle, detail: "merchantCoop.invite.lockedTargetHint", identifier: "cooperation.invite.lockedTarget")
                 if model.busy { CYSkeleton().accessibilityLabel(Text("cooperation.loading")) }
-                if model.targetsFailed { CYPillButton("action.retry", style: .secondary) { Task { await model.retryTargets(permit) } }.disabled(model.targetsBusy) }
+                if model.targetsFailed {
+                    // MP wxml:79-81: 合作对象加载失败 + 重试.
+                    CYInlineError("mpr3.coop.invite.targetsFailed", retryTitle: "action.retry") { Task { await model.retryTargets(permit) } }
+                        .disabled(model.targetsBusy)
+                }
                 if !model.busy, !model.targetsFailed, model.lockedTarget == nil {
                     Text("merchantCoop.invite.lockedTargetMissing").cyText(.meta).foregroundStyle(CYColor.warningText)
                 }
@@ -460,7 +469,11 @@ import SwiftUI
                 .disabled(model.busy)
                 CYFormSearchRow(prompt: Text("context.coop.search"), text: $search, identifier: "context.coop.search")
                 if model.busy { CYSkeleton().accessibilityLabel(Text("cooperation.loading")) }
-                if model.targetsFailed { CYPillButton("action.retry", style: .secondary) { Task { await model.retryTargets(permit) } }.disabled(model.targetsBusy) }
+                if model.targetsFailed {
+                    // MP wxml:79-81: 合作对象加载失败 + 重试.
+                    CYInlineError("mpr3.coop.invite.targetsFailed", retryTitle: "action.retry") { Task { await model.retryTargets(permit) } }
+                        .disabled(model.targetsBusy)
+                }
                 if !model.busy, !model.targetsFailed, filtered.isEmpty {
                     CYEmptyState(LocalizedStringKey(model.kind == .club ? "mpr3.coop.invite.noClubs" : "mpr3.coop.invite.noMerchants"))
                     // MC7-31-5: MP coop/invite/index.wxml:100,110 刷新合作对象.

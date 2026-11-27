@@ -66,11 +66,9 @@ extension RootTabSwitch {
             else if !reader.isConfigured { GrowthCenterIssueView(issue: .notConfigured) }
             else if model.isLoading || model.loadedKey != key {
                 // P10 (MP aria 正在加载积分/足迹/徽章): the skeleton says what is loading.
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    CYSkeleton()
-                    Text("growth.loading").cyText(.meta).foregroundStyle(palette.textSecondary)
-                }
-                .padding(.vertical, CYSpacing.sm).accessibilityElement(children: .combine).accessibilityIdentifier("growth.loading")
+                ProgressView { Text("growth.loading") }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, CYSpacing.sm).accessibilityIdentifier("growth.loading")
             }
             else if let issue = model.issue(key: key) { GrowthCenterIssueView(issue: issue, retry: reload) }
             else if let overview = model.value(key: key) {
