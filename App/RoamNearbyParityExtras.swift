@@ -30,6 +30,54 @@ struct RoamPlaceQuote: Identifiable, Equatable {
     var id: String { url }
 }
 
+/// ROAM-r11-8: MP `poiQuotes` (subpackageRoam/utils/map-layers.js:126-132) and `credit` (utils/roam-place-map.js:64-91).
+enum RoamPlaceSources {
+    private static func text(_ value: Any?) -> String {
+        guard let value else { return "" }
+        if let string = value as? String { return string.trimmingCharacters(in: .whitespacesAndNewlines) }
+        if let number = value as? NSNumber { return number.stringValue }
+        return ""
+    }
+    /// Up to 6 quotes with text, source and an https link; label = source · author · date.
+    static func quotes(_ json: String?) -> [RoamPlaceQuote] {
+        guard let data = (json ?? "[]").data(using: .utf8),
+              let rows = (try? JSONSerialization.jsonObject(with: data)) as? [Any] else { return [] }
+        var seen = Set<String>()
+        return rows.compactMap { $0 as? [String: Any] }
+            .filter { !text($0["text"]).isEmpty && !text($0["source"]).isEmpty && text($0["url"]).hasPrefix("https://") }
+            .prefix(6)
+            .compactMap { row in
+                let url = text(row["url"])
+                guard seen.insert(url).inserted else { return nil }
+                let label = [text(row["source"]), text(row["author"]), text(row["date"])].filter { !$0.isEmpty }.joined(separator: " · ")
+                return RoamPlaceQuote(url: url, text: text(row["text"]), sourceLabel: label)
+            }
+    }
+    /// Photos whose licence is not confirmed are not shown, so they get no credit either.
+    static func photosAllowed(_ raw: String?) -> Bool {
+        let value = raw ?? ""
+        return value.range(of: #"(?:许可|授权|版权)(?:尚)?未确认|仅测试参考|licen[cs]e.*(?:unconfirmed|unknown)"#,
+                           options: [.regularExpression, .caseInsensitive]) == nil
+    }
+    static func credit(_ raw: String?) -> String? {
+        guard let raw, photosAllowed(raw) else { return nil }
+        var lines: [String] = []
+        for line in raw.components(separatedBy: .newlines) {
+            var clean = line.replacingOccurrences(of: #"https?://\S+"#, with: "", options: .regularExpression)
+            clean = clean.replacingOccurrences(of: #"[·；;\s]+$"#, with: "", options: .regularExpression)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            if let licence = clean.range(of: #"CC\s+(?:BY(?:-SA|-NC(?:-SA)?)?|0)(?:\s+[\d.]+)?|公有领域|公共领域|CC0"#,
+                                         options: [.regularExpression, .caseInsensitive]) {
+                let head = String(clean[..<licence.lowerBound])
+                    .replacingOccurrences(of: #"[·；;\s]+$"#, with: "", options: .regularExpression)
+                clean = head + " · " + clean[licence]
+            }
+            if !clean.isEmpty, !lines.contains(clean) { lines.append(clean) }
+        }
+        return lines.isEmpty ? nil : lines.joined(separator: "；")
+    }
+}
+
 struct RoamPlaceReview: Identifiable, Equatable {
     let id: String
     let name: String?
@@ -49,6 +97,8 @@ struct RoamPlaceExtras: Equatable {
     /// The player already reviewed this place: the compose block hides.
     var reviewed: Bool
     var photoCredit: String?
+    /// ROAM-r11-8: 本城推荐 catalog links for a seeded place (MP 资料来源).
+    var sources: [String] = []
     var reviewBusy = false
     var reviewError: String?
 }
@@ -99,6 +149,7 @@ struct RoamPlaceExtrasSection: View {
     let extras: RoamPlaceExtras
     let onPublish: (Int, String) -> Void
     @Environment(\.locale) private var locale
+    @State private var sourcesOpen = false
     @State private var creditOpen = false
     @State private var copiedNotice: String?
     @State private var myStars = 0
@@ -123,6 +174,7 @@ struct RoamPlaceExtrasSection: View {
                 .accessibilityIdentifier("roam.place.reviewSheetOpen")
             }
             if let credit = extras.photoCredit, !credit.isEmpty { creditRow(credit) }
+            if !extras.sources.isEmpty { sourcesRow(extras.sources) }
             if let copiedNotice {
                 Text(verbatim: copiedNotice).cyText(.meta).foregroundStyle(CYColor.successText)
                     .accessibilityAddTraits(.updatesFrequently)
@@ -289,6 +341,32 @@ struct RoamPlaceExtrasSection: View {
             .disabled(extras.reviewBusy || myStars == 0 || myText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             .accessibilityIdentifier("roam.place.reviewPublish")
         }
+    }
+
+    /// ROAM-r11-8: MP 资料来源 (pages/roam/index.wxml:59-63): 来源 N opens the page; the copy button keeps the MP copy-link.
+    private func sourcesRow(_ sources: [String]) -> some View {
+        DisclosureGroup(isExpanded: $sourcesOpen) {
+            ForEach(Array(sources.enumerated()), id: \.offset) { index, raw in
+                if let url = URL(string: raw) {
+                    HStack {
+                        Link(destination: url) {
+                            Text(verbatim: c.t("来源 \(index + 1)", "Source \(index + 1)")).cyText(.meta)
+                        }
+                        Spacer()
+                        Button {
+                            LocalPasteboard.copy(raw)
+                        } label: {
+                            Image(systemName: "doc.on.doc")
+                        }
+                        .buttonStyle(.borderless)
+                        .accessibilityLabel(Text(verbatim: c.t("复制资料链接", "Copy source link")))
+                    }
+                }
+            }
+        } label: {
+            Text(verbatim: c.t("资料来源", "Sources")).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+        }
+        .accessibilityIdentifier("roam.place.sources")
     }
 
     private func creditRow(_ credit: String) -> some View {

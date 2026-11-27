@@ -46,6 +46,13 @@ extension AppSession {
             .readPresence(token: token, sessionID: sessionID)
     }
 
+    /// ROAM-r11-5: mid-session presence switch for the live roam tools sheet. Nil = not confirmed.
+    func setRoamPresenceVisibility(sessionID: Int?, visible: Bool) async -> Bool? {
+        guard isConfigured, isSignedIn, let config = regionalConfiguration?.apiConfiguration else { return nil }
+        return await RoamPresenceVisibilityService(configuration: config, transport: compositionTransport)
+            .setPresence(token: token, sessionID: sessionID, visible: visible, consentAccepted: visible)
+    }
+
     /// Turns off approximate nearby roam presence via `POST /api/roam/presence-visibility` (`visible=false`).
     func disableRoamPresenceVisibility() async -> RoamPresenceDisableOutcome {
         guard isConfigured, isSignedIn,
