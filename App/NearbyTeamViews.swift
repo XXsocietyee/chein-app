@@ -185,11 +185,13 @@ import SwiftUI
     private var mapFirst: Bool { tab == 0 && viewMode == .map && mapCenter != nil }
     @ViewBuilder private var listContent: some View {
         LazyVStack(alignment: .leading, spacing: 20) {
+            // MP my-teams wxml:16 `team-recovery-panel` (待确认的队伍操作 / read errors) sits right under the title,
+            // above .mt-stats and the 我的 / 附近招募 segment.
+            notice
             if tab == 1 { mineStats }
             Picker("nearby.section", selection: $tab) {
                 Text("nearby.title").tag(0); Text("nearby.mine").tag(1)
             }.cyAdaptiveSegmented().accessibilityIdentifier("nearby.section")
-            notice
             if tab == 0 {
                 let renderedDiscovery = discovery.snapshotID
                 contextControls
