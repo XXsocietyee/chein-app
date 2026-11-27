@@ -19,7 +19,7 @@ import SwiftUI
                 let editorID = author.editorID
                 Button("关闭成长编辑副本", role: .cancel) { author.close(editorID: editorID) }
             }
-            if let notice = author.notice { NativeAuthorNotice(text: Text(notice)) }
+            if let notice = author.notice { NativeAuthorNotice(text: Text(LocalizedStringKey(notice))) }
         }
         .onAppear { author.setSceneActive(scenePhase == .active) }
         .onChange(of: scenePhase) { _, phase in author.setSceneActive(phase == .active) }

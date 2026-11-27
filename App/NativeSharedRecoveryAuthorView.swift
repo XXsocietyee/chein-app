@@ -71,10 +71,10 @@ import SwiftUI
                let saved = try? NativeSharedRecoveryAuthorDraft(draft:snapshot.draft) {
                 DisclosureGroup("本次原项目读取基线：\(saved.recoveries.count)种恢复") {
                     ForEach(Array(saved.recoveries.enumerated()),id:\.offset) { index,_ in
-                        Text(saved.text(index,"recoveryKey") + " · " + saved.text(index,"kind") + " · " + saved.text(index,"limit") + "次")
-                        if saved.text(index,"kind") == "REST" { Text("生命增加量：" + saved.text(index,"hpDelta")) }
-                        else { Text("生命下限：" + saved.text(index,"hpFloor")) }
-                        Text(saved.actKeys(index).isEmpty ? "原规则：不限定幕" : "原限用幕：" + saved.actKeys(index).joined(separator:", "))
+                        Text("sharedRecovery.r3.row \(saved.text(index,"recoveryKey")) \(saved.text(index,"kind")) \(saved.text(index,"limit"))")
+                        if saved.text(index,"kind") == "REST" { Text("sharedRecovery.r3.hpDelta \(saved.text(index,"hpDelta"))") }
+                        else { Text("sharedRecovery.r3.hpFloor \(saved.text(index,"hpFloor"))") }
+                        if saved.actKeys(index).isEmpty { Text("原规则：不限定幕") } else { Text("sharedRecovery.r3.acts \(saved.actKeys(index).joined(separator: appLocalized("i18nR3.listSeparator", locale: .current)))") }
                     }
                     Text(saved.noEffectPolicy == "true" ? "原规则：无效果仍消耗次数。" : "原规则：无效果不消耗次数。")
                     Text("这是编辑器本次读取的原基线，不是下方尚未保存的编辑副本，也不代表旧局已更新。").font(.footnote).foregroundStyle(.secondary)
@@ -105,7 +105,7 @@ import SwiftUI
                 }.disabled(!current)
                 Button(role: .cancel) { close(editorID) } label: { Text("关闭恢复定义编辑副本") }
             }
-            if let message { NativeAuthorNotice(text: Text(message)) }
+            if let message { NativeAuthorNotice(text: Text(LocalizedStringKey(message))) }
         }
         .onChange(of: scenePhase) { _, phase in if phase != .active { retire() } }
         .onChange(of: current) { _, valid in if !valid { retire() } }
@@ -125,8 +125,10 @@ import SwiftUI
             if draft.text(index,"kind") == "RESCUE" { TextField("明确生命下限 1–999",text:binding(index,"hpFloor")).keyboardType(.numberPad) }
             Text(draft.actKeys(index).isEmpty ? "当前不限定幕；可从原幕目录选择限用范围。" : "仅限以下已勾选原幕。")
             ForEach(Array(Set(draft.acts + draft.actKeys(index))).sorted(),id:\.self) { key in
-                Toggle(draft.acts.contains(key) ? key : key + "（已不在原幕目录，须移除）",isOn:Binding(
-                    get:{editor?.actKeys(index).contains(key) == true},set:{value in mutate(editorID, revision: editRevision) {$0.selectAct(index,key:key,selected:value)}}))
+                Toggle(isOn:Binding(
+                    get:{editor?.actKeys(index).contains(key) == true},set:{value in mutate(editorID, revision: editRevision) {$0.selectAct(index,key:key,selected:value)}})) {
+                    if draft.acts.contains(key) { Text(verbatim: key) } else { Text("sharedRecovery.r3.actRemoved \(key)") }
+                }
             }
             Button("从本地副本移除此方式",role:.destructive) { mutate(editorID, revision: editRevision) { $0.remove(index) } }
         }
