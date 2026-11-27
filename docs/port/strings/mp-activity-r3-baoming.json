@@ -1,0 +1,4 @@
+{"sourceLanguage":"en","strings":{
+"registration.r3.signupClosedTitle":{"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Registration closed"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"报名已截止"}}}},
+"registration.r3.hostShareConsent":{"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"I agree to share my name and mobile number with the organizer to verify my registration"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"同意将姓名、手机号提供给主办方，用于报名核验"}}}}
+}}
