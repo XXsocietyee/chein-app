@@ -1066,7 +1066,8 @@ import SwiftUI
     @ViewBuilder private var storyFields: some View {
         // r8 C-F7 (MP topic-detail-sheet.wxml:79, look-sheet.wxml): 画面风格.
         if model.coordinator.snapshot?.scope != .whitelist {
-            ProjectEditLookHost(preserved: $model.draft.preserved, readOnly: model.coordinator.isReadOnly)
+            ProjectEditLookHost(preserved: $model.draft.preserved, readOnly: model.coordinator.isReadOnly,
+                                chapterNames: model.draft.chapters.map(\.name))
         }
         Section {
             TextField(text: $model.draft.description, prompt: Text("mpPublish.topicDetail.storyPrompt"), axis: .vertical) {

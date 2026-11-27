@@ -75,8 +75,8 @@ enum MemberParityFixture {
                 MemberIdentityCardSection(account: account, reader: reader, onOpenTickets: { showsTickets = true })
                 MemberBenefitsSection(reader: reader, earningsDestination: { AnyView(Text(verbatim: "Synthetic earnings").accessibilityIdentifier("member.fixture.earnings")) })
             }
-            .navigationTitle(Text(verbatim: "Member fixture"))
-            .navigationBarTitleDisplayMode(.inline)
+            // mp-mine r3 (18:54 sweep): the 我的 tab root header, not an English "Member fixture" title in zh-Hans.
+            .cyRootHeader(.mine)
             .alert(Text(verbatim: "Synthetic ticket wallet"), isPresented: $showsTickets) { Button { } label: { Text(verbatim: "OK") } }
         }
     }

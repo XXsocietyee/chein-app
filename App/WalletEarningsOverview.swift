@@ -60,9 +60,8 @@ enum WalletFundsStagePhase: Equatable {
         VStack(alignment: .leading, spacing: 8) {
             switch phase {
             case .loading:
-                ProgressView()
+                ProgressView { Text("wallet.earnings.stages.loading", tableName: "WalletEarningsOverview") }
                     .frame(maxWidth: .infinity)
-                    .accessibilityLabel(Text("wallet.earnings.stages.loading", tableName: "WalletEarningsOverview"))
                     .accessibilityIdentifier("wallet.earnings.stages.loading")
             case .signedOut:
                 Text("wallet.earnings.stages.signedOut", tableName: "WalletEarningsOverview")

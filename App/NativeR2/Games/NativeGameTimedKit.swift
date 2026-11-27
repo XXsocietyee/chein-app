@@ -62,7 +62,9 @@ import SwiftUI
                         let now = ProcessInfo.processInfo.systemUptime
                         if kind == .reaction { reaction.tick(now: now) }
                         else if kind == .countdown {
-                            // `seconds` is a duration, not a server instant. Do not finish from the device clock.
+                            // MP playkit-countdown `_tick`: at zero the kit reports 「我这边走完了」 (SUBMIT_COUNTDOWN, no number);
+                            // the server still decides from its own START_CHALLENGE timestamp.
+                            if let start = countdownStart, seconds > 0, Date().timeIntervalSince(start) >= seconds { finishCountdown(now: now) }
                         } else {
                             elapsed = timing.elapsed(now: now)
                             if kind == .typeIn, seconds > 0, elapsed >= Int(seconds * 1000) { timing.measure(now: now); typingFocused = false; expired = true }
@@ -97,7 +99,8 @@ import SwiftUI
                 if let goal = segment["goalMs"].integer, goal > 0 {
                     LabeledContent { Text(verbatim: PlayTimedDisplayLocalization.milliseconds(goal, locale: locale)).monospacedDigit() } label: { Text("playkit.reaction.goal") }
                 }
-            } else {
+            } else if kind != .countdown {
+                // MP playkit-countdown has one thing on screen (kicker + clock); its length is the idle clock itself.
                 LabeledContent {
                     Text(verbatim: sourceSeconds.map { $0 >= 0 ? PlayTimedDisplayLocalization.seconds($0, locale: locale) : "—" } ?? "—").monospacedDigit()
                 } label: { Text("playkit.challenge.target") }
@@ -150,6 +153,14 @@ import SwiftUI
         }
         Section {
             VStack(spacing: 8) {
+                if kind == .countdown {
+                    // MP `oc__k`: the kicker over the clock (server `kicker`, default 倒计时).
+                    Text(verbatim: countdownKicker)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("nativeGames.countdown.kicker")
+                }
                 if let countdownClock {
                     // Components r1: the countdown counts down by itself and the ring empties (MP playkit-countdown).
                     NativeGameCountdownClock(start: countdownClock, seconds: seconds)
@@ -164,6 +175,14 @@ import SwiftUI
                 }
                 if kind == .typeIn, seconds > 0 {
                     ProgressView(value: clockProgress).accessibilityHidden(true)
+                }
+                if let countdownDoneText {
+                    // MP `oc__done`: the merchant's line, shown once the countdown reached zero.
+                    Text(verbatim: countdownDoneText)
+                        .font(.headline)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("nativeGames.countdown.done")
                 }
             }
             .padding(.vertical, 8)
@@ -308,12 +327,21 @@ import SwiftUI
             return NativeGameSubmit(title: Text("playkit.challenge.start"), enabled: enabled && validConfiguration,
                                     identifier: "playkit.challenge.start", action: { start() })
         case .running:
-            guard kind != .countdown else { return nil }
+            if kind == .countdown {
+                // MP `g-btn--disabled` 计时中 while the clock runs.
+                return NativeGameSubmit(title: Text("playkit.countdown.running"), enabled: false,
+                                        identifier: "playkit.countdown.running", action: {})
+            }
             return NativeGameSubmit(title: Text(kind == .stopwatch ? "playkit.stopwatch.stop" : "playkit.type.finish"), enabled: enabled,
                                     identifier: "playkit.challenge.measure", action: {
                 timing.measure(now: ProcessInfo.processInfo.systemUptime); elapsed = timing.elapsedMilliseconds; typingFocused = false
             })
         case .measured:
+            if kind == .countdown {
+                // MP 再来一次: the finish was already reported at zero; another run starts with a new START_CHALLENGE.
+                return NativeGameSubmit(title: Text("playkit.countdown.again"), enabled: enabled && validConfiguration,
+                                        identifier: "playkit.countdown.again", action: { start() })
+            }
             return NativeGameSubmit(title: Text("playkit.review"), enabled: enabled && !(kind == .typeIn && input.isEmpty),
                                     identifier: "playkit.challenge.submit", action: { reviewMeasurement() })
         }
@@ -342,6 +370,20 @@ import SwiftUI
     private var countdownClock: Date? {
         guard kind == .countdown, timing.phase == .running, seconds > 0 else { return nil }
         return countdownStart
+    }
+    private var countdownKicker: String {
+        let text = segment["kicker"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return text.isEmpty ? ChannelCopy.text("倒计时", "Countdown", locale: locale) : text
+    }
+    private var countdownDoneText: String? {
+        guard kind == .countdown, timing.phase == .measured else { return nil }
+        let text = segment["doneText"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return text.isEmpty ? nil : text
+    }
+    private func finishCountdown(now: TimeInterval) {
+        guard kind == .countdown, timing.phase == .running else { return }
+        timing.measure(now: now)
+        reviewMeasurement()
     }
     private var clockAccessibilityValue: Text {
         if let countdownClock { return NativeGameCountdownClock.accessibilityValue(start: countdownClock, seconds: seconds) }

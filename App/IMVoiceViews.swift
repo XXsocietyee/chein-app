@@ -268,13 +268,8 @@ import SwiftUI
                 ContentUnavailableView("d7.imVoice.messageUnavailable", systemImage: "lock")
             }
             if loading {
-                HStack(spacing: 8) {
-                    ProgressView().accessibilityHidden(true)
-                    Text("d7.imCompose.loading")
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .accessibilityElement(children: .combine)
+                ProgressView { Text("d7.imCompose.loading") }
+                    .frame(maxWidth: .infinity)
             }
             if failed {
                 Label("d7.imVoice.playFailed", systemImage: "exclamationmark.circle")

@@ -262,9 +262,8 @@ extension EnvironmentValues {
     var body: some View {
         List {
             if flow.loading {
-                ProgressView()
+                ProgressView { Text("club.terminal.loading") }
                     .frame(maxWidth: .infinity)
-                    .accessibilityLabel(Text("club.terminal.loading"))
             }
             if let failure = flow.failure {
                 ContentUnavailableView(LocalizedStringKey(failure.localizationKey), systemImage: "exclamationmark.triangle")

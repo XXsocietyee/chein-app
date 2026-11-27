@@ -50,9 +50,8 @@ import SwiftUI
                 Label(nickname, systemImage: "person.crop.circle")
             } }
             if flow.busy {
-                ProgressView()
+                ProgressView { Text("cy.state.loading") }
                     .frame(maxWidth: .infinity)
-                    .accessibilityLabel(Text("cy.state.loading"))
                     .accessibilityIdentifier("friendMeta.loading")
             }
             if !flow.isCurrent { notice("friendMeta.closed") }

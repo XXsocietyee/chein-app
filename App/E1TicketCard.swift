@@ -83,7 +83,7 @@ struct E1TicketCard: View {
                         .accessibilityIdentifier("ticketWallet.detail.title")
                 }
                 if let date = ticket.participateDate, !date.isEmpty {
-                    QuestifyMetadataLine(label: "ticketWallet.participateDate", value: date, systemImage: "calendar")
+                    QuestifyMetadataLine(label: "ticketWallet.participateDate", value: LocaleDisplay.civil(date, locale: locale), systemImage: "calendar")
                 }
                 if let place = ticket.addressName, !place.isEmpty {
                     QuestifyMetadataLine(label: "ticketWallet.place", value: place, systemImage: "mappin.and.ellipse")

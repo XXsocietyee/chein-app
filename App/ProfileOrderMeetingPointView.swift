@@ -51,11 +51,9 @@ import SwiftUI
             if !model.matches(current()) {
                 Text("profile.orderMap.unavailable").font(.footnote).foregroundStyle(.secondary)
             } else if model.isOpening {
-                HStack(spacing: 8) {
-                    ProgressView()
-                    Text("profile.orderMap.opening").font(.footnote).foregroundStyle(.secondary)
-                }
-                .accessibilityElement(children: .combine).accessibilityIdentifier("profile.orderMap.opening")
+                ProgressView { Text("profile.orderMap.opening") }
+                    .frame(maxWidth: .infinity)
+                    .accessibilityIdentifier("profile.orderMap.opening")
             } else if let outcome = model.outcome {
                 Text(LocalizedStringKey(outcome == .opened ? "profile.orderMap.opened" : "profile.orderMap.failed"))
                     .font(.footnote).foregroundStyle(outcome == .opened ? Color.green : Color.orange)
