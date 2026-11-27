@@ -136,7 +136,7 @@ struct ClubStoryChapterHeader: View {
         Color.clear
             .aspectRatio(16.0 / 10.0, contentMode: .fit)
             .overlay { media }
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
             .accessibilityHidden(true)
     }
     @ViewBuilder private var media: some View {
@@ -238,7 +238,7 @@ struct ClubStoryChapterHeader: View {
             }
         }
         .frame(width: thumbWidth, height: thumbHeight)
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
         .accessibilityHidden(true)
     }
 }
@@ -300,7 +300,7 @@ struct ClubStoryChapterHeader: View {
             }
         }
         .frame(width: 80, height: 80)
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
         .accessibilityHidden(true)
     }
     private var chipRow: some View {

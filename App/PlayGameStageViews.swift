@@ -76,7 +76,7 @@ extension EnvironmentValues {
     var systemImage = "photo"
     var loading = false
     var body: some View {
-        RoundedRectangle(cornerRadius: 16, style: .continuous).fill(.quaternary)
+        RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(.quaternary)
             .aspectRatio(4.0 / 3.0, contentMode: .fit)
             .frame(maxWidth: .infinity)
             .overlay {

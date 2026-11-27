@@ -43,7 +43,7 @@ import SwiftUI
                 }
             }
         case .unavailable:
-            ContentUnavailableView(catalog("bundle.redeem.unavailable"), systemImage: "wifi.slash")
+            ContentUnavailableView(catalog("bundle.redeem.unavailable"), systemImage: "exclamationmark.circle")
                 .listRowBackground(Color.clear)
                 .accessibilityIdentifier("bundleRedeem.unavailable")
         case .failed:

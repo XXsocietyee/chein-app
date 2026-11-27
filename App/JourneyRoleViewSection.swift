@@ -14,13 +14,7 @@ import SwiftUI
                 Section {
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
                         CYSectionHeader("roleView.title")
-                        Text("roleView.loading")
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                        CYSkeleton()
-                            .accessibilityElement(children: .ignore)
-                            .accessibilityLabel(Text("roleView.loading"))
+                        CYSkeleton(label: "roleView.loading")
                     }
                     .listRowInsets(Self.gutter)
                 }

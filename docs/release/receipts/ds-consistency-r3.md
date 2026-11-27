@@ -211,6 +211,33 @@ pre-fix `TopicSelfPlaySheet.swift` fails at lines 143 and 193.
 Gates (batch 2): `generate_project` PASS, `check_scaffold` PASS (design consistency 0 debt, 65 allowed, done leading 0),
 `check_a11y_lint` PASS (0 new), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
 
+## Continue run 7 (2026-11-27, after merging combined-r7 into 31ce3e369)
+
+Receipt had no Not done rows. Scan: one card / radius pattern (OWNER RULE 2 "one list/card pattern"; native restyle r1
+"one card radius 12, one hero radius 20"). 94 player call sites wrote a literal `cornerRadius:` — 13 different radii
+(2, 3, 4, 6, 7, 8, 9, 10, 12, 12.5, 14, 16, 18, 20, 22, 24, 48) next to the `CYRadius` scale, so sibling cards,
+thumbnails and icon tiles had different corners. Content, order and identifiers unchanged on every screen (MP decides
+content; this is look only).
+
+| Pattern | Native views (file:line on this branch) | Change |
+|---|---|---|
+| cards 12 / 14 / 16 / 10 (material, grouped fill, dice tile, placeholder) | `PlayExperienceView.swift:2302`, `CityOrientationRunView.swift:308`, `PlayGameStageViews.swift:79`, `PlayKitDecisionProgressViews.swift:42`, `PlayKitCameraPresentation.swift:127`, `ObjectBadgeViews.swift:240`, `ChapterStoryView.swift:754` (18), `RoamAndExplorationParitySectionView.swift:294` (10) + every literal 12 (CityKit deed / board / claim, ticket pass, route map stops, roam passport / stamps, map layer, playkit forms, welcome route map, motion games, route replay …) | → `CYRadius.card` (12) |
+| thumbnails / covers inside a card 8 / 10 | `HomeFeedView.swift:545`, `TemplateShelfArt.swift:161, 183`, `ClubStoryViews.swift:139, 241, 303`, `ClubActivityListContent.swift:67`, `RoamRunnerDetailView.swift:87-88`, `DiscoveryTemplateDetailView.swift:498`, `RoamSubpageParityViews.swift:538, 720`, `BundleShelfView`, `TicketWalletView`, `ClubComponents`, `ClubBadgeManagementView`, `RoamCityGuide`, `RoamHomeTabsView`, `RoamMapHomeRoutes`, `RoamMapHomePlaceCard`, `SocialGuideTemplateSection`, `ProjectEditDetailForms`, `AccountComplianceViews:732` | → `CYRadius.inner` (8, concentric with the 12 card) |
+| icon tiles / chips 7 / 9 / 10 / 6 | `SettingsSupportSections.swift:202` (Settings icon tile), `MessagingMessageDetailView.swift:293`, `CYPeopleComponents.swift:106, 135`, `CityBoardScreens.swift:153`, `MapPublicLayerSectionView.swift:148`, `AccountComplianceViews.swift:719` | → `CYRadius.sm` (8): every icon tile in a row now has the same corner |
+| Messages-style bubbles 16 / 18 / 22 | `MessagingHistoryView.swift:660` (notice), `IMStaticLocationCardView.swift:21` (location bubble), `ClubPostDiscussion.swift:121` (comment bubble, was 16), `NativeChannelTextComposer.swift:82-83` (composer field, was 22) | → new token `CYRadius.bubble` (18) in `App/DesignSystem/CYDesignTokens.swift` |
+| heroes 20 / 22, sheet frame 24 | `MotionR2Metrics.swift:87` (22), `CityDeedCard`, `CityBoardScreens:74, 203`, `MapPublicLayerSectionView:59`, `PlayKitDecisionProgressViews:90`, `MotionR2Rewards:194-200`; `MotionR2Flows.swift:157` (24) | → `CYRadius.hero` (20) / `CYRadius.sheet` (24) |
+
+New checker kind **raw radius**: a literal non-zero `cornerRadius: N` outside App/DesignSystem and App/Theme. Baseline 0;
+allowed with reasons (procedural art drawn to its own frame): `CityMomentView` coin ticket, `MotionR2Rewards` postage
+stamp perforation, `ProfileBadgesView` holo sheen on the round medal, `RoamSubpageParityViews` MP stamp printer art and
+scratch foil. Self-test: the pre-fix `SettingsSupportSections.swift` fails at line 202.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_typography_lint` PASS,
+`check_design_consistency` PASS (0 debt, 74 allowed, raw radius 0), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
+Stale pin updated: `Tests/ContractChecks/test_object_badge_wall_layout.py` detail hash (artwork clip 16 →
+`CYRadius.card`, look only; one-line reason in the test).
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

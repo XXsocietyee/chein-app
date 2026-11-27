@@ -57,7 +57,7 @@ struct MotionR2ScratchTiles: View {
                 .multilineTextAlignment(.center)
                 .padding(6)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(.fill.tertiary, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .background(.fill.tertiary, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                 .accessibilityHidden(true)
             if !isOpen { cover(index: index).transition(.opacity) }
         }
@@ -72,7 +72,7 @@ struct MotionR2ScratchTiles: View {
     private func cover(index: Int) -> some View {
         GeometryReader { proxy in
             Canvas { context, size in
-                context.fill(Path(roundedRect: CGRect(origin: .zero, size: size), cornerRadius: 12), with: .color(.gray))
+                context.fill(Path(roundedRect: CGRect(origin: .zero, size: size), cornerRadius: CYRadius.card), with: .color(.gray))
                 context.blendMode = .destinationOut
                 for point in strokes[index] ?? [] {
                     context.fill(Path(ellipseIn: CGRect(x: point.x - 18, y: point.y - 18, width: 36, height: 36)), with: .color(.black))

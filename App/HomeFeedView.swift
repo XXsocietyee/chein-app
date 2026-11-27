@@ -49,14 +49,15 @@ import UIKit
         let permit = model.permit(reader)
         Group {
             if !reader.isConfigured || unavailableMessageKey != nil {
-                // Offline state. Lookup uses the interface language, not the region locale,
+                // Configuration state (read not set up / not approved). Lookup uses the interface language, not the region locale,
                 // so zh-Hans does not keep the English kit sentences.
                 let resource = CYKitCopy(locale: locale).resourceLocale
                 ContentUnavailableView {
                     Label {
                         Text(verbatim: appLocalized("homeFeed.unavailable", locale: resource))
                     } icon: {
-                        Image(systemName: "wifi.slash")
+                        // Not a network state: the read is not set up or not approved, so no Wi-Fi glyph.
+                        Image(systemName: "exclamationmark.circle")
                     }
                 } description: {
                     Text(verbatim: appLocalized(String.LocalizationValue(stringLiteral: unavailableMessageKey ?? "auth.notConfigured"), locale: resource))
@@ -96,9 +97,11 @@ import UIKit
                         }
                         CYScreenOfflineWriteBanner(routes: ["/api/compliance/consents"])
                         if feedDown {
-                            // R1 error state (166:3280): when every rail and the feed failed, one inline error under the
-                            // header, with one retry for all of it; no section titles with nothing under them, no tabs.
-                            retry(Text("homeFeed.feedFailed"), id: "feed") {
+                            // R1 error state (166:3280): when every rail and the feed failed, one state under the header with
+                            // one retry for all of it; no section titles with nothing under them, no tabs. mp-states r3: the
+                            // system ContentUnavailableView, MP cy-empty kind `offline` (网络好像断开了) when the device is
+                            // offline, otherwise 首页加载失败.
+                            feedDownState {
                                 for section in HomeFeedSection.allCases { model.schedule(.section(section), reader: reader, permit: permit) }
                                 model.schedule(.page, reader: reader, permit: permit)
                             }
@@ -440,6 +443,25 @@ import UIKit
             && model.pageFailed && model.pagination.items.isEmpty && !model.loading && !model.loadingPage
     }
 
+    private func feedDownState(action: @escaping () -> Void) -> some View {
+        let offline = model.pageOffline
+        return ContentUnavailableView {
+            Label {
+                Text(LocalizedStringKey(offline ? "cy.kit.offline.title" : "homeFeed.feedFailed"))
+            } icon: {
+                Image(systemName: offline ? "wifi.slash" : "exclamationmark.circle")
+            }
+        } description: {
+            if offline { Text("cy.kit.offline.body") }
+        } actions: {
+            Button("homeFeed.retry", action: action)
+                .buttonStyle(.bordered)
+                .accessibilityIdentifier("homeFeed.retry.feed")
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityIdentifier("homeFeed.feedFailed")
+    }
+
     private func retry(_ message: Text, id: String, action: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Label { message } icon: { Image(systemName: "exclamationmark.triangle").accessibilityHidden(true) }
@@ -542,7 +564,7 @@ struct HomeFeedShelfLockup: View {
             Color.clear
                 .aspectRatio(style == .shelf ? 3.0 / 2.0 : 16.0 / 10.0, contentMode: .fit)
                 .overlay { cover }
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                 .accessibilityHidden(true)
             Text(verbatim: title)
                 .font(.headline)

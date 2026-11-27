@@ -237,7 +237,7 @@ struct ObjectBadgeWallBadgeLabel: View {
                 Section {
                     artwork
                         .frame(width: 120, height: 120)
-                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                         .frame(maxWidth: .infinity)
                         .opacity(badge.isLocked ? 0.45 : 1)
                         .accessibilityElement(children: .ignore)

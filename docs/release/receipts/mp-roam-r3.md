@@ -183,6 +183,18 @@ Gates: generate_project OK · check_scaffold PASS (20726 keys) · a11y lint 0 ne
 
 Gates: generate_project OK · check_scaffold PASS (20727 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 
+## Round 3 continue (11) — 首次发现 sheet (pages/roam/index.wxml:960–990, index.js 4643–4733) + 11-27 18:06 sweep
+
+Base re-merged with `origin/ui/combined-r7` (xcstrings: base values kept, our 15 keys appended).
+
+| MP page / scene | Native view | Differences | Status |
+|---|---|---|---|
+| `pages/roam/index` 首次发现商家 ritual sheet: title 首次发现 → `dr-cover` (`poi.imgUrl`) → name → 选一份见面礼 → 领优惠券 · 做微任务 · (explore day: title or 看看自由探索, `N m · 自由探索`) → 先继续走 | `App/RoamFirstDiscoverySheet.swift` (`.sheet` from `RoamLiveSessionView`) | No cover: the sheet started at the name. Explore-day candidate with an empty title: MP shows it as 看看自由探索; Core `RoamService.exploreDay` drops it (`isDisplayable` needs a title). MP reads the candidate only after the shop visit is recorded; native reads it on open. | **Fixed:** cover section first (`RoamEntryCover`, 160 pt, only for a safe https `RoamPlace.coverImage`, id `roam.discover.cover`), then name / 选一份见面礼 / options / 先继续走 unchanged (already MP order, inline title + medium/large detents per OWNER RULE 2). **Not done:** empty-title explore day (Core + tests) and the visit-recorded gate (needs the visit result passed into the sheet) — compiled pass. |
+| Sweep 18:06 `mp-roam/*-d2-roam.jpg` | `RoamHomeFixtureHostView` → legacy `RoamBrowserView` | The d2-roam fixture renders the legacy roam browser (inline 漫游 + ⋯), not the shipping tab root `NativeR2/MapHome/RoamMapHomeView` (full-screen map, allowed chrome in `check_design_consistency` TAB_ROOTS note). The shot does not show what players see. | **Not done:** a map-home design fixture needs `RoamMapHomeDependencies` fixture readers — for the coordinator / mp-nav (fixture router). |
+| Sweep 18:06 `mp-roam/*-e2-stamp-album.jpg` | `D4MeFixture(.stamps)` → `RoamStampAlbumView` → `NativeStampAlbumView` | The app quits to the home screen (same as mp-club `d4-stamps`, `d4-badges` — all three go through `D4MeFixture`). Build 070117595 predates mp-home's 17:23 "fixtures skip the production session" change, so that is not the cause. Ruled out by reading: duplicate grid ids (synthetic stamps 901–903 unique), `try!` scope in `RoamExperienceFixtureReader` (valid market/account), `cyAlbumChildTitle`, `GrowthCenterFixtureReader` init. | **Not done:** needs a simulator run (`xcrun simctl launch … --design-fixture e2-stamp-album`) to read the crash log; flagged to coordinator. |
+
+Gates: generate_project OK · check_scaffold PASS (20731 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no

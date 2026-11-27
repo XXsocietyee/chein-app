@@ -939,6 +939,7 @@ struct PlayThemeMusicKey: Equatable {
             model: model, titleKey: key, subtitle: [topic, earned].compactMap { $0 }.joined(separator: " · "),
             medals: medals, shareText: appLocalized("medalScreen.shareText \(topic ?? title)", locale: locale),
             walkedMeters: cityLocation.walkedMeters, reportDestination: cityReportDestination,
+            scoreDestination: (snapshot?.result.allDone ?? false) ? nil : orientScoreDestination?(),
             collectionDestination: cityCollectionDestination,
             onClose: { finishScreen = false })
     }
@@ -2311,7 +2312,7 @@ private struct PlayCouponToastOverlay: ViewModifier {
                         }
                         .padding(12)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)

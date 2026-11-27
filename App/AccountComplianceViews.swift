@@ -716,7 +716,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
         let initial = Text(verbatim: String((row.merchantName ?? "?").prefix(1)))
             .font(.body.weight(.bold)).foregroundStyle(.white)
             .frame(width: merchantMarkSide, height: merchantMarkSide)
-            .background(SettingsTint.orange, in: .rect(cornerRadius: 8))
+            .background(SettingsTint.orange, in: .rect(cornerRadius: CYRadius.sm))
             .accessibilityHidden(true)
         // Only a safe (https) logo URL is fetched; "" or anything else keeps the initial tile.
         if let logo = QuestifyCardArtwork.safeURL(row.merchantLogo) {
@@ -729,7 +729,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 }
             }
             .frame(width: merchantMarkSide, height: merchantMarkSide)
-            .clipShape(.rect(cornerRadius: 8))
+            .clipShape(.rect(cornerRadius: CYRadius.inner))
             .accessibilityHidden(true)
         } else {
             initial

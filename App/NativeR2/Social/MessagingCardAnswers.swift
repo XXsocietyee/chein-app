@@ -5,6 +5,10 @@ import SwiftUI
 enum MessagingCardRoute: Hashable {
     /// MP `onCardBtn` → `/topic/<id>`: the card's typed topic destination.
     case topic(Int)
+    /// mp-nav r3, MP `system-card-target.js`: activity notices / cards open `pages/activity/detail/index`,
+    /// community cards `pages/square/detail/index` (navigateTo, pushed above the chat).
+    case activity(Int)
+    case squarePost(Int)
     /// System review cards (MP 「查看生成时记录」) open the message detail, which owns the review sheet.
     case detail(messageID: Int)
     /// A group poll message opens the poll itself (vote / results) in one tap.
@@ -24,7 +28,7 @@ struct MessagingInlineCardAnswers: View {
     @ScaledMetric(relativeTo: .caption) private var avatarSize: CGFloat = 28
 
     static func hasAnswers(_ message: MessagingMessage) -> Bool {
-        message.isPayloadVisible && message.card != nil && !IMCardAction.displayed(for: message).isEmpty
+        message.isPayloadVisible && !IMCardAction.displayed(for: message).isEmpty
     }
 
     var body: some View {
