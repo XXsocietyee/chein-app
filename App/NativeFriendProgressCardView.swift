@@ -12,7 +12,7 @@ import SwiftUI
             switch model.state {
             case .awaitingIndex: channelChip("friendIndexPending", tint: .accentColor, systemImage: "clock")
             case .loading:
-                ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("cy.state.loading"))
+                ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity)
             case .hidden: channelChip("hidden", tint: .secondary, systemImage: "eye.slash")
             case .unconfirmed: channelChip("unconfirmed", tint: .orange, systemImage: "questionmark")
             case .closed: channelChip("closed", tint: .secondary, systemImage: "xmark")

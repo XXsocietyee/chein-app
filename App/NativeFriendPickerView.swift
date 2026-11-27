@@ -33,7 +33,7 @@ import SwiftUI
                 Image(systemName: "magnifyingglass").foregroundStyle(.secondary).accessibilityHidden(true)
             }
             if flow.busy && visible.isEmpty {
-                ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("cy.state.loading"))
+                ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity)
             }
             ForEach(visible) { row in
                 let name = shownName(row)

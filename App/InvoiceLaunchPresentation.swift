@@ -357,7 +357,7 @@ func invoiceTitleLine(_ title: InvoiceLaunchTitle) -> String {
             }
         } else if model.busy && model.overview == nil {
             Section {
-                ProgressView().frame(maxWidth: .infinity).accessibilityLabel(invoiceText("loading"))
+                ProgressView { invoiceText("loading") }.frame(maxWidth: .infinity)
             }
         }
     }

@@ -234,7 +234,7 @@ struct PassMarketView: View {
             switch state.content {
             case .loading:
                 Section {
-                    ProgressView().frame(maxWidth: .infinity)
+                    ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity)
                         .accessibilityIdentifier("passMarket.loading")
                 }
             case .failed(let message):
@@ -649,7 +649,7 @@ struct PassDetailView: View {
         Group {
             switch state.product {
             case .loading:
-                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+                ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity, maxHeight: .infinity)
                     .accessibilityIdentifier("passDetail.loading")
             case .failed(let reason):
                 ContentUnavailableView {
@@ -1033,7 +1033,7 @@ struct PassOrderDetailView: View {
             switch phase {
             case .loading:
                 Section {
-                    ProgressView().frame(maxWidth: .infinity)
+                    ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity)
                         .accessibilityIdentifier("passOrder.loading")
                 }
             case .failed(let message):
