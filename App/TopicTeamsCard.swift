@@ -20,6 +20,8 @@ extension EnvironmentValues {
 
 @MainActor struct TopicTeamsCard: View {
     @Environment(\.locale) private var locale
+    /// a11y-dt r3: team name and meeting place wrap to 2 lines at AX sizes instead of truncating.
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let topic: TopicDetail
     @Environment(\.topicTeamsSource) private var source
     @State private var teams: [NearbyTeam] = []
@@ -57,9 +59,9 @@ extension EnvironmentValues {
                 HStack(spacing: CYSpacing.sm) {
                     NearbyTeamFaces(count: max(1, min(3, team.memberAvatars.count)))
                     VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                        Text(verbatim: title(team)).foregroundStyle(.primary).lineLimit(1)
+                        Text(verbatim: title(team)).foregroundStyle(.primary).lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
                         if !team.addressName.isEmpty {
-                            Text(verbatim: team.addressName).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
+                            Text(verbatim: team.addressName).font(.subheadline).foregroundStyle(.secondary).lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
                         }
                     }
                     Spacer(minLength: CYSpacing.sm)
