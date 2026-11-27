@@ -150428,13 +150428,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This account cannot view this collection. Go back and open it again."
+            "value": "This identity can’t view it"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前账号无法查看，请返回后重新进入"
+            "value": "当前身份不能查看"
           }
         }
       }
@@ -252184,13 +252184,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This account cannot view this album. Go back and open it again."
+            "value": "This identity can’t view it"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前账号无法查看，请返回后重新进入"
+            "value": "当前身份不能查看"
           }
         }
       }
@@ -347668,6 +347668,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld 人打过卡"
+          }
+        }
+      }
+    },
+    "context.route.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load routes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "路线没有加载"
+          }
+        }
+      }
+    },
+    "context.route.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No routes found"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有找到路线"
+          }
+        }
+      }
+    },
+    "context.route.empty.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try another keyword"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "换个关键词试试"
           }
         }
       }

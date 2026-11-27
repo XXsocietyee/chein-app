@@ -109,14 +109,14 @@ struct CoopFlowSafetyNotice: View {
                     .accessibilityIdentifier("coopflow.withdrawal.support")
             }
             if reader.session == nil { Text("cooperation.login") }
-            else if loadedSession != reader.session { CYSkeleton(variant: .row).accessibilityLabel(Text("cooperation.loading")) }
+            else if loadedSession != reader.session { CYSkeleton(variant: .row, label: "cooperation.loading") }
             else if let issue {
                 Text(issue).accessibilityIdentifier("coopflow.issue")
                 CYPillButton("cooperation.refresh", style: .secondary, fullWidth: false) { refresh = UUID() }
             } else if let value {
                 content(value)
                 Section { CoopFlowSafetyNotice() }
-            } else { CYSkeleton(variant: .row).accessibilityLabel(Text("cooperation.loading")) }
+            } else { CYSkeleton(variant: .row, label: "cooperation.loading") }
         }
         .cyGroupedSurface()
         .navigationTitle(LocalizedStringKey(title)).navigationBarTitleDisplayMode(.inline)
@@ -331,7 +331,7 @@ struct CoopFlowFields: View {
                 CoopFlowFields(value: row.record, keys: ["topicName", "topicId", "payeeType", "totalSales", "verifiedSales", "platformAmount", "merchantTotal", "merchantPaid", "shareMode", "shareRate", "fixedFee", "verifiedHeads", "createTime", "settleTime", "payableTime", "payoutTime", "merchantPayableTime", "merchantPayoutTime", "updateTime"])
                 Section { CoopFlowSafetyNotice() }
             } else if failed { Text("coopflow.read.failed") }
-            else { CYSkeleton(variant: .detail).accessibilityLabel(Text("cooperation.loading")) }
+            else { CYSkeleton(variant: .detail, label: "cooperation.loading") }
         }.navigationTitle("coopflow.settlement.detail").navigationBarTitleDisplayMode(.inline)
             .task(id: "\(reader.session?.accountID ?? 0):\(reader.session?.epoch ?? 0)") {
                 row = nil; scope = nil; failed = false
