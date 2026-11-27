@@ -191,6 +191,7 @@ struct PassMarketState: Equatable {
 }
 
 struct PassMarketView: View {
+    @Environment(\.locale) private var locale
     let state: PassMarketState
     var initialTab: PassMarketTab = .shop
     let onReload: (_ quiet: Bool) -> Void
@@ -381,7 +382,7 @@ struct PassMarketView: View {
     private func passOrders(_ rows: [PlatformPassSubscriptionOrder]) -> some View {
         ForEach(rows) { row in
             let line = LabeledContent {
-                Text(verbatim: row.amount.isEmpty ? MPText.unknown : MPParityBindings.moneyText(row.amount)).monospacedDigit()
+                Text(verbatim: row.amount.isEmpty ? MPText.unknown : LocaleDisplay.yuanAmounts(in: MPParityBindings.moneyText(row.amount), locale: locale)).monospacedDigit()
             } label: {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(verbatim: row.name)
@@ -410,7 +411,7 @@ struct PassMarketView: View {
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 2) {
-                    if let amount = row.amountText { Text(verbatim: amount).monospacedDigit() }
+                    if let amount = row.amountText { Text(verbatim: LocaleDisplay.yuanAmounts(in: amount, locale: locale)).monospacedDigit() }
                     if let time = row.timeText { Text(verbatim: time).font(.subheadline).foregroundStyle(.secondary) }
                 }
             }
@@ -501,11 +502,12 @@ struct PassProductCardView: View {
 
 /// Unit price only: "¥99.00 / 300 points"; nothing when both are missing.
 struct PassPriceText: View {
+    @Environment(\.locale) private var locale
     let cash: String?
     let points: Int?
     var body: some View {
         HStack(spacing: 4) {
-            if let cash { Text(verbatim: cash) }
+            if let cash { Text(verbatim: LocaleDisplay.yuanAmounts(in: cash, locale: locale)) }
             if cash != nil && points != nil { Text(verbatim: "/") }
             if let points { Text("mp.pass.points.amount \(points)") }
         }
@@ -617,6 +619,7 @@ extension PassDetailBinding {
 }
 
 struct PassDetailView: View {
+    @Environment(\.locale) private var locale
     let state: PassDetailState
     let onRetry: () -> Void
     let onSetForGift: (Bool) -> Void
@@ -772,12 +775,12 @@ struct PassDetailView: View {
             ViewThatFits(in: .horizontal) {
                 HStack(spacing: 12) {
                     ForEach(modes) { mode in
-                        Text(verbatim: mode.amountText).font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
+                        Text(verbatim: LocaleDisplay.yuanAmounts(in: mode.amountText, locale: locale)).font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
                     }
                 }
                 VStack(alignment: .leading, spacing: 4) {
                     ForEach(modes) { mode in
-                        Text(verbatim: mode.amountText).font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
+                        Text(verbatim: LocaleDisplay.yuanAmounts(in: mode.amountText, locale: locale)).font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
                     }
                 }
             }
@@ -1008,6 +1011,7 @@ struct PassGiftClaimView: View {
 }
 
 struct PassOrderDetailView: View {
+    @Environment(\.locale) private var locale
     let phase: MPLoad<PlatformPassSubscriptionOrder>
     let onRetry: () -> Void
     @State private var copied = false
@@ -1048,7 +1052,7 @@ struct PassOrderDetailView: View {
     @ViewBuilder private func content(_ order: PlatformPassSubscriptionOrder) -> some View {
         Section {
             LabeledContent {
-                Text(verbatim: order.amount.isEmpty ? MPText.unknown : MPParityBindings.moneyText(order.amount))
+                Text(verbatim: order.amount.isEmpty ? MPText.unknown : LocaleDisplay.yuanAmounts(in: MPParityBindings.moneyText(order.amount), locale: locale))
                     .font(.headline).monospacedDigit().foregroundStyle(.primary)
             } label: {
                 VStack(alignment: .leading, spacing: 2) {
@@ -1064,7 +1068,7 @@ struct PassOrderDetailView: View {
             }
             switch order.refundDetail {
             case .refunded(let amount, let time):
-                fact(Text("mp.passOrder.refundAmount"), Text(verbatim: MPParityBindings.moneyText(amount)))
+                fact(Text("mp.passOrder.refundAmount"), Text(verbatim: LocaleDisplay.yuanAmounts(in: MPParityBindings.moneyText(amount), locale: locale)))
                 if !time.isEmpty {
                     fact(Text("mp.passOrder.refundTime"), Text(verbatim: time))
                 }

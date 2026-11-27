@@ -413,7 +413,29 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "%lld joined, %lld seats open"
+          "value": "%1$lld joined, %#@seat@ open"
+        },
+        "substitutions": {
+          "seat": {
+            "argNum": 2,
+            "formatSpecifier": "lld",
+            "variations": {
+              "plural": {
+                "one": {
+                  "stringUnit": {
+                    "state": "translated",
+                    "value": "%arg seat"
+                  }
+                },
+                "other": {
+                  "stringUnit": {
+                    "state": "translated",
+                    "value": "%arg seats"
+                  }
+                }
+              }
+            }
+          }
         }
       },
       "zh-Hans": {

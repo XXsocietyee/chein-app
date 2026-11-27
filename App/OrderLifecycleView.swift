@@ -219,7 +219,7 @@ import SwiftUI
                             .foregroundStyle(row.done ? Color.primary : Color.secondary)
                         // A completed step with no server time is an em dash (OrderInfoPageModel.snapshot rule).
                         if row.done || row.time != nil {
-                            Text(verbatim: row.time ?? OrderInfoPageModel.unknownMark)
+                            Text(verbatim: row.time.map { LocaleDisplay.civil($0, locale: locale) } ?? OrderInfoPageModel.unknownMark)
                                 .font(.footnote).foregroundStyle(.secondary).monospacedDigit()
                         }
                     }

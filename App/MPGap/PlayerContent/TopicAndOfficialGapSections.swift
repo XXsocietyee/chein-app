@@ -72,6 +72,7 @@ public struct TopicPricingGapSection: View {
     /// (MP pages/topic/pricing/index.wxml:45-56, index.js:478-495).
     public let platformRate: Decimal?
     public let minimum: Decimal?
+    @Environment(\.locale) private var locale
 
     public init(
         ticketFields: Binding<[TopicPricingPerTicketField]>,
@@ -127,13 +128,14 @@ public struct TopicPricingGapSection: View {
         }
         // MP ticketPriceError (index.js:478-484): 不能低于最低价 ¥X under the ticket.
         if let minimum, let value, value < minimum {
-            Text("topicPricing.belowFloor \(TopicPricingXcx.moneyText(decimal: minimum))")
+            // i18n r2: the amount carries its own symbol (`¥12.00` zh, `CN¥12.00` en).
+            Text("topicPricing.belowFloor.amount \(LocaleDisplay.money(text: TopicPricingXcx.moneyText(decimal: minimum), locale: locale))")
                 .font(.footnote)
                 .foregroundStyle(.red)
         }
         if let value, let texts = TopicPricingXcx.feeTexts(price: value, rate: platformRate) {
-            LabeledContent("topicPricing.platformFee") { Text(verbatim: texts.fee).monospacedDigit() }
-            LabeledContent("topicPricing.takeHome") { Text(verbatim: texts.takeHome).monospacedDigit() }
+            LabeledContent("topicPricing.platformFee") { Text(verbatim: LocaleDisplay.yuanAmounts(in: texts.fee, locale: locale)).monospacedDigit() }
+            LabeledContent("topicPricing.takeHome") { Text(verbatim: LocaleDisplay.yuanAmounts(in: texts.takeHome, locale: locale)).monospacedDigit() }
         }
     }
 }

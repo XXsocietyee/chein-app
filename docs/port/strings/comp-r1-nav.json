@@ -75,7 +75,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld of %2$lld points"
+            "value": "%1$lld of %#@point@"
+          },
+          "substitutions": {
+            "point": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg point"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg points"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -109,7 +131,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld of %2$lld points done"
+            "value": "%1$lld of %#@point@ done"
+          },
+          "substitutions": {
+            "point": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg point"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg points"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {

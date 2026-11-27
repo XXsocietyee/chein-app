@@ -161,6 +161,7 @@ private enum HostTipNotice { case none, saved, invalid, pending, unavailable }
 
 struct HostTipPlayerScreen: View {
     let session: AppSession
+    @Environment(\.locale) private var locale
 
     @State private var load: MPLoad<[HostTipIntentFact]> = .loading
     @State private var signedOut = false
@@ -233,7 +234,7 @@ struct HostTipPlayerScreen: View {
             HStack {
                 statusText(row.status)
                 Spacer()
-                Text(verbatim: row.amountText)
+                Text(verbatim: LocaleDisplay.yuanAmounts(in: row.amountText, locale: locale))
             }
             .cyText(.bodyMedium)
             .accessibilityIdentifier("hostTip.intent.\(row.id)")

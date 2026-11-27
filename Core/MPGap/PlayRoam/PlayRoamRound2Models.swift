@@ -187,6 +187,12 @@ public enum JourneyDateFormatterHelper {
         formatter.dateFormat = "M月d日 HH:mm"
         return formatter.string(from: date)
     }
+
+    /// i18n r2: Chinese keeps `M月d日 HH:mm`; other languages read `Nov 27, 3:05 PM` (Beijing time, as the MP).
+    public static func monthDayTime(_ date: Date, locale: Locale) -> String {
+        guard !LocaleDisplay.isChinese(locale) else { return monthDayTime(date) }
+        return LocaleDisplay.monthDayTime(date, locale: locale, timeZone: TimeZone(identifier: "Asia/Shanghai"))
+    }
 }
 
 public struct ExplorationGoalProgressItem: Identifiable, Equatable, Sendable {

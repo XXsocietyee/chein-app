@@ -55,7 +55,7 @@ struct ClubCheckinRailView: View {
                 }
             }
             if let sessionTime = rail.sessionTimeText {
-                Text(verbatim: sessionTime)
+                Text(verbatim: LocaleDisplay.civil(sessionTime, locale: locale))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
@@ -63,7 +63,7 @@ struct ClubCheckinRailView: View {
                     .accessibilityIdentifier("club.checkin.rail.sessionTime")
             }
             if let statusTime = rail.statusTimeText {
-                Text(verbatim: statusTime)
+                Text(verbatim: LocaleDisplay.civil(statusTime, locale: locale))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
@@ -163,7 +163,7 @@ struct ClubCheckinDetailRows: View {
                 }
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 if let session = text("sessionTimeText") {
-                    Text(verbatim: session)
+                    Text(verbatim: LocaleDisplay.civil(session, locale: locale))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .monospacedDigit()
@@ -213,7 +213,7 @@ struct ClubCheckinDetailRows: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("club.gov.fact.displayName")
                 if let session = text("sessionTimeText") {
-                    Text(verbatim: session)
+                    Text(verbatim: LocaleDisplay.civil(session, locale: locale))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .monospacedDigit()
@@ -243,7 +243,7 @@ struct ClubCheckinDetailRows: View {
                     .foregroundStyle(statusColor)
             }
             if let time = text("statusTimeText") {
-                Text(verbatim: time)
+                Text(verbatim: LocaleDisplay.civil(time, locale: locale))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
@@ -271,7 +271,7 @@ struct ClubCheckinDetailRows: View {
     }
     private func row(_ title: LocalizedStringKey, _ key: String) -> some View {
         // Owner decision 9: amounts read ¥12.50 through `MoneyDisplay` (via `ClubMoneyText`).
-        LabeledContent(title) { Text(verbatim: text(key).map { ClubMoneyText.amountKeys.contains(key) ? ClubMoneyText.display($0) : $0 } ?? "—").monospacedDigit() }
+        LabeledContent(title) { Text(verbatim: text(key).map { ClubMoneyText.amountKeys.contains(key) ? ClubMoneyText.display($0) : key.hasSuffix("TimeText") ? LocaleDisplay.civil($0, locale: locale) : $0 } ?? "—").monospacedDigit() }
     }
 }
 

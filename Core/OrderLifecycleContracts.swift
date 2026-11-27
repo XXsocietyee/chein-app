@@ -218,6 +218,11 @@ public enum OrderLifecycleTime {
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
         return formatter.string(from: date)
     }
+    /// i18n r2: `display` for the reader's locale. Chinese is byte-identical; other languages read
+    /// `Nov 27, 2026, 3:05 PM` on the same China wall clock (no zone shift).
+    public static func display(_ raw: String?, locale: Locale) -> String? {
+        display(raw).map { LocaleDisplay.civil($0, locale: locale) }
+    }
 }
 
 /// Registration acceptance and cash settlement stay independent. In Flutter the verifier

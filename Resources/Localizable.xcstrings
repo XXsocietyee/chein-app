@@ -69407,7 +69407,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Streak %lld days · %lld added by staff"
+            "value": "Streak %#@day@ · %2$lld added by staff"
+          },
+          "substitutions": {
+            "day": {
+              "argNum": 1,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg day"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg days"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -77411,7 +77433,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld–%2$lld people"
+            "value": "%1$lld–%#@person@"
+          },
+          "substitutions": {
+            "person": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg person"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg people"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -135087,7 +135131,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld of %2$lld days left"
+            "value": "%1$lld of %#@day@ left"
+          },
+          "substitutions": {
+            "day": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg day"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg days"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -135696,7 +135762,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Includes %1$lld works · %2$lld people"
+            "value": "Includes %#@work@ · %#@person@"
+          },
+          "substitutions": {
+            "work": {
+              "argNum": 1,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg work"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg works"
+                    }
+                  }
+                }
+              }
+            },
+            "person": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg person"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg people"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -148621,7 +148729,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Within %1$@ · %2$lld teams"
+            "value": "Within %1$@ · %#@team@"
+          },
+          "substitutions": {
+            "team": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg team"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg teams"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -169557,7 +169687,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld of %lld chapters unlocked"
+            "value": "%1$lld of %#@chapter@ unlocked"
+          },
+          "substitutions": {
+            "chapter": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg chapter"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg chapters"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -173407,7 +173559,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open: %1$@ and %2$lld events"
+            "value": "Open: %1$@ and %#@event@"
+          },
+          "substitutions": {
+            "event": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg event"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg events"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -233404,7 +233578,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld/%lld members · leader reviews"
+            "value": "%1$lld/%#@member@ · leader reviews"
+          },
+          "substitutions": {
+            "member": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg member"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg members"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -234817,7 +235013,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld roams · %2$@ km · %3$@ shops"
+            "value": "%#@roam@ · %2$@ km · %3$@ shops"
+          },
+          "substitutions": {
+            "roam": {
+              "argNum": 1,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg roam"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg roams"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -235582,7 +235800,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$@ and %2$lld places in total"
+            "value": "%1$@ and %#@place@ in total"
+          },
+          "substitutions": {
+            "place": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg place"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg places"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -271575,7 +271815,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Redeemed %lld/%lld places"
+            "value": "Redeemed %1$lld/%#@place@"
+          },
+          "substitutions": {
+            "place": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg place"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg places"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -276296,7 +276558,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld chapters · %lld endings"
+            "value": "%#@chapter@ · %#@ending@"
+          },
+          "substitutions": {
+            "chapter": {
+              "argNum": 1,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg chapter"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg chapters"
+                    }
+                  }
+                }
+              }
+            },
+            "ending": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg ending"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg endings"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -300429,7 +300733,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld joined, %lld seats open"
+            "value": "%1$lld joined, %#@seat@ open"
+          },
+          "substitutions": {
+            "seat": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg seat"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg seats"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -316532,7 +316858,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld/%2$lld stations ready"
+            "value": "%1$lld/%#@station@ ready"
+          },
+          "substitutions": {
+            "station": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg station"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg stations"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -316549,7 +316897,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld/%2$lld nodes"
+            "value": "%1$lld/%#@node@"
+          },
+          "substitutions": {
+            "node": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg node"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg nodes"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -317212,7 +317582,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld photos didn’t upload. %2$@"
+            "value": "%#@photo@ didn’t upload. %2$@"
+          },
+          "substitutions": {
+            "photo": {
+              "argNum": 1,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg photo"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg photos"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -329120,7 +329512,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld of %2$lld points"
+            "value": "%1$lld of %#@point@"
+          },
+          "substitutions": {
+            "point": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg point"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg points"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -329154,7 +329568,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld of %2$lld points done"
+            "value": "%1$lld of %#@point@ done"
+          },
+          "substitutions": {
+            "point": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg point"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg points"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -332209,6 +332645,108 @@
           "stringUnit": {
             "state": "translated",
             "value": "距开始"
+          }
+        }
+      }
+    },
+    "topicPricing.belowFloor.amount %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cannot be below the minimum %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不能低于最低价 %@"
+          }
+        }
+      }
+    },
+    "roam.w208.entry.away %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ away"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "距你 %@"
+          }
+        }
+      }
+    },
+    "topicXcx.routeNote.walkDistance %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "about %@ on foot"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "步行约 %@"
+          }
+        }
+      }
+    },
+    "roam.share.square.copyDistance": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ lit up %2$ld shops · %3$@ · %4$ld%% explored #CityFog"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@点亮了 %2$ld 家店 · %3$@ · 探索度 %4$ld%% #城瘾CityFog"
+          }
+        }
+      }
+    },
+    "playx.finishRoute.distance %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@"
+          }
+        }
+      }
+    },
+    "playx.finishRoute.metaDistance %@ %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ · %2$@"
           }
         }
       }

@@ -5,6 +5,7 @@ import SwiftUI
 @MainActor struct PlayFinishRouteCardView: View {
     let card: PlayFinishRouteCard
     var destination: ((Int) -> AnyView)?
+    @Environment(\.locale) private var locale
 
     var body: some View {
         if let destination {
@@ -55,10 +56,14 @@ import SwiftUI
     }
 
     private var metaLine: LocalizedStringKey? {
-        let distance = card.distanceMeters.map(PlayFinishRouteCard.distanceParts)
+        // i18n r2: the distance argument carries its unit (zh `1.2 公里` / `850 米` unchanged; en-US `0.7 mi` / `500 ft`).
+        let distance = card.distanceMeters.map { meters -> String in
+            let parts = PlayFinishRouteCard.distanceParts(meters)
+            return LocaleDisplay.distanceArgument(meters: meters, zhText: parts.value + (parts.kilometres ? " 公里" : " 米"), locale: locale)
+        }
         switch (distance, card.address) {
-        case (let d?, let address?): return d.kilometres ? "playx.finishRoute.metaKm \(d.value) \(address)" : "playx.finishRoute.metaM \(d.value) \(address)"
-        case (let d?, nil): return d.kilometres ? "playx.finishRoute.km \(d.value)" : "playx.finishRoute.m \(d.value)"
+        case (let d?, let address?): return "playx.finishRoute.metaDistance \(d) \(address)"
+        case (let d?, nil): return "playx.finishRoute.distance \(d)"
         case (nil, let address?): return "playx.finishRoute.address \(address)"
         case (nil, nil): return nil
         }
