@@ -53,6 +53,13 @@ Audited, unchanged (allowed by the rule): hidden nav bar only in live roam / fre
 | pages/topic/index/index → session picker / self-play form (MP popups) | topic bar 选择场次 / 自己玩 | sheets with `[.half, .full]` detents | OK |
 | pages/club/detail/index → member list (MP `expandMembers`, in-page) | 查看成员 | sheet `[.medium, .large]` | OK |
 | pages/club/detail/index → settings panel (MP cset popup, wxml:663-797) | toolbar gear | sheet `[.medium, .large]`; rows push the MP pages (customers / enroll / event-ops / roles / settlement) | OK |
+| pages/roam/index → pages/userinfo/userinfo, subpackageB/pages/im/chat (runnerOpenProfile / runnerSayHi, navigateTo) | 漫游工具 runner row → RoamRunnerDetailView 看 TA 的漫游 / 打个招呼 | `NavigationLink` + `navigationDestination(item:)` pushes (RoamRunnerDetailView.swift) | OK (re-scan 11-27 pm) |
+| pages/topic/index/index → subpackageRoam/my-teams (openTeamLobby), pages/club/detail + pages/userinfo (onLineupTap), subpackageMember/market/pass (onCheckoutPass) | 组队 card, lineup rows, self-play checkout pass rows | `NavigationLink` pushes (TopicTeamsCard.swift:37, TopicXcxSections.swift:584, MPPassEntries.swift:111 inside the checkout sheet stack) | OK |
+| pages/topic/index/index → pages/publish/fabu (owner 编辑, navigateTo) | topic bar 编辑 (owner, productType 2) | full-detent sheet with its own stack: an editor with discard state, kept modal like every native editor (OWNER RULE 2 popups vs pages); flagged, not changed | open |
+| pages/activity/official-detail → pages/roam/index (goRoam, switchTab + globalData eventId) | 去漫游完成 / 去点亮 | `RoamOfficialEventHandoff.hand(eventID:missionCode:)` then `rootTabSwitch(.roam)` (OfficialOrganizerConsoleView.swift:589/629) | OK |
+| pages/activity/list → official-mine / official-inbox (goMine / goInbox, navigateTo) | 我发布的 / 邀约 (top-right, no WeChat capsule) | `NavigationLink` pushes (OfficialEventsBrowserView.swift:82/86) | OK |
+| pages/club/detail → badges / notify / governance / coop list / customer-detail / club topic-detail / userinfo (navigateTo) | club page rows and settings rows | `NavigationLink` / `navigationDestination` pushes (ClubDetailView.swift:197-474); 成员 stays a sheet (MP in-page expand) | OK |
+| pages/play/index → subpackageP3/pages/badge-3d (openBadge3d) | — | MP `openBadge3d` is bound in no `.wxml` (dead in MP), so the unrouted badge-3d page below is correct | n/a |
 
 ## External entries → MP page (deep links, universal links, notifications, widgets, Siri)
 
