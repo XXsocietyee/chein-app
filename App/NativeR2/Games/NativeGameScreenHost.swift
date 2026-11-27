@@ -187,6 +187,7 @@ extension PlayKitScreen {
         switch kind {
         case .musicCorner: return "playkit.music.eyebrow"
         case .silentOrder: return "playkit.silent.eyebrow"
+        case .diyName: return "playkit.diy.eyebrow"
         default: return nil
         }
     }

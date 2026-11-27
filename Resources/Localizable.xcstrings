@@ -183516,13 +183516,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Name this creation"
+            "value": "Give it a name"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "给作品起个名字"
+            "value": "给它起个名字"
           }
         }
       }
@@ -351234,6 +351234,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "见证码生成中"
+          }
+        }
+      }
+    },
+    "playkit.diy.eyebrow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your creation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的作品"
           }
         }
       }

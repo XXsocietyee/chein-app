@@ -3078,5 +3078,22 @@
         }
       }
     }
+  },
+  "playkit.diy.eyebrow": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your creation"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "你的作品"
+        }
+      }
+    }
   }
 }

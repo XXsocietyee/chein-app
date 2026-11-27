@@ -350,9 +350,17 @@ extension PlayKitScreen {
     @ViewBuilder var nativeDiyName: some View {
         let maxLength = max(1, raw["maxLength"].integer ?? 16)
         Section {
+            // MP `dn__shot`: the photo, or a camera placeholder until one exists.
             if let photo = raw["photoUrl"].text, !photo.isEmpty {
                 artwork(photo).frame(maxWidth: 120, alignment: .leading)
                     .accessibilityLabel(Text("playkitLegacy.name.photo"))
+            } else {
+                Image(systemName: "camera")
+                    .font(.title)
+                    .foregroundStyle(.secondary)
+                    .frame(width: 120, height: 90)
+                    .background(.fill.tertiary, in: .rect(cornerRadius: CYRadius.card))
+                    .accessibilityHidden(true)
             }
             TextField("playkitLegacy.name.placeholder", text: textBinding(limit: maxLength))
                 .submitLabel(.done)
