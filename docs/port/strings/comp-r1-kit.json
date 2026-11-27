@@ -1,0 +1,14 @@
+{
+  "sourceLanguage": "zh-Hans",
+  "strings": {
+    "comp.kit.countdown.ended": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Ended"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "已结束"}}}},
+    "comp.kit.countdown.started": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "In progress"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "进行中"}}}},
+    "comp.kit.startsIn": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Starts in"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "距开始"}}}},
+    "comp.kit.join": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Join"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "加入"}}}},
+    "comp.kit.joined": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Joined"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "已加入"}}}},
+    "comp.kit.ring.progress": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Progress"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "进度"}}}},
+    "comp.kit.streak.label": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Active days"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "活跃天数"}}}},
+    "comp.kit.streak.value %lld %lld": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "%1$lld of %2$lld days"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "%2$lld 天中 %1$lld 天"}}}}
+  },
+  "version": "1.0"
+}
