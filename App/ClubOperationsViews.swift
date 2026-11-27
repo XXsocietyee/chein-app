@@ -438,6 +438,9 @@ struct ClubOperationsWorkspaceView: View {
                 if value.accountRole != "club", let hostApplication {
                     if ClubCreatePageModel.interpret(signedIn: identity != nil, configured: access.isConfigured, loading: false, gate: ClubCreationGate(access: access), snapshot: value, readback: .received(value), onPlayerFirstEntry: false).showsHostApplication { ClubCreateHostApplicationLink(identity: identity, governance: hostApplication) }
                 }
+                // mp-club r3 (MP create wxml:23, 27): both states end with the quiet secondary 返回上一页.
+                Button("team.page.goBack") { dismiss() }
+                    .accessibilityIdentifier("clubCreate.back")
             }
         } else {
             if profileDraftEnabled {
