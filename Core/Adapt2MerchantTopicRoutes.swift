@@ -36,7 +36,6 @@ public enum Adapt2MerchantTopicRoute: String, CaseIterable, Equatable {
         "api/merchant/insight": .merchantInsight,
         "api/merchant/poi/detail": .merchantPublicDetail,
         "api/merchant/shop/apply": .merchantRegistration,
-        "api/topic/detail": .topicInfoToUser,
         "api/merchant/npc/voice/revoke": .npcVoiceReset,
     ]
 }

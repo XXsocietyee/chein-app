@@ -43,7 +43,7 @@ import SwiftUI
                 filterPicker("publishModes.owner", selection: $owner, options: Self.ownerFilters)
             }.disabled(busy)
             if busy {
-                Section { ProgressView().frame(maxWidth: .infinity) }
+                Section { CYLoadingState() }
             }
             if failed {
                 ContentUnavailableView {

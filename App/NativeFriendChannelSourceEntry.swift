@@ -62,7 +62,7 @@ import SwiftUI
     var body: some View {
         List {
             Section {
-                if source.busy || friend.busy { ProgressView().frame(maxWidth: .infinity) }
+                if source.busy || friend.busy { CYLoadingState() }
                 if source.unavailable { Text("d7.channelMembers.loadFailure") }
                 if !source.isCurrent { Text("d7.friendInvite.expired") }
                 if friend.pending != nil {

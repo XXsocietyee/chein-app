@@ -13,6 +13,7 @@ import Foundation
 /// This audit is a source gate. It does not compile or run a Release build.
 enum DesignFixtureReleaseExclusionAudit {
     static let symbols: [String] = [
+        "A11yBadgesAX5Fixture",
         "A11yPassportAX5Fixture",
         "A11yRoamAX5Fixture",
         "AlbumBadgeFixtureReader",
