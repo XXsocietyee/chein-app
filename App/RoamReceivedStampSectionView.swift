@@ -103,9 +103,8 @@ import SwiftUI
         }
 
         if let error = model.error {
-            RoamExperienceIssue(error: error) {
-                Task { await model.loadNextIfNeeded() }
-            }
+            // mp-states r3 (MP scene-roam-stamp-album wxml:25): 收到的邮票无法打开 · 重试.
+            RoamExperienceIssue(error: error, retry: { Task { await model.loadNextIfNeeded() } }, failureTitle: "roam.receivedStamp.openFailed")
         }
 
         if model.isEmptyStateVisible {

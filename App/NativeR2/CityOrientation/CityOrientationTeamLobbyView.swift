@@ -56,12 +56,9 @@ import SwiftUI
             switch phase {
             case .loading:
                 Section {
-                    ForEach(0..<3, id: \.self) { _ in
-                        LabeledContent("orientLobby.loading", value: "0/0")
-                    }
+                    ProgressView { Text("orientLobby.loading") }
+                        .frame(maxWidth: .infinity)
                 }
-                .redacted(reason: .placeholder)
-                .accessibilityLabel(Text("orientLobby.loading"))
             case .signedOut:
                 ContentUnavailableView("orientLobby.signIn", systemImage: "person.crop.circle")
                     .accessibilityIdentifier("orientLobby.signIn")
@@ -175,9 +172,9 @@ import SwiftUI
                 content(detail)
             } else if model.running || !readDone {
                 Section {
-                    ForEach(0..<3, id: \.self) { _ in Label("team.loading", systemImage: "person.crop.circle") }
+                    ProgressView { Text("team.loading") }
+                        .frame(maxWidth: .infinity)
                 }
-                .redacted(reason: .placeholder)
             } else {
                 ContentUnavailableView {
                     Label("nativeR2.city.lobby.noTeam", systemImage: "person.3")
