@@ -82,7 +82,8 @@ struct OfficialRouteDetailContent: View {
             Text("officialRoute.detail.nodes \(detail.nodes.count)").cyText(.sectionTitle)
                 .foregroundStyle(palette.textPrimary).accessibilityAddTraits(.isHeader)
             if detail.nodes.isEmpty {
-                Text("officialRoute.detail.noNodes").foregroundStyle(palette.textSecondary)
+                // MP cy-empty kind="empty" 这条线路还没有节点.
+                ContentUnavailableView("officialRoute.detail.noNodes", systemImage: "mappin.slash")
             } else {
                 VStack(spacing: 0) {
                     ForEach(Array(detail.nodes.enumerated()), id: \.element.id) { index, node in

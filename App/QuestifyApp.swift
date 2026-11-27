@@ -366,7 +366,8 @@ struct SessionRootView: View {
             nearbyTeamDestination: { AnyView(SessionRoamNearbyTeamsView(focusTeamID: $0, onSignIn: signIn)) },
             searchReader: session.searchMapReader,
             onChooseArea: { showsAreaPicker = true },
-            onOpenAccount: openAccount)
+            onOpenAccount: openAccount,
+            experienceReader: session.roamExperienceReader)
     }
 
     /// The shipped roam page (走起, 漫游护照, tools). Owner Q9: the 漫游 root is the map; this page opens from it.

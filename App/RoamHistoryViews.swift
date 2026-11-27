@@ -34,7 +34,8 @@ import SwiftUI
                             .accessibilityIdentifier("roam.experience.history.denied")
                     } else { RoamExperienceIssue(error: error, retry: load) }
                 }
-                else if !loaded { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("roamSub.w208.history.loading")) }
+                // MP history-loading: 正在读取漫游记录… in words (P10), not a bare spinner.
+                else if !loaded { ProgressView { Text("roamSub.w208.history.loading") }.frame(maxWidth: .infinity) }
                 else if records.isEmpty {
                     RoamHistoryRemoteStatusBanner()   // RHIST-2
                     if toolsReader != nil { RoamHistoryToolsRow(reader: toolsReader, privateTools: privateToolsReader, anniversaryRouteDestination: anniversaryRouteDestination) }
@@ -372,7 +373,10 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                     CYEmptyState(systemImage: "info.circle", "roam.experience.recordMissing",
                                  actionTitle: "roamSub.w208.session.missingBack", action: { dismiss() })
                         .accessibilityIdentifier("roam.experience.history.missing")
-                } else { ProgressView("roam.loading") }
+                } else {
+                    // MP scene-roam-session loading: 正在读取本次漫游 (not the map's loading line).
+                    ProgressView { Text("roam.session.loading") }.frame(maxWidth: .infinity)
+                }
             }.padding()
         }.background(CYColor.bgPage.ignoresSafeArea())
             .modifier(RoamHistoryHeroDestination(id: timestamp, hero: hero))

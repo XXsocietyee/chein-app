@@ -234933,7 +234933,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading roaming records…"
+            "value": "Loading your roam history…"
           }
         },
         "zh-Hans": {
@@ -335824,6 +335824,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "提交检定"
+          }
+        }
+      }
+    },
+    "officialRoute.list.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading routes…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载线路…"
+          }
+        }
+      }
+    },
+    "officialRoute.detail.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading route…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载线路…"
+          }
+        }
+      }
+    },
+    "roam.session.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading this roam…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取本次漫游"
           }
         }
       }

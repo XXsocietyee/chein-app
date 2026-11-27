@@ -31,6 +31,9 @@ struct RoamMapHomeDependencies {
     var searchReader: (any SearchMapReading)? = nil
     var onChooseArea: (() -> Void)? = nil
     var onOpenAccount: (() -> Void)? = nil
+    /// MP pages/roam/index `unfinishedRoam` / `recoveryError`: the local journal read that turns 开始漫游 into
+    /// 继续漫游 and shows 上次漫游需要确认. nil hides both, as before.
+    var experienceReader: (any RoamExperienceReading)? = nil
 }
 
 /// Native r2 漫游 tab root: a full-screen MapKit `Map` and one persistent bottom panel (Apple Maps detents).
