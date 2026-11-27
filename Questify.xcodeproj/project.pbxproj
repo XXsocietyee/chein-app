@@ -11025,6 +11025,76 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "70FA33F313F5C86CBC7E6FCB";
 		};
+		"732E10074FD93E37E3E47645" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Components/CYCountdown.swift";
+			"sourceTree" = "<group>";
+		};
+		"7B804985E4EFECBE0D854FFB" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "732E10074FD93E37E3E47645";
+		};
+		"4F9659EAD2A8A764F3AF7B74" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Components/CYJoinCountdownRow.swift";
+			"sourceTree" = "<group>";
+		};
+		"088AF9E314E76E8D952214E5" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "4F9659EAD2A8A764F3AF7B74";
+		};
+		"7C8FE731EBBE8DD07A85E070" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Components/CYLiveCounter.swift";
+			"sourceTree" = "<group>";
+		};
+		"CD5060D564FEE153C5886BB1" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "7C8FE731EBBE8DD07A85E070";
+		};
+		"B0CA311C0EA8EBD29FD417E4" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Components/CYRing.swift";
+			"sourceTree" = "<group>";
+		};
+		"60A0E75F5B238DA2377642C3" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "B0CA311C0EA8EBD29FD417E4";
+		};
+		"F0962558A84C74DC2C746C1F" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Components/CYStatPill.swift";
+			"sourceTree" = "<group>";
+		};
+		"053243ECC48B9E3EBCE24FC7" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "F0962558A84C74DC2C746C1F";
+		};
+		"09D0411205BD6C9FF41E45D0" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Components/CYStreakGrid.swift";
+			"sourceTree" = "<group>";
+		};
+		"6B292B506D97CF3C2E30341F" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "09D0411205BD6C9FF41E45D0";
+		};
+		"356ED881449A8E234E6CB7EB" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/NativeR2/Components/CYWaveform.swift";
+			"sourceTree" = "<group>";
+		};
+		"765F116D4688C7C8F72B9E23" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "356ED881449A8E234E6CB7EB";
+		};
 		"9989B25B3706E71357A29063" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -43826,6 +43896,13 @@
 				"39394E9E3F808BBBD8CE1D69",
 				"1FC5B0CEB1E0BCC8F3458F24",
 				"70FA33F313F5C86CBC7E6FCB",
+				"732E10074FD93E37E3E47645",
+				"4F9659EAD2A8A764F3AF7B74",
+				"7C8FE731EBBE8DD07A85E070",
+				"B0CA311C0EA8EBD29FD417E4",
+				"F0962558A84C74DC2C746C1F",
+				"09D0411205BD6C9FF41E45D0",
+				"356ED881449A8E234E6CB7EB",
 				"9989B25B3706E71357A29063",
 				"2986D04F7223184114E02744",
 				"73AB693AFE89B4A398C3B819",
@@ -49278,6 +49355,13 @@
 				"7E5CCE592DF73CA36D44CEBB",
 				"76A7401D7C03FB41D52A79E6",
 				"514F5EE298215E1883EEEB95",
+				"7B804985E4EFECBE0D854FFB",
+				"088AF9E314E76E8D952214E5",
+				"CD5060D564FEE153C5886BB1",
+				"60A0E75F5B238DA2377642C3",
+				"053243ECC48B9E3EBCE24FC7",
+				"6B292B506D97CF3C2E30341F",
+				"765F116D4688C7C8F72B9E23",
 				"2775B23F93A827A4A05FC172",
 				"1C13FECFEFA32253A14CB58B",
 				"7BD5593ABFF4BDC8BADD4CA5",
