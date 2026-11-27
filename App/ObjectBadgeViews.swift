@@ -194,7 +194,6 @@ struct ObjectBadgeWallBadgeLabel: View {
 @MainActor struct ObjectBadgeDetailView: View {
     @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let badge: ProfileBadgeSelection
     let reader: any ProfileReading
     let expectedIdentity: ProfileReadIdentity?
@@ -204,14 +203,7 @@ struct ObjectBadgeWallBadgeLabel: View {
     @State private var mediaScope = UUID()
     @State private var expiredScope = UUID()
     @State private var celebrate = false
-    @State private var flipped = false
-    @State private var celebrations = CYCelebrationCenter()
-    @CYAlbumSeen private var seen
     private var valid: Bool { expectedIdentity != nil && reader.identity == expectedIdentity }
-    private var track: Int {
-        switch badge { case .identity(let value): return ObjectBadgePresentation.track(category: value.category); case .medal: return 1 }
-    }
-    private var tint: Color { [palette.success, Color(hue: 0.12, saturation: 0.7, brightness: 0.95), palette.warning, palette.textTertiary, palette.danger][track] }
     private var displayName: String { badge.name.isEmpty ? ChannelCopy.text("徽章", "Badge", locale: locale) : badge.name }
     private var obtained: String? {
         switch badge {
@@ -225,25 +217,47 @@ struct ObjectBadgeWallBadgeLabel: View {
         case .medal(let value): return value.displayCondition
         }
     }
+    /// N-r11-5 (MP subpackageP3/pages/badge-3d 2D fallback): an inset-grouped List with the badge image row and
+    /// `LabeledContent` facts; no flip card, foil medal or bloom cover. The quiet success haptic stays.
     var body: some View {
-        ScrollView {
-            if !valid { Text("objects.sessionChanged").padding(CYSpacing.pageHorizontal) }
+        List {
+            if !valid { Text("objects.sessionChanged") }
             else {
-                VStack(spacing: CYSpacing.xl) {
-                    stage
-                    VStack(spacing: CYSpacing.sm) {
-                        Text(verbatim: displayName).cyText(.display).multilineTextAlignment(.center)
-                            .foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
-                        ViewThatFits(in: .horizontal) {
-                            HStack(spacing: CYSpacing.sm) { statusChips }
-                            VStack(spacing: CYSpacing.sm) { statusChips }
-                        }
+                Section {
+                    artwork
+                        .frame(width: 120, height: 120)
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .frame(maxWidth: .infinity)
+                        .opacity(badge.isLocked ? 0.45 : 1)
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(Text(verbatim: displayName))
+                    Text(verbatim: displayName).font(.title2.weight(.semibold))
+                        .frame(maxWidth: .infinity).multilineTextAlignment(.center)
+                }
+                Section {
+                    LabeledContent(ChannelCopy.text("状态", "Status", locale: locale)) {
+                        Label(badge.isLocked ? LocalizedStringKey("profile.badges.locked") : LocalizedStringKey("profile.badges.unlocked"),
+                              systemImage: badge.isLocked ? "lock.fill" : "checkmark.seal.fill")
                     }
-                    requirementCard
-                    if let collection, collection.total > 0 { collectionCard(collection) }
-                }.padding(.horizontal, CYSpacing.pageHorizontal).padding(.top, CYSpacing.lg).padding(.bottom, CYSpacing.xxl)
+                    if let obtained, !obtained.isEmpty {
+                        LabeledContent(ChannelCopy.text("获得日期", "Earned on", locale: locale), value: obtained)
+                    }
+                    LabeledContent(ChannelCopy.text("系列", "Series", locale: locale)) { Text(badge.familyKey) }
+                }
+                Section(ChannelCopy.text(badge.isLocked ? "如何点亮" : "获得条件", badge.isLocked ? "How to unlock" : "How it was earned", locale: locale)) {
+                    Text(verbatim: requirement.isEmpty ? "—" : requirement)
+                    if case .identity(let value) = badge, !value.statement.isEmpty, value.statement != requirement {
+                        Text(verbatim: value.statement).font(.footnote).foregroundStyle(.secondary)
+                    }
+                }
+                if let collection, collection.total > 0 {
+                    Section(ChannelCopy.text("我的收藏", "My collection", locale: locale)) {
+                        CYCollectedLockedSummary(collected: collection.unlocked, locked: collection.locked)
+                    }
+                }
             }
         }
+        .listStyle(.insetGrouped)
         .safeAreaInset(edge: .bottom) {
             if valid, !badge.isLocked {
                 ShareLink(item: ChannelCopy.text("我在「城瘾」点亮了徽章「\(displayName)」", "I earned the “\(displayName)” badge on 城瘾", locale: locale)) {
@@ -256,106 +270,18 @@ struct ObjectBadgeWallBadgeLabel: View {
                 .accessibilityIdentifier("objects.badge.share")
             }
         }
-        .background(palette.bgPage.ignoresSafeArea())
         .cyPageTitle("profile.badges.detail").privacySensitive().cyHideTabBar()
         .sensoryFeedback(.success, trigger: celebrate)
-        .cyCelebrations(celebrations)
-        .onAppear { arrive() }
+        .onAppear { if valid, !badge.isLocked { celebrate = true } }
         .accessibilityIdentifier("objects.badge.detail")
     }
-    /// First open of a badge unlocked in the last seven days plays the badge bloom cover once (`CYBadgeUnlockCover`, the same
-    /// one the Growth Center uses); every other unlocked badge keeps the quiet success tick. Locked badges arrive silently.
-    private func arrive() {
-        guard valid, !badge.isLocked else { return }
-        let key = ObjectBadgeAlbumItem.seenKey(badge)
-        if ObjectBadgeAlbumItem.isNew(badge), !key.isEmpty, !seen.contains(key) {
-            $seen.mark(key)
-            Task { @MainActor in
-                try? await Task.sleep(for: .milliseconds(350))
-                celebrations.enqueue(.badge(CYBadgePayload(id: key, name: displayName)))
-            }
+    @ViewBuilder private var artwork: some View {
+        if media == nil || badge.image.isEmpty {
+            // MP badge-3d `DEFAULT_BADGE_ASSET` (`badge-demo.png`) when the badge has no art.
+            MPAsset.BadgeMedal.badgeDemo.resizable().scaledToFit()
         } else {
-            celebrate = true
-        }
-    }
-    /// Large foil medal that flips to its facts. No ring or percentage: the API has no per-badge progress, so the page only says collected or locked.
-    private var stage: some View {
-        CYFlipCard(flipped: $flipped, flipActionTitle: Text(verbatim: ChannelCopy.text("翻面", "Flip", locale: locale))) {
-            medal
-        } back: {
-            stageBack
-        }
-        .frame(maxWidth: .infinity)
-    }
-    private var medal: some View {
-        ZStack {
-            CYFoilMedal(unlocked: !badge.isLocked, size: 168, tint: tint) {
-                if media == nil || badge.image.isEmpty {
-                    ZStack {
-                        LinearGradient(colors: [tint.opacity(0.9), tint.opacity(0.35)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                        // MP badge-3d `DEFAULT_BADGE_ASSET` (`badge-demo.png`, MP assets) when the badge has no art.
-                        MPAsset.BadgeMedal.badgeDemo.resizable().scaledToFit().padding(CYSpacing.lg)
-                            .scaleEffect(celebrate && !reduceMotion ? 1.06 : 1)
-                            .animation(reduceMotion ? nil : .spring(duration: 0.35, bounce: 0.4), value: celebrate)
-                    }
-                } else {
-                    ObjectCardArtwork(url: badge.image, label: badge.name, media: media,
-                        expectedScope: mediaScope, currentScope: { valid ? mediaScope : expiredScope })
-                }
-            }
-        }
-        .frame(width: 212, height: 212)
-        .frame(maxWidth: .infinity)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(verbatim: displayName))
-        .accessibilityHint(Text(verbatim: ChannelCopy.text("双击翻面查看详情", "Double-tap to flip for details", locale: locale)))
-    }
-    private var stageBack: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            HStack {
-                Text(badge.familyKey).cyText(.meta).foregroundStyle(palette.textSecondary)
-                Spacer(minLength: CYSpacing.sm)
-                Image(systemName: badge.isLocked ? "lock.fill" : "medal.fill")
-                    .foregroundStyle(badge.isLocked ? palette.textTertiary : CYAlbumMotion.gold).accessibilityHidden(true)
-            }
-            Divider()
-            Text(verbatim: displayName).cyText(.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
-            if let obtained, !obtained.isEmpty {
-                CYFactRow(label: Text(verbatim: ChannelCopy.text("获得日期", "Earned on", locale: locale)), value: obtained)
-            }
-            CYFactRow(label: Text(verbatim: ChannelCopy.text("状态", "Status", locale: locale)),
-                      value: ChannelCopy.text(badge.isLocked ? "未解锁" : "已点亮", badge.isLocked ? "Locked" : "Unlocked", locale: locale))
-            Text(verbatim: ChannelCopy.text(badge.isLocked ? "如何点亮" : "获得条件", badge.isLocked ? "How to unlock" : "How it was earned", locale: locale))
-                .cyText(.meta).foregroundStyle(palette.textSecondary)
-            Text(verbatim: requirement.isEmpty ? CYAlbumCopy.unknownMark : requirement)
-                .cyText(.body).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: 0)
-            Text(verbatim: ChannelCopy.text("轻点翻回正面", "Tap to turn back", locale: locale))
-                .cyText(.caption).foregroundStyle(palette.textTertiary)
-        }
-        .frame(maxWidth: .infinity, minHeight: 212, alignment: .topLeading)
-        .cyAlbumCard(padding: CYSpacing.lg)
-    }
-    @ViewBuilder private var statusChips: some View {
-        CYStatusChip(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked",
-                     tone: badge.isLocked ? .neutral : .success, systemImage: badge.isLocked ? "lock.fill" : "checkmark.seal.fill")
-        if let obtained, !obtained.isEmpty { CYStatusChip(verbatim: obtained) }
-    }
-    private var requirementCard: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Text(verbatim: ChannelCopy.text(badge.isLocked ? "如何点亮" : "获得条件", badge.isLocked ? "How to unlock" : "How it was earned", locale: locale))
-                .cyText(.sectionTitle).foregroundStyle(palette.textPrimary).accessibilityAddTraits(.isHeader)
-            Text(verbatim: requirement.isEmpty ? "—" : requirement)
-                .cyText(.body).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
-            if case .identity(let value) = badge, !value.statement.isEmpty, value.statement != requirement {
-                Text(verbatim: value.statement).cyText(.meta).foregroundStyle(palette.textTertiary).fixedSize(horizontal: false, vertical: true)
-            }
-        }.frame(maxWidth: .infinity, alignment: .leading).padding(CYSpacing.lg)
-            .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-    }
-    private func collectionCard(_ summary: ObjectBadgeWallSummary) -> some View {
-        CYInfoCard(title: Text(verbatim: ChannelCopy.text("我的收藏", "My collection", locale: locale)), symbol: "square.grid.2x2.fill") {
-            CYCollectedLockedSummary(collected: summary.unlocked, locked: summary.locked)
+            ObjectCardArtwork(url: badge.image, label: badge.name, media: media,
+                expectedScope: mediaScope, currentScope: { valid ? mediaScope : expiredScope })
         }
     }
 }

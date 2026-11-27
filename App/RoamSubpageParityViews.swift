@@ -142,7 +142,8 @@ struct RoamRunCardParityMeta: View {
             .foregroundStyle(CYColor.textPrimary)
             .padding(.vertical, 12)
             .frame(maxWidth: .infinity, minHeight: 64)
-            .cyNightGlass(cornerRadius: CYRadius.md)
+            // N-r11-4: system grouped surface instead of night glass.
+            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
     }
 }
 
@@ -485,7 +486,7 @@ struct RoamPOIMissingView: View {
     private var plainControls: Bool { reduceMotion || voiceOver }
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            RoamStampPrinterView(torn: slip.got && torn)
+            // N-r11-4: no printer art over the slip; the stamp photo stays.
             if !slip.got {
                 VStack(alignment: .leading, spacing: 6) {
                     if let reason = slip.reason { Text(verbatim: reason).cyText(.cardTitle) }
@@ -569,12 +570,7 @@ struct RoamPOIMissingView: View {
                         .accessibilityHidden(true)
                 }
             }
-            Divider()
-            HStack(spacing: 0) {
-                ForEach(Array(slip.bars.enumerated()), id: \.offset) { _, bar in
-                    Rectangle().frame(width: CGFloat(bar.width), height: 28).padding(.trailing, CGFloat(bar.gap))
-                }
-            }.accessibilityHidden(true)
+            // N-r11-4: the decorative barcode strip is gone (`RoamStampSlip.bars` stays for the slip model).
         }.padding().background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
             .accessibilityElement(children: .contain).accessibilityIdentifier("roamSub.w208.stamp.slip")
     }

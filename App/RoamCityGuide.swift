@@ -89,10 +89,21 @@ struct RoamCityGuideCards: View {
             HStack(spacing: 12) {
                 ForEach(strip.items) { item in
                     Button { onOpen(item) } label: {
-                        CYImageCard(title: Text(verbatim: item.name),
-                                    meta: Text(item.category.labelKey) + Text(verbatim: " · ") + Text(verbatim: item.reason),
-                                    imageURL: cover(for: item), style: .shelf)
-                            .fallbackArtwork(MPAsset.BannerCover.homeRouteCityPlaceholder)
+                        // N-r11-4: a plain Label row with the MP placeholder art instead of the shelf image card.
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(verbatim: item.name).font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
+                                (Text(item.category.labelKey) + Text(verbatim: " · ") + Text(verbatim: item.reason))
+                                    .font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                            }
+                        } icon: {
+                            MPAsset.BannerCover.homeRouteCityPlaceholder.resizable().scaledToFill()
+                                .frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                .accessibilityHidden(true)
+                        }
+                        .frame(width: 240, alignment: .leading)
+                        .padding(10)
+                        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(Text(verbatim: item.name))
