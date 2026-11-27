@@ -6,7 +6,8 @@ def read(p):return (R/p).read_text()
 class CommunityMediaIntegration(unittest.TestCase):
  def test_club_public_entry_is_outside_governance(self):
   s=read('App/ClubDetailView.swift');self.assertLess(s.index('postsFeed(club: club'),s.index('// V2 governance'))
-  self.assertIn('ClubCommunityFeedView(context: community, identity: reader.clubIdentity)',read('App/ClubHomeView.swift'))
+  # mp-club r3: the 发现 feed also passes onSignIn (guest 登录后查看帖文); the public, non-governance entry is unchanged.
+  self.assertIn('ClubCommunityFeedView(context: community, identity: reader.clubIdentity, onSignIn: onSignIn)',read('App/ClubHomeView.swift'))
  def test_club_evidence_is_fresh_and_exact(self):
   s=read('App/AppSession.swift')
   for n in ['try await clubDetail(id: clubID)','exact.clubID == clubID','exactComment.postID == exact.id','try currentCommunitySession() == captured','private lazy var communityCoordinator'] :self.assertIn(n,s)

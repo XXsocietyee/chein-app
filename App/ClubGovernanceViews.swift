@@ -1723,9 +1723,26 @@ struct ClubGovernanceReadView: View {
                             ClubGovernanceReadView(operation: .topicCustomers, scope: scope, identity: identity, access: access, coordinator: coordinator)
                         case .more:
                             List {
-                                Section { link(.topicStats); link(.topicSettings); enrollmentLink(focusTopicID: scope.topicID) }
-                                // CLB-topic-detail-05 (MP wxml:454-470): 场次管理 for canManageSessions, then 退出与暂停规则.
+                                // mp-club r3 (MP topic-detail wxml:430-470, Figma J9): 剧情与玩法 → 结束活动 (self-run, director
+                                // active) → 核销记录 → 场次管理 → 退出与暂停规则; then the topic's settings rows.
                                 Section {
+                                    NavigationLink { ClubGovernanceStoryView(snapshot: $snapshot, snapshotContext: $snapshotContext, snapshotGeneration: $snapshotGeneration, loading: $loading, failure: $failure, context: readContext, identity: identity, access: access, coordinator: coordinator, reload: { await load() }) } label: {
+                                        Label("club.topic.more.story", systemImage: "book")
+                                    }
+                                    .accessibilityIdentifier("club.topic.more.story")
+                                    // CLB-G13b (MP wxml:436-442): 结束活动 for a self-run session the director has taken over.
+                                    if ClubTopicDetailPort.stateKey(value) == .selfrun, directorActive {
+                                        Button("club.topic.primary.running", role: .destructive) {
+                                            directorEndAfterSheet = true
+                                            topicQuickSheet = nil
+                                        }
+                                        .accessibilityIdentifier("club.topic.more.endSession")
+                                    }
+                                    if let topicLedger {
+                                        NavigationLink { topicLedger } label: { Label("club.topic.more.ledger", systemImage: "list.clipboard") }
+                                            .accessibilityIdentifier("club.topic.more.ledger")
+                                    }
+                                    // CLB-topic-detail-05 (MP wxml:454-470): 场次管理 for canManageSessions, then 退出与暂停规则.
                                     if stats["canManageSessions"] == .bool(true), scope.clubID != nil {
                                         NavigationLink {
                                             ClubOpsEventView(scope: .init(clubID: scope.clubID, topicID: scope.topicID), identity: identity, access: access, coordinator: coordinator)
@@ -1735,6 +1752,7 @@ struct ClubGovernanceReadView: View {
                                     NavigationLink { ClubOperatingRulesView() } label: { Label("club.topic.more.rules", systemImage: "list.bullet.rectangle") }
                                         .accessibilityIdentifier("club.topic.more.rules")
                                 }
+                                Section { link(.topicSettings); link(.topicStats); enrollmentLink(focusTopicID: scope.topicID) }
                                 // CLB-r9-topic-detail-02 / CLB-G12 (MP topic-detail wxml:426-500): one 更多; 编辑主题内容 (fabu ?id),
                                 // 确认终价 while pricing (lifecycle 2, organiser's canDirect), 承接审核 with canReviewChapterApplications.
                                 if let topicID = scope.topicID, scope.clubID != nil, canDirect || stats["canReviewChapterApplications"] == .bool(true) {
@@ -1757,16 +1775,6 @@ struct ClubGovernanceReadView: View {
                                     }
                                     .accessibilityIdentifier("club.topic.more")
                                 }
-                                // CLB-G13b (MP wxml:436-442): 结束活动 for a self-run session the director has taken over.
-                                if ClubTopicDetailPort.stateKey(value) == .selfrun, directorActive {
-                                    Section {
-                                        Button("club.topic.primary.running", role: .destructive) {
-                                            directorEndAfterSheet = true
-                                            topicQuickSheet = nil
-                                        }
-                                        .accessibilityIdentifier("club.topic.more.endSession")
-                                    }
-                                }
                             }
                             .cyPageTitle("club.topic.quick.more")
                         }
@@ -1779,13 +1787,14 @@ struct ClubGovernanceReadView: View {
             }
             // Mini 核销 card: only for running/ended, uncancelled sessions the server granted `canViewVerify`;
             // the counts come from topic-manage-stats. Missing counts render as an em dash.
+            // mp-club r3 (MP topic-detail wxml:86-109): 未通过原因 comes before 核销 + 台账.
+            if let reason = value["rejectReason"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !reason.isEmpty {
+                Section("club.topic.rejectReason") { Text(verbatim: reason).foregroundStyle(.red) }
+            }
             if ClubTopicDetailPort.showsVerify(topicDisplay, canViewVerify: stats["canViewVerify"].bool) {
                 ClubTopicVerifySummarySection(metrics: ClubTopicDetailPort.verifyMetrics(
                     pending: stats["pendingVerifyCount"].int, verifiedByMe: stats["verifiedByMeCount"].int, headcount: stats["sessionHeadcount"].int),
                     ledger: topicLedger)
-            }
-            if let reason = value["rejectReason"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !reason.isEmpty {
-                Section("club.topic.rejectReason") { Text(verbatim: reason).foregroundStyle(.red) }
             }
             // CLB-r8-topic-detail-01 (MP wxml:106-125): the 主题 card (cover when present, name, 「N 章 · N 站 · 玩法」, the
             // 剧情已写 chip, 打开剧情与玩法) is the story entry.
@@ -1794,10 +1803,12 @@ struct ClubGovernanceReadView: View {
                     ClubTopicStoryCard(value: value, nodeCount: stats["nodeCount"].int)
                 }.accessibilityIdentifier("club.gov.openStory")
             } header: { Text("club.topic.card.title") }
+            // mp-club r3 (MP topic-detail wxml:134): 接下来 appears only when there are sessions (no empty placeholder);
+            // the 管理场次 link keeps the section for those who may add one.
+            if !(value["activityList"].array ?? []).isEmpty || (scope.clubID != nil && stats["canManageSessions"] == .bool(true)) {
             Section {
                 let sessions = value["activityList"].array ?? []
                 let groupCodePage = ClubGroupCodePage.project(value: value, scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope))
-                if sessions.isEmpty { ContentUnavailableView("club.topic.noSessions", systemImage: "calendar") }
                 // CLB-topic-detail-07: 接下来 links to event ops (MP 管理场次 → pages/club/event-ops), only when the
                 // manage stats grant `canManageSessions` (MP wxml:684-700).
                 if scope.clubID != nil, stats["canManageSessions"] == .bool(true) {
@@ -1844,6 +1855,7 @@ struct ClubGovernanceReadView: View {
             } header: { Text("club.topic.upcoming") } footer: {
                 // CLB-r11-topic-detail-02 (MP topic-detail/index.js:419, wxml:316): paidSessionsBlocked → paymentNotice.
                 if stats["paidSessionsBlocked"] == .bool(true) { Text("club.topic.paidSessionsBlocked") }
+            }
             }
             ClubTerminalSessionEntry(snapshot: snapshot, context: terminalContext, snapshotGeneration: terminalGeneration,
                 host: terminalSessions, access: access, sourceIsCurrent: {

@@ -243,6 +243,11 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                 .accessibilityIdentifier("club.detail.introduction")
                         } else { Text("club.noIntroduction").foregroundStyle(.secondary) }
                     }
+                    // mp-club r3 (MP detail wxml:227-243 ov-facts): 主理人 / 俱乐部类型 / 所在城市 right under the
+                    // introduction, before 俱乐部勋章 — not in the header.
+                    Section {
+                        ClubOverviewFacts(club: club, content: facts.content)
+                    }
                     if let host = badgeHost(id) { ClubBadgeManagementNavigationEntry(host: host).id(host.id) }
                     Section {
                         // CLB-G08 (MP wxml:265-280): four member avatars and +N above 查看全部成员.
@@ -703,9 +708,9 @@ private struct ClubDetailCover: View {
     }
 }
 
-/// Club/Header (skill-r2 `204:24899`, MC-22). Cover banner; logo 52 pt beside the name and one meta line; the host
-/// line 「主理人 X · 城市」 (known facts only, never an em dash); the viewer's role as a neutral tag. Large type drops the
-/// logo and lets every line wrap.
+/// Club/Header (skill-r2 `204:24899`, MC-22). Cover banner; logo 52 pt beside the name and one meta line; the viewer's
+/// role as a neutral tag. Large type drops the logo and lets every line wrap. mp-club r3 (MP detail wxml:43-88, P17):
+/// the MP header ends at the meta rows; 主理人 / 俱乐部类型 / 所在城市 live on 概览 (`ClubOverviewFacts`).
 private struct ClubDetailHeader: View {
     let club: ClubRecord
     let memberText: String
@@ -718,12 +723,7 @@ private struct ClubDetailHeader: View {
     @ScaledMetric(relativeTo: .title) private var bannerHeight: CGFloat = 160  // CLB-detail-37: MP cover-wrap 160
     @ScaledMetric(relativeTo: .title2) private var logoSide: CGFloat = 56  // CLB-r10-nat-detail-06: MP logo 112 rpx, scales with type
 
-    private static func known(_ value: String?) -> String? { ClubDetailHeaderFact.known(value) }
-    /// CLB-detail-42 (MP detail header): a missing 主理人 or 城市 reads 待补充 instead of dropping the line.
-    private var pendingText: String { appLocalized(String.LocalizationValue(ClubDetailHeaderFact.pendingKey), locale: locale) }
-    private var typeText: String? { Self.known(content?.typeText ?? club.clubType ?? club.clubTypes) }
-    private var leaderText: String? { Self.known(content?.leaderText ?? club.leaderName) }
-    private var cityText: String? { Self.known(content?.cityText ?? club.city ?? club.address) }
+    private var typeText: String? { ClubDetailHeaderFact.known(content?.typeText ?? club.clubType ?? club.clubTypes) }
 
     private var metaLine: String {
         var parts: [String] = []
@@ -771,7 +771,6 @@ private struct ClubDetailHeader: View {
                     }
                     Spacer(minLength: 0)
                 }
-                factsLine
                 statusTags
                 // MC-22 Member / Manager header: 邀请朋友加入 is the header's one full-width action (the visitor's 加入
                 // stays in the action panel right under the header).
@@ -785,19 +784,6 @@ private struct ClubDetailHeader: View {
             .padding(.bottom, CYSpacing.md)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private var factsLine: some View {
-        HStack(spacing: 4) {
-            Text(verbatim: appLocalized("club.leader", locale: locale) + " " + (leaderText ?? pendingText))
-                .accessibilityIdentifier("club.detail.fact.leader")
-            Text(verbatim: "·").accessibilityHidden(true)
-            Text(verbatim: cityText ?? pendingText).accessibilityIdentifier("club.detail.fact.city")
-        }
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("club.detail.factsGrid")
     }
 
     /// The viewer's relation to the club: role tags are neutral; pending is amber, a declined request red with its reason.
@@ -822,5 +808,66 @@ private struct ClubDetailHeader: View {
                 }
             }
         }
+    }
+}
+
+/// MP detail wxml:227-243 (`ov-facts`): three cells — 主理人 / 俱乐部类型 / 所在城市 — value first, small label under it.
+/// CLB-detail-42: an unknown value reads 待补充 (never an em dash). P12: falls back to labelled rows when the three cells
+/// do not fit side by side (long English values, accessibility sizes).
+private struct ClubOverviewFacts: View {
+    let club: ClubRecord
+    let content: ClubDetailPageContent?
+    @Environment(\.locale) private var locale
+
+    private struct Fact: Identifiable {
+        let id: String
+        let labelKey: String
+        let value: String
+    }
+
+    private var facts: [Fact] {
+        let pending = appLocalized(String.LocalizationValue(ClubDetailHeaderFact.pendingKey), locale: locale)
+        let leader = ClubDetailHeaderFact.known(content?.leaderText ?? club.leaderName) ?? pending
+        let type = ClubDetailHeaderFact.known(content?.typeText ?? club.clubType ?? club.clubTypes) ?? pending
+        let city = ClubDetailHeaderFact.known(content?.cityText ?? club.city ?? club.address) ?? pending
+        return [
+            Fact(id: "club.detail.fact.leader", labelKey: "club.leader", value: leader),
+            Fact(id: "club.detail.fact.type", labelKey: "club.type", value: type),
+            Fact(id: "club.detail.fact.city", labelKey: "club.detail.cityFact", value: city)
+        ]
+    }
+
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .top, spacing: CYSpacing.md) {
+                ForEach(facts) { fact in
+                    cell(fact).frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                ForEach(facts) { fact in
+                    LabeledContent {
+                        Text(verbatim: fact.value)
+                    } label: {
+                        Text(LocalizedStringKey(fact.labelKey))
+                    }
+                    .accessibilityIdentifier(fact.id)
+                }
+            }
+        }
+        .accessibilityIdentifier("club.detail.factsGrid")
+    }
+
+    private func cell(_ fact: Fact) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Text(verbatim: fact.value)
+                .font(.headline)
+                .lineLimit(2)
+            Text(LocalizedStringKey(fact.labelKey))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier(fact.id)
     }
 }

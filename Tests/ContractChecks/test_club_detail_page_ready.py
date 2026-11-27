@@ -68,7 +68,7 @@ class ClubDetailPageReadyContract(unittest.TestCase):
         welcome = (ROOT / "App/WelcomeView.swift").read_text()
         self.assertIn("static let showsMerchantChoice = false", welcome)
         # CLB-detail-42 (MP pages/club/detail header): a missing 主理人 / 城市 reads 待补充 on the live header
-        # (App/ClubDetailView.swift factsLine) through a catalog key; the dead overview grid is gone.
+        # (App/ClubDetailView.swift ClubOverviewFacts on 概览, mp-club r3) through a catalog key; the old model grid stays gone.
         self.assertIn('pendingKey = "club.detail.factPending"', model)
         catalog = json.loads((ROOT / "Resources/Localizable.xcstrings").read_text())["strings"]
         self.assertEqual(catalog["club.detail.factPending"]["localizations"]["zh-Hans"]["stringUnit"]["value"], "待补充")
