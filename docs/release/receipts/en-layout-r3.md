@@ -96,6 +96,7 @@ Merged `origin/ui/combined-r7` (clean). Sweep build bb76e327c (20:45Z) en sheets
 | # | MP page → native view | Problem in English | Fix | Status |
 |---|---|---|---|---|
 | 38 | `subpackagePass` free-explore pass catalog store row → `FreeExploreBundleLaunchView.swift:198`; native bundle detail store row → `NativeR2/FreeExplore/NativeFreeExploreBundleDetailView.swift:131`; swap-merchant targets → `BundleExitSwapView.swift:92` | `en-t5-free-explore`: store validity read raw "2026-12-31" | `LocaleDisplay.civil(_, locale:)` → "Dec 31, 2026"; Chinese keeps the MP text. Text only, no order/layout change. `BundleMerchantStallView` is not mounted (doc comment); not touched | Done |
+| 39 | `pages/topic/index` 场次 session chip (`周X M.D HH:mm`) → `TopicXcxSections.swift` `TopicXcxSessionChip` (topic detail activity rows, `TopicDetailView.swift:476`) | English read "Sat 12.6 14:00" (M.D reads as a decimal, 24 h clock) | English: one locale-formatted string "Sat, Dec 6 · 2:00 PM" (China wall time, time omitted at 00:00 as the MP does). Chinese keeps the MP three-part text; Core `sessionChip` and its tests unchanged | Done |
 
 ## Not done
 
