@@ -587,35 +587,32 @@ struct HomeFeedFeaturedFacts: View {
     static func hasAny(_ item: HomeFeedItem) -> Bool {
         item.isBeta || !item.featuredCategoryTags.isEmpty || item.featuredStatusText != nil || item.featuredClubText != nil
     }
+    /// MP `v3-reco-tags` (index.wxml:111-118): Beta 试玩, the first category and the status share one tag row.
+    private var tagLine: Text? {
+        var parts: [Text] = []
+        if item.isBeta { parts.append(Text("topic.source.betaBadge").fontWeight(.semibold).foregroundColor(.accentColor)) }
+        for name in item.featuredCategoryTags { parts.append(Text(verbatim: name)) }
+        if let status = item.featuredStatusText { parts.append(Text(verbatim: status)) }
+        guard var line = parts.first else { return nil }
+        for part in parts.dropFirst() { line = line + Text(verbatim: " · ") + part }
+        return line
+    }
     var body: some View {
+        // mp-home r3: club (MP `v3-reco-club`) on its own line, then one tag row — two quiet lines, not four.
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-            if item.isBeta {
-                Text("topic.source.betaBadge")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.tint)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityIdentifier("homeFeed.featured.beta")
-            }
-            ForEach(Array(item.featuredCategoryTags.enumerated()), id: \.offset) { index, name in
-                Text(verbatim: name)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityIdentifier("homeFeed.featured.category.\(index)")
-            }
-            if let status = item.featuredStatusText {
-                Text(verbatim: status)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityIdentifier("homeFeed.featured.status")
-            }
             if let club = item.featuredClubText {
                 Text(verbatim: club)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .lineLimit(1)
                     .accessibilityIdentifier("homeFeed.featured.club")
+            }
+            if let tagLine {
+                tagLine
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("homeFeed.featured.tags")
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
