@@ -80,6 +80,7 @@ struct ClubConsequenceSheet: View {
     let consequences: [CYConfirmConsequence]
     let confirmTitle: String
     var alternativeTitle: String?
+    var alternativeHint: String?
     var onAlternative: (() -> Void)?
     let onConfirm: () -> Void
     @Environment(\.dismiss) private var dismiss
@@ -104,13 +105,19 @@ struct ClubConsequenceSheet: View {
                         Text(verbatim: objectName)
                     }
                 }
-                Section {
-                    if let alternativeTitle, let onAlternative {
+                if let alternativeTitle, let onAlternative {
+                    // mp-club r3 pass 17 (MP cy-danger-confirm alt { text, hint }): the lighter alternative with its hint.
+                    Section {
                         Button {
                             dismiss()
                             onAlternative()
                         } label: { Text(verbatim: alternativeTitle) }
+                        .accessibilityIdentifier("club.consequence.alternative")
+                    } footer: {
+                        if let alternativeHint, !alternativeHint.isEmpty { Text(verbatim: alternativeHint) }
                     }
+                }
+                Section {
                     Button(role: .destructive) {
                         dismiss()
                         onConfirm()

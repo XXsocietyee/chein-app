@@ -51,6 +51,7 @@ import SwiftUI
     @StateObject private var model = ClubCalendarSessionsModel()
     @State private var visible = false
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     private var key: ClubCalendarSessionsReadKey { .init(context: context, month: month) }
     private struct LoadKey: Hashable {
         let request: ClubCalendarSessionsReadKey
@@ -76,15 +77,15 @@ import SwiftUI
             if loadKey.active, let snapshot = model.accepted(key, access: access) {
                 Text(LocalizedStringKey(snapshot.visibility == .governor ? "sessions.governor" : "sessions.public"), tableName: "ClubCalendarSessions")
                 if snapshot.truncated { Text("sessions.truncated", tableName: "ClubCalendarSessions") }
-                if let updated = snapshot.updatedAt { LabeledContent { Text(verbatim: updated) } label: { Text("sessions.updated", tableName: "ClubCalendarSessions") } }
+                if let updated = snapshot.updatedAt { LabeledContent { Text(verbatim: LocaleDisplay.civil(updated, locale: locale)) } label: { Text("sessions.updated", tableName: "ClubCalendarSessions") } }
                 if snapshot.sessions.isEmpty { Text(LocalizedStringKey(snapshot.truncated ? "sessions.emptyPartial" : "sessions.empty"), tableName: "ClubCalendarSessions") }
                 ForEach(snapshot.sessions) { row in
                     VStack(alignment: .leading, spacing: 4) {
                         if let name = row.name, !name.isEmpty { Text(verbatim: name) }
                         else { Text("sessions.unnamed", tableName: "ClubCalendarSessions") }
                         Group {
-                            Text(verbatim: row.startDate)
-                            if let end = row.endDate { Text(verbatim: end) }
+                            Text(verbatim: LocaleDisplay.civil(row.startDate, locale: locale))
+                            if let end = row.endDate { Text(verbatim: LocaleDisplay.civil(end, locale: locale)) }
                             Text(LocalizedStringKey("sessions.state." + row.state.rawValue), tableName: "ClubCalendarSessions")
                         }
                         .font(.subheadline)
