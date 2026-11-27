@@ -100,11 +100,7 @@ struct RoamLiveTopicInfo: Equatable {
             Section {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 8) {
-                        Text(target.isFree ? "roam.live.topic.tagFree" : "roam.live.topic.tagCity")
-                            .cyText(.caption)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 2)
-                            .background(.tint.opacity(0.12), in: .capsule)
+                        CYStatusChip(LocalizedStringKey(target.isFree ? "roam.live.topic.tagFree" : "roam.live.topic.tagCity"), tone: .info)
                         eyebrow.cyText(.meta).foregroundStyle(.secondary)
                     }
                     Text(verbatim: info.title).cyText(.sheetTitle)

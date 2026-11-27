@@ -664,7 +664,7 @@ struct ActivityPublishPrecheckGate<Content: View>: View {
                         Button("playerGap.retry") { Task { await check() } }
                     }
                 case nil:
-                    ProgressView()
+                    ProgressView { Text("cy.state.loading") }
                 }
             }
         }

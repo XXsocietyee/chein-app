@@ -833,7 +833,7 @@ import QuestifyCore
                     VStack(alignment: .leading, spacing: 8) {
                         RoamTitle(place.name).cyText(.cardTitle)
                         if selectedPlaceID == place.id {
-                            RoamLivePlaceCardFacts(place: place, showsBody: owner.merchantDescription(for: place) == nil)
+                            RoamLivePlaceCardFacts(place: place, showsBody: owner.merchantDescription(for: place) == nil, distanceMeters: placeDistance(place))
                         }
                         if let text = owner.merchantDescription(for: place) {
                             RoamLiveMerchantDescriptionRow(text: text)
@@ -844,6 +844,14 @@ import QuestifyCore
                 }
             }
         }
+    }
+    /// MP paceCard `distText`: straight-line metres from the current GCJ-02 fix; nil without a fix or place point.
+    private func placeDistance(_ place: RoamPlace) -> Int? {
+        guard let target = place.coordinate, let fix = owner.lastFix,
+              let point = try? RuntimeLocationProjection.gcj02(fix) else { return nil }
+        let meters = RoamExperienceMath.distanceMeters(point.coordinate, target)
+        guard meters.isFinite, meters >= 0 else { return nil }
+        return Int(meters.rounded())
     }
     private func arrivalButton(_ place: RoamPlace, shop: Bool) -> some View {
         VStack(alignment: .leading) {
@@ -1157,6 +1165,10 @@ struct RoamFinishedStorySection: View {
 struct RoamLivePlaceCardFacts: View {
     let place: RoamPlace
     let showsBody: Bool
+    var distanceMeters: Int? = nil
+    private var kindKey: LocalizedStringKey {
+        place.type == 2 ? "nativeR2.mapHome.kind.merchant" : "nativeR2.mapHome.kind.cityNode"
+    }
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if let cover = place.coverImage, QuestifyCardArtwork.safeURL(cover) != nil {
@@ -1166,6 +1178,17 @@ struct RoamLivePlaceCardFacts: View {
                     .accessibilityHidden(true)
                     .accessibilityIdentifier("roam.live.place.cover")
             }
+            // MP pc-body `catLabel · distText` (pages/roam/index.wxml:397), before the address.
+            HStack(spacing: 4) {
+                Text(kindKey)
+                if let distanceMeters {
+                    Text(verbatim: "·").accessibilityHidden(true)
+                    Text("roam.live.topic.meters \(distanceMeters)")
+                }
+            }
+            .cyText(.meta).foregroundStyle(.secondary)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("roam.live.place.meta")
             if let address = place.address?.trimmingCharacters(in: .whitespacesAndNewlines), !address.isEmpty {
                 Label { Text(verbatim: address) } icon: { Image(systemName: "mappin.and.ellipse") }
                     .cyText(.meta).foregroundStyle(.secondary)
@@ -1176,6 +1199,17 @@ struct RoamLivePlaceCardFacts: View {
                 Text(verbatim: text).cyText(.body)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("roam.live.place.body")
+            }
+            // MP pc-quote reason → 资料来源 → cy-roam-place-note tags (wxml:400-408), same rows as the map-home card.
+            if let note = RoamPlaceNote.lookup(tags: place.tags) {
+                RoamPlaceNoteRows(note: note)
+            }
+            let tags = RoamPlaceNote.visibleTags(place.tags)
+            if !tags.isEmpty {
+                Text(verbatim: tags.joined(separator: " · "))
+                    .cyText(.meta).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("roam.live.place.tags")
             }
         }
     }

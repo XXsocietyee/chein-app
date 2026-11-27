@@ -17,6 +17,7 @@ import SwiftUI
         if !isConfigured { throw APIError.notConfigured }
         if scenario == .failure { throw APIError.httpStatus(503) }
     }
+    private static var prefersChinese: Bool { Locale.preferredLanguages.first?.hasPrefix("zh") == true }
     private func decode<T: Decodable>(_ type: T.Type, _ json: String) throws -> T { try JSONDecoder().decode(type, from: Data(json.utf8)) }
     func history() throws -> [RoamHistoryRecord] {
         try check()
@@ -39,6 +40,11 @@ import SwiftUI
         if scenario == .pageFailure && page > 1 { throw APIError.httpStatus(503) }
         if scenario == .empty { return try decode(RoamAlbumPage.self, "{\"list\":[],\"total\":0,\"pageNum\":\(page),\"pageSize\":\(pageSize)}") }
         var json = RoamExperienceSyntheticFixtures.album
+        // Sweep 18:54 zh-Hans: fixture captions follow the UI language (like the badge-wall fixture); en stays as UI tests pin it.
+        if Self.prefersChinese {
+            json = json.replacingOccurrences(of: "Synthetic city stamp", with: "示例城市邮票")
+            json = json.replacingOccurrences(of: "Synthetic reviewed stamp", with: "示例已审核邮票")
+        }
         json = json.replacingOccurrences(of: "\"pageNum\":1", with: "\"pageNum\":\(page)")
         json = json.replacingOccurrences(of: "\"pageSize\":20", with: "\"pageSize\":\(pageSize)")
         // One row past this page, so the last tile still has a next page to ask for.
@@ -49,7 +55,7 @@ import SwiftUI
         try check(); return try decode(RoamTileMemoryPage.self, scenario == .empty ? #"{"tiles":[],"nextAfterId":0,"hasMore":false}"# : RoamExperienceSyntheticFixtures.tiles)
     }
     func shopBadge() async throws -> RoamShopBadge? {
-        try check(); return scenario == .empty ? nil : try decode(RoamShopBadge.self, RoamExperienceSyntheticFixtures.badge)
+        try check(); return scenario == .empty ? nil : try decode(RoamShopBadge.self, Self.prefersChinese ? RoamExperienceSyntheticFixtures.badge.replacingOccurrences(of: "Synthetic shop badge", with: "示例探店徽章") : RoamExperienceSyntheticFixtures.badge)
     }
 }
 @MainActor struct RoamExperienceFixtureHostView: View {
