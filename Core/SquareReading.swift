@@ -21,6 +21,7 @@ public struct SquareReadSession: Equatable {
     func squareComments(route: SquareContentRoute, pageNumber: Int) async throws -> SquareCommentPage
     func ownCreativeSquareIDs() async throws -> [Int]
     func deleteOwnCreativeSquare(postID: Int) async throws -> [Int]
+    func deleteOwnLegacyComment(commentID: Int) async throws
 }
 public extension SquareReading {
     func squareDetail(route: SquareContentRoute) async throws -> SquarePost {
@@ -35,6 +36,7 @@ public extension SquareReading {
     }
     func ownCreativeSquareIDs() async throws -> [Int] { throw APIError.notConfigured }
     func deleteOwnCreativeSquare(postID: Int) async throws -> [Int] { throw APIError.notConfigured }
+    func deleteOwnLegacyComment(commentID: Int) async throws { throw APIError.notConfigured }
 }
 public struct SquareCommunityFeatures: Equatable {
     public let read: Bool
@@ -108,6 +110,13 @@ public struct SquareCommunityFeatures: Equatable {
         return try await read { service, token in
             guard let token, self.currentSession()?.accountID == author else { throw APIError.unauthorized }
             return try await service.deleteOwnCreativeSquare(postID: postID, authorMemberID: author, viewerMemberID: author, token: token)
+        }
+    }
+    public func deleteOwnLegacyComment(commentID: Int) async throws {
+        guard let author = currentSession()?.accountID else { throw APIError.unauthorized }
+        try await read { (service: SquareService, token: String?) -> Void in
+            guard let token, self.currentSession()?.accountID == author else { throw APIError.unauthorized }
+            try await service.deleteOwnLegacyComment(commentID: commentID, token: token)
         }
     }
     private func read<T>(_ operation: (SquareService, String?) async throws -> T) async throws -> T {
