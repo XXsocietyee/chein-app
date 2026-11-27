@@ -88,7 +88,8 @@ struct JourneyModeTilesView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            MPSectionHeader(title: "mp.journey.howToPlay")
+            // N-r11-3: a plain system section heading.
+            Text("mp.journey.howToPlay").font(.headline).accessibilityAddTraits(.isHeader)
             HStack(spacing: CYSpacing.md) {
                 ForEach(Array(tiles.enumerated()), id: \.element.id) { index, tile in
                     tileView(tile, multi: selectable && tiles.count > 1).cyStaggerAppear(index)
@@ -312,8 +313,8 @@ struct JourneyLandingView: View {
                 ready(content)
             }
         }
-        // N-JOURNEY-1 (r10): the system grouped page, no lantern glow (MP subpackageJourney/pages/landing).
-        .background { MPNightGround() }
+        // N-JOURNEY-1 (r10) / N-r11-3: the system grouped page (MP subpackageJourney/pages/landing).
+        .background(Color(uiColor: .systemGroupedBackground))
         .navigationBarTitleDisplayMode(.inline)
     }
 
@@ -356,8 +357,19 @@ struct JourneyLandingView: View {
                         if primary == .claimGift && !MPCommerceGate.journeyGiftClaimsEnabled {
                             MPGatedNote(text: Text("mp.gate.claim"), identifier: "journeyLanding.claimOff")
                         } else {
-                            CYMorphButton(primary.title, state: content.claimDone ? .done : (content.busy ? .working : .idle), action: onPrimary)
-                                .identifier("journeyLanding.primary")
+                            // N-r11-3: a system prominent button with a ProgressView while busy.
+                            Button(action: onPrimary) {
+                                HStack(spacing: CYSpacing.sm) {
+                                    if content.busy { ProgressView() }
+                                    else if content.claimDone { Image(systemName: "checkmark") }
+                                    Text(primary.title)
+                                }
+                                .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.large)
+                            .disabled(content.busy || content.claimDone)
+                            .accessibilityIdentifier("journeyLanding.primary")
                         }
                     }
                     if let error = content.actionError { MPInlineError(text: Text(verbatim: error)) }

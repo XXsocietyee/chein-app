@@ -316,8 +316,9 @@ struct JourneyRankBoardView: View {
         .sensoryFeedback(.impact(weight: .light), trigger: heroOn) { _, on in on && !reduceMotion }
     }
 
+    /// N-r11-3: a grouped system list card (system `Divider`s, secondary grouped background) instead of MPCard/MPDivider.
     private func list(_ board: JourneyRankBoard) -> some View {
-        MPCard {
+        VStack(alignment: .leading, spacing: 0) {
             if board.basis != nil || board.windowText != nil {
                 HStack {
                     if let basis = board.basis { Text(basis.label).cyText(.label) }
@@ -325,10 +326,10 @@ struct JourneyRankBoardView: View {
                     if let window = board.windowText { Text(verbatim: window).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                 }
                 .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
-                MPDivider()
+                Divider()
             }
             ForEach(Array(board.entries.enumerated()), id: \.element.id) { index, entry in
-                if index > 0 { MPDivider() }
+                if index > 0 { Divider() }
                 HStack(spacing: CYSpacing.md) {
                     Text(verbatim: entry.rank.map(String.init) ?? MPText.unknown)
                         .cyText(.cardTitle).monospacedDigit()
@@ -345,17 +346,18 @@ struct JourneyRankBoardView: View {
                 .accessibilityIdentifier("rankBoard.entry.\(entry.id)")
             }
             if let runs = board.unattributedRuns {
-                MPDivider()
+                Divider()
                 Text("mp.rank.unattributed \(runs)").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
             }
             if let runs = board.unverifiedRuns {
-                MPDivider()
+                Divider()
                 Text("mp.rank.unverified \(runs)").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
                     .accessibilityIdentifier("rankBoard.unverified")
             }
         }
+        .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 }
 
@@ -493,7 +495,7 @@ struct JourneyReportView: View {
                 ready(report)
             }
         }
-        .background { MPNightGround() }
+        .background(Color(uiColor: .systemGroupedBackground)) // N-r11-3
         .navigationTitle(Text(title))
         .navigationBarTitleDisplayMode(.inline)
         .cySheet(isPresented: $rankShown) {
