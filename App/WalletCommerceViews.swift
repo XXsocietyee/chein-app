@@ -717,7 +717,6 @@ extension EnvironmentValues {
                     Text(verbatim: points ? WalletPointsShortTime.text(date, isEnglish: locale.language.languageCode?.identifier == "en") : date)
                         .font(.footnote).foregroundStyle(.secondary)
                 }
-                if points, !income { Text(verbatim: appLocalized("wallet.points.balanceAfter", locale: locale) + " " + (row.afterPoints.map { format.points($0) } ?? PointsHistoryPageModel.unknownMark)).font(.footnote).foregroundStyle(.secondary) }
             }
             Spacer(minLength: 8)
             VStack(alignment: stacked ? .leading : .trailing, spacing: 4) {
@@ -732,6 +731,8 @@ extension EnvironmentValues {
                 if !points, let balance = row.afterBalance {
                     Text(verbatim: format.amount(balance, currency: row.currency)).font(.footnote).foregroundStyle(.secondary).monospacedDigit()
                 }
+                // mp-mine r3: MP points-history puts the after-balance under the delta (right column), not under the reason.
+                if points, !income { Text(verbatim: appLocalized("wallet.points.balanceAfter", locale: locale) + " " + (row.afterPoints.map { format.points($0) } ?? PointsHistoryPageModel.unknownMark)).font(.footnote).foregroundStyle(.secondary).monospacedDigit() }
             }
         }
         .accessibilityElement(children: .combine)

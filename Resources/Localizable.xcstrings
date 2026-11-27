@@ -305595,7 +305595,6 @@
       }
     },
     "profile.inviteRewards.heroPending": {
-      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -305606,7 +305605,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Syncing"
+            "value": "待同步"
           }
         }
       }
@@ -341196,6 +341195,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在读取邮票…"
+          }
+        }
+      }
+    },
+    "member.about.addInterest": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add interests"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加兴趣"
           }
         }
       }

@@ -23,11 +23,15 @@ struct MemberReportProgressTimeView: View {
         List {
             // PLY-28-1/2: inline bar title; no developer boundary line and no 刷新 pill next to pull-to-refresh.
             if let flow, flow.isCurrent {
+                // mp-mine r3: MP report-mine shows the chips only once there are records; loading, error and
+                // 「还没有举报记录」 (全部) stand alone. A filtered-empty list keeps the chips so the filter can change back.
+                if flow.filter != .all || !flow.records.isEmpty {
                 Picker(selection: Binding(get: { flow.filter }, set: { value in
                     guard let (original, intent) = rendered else { return }; original.changeFilter(value, intent: intent)
                 })) {
                     ForEach(MemberReportProgressFilter.allCases) { memberReportProgressText("report.filter.\($0.rawValue)").tag($0) }
                 } label: { memberReportProgressText("report.filter.title") }.cyAdaptiveSegmented().disabled(flow.busy)
+                }
                 ForEach(flow.records) { record in
                     Button {
                         guard let (original, intent) = rendered, let selected = original.select(record, intent: intent) else { return }
@@ -36,18 +40,22 @@ struct MemberReportProgressTimeView: View {
                         // Source report-mine row: 「对象 · 原因」 over 「编号 N · 时间」 and the stage, as a system list row.
                         HStack {
                         VStack(alignment: .leading, spacing: 4) {
-                            memberReportProgressText("report.stage.\(record.stageKey)")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                            HStack(alignment: .firstTextBaseline, spacing: 4) {
-                                memberReportProgressText("report.target.\(record.targetKey)")
-                                Text(verbatim: "·").accessibilityHidden(true)
-                                if let label = flow.reasonLabel(for: record) { Text(verbatim: label) }
-                                else { memberReportProgressText("report.reason.fallback") }
+                            // mp-mine r3: MP `rp-row__head` — 「对象 · 原因」 with the stage tag at the end of the same line.
+                            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                                    memberReportProgressText("report.target.\(record.targetKey)")
+                                    Text(verbatim: "·").accessibilityHidden(true)
+                                    if let label = flow.reasonLabel(for: record) { Text(verbatim: label) }
+                                    else { memberReportProgressText("report.reason.fallback") }
+                                }
+                                .font(.body)
+                                .foregroundStyle(.primary)
+                                .fixedSize(horizontal: false, vertical: true)
+                                Spacer(minLength: 0)
+                                memberReportProgressText("report.stage.\(record.stageKey)")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
                             }
-                            .font(.body)
-                            .foregroundStyle(.primary)
-                            .fixedSize(horizontal: false, vertical: true)
                             MemberReportProgressTimeView(value: record.createTime)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
