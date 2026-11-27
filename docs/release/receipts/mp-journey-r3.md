@@ -64,6 +64,11 @@ files; `mp/r3-mine` only gated 查看报名凭证 in `PlayerJourneyViews` (not o
   hero's 3D card face and the chapter story stream (`fx-story`, story-flow theme).
 - 券 toast (`coupontoast`, 已放入卡券包 · 到店出示核销 · 点击查看 → coupon wallet, 5 s, on completing a node with `couponId`):
   Core `PlayNode` does not decode `couponId` yet.
+- 同行者榜: the orient-scoring board (`/api/orient/scoring/session/{id}/leaderboard`, SCORE / ROUTE rows, elapsed) and
+  avatars; the tools row's 第 N 名 value. Finish grid 个人最佳 (`puzzlePersonalBest` not kept).
+- Mode-2 ending: MP reads it automatically at completion and offers 保存足迹卡 / 去发现; natively it stays behind the
+  read button (Core `loadFreeExplorationEnding` fails the page on error).
+- MP auth empty card (登录已过期 + 重新登录): the app handles login expiry globally.
 - 集合屏 member avatars (no avatar in `PlayLeadProgress`), `lead.freeEntry` not decoded.
 
 ## Gates
@@ -71,7 +76,7 @@ files; `mp/r3-mine` only gated 查看报名凭证 in `PlayerJourneyViews` (not o
 - `python3 tools/generate_project.py` — ok
 - `python3 tools/check_scaffold.py` — PASS
 - `python3 -B tools/check_a11y_lint.py` — PASS, 0 new
-- `python3 -B tools/contract_ratchet.py --check` — 52 failing, baseline 52, **new 0**, fixed 0 (after merging `ui/combined-r7`; repinned `test_play_gameplay_mode_separation` playFree key count 48 → 64 and the pass id, and catalogued the free host preferences in `docs/ops-safety/client-data-catalog.json`)
+- `python3 -B tools/contract_ratchet.py --check` — 52 failing, baseline 52, **new 0**, fixed 0 (11-27 pass 3: re-run after every commit; playFree key count 64 → 66; earlier: after merging `ui/combined-r7`; repinned `test_play_gameplay_mode_separation` playFree key count 48 → 64 and the pass id, and catalogued the free host preferences in `docs/ops-safety/client-data-catalog.json`)
 
 New strings (en + zh-Hans) in `Resources/Localizable.xcstrings` and `docs/port/strings/mp-journey-r3.json`:
 `playTools.journal*` (7), `playTools.team*` (4), `playx.nightHint`, `playFree.nodes.header`, `playFree.selfPlayBanner %@`, `playFree.meta.*` (2), `playFree.hero.*` (10), `playFree.tile.chapter %lld %@|chapterNo %lld`, `playx.right.default|fragment`, `playTools.rights`, `playTools.rights.value %lld %lld`, `playTools.loc.free.*` (3), `playx.empty.*` (6), `playx.flyScore %lld`, `playx.routeNotice.*` (3), `playx.leadBar.*` (5), `playerGap.trail.title` (value change: `playerGap.trail.share`), `playx.board.*` (6), `playx.finish.lit|puzzleScore`, `playFree.ending.title|step %lld %@`;
