@@ -349729,6 +349729,40 @@
           }
         }
       }
+    },
+    "roam.createdStamp.hiddenTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This stamp can’t be shown right now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这枚印章暂时不能展示"
+          }
+        }
+      }
+    },
+    "roam.createdStamp.missingTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not in the album list yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "列表里还没有这枚印章"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
