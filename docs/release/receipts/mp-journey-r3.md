@@ -87,7 +87,7 @@ files; `mp/r3-mine` only gated 查看报名凭证 in `PlayerJourneyViews` (not o
 
 ## Not done (next pass)
 
-- **next run first:** remaining playkit kits one per row, simplest first: the answer kits (compass, shout and quiet-hold boards done 11-27 pass 5) (`qa`, `hangman`, `sort`, `match`, `classify`, `compare`, `pricepair`, `hidden`, `branch`, `bingo`) and the 预制人生 kits (`profile`, `photocheck`, `note`, `diyname`, …). Stage-shell 限时 bar needs an owner call (see its row). Sensor kits: 跳过这一站 / read-failure reporting needs `REPORT_SENSOR_FAILURE` + `SKIP_SENSOR_STATION` in Core (see the ballshake row). Stopwatch leftovers: rewardNote, 还有 N 次机会, 再来一局 / 暂停 (see its row).
+- **next run first:** remaining playkit kits one per row, simplest first (compass, shout, quiet-hold and music corner done 11-27 pass 5): `silentorder`, `diyname`, then the answer kits (`qa`, `hangman`, `sort`, `match`, `classify`, `compare`, `pricepair`, `hidden`, `branch`, `bingo`) and the 预制人生 kits (`profile`, `photocheck`, `note`, `diyname`, …). Stage-shell 限时 bar needs an owner call (see its row). Sensor kits: 跳过这一站 / read-failure reporting needs `REPORT_SENSOR_FAILURE` + `SKIP_SENSOR_STATION` in Core (see the ballshake row). Stopwatch leftovers: rewardNote, 还有 N 次机会, 再来一局 / 暂停 (see its row).
 - 本局线索 (`gameModule`) is the STORY / club session projection (`gameModule.enabled` is false for ROUTE runs, MP
   `_loadPlayerGameModule`); it belongs to the story-flow theme, out of scope this round. No native row.
 - 旅程手记 `journeyAttributes` rows (branch-route attributes) and branch-graph ordering: Core does not decode
