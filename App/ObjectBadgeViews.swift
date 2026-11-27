@@ -50,7 +50,7 @@ private enum ObjectBadgeWallColumns {
     }
     var body: some View {
         // BWALL-5: the signed-out state offers 登录 (opens 我的) like the MP access gate.
-        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.badges", onSignIn: rootTabSwitch.isAvailable ? { rootTabSwitch(.mine) } : nil,
+        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.badges", issueCopy: .badgeWall, onSignIn: rootTabSwitch.isAvailable ? { rootTabSwitch(.mine) } : nil,
                           load: { try await reader.profileBadges() }) { wall in
             let groups = ObjectBadgeWallColumns.split(wall)
             List {
