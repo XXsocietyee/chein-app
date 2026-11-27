@@ -9,9 +9,10 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.roamReceivedStampReader) private var receivedReader
     @StateObject private var presentation: RoamAlbumReadPresentation
-    @State private var receivedTarget: ReceivedTarget?
+    /// MP `cy-tabs` 我的 / 收到的 (scene-roam-stamp-album): an inline segmented tab, not a push.
+    @State private var tab: AlbumTab = .mine
 
-    private struct ReceivedTarget: Hashable { let id = UUID(); let owner: RoamAlbumReadOwner }
+    private enum AlbumTab: Hashable { case mine, received }
 
     init(album: RoamStampAlbumView) {
         self.album = album
@@ -23,8 +24,53 @@ import SwiftUI
     private var offline: Bool { reader.isOfflineExample }
     private var stamps: [RoamAlbumStamp] { pager.stamps }
 
+    /// The 收到的 tab exists only on the player's own album with a received reader in the environment.
+    private var showsTabs: Bool {
+        album.canShowAlbum && !(reader is RoamReceivedStampReader) && receivedReader != nil
+    }
+
     var body: some View {
         let read = presentation.readAction(), refresh = presentation.refreshAction()
+        VStack(spacing: 0) {
+            if showsTabs {
+                Picker("roam.album.tabs", selection: $tab) {
+                    Text("roam.album.tab.mine").tag(AlbumTab.mine)
+                    Text("roam.album.tab.received").tag(AlbumTab.received)
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+                .accessibilityIdentifier("roam.experience.album.tabs")
+            }
+            if tab == .received, showsTabs, let receivedReader {
+                // Same received reader, scope lifetime and privacy rules as the old pushed page; it only mounts
+                // (and reads) once 收到的 is chosen.
+                RoamReceivedStampMetadataDestination(reader: receivedReader,
+                                                     owner: RoamAlbumReadOwner(reader: receivedReader, scope: nil),
+                                                     inline: true)
+                    .id(RoamAlbumReadOwner(reader: receivedReader, scope: nil))
+                    .frame(maxHeight: .infinity)
+            } else {
+                mineScroll(read: read, refresh: refresh)
+            }
+        }
+        .cyAlbumChildTitle("roam.experience.album")
+        .toolbar {
+            if album.allowsCapture, album.canShowAlbum {
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink { album.captureDestination } label: { Label("media.stamp.title", systemImage: "camera") }
+                        .accessibilityIdentifier("roam.experience.album.fab")
+                }
+            }
+        }
+        .onAppear { presentation.appear(foreground: scenePhase == .active) }
+        .onChange(of: scenePhase) { _, phase in presentation.setForeground(phase == .active) }
+        .onChange(of: receivedReader.map { RoamAlbumReadOwner(reader: $0, scope: nil) }) { _, _ in tab = .mine }
+        .onDisappear { presentation.disappear() }
+        .accessibilityIdentifier("roam.experience.album")
+    }
+
+    private func mineScroll(read: @escaping () -> Void, refresh: @escaping () async -> Void) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 if album.canShowAlbum {
@@ -37,28 +83,7 @@ import SwiftUI
             }
             .padding()
         }
-        .cyAlbumChildTitle("roam.experience.album")
-        .toolbar {
-            if album.allowsCapture, album.canShowAlbum {
-                ToolbarItem(placement: .topBarTrailing) {
-                    NavigationLink { album.captureDestination } label: { Label("media.stamp.title", systemImage: "camera") }
-                        .accessibilityIdentifier("roam.experience.album.fab")
-                }
-            }
-        }
-        .navigationDestination(item: $receivedTarget) { target in
-            if let receivedReader, target.owner == RoamAlbumReadOwner(reader: receivedReader, scope: nil) {
-                RoamReceivedStampMetadataDestination(reader: receivedReader, owner: target.owner)
-            } else {
-                ContentUnavailableView("nativeR2.freeExplore.album.exchangeChanged", systemImage: "person.crop.circle.badge.exclamationmark")
-            }
-        }
-        .onAppear { presentation.appear(foreground: scenePhase == .active) }
-        .onChange(of: scenePhase) { _, phase in presentation.setForeground(phase == .active) }
-        .onChange(of: receivedReader.map { RoamAlbumReadOwner(reader: $0, scope: nil) }) { _, _ in receivedTarget = nil }
         .refreshable { await refresh() }
-        .onDisappear { presentation.disappear() }
-        .accessibilityIdentifier("roam.experience.album")
     }
 
     // MARK: Header (MP scene-roam-stamp-album order: 我的 / 收到的 head, then 共 N 枚)
@@ -70,9 +95,8 @@ import SwiftUI
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("roam.experience.notice")
         }
-        // MP `cy-tabs` 我的 / 收到的: this page is 我的; 收到的 opens the received list (its own reader and scope).
+        // MP `cy-tabs` 我的 / 收到的 is the segmented tab above; this is the 我的 pane.
         // mp-roam r3: the native-only 全部 / 邮票 / 照片 kind filter is removed (the MP has no such filter).
-        exchangeRow
         if pager.loaded, let total = pager.total {
             LabeledContent {
                 Text("stampAlbum.total \(total)").monospacedDigit().contentTransition(.numericText())
@@ -80,33 +104,6 @@ import SwiftUI
                 Text("roam.experience.album")
             }
             .accessibilityIdentifier("roam.experience.album.total")
-        }
-    }
-
-    /// The received-stamp entry (`RoamReceivedStampNavigation`), as one plain row instead of a material banner.
-    @ViewBuilder private var exchangeRow: some View {
-        if !(reader is RoamReceivedStampReader), let receivedReader {
-            let offered = RoamAlbumReadOwner(reader: receivedReader, scope: nil)
-            let canOpen = receivedReader.identity != nil && receivedReader.isConfigured
-            Button {
-                guard offered == RoamAlbumReadOwner(reader: receivedReader, scope: nil), receivedReader.identity != nil,
-                      receivedReader.isConfigured, receivedTarget == nil else { return }
-                receivedTarget = ReceivedTarget(owner: offered)
-            } label: {
-                LabeledContent {
-                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
-                } label: {
-                    Label("nativeR2.freeExplore.album.exchange", systemImage: "arrow.left.arrow.right")
-                }
-            }
-            .tint(.primary)
-            .disabled(!canOpen)
-            .accessibilityIdentifier("roam.receivedMetadata.open")
-            if !receivedReader.isConfigured {
-                Text(LocalizedStringKey(receivedReader.identity == nil ? "roam.signInRequired" : "roam.notConfigured"))
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
         }
     }
 

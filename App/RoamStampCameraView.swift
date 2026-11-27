@@ -133,9 +133,10 @@ import UIKit
                     if case .created = coordinator.phase {
                         RoamStampCreatedMark()
                     }
-                    if case .created(let stampID) = coordinator.phase, let exchange, pageContract.showsExchange { exchangeRows(stampID: stampID, exchange: exchange) }
+                    // MP P3 stamp-camera has no exchange after 存入集邮册; only the citystamp route exchanges.
+                    if showsCaption, case .created(let stampID) = coordinator.phase, let exchange, pageContract.showsExchange { exchangeRows(stampID: stampID, exchange: exchange) }
                     if case .created = coordinator.phase, let album {
-                        CYPillButton("roam.createdStamp.open", style: exchange == nil ? .primary : .secondary, systemImage: "rectangle.stack") {
+                        CYPillButton("roam.createdStamp.open", style: (showsCaption && exchange != nil) ? .secondary : .primary, systemImage: "rectangle.stack") {
                             guard createdStampTarget == nil else { return }
                             createdStampTarget = RoamCreatedStampTarget(phase: coordinator.phase, origin: coordinator.scope, reader: album.reader)
                         }

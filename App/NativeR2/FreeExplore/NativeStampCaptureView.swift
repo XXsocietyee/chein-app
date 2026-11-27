@@ -155,7 +155,8 @@ import UIKit
                 Section {
                     CYScreenOfflineWriteBanner(routes: ["/api/roam/stamp/create"], session: offlineWriteSession.session)
                 }
-                if case .created(let stampID) = coordinator.phase, let exchange, pageContract.showsExchange {
+                // MP subpackageP3 stamp-camera: 存入集邮册 → 已入册 → album, no exchange; 投一张换一张 is the citystamp route only.
+                if showsCaption, case .created(let stampID) = coordinator.phase, let exchange, pageContract.showsExchange {
                     exchangeSection(stampID: stampID, exchange: exchange)
                 }
                 if case .created = coordinator.phase, let album {
