@@ -11,7 +11,7 @@ The 21 MP pages were compared section by section, top to bottom, against their n
 | `python3 tools/generate_project.py` | OK |
 | `python3 tools/check_scaffold.py` | PASS (no FAIL lines; typography lint PASS) |
 | `python3 -B tools/check_a11y_lint.py` | PASS: 0 new |
-| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 12, after merging combined-r7 again), **new 0**, fixed 0 |
+| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 13, after merging combined-r7 again), **new 0**, fixed 0 |
 | `python3 tools/check_design_consistency.py` | PASS |
 
 There is no Swift compiler in this environment. Edits are kept type-simple and reuse existing keys, components and patterns.
@@ -188,7 +188,13 @@ Most tiles are the launch logo (coordinator 17:40: taken under load, ignore). Re
 | club/detail, members, posts, channels, channel chat (`zh-Hans-d4-detail.jpg`, `-d4-members`, `-d4-tab-posts`, `-d4-channels`, `-d4-channel-chat`) | `ClubFixtureReader`, `ClubCommunityFixture`, `D4ChannelsHost` | Fixture data English in the Chinese UI (Fixture club 81, Offline sample club description, Fixture creator/type/city, Announcements / Community, club-news, Saturday route…), coordinator 19:50 "fixture data must follow the UI language". | **Fixed.** `ClubFixtureReader.designCopy` (set only by the D4 design fixture, so UI tests keep their English pins) and `ClubCommunityFixture.context(…, designCopy:)` pick zh-Hans copy when the UI is Chinese; channel categories, names, senders and messages use `tt(en, zh)` (the en golden-path pin "Saturday route…" is unchanged) |
 | club/create intro + step 3 | `ClubOperationsViews.swift` | See table row club/create. | **Fixed** |
 | club/join-requests, club/apply done | see table | Re-checked against the MP js/wxml. | Matches |
-| club/detail (`zh-Hans-d4-detail.jpg`) | `ClubDetailView` | ~60 pt gap between the header card and the 帖文/活动/概览 bar. Not reproducible without a simulator (likely list section spacing around the tab-bar row). | **Not done**, re-check on the next sweep |
+| club/detail (`zh-Hans-d4-detail.jpg`) | `ClubDetailView` | ~60 pt gap between the header card and the 帖文/活动/概览 bar. Not reproducible without a simulator (likely list section spacing around the tab-bar row). | **Fixed (pass 13)**, see below |
+
+## Pass 13: sweep 20:11 UTC (build a250afd77, `docs/sweeps/latest/mp-club/sheet-zh-Hans.jpg`, `zh-Hans-d4-detail.jpg`)
+| Screen (shot) | Native view | Seen / difference | Fixed? |
+|---|---|---|---|
+| club/detail (`zh-Hans-d4-detail.jpg`) | `ClubDetailView.pageHeader`, `ClubDetailTabBar` | Still ~55 pt of empty space between the header card and the 帖文/活动/概览 picker, and again under it. Cause: the app-wide 24 pt `listSectionSpacing` (CYScreenStyle) plus the clear picker row's default 44 pt row padding. The MP tabs sit right under the header (detail wxml:96-110). | **Fixed.** Header section and tab-bar section use `.listSectionSpacing(.compact)` (same per-section pattern as `ProjectEditView`); the picker row insets are `CYSpacing.xs` vertical / `CYSpacing.lg` horizontal. Re-check on the next sweep |
+| club/detail, members, posts, channels (`zh-Hans-*`) | fixtures | Still English data in Chinese. | Build a250afd77 predates pass 12 (`09e019a4d`, not yet in `ui/combined-r7`); re-check once merged |
 
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.
