@@ -343933,6 +343933,40 @@
           }
         }
       }
+    },
+    "playx.finish.lit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Places lit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点亮站点"
+          }
+        }
+      }
+    },
+    "playx.finish.puzzleScore": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puzzle score"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解谜分"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -55,6 +55,13 @@ final class PlayJournalTests: XCTestCase {
         XCTAssertNil(PlayRouteNotice.timeLine(try result(#"{"playable":true,"timeNote":"活动已结束","nodes":[]}"#)))
     }
 
+    func testPuzzleSummaryCountsDoneStopsHeldToAHundred() throws {
+        let run = try snapshot(mode: 1, nodes: #"[{"nodeId":1,"done":true,"puzzleScore":140},{"nodeId":2,"done":true,"puzzleScore":30},{"nodeId":3,"done":false,"puzzleScore":90},{"nodeId":4,"done":true}]"#)
+        let summary = PlayPuzzleSummary(snapshot: run)
+        XCTAssertEqual(summary.score, 130)
+        XCTAssertEqual(summary.count, 2)
+    }
+
     private func snapshot(mode: Int, nodes: String) throws -> PlaySnapshot {
         let data = "{\"topicId\":9,\"mode\":\(mode),\"playable\":true,\"registered\":true,\"nodes\":\(nodes),\"chapters\":[{\"chapterId\":8,\"name\":\"Chapter\"}]}"
         let wire = try JSONDecoder().decode(PlayWireValue.self, from: Data(data.utf8))

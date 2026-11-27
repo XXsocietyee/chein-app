@@ -36,18 +36,20 @@ import MapKit
     }
 
     /// Only values the run can read. A missing value drops its cell instead of showing a guess.
+    /// mp-journey r3: MP finsheet grid order (mode 1) — 点亮站点 (done count, > 0), 用时, 距离, 解谜分. The rank and
+    /// score stay in the ranking section below, as in MP.
     private var metrics: [Metric] {
         var items: [Metric] = []
+        if let snapshot = model.snapshot {
+            let done = snapshot.visibleNodes.filter { snapshot.isDone($0) }.count
+            if done > 0 { items.append(.init(id: "playx.finish.lit", value: String(done))) }
+        }
         let seconds = model.clock.elapsedSeconds
         if seconds > 0 { items.append(.init(id: "medalScreen.stat.time", value: PlayRunElapsedText.format(seconds))) }
-        if let snapshot = model.snapshot, !snapshot.visibleNodes.isEmpty {
-            let done = snapshot.visibleNodes.filter { snapshot.isDone($0) }.count
-            items.append(.init(id: "medalScreen.stat.nodes", value: "\(done)/\(snapshot.visibleNodes.count)"))
-        }
         if walkedMeters > 0 { items.append(.init(id: "nativeR2.city.metric.distance", value: CityOrientationFormat.distance(walkedMeters))) }
-        if let me = model.leaderboard?.me {
-            if let rank = me.rank { items.append(.init(id: "nativeR2.city.finish.rank", value: String(rank))) }
-            items.append(.init(id: "nativeR2.city.finish.score", value: String(me.score)))
+        if let snapshot = model.snapshot {
+            let puzzle = PlayPuzzleSummary(snapshot: snapshot)
+            if puzzle.count > 0 { items.append(.init(id: "playx.finish.puzzleScore", value: String(puzzle.score))) }
         }
         return items
     }
