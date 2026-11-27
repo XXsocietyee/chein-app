@@ -343813,6 +343813,23 @@
         }
       }
     },
+    "playx.finish.sessionScore": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This run's score"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本局成绩"
+          }
+        }
+      }
+    },
     "playTools.sessionScore": {
       "extractionState": "manual",
       "localizations": {
