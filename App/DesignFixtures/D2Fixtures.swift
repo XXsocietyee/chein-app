@@ -31,7 +31,7 @@ struct D2Fixture: View {
             }
         case .square: SquareFixtureHostView(designLocalized: true)
         case .squareEmpty: SquareFixtureHostView(scenario: .empty, designLocalized: true)
-        case .play: PlayExperienceFixtureHostView()
+        case .play: PlayExperienceFixtureHostView(designLocalized: true)
         case .city: CityGameFixtureHost()
         case .npc: ShopNPCFixtureView(enabled: true)
         case .inbox:

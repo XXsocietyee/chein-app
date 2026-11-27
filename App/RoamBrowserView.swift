@@ -497,7 +497,7 @@ struct RoamBrowserView: View {
                 let count = entryReader != nil ? peekCount : (loadedKey == requestKey && !loading && issue == nil ? renderedItems.count : nil)
                 CYMapScaffold(detent: Self.initialDetent, peek: AnyView(peekLine(count: count)), map: {
                     // Keeps its camera state through loading, errors and empty filters; pins follow visibleItems.
-                    if reader.isOfflineExample { CYMapStreetGrid() } else { roamMap(scope: scope, key: renderedKey, items: renderedItems) }
+                    if reader.isOfflineExample { CYMapPlaceholder() } else { roamMap(scope: scope, key: renderedKey, items: renderedItems) }
                 }, controls: {
                     // N-ROAM-MAP (r10): title and the ONE overflow menu live in the system navigation bar
                     // (MP pages/roam/index.wxml nav title); nothing is drawn over the map.

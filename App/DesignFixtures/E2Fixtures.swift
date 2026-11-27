@@ -17,14 +17,19 @@ struct E2Fixture: View {
     let kind: E2FixtureKind
     var body: some View {
         VStack(spacing: 0) {
-            Text(verbatim: "DEBUG fixture · synthetic data")
-                .cyText(.caption).foregroundStyle(CYColor.textTertiary)
-                .frame(maxWidth: .infinity).padding(.vertical, 4).background(CYColor.bgRaised)
+            if !isSweepPage {
+                Text(verbatim: "DEBUG fixture · synthetic data")
+                    .cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                    .frame(maxWidth: .infinity).padding(.vertical, 4).background(CYColor.bgRaised)
+            }
             content
         }
         .themeDomain(.player)
         .background(CYColor.bgPage.ignoresSafeArea())
     }
+
+    /// mp-journey r3 (sweep 22:11 `rep3-task-play`): the swept play page renders without the debug strip.
+    private var isSweepPage: Bool { kind == .rep3TaskPlay || kind == .rep3TaskPlayOffline }
 
     @ViewBuilder private var content: some View {
         switch kind {

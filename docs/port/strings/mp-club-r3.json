@@ -255,6 +255,23 @@
           }
         }
       }
+    },
+    "club.ops.dissolve.transferHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hand the club to someone else to run. Members and content stay."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把俱乐部交给别人打理，成员和内容都留着"
+          }
+        }
+      }
     }
   }
 }
