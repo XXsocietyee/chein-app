@@ -292,9 +292,6 @@ import SwiftUI
                     }
                 }.accessibilityIdentifier("account.messages")
             }
-            NavigationLink { SessionTeamHomeView().cyPushedChrome() } label: {
-                Label("team.title", systemImage: "person.3")
-            }.accessibilityIdentifier("account.teams")
             // The Clubs tab is the one Clubs entry on the player bar.
             if !showsPassportOverview {
             NavigationLink { ClubHomeView(reader:session,actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }, authorSquare: session.squareReader).id(session.sessionRevision).cyPushedChrome() } label: {
@@ -306,9 +303,6 @@ import SwiftUI
                     .environment(\.socialConversationDestination, session.socialConversationDestination) } label: {
                 Label("social.invites.title", systemImage: "person.2.badge.plus")
             }.accessibilityIdentifier("account.inviteHistory")
-            NavigationLink { ProfileGuideHost(reader: session.makeProfileGuideReader(), makeArticleReader: { session.makeProfileGuideArticleReader($0) }, onOpenDestination: onOpenGuideDestination, templateReader: session).id(session.socialAccountReader.identity).cyPushedChrome() } label: {
-                Label("social.guide.title", systemImage: "book")
-            }.accessibilityIdentifier("account.playGuide")
             NavigationLink { SessionDoorInviterView(session: session).cyPushedChrome() } label: {
                 Label("door.inviter.title", systemImage: "person.badge.plus")
             }.accessibilityIdentifier("door.inviter.entry")
@@ -321,24 +315,8 @@ import SwiftUI
         Section {
             PrivateHomeAccountLink(coordinator: privateHomeCoordinator)
                 .environment(\.nativeHomeReturnSelection, nativeHomeReturnSelection)
-            NavigationLink { PersonalLocationShareEntry(recipientId: nil).cyPushedChrome() } label: {
-                Label { Text("personalLocationShare.title.management", tableName: "PersonalLocationShare") } icon: { Image(systemName: "location") }
-            }.accessibilityIdentifier("account.personalLocationShare")
-            ProfileComplaintPreparationLink(session: session)
         }
-        // 我的里原先没有入口能打开已有的举报记录，进度只能从会话里碰到。
-        Section("account.section.safety") {
-            NavigationLink {
-                SquareReportProgressView(session: session).cyPushedChrome()
-            } label: {
-                Label {
-                    Text("report.history.title", tableName: "MemberReportProgress")
-                } icon: {
-                    Image(systemName: "flag")
-                }
-            }
-            .accessibilityIdentifier("account.reportMine")
-        }
+        // mp-mine r3: 城瘾玩法, location sharing, 投诉建议, 我的举报, teams and support live in Settings (MP pages/shezhi).
         if WelcomeView.showsMerchantChoice && PlayerLaunch.merchantCenterEnabled { // Lane G: coop row hidden in Release
         Section {
             Button { showsCooperation=true } label: {
@@ -347,7 +325,6 @@ import SwiftUI
             .accessibilityIdentifier("account.cooperation")
         }
         }
-        SupportTicketReadEntry(session: session)
         // Passport has one sign-out: Settings (settings.signOut). The legacy account page keeps its own.
         if !showsPassportOverview {
         Section {
