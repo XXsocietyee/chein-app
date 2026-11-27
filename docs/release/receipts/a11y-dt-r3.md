@@ -59,9 +59,25 @@ Merged `origin/ui/combined-r7` (clean). Sweep 17:24 (build 070117595) a11y sheet
 | Chat message cards | `MessagingMessageDetailView.swift` | ✓ | Audit: icon tile scaled + hidden at AX sizes. No change | Done |
 | Club channel chat (`pages/club/*` channel, `d4-channel-chat`) | `ClubChannelMessagingView.swift` (`ChannelBurstGroupCard`, `ClubChannelMemberRosterSheet`) | ✓ (mp-club owns order) | Sender initial circle 28 pt and roster initial 32 pt (text in a fixed circle, clipped at AX sizes) → `@ScaledMetric(.subheadline)` capped 48 / 52, letter scales down instead of clipping. Send button 44 pt labelled, Reduce Motion respected on scroll: audited. `NativeChannelMessage*` (context avatar 40 pt art, no text) audited, no change | Done |
 
+## Run 4 (2026-11-27, hourly)
+
+Merged `origin/ui/combined-r7` (clean). Sweep index still 17:24 (build 070117595); a11y sheets unchanged since run 3.
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/square/index` list (post card `cy-post-card`) | `SquareXcxPostCard.swift` | ✓ (mp-activity owns order) | Club · badge/level line: one line at normal sizes; at AX sizes it stacks (`AnyLayout` VStack) and wraps to 2 lines instead of truncating long English club names; 认证 mark 12 pt → `@ScaledMetric(.headline)` so it grows with the name | Done |
+| `pages/square/detail` (post head, actions, medal pill) | `SquareComponents.swift` (`SquarePostContent`), `SquareDetailView.swift` | ✓ | Verified mark scaled as above; post like button now reads "Like / Unlike" + value "N likes" + selected trait (same as the comment-row like; before it was only the count); medal images 20 pt → `@ScaledMetric(.subheadline)` capped 40. Comment like / reply / follow badge 44 pt: audited, no change | Done |
+| Club channel pins (`pages/club/*` channel) | `NativeChannelMessagePinsView.swift` | ✓ (mp-club owns order) | Pin rows get a VoiceOver hint "Shows this message in the chat." / 在聊天中显示这条消息 when they can jump; reorder via Edit, swipe Remove, `ContentUnavailableView` empty/failed states, Done in the cancellation slot: audited | Done |
+| Club channel search | `NativeChannelMessageSearchView.swift` | ✓ | Same hint on result rows; day section headers already `.isHeader`, chevron hidden, fields labelled, empty state native: audited | Done |
+| `pages/team/*` (team home, seats, create, nearby, session team) | `TeamHomeView.swift`, `TeamPageParityViews.swift`, `TeamSeatFactsViews.swift`, `SessionTeamViews.swift`, `NearbyTeamViews.swift`, `TeamCreateView.swift`, `TeamComponents.swift` | ✓ (mp-activity owns order) | Audit: no fixed text frames, no `lineLimit(1)`, no tap gestures without traits, no unbounded animations; member avatar 32 pt is an image beside wrapping text (fine at AX5). No change | Done |
+| `pages/square/*` cloud feed (kudos, completed activities) | `SquareCloudFeedViews.swift` | ✓ | Audit: face pile VoiceOver-hidden inside a combined element, kudos text wraps to 2 lines, 56 pt cover is an image beside wrapping text. No change | Done |
+| `pages/coop/list`, `pages/coop/invite` (player cooperation invites) | `CooperationFlowWorkbench.swift` (`CoopInviteCardLabel`) | ✓ (mp-activity owns order) | Cover scaled without a cap (56 → ≈170 pt at AX5) → capped 96 pt; partner · status line stacks without the "·" at AX sizes and the partner wraps to 2 lines instead of truncating | Done |
+| `pages/coop/nearby` (nearby venue card) | `CoopListCardExtras.swift` (`NearbyMerchantCardChrome`, `NearbyMerchantAddressLine`) | ✓ | Default cover capped at 96 pt (was unbounded); pin 12 pt → `@ScaledMetric(.footnote)`, chevron 14 pt → `@ScaledMetric(.body)` so glyphs track the text | Done |
+| `pages/coop/finance`, `pages/coop/settlement-detail`, `pages/coop/invite-detail` | `CoopFinanceProfitView.swift`, `CoopFinanceSummarySection.swift`, `CoopSettlementDetailView.swift`, `CooperationInviteDetailView.swift` | ✓ | Audit: system `LabeledContent` rows (stack at AX sizes), monetary values `monospacedDigit`, timeline dot decorative + hidden, 44 pt minimum on finance actions, hero cover fixed 150 pt is an image. No change | Done |
+| `subpackagePass/reveal` (pass / object reveal) | `RevealChoreographer.swift`, `PlayObjectCardRevealView.swift`, `PlayKitSpatialRevealView.swift`, `TopicPurchaseRevealMount.swift` | ✓ (mp-activity owns order) | Audit: choreographer takes Reduce Motion + Low Power, card flip jumps to the final frame, AR decorative motion finishes immediately under Reduce Motion. No change | Done |
+
 ## Not done (next run starts here)
-- Next pages without a row: club channel pins / search (`NativeChannelMessagePinsView`, `…SearchView`) VoiceOver
-  order pass; `.lineLimit(1)` audit on remaining tab-root rows (P12 + AX5); square / team pages (`pages/square/*`).
+- Next pages without a row: `.lineLimit(1)` audit on remaining tab-root rows (P12 + AX5).
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch
