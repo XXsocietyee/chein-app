@@ -168,7 +168,20 @@ extension View {
         failed = false
         let next = SearchHistoryPolicy.adding(keyword, to: current)
         guard let namespace else { return next }
-        guard let data = try? JSONEncoder().encode(next) else { failed = true; return next }
+        write(next, namespace: namespace)
+        return next
+    }
+    /// P18: one recent search removed by swipe or its trailing delete button; an emptied list deletes the item.
+    func remove(_ keyword: String, namespace: String?, current: [String]) -> [String] {
+        failed = false
+        let next = current.filter { !$0.utf8.elementsEqual(keyword.utf8) }
+        guard let namespace else { return next }
+        if next.isEmpty { return clear(namespace: namespace) ? next : current }
+        write(next, namespace: namespace)
+        return next
+    }
+    private func write(_ next: [String], namespace: String) {
+        guard let data = try? JSONEncoder().encode(next) else { failed = true; return }
         let base = query(namespace)
         let status = SecItemUpdate(base as CFDictionary, [kSecValueData as String: data] as CFDictionary)
         if status == errSecItemNotFound {
@@ -176,7 +189,6 @@ extension View {
             item[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
             failed = SecItemAdd(item as CFDictionary, nil) != errSecSuccess
         } else { failed = status != errSecSuccess }
-        return next
     }
     func clear(namespace: String?) -> Bool {
         failed = false
