@@ -16,6 +16,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
 @MainActor struct PublishingModesView: View {
     let service: PublishingService?
     let account: PublishingSession?
+    /// Kept for callers; quick setup (its only user here) left the menu with MP V3-44.
     var makeAIDraft: (() -> any PublishingAIDraftServing)? = nil
     var makeIdentityRegistration: (() -> PublisherIdentityRegistrationService?)? = nil
     var makeActivityTemplate: (() -> AnyView)? = nil
@@ -32,34 +33,23 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
     var makeProjects: (() -> AnyView)? = nil
     /// Mini-program: activity publishing is for club leaders; other roles never see the entry.
     private var showsActivity: Bool { account == nil || account?.role == "club" }
-    /// Home plus AI quota for the simple page. Nil keeps the form visible and the quota as an em dash.
-    private var simplePageRead: ((PublishingRead) async throws -> ProjectEditJSON)? {
-        guard let service, let account else { return nil }
-        return { query in try await service.read(query, session: account) }
-    }
     var body: some View {
-        // Same choices and order as the mini-program publish menu (cy-publish-sheet):
-        // a topic (city orientation or free explore, quick or professional), then interaction.
+        // mp-r3-publish: the same three choices, in the same order, as the MP publish sheet (`cy-publish-sheet`) and
+        // the 发布 tab "+": 自由探索, 城市定向, 互动. MP V3-44 removed quick setup (快速配置), so a topic type opens the
+        // professional editor directly. 发布活动 / 我的项目 / 发布人登记 stay below as the native secondary section
+        // (the MP reaches them from 我的项目 and the club pages).
         List {
             Section {
-                // One primary action: the quick publish journey ("Quick setup").
-                NavigationLink { QuickPublishingView(placeSearch: placeSearch, account: account, draftStore: draftStore, makeAIDraft: makeAIDraft, simplePageRead: simplePageRead, openProfessional: openProfessional).id(account?.epoch) } label: {
-                    Label("publishModes.quick", systemImage: "wand.and.stars")
-                }
-            }
-            Section {
                 if let makeProfessional {
-                    NavigationLink { makeProfessional(.city) } label: { Label("publishModes.pro.city", systemImage: "map") }
-                        .accessibilityIdentifier("publishModes.pro.city")
-                    NavigationLink { makeProfessional(.freeExplore) } label: { Label("publishModes.pro.freeExplore", systemImage: "location.magnifyingglass") }
+                    NavigationLink { makeProfessional(.freeExplore) } label: { Label("projectEdit.freeExplore", systemImage: "location.magnifyingglass") }
                         .accessibilityIdentifier("publishModes.pro.freeExplore")
+                    NavigationLink { makeProfessional(.city) } label: { Label("projectEdit.city", systemImage: "map") }
+                        .accessibilityIdentifier("publishModes.pro.city")
                 }
-            } header: { Text("publishModes.section.topic") }
-            if let makeTemplateAuthoring {
-                Section {
-                    NavigationLink { makeTemplateAuthoring() } label: { Label("publishModes.interaction", systemImage: "puzzlepiece.extension") }
+                if let makeTemplateAuthoring {
+                    NavigationLink { makeTemplateAuthoring() } label: { Label("publishTab.publish.interaction", systemImage: "puzzlepiece.extension") }
                         .accessibilityIdentifier("publishModes.interaction")
-                } header: { Text("publishModes.section.interaction") }
+                }
             }
             Section {
                 if showsActivity {

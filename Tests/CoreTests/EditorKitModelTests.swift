@@ -122,7 +122,8 @@ final class EditorKitModelTests: XCTestCase {
         XCTAssertEqual(outline.state(.gameplay), .current)
         XCTAssertEqual(outline.state(.info), .done)
         XCTAssertEqual(outline.state(.tools), .normal)
-        XCTAssertEqual(EditorOutlineSection.allCases.map(\.rawValue), ["info", "rules", "gameplay", "feedback", "reward", "tools"])
+        // mp-r3-publish: page order follows MP temp/index.wxml:1213 (gameplay first).
+        XCTAssertEqual(EditorOutlineSection.allCases.map(\.rawValue), ["gameplay", "rules", "info", "reward", "feedback", "tools"])
     }
 
     func testStepProgressOnlyAllowsVisitedSegments() {
