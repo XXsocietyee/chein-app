@@ -47,8 +47,8 @@ Audited, unchanged (allowed by the rule): hidden nav bar only in live roam / fre
 | profile → pages/shezhi/shezhi (navigateTo) | 我的 top-right 设置 | sheet kept: SettingsView's profile/favorites route owners retire on `onDisappear`, so hosting it as a push would retire them on every sub-push. Needs an owner-lifetime change first (coordinator) | open |
 | profile → subpackageMember/points-history, assetcenter/earnings (钱包), stamp-album, badge-wall, im/list | 我的 rows | `navigationDestination(isPresented:)` pushes with pushed chrome | OK |
 | profile → points help (MP popup) | 积分 ⓘ | `.cySheet` with `[.medium, .large]` detents | OK |
-| pages/topic/index/index → subpackageMember/signup/index (票, navigateTo) | topic bottom bar 我的票 | `.cySheet` half/full with bar hero zoom (TopicDetailView.swift:128) | open — MP page shown as a half sheet; left because the bar's matched hero transitions are built on sheets |
-| pages/topic/index/index → pages/topic/pricing/index (navigateTo) | topic bar 定价 (owner) | sheet half/full (TopicDetailView.swift:626) | open — same reason |
+| pages/topic/index/index → subpackageMember/signup/index (票, navigateTo) | topic bottom bar 我的票 | was `.cySheet` half/full → `navigationDestination(isPresented: $showingTickets)` push, wallet host `isPushed: true` (no close), pushed chrome; the bar hero modifier is a pass-through since native r2, so nothing depended on the sheet | fixed |
+| pages/topic/index/index → pages/topic/pricing/index (navigateTo) | topic bar 定价 (owner) | was a sheet with its own NavigationStack → push of `PublisherPricingView` with pushed chrome; its post-confirm `dismiss()` now pops back like MP index.js:451 `navigateBack` | fixed |
 | pages/topic/index/index → pages/play/index (navigateTo) | topic bar 开始 | `navigationDestination(isPresented: $showingPlay)` push | OK |
 | pages/topic/index/index → session picker / self-play form (MP popups) | topic bar 选择场次 / 自己玩 | sheets with `[.half, .full]` detents | OK |
 | pages/club/detail/index → member list (MP `expandMembers`, in-page) | 查看成员 | sheet `[.medium, .large]` | OK |
