@@ -138137,9 +138137,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld runs lack a frozen location and aren't counted"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld run lacks a frozen location and isn't counted"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld runs lack a frozen location and aren't counted"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -309753,7 +309765,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld runs · %2$@ · time %3$@"
+            "value": "%#@run@ · %2$@ · time %3$@"
+          },
+          "substitutions": {
+            "run": {
+              "argNum": 1,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg run"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg runs"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -340035,21 +340069,9 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld team nearby"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld teams nearby"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld teams nearby"
           }
         },
         "zh-Hans": {
@@ -340098,21 +340120,9 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld result nearby · Nearest first"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld results nearby · Nearest first"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld results nearby · Nearest first"
           }
         },
         "zh-Hans": {

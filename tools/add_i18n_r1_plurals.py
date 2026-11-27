@@ -36,7 +36,7 @@ SINGULAR = {
     'spots': 'spot', 'stations': 'station', 'steps': 'step', 'stops': 'stop', 'tasks': 'task',
     'teams': 'team', 'themes': 'theme', 'tickets': 'ticket', 'times': 'time', 'topics': 'topic',
     'weeks': 'week', 'works': 'work', 'years': 'year', 'stamps': 'stamp', 'districts': 'district',
-    'visits': 'visit', 'votes': 'vote', 'tries': 'try', 'winners': 'winner', 'pieces': 'piece',
+    'runs': 'run', 'visits': 'visit', 'votes': 'vote', 'tries': 'try', 'winners': 'winner', 'pieces': 'piece',
 }
 # Keys where the matched word is a verb ("the invite for seat %lld stops working"), not a counted noun.
 VERB_KEYS = {'mp.seats.cancel.message %lld'}

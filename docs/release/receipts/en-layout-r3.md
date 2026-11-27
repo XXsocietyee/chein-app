@@ -16,13 +16,21 @@ No Swift compiler in the cloud: fixes are catalog values and stock SwiftUI modif
 
 | 4 | `pages/topic/index` bottom bar (price left, one primary right; MP order unchanged) → `TopicXcxSections.swift` `TopicXcxActionBar.barContent` | Price ("$12.50 from", "Free") + "Sign up now" / "Play any time" (`minWidth: 132`) in one `HStack` overflow the bar at accessibility sizes in English | `AnyLayout`: `HStackLayout` as before at standard sizes; `VStackLayout(alignment: .leading)` with the price above the primary button at accessibility sizes (spacer only in the row form). Same pattern as `ParticipationParityViews.swift:40` | Done |
 
+### Run 2 (2026-11-27, hourly)
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 5 | `pages/club/*` inline leaderboard row → `ClubDetailR8Mounts.swift:472` | `clubR8.lb.meta` read "1 runs · 3.2 km · time 40 min"; the call site ran `String(format:)`, which drops a plural substitution | Call site now interpolates (`appLocalized("clubR8.lb.meta \(row.clearCount) \(mileageText(row)) \(durationText(row))")`, same key); `runs` added to the r1 plural nouns; r2 tool converted the key + `fix-r8-club.json` fragment. The r1 tool also converted `mp.rank.unattributed %lld` (journey report, interpolated call site): one form hand-fixed to "%lld run lacks a frozen location and isn't counted" | Done |
+| 6 | `subpackageMember/components/cy/profile` `pc-actions` (MP: [开始探索][票夹][···]) → `MemberHomeHeader.swift` `actionRow` | Coordinator 16:37 `d2-me` en-US: "Start exploring" wrapped to four lines inside the button at 375 pt | Labels `lineLimit(1)`; `ViewThatFits(in: .horizontal)` keeps the MP row when it fits, otherwise stacks the same buttons vertically (MP order unchanged); accessibility sizes always stack as before. Buttons stay `.borderedProminent` / `.bordered` large | Done |
+| 7 | MP badge-wall (`subpackageP3/badge-wall`) fixture → `DesignFixtures/E5bFixtures.swift` `E5bBadgeWallFixture` | Coordinator 16:53 `e5b-badge-wall` zh-Hans: badge names and unlock conditions English | Fixture names/hints go through the fixture's `tt(en, zh)`. The zh date `2026-10-01` is deliberate: MP `displayDate` keeps `YYYY-MM-DD` in Chinese (`LocaleDisplay.civil`, pinned by `LocaleDisplayTests.swift:47`); English reads "Oct 1, 2026". Not changed | Done |
+| 8 | `pages/search2/index` 推荐搜索 + 类别 → `GlobalSearchView.swift` (`capsuleLayout`) → shared `TemplateChipFlow` (`TemplateDetailXbChrome.swift:201`) | Coordinator 16:37 `d2-search`: category card renders as one tall narrow pill. The flow layout always placed a chip at its one-line ideal width, so a long English category name ran past the row | `TemplateChipFlow.chipSize`: a chip wider than the row is proposed the row width (wraps inside); zero/unknown widths keep the ideal size. MP order unchanged. Suggested chips (骑行, 外滩 …) are the MP fixed China-market keyword list sent to search (`Core/GlobalSearchRecommendedKeywords.swift`, pinned by `GlobalSearchRecommendedKeywordsTests`); US market shows none, so Chinese in the China-market fixture is correct. Not changed. Needs a simulator look to confirm the tall-pill symptom is gone (mp-home / polish-search own the page) | Done (layout), verify on device |
+
 ## Not done
 
 | Item | Why |
 |---|---|
 | `payoutReceiver.bind.mpOnly`, `payoutReceiver.bind.mpPathCopied`, `authEntry.deregister.wechatUnavailable` say "the Chengyin (WeChat) mini program" in English | These name the WeChat mini program, which is searched by its Chinese name; owner to decide whether English shows "Chein", "城瘾" or both. Not changed. |
 
-| `clubR8.lb.meta %lld %@ %@` (club leaderboard row, `ClubDetailR8Mounts.swift:470`) reads "1 runs · …" | Call site runs `String(format: appLocalized(…))`; a plural substitution may not survive that path. Next run: move the call site to interpolated `appLocalized("clubR8.lb.meta \(n) \(a) \(b)")`, then add `runs` to the plural nouns. |
 
 ## Next pages (no row yet)
 Topic detail remaining sections (hero, stat bar, route stops) at AX sizes; Club home; Me tabs; Roam map home place card; ticket wallet dates/currency.

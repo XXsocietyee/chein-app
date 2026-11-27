@@ -177,7 +177,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld runs · %2$@ · time %3$@"
+            "value": "%#@run@ · %2$@ · time %3$@"
+          },
+          "substitutions": {
+            "run": {
+              "argNum": 1,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg run"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg runs"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
