@@ -523,7 +523,7 @@ struct RoamPrivatePageScope: Hashable {
     }
     @ViewBuilder private var list: some View {
         Section {
-            if model.isBusy && model.items.isEmpty { CYSkeleton().accessibilityLabel(Text("roam.private.loading")) }
+            if model.isBusy && model.items.isEmpty { CYSkeleton(label: "roam.private.loading") }
             ForEach(model.items) { item in
                 if item.state == .open {
                     Button { page.read { await model.open(item) } } label: {

@@ -31,7 +31,8 @@ struct StampAlbumTotalHeader: View {
 /// 403 is 当前账号无法查看: the album is not empty and a retry would not help.
 struct StampAlbumDeniedNotice: View {
     var body: some View {
-        Label("stampAlbum.denied", systemImage: "lock")
+        // mp-states r3 (MP stamp-album wxml:28 cy-empty 当前身份不能查看): the one state pattern.
+        ContentUnavailableView("stampAlbum.denied", systemImage: "lock")
             .accessibilityIdentifier("roam.experience.album.denied")
     }
 }

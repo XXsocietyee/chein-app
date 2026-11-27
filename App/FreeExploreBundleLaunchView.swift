@@ -139,7 +139,7 @@ import SwiftUI
                 NavigationStack {
                     FreeExploreBundleActionSheet(action: action, host: host, model: model)
                         .toolbar {
-                            ToolbarItem(placement: .cancellationAction) {
+                            ToolbarItem(placement: .confirmationAction) {
                                 Button("action.done") { bundleAction = nil }
                                     .accessibilityIdentifier("freeBundle.action.done")
                             }

@@ -43,7 +43,7 @@ struct MerchantOperationsEditor: View {
                 Button("merchant.operations.reviewDraft") { model.prepare() }
                     .buttonStyle(CYPillButtonStyle(style: .primary))
                     .disabled(!coordinator.canReview).accessibilityIdentifier("merchant.operations.review")
-                if coordinator.isBusy { CYSkeleton(variant: .row).accessibilityLabel(Text("merchant.loading")) }
+                if coordinator.isBusy { CYSkeleton(variant: .row, label: "merchant.loading") }
             }
             .listRowBackground(Color.clear)
         }

@@ -15,6 +15,8 @@ import SwiftUI
         }
     }
     @Environment(\.rootTabSwitch) private var rootTabSwitch
+    /// mp-nav r3: pops this page when it was pushed (a link / notification landing on 首页, see `HomeLanding`).
+    @Environment(\.dismiss) private var dismissPage
     /// Perks deep link: the TEST-only template executor (nil where merchant writes are closed).
     @Environment(\.coopFlowPreviewWrite) private var coopFlowWrite
     /// RNEAR-5 / RTEAMS-4: the signed-out team pages offer 登录, which opens 我的 (the app's sign-in home).
@@ -119,7 +121,8 @@ import SwiftUI
             // PLAYC-1: old circle links with a topicId forward to play (MP redirectTo pages/play/index).
             switch PlayRuntimeAuxiliaryBinding.resolveCircleRetirement(query: query) {
             case .missingParameter:
-                PlayCircleRetiredLinkView(goHome: { session.dismissNativeEntry() })
+                // mp-nav r3: MP circle/index.js:84 reLaunch 首页 — pop the landed page and select 首页.
+                PlayCircleRetiredLinkView(goHome: { leaveForTab(.home) })
             case .redirectToPlay(let scope, _, let inviteCode, let registrationID):
                 SessionPlayRuntimeView(session: session, destination: .journey(scope), inviteCode: inviteCode, registrationID: registrationID)
             }
@@ -205,7 +208,9 @@ import SwiftUI
         case "subpackageRoam/session/index":
             // RSESS-1: a friend's ?shareToken= link lands on the shared footprint; the owner's own id opens the record.
             if let token = query["shareToken"], !token.isEmpty {
-                RoamSharedFootprintView(token: token, reader: session.makeRoamShareSnapshotReader(), onOpenRoam: { session.dismissNativeEntry() })
+                // mp-nav r3: MP session/index.js:593 goRoam = switchTab 漫游 (the page may be pushed on 首页, so pop it first).
+                RoamSharedFootprintView(token: token, reader: session.makeRoamShareSnapshotReader(),
+                                        onOpenRoam: rootTabSwitch.isAvailable ? { leaveForTab(.roam) } : nil)
             } else if let sessionID = query["sessionId"] ?? query["id"], !sessionID.isEmpty {
                 RoamPassportRecordView(reader: session.roamPassportHistoryReader, sessionID: sessionID, localReader: session.roamExperienceReader)
             } else { unavailable }
@@ -582,7 +587,8 @@ import SwiftUI
         case "pages/coop/list/index":
             // MC8-30-1: `topicId` seeds the topic filter; `scope=MERCHANT` is forwarded as the operation scope.
             let listLink = CoopListLink(query)
-            CooperationBrowserView(reader: session.cooperationReader, onClose: { session.dismissNativeEntry() },
+            // mp-nav r3: pushed (link landing on 首页 or an in-app push): system back instead of a dead 关闭.
+            CooperationBrowserView(reader: session.cooperationReader, onClose: nil,
                                    peerReader: session.cooperationFlowReader,
                                    operationScope: listLink.merchantScope ? "MERCHANT" : nil,
                                    initialDirection: listLink.tab == "sent" ? .sent : .received,
@@ -669,7 +675,9 @@ import SwiftUI
                 CoopNearbyTopicContext(topicID: $0, topicName: (query["topicName"] ?? "").removingPercentEncoding ?? query["topicName"] ?? "")
             })
         case "pages/square/list/index":
-            SessionSquareBrowserView(session: session, onClose: { session.dismissNativeEntry() }, onSignIn: {})
+            // mp-nav r3: a link lands here as a push on 首页 (system back); no 关闭 that only cleared the old entry sheet,
+            // and 登录 opens 我的 like the other landed pages (was a dead `{}`).
+            SessionSquareBrowserView(session: session, onClose: nil, onSignIn: { signIn() })
         case "pages/shezhi/shezhi":
             // B-SZ-12: `?scene=` lands on the Settings row it names (MP shezhi.js:50, 231-244); unknown or
             // unavailable scenes open Settings itself.
@@ -1004,6 +1012,13 @@ import SwiftUI
             .environment(\.roamPassportHistoryReader, session.roamPassportHistoryReader)
             .environment(\.roamPlaceExtrasProvider, { poiID in poiID > 0 ? RoamPlaceExtrasProduction(poiID: poiID, session: session) : nil })
             .environment(\.inGameChannelHost, session.inGameChannelHost)
+    }
+
+    /// mp-nav r3: MP switchTab / reLaunch from a page that may be pushed on 首页 or shown in the entry sheet.
+    private func leaveForTab(_ tab: RootTab) {
+        session.dismissNativeEntry()
+        dismissPage()
+        if rootTabSwitch.isAvailable { rootTabSwitch(tab) }
     }
 
     /// PC-C-3-1 / X7: 登录 leaves the link and opens 我的, where sign-in lives (no dead `{}`).

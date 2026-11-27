@@ -214,7 +214,7 @@ struct ProfileOrdersView: View {
                 NavigationStack {
                     OrderLifecycleView(id: exit.id, coordinator: lifecycleCoordinator).id(lifecycleCoordinator.scope)
                         .toolbar {
-                            ToolbarItem(placement: .cancellationAction) {
+                            ToolbarItem(placement: .confirmationAction) {
                                 Button("action.done") { cardExit = nil }
                             }
                         }

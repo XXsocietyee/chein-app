@@ -137,7 +137,7 @@ import SwiftUI
                 if let key = editor.messageKey {
                     CYNoteBanner(text: installationText(key), symbol: "info.circle", tone: .info)
                 }
-                if editor.busy { CYSkeleton().accessibilityLabel(Text("cy.state.loading")) }
+                if editor.busy { CYSkeleton(label: "cy.state.loading") }
                 Cloud25Pill(title: installationString("recover", locale: locale), key: "recover", primary: forward == .recover, enabled: !editor.busy && editor.isCurrent) {
                     Task { await editor.open() }
                 }
