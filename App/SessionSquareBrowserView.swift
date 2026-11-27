@@ -5,6 +5,7 @@ import SwiftUI
     @ObservedObject var session: AppSession
     let onClose: (() -> Void)?
     let onSignIn: () -> Void
+    var embedsNavigationStack = true
     var body: some View {
         SquareBrowserView(reader: session.squareReader, accountReader: session.socialAccountReader,
             actions: session.socialActionCoordinator, workspace: session.squareWorkspace(),
@@ -12,7 +13,7 @@ import SwiftUI
             onSignIn: onSignIn, upcomingReader: session.officialEventReader,
             upcomingDestination: { AnyView(OfficialEventDetailView(id: $0, reader: session.officialEventReader, actions: session.officialActionCoordinator)) },
             reportProgressDestination: { AnyView(SquareReportProgressView(session: session)) },
-            onClose: onClose)
+            onClose: onClose, embedsNavigationStack: embedsNavigationStack)
             .environment(\.squareReportContext, session.squareReportContext())
             .id(session.sessionRevision).privacySensitive()
     }

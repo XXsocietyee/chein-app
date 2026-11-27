@@ -54,7 +54,7 @@ typealias WorkshopPaidInstalledTextControllerFactory = @MainActor (WorkshopPaidI
                 } else if controller.phase == .invalidated {
                     paidText(controller.issue == .disabled ? "notConfigured" : "sessionChanged")
                 } else if controller.phase == .loading {
-                    ProgressView().frame(maxWidth: .infinity).accessibilityLabel(paidText("loading"))
+                    CYLoadingState().accessibilityLabel(paidText("loading"))
                 } else if let content = controller.content {
                     Section {
                         paidFact("version", content.version)

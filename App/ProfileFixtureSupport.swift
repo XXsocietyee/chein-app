@@ -14,6 +14,17 @@ final class ProfileFixtureReader: ProfileReading {
         scenario == .unauthorized ? nil : ProfileReadIdentity(accountID: 9001, epoch: 1)
     }
     init(_ scenario: ProfileFixtureScenario) { self.scenario = scenario }
+    /// Sweep 20:45 zh-Hans (d4-badges): badge names follow the UI language; en stays as the UI tests pin it.
+    private static func designCopy(_ json: String) -> String {
+        guard Locale.preferredLanguages.first?.hasPrefix("zh") == true else { return json }
+        var text = json
+        for (en, zh) in [("Fixture city medal", "示例城市勋章"), ("Fixture achievement", "示例成就"), ("Fixture identity", "示例身份"),
+                         ("Synthetic identity card", "示例身份卡"), ("Synthetic unlock condition", "示例解锁条件"),
+                         ("Synthetic city condition", "示例城市条件")] {
+            text = text.replacingOccurrences(of: en, with: zh)
+        }
+        return text
+    }
     private func prepare() async throws {
         try Task.checkCancellation()
         if scenario == .error { throw ProfileReadFailure(code: 503, message: "Synthetic service error") }
@@ -47,9 +58,9 @@ final class ProfileFixtureReader: ProfileReading {
     func profileBadges() async throws -> ProfileBadgeWall {
         try await prepare()
         if scenario == .empty { return ProfileBadgeWall(identities: [], medals: []) }
-        let identities = try decode([ProfileIdentityBadge].self, #"[{"badgeCode":"FIXTURE-ID","badgeName":"Fixture identity","category":"EXPLORE","statement":"Synthetic identity card","unlockHint":"Synthetic unlock condition","unlocked":false}]"#)
+        let identities = try decode([ProfileIdentityBadge].self, Self.designCopy(#"[{"badgeCode":"FIXTURE-ID","badgeName":"Fixture identity","category":"EXPLORE","statement":"Synthetic identity card","unlockHint":"Synthetic unlock condition","unlocked":false}]"#))
         if scenario == .partial { return ProfileBadgeWall(identities: identities, medals: nil, medalFailureMessage: "Synthetic medals unavailable") }
-        let medals = try decode([ProfileMedal].self, #"[{"templateId":921,"medalName":"Fixture city medal","condition":"Synthetic city condition","getTime":"2026-10-01 10:00:00"},{"templateId":922,"kind":"achievement","medalName":"Fixture achievement","getTime":"2026-10-01 10:00:00"}]"#)
+        let medals = try decode([ProfileMedal].self, Self.designCopy(#"[{"templateId":921,"medalName":"Fixture city medal","condition":"Synthetic city condition","getTime":"2026-10-01 10:00:00"},{"templateId":922,"kind":"achievement","medalName":"Fixture achievement","getTime":"2026-10-01 10:00:00"}]"#))
         return ProfileBadgeWall(identities: identities, medals: medals)
     }
 }

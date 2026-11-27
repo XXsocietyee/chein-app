@@ -43,7 +43,7 @@ import Accessibility
                     .buttonStyle(.borderedProminent).controlSize(.large)
             } else if let slice = model.displayedResult(for: reader) {
                 content(slice)
-            } else { ProgressView().frame(maxWidth: .infinity) }
+            } else { CYLoadingState() }
         }
         .listStyle(.insetGrouped)
         .navigationTitle(Text("wallet.analysis.title", tableName: "WalletIncomeAnalysis"))

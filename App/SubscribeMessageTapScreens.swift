@@ -21,7 +21,8 @@ import SwiftUI
             // mp-nav r3: the tap lands as a push on 首页 (HomeLanding): system back, no 关闭 that only cleared the entry.
             CooperationBrowserView(reader: session.cooperationReader, onClose: nil,
                                    peerReader: session.cooperationFlowReader, initialDirection: direction,
-                                   topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) })
+                                   topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) },
+                                   embedsNavigationStack: false)
         case .myProjects:
             SubscribeMessageProjectsEntry(session: session)
         case .myProjectsEntry(let merchant, let initialType):

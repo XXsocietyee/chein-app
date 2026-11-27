@@ -60,10 +60,10 @@ import SwiftUI
                     }
                 }
             } else if model?.state == .idle {
-                ProgressView().frame(maxWidth: .infinity)
+                CYLoadingState()
             } else if attempted {
                 ContentUnavailableView("d7.deliveryLog.unavailable", systemImage: "list.bullet.rectangle")
-            } else { ProgressView().frame(maxWidth: .infinity) }
+            } else { CYLoadingState() }
         }
         .listStyle(.insetGrouped)
         .navigationTitle(Text("d7.deliveryLog.title")).navigationBarTitleDisplayMode(.inline).privacySensitive()

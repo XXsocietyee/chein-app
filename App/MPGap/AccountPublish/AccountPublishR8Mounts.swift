@@ -346,7 +346,8 @@ enum ProjectEditCastConfig {
                                stampDestination: { AnyView(SessionRoamStampCameraView()) },
                                posterDestination: { AnyView(SessionRoamPosterView(node: $0)) },
                                eventDestination: { AnyView(RoamNearbyEventsDetailHost(target: $0, session: session)) },
-                               couponWalletDestination: session.makeRoamCouponWalletDestination(reader: session.roamReader))
+                               couponWalletDestination: session.makeRoamCouponWalletDestination(reader: session.roamReader),
+                               embedsNavigationStack: false)
         } else {
             RoamStatusView(issue: .notConfigured)
         }

@@ -652,11 +652,7 @@ struct ClubGovernanceReadView: View {
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("club.gov.loading")
             } else if loading {
-                ProgressView()
-                    .frame(maxWidth: .infinity)
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(Text("club.loading"))
-                    .accessibilityIdentifier("club.gov.loading")
+                CYLoadingState("club.loading", messageIdentifier: "club.gov.loading")
             }
             if operation == .occurrenceStatus, let readback = occurrenceCancellationReturn.readback,
                readback.source.live(context: readContext, access: access) {
@@ -2439,10 +2435,7 @@ struct ClubGovernanceEventView: View {
             if identity?.isSignedIn != true || identity != access.identity {
                 Text("club.gov.signedOut").accessibilityIdentifier("club.story.signedOut")
             } else if loading {
-                ProgressView()
-                    .frame(maxWidth: .infinity)
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(Text("club.story.loading"))
+                CYLoadingState("club.story.loading")
                     .accessibilityIdentifier("club.story.loading")
             } else if let failure {
                 // CLB-topic-story-07: one failure state with its own 重试; pull-to-refresh covers the rest.

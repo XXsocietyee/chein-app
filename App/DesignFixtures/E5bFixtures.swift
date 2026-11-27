@@ -99,7 +99,7 @@ struct E5bBadgeWallFixture: View {
 }
 
 /// W3-8 accessibility sweep fixtures (synthetic, debug only): `a11y-roam-ax5` (map chrome at AX5), `a11y-passport-ax5`
-/// (badge/stamp grid at AX5 with a locked tile).
+/// (passport page at AX5), `a11y-badges-ax5` (badge grid at AX5 with a locked tile).
 struct A11yRoamAX5Fixture: View {
     var body: some View {
         CYMapScaffold(detent: .compact, peek: AnyView(
@@ -128,7 +128,19 @@ struct A11yRoamAX5Fixture: View {
     }
 }
 
+/// a11y-dt r3 (20:55 sweep): `a11y-passport-ax5` mounts the passport page (stamp ring, badge rail, action capsules)
+/// at AX5; the badge wall at AX5 lives under `a11y-badges-ax5`.
 struct A11yPassportAX5Fixture: View {
+    var body: some View {
+        IAPassportFixture(count: 3, badges: [
+            PassportBadge(id: 0, name: iaFixtureText("Night Owl", "夜猫子")),
+            PassportBadge(id: 1, name: iaFixtureText("First Roam", "第一次漫游"))
+        ], badgeTotal: 6)
+            .environment(\.dynamicTypeSize, .accessibility5)
+    }
+}
+
+struct A11yBadgesAX5Fixture: View {
     var body: some View {
         E5bBadgeWallFixture()
             .environment(\.dynamicTypeSize, .accessibility5)

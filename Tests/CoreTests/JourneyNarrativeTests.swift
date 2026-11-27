@@ -226,17 +226,24 @@ private final class NarrativeHTTP: HTTPTransport {
         }
     }
     func testDialogueActionSendsScopedPayloadAndUpdatesReceipt() async throws {
-        let dialogueJSON = #"{"code":200,"data":{"npcId":7,"routeActionId":"act-1","reply":"Let us talk inside.","stateVersion":4,"effects":[{"type":"INC","key":"relation.boss","delta":1,"value":1,"label":"Boss"}],"relation":{"key":"relation.boss","name":"Shopkeeper","state":"ally","value":1,"line":"Trusted"}}}"#
+        // MP `cy-npc-chat` shape: the reply is `safeText` for the same request id (round3 contract cleanup).
+        let dialogueJSON = #"{"code":200,"data":{"requestId":"00000000-0000-4000-8000-000000000007","outcomeStatus":"SUCCEEDED","safetyDecision":"PASS","safeText":"Let us talk inside.","effects":[{"type":"INC","key":"relation.boss","delta":1,"value":1,"label":"Boss"}],"relation":{"key":"relation.boss","name":"Shopkeeper","state":"ally","value":1,"line":"Trusted"}}}"#
         let casebookJSON = #"{"code":200,"data":{"facts":[],"costs":[],"relations":[{"key":"relation.boss","name":"Shopkeeper","state":"ally","value":1,"line":"Trusted"}],"effects":[{"type":"INC","key":"relation.boss","delta":1,"value":1,"label":"Boss"}],"log":[],"found":0,"total":2}}"#
         let http = NarrativeHTTP(); http.responses = [dialogueJSON, casebookJSON]
         let captured = try owner(), scope = try target()
         let model = JourneyNarrativeCoordinator(scope: scope, query: .casebook, service: try service(http), journal: journal(), currentSession: { captured })
-        await model.sendDialogue(npcID: 7, utterance: "Tell me about the lantern", routeActionID: "act-1")
+        let requestID = try XCTUnwrap(UUID(uuidString: "00000000-0000-4000-8000-000000000007"))
+        await model.sendDialogue(npcID: 7, utterance: "Tell me about the lantern", routeActionID: "act-1", requestID: requestID)
         // A missing request must fail this test, not trap the whole CoreTests runner on requests[0].
         guard http.requests.count == 2 else {
             return XCTFail("dialogue sent \(http.requests.count) requests; issue \(String(describing: model.issue))")
         }
-        XCTAssertEqual(http.requests[0].url?.path, "/api/ai/npc/dialogue")
+        XCTAssertEqual(http.requests[0].url?.path, "/api/ai/npc/chat")
+        let sent = try JSONDecoder().decode(PlayWireValue.self, from: XCTUnwrap(http.requests[0].httpBody))
+        XCTAssertEqual(sent["requestId"].text, "00000000-0000-4000-8000-000000000007")
+        XCTAssertEqual(sent["message"].text, "Tell me about the lantern")
+        XCTAssertNil(sent["utterance"].text)
+        XCTAssertEqual(sent["bizId"].integer, 55)
         let receipt = try XCTUnwrap(model.dialogueReceipt)
         XCTAssertEqual(receipt.reply, "Let us talk inside.")
         XCTAssertEqual(receipt.relation?.state, "ally")
