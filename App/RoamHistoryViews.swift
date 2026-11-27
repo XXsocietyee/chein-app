@@ -357,11 +357,17 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                         Text("roam.experience.recordedPlacesEmpty").foregroundStyle(CYColor.textSecondary)
                     }
                     ForEach(Array(record.pois.enumerated()), id: \.offset) { _, place in
+                        // MP rw__row: icon by cat (shop / park / landmark), name, then the 点亮 category line.
                         HStack(spacing: CYSpacing.md) {
-                            Image(systemName: place.cat == "merchant" ? "storefront" : "mappin").font(.title3).foregroundStyle(.secondary)
+                            Image(systemName: place.cat == "merchant" ? "storefront" : (place.cat == "park" ? "leaf" : "mappin"))
+                                .font(.title3).foregroundStyle(.secondary)
                                 .frame(width: 32).accessibilityHidden(true)
-                            RoamTitle(place.name)
+                            VStack(alignment: .leading, spacing: 2) {
+                                RoamTitle(place.name)
+                                Text("roamSub.w208.share.lit").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                            }
                         }
+                        .accessibilityElement(children: .combine)
                     }
                     Button { showShare = true } label: {
                         Label("roam.share.title", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
