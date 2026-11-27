@@ -267,12 +267,14 @@ struct RoamPlaceExtrasLive: View {
             placeName: nonempty(node?.name) ?? nonempty(map?.name) ?? RoamFinishAddress.unknown,
             game: game,
             infoRows: rowsOut,
-            quotes: [],
+            quotes: RoamPlaceSources.quotes(node?.quotesJSON), // ROAM-r11-8
+
             reviews: reviewRows,
             reviewsLoaded: loaded,
             reviewed: locallyReviewed || (accountID != nil && rows.contains { $0.memberID == accountID }),
-            photoCredit: nil
+            photoCredit: RoamPlaceSources.credit(node?.photoCreditRaw)
         )
+        next.sources = RoamCityGuideCatalog.sourcesFor(tags: node?.tags)
         if attempt.locked {
             next.reviewError = copy("评价结果未确认，请用同一条评价再试。", "This review was not confirmed. Send the same review again.")
         }

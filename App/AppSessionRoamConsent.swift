@@ -12,6 +12,13 @@ extension AppSession {
     }
 }
 
+extension AppSession {
+    /// ROAM-r11-6: wipe this device's settled roam history for the signed-in player. False = storage refused.
+    func clearRoamLocalHistory() -> Bool {
+        (try? roamHistoryStore.clearAll()) != nil
+    }
+}
+
 /// Roam privacy effects for the reviewed deployment: server readback, then stop, then clear.
 @MainActor final class ReviewedComplianceRoamEffects: ComplianceRoamEffects {
     weak var session: AppSession?
@@ -29,4 +36,10 @@ extension AppSession {
     func invalidateMapPrivacyCaches() {
         session?.invalidatePersonalLocationShare()
     }
+}
+
+/// ROAM-r11-6: the same per-account pending mark as `RoamShareRevokeRow`, for 清空本机缓存 (MP prepareShareRevocation).
+enum RoamShareRevokePending {
+    static func key(_ accountID: Int) -> String { "roam.share.revokePending.\(accountID)" }
+    static func mark(_ pending: Bool, accountID: Int) { UserDefaults.standard.set(pending, forKey: key(accountID)) }
 }

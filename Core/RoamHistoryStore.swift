@@ -184,6 +184,14 @@ public struct RoamHistoryScope: Codable, Equatable, Hashable {
         catch { throw RoamExperienceFailure.historyUnreadable }
     }
     public func find(timestamp: Int64) throws -> RoamHistoryRecord? { try readAll().first { $0.ts == timestamp } }
+    /// ROAM-r11-6: 清空本机缓存 (MP utils/roam-player-memory.js:165-170 `clearLocal`). Only settled, server-confirmed
+    /// records live here, so the uploaded walks are untouched; the live journal (pending writes) is not this store.
+    public func clearAll() throws {
+        guard let scope = currentScope() else { throw APIError.unauthorized }
+        let data = try JSONEncoder().encode(Envelope(version: 1, scope: scope, records: []))
+        do { try storage.write(data, key: scope.storageKey) }
+        catch { throw RoamExperienceFailure.historyWriteFailed }
+    }
     /// Do not call from local rehearsal. Only a complete, matching settlement fact can enter history.
     /// Failure keeps the previous durable bytes intact; the caller must retain its unsaved receipt.
     public func prependSettled(_ record: RoamHistoryRecord, fact: RoamSessionFact) throws {

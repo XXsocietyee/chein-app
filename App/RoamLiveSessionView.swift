@@ -97,6 +97,12 @@ import QuestifyCore
     @State private var sessionDetent: PresentationDetent = .fraction(0.3)
     /// ROAM-r11-3: the place marker the player tapped.
     @State private var selectedPlaceID: Int?
+    /// ROAM-r11-1: the official event carried in from 去漫游 (MP onLoad `eventId` / `missionCode`).
+    @ObservedObject private var officialHandoff = RoamOfficialEventHandoff.shared
+    @Environment(\.roamOfficialArrival) private var officialArrival
+    @Environment(\.roamPresenceVisibility) private var roamPresenceVisibility
+    @Environment(\.roamClearLocal) private var roamClearLocal
+    @Environment(\.roamDiscoverDestinations) private var discoverDestinations
     init(controller: RoamLiveSessionController, offlineExample: Bool = false, localHistoryReader: (any RoamExperienceReading)? = nil, albumMetadataReader: RoamAlbumMetadataReader? = nil, browsePresentation: RoamPausedBrowsePresentation? = nil) {
         self.offlineExample = offlineExample; self.localHistoryReader = localHistoryReader; self.albumMetadataReader = albumMetadataReader
         _browse = StateObject(wrappedValue: browsePresentation ?? RoamPausedBrowsePresentation())
@@ -152,9 +158,14 @@ import QuestifyCore
         .presentationContentInteraction(.scrolls)
         .presentationDragIndicator(.visible)
         .interactiveDismissDisabled()
+        // ROAM-r11-7: 首次发现商家 card after the first visit to a shop.
+        .sheet(item: firstDiscoveryBinding) { place in
+            if let discoverDestinations { RoamFirstDiscoverySheet(place: place, destinations: discoverDestinations) }
+        }
         .sheet(isPresented: $showTools) {
             RoamSessionToolsSheetView(runners: runners, presenceEnabled: owner.presenceEnabled,
-                                      fogOn: fogOnBinding, mapKind: mapKindBinding, reduceMotion: reducedMotionBinding)
+                                      fogOn: fogOnBinding, mapKind: mapKindBinding, reduceMotion: reducedMotionBinding,
+                                      onSetPresence: presenceSwitch, onClearLocal: roamClearLocal)
         }
         .sheet(isPresented: $showingLocationPriming, onDismiss: {
             guard locationPrimingAllowed else { return }
@@ -247,7 +258,15 @@ import QuestifyCore
             Map(initialPosition: .userLocation(fallback: .automatic), selection: $selectedPlaceID) {
                 UserAnnotation()
                 ForEach(owner.places.filter { $0.coordinate != nil }) { place in
-                    if let point = place.coordinate {
+                    if let point = place.coordinate, let photo = RoamLivePhotoPin.url(for: place) {
+                        // ROAM-r11-3: a participating shop with a cover is a photo pin (MP photo-pins.js `pinPhoto`,
+                        // `isParticipating`); the cover loads through the media allowlist.
+                        Annotation(place.name.isEmpty ? appLocalized("roam.unnamed", locale: locale) : place.name,
+                                   coordinate: CLLocationCoordinate2D(latitude: point.latitude, longitude: point.longitude)) {
+                            RoamLivePhotoPin(url: photo, tint: RoamLivePlaceLevel.tint(place.nodeLevel))
+                        }
+                        .tag(place.id)
+                    } else if let point = place.coordinate {
                         Marker(place.name.isEmpty ? appLocalized("roam.unnamed", locale: locale) : place.name,
                                systemImage: RoamLivePlaceLevel.symbol(place.nodeLevel),
                                coordinate: CLLocationCoordinate2D(latitude: point.latitude, longitude: point.longitude))
@@ -269,9 +288,35 @@ import QuestifyCore
                 .accessibilityIdentifier("roam.live.map")
         }
     }
+    private var firstDiscoveryBinding: Binding<RoamPlace?> {
+        Binding(get: { discoverDestinations == nil ? nil : owner.firstShopDiscovery },
+                set: { if $0 == nil, owner.firstShopDiscovery != nil { owner.consumeFirstShopDiscovery() } })
+    }
+    /// ROAM-r11-5: the server-confirmed presence change also switches this walk's presence reports.
+    private var presenceSwitch: (@MainActor (Bool) async -> Bool?)? {
+        guard let roamPresenceVisibility, [.active, .paused].contains(owner.phase), owner.presenceAvailable else { return nil }
+        return { visible in
+            let saved = await roamPresenceVisibility(owner.record?.sessionID, visible)
+            if let saved {
+                owner.setPresenceSharing(saved)
+                if !saved { runners = [] }
+            }
+            return saved
+        }
+    }
+    /// ROAM-r11-1: MP 官方活动 · 到达验证 overlay, shown only in an event context.
+    @ViewBuilder private var officialArrivalSection: some View {
+        if let deps = officialArrival, let target = officialHandoff.target {
+            RoamOfficialArrivalSection(deps: deps, target: target, sessionID: owner.record?.sessionID, fix: owner.lastFix,
+                                       finished: owner.phase == .finished,
+                                       explored: (owner.record?.distanceMeters ?? 0) > 0 || !(owner.record?.confirmedPOIIDs.isEmpty ?? true),
+                                       onClose: { officialHandoff.clear() })
+        }
+    }
     private var sessionList: some View {
         List {
             if owner.phase != .unavailable { hud }
+            officialArrivalSection
             if offlineExample { RoamExperienceNotice(offline: true) }
             if model.syncStatus.isOffline {
                 Section {
@@ -1387,6 +1432,34 @@ struct RoamCheckinTarget: Identifiable {
 
 /// ROAM-r11-3: MP pages/roam/node-level-style.js STYLES (1 普通 ● / 2 精选 ◆ / 3 官方合作 ★ / 4 主题路线 ⬟) as
 /// system marker symbols and tints. A missing level is 普通, as `getNodeLevelStyle` does.
+/// ROAM-r11-3: round cover pin for a participating shop (MP photo-pins.js PIN_SIZE 40).
+@MainActor struct RoamLivePhotoPin: View {
+    let url: URL
+    let tint: Color
+    @State private var image: UIImage?
+    /// MP `isParticipating` + `pinPhoto`: shops (type 2) with a cover; only allowlisted media origins.
+    static func url(for place: RoamPlace) -> URL? {
+        guard place.type == 2, let raw = place.coverImage?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty,
+              ObjectCardMediaPolicy.origin(raw) != nil else { return nil }
+        return URL(string: raw)
+    }
+    var body: some View {
+        Group {
+            if let image {
+                Image(uiImage: image).resizable().scaledToFill()
+            } else {
+                Image(systemName: "storefront.fill").foregroundStyle(.white).padding(8)
+            }
+        }
+        .frame(width: 40, height: 40)
+        .background(tint)
+        .clipShape(Circle())
+        .overlay(Circle().stroke(.white, lineWidth: 2))
+        .accessibilityHidden(true)
+        .task(id: url) { image = await PlayerFeedImages.image(for: url, maxPixel: 120) }
+    }
+}
+
 enum RoamLivePlaceLevel {
     static func symbol(_ level: Int?) -> String {
         switch level ?? 1 {

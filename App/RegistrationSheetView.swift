@@ -1041,7 +1041,15 @@ private struct RegistrationOperationSections: View {
             Section { Text("registration.form.otherActivityIntent").foregroundStyle(.secondary) }
         }
         switch flow.creationState {
-        case .idle: EmptyView()
+        case .idle:
+            // R11-PC-C-2: MP baoming.js:1495 app.tips(CONFLICT_TEXT[conflict]); the quote above is already new.
+            if let conflict = flow.createConflictMessage {
+                Section {
+                    Label(conflict, systemImage: "arrow.clockwise.circle")
+                        .foregroundStyle(.orange)
+                        .accessibilityIdentifier("registration.form.createConflict")
+                }
+            }
         case .submitting:
             Section { CYLoadingStateView(rows: 1).accessibilityLabel(Text("registration.form.creating")) }
         case .outcomeUnknown:

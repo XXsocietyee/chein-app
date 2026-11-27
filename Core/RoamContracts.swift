@@ -228,6 +228,10 @@ public struct RoamNodeDetail: Decodable, Equatable, Identifiable {
     public let quizOptions: [RoamNodeQuizOption]
     public let badgeCode: String?
     public let photoRequireDesc: String?
+    /// ROAM-r11-8: cited quotes (`quotesJson`) and the photo credit (`photoCredit` / `photo_credit` / `credit`),
+    /// raw. MP subpackageRoam/nearby/index.js:956-957; parsing in utils/map-layers.js `poiQuotes`, roam-place-map.js `credit`.
+    public let quotesJSON: String?
+    public let photoCreditRaw: String?
     public var isPublished: Bool { status == 1 }
     /// MP: quiz = validationMethod === 3 && options.length > 0.
     public var isQuiz: Bool { validationMethod == 3 && !quizOptions.isEmpty }
@@ -235,6 +239,7 @@ public struct RoamNodeDetail: Decodable, Equatable, Identifiable {
         case poiId, name, description, lat, lng, radiusM, nodeLevel, tags, status, merchantId
         case merchantName, merchantAddress, templateTitle, validationMethod, completed, favorited, canInteract, needRedeem, couponId
         case photoRequired, questionName, questionA, questionB, questionC, questionD, badgeCode, photoRequireDesc
+        case quotesJson, photoCredit, photo_credit, credit
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -263,6 +268,9 @@ public struct RoamNodeDetail: Decodable, Equatable, Identifiable {
         quizOptions = options
         badgeCode = ((try? c.roamText(.badgeCode)) ?? nil).flatMap { $0.isEmpty ? nil : $0 }
         photoRequireDesc = ((try? c.roamText(.photoRequireDesc)) ?? nil).flatMap { $0.isEmpty ? nil : $0 }
+        quotesJSON = (try? c.roamText(.quotesJson)) ?? nil
+        photoCreditRaw = [CodingKeys.photoCredit, .photo_credit, .credit].lazy
+            .compactMap { ((try? c.roamText($0)) ?? nil).flatMap { $0.isEmpty ? nil : $0 } }.first
     }
 }
 
