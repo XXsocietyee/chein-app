@@ -84,6 +84,7 @@ extension EnvironmentValues {
                 Spacer()
                 Button(action: onClose) {
                     Image(systemName: "xmark.circle.fill")
+                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget).contentShape(Rectangle())
                 }
                 .buttonStyle(.borderless)
                 .accessibilityLabel(Text("roam.official.close"))
