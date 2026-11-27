@@ -131,7 +131,12 @@ import UIKit
             XCTAssertTrue(source.contains(clause), clause)
         }
         XCTAssertFalse(source.contains("TemplateAuthoringModel")); XCTAssertFalse(source.contains("persistStagedRpgDraft")); XCTAssertFalse(source.contains("URLSession"))
-        XCTAssertTrue(source.contains("模板状态效果编辑尚未接入"))
+        // Stale needle: the view no longer inlines this Chinese copy. Since f9ca1f424 it renders the catalog key
+        // and NativeRpgConditionAuthorPresentation.swift maps the original sentence to that key.
+        XCTAssertTrue(source.contains("Text(copy.text(\"rpgCondition.copy.015\"))"))
+        let presentation = try String(contentsOf: root.appendingPathComponent("App/NativeRpgConditionAuthorPresentation.swift"), encoding: .utf8)
+        XCTAssertTrue(presentation.contains("模板状态效果编辑尚未接入"))
+        XCTAssertTrue(presentation.contains("\"rpgCondition.copy.015\""))
     }
     func testActualProjectEntryHostsWithoutChangingOrSubmittingRules() async {
         let (model, _, _, service) = await setup(); let before = ProjectEditPendingMaterials.exactData(model.draft)

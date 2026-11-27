@@ -143,7 +143,12 @@ import UIKit
             XCTAssertTrue(source.contains(clause), clause)
         }
         for forbidden in ["TemplateAuthoringModel", "persistStagedRpgDraft", "URLSession", "CLLocationManager", "requestWhenInUseAuthorization"] { XCTAssertFalse(source.contains(forbidden)) }
-        XCTAssertTrue(source.contains("模板天气与室内配置编辑尚未接入"))
+        // Stale needle: the view no longer inlines this Chinese copy. Since f9ca1f424 it renders the catalog key
+        // and NativeRpgEnvironmentAuthorPresentation.swift maps the original sentence to that key.
+        XCTAssertTrue(source.contains("Text(copy.text(\"rpgEnvironment.copy.014\"))"))
+        let presentation = try String(contentsOf: root.appendingPathComponent("App/NativeRpgEnvironmentAuthorPresentation.swift"), encoding: .utf8)
+        XCTAssertTrue(presentation.contains("模板天气与室内配置编辑尚未接入"))
+        XCTAssertTrue(presentation.contains("\"rpgEnvironment.copy.014\""))
     }
     func testActualEntryHostsWithoutChangingOrSubmittingRules() async {
         let (model, _, _, service) = await setup(); let before = ProjectEditPendingMaterials.exactData(model.draft)

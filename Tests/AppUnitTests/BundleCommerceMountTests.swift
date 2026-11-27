@@ -16,7 +16,10 @@ import XCTest
         XCTAssertEqual(
             BundleCommerceCatalog.visible(baseURL: china, capabilityAvailable: true),
             // MKT-7-2: 评价 reads the live merchant/reviews contract.
-            [.orderStatus, .refundQuote, .cancel, .exitSwap, .review]
+            // Stale expectation: Handover 23 (owner correction 2026-11-13, docs/release/receipts/cur-be-gap-play.md)
+            // admits `/api/free-explore/bundle/shelf` as a non-money read in
+            // `ChinaReviewedRouteCapability.playGapOwnerGrant` (landed in 7623036a3), so the shelf entry is admitted too.
+            [.shelf, .orderStatus, .refundQuote, .cancel, .exitSwap, .review]
         )
     }
 

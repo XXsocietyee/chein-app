@@ -270,8 +270,25 @@ import XCTest
             let data: ProjectEditJSON = request.method == .get ? .array([.object(originalRow)]) :
                 .object(["definitions": .array([.object(editedRow)]), "warnings": .array([]),
                          "keys": .array([.object(editedRow)])])
-            return try NativeAttributeAuthorWire.encode(.object(["code": .number(200), "topicId": .number(88),
-                "configVersion": .number(mutation ? 5 : 4), "data": data]))
+            var root: [String: ProjectEditJSON] = ["code": .number(200), "topicId": .number(88),
+                "configVersion": .number(mutation ? 5 : 4), "data": data]
+            // Stale wire: a versioned mutation is only `.confirmed` when the reply carries the original
+            // request receipt (`NativeAttributeAuthorService.submitWithReceipt` -> `verifyOriginalReceipt`,
+            // protocol `original-attribute-author-request-v1`, in the 02c68098f tree). Without it the
+            // coordinator correctly stays `.unknown`. Same proof shape as
+            // Tests/CoreTests/NativeAttributeAuthorReceiptEvidencePreservationTests.swift.
+            if mutation {
+                let receipt: [String: ProjectEditJSON] = [
+                    "protocolVersion": .string(NativeAttributeAuthorRequest.originalRequestProtocol),
+                    "requestId": .string(request.requestKey.uuidString.lowercased()),
+                    "payloadSHA256": .string(request.originalPayloadSHA256),
+                    "method": .string(request.method.rawValue),
+                    "topicId": .number(Decimal(request.binding.topicID)),
+                    "expectedConfigVersion": .number(Decimal(request.binding.sourceConfigVersion)),
+                    "state": .string("COMMITTED")]
+                root["requestReceipt"] = .object(receipt)
+            }
+            return try NativeAttributeAuthorWire.encode(.object(root))
         }
         let storage = AttributeStorage()
         let dependencies = try XCTUnwrap(project.dependencies(transport: wire, storage: storage))
@@ -301,8 +318,17 @@ import XCTest
         let project = try XCTUnwrap(NativeAttributeAuthorProjectHost(model: model, configuration: configuration()))
         var draft = try localDraft(project.binding), row = try XCTUnwrap(localDraft(project.binding).rows.first)
         row.label = "Pending"; try draft.replace(row)
-        let request = try NativeAttributeAuthorRequest.definitionsWrite(draft, key: UUID())
-        let pending = NativeAttributeAuthorPending(request: request, draft: draft)
+        let requestKey = UUID()
+        let request = try NativeAttributeAuthorRequest.definitionsWrite(draft, key: requestKey)
+        var pending = NativeAttributeAuthorPending(request: request, draft: draft)
+        // Stale fixture: `NativeAttributeAuthorLocalStore.save` rejects a versioned definitions write
+        // without its exact validate target (`validatedTarget`, 02c68098f tree). Record the same
+        // target the original validate step would have produced so the journal can be stored.
+        let editedDefinition = try row.definition()
+        let target: [String: ProjectEditJSON] = ["code": .number(200), "topicId": .number(88), "configVersion": .number(4),
+            "data": .object(["definitions": .array([.object(editedDefinition)]), "warnings": .array([])])]
+        pending.validatedTarget = try NativeAttributeAuthorValidatedTarget(draft: draft, requestKey: requestKey,
+            response: try NativeAttributeAuthorWire.encode(.object(target)))
         let storage = AttributeStorage(), store = NativeAttributeAuthorLocalStore(storage: storage)
         try store.save(.init(draft: draft, pending: pending)); let journal = storage.values
         let service = NativeAttributeAuthorService(current: { project.currentBinding() }, contract: .versionedCandidate)

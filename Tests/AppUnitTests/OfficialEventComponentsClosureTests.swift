@@ -63,8 +63,12 @@ import UIKit
     func testReadOnlyNoticeStillAppearsForOnlineAndOfflineConsumers() throws {
         let source = try componentSource
         let notice = try XCTUnwrap(source.components(separatedBy: "struct OfficialReadOnlyNotice: View {").last?.components(separatedBy: "struct OfficialEventCard:").first)
-        XCTAssertTrue(notice.contains("\n            Text(\"official.readOnly\")"))
-        XCTAssertFalse(notice.contains("if offline { Text(\"official.readOnly\") }"))
+        // Stale expectation: the always-on `official.readOnly` line was a native/dev-only notice the MP does not
+        // have (docs/alignment/xcx-ios-C-20261019.md P1). The fix/r3-player-content-a merge (53ace57f4) replaced it:
+        // unavailable actions are simply absent and only the offline example-content marker remains.
+        XCTAssertFalse(notice.contains("Text(\"official.readOnly\")"))
+        XCTAssertTrue(notice.contains("if offline {"))
+        XCTAssertTrue(notice.contains("Label(\"official.offlineExample\""))
         for offline in [true, false] {
             for locale in ["en", "zh-Hans"] { render(OfficialReadOnlyNotice(offline: offline), locale: locale) }
         }

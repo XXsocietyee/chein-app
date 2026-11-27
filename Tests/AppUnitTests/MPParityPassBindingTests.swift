@@ -131,7 +131,15 @@ import FoundationNetworking
     }
 
     func testBindingSourceDoesNotCallWriteMethods() throws {
-        let source = try String(contentsOf: sourceURL(), encoding: .utf8)
+        let raw = try String(contentsOf: sourceURL(), encoding: .utf8)
+        // Stale needles: two later intended call sites are not PlatformPass write calls.
+        // - `client.quote(productID:` is the WP07 group-checkout quote, a read (`wp07CommerceOwnerGrant`).
+        // - `source.claim(giftToken:` is MKT-3-1, the MP gift claim (efd8ae2aa, owner rule 2026-11-25: not a money write).
+        // Only those exact call sites are removed; any other purchase/quote/order/claim call still fails.
+        var source = raw
+        for approved in ["client.quote(productID:", "source.claim(giftToken:"] {
+            source = source.replacingOccurrences(of: approved, with: "")
+        }
         for needle in [".purchase(", ".quote(", ".order(", ".claim("] {
             XCTAssertFalse(source.contains(needle), needle)
         }

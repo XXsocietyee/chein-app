@@ -54,7 +54,9 @@ import XCTest
         XCTAssertNil(h.session.token)
         XCTAssertNil(h.session.account)
         XCTAssertTrue(h.defaults.bool(forKey: h.restoreBlockedKey))
-        XCTAssertTrue(h.wire.requests.contains { $0.url?.path == "/api/logout" })
+        // Stale since the test landed (7623036a3): `APIConfiguration.url(for:)` appends `api/logout` to the
+        // reviewed base URL, so the base path `/appsec-keychain` stays in front (same as the Wire's hasSuffix routing).
+        XCTAssertTrue(h.wire.requests.contains { $0.url?.path == "/appsec-keychain/api/logout" })
         XCTAssertTrue(h.wire.requests.allSatisfy { $0.url?.host == "example.test" })
         XCTAssertTrue(ReviewedAreaSwitch.moneyPayments(apiHost: ReviewedAreaSwitch.productionAPIHost))
         XCTAssertFalse(ReviewedAreaSwitch.passwordLogin(apiHost: ReviewedAreaSwitch.productionAPIHost))
