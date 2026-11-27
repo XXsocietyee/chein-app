@@ -10,7 +10,7 @@ import SwiftUI
     var body: some View {
         Form {
             Section { TeamNotice(coordinator: model.coordinator) }
-            if model.running { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("team.loading")) }
+            if model.running { ProgressView { Text("team.loading") }.frame(maxWidth: .infinity) }
             if let context = model.coordinator.creation {
                 Section("team.create.activity") { Text(verbatim: context.title).font(.headline).fixedSize(horizontal: false, vertical: true) }
                 Section {

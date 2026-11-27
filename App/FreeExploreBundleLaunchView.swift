@@ -165,7 +165,7 @@ import SwiftUI
     }
     @ViewBuilder private func readyContent(_ facts: FreeExploreBundlePageReady.Facts) -> some View {
         Section {
-            if facts.refreshing { ProgressView().frame(maxWidth: .infinity) }
+            if facts.refreshing { ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity) }
             if facts.refreshFailed {
                 // A failed refresh keeps the last record on screen instead of zeroing it.
                 Label { errorText } icon: { Image(systemName: "exclamationmark.triangle") }.accessibilityIdentifier("freeBundle.error")

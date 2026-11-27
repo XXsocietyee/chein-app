@@ -5614,13 +5614,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No completed runs are ranked yet"
+            "value": "No rankings yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂时没有已完成的排名记录"
+            "value": "还没有排名数据"
           }
         }
       }
@@ -5631,13 +5631,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The leaderboard could not be loaded. Refresh to try again."
+            "value": "Couldn’t load the leaderboard · Tap Refresh to try again"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "排行榜暂时读不到，可以刷新重试。"
+            "value": "榜单暂时读不到 · 点「刷新」再试"
           }
         }
       }
@@ -149425,13 +149425,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Allow location in Settings to find merchants near you, then search again."
+            "value": "Location access is needed to find nearby merchants."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "到“设置”里允许定位，就能找到附近商家。然后再搜一次。"
+            "value": "需要定位权限才能找附近商家"
           }
         }
       }
@@ -149442,13 +149442,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Location is off"
+            "value": "Can't show nearby merchants"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "定位未开启"
+            "value": "当前无法查看附近商家"
           }
         }
       }
@@ -173780,13 +173780,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Signup is closed for this account under platform rules."
+            "value": "Under platform rules, you can't sign up for this one right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "按平台规则，当前账号暂不能报名"
+            "value": "按平台规则，你暂时不能报名这一场。"
           }
         }
       }
@@ -340069,9 +340069,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld teams nearby"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld team nearby"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld teams nearby"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -340120,9 +340132,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld results nearby · Nearest first"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld result nearby · Nearest first"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld results nearby · Nearest first"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -346777,6 +346801,125 @@
           "stringUnit": {
             "state": "translated",
             "value": "活动列表没能打开"
+          }
+        }
+      }
+    },
+    "mpr3.coop.list.viewCooperation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View cooperation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看合作"
+          }
+        }
+      }
+    },
+    "mpr3.coop.invite.topicsForbidden": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your current identity can't read topics"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前身份不能读取主题"
+          }
+        }
+      }
+    },
+    "mpr3.coop.invite.targetsForbidden": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your current identity can't view partners"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前身份不能查看合作对象"
+          }
+        }
+      }
+    },
+    "roam.w208.entry.momentsTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live moments"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现场动态"
+          }
+        }
+      }
+    },
+    "roam.w208.entry.moments %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live moments · %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现场动态 · %lld"
+          }
+        }
+      }
+    },
+    "roam.w208.entry.noMoments": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No live moments yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有现场动态"
+          }
+        }
+      }
+    },
+    "verificationCode.ticket.failedTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t create your entry code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入场码没生成出来"
           }
         }
       }

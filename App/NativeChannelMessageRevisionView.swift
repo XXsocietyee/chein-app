@@ -35,7 +35,7 @@ import SwiftUI
                 }
             }
             if loading {
-                ProgressView().frame(maxWidth: .infinity)
+                ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity)
             }
             if failed {
                 ContentUnavailableView {
