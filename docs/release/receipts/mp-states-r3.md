@@ -74,6 +74,7 @@ match is a queue item (133 at the start). Tab roots first, then their pushed pag
 - mp-settings: 营销同意 (`AccountComplianceViews.marketing`) has no visible loading words (MP 正在加载…) and its failure is a 当前状态未确认 line instead of the MP cy-inline-error 营销同意状态加载失败 · 重试.
 - debt: `tools/check_contextual_flows.py` already fails on the branch base (asserts `payload: .route(topicID: row.id)` in the IM UI, no longer present) — not one of the brief's gates.
 - mp-activity: `TeamOrientBoardView` progress card title reads 任务进度; MP `pages/team/detail/index.wxml:115` says 队伍进度.
+| 藏品册 (`ObjectCardsView`) | `subpackageP3/pages/object-cards/index/index.wxml:27-30` 当前身份不能查看 / cy-error 藏品册无法打开 / cy-skeleton | plain `Text` lines + `CYPillButton` 重试; skeleton + separate footnote | denied and failure as `ContentUnavailableView` (当前身份不能查看 — This identity can’t view it; 藏品册无法打开 · `.bordered` 重试); loading `ProgressView { 正在打开藏品册… }`. Same denied title on 集邮册 (`StampAlbumDeniedNotice`, MP stamp-album wxml:28), now a `ContentUnavailableView` instead of a bare `Label` |
 
 ## Gates
 
