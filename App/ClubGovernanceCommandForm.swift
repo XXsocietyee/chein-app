@@ -382,13 +382,13 @@ import SwiftUI
                     coordinator: coordinator, formID: route.id)
             }
             if let groupCode {
-                // CLB-r10-nat-group-code-01 (MP group-code wxml:38-39): the session name is the Section header.
+                // mp-club r3 pass 8 (MP group-code wxml:38-39 → club-game-code-sheet wxml:9-24): 活动核验团码, the code,
+                // then the session name under it and 保存到相册; no name above the card.
                 Section {
                     ClubGroupCodePresentation(value: groupCode,
                         current: identity == access.identity && scenePhase == .active,
-                        onReissue: busy || locked ? nil : { Task { await reissueGroupCode() } })
-                } header: {
-                    if let name = ClubRoleActivityLabel.entry(sessionLabel) { Text(verbatim: name) }
+                        onReissue: busy || locked ? nil : { Task { await reissueGroupCode() } },
+                        sessionName: ClubRoleActivityLabel.entry(sessionLabel))
                 }
             }
             if let receipt {

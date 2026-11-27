@@ -11,7 +11,7 @@ The 21 MP pages were compared section by section, top to bottom, against their n
 | `python3 tools/generate_project.py` | OK |
 | `python3 tools/check_scaffold.py` | PASS (no FAIL lines; typography lint PASS) |
 | `python3 -B tools/check_a11y_lint.py` | PASS: 0 new |
-| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 7, after merging combined-r7 again), **new 0**, fixed 0 |
+| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 8, after merging combined-r7 again), **new 0**, fixed 0 |
 | `python3 tools/check_design_consistency.py` | PASS |
 
 There is no Swift compiler in this environment. Edits are kept type-simple and reuse existing keys, components and patterns.
@@ -57,6 +57,8 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/checkin-detail | `ClubCheckinRailView` via `ClubGovernanceViews` | The server `errorText` should be the missing title / denied sub-line (wxml:13-16); native dropped it on the loaded path. | **Fixed.** `reason: failure?.message` |
 | club/checkin-detail | same | Extra 已退款 note on the rail (MP: the rail is just unlit; the header status says 已退款). | **Fixed (pass 2).** Visible line removed; the sentence is now the rail's VoiceOver hint |
 | club/group-code | `ClubGovernanceCommandForm` (issueGroupCode) | The no-permission exit should be 进入俱乐部管理 (goManage → detail tab=manage); native just dismissed. | **Fixed.** Reuses `ClubGroupCodeMissingLinkView.manageDestination` |
+| club/group-code → `components/club-game-code-sheet` | `ClubGovernanceCommandForm` (issueGroupCode), `ClubGroupCodePresentation.swift` | MP sheet order: title 活动核验团码 → code card → 主题/场次名 under the code → 保存到相册 (wxml:9-24, group-code wxml:38-39). Native put the session name in the Section header above the card and never passed `sessionName`, so it read name → title → code. | **Fixed (pass 8).** The form passes `sessionName` (`ClubRoleActivityLabel.entry`) and drops the header; the presentation shows it under the code, before the expiry timer and 保存到相册. Error state (CU-C-148 one-line error + 重试) and the save path were already present (sweep: no group-code fixture in `docs/sweeps/latest/mp-club`) |
+| club/detail · `components/cy/timeline`, club/settlement · `components/cy/fe-reference-range`, topic-detail · `components/club-director-*` (10 sheets) | management / director surfaces | Owner-stage timeline, settlement date range + 导出, and the live-run director sheets (ready, recap, chapter, team, role, incident, broadcast, end confirm). | **Not done.** Checked for scope: all are owner/director tools under the large topic-detail director row above; queued after the floating 加入 capsule |
 | club/join-requests | `ClubManagementView.swift` | Loading should read 正在加载入会申请 (wxml:11); the empty state is the title only (wxml:20). | **Fixed** (`club.joinRequests.loading`) |
 | club/join-requests | `MPReviewedPageScreen.swift` | A link without `clubId` should show the missing-param state with 返回 (wxml:12). | **Fixed.** `MemberMissingLinkState` |
 | club/join-requests | same | Native rows push a detail page and 通过/拒绝 go through a review sheet; the MP does both in one tap. | **Not done.** large |
@@ -143,6 +145,7 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 16. Pass 6: 结束主题 confirm in MP copy (结束并退款, 下架就够了).
 15. Pass 6: merge combined-r7 (xcstrings: both sides' keys, 28 added); club 帖文 公告 · 新人先看 (≤2 pinned notices with unread dots).
 17. Pass 7: merge combined-r7 (xcstrings: both sides' keys, 16 added); notify review = preview card only (MP wxml:55-64).
+18. Pass 8: merge combined-r7 (xcstrings: combined is a superset; 35 keys take its newer values); 出示团码 card in MP order (code → session name → 保存到相册).
 8. Pass 2: shared club thumbnail, customer-detail edit heading, create check-failed 返回上一页, enroll order, check-in rail refund note.
 
 ## Sweep check (pass 7, build 070117595, `docs/sweeps/latest/mp-club/sheet-zh-Hans.jpg`)
