@@ -84,7 +84,8 @@ struct RoamFinishReport: Equatable {
             .padding(.horizontal, CYSpacing.lg)
             .padding(.bottom, CYSpacing.xxl)
         }
-        .background(Color.black.ignoresSafeArea())
+        // native-r3-b: system background — the semantic text colours above were unreadable on forced black in light mode.
+        .background(Color(uiColor: .systemBackground).ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .cySheet(isPresented: $showShare) {
             Group { if let record = report.record { NavigationStack { RoamHistoryShareView(record: record, reader: history) } } }
