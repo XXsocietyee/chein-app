@@ -8,7 +8,7 @@ import SwiftUI
 // `pages/playkit/components/playkit-countdown` (one clock, remaining time rounds up, empties as time runs),
 // `components/cy/result-sheet` (badge springs in → ripple → check; reduced motion = static).
 // Values are always the server's (score, tries, hint ladder); nothing is computed on the phone.
-// The pills are local until lane C3's `CYStatPill` lands; swap `NativeGameStatPill` for it then.
+// Pills and clock are lane C3's `CYStatPill` / `CYCountdown` (App/NativeR2/Components).
 
 /// What the HUD shows. Every field is optional; an empty model draws nothing.
 struct NativeGameHUDModel: Equatable {
@@ -41,7 +41,6 @@ struct NativeGameHUDModel: Equatable {
 /// Dynamic Type: the row wraps into two lines through `ViewThatFits`, then into a vertical stack.
 @MainActor struct NativeGameHUD: View {
     let model: NativeGameHUDModel
-    @Environment(\.locale) private var locale
 
     var body: some View {
         if !model.isEmpty {
@@ -64,74 +63,26 @@ struct NativeGameHUDModel: Equatable {
 
     @ViewBuilder private var pills: some View {
         if let score = model.score {
-            NativeGameStatPill(systemImage: "star.fill", label: Text("nativeGames.hud.score"),
-                               value: Text(verbatim: score.formatted(.number.locale(locale))), numeric: Double(score))
+            CYStatPill("nativeGames.hud.score", count: score, systemImage: "star.fill", tint: CYColor.gameAccent, showsTitle: true)
                 .accessibilityIdentifier("nativeGames.hud.score")
         }
         if let progress = model.progress {
-            NativeGameStatPill(systemImage: "list.number", label: Text("nativeGames.hud.progress"),
-                               value: Text(verbatim: "\(progress.current)/\(progress.total)"), numeric: Double(progress.current))
-                .accessibilityValue(Text("nativeGames.progress \(progress.current) \(progress.total)"))
+            CYStatPill("nativeGames.hud.progress", value: "\(progress.current)/\(progress.total)", systemImage: "list.number",
+                       tint: CYColor.gameAccent, showsTitle: true)
                 .accessibilityIdentifier("nativeGames.progress")
         }
         if let cap = model.triesCap, let left = model.triesLeft {
-            NativeGameStatPill(systemImage: "arrow.counterclockwise", label: Text("playkit.triesLeft"),
-                               value: Text(verbatim: "\(left)/\(cap)"), numeric: Double(left),
-                               tint: left <= 1 ? .orange : nil)
+            CYStatPill("playkit.triesLeft", value: "\(left)/\(cap)", systemImage: "arrow.counterclockwise",
+                       tint: left <= 1 ? Color.orange : CYColor.gameAccent, showsTitle: true)
                 .accessibilityIdentifier("playkit.triesLeft")
         } else if let attempts = model.attempts {
-            NativeGameStatPill(systemImage: "arrow.counterclockwise", label: Text("playkit.attempts"),
-                               value: Text(verbatim: String(attempts)), numeric: Double(attempts))
+            CYStatPill("playkit.attempts", count: attempts, systemImage: "arrow.counterclockwise", tint: CYColor.gameAccent, showsTitle: true)
                 .accessibilityIdentifier("nativeGames.hud.attempts")
         }
         if let total = model.hintsTotal, let used = model.hintsUsed {
-            NativeGameStatPill(systemImage: "lightbulb.fill", label: Text("nativeGames.hud.hints"),
-                               value: Text(verbatim: "\(used)/\(total)"), numeric: Double(used))
+            CYStatPill("nativeGames.hud.hints", value: "\(used)/\(total)", systemImage: "lightbulb.fill",
+                       tint: CYColor.gameAccent, showsTitle: true)
                 .accessibilityIdentifier("nativeGames.hud.hints")
-        }
-    }
-}
-
-/// Capsule: SF Symbol, caption label, rolling value. VoiceOver reads "label, value".
-@MainActor struct NativeGameStatPill: View {
-    let systemImage: String
-    let label: Text
-    let value: Text
-    let numeric: Double
-    var tint: Color? = nil
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    var body: some View {
-        HStack(spacing: 6) {
-            Image(systemName: systemImage)
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(tint.map { AnyShapeStyle($0) } ?? AnyShapeStyle(.tint))
-                .accessibilityHidden(true)
-            label
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-            valueText
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(.fill.tertiary, in: Capsule())
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(label)
-        .accessibilityValue(value)
-    }
-
-    @ViewBuilder private var valueText: some View {
-        let base = value
-            .font(.subheadline.weight(.semibold))
-            .monospacedDigit()
-            .lineLimit(1)
-        if reduceMotion || !NativeR2Flags.motion {
-            base
-        } else {
-            base
-                .contentTransition(.numericText(value: numeric))
-                .animation(.smooth, value: numeric)
         }
     }
 }
@@ -147,10 +98,8 @@ struct NativeGameHUDModel: Equatable {
 
     var body: some View {
         VStack(spacing: 12) {
-            Text(timerInterval: interval, countsDown: true)
-                .font(.system(.largeTitle, design: .rounded).weight(.semibold))
-                .monospacedDigit()
-                .lineLimit(1)
+            // C3 `CYCountdown`: system timer text, swaps to 「已结束」 once the date passes.
+            CYCountdown(until: interval.upperBound, style: .dataXL)
                 .minimumScaleFactor(0.5)
                 .frame(maxWidth: .infinity)
             ProgressView(timerInterval: interval, countsDown: true) { EmptyView() } currentValueLabel: { EmptyView() }
