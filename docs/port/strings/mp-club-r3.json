@@ -272,6 +272,23 @@
           }
         }
       }
+    },
+    "club.ops.locked.sub": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the host can set these"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅主理人可设置"
+          }
+        }
+      }
     }
   }
 }
