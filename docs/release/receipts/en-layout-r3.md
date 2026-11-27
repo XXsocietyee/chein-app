@@ -63,6 +63,9 @@ Sweep `docs/sweeps/latest` build 1300a48db (18:54Z) en sheets: `mp-mine/sheet-en
 | 24 | Club channel chat (`en-d4-channel-chat`) → `Core/ChannelDiscordMessaging.swift` `formatDivider(.date)`; channel message search day headers → `NativeChannelMessageSearchView.swift` | Divider + sender time read "11-07 09:00" (MP `MM-dd HH:mm` slice; reads as a range in English); search headers raw "2026-11-07" | English → "Nov 7, 09:00" (locale short month symbols); Chinese unchanged `11-07 09:00` (test added in `ChannelDiscordMessagingTests.testPlaceholdersAndTierTitlesFollowLocale`). Search headers → `LocaleDisplay.civil` | Done |
 | 25 | Onboarding (`en-onboarding-1`) → `DesignSystem/CYOnboarding.swift` top bar, `CYOnboardingLight.swift` `OBWordmarkBloom` (disc wordmark); login logo label `LoginView.swift:271`; MP about (`about/index.wxml:24`) → `SettingsAboutView.swift` `appName` | English UI showed the brand as "城瘾" (top-left and on the disc) while the next page says "Welcome to Chein"; About title and the login logo's VoiceOver label also "城瘾" | English → "Chein" (owner brand, `CFBundleDisplayName`), Chinese keeps 城瘾. Wordmark stays the drawn logo (baseline note updated to "城瘾 / Chein"). No section/navigation change | Done |
 | 26 | MP `pages/im/list` (name + one-line preview, time right) → `IMInboxViews.swift` conversation row (`en-d2-inbox`) | "Open conversation to view messages" wrapped to 2-3 lines in every row and "Fixture conversation 3" wrapped under the Official chip | Compact sizes: name `lineLimit(1)`, preview `lineLimit(1)` (2 at accessibility sizes); the large-type branch keeps its wrapping name. MP order unchanged | Done |
+| 27 | `pages/topic/index` route stop address → `TopicXcxSections.swift:649` | Checked: address truncating at AX sizes | Already 3 lines at accessibility sizes (a11y-dt r3). No change | Checked |
+| 28 | `subpackageMember/orderinfo` amount → `OrderCenterEntryView.swift:78` | Checked: "Amount 168.00" has no currency sign in English | The order-center contract sends a bare decimal (`OrderCenterDetailService.swift:83`, no currency field); adding ¥/$ would guess the market. No change | Checked |
+| 29 | Square post age (`en-d2-square`) → `SquareXcxPostCard.swift:112` | Checked: "330 d ago" | Same compact family as "h ago" / "min ago" (MP `N天前`); reads correctly. No change | Checked |
 
 ## Not done
 
@@ -72,7 +75,7 @@ Sweep `docs/sweeps/latest` build 1300a48db (18:54Z) en sheets: `mp-mine/sheet-en
 
 
 ## Next pages (no row yet)
-Topic route stop address (1 line at AX sizes); ticket/order currency formats in English (wallet ledger done, row 20); Club home checked (tabs already adaptive, `ClubDetailTabBar.swift`).
+Passes market (`en-t5-pass-market`) price rows at AX sizes; club enrollment roster topic row ("Date to be set · 8 registered") wrapping; Club home checked (tabs already adaptive, `ClubDetailTabBar.swift`).
 
 ## For other lanes
 - mp-journey / mp-nav: City root entry reads "CITY ownership and original receipts" (`cityAcquire.entry`, all-caps CITY also in zh) — confirm CITY is the intended product name.
