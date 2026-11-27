@@ -99,6 +99,18 @@ Merged `origin/ui/combined-r7` (clean). Sweep build bb76e327c (20:45Z) en sheets
 | 39 | `pages/topic/index` 场次 session chip (`周X M.D HH:mm`) → `TopicXcxSections.swift` `TopicXcxSessionChip` (topic detail activity rows, `TopicDetailView.swift:476`) | English read "Sat 12.6 14:00" (M.D reads as a decimal, 24 h clock) | English: one locale-formatted string "Sat, Dec 6 · 2:00 PM" (China wall time, time omitted at 00:00 as the MP does). Chinese keeps the MP three-part text; Core `sessionChip` and its tests unchanged | Done |
 | 40 | `pages/publish/*` activity publish wizard draft chip ("Saved · HH:mm") → `PublishingModesViews.swift` `draftTimestampNow` → `ActivityPublishingWizardView.swift:117` | English showed a 24 h "19:30" | English: locale short time "7:30 PM"; Chinese keeps the MP `HH:mm` | Done |
 
+### Run 9 (2026-11-27, hourly)
+
+Merged `origin/ui/combined-r7` (clean). Sweep build 405948d58 (21:09Z) en sheets: mine, journey, activity, home, club. Confirmed: search Categories pill now wraps correctly and suggestions are English (`en-d2-search`, row 8/30). Rows 23, 37–40 not yet in that build (free-explore store date still "2026-12-31" in `en-t5-free-explore`). No coordinator finding for en-layout since 16:53 that is still open.
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 41 | `pages/club/*` club detail Posts tab, MP `cy-post-card` action bar (赞 / 评论 / 转发 / 分享) → `ClubCommunityViews.swift` `tileActions` (`en-d4-tab-posts`) | Row read "Like / Com… / Re… / Shar…" (wrapped and truncated) at 375 pt | `ViewThatFits(in: .horizontal)`: the MP row as before when it fits; the same row with tighter spacing; else icon-only labels (each button keeps its explicit VoiceOver label + value). Same four actions, MP order; accessibility sizes still stack | Done, verify in next sweep |
+| 42 | `pages/play/*` settle wrap-up (`本关第 N 名`) → `mp.settle.rank %lld` (`en-t5-settle`) | "This level: No. 3" | en → "Ranked #3 on this level"; zh unchanged | Done |
+| 43 | `subpackagePass` pass market points balance → `PassMarketViews.swift` `balanceRow` (`en-t5-pass-market`) | Hero "1280" next to rows "1,200 points" | `Text(balance, format: .number)` (locale grouping: "1,280"; zh "1,280" as the system formats) | Done |
+| 44 | Me balance (`en-d2-me`) "CN¥0.00" vs balance ledger (`en-e4-wallet-balance`) "¥128.50" | Two CNY spellings in English | Checked: Me follows the i18n r1 rule (non-Chinese UI names the currency, `E1Money.yuan`); the ledger draws a single glyph beside the number (`WalletCurrencySymbol`, `count == 1` checks at `WalletCommerceViews.swift:668`, `WalletNumberLocalization.swift:49`), so switching it needs a wallet layout change. Not changed; listed for mp-mine | Checked |
+| 45 | `pages/playkit/*` reaction game result → `NativeR2/Games/NativeGameTimedKit.swift:306` `playkit.reaction.bestOf %lld` | Merged from mp-journey without plural: "Fastest of 1 rounds"; `check_locale_format.py` FAILED after the merge | `tools/add_i18n_r1_plurals.py`: catalog + `mp-journey-r3.json` fragment ("Fastest of 1 round"); gate PASS | Done |
+
 ## Not done
 
 | Item | Why |
@@ -107,9 +119,11 @@ Merged `origin/ui/combined-r7` (clean). Sweep build bb76e327c (20:45Z) en sheets
 
 
 ## Next pages (no row yet)
-Re-check rows 23, 37–40 in the next sweep once this branch is integrated; then publish (`pages/template/*`) and roam English sheets.
+Re-check rows 23, 37–41 in the next sweep once this branch is integrated; then publish (`pages/template/*`, no en sheet in the sweep yet: work from code) and nav English sheets.
 
 ## For other lanes
+- mp-mine: balance ledger shows "¥" while the Me balance tile shows "CN¥" in English (row 44); public profile role line "— City explorer" shows a dash placeholder (`en-e4-member`).
+- mp-journey: `en-d2-play` nav shows debug "Switch synthetic account"; t5-free-explore "DEBUG fixture" banner still visible.
 - mp-activity: Square fixture post text "A synthetic city walk / 一次示例城市漫步" (`Core/SquareSyntheticFixtures.swift`, shared with Core tests) shows Chinese in English (`en-d2-square`).
 - mp-journey: 19:15 items still visible in `en-*` journey shots (灯笼石门, 西湖夜游漫步, 老城茶街章节, free-explore "—" rows).
 - mp-journey / mp-nav: City root entry reads "CITY ownership and original receipts" (`cityAcquire.entry`, all-caps CITY also in zh) — confirm CITY is the intended product name.

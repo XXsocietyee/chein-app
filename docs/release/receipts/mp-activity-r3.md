@@ -124,6 +124,14 @@ Coordinator rows for this lane (19:50: Square "330 d ago", baoming Register enab
 
 Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · square contract suites 31 OK.
 
+## Round 3 continue (2026-11-27, twelfth session — sweep 21:09 build 405948d58)
+Merged `ui/combined-r7` (conflicts: `SquareBrowserView.swift` kept both the d2 note-hiding protocol and the new `SquareBrowserStack`; xcstrings key union, no new keys). Sweep build predates `7f7294b39` (pass-market 1,280, d2-square note hidden) — recheck next sweep.
+| MP page | Native view | MP sections (✓ present / added / reordered) | Optimizations |
+|---|---|---|---|
+| `pages/activity/baoming/baoming` (full MP page: 参与人信息 → 票种 → 同意 → 支付栏) | `App/RegistrationFixtureSupport.swift` (`RegistrationFixtureHostView`), `App/RegistrationSheetView.swift`, `App/DesignFixtures/DesignFixtureRegistry.swift` | screenshots `zh-Hans-t5-baoming` / `en-t5-baoming`: the fixture opened at the medium detent, so only 已保存的参与人 showed above the pay bar and the rest of the MP form was clipped; a 「离线演示：不会发送真实报名… / Offline demo…」 card sat above 参与人信息 (no such MP section). Fixture host now presents with `.cySheet(detents: [.large])`, the same as the real `ActivityDetailView` → `SessionRegistrationSheet`; design fixtures `t5-baoming` / `t5-baoming-error` hide the note via `registrationHidesFixtureNotice` (offline-fixture policy still keeps writes offline; UI-test fixtures keep the note) | one sheet detent for the page in app and fixture; no debug labels in the visible fixture |
+
+Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · registration contract suites 10 OK.
+
 ## Not done
 - Attendance (player): organizer 联系与签到配置 form (duty phones, window, public-confirm switch, scan, recovery 查询原结果 / 原请求重试 / 终止 / 确认归档) lives in `OfficialOrganizerConsoleView`, not in this section.
 - Square completion card: 探店 (`shopText`) has no backend field. Refused team reads have no server message in `TeamFailure`, so 邀请已失效 is the fixed fallback copy.

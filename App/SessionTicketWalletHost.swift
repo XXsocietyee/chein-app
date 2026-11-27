@@ -13,13 +13,15 @@ import SwiftUI
     var focusRegistrationID: Int? = nil
     @State private var login = false
     @Environment(\.rootTabSwitch) private var rootTabSwitch
+    @Environment(\.dismiss) private var dismiss
 
     /// PLY-21-7: MP「+ 去探索主题」is `wx.switchTab('/pages/index/index')` (signup/index.js:701).
     /// Only the root TabView installs a live switch, so hosts outside it keep the button hidden.
     private var explore: (() -> Void)? {
         guard rootTabSwitch.isAvailable else { return nil }
-        let close = onClose, select = rootTabSwitch
-        return { close?(); select(.home) }
+        // mp-nav r3: switchTab closes the page in the MP, so a pushed wallet pops first (on 首页 the tab is already selected).
+        let close = onClose, select = rootTabSwitch, pushed = isPushed, pop = dismiss
+        return { close?(); if pushed { pop() }; select(.home) }
     }
 
     var body: some View {

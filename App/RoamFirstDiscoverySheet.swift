@@ -15,6 +15,11 @@ struct RoamDiscoverDestinations {
     let activity: @MainActor (Int) -> AnyView
     /// MP 主题半屏 查看详情 → `pages/topic/index/index?id=`; nil hides the row.
     var topic: (@MainActor (Int) -> AnyView)? = nil
+    /// MP 地点卡 开始挑战 → `pages/play/poi-challenge/index?poiId=` (city nodes only); nil hides the row.
+    var challenge: (@MainActor (Int) -> AnyView)? = nil
+    /// MP 地点卡 导航 (`navPaceCard` → open-address); nil hides the row.
+    var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
+    var mapsScope = UUID()
 }
 
 private struct RoamDiscoverDestinationsKey: EnvironmentKey {
@@ -67,7 +72,11 @@ extension EnvironmentValues {
                     if let exploreDay {
                         NavigationLink { destinations.activity(exploreDay.id) } label: {
                             Label { VStack(alignment: .leading) {
-                                Text(verbatim: exploreDay.title)
+                                if exploreDay.title.isEmpty {
+                                    Text("roam.discover.exploreDayFallback")
+                                } else {
+                                    Text(verbatim: exploreDay.title)
+                                }
                                 Text("roam.discover.exploreDayHint \(exploreDay.distanceM ?? 0)").font(.footnote).foregroundStyle(.secondary)
                             } } icon: { Image(systemName: "point.topleft.down.to.point.bottomright.curvepath") }
                         }
@@ -110,6 +119,12 @@ extension AppSession {
             topic: { [weak self] id in
                 guard let self else { return AnyView(EmptyView()) }
                 return AnyView(MPReviewedPageScreen(page: "pages/topic/index/index", query: ["id": String(id)]).environmentObject(self))
-            })
+            },
+            challenge: { [weak self] id in
+                guard let self else { return AnyView(EmptyView()) }
+                return AnyView(MPReviewedPageScreen(page: "pages/play/poi-challenge/index", query: ["poiId": String(id)]).environmentObject(self))
+            },
+            makeExternalMaps: platformConsumers.mapsFactory,
+            mapsScope: platformConsumers.scope)
     }
 }

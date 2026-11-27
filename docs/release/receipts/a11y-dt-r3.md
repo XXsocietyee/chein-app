@@ -178,9 +178,30 @@ re-checked (already `.footnote.weight(.medium)`, brand on bordered fill ~9:1, st
 | `pages/playkit` accusation confirm panel | `PlayKitQuestoViews.swift` (`confirmPanel`) | ✓ (mp-journey owns order) | Suspect initial `.pageTitle` in a fixed 72 pt circle → `@ScaledMetric(relativeTo: .largeTitle)` circle (same as the 52 pt list initial) | Done |
 | VoiceOver, `.onTapGesture` without button trait | `JourneyReportViews`, `CityMomentView`, `SettingsAboutView`, `CYMedalStack`, `CYPlayerKit`, `IMExpandedViews`, `E1TicketCard` | — | Audit: every hit carries `.isButton` / `accessibilityAction` / adjustable action, is a skip-animation tap with a real button beside it, or is a map with `.allowsDirectInteraction` + a VoiceOver button (use map centre). No change | Done |
 
+## Run 11 (2026-11-27, hourly)
+
+Merged `origin/ui/combined-r7` (405948d58). Sweep 21:09 (build 405948d58) a11y sheets read: build predates run 10, so
+`a11y-passport-ax5` still shows the badge wall. `en-a11y-badges-ax5.jpg`: ring grows (run 7 visible) but its unfilled track is
+invisible on the grouped background (bgRaised ≈ page). `en-a11y-roam-ax5.jpg`: large title, ··· / i / Go / map controls ≥ 44 pt, OK.
+Fixed-height scan, multi-line: `.frame(height:)` closing an H/V/ZStack that holds unlimited `Text` (10 hits; 4 real, the rest are
+cover/photo boxes with a centred glyph, a 168 pt QR, a 240 × 150 video thumb or already `lineLimit(1)` + scale).
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `subpackageMember` 徽章墙 / 收集册 progress (`en-a11y-badges-ax5.jpg`) | `DesignSystem/CYCollectible.swift` (`CYCountRing`), `DesignSystem/CYAlbum.swift` (`CYAlbumProgressRing`) | ✓ (mp-mine owns order) | Ring track `bgRaised` → system `.quaternary` so the "remaining" half is visible (non-text contrast) in light and dark | Done |
+| `pages/roam/*` roam-runner sheet head | `MPGap/PlayRoam/RoamRunnerDetailView.swift` | ✓ (mp-roam owns order) | Initial `.headline` in a fixed 52 pt circle → `@ScaledMetric(relativeTo: .headline)` circle, capped 96 | Done |
+| Scratch-card prizes (motion r2 games) | `NativeR2/Motion/MotionR2Games.swift` | ✓ | Three tiles fixed 96 pt high clipped wrapped `.headline` prizes at AX sizes → min 96 pt, grows with text (`fixedSize` vertical), prize scales to 0.7 before wrapping | Done |
+| City dice (`pages/roam` city game) | `DesignSystem/CYCityBoard.swift` (`CYCityDie`) | ✓ | Non-pip value / em dash `.dataXL` in a 56 pt die → one line, scales to 0.4 instead of clipping | Done |
+| Onboarding long-press GO | `DesignSystem/CYOnboarding.swift` | ✓ | "GO" `.cardTitle` in a 52 pt circle → one line, scales to 0.5 at AX sizes | Done |
+| `pages/play` seat lobby (invited / transferable seats) | `JourneyLandingViews.swift` | ✓ (mp-journey owns order) | Seat number `.cardTitle` in a fixed 28 pt column truncated to "…" at AX sizes for 2 digits → `minWidth: 28` | Done |
+| `pages/play` report leaderboard | `JourneyReportViews.swift` | ✓ (mp-journey owns order) | Rank `.cardTitle` fixed 32 pt → `minWidth: 32` | Done |
+| `pages/team` orient board ranking | `TeamOrientBoardView.swift` | ✓ (mp-activity owns order) | "#rank" fixed 32 pt → `minWidth: 32` (name column already wraps) | Done |
+| `subpackageMember` orient score board | `MPGap/Member/OrientScoreGapViews.swift` | ✓ (mp-mine owns order) | Rank fixed 32 pt → `minWidth: 32` | Done |
+
 ## Not done (next run starts here)
 - Re-read the a11y sheets once combined-r7 carries runs 7–10 (ring size at AX5, roam VoiceOver order, `a11y-passport-ax5` now the passport).
-- Dynamic Type: fixed-height containers — the one-line scan (`.frame(height:)` right after a text modifier) is done; next: `.frame(height:)` on `HStack`/`VStack` holding text (multi-line).
+- Re-read `a11y-passport-ax5` (passport at AX5) once a sweep build carries cb788fd86.
+- Dynamic Type: `.fixedSize()` (both axes) on long text that can overflow at AX5; `.frame(width:)` on stacks (not single Text chains, scanned run 11).
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch

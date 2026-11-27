@@ -175,9 +175,7 @@ public struct RoamMergedHistoryListView: View {
                     } label: {
                         HStack {
                             Spacer()
-                            if isLoadingMore {
-                                ProgressView()
-                            } else {
+                            CYBusyLabel(busy: isLoadingMore) {
                                 Text("common.loadMore").cyText(.label)
                             }
                             Spacer()

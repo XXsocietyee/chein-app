@@ -27,7 +27,9 @@ struct E1Fixture: View {
         case .topics: TopicFixtureHostView()
         case .topicDetail: NavigationStack { TopicDetailView(id: 7, reader: TopicFixtureReader(scenario: .reviews)) }
         case .activities: ActivityBrowserView(reader: ActivityFixtureReader(scenario: .pagination))
-        case .activityDetail: NavigationStack { ActivityDetailView(id: 101, reader: ActivityFixtureReader(scenario: .reviews), registrationEnabled: true) }
+        case .activityDetail:
+            NavigationStack { ActivityDetailView(id: 101, reader: ActivityFixtureReader(scenario: .reviews), registrationEnabled: true) }
+                .environment(\.e1ActivityHeroFixtureCover, MPAsset.BannerCover.feNight)
         case .activityDetailError: NavigationStack { ActivityDetailView(id: 101, reader: ActivityFixtureReader(scenario: .retry), registrationEnabled: true) }
         case .activityPeople: NavigationStack { ActivityDetailView(id: 101, reader: ActivityFixtureReader(scenario: .people)) }
         case .official, .officialDetail, .officialInbox: OfficialFixtureHostView()

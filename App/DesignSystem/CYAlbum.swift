@@ -107,7 +107,7 @@ struct CYAlbumProgressRing: View {
 
     var body: some View {
         ZStack {
-            Circle().stroke(palette.bgRaised, lineWidth: lineWidth)
+            Circle().stroke(.quaternary, lineWidth: lineWidth) // track visible on grouped backgrounds (a11y-dt r3)
             Circle().trim(from: 0, to: shown ? fraction : 0)
                 .stroke(AngularGradient(colors: [CYAlbumMotion.gold, CYAlbumMotion.amber, CYAlbumMotion.gold], center: .center),
                         style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
