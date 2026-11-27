@@ -166,7 +166,9 @@ import SwiftUI
                     }
                 }
             } else if let error = model.error {
-                Section { OfficialIssueView(issue: .init(error), retry: retry) }
+                // MP scene-roam-task-list wxml:6 cy-error 活动列表没能打开 · 重试.
+                let issue = OfficialScreenIssue(error)
+                Section { OfficialIssueView(issue: issue, retry: retry, label: issue.isFailed ? "roam.tasks.failed" : nil) }
                     .accessibilityIdentifier("roam.tasks.error")
             }
             if model.snapshot == nil, model.isLoading || model.error == nil {

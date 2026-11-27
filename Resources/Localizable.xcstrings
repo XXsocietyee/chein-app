@@ -61012,13 +61012,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Saved content is still here; new updates wait for the network."
+            "value": "Check your connection and try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已缓存的内容还在；新内容等网络回来后再更新"
+            "value": "检查网络后再试一次"
           }
         }
       }
@@ -61063,13 +61063,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You're offline"
+            "value": "Looks like you’re offline"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你离线了"
+            "value": "网络好像断开了"
           }
         }
       }
@@ -61080,13 +61080,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "We've logged it. Try again."
+            "value": "Try again in a moment."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已经记下来了，再试一次"
+            "value": "过一会儿再试一次"
           }
         }
       }
@@ -61097,13 +61097,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Something broke on our side"
+            "value": "Something went wrong"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这边出了点问题"
+            "value": "出错了"
           }
         }
       }
@@ -245259,13 +245259,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This link is incomplete. Go back to choose another item."
+            "value": "This link is no longer valid"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "链接不完整，请返回选择其他内容。"
+            "value": "链接已失效"
           }
         }
       }
@@ -346692,6 +346692,91 @@
           "stringUnit": {
             "state": "translated",
             "value": "评分 %@"
+          }
+        }
+      }
+    },
+    "wallet.tasks.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No points tasks yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无积分任务"
+          }
+        }
+      }
+    },
+    "topic.sessionSelection.ticketsEmpty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No tickets on sale"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无可买票种"
+          }
+        }
+      }
+    },
+    "topic.sessionSelection.ticketsEmpty.singleDay": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can buy once tickets are released."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放票后可购买"
+          }
+        }
+      }
+    },
+    "topic.sessionSelection.ticketsEmpty.otherDay": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try another date."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "换个日期试试"
+          }
+        }
+      }
+    },
+    "roam.tasks.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t open the event list"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动列表没能打开"
           }
         }
       }
