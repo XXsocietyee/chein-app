@@ -85,8 +85,8 @@ import SwiftUI
     }
 
     /// MP `g-kicker` + sub lines (ballshake / quiethold / shout / compass): the server `kicker` leads when present,
-    /// then the kit's own line, the server `sub` (quiet hold), and 这一站已跳过 when skipped. The compass `hint` sits
-    /// under the how-to line on the board (MP `cp__hint`).
+    /// then the kit's own line and 这一站已跳过 when skipped. The quiet-hold `sub` and the compass `hint` sit on the
+    /// board under the figure (MP `qt__s`, `cp__hint`).
     @ViewBuilder private var kicker: some View {
         Group {
             if let line = serverText("kicker") {
@@ -98,7 +98,6 @@ import SwiftUI
                 if stage.ball.limitSeconds > 0 { Text("playkit.ball.limitLine \(decimal(stage.ball.limitSeconds))") }
             case .quietHold:
                 if serverText("kicker") == nil { Text("playkit.quiet.kicker") }
-                if let sub = serverText("sub") { Text(verbatim: sub) }
             case .shout:
                 if serverText("kicker") == nil { Text("playkit.shout.kicker") }
             case .compass:
@@ -171,26 +170,29 @@ import SwiftUI
                 // Motion r2 R4: each hit from the kit's CoreMotion reader stirs the snow globe; it settles after.
                 MotionR2SnowGlobe(shakes: stage.ball.hits)
             }
-        case .quietHold, .shout:
-            let level = kind == .quietHold ? stage.quiet.level : stage.shout.level
-            let warning = kind == .quietHold ? stage.quiet.warningThreshold : stage.shout.warningThreshold
-            let threshold = kind == .quietHold ? stage.quiet.stopThreshold : stage.shout.loudThreshold
-            let held = kind == .quietHold ? stage.quiet.heldSeconds : stage.shout.heldSeconds
-            let total = kind == .quietHold ? stage.quiet.targetSeconds : stage.shout.targetSeconds
-            let color: Color = level > threshold ? .red : level > warning ? .orange : .green
-            bigValue(decimal(max(0, total - held)), label: "playkit.sensor.secondsLeft")
-            Gauge(value: min(max(level, 0), 1), in: 0...1) {
-                Text("playkit.audio.livePeak")
+        case .quietHold:
+            // MP `playkit-quiethold`: no level bar — the green / orange / red band lives on the figure itself.
+            let level = stage.quiet.level
+            let color: Color = level > stage.quiet.stopThreshold ? .red : level > stage.quiet.warningThreshold ? .orange : .green
+            audioFigure(decimal(max(0, stage.quiet.targetSeconds - stage.quiet.heldSeconds)),
+                        color: stage.phase == .running ? color : .primary)
+            if let sub = serverText("sub") { Text(verbatim: sub).foregroundStyle(.secondary) }
+            if stage.quiet.exceeded { Label("playkit.quiet.limitReached", systemImage: "speaker.wave.3").foregroundStyle(.red) }
+        case .shout:
+            // MP `playkit-shout`: figure (seconds left) → one plain line → safety line before the run; no level bar.
+            let running = stage.phase == .running
+            let loud = running && stage.shout.loud
+            audioFigure(decimal(max(0, stage.shout.targetSeconds - stage.shout.heldSeconds)), color: loud ? .red : .primary)
+            if running {
+                Text(LocalizedStringKey(loud ? "playkit.shout.keepGoing" : "playkit.shout.louder"))
+                    .font(.headline)
+                    .foregroundStyle(loud ? Color.red : Color.primary)
+                    .frame(maxWidth: .infinity)
+            } else {
+                Text("playkit.shout.goal \(decimal(stage.shout.targetSeconds))")
+                    .frame(maxWidth: .infinity)
+                Text("playkit.shout.safe").font(.footnote).foregroundStyle(.secondary)
             }
-            .gaugeStyle(.linearCapacity)
-            .tint(color)
-            Label(LocalizedStringKey(level > threshold ? "playkit.audio.hot" : level > warning ? "playkit.audio.warning" : "playkit.audio.quiet"),
-                  systemImage: level > threshold ? "waveform" : "waveform.path")
-                .foregroundStyle(color)
-            ProgressView(value: min(held, total), total: max(0.1, total)) { Text("playkit.sensor.holdProgress") }
-            if kind == .quietHold { Text("playkit.quiet.relative").font(.footnote).foregroundStyle(.secondary) }
-            if kind == .quietHold, stage.quiet.exceeded { Label("playkit.quiet.limitReached", systemImage: "speaker.wave.3").foregroundStyle(.red) }
-            if kind == .shout { Text("playkit.shout.continuous").font(.footnote).foregroundStyle(.secondary) }
         case .compass:
             // MP `playkit-compass` order: dial → heading figure (running) → hold / done / how-to + 提示 → drift line → safety line.
             NativeCompassDial(compass: stage.compass, running: stage.phase == .running, reduceMotion: reduceMotion)
@@ -251,6 +253,21 @@ import SwiftUI
                     .foregroundStyle(.secondary)
             }
         }
+    }
+
+    /// MP `g-figure` for the audio kits: seconds left, coloured by the live band, labelled for VoiceOver.
+    private func audioFigure(_ value: String, color: Color) -> some View {
+        VStack(spacing: 2) {
+            Text(verbatim: value)
+                .cyText(.dataXL)
+                .monospacedDigit()
+                .contentTransition(.numericText())
+                .foregroundStyle(color)
+                .animation(reduceMotion ? nil : .easeOut(duration: 0.2), value: color)
+            Text("playkit.sensor.secondsLeft").font(.subheadline).foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
     }
 
     private func bigValue(_ value: String, label: LocalizedStringKey) -> some View {

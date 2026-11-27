@@ -351067,6 +351067,74 @@
           }
         }
       }
+    },
+    "playkit.shout.keepGoing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That’s it — keep going"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "就是这样，别停"
+          }
+        }
+      }
+    },
+    "playkit.shout.louder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A bit louder"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再大声一点"
+          }
+        }
+      }
+    },
+    "playkit.shout.goal %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep it loud for %@ s in a row"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连续喊满 %@ 秒"
+          }
+        }
+      }
+    },
+    "playkit.shout.safe": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Don’t shout at anyone. Stop if your throat hurts."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "别对着人喊，嗓子不舒服就停"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
