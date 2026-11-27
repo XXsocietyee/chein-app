@@ -406,7 +406,7 @@ import SwiftUI
                 } header: { OpsR3Text.text("editor.settings") }
                 // r8 C-F5 (MP fabu wxml:172): 角色 card, city themes only, never in the whitelist scope.
                 if model.draft.product == .city, model.coordinator.snapshot?.scope != .whitelist {
-                    ProjectEditCastHost(preserved: $model.draft.preserved, readOnly: model.coordinator.isReadOnly)
+                    ProjectEditCastHost(preserved: $model.draft.preserved, readOnly: model.coordinator.isReadOnly, chapters: model.draft.chapters)
                 }
                 // r8 C-F7 (MP topic-detail-sheet.wxml:79, look-sheet.wxml): 画面风格.
                 if model.coordinator.snapshot?.scope != .whitelist {
