@@ -27,3 +27,5 @@ The cloud has no compiler or simulator, so nothing here was built or run. Every 
 | OfficialEventComponentsClosureTests/testReadOnlyNoticeStillAppearsForOnlineAndOfflineConsumers | fixed-test | The always-on `official.readOnly` line was native-only text the MP does not have (`docs/alignment/xcx-ios-C-20261019.md` P1). The fix/r3-player-content-a merge (53ace57f4) replaced it with "unavailable actions are absent; offline example marker only". The test now pins that. |
 
 Totals: 9 fixed-test, 0 fixed-code, 10 left (3 IM and 3 friend-directory probably fixed upstream by 113554aed; 4 hosted baseline that cannot be reproduced here).
+
+Recheck 2026-11-27 at combined-r7 a0de1bd16. The 9 fixed-test commits are in combined-r7. Between 3b5977bf6 and a0de1bd16 nothing changed in the tests or code these 19 tests use (the r11-roam, contracts-a/b and appunit-b/c merges only). The 10 left lines stay as they are. They still need a Mac AppUnit rerun.

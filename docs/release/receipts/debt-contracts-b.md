@@ -63,3 +63,45 @@ reconcile logic is still compared byte for byte after stripping only the Bool-re
   site). That UI journey will fail on a simulator. Needs a UI-test owner (not a Python contract).
 - Deleting/rewriting test files does not touch hash pins elsewhere: the only other mention of
   `test_run129_map_button_role.py` is inside a historical string blob in `tools/run_targeted_native.py`, and the full ratchet shows new 0.
+
+## Round 2 (2026-11-27): second half of the 117-row baseline
+
+Branch `debt/contracts-b` with `origin/ui/combined-r7` `a0de1bd16` merged. After both lanes landed the baseline was
+117 rows; the second half (rows 59–117, 59 rows) is the same set this lane left in round 1. Five more rows fixed:
+
+- `test_project_edit_contracts.<module-crashed>`: (a) the module read a frozen run138 projection of the repo
+  (`run138_current_source_projection.frozen_context`), which needs the club admission chain and crashed on
+  `.github/workflows/native-ios.yml`. It now reads the live repo, so its 9 behavior checks (durable pending before
+  submit, receipt-only unknown outcome, session guards after each await, known contract paths, default-off transport)
+  run against current code and pass. Two stale pins fixed: UI test count 10 -> 9 (9 since the 02c68098f import);
+  catalog check also accepts `projectEdit.*` keys that ship bilingual in `Resources/Localizable.xcstrings`
+  (e.g. `projectEdit.nodes.empty`, 892f6d4d3), and treats every `.accessibilityIdentifier("…")` as an id, not copy
+  (the hand-kept id list predates ~30 new ids).
+- `test_run129_navigation_diagnostics.<module-crashed>`: (a) same frozen projection + `historical_source` inverse.
+  Now asserts on current UI-test sources: each failure-only diagnostic exists once, the original assertion was replaced
+  (image back / template back) or the later copy stays (coupon, count 1), and no extra waits or `try?`. Template back
+  waits on the editor's Edit action (exists AND hittable, 5 s), in tree since 02c68098f. The six template planning rows
+  must still name the shared helper and keep 900 s; the helper's whole-file sha256 pin was dropped (e9de23527 added
+  `tapEditorMenuItem`).
+- `test_run130_submission_evidence.<module-crashed>`: (a) live source. Six first receipt/history reads are now
+  `revealFirst: true` (the later run129 ack-reveal layer); id, expected bytes, phase and swipes stay exact and the
+  flip count is pinned at 6. (c) deleted `test_all_21_touched_sources_and_full_original_files_are_pinned` (whole-file
+  sha256 of 21 sources) and `test_all_original_button_uniqueness_assertions_and_generic_helpers_stay_exact` (needs the
+  inverse to the run130 originals); the hash/inverse half of the mutation test was vacuous (the inverse raises for
+  every input), so only its presence asserts remain.
+- `test_template_shelf_state_projection` (2): (a) catalog read no longer goes through `creator_catalog_input` (club
+  chain). Projection/display sha256 pins replaced by the MP marketView mapping (origin/mp-source:
+  `chengyinhub-xcx/subpackageMember/utils/template-market.js`: marketStatus 0 审核中 / 1 已上架 / 2 需重新提交 /
+  3 已下架, unknown '—') plus the guards the digest used to bind (draft==0, marketPublishStatus decode, 1–19 digit
+  identity). Count guard follows the normalized-row decode (`states.count == raw.count, facts.count == raw.count,
+  originalRows.count == raw.count`). Display block follows 7d71f2209 (MP `subpackageA/pages/myproject/index.wxml`, one
+  ⋯ menu): no `publishStatus` in the display, one `TemplateOwnShelfMarketPlan(state).action`, delete still opens its
+  review with `templateOwnShelf.delete.irreversible`. LABELS re-pinned to the shipped copy. The whole-file BASE_*
+  inverse (change-scope proof of the original patch) was removed. All 38 negative mutations still fail closed.
+
+Still left in this half (54 rows), same reasons as round 1: profile read-failure admission chain (31), project editor
+readiness exact inverses of UI suites / workflow / budget (13), run129 editor-repair journey byte pins (5), profile
+save-path change-scope proofs (2, privacy/data safety, kept on purpose), merchant UI52 driver + merchant workspace entry
+(6, merchant-only, skipped), `test_roam_route_replay` (club chain at import).
+
+Follow-up: `templateShelfState.personal.approved` zh is 审核已通过 while MP `_statusText` says 个人审核通过 (copy owner).
