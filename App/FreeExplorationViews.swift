@@ -230,6 +230,8 @@ struct FreeExplorationStoreName: View {
     @State private var showEmergencyHelp = false
     /// mp-journey r3 (MP P-28): free exploration opens the same 游玩工具 sheet as city orientation (旅程手记, preferences).
     @State private var showPlayTools = false
+    /// mp-journey r3: MP 终章结局信 (`.ending`) opens as its own page once the ending is read.
+    @State private var endingShown = false
     @AppStorage(PlatformBGMPreference.storageKey) private var playBGMOn = PlatformBGMPreference.defaultValue
     @AppStorage(PlatformNarrationAutoplayPreference.storageKey) private var playNarrationOn = PlatformNarrationAutoplayPreference.defaultValue
     @AppStorage(PlayReducedMotionPreference.storageKey) private var playReducedMotion = false
@@ -275,14 +277,18 @@ struct FreeExplorationStoreName: View {
                         ForEach(snapshot.visibleNodes.filter(snapshot.isDone)) { node in
                             Label { FreeExplorationStoreName(name: node.name) } icon: { Image(systemName: "checkmark.seal") }
                         }
-                        CYPillButton("playFree.ending.read") { Task { await model.loadFreeExplorationEnding() } }
+                        CYPillButton("playFree.ending.read") {
+                            Task {
+                                await model.loadFreeExplorationEnding()
+                                if let ending = model.ending, FreeExplorationEndingLetter.hasVisibleContent(ending) { endingShown = true }
+                            }
+                        }
                         if let ending = model.ending {
-                            if !ending.opener.isEmpty { Text(verbatim: ending.opener) }
-                            ForEach(Array(ending.fragments.enumerated()), id: \.offset) { _, fragment in
-                                VStack(alignment: .leading) {
-                                    Text(verbatim: fragment.name).font(.headline)
-                                    if let text = fragment.text, !text.isEmpty { Text(verbatim: text) }
+                            if FreeExplorationEndingLetter.hasVisibleContent(ending) {
+                                Button { endingShown = true } label: {
+                                    Label("playFree.ending.title", systemImage: "envelope.open")
                                 }
+                                .accessibilityIdentifier("playFree.ending.open")
                             }
                             if let castConfig {
                                 CastEndingSection(config: castConfig, result: CastEndingResult(raw: castEnding))
@@ -293,6 +299,9 @@ struct FreeExplorationStoreName: View {
             }.padding(CYSpacing.pageHorizontal)
         }
         .background(CYColor.bgPage.ignoresSafeArea())
+        .sheet(isPresented: $endingShown) {
+            if let ending = model.ending { FreeExplorationEndingLetter(ending: ending) }
+        }
         .refreshable { if model.available && model.phase != .submitting { await model.load() } }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

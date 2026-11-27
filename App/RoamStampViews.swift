@@ -194,13 +194,17 @@ struct RoamAlbumReadOwner: Hashable {
                         .accessibilityIdentifier("roam.experience.album.unknown")
                 } else if pager.loaded && pager.stamps.isEmpty {
                     // B63: mini-program cy-empty 还没有邮票 + 打开集邮相机, no extra line.
-                    CYEmptyState(systemImage: "rectangle.stack", "roam.experience.albumEmpty")
-                        .accessibilityIdentifier("roam.experience.album.empty")
-                    if allowsCapture {
-                        NavigationLink { captureDestination } label: { Label("stampAlbum.openCamera", systemImage: "camera") }
-                            .buttonStyle(.cyDomainPrimary(fullWidth: false)).frame(maxWidth: .infinity).frame(minHeight: 44)
-                            .accessibilityIdentifier("roam.experience.album.openCamera")
+                    // mp-states r3: the CTA sits inside the one empty state (system ContentUnavailableView), as the MP cy-empty cta.
+                    ContentUnavailableView {
+                        Label("roam.experience.albumEmpty", systemImage: "rectangle.stack")
+                    } actions: {
+                        if allowsCapture {
+                            NavigationLink { captureDestination } label: { Label("stampAlbum.openCamera", systemImage: "camera") }
+                                .buttonStyle(.borderedProminent).controlSize(.large)
+                                .accessibilityIdentifier("roam.experience.album.openCamera")
+                        }
                     }
+                    .accessibilityIdentifier("roam.experience.album.empty")
                 }
                 LazyVGrid(columns: collage ? Array(repeating: GridItem(.flexible(), spacing: CYSpacing.sm), count: 4)
                                            : CYCollectionGrid.columns(accessibility: dynamicTypeSize.isAccessibilitySize),

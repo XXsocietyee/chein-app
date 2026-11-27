@@ -97,7 +97,8 @@ struct RoamItemDetailView: View {
                 // MP cy-skeleton while the node reads; P10 says it in words.
                 else if loading { ProgressView { Text("roam.place.loading") } }
                 else if nodeUnavailable { RoamPOIUnavailableView { merchantRetry.cancel(); dismiss() } }
-                else if let issue { RoamStatusView(issue: issue) { startLoad(visit: offeredReadVisit) } }
+                // mp-states r3 (MP scene-roam-poi-detail wxml:2): a failed read is 节点无法打开 · 重试.
+                else if let issue { RoamStatusView(issue: issue, retry: { startLoad(visit: offeredReadVisit) }, failureTitle: "roam.place.openFailed") }
                 else { content }
             }
             .disabled(scenePhase != .active)
