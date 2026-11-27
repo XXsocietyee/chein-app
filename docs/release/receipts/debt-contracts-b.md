@@ -67,7 +67,13 @@ reconcile logic is still compared byte for byte after stripping only the Bool-re
 ## Round 2 (2026-11-27): second half of the 117-row baseline
 
 Branch `debt/contracts-b` with `origin/ui/combined-r7` `a0de1bd16` merged. After both lanes landed the baseline was
-117 rows; the second half (rows 59–117, 59 rows) is the same set this lane left in round 1. Five more rows fixed:
+117 rows; the second half (rows 59–117, 59 rows) is the same set this lane left in round 1. Six more rows cleared
+(five fixed below; `CreatorStateCombinedAdmission.test_raw_creator_positive_contract_is_independent_of_all_history`
+now passes on its own after the merge and was removed).
+
+- Before: `117 failing, baseline 117`. After: `contract ratchet: 111 failing, baseline 111, new 0, fixed 0`;
+  `check_scaffold.py` PASS, `check_a11y_lint.py` PASS.
+
 
 - `test_project_edit_contracts.<module-crashed>`: (a) the module read a frozen run138 projection of the repo
   (`run138_current_source_projection.frozen_context`), which needs the club admission chain and crashed on
@@ -99,7 +105,7 @@ Branch `debt/contracts-b` with `origin/ui/combined-r7` `a0de1bd16` merged. After
   review with `templateOwnShelf.delete.irreversible`. LABELS re-pinned to the shipped copy. The whole-file BASE_*
   inverse (change-scope proof of the original patch) was removed. All 38 negative mutations still fail closed.
 
-Still left in this half (54 rows), same reasons as round 1: profile read-failure admission chain (31), project editor
+Still left in this half (53 rows), same reasons as round 1: profile read-failure admission chain (30), project editor
 readiness exact inverses of UI suites / workflow / budget (13), run129 editor-repair journey byte pins (5), profile
 save-path change-scope proofs (2, privacy/data safety, kept on purpose), merchant UI52 driver + merchant workspace entry
 (6, merchant-only, skipped), `test_roam_route_replay` (club chain at import).
