@@ -106,12 +106,20 @@ extension WalletScreen where Value == WithdrawalBalance {
     var loginKey: String? = nil
     var deniedKey: String? = nil
     var retry: () -> Void
+    private var titleKey: String {
+        (reader.scope == nil || requiresLogin) ? (loginKey ?? "wallet.login")
+            : reader.isConfigured && !unavailable ? failedKey
+            : reader.isConfigured ? (deniedKey ?? "wallet.unavailable") : "wallet.unavailable"
+    }
+    private var canRetry: Bool { reader.isConfigured && reader.scope != nil && !requiresLogin && !unavailable }
+    /// mp-states r3: the one state pattern — ContentUnavailableView, one bordered 重试. Copy unchanged.
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(LocalizedStringKey((reader.scope == nil || requiresLogin) ? (loginKey ?? "wallet.login")
-                : reader.isConfigured && !unavailable ? failedKey
-                : reader.isConfigured ? (deniedKey ?? "wallet.unavailable") : "wallet.unavailable")).accessibilityIdentifier("wallet.issue")
-            if reader.isConfigured && reader.scope != nil && !requiresLogin && !unavailable {
+        ContentUnavailableView {
+            Label { Text(LocalizedStringKey(titleKey)).accessibilityIdentifier("wallet.issue") } icon: {
+                Image(systemName: canRetry ? "exclamationmark.triangle" : "lock")
+            }
+        } actions: {
+            if canRetry {
                 Button("wallet.retry", action: retry)
                     .buttonStyle(.bordered)
             }
@@ -1152,11 +1160,12 @@ enum WalletIncomeSegment: Hashable {
     @StateObject private var model = WalletScreen<[WalletPointsTask]>()
     var body: some View {
         List {
-            if model.loading { ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("wallet.tasks.loading") }
+            if model.loading { ProgressView { Text("wallet.loading") }.frame(maxWidth: .infinity).accessibilityIdentifier("wallet.tasks.loading") }
             else if let rows = model.value, model.loadedScope == reader.scope {
                 // OWN-D-01.a: earn rules, then eventType 14 as 「积分消耗」 (`mp:subpackageMember/components/cy/profile/index.wxml:658-686`).
                 let rules = WalletPointsRules(rows)
-                if rules.earn.isEmpty && rules.spend.isEmpty { ContentUnavailableView("wallet.empty", systemImage: "list.bullet").accessibilityIdentifier("wallet.tasks.empty") }
+                // mp-states r3: MP profile wxml:660 cy-empty 暂无积分任务.
+                if rules.earn.isEmpty && rules.spend.isEmpty { ContentUnavailableView("wallet.tasks.empty", systemImage: "list.bullet").accessibilityIdentifier("wallet.tasks.empty") }
                 ForEach(rules.earn) { item in
                     VStack(alignment: .leading, spacing: 6) {
                         Text(verbatim: item.title ?? appLocalized("wallet.entry", locale: locale))

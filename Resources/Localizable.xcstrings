@@ -345361,6 +345361,23 @@
           }
         }
       }
+    },
+    "wallet.tasks.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No points tasks yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无积分任务"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
