@@ -572,6 +572,30 @@ public enum PlayNightWarning {
     }
 }
 
+/// mp-journey r3: MP `pages/play/index` `.play-timebar` (路线恢复横幅, `_routeNoticeForState`) by route status.
+/// The route notice wins over the 非阻断 time line (`timeNote` while `playable == false`).
+public enum PlayRouteNotice: String, Equatable {
+    case withdrawn, ended, fallback
+
+    public static func of(_ route: PlayRouteState?) -> PlayRouteNotice? {
+        switch route?.status ?? "" {
+        case "UNAVAILABLE", "WITHDRAWN", "CONFIG_WITHDRAWN": return .withdrawn
+        case "ENDED", "CANCELLED", "EXPIRED": return .ended
+        case "FALLBACK": return .fallback
+        default: return nil
+        }
+    }
+
+    public var key: String { "playx.routeNotice." + rawValue }
+
+    /// The time line under the route notice: only when the run is not playable and the server wrote one.
+    public static func timeLine(_ result: PlayNodesResult) -> String? {
+        guard result.playable == false else { return nil }
+        let note = (result.timeNote ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        return note.isEmpty ? nil : note
+    }
+}
+
 /// mp-journey r3: MP 飞分 `+N 探索值` at the completion moment (pages/play/index.js `_onCompleted`): `xp`, else `score`,
 /// only when positive and not a repeat completion (`firstTime == false`).
 public enum PlayFlyScore {

@@ -44,6 +44,17 @@ final class PlayJournalTests: XCTestCase {
         XCTAssertNil(PlayFlyScore.points(nil))
     }
 
+    func testRouteNoticeAndTimeLineFollowTheMPBanner() throws {
+        func result(_ text: String) throws -> PlayNodesResult {
+            try JSONDecoder().decode(PlayNodesResult.self, from: Data(text.utf8))
+        }
+        let ended = try result(#"{"playable":true,"nodes":[{"nodeId":7}],"routeState":{"routeMode":"LINEAR","status":"EXPIRED"}}"#)
+        XCTAssertEqual(PlayRouteNotice.of(ended.routeState), .ended)
+        XCTAssertNil(PlayRouteNotice.of(try result(#"{"nodes":[{"nodeId":7}],"routeState":{"routeMode":"LINEAR","status":"ACTIVE"}}"#).routeState))
+        XCTAssertEqual(PlayRouteNotice.timeLine(try result(#"{"playable":false,"timeNote":"活动已结束","nodes":[]}"#)), "活动已结束")
+        XCTAssertNil(PlayRouteNotice.timeLine(try result(#"{"playable":true,"timeNote":"活动已结束","nodes":[]}"#)))
+    }
+
     private func snapshot(mode: Int, nodes: String) throws -> PlaySnapshot {
         let data = "{\"topicId\":9,\"mode\":\(mode),\"playable\":true,\"registered\":true,\"nodes\":\(nodes),\"chapters\":[{\"chapterId\":8,\"name\":\"Chapter\"}]}"
         let wire = try JSONDecoder().decode(PlayWireValue.self, from: Data(data.utf8))
