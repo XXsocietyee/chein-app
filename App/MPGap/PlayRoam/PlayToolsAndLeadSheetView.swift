@@ -96,6 +96,13 @@ public struct PlayToolsAndLeadSheetView: View {
                         }
                     }
                 }
+                // mp-journey r3: MP 游玩工具 lists 入场码 after 本局读数 / 扫码到达 / 切换章节, just above the preferences.
+                if showsContentRows {
+                    Section {
+                        Button("playTools.entryCode", action: onOpenEntryCode)
+                            .accessibilityIdentifier("playTools.entryCode")
+                    }
+                }
                 // MP pages/play/index.wxml 游玩工具 sheet: 背景音乐 / 到站自动播放 / 减少动态效果.
                 Section("playTools.preferences.section") {
                     Toggle("playTools.pref.bgm", isOn: $bgmEnabled)
@@ -177,7 +184,6 @@ public struct PlayToolsAndLeadSheetView: View {
                     }
                 }
                 Button("playTools.rewards", action: onOpenRewards)
-                Button("playTools.entryCode", action: onOpenEntryCode)
             }
         }
     }

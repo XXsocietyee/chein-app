@@ -36,11 +36,12 @@ import QuestifyCore
         XCTAssertEqual(PlayHUDGeometry.distanceText(.nan), "—")
     }
 
-    func testReportLeavesUnknownStatsOut() {
+    func testReportKeepsTheThreeMPTiles() {
         var report = JourneyReport(legacy: false, result: nil, dateLabel: nil, nodesText: "6/6", elapsedText: nil, score: nil,
                                    rank: nil, rankBasisCount: nil, penaltyText: nil, rewardItems: nil, runID: nil, topicID: nil,
                                    activityID: nil, coverURL: nil, nodes: [], finished: true, inProgress: false)
-        XCTAssertEqual(JourneyReportView.stats(report).map(\.value), ["6/6"], "no — tile and no 本局不计分 tile")
+        // mp-journey r3: the MP always shows 完成节点 · 用时 · 解谜分 (report wxml:17-21); unread values render muted.
+        XCTAssertEqual(JourneyReportView.stats(report).map(\.value), ["6/6", nil, nil])
         report.elapsedText = "23:10"; report.score = 120
         XCTAssertEqual(JourneyReportView.stats(report).map(\.value), ["6/6", "23:10", "120"])
     }
