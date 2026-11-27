@@ -347,31 +347,24 @@ private struct PassportRollingCount: View {
         .frame(maxWidth: .infinity, minHeight: size)
     }
 
+    /// Design pass me (P8, P1): the badge count leads like the stamp count (label small above, rolling number);
+    /// each badge is its own object (own art, MC-30) and a tap opens the collection where it can be shared.
     private var badgeRail: some View {
         VStack(alignment: .leading, spacing: 12) {
-            LabeledContent {
-                if let badges { Text(verbatim: "\(badges.count)").monospacedDigit() }
-                else { Text(verbatim: "—") }
-            } label: {
-                Text("passport.badges.title")
+            VStack(alignment: .leading, spacing: 2) {
+                Text("passport.badges.title").font(.subheadline).foregroundStyle(.secondary)
+                if let badges { CYLiveCounter(badges.count, style: .dataXL) }
+                else { Text(verbatim: "—").font(.largeTitle.bold()).foregroundStyle(.secondary) }
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("passport.badges.title"))
+            .accessibilityValue(badges.map { Text($0.count, format: .number) } ?? Text(verbatim: "—"))
+            .accessibilityIdentifier("passport.badges.count")
             if let badges {
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHStack(alignment: .top, spacing: 12) {
                         ForEach(badges) { badge in
-                            VStack(spacing: 4) {
-                                Image(systemName: "rosette")
-                                    .font(.largeTitle)
-                                    .foregroundStyle(.tint)
-                                    .accessibilityHidden(true)
-                                Group { if let name = badge.name { Text(verbatim: name) } else { Text("growth.badge.unnamed") } }
-                                    .font(.caption).foregroundStyle(.secondary)
-                                    .multilineTextAlignment(.center).lineLimit(typeSize.isAccessibilitySize ? 4 : 2)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                            .frame(width: typeSize.isAccessibilitySize ? 112 : 80)
-                            .accessibilityElement(children: .combine)
-                            .accessibilityIdentifier("passport.badge.\(badge.id)")
+                            badgeObject(badge)
                         }
                     }
                 }
@@ -381,6 +374,30 @@ private struct PassportRollingCount: View {
         .padding(.vertical, 4)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("passport.badgeRail")
+    }
+
+    @ViewBuilder private func badgeObject(_ badge: PassportBadge) -> some View {
+        let label = VStack(spacing: 4) {
+            ClubBadgeArt(name: badge.name ?? "", seed: "\(badge.id)-\(badge.name ?? "")", category: .achievement,
+                         size: typeSize.isAccessibilitySize ? 64 : 48)
+                .accessibilityHidden(true)
+            Group { if let name = badge.name { Text(verbatim: name) } else { Text("growth.badge.unnamed") } }
+                .font(.caption).foregroundStyle(.secondary)
+                .multilineTextAlignment(.center).lineLimit(typeSize.isAccessibilitySize ? 4 : 2)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(width: typeSize.isAccessibilitySize ? 112 : 80)
+        if let onOpenBadges {
+            Button(action: onOpenBadges) { label }
+                .buttonStyle(.plain)
+                .accessibilityElement(children: .combine)
+                .accessibilityAddTraits(.isButton)
+                .accessibilityIdentifier("passport.badge.\(badge.id)")
+        } else {
+            label
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("passport.badge.\(badge.id)")
+        }
     }
 
     /// "See all" link under a block: one tap from the Passport root to the full list.

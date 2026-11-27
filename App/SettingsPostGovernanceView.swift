@@ -131,7 +131,7 @@ struct PostGovernanceRow: Identifiable, Equatable {
     @ViewBuilder private var content: some View {
         switch phase {
         case .loading:
-            ProgressView().frame(maxWidth: .infinity)
+            ProgressView("mpd.common.loading").frame(maxWidth: .infinity) // design pass me P10
                 .accessibilityLabel(Text("mpd.common.loading")).accessibilityIdentifier("settings.postGov.loading")
         case .signedOut:
             ContentUnavailableView("mpd.postGov.signedOut", systemImage: "person.crop.circle.badge.questionmark")

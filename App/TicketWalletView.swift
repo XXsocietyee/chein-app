@@ -432,7 +432,18 @@ private struct TicketWalletCardTag: View {
     let ticket: TicketWalletTicket
     var body: some View {
         if ticket.isUpcoming {
-            if let start = ticket.upcomingStartMonthDay {
+            if let soon = Self.startsSoon(ticket) {
+                // Design pass me (P2, P5): within a day of the start the tag ticks down like the event's Live Activity.
+                Label {
+                    HStack(spacing: 4) {
+                        Text("passme.ticket.startsIn")
+                        CYCountdown(until: soon, style: nil, tint: nil)
+                    }
+                } icon: { Image(systemName: "timer").foregroundStyle(.blue) }
+                    .font(.footnote).foregroundStyle(.secondary)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("ticketWallet.startsIn.\(ticket.id)")
+            } else if let start = ticket.upcomingStartMonthDay {
                 Label { Text("ticketWallet.tag.startsOn \(start.month) \(start.day)") } icon: { Image(systemName: "calendar").foregroundStyle(.blue) }
                     .font(.footnote).foregroundStyle(.secondary)
             } else {
@@ -451,6 +462,17 @@ private struct TicketWalletCardTag: View {
             .font(.footnote).foregroundStyle(.secondary)
             .accessibilityIdentifier("ticketWallet.topicCompleted.\(ticket.id)")
         }
+    }
+}
+
+extension TicketWalletCardTag {
+    /// The start time when `usableFrom` carries a clock time and it is less than 24 hours away; nil otherwise
+    /// (date-only values keep the MP「M月D日开始」tag).
+    static func startsSoon(_ ticket: TicketWalletTicket, now: Date = Date()) -> Date? {
+        guard let text = ticket.usableFrom?.trimmingCharacters(in: .whitespaces), text.count > 10,
+              let start = TicketWalletTicket.sourceDate(text) else { return nil }
+        let interval = start.timeIntervalSince(now)
+        return interval > 0 && interval < 86_400 ? start : nil
     }
 }
 

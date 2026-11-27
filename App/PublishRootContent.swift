@@ -100,10 +100,14 @@ import SwiftUI
     private func draftRow(_ draft: QuickPublishDraft) -> some View {
         let name = draft.title.trimmingCharacters(in: .whitespacesAndNewlines)
         let stops = draft.nodes.count
+        // Design pass me (P4): how far the draft got, as the quick setup's three parts (name, story, places).
+        let parts = [!name.isEmpty, !draft.description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, stops > 0]
+        let filled = parts.filter { $0 }.count
         return NavigationLink {
             quickDestination
         } label: {
             Label {
+                HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(verbatim: copy("Continue your last draft", "继续上次的草稿"))
                         .font(.footnote).foregroundStyle(.secondary)
@@ -114,6 +118,14 @@ import SwiftUI
                         Text(verbatim: copy("\(stops) places", "\(stops) 个地点"))
                             .font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
                     }
+                }
+                Spacer(minLength: 8)
+                CYRing(progress: CYRingMath.fraction(filled, of: parts.count), label: "comp.steps.ring",
+                       tint: .accentColor, diameter: 36, lineWidth: 4) {
+                    Text(verbatim: "\(filled)/\(parts.count)")
+                        .font(.caption.weight(.semibold)).monospacedDigit()
+                        .lineLimit(1).minimumScaleFactor(0.5)
+                }
                 }
             } icon: {
                 Image(systemName: draft.product == .city ? "map" : "location.magnifyingglass")

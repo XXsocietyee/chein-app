@@ -238,6 +238,8 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
             toastMessage = MerchantCloseCopy.text("活动已发布", "Activity published", locale)
             showResultSheet = true
         }
+        // Design pass me (P7): the publish completion is a moment: a success haptic with the result sheet.
+        .sensoryFeedback(.success, trigger: showResultSheet) { _, shown in shown }
         .sheet(isPresented: $showResultSheet) {
             PlayCloseResultSheet(
                 title: MerchantCloseCopy.text("活动已提交发布", "Activity Submitted", locale),

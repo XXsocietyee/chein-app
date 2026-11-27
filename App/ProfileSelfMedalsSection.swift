@@ -24,7 +24,18 @@ import SwiftUI
                                 .accessibilityIdentifier("profile.selfMedals.retry")
                         }
                         if let medals = model.medals {
-                            LabeledContent("profile.selfMedals.loadedCount", value: String(medals.count))
+                            // Design pass me (P1): the medal count is the one number here: label small above,
+                            // value large and monospaced; it rolls when a refresh brings a new medal.
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("profile.selfMedals.loadedCount").cyText(.caption).foregroundStyle(.secondary)
+                                Text(verbatim: String(medals.count)) // the loaded rows, never an invented total
+                                    .cyText(.dataXL, monospacedDigit: true)
+                                    .contentTransition(.numericText(value: Double(medals.count)))
+                            }
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel(Text("profile.selfMedals.loadedCount"))
+                            .accessibilityValue(Text(verbatim: String(medals.count)))
+                            .accessibilityIdentifier("profile.selfMedals.count")
                             if medals.isEmpty { Text("profile.selfMedals.empty").accessibilityIdentifier("profile.selfMedals.empty") }
                             ForEach(Array(medals.enumerated()), id: \.offset) { index, medal in
                                 Label {

@@ -46,8 +46,11 @@ enum ActivityPublishingStatusHelper {
         let current = ActivityPublishingWizard.clamp(step)
         let items = ActivityPublishingWizard.progress(current)
         VStack(alignment: .leading, spacing: 10) {
-            ProgressView(value: Double(current + 1), total: Double(max(items.count, 1)))
-                .accessibilityHidden(true)
+            // Design pass me (P4, R-steps): where the publisher is, as "1 of 3 complete" + ring, titled by the
+            // current step; the step buttons below keep the jump-back to a visited step.
+            CYStepProgressHeader(Text(Self.titleKey(items[min(current, items.count - 1)].key)),
+                                 systemImage: "square.and.pencil", done: current, total: items.count,
+                                 identifier: "publishModes.activity.wizard.header")
             let layout = dynamicTypeSize.isAccessibilitySize
                 ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
                 : AnyLayout(HStackLayout(spacing: 8))

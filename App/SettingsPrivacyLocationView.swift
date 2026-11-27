@@ -182,7 +182,7 @@ import SwiftUI
         List {
             switch controller.phase {
             case .idle, .loading:
-                ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("member.media.loading")
+                ProgressView("mpd.common.loading").frame(maxWidth: .infinity).accessibilityIdentifier("member.media.loading") // P10
             case .signedOut: mediaState("member.media.signedOut", systemImage: "person.crop.circle")
             case .unavailable: mediaState("member.media.unavailable", systemImage: "nosign")
             case .denied: mediaState("member.media.denied", systemImage: "lock")
