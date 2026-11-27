@@ -517,6 +517,24 @@ struct SessionRootView: View {
         }
     }
 
+    /// mp-nav r3: page links, universal links and notification taps with a native player screen push on the 首页 stack
+    /// (MP launches them as the first page with a home button). They wait, like chein:// links, for consent and any
+    /// open tab-level sheet; other intents keep the entry sheet.
+    private func landsOnHome(_ entry: NativeEntryPresentation?) -> Bool {
+        guard let entry else { return false }
+        return HomeLanding(intent: entry.intent) != nil
+    }
+
+    private func landNativeEntryOnHome() {
+        guard presentation.allowsSecondaryRootSheet, !presentation.hasBlockingSheet,
+              let entry = session.nativeEntry, let landing = HomeLanding(intent: entry.intent) else { return }
+        session.dismissNativeEntry()
+        if session.account == nil { browsingAsGuest = true }
+        if case .tab(let tab) = landing.target { selectedTab = tab; return }
+        selectedTab = .home
+        presentation.homeLanding = landing
+    }
+
     private func chain0<V: View>(_ v: V) -> some View {
         v
         .modifier(CloudB3RootModifier(session: session))
@@ -529,8 +547,9 @@ struct SessionRootView: View {
             // link (last wins, five minutes) until the tabs, sign-in and any open Passport sheet allow it.
             if let link = session.consumeDeepLink() { presentation.enqueue(link); replayDeepLink() }
         }
-        .onChange(of: presentation.hasBlockingSheet) { _, _ in replayDeepLink() }
-        .onChange(of: presentation.consentActive) { _, _ in replayDeepLink() }
+        .onChange(of: presentation.hasBlockingSheet) { _, _ in replayDeepLink(); landNativeEntryOnHome() }
+        .onChange(of: presentation.consentActive) { _, _ in replayDeepLink(); landNativeEntryOnHome() }
+        .onChange(of: session.nativeEntry?.id) { _, _ in landNativeEntryOnHome() }
         .onChange(of: browsingAsGuest) { _, _ in replayDeepLink() }
         .onChange(of: session.account?.id) { previous, accountID in
             replayDeepLink()
@@ -790,7 +809,7 @@ struct SessionRootView: View {
         .modifier(DebugOpenURLLaunchArgument(session: session))
         .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { session.receiveUniversalLink($0) }
         // One presentation at a time: the consent gate goes first, native entry and the area picker queue behind it.
-        .cySheet(item: Binding(get: { presentation.allowsSecondaryRootSheet ? session.nativeEntry : nil }, set: { if $0 == nil, presentation.allowsSecondaryRootSheet { session.dismissNativeEntry() } })) { entry in
+        .cySheet(item: Binding(get: { presentation.allowsSecondaryRootSheet && !landsOnHome(session.nativeEntry) ? session.nativeEntry : nil }, set: { if $0 == nil, presentation.allowsSecondaryRootSheet { session.dismissNativeEntry() } })) { entry in
             NativeEntryLandingView(entry: entry, session: session, goHome: { browsingAsGuest = true; selectedTab = .home })
                 .cyPlayerSheetGlass()
         }

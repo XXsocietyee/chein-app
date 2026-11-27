@@ -47,12 +47,30 @@ Audited, unchanged (allowed by the rule): hidden nav bar only in live roam / fre
 | profile → pages/shezhi/shezhi (navigateTo) | 我的 top-right 设置 | sheet kept: SettingsView's profile/favorites route owners retire on `onDisappear`, so hosting it as a push would retire them on every sub-push. Needs an owner-lifetime change first (coordinator) | open |
 | profile → subpackageMember/points-history, assetcenter/earnings (钱包), stamp-album, badge-wall, im/list | 我的 rows | `navigationDestination(isPresented:)` pushes with pushed chrome | OK |
 | profile → points help (MP popup) | 积分 ⓘ | `.cySheet` with `[.medium, .large]` detents | OK |
-| pages/topic/index/index → subpackageMember/signup/index (票, navigateTo) | topic bottom bar 我的票 | `.cySheet` half/full with bar hero zoom (TopicDetailView.swift:128) | open — MP page shown as a half sheet; left because the bar's matched hero transitions are built on sheets |
-| pages/topic/index/index → pages/topic/pricing/index (navigateTo) | topic bar 定价 (owner) | sheet half/full (TopicDetailView.swift:626) | open — same reason |
+| pages/topic/index/index → subpackageMember/signup/index (票, navigateTo) | topic bottom bar 我的票 | was `.cySheet` half/full → `navigationDestination(isPresented: $showingTickets)` push, wallet host `isPushed: true` (no close), pushed chrome; the bar hero modifier is a pass-through since native r2, so nothing depended on the sheet | fixed |
+| pages/topic/index/index → pages/topic/pricing/index (navigateTo) | topic bar 定价 (owner) | was a sheet with its own NavigationStack → push of `PublisherPricingView` with pushed chrome; its post-confirm `dismiss()` now pops back like MP index.js:451 `navigateBack` | fixed |
 | pages/topic/index/index → pages/play/index (navigateTo) | topic bar 开始 | `navigationDestination(isPresented: $showingPlay)` push | OK |
 | pages/topic/index/index → session picker / self-play form (MP popups) | topic bar 选择场次 / 自己玩 | sheets with `[.half, .full]` detents | OK |
 | pages/club/detail/index → member list (MP `expandMembers`, in-page) | 查看成员 | sheet `[.medium, .large]` | OK |
 | pages/club/detail/index → settings panel (MP cset popup, wxml:663-797) | toolbar gear | sheet `[.medium, .large]`; rows push the MP pages (customers / enroll / event-ops / roles / settlement) | OK |
+
+## External entries → MP page (deep links, universal links, notifications, widgets, Siri)
+
+MP: a page opened from outside (share card, subscribe message, scan) launches as the first page with a home button back to
+`pages/index/index`; a tabBar page opens with `switchTab`. Native intake: `onOpenURL` / `onContinueUserActivity` /
+`UNUserNotificationCenterDelegate` tap / island tap / App Intents → `AppSession.receiveNativeIntent` → `NativeEntryPresentation`.
+
+| entry | before | after (mp-nav r3) | status |
+|---|---|---|---|
+| `chein://mp/<page>`, verified universal link, notification `page` payload, foreground island tap, widget / Live Activity `chein://mp/…` URLs, Siri 继续故事 / 打开城市护照 — any page with a native player screen (`MPParityRoute`) | root `.sheet` over the tabs with a 关闭 button | `HomeLanding.page`: entry dismissed, 首页 selected, page pushed as the only page above the 首页 root with pushed chrome; system back returns to 首页 = MP home button (App/QuestifyApp.swift `landNativeEntryOnHome`, App/SessionHomeFeedView.swift `openHomeLanding`) | fixed |
+| public topic universal link (`.content(.topic)`, MP `pages/topic/index/index`) | sheet + 关闭 | pushed `.topic(id)` on 首页 (same detail + hero fallback as a feed tap) | fixed |
+| tabBar pages `pages/index/index`, `pages/roam/index`, `pages/template/index`, `pages/talent/list/index`, `pages/member/index/index` (Siri 开始漫游, widget 俱乐部 link) | a second copy of the tab root inside the sheet (own NavigationStack; 首页 only had a hand-off) | `HomeLanding.tab`: selects the tab, pushes nothing (MP `switchTab`, app.json tabBar list) | fixed |
+| `chein://ticket/<id>`, `chein://club/<id>`, `chein://roam/go`, referral / gift / seat | already resolved on the owning tab (`replayDeepLink`) | unchanged | OK |
+| merchant pages, team / merchant invitations, door, badge showroom, unsupported route error | entry sheet | unchanged: invitation / door are MP landing flows with their own sign-in step; merchant out of scope (keeps its discard confirmation); errors keep 返回首页 | OK |
+| link arrives while consent gate or a tab-level sheet (设置, 合作, 票夹) is open | sheet stacked on top | waits, like chein:// links, until the gate / sheet closes, then lands (`onChange` of `hasBlockingSheet` / `consentActive`) | fixed |
+| signed-out launch from a link | sheet over Welcome | `browsingAsGuest = true` (same as the error view's 返回首页), page keeps its own sign-in gate | fixed |
+
+Known gap: `pages/talent/list/index?tab=feed` switches to 俱乐部 but does not preselect the 帖文 sub-tab (the tab root has no external sub-tab input yet).
 
 ## Route coverage
 
