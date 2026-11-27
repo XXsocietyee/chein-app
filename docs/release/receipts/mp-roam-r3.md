@@ -217,7 +217,7 @@ Base re-merged with `origin/ui/combined-r7` (xcstrings conflict at the file end:
 | Sweep 18:54 `*-d2-roam.jpg` | — | Shows the launch logo only (black). Coordinator note: tiles under machine load. Same fixture caveat as continue (11). | Not changed (no app finding). |
 | Sweep 18:54 `*-d6-roam.jpg`, `*-e5b-stamp.jpg` | live start / 盖章成功 | Large 漫游 title top-left, one primary 走起, 完成 `.borderedProminent`; nothing wrong vs MP. | No change. |
 
-Gates: see below.
+Gates: generate_project OK · check_scaffold PASS (20774 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 
 ## Not done / next
 
