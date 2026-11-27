@@ -121,10 +121,10 @@ import UIKit
 
     private var cardContent: CYShareCardContent {
         let sketch = RoamShareRoutePrivacy.sketch(for: record)
+        // MP C2 share card `.rsh-stats` (pages/roam/index.wxml:1015-1019): 处到达 → km → 探索度, nothing else.
         let stats = [
+            CYShareStat(appLocalized("roam.share.card.footprints", locale: locale), String(record.footprintCount)),
             CYShareStat(appLocalized("roam.experience.distance", locale: locale), record.distance.flatMap { LocaleDisplay.isChinese(locale) ? String(format: "%.1f km", $0) : LocaleDisplay.distance(kilometers: $0, locale: locale) }),
-            CYShareStat(appLocalized("roam.experience.duration", locale: locale), record.durationText),
-            CYShareStat(appLocalized("roam.experience.shops", locale: locale), record.shops.map(String.init)),
             CYShareStat(appLocalized("roam.experience.explorePct", locale: locale), record.explorePct.map { "\($0)%" }),
         ]
         return CYShareCardContent(
