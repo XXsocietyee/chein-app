@@ -323,7 +323,12 @@ import SwiftUI
                                 guard !showsFilters, let context, categoryRecovery.accepts(context) else { return }
                                 var next = filter; next.categoryID = category.id; applyFilter(next)
                             } label: {
-                                Text(verbatim: category.name)
+                                // MP 类别 tiles carry an icon beside the name (utils/category-icon.js).
+                                Label {
+                                    Text(verbatim: category.name)
+                                } icon: {
+                                    Image(systemName: SearchCategorySymbol.name(for: category.name)).accessibilityHidden(true)
+                                }
                             }
                             .buttonStyle(.bordered)
                             .buttonBorderShape(.capsule)
