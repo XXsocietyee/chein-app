@@ -186,6 +186,7 @@ struct IMInboxRow: View {
             let value = try await reader.unreadTotal()
             guard !Task.isCancelled, reader.identity == identity else { return }
             total = value; loadedFor = identity
+            QuestWidgetBoardPublisher.unread(value)
             // Native r2 M4: the same read going up while the app is open pops a message island (no extra request).
             IslandUnreadBridge.observe(source: "imTotal", total: value, title: { .localized("island.message.new \($0)") }) {
                 MPNotificationTapRouter.shared.open(pagePath: IslandRoutes.messageCenter)

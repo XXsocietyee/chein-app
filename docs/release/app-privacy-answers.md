@@ -104,6 +104,7 @@ Left out, because the code does not use them:
 | 类别 | 原因码 | 原因 |
 |---|---|---|
 | User Defaults | `CA92.1` | 应用范围内的 `UserDefaults` 与 `@AppStorage`。`App/` 下的 `UserDefaults(suiteName:)` 是夹具套件，不是 App Group。 |
+| User Defaults | `1C8F.1` | 组件 r1（C2）：应用与小组件扩展共用 App Group `group.com.chengyinhub.chengyinApp`（`QuestWidgetStore`），只存小组件显示值（标题、计数、开始时间、日期）。 |
 | 文件时间戳 | `C617.1` | 应用在容器或临时目录中自有文件的时间戳。例如 `App/IMVoiceDevice.swift`、`App/MerchantNPCVoiceDevice.swift`（`contentModificationDateKey`）、`Core/ParticipantFileJournal.swift`、`Core/ContentDraftSystemStorage.swift`。 |
 | 文件时间戳 | `3B52.1` | 用户所选文件的时间戳。在安全范围读取之后，`App/TemplateAudioDocumentPickerAdapter.swift`、`App/ProjectStoryAudioSelectedDocumentReader.swift` 和 `Core/QmodArchiveInspection.swift` 使用 `fstat` / `st_mtimespec`。 |
 | 系统启动时间 | `35F9.1` | `ProcessInfo.processInfo.systemUptime` 测量应用内经过的时间（`Core/WalkingNavigationContracts.swift`、`Core/OrderPaymentVerifier.swift`、`Core/PersonalLocationShareCoordinator.swift`）。 |
@@ -114,7 +115,7 @@ Left out, because the code does not use them:
 |---|---|
 | 磁盘空间 | `85F4.1`、`E174.1`、`7D9E.1`、`B728.1`。`App/` 与 `Core/` 中没有 `volumeAvailableCapacity`、`systemFreeSize`、`NSFileSystemFreeSize`、`statfs` 或 `statvfs`。 |
 | 活跃键盘 | `3EC4.1`、`54BD.1`。`App/` 与 `Core/` 中没有 `activeInputModes` 或 `UITextInputMode`。 |
-| User Defaults 的其他原因 | `1C8F.1`、`C56D.1`、`AC6B.1`。没有 App Group 授权。 |
+| User Defaults 的其他原因 | `C56D.1`、`AC6B.1`。 |
 | 文件时间戳的其他原因 | `DDA9.1`、`0A2A.1`。 |
 | 系统启动时间的其他原因 | `8FFB.1`、`3D61.1`。没有 `mach_absolute_time`，错误报告中也不含启动时间。 |
 

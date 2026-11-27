@@ -13,7 +13,9 @@ class UniversalLinkAssociatedDomains(unittest.TestCase):
 
     def test_entitlement_claims_sign_in_with_apple_only(self):
         plist = plistlib.loads((ROOT / "Config/Questify.entitlements").read_bytes())
-        self.assertEqual(plist, {"com.apple.developer.applesignin": ["Default"]})
+        # Components r1 (C2): plus the widget App Group, nothing else.
+        self.assertEqual(plist, {"com.apple.developer.applesignin": ["Default"],
+                                 "com.apple.security.application-groups": ["group.com.chengyinhub.chengyinApp"]})
         self.assertNotIn("associated-domains", (ROOT / "Config/Questify.entitlements").read_text())
         self.assertNotIn("CFBundleURLTypes", self.read("Config/Info.plist"))
         self.assertNotIn("applinks:", self.read("Config/Info.plist"))

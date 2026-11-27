@@ -48,7 +48,7 @@ LOCATION_FORBIDDEN = (
     "INFOPLIST_KEY_UIBackgroundModes",
 )
 REQUIRED_REASON_APIS = {
-    "NSPrivacyAccessedAPICategoryUserDefaults": ["CA92.1"],
+    "NSPrivacyAccessedAPICategoryUserDefaults": ["CA92.1", "1C8F.1"],
     "NSPrivacyAccessedAPICategoryFileTimestamp": ["C617.1", "3B52.1"],
     "NSPrivacyAccessedAPICategorySystemBootTime": ["35F9.1"],
 }
@@ -182,14 +182,24 @@ def check_apple_entitlement(failures):
     if not slot:
         print("Sign in with Apple capability slot is absent. Entitlement file was not added.")
         return
-    if len(slot) != 2 or len(re.findall(r"CODE_SIGN_ENTITLEMENTS", project)) != 2:
-        failures.append("Sign in with Apple capability slot is not exactly the app Debug and Release settings")
+    widget_slot = re.findall(
+        r'"CODE_SIGN_ENTITLEMENTS" = "Config/QuestifyLiveActivity\.entitlements";',
+        project,
+    )
+    if len(slot) != 2 or len(widget_slot) != 2 or len(re.findall(r"CODE_SIGN_ENTITLEMENTS", project)) != 4:
+        failures.append("entitlement slots are not exactly the app and widget Debug and Release settings")
         return
+    # Components r1 (C2): the app and the widget extension share one App Group for the widget store.
+    group = {"com.apple.security.application-groups": ["group.com.chengyinhub.chengyinApp"]}
     plist = plistlib.loads(path.read_bytes())
-    if plist != {"com.apple.developer.applesignin": ["Default"]}:
-        failures.append("entitlement file is not Sign in with Apple Default only")
+    if plist != {"com.apple.developer.applesignin": ["Default"], **group}:
+        failures.append("entitlement file is not Sign in with Apple Default plus the widget App Group")
         return
-    print("Sign in with Apple entitlement: kept. Capability slot already exists. No other entitlement added.")
+    widget = plistlib.loads((ROOT / "Config/QuestifyLiveActivity.entitlements").read_bytes())
+    if widget != group:
+        failures.append("widget entitlement file is not the App Group only")
+        return
+    print("Sign in with Apple and widget App Group entitlements: kept. No other entitlement added.")
 
 
 def xcconfig_version_assignments(text):

@@ -201,6 +201,9 @@ final class ClubCommunityViewModel: ObservableObject {
             }
             guard ticket == generation, try context.currentSession() == session else { return }
             if case .posts = operation { snapshot = try postCursor.accept(result, identity: session.identity) }
+            if case let .posts(clubID, nil, _) = operation, let posts = snapshot?.posts {
+                QuestWidgetBoardPublisher.clubPosts(posts, clubID: clubID)
+            }
             else if case .feed = operation { snapshot = try feedCursor.accept(result, identity: session.identity) }
             else { snapshot = result }
             if case .feed = operation, context.feedSourceScope() == sourceScope {

@@ -155,7 +155,10 @@ struct CityRoamRootView: View {
                 await openDeepLink()
             }
             .onChange(of: links.pendingProperty) { _, id in if id != nil, store.phase != .idle { Task { await openDeepLink() } } }
-            .onChange(of: store.places) { _, _ in Task { await CityNotifications.sync(store: store, locale: locale) } }
+            .onChange(of: store.places) { _, places in
+                QuestWidgetBoardPublisher.cityPlaces(places)
+                Task { await CityNotifications.sync(store: store, locale: locale) }
+            }
             .onChange(of: store.lost) { _, lost in
                 guard let first = lost.first else { return }
                 store.acknowledgeLost()

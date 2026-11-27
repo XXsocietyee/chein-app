@@ -25,7 +25,7 @@ if design_fixture_names:
 unit_source_paths = sorted([*ROOT.glob('Tests/AppUnitTests/**/*.swift'), *release_test_fixture_sources])
 # Live Activity widget extension (roam walk / play session). It compiles its own folder plus the one shared,
 # Foundation/ActivityKit-only Core file that declares the ActivityAttributes; that file stays in the app too.
-live_activity_shared_sources = [ROOT/'Core/QuestLiveActivityContent.swift', ROOT/'Core/QuestLiveActivityIntents.swift']
+live_activity_shared_sources = [ROOT/'Core/QuestLiveActivityContent.swift', ROOT/'Core/QuestLiveActivityIntents.swift', ROOT/'Core/QuestWidgetBoard.swift', ROOT/'Core/QuestWidgetControlIntent.swift']
 live_activity_sources = sorted([*ROOT.glob('LiveActivityWidget/*.swift'), *(p for p in live_activity_shared_sources if p.is_file())])
 live_activity_resources = sorted(ROOT.glob('LiveActivityWidget/*.xcstrings'))
 
@@ -138,7 +138,9 @@ for name in ['Debug','Release']:
               'INFOPLIST_KEY_CFBundleDisplayName':'Questify','INFOPLIST_KEY_UIApplicationSceneManifest_Generation':'NO',
               'ASSETCATALOG_COMPILER_APPICON_NAME':'','APPLICATION_EXTENSION_API_ONLY':'YES','SKIP_INSTALL':'YES',
               'LD_RUNPATH_SEARCH_PATHS':'$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks',
-              'SWIFT_OPTIMIZATION_LEVEL':'-Onone' if name=='Debug' else '-O'}
+              'SWIFT_OPTIMIZATION_LEVEL':'-Onone' if name=='Debug' else '-O',
+              # Components r1 (C2): same App Group as the app so the home widgets read QuestWidgetStore.
+              'CODE_SIGN_ENTITLEMENTS':'Config/QuestifyLiveActivity.entitlements'}
     if name=='Debug': settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS']='DEBUG $(inherited)'
     la_configs.append(obj('la'+name,isa='XCBuildConfiguration',name=name,baseConfigurationReference=release_config_ref if name=='Release' else config_ref,buildSettings=settings))
 la_config_list=obj('laconfigs',isa='XCConfigurationList',buildConfigurations=la_configs,defaultConfigurationIsVisible=0,defaultConfigurationName='Release')
