@@ -83,6 +83,8 @@ import QuestifyCore
     @State private var locationPrimingAllowed = false
     /// ROAM-2: pages/roam `openCheckinView` after a confirmed visit → 城市贴纸 / 今日城市签.
     @State private var checkin: RoamCheckinTarget?
+    /// MP 主题半屏 (`openTopicView`): a registered shop carrying a topic.
+    @State private var topicShop: RoamLiveTopicShop?
     @State private var revealTick = 0
     @State private var revealToastShown = false
     @State private var revealToastTask: Task<Void, Never>?
@@ -203,6 +205,9 @@ import QuestifyCore
                 locale: locale))
         }
         .sheet(item: $checkin) { target in Group { RoamCheckinSheet(target: target) }.cySheet(detents: [.large]) }
+        .sheet(item: $topicShop) { target in
+            RoamLiveTopicSheet(target: target, service: roamGap, topicDestination: discoverDestinations?.topic)
+        }
         .background {
             if let target = browse.target {
                 RoamPausedBrowseSheetOwner(presentation: browse, target: target,
@@ -778,6 +783,13 @@ import QuestifyCore
                 if nearbyExpanded || owner.busy || owner.error != nil || owner.registeredShopUnresolved(shop) || owner.registeredShopConfirmed(shop) {
                     VStack(alignment: .leading, spacing: 8) {
                         if shop.addressName.isEmpty { Text("roam.unnamed").cyText(.cardTitle) } else { Text(verbatim: shop.addressName).cyText(.cardTitle) }
+                        if let topic = RoamLiveTopicShop(shop: shop), roamGap != nil {
+                            Button { topicShop = topic } label: {
+                                Label("roam.live.topic.entry", systemImage: "map")
+                            }
+                            .buttonStyle(.borderless)
+                            .accessibilityIdentifier("roam.live.topic.entry")
+                        }
                         if owner.registeredShopUnresolved(shop) { Text("roam.live.unknownVisit").cyText(.meta) }
                         else if owner.registeredShopConfirmed(shop) { Label("roam.live.arrivalConfirmed", systemImage: "checkmark.circle") }
                         else {
@@ -789,6 +801,7 @@ import QuestifyCore
                                     }
                                 }
                             }
+                                .buttonStyle(.borderless)
                                 .disabled(owner.busy || owner.registeredShopGap(shop) != 0)
                             if let gap = owner.registeredShopGap(shop), gap > 0 { Text("roam.live.walkCloser \(gap)").cyText(.meta).foregroundStyle(.secondary) }
                         }

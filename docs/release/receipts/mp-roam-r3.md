@@ -105,7 +105,7 @@ Base re-merged with `origin/ui/combined-r7` (clean).
 | `pages/roam/index` roam-runner (原型 otherSheet, wxml:803) | `App/MPGap/PlayRoam/RoamRunnerDetailView.swift` | MP order: head (avatar ring · nickname · 正在附近漫游 · since) → g3 地盘 % / 探店 / 在走 → TA 点亮的店 photo strip → 打个招呼 / 看 TA 的漫游. Native: a `LabeledContent` 昵称 / 已走 list plus a loose 地盘 line; no head, no 探店, no shop photos (all already in `RoamNearbyRunner`). | **Fixed:** head row (initial/avatar circle, `.headline` name, `正在附近漫游 · since`), three stat cells only when present (`.title3` monospaced value, `.caption` label), horizontal 88 pt shop photos with the shop name as a11y label, then the existing actions. New keys `roamTools.runner.nearby`, `roamTools.runner.nearbySince %@`, `roamTools.runner.stat.territory/shops/walking`, `roamTools.runner.shops`. |
 | `subpackageRoam/components/cy/scene-roam-session` 点亮地点 rows | `App/RoamHistoryViews.swift` `RoamHistoryDetailView` | MP `rw__row`: icon by `cat` (shop / park / landmark) + name + `catLabel || 点亮` line. Native: name only, park drawn as a pin. | **Fixed:** `leaf` for park, `点亮` caption under the name (existing key `roamSub.w208.share.lit`; local records carry no catLabel, so MP shows 点亮 too), row combined for VoiceOver. |
 | `pages/roam/index` 打卡之后 (原型 f-checkin, wxml:649) | `RoamCheckinSheet` + `RoamCheckinStampRows` | name title, sub line, 城市贴纸 / 今日城市签 rows. | No change needed. |
-| `pages/roam/index` 主题半屏 (原型 f-topic / f-city, wxml:618) | — (live map pins open the 附近 list) | MP: a pin with `topicId` reads `/api/topic/info-to-user` and shows tag 自由探索/城市定向 · title · desc · 场次 / 走法 / 距你 · 查看详情 → `pages/topic/index/index`. Native `RoamPlace` does not decode `topicId`/`productType`. | Not done (Core decode + topic read; compiled pass). |
+| `pages/roam/index` 主题半屏 (原型 f-topic / f-city, wxml:618) | — (live map pins open the 附近 list) | MP: a pin with `topicId` reads `/api/topic/info-to-user` and shows tag 自由探索/城市定向 · title · desc · 场次 / 走法 / 距你 · 查看详情 → `pages/topic/index/index`. Native `RoamPlace` does not decode `topicId`/`productType`. | **Fixed (continue 8):** see the continue (8) row. |
 | `subpackageRoam/components/roam-place-card` rating cell (was Not done) | `RoamMapHomePlaceCard` + `Core/RoamContracts.swift` `RoamNodeDetail` | MP `_loadRating`: server POIs read `/api/city/nodes/{id}` and show `averageRating` to one decimal (hidden when ≤ 0 or `ratingCount` ≤ 0), `—` when the read fails, before the distance. | **Fixed:** `RoamNodeDetail` decodes `averageRating` / `ratingCount` leniently (`try?`, string or int count) and exposes `ratingText` (MP `ratingText`); the card reads it with the existing `roamReader.roamNodeDetail` in `.task(id: pin.id)` for `type == 1` places only, shows ★ rating · kind · distance in the header, `—` on failure. New key `nativeR2.mapHome.card.rating %@`. |
 
 New strings (en + zh-Hans, also `docs/port/strings/mp-r3-roam.json`): `roamTools.more.title`, `roamTools.more.howto`, `roamTools.more.settings`,
@@ -153,6 +153,18 @@ New strings (en + zh-Hans, also `docs/port/strings/mp-r3-roam.json`): `roam.w208
 
 Gates: generate_project OK · check_scaffold PASS (20692 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 
+## Round 3 continue (8) — live-map 主题半屏 (pages/roam/index.wxml:618–645, index.js `openTopicView` 552–604)
+
+Base re-merged with `origin/ui/combined-r7` (xcstrings: base values kept, our keys appended).
+
+| MP page / scene | Native view | Differences | Status |
+|---|---|---|---|
+| `pages/roam/index` 主题半屏 (原型 f-topic / f-city): a merchant pin with `topicId` reads `/api/topic/info-to-user` → cover strip → tag 自由探索 / 城市定向 · eyebrow `距离 · 不限顺序/按顺序` → title → desc → 场次 / 走法 / 距你 → 查看详情 (`pages/topic/index/index`); read fails or no name → plain shop card | `App/RoamLiveSessionView.swift` 附近 registered-shop rows (`/api/map/nearby`) → new `App/RoamLiveTopicSheet.swift` | Native shops never showed their topic: `RoamRouteNode` did not decode `productType`, no topic read, no 查看详情 target. | **Fixed:** Core `RoamRouteNode.productType` (lenient int/string, nil otherwise). Shop rows with `topicId > 0` get a `查看主题` borderless row (`roam.live.topic.entry`; the visit button is borderless too so the two taps stay separate in the List). `.sheet` with medium/large detents (OWNER RULE 2), inline title 主题 + 关闭; content in MP order with `RoamEntryCover` (only when the topic has a cover), tag capsule + eyebrow, `.sheetTitle` name, description, three stat cells (场次 = `activityList.count`, 走法, 距你 `N m` or `—`), then 查看详情 → `MPReviewedPageScreen(pages/topic/index/index)` via new optional `RoamDiscoverDestinations.topic`. Loading says 正在读取主题… (P10). Failure / no name closes the sheet, leaving the shop row (MP `_fallbackToShopCard`). Uses the existing `playRoamGapService.fetchTopicInfo` (`JSETTLE-3`). |
+
+New strings (en + zh-Hans, also `docs/port/strings/mp-r3-roam.json`): `roam.live.topic.title/entry/loading/tagFree/tagCity/anyOrder/inOrder/sessions/walk/distance/open`, `roam.live.topic.meters %lld`.
+
+Gates: generate_project OK · check_scaffold PASS (20724 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no
@@ -160,6 +172,6 @@ Gates: generate_project OK · check_scaffold PASS (20692 keys) · a11y lint 0 ne
   upload-only camera mode returning the picture URL and session wiring for the coordinator — left for a compiled pass.
 - team-recovery per-command rows on my-teams / nearby (needs a persisted team-command store).
 - P21 mini bar for a running roam: the live session is a full-screen cover owning its own controller (`makeRoamLiveSessionController()` per presentation); a cross-tab bar needs the controller lifted to the session and a root-tab accessory (nav lane) — compiled pass.
-- Topic half-screen on the live map (see continue (4) row): `RoamPlace` needs `topicId` / `productType` + a topic read.
+- Topic half-screen: MP pins on the live **map** itself (merchant pins) — native has no merchant-pin layer on the live map yet (shops are list rows); the sheet hangs off the row until a pin layer exists. MP also drops `topicId` shops whose `productType != 2` from the merchant layer; native keeps them and labels them 城市定向.
 - Entry peek `.login` state (map home + legacy peek): MP 11-14 reads public nearby content as a guest and maps 401 to the cy-error retry, never a sign-in prompt. Native shows sign-in when `!isSignedIn && !allowsPublicEntry` (Core `RoamNearbyEventsEntryState`) and on 401; changing it touches Core tests and `RoamHomeTabsFlowTests` (`roam.home.peek.login`) — left for a compiled pass.
 - No Swift build ran here; integrator compiles.
