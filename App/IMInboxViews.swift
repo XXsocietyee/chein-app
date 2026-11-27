@@ -126,6 +126,7 @@ struct IMInboxRow: View {
                     HStack(alignment: .firstTextBaseline) {
                         MessagingConversationName(conversation: conversation)
                             .font(.headline)
+                            .lineLimit(1)
                         officialChip.fixedSize()
                         muteMark
                         Spacer(minLength: 4)
@@ -135,9 +136,11 @@ struct IMInboxRow: View {
                     }
                 }
                 HStack(alignment: .firstTextBaseline) {
+                    // MP im/list preview is one ellipsized line; the English copy otherwise wraps to 2-3 lines.
                     MessagingPreview(conversation: conversation)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+                        .lineLimit(typeSize.isAccessibilitySize ? 2 : 1)
                     Spacer(minLength: 4)
                     IMUnreadBadge(count: conversation.unread, muted: conversation.muted == true, unknownAsDash: true)
                 }
