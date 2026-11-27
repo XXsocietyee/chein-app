@@ -1264,6 +1264,11 @@ struct PlayThemeMusicKey: Equatable {
     private func nodeList(context: PlayInteractionContext?) -> some View {
         List {
             PlayTaskOutcomeSection(model: model, nodeID: nodeID, openNode: openNode)
+            // mp-journey r3 (MP p03 `gp2__right`, P-11): after this screen's own accepted answer, the author's
+            // feedback (or 对了) and the stop's 碎片, read before moving on.
+            if justSubmitted, nodeDone, let node {
+                PlayTaskRightSection(passText: node.passText, fragment: node.fragmentText)
+            }
             // Also shown at the top: the answer row can sit under the keyboard.
             if let refusal { Section { PlayReviewRefusalRow(refusal: refusal, identifier: "playx.review.refusal") } }
             if let state = model.submitRecovery, state.nodeID == nodeID {
@@ -1907,6 +1912,7 @@ struct PlayExperienceIssueView: View {
     @State private var review = false
     @State private var actionContext: PlayInteractionContext?
     @Environment(\.playerGapService) private var gapService
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var body: some View {
         let context = model.interactionContext
         Section("playx.lead.title") {
@@ -1920,6 +1926,12 @@ struct PlayExperienceIssueView: View {
                 let gathering = lead.exists && lead.status == 1
                 if gathering {
                     VStack(spacing: CYSpacing.xs) {
+                        // MP P-13 `lg-wait`: three dots breathing in turn while the team gathers; still under Reduce Motion.
+                        Image(systemName: "ellipsis")
+                            .font(.title2)
+                            .foregroundStyle(.secondary)
+                            .symbolEffect(.variableColor.iterative, options: .repeating, isActive: !reduceMotion)
+                            .accessibilityHidden(true)
                         Text("playx.lead.gathering").font(.subheadline).foregroundStyle(.secondary)
                         (Text(verbatim: "\(lead.arrived ?? 0)").font(.largeTitle.weight(.bold))
                             + Text(verbatim: "/\(lead.members.count)").font(.title3).foregroundStyle(.secondary))
@@ -2191,5 +2203,31 @@ private struct PlayNightHintOverlay: ViewModifier {
                     withAnimation(reduceMotion ? nil : .easeOut(duration: 0.25)) { shown = false }
                 }
             }
+    }
+}
+
+/// mp-journey r3: MP task page (p03) 答对 block — a check with the author's pass text (or 对了), then 碎片.
+private struct PlayTaskRightSection: View {
+    let passText: String?
+    let fragment: String?
+
+    var body: some View {
+        Section {
+            Label {
+                if let passText, !passText.isEmpty { Text(verbatim: passText) } else { Text("playx.right.default") }
+            } icon: {
+                Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+            }
+            .font(.headline)
+            if let fragment, !fragment.isEmpty {
+                LabeledContent {
+                    Text(verbatim: fragment).multilineTextAlignment(.trailing)
+                } label: {
+                    Text("playx.right.fragment")
+                }
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("playx.right")
     }
 }

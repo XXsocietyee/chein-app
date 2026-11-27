@@ -26,16 +26,27 @@ files; `mp/r3-mine` only gated 查看报名凭证 in `PlayerJourneyViews` (not o
 | `pages/play/index` (P1 集合屏) | `PlayExperienceView` `PlayLeadSection` | 队伍集合中 · N/M · 已到集合点 · 我到了 / 已签到 · 开始行程 / 等队长开始行程… | **added** the gathering hero while `lead.status == 1` (eyebrow, the arrived count as the one large number, 已到集合点, 已签到, 等队长开始行程… for members); the existing 我到了 / 开始行程 actions stay below | P1 hero with `numericText` roll, monospaced digits, combined VoiceOver element |
 | `pages/play/index` (通关 banner) | `PlayExperienceView` finish row | b1 N 处旧址已点亮 · b2 领取你的城市足迹卡 → openFinish | **fixed** copy: the 查看通关勋章 row now reads as the MP banner (count line over 领取你的城市足迹卡), same finish screen | `Label` with two-line title |
 | `pages/play/index` (奖励掉落卡 `rdrop`) | `App/PlayRewardBadgeViews.swift` `PlayRewardBadgeRows` | reward name · 已记在你的收藏里 · 查看收藏 / 继续 | **fixed** order/copy: each reward name is followed by 已记在你的收藏里 (new `playBadge.savedLine`), replacing the generic read-back hint above the list | medal spring + confetti kept (P7/P8), headline name |
+| `pages/play/index` (游玩工具, 队伍位置 / 旅程手记) | `PlayToolsAndLeadSheetView` (+ `PlayJournalListView`, `PlayJournalStoryView`; Core `PlayJournal`) | … 本局读数 · 扫码到达 · 切换章节 · **队伍位置** (arrived/total) · 自动记录足迹 · 到点提醒 · 入场码 · **旅程手记** · 背景音乐 / 旁白 / 动态效果 | **added** both rows in MP slots. 旅程手记 mirrors `buildJournal`: city run in station order (第 N 站 / 此刻 / 前路未知), free exploration finished-first (我的第 K 步 / 此刻 / 未到), chapter heads on multi-chapter routes, first line ≤ 40 chars; the station right after 此刻 shows its first line, later ones a redacted placeholder (MP ░ line); open rows push the full story with cover (`openStory`). 队伍位置 pushes the member list with arrived marks and the leader's latest broadcast | pushed `List`, `.redacted(.placeholder)`, `ContentUnavailableView`, `LabeledContent` monospaced value |
+| `pages/play/index` (M2 夜间提示) | `PlayExperienceView` `PlayNightHintOverlay`; Core `PlayNightWarning` | 夜深了，注意安全 at the result moment, non-blocking, 4.6 s | **added**: `nightWarning: true` (or 1) on the completion receipt shows the capsule for 4.6 s; anything else never does. `PlayJournalTests.testNightWarningOnlyForALiteralTrue` | `.regularMaterial` capsule, no hit testing, VoiceOver announcement, Reduce Motion drops the fade |
+| `pages/play/index` (mode 2 卡包 `fx`) | `App/FreeExplorationViews.swift` `FreeExplorationCardBrowser` / `FreeExplorationExperienceView` | pack alone → (headIn) 通行证头: claim (topic name) · sub (description) · ring 已完成 n/N or 已解锁 x / y 章 · meta 自由探索中 · 有效期至 … · N 章 · M 家商家 → 探索节点 + ⋯ → tiles | **fixed**: mode 2 now opens the MP card pack (the map-first home is kept behind `-nativeR2.freeExploreMapHome YES`; MP removed the map state 2026-09-22). Header waits for the pack; non-MP caption / choice hint / timeNote / pack hint removed; 探索节点 header; self-play banner and chapter · shop counts added. Contract test repinned (`test_play_gameplay_mode_separation`). 游玩工具 sheet with 旅程手记 added to the free host (MP P-28) | `CYRing`, page-title claim as header trait, pack keeps its accessibility label |
+| `pages/play/index` (mode 2 hero `fx-hero`) | `FreeExplorationStoreView` + `FreeExplorationHeroPerkAndGame` | status · 本章 · name · 小瘾说 · 店铺 (hours, NPC, 导航) · 本店权益 · 本站游戏 (kind · title · 时长 / 人数 · 怎么玩 1. 2. · 需要准备) · CTA | **added** 小瘾说 under the name, 本店权益 (Core `PlayNodePerk.name` / `redeemRule`, MP default 到店出示核销) and 本站游戏 with its kind header, steps and materials; sections with no data are not drawn (MP `_heroView`) | system `Section`s, `Label` with SF Symbols, numbered steps combined for VoiceOver |
+| `pages/play/index` (P1 集合屏) | `PlayLeadSection` | wait dots · 队伍集合中 · N/M · 已到集合点 · avatars · 我到了 / 已签到 · 开始行程 / 等队长开始行程… | **added** the P-13 waiting dots (`ellipsis` variable-colour, still under Reduce Motion). Avatars not shown: `PlayLeadProgress` has no avatar field yet (members stay as named rows) | `symbolEffect(.variableColor.iterative)` |
+| `pages/play/index` (任务页 p03) | `PlayExperienceView` node page + `PlayTaskRightSection` | title · audio · question (scan / text / options / preference / photo) · 答错 feedback · 答对 block (反馈 or 对了 · 碎片) · net error · hints · reveal · 当前最高 N 解谜分 · 提示 / 揭示 · CTA | **added** the 答对 block after this screen's own accepted answer (`passText` or 对了, then 碎片 `fragmentText`); the rest was already present (hint ladder, `playx.hints.capLine`, reveal, recovery rows) | `Section` + `Label`, combined VoiceOver element |
+| `subpackageJourney/pages/settle` (谢谢) | `JourneySettleView` `thanksCard` | 评价已提交: centred pop · star · 谢谢 · 去分享 | **fixed** (MP wins over xrefs-1 B.0): the auto-advance after the hold is gone; a dimmed centred card with the star, 谢谢 and 去分享 (→ share step) shows when the rating lands, and again on a second 提交 of a rated run (MP `submitRate`); stepping clears it | `.regularMaterial` card, `.borderedProminent` `.large`, `.isModal`, symbol bounce |
 | `pages/playkit/index` | — | MP placeholder page (`wx.reLaunch` home; no entry points) | nothing to build | — |
 
 ## Not done (next pass)
 
-- `pages/play/index` is the 2,078-line city-game runtime. This pass covered section C (station sheet) and the
-  游玩工具 sheet order. Still to compare section by section: 本局线索 / 队伍位置 / 旅程手记 tools rows (no native key found by
-  zh copy — may live under other names), the 夜深了，注意安全 night hint (no `nightWarning` decoding in Core yet), the free-explore card pack
-  (mode 2), the hero card expansion, the assemble screen, and the task page (p03).
-- Settle 谢谢 pop: native shows the rating result in the submit button and moves on; MP shows a centred pop with
-  去分享. Kept as the in-place pattern (xrefs-1 B.0); flag if the owner wants the pop.
+- 本局线索 (`gameModule`) is the STORY / club session projection (`gameModule.enabled` is false for ROUTE runs, MP
+  `_loadPlayerGameModule`); it belongs to the story-flow theme, out of scope this round. No native row.
+- 旅程手记 `journeyAttributes` rows (branch-route attributes) and branch-graph ordering: Core does not decode
+  `routeState.attributes`; linear order is used.
+- 队伍位置 tap in the MP opens 队长广播 (text prompt); natively the row pushes the member list and the broadcast stays in
+  the page's lead section (leader `playx.lead.broadcast`, member `LeadMemberActionsSection`).
+- Free-explore tiles: MP station photo per tile (image chain + host policy) and the chapter label on the tile; the
+  hero's 3D card face and the chapter story stream (`fx-story`, story-flow theme).
+- 集合屏 member avatars (no avatar in `PlayLeadProgress`), `lead.freeEntry` not decoded.
+- 游玩工具 mode-2 rows 我的权益 (n 家 · 已核销 m 家) and its 自动记录足迹 line (perk-only copy).
 
 ## Gates
 
@@ -45,6 +56,7 @@ files; `mp/r3-mine` only gated 查看报名凭证 in `PlayerJourneyViews` (not o
 - `python3 -B tools/contract_ratchet.py --check` — 104 failing, baseline 104, **new 0**, fixed 0
 
 New strings (en + zh-Hans) in `Resources/Localizable.xcstrings` and `docs/port/strings/mp-journey-r3.json`:
+`playTools.journal*` (7), `playTools.team*` (4), `playx.nightHint`, `playFree.nodes.header`, `playFree.selfPlayBanner %@`, `playFree.meta.*` (2), `playFree.hero.*` (10), `playx.right.default|fragment`;
 `playTools.loc.*` (8), `playx.lead.gathering|checkedIn|waitLeader`, `playx.finish.banner.lit %lld|claim`, `playBadge.savedLine`.
 Reused keys: `u10.template.stopNo`, `nativeR2.city.metric.distance`, `creator.family.timeWindow`,
 `mp.report.notScored`, `action.done`, `mp.settle.toRank`, `playTools.entryCode`, `playerGap.lead.arrived`.

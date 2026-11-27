@@ -337,6 +337,14 @@ struct FreeExplorationStoreName: View {
                 Section {
                     FreeExplorationStoreName(name: node.name).cyText(.sheetTitle)
                     Text(LocalizedStringKey(FreeExplorationPresentation.state(of: node, in: snapshot).titleKey))
+                    // mp-journey r3 (MP fx-hero order): 小瘾说 hook right under the name.
+                    if let hook = node.hookText, !hook.isEmpty {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("playFree.hero.hook").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                            Text(verbatim: hook)
+                        }
+                        .accessibilityElement(children: .combine)
+                    }
                 }
                 if let dispatched = activeDispatchedTask {
                     Section {
@@ -369,6 +377,7 @@ struct FreeExplorationStoreName: View {
                     if let story = storyDestination(node) { NavigationLink("playFree.story") { story } }
                     PlatformExternalMapHost(destination: .init(name: node.name ?? "", address: node.address,
                         latitude: node.latitude, longitude: node.longitude), scope: mediaScope, makeModel: makeExternalMaps)
+                    FreeExplorationHeroPerkAndGame(node: node)
                     FreeExplorationVisitSteps(node: node)
                     if let storeDayModel { PlayStoreDayMerchantEntry(nodeID: nodeID, make: storeDayModel, makeExternalMaps: makeExternalMaps, mediaScope: mediaScope) }
                     // In-store games, redemption codes and missing evidence steps have no native flow yet;
@@ -594,5 +603,77 @@ struct FreeExplorationVisitSteps: View {
             } else if model.isLoading { ProgressView("play.loading") }
             else { Text("playFree.store.unavailable") }
         }.cyGroupedSurface().privacySensitive().cyPageTitle("playFree.store.title").accessibilityIdentifier("playFree.read.store")
+    }
+}
+
+/// mp-journey r3: MP `fx-hero` ⑤ 本店权益 and ③ 本站游戏 (kind, title, duration / players, 怎么玩 steps, 需要准备).
+/// Only fields the server sent; a section with nothing to say is not drawn (MP `_heroView`).
+struct FreeExplorationHeroPerkAndGame: View {
+    let node: PlayNode
+
+    var body: some View {
+        if let perkName = node.perk?.name, !perkName.isEmpty {
+            Section("playFree.hero.perk") {
+                Label {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(verbatim: perkName).font(.headline)
+                        if let rule = node.perk?.redeemRule, !rule.isEmpty {
+                            Text(verbatim: rule).font(.subheadline).foregroundStyle(.secondary)
+                        } else {
+                            Text("playFree.hero.perk.defaultRule").font(.subheadline).foregroundStyle(.secondary)
+                        }
+                    }
+                } icon: {
+                    Image(systemName: "gift")
+                }
+            }
+        }
+        if let title = node.gameTitle, !title.isEmpty {
+            Section {
+                Text(verbatim: title).font(.headline)
+                if let minutes = node.durationMinutes, minutes > 0 {
+                    Label { Text("playFree.hero.minutes \(minutes)") } icon: { Image(systemName: "clock") }
+                        .font(.subheadline)
+                }
+                if let players = node.players, !players.isEmpty {
+                    Label { Text(verbatim: players) } icon: { Image(systemName: "person.2") }
+                        .font(.subheadline)
+                }
+                let steps = Self.steps(node.ruleInstructions)
+                if !steps.isEmpty {
+                    Text("playFree.hero.howTo").font(.subheadline.weight(.semibold))
+                    ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
+                        HStack(alignment: .firstTextBaseline, spacing: 8) {
+                            Text(verbatim: "\(index + 1).").monospacedDigit().foregroundStyle(.secondary)
+                            Text(verbatim: step)
+                        }
+                        .accessibilityElement(children: .combine)
+                    }
+                }
+                if let materials = node.requiredMaterials, !materials.isEmpty {
+                    Text("playFree.hero.materials").font(.subheadline.weight(.semibold))
+                    Text(verbatim: materials)
+                }
+            } header: {
+                gameHeader
+            }
+        }
+    }
+
+    @ViewBuilder private var gameHeader: some View {
+        switch node.validationMethod {
+        case 2: Text("playFree.hero.game.photo")
+        case 1, 3: Text("playFree.hero.game.quiz")
+        case 4: Text("playFree.hero.game.checkIn")
+        default: Text("playFree.hero.game")
+        }
+    }
+
+    /// MP: the rule text split by line breaks, blank lines dropped.
+    static func steps(_ text: String?) -> [String] {
+        guard let text else { return [] }
+        return text.components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
     }
 }

@@ -527,6 +527,9 @@ public struct PlayNodePerk: Decodable, Equatable, Sendable {
     public let included: Bool?
     public let extraSpendText: String?
     public let reserveRequired: Bool?
+    /// mp-journey r3: MP hero 本店权益 (`perk.name`, `perk.redeemRule`; the MP falls back to 到店出示核销).
+    public let name: String?
+    public let redeemRule: String?
 }
 
 /// Node `completionMode`. DESK / ALT are run-level (`PlayRunStartMode`) and do not map here.
