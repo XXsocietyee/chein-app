@@ -1,0 +1,89 @@
+import SwiftUI
+
+/// mp-journey r3: MP `pages/play/index` 同行者榜 (升级3, opened from 游玩工具 `openBoardFromTools`). Pushed inside the
+/// 游玩工具 sheet, the way 队伍位置 is.
+/// Loading skeleton · error + 重试 (a failure is never shown as an empty board) · 这一场还没人上榜，你走一关就是第一名 ·
+/// rows (rank, nickname or 同行者, N 关; a star on the first) · my row (rank or —, 我, N 关).
+/// The orient-scoring board (`/api/orient/scoring/session/{id}/leaderboard`) is not read here.
+struct PlayCompanionBoardView: View {
+    let model: PlayExperienceCoordinator
+    @State private var board: PlayCompanionLeaderboard?
+    @State private var failed = false
+    @State private var loading = true
+
+    var body: some View {
+        List {
+            content
+        }
+        .navigationTitle(Text("playx.leaderboard"))
+        .navigationBarTitleDisplayMode(.inline)
+        .task { await load() }
+        .refreshable { await load() }
+    }
+
+    @ViewBuilder private var content: some View {
+        if loading && board == nil {
+            Section {
+                ForEach(0..<3, id: \.self) { _ in
+                    LabeledContent("playx.board.placeholder") { Text(verbatim: "00") }
+                }
+            }
+            .redacted(reason: .placeholder)
+            .accessibilityIdentifier("playx.board.loading")
+        } else if failed {
+            Section {
+                Text("playx.board.failed").foregroundStyle(.secondary)
+                Button("action.retry") { Task { await load() } }
+                    .accessibilityIdentifier("playx.board.retry")
+            }
+        } else if let board {
+            Section {
+                if board.entries.isEmpty {
+                    Text("playx.board.empty").foregroundStyle(.secondary)
+                        .accessibilityIdentifier("playx.board.empty")
+                }
+                ForEach(Array(board.entries.enumerated()), id: \.element.id) { index, row in
+                    boardRow(rank: row.rank, name: row.name, score: row.score, first: index == 0)
+                }
+            }
+            Section {
+                LabeledContent {
+                    Text("playx.board.score \(board.me.score)").monospacedDigit()
+                } label: {
+                    HStack(spacing: 12) {
+                        Text(verbatim: board.me.rank.map(String.init) ?? "—").font(.headline).monospacedDigit()
+                        Text("playx.board.me")
+                    }
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("playx.board.me")
+            }
+        }
+    }
+
+    private func boardRow(rank: Int?, name: String?, score: Int, first: Bool) -> some View {
+        LabeledContent {
+            HStack(spacing: 6) {
+                Text("playx.board.score \(score)").monospacedDigit()
+                if first { Image(systemName: "star.fill").foregroundStyle(.yellow).accessibilityHidden(true) }
+            }
+        } label: {
+            HStack(spacing: 12) {
+                Text(verbatim: rank.map(String.init) ?? "—").font(.headline).monospacedDigit()
+                if let name, !name.isEmpty { Text(verbatim: name) } else { Text("playx.board.anonymous") }
+            }
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private func load() async {
+        loading = true
+        do {
+            board = try await model.readLeaderboard()
+            failed = false
+        } catch {
+            failed = true
+        }
+        loading = false
+    }
+}
