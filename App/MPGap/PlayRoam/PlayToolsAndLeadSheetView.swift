@@ -229,6 +229,7 @@ public struct PlayToolsAndLeadSheetView: View {
                         }
                     }
                     .navigationTitle(Text("playTools.team"))
+                    .navigationBarTitleDisplayMode(.inline)
                 } label: {
                     LabeledContent("playTools.team") {
                         Text(verbatim: "\(teamLead.arrived ?? 0)/\(teamLead.members.count)").monospacedDigit()
@@ -277,6 +278,7 @@ public struct PlayToolsAndLeadSheetView: View {
                         .accessibilityIdentifier("playTools.evidence.\(card.id)")
                     }
                     .navigationTitle(Text("playTools.evidence"))
+                    .navigationBarTitleDisplayMode(.inline)
                 } label: {
                     LabeledContent("playTools.evidence") { Text(verbatim: "\(evidenceCards.count)").monospacedDigit() }
                 }
@@ -332,6 +334,7 @@ struct PlayJournalListView: View {
             }
         }
         .navigationTitle(Text("playTools.journal"))
+        .navigationBarTitleDisplayMode(.inline)
     }
 
     private func rowLabel(_ row: PlayJournalRow) -> some View {

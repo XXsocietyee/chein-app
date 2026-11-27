@@ -83,6 +83,7 @@ import CryptoKit
         }
         .formStyle(.grouped)
         .navigationTitle(Text("nativeEnrollment.title"))
+        .navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
         .accessibilityIdentifier("nativeEnrollment.host")
         .task { await model.load() }

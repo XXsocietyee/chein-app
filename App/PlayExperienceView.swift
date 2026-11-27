@@ -1366,6 +1366,7 @@ struct PlayThemeMusicKey: Equatable {
         nodeList(context: context)
             .privacySensitive()
             .navigationTitle("playx.task.title")
+            .navigationBarTitleDisplayMode(.inline)
             .onChange(of: outcomeState) { old, new in
                 // Only this screen's own submission produces a verdict; a later read never replays one.
                 guard old == .submitting else { return }

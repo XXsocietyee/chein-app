@@ -135,7 +135,7 @@ import Combine
                         .accessibilityIdentifier("templateSampleCoverage.configure." + choice.rawValue)
                 }
             }
-        }.formStyle(.grouped).navigationTitle(Text("templateSampleCoverage.open"))
+        }.formStyle(.grouped).navigationTitle(Text("templateSampleCoverage.open")).navigationBarTitleDisplayMode(.inline)
             .cySheet(item: controller.presentationBinding) { item in
                 Group {
                     NavigationStack { TemplateAdditionalSamplePresentationView(controller: controller, presentationID: item.id) }

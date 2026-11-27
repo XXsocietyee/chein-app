@@ -113,6 +113,7 @@ import SwiftUI
         }
         .listStyle(.insetGrouped)
         .navigationTitle(localized("friendDirectory.title"))
+        .navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("friendDirectory.home")
         .task { await flow.load() }
         .refreshable { await flow.load() }
