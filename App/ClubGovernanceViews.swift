@@ -1278,6 +1278,11 @@ struct ClubGovernanceReadView: View {
               identity == access.identity, !loading else { return }
         Task { await load() }
     }
+    /// CLB-customer-detail-04 (MP customer-detail/index.wxml:83-118): the tags and remark edit in place.
+    private func customerInlineEditor(_ value: ClubGovernanceValue) -> AnyView {
+        AnyView(ClubCustomerInlineEditor(value: value, scope: scope, identity: identity, coordinator: coordinator,
+                                         onSaved: { rereadCustomerAfterEditor() }))
+    }
     @MainActor private func rereadCustomerAfterEditor() {
         guard operation == .customer, scenePhase == .active, snapshot != nil, snapshotContext == readContext,
               identity == access.identity, !loading else { return }
@@ -1912,7 +1917,7 @@ struct ClubGovernanceReadView: View {
             if let detail = customerPage.detail ?? (try? ClubOpsCustomerDetailPresentation(value: value, memberID: scope.memberID)) {
                 ClubOpsCustomerDetailContent(detail: detail, page: customerPage, topicAction: { record in
                     customerTopicRoute(record.source).map { target in (id: target.topicID, open: { selectCustomerTopic(target) }) }
-                }, editButton: detail.canEdit ? AnyView(edit(.saveCustomer, seed: ["remark": value["remark"], "tags": value["tags"]]).accessibilityLabel(Text("club.gov.action.saveCustomer"))) : nil)
+                }, editButton: detail.canEdit ? customerInlineEditor(value) : nil)
             } else if !customerPage.hidden, let metrics = customerPage.metrics {
                 Section {
                     ClubOpsCustomerMetricTile(value: metrics.arrived, label: "clubOps.customer.arrived")
@@ -1974,7 +1979,11 @@ struct ClubGovernanceReadView: View {
                     .accessibilityIdentifier("club.gov.customers.clearFilters")
             }
             if operation == .topicSettings {
-                if value["canManage"] == .bool(true) { edit(.saveTopicSettings, seed: ["coopOpen": value["coopOpen"], "pinned": value["pinned"], "memberOnly": value["memberOnly"]]); edit(.endTopic, seed: ["cancellationEpoch": value["cancellationEpoch"]]) }
+                if value["canManage"] == .bool(true) {
+                    // CLB-topic-detail-06 (MP topic-detail/index.wxml:503-530): three inline switches, not a pushed form.
+                    ClubTopicSettingsInlineToggles(value: value, scope: scope, coordinator: coordinator)
+                    edit(.endTopic, seed: ["cancellationEpoch": value["cancellationEpoch"]])
+                }
                 Section("club.gov.chapters") { ForEach(Array((value["chapters"].array ?? []).enumerated()), id: \.offset) { _, row in
                     ClubGovernanceFactRows(value: row, fields: ["name", "category", "recruiting", "merchantCount", "finishTime"])
                     if let id = row["chapterId"].int, value["canManage"] == .bool(true) {

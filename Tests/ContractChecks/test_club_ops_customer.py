@@ -145,7 +145,8 @@ class ClubOpsCustomerWiring(unittest.TestCase):
         branch = span(self.content, "} else if operation == .customer {", "} else {\n            if operation == .customers {")
         for token in ["ClubOpsCustomerDetailPresentation(value: value, memberID: scope.memberID)",
                       "customerTopicRoute(record.source)", "selectCustomerTopic(target)",
-                      "detail.canEdit ? AnyView(edit(.saveCustomer"]:
+                      # fix-r11 club-a CLB-customer-detail-04 (MP customer-detail/index.wxml:83-118): inline editor, no sheet.
+                      "detail.canEdit ? customerInlineEditor(value)"]:
             self.assertIn(token, branch)
         views = read("App/ClubOpsCustomerViews.swift")
         self.assertIn('accessibilityIdentifier("club.gov.customer.topic.\\(action.id)")', views)
