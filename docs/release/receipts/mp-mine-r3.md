@@ -12,7 +12,8 @@
 | `tools/generate_project.py` | no project change |
 | `tools/check_scaffold.py` | PASS |
 | `tools/check_a11y_lint.py` | PASS, 0 new |
-| `tools/contract_ratchet.py --check` | 104 failing, baseline 104, **new 0**, fixed 0 |
+| `tools/contract_ratchet.py --check` | 52 failing, baseline 52 (after the combined-r7 merge), **new 0**, fixed 0 |
+| `tools/check_design_consistency.py` | PASS (raw font 0, tracking 0) |
 
 One contract pin needed care. `test_w2_04_orders` requires the literal `ProfileOrderSourceDetailSections(order: order)`, so the new section slots are passed through `.mpSlots(...)` and that call text is unchanged. The test was not edited.
 
