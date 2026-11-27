@@ -440,8 +440,9 @@ struct DiscoveryTopicTemplatePreview: View {
                 .refreshable { await detail.load() }
                 .accessibilityIdentifier("discovery.topicPreview.content")
             } else {
-                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .accessibilityLabel(Text("discovery.loading"))
+                // P10: the loading words are visible (MP cy-skeleton loading label).
+                ProgressView { Text("discovery.loading") }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .appNavigationTitle("discovery.topicPreview")
@@ -482,6 +483,28 @@ struct DiscoveryTopicTemplatePreview: View {
     }
     /// 详情: 剧情 (opening + each chapter: number, name, one line), stats, 节点 cards, recruitment (merchant viewers only).
     @ViewBuilder private func topicDetails(_ item: PublicTopicTemplateDetail) -> some View {
+        // mp-r3-publish: MP topic-detail/index.wxml:55 — with two or more node images, the 详情 tab opens with the
+        // image mosaic (tap = the full-screen gallery over the same images), before 剧情.
+        let mosaic = item.chapters.flatMap(\.nodes).compactMap { nonempty($0.imgUrl) }.filter { QuestifyCardArtwork.safeURL($0) != nil }
+        if mosaic.count > 1 {
+            Section {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: CYSpacing.sm) {
+                        ForEach(Array(mosaic.enumerated()), id: \.offset) { index, source in
+                            Button { nodeGallery = NodeGallerySelection(snapshot: .init(sources: mosaic, selectedIndex: index)) } label: {
+                                DiscoveryArtwork(source: source, height: 120)
+                                    .frame(width: 160, height: 120)
+                                    .clipShape(.rect(cornerRadius: 10))
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(Text("media.destination.openImage"))
+                            .accessibilityIdentifier("discovery.topicDetail.mosaic.\(index)")
+                        }
+                    }
+                }
+            }
+            .discoveryCardRow()
+        }
         if nonempty(item.description) != nil || !item.chapters.isEmpty {
             Section {
                 if let opening = nonempty(item.description) {
