@@ -38,6 +38,10 @@ struct ProjectEditTicketValue: View {
             } else {
                 Text(verbatim: EditorUnknown.dash)
             }
+            if ticket.isFamily {
+                Text(verbatim: "·").accessibilityHidden(true)
+                Text("mpPublish.ticket.familyShort")
+            }
         }
         .cyText(.meta)
         .foregroundStyle(palette.textSecondary)

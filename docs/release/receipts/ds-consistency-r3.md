@@ -310,6 +310,75 @@ hash pin in `test_object_badge_wall_layout` updated with a one-line reason).
 |---|---|
 | — | Receipt empty; next run picks the next design-system scan (candidate: one empty-state pattern — hand-built `VStack { Image; Text }` empty states vs `ContentUnavailableView` / `CYStateView`). |
 
+## Continue run 11 (2026-11-27, after merging combined-r7 into f8d340832)
+
+Run 10 lead (empty states): scanned every player `VStack { Image(.largeTitle); Text }` and `Label … icon:` empty
+block — all already sit inside `ContentUnavailableView` / `CYEmptyState`; the eight hand-built candidates are a
+store tile, a friend header, a reward card, the gift-code hero, the stamp draft card and the player-code placeholder,
+none an empty state. Closed, no change. Sweep sheets (a250afd77, mp-club / mp-mine zh-Hans) re-checked for
+button / title mixes: club invite is system `.bordered`, passport actions are `.bordered`; the passport large title and
+the dark badge wall are mp-mine fixture rows (already in the 20:25 sweep). Next scan: one loading pattern (P10 "never a
+spinner alone"). 11 player loaders were a bare `ProgressView()` stretched full width (some with a VoiceOver-only
+label), next to `CYLoadingState` (system `ProgressView` + the MP loading words 加载中… / Loading…). Content, order,
+identifiers unchanged; the label that VoiceOver already heard is now also visible.
+
+| MP page | Native view | MP sections | Change (owner rule 2 / P10) |
+|---|---|---|---|
+| 漫游 bundle launch (free-explore pass) | `App/FreeExploreBundleLaunchView.swift:66` | unchanged | silent spinner → `CYLoadingState(messageIdentifier: "freeBundle.loading")` |
+| channel redeem sheet | `App/ChannelRedeemSheet.swift:61` | unchanged | → `CYLoadingState(messageIdentifier: "channelRedeem.loading")` |
+| 俱乐部 calendar | `App/ClubEventCalendarView.swift:94` | unchanged | → `CYLoadingState(messageIdentifier: "club.calendar.loading")` |
+| 俱乐部 governance / topic story | `App/ClubGovernanceViews.swift:654, 2441` | unchanged | VoiceOver-only `club.loading` / `club.story.loading` → visible `CYLoadingState(…)` (ids kept) |
+| 俱乐部 invitation feedback list + detail | `App/ClubInvitationFeedbackView.swift:232, 357` | unchanged | → `CYLoadingState("club.loading")`; pin in `test_club_invitation_terms` updated (one-line reason) |
+| 俱乐部 manage coop pool | `App/MPGap/Club/ClubGapManageExtensions.swift:77` | unchanged | → `CYLoadingState()` |
+| 会员 membership / pass library | `App/PassMembershipViews.swift:98, 437` | unchanged | → `CYLoadingState(messageIdentifier:)` (`membership.loading` keeps the full-height frame) |
+| bundle reviews (unmounted) | `App/BundleReviewListView.swift:10` | unchanged | → `CYLoadingState()` |
+
+New checker kind **silent spinner**: a bare `ProgressView()` line followed by `.frame(maxWidth: .infinity` outside
+App/DesignSystem. Baseline 0; allowed: merchant-only locality status in `ClubHomeView`, story-flow chapter rule editor
+(`ProjectEditChapterRulesSection`). Self-test: the pre-fix `FreeExploreBundleLaunchView.swift` fails at line 67.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(silent spinner 0, status capsule 29 baselined debt, 77 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0** (span hash in `test_club_leaderboard_member_navigation` updated with a one-line reason).
+
+### Not done (next run)
+| Item | Why not now |
+|---|---|
+| — | Next scan candidate: inline row spinners `ProgressView().controlSize(.small)` without words inside buttons that also change their title (one busy-button pattern). |
+
+## Continue run 12 (2026-11-27, after merging combined-r7 bb76e327c)
+
+Merge: five conflicts where combined-r7 (mp-states) wrote `ProgressView { Text("cy.state.loading") }.frame(maxWidth:)`
+and this branch `CYLoadingState(…)` at the same lines (`BundleReviewListView`, `ChannelRedeemSheet`,
+`ClubEventCalendarView`, `FreeExploreBundleLaunchView`, `ClubGapManageExtensions`) → kept `CYLoadingState` (same words,
+one component). Stale allowed entry dropped: `ClubHomeView` silent spinner (combined-r7 gave it words).
+No coordinator finding for this lane in the 20:55 sweep.
+
+Run 11 lead (busy spinners): the run-11 checker only caught `ProgressView()` with `.frame(maxWidth: .infinity)` on
+the **next** line; 36 player sites write both on **one** line — a wordless spinner stretched as the page / section
+loader or the form "working" row (P10 "never a spinner alone"). All → `CYLoadingState()` (system `ProgressView` + 加载中… /
+Loading…); identifiers that followed directly became `messageIdentifier:`; extra frames kept (`maxHeight: .infinity`,
+`minHeight: 120`). Content, order, conditions and identifiers unchanged (look only).
+
+| MP page / area | Native views (file) | Change |
+|---|---|---|
+| 广场 report / report progress / post video | `SquareReportView` (`squareReport.loading`), `SquareReportProgressView`, `SquarePostVideoViews` | → `CYLoadingState` |
+| 我的 profile edit, wallet income, coupons, member report progress | `ProfileEditView` (`profile.edit.busy`), `WalletIncomeAnalysisView`, `CouponManagementView`, `MemberReportProgressDetailView` | same |
+| 俱乐部 payout receiver (4), FE settlement | `ClubPayoutReceiverView`, `ClubFEReferenceSettlementHost` | same (`payoutReceiver.loading` stays on the Section) |
+| channel role / moderation (2) / onboarding / audit / webhook / friend invite + source / notification log (2) + nudge | `NativeChannelRoleEntry`, `NativeChannelModerationEntry`, `NativeChannelOnboardingView`, `NativeChannelAuditEntry`, `NativeChannelManagementWebhookEntry`, `NativeFriendTeamInviteEntry`, `NativeFriendChannelInviteEntry`, `NativeFriendChannelSourceEntry`, `NativeNotificationDeliveryLogView`, `NativeNotificationPermissionNudgeView` | same |
+| 发布 publishing management / modes (2), story image / audio upload | `PublishingManagementViews`, `PublishingModesViews`, `ProjectStoryImageAuthorView` (`projectStoryImage.busy`), `ProjectStoryAudioAuthorView` (`projectStoryAudio.uploading`) | same |
+| play help ladder receipt, game hint sheet, sensor kit authorizing, city game panel, topic story participation, bundle pay result, workshop paid text | `PlayHelpLadderPanel`, `NativeR2/Games/NativeGameHintSheet`, `NativeR2/Games/NativeGameSensorKit`, `CityGamePanel`, `TopicStoryParticipationHost`, `BundlePayResultView`, `WorkshopPaidInstalledTextView` (VoiceOver label kept) | same |
+
+Checker kind **silent spinner** widened: also `ProgressView().frame(maxWidth: .infinity…` on one line. Baseline 0.
+Self-test: the pre-fix tree fails in all 30 files above.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(silent spinner 0, status capsule 29 baselined debt, 76 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0** (look-only hash pins in `test_activity_publishing_wizard` / `test_workshop_protected_text_lifecycle` updated with one-line reasons; neither is pinned in `tools/current_ci_manifest.json`).
+
+### Not done (next run)
+| Item | Why not now |
+|---|---|
+| Inline busy indicators inside buttons / rows (`if busy { ProgressView() }` next to a title, ~40 sites) | Different pattern (a small spinner beside the action's own title is the system idiom); next run decides one busy-button pattern per site. |
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

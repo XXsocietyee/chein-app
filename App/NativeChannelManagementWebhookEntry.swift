@@ -83,7 +83,7 @@ import Observation
                     else { NativeWebhookManagementEntry() }
                 }.id(scope) // Original 8's retained StateObject must also change from channel A to B.
             } else if state.requestedChannelID == channelID && (state.failed || state.channel != nil) { NativeChannelManagementUnavailableView() }
-            else { ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity) }
+            else { CYLoadingState().frame(maxHeight: .infinity) }
         }
         .nativeChannelFlowPage()
         .task(id: channelID) {

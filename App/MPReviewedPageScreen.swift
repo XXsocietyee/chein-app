@@ -91,13 +91,20 @@ import SwiftUI
                          requestedClubID: .constant(nil), authorSquare: session.squareReader,
                          initialTopTab: query["tab"] == "feed" ? .feed : nil)
         case "pages/member/index/index":
-            if let account = session.account {
+            // mp-nav r3: a tab root (MP switchTab): select 我的 instead of pushing a second copy with its own stack.
+            if rootTabSwitch.isAvailable {
+                MPTabHandoff { session.dismissNativeEntry(); rootTabSwitch(.mine) }
+            } else if let account = session.account {
                 AccountView(account: account).environmentObject(session)
             } else {
                 unavailable
             }
         case "pages/roam/index":
-            roam
+            if rootTabSwitch.isAvailable {
+                MPTabHandoff { session.dismissNativeEntry(); rootTabSwitch(.roam) }
+            } else {
+                roam
+            }
         case "pages/privacy/index":
             PrivacyProtectionView(market: session.operationalMarket, legalReader: session.legalReader, signedIn: session.account != nil,
                                   moreSettings: { AnyView(SettingsPrivacyLocationEntry.destination(session: session)) })
@@ -105,7 +112,8 @@ import SwiftUI
             SettingsLegalDocumentView(type: SettingsLegalType.resolve(query["type"] ?? ""), market: session.operationalMarket, reader: session.legalReader)
         case "pages/deregister/index":
             if let coordinator = session.accountComplianceCoordinator {
-                AccountComplianceSheet(coordinator: coordinator, destination: .cancellation, market: session.operationalMarket, legalReader: session.legalReader)
+                AccountComplianceSheet(coordinator: coordinator, destination: .cancellation, market: session.operationalMarket, legalReader: session.legalReader,
+                                       showsCloseButton: false)
             } else { unavailable }
         case "pages/team/detail/index":
             // MP `team/detail?teamId=` (C-D1) opens that team; the bare path keeps the team list.
@@ -169,15 +177,14 @@ import SwiftUI
             // PC-D-2-1: the mode cards keep their 去看看 (MP switchTab to 首页 / 漫游).
             SocialPlayGuideView(reader: session.socialAccountReader,
                                 onOpenDestination: rootTabSwitch.isAvailable ? { destination in
-                                    session.dismissNativeEntry()
-                                    rootTabSwitch(destination == .roam ? .roam : .home)
+                                    leaveForTab(destination == .roam ? .roam : .home)
                                 } : nil,
                                 templateReader: session)
             .socialGuideSessionCatalog(session)
             // R7-PC-D2-1: 去发布广场 / 更多玩法 leave this entry for the 发布 tab, like the mode cards.
+            // mp-nav r3: MP switchTab closes the page, so the landed push pops too (leaveForTab).
             .environment(\.rootTabSwitch, rootTabSwitch.isAvailable ? RootTabSwitch { tab in
-                session.dismissNativeEntry()
-                rootTabSwitch(tab)
+                leaveForTab(tab)
             } : .unavailable)
         case "subpackageA/pages/infomationdetail/infomationdetail":
             if let id = reviewedID(query) {
@@ -593,7 +600,7 @@ import SwiftUI
                                    operationScope: listLink.merchantScope ? "MERCHANT" : nil,
                                    initialDirection: listLink.tab == "sent" ? .sent : .received,
                                    topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) },
-                                   initialTopicID: listLink.topicID)
+                                   embedsNavigationStack: false, initialTopicID: listLink.topicID)
                 .environment(\.cooperationTopicNearbyDestination, { AnyView(SessionNearbyMerchantsView(session: session, topic: $0)) })
                 .environment(\.coopTopicPublishDestination, { scope in
                     AnyView(MPReviewedPageScreen(page: "pages/publish/fabu/index", query: scope.map { ["scope": $0] } ?? [:]).environmentObject(session))
@@ -677,12 +684,13 @@ import SwiftUI
         case "pages/square/list/index":
             // mp-nav r3: a link lands here as a push on 首页 (system back); no 关闭 that only cleared the old entry sheet,
             // and 登录 opens 我的 like the other landed pages (was a dead `{}`).
-            SessionSquareBrowserView(session: session, onClose: nil, onSignIn: { signIn() })
+            SessionSquareBrowserView(session: session, onClose: nil, onSignIn: { signIn() }, embedsNavigationStack: false)
         case "pages/shezhi/shezhi":
             // B-SZ-12: `?scene=` lands on the Settings row it names (MP shezhi.js:50, 231-244); unknown or
             // unavailable scenes open Settings itself.
             if query["scene"] == "settings-deregister", let coordinator = session.accountComplianceCoordinator {
-                AccountComplianceSheet(coordinator: coordinator, destination: .cancellation, market: session.operationalMarket, legalReader: session.legalReader)
+                AccountComplianceSheet(coordinator: coordinator, destination: .cancellation, market: session.operationalMarket, legalReader: session.legalReader,
+                                       showsCloseButton: false)
             } else if query["scene"] == "settings-profile", session.account != nil {
                 ProfileEditView(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision, categoryReader: session,
                                 avatarDependencies: session.profileAvatarDependencies,
@@ -736,8 +744,8 @@ import SwiftUI
             MPFavoritesLinkHost(session: session)
                 .id(session.profileFavoritesReader.scope)
         case "pages/addressinfo/addressinfo":
-            // X1: the participant form; `?id=` edits that participant.
-            NavigationStack {
+            // X1: the participant form; `?id=` edits that participant. Pushed: no nested NavigationStack (mp-nav r3).
+            Group {
                 if let id = reviewedID(query) {
                     ParticipantFormView(id: id, reader: session.participantReader, coordinator: session.participantCoordinator,
                                         boundPhoneLoader: { await session.participantBoundPhone() })

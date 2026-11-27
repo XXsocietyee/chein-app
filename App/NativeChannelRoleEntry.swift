@@ -39,7 +39,7 @@ import SwiftUI
                                 NativeChannelFlowNotice(title:Text("d7.channelRoles.unknown"),symbol:"clock.arrow.circlepath")
                             }
                             if flow.state == .unavailable { NativeChannelFlowNotice(title:Text("d7.channelRoles.unavailable"),symbol:"lock.shield") }
-                            if flow.state == .loading || flow.state == .submitting { ProgressView().frame(maxWidth:.infinity) }
+                            if flow.state == .loading || flow.state == .submitting { CYLoadingState() }
                             if !flow.result.isEmpty { Text(flow.result).fixedSize(horizontal:false,vertical:true) }
                         }
                     }

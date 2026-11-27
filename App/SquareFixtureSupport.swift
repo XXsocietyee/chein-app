@@ -1,16 +1,44 @@
 #if DEBUG
 import SwiftUI
 
-@MainActor final class SquareFixtureReader: SquareReading {
+@MainActor final class SquareFixtureReader: SquareReading, SquareOfflineNoteHiding {
     enum Scenario: String { case content, empty, failure, unauthorized, unconfigured, unavailable, partial, pageFailure, invalidCursor, delayed, relatedTopic, relatedCommunity, relatedUnavailable, relatedMissing }
     let scenario: Scenario
+    /// Design fixtures (`d2-square`) show posts in the UI language; UI tests keep the Core synthetic posts.
+    let designLocalized: Bool
     let scope = UUID()
     var isConfigured: Bool { scenario != .unconfigured }
     var isOfflineExample: Bool { true }
+    var hidesOfflineExampleNote: Bool { designLocalized }
     var isSignedIn: Bool { false }
     private var feedPageFailed = false
     private var commentsFailed = false
-    init(scenario: Scenario = .content) { self.scenario = scenario }
+    init(scenario: Scenario = .content, designLocalized: Bool = false) {
+        self.scenario = scenario
+        self.designLocalized = designLocalized
+    }
+    private static func tt(_ en: String, _ zh: String) -> String {
+        Locale.preferredLanguages.first?.hasPrefix("zh") == true ? zh : en
+    }
+    /// Coordinator 19:50: fixture data follows the UI language (no mixed `A / 一` copy, no "Synthetic" labels).
+    private func post(id: Int) throws -> SquarePost {
+        guard designLocalized else { return try SquareSyntheticFixtures.post(id: id) }
+        let walk = id == 702
+            ? Self.tt("Evening lantern walk along the canal, six stops done.", "傍晚沿运河走了一圈灯笼线，六个点全部打卡。")
+            : Self.tt("Morning walk through the old town lanes. Tea at the last stop was worth it.", "清晨穿过老城小巷，最后一站的茶很值得。")
+        let swaps: [(String, String)] = [
+            ("A synthetic city walk / 一次示例城市漫步", walk),
+            ("Example walker", id == 702 ? Self.tt("Mia", "小米") : Self.tt("Leo Chen", "陈乐")),
+            ("Example walking club", Self.tt("Riverside Walking Club", "河畔步行俱乐部")),
+            ("Synthetic notice", Self.tt("Official", "官方")),
+            ("Example guide", Self.tt("Guide", "领队")),
+            ("Example city", Self.tt("Hangzhou", "杭州")),
+            ("Example river route", Self.tt("Canal Lantern Route", "运河灯笼线"))
+        ]
+        var json = SquareSyntheticFixtures.legacyPostJSON.replacingOccurrences(of: "\"id\":701", with: "\"id\":\(id)")
+        for swap in swaps { json = json.replacingOccurrences(of: swap.0, with: swap.1) }
+        return try JSONDecoder().decode(SquarePost.self, from: Data(json.utf8)).qualified(as: .legacySquare)
+    }
     private func check() async throws {
         if scenario == .delayed { try await Task.sleep(nanoseconds: 700_000_000) }
         switch scenario {
@@ -29,7 +57,7 @@ import SwiftUI
         if scenario == .relatedCommunity {
             return .init(items: cursor == nil ? [try relatedCommunityPost()] : [], hasMore: false)
         }
-        let items = try (cursor == nil ? [701, 702] : [702, 703]).map { try SquareSyntheticFixtures.post(id: $0).qualified(as: .communityV1) }
+        let items = try (cursor == nil ? [701, 702] : [702, 703]).map { try post(id: $0).qualified(as: .communityV1) }
         return .init(items: items, hasMore: cursor == nil,
                      nextCursor: scenario == .invalidCursor ? nil : (cursor == nil ? SquareCursor(id: 702, score: 10) : nil))
     }
@@ -52,7 +80,7 @@ import SwiftUI
         if scenario == .relatedMissing {
             return try JSONDecoder().decode(SquarePost.self, from: Data(#"{"id":701,"memberId":81,"contents":"Synthetic unlinked post","dataId":31,"dataType":2}"#.utf8))
         }
-        return try SquareSyntheticFixtures.post(id: id)
+        return try post(id: id)
     }
     private func relatedCommunityPost() throws -> SquarePost {
         try JSONDecoder().decode(SquarePost.self, from: Data(SquareSyntheticFixtures.wrappedPostJSON.utf8)).qualified(as: .communityV1)
@@ -84,13 +112,13 @@ import SwiftUI
     @State private var reader: SquareFixtureReader
     @State private var topicReader: SquareRelatedTopicFixtureReader
     private let mediaChain: Bool
-    init(scenario: SquareFixtureReader.Scenario? = nil) {
+    init(scenario: SquareFixtureReader.Scenario? = nil, designLocalized: Bool = false) {
         let args = ProcessInfo.processInfo.arguments
         let index = args.firstIndex(of: "--uitesting-square-scenario")
         let value = scenario?.rawValue ?? (index.flatMap { args.indices.contains($0 + 1) ? args[$0 + 1] : nil })
         mediaChain = value == "mediaChain"
         _topicReader = State(initialValue: SquareRelatedTopicFixtureReader(unavailable: value == "relatedUnavailable"))
-        _reader = State(initialValue: SquareFixtureReader(scenario: value.flatMap(SquareFixtureReader.Scenario.init(rawValue:)) ?? .content))
+        _reader = State(initialValue: SquareFixtureReader(scenario: value.flatMap(SquareFixtureReader.Scenario.init(rawValue:)) ?? .content, designLocalized: designLocalized))
     }
     var body: some View {
         if mediaChain { SquarePostMediaFixtureHost() }

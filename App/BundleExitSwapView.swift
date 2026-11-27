@@ -89,7 +89,7 @@ struct BundleExitSwapView: View {
                     }
                     ForEach(options.merchantExited ? options.targets : [], id: \.offerId) { target in
                         Button { confirming = target } label: {
-                            Text(verbatim: (target.merchantName ?? "—") + (target.validEnd.map { " · " + $0.raw } ?? ""))
+                            Text(verbatim: (target.merchantName ?? "—") + (target.validEnd.map { " · " + LocaleDisplay.civil($0.raw, locale: locale) } ?? ""))
                         }
                         .disabled(busy || pendingKey != nil)
                         .accessibilityIdentifier("bundle.exit.target.\(target.offerId.text)")

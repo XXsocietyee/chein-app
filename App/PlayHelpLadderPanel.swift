@@ -268,7 +268,7 @@ import SwiftUI
                 } else if let lines = model.receipt {
                     PlayHelpReceiptLines(lines: lines).padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.md)
                 } else {
-                    ProgressView().frame(maxWidth: .infinity).padding(.bottom, CYSpacing.md)
+                    CYLoadingState().padding(.bottom, CYSpacing.md)
                 }
             }
         }

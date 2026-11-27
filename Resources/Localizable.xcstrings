@@ -81170,13 +81170,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Home is unavailable"
+            "value": "Home can’t open right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "首页暂不可用"
+            "value": "首页无法打开"
           }
         }
       }
@@ -349286,6 +349286,64 @@
         }
       }
     },
+    "mpr3.square.ageDays %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld day ago"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld days ago"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld天前"
+          }
+        }
+      }
+    },
+    "mpr3.square.ageHours %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld hour ago"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld hours ago"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld时前"
+          }
+        }
+      }
+    },
     "playkit.stopwatch.eyebrow": {
       "extractionState": "manual",
       "localizations": {
@@ -349367,6 +349425,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "凭感觉，点停止"
+          }
+        }
+      }
+    },
+    "mpPublish.ticketSettings.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ticket settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "票务设置"
+          }
+        }
+      }
+    },
+    "mpPublish.ticketSettings.schedule": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dates"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "档期"
           }
         }
       }
@@ -349473,6 +349565,205 @@
         }
       }
     },
+    "mpPublish.ticket.addFamily": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Family ticket (1 adult + 1 child)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "亲子票（1 大 1 小）"
+          }
+        }
+      }
+    },
+    "mpPublish.ticket.familyName": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Family ticket (1 adult + 1 child)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "亲子票（1 大 1 小）"
+          }
+        }
+      }
+    },
+    "mpPublish.ticket.familyShort": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 adult + 1 child"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 大 1 小"
+          }
+        }
+      }
+    },
+    "mpPublish.ticket.familyComposition": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Family ticket"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "亲子票"
+          }
+        }
+      }
+    },
+    "mpPublish.ticket.childAgeMin": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Youngest child (age)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "儿童最小年龄 (岁)"
+          }
+        }
+      }
+    },
+    "mpPublish.ticket.childAgeMax": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oldest child (age)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "儿童最大年龄 (岁)"
+          }
+        }
+      }
+    },
+    "mpPublish.ticket.childAgeFooter": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One code admits one adult and one child. Checkout records only the child's age, and players outside this range can't buy."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一张票一个码，1 大 1 小同享。下单只登记儿童年龄，超出年龄段的玩家不能下单。"
+          }
+        }
+      }
+    },
+    "projectEdit.validation.childAge": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the child age range in 0–17, with the youngest not above the oldest."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "儿童年龄段需在 0–17 岁之间，且起始不大于结束。"
+          }
+        }
+      }
+    },
+    "roam.album.sub %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld stamp in total"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld stamps in total"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "共 %lld 枚"
+          }
+        }
+      }
+    },
+    "roam.createdStamp.hiddenTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This stamp can’t be shown right now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这枚印章暂时不能展示"
+          }
+        }
+      }
+    },
+    "roam.createdStamp.missingTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not in the album list yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "列表里还没有这枚印章"
+          }
+        }
+      }
+    },
     "playkit.coin.idle": {
       "extractionState": "manual",
       "localizations": {
@@ -349520,98 +349811,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "反面"
-          }
-        }
-      }
-    },
-    "mpr3.square.ageDays %lld": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld day ago"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld days ago"
-                }
-              }
-            }
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld天前"
-          }
-        }
-      }
-    },
-    "mpr3.square.ageHours %lld": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld hour ago"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld hours ago"
-                }
-              }
-            }
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld时前"
-          }
-        }
-      }
-    },
-    "mpPublish.ticketSettings.title": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ticket settings"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "票务设置"
-          }
-        }
-      }
-    },
-    "mpPublish.ticketSettings.schedule": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dates"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "档期"
           }
         }
       }

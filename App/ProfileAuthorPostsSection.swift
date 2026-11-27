@@ -62,7 +62,8 @@ import SwiftUI
                         NativeMediaGalleryEntry(sources: post.images, scope: squareReader.scope, titleKey: "media.destination.squareImages")
                     }
                     if model.pagination.hasLoadedPage && model.pagination.items.isEmpty {
-                        Text("social.noPosts").accessibilityIdentifier("profile.postsRefresh.empty")
+                        // MP cy/profile 推文 `cy-empty`: 还没有帖文 (same copy as the club posts tab).
+                        Text("club.tab.feed.empty").accessibilityIdentifier("profile.postsRefresh.empty")
                     }
                     if model.pagination.continuationInvalid {
                         Text("square.invalidCursor").accessibilityIdentifier("profile.postsRefresh.invalidCursor")

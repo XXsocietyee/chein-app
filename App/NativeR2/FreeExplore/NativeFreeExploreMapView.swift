@@ -615,6 +615,7 @@ import SwiftUI
 /// Offline or expired chapters (`FreeExplorationArchiveCards`), as plain list sections.
 @MainActor struct NativeFreeExploreArchiveSections: View {
     let model: PlayExperienceCoordinator
+    @Environment(\.locale) private var locale
     var body: some View {
         if let archive = model.storyArchive {
             Section {
@@ -627,7 +628,7 @@ import SwiftUI
                     VStack(alignment: .leading, spacing: 6) {
                         FreeExplorationStoreName(name: place.name).font(.headline)
                         if let time = place.visitTimeText {
-                            Text("playFree.story.visitedOn \(time)").font(.subheadline).foregroundStyle(.secondary)
+                            Text("playFree.story.visitedOn \(LocaleDisplay.civil(time, locale: locale))").font(.subheadline).foregroundStyle(.secondary)
                         }
                         ForEach(Array(place.paragraphs.enumerated()), id: \.offset) { _, paragraph in
                             Text(verbatim: paragraph)

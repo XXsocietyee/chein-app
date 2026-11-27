@@ -677,14 +677,34 @@ struct TopicXcxRouteSection: View {
 /// Source session chip: `周X M.D HH:mm` (time omitted at 00:00).
 struct TopicXcxSessionChip: View {
     let startDate: String?
+    @Environment(\.locale) private var locale
     var body: some View {
         if let chip = TopicXcxFacts.sessionChip(startDate) {
             HStack(spacing: 4) {
-                Text(LocalizedStringKey("topicXcx.weekday." + String(chip.weekday)))
-                Text(verbatim: chip.monthDay)
-                if let time = chip.time { Text(verbatim: time) }
+                if let english = englishText(chip) {
+                    Text(verbatim: english)
+                } else {
+                    Text(LocalizedStringKey("topicXcx.weekday." + String(chip.weekday)))
+                    Text(verbatim: chip.monthDay)
+                    if let time = chip.time { Text(verbatim: time) }
+                }
             }.font(.subheadline.weight(.semibold)).monospacedDigit().accessibilityElement(children: .combine).accessibilityIdentifier("topic.sessionChip")
         }
+    }
+
+    /// English: `Sat, Dec 6 · 2:00 PM` (the MP `周X M.D HH:mm` reads as a decimal in English). Chinese keeps the MP text.
+    private func englishText(_ chip: TopicXcxFacts.SessionChip) -> String? {
+        guard !LocaleDisplay.isChinese(locale), let raw = startDate,
+              let date = SquareXcxTime.date(raw.count == 10 ? raw + " 00:00:00" : raw),
+              let zone = TimeZone(secondsFromGMT: 8 * 3600) else { return nil }
+        var day = Date.FormatStyle(date: .omitted, time: .omitted).weekday(.abbreviated).month(.abbreviated).day()
+        day.locale = locale
+        day.timeZone = zone
+        guard chip.time != nil else { return date.formatted(day) }
+        var time = Date.FormatStyle(date: .omitted, time: .shortened)
+        time.locale = locale
+        time.timeZone = zone
+        return date.formatted(day) + " · " + date.formatted(time)
     }
 }
 

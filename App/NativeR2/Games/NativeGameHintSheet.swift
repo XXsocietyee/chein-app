@@ -215,7 +215,7 @@ import SwiftUI
                 } else if let lines = model.receipt {
                     PlayHelpReceiptLines(lines: lines)
                 } else {
-                    ProgressView().frame(maxWidth: .infinity)
+                    CYLoadingState()
                 }
             } label: {
                 Text("playHelp.receipt")
