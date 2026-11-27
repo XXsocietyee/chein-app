@@ -129,27 +129,23 @@ import Combine
                             }
                                 .frame(maxWidth:.infinity)
                                 .clipped()
-                            Text(verbatim:examples.categoryName(at:index))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                                .accessibilityIdentifier("creatorIntro.example.category.\(index)")
-                            Group {
-                                if item.title.isEmpty { Text("creatorIntro.unnamed",tableName:"CreatorIntroExamples") }
-                                else { Text(verbatim:item.title) }
-                            }
-                            .font(.subheadline)
-                            .foregroundStyle(.primary)
-                            .lineLimit(2)
+                                .clipShape(.rect(cornerRadius: 12))
                         }
                         .frame(maxWidth:.infinity,alignment:.leading)
-                        .accessibilityElement(children:.combine).accessibilityIdentifier("creatorIntro.example.\(index)")
+                        // mp-r3-publish: MP template-intro draws the featured covers only (canvas `tiField`, aria-label
+                        // 精选玩法封面) — no category or title captions under them. VoiceOver still reads the play's name.
+                        .accessibilityElement(children:.ignore)
+                        .accessibilityLabel(item.title.isEmpty ? Text("creatorIntro.unnamed",tableName:"CreatorIntroExamples") : Text(verbatim:item.title))
+                        .accessibilityAddTraits(.isImage)
+                        .accessibilityIdentifier("creatorIntro.example.\(index)")
                     }
                 }
             } else {
                 switch controller.visiblePhase {
                 case .idle,.loading:
-                    ProgressView().frame(maxWidth:.infinity,minHeight:150)
+                    // P10: say what is loading (MP shows its skeleton cards here).
+                    ProgressView { Text("creatorIntro.loading",tableName:"CreatorIntroExamples") }
+                        .frame(maxWidth:.infinity,minHeight:150)
                 case .failed:
                     VStack(alignment:.leading,spacing:8) {
                         Label { Text("creatorIntro.failed",tableName:"CreatorIntroExamples") } icon: { Image(systemName: "exclamationmark.triangle") }

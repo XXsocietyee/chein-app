@@ -40,8 +40,9 @@ class IntroSourceContracts(unittest.TestCase):
   # fix-parity C-I3: no examples now draws nothing, so 'creatorIntro.empty' is no longer rendered (three keys).
   # The restyled intro renders only four of the nine catalogued keys (examples header, loading/unavailable text,
   # scope note and skip were retired); every rendered key must stay catalogued and use the named table.
-  keys=set(re.findall(r'"(creatorIntro\.(?:examples|unnamed|loading|failed|retry|empty|unavailable|scope|skip))"',A));self.assertEqual(keys,{'creatorIntro.unnamed','creatorIntro.failed','creatorIntro.retry'});self.assertTrue(keys<=set(L));self.assertEqual(len(L),9)
-  self.assertEqual(A.count('tableName:"CreatorIntroExamples"'),3);self.assertTrue(all(set(v['localizations'])=={'en','zh-Hans'} for v in L.values()))
+  keys=set(re.findall(r'"(creatorIntro\.(?:examples|unnamed|loading|failed|retry|empty|unavailable|scope|skip))"',A));self.assertEqual(keys,{'creatorIntro.unnamed','creatorIntro.failed','creatorIntro.retry','creatorIntro.loading'});self.assertTrue(keys<=set(L));self.assertEqual(len(L),9)
+  # mp-r3-publish: the loading state names what loads (P10, catalogued creatorIntro.loading), so four keys / four tables.
+  self.assertEqual(A.count('tableName:"CreatorIntroExamples"'),4);self.assertTrue(all(set(v['localizations'])=={'en','zh-Hans'} for v in L.values()))
  def test_tests_and_registration_are_complete_and_native_unrun(self):
   self.assertEqual(CT.count('func test'),9);self.assertEqual(AT.count('func test'),16);self.assertEqual(len(G['production_sources']),2);self.assertTrue(G['actual_PBX_registration']);self.assertTrue(G['CoreTests_directory_discovery']);self.assertIn('NOT_RUN',D)
  def test_projection_limits_and_old_stack_are_explicit(self):
