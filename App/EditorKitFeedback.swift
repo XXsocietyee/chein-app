@@ -31,17 +31,18 @@ struct EditorToast: View {
             Text(verbatim: message).cyText(.bodyMedium).lineLimit(2).fixedSize(horizontal: false, vertical: true)
             if let onUndo {
                 Button(action: onUndo) { undoTitle ?? EditorKitText.text("editorKit.undo") }
-                    .cyText(.bodyMedium)
-                    .buttonStyle(.plain)
+                    .fontWeight(.semibold)
+                    .buttonStyle(.borderless)
                     .editorHitTarget()
                     .accessibilityIdentifier("editorKit.toast.undo")
             }
         }
-        .foregroundStyle(palette.textInverse)
+        // native-a r3: a system HUD capsule (regular material, primary label, accent Undo) instead of an inverted
+        // black/white pill; reads in Light and Dark without our own colours.
         .padding(.horizontal, CYSpacing.lg)
         .padding(.vertical, 11)
         .frame(maxWidth: EditorKitMetric.toastMaxWidth)
-        .background(Capsule(style: .continuous).fill(palette.textPrimary))
+        .background(.regularMaterial, in: Capsule(style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isStaticText)
         .accessibilityIdentifier("editorKit.toast")
@@ -128,23 +129,17 @@ struct EditorToolChip: View {
     @State private var showsReason = false
     @State private var blockedTaps = 0
 
+    /// native-a r3: a system capsule button. Added = `.borderedProminent`, available = `.bordered`; a blocked chip
+    /// stays tappable (it explains itself in the popover) but reads unavailable through the secondary label colour.
     var body: some View {
-        Button {
-            if state == .blocked { showsReason = true; blockedTaps += 1 } else { action() }
-        } label: {
-            HStack(spacing: 4) {
-                Image(systemName: icon).font(.footnote.weight(.semibold)).accessibilityHidden(true)
-                title.font(.subheadline.weight(state == .added ? .semibold : .regular))
+        Group {
+            if state == .added {
+                chipButton.buttonStyle(.borderedProminent)
+            } else {
+                chipButton.buttonStyle(.bordered)
             }
-            .foregroundStyle(state == .blocked ? palette.textDisabled : palette.textPrimary)
-            .padding(.horizontal, CYSpacing.md)
-            .frame(minHeight: EditorKitMetric.secondaryVisual)
-            .background(Capsule(style: .continuous).fill(state == .added ? palette.bgElevated : palette.brandSoft))
-            .overlay(Capsule(style: .continuous).strokeBorder(state == .added ? palette.textPrimary : Color.clear,
-                                                              lineWidth: state == .added ? EditorKitMetric.selectedBorder : 0))
-            .editorHitTarget()
         }
-        .buttonStyle(.plain)
+        .buttonBorderShape(.capsule)
         .accessibilityValue(EditorKitText.text("editorKit.tool." + stateKey))
         .modifier(EditorOptionalIdentifier(identifier: accessibilityID))
         .sensoryFeedback(.warning, trigger: blockedTaps)
@@ -152,6 +147,22 @@ struct EditorToolChip: View {
             EditorPopoverContent(title: title, message: reason, action: fix)
                 .presentationCompactAdaptation(.popover)
         }
+    }
+
+    private var chipButton: some View {
+        Button {
+            if state == .blocked { showsReason = true; blockedTaps += 1 } else { action() }
+        } label: {
+            if state == .blocked {
+                chipLabel.foregroundStyle(.secondary)
+            } else {
+                chipLabel
+            }
+        }
+    }
+
+    private var chipLabel: some View {
+        Label { title } icon: { Image(systemName: icon) }
     }
 
     private var icon: String {

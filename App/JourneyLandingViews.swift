@@ -873,7 +873,8 @@ private struct JourneyInviteSheet: View {
                 ShareLink(item: url, subject: Text("mp.seats.invite.fallbackTitle")) {
                     Label("mp.seats.invite.send", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.cyPrimary)
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
                 .accessibilityIdentifier("journeySeats.invite.send")
             } else if let error = content.actionError {
                 MPInlineError(text: Text(verbatim: error))

@@ -114,7 +114,8 @@ struct ClubEmptyState: View {
 // Presentation only: every view takes plain values / closures; no reads, writes or authority live here.
 // Motion is spring-based and gated on Reduce Motion; haptics use sensoryFeedback.
 
-/// Press feedback: a small spring scale, disabled under Reduce Motion.
+/// Press feedback: a small spring scale, disabled under Reduce Motion. Only the DEBUG design fixtures use it now;
+/// shipped social views use the system button styles (native-a r3).
 struct E3PressStyle: ButtonStyle {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     func makeBody(configuration: Configuration) -> some View {
@@ -164,28 +165,34 @@ struct E3AvatarStack: View {
 
 enum E3FollowState { case follow, following, requested, mutual }
 
-/// Pill follow button: filled for the action, outlined when already following. 44pt hit area.
+/// Follow button (native-a r3): the system capsule button, `.borderedProminent` for the action (关注 / Follow) and
+/// `.bordered` once following / requested / mutual. The system draws fill, press, disabled and Dynamic Type.
 struct E3FollowButton: View {
     let state: E3FollowState
     let title: String
     let action: () -> Void
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var body: some View {
-        Button(action: action) {
-            HStack(spacing: 4) {
-                if state == .following || state == .mutual { Image(systemName: state == .mutual ? "arrow.left.arrow.right" : "checkmark").font(.caption.weight(.bold)) }
-                if state == .requested { Image(systemName: "clock").font(.caption.weight(.bold)) }
-                Text(verbatim: title).cyText(.bodyMedium).lineLimit(1).minimumScaleFactor(0.8)
+        Group {
+            if state == .follow {
+                button.buttonStyle(.borderedProminent)
+            } else {
+                button.buttonStyle(.bordered)
             }
-            .foregroundStyle(state == .follow ? CYColor.textInverse : CYColor.textPrimary)
-            .padding(.horizontal, CYSpacing.lg).frame(minHeight: 36)
-            .background(state == .follow ? AnyShapeStyle(CYColor.textPrimary) : AnyShapeStyle(Color.clear), in: Capsule())
-            .overlay(Capsule().strokeBorder(state == .follow ? Color.clear : CYColor.borderStrong, lineWidth: 1))
-            .frame(minHeight: 44).contentShape(Rectangle())
         }
-        .buttonStyle(E3PressStyle())
+        .buttonBorderShape(.capsule)
         .sensoryFeedback(.success, trigger: state)
         .animation(reduceMotion ? nil : .snappy(duration: 0.25), value: state)
+    }
+
+    private var button: some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                if state == .following || state == .mutual { Image(systemName: state == .mutual ? "arrow.left.arrow.right" : "checkmark") }
+                if state == .requested { Image(systemName: "clock") }
+                Text(verbatim: title).lineLimit(1).minimumScaleFactor(0.8)
+            }
+        }
     }
 }
 
@@ -338,14 +345,16 @@ struct E3VideoCard: View {
     var body: some View {
         ZStack {
             CYIMCoverArt(seed: seed, systemImage: "film.fill", symbolSize: 44)
+            // native-a r3: media controls on a dark system material (as Photos / TV), not a hand-tinted black disc.
             Image(systemName: "play.fill").accessibilityLabel(Text(verbatim: "Play")).font(.title3).foregroundStyle(.white)
-                .frame(width: 52, height: 52).background(.black.opacity(0.45), in: Circle())
-                .overlay(Circle().strokeBorder(.white.opacity(0.5), lineWidth: 1))
+                .frame(width: 52, height: 52).background(.ultraThinMaterial, in: Circle())
+                .environment(\.colorScheme, .dark)
         }
         .frame(width: 240, height: 150)
         .overlay(alignment: .bottomTrailing) {
             Text(verbatim: duration).cyText(.meta, weight: .semibold).monospacedDigit().foregroundStyle(.white)
-                .padding(.horizontal, 8).padding(.vertical, 3).background(.black.opacity(0.55), in: Capsule()).padding(CYSpacing.sm)
+                .padding(.horizontal, 8).padding(.vertical, 3).background(.ultraThinMaterial, in: Capsule())
+                .environment(\.colorScheme, .dark).padding(CYSpacing.sm)
         }
         .clipShape(RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
         .accessibilityElement(children: .combine)
@@ -423,7 +432,7 @@ struct E3PostCard: View {
                 Button { liked.toggle() } label: {
                     Label { Text(verbatim: count(likes)).monospacedDigit() } icon: { Image(systemName: liked ? "heart.fill" : "heart").symbolEffect(.bounce, value: liked) }
                         .foregroundStyle(liked ? Color.red : CYColor.textSecondary)
-                }.buttonStyle(E3PressStyle()).sensoryFeedback(.impact(weight: .light), trigger: liked)
+                }.buttonStyle(.borderless).sensoryFeedback(.impact(weight: .light), trigger: liked)
                 Label { Text(verbatim: count(comments)).monospacedDigit() } icon: { Image(systemName: "bubble.left") }.foregroundStyle(CYColor.textSecondary)
                 Spacer(minLength: 0)
             }

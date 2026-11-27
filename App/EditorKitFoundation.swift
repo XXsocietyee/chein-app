@@ -92,15 +92,8 @@ extension View {
     }
 }
 
-/// Editor buttons are the shared design r1 pill (`CYPillButtonStyle`): one primary per screen or sheet (black on
-/// light, white on dark through `actionPrimaryBg`), 44 high; `editorSecondary` is the shared secondary pill in its
-/// compact 44 pt form.
-extension ButtonStyle where Self == CYPillButtonStyle {
-    static var editorPrimary: CYPillButtonStyle { CYPillButtonStyle(style: .primary, fullWidth: false) }
-    static var editorSecondary: CYPillButtonStyle { CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true) }
-    static func editorPrimary(fullWidth: Bool) -> CYPillButtonStyle { CYPillButtonStyle(style: .primary, fullWidth: fullWidth) }
-    static func editorSecondary(fullWidth: Bool) -> CYPillButtonStyle { CYPillButtonStyle(style: .secondary, fullWidth: fullWidth, compact: !fullWidth) }
-}
+/// native-a r3: editor buttons are the system styles directly (`.borderedProminent` primary, `.bordered`
+/// secondary, `.controlSize(.large)` for full-width rows); the former `editorPrimary` / `editorSecondary` wrappers are gone.
 
 /// Section 2 "Selected state": neutral 1.5 pt border plus a filled check. No tint, no fill.
 struct EditorKitSelectedBorder: ViewModifier {

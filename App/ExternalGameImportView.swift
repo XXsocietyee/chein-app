@@ -251,7 +251,7 @@ import WebKit
                     store.activeLaunchingGame = game
                 }
             }
-            .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
+            .buttonStyle(.bordered)
             .accessibilityIdentifier("externalGame.run.\(game.manifest.id)")
             Menu { rowActions(game) } label: {
                 Image(systemName: "ellipsis")
@@ -472,8 +472,10 @@ import WebKit
                         Text(verbatim: confirmation.isUpdate
                             ? String(localized: LocalizedStringResource("playx.externalGame.confirmUpdate", defaultValue: "Confirm Update", locale: locale))
                             : String(localized: LocalizedStringResource("playx.externalGame.confirmInstall", defaultValue: "Confirm Install", locale: locale)))
+                        .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
                     .accessibilityIdentifier("externalGame.confirmInstall")
                 }
             }

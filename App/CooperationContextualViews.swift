@@ -666,7 +666,8 @@ import SwiftUI
                 } label: {
                     Text("coopflow.reviewAction").frame(maxWidth: .infinity)
                 }
-                .buttonStyle(CYPillButtonStyle())
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
                 .listRowBackground(Color.clear)
             } else {
                 CYListRow("coopflow.reviewAction", trailing: .value("—"))
