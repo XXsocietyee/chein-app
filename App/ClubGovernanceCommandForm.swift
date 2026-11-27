@@ -389,7 +389,7 @@ import SwiftUI
                 }
             }
             if let receipt {
-                Section("club.gov.acknowledged") {
+                Section {
                     ClubOpsGovernanceSuccess(operation: route.operation)
                     if route.operation == .correctAttendance { Text("clubOpsEvent.correct.success", tableName: "ClubOpsEvent").accessibilityIdentifier("clubOpsEvent.correct.success") }
                     // Campaign counts render once, in the notify card, when the receipt parses as a campaign.
@@ -412,6 +412,8 @@ import SwiftUI
                         LabeledContent("club.host.done.leaderLabel") { Text(verbatim: leader) }
                             .accessibilityIdentifier("club.host.receipt.leader")
                     }
+                } header: {
+                    Text("club.gov.acknowledged")
                 }
                 if [.sendNotification, .retryNotification].contains(route.operation), let campaign = try? ClubOpsNotifyCampaign(value: refreshedCampaign ?? receipt) {
                     // MP notify/index.wxml:72-111: 投递状态 is its own section, 刷新 / 刷新中… in the section head,
@@ -427,7 +429,7 @@ import SwiftUI
                         }
                     } header: {
                         HStack(alignment: .firstTextBaseline) {
-                            ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.status.title")
+                            Text("club.notify.deliveryStatus")
                                 .accessibilityAddTraits(.isHeader)
                             Spacer(minLength: 8)
                             if notifyCampaignID != nil { notifyRefreshButton }

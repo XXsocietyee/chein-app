@@ -21,6 +21,7 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | MP page | Native view | Difference (MP ref) | Status |
 |---|---|---|---|
 | talent/list | `App/ClubHomeView.swift` | The page title is 「发现」 (wxml:19, owner 2026-10-29); native showed 俱乐部. The tab bar item stays 俱乐部 (components/tabBar). This was left as an "owner decision" in fix-r11 A8-06, but the MP answers it. | **Fixed.** `cyRootHeader(.club, titleKey: "club.tab.title")` (new optional `titleKey` on `cyRootHeader`) |
+| talent/list · nav | `App/ClubHomeView.swift` | MP 发现 has a 消息 bell with an unread badge in the nav bar (wxml P-13). Native 发现 has 查找俱乐部 + 分享 in the toolbar; messages are reached from 我的 only, and no other tab root has a messages button. | **Not done, flagged.** Adding it needs the messaging session plumbed into ClubHomeView and an app-wide decision (OWNER RULE 2: same toolbar pattern on every root) |
 | talent/list · 帖文 | `ClubCommunityFeedView` | A guest's feed is 「登录后查看帖文」 + 登录, not a load failure (wxml:39). Native showed 加载失败 + retry. | **Fixed.** `onSignIn` is passed from ClubHomeView and the view shows a `ContentUnavailableView` with a sign-in button |
 | talent/list · 俱乐部 | `ClubHomeView` list | Order matches: 创建俱乐部 → created → joined → nearby; empty, skeleton and error states match. The native inline 加入 pill on nearby rows is not on the MP `cy-club-card`. | Order: matches. Pill: **not changed** (deliberate earlier native addition; flagged for the owner) |
 | club/detail · header | `ClubDetailView.swift` `ClubDetailHeader` | The MP header ends at the meta rows (type · N 名成员 / 入会方式). Native added a 「主理人 X · 城市」 line that the MP puts on 概览 (wxml:227-243). | **Fixed.** The host line was removed from the header (also matches the P17 identity header) |
@@ -67,7 +68,7 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/event-ops | same | Inline 日期清单 and 重复方式 forms instead of push rows. | **Not done.** large |
 | club/notify | `ClubGovernanceCommandForm` (sendNotification) | 当前身份不能发通知 | Already present (`ClubOpsNotifyDeniedText`, a `ContentUnavailableView`) |
 | club/notify | `ClubGovernanceCommandForm.swift` | A failed 预览受众 is inline 受众预览失败 + reason + 重试 (wxml:59-62); native showed the generic form error. | **Fixed (pass 3).** Dedicated section before any review, 重试 re-runs the preview (`club.notify.previewFailed`) |
-| club/notify | same | 投递状态 is its own section with 刷新 / 刷新中… in the section head, then the five counts and 只重试失败项 (wxml:72-111); native mixed the counts and a 刷新 row into the generic 已提交 receipt section. | **Fixed (pass 5).** New `Section` headed 投递状态 (`clubOpsJN.notify.status.title`, header trait) with a `.borderless` 刷新 button (`notifyRefreshButton`, same id `club.notify.refreshCampaign`) in the header; counts, 只重试失败项 and the refresh notice moved into it |
+| club/notify | same | 投递状态 is its own section with 刷新 / 刷新中… in the section head, then the five counts and 只重试失败项 (wxml:72-111); native mixed the counts and a 刷新 row into the generic 已提交 receipt section (a parallel pass-4 run had only retitled that section). | **Fixed (pass 5).** New `Section` headed 投递状态 (`club.notify.deliveryStatus` from the parallel pass-4 run, header trait) with a `.borderless` 刷新 button (`notifyRefreshButton`, same id `club.notify.refreshCampaign`) in the header; counts, 只重试失败项 and the refresh notice moved into it |
 | club/notify | same | Extra review fact rows. | **Not done** (send-button wording is a deliberate CLB-notify-01 choice) |
 | club/governance | `ClubGovernanceViews.swift` (.bans), `ClubOpsMemberActionCard.swift` | Full-page 暂无可治理成员 (wxml:18, js:403: no members and no bans). | **Fixed (pass 3).** The card reports its member count (`onLoaded`); no bans + 0 members shows a `ContentUnavailableView` instead of the records section |
 | club/governance | same | Appeal mode: MP page title 封禁申诉 (js:224); native drew it as an in-content headline section. | **Fixed (pass 3).** Inline bar title via `pageTitleKey` (`club.gov.casesAppeal`); headline section removed (OWNER RULE 2) |
@@ -107,6 +108,7 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 | `clubR11.customer.cancelEditA11y` | Cancel editing tags and remark | 取消编辑标签与备注 |
 | `club.notify.previewFailed` | Audience preview failed | 受众预览失败 |
 | `club.gov.casesAppeal` | Ban appeal | 封禁申诉 |
+| `club.notify.deliveryStatus` | Delivery status | 投递状态 |
 
 ## Contract test pins updated (with reason)
 
@@ -130,5 +132,6 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 10. Pass 3: governance 暂无可治理成员 full-page empty state; topic-detail director-ended review hides 核销/主题/接下来.
 11. Pass 3: governance appeal-mode title 封禁申诉 in the nav bar.
 12. Pass 4: merge combined-r7; club detail 加入 section on 概览 only.
-13. Pass 5: merge combined-r7 (xcstrings: both sides' keys, 22 added); notify 投递状态 section with 刷新 in its header.
+13. Pass 4 (parallel run): notify receipt section titled 投递状态; 发现 message bell flagged.
+14. Pass 5: merge combined-r7 (xcstrings: both sides' keys, 22 added); notify 投递状态 section with 刷新 in its header.
 8. Pass 2: shared club thumbnail, customer-detail edit heading, create check-failed 返回上一页, enroll order, check-in rail refund note.
