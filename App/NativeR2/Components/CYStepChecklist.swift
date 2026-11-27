@@ -255,3 +255,76 @@ struct CYStepChecklistResultCard: View {
     .cyDomainPageBackground()
     .themeDomain(.player)
 }
+
+// Design pass me: header-only variant for wizards that keep their own step buttons.
+
+/// The checklist header on its own (icon, title, "2 of 5 complete", ring that becomes a bouncing checkmark), for
+/// wizards that keep their own step pages but should still say where the player is (P4).
+struct CYStepProgressHeader: View {
+    private let title: Text
+    private let systemImage: String
+    private let done: Int
+    private let total: Int
+    private let tint: Color
+    private let identifier: String
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    init(_ title: Text, systemImage: String, done: Int, total: Int, tint: Color = .accentColor, identifier: String = "cy.steps.header") {
+        self.title = title
+        self.systemImage = systemImage
+        self.done = max(0, min(done, total))
+        self.total = max(total, 0)
+        self.tint = tint
+        self.identifier = identifier
+    }
+
+    private var isFinished: Bool { total > 0 && done == total }
+
+    var body: some View {
+        HStack(alignment: .center, spacing: CYSpacing.md) {
+            Image(systemName: systemImage)
+                .font(.title3)
+                .foregroundStyle(tint)
+                .frame(minWidth: 28)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                title
+                    .font(.headline)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text("comp.steps.progress \(done) \(total)")
+                    .font(.subheadline)
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+                    .contentTransition(.numericText(value: Double(done)))
+            }
+            Spacer(minLength: CYSpacing.sm)
+            CYRing(progress: CYRingMath.fraction(done, of: total), label: "comp.steps.ring", tint: tint, diameter: 40, lineWidth: 5) {
+                ringCenter
+            }
+        }
+        .animation(reduceMotion ? nil : .spring(duration: 0.35, bounce: 0.2), value: done)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(title)
+        .accessibilityValue(Text("comp.steps.progress \(done) \(total)"))
+        .accessibilityIdentifier(identifier)
+    }
+
+    @ViewBuilder
+    private var ringCenter: some View {
+        if isFinished {
+            Image(systemName: "checkmark")
+                .font(.footnote.weight(.bold))
+                .foregroundStyle(tint)
+                .symbolEffect(.bounce, value: reduceMotion ? 0 : done)
+                .accessibilityHidden(true)
+        } else {
+            Text(verbatim: "\(done)/\(total)")
+                .font(.caption.weight(.semibold))
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+                .contentTransition(.numericText(value: Double(done)))
+                .accessibilityHidden(true)
+        }
+    }
+}
