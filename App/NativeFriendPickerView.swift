@@ -26,7 +26,7 @@ import SwiftUI
             CYFormSearchRow(prompt: Text("d7.friendPicker.search"), text: $search, identifier: "d7.friendPicker.search")
                 .disabled(flow.busy)
             if flow.busy && visible.isEmpty {
-                ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("cy.state.loading"))
+                ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity)
             }
             ForEach(visible) { row in
                 let name = shownName(row)

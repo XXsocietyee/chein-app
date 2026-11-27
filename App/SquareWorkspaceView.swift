@@ -170,7 +170,7 @@ import UniformTypeIdentifiers
                         }
                     }
                     if coordinator.hasMore { Button("squareWorkspace.more") { run { try await coordinator.loadServer(more: true) } } }
-                    if coordinator.revisionsLoading { ProgressView().frame(maxWidth: .infinity) }
+                    if coordinator.revisionsLoading { ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity) }
                     if let postID = coordinator.revisionPostID, let data = coordinator.revisionData,
                        let text = String(data: data, encoding: .utf8) {
                         Text("#\(postID)").font(.caption)

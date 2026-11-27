@@ -5614,13 +5614,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No completed runs are ranked yet"
+            "value": "No rankings yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂时没有已完成的排名记录"
+            "value": "还没有排名数据"
           }
         }
       }
@@ -5631,13 +5631,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The leaderboard could not be loaded. Refresh to try again."
+            "value": "Couldn’t load the leaderboard · Tap Refresh to try again"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "排行榜暂时读不到，可以刷新重试。"
+            "value": "榜单暂时读不到 · 点「刷新」再试"
           }
         }
       }
@@ -346903,6 +346903,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "还没有现场动态"
+          }
+        }
+      }
+    },
+    "verificationCode.ticket.failedTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t create your entry code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入场码没生成出来"
           }
         }
       }

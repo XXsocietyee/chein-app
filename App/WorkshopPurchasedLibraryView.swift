@@ -39,7 +39,7 @@ struct WorkshopPurchasedAccountLink: View {
         let rendered = displayed.permit
         List {
             switch browser.phase {
-            case .idle, .loading: ProgressView().frame(maxWidth: .infinity).accessibilityLabel(purchasedText("loading"))
+            case .idle, .loading: ProgressView { purchasedText("loading") }.frame(maxWidth: .infinity)
             case .notEnabled: PurchasedUnavailableView()
             case .empty: ContentUnavailableView { Label { purchasedText("empty") } icon: { Image(systemName: "bag") } }
             case .failed, .invalidated:
@@ -101,7 +101,7 @@ struct WorkshopPurchasedAccountLink: View {
         let displayed = navigation.detailAppearance
         let rendered = displayed.permit
         Form {
-            if browser.detailLoading { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(purchasedText("loading")) }
+            if browser.detailLoading { ProgressView { purchasedText("loading") }.frame(maxWidth: .infinity) }
             else if let detail = browser.detail, detail.item.id == licenseId {
                 let item = detail.item
                 Section {
