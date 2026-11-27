@@ -41,9 +41,10 @@ private struct ChanceSymbolSize {
                     .symbolEffect(.pulse, isActive: context.busy)
                     .accessibilityHidden(true)
                 if key.isEmpty {
-                    Text("playkit.coin.waiting").font(.body).foregroundStyle(.secondary)
+                    // MP `cf__big`: 正面还是反面？ before the flip, 翻着… while the server answers.
+                    Text(context.busy ? "playkit.coin.waiting" : "playkit.coin.idle").font(.body).foregroundStyle(.secondary)
                 } else {
-                    Text(verbatim: raw[key]["label"].text ?? (raw["side"].text ?? "")).font(.title.bold())
+                    faceLabel(key).font(.title.bold())
                         .accessibilityIdentifier("playkit.coin.result")
                     if let action = raw[key]["action"].text, !action.isEmpty {
                         Text(verbatim: action).font(.body).multilineTextAlignment(.center)
@@ -59,7 +60,12 @@ private struct ChanceSymbolSize {
             .sensoryFeedback(.impact, trigger: flips)
             .sensoryFeedback(.success, trigger: key) { old, next in !next.isEmpty && old != next }
         } header: {
-            Text("playkit.coin.kicker")
+            // MP `cf__k`: the server `kicker`, default 抛一次，认结果.
+            if let kicker = raw["kicker"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !kicker.isEmpty {
+                Text(verbatim: kicker)
+            } else {
+                Text("playkit.coin.kicker")
+            }
         } footer: {
             if context.enabled { Label("playkit.coin.shakeHint", systemImage: "iphone.gen3.radiowaves.left.and.right") }
         }
@@ -68,11 +74,17 @@ private struct ChanceSymbolSize {
                 LabeledContent {
                     Text(verbatim: raw[face]["action"].text ?? "").foregroundStyle(.secondary)
                 } label: {
-                    Label { Text(verbatim: raw[face]["label"].text ?? "") } icon: { Image(systemName: Self.symbol(face)) }
+                    Label { faceLabel(face) } icon: { Image(systemName: Self.symbol(face)) }
                 }
                 .foregroundStyle(face == key ? AnyShapeStyle(.tint) : AnyShapeStyle(.primary))
             }
         }
+    }
+    /// MP `headsLabel` / `tailsLabel`: the merchant's face name, default 正面 / 反面.
+    private func faceLabel(_ face: String) -> Text {
+        let label = raw[face]["label"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if !label.isEmpty { return Text(verbatim: label) }
+        return Text(face == "heads" ? "playkit.coin.heads" : "playkit.coin.tails")
     }
     private func flip() {
         guard context.enabled else { return }
