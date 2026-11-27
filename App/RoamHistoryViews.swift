@@ -92,7 +92,7 @@ import SwiftUI
                         // Mini-program RunCard: route sketch on top, then route icon + title with dateCard, three stats, badges.
                         NavigationLink { RoamHistoryDetailView(reader: reader, timestamp: record.ts, hero: hero) } label: {
                                 VStack(alignment: .leading, spacing: 12) {
-                                    RoamRouteSketchView(record: record)
+                                    RoamRouteThumbView(record: record) // ROAM-r11-10: real basemap when the track has coordinates
                                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                                         Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
                                             .font(.subheadline.weight(.semibold)).foregroundStyle(CYColor.textPrimary).accessibilityHidden(true)
