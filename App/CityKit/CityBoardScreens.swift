@@ -71,7 +71,7 @@ struct CityBoardView: View {
         .mapStyle(.standard(elevation: .flat, emphasis: .muted, pointsOfInterest: .excludingAll))
         .environment(\.colorScheme, .dark)
         .frame(height: 220)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
         .overlay(alignment: .bottomLeading) {
             if let holdings = store.holdings {
                 HStack(spacing: 6) {
@@ -117,14 +117,7 @@ struct CityBoardView: View {
     }
 
     private var skeleton: some View {
-        VStack(spacing: CYSpacing.md) {
-            CYSkeleton().frame(height: 220)
-            CYSkeleton().frame(height: 60)
-            CYSkeleton().frame(height: 52)
-            CYSkeleton().frame(height: 52)
-            ForEach(0..<3, id: \.self) { _ in CYSkeleton().frame(height: 72) }
-        }
-        .accessibilityLabel(Text(verbatim: copy("加载中", "Loading")))
+        CYSkeleton(variant: .detail)
     }
 
     private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
@@ -150,7 +143,7 @@ struct CityBoardView: View {
         Button(action: action) {
             HStack(spacing: CYSpacing.md) {
                 Image(systemName: symbol).font(.body.weight(.semibold)).foregroundStyle(palette.textPrimary)
-                    .frame(width: 36, height: 36).background(palette.bgRaised, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .frame(width: 36, height: 36).background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(verbatim: title).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
@@ -160,7 +153,7 @@ struct CityBoardView: View {
                 Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
             }
             .padding(CYSpacing.md).frame(minHeight: 60)
-            .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -200,7 +193,7 @@ struct CityMyPropertiesView: View {
                         }
                     }
                     .padding(CYSpacing.md)
-                    .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
                 }
             }
             .padding(.horizontal, CYSpacing.pageHorizontal).padding(.bottom, CYSpacing.xxxl)

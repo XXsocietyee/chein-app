@@ -12,10 +12,8 @@ import SwiftUI
             if let flow { NativeChannelChainView(flow: flow, current: current) }
             else if attempted { ContentUnavailableView("d7.chain.unavailable", systemImage: "list.number") }
             else {
-                ProgressView()
+                ProgressView { Text("d7.channelActivity.loading") }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(Text("d7.channelActivity.loading"))
             }
         }.task {
             guard !attempted else { return }
@@ -198,10 +196,8 @@ import SwiftUI
     @ViewBuilder private var status: some View {
         switch flow.phase {
         case .reading:
-            ProgressView()
+            ProgressView { Text("d7.channelActivity.loading") }
                 .frame(maxWidth: .infinity)
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(Text("d7.channelActivity.loading"))
         case .submitting:
             ProgressView("d7.channelActivity.sending")
                 .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)

@@ -124,6 +124,7 @@ struct IMInboxRow: View {
                     }
                 } else {
                     HStack(alignment: .firstTextBaseline) {
+                        // MP im/list/index.wxss:62-66: the name is one line with an ellipsis.
                         MessagingConversationName(conversation: conversation)
                             .font(.headline)
                             .lineLimit(1)
@@ -136,11 +137,11 @@ struct IMInboxRow: View {
                     }
                 }
                 HStack(alignment: .firstTextBaseline) {
-                    // MP im/list preview is one ellipsized line; the English copy otherwise wraps to 2-3 lines.
+                    // MP im/list/index.wxss:69-73: the preview is one line with an ellipsis (wraps only at AX sizes).
                     MessagingPreview(conversation: conversation)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
-                        .lineLimit(typeSize.isAccessibilitySize ? 2 : 1)
+                        .lineLimit(typeSize >= .xxLarge ? 3 : 1)
                     Spacer(minLength: 4)
                     IMUnreadBadge(count: conversation.unread, muted: conversation.muted == true, unknownAsDash: true)
                 }

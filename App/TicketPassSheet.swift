@@ -71,8 +71,7 @@ enum CYPassCardPick {
     @ViewBuilder private var content: some View {
         switch phase {
         case .idle, .loading:
-            ProgressView()
-            .accessibilityLabel(Text(verbatim: c.t("正在打开票券", "Opening your pass")))
+            ProgressView { Text(verbatim: c.t("正在打开票券", "Opening your pass")) }
             .accessibilityIdentifier("ticketPass.loading")
         case .loaded(let snapshot):
             if let ticket = current(in: snapshot) {
@@ -260,7 +259,7 @@ enum CYPassCardPick {
         }
         .frame(maxWidth: .infinity)
         .background(Color(uiColor: .secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
         .opacity(state.isRetired ? 0.74 : 1)
         .cyBrightnessBoost(ticket.status == .ready)
         .privacySensitive()

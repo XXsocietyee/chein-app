@@ -59,10 +59,10 @@ enum DesignFixtureRegistry {
         case "ia-tabs": return AnyView(IATabsFixture())
         case "ia-explore-create": return AnyView(IAExploreCreateFixture(hasPublishingSession: true))
         case "ia-explore-no-create": return AnyView(IAExploreCreateFixture(hasPublishingSession: false))
-        case "ia-passport": return AnyView(IAPassportFixture(count: 3, badges: [PassportBadge(id: 0, name: "Night Owl"), PassportBadge(id: 1, name: "First Roam"), PassportBadge(id: 2, name: "Market Regular")], badgeTotal: 12))
+        case "ia-passport": return AnyView(IAPassportFixture(count: 3, badges: [PassportBadge(id: 0, name: iaFixtureText("Night Owl", "夜猫子")), PassportBadge(id: 1, name: iaFixtureText("First Roam", "第一次漫游")), PassportBadge(id: 2, name: iaFixtureText("Market Regular", "菜场常客"))], badgeTotal: 12))
         case "ia-passport-no-badges": return AnyView(IAPassportFixture(count: 3, badges: []))
         case "ia-passport-unknown": return AnyView(IAPassportFixture(count: nil))
-        case "ia-passport-ax5": return AnyView(IAPassportFixture(count: 3, badges: [PassportBadge(id: 0, name: "Night Owl"), PassportBadge(id: 1, name: "First Roam")]).environment(\.dynamicTypeSize, .accessibility5))
+        case "ia-passport-ax5": return AnyView(IAPassportFixture(count: 3, badges: [PassportBadge(id: 0, name: iaFixtureText("Night Owl", "夜猫子")), PassportBadge(id: 1, name: iaFixtureText("First Roam", "第一次漫游"))]).environment(\.dynamicTypeSize, .accessibility5))
         case "ia-deeplinks": return AnyView(IADeepLinksFixture())
         case "welcome": return AnyView(WelcomeFixture())
         case "welcome-menu": return AnyView(WelcomeMenuFixture())
@@ -245,7 +245,7 @@ enum E4Fixtures {
     }
 
     @MainActor private static func wrap<V: View>(_ view: V) -> AnyView {
-        AnyView(view.themeDomain(.player).cyDomainPageBackground().themeDomain(.player).preferredColorScheme(.dark))
+        AnyView(view.themeDomain(.player).cyDomainPageBackground().themeDomain(.player))
     }
 }
 #endif
@@ -668,7 +668,7 @@ enum T5PageFixtures {
     }
 
     @MainActor private static func wrapPlayer<V: View>(_ view: V) -> AnyView {
-        AnyView(view.themeDomain(.player).cyDomainPageBackground().preferredColorScheme(.dark))
+        AnyView(view.themeDomain(.player).cyDomainPageBackground())
     }
 
     @MainActor private static func wrapMerchant<V: View>(_ view: V) -> AnyView {

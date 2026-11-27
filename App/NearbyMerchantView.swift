@@ -41,6 +41,8 @@ extension EnvironmentValues {
     @State private var operation: Task<Void, Never>?
     @State private var publicHomeSelection: NearbyMerchantCoordinator.PublicHomeSelection?
     @State private var toastMessage: String?
+    /// MP coop/nearby callMerchant: 已打开拨号界面 on success, 电话暂时没有拨出 on failure (action-state, wxml:16-18).
+    @State private var callOpened: Bool?
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.openURL) private var openURL
@@ -102,6 +104,14 @@ extension EnvironmentValues {
             }
             if page.phase == .ready || page.phase == .empty {
                 Section {
+                    if callOpened == true {
+                        Text("mpr3.coop.nearby.callOpened").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("nearbyMerchant.callOpened")
+                    }
+                    if callOpened == false {
+                        CYInlineError("mpr3.coop.nearby.callFailed", retryTitle: nil)
+                            .accessibilityIdentifier("nearbyMerchant.callFailed")
+                    }
                     if invitableFailed {
                         Text("merchantCoop.nearby.topic.failed").cyText(.meta).foregroundStyle(CYColor.warningText)
                             .accessibilityIdentifier("nearbyMerchant.topic.failed")
@@ -138,7 +148,10 @@ extension EnvironmentValues {
                                 Text("nearbyMerchant.unlisted").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                                 // Source: unregistered leads with a server-released phone offer "电话联系" (system dialer only).
                                 if let phone = row.callablePhone, let url = URL(string: "tel:" + phone.filter { $0.isNumber || $0 == "+" }) {
-                                    Link(destination: url) { Label("cooperation.nearby.call", systemImage: "phone") }
+                                    Button {
+                                        callOpened = nil
+                                        openURL(url) { accepted in callOpened = accepted }
+                                    } label: { Label("cooperation.nearby.call", systemImage: "phone") }
                                         .buttonStyle(.bordered).accessibilityIdentifier("cooperation.nearby.call.\(row.id)")
                                 }
                             }

@@ -35,15 +35,11 @@ import SwiftUI
         switch model.redeemState {
         case .idle, .loading:
             Section {
-                HStack(spacing: CYSpacing.sm) {
-                    ProgressView()
-                    Text(verbatim: catalog("bundle.redeem.loading"))
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+                ProgressView { Text(verbatim: catalog("bundle.redeem.loading")) }
+                    .frame(maxWidth: .infinity)
             }
         case .unavailable:
-            ContentUnavailableView(catalog("bundle.redeem.unavailable"), systemImage: "wifi.slash")
+            ContentUnavailableView(catalog("bundle.redeem.unavailable"), systemImage: "exclamationmark.circle")
                 .listRowBackground(Color.clear)
                 .accessibilityIdentifier("bundleRedeem.unavailable")
         case .failed:

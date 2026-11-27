@@ -236,7 +236,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核销结果暂不可用。"
+            "value": "暂时看不到核销结果。"
           }
         }
       }

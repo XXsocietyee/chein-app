@@ -6,17 +6,18 @@ import SwiftUI
 /// consequence mapping and the OpsR3 copy.
 @MainActor
 final class CodeR3OpsTests: XCTestCase {
-    func testTopicCardCountsTheSixTopicDetailFields() {
+    /// mp-publish r3: the card counts the MP `TOPIC_DETAIL_ISSUE_KEYS` (subtitle, description, imgUrl, categoryIds);
+    /// the name is edited on page 1 and the dates are not in the 主题详情 sheet.
+    func testTopicCardCountsTheFourTopicDetailSheetFields() {
         var draft = ProjectEditDraft()
-        XCTAssertEqual(ProjectEditTopicCard.missingCount(draft), 6)
+        XCTAssertEqual(ProjectEditTopicCard.missingCount(draft), 4)
         draft.name = "外滩钟声"
+        draft.subtitle = "夜里的钟楼"
         draft.description = "  "
         draft.imgUrl = "https://example.invalid/cover.jpg"
-        XCTAssertEqual(ProjectEditTopicCard.missingCount(draft), 4, "a blank description still counts as missing")
+        XCTAssertEqual(ProjectEditTopicCard.missingCount(draft), 2, "a blank description still counts as missing")
         draft.description = "三章"
         draft.categoryIDs = [1]
-        draft.startDate = "2026-11-22"
-        draft.endDate = "2026-11-30"
         XCTAssertEqual(ProjectEditTopicCard.missingCount(draft), 0)
     }
 

@@ -129,7 +129,7 @@ import Combine
                             }
                                 .frame(maxWidth:.infinity)
                                 .clipped()
-                                .clipShape(.rect(cornerRadius: 12))
+                                .clipShape(.rect(cornerRadius: CYRadius.card))
                         }
                         .frame(maxWidth:.infinity,alignment:.leading)
                         // mp-r3-publish: MP template-intro draws the featured covers only (canvas `tiField`, aria-label

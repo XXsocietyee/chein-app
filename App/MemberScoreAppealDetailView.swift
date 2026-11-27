@@ -40,10 +40,8 @@ import SwiftUI
                     .accessibilityElement(children: .combine)
                 }
                 if flow.busy {
-                    ProgressView()
+                    ProgressView { Text("score.detail.loading", tableName: "MemberScoreAppealList") }
                         .frame(maxWidth: .infinity)
-                        .accessibilityElement(children: .ignore)
-                        .accessibilityLabel(Text("score.detail.loading", tableName: "MemberScoreAppealList"))
                 }
                 if let failure = flow.failure {
                     Label {

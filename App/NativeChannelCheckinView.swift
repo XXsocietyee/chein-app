@@ -11,10 +11,8 @@ import SwiftUI
             if let flow { NativeChannelCheckinView(flow: flow, current: current, reminderDate: reminderDate) }
             else if attempted { ContentUnavailableView("d7.checkin.unavailable", systemImage: "calendar.badge.checkmark") }
             else {
-                ProgressView()
+                ProgressView { Text("d7.channelActivity.loading") }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(Text("d7.channelActivity.loading"))
             }
         }.task { guard !attempted else { return }; attempted = true; if current() { flow = makeFlow() } }
     }
@@ -161,10 +159,8 @@ import SwiftUI
     @ViewBuilder private var notice: some View {
         switch flow.phase {
         case .reading:
-            ProgressView()
+            ProgressView { Text("d7.channelActivity.loading") }
                 .frame(maxWidth: .infinity)
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(Text("d7.channelActivity.loading"))
         case .submitting:
             ProgressView("d7.checkin.submitting")
                 .frame(maxWidth: .infinity)
@@ -204,10 +200,8 @@ import SwiftUI
             if !available { Section { ContentUnavailableView("d7.checkinRank.unavailable", systemImage: "list.number") } }
             else {
                 if busy {
-                    ProgressView()
+                    ProgressView { Text("d7.channelActivity.loading") }
                         .frame(maxWidth: .infinity)
-                        .accessibilityElement(children: .ignore)
-                        .accessibilityLabel(Text("d7.channelActivity.loading"))
                 }
                 if failed { Section { ContentUnavailableView("d7.checkinRank.loadFailed", systemImage: "exclamationmark.circle") } }
                 if let page {

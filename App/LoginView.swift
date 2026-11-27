@@ -251,24 +251,18 @@ struct LoginView: View {
         if type == .privacyPolicy { PrivacyProtectionView(market: session.operationalMarket, legalReader: session.legalReader, signedIn: session.account != nil) }
         else { SettingsLegalDocumentView(type: type, market: session.operationalMarket, reader: session.legalReader) }
     }
-    /// Brand mark and wordmark. Both source files are near-black, so they template to the primary text colour.
+    /// Brand mark, once. `images/d_logo.png` is the same mark at a smaller size (not a wordmark), so stacking it
+    /// under `cy_logo_mark` drew the logo twice (sweep login-player). The title below carries the words.
     private var brandMark: some View {
-        VStack(spacing: 12) {
-            MPAsset.BrandLogo.cyLogoMark
-                .renderingMode(.template)
-                .resizable()
-                .scaledToFit()
-                .frame(width: 88, height: 88)
-            MPAsset.BrandLogo.dLogo
-                .renderingMode(.template)
-                .resizable()
-                .scaledToFit()
-                .frame(height: 36)
-        }
-        .foregroundStyle(.primary)
-        .frame(maxWidth: .infinity)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(verbatim: AppLanguage.interfaceIsChinese(locale) ? "城瘾" : "Chein"))
+        MPAsset.BrandLogo.cyLogoMark
+            .renderingMode(.template)
+            .resizable()
+            .scaledToFit()
+            .frame(width: 88, height: 88)
+            .foregroundStyle(.primary)
+            .frame(maxWidth: .infinity)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(verbatim: AppLanguage.interfaceIsChinese(locale) ? "城瘾" : "Chein"))
     }
 
     private func submit() {

@@ -239,7 +239,7 @@ struct CityDeedCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(palette.bgElevated)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
         .overlay(outline(corner: 20))
     }
 
@@ -267,7 +267,7 @@ struct CityDeedCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         // Inside a sheet the deed is a plain fill with no outline (xrefs-1 B.1, N08–N12): the sheet's edge is the box.
         .background(palette.bgRaised)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
     }
 
     @ViewBuilder private var row: some View {
@@ -278,7 +278,7 @@ struct CityDeedCard: View {
             }
             .padding(CYSpacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
             .overlay(outline(corner: 12))
         } else {
             HStack(spacing: CYSpacing.md) {
@@ -288,7 +288,7 @@ struct CityDeedCard: View {
             }
             .padding(CYSpacing.md)
             .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
-            .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
             .overlay(outline(corner: 12))
         }
     }
@@ -312,12 +312,13 @@ struct CityDeedCard: View {
     private var mini: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(verbatim: copy.district(place) ?? copy("城市", "City"))
-                .cyText(.caption, weight: .semibold).foregroundStyle(bandText).lineLimit(1)
+                .cyText(.caption, weight: .semibold).foregroundStyle(bandText).lineLimit(typeSize.isAccessibilitySize ? 2 : 1)
                 .padding(.horizontal, 8).frame(maxWidth: .infinity, minHeight: 22, alignment: .leading)
                 .background(bandColor)
             CityDeedPhoto(url: place.photoURL, place: place, cover: .thumb).frame(height: 58).clipped()
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: copy.title(place)).cyText(.label, weight: .semibold).foregroundStyle(palette.textPrimary).lineLimit(1)
+                Text(verbatim: copy.title(place)).cyText(.label, weight: .semibold).foregroundStyle(palette.textPrimary)
+                    .lineLimit(typeSize.isAccessibilitySize ? 2 : 1)
                 HStack(spacing: 4) {
                     CityCoin()
                     Text(verbatim: place.rentPerVisit.map { "+\($0) / " + copy("次", "visit") } ?? "—")
@@ -328,7 +329,7 @@ struct CityDeedCard: View {
         }
         .frame(width: typeSize.isAccessibilitySize ? 160 : 112)
         .background(palette.bgElevated)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
         .overlay(outline(corner: 12))
     }
 

@@ -14,6 +14,8 @@ extension EnvironmentValues {
 /// the acknowledged dissolve. Nil outside the edit page.
 struct ClubDissolvedReturn {
     let leave: @MainActor () -> Void
+    /// mp-club r3 pass 10 (MP utils/danger-actions.js `club.dissolve` title 解散「name」？): the club name for the confirm.
+    var clubName: String? = nil
 }
 private struct ClubDissolvedReturnKey: EnvironmentKey {
     static let defaultValue: ClubDissolvedReturn? = nil
@@ -513,7 +515,7 @@ struct ClubOperationsWorkspaceView: View {
                     ClubGovernanceReadView(operation: .dissolutionBlockers, scope: .init(clubID: profile.club.id), identity: identity,
                         access: governance.access, coordinator: governance.coordinator)
                         .environment(\.clubProfileDraftFlow, profileDraft)
-                        .environment(\.clubDissolvedReturn, ClubDissolvedReturn(leave: { dismiss() }))
+                        .environment(\.clubDissolvedReturn, ClubDissolvedReturn(leave: { dismiss() }, clubName: profile.club.name))
                 } label: { Label("club.ops.dissolve", systemImage: "trash").foregroundStyle(.red) }
                     .disabled(loading || state.locksForm)
                     .accessibilityIdentifier("club.ops.dissolve")

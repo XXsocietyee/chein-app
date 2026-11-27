@@ -1,5 +1,8 @@
 {
   "allowed": {
+    "App/CityKit/CityMomentView.swift": {
+      "raw radius": "procedural reward art: the tilted gold coin ticket that lands on a city moment (P7), drawn to its own size, not a card"
+    },
     "App/CityKit/CityPropertySheet.swift": {
       "custom sheet": "full-screen 漫游 City board map: Maps-style persistent place sheet over the live map (map stays interactive, deed tile flies into it); map chrome"
     },
@@ -82,6 +85,9 @@
     "App/NativeR2/FreeExplore/NativeFreeExploreMapView.swift": {
       "hidden nav": "full-screen free-explore map"
     },
+    "App/NativeR2/Motion/MotionR2Rewards.swift": {
+      "raw radius": "procedural reward art: postage stamp with a 6 pt paper margin and dashed perforation edge (P8), not a card"
+    },
     "App/NativeStoryWalkingAuthorView.swift": {
       "hidden nav": "unsaved-changes guarded exit (confirmation dialog) in the story authoring flow; story-flow is out of scope"
     },
@@ -96,6 +102,9 @@
     },
     "App/PlayNativeDeviceProvider.swift": {
       "raw colour": "camera filter rendering (night vision scanlines / pet POV frame) drawn into a photo"
+    },
+    "App/ProfileBadgesView.swift": {
+      "raw radius": "holo sheen on the round 96 pt medal: radius = half the medal size, so the sheen stays a circle"
     },
     "App/ProjectEditOverviewKit.swift": {
       "hidden nav": "full-bleed 地图 page: transparent bar over the map, system back and inline title kept"
@@ -115,6 +124,9 @@
     },
     "App/RoamLiveSessionView.swift": {
       "hidden nav": "live roam game HUD over a full-screen map"
+    },
+    "App/RoamSubpageParityViews.swift": {
+      "raw radius": "MP stamp printer art (printer slot 2 pt, paper 12.5 pt sized to the 63.5 pt printer image) and the scratch-to-reveal foil; drawn art, not cards"
     },
     "App/SearchMapCanvas.swift": {
       "raw colour": "map route stroke with light/dark values on a full-screen map"

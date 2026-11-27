@@ -106,10 +106,8 @@ import SwiftUI
         .privacySensitive()
     }
     private var loading: some View {
-        ProgressView()
+        ProgressView { Text("cy.state.loading") }
             .frame(maxWidth: .infinity)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text("cy.state.loading"))
     }
     private func unavailable(_ key: String, systemImage: String) -> some View {
         ContentUnavailableView {

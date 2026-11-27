@@ -706,16 +706,9 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
         return line
     }
     private func registrationAction(_ detail: ActivityDetail) -> some View { CYFooterBar {
+        // mp-home r3 (MP scene-play-activity-detail index.wxml:147-153): the footer is the one main button (share is in
+        // the toolbar). Price lives on 票种 and the going count on 已报名 + the people section, so neither repeats here.
         VStack(spacing: 8) {
-            let goingStackShown = !detail.isCancelled && (detail.people.registrationCount ?? 0) > 0
-            if let summary = pinnedSummary(detail, includeGoing: !goingStackShown) {
-                summary
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .accessibilityIdentifier("activity.pinned.summary")
-            }
-            // Design pass explore P6: who is going sits next to the one action it affects (MP registrationCount + roster).
-            if !detail.isCancelled { ExploreGoingStack(people: detail.people) }
             if let access = hostCancelAccess, !detail.isCancelled,
                ActivityHostCancelRules.isHost(hostMemberID: detail.hostMemberID, accountID: access.accountID) {
                 // R7-PC-C1-4 (r1 PC-C-1-5): MP host footer is 取消活动并退款, not 立即报名.

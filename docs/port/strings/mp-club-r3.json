@@ -238,6 +238,23 @@
           }
         }
       }
+    },
+    "club.gov.consequence.dissolve.titleNamed %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dissolve “%@”?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解散「%@」？"
+          }
+        }
+      }
     }
   }
 }

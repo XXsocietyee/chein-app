@@ -460,20 +460,16 @@ struct CityNearbyDrawer: View {
         case .unavailable:
             CityEmptyLine(symbol: "map", text: copy("城市大富翁在这个版本里没有开放。", "City Monopoly is not open in this build."))
         case .failed(let code):
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                CityEmptyLine(symbol: "wifi.exclamationmark", text: CityReasonCopy.text(code, chinese: copy.chinese))
-                CYPillButton(verbatim: copy("重试", "Retry"), style: .secondary, fullWidth: false, action: onRetry)
-            }
+            CityEmptyLine(symbol: "wifi.exclamationmark", text: CityReasonCopy.text(code, chinese: copy.chinese),
+                          actionTitle: copy("重试", "Retry"), action: onRetry)
         case .idle:
-            VStack(spacing: CYSpacing.sm) { ForEach(0..<3, id: \.self) { _ in CYSkeleton().frame(height: 72) } }
+            CYSkeleton()
         case .loading where visible.isEmpty:
-            VStack(spacing: CYSpacing.sm) { ForEach(0..<3, id: \.self) { _ in CYSkeleton().frame(height: 72) } }
+            CYSkeleton()
         default:
             if visible.isEmpty {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    CityEmptyLine(symbol: "mappin.slash", text: copy("附近 3 公里内还没有棋盘地点。换个街区看看。", "No board places within 3 km. Try another area."))
-                    if let onChooseArea { CYPillButton(verbatim: copy("选择区域", "Choose area"), style: .secondary, fullWidth: false, action: onChooseArea) }
-                }
+                CityEmptyLine(symbol: "mappin.slash", text: copy("附近 3 公里内还没有棋盘地点。换个街区看看。", "No board places within 3 km. Try another area."),
+                              actionTitle: onChooseArea == nil ? nil : copy("选择区域", "Choose area"), action: onChooseArea)
             } else {
                 ScrollView {
                     LazyVStack(spacing: CYSpacing.sm) {
@@ -512,18 +508,38 @@ struct CityNearbyDrawer: View {
     }
 }
 
+/// mp-states r3: the one empty pattern — a system ContentUnavailableView (symbol + the sentence), not a raised card.
 struct CityEmptyLine: View {
     let symbol: String
     let text: String
-    @Environment(\.cyPalette) private var palette
+    var actionTitle: String? = nil
+    var action: (() -> Void)? = nil
     var body: some View {
-        HStack(alignment: .top, spacing: CYSpacing.sm) {
-            Image(systemName: symbol).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
-            Text(verbatim: text).cyText(.body).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+        if let actionTitle, let action {
+            ContentUnavailableView {
+                Image(systemName: symbol)
+                    .font(.largeTitle)
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+            } description: {
+                Text(verbatim: text)
+            } actions: {
+                Button(action: action) {
+                    Text(verbatim: actionTitle)
+                }
+                .buttonStyle(.bordered)
+            }
+            .accessibilityElement(children: .contain)
+        } else {
+            ContentUnavailableView {
+                Image(systemName: symbol)
+                    .font(.largeTitle)
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+            } description: {
+                Text(verbatim: text)
+            }
+            .accessibilityElement(children: .combine)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(CYSpacing.md)
-        .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-        .accessibilityElement(children: .combine)
     }
 }

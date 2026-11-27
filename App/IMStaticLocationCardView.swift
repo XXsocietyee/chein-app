@@ -18,7 +18,7 @@ struct IMStaticLocationCardView: View {
         .frame(maxWidth: 280)
         // Messages-style location bubble: system hierarchical fill, system bubble shape.
         .background(.quaternary)
-        .clipShape(.rect(cornerRadius: 18, style: .continuous))
+        .clipShape(.rect(cornerRadius: CYRadius.bubble, style: .continuous))
         .privacySensitive()
         .onDisappear { showMap = false }
     }

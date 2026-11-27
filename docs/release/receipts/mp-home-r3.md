@@ -165,7 +165,20 @@ Screenshot: `docs/sweeps/latest/mp-home/zh-Hans-rep3-activity-detail.jpg`, `en-r
 | hero `activity-hero` → `App/E1ActivityDetailParts.swift` `E1ActivityHero` + `App/NativeR2/Explore/ExploreDesignPass.swift` `ExploreStartsInLine` | An ended activity (11月21日) read 「进行中 · 还剩 已结束」 / "In progress · Ends in Ended": `TimelineView(.explicit)` with only past dates hands back a past `context.date`, so the line took the start as now. | **Fixed** — the line uses `max(context.date, Date())`; an ended activity shows no live line (status 已结束 + 活动时间 only, as MP). Also fixes the same stale line on 首页 rails. |
 | hero status badge | 已结束 (neutral = `.secondary`) rendered dark grey on the black scrim — unreadable. | **Fixed** — the hero text stack resolves in `.colorScheme(.dark)` (scrim is always black), so neutral reads light grey; tones unchanged. |
 | footer `activity-action` → `App/ActivityDetailView.swift` `registrationAction` | 「¥58.00 起 · 24 人已报名」 and the going stack 「24 人已报名」 said the count twice. MP footer = share + one main button. | **Fixed** — the summary line drops the count when the going stack (P6) shows it; price stays. |
+| `pages/index/index` offline (per-rail `cy-error` 加载失败 + 重试, feed error) → `d2-home-offline` (`App/DesignFixtures/D2Fixtures.swift`, `App/HomeFeedFixtureSupport.swift`) | Sweep `zh-Hans-d2-home-offline.jpg`: whole page 「首页暂不可用 · 这项功能还没开通」 — the fixture passed `auth.notConfigured` (feature-off), not an offline state. | **Fixed** — new fixture scenario `offline` throws `URLError(.notConnectedToInternet)` from every rail and the feed page, so the shot shows the real MP failure states (per-rail 加载失败 + 重试, feed error). App code unchanged. |
+| `pages/search2/result` → `d2-search-results` (`App/DesignFixtures/D2Fixtures.swift`) | Sweep `zh-Hans-d2-search-results.jpg` is identical to the empty search page — the fixture never ran a search, so the result list (scope tabs → rows → 没有更多了) was never shot. | **Fixed** — fixture passes `initialQuery: GlobalSearchQuery(keyword: "Lantern")` (the MP link-keyword path), so the page searches once on appear. App code unchanged. |
 | footer main button 「—」 | MP `actionFor`: `isSignUp` not 0/1 → `{state:'unavailable', text:'—'}` disabled. | ✓ matches MP (fixture has no `isSignUp`). |
+
+## Round 3 continue (6) — 18:54 sweep (build 1300a48db), mp-home sheets zh-Hans + en
+
+Build 1300a48db predates `56f6f8aaf` (d2-home-offline) and `67f829a46` (d2-search-results), so those two tiles still show the old feature-off / empty-search shots; recheck next sweep. Merged `origin/ui/combined-r7` into `mp/r3-home` first (clean).
+
+| MP page → native | Difference seen (screenshot) | Status |
+|---|---|---|
+| `scene-play-activity-detail/index.wxml:147-153` footer → `App/ActivityDetailView.swift` `registrationAction` | `zh-Hans-rep3-activity-detail.jpg` / `en-…`: footer still stacked 「¥58.00 起」 + avatar 「24 人已报名」 above the button; the count is already in the 已报名 fact row and the 「N 人已报名」 people section (3×). MP footer = share + one main button. | **Fixed** — footer is the one main button only (share stays in the toolbar). `pinnedSummary` kept for the city-event variant's 价格 fact row. |
+| `index.wxml:41-43` section title 关于这场活动 → `Section("activity.about")` | zh read 活动介绍. | **Fixed** — zh-Hans `关于这场活动` (en stays "About this activity"). |
+| `wave-today-club` (`App/DesignFixtures/WaveFixtures.swift`) | Bare `HomeTodayCard` + "Synthetic tap × 2" debug line. | **Not changed** — motion-only fixture; the Today card is not on the MP home and is not rendered on 首页 (row 5). |
+| `d2-home` | 首页 large title, banner + dots, greeting 玩家 · 上海, 编辑精选 footnote and first card. | ✓ matches the 15:09 check. |
 
 ## Not done / follow-ups
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -176,5 +189,5 @@ Screenshot: `docs/sweeps/latest/mp-home/zh-Hans-rep3-activity-detail.jpg`, `en-r
 - Needs a simulator pass: 4:3 banner card height under the large title on small phones (first rails should stay near the fold).
 - 首页 city tap-to-relocate (MP `onTapHomeCity`): needs a foreground location → city read; the menu covers manual choice meanwhile.
 - Needs a simulator pass: 20-item city menu in en + zh-Hans.
-- Needs a simulator pass: `rep3-activity-detail` hero (no live line when ended, light 已结束) and one going count in the footer.
-- `d2-home-offline` shows 「首页暂不可用 · 这项功能还没开通」(feature-off copy) — checking next run whether the fixture means offline (MP `cy-error` 网络 copy + 重试) or a disabled flag.
+- Needs a simulator pass: `rep3-activity-detail` hero (no live line when ended, light 已结束) and the footer as the one main button (continue 6).
+- Needs a simulator pass: `d2-home-offline` now renders the per-rail failure + feed error states; `d2-search-results` now shows the result list.

@@ -320,6 +320,7 @@ import SwiftUI
     @FocusState private var focusedField: String?
     @State private var canvas: ProjectEditCanvas = .list
     @State private var replacingPlace: ProjectEditPlaceTarget?
+    @State private var topicDetailRequest: ProjectEditTopicDetailRequest?
     @StateObject private var undoCenter = ProjectEditUndoCenter()
     @Environment(\.undoManager) private var undoManager
 
@@ -367,6 +368,14 @@ import SwiftUI
             // 列表 / 地图, then the 主题详情 card, 设置, and the chapter cards.
             if model.coordinator.snapshot != nil {
                 Section {
+                    // MP fabu wxml:98-117: the name comes first on page 1 (required, ≤30, placeholder 未命名主题), the save state under it.
+                    TextField(text: $model.draft.name, prompt: OpsR3Text.text("editor.topic.untitled"), axis: .vertical) { Text("projectEdit.name") }
+                        .font(.title2.bold())
+                        .focused($focusedField, equals: "name")
+                        .disabled(!model.canEdit)
+                        .accessibilityIdentifier("projectEdit.name").id("project-issue-anchor-name")
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
                     ProjectEditOverviewBar(saveState: overviewSaveState, saveDetail: overviewSaveDetail, canvas: $canvas)
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
@@ -374,11 +383,10 @@ import SwiftUI
                 }
                 .listSectionSpacing(.compact)
                 Section {
+                    // MP fabu wxml:126 openTopicDetail: one entry → the 主题详情 sheet (topic-detail-sheet.wxml).
                     ProjectEditTopicCard(name: model.draft.name, cover: model.draft.imgUrl,
                                          missing: ProjectEditTopicCard.missingCount(model.draft)) {
-                        withAnimation {
-                            scrollProxy.scrollTo("project-issue-anchor-name", anchor: .top)
-                        }
+                        topicDetailRequest = ProjectEditTopicDetailRequest(anchor: nil)
                     }
                 }
                 .listSectionSpacing(.compact)
@@ -407,10 +415,6 @@ import SwiftUI
                 // r8 C-F5 (MP fabu wxml:172): 角色 card, city themes only, never in the whitelist scope.
                 if model.draft.product == .city, model.coordinator.snapshot?.scope != .whitelist {
                     ProjectEditCastHost(preserved: $model.draft.preserved, readOnly: model.coordinator.isReadOnly, chapters: model.draft.chapters)
-                }
-                // r8 C-F7 (MP topic-detail-sheet.wxml:79, look-sheet.wxml): 画面风格.
-                if model.coordinator.snapshot?.scope != .whitelist {
-                    ProjectEditLookHost(preserved: $model.draft.preserved, readOnly: model.coordinator.isReadOnly)
                 }
                 // U02-03 place to-dos (MP fabu wxml:187: page 1, right above 章节) for an adopted template copy. Hidden while gated or without a place contract.
                 if let topicID = model.coordinator.snapshot?.topicID, TopicTemplateAdoptionFactory.bindingIsLive {
@@ -499,10 +503,9 @@ import SwiftUI
                             .disabled(!model.fullEdit).accessibilityIdentifier("publishModes.applySeed")
                     }
                 }
-                // Mini-program publish/fabu order: topic details (with cover and mode),
-                // tickets, chapters, the pending area, then the optional topic systems.
-                basicFields
-                ProjectTopicMediaHost(editor: model)
+                // Mini-program publish/fabu order: the topic details live in the 主题详情 sheet (topicDetailSheet);
+                // here the schedule, tickets, the pending area, then the optional topic systems.
+                scheduleFields
                 // Design hand-off r1 CF-38: ticket rows show name, price in 积分 and stock; the section says
                 // `2 种票 · 39 积分起` or `还没设置`; rows reorder by drag or by the "⋯" menu.
                 Section {
@@ -547,13 +550,6 @@ import SwiftUI
                 NativeRpgPassiveRulesAuthorEntry(model: model)
                 Section { NativeStoryWalkingAuthorEntry(model: model) }
                 ProjectTeamConfigurationEntry(model: model)
-                ProjectClubLeadFields(model: model).id("project-issue-anchor-clubLead")
-                ProjectEditCompletionRulesForm(rules: model.completionRules, city: model.draft.product == .city, fullEdit: model.fullEdit, totalNodes: model.draft.chapters.reduce(0) { $0 + $1.nodes.count }).id("project-issue-anchor-completionRules")
-                PublishingTopicRewardsForm(rewards: model.rewards, fullEdit: model.fullEdit).id("project-issue-anchor-topicRewards")
-                Section("projectEdit.visibility") {
-                    Toggle("projectEdit.publishToCreative", isOn: $model.draft.publishToCreative)
-                        .disabled(!model.fullEdit || model.coordinator.snapshot?.topicID != nil)
-                }
                 TopicPublishCheckSection(model: model)
                 if !model.coordinator.issues.isEmpty {
                     Section("projectEdit.fixBeforeReview") {
@@ -713,9 +709,13 @@ import SwiftUI
             discardConfirmation || showingCopy || submittedResource != nil || submission != nil ||
                 modeReview.presentation != nil || ownedCover.presentation != nil || approvedRelease.presentation != nil ||
                 reviewRequest.presentation != nil || starter.destination != nil || pending.destination != nil ||
-                issueNavigation.destination != nil || model.confirmation != nil
+                issueNavigation.destination != nil || model.confirmation != nil || topicDetailRequest != nil
         }))
         .modifier(ProjectEditIssueNavigationPresentation(controller: issueNavigation))
+        .modifier(ProjectEditTopicDetailHost(request: $topicDetailRequest, rootRequestID: issueNavigation.rootRequest?.id,
+                                             rootAnchor: issueNavigation.rootRequest?.capture.location.anchor) { anchor in
+            topicDetailSheet(anchor: anchor)
+        })
         .onChange(of: model.revision) { _, _ in
             if model.coordinator.state == .acknowledged, let next = model.submittedHandoff, next.id != handledSubmission {
                 handledSubmission = next.id; submission = next
@@ -1042,44 +1042,99 @@ import SwiftUI
                 .foregroundStyle(.secondary)
         }
     }
+    /// MP topic-detail-sheet.wxml order: 主题描述 → 主题类别 → 竖版封面 → 横版封面. The name is not edited here (MP: page 1).
     private var basicFields: some View {
         Group {
-            Section("projectEdit.basics") {
-                TextField("projectEdit.name", text: $model.draft.name).focused($focusedField, equals: "name")
-                    .accessibilityIdentifier("projectEdit.name").id("project-issue-anchor-name")
-                TextField("projectEdit.subtitle", text: $model.draft.subtitle).accessibilityIdentifier("projectEdit.subtitle")
-                TextField("projectEdit.description", text: $model.draft.description, axis: .vertical).lineLimit(3...8)
-                    .accessibilityIdentifier("projectEdit.description").id("project-issue-anchor-description")
-                // r10 C-F8b / N-18: MP topic-detail-sheet chooseMedia (photo library + uploadOSS), not typed URLs.
-                ProjectEditTopicImageField(kind: .cover, title: "projectEdit.cover", value: $model.draft.imgUrl, identifier: "projectEdit.cover").id("project-issue-anchor-cover")
-                ProjectEditTopicImageField(kind: .gallery, title: "projectEdit.gallery", value: $model.draft.imgArr, identifier: "projectEdit.gallery")
+            Section {
+                TextField(text: $model.draft.subtitle, prompt: Text("mpPublish.topicDetail.subtitlePrompt"), axis: .vertical) {
+                    Text("mpPublish.topicDetail.subtitle")
+                }
+                .accessibilityIdentifier("projectEdit.subtitle")
+            } header: {
+                Text("mpPublish.topicDetail.subtitle")
+            }
+            Section {
                 ProjectEditCategoryField(selection: $model.draft.categoryIDs).categoryEditing(model).id("project-issue-anchor-categories")
-                ProjectThoughtDefinitionsEntry(model: model)
-            }.disabled(!model.canEdit)
-            Section("projectEdit.schedule") {
-                // Keep the localized field name and its value separately discoverable,
-                // matching the exact-value accessibility contract of the revision row.
-                HStack(alignment: .firstTextBaseline) {
-                    Text("projectEdit.mode")
-                    Spacer(minLength: 12)
-                    Text(LocalizedStringKey(model.draft.product == .city ? "projectEdit.city" : "projectEdit.freeExplore"))
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.trailing)
-                        .accessibilityIdentifier("projectRemote.mode")
-                }
-                .accessibilityElement(children: .contain)
-                ProjectEditDateField(title: "projectEdit.startDate", value: $model.draft.startDate, identifier: "projectEdit.startDate").dateEditing(.init(model: model, field: .start)).id("project-issue-anchor-start")
-                ProjectEditDateField(title: "projectEdit.endDate", value: $model.draft.endDate, identifier: "projectEdit.endDate").dateEditing(.init(model: model, field: .end)).id("project-issue-anchor-end")
-                ProjectEditScheduleSpan(start: model.draft.startDate, end: model.draft.endDate)
-                if model.draft.product == .freeExplore {
-                    ProjectEditDateField(title: "projectEdit.deadline", value: $model.draft.recruitDeadline, identifier: "projectEdit.deadline").dateEditing(.init(model: model, field: .deadline)).id("project-issue-anchor-deadline")
-                    if let topicID = model.coordinator.publicationTopicID, let visit = model.coordinator.visitConfigModel(topicID: topicID) {
-                        NavigationLink { FreeExplorationVisitConfigView(model: visit) } label: { Text("feVisitConfig.title") }
-                            .accessibilityIdentifier("feVisitConfig.open")
-                    }
-                }
-            }.disabled(!model.fullEdit)
+                // r10 C-F8b / N-18: MP topic-detail-sheet chooseMedia (photo library + uploadOSS), not typed URLs.
+                ProjectEditTopicImageField(kind: .cover, title: "mpPublish.topicDetail.cover", value: $model.draft.imgUrl, identifier: "projectEdit.cover").id("project-issue-anchor-cover")
+                ProjectEditTopicImageField(kind: .gallery, title: "mpPublish.topicDetail.gallery", value: $model.draft.imgArr, identifier: "projectEdit.gallery")
+            }
         }
+        .disabled(!model.canEdit)
+    }
+    /// MP topic-detail-sheet.wxml, after the covers: 画面风格 → 剧情详情 (≤1000) → 伏笔, then the topic rules this app edits.
+    @ViewBuilder private var storyFields: some View {
+        // r8 C-F7 (MP topic-detail-sheet.wxml:79, look-sheet.wxml): 画面风格.
+        if model.coordinator.snapshot?.scope != .whitelist {
+            ProjectEditLookHost(preserved: $model.draft.preserved, readOnly: model.coordinator.isReadOnly,
+                                chapterNames: model.draft.chapters.map(\.name))
+        }
+        Section {
+            TextField(text: $model.draft.description, prompt: Text("mpPublish.topicDetail.storyPrompt"), axis: .vertical) {
+                Text("mpPublish.topicDetail.story")
+            }
+            .lineLimit(5...12)
+            .accessibilityIdentifier("projectEdit.description").id("project-issue-anchor-description")
+            ProjectThoughtDefinitionsEntry(model: model)
+        } header: {
+            Text("mpPublish.topicDetail.story")
+        }
+        .disabled(!model.canEdit)
+        // MP topic-detail-sheet.wxml:218-262: 主题通关奖励 → 通关条件 → 发布到创意广场 → 归属俱乐部.
+        PublishingTopicRewardsForm(rewards: model.rewards, fullEdit: model.fullEdit).id("project-issue-anchor-topicRewards")
+        ProjectEditCompletionRulesForm(rules: model.completionRules, city: model.draft.product == .city, fullEdit: model.fullEdit, totalNodes: model.draft.chapters.reduce(0) { $0 + $1.nodes.count }).id("project-issue-anchor-completionRules")
+        Section("projectEdit.visibility") {
+            Toggle("projectEdit.publishToCreative", isOn: $model.draft.publishToCreative)
+                .disabled(!model.fullEdit || model.coordinator.snapshot?.topicID != nil)
+        }
+        ProjectClubLeadFields(model: model).id("project-issue-anchor-clubLead")
+    }
+    /// The 主题详情 sheet (MP cy-sheet variant=full): inline title = the topic name, 完成 top-right.
+    private func topicDetailSheet(anchor: String?) -> some View {
+        NavigationStack {
+            Form {
+                basicFields
+                ProjectTopicMediaHost(editor: model)
+                storyFields
+            }
+            .modifier(ProjectEditIssueInitialScroll(anchor: anchor))
+            .navigationTitle(model.draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                             ? OpsR3Text.string("editor.topic.untitled", locale: locale) : model.draft.name)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("action.done") { topicDetailRequest = nil }
+                        .accessibilityIdentifier("projectEdit.topicDetail.done")
+                }
+            }
+        }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
+    }
+    private var scheduleFields: some View {
+        Section("projectEdit.schedule") {
+            // Keep the localized field name and its value separately discoverable,
+            // matching the exact-value accessibility contract of the revision row.
+            HStack(alignment: .firstTextBaseline) {
+                Text("projectEdit.mode")
+                Spacer(minLength: 12)
+                Text(LocalizedStringKey(model.draft.product == .city ? "projectEdit.city" : "projectEdit.freeExplore"))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.trailing)
+                    .accessibilityIdentifier("projectRemote.mode")
+            }
+            .accessibilityElement(children: .contain)
+            ProjectEditDateField(title: "projectEdit.startDate", value: $model.draft.startDate, identifier: "projectEdit.startDate").dateEditing(.init(model: model, field: .start)).id("project-issue-anchor-start")
+            ProjectEditDateField(title: "projectEdit.endDate", value: $model.draft.endDate, identifier: "projectEdit.endDate").dateEditing(.init(model: model, field: .end)).id("project-issue-anchor-end")
+            ProjectEditScheduleSpan(start: model.draft.startDate, end: model.draft.endDate)
+            if model.draft.product == .freeExplore {
+                ProjectEditDateField(title: "projectEdit.deadline", value: $model.draft.recruitDeadline, identifier: "projectEdit.deadline").dateEditing(.init(model: model, field: .deadline)).id("project-issue-anchor-deadline")
+                if let topicID = model.coordinator.publicationTopicID, let visit = model.coordinator.visitConfigModel(topicID: topicID) {
+                    NavigationLink { FreeExplorationVisitConfigView(model: visit) } label: { Text("feVisitConfig.title") }
+                        .accessibilityIdentifier("feVisitConfig.open")
+                }
+            }
+        }.disabled(!model.fullEdit)
     }
 
     /// The one delete rule: tickets go at once, with 撤销 (toast and `UndoManager`).

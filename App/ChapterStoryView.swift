@@ -217,10 +217,9 @@ import UIKit
                         CYPillButton("chapterStory.return") { leave() }
                     }
                 } else if NativeR2Flags.storyFlow && model.phase == .loading && model.snapshot == nil {
-                    ProgressView()
+                    ProgressView { Text("homeFeed.loading") }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 40)
-                        .accessibilityLabel(Text("homeFeed.loading"))
                         .accessibilityIdentifier("chapterStory.loading")
                 } else if NativeR2Flags.storyFlow && model.phase == .failed {
                     ContentUnavailableView {
@@ -366,7 +365,7 @@ import UIKit
     @ViewBuilder private func segmentBody(_ segment: ChapterStorySegment) -> some View {
         switch segment.content {
         case .text(let text) where NativeR2Flags.storyFlow: NR2NarrationText(text: text)
-        case .text(let text): Text(verbatim: text).cyText(.body).foregroundStyle(CYColor.textPrimary).lineSpacing(8).fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+        case .text(let text): Text(verbatim: text).cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
         case .image(let url):
             ChapterStoryArtwork(url: url, alt: segment.alt, reader: imageReader) { image in zoomedImage = .init(image: image, alt: segment.alt) }
                 .id(mediaScope)
@@ -751,7 +750,7 @@ struct ChapterStoryZoomedImage: Identifiable {
                     if let alt { Text(verbatim: alt).cyText(.body).foregroundStyle(CYColor.textPrimary) }
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }
-        }.frame(maxWidth: .infinity).clipShape(RoundedRectangle(cornerRadius: 18))
+        }.frame(maxWidth: .infinity).clipShape(RoundedRectangle(cornerRadius: CYRadius.card))
         .task(id: requestKey) {
             guard !Task.isCancelled else { return }
             let captured = requestKey

@@ -229,8 +229,7 @@ import SwiftUI
     }
     @ViewBuilder private var focusSection: some View {
         if focusPhase == .resolving {
-            ProgressView()
-                .accessibilityLabel(Text("ticketWallet.loading"))
+            ProgressView { Text("ticketWallet.loading") }
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .accessibilityIdentifier("ticketWallet.focus.resolving")
         } else if focusPhase == .missing {
@@ -347,6 +346,19 @@ extension TicketWalletTicket {
 
 /// Native r2: one inset-grouped list row (artwork thumbnail, tag, title, facts), no card chrome, scrim or shadow.
 private struct TicketWalletRow: View {
+    /// mp-mine r3: MP signup writes dates as「M月D日」, never the raw server `yyyy-MM-dd`; this reads the
+    /// Beijing calendar day in the user's locale (2030年4月20日 / Apr 20, 2030) and keeps any other text as sent.
+    static func participateDateText(_ raw: String) -> String {
+        let parts = raw.prefix(10).split(separator: "-").compactMap { Int($0) }
+        guard parts.count == 3 else { return raw }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Asia/Shanghai") ?? .current
+        guard let day = calendar.date(from: DateComponents(year: parts[0], month: parts[1], day: parts[2])) else { return raw }
+        var style = Date.FormatStyle(date: .abbreviated, time: .omitted)
+        style.timeZone = calendar.timeZone
+        return day.formatted(style)
+    }
+
     let ticket: TicketWalletTicket
     var showsPendingOrderAction = false
     @Environment(\.ticketWalletCompletionReader) private var completionReader
@@ -378,7 +390,7 @@ private struct TicketWalletRow: View {
             }
             // a11y-dt r3: artwork capped at 96 pt (Music list rule) so the title keeps the row width at AX5.
             .frame(width: min(thumb, 96), height: min(thumb, 96))
-            .clipShape(.rect(cornerRadius: 8))
+            .clipShape(.rect(cornerRadius: CYRadius.inner))
             .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
                 // Owner rule (MP 2026-10-28): no status on the card. Only the MP tag: M月D日开始 / 退款中 / 已通关 / 未通关.
@@ -388,7 +400,7 @@ private struct TicketWalletRow: View {
                     .fixedSize(horizontal: false, vertical: true)
                 if ticket.clearedFlag == nil { completionCaption }
                 if let date = ticket.participateDate, !date.isEmpty {
-                    QuestifyMetadataLine(label: "ticketWallet.participateDate", value: LocaleDisplay.civil(date, locale: locale), systemImage: "calendar")
+                    QuestifyMetadataLine(label: "ticketWallet.participateDate", value: Self.participateDateText(date), systemImage: "calendar")
                 }
                 if let place = ticket.addressName, !place.isEmpty {
                     QuestifyMetadataLine(label: "ticketWallet.place", value: place, systemImage: "mappin.and.ellipse")

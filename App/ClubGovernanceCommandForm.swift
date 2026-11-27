@@ -75,6 +75,16 @@ import SwiftUI
     @Environment(\.clubOpsEventTopicFact) private var eventTopicFact
     @Environment(\.clubProfileDraftFlow) private var profileDraftFlow
     @Environment(\.clubDissolvedReturn) private var dissolvedReturn
+    /// The object the consequence sheet names: the role (revoke), the member (ban), the topic (结束主题) or the club (解散).
+    private var consequenceObjectName: String? {
+        switch route.operation {
+        case .revokeRole: return route.seed["roleName"]?.string
+        case .ban: return route.seed["targetNickname"]?.string
+        case .endTopic: return route.seed["topicName"]?.string
+        case .dissolve: return dissolvedReturn?.clubName
+        default: return nil
+        }
+    }
     /// CLB-group-code-04 (fix-r3-club-b round 3): the session label the event tools pass in (never a command field).
     @Environment(\.clubRoleActivityLabel) private var sessionLabel
     @QuestifyReduceMotion private var reduceMotion
@@ -491,9 +501,7 @@ import SwiftUI
         }
         .cySheet(isPresented: Binding(get: { consequenceReview != nil }, set: { if !$0 { consequenceReview = nil } })) {
             if let kind = ClubGovernanceConsequence(route.operation) {
-                kind.sheet(locale: locale, name: route.operation == .revokeRole ? route.seed["roleName"]?.string
-                                                 : (route.operation == .ban ? route.seed["targetNickname"]?.string
-                                                    : (route.operation == .endTopic ? route.seed["topicName"]?.string : nil))) {
+                kind.sheet(locale: locale, name: consequenceObjectName) {
                     guard let pending = consequenceReview, pending.id == review?.id else { consequenceReview = nil; return }
                     consequenceReview = nil; consequenceAccepted = pending.id; Task { await confirm(pending) }
                 }

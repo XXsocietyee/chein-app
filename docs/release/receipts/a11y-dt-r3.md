@@ -89,9 +89,37 @@ Merged `origin/ui/combined-r7` (clean). Sweep index still 18:06 (build 070117595
 | `pages/topic/index` route stops | `TopicXcxSections.swift` (`TopicXcxRouteSection`) | ✓ (mp-publish owns order) | Stop address (Maps link) 1 → 3 lines at AX sizes | Done |
 | `pages/member/index` card buttons | `MemberHomeHeader.swift` | ✓ | Left to mp-mine (18:15 sweep: they own the `ViewThatFits` fix for 开始探索 / 票夹); asset values `lineLimit(1)` + scale are numbers, fine | Skipped (other lane) |
 | Club fixtures `E3PostCard` | `ClubComponents.swift` | — | Fixture-only (`DesignFixtures/E3Fixtures.swift`), skipped | Skipped |
+| `pages/topic/index` 章节卡片 rail | `TopicChapterCardsSection.swift` (`TopicChapterCardView`) | ✓ (mp-publish owns order) | 156 pt rail card: title and meta 1 → 3 lines at AX sizes (one AX5 line held ~4 glyphs) | Done |
+| `pages/topic/index` 附近组队 card | `TopicTeamsCard.swift` | ✓ | Team name and meeting place 1 → 2 lines at AX sizes | Done |
+| Journey report / roam live stats / play lead bar | `JourneyReportViews.swift`, `RoamLiveSessionView.swift`, `MPGap/PlayRoam/PlayLeadBar.swift` | ✓ | Audit: `lineLimit(1)` hits are numbers with `minimumScaleFactor` (score, stop count, live values) or a short role tag beside a spacer; Reduce Motion already gates numeric transitions. No change | Done |
+
+## Run 6 (2026-11-27, hourly)
+
+Merged `origin/ui/combined-r7` (clean). Sweep index still 18:06 (build 070117595); a11y sheets unchanged.
+`.lineLimit(1)` audit continued (receipt Not done list, then single-hit files A–I).
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| City deed board (roam city) mini deed | `CityKit/CityDeedCard.swift` (`mini`) | ✓ (mp-roam owns order) | 160 pt AX card: district band and place title 1 → 2 lines at AX sizes instead of truncating; compact/large photo title keeps 1 line + scale (fixed-height photo), sheet header already `ViewThatFits` | Done |
+| People pile / invite card | `NativeR2/Social/CYPeopleComponents.swift` | ✓ | Audit: "+N" is a number with min 44-ish capsule; "Later" is short; buttons `ViewThatFits` HStack → VStack. No change | Done |
+| Step checklists (first roam, ticket wallet, club create, publish wizard, city) | `NativeR2/Components/CYStepChecklist.swift` (`doneRow`) | ✓ | Done-step row: title + summary side by side, 1 line each → at AX sizes `AnyLayout` VStack, title 3 lines, summary 2; thumbnail 28 pt → `@ScaledMetric(.body)` capped 44. Header ring numbers already scale 0.5 | Done |
+| Story reader | `NativeR2/Story/NR2StoryReaderParts.swift` | — | Story-flow is on hold (brief), skipped | Skipped |
+| `pages/club/*` rows (`ClubR1Row`) | `ClubKit/ClubR1Kit.swift` | ✓ (mp-club owns order) | Row subtitle 1 → 2 lines at AX sizes | Done |
+| Club home pinned notices | `ClubCommunityViews.swift` (`ClubCommunityFeedView` notice row) | ✓ | Notice summary 1 → 2 lines at AX sizes | Done |
+| Club detail inline leaderboard | `ClubDetailR8Mounts.swift` (`ClubInlineLeaderboardRows`) | ✓ | Nickname 1 → 2 lines at AX sizes (meta line already wraps) | Done |
+| In-game channel entry (`pages/play` chat row) | `InGameChannelEntryViews.swift` (`InGameChannelRowButton`) | ✓ (mp-journey owns order) | Last-message preview 1 → 2 lines at AX sizes (Messages pattern) | Done |
+| Single-hit files A–G (`ActivityPublishingWizardView`, `BundleShelfView`, `CastViews`, `CityArrivalEvidenceView`, `CityGamePanel`, `CityDiceKit`, `CityLiveOnMap`, `ClubEnrollmentView`, `ClubOperationsViews`, `ClubPostImagePicker`, `E1CommerceComponents`, `FreeExplorationViews`, `GlobalSearchView`, `GrowthLeaderboardView`) | — | ✓ | Audit: hits are prices / codes / counts with `minimumScaleFactor`, monograms in scaled circles, short button labels, or the search capsule that must stay one line (16:37 sweep fix). No change | Done |
+| Play tools › journal (`pages/play` lead sheet) | `MPGap/PlayRoam/PlayToolsAndLeadSheetView.swift` (`PlayJournalListView`) | ✓ (mp-journey owns order) | Entry excerpt 1 → 3 lines at AX sizes | Done |
+| Object card collection tile | `ObjectCardViews.swift` (`ObjectCardTile`) | ✓ | Place line 1 → 2 lines at AX sizes (grid already single-column there) | Done |
+| `pages/templatedetail` head | `TemplateDetailXbChrome.swift` (`TemplateXbHead`) | ✓ (mp-publish owns order) | Publisher 1 → 2 lines at AX sizes (head already stacks) | Done |
+| Object card pile / grid (`pages/playkit`) | `MPGap/PlayRoam/PlayRoamRound4Views.swift` (`ObjectCardPileAndGridView`) | ✓ | Grid tile title 1 → 2 lines at AX sizes | Done |
+| Club detail member strip (MP `buildMemberStrip`) | `MPGap/Club/ClubGapManageExtensions.swift` (`ClubGapMemberAvatarStrip`) | ✓ (mp-club owns order) | Four names under avatars 1 → 2 lines at AX sizes (each slot ≈ 70 pt) | Done |
+| Single-hit files M–T (`ClubGapRemainingViews`, `PlayNavBubbleOverlay`, `PlayRoamRound2Views`, `MPPassEntries`, `CityOrientationFinishSummaryView`, `CityOrientationNavComponents`, `NativeFreeExploreMapView`, `PlayKitQuestionForms`, `ProjectEditFlowParity`, `RequestReferenceRow`, `RoamExplorationExportView`, `RoamFinishReportView`) | — | ✓ | Audit: numbers/ETA/dates/reference codes with `minimumScaleFactor`, a map bubble (short by design), cover chips, file name with middle truncation, picker ticks. No change | Done |
 
 ## Not done (next run starts here)
-- Continue `.lineLimit(1)` audit on pushed player pages: `JourneyReportViews.swift`, `CityKit/CityDeedCard.swift`, `RoamLiveSessionView.swift`, `TopicTeamsCard.swift`, `TopicChapterCardsSection.swift`, `NativeR2/Social/CYPeopleComponents.swift`, `MPGap/PlayRoam/PlayLeadBar.swift`.
+- `.lineLimit(1)` audit: `App/DesignSystem/*` single hits and `App/NativeR2/Components/*` (CYCountdown, CYJoinCountdownRow,
+  CYLiveCounter, CYRecordStatGrid, CYRing), `NativeGameTimedKit`, `IslandOverlay`, `MotionR2Metrics`, `PassportView`,
+  `QuestifyMotionComponents`, then files with 2+ hits (`grep -rln "lineLimit(1)" App` minus Merchant/Fixture/Diagnostics/SectionView/Story).
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch

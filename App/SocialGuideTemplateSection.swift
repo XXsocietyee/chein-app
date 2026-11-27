@@ -152,7 +152,7 @@ enum SocialGuideTemplateRows {
                             let title = SocialGuideTemplateRows.text(item.title)
                             Color.clear.frame(width: 72, height: 72)
                                 .overlay { E1CoverArt(seed: title, symbol: "map", imageURL: item.imgUrl, debugLabel: false) }
-                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                                 .accessibilityHidden(true)
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(verbatim: title).font(.headline).lineLimit(2)

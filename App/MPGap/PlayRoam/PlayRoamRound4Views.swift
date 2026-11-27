@@ -106,6 +106,7 @@ public struct ObjectCardPileAndGridView: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var isGathered = false
     @State private var dragOffsets: [String: CGSize] = [:]
 
@@ -192,7 +193,7 @@ public struct ObjectCardPileAndGridView: View {
                 Text(item.title)
                     .cyText(.meta)
                     .foregroundStyle(CYColor.textPrimary)
-                    .lineLimit(1)
+                    .lineLimit(typeSize.isAccessibilitySize ? 2 : 1)
             }
             .padding(CYSpacing.xs)
             .background(CYColor.bgSurface)

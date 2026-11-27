@@ -21,12 +21,14 @@ import QuestifyCore
         }
         _reader = StateObject(wrappedValue: ClubFixtureReader(scenario: scenario))
     }
+    private static let community = try? ClubCommunityFixture.context(identity: ClubReadIdentity(accountID: 701, epoch: 0), clubID: 81)
     var body: some View {
         NavigationStack {
             switch screen {
             case .directory: ClubDirectoryView(reader: reader)
-            case .detail: ClubDetailView(id: 81, reader: reader)
-            case .tab(let tab): ClubDetailView(id: 81, reader: reader, requestedTab: tab)
+            case .detail: ClubDetailView(id: 81, reader: reader, community: Self.community)
+            // mp-club r3 (18:15 sweep): the 帖文 tab reads the club's posts like the MP, not the "not in this version" state.
+            case .tab(let tab): ClubDetailView(id: 81, reader: reader, community: Self.community, requestedTab: tab)
             case .members: ClubMembersView(id: 81, reader: reader)
             case .channels(let list): D4ChannelsHost(reader: reader, startInList: list)
             case .confirm: D4ConfirmHost(reader: reader, join: false)

@@ -338,6 +338,7 @@ public struct PlayToolsAndLeadSheetView: View {
 /// Rows ahead of the next station stay closed and show a placeholder instead of their text (no spoilers).
 struct PlayJournalListView: View {
     let rows: [PlayJournalRow]
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         List {
@@ -379,7 +380,8 @@ struct PlayJournalListView: View {
                         .redacted(reason: .placeholder)
                         .accessibilityHidden(true)
                 } else if let excerpt = row.excerpt {
-                    Text(verbatim: excerpt).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
+                    Text(verbatim: excerpt).font(.subheadline).foregroundStyle(.secondary)
+                        .lineLimit(typeSize.isAccessibilitySize ? 3 : 1)
                 }
             }
         }
@@ -418,7 +420,7 @@ struct PlayJournalStoryView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 200)
-                    .clipShape(.rect(cornerRadius: 12))
+                    .clipShape(.rect(cornerRadius: CYRadius.card))
                     .accessibilityHidden(true)
                 }
                 Text(verbatim: row.story ?? "")

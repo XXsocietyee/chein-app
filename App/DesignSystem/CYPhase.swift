@@ -117,10 +117,10 @@ struct CYPhaseView<Value, Failure, Content: View>: View {
     }
 
     private var skeleton: some View {
-        CYLoadingStateView(rows: skeletonRows)
+        // mp-states r3: the caller's loading words are the visible ProgressView label, not VoiceOver-only.
+        CYLoadingStateView(rows: skeletonRows, label: loadingLabel)
             .padding(.top, CYSpacing.sm)
             .frame(maxHeight: .infinity, alignment: .top)
-            .accessibilityLabel(Text(loadingLabel))
             .accessibilityIdentifier(loadingIdentifier ?? "cy.phase.loading")
             .transition(.opacity)
     }

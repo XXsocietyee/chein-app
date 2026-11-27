@@ -92,6 +92,40 @@ Since links / notifications land as a push on 首页 (`HomeLanding`), a page's "
 | pages/square/list/index → 登录 | goes to sign-in | `onSignIn: {}` (dead) | `signIn()` = clear entry + 我的 tab, same as the other landed pages | fixed |
 | pages/coop/list/index → 关闭 (link, and the coop subscribe-message tap `.coopList`) | navigateTo page, system back | same dead 关闭 (MPReviewedPageScreen + SubscribeMessageTapScreens.swift:21) | `onClose: nil`: system back on the push; list content unchanged (mp-activity owns it) | fixed |
 
+## IM chat cards → MP pages (re-scan 11-27 hourly)
+
+MP `subpackageB/pages/im/chat/system-card-target.js` + `index.js` `onCardTap` / `_openGenericCard`: a system (senderId 0) generic card or button whose action is `/pages/activity/detail/index?id=`, `/pages/topic/index/index?id=` or `/pages/square/detail/index?id=` navigateTo's that page; a system text notice (`CLUB_CAMPAIGN` / `ACTIVITY_CANCELLED` extraJson) opens `pages/activity/detail/index?id=<activityId>`.
+
+| MP edge | before | after | status |
+|---|---|---|---|
+| chat system card / button → `pages/activity/detail/index?id=` | `IMCardAction` only read the legacy `/topic/<id>` form, so the MP path was `.unsupported`: the answer was hidden (or a dead 查看详情 with a bcId) | `IMCardDestination.activity` (Core/IMExpandedContracts.swift via `IMSystemCardTarget.openURL`) → `MessagingCardRoute.activity` push of `MPReviewedPageScreen` above the chat (MessagingHistoryView.swift, message detail too) | fixed |
+| chat system card → `pages/square/detail/index?id=` | same, hidden | `.squarePost` → pushed square detail | fixed |
+| chat system card → `pages/topic/index/index?id=` | same, hidden | `.topic(id)` → pushed topic detail (existing route) | fixed |
+| chat activity notice (msgType 1, `activityNoticeUrl`) | plain notice, no way to the activity | one answer 查看活动 / View event (`im.full.viewActivity`) under the notice → pushed activity detail | fixed |
+| non-system sender with an MP path | — | stays `.unsupported` (MP opens page paths only for senderId 0) | OK |
+| `/subpackageMember/coupon-wallet/index` | recognized, refused (L5 money surface) | unchanged | n/a |
+| review result 查看原单 (`onCurrentCard` → `originalUrl`) | review sheet only | MP binds `onCurrentCard` in no `.wxml` (the 生成时记录 cy-sheet, chat/index.wxml:210-224, has no button), so it is dead in the MP; sheet unchanged | n/a |
+| pages/userinfo/userinfo share link `?userId=&tab=about` (onShareTimeline / merchant home) | — | `tab` honoured (`SocialPublicProfileView(initialTab:)`, MPReviewedPageScreen.swift:831); missing id → MPUserInfoMissingView with 返回 | OK |
+| system chat 举报进度 entry (`openReportMine` → subpackageMember/report-mine, wxml:25) | — | pushed from the chat (IMDriftEntries.swift:49) | OK |
+
+Test: Tests/CoreTests/IMExpandedTests.swift `testSystemCardMiniProgramPagesOpen`. Page host: `IMExpandedNavigationContext.pageDestination` (SessionIMExpandedContext.swift; channel host passes it through, AppSession.swift).
+
+## Sweep rows (18:06 sweep, mp-nav sheets)
+
+| screenshot | finding | change | status |
+|---|---|---|---|
+| `login-player` (zh-Hans + en) | the 欢迎回来 card drew the logo twice: `images/d_logo.png` is the same mark at a smaller size, not a wordmark | LoginView.swift `brandMark` shows `cy_logo_mark` once | fixed |
+| `onboarding-1` en | header and disc read 城瘾 in the English UI | brand copy belongs to en-layout, see For other lanes | n/a here |
+| `d2-inbox`, `ia-tabs`, `welcome` | inline 消息 title on the pushed inbox, tab roots with large titles, welcome inline | — | OK |
+
+## Re-scan 11-27 19:xx (sweep build 1300a48db)
+
+| MP page / edge → native | finding | change | status |
+|---|---|---|---|
+| subpackageB/pages/im/list/index → App/IMInboxViews.swift (`d2-inbox`, sheet-en / sheet-zh-Hans) | names ("Fixture conversation 3" next to 官方) and the preview line wrapped onto two lines; MP wxss:62-73 keeps both on one line with an ellipsis | `.lineLimit(1)` on the name in the standard row; preview `.lineLimit(1)` (3 at AX sizes, where the row already stacks). Sections / order / swipe actions unchanged | fixed |
+| City local notification 稍后 / Later action (App/CityKit/CityNotifications.swift) → `MPNotificationTapRouter` | the background 稍后 action (and a custom dismiss) still routed the `page`, so the next foreground jumped to 漫游 although the player chose "later" | `MPNotificationTapRouter.nonOpeningActions` (laterAction + `UNNotificationDismissActionIdentifier`) skip routing; default tap and 开护盾 still land on 漫游 | fixed |
+| `login-player` sweep still shows the logo twice | the fix (b9a93003c) is on `mp/r3-nav` but not yet in `ui/combined-r7` (sweep build 1300a48db) | — waits for the integration merge | OK (pending merge) |
+
 ## Route coverage
 
 All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScreen cases or `MPParityDestination`), except four pages that are parsed (`Core/MiniProgramPageLink.swift`) but have no native screen case: `pages/playkit/index/index`, `pages/publishkit/index/index` (MP kit galleries), `pages/crop/index` (MP image-crop utility) and `subpackageP3/pages/badge-3d/index` (MP 3D badge viewer). No native player control links to them; left for the coordinator to confirm they stay unrouted.
@@ -110,3 +144,9 @@ All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScre
 
 - 我的 → 设置 stays a `.large` sheet (AccountView.swift:146, WelcomeView.swift:66): MP navigateTo = push, but SettingsView owns its own NavigationStack, a 完成 dismiss, the guide hand-off and `profileOwner.retire()` on disappear; converting needs those lifetimes moved first. Needs the coordinator / a compiled run.
 - 漫游护照与工具 hub sheet (owner Q9) and topic 编辑 editor sheet — kept, see the edge table.
+
+## For other lanes
+
+- mp-states / coordinator: the 消息 inbox preview is always "打开会话查看消息" (`MessagingPreview`, App/MessagingComponents.swift:300; `MessagingConversation` drops `lastMsgText` because recalled text may survive in it). MP `fmtPreview` shows the last message text / [图片] / [系统卡片]. Showing it needs a recall-safe server field first; left as is (privacy decision).
+
+- en-layout: `onboarding-1` (en) header and centre disc show 城瘾; LoginView `brandMark` and SettingsAboutView `appName` use `Text(verbatim: "城瘾")` (en should read Chein).

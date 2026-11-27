@@ -61,6 +61,11 @@ struct IAExploreCreateFixture: View {
     }
 }
 
+/// Synthetic fixture copy in the launch language (zh-Hans or en), like `tt` in the e5b fixtures.
+func iaFixtureText(_ en: String, _ zh: String) -> String {
+    Locale.preferredLanguages.first?.hasPrefix("zh") == true ? zh : en
+}
+
 /// Passport actions + stamp grid in its real Form section. `count == nil` is the unknown state (em dash, all locked).
 struct IAPassportFixture: View {
     let count: Int?
@@ -80,12 +85,12 @@ struct IAPassportFixture: View {
             }
             .scrollContentBackground(.hidden)
             .cyDomainPageBackground()
-            .navigationTitle(Text("tabBar.passport")).navigationBarTitleDisplayMode(.inline)
+            .cyRootHeader(.mine, titleKey: "tabBar.passport")
             .cyPassportStampHost()
         }
-        // Player domain is dark: the real app sets this through roleTheme(.player); without it the preview renders light.
+        // mp-mine r3 (18:15 sweep): fixtures follow the system appearance (player forcedColorScheme == nil);
+        // the Passport tab root carries the large top-left title (OWNER RULE 2).
         .themeDomain(.player)
-        .preferredColorScheme(.dark)
     }
 }
 

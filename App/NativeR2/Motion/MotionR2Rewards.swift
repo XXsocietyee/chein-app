@@ -191,13 +191,13 @@ struct MotionR2RewardReveal: View {
         }
         .padding(24)
         .frame(width: 240, height: 300)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous)
                 .strokeBorder(LinearGradient(colors: [tint, .cyan, .pink], startPoint: .topLeading, endPoint: .bottomTrailing),
                               lineWidth: 2)
         }
-        .motionR2HoloSheen(cornerRadius: 20)
+        .motionR2HoloSheen(cornerRadius: CYRadius.hero)
         .motionR2Tilt()
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("motion2.reward.card")
