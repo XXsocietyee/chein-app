@@ -41381,13 +41381,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cooperation in progress, terms frozen"
+            "value": "Cooperation in progress, terms locked"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "合作进行中，条款已冻结"
+            "value": "合作进行中，条款已锁定"
           }
         }
       }

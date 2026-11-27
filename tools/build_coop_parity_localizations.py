@@ -169,7 +169,7 @@ STRINGS = {
     'cooperation.detail.deposit.pay': ('Pay deposit', '去缴纳保证金'),
     'cooperation.detail.footer.legacy': ('Older merchant-node invitations can only be viewed', '历史商家节点邀约仅供查看'),
     'cooperation.detail.footer.ongoing': ('Cooperation in progress', '合作进行中'),
-    'cooperation.detail.footer.ongoingFrozen': ('Cooperation in progress, terms frozen', '合作进行中，条款已冻结'),
+    'cooperation.detail.footer.ongoingFrozen': ('Cooperation in progress, terms locked', '合作进行中，条款已锁定'),
     'cooperation.detail.footer.inactive': ('This invitation is no longer active; no actions are available', '这条邀约已失效，没有可执行的操作'),
     'cooperation.party.merchant': ('Merchant', '商家'),
     'cooperation.party.club': ('Club', '俱乐部'),
