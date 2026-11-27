@@ -27,12 +27,25 @@ enum ClubGovernanceConsequence: Equatable {
         }
     }
 
+    /// Two lines for transfer / end topic; mp-club r3 pass 8 (MP utils/danger-actions.js `club.dissolve`): 解散 lists the
+    /// MP's three consequences in order (members removed, events taken down without automatic refunds, cannot be undone).
+    private func defaultConsequences(_ text: (String) -> String) -> [CYConfirmConsequence] {
+        var lines = [
+            CYConfirmConsequence(systemImage: symbols.0, text: text("line1")),
+            CYConfirmConsequence(systemImage: symbols.1, text: text("line2")),
+        ]
+        if self == .dissolve {
+            lines.append(CYConfirmConsequence(systemImage: "exclamationmark.triangle", text: text("line3")))
+        }
+        return lines
+    }
+
     private var symbols: (String, String) {
         switch self {
         case .ban: return ("clock.badge.xmark", "bell.slash")
         case .transferOwner: return ("crown", "person.crop.circle.badge.minus")
         case .revokeRole: return ("shield.slash", "person.2")
-        case .dissolve: return ("trash", "person.3.sequence")
+        case .dissolve: return ("person.2.slash", "calendar.badge.minus")
         // mp-club r3 (MP cy/club-topic-end-confirm): 停止售卖并退票, then the lighter alternative 下架就够了; confirm 结束并退款.
         case .endTopic: return ("arrow.uturn.backward.circle", "eye.slash")
         }
@@ -74,10 +87,7 @@ enum ClubGovernanceConsequence: Equatable {
             return ClubConsequenceSheet(
                 title: text("title"),
                 objectName: self == .endTopic ? named : nil,
-                consequences: [
-                    CYConfirmConsequence(systemImage: symbols.0, text: text("line1")),
-                    CYConfirmConsequence(systemImage: symbols.1, text: text("line2")),
-                ],
+                consequences: defaultConsequences(text),
                 confirmTitle: text("confirm"),
                 onConfirm: onConfirm)
         }

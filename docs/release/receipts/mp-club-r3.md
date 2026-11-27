@@ -80,6 +80,7 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/customer-detail | `ClubOpsCustomerViews.swift`, `ClubCustomerInlineEditor.swift` | In edit mode the editor replaces the card, the heading reads 编辑标签与备注 and 取消 sits in the heading (wxml:82-99). | **Fixed (pass 2).** The editor owns the 标签与备注 section; 取消 moved from a row into the header (VoiceOver: 取消编辑标签与备注) |
 | club/payout-receiver | `ClubPayoutReceiverView.swift` | Binding needs a WeChat code (`PayoutReceiverBridge.payoutOpen`). | Blocked (WeChat/backend), not a view gap |
 | club/edit | `ClubOperationsViews.swift` | 改为转让主理人 is only inside the dissolve confirm in the MP (scene-club-edit `cy-danger-confirm` alt, utils/danger-actions.js `club.dissolve.alt`); native shows a permanent row. | Not done (pass 5 re-checked: the native confirm is `ClubGovernanceConsequence.sheet` inside the command form, reached through the blockers page; adding the alt there needs a new callback through that shared sheet, too risky without a compiler) |
+| club/edit · 解散 confirm (`utils/danger-actions.js` `club.dissolve`) | `ClubGovernanceConsequence` (dissolve) | MP lists three consequences: 全部成员会被移出俱乐部，同时失去群聊入口 / 俱乐部名下的活动与会员权益一并下架；已报名的不会自动取消，也不会自动退款 / 此操作不可撤销. Native had two lines, and the first said upcoming events close, which reads as if sign-ups were cancelled (the MP says they are **not** cancelled or refunded automatically). | **Fixed (pass 8).** OpsR3 `r3club.consequence.dissolve.line1-3` = the MP's three sentences (en + zh-Hans), symbols `person.2.slash` / `calendar.badge.minus` / `exclamationmark.triangle`. Title 解散「name」？ **not done** (the blockers page does not carry the club name into the form) |
 | club/workbench | `MPReviewedPageScreen.swift` redirect | MP error state 没能进入俱乐部管理 + 重试进入 + 返回俱乐部. | Already present (CLB-workbench-03, CLB-r11-workbench-01) |
 
 ## Pass 2: OWNER RULE 2 (navigation + one design system)
@@ -112,6 +113,9 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 | `clubR11.customer.cancelEditA11y` | Cancel editing tags and remark | 取消编辑标签与备注 |
 | `club.notify.previewFailed` | Audience preview failed | 受众预览失败 |
 | `club.gov.casesAppeal` | Ban appeal | 封禁申诉 |
+| `r3club.consequence.dissolve.line1` (OpsR3, value changed) | Every member is removed from the club and loses the group chat. | 全部成员会被移出俱乐部，同时失去群聊入口 |
+| `r3club.consequence.dissolve.line2` (OpsR3, value changed) | The club’s events and member perks are taken down. Existing sign-ups aren’t cancelled or refunded automatically. | 俱乐部名下的活动与会员权益一并下架；已报名的不会自动取消，也不会自动退款 |
+| `r3club.consequence.dissolve.line3` (OpsR3, new) | This can’t be undone. A dissolved club can’t be restored. | 此操作不可撤销，解散后无法恢复这个俱乐部 |
 | `club.notify.deliveryStatus` | Delivery status | 投递状态 |
 | `club.community.pinnedNoticesTitle` | Notices · Start here | 公告 · 新人先看 |
 | `club.community.noticeNoText` | (No text) | （无文字内容） |
@@ -145,7 +149,7 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 16. Pass 6: 结束主题 confirm in MP copy (结束并退款, 下架就够了).
 15. Pass 6: merge combined-r7 (xcstrings: both sides' keys, 28 added); club 帖文 公告 · 新人先看 (≤2 pinned notices with unread dots).
 17. Pass 7: merge combined-r7 (xcstrings: both sides' keys, 16 added); notify review = preview card only (MP wxml:55-64).
-18. Pass 8: merge combined-r7 (xcstrings: combined is a superset; 35 keys take its newer values); 出示团码 card in MP order (code → session name → 保存到相册); 结束主题 confirm names the topic.
+18. Pass 8: merge combined-r7 (xcstrings: combined is a superset; 35 keys take its newer values); 出示团码 card in MP order (code → session name → 保存到相册); 结束主题 confirm names the topic; 解散 confirm in the MP's three consequences.
 8. Pass 2: shared club thumbnail, customer-detail edit heading, create check-failed 返回上一页, enroll order, check-in rail refund note.
 
 ## Sweep check (pass 7, build 070117595, `docs/sweeps/latest/mp-club/sheet-zh-Hans.jpg`)
