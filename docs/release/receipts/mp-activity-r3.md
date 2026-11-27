@@ -158,6 +158,8 @@ Merged `ui/combined-r7` (xcstrings conflict: HEAD side empty, kept theirs; JSON 
 |---|---|---|---|
 | `pages/coop/list/index` topic scope (js:163-168 `只看「name」的协作`, `#id` only when the name is missing) | `App/CooperationBrowserView.swift` `topicFilterSection` | the topic picker read 「name #123」 for every topic (raw id as data). Now the name alone; `#id` stays only as the MP fallback for unnamed topics | no internal ids in the UI |
 
+Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · coop topic-filter / x01 / project-navigation suites OK.
+
 ## Not done
 - Attendance (player): organizer 联系与签到配置 form (duty phones, window, public-confirm switch, scan, recovery 查询原结果 / 原请求重试 / 终止 / 确认归档) lives in `OfficialOrganizerConsoleView`, not in this section.
 - Square completion card: 探店 (`shopText`) has no backend field. Refused team reads have no server message in `TeamFailure`, so 邀请已失效 is the fixed fallback copy.
