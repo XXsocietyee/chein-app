@@ -8,12 +8,24 @@ struct ProfileOrderSourceDetailSections: View {
     /// i18n r2: China-time `yyyy-MM-dd HH:mm` reads `Nov 27, 2026, 3:05 PM` in English (same wall clock).
     @Environment(\.locale) private var locale
     private func civil(_ text: String?) -> String? { text.map { LocaleDisplay.civil($0, locale: locale) } }
+    /// mp-mine r3: MP scene-member-order-detail order — 和队友一起出发 before 订单进度, 商家消息 before 支付信息,
+    /// 发票 before 报名人信息. The host passes those sections in; nil keeps the slot empty.
+    var beforeTimeline: AnyView? = nil
+    var beforePaymentInfo: AnyView? = nil
+    var beforeRegistrant: AnyView? = nil
+    func mpSlots(beforeTimeline: AnyView?, beforePaymentInfo: AnyView?, beforeRegistrant: AnyView?) -> ProfileOrderSourceDetailSections {
+        var copy = self
+        copy.beforeTimeline = beforeTimeline; copy.beforePaymentInfo = beforePaymentInfo; copy.beforeRegistrant = beforeRegistrant
+        return copy
+    }
     var body: some View {
+        if let beforeTimeline { beforeTimeline }
         Section("orderLifecycle.timeline.title") {
             ForEach(order.sourceTimeline()) { step in
                 ProfileOrderTimelineStepRow(step: step)
             }
         }.accessibilityIdentifier("profile.order.detail.timeline")
+        if let beforePaymentInfo { beforePaymentInfo }
         if order.showsSourcePaymentInfo {
             Section(LocalizedStringKey(order.isSourceFreeOrder ? "profile.orderParity.section.registrationInfo" : "profile.orderParity.section.paymentInfo")) {
                 if let time = order.sourcePaymentTimeText {
@@ -35,6 +47,7 @@ struct ProfileOrderSourceDetailSections: View {
                 ProfileOptionalRow(key: "profile.orderParity.transactionID", value: order.detailFacts.transactionID)
             }.accessibilityIdentifier("profile.order.detail.paymentInfo")
         }
+        if let beforeRegistrant { beforeRegistrant }
         if order.realName?.isEmpty == false || order.phone?.isEmpty == false || order.sourceParticipateDateText != nil {
             Section("profile.orderParity.section.registrant") {
                 ProfileOptionalRow(key: "profile.participants.name", value: order.realName)
