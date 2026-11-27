@@ -29,7 +29,7 @@ import SwiftUI
                 let page = SettingsLegalAgreementPage.facts(for: model.state)
                 switch model.state {
                 case .idle, .loading:
-                    ProgressView()
+                    ProgressView("mpd.common.loading") // design pass me P10: say what is happening
                         .frame(maxWidth: .infinity).padding(.vertical, 40)
                         .accessibilityIdentifier("settingsNative.legal.loading")
                 case .failed:

@@ -196,7 +196,9 @@ struct MotionR2ConfirmPill: View {
 enum MotionR2ChecklistStep: String, CaseIterable, Identifiable {
     case storyChapter, punch, stamp, club
     var id: String { rawValue }
-    var titleKey: LocalizedStringKey {
+    var titleKey: LocalizedStringKey { LocalizedStringKey(key) }
+    /// Catalog key of the step title (used where an already-localized String is needed).
+    var key: String {
         switch self {
         case .storyChapter: return "motion2.checklist.story"
         case .punch: return "motion2.checklist.punch"
@@ -244,51 +246,55 @@ enum MotionR2ChecklistStep: String, CaseIterable, Identifiable {
     }
 }
 
-/// R10: "新手清单" section: a circular `Gauge` with done/total and the open steps; a finished step collapses out of the
-/// list with the default row animation. Hidden when the flag is off, every step is done, or the player hid it.
+/// R10: "新手清单" section, now a `CYStepChecklist` (ring + "n of 4", current step with Start → its tab, finished
+/// steps folded under 已完成 (n)). Hidden when the flag is off, every step is done, or the player hid it.
 struct MotionR2ChecklistSection: View {
     @State private var checklist = MotionR2Checklist.shared
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.rootTabSwitch) private var switchTab
 
     private var open: [MotionR2ChecklistStep] { MotionR2ChecklistStep.allCases.filter { !checklist.isDone($0) } }
+
+    @Environment(\.locale) private var locale
+
+    /// Design pass me (P4, R-steps): the first open step is the current one with the one Start; finished steps fold
+    /// into 已完成 (n) instead of disappearing, so the player can see what they already did.
+    private var steps: [CYChecklistStep] {
+        let current = open.first
+        return MotionR2ChecklistStep.allCases.map { step in
+            let state: CYChecklistStep.State = checklist.isDone(step) ? .done : (step == current ? .current : .todo)
+            return CYChecklistStep(id: step.rawValue, title: appLocalized(String.LocalizationValue(step.key), locale: locale),
+                                   state: state, thumbnailSymbol: step.systemImage, startable: switchTab.isAvailable)
+        }
+    }
 
     var body: some View {
         if NativeR2Flags.motion2, !checklist.dismissed, !open.isEmpty {
             Section {
-                header
-                ForEach(open) { step in
-                    Label(step.titleKey, systemImage: step.systemImage)
-                        .accessibilityIdentifier("motion2.checklist." + step.rawValue)
-                }
+                CYStepChecklist("motion2.checklist.title", systemImage: "sparkles", steps: steps,
+                                onStart: { id in
+                                    if let step = MotionR2ChecklistStep(rawValue: id) { switchTab(step.tab) }
+                                })
+                                .accessibilityIdentifier("motion2.checklist.steps")
+            } header: {
+                Text("motion2.checklist.subtitle")
             } footer: {
                 Button("motion2.checklist.hide") { checklist.dismiss() }
                     .font(.footnote)
                     .accessibilityIdentifier("motion2.checklist.hide")
             }
-            .animation(reduceMotion ? nil : MotionR2.spring, value: open.count)
             .accessibilityIdentifier("motion2.checklist")
         }
     }
+}
 
-    private var header: some View {
-        HStack(spacing: 14) {
-            Gauge(value: Double(checklist.completed), in: 0...Double(checklist.total)) {
-                Text("motion2.checklist.title")
-            } currentValueLabel: {
-                Text(verbatim: "\(checklist.completed)/\(checklist.total)")
-                    .monospacedDigit()
-                    .contentTransition(.numericText(value: Double(checklist.completed)))
-            }
-            .gaugeStyle(.accessoryCircular)
-            .tint(.green)
-            VStack(alignment: .leading, spacing: 2) {
-                Text("motion2.checklist.title").font(.headline)
-                Text("motion2.checklist.subtitle").font(.subheadline).foregroundStyle(.secondary)
-            }
+extension MotionR2ChecklistStep {
+    /// Where each first-run step is done (MP tab bar: 首页 · 漫游 · 发布 · 俱乐部 · 我的).
+    var tab: RootTab {
+        switch self {
+        case .storyChapter: return .home
+        case .punch, .stamp: return .roam
+        case .club: return .club
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("motion2.checklist.title"))
-        .accessibilityValue(Text("motion2.checklist.value \(checklist.completed) \(checklist.total)"))
     }
 }
 
