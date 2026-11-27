@@ -56,6 +56,7 @@ match is a queue item (133 at the start). Tab roots first, then their pushed pag
 | Shared offline / server-error states (`CYStateView.offline` / `.server`, ticket pass sheet, official routes …) | `components/cy/empty/index.js` KIND_DEFAULTS: offline 网络好像断开了, error 出错了 (no default sub) | 你离线了 + “已缓存的内容还在…” (claims a cache that may not exist); 这边出了点问题 + “已经记下来了” (claims logging) | 网络好像断开了 (Looks like you’re offline) · 检查网络后再试一次; 出错了 (Something went wrong) · 过一会儿再试一次 — MP titles, no unverifiable claims, tone-lint clean |
 | Missing / incomplete link (`social.incompleteLink`: guide detail, profile links, deep-link audits) | `components/cy/empty/index.js` kind `missing-param` 链接已失效 (R11: no “请返回…” text — the back button says it) · cta 返回 | 链接不完整，请返回选择其他内容。, no button on the guide detail | 链接已失效 (This link is no longer valid); guide detail adds the `.bordered` 返回 action |
 | 积分任务 sheet (`WalletPointsTasksView`) + every wallet / points / earnings issue (`WalletIssueView`) | `subpackageMember/components/cy/profile/index.wxml:658-660` cy-skeleton / 加载失败，点此重试 / cy-empty 暂无积分任务 | bare spinner; empty 还没有记录; issues as a leading `Text` + button VStack | `ProgressView { 加载中 }`; empty 暂无积分任务 (No points tasks yet); `WalletIssueView` renders `ContentUnavailableView` + `.bordered` 重试 (copy and money logic unchanged) |
+| 钱包 / 积分明细 / 收入明细 / 礼品 loaders (`WalletCommerceViews`, 9 spinners) | MP cy-skeleton / loading-mask 加载中 | bare `ProgressView()` (one with a VoiceOver-only label) | `ProgressView { Text("wallet.loading") }` — 加载中 visible |
 
 ## Gates
 
