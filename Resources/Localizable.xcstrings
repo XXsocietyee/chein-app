@@ -349763,6 +349763,40 @@
           }
         }
       }
+    },
+    "nearby.w208.recruit.noAreaTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a roam area to see nearby teams"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要定位才能看附近的队伍"
+          }
+        }
+      }
+    },
+    "nearby.w208.mine.failedTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load your teams"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍没能读到"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

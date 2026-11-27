@@ -507,8 +507,8 @@ import SwiftUI
             if mine.failed && !model.running, let mineIssue = NearbyLoadIssue(messageKey: coordinator.messageKey), !mineIssue.offersRetry {
                 NearbyLoadIssueCard(issue: mineIssue, onSignIn: onSignIn) {}
             } else if mine.failed && !model.running {
-                CYPillButton("nearby.w208.mine.failed", style: .secondary) { Task { await loadMine() } }
-                    .accessibilityIdentifier("nearby.w208.mine.retry")
+                CYEmptyState(systemImage: "exclamationmark.triangle", "nearby.w208.mine.failedTitle", messageIdentifier: "nearby.w208.mine.failed",
+                             actionTitle: "action.retry", actionIdentifier: "nearby.w208.mine.retry", kind: .failure) { Task { await loadMine() } }
             }
             let rows = NearbyTeamBridge.myRows(joined: joinedTeamsStatus.isLoaded ? joinedTeams : [], applications: coordinator.myApplications)
             let groups = NearbyTeamBridge.myGroups(rows, viewerAccountID: coordinator.session?.accountID)
