@@ -73,7 +73,7 @@ struct MotionR2MoodHero: View {
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.white.opacity(0.85))
             Text(verbatim: value)
-                .font(.system(.largeTitle, design: .rounded, weight: .heavy))
+                .cyText(.dataXL)
                 .monospacedDigit()
                 .minimumScaleFactor(0.5)
                 .lineLimit(1)
