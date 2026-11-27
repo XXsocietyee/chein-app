@@ -668,6 +668,9 @@ struct PassKeyFrames: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+        // MP `cy-nav-bar overlay` on the stage (transparent over the key); merchant keeps the plain bar.
+        .toolbarBackground(isMerchant ? Visibility.automatic : Visibility.hidden, for: .navigationBar)
+        .toolbarColorScheme(isMerchant ? nil : .dark, for: .navigationBar)
         .toolbar {
             if full && skipVisible {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -687,9 +690,13 @@ struct PassKeyFrames: View {
         .onDisappear { timeline?.cancel() }
     }
 
-    /// Native r2: the MP key frames (MPAsset sheets) over the system background, system text styles and one
-    /// `.borderedProminent` CTA. The gold wash, shadow and white-on-dark stage are gone; the reveal timeline stays
-    /// because it gates the CTA (`allowsHitTesting(step >= 8)`).
+    /// MP `.ky` ground (reveal/index.wxss; near-black; the night ink token is the in-system match): the key frames are baked on near-black, so the stage keeps it in both
+    /// appearances (MP `theme-dark`); a light page behind the frames would show a dark box.
+    private static let stageGround = CYNight.ink0
+
+    /// The MP key frames (MPAsset sheets) on the MP dark stage, system text styles and one `.borderedProminent` CTA.
+    /// r3 (P7/P8, MP `.ky__grad` step 4): the gold wash rises behind the copy at 3000 ms; Reduce Motion shows it in place.
+    /// The reveal timeline gates the CTA (`allowsHitTesting(step >= 8)`).
     private var stage: some View {
         VStack(spacing: 16) {
             Spacer()
@@ -700,14 +707,21 @@ struct PassKeyFrames: View {
                 .frame(maxHeight: 420)
             Spacer()
             VStack(spacing: 12) {
-                eyebrow.font(.footnote.weight(.semibold)).foregroundStyle(.secondary).revealIn(step >= 5, reduceMotion: reduceMotion)
-                title.font(.largeTitle.bold()).multilineTextAlignment(.center).revealIn(step >= 6, reduceMotion: reduceMotion)
-                if let line { line.font(.body).foregroundStyle(.secondary).multilineTextAlignment(.center).revealIn(step >= 7, reduceMotion: reduceMotion) }
+                Group {
+                    eyebrow.font(.footnote.weight(.semibold)).foregroundStyle(.secondary).revealIn(step >= 5, reduceMotion: reduceMotion)
+                    title.font(.largeTitle.bold()).multilineTextAlignment(.center).revealIn(step >= 6, reduceMotion: reduceMotion)
+                    if let line { line.font(.body).foregroundStyle(.secondary).multilineTextAlignment(.center).revealIn(step >= 7, reduceMotion: reduceMotion) }
+                }
+                // MP `.ky__txt` text-shadow keeps white copy readable on the copper-gold band.
+                .shadow(color: Self.stageGround.opacity(0.6), radius: 8, y: 1)
                 Button(action: go) {
                     Text(LocalizedStringKey(paid == nil ? "mp.reveal.start" : "mp.reveal.toLibrary"))
+                        .foregroundStyle(Self.stageGround)
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
+                .buttonBorderShape(.capsule)
+                .tint(.white) // MP `.ky__btn`: white pill, dark label
                 .controlSize(.large)
                     // B-PR-01: no destination bound → the CTA says so by being disabled, never a silent no-op.
                     .disabled(paid == nil ? bindings.membership == nil : bindings.passLibrary == nil)
@@ -720,7 +734,32 @@ struct PassKeyFrames: View {
             .padding(.bottom, 32)
             .accessibilityElement(children: .contain)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background { goldWash }
+        .environment(\.colorScheme, .dark)
         // B-PR-05: only the toolbar 跳过 skips; the stage has no tap/drag skip and no press dim.
+    }
+
+    /// MP `.ky__grad`: 62% high, parked below the screen, slides to 22% down at step 4 over 1.1 s (cubic .2,.7,.2,1).
+    private var goldWash: some View {
+        ZStack {
+            Self.stageGround
+            GeometryReader { proxy in
+                let height = proxy.size.height * 0.62
+                LinearGradient(stops: [
+                    .init(color: Self.stageGround.opacity(0), location: 0),
+                    .init(color: CYNight.passGold0, location: 0.3),
+                    .init(color: CYNight.passGold1, location: 0.55),
+                    .init(color: CYNight.passGold2, location: 0.8),
+                    .init(color: CYNight.passGold3, location: 1)
+                ], startPoint: .top, endPoint: .bottom)
+                .frame(width: proxy.size.width, height: height)
+                .offset(y: proxy.size.height - height + height * (step >= 4 ? 0.22 : 1.0))
+                .animation(reduceMotion ? nil : .timingCurve(0.2, 0.7, 0.2, 1, duration: 1.1), value: step >= 4)
+            }
+        }
+        .ignoresSafeArea()
+        .accessibilityHidden(true)
     }
 
     private var eyebrow: Text { paid == nil ? Text("mp.reveal.eyebrow") : Text("mp.reveal.eyebrowPaid") }
