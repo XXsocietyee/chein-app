@@ -127,6 +127,7 @@ Merged `origin/ui/combined-r7` (clean). Sweep build 8fa84e4d3 (22:11Z) en: `mp-c
 |---|---|---|---|---|
 | 47 | `pages/club/*` feed repost line → `ClubCommunityViews.swift` `ClubCommunityFeedView` (repost time); club calendar sessions (start / end / updated) → `ClubCalendarSessionRows.swift` `ClubCalendarSessionsView` | English showed raw server text "2026-10-01 14:30:00" | `LocaleDisplay.civil(_, locale:)` (same helper as rows 14/23/37/46); Chinese unchanged. Text only | Done |
 | 48 | `SupportTicketReadView`, `CityTaskHistoryView` | Checked: raw timestamps next to raw ids / enum values (`sender_type`, `event_type`, board/season ids) | Diagnostic/record surfaces with ISO instants, not MP player pages; left as sent. No change | Checked |
+| 49 | `pages/template/*` 我的节点玩法 → `TemplateAuthoringMineView.swift` (cover use count, shelf state rows) | Checked: "Used 1 time" plural, shelf states via `LabeledContent` (value wraps under long English labels); market state copy is pinned by `test_template_shelf_state_projection.py` | No change |  Checked |
 
 ## Not done
 
@@ -136,7 +137,7 @@ Merged `origin/ui/combined-r7` (clean). Sweep build 8fa84e4d3 (22:11Z) en: `mp-c
 
 
 ## Next pages (no row yet)
-Re-check rows 23, 37–41, 46 in the next sweep. Then publish (`pages/template/*`, no en sheet in the sweep yet: work from code) and nav English sheets.
+Re-check rows 23, 37–41, 46 in the next sweep. Then the rest of publish (`pages/publish/*`, `pages/templatedetail/*`, no en sheet in the sweep yet: work from code) and nav English sheets.
 
 ## For other lanes
 - mp-mine: balance ledger shows "¥" while the Me balance tile shows "CN¥" in English (row 44); public profile role line "— City explorer" shows a dash placeholder (`en-e4-member`).
