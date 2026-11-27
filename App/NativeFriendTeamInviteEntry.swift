@@ -38,7 +38,7 @@ extension EnvironmentValues {
                             else if review.action == "FRIEND_CONFIRM" { Text(LocalizedStringKey(review.body.joinMode == 2 ? "d7.teamInvite.confirmReview" : "d7.teamInvite.confirmJoin")) }
                             else { Text(LocalizedStringKey(review.action == "FRIEND_DECLINE" ? "d7.teamInvite.declineSummary" : "d7.teamInvite.revokeSummary")) }
                             Button { Task { await flow.confirm() } } label: { Text("d7.friendInvite.confirm").frame(maxWidth: .infinity) }
-                                .buttonStyle(.questifyPrimary).listRowBackground(Color.clear)
+                                .buttonStyle(.borderedProminent).listRowBackground(Color.clear)
                                 .disabled(!flow.canWrite)
                             Button { flow.cancelReview() } label: { Text("d7.friendInvite.cancel").frame(maxWidth: .infinity) }
                                 .disabled(flow.busy)

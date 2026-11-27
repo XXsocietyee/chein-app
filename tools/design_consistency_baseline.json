@@ -1,0 +1,110 @@
+{
+  "allowed": {
+    "App/CityKit/CityRoamRootView.swift": {
+      "hidden nav": "full-screen City board map (漫游): map chrome owns the top edge"
+    },
+    "App/CityKit/CityTerritoryNoticeCard.swift": {
+      "button style": "press-scale feedback on a tappable card (no button chrome; label is the card)"
+    },
+    "App/ClubComponents.swift": {
+      "button style": "E3PressStyle: press scale used only by DEBUG design fixtures"
+    },
+    "App/DesignSystem/CYAlbum.swift": {
+      "raw font": "procedural art: SF Symbol / numeral sized as a fraction of its own drawn frame (badge, medal, cover), not reading text"
+    },
+    "App/DesignSystem/CYBadgeCraft.swift": {
+      "raw font": "procedural art: SF Symbol / numeral sized as a fraction of its own drawn frame (badge, medal, cover), not reading text"
+    },
+    "App/DesignSystem/CYCelebrationViews.swift": {
+      "raw font": "celebration medal glyph sized from the medal frame (s * 0.38); reading text uses text styles"
+    },
+    "App/DesignSystem/CYChapterFlip.swift": {
+      "raw font": "full-screen chapter numeral / seal art (decorative, accessibilityHidden); captions use text styles"
+    },
+    "App/DesignSystem/CYCityBoard.swift": {
+      "raw font": "procedural art: SF Symbol / numeral sized as a fraction of its own drawn frame (badge, medal, cover), not reading text"
+    },
+    "App/DesignSystem/CYCollectible.swift": {
+      "raw font": "procedural art: SF Symbol / numeral sized as a fraction of its own drawn frame (badge, medal, cover), not reading text"
+    },
+    "App/DesignSystem/CYCoverArt.swift": {
+      "raw font": "procedural art: SF Symbol / numeral sized as a fraction of its own drawn frame (badge, medal, cover), not reading text"
+    },
+    "App/DesignSystem/CYMapChrome.swift": {
+      "raw font": "map pin tail glyph inside a fixed-size map annotation (full-screen map chrome)"
+    },
+    "App/DesignSystem/CYMedalStack.swift": {
+      "raw font": "procedural art: SF Symbol / numeral sized as a fraction of its own drawn frame (badge, medal, cover), not reading text"
+    },
+    "App/DesignSystem/CYOnboardingLight.swift": {
+      "raw font": "brand wordmark 城瘾 drawn as a logo, not reading text"
+    },
+    "App/DesignSystem/CYPlayVerdict.swift": {
+      "raw font": "full-screen game verdict glyph art (game HUD moment)"
+    },
+    "App/DesignSystem/CYShareCard.swift": {
+      "raw font": "share card is rendered to a fixed-size image for export (ImageRenderer); type must not reflow with Dynamic Type"
+    },
+    "App/DesignSystem/CYSignature.swift": {
+      "raw font": "procedural art: SF Symbol / numeral sized as a fraction of its own drawn frame (badge, medal, cover), not reading text"
+    },
+    "App/DesignSystem/CYStarBloom.swift": {
+      "raw font": "procedural art: SF Symbol / numeral sized as a fraction of its own drawn frame (badge, medal, cover), not reading text"
+    },
+    "App/DesignSystem/CYThemeLook.swift": {
+      "tracking": "per-theme game look (story-flow / theme looks are out of scope for round 3)"
+    },
+    "App/DiceD20View.swift": {
+      "raw colour": "game HUD: shaded 3D dice faces computed per face"
+    },
+    "App/FogOverlayLayer.swift": {
+      "raw colour": "full-screen map fog layer: colour components come from the fog engine"
+    },
+    "App/MapCoreEntryHubView.swift": {
+      "raw colour": "map legend swatch built from the map style manifest token (data, not a literal)"
+    },
+    "App/NativeAttributeAuthorViews.swift": {
+      "raw colour": "preview of a server-provided #RRGGBB attribute colour (data, not a literal)"
+    },
+    "App/NativeR2/FreeExplore/NativeFreeExploreMapView.swift": {
+      "hidden nav": "full-screen free-explore map"
+    },
+    "App/NativeStoryWalkingAuthorView.swift": {
+      "hidden nav": "unsaved-changes guarded exit (confirmation dialog) in the story authoring flow; story-flow is out of scope"
+    },
+    "App/PlayHUD.swift": {
+      "button style": "game HUD circle controls over the live play surface"
+    },
+    "App/PlayNativeDeviceProvider.swift": {
+      "raw colour": "camera filter rendering (night vision scanlines / pet POV frame) drawn into a photo"
+    },
+    "App/ProjectEditOverviewKit.swift": {
+      "hidden nav": "full-bleed 地图 page: transparent bar over the map, system back and inline title kept"
+    },
+    "App/QuestifyMotion.swift": {
+      "button style": "QuestifyCardButtonStyle: press-scale feedback for tappable cards, not a button look"
+    },
+    "App/QuestifyMotionComponents.swift": {
+      "button style": "QuestifyPrimaryButtonStyle definition kept for merchant call sites (out of scope); player sites now use .borderedProminent"
+    },
+    "App/QuestifyPalette.swift": {
+      "raw colour": "brand tint token definition (light/dark), the palette itself"
+    },
+    "App/RoamFinishReportView.swift": {
+      "hidden nav": "shown in place of the live roam HUD inside the same full-screen game container (no stack under it)"
+    },
+    "App/RoamLiveSessionView.swift": {
+      "hidden nav": "live roam game HUD over a full-screen map"
+    },
+    "App/SearchMapCanvas.swift": {
+      "raw colour": "map route stroke with light/dark values on a full-screen map"
+    },
+    "App/SocialPublicProfileView.swift": {
+      "hidden nav": "full-screen photo viewer (black stage), system close button"
+    },
+    "App/SquareBrowserView.swift": {
+      "pushed large": "广场 is a sheet root with its own NavigationStack (not pushed); large title is the sheet page title"
+    }
+  },
+  "baseline": {}
+}

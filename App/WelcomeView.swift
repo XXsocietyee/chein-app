@@ -48,9 +48,13 @@ struct WelcomeView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if onBrowse == nil { signedOutMine } else { welcomeContent }
+                // Owner rule 2: signed out, this is still the 我的 tab root, so it keeps the large top-left title 我的.
+                if onBrowse == nil {
+                    signedOutMine.cyRootHeader(.mine)
+                } else {
+                    welcomeContent.navigationBarTitleDisplayMode(.inline)
+                }
             }
-            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) { moreMenu }
             }

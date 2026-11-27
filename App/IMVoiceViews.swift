@@ -38,6 +38,7 @@ import SwiftUI
         }
         .imFlowForm()
         .navigationTitle(Text("d7.imVoice.title"))
+        .navigationBarTitleDisplayMode(.inline)
         .themeDomain(.player)
         .privacySensitive()
         .sensoryFeedback(.selection, trigger: recording)
@@ -283,6 +284,7 @@ import SwiftUI
         }
         .imFlowForm()
         .navigationTitle(Text("d7.imVoice.message"))
+        .navigationBarTitleDisplayMode(.inline)
         .themeDomain(.player)
         .privacySensitive()
         .onReceive(NotificationCenter.default.publisher(for: IMVoiceCoordinator.consumptionRetiredNotification)) { event in

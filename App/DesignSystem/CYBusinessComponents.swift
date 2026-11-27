@@ -112,7 +112,7 @@ public struct CYActivityFeedCard: View {
         ZStack {
             palette.coverFallback
             Image(systemName: "map.fill")
-                .font(.system(size: 56, weight: .regular))
+                .font(.largeTitle).imageScale(.large)
                 .foregroundStyle(palette.onCoverFgDim.opacity(0.28))
                 .accessibilityHidden(true)
         }
@@ -382,11 +382,11 @@ public struct CYRouteNodeRow: View {
                 switch completion {
                 case .completed:
                     Image(systemName: "checkmark")
-                        .accessibilityHidden(true).font(.system(size: 12, weight: .bold))
+                        .accessibilityHidden(true).font(.caption.weight(.bold))
                         .foregroundStyle(tokens.nodeGlyphColor)
                 case .locked:
                     Image(systemName: "lock.fill")
-                        .accessibilityHidden(true).font(.system(size: 11, weight: .semibold))
+                        .accessibilityHidden(true).font(.caption.weight(.semibold))
                         .foregroundStyle(tokens.nodeGlyphColor)
                 case .current, .upcoming:
                     Text(verbatim: "\(index)")
@@ -1012,7 +1012,7 @@ public struct CYRegistrationSummaryCard: View {
     private func stepperButton(symbol: String, disabled: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(size: 13, weight: .bold))
+                .font(.footnote.weight(.bold))
                 .foregroundStyle(disabled ? palette.textDisabled : palette.textPrimary)
                 .frame(width: 32, height: 32)
                 .background(Circle().fill(palette.bgSurfaceSubtle))

@@ -116,10 +116,9 @@ extension View {
 // MARK: - Eyebrow
 
 extension Text {
-    /// 13 pt uppercase eyebrow: +0.6 pt tracking in English, +1 pt in Chinese (spec 2.3).
+    /// Uppercase eyebrow in the footnote text style, system letter spacing (owner rule 2: no custom tracking).
     func cyEyebrow(isChinese: Bool) -> some View {
         self.font(.footnote.weight(isChinese ? .medium : .semibold))
-            .tracking(isChinese ? 1 : 0.6)
             .textCase(.uppercase)
     }
 }

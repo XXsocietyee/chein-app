@@ -30,6 +30,7 @@ import SwiftUI
             }
         }
         .navigationTitle("projectEdit.title")
+        .navigationBarTitleDisplayMode(.inline)
         .cyDomainScreen(.topicEditor)
     }
 }

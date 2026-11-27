@@ -33,6 +33,7 @@ typealias NativeChannelNotificationScreenOperation = @MainActor (NativeChannelNo
         }
         .formStyle(.grouped)
         .navigationTitle(Text(verbatim: model.scope?.isAccountDefault == true ? c("accountDefault.title") : NativeChannelNotificationPresentation.localized("notification.channel.title", locale: locale)))
+        .navigationBarTitleDisplayMode(.inline)
         .nativeChannelScreen()
         .accessibilityIdentifier("notification.conversation.screen")
         .refreshable { await pullToRefresh(expected: ticket) }

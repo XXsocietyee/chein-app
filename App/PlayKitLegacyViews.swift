@@ -109,7 +109,7 @@ extension PlayKitScreen {
         Button { prepare("SUBMIT_DIY_NAME", ["name": .string(trimmed)]) } label: {
             if let label = raw["ctaLabel"].text, !label.isEmpty { Text(verbatim: label) } else { Text("playkitLegacy.name.submit") }
         }
-        .buttonStyle(.questifyPrimary).disabled(!enabled || trimmed.isEmpty)
+        .buttonStyle(.borderedProminent).disabled(!enabled || trimmed.isEmpty)
         .accessibilityIdentifier("playkit.submit." + kind.rawValue)
     }
 }
@@ -144,13 +144,13 @@ extension PlayKitScreen {
                     Text("playkitLegacy.slow.ready")
                     Button { requestReview("CLAIM_SLOW_TASK", [:], {}) } label: {
                         if let label = segment["unlockLabel"].text, !label.isEmpty { Text(verbatim: label) } else { Text("playkitLegacy.slow.claim") }
-                    }.buttonStyle(.questifyPrimary).disabled(!enabled)
+                    }.buttonStyle(.borderedProminent).disabled(!enabled)
                 } else { Text("playkit.configurationInvalid") }
             } else {
                 if let hint = segment["startHint"].text, !hint.isEmpty { Text(verbatim: hint) }
                 Button { requestReview("START_SLOW_TASK", [:], {}) } label: {
                     if let label = segment["startLabel"].text, !label.isEmpty { Text(verbatim: label) } else { Text("playkitLegacy.slow.start") }
-                }.buttonStyle(.questifyPrimary).disabled(!enabled)
+                }.buttonStyle(.borderedProminent).disabled(!enabled)
             }
         }
         .cyHapticEvent(.claimSuccess, trigger: segment["claimed"].bool == true) { old, next in !old && next }

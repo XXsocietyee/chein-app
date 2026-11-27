@@ -88,7 +88,7 @@ enum PlayThemeIntro {
                         Text("mpd.aigc.label").accessibilityIdentifier("play.titleCard.aigc")
                     }
                 }
-                .cyText(.caption).tracking(2)
+                .cyText(.caption)
                 .foregroundStyle(colors.mute.swiftUIColor)
                 .offset(y: shown || reduceMotion ? 0 : 12).opacity(shown ? 1 : 0)
                 Text(verbatim: title)

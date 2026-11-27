@@ -293,7 +293,7 @@ private struct CYShareEyebrowRow: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
             Text(verbatim: eyebrow.uppercased())
-                .cyText(.caption, weight: .bold).tracking(2.2)
+                .cyText(.caption, weight: .bold)
                 .foregroundStyle(tint)
                 .lineLimit(1)
             Spacer(minLength: 8)
@@ -344,7 +344,7 @@ private struct CYShareStatsRow: View {
                         .foregroundStyle(valueColor)
                         .lineLimit(1).minimumScaleFactor(0.6)
                     Text(verbatim: stat.label.uppercased())
-                        .cyText(.micro).tracking(1)
+                        .cyText(.micro)
                         .foregroundStyle(labelColor)
                         .lineLimit(2)
                 }

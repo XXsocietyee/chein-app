@@ -39,7 +39,7 @@ extension PlayKitScreen {
             }
             if let cap = segment["maxAttempts"].integer, cap > 0 { LabeledContent("playkit.attemptLimit") { Text(verbatim: String(cap)) } }
             Button(LocalizedStringKey(kind == .sort ? "playkit.sort.submit" : kind == .match ? "playkit.match.submit" : "playkit.classify.submit")) { requestReview(action, payload, {}) }
-                .buttonStyle(.questifyPrimary).disabled(!enabled || !valid)
+                .buttonStyle(.borderedProminent).disabled(!enabled || !valid)
                 .accessibilityIdentifier("playkit.submit." + kind.rawValue)
         }.onAppear { if order.isEmpty { order = items.map(\.id) } }
             .onChange(of: items.map(\.id)) { _, ids in order = ids; placement = [:] }

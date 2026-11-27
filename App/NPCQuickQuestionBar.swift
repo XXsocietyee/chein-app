@@ -38,7 +38,7 @@ import SwiftUI
     private var questions: some View {
         ForEach(context.questions) { question in
             Button(LocalizedStringKey(question.titleKey)) { select(question) }
-                .buttonStyle(NPCQuickPillStyle())
+                .buttonStyle(.bordered).buttonBorderShape(.capsule).controlSize(.large)
                 .disabled(!enabled)
                 .accessibilityHint("npcQuick.accessibilityHint")
                 .accessibilityIdentifier("npcQuick." + question.rawValue)
@@ -57,19 +57,6 @@ import SwiftUI
         replacement = nil
         if let text = NPCQuickQuestionPolicy.confirm(pending, currentText: draft, context: context,
                                                      localeIdentifier: locale.identifier, enabled: enabled) { draft = text }
-    }
-}
-
-/// Outlined quick-reply pill (Venmo / Expedia assistant pattern): capsule, 44pt tall, no fill.
-struct NPCQuickPillStyle: ButtonStyle {
-    @Environment(\.isEnabled) private var isEnabled
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label.cyText(.bodyMedium).lineLimit(1)
-            .foregroundStyle(isEnabled ? CYColor.textPrimary : CYColor.textDisabled)
-            .padding(.horizontal, 22).frame(minHeight: 52)
-            .background(configuration.isPressed ? CYColor.bgRaised : CYColor.bgElevated, in: Capsule())
-            .overlay(Capsule().stroke(CYColor.borderStrong, lineWidth: 1))
-            .contentShape(Capsule())
     }
 }
 

@@ -48,6 +48,7 @@ struct TemplateRootRehearsalView: View {
             Section { Button("creator.reset") { sample = .init(); role = "A"; applied = nil; changes = [:]; evaluated = false } }
         }
         .navigationTitle("creatorRoot.rehearse")
+        .navigationBarTitleDisplayMode(.inline)
     }
     private func evaluate() {
         for key in variables where sample.values[key] == nil { sample.values[key] = 0 }
@@ -80,5 +81,6 @@ struct TemplateD20RehearsalView: View {
             Section { Button("creator.reset") { sample = nil } }
         }
         .navigationTitle("creatorRoot.d20Preview")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }

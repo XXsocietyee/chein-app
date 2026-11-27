@@ -140,7 +140,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
                 if submitted, lifetime == expectedLifetime { issue = nil; dirty = false; completion?() }
             }
         }
-            .buttonStyle(.questifyPrimary)
+            .buttonStyle(.borderedProminent)
             .disabled(!model.canInteract || model.state?.version != item.version || model.state?.sessionID != item.sessionID)
             .accessibilityIdentifier("playkit.review.confirm")
     }
@@ -308,7 +308,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
     }
     func submitButton(_ action: String, payload: [String: PlayWireValue], valid: Bool = true) -> some View {
         Button("playkit.review") { prepare(action, payload) }
-            .buttonStyle(.questifyPrimary).disabled(!enabled || !valid)
+            .buttonStyle(.borderedProminent).disabled(!enabled || !valid)
             .accessibilityIdentifier("playkit.submit." + kind.rawValue)
     }
     func artwork(_ url: String?) -> some View {

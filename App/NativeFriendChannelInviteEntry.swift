@@ -193,7 +193,7 @@ import SwiftUI
                     } else if review.action == "ACCEPT_RULES" { Text("d7.channelInvite.rulesSummary") }
                     else { Text("d7.channelInvite.revokeSummary") }
                     Button { Task { await flow.confirm(); message = ""; checked = [] } } label: { Text("d7.friendInvite.confirm").frame(maxWidth: .infinity) }
-                        .buttonStyle(.questifyPrimary).listRowBackground(Color.clear)
+                        .buttonStyle(.borderedProminent).listRowBackground(Color.clear)
                         .disabled(!flow.canWrite)
                     Button { flow.cancelReview() } label: { Text("d7.friendInvite.cancel").frame(maxWidth: .infinity) }.disabled(flow.busy)
                 } header: { Text("d7.friendInvite.confirmTitle") }

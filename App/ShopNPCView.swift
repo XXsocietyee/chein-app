@@ -176,7 +176,7 @@ import SwiftUI
         VStack(alignment: .leading, spacing: 12) {
             Text("shopNPC.pauseNotice")
             Button("shopNPC.resume") { coordinator.resumeAfterInterruption(); localFailure = nil }
-                .buttonStyle(.questifyPrimary).controlSize(.large)
+                .buttonStyle(.borderedProminent).controlSize(.large)
                 .disabled(scenePhase != .active).accessibilityIdentifier("shopNPC.resume")
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -281,7 +281,7 @@ import SwiftUI
                     } label: {
                         Text(coordinator.failure == nil ? LocalizedStringKey("shopNPC.confirmSend") : LocalizedStringKey("shopNPC.retry"))
                     }
-                    .buttonStyle(.questifyPrimary).controlSize(.large).disabled(!coordinator.canConfirmPending || recording || !showsConversation)
+                    .buttonStyle(.borderedProminent).controlSize(.large).disabled(!coordinator.canConfirmPending || recording || !showsConversation)
                     .accessibilityIdentifier("shopNPC.confirmSend")
                 }
             }

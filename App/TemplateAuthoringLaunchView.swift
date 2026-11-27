@@ -44,6 +44,7 @@ extension AppSession {
             }
         }.listStyle(.insetGrouped)
             .navigationTitle(Text("templateAuthor.title"))
+            .navigationBarTitleDisplayMode(.inline)
             .onChange(of: session.templateAuthoringViewIdentity) { _, _ in editorVisit = nil }
             .navigationDestination(item: $editorVisit) { visit in
                 TemplateAuthoringEntryDestination(factory: { session.templateAuthoringEditor() },
