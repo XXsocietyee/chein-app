@@ -170,7 +170,8 @@ import SwiftUI
                     .themeDomain(.player)
                     .cySheet(detents: [.large])
             }
-            .cySheet(isPresented:$showsTickets) { TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTickets=false },makeTeamCoordinator:{ session.makeTeamCoordinator() },orderLifecycleCoordinator:session.orderLifecycleCoordinator).environment(\.ticketWalletPlayProvider, ticketPlayProvider).environment(\.ticketWalletPendingOrderProvider, ticketPendingOrderProvider).id(session.ticketWalletReader.scope).themeDomain(.player).cySheet(detents: [.large]) }
+            // mp-nav r3: MP navigateTo /subpackageMember/market/passes/index is a page: the wallet pushes (no own stack, no close).
+            .navigationDestination(isPresented:$showsTickets) { TicketWalletView(reader:session.ticketWalletReader,makeTeamCoordinator:{ session.makeTeamCoordinator() },orderLifecycleCoordinator:session.orderLifecycleCoordinator,isPushed:true).environment(\.ticketWalletPlayProvider, ticketPlayProvider).environment(\.ticketWalletPendingOrderProvider, ticketPendingOrderProvider).id(session.ticketWalletReader.scope).themeDomain(.player).cyPushedChrome() }
             // G-047: the system sign-out action sheet, bound to the snapshot captured when 退出登录 was tapped.
             .memberSignOutConfirmation(isPresented: $confirmsLogout, presenting: logoutConfirmation,
                                        confirmIdentifier: "auth.signOut.confirm") { expected in
@@ -187,7 +188,7 @@ import SwiftUI
         }
         .onChange(of: confirmsLogout) { _, visible in if !visible { logoutConfirmation = nil } }
         // Settings, Cooperation and the wallet cover the tabs: a replayed chein:// link waits until they close.
-        .onChange(of: showsSettings || showsCooperation || showsTickets) { _, open in presentation?.setSheet("passport", open: open) }
+        .onChange(of: showsSettings || showsCooperation) { _, open in presentation?.setSheet("passport", open: open) }
         .onChange(of: session.authChannelSnapshot) { _, _ in logoutConfirmation = nil; confirmsLogout = false }
         .onChange(of: scenePhase) { _, phase in savedPostOwner.setForeground(phase == .active); savedTopicOwner.setForeground(phase == .active) }
     }

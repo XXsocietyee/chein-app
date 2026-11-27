@@ -140,7 +140,7 @@ import QuestifyCore
         case .team(let team):
             guard dependencies.nearbyTeamDestination != nil else { return nil }
             return CardAction(titleKey: "nativeR2.mapHome.card.openTeam", systemImage: "person.2", identifier: "roam.mapHome.card.team") {
-                model.teamSheet = RoamMapHomeTeamSheet(teamID: team.teamID)
+                model.push(.team(team.teamID))
             }
         case .officialStop, .searchNode:
             return nil
@@ -262,7 +262,7 @@ import QuestifyCore
                 Section("nativeR2.mapHome.card.section.teams") {
                     ForEach(card.teams) { team in
                         Button {
-                            model.teamSheet = RoamMapHomeTeamSheet(teamID: team.teamID)
+                            model.push(.team(team.teamID))
                         } label: {
                             LabeledContent {
                                 Text(verbatim: String(team.joinedCount) + "/" + String(team.maxMembers))

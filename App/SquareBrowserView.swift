@@ -115,7 +115,7 @@ import SwiftUI
                 }
             }
             .appNavigationTitle("square.xcx.navTitle")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(for: Int.self) { id in SquareDetailView(id: id, contentGeneration: .communityV1, reader: reader, accountReader: accountReader, actions: actions, governanceContext: governanceContext(postID: id), workspace: workspace) }
             .navigationDestination(item: $profileMember) { member in
                 if let accountReader { SocialPublicProfileView(memberID: member.id, reader: accountReader, squareReader: reader, actions: actions) }

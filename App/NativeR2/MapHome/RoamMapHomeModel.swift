@@ -241,6 +241,10 @@ enum RoamMapHomeRoute: Hashable {
     case event(RoamEventDestination)
     case officialRoutes
     case officialRoute(String)
+    /// mp-nav r3: MP navigateTo subpackageRoam/nearby, subpackageRoam/my-teams and the team page are pages: pushed in the panel.
+    case nearbyTeams
+    case myTeams
+    case team(NearbyTeamID)
 }
 
 /// The nearby-team page for one team, opened as a sheet over the map.
@@ -288,9 +292,6 @@ enum RoamMapHomeLoadPhase: Equatable { case idle, loading, loaded, failed }
     var showsLive = false
     var showsCityBoard = false
     var showsPassport = false
-    var showsMyTeams = false
-    var showsNearbyTeams = false
-    var teamSheet: RoamMapHomeTeamSheet?
     /// A full-screen cover hides the map.
     var coversMap: Bool { showsLive || showsCityBoard }
 

@@ -70,7 +70,7 @@ import SwiftUI
             // Design hand-off r1 PL-11: 消息 is the first trailing action, in the same place on all five tab roots.
             ToolbarItem(placement: .topBarTrailing) {
                 if session.account != nil {
-                    NavigationLink { SessionMessagingHome(session: session) } label: {
+                    NavigationLink { SessionMessagingHome(session: session).cyPushedChrome() } label: {
                         HStack(spacing: 2) {
                             Image(systemName: "bell")
                             IMUnreadEntryBadge(reader: session.imUnreadTotalReader)
