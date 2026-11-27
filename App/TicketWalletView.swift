@@ -350,6 +350,7 @@ private struct TicketWalletRow: View {
     let ticket: TicketWalletTicket
     var showsPendingOrderAction = false
     @Environment(\.ticketWalletCompletionReader) private var completionReader
+    @Environment(\.locale) private var locale
     @ScaledMetric(relativeTo: .body) private var thumb: CGFloat = 60
     /// R7-MEM-21-3: activity image, else topic image. The MP illustration stays only when that URL is absent.
     private var httpsCover: URL? { ticket.walletHTTPSCoverURL }
@@ -387,7 +388,7 @@ private struct TicketWalletRow: View {
                     .fixedSize(horizontal: false, vertical: true)
                 if ticket.clearedFlag == nil { completionCaption }
                 if let date = ticket.participateDate, !date.isEmpty {
-                    QuestifyMetadataLine(label: "ticketWallet.participateDate", value: date, systemImage: "calendar")
+                    QuestifyMetadataLine(label: "ticketWallet.participateDate", value: LocaleDisplay.civil(date, locale: locale), systemImage: "calendar")
                 }
                 if let place = ticket.addressName, !place.isEmpty {
                     QuestifyMetadataLine(label: "ticketWallet.place", value: place, systemImage: "mappin.and.ellipse")
