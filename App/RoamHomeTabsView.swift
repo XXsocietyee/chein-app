@@ -140,10 +140,8 @@ struct RoamHomeTabPicker: View {
                     Text("roam.w208.entry.title").cyText(.cardTitle).accessibilityAddTraits(.isHeader)
                 }
                 Spacer()
-                Button("action.retry", systemImage: "arrow.clockwise", action: refresh)
-
-                .disabled(RoamNearbyEventsEntryScope(reader: reader) == nil)
-                .accessibilityIdentifier("roam.home.peek.refresh")
+                // mp-roam r3: MP entry-peek header has only the 附近活动 / 本城推荐 tabs; the extra refresh
+                // button is gone. Reloads come from the failed-state 重试 rows (MP cy-error) and .task(id:).
             }
             if showsCityTab, let cityStrip, let onOpenCityPlace {
                 RoamCityGuideCards(strip: cityStrip, places: cityPlaces, onOpen: onOpenCityPlace)
