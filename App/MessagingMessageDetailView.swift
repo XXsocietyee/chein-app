@@ -225,6 +225,8 @@ struct MessagingMessageDetailView: View {
 
 struct MessagingMessageContent: View {
     let message: MessagingMessage
+    /// Design pass P11: transcript rows hint that a card with answers opens them; the detail page shows the answers.
+    var inTranscript = false
     var body: some View {
         if !message.isPayloadVisible {
             Label(LocalizedStringKey(message.status == .recalled ? "messaging.message.recalled" : "messaging.message.withheld"), systemImage: "eye.slash")
@@ -249,7 +251,7 @@ struct MessagingMessageContent: View {
             Label("messaging.imagePlaceholder", systemImage: "photo").foregroundStyle(.secondary)
                 .accessibilityIdentifier("messaging.message.image")
         case 3:
-            if let card = message.card { MessagingCardContent(card: card, isTrustedSystem: message.senderID == 0) }
+            if let card = message.card { MessagingCardContent(card: card, isTrustedSystem: message.senderID == 0, showsRespondHint: inTranscript) }
             else { Label("messaging.cardUnavailable", systemImage: "rectangle.slash").foregroundStyle(.secondary) }
         case 4:
             if message.pollReference != nil {
@@ -275,27 +277,65 @@ private struct MessagingCardContent: View {
     let card: MessagingCard
     /// Kept so the call site still records whether the sender is the trusted system account.
     let isTrustedSystem: Bool
+    /// Design pass P11: in the transcript a card that carries answers says so, since the row opens the answers.
+    var showsRespondHint = false
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @ScaledMetric(relativeTo: .headline) private var tileSide: CGFloat = 36
     var body: some View {
         let _ = isTrustedSystem
-        VStack(alignment: .leading, spacing: 8) {
-            switch card.kind {
-            case .location:
-                Label("messaging.card.location", systemImage: "mappin.and.ellipse").font(.headline)
-                if let title = card.title { Text(verbatim: title).font(.body).fixedSize(horizontal: false, vertical: true) }
-                if let address = card.address { Text(verbatim: address).font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
-            case .route:
-                Label("messaging.card.route", systemImage: "point.topleft.down.to.point.bottomright.curvepath").font(.headline)
-                if let title = card.title { Text(verbatim: title).font(.body).fixedSize(horizontal: false, vertical: true) }
-            case .signup:
-                Label("messaging.card.signup", systemImage: "ticket").font(.headline)
-                if let title = card.title { Text(verbatim: title).font(.body).fixedSize(horizontal: false, vertical: true) }
-            case .generic:
-                if let title = card.title { Text(verbatim: title).font(.headline).fixedSize(horizontal: false, vertical: true) }
-                else { Text("messaging.card.notification").font(.headline).fixedSize(horizontal: false, vertical: true) }
-                if let subtitle = card.subtitle { Text(verbatim: subtitle).font(.body).fixedSize(horizontal: false, vertical: true) }
-                if let meta = card.meta { Text(verbatim: meta).font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
+        // Design pass P5: every card kind keeps one icon tile and tint, in the bubble and on the detail page alike.
+        HStack(alignment: .top, spacing: 10) {
+            if !typeSize.isAccessibilitySize {
+                Image(systemName: symbol)
+                    .font(.headline)
+                    .foregroundStyle(tint)
+                    .frame(width: tileSide, height: tileSide)
+                    .background(tint.opacity(0.16), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+                    .accessibilityHidden(true)
+            }
+            VStack(alignment: .leading, spacing: 6) {
+                switch card.kind {
+                case .location:
+                    Text("messaging.card.location").font(.footnote.weight(.semibold)).foregroundStyle(tint)
+                    if let title = card.title { Text(verbatim: title).font(.headline).fixedSize(horizontal: false, vertical: true) }
+                    if let address = card.address { Text(verbatim: address).font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
+                case .route:
+                    Text("messaging.card.route").font(.footnote.weight(.semibold)).foregroundStyle(tint)
+                    if let title = card.title { Text(verbatim: title).font(.headline).fixedSize(horizontal: false, vertical: true) }
+                case .signup:
+                    Text("messaging.card.signup").font(.footnote.weight(.semibold)).foregroundStyle(tint)
+                    if let title = card.title { Text(verbatim: title).font(.headline).fixedSize(horizontal: false, vertical: true) }
+                case .generic:
+                    if let title = card.title { Text(verbatim: title).font(.headline).fixedSize(horizontal: false, vertical: true) }
+                    else { Text("messaging.card.notification").font(.headline).fixedSize(horizontal: false, vertical: true) }
+                    if let subtitle = card.subtitle { Text(verbatim: subtitle).font(.body).fixedSize(horizontal: false, vertical: true) }
+                    if let meta = card.meta { Text(verbatim: meta).font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
+                }
+                if showsRespondHint, !card.buttonLabels.isEmpty {
+                    Label("comp.social.card.respond", systemImage: "hand.tap")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.tint)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("messaging.card.respondHint")
+                }
             }
         }
         .accessibilityElement(children: .contain)
+    }
+    private var symbol: String {
+        switch card.kind {
+        case .location: return "mappin.and.ellipse"
+        case .route: return "point.topleft.down.to.point.bottomright.curvepath"
+        case .signup: return "ticket"
+        case .generic: return card.buttonLabels.isEmpty ? "bell" : "envelope.open"
+        }
+    }
+    private var tint: Color {
+        switch card.kind {
+        case .location: return .green
+        case .route: return .blue
+        case .signup: return .orange
+        case .generic: return .secondary
+        }
     }
 }

@@ -50,6 +50,7 @@ import SwiftUI
 private struct ClubActivityCard: View {
     let row: ClubActivityRow
     @Environment(\.locale) private var locale
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var body: some View {
         // CLB-detail-39 (MP detail wxml:166-212, `.ev-*`): the cover (130 pt), then the status and details as plain
         // system text. The list row is the card.
@@ -78,6 +79,18 @@ private struct ClubActivityCard: View {
             else { Text("club.calendar.untitled").font(.headline) }
             if let value = timeText { Text(verbatim: value) }
             else { Text("club.calendar.dateUnknown") }
+            if let start = soonStart {
+                // Design pass P2 / P1: inside the last hour the start time is a live 距开始 mm:ss (system timer text,
+                // same clock as the Live Activity), and reads 进行中 once it passes.
+                HStack(spacing: 4) {
+                    Text("comp.kit.startsIn")
+                    CYCountdown(until: start, style: nil, tint: nil, endedKey: "comp.kit.countdown.started")
+                }
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.orange)
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("club.activityList.startsIn.\(row.id)")
+            }
             if let address = row.address {
                 Label { Text(verbatim: address) } icon: { Image(systemName: "mappin") }
                     .font(.subheadline).foregroundStyle(.secondary)
@@ -102,9 +115,18 @@ private struct ClubActivityCard: View {
     }
     private func stat(_ value: Double, title: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(value, format: .number).font(.headline)
+            // Design pass P2: counts roll when a refresh changes them.
+            Text(value, format: .number).font(.headline).monospacedDigit()
+                .contentTransition(.numericText(value: value))
+                .animation(reduceMotion ? nil : .snappy, value: value)
             Text(title).font(.footnote).foregroundStyle(.secondary)
         }.accessibilityElement(children: .combine)
+    }
+    /// The start date when a recruiting activity starts within the hour (date-only starts never count down).
+    private var soonStart: Date? {
+        guard row.status == .recruiting, !row.dateOnly, let start = row.start else { return nil }
+        let left = start.timeIntervalSinceNow
+        return left > 0 && left <= 3600 ? start : nil
     }
     private var timeText: String? {
         guard let date = row.start else { return row.sourceStart.map { String($0.prefix(16)).replacingOccurrences(of: "T", with: " ") } }
