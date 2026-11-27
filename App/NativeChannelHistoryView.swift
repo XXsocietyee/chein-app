@@ -114,6 +114,7 @@ import SwiftUI
                     if let receipt = model.receipt {
                         LabeledContent {
                             Text(receipt.unread, format: .number).monospacedDigit()
+                                .contentTransition(.numericText(value: Double(receipt.unread)))
                         } label: { Text("channel.unreadRemaining", tableName: "NativeChannel") }
                             .font(.footnote).foregroundStyle(.secondary)
                             .accessibilityIdentifier("channel.history.readResult")

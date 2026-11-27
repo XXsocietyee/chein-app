@@ -65,6 +65,7 @@ struct IMUnreadBadge: View {
     let count: Int?
     var muted = false
     var unknownAsDash = false
+    @QuestifyReduceMotion private var reduceMotion
     private var text: String? {
         unknownAsDash ? IMListPageReady.rowUnreadBadge(count) : IMInboxSummary.badgeText(count)
     }
@@ -78,6 +79,8 @@ struct IMUnreadBadge: View {
                 .foregroundStyle(quiet ? Color.secondary : Color.accentColor)
                 .accessibilityLabel(Text("messaging.unread"))
                 .accessibilityValue(text == IMListPageReady.unknownMark ? Text("im.list.unread.unknown") : Text(verbatim: text))
+                // C5 social: drive the numericText roll when the count changes (instant under Reduce Motion).
+                .animation(reduceMotion ? nil : .snappy, value: text)
         }
     }
 }
