@@ -84,8 +84,8 @@ private struct RoamRunnerConversation: Identifiable, Hashable { let id: Int }
                                     Image(systemName: "photo").foregroundStyle(.secondary)
                                 }
                                 .frame(width: 88, height: 88)
-                                .background(.background.secondary, in: .rect(cornerRadius: 10))
-                                .clipShape(.rect(cornerRadius: 10))
+                                .background(.background.secondary, in: .rect(cornerRadius: CYRadius.inner))
+                                .clipShape(.rect(cornerRadius: CYRadius.inner))
                                 .accessibilityElement()
                                 .accessibilityLabel(Text(verbatim: shop.name))
                             }

@@ -56,7 +56,7 @@ import SwiftUI
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.secondary.opacity(0.06), in: RoundedRectangle(cornerRadius: 20))
+        .background(.secondary.opacity(0.06), in: RoundedRectangle(cornerRadius: CYRadius.hero))
         .accessibilityIdentifier("mapPublicLayers.section")
     }
 
@@ -145,7 +145,7 @@ import SwiftUI
             }
         }
         .padding(8)
-        .background(.background, in: RoundedRectangle(cornerRadius: 8))
+        .background(.background, in: RoundedRectangle(cornerRadius: CYRadius.sm))
         .accessibilityIdentifier(Self.layerStatusIdentifier(for: page))
     }
 
@@ -207,7 +207,7 @@ import SwiftUI
                 }
                 .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(.background, in: RoundedRectangle(cornerRadius: 12))
+                .background(.background, in: RoundedRectangle(cornerRadius: CYRadius.card))
             }
             .buttonStyle(QuestifyCardButtonStyle())
             .accessibilityIdentifier("mapPublicLayers.item.\(item.key.type.rawValue).\(item.key.id)")

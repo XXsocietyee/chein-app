@@ -657,7 +657,7 @@ private struct MessagingBubble: View {
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         // Messages-style notice: system grouped fill in the system bubble shape (no tinted card).
-        .background(.quaternary, in: .rect(cornerRadius: 18, style: .continuous))
+        .background(.quaternary, in: .rect(cornerRadius: CYRadius.bubble, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityHint(Text("messaging.openDetail"))
     }

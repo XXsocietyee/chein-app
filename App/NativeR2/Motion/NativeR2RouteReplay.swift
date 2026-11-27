@@ -180,7 +180,7 @@ struct NativeR2RouteLeg: Identifiable {
             .accessibilityElement(children: .combine)
         }
         .padding(12)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
         .accessibilityIdentifier("nativeR2.motion.counters")
     }
 

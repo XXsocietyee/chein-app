@@ -41,7 +41,7 @@ struct WelcomeSampleRouteMap: View {
             }
             .mapStyle(.standard(pointsOfInterest: .excludingAll))
             .frame(height: min(mapHeight, 320))
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
             .allowsHitTesting(false)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text("nativeR2.shell.welcome.sampleRoute.a11y"))

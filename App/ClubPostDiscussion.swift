@@ -118,7 +118,7 @@ import SwiftUI
                                     // C5 social: each comment reads as a received bubble in the thread.
                                     .padding(.horizontal, 12).padding(.vertical, 8)
                                     .frame(maxWidth: .infinity, alignment: .leading)
-                                    .background(.fill.quaternary, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                    .background(.fill.quaternary, in: RoundedRectangle(cornerRadius: CYRadius.bubble, style: .continuous))
                                     .accessibilityElement(children: .combine)
                                     .accessibilityIdentifier("club.discussion.comment.\(comment.id)")
                                     if comment.memberID != target.context.identity.accountID {
