@@ -174,10 +174,13 @@ re-checked (already `.footnote.weight(.medium)`, brand on bordered fill ~9:1, st
 | Contrast, multi-line `.opacity(` foregrounds | `CYOnboarding.swift`, `CYShareCard.swift`, `CYChapterFlip.swift`, `CYDesignedCover.swift`, `CYSignature.swift` | — | Audit: onboarding body white 0.6 on indigo/ink ≈ 6.5:1; share-card brand black 0.55 on light ≈ 5:1; chapter meta 0.66 ≈ 7:1; cover watermark + DEBUG ART label decorative / debug only, hidden. No `textSecondary.opacity(<0.75)` on text. No change | Done |
 | Reduce Motion, looping / symbol effects | `FogOverlayLayer.swift` (+ `RoamFogMapView`), `GrowthCenterView`, `ChanceKits`, `RoamStampCameraView`, `PassMarketViews` | — | Audit: every `repeatForever` file reads Reduce Motion; fog shimmer and wipes are off under Reduce Motion (caller passes `shimmer: !reduceMotion`, crossfade instead); remaining `symbolEffect` / `.contentTransition(.symbolEffect)` are system effects that follow Reduce Motion. No change | Done |
 
+| `pages/member/*` settings account card | `SettingsView.swift` (`SettingsAccountCard`) | ✓ (mp-mine owns order) | Initial is `.title` inside a fixed 60 pt circle (clips at AX sizes) → `@ScaledMetric(relativeTo: .title)` circle | Done |
+| `pages/playkit` accusation confirm panel | `PlayKitQuestoViews.swift` (`confirmPanel`) | ✓ (mp-journey owns order) | Suspect initial `.pageTitle` in a fixed 72 pt circle → `@ScaledMetric(relativeTo: .largeTitle)` circle (same as the 52 pt list initial) | Done |
+| VoiceOver, `.onTapGesture` without button trait | `JourneyReportViews`, `CityMomentView`, `SettingsAboutView`, `CYMedalStack`, `CYPlayerKit`, `IMExpandedViews`, `E1TicketCard` | — | Audit: every hit carries `.isButton` / `accessibilityAction` / adjustable action, is a skip-animation tap with a real button beside it, or is a map with `.allowsDirectInteraction` + a VoiceOver button (use map centre). No change | Done |
+
 ## Not done (next run starts here)
 - Re-read the a11y sheets once combined-r7 carries runs 7–10 (ring size at AX5, roam VoiceOver order, `a11y-passport-ax5` now the passport).
-- Dynamic Type: fixed-height containers (`.frame(height:` on views holding `Text`) on player screens, A–Z.
-- VoiceOver: custom tappable rows using `.onTapGesture` without `.isButton` trait (lint covers buttons only).
+- Dynamic Type: fixed-height containers — the one-line scan (`.frame(height:)` right after a text modifier) is done; next: `.frame(height:)` on `HStack`/`VStack` holding text (multi-line).
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch
@@ -186,4 +189,5 @@ re-checked (already `.footnote.weight(.medium)`, brand on bordered fill ~9:1, st
 - Release-exclusion audit (`tools/check_design_fixture_release_exclusion.py`) fails on combined-r7 independent of this lane:
   `CityDiceFixture`, `CityKitFixture*`, `D2MeFixture`, `E3PressStyle`, `FixR3PlayRoamBFixtures`, `R3InPlaceKitFixture`, `R4*` are
   declared under `App/DesignFixtures` but missing from `DesignFixtureReleaseExclusionAudit.symbols` (ds-consistency / owning lanes).
+- i18n-r3: `ClubComponents.swift:357` video play glyph `.accessibilityLabel(Text(verbatim: "Play"))` is English-only.
 - i18n-r3: `MPGap/Club/ClubGapRound4Views.swift` accessibility label `"删除凭证图片 \(index + 1)"` is a Chinese literal key (no en).
