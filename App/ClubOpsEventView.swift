@@ -169,6 +169,9 @@ import SwiftUI
                     }
                 }
             } footer: { Text("clubOpsEvent.series.note", tableName: "ClubOpsEvent") }
+        case .recurrence where publishEmpty:
+            // mp-club r3 (MP event-ops wxml:178): with no topic and no series, 重复方式 is not shown — only 发布主题 above.
+            EmptyView()
         case .recurrence:
             Section {
                 if topicFacts.count > 1 { topicPicker }

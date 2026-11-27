@@ -209,7 +209,9 @@ import SwiftUI
                 // Mini isPermissionDenial: terminal state with an exit, not a retry.
                 Section {
                     Label("club.gov.groupCode.noPermission", systemImage: "lock").accessibilityIdentifier("club.gov.groupCode.noPermission")
-                    Button("club.gov.groupCode.backToClub") { dismiss() }.accessibilityIdentifier("club.gov.groupCode.back")
+                    // mp-club r3 (MP group-code wxml:28-31): the exit is 进入俱乐部管理 (goManage), not a plain back.
+                    NavigationLink { ClubGroupCodeMissingLinkView.manageDestination } label: { Text("gap.club.groupCode.enterManage") }
+                        .accessibilityIdentifier("club.gov.groupCode.back")
                 }
             } else if let failure, route.operation == .saveCustomer {
                 // CLB-customer-detail-04 (fix-r3-club-b round 2): MP cy-inline-error 标签与备注没保存成功, the server
@@ -320,7 +322,8 @@ import SwiftUI
                 if route.operation == .hostApply && applyStep == 4 {
                     // CLB-apply-03 (parity r2), MC-10: the last step submits directly as 提交申请; the fact-row review
                     // stays only as the fallback when the submit could not finish.
-                    Button("club.host.submit") {
+                    // mp-club r3 (MP apply wxml:164-165): the button reads 成为俱乐部主理人, 提交中… while it submits.
+                    Button(busy ? LocalizedStringKey("gap.club.coopPool.submitting") : LocalizedStringKey("settings.becomeClubHost")) {
                         Task {
                             await prepare()
                             if let pending = review { await confirm(pending) }

@@ -371,7 +371,10 @@ import SwiftUI
                 let management = session.clubManagementContext
                 ClubManagementView(clubID: id, identity: session.clubIdentity, access: management.access, coordinator: management.coordinator, viewerRevision: management.viewerRevision,
                                    joinRequestsOnly: true)
-            } else { unavailable }
+            } else {
+                // mp-club r3 (MP join-requests wxml:12): a link without clubId is the missing-param state with 返回.
+                MemberMissingLinkState(identifier: "club.joinRequests.missing")
+            }
         case "pages/club/notify/index":
             // CLB-notify-01 / -06 (fix-r3-club-b round 3): the MP notify page is one composer: the selectable audience
             // list with counts, 标题 / 内容, 预览受众, then 发送给 N 人. The composer reads the counts itself and shows

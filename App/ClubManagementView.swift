@@ -65,8 +65,10 @@ struct ClubManagementView: View {
                 ContentUnavailableView("club.management.unconfigured", systemImage: "network.slash")
             } else {
                 if loading && snapshot == nil {
-                    ProgressView { Text("club.management.loading") }
+                    // mp-club r3 (MP join-requests wxml:11, P10): say 正在加载入会申请 in words.
+                    ProgressView { Text("club.joinRequests.loading") }
                         .frame(maxWidth: .infinity)
+                        .accessibilityElement(children: .combine)
                 }
                 let loadIssue = ClubOpsJoinRequestCopy.loadIssue(failed: failed, denied: denied, stale: stale, hasSnapshot: contextMatches && snapshot != nil)
                 if let issue = loadIssue {
@@ -86,11 +88,8 @@ struct ClubManagementView: View {
                     // Mini-program club/join-requests: title, the 「N 条待审 · 可直接通过或拒绝」 line, then the cards.
                     Section {
                         if snapshot.requests.isEmpty {
-                            ContentUnavailableView(
-                                "club.management.empty",
-                                systemImage: "person.badge.clock",
-                                description: Text("club.management.emptyHint")
-                            )
+                            // MP join-requests wxml:20: the title only (暂无待审申请).
+                            ContentUnavailableView("club.management.empty", systemImage: "person.badge.clock")
                         }
                         ForEach(snapshot.requests) { request in
                             VStack(alignment: .leading, spacing: CYSpacing.sm) {
