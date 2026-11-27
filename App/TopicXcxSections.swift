@@ -504,6 +504,8 @@ extension EnvironmentValues {
 /// Source tab "路线": every stop in order with its walking estimate.
 struct TopicXcxRouteSection: View {
     @Environment(\.locale) private var locale
+    /// a11y-dt r3: stop addresses wrap to 3 lines at AX sizes instead of truncating after a few glyphs.
+    @Environment(\.dynamicTypeSize) private var addressTypeSize
     @Environment(\.rootTabSwitch) private var rootTabSwitch
     @Environment(\.openURL) private var openURL
     /// R7-PC-B1-6: MP `_loadProgress` reads the buyer's own `/api/play/nodes` total/doneCount (bought only; otherwise 0, no fake
@@ -637,12 +639,12 @@ struct TopicXcxRouteSection: View {
                                 if let address = stop.node.address {
                                     if let url = TopicStopMapsLink.url(for: stop.node) {
                                         Link(destination: url) {
-                                            Label { Text(verbatim: address).lineLimit(1) } icon: { Image(systemName: "mappin") }.font(.caption)
+                                            Label { Text(verbatim: address).lineLimit(addressTypeSize.isAccessibilitySize ? 3 : 1) } icon: { Image(systemName: "mappin") }.font(.caption)
                                         }
                                         .accessibilityHint(Text("accountCollection.coupon.openInMaps"))
                                         .accessibilityIdentifier("topic.route.stop.\(stop.id).map")
                                     } else {
-                                        Label { Text(verbatim: address).lineLimit(1) } icon: { Image(systemName: "mappin") }.font(.caption)
+                                        Label { Text(verbatim: address).lineLimit(addressTypeSize.isAccessibilitySize ? 3 : 1) } icon: { Image(systemName: "mappin") }.font(.caption)
                                     }
                                 }
                             }

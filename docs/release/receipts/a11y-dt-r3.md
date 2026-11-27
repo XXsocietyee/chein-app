@@ -76,8 +76,22 @@ Merged `origin/ui/combined-r7` (clean). Sweep index still 17:24 (build 070117595
 | `pages/coop/finance`, `pages/coop/settlement-detail`, `pages/coop/invite-detail` | `CoopFinanceProfitView.swift`, `CoopFinanceSummarySection.swift`, `CoopSettlementDetailView.swift`, `CooperationInviteDetailView.swift` | ✓ | Audit: system `LabeledContent` rows (stack at AX sizes), monetary values `monospacedDigit`, timeline dot decorative + hidden, 44 pt minimum on finance actions, hero cover fixed 150 pt is an image. No change | Done |
 | `subpackagePass/reveal` (pass / object reveal) | `RevealChoreographer.swift`, `PlayObjectCardRevealView.swift`, `PlayKitSpatialRevealView.swift`, `TopicPurchaseRevealMount.swift` | ✓ (mp-activity owns order) | Audit: choreographer takes Reduce Motion + Low Power, card flip jumps to the final frame, AR decorative motion finishes immediately under Reduce Motion. No change | Done |
 
+## Run 5 (2026-11-27, hourly)
+
+Merged `origin/ui/combined-r7` (clean). Sweep index still 18:06 (build 070117595); a11y sheets unchanged.
+`.lineLimit(1)` audit (132 hits in player files): tab-root rows and their direct rows first.
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/index/index` feed (`v2-fcard` tags, `v3-reco-club`) | `HomeFeedView.swift` (`HomeFeedCard`, `HomeFeedFeaturedFacts`) | ✓ (mp-home owns order) | The two MP category chips sit side by side at normal sizes and stack (`AnyLayout` VStack) at AX sizes, 2 lines each, instead of truncating; featured club line 1 → 2 lines at AX sizes | Done |
+| P21 running-session mini bar (all tab roots) | `ActiveSessionMiniBar.swift` | ✓ | Icon tile fixed 36 pt with a `.body` glyph (clipped at AX sizes) → `@ScaledMetric(.body)` capped 52 pt; title/value stay one line (Music mini-player pattern), combined element + hint already present | Done |
+| `pages/roam/index` 附近 list | `NativeR2/MapHome/RoamMapHomeSheet.swift` (`RoamMapHomePinRow`) | ✓ (mp-roam owns order) | Title 1 → 2 lines and kind · distance stacks at AX sizes (separator dropped and VoiceOver-hidden) instead of truncating | Done |
+| `pages/topic/index` route stops | `TopicXcxSections.swift` (`TopicXcxRouteSection`) | ✓ (mp-publish owns order) | Stop address (Maps link) 1 → 3 lines at AX sizes | Done |
+| `pages/member/index` card buttons | `MemberHomeHeader.swift` | ✓ | Left to mp-mine (18:15 sweep: they own the `ViewThatFits` fix for 开始探索 / 票夹); asset values `lineLimit(1)` + scale are numbers, fine | Skipped (other lane) |
+| Club fixtures `E3PostCard` | `ClubComponents.swift` | — | Fixture-only (`DesignFixtures/E3Fixtures.swift`), skipped | Skipped |
+
 ## Not done (next run starts here)
-- Next pages without a row: `.lineLimit(1)` audit on remaining tab-root rows (P12 + AX5).
+- Continue `.lineLimit(1)` audit on pushed player pages: `JourneyReportViews.swift`, `CityKit/CityDeedCard.swift`, `RoamLiveSessionView.swift`, `TopicTeamsCard.swift`, `TopicChapterCardsSection.swift`, `NativeR2/Social/CYPeopleComponents.swift`, `MPGap/PlayRoam/PlayLeadBar.swift`.
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch
