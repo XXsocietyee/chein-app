@@ -430,6 +430,8 @@ typealias PlayKitAccusationWrite = (String) -> Void
     @State private var flipping = false
     @State private var confirmOpen = false
     @State private var openClue: Int?
+    /// a11y-dt r3: the initial grows with Dynamic Type instead of clipping in a fixed 52 pt circle.
+    @ScaledMetric(relativeTo: .title3) private var suspectInitial: CGFloat = 52
     @State private var unavailable = false
     @QuestifyReduceMotion private var reduceMotion
     @Environment(\.locale) private var locale
@@ -563,7 +565,7 @@ typealias PlayKitAccusationWrite = (String) -> Void
             .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 Text(verbatim: suspect.initial).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
-                    .frame(width: 52, height: 52).background(Circle().fill(CYColor.bgRaised))
+                    .frame(width: suspectInitial, height: suspectInitial).background(Circle().fill(CYColor.bgRaised))
                     .overlay(Circle().strokeBorder(CYColor.bgElevated, lineWidth: 3))
                     .padding(.top, -36).accessibilityHidden(true)
                 Text(verbatim: suspect.name).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
