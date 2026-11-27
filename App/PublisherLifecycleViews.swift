@@ -68,12 +68,26 @@ import SwiftUI
                         .accessibilityIdentifier("publisher.pricing.retry")
                 }
             case .ready(let ready) where ready.refreshFailed:
-                Label("publisherPricing.stalePreview", systemImage: "clock.arrow.circlepath")
-                    .font(.footnote).foregroundStyle(.orange).accessibilityIdentifier("publisher.pricing.stale")
+                // MP cy-inline-error 最新定价暂未取回 with its 重试 action (pages/topic/pricing/index.wxml:13).
+                HStack {
+                    Label("publisherPricing.stalePreview", systemImage: "clock.arrow.circlepath")
+                        .font(.footnote).foregroundStyle(.orange).accessibilityIdentifier("publisher.pricing.stale")
+                    Spacer()
+                    Button { beginLoad() } label: { Text("topic.retry") }
+                        .buttonStyle(.borderless).accessibilityIdentifier("publisher.pricing.staleRetry")
+                }
             default:
                 EmptyView()
             }
             if topicID > 0 {
+            // MP skeleton / 正在确认最新定价… while the preview is read (index.wxml:8, :14), with visible words (P10).
+            if busy {
+                Section {
+                    ProgressView { Text(verbatim: text("publisherPricing.checkingTheLatestPricing")) }
+                        .frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("publisher.pricing.loading")
+                }
+            }
             // `productType == 2` is free explore. The page hides 有人带 / 无人带. Confirm still sends nothing.
             if preview?.productType != 2 {
             Section {
@@ -83,7 +97,8 @@ import SwiftUI
                     Text(text("publisherPricing.selfGuided")).tag(PublisherPriceSubtype.selfPlay)
                 }.cyAdaptiveSegmented().accessibilityIdentifier("publisher.subtype")
             }
-            if subtype == .guided {
+            // MP 带队成本 card: 有人带 only, hidden once priced (index.wxml:19); 重新计算地板 sits inside it.
+            if subtype == .guided, preview?.priced != true {
                 Section(text("publisherPricing.leadCost")) {
                     // PC-B-4-5 (MP E24): each field keeps a standing label; a placeholder vanishes once typed.
                     pricingField(text("publisherPricing.totalLeadCostForThisGroup"), value: $cost, keyboard: .decimalPad)
@@ -91,24 +106,24 @@ import SwiftUI
                     if (Int(team) ?? 0) <= 0 {
                         Text(text("publisherPricing.guidedPricingNeedsAGroupSize")).font(.footnote).foregroundStyle(.red)
                     }
+                    Button { beginLoad() } label: { Text(verbatim: text("publisherPricing.recalculateFloor")) }
+                        .buttonStyle(.bordered)
+                        .disabled(busy).accessibilityIdentifier("publisher.preview")
                 }
             }
-            }
-            Section {
-                Button { beginLoad() } label: { Text(verbatim: subtype == .guided ? text("publisherPricing.recalculateFloor") : text("publisherPricing.refreshMinimumPrice")) }
-                    .buttonStyle(.bordered).controlSize(.large)
-                    .disabled(busy).accessibilityIdentifier("publisher.preview")
-                if busy { Text(text("publisherPricing.checkingTheLatestPricing")).font(.footnote).foregroundStyle(.secondary) }
             }
             if let preview, resultSession == client.session {
-                Section(text("publisherPricing.costFloor")) {
-                    // Floor reads TopicPricingXcx money text: two decimals, em dash when unknown, literal 0 stays 0.00.
-                    Text(verbatim: LocaleDisplay.money(text: TopicPricingXcx.moneyText(decimal: preview.minimum), locale: locale)).font(.largeTitle.bold()).monospacedDigit()
-                        .contentTransition(.numericText()).accessibilityIdentifier("publisher.floor")
-                    Text("publisherPricing.floorIncludes").font(.footnote).foregroundStyle(.secondary)
-                    Text("publisherPricing.marginNote").font(.footnote).foregroundStyle(.secondary)
+                // MP 最低价 card: not on free explore (index.wxml:38); no extra notes under the amount.
+                if preview.productType != 2 {
+                    Section(text("publisherPricing.costFloor")) {
+                        // Floor reads TopicPricingXcx money text: two decimals, em dash when unknown, literal 0 stays 0.00.
+                        Text(verbatim: LocaleDisplay.money(text: TopicPricingXcx.moneyText(decimal: preview.minimum), locale: locale)).font(.largeTitle.bold()).monospacedDigit()
+                            .contentTransition(.numericText()).accessibilityIdentifier("publisher.floor")
+                    }
                 }
-                Section(text("publisherPricing.yourFinalPrice")) {
+                // MP: more than one ticket → the per-ticket 你的终价 card replaces the single price card (index.wxml:45-61).
+                if ticketFields.count <= 1 {
+                Section(finalPriceTitle(preview)) {
                     TextField(text("publisherPricing.finalPrice"), text: $price).keyboardType(.decimalPad).accessibilityIdentifier("publisher.finalPrice")
                     // R11-PC-B-2: MP selfPriceError under the final price (pages/topic/pricing/index.wxml:69; index.js:169), 无人带 only.
                     if let error = selfPriceErrorText(preview) {
@@ -121,15 +136,18 @@ import SwiftUI
                            in: Double(floorValue)...Double(max(maximum, floorValue + 1)), step: 1)
                         .accessibilityLabel(Text(text("publisherPricing.finalPrice")))
                         .accessibilityValue(Text(verbatim: LocaleDisplay.yuanAmounts(in: "¥" + (Int(price).map(String.init) ?? String(floorValue)), locale: locale)))
+                    if preview.productType != 2 || preview.minimum > 0 {
                     HStack {
                         Text(verbatim: text("publisherPricing.floorShort") + " " + LocaleDisplay.money(text: TopicPricingXcx.moneyText(decimal: preview.minimum), locale: locale))
                         Spacer(); Text(verbatim: LocaleDisplay.yuanAmounts(in: "¥\(maximum)", locale: locale))
                     }.font(.footnote).foregroundStyle(.secondary)
+                    }
                     if let reference = preview.reference, let count = preview.sampleSize, count > 0 {
                         let area = preview.referenceLabel ?? text("publisherPricing.local")
                         let average = TopicPricingXcx.twoDecimals(NSDecimalNumber(decimal: reference).stringValue) ?? "—"
                         Text("publisherPricing.reference \(area) \(average) \(count)").font(.footnote)
-                    } else { Text(text("publisherPricing.notEnoughSamplesNoReferencePrice")).font(.footnote) }
+                    }
+                    // MP k3 (p3 N11): no reference price → no reference row, no 样本不足 line.
                     switch TopicPricingXcx.delta(price: Decimal(string: price) ?? preview.minimum, reference: preview.reference, sampleSize: preview.sampleSize) {
                     case .above(let percent)?: Text("publisherPricing.aboveReference \(percent)").font(.footnote).foregroundStyle(.orange)
                     case .notAbove?: Text(text("publisherPricing.notAboveTheLocalReferencePrice")).font(.footnote).foregroundStyle(.secondary)
@@ -143,7 +161,8 @@ import SwiftUI
                             .accessibilityIdentifier("publisher.takeHome")
                     }
                 }
-                // R7-PC-B4-3: MP 开售状态 and 结算待处理 cards (pages/topic/pricing/index.wxml:79-86) before 合作阵容.
+                }
+                // R7-PC-B4-3: MP per-ticket 你的终价 and 结算待处理 cards (pages/topic/pricing/index.wxml:45-86) before 合作阵容.
                 TopicPricingGapSection(ticketFields: $ticketFields, extraStatus: pricingExtra, canConfirmPricing: showsConfirm,
                                        platformRate: preview.platformRate, minimum: preview.minimum)
                 if !preview.lineup.isEmpty {
@@ -220,7 +239,11 @@ import SwiftUI
         .onAppear { visible = true }
         .onChange(of: topicID) { _, _ in invalidate() }
         .onChange(of: client.session) { _, _ in invalidate() }
-        .onChange(of: subtype) { _, _ in invalidate() }
+        // MP chooseType re-reads the preview right away (index.js:262-271); 有人带 still needs a group size first.
+        .onChange(of: subtype) { _, value in
+            invalidate()
+            if value == .selfPlay || (Int(team) ?? 0) > 0 { beginLoad() }
+        }
         .onChange(of: cost) { _, _ in invalidate() }
         .onChange(of: team) { _, _ in invalidate() }
         .onChange(of: price) { _, _ in invalidate(keepPreview: true) }
@@ -244,6 +267,11 @@ import SwiftUI
         case .fixed(let fee): return fee.map { appLocalized("publisherPricing.terms.fixed \($0)", locale: locale) } ?? appLocalized("publisherPricing.terms.fixedUnknown", locale: locale)
         case .traffic: return text("publisherPricing.referral")
         }
+    }
+    /// MP index.wxml:64: 免费门票 / 门票价格 on free explore, else 你的终价.
+    private func finalPriceTitle(_ preview: PublisherPricingPreview) -> String {
+        guard preview.productType == 2 else { return text("publisherPricing.yourFinalPrice") }
+        return (Decimal(string: price) ?? 0) == 0 ? text("publisherPricing.freeTicket") : text("publisherPricing.ticketPrice")
     }
     /// MP index.js:169: `selfPriceError` only applies on 无人带 (subType self).
     private func selfPriceErrorText(_ preview: PublisherPricingPreview) -> String? {
@@ -432,9 +460,13 @@ import SwiftUI
                     // pages/topic/pricing/partner/index phase (TopicPricingXcx.partnerPreviewPhase).
                     let scopedResult = resultKey == readKey ? result : nil
                     switch TopicPricingXcx.partnerPreviewPhase(loading: loading, inspection: scopedResult, failed: resultKey == readKey && failed) {
-                    case .loading: ProgressView().frame(maxWidth: .infinity)
+                    // MP skeleton loading-label 合作信息加载中 (partner/index.wxml:21), shown as words (P10).
+                    case .loading:
+                        ProgressView { Text(verbatim: text("publisherPricing.loadingPartnerInformation")) }
+                            .frame(maxWidth: .infinity)
                     case .error:
-                        Label("publisherPricing.loadFailed", systemImage: "exclamationmark.triangle")
+                        // MP cy-error 合作信息加载失败 (partner/index.wxml:9).
+                        Label("cooperation.failure", systemImage: "exclamationmark.triangle")
                             .foregroundStyle(.secondary).accessibilityIdentifier("publisher.partner.error")
                         // PC-B-5-1: the error state offers recovery (MP 重新加载), not a dead end.
                         Button { Task { await load(readKey) } } label: { Text("topic.retry") }
@@ -445,7 +477,8 @@ import SwiftUI
                             .accessibilityIdentifier("publisher.partner.unknown")
                     case .empty(let inspection), .ready(let inspection):
                         let profile = inspection.profile.object ?? [:]
-                        Text(profile["name"]?.text ?? "—").font(.headline)
+                        // MP pr-name-row: name with 查看 beside it, before the profile rows (partner/index.wxml:25-32).
+                        partnerNameRow(profile["name"]?.text ?? "—")
                         if let description = profile["description"]?.text, !description.isEmpty { Text(description).foregroundStyle(.secondary) }
                         let rows = profileRows(profile)
                         if rows.isEmpty { Text(text("publisherPricing.noProfileYet")).foregroundStyle(.secondary) }
@@ -459,14 +492,6 @@ import SwiftUI
                                 LabeledContent(key, value: value)
                             }
                         }
-                        // R7-PC-B5-2 (r1 PC-B-5-2): MP 查看 opens the club detail / merchant home.
-                        if isClub, let clubDestination {
-                            NavigationLink { clubDestination(row.partnerID) } label: { Text("publisherPricing.viewPartner") }
-                                .accessibilityIdentifier("publisher.partner.view")
-                        } else if !isClub, let merchantDestination {
-                            NavigationLink { merchantDestination(row.partnerID) } label: { Text("publisherPricing.viewPartner") }
-                                .accessibilityIdentifier("publisher.partner.view")
-                        }
                     }
                 } header: { Text(isClub ? text("publisherPricing.partnerClub") : text("publisherPricing.hostingMerchant")) }
                 if resultKey == readKey, let terms = result?.terms {
@@ -476,11 +501,11 @@ import SwiftUI
                         if terms.mode == 1 { LabeledContent(text("publisherPricing.share"), value: partnerMoney(terms.shareRate, prefix: "", suffix: "%")) }
                         if terms.mode == 2 { LabeledContent(text("publisherPricing.fixedFee"), value: LocaleDisplay.yuanAmounts(in: partnerMoney(terms.fixedFee, prefix: "¥", suffix: text("publisherPricing.perPerson")), locale: locale)) }
                         LabeledContent(text("publisherPricing.locked"), value: text("publisherPricing.whenSalesOpen"))
+                    } header: { Text(text("publisherPricing.partnershipTerms")) } footer: {
+                        // MP pr-footnote termsFootnote is the only note under 合作条款 (partner/index.wxml:76).
                         Text(terms.mode == 1 ? text("publisherPricing.termsFreezeWhenSalesOpenSettlement")
                              : terms.mode == 2 ? text("publisherPricing.termsFreezeWhenSalesOpenSettlement44")
-                             : text("publisherPricing.theLineupFreezesWhenSalesOpen")).font(.footnote).foregroundStyle(.secondary)
-                    } header: { Text(text("publisherPricing.partnershipTerms")) } footer: {
-                        Text("publisherPricing.partnerLocked")
+                             : text("publisherPricing.theLineupFreezesWhenSalesOpen"))
                     }
                 }
             }
@@ -496,6 +521,22 @@ import SwiftUI
     }
     private func retire() {
         generation = UUID(); result = nil; message = ""; resultKey = nil; failed = false; loading = false
+    }
+    /// R7-PC-B5-2 (r1 PC-B-5-2): MP 查看 opens the club detail / merchant home; without a destination the name stands alone.
+    @ViewBuilder private func partnerNameRow(_ name: String) -> some View {
+        if isClub, let clubDestination {
+            NavigationLink { clubDestination(row.partnerID) } label: {
+                LabeledContent { Text("publisherPricing.viewPartner") } label: { Text(verbatim: name).font(.headline) }
+            }
+            .accessibilityIdentifier("publisher.partner.view")
+        } else if !isClub, let merchantDestination {
+            NavigationLink { merchantDestination(row.partnerID) } label: {
+                LabeledContent { Text("publisherPricing.viewPartner") } label: { Text(verbatim: name).font(.headline) }
+            }
+            .accessibilityIdentifier("publisher.partner.view")
+        } else {
+            Text(verbatim: name).font(.headline)
+        }
     }
     private func load(_ key: ReadKey) async {
         guard !Task.isCancelled else { return }
