@@ -104,7 +104,7 @@ import Observation
                         .frame(maxWidth: .infinity)
                         .accessibilityIdentifier("profile.weekly.loading")
                 case .unavailable:
-                    ContentUnavailableView("profile.weekly.unavailable", systemImage: "wifi.slash")
+                    ContentUnavailableView("profile.weekly.unavailable", systemImage: "exclamationmark.circle")
                         .accessibilityIdentifier("profile.weekly.unavailable")
                 case .signIn:
                     ContentUnavailableView("profile.signInRequired", systemImage: "person.crop.circle")
