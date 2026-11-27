@@ -12,6 +12,8 @@ and `#Preview { ... }` blocks; comments are ignored) and counts, per file:
                   (a transparent / hidden bar on a root is caught by `hidden nav`)
   pushed large    `.navigationBarTitleDisplayMode(.large)` outside the tab roots and the design system
                   (pushed pages use the inline title, `cyPageTitle(_:)`)
+  title mode      a file that sets navigation titles but never a display mode (no `.navigationBarTitleDisplayMode`,
+                  `cyPageTitle`, `cyRootHeader`): a pushed page then inherits the tab root's large title
   hidden nav      `.navigationBarHidden(true)`, `.toolbar(.hidden, for: .navigationBar)`,
                   `.toolbarBackground(.hidden, for: .navigationBar)`, `.navigationBarBackButtonHidden(true)`
                   (custom back buttons / MP custom nav chrome)
@@ -45,7 +47,8 @@ PUSHED_LARGE = 'pushed large'
 HIDDEN_NAV = 'hidden nav'
 RAW_COLOUR = 'raw colour'
 CUSTOM_BACK = 'custom back'
-KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, HIDDEN_NAV, CUSTOM_BACK, RAW_COLOUR)
+TITLE_MODE = 'title mode'
+KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, CUSTOM_BACK, RAW_COLOUR)
 
 # The five player tab roots (Core/RootTab.swift, QuestifyApp root TabView) and the files that own their title.
 # 漫游 is the full-screen map home: its chrome is allowed in the baseline instead.
@@ -72,6 +75,9 @@ SCALED_METRIC = re.compile(r'@ScaledMetric\b[^\n]*?\bvar\s+(\w+)')
 SYSTEM_SIZE_ARG = re.compile(r'\.system\s*\(\s*size\s*:\s*(\w+)\s*[,)]')
 TRACKING_PATTERN = re.compile(r'\.(?:tracking|kerning)\s*\(')
 LARGE_PATTERN = re.compile(r'\.navigationBarTitleDisplayMode\s*\(\s*\.large\s*\)')
+TITLE_PATTERN = re.compile(r'\.(?:navigationTitle|appNavigationTitle)\s*\(')
+ANY_MODE_PATTERN = re.compile(r'\.navigationBarTitleDisplayMode\s*\(|\.cyPageTitle\s*\(|\.cyRootHeader\s*\(')
+TITLE_MODE_EXEMPT = ('App/AppLocalizedString.swift',)
 ROOT_HEADER_PATTERN = re.compile(r'\.cyRootHeader\s*\(')
 HIDDEN_PATTERNS = (
     re.compile(r'\.navigationBarHidden\s*\(\s*true\s*\)'),
@@ -189,6 +195,10 @@ def scan_file(rel, text):
             hits.append((number, CUSTOM_BACK, code.strip()))
         if not colour_exempt and any(p.search(code) for p in COLOUR_PATTERNS):
             hits.append((number, RAW_COLOUR, code.strip()))
+    if not design_system and rel not in TITLE_MODE_EXEMPT and not any(ANY_MODE_PATTERN.search(c) for _, c in lines):
+        for number, code in lines:
+            if TITLE_PATTERN.search(code):
+                hits.append((number, TITLE_MODE, code.strip()))
     if is_root:
         has_large = any(ROOT_HEADER_PATTERN.search(c) or LARGE_PATTERN.search(c) for _, c in lines)
         if not has_large:

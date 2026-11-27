@@ -7,7 +7,7 @@ struct G01JourneyFormStyle: ViewModifier {
     @Environment(\.themeDomain) private var domain
     func body(content: Content) -> some View {
         content
-            .font(Theme.Font.body)
+            .cyText(.body)
             .tint(Theme.Color.accent(in: domain))
             .scrollContentBackground(.hidden)
             .background(Theme.Color.bgPage(in: domain))

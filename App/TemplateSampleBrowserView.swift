@@ -132,6 +132,7 @@ import Combine
             }
         }
             .navigationTitle("templateSamples.open")
+            .navigationBarTitleDisplayMode(.inline)
             .cySheet(item: controller.presentationBinding) { item in
                 Group {
                     NavigationStack { TemplateSamplePresentationView(controller: controller, presentationID: item.id) }

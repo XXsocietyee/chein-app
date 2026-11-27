@@ -67,7 +67,7 @@ import Observation
                     .buttonStyle(.borderless).disabled(ticket == nil)
                     .accessibilityIdentifier("playTaskOutcome.back")
             }
-                .font(Theme.Font.body)
+                .cyText(.body)
                 .foregroundStyle(Theme.Color.textPrimary(in: domain))
                 .accessibilityElement(children: .contain)
                 .onAppear { actions.appear(model: model, nodeID: nodeID, active: scenePhase == .active) }

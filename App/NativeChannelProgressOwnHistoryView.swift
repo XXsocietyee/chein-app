@@ -51,6 +51,7 @@ import SwiftUI
         }
         .nativeChannelScreen()
         .navigationTitle(Text("d7.channelProgress.historyTitle", tableName: "NativeChannelProgress"))
+        .navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
         .onAppear { actions.activate() }
         .onDisappear { actions.retire() }

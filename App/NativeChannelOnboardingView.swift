@@ -28,6 +28,7 @@ import SwiftUI
         .onChange(of: channels.isCurrent) { _, current in if !current { close() } }
         .nativeChannelFlowPage()
         .navigationTitle(Text("d7.channelOnboarding.title"))
+        .navigationBarTitleDisplayMode(.inline)
         .onChange(of: parentRouteIsActive()) { _, current in if !current { welcomeRoute.isPresented = false; close() } }
         .navigationDestination(isPresented: welcomeVisit) {
             NativeChannelWelcomeEntry(session: session, channels: channels, parentRouteIsActive: { welcomeVisit.wrappedValue }).id(welcomeRoute.visitID)
@@ -121,6 +122,7 @@ import SwiftUI
         .refreshable { selections = [:]; await flow.refresh() }
         .nativeChannelFlowPage()
         .navigationTitle(Text("d7.channelOnboarding.title"))
+        .navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
         .task { await flow.activate() }
         .onDisappear { selections = [:]; flow.deactivate() }

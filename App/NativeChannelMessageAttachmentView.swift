@@ -25,6 +25,7 @@ import SwiftUI
                     Label { Text("attachment.sourceRequired", tableName: "NativeChannelMessage") } icon: { Image(systemName: "doc.badge.ellipsis") }
                 }
                 .navigationTitle(Text("attachment.open", tableName: "NativeChannelMessage"))
+                .navigationBarTitleDisplayMode(.inline)
             }
         }
         .nativeChannelScreen()

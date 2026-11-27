@@ -62,6 +62,7 @@ import SwiftUI
         }
         .nativeChannelScreen().listStyle(.insetGrouped)
         .navigationTitle(Text("pins.title", tableName: "NativeChannelMessage"))
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) { Button("action.done") { dismiss() } }
             if coordinator.client.allows(.mutate(.sort)) {

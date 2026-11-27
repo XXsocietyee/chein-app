@@ -51,6 +51,7 @@ import SwiftUI
         .nativeChannelScreen()
         .listStyle(.insetGrouped)
         .navigationTitle(Text("revisions.title", tableName: "NativeChannelMessage"))
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { dismiss() } } }
         .task(id: phase) {
             clear()
