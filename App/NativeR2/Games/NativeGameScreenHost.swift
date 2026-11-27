@@ -42,6 +42,7 @@ extension PlayKitScreen {
             submit: nativeBottomAction,
             verdict: nativeVerdict,
             score: nativeScore,
+            hud: nativeHUD,
             help: nativeHelp,
             analyticsNodeID: model.state?.nodeID,
             analyticsKit: kind.rawValue,
@@ -174,28 +175,24 @@ extension PlayKitScreen {
                 PlayKitReferenceButton(source: source, alt: PlayKitReferenceImage.alt(in: raw),
                     approvedHosts: approvedArtworkHosts, nodeID: model.state?.nodeID, kit: kind.rawValue)
             }
-            nativeTriesRow
             PlayKitIssueReportMenu(nodeID: model.state?.nodeID, kit: kind.rawValue)
         }
     }
 
-    /// 「还能错 N 次」 for capped kits, otherwise the attempt count.
-    @ViewBuilder var nativeTriesRow: some View {
+    /// Components r1 HUD: the server's score and 「还能错 N 次」 for capped kits, otherwise the attempt count
+    /// (the former tries row). The shell adds question progress and hint counts.
+    var nativeHUD: NativeGameHUDModel {
+        var hud = NativeGameHUDModel()
+        guard model.isCurrent, raw.object != nil else { return hud }
+        hud.score = raw["score"].integer ?? raw["points"].integer
         let used = raw["attempts"].integer ?? raw["tries"].integer
         if let cap = raw["maxTries"].integer ?? raw["maxAttempts"].integer, cap > 0 {
-            LabeledContent {
-                Text(verbatim: "\(max(0, cap - (used ?? 0))) / \(cap)").monospacedDigit()
-            } label: {
-                Text("playkit.triesLeft")
-            }
-            .accessibilityIdentifier("playkit.triesLeft")
+            hud.triesCap = cap
+            hud.triesLeft = max(0, cap - (used ?? 0))
         } else if let used, ![PlayKitScreenKind.typeIn, .sort, .match, .classify].contains(kind) {
-            LabeledContent {
-                Text(verbatim: String(used)).monospacedDigit()
-            } label: {
-                Text("playkit.attempts")
-            }
+            hud.attempts = used
         }
+        return hud
     }
 
     @ViewBuilder var nativeStatusSections: some View {

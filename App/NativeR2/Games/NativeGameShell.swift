@@ -70,6 +70,8 @@ extension EnvironmentValues {
     let verdict: PlayGameOutcome?
     /// A server-reported score; the result sheet rolls it up from zero (G-009).
     let score: Int?
+    /// Components r1: server values for the live HUD (score, tries); the shell adds progress and hint counts.
+    let hud: NativeGameHUDModel
     let help: NativeGameHelpContext?
     let analyticsNodeID: Int?
     let analyticsKit: String?
@@ -96,6 +98,7 @@ extension EnvironmentValues {
          submit: NativeGameSubmit? = nil,
          verdict: PlayGameOutcome? = nil,
          score: Int? = nil,
+         hud: NativeGameHUDModel = NativeGameHUDModel(),
          help: NativeGameHelpContext? = nil,
          analyticsNodeID: Int? = nil,
          analyticsKit: String? = nil,
@@ -106,7 +109,7 @@ extension EnvironmentValues {
          @ViewBuilder outcome: () -> Outcome) {
         self.title = title; self.style = style; self.reorderable = reorderable; self.wrapsInNavigationStack = wrapsInNavigationStack
         self.close = close; self.progress = progress; self.wrongReply = wrongReply; self.submit = submit
-        self.verdict = verdict; self.score = score
+        self.verdict = verdict; self.score = score; self.hud = hud
         self.help = help; self.analyticsNodeID = analyticsNodeID; self.analyticsKit = analyticsKit
         self.identifier = identifier; self._resultPresented = resultPresented; self.resultActions = resultActions
         self.controls = controls(); self.outcome = outcome()
@@ -122,8 +125,8 @@ extension EnvironmentValues {
 
     private var listBody: some View {
         List {
-            if let progress {
-                Section { progressView(progress) }
+            if !liveHUD.isEmpty {
+                Section { NativeGameHUD(model: liveHUD) }
             }
             controls
             wrongReplySection
@@ -161,7 +164,7 @@ extension EnvironmentValues {
     /// Inside the story page: plain stack, no nested List, ScrollView or toolbar.
     private var embeddedBody: some View {
         VStack(alignment: .leading, spacing: 16) {
-            if let progress { progressView(progress) }
+            if !liveHUD.isEmpty { NativeGameHUD(model: liveHUD) }
             controls
             wrongReplySection
             outcome
@@ -173,11 +176,23 @@ extension EnvironmentValues {
         .accessibilityIdentifier(identifier)
     }
 
-    private func progressView(_ progress: NativeGameProgress) -> some View {
-        ProgressView(value: Double(min(progress.current, progress.total)), total: Double(max(1, progress.total))) {
-            Text("nativeGames.progress \(progress.current) \(progress.total)")
+    /// The host's server values plus the question progress and the hint ladder's revealed / total layers.
+    private var liveHUD: NativeGameHUDModel {
+        var model = hud
+        model.progress = progress
+        if let hints = NativeGameHUDModel.hints(help?.model) {
+            model.hintsUsed = hints.used
+            model.hintsTotal = hints.total
         }
-        .accessibilityIdentifier("nativeGames.progress")
+        return model
+    }
+
+    /// Result sheet: what it took (tries, hints); the score itself is the big rolling number above.
+    private var resultStats: NativeGameHUDModel {
+        var model = liveHUD
+        model.score = nil
+        model.progress = nil
+        return model
     }
 
     /// The server's reply to a wrong answer, right under the controls (PlayKitWrongReply).
@@ -275,12 +290,8 @@ extension EnvironmentValues {
     private func resultHeader(_ verdict: PlayGameOutcome) -> some View {
         Section {
             VStack(spacing: 8) {
-                Image(systemName: Self.symbol(for: verdict))
-                    .font(.largeTitle)
-                    .imageScale(.large)
-                    .foregroundStyle(verdict == .passed ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
-                    .symbolEffect(.bounce, value: reduceMotion ? 0 : celebration)
-                    .accessibilityHidden(true)
+                // Components r1: badge springs in with one ripple on a pass (MP result-sheet); still under Reduce Motion.
+                NativeGameRewardBadge(systemImage: Self.symbol(for: verdict), passed: verdict == .passed, trigger: celebration)
                 if let score {
                     Text(verbatim: shownScore.formatted(.number.locale(locale)))
                         .font(.largeTitle.bold())
@@ -288,6 +299,11 @@ extension EnvironmentValues {
                         .contentTransition(.numericText(value: Double(shownScore)))
                         .accessibilityLabel(Text("nativeGames.result.score \(score)"))
                         .accessibilityIdentifier("nativeGames.result.score")
+                }
+                if !resultStats.isEmpty {
+                    NativeGameHUD(model: resultStats)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("nativeGames.result.stats")
                 }
             }
             .frame(maxWidth: .infinity)

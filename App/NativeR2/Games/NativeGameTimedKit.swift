@@ -24,6 +24,8 @@ import SwiftUI
     @State private var ticker = UUID()
     @State private var mounted = false
     @State private var expired = false
+    /// Countdown kit: wall-clock start of the acknowledged run, for the self-updating clock (display only).
+    @State private var countdownStart: Date?
     @FocusState private var typingFocused: Bool
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
@@ -148,20 +150,25 @@ import SwiftUI
         }
         Section {
             VStack(spacing: 8) {
-                Text(verbatim: clockLabel)
-                    .font(.system(.largeTitle, design: .rounded).weight(.semibold))
-                    .monospacedDigit()
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.5)
-                    .contentTransition(.numericText())
-                    .frame(maxWidth: .infinity)
+                if let countdownClock {
+                    // Components r1: the countdown counts down by itself and the ring empties (MP playkit-countdown).
+                    NativeGameCountdownClock(start: countdownClock, seconds: seconds)
+                } else {
+                    Text(verbatim: clockLabel)
+                        .font(.system(.largeTitle, design: .rounded).weight(.semibold))
+                        .monospacedDigit()
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.5)
+                        .contentTransition(.numericText())
+                        .frame(maxWidth: .infinity)
+                }
                 if kind == .typeIn, seconds > 0 {
                     ProgressView(value: clockProgress).accessibilityHidden(true)
                 }
             }
             .padding(.vertical, 8)
             .accessibilityElement(children: .ignore)
-            .accessibilityValue(Text(verbatim: clockLabel))
+            .accessibilityValue(clockAccessibilityValue)
             .accessibilityLabel(Text(kind == .stopwatch && running && elapsed >= 1000 ? "playkit.stopwatch.hidden" : "playkit.challenge.clock"))
             .sensoryFeedback(.impact(weight: .medium), trigger: timing.phase == .running) { _, now in now }
             .sensoryFeedback(trigger: timing.phase == .measured) { _, now in now ? (stopwatchOutcome == false ? .warning : .success) : nil }
@@ -331,6 +338,15 @@ import SwiftUI
         if kind == .typeIn { return seconds >= 0 && seconds <= 3600 && typeInPrompt != "—" }
         return seconds > 0 && seconds <= 3600
     }
+    /// The running countdown's start, when there is a valid duration to count down from.
+    private var countdownClock: Date? {
+        guard kind == .countdown, timing.phase == .running, seconds > 0 else { return nil }
+        return countdownStart
+    }
+    private var clockAccessibilityValue: Text {
+        if let countdownClock { return NativeGameCountdownClock.accessibilityValue(start: countdownClock, seconds: seconds) }
+        return Text(verbatim: clockLabel)
+    }
     private var clockProgress: Double {
         guard kind == .typeIn, seconds > 0 else { return 1 }
         return max(0, min(1, 1 - Double(elapsed) / (seconds * 1000)))
@@ -351,7 +367,10 @@ import SwiftUI
             expectedRevision = currentRevisionIdentity?() ?? revisionIdentity
             expired = false; onDirty()
             if kind == .reaction { reaction.beginAfterAcknowledgement(now: ProcessInfo.processInfo.systemUptime, randomUnit: Double.random(in: 0...1)) }
-            else { input = ""; elapsed = 0; timing.beginAfterAcknowledgement(now: ProcessInfo.processInfo.systemUptime); typingFocused = kind == .typeIn }
+            else {
+                input = ""; elapsed = 0; timing.beginAfterAcknowledgement(now: ProcessInfo.processInfo.systemUptime); typingFocused = kind == .typeIn
+                countdownStart = kind == .countdown ? Date() : nil
+            }
             ticker = UUID()
         }
     }

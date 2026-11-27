@@ -1,0 +1,10 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "nativeGames.hud.label": {"localizations": {"en": {"stringUnit": {"state": "translated", "value": "Game status"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "游戏状态"}}}},
+    "nativeGames.hud.score": {"localizations": {"en": {"stringUnit": {"state": "translated", "value": "Score"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "得分"}}}},
+    "nativeGames.hud.progress": {"localizations": {"en": {"stringUnit": {"state": "translated", "value": "Question"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "题目"}}}},
+    "nativeGames.hud.hints": {"localizations": {"en": {"stringUnit": {"state": "translated", "value": "Hints"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "提示"}}}}
+  },
+  "version": "1.0"
+}
