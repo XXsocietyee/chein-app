@@ -106,6 +106,7 @@ Base re-merged with `origin/ui/combined-r7` (clean).
 | `subpackageRoam/components/cy/scene-roam-session` 点亮地点 rows | `App/RoamHistoryViews.swift` `RoamHistoryDetailView` | MP `rw__row`: icon by `cat` (shop / park / landmark) + name + `catLabel || 点亮` line. Native: name only, park drawn as a pin. | **Fixed:** `leaf` for park, `点亮` caption under the name (existing key `roamSub.w208.share.lit`; local records carry no catLabel, so MP shows 点亮 too), row combined for VoiceOver. |
 | `pages/roam/index` 打卡之后 (原型 f-checkin, wxml:649) | `RoamCheckinSheet` + `RoamCheckinStampRows` | name title, sub line, 城市贴纸 / 今日城市签 rows. | No change needed. |
 | `pages/roam/index` 主题半屏 (原型 f-topic / f-city, wxml:618) | — (live map pins open the 附近 list) | MP: a pin with `topicId` reads `/api/topic/info-to-user` and shows tag 自由探索/城市定向 · title · desc · 场次 / 走法 / 距你 · 查看详情 → `pages/topic/index/index`. Native `RoamPlace` does not decode `topicId`/`productType`. | Not done (Core decode + topic read; compiled pass). |
+| `subpackageRoam/components/roam-place-card` rating cell (was Not done) | `RoamMapHomePlaceCard` + `Core/RoamContracts.swift` `RoamNodeDetail` | MP `_loadRating`: server POIs read `/api/city/nodes/{id}` and show `averageRating` to one decimal (hidden when ≤ 0 or `ratingCount` ≤ 0), `—` when the read fails, before the distance. | **Fixed:** `RoamNodeDetail` decodes `averageRating` / `ratingCount` leniently (`try?`, string or int count) and exposes `ratingText` (MP `ratingText`); the card reads it with the existing `roamReader.roamNodeDetail` in `.task(id: pin.id)` for `type == 1` places only, shows ★ rating · kind · distance in the header, `—` on failure. New key `nativeR2.mapHome.card.rating %@`. |
 
 New strings (en + zh-Hans, also `docs/port/strings/mp-r3-roam.json`): `roamTools.more.title`, `roamTools.more.howto`, `roamTools.more.settings`,
 `roamTools.location.permission`, `roamTools.location.background`, `roamTools.location.arrival`, `roamTools.value.on`, `roamTools.value.off`,
@@ -113,7 +114,7 @@ New strings (en + zh-Hans, also `docs/port/strings/mp-r3-roam.json`): `roamTools
 `roam.howto.photoDetail`, `roam.howto.colors`, `roam.howto.colorsDetail`, `roam.howto.mini`; updated `roamTools.clearCache.confirmMessage` (MP copy).
 No motion added. No tests pin the removed rules sheet or the old tools layout.
 
-Gates: generate_project OK · check_scaffold PASS (20644 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+Gates: generate_project OK · check_scaffold PASS (20669 keys, after merging the parallel lane) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 
 ## Round 3 continue (5) — live map maptip stack (pages/roam/index.wxml:465–490)
 
@@ -128,13 +129,37 @@ New string: `roam.live.idle` (Staying in place / 原地停留中), also in `docs
 
 Gates: generate_project OK · check_scaffold PASS (20668 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 
+## Round 3 continue (6) — intro tickets NO.01–03 on the map home (pages/roam/index.wxml:156–205)
+
+Base re-merged with `origin/ui/combined-r7` (xcstrings: both sides' keys kept, ours for `roam*`).
+
+| MP page / scene | Native view | Differences | Status |
+|---|---|---|---|
+| `pages/roam/index` intro tickets (`introCards`: 开始漫游 / 打开地图·寻找组队 / 我的队伍, `introTeamsLive`) | `NativeR2/MapHome/RoamMapHomeSheet.swift` `roamSection` | MP has three tickets; native had four rows: an extra native 找队伍 row (narrowed the map/list to teams, with a count) before 打开地图·寻找组队, and the NO.02 row had no live line. | **Fixed:** the 找队伍 row and its 全部 return row are removed; NO.02 = 打开地图 with sub 寻找组队 (`roam.w208.intro.map` / `.sub`, same keys as the legacy tickets) → `subpackageRoam/nearby` push, plus `附近 N 支队伍在组队` (`roam.w208.intro.live %lld`) only when the team read returned rows (MP: empty string hides it). Teams stay as map pins. No new strings. |
+| `pages/roam/index` entry-sheet `activity` (pin tap: cover · title · meta → 报名/查看 → attendees → 一起参加 · N 队正在招募 → 发起组队 → 现场动态) | map home `.event` push → event detail (`eventDestination`) | Native opens the full activity page (pushed in the panel) instead of the MP half-sheet summary. | Done in continue (7): the pin opens the map-home card, now in MP entry-sheet order. |
+
+Gates: generate_project OK · check_scaffold PASS (20680 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0** (after rebasing onto the parallel run and re-merging the base).
+
+## Round 3 continue (7) — map-home activity card vs MP entry-sheet activity (pages/roam/index.wxml:26–47)
+
+Base re-merged with `origin/ui/combined-r7` (xcstrings: base values kept for shared keys, our new keys added).
+Sweep `docs/sweeps/latest/mp-roam` (build 070117595) was taken under load (coordinator note: ignore); d6-roam is a synthetic fixture.
+
+| MP page / scene | Native view | Differences | Status |
+|---|---|---|---|
+| `pages/roam/index` entry-sheet `activity` main view (pin tap: cover · title · meta → 去报名/查看详情 → N 人参加 → 一起参加 · N 队正在招募 → 发起组队 → 现场动态) | `NativeR2/MapHome/RoamMapHomePlaceCard.swift` (`.activity` pin; pushed in the map-home panel) | 1. No cover when the activity has none (MP uses the route illustration). 2. Registered + open showed 查看详情 as primary; MP shows no primary there and a 发起组队 row after the teams. 3. Participants sat inside the 时间 section. 4. Team header was a generic 队伍; rows showed only `n/max` without 队长审核 and the 申请加入 / 报名后申请 state; every row opened the team page (MP: canApply → team, else 去报名 → activity). 5. No 现场动态 section (Core dropped `postImages`). | **Fixed:** `RoamEntryCover` hero (route-city fallback); primary only when `primaryKey` exists; `N 人参加` row; header `一起参加 · N 队正在招募` (`roam.w208.entry.teams`), MP team rows (same keys as the legacy sheet) with MP targets; `发起组队` row (registered, not ended) → activity; 现场动态 section with up to 3 photos and the count, else 还没有现场动态. Core `RoamEntryActivity.postImageURLs` decodes MP `postImages || imageUrls || images` leniently; `liveMomentFeedState` resolves them (https only). The full event page itself stays mp-activity's. |
+
+New strings (en + zh-Hans, also `docs/port/strings/mp-r3-roam.json`): `roam.w208.entry.momentsTitle`, `roam.w208.entry.moments %lld`, `roam.w208.entry.noMoments`.
+
+Gates: generate_project OK · check_scaffold PASS (20692 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no
   `RoamStampExchangeCoordinator` (never instantiated), so the citystamp camera (`showsCaption: true`) keeps its caption + exchange. Needs an
   upload-only camera mode returning the picture URL and session wiring for the coordinator — left for a compiled pass.
 - team-recovery per-command rows on my-teams / nearby (needs a persisted team-command store).
-- place card rating cell: MP reads `averageRating` / `ratingCount` from `/api/city/nodes/{id}`; the native node model does not decode either field yet (Core change + reader on the card) — compiled pass.
 - P21 mini bar for a running roam: the live session is a full-screen cover owning its own controller (`makeRoamLiveSessionController()` per presentation); a cross-tab bar needs the controller lifted to the session and a root-tab accessory (nav lane) — compiled pass.
+- Topic half-screen on the live map (see continue (4) row): `RoamPlace` needs `topicId` / `productType` + a topic read.
 - Entry peek `.login` state (map home + legacy peek): MP 11-14 reads public nearby content as a guest and maps 401 to the cy-error retry, never a sign-in prompt. Native shows sign-in when `!isSignedIn && !allowsPublicEntry` (Core `RoamNearbyEventsEntryState`) and on 401; changing it touches Core tests and `RoamHomeTabsFlowTests` (`roam.home.peek.login`) — left for a compiled pass.
 - No Swift build ran here; integrator compiles.

@@ -11,7 +11,7 @@ The 21 MP pages were compared section by section, top to bottom, against their n
 | `python3 tools/generate_project.py` | OK |
 | `python3 tools/check_scaffold.py` | PASS (no FAIL lines; typography lint PASS) |
 | `python3 -B tools/check_a11y_lint.py` | PASS: 0 new |
-| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (after merging combined-r7 again in pass 5), **new 0**, fixed 0 |
+| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 7, after merging combined-r7 again), **new 0**, fixed 0 |
 | `python3 tools/check_design_consistency.py` | PASS |
 
 There is no Swift compiler in this environment. Edits are kept type-simple and reuse existing keys, components and patterns.
@@ -28,6 +28,7 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/detail · 概览 | `ClubDetailView` overview | The facts grid 主理人 / 俱乐部类型 / 所在城市 under the intro, before 俱乐部勋章, was missing. | **Fixed.** New `ClubOverviewFacts`: 3 cells, value then small label, with a `ViewThatFits` fallback to `LabeledContent` rows (P12). Unknown values read 待补充 |
 | club/detail · 帖文 | `ClubCommunityFeedView` (club mode) | MP order is pinned notice → 发帖 pill → posts/empty (wxml:97-158), with the pill above the empty state. Native used a toolbar compose button and put the empty state before the pinned notice. | **Fixed.** Inline composer row (「有什么新鲜好玩的分享吗？」, same gate, same id `club.community.compose`); the empty state now comes after the pill |
 | club/detail · 帖文 loading | same | MP: `loading-label` 正在加载帖文. Native showed a bare spinner (P10). | **Fixed.** `ProgressView { Text("club.community.loading") }` |
+| club/detail · 帖文 公告 (`components/club-pinned-notice`, `utils/club-pinned-notice.js`) | `ClubCommunityFeedView` (club mode) | MP: section 「公告 · 新人先看」 listing the newest ≤2 pinned 公告 (type 2), each a one-line summary with an unread dot (read ids kept on this device per club, last 50), 「（无文字内容）」 when empty, VoiceOver 「未读公告：…」. Native showed only the first pinned 公告 under a 「公告」 label, no unread state, 「—」 when empty. | **Fixed (pass 6).** `ClubPinnedNoticeReads` (same storage key `cy_club_notice_read_<clubId>`, newest-first, max 2, keep 50; catalogued in `docs/ops-safety/client-data-catalog.json`); a `Section` headed 公告 · 新人先看 with one row per notice (tint dot when unread, `.quaternary` when read, chevron, 44 pt), opening marks it read |
 | club/detail · 活动 | `ClubPublicActivityListView` / `ClubActivityListContent` | Matches: cards, 已报名/节点/路线 stats, 发布 +, empty + 发布主题, 出示团码, 邀约承接. | Matches |
 | club/detail · tabs / default | `Core/ClubDetailTabs.swift` | Matches: 帖文 / 活动 / 概览 (+管理), default 概览. | Matches |
 | club/detail · join | `ClubActionPanel` | MP: a floating 加入 capsule only on 概览 (wxml:1028-1036), with 退出 in the meta row on every tab. Native: a 成员身份 section under the header on every tab. | **Partly fixed (pass 4).** Non-members see the 加入 / 申请加入 / 审核中 section on 概览 only; members keep 退出 on every tab. The floating capsule itself (P17 sticky bottom action) is **not done** (panel lifecycle, contract pins) |
@@ -37,6 +38,7 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/topic-detail · 更多 | same | MP order (wxml:430-470): 剧情与玩法 → 结束活动 → 核销记录 → 场次管理 → 退出与暂停规则. Native was missing 剧情与玩法 and 核销记录, had 结束活动 last, and had stats/settings/enrollment first. | **Fixed.** MP order; stats/settings/enrollment follow as a second group |
 | club/topic-detail | same | Hide 核销/主题/接下来 when the director is active and the topic ended (wxml:92, C-11 review state). | **Fixed (pass 3).** `directorReview` wraps those three blocks |
 | club/topic-detail | same | Per-session 团码/run-control/集合时间 rows (MP has one director row); inline settings block in 更多; rules as a footbar half-sheet. | **Not done.** large / behaviour moves |
+| club/topic-detail · 结束主题 (`components/cy/club-topic-end-confirm`) | `ClubGovernanceConsequence.endTopic` sheet | MP body 「停止售卖并把未核销的票原价退回。只是想让它不再露出的话，下架就够了。」, confirm 结束并退款, cancel 再想想. Native lines said 「未开始的场次全部取消…」/「已付款的报名自动退款，个别订单转人工处理」 and the confirm read 结束主题. | **Fixed (pass 6).** OpsR3 lines = the MP's two sentences (refund, then the 下架 alternative; symbols `arrow.uturn.backward.circle` / `eye.slash`), confirm 结束并退款 / End and refund. Manual-order counts still show in the result row. The 「主题名」 first line is **not done** (the shared sheet's caller does not pass the topic name) |
 | club/topic-story | `ClubGovernanceStoryView`, `ClubStoryViews.swift` | Missing-param 链接已失效 + 返回 (wxml:13). | Already present (`MPReviewedPageScreen` `club.story.missingTopic`, CLB-r9-topic-story-01) |
 | club/topic-story | `ClubStoryViews.swift` `ClubStoryGameplayCard` | Extra orange "no answer" chip on play rows (MP: an unanswerable play just has no 查看答案 button). | **Fixed (pass 3).** Chip removed |
 | club/topic-story | `ClubGovernanceViews.swift` answer sheets | Sheet title was 「答案 · node」; MP (wxml:117, CU-C-152) titles it 答案 and shows the play title as a wrapping sub line. | **Fixed (pass 3).** Title = 答案; play title (MP `data-title`) as a `.subheadline` secondary line, both the club and host answer sheets |
@@ -44,7 +46,7 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/badges | `ClubBadgeManagementView.swift` | Matches: list, 全部勋章 · N 枚, create, grant picker, states. | Matches |
 | club/apply | `ClubGovernanceCommandForm` (hostApply) | Submit must read 成为俱乐部主理人 / 提交中… (wxml:164-165); native read 提交申请. | **Fixed** (existing keys `settings.becomeClubHost`, `gap.club.coopPool.submitting`) |
 | club/apply | same | 上一步 button: the MP nav back steps back (js:212 `onBack` → `step - 1`); native is a sheet with 关闭 in the bar, so 上一步 carries that behaviour. | **Kept** (reason given) |
-| club/apply | same | Extra required-fields footer; 状态 row on the done card; done-state loading/error + 可建俱乐部 row. | **Not done** (the done state is large) |
+| club/apply | same | Extra required-fields footer; 状态 row on the done card; done-state loading/error + 可建俱乐部 row. | Footer: **kept** (pass 7 re-check: it carries the MP `*` required marks and the MP 联系方式仅用于审核 note, wxml:63-80, as a native footer, CLB-r10-nat-apply-03). Done state: **not done** (large) |
 | club/create | `ClubOperationsViews.swift` | 返回上一页 was missing on the no-permission and limit states (wxml:23, 27). | **Fixed.** Secondary `Button("team.page.goBack") { dismiss() }` |
 | club/create | same | 创建资格未确认 needs primary 重新检查 + secondary 返回上一页 (wxml:16-18). | **Fixed (pass 2).** 重新检查 `.borderedProminent`, 返回上一页 `.bordered` |
 | club/create | same | Extra step checklist on the intro; media above the step header on step 3; extra 上一步. | **Not done.** Step 3 order is large |
@@ -69,7 +71,7 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/notify | `ClubGovernanceCommandForm` (sendNotification) | 当前身份不能发通知 | Already present (`ClubOpsNotifyDeniedText`, a `ContentUnavailableView`) |
 | club/notify | `ClubGovernanceCommandForm.swift` | A failed 预览受众 is inline 受众预览失败 + reason + 重试 (wxml:59-62); native showed the generic form error. | **Fixed (pass 3).** Dedicated section before any review, 重试 re-runs the preview (`club.notify.previewFailed`) |
 | club/notify | same | 投递状态 is its own section with 刷新 / 刷新中… in the section head, then the five counts and 只重试失败项 (wxml:72-111); native mixed the counts and a 刷新 row into the generic 已提交 receipt section (a parallel pass-4 run had only retitled that section). | **Fixed (pass 5).** New `Section` headed 投递状态 (`club.notify.deliveryStatus` from the parallel pass-4 run, header trait) with a `.borderless` 刷新 button (`notifyRefreshButton`, same id `club.notify.refreshCampaign`) in the header; counts, 只重试失败项 and the refresh notice moved into it |
-| club/notify | same | Extra review fact rows. | **Not done** (send-button wording is a deliberate CLB-notify-01 choice) |
+| club/notify | same | Extra review fact rows: after 预览受众 the MP shows only the preview card 「N 人」 (+ 该分群暂无成员 at 0, wxml:55-64); native repeated 受众/标题/内容 and 站内/订阅消息 as fact rows above it. | **Fixed (pass 7).** The notify review section is the preview summary + the send button only (title/content stay in the form above). Send-button wording 发送给 N 人 kept (deliberate CLB-notify-01 choice) |
 | club/governance | `ClubGovernanceViews.swift` (.bans), `ClubOpsMemberActionCard.swift` | Full-page 暂无可治理成员 (wxml:18, js:403: no members and no bans). | **Fixed (pass 3).** The card reports its member count (`onLoaded`); no bans + 0 members shows a `ContentUnavailableView` instead of the records section |
 | club/governance | same | Appeal mode: MP page title 封禁申诉 (js:224); native drew it as an in-content headline section. | **Fixed (pass 3).** Inline bar title via `pageTitleKey` (`club.gov.casesAppeal`); headline section removed (OWNER RULE 2) |
 | club/customers | `ClubOpsCustomerViews.swift` | The count line sits as the list section header after the filter (native pattern; the count follows the filter); the filtered-empty CTA 查看全部客户 is a borderless button under the empty state, not inside it. | **Kept** (the CTA's fences are pinned in place by `test_club_customer_clear_filters`; moving it needs the clear closure threaded into the list view) |
@@ -109,6 +111,10 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 | `club.notify.previewFailed` | Audience preview failed | 受众预览失败 |
 | `club.gov.casesAppeal` | Ban appeal | 封禁申诉 |
 | `club.notify.deliveryStatus` | Delivery status | 投递状态 |
+| `club.community.pinnedNoticesTitle` | Notices · Start here | 公告 · 新人先看 |
+| `club.community.noticeNoText` | (No text) | （无文字内容） |
+| `club.community.noticeUnreadA11y %@` | Unread notice: %@ | 未读公告：%@ |
+| `club.community.noticeA11y %@` | Notice: %@ | 公告：%@ |
 
 ## Contract test pins updated (with reason)
 
@@ -134,4 +140,13 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 12. Pass 4: merge combined-r7; club detail 加入 section on 概览 only.
 13. Pass 4 (parallel run): notify receipt section titled 投递状态; 发现 message bell flagged.
 14. Pass 5: merge combined-r7 (xcstrings: both sides' keys, 22 added); notify 投递状态 section with 刷新 in its header.
+16. Pass 6: 结束主题 confirm in MP copy (结束并退款, 下架就够了).
+15. Pass 6: merge combined-r7 (xcstrings: both sides' keys, 28 added); club 帖文 公告 · 新人先看 (≤2 pinned notices with unread dots).
+17. Pass 7: merge combined-r7 (xcstrings: both sides' keys, 16 added); notify review = preview card only (MP wxml:55-64).
 8. Pass 2: shared club thumbnail, customer-detail edit heading, create check-failed 返回上一页, enroll order, check-in rail refund note.
+
+## Sweep check (pass 7, build 070117595, `docs/sweeps/latest/mp-club/sheet-zh-Hans.jpg`)
+Most tiles are the launch logo (coordinator 17:40: taken under load, ignore). Readable tiles: `d4-enroll` 报名名册 and `d4-members` 成员 look right (inline titles, grouped lists). `d4-channels` shows the category headers 「Announcements」/「Community」 in the Chinese UI, but those are channel-category names from `App/DesignFixtures/D4Fixtures.swift:108-109` (server data), not app copy. Re-check on the clean sweep.
+
+## For other lanes
+- en-layout / fixtures: `D4Fixtures.swift:108-109` channel categories are English in the zh-Hans sweep; localize the fixture if the sweep should read as zh-Hans.

@@ -136,39 +136,50 @@ import SwiftUI
 
     private var snapshot: MemberIdentitySnapshot? { if case .ready(let value) = phase { return value }; return nil }
 
-    /// MP `pc-actions`: two equal primary buttons and the ··· menu; the row stacks at accessibility sizes.
+    /// MP `pc-actions`: two equal primary buttons and the ··· menu. One-line labels; the row stacks
+    /// when it does not fit (English "Start exploring" at 375 pt) and at accessibility sizes.
     private func actionRow(_ onOpenTickets: @escaping () -> Void) -> some View {
-        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))
-        return layout {
-            if let onStartExplore {
-                Button(action: onStartExplore) {
-                    Label { Text("member.card.startExplore") } icon: { Image(systemName: "safari") }
-                        .frame(maxWidth: .infinity)
+        Group {
+            if typeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 8) { actionButtons(onOpenTickets) }
+            } else {
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 8) { actionButtons(onOpenTickets) }
+                    VStack(alignment: .leading, spacing: 8) { actionButtons(onOpenTickets) }
                 }
-                .buttonStyle(.borderedProminent).controlSize(.large)
-                .accessibilityIdentifier("member.card.startExplore")
-            }
-            Button(action: onOpenTickets) {
-                Label { Text("member.card.tickets", tableName: "MemberProfile") } icon: { Image(systemName: "ticket") }
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.borderedProminent).controlSize(.large)
-            .pageTemplateControl(label: Text("member.card.tickets", tableName: "MemberProfile"), traits: .isButton)
-            .accessibilityIdentifier("member.card.tickets")
-            if let moreMenu {
-                Menu {
-                    moreMenu
-                } label: {
-                    Label { Text("member.card.more") } icon: { Image(systemName: "ellipsis") }
-                        .labelStyle(.iconOnly)
-                        .frame(minWidth: 28)
-                }
-                .buttonStyle(.bordered).controlSize(.large)
-                .accessibilityLabel(Text("member.card.more"))
-                .accessibilityIdentifier("member.card.more")
             }
         }
         .frame(maxWidth: .infinity)
+    }
+    @ViewBuilder
+    private func actionButtons(_ onOpenTickets: @escaping () -> Void) -> some View {
+        if let onStartExplore {
+            Button(action: onStartExplore) {
+                Label { Text("member.card.startExplore").lineLimit(1) } icon: { Image(systemName: "safari") }
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent).controlSize(.large)
+            .accessibilityIdentifier("member.card.startExplore")
+        }
+        Button(action: onOpenTickets) {
+            Label { Text("member.card.tickets", tableName: "MemberProfile").lineLimit(1) } icon: { Image(systemName: "ticket") }
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.borderedProminent).controlSize(.large)
+        .pageTemplateControl(label: Text("member.card.tickets", tableName: "MemberProfile"), traits: .isButton)
+        .accessibilityIdentifier("member.card.tickets")
+        if let moreMenu {
+            Menu {
+                moreMenu
+            } label: {
+                Label { Text("member.card.more") } icon: { Image(systemName: "ellipsis") }
+                    .labelStyle(.iconOnly)
+                    .frame(minWidth: 28)
+            }
+            .buttonStyle(.bordered).controlSize(.large)
+            .accessibilityLabel(Text("member.card.more"))
+            .accessibilityIdentifier("member.card.more")
+        }
     }
     /// Unknown counters keep the row (em dashes); only three known zeros hide it, as the MP does.
     private var showsCounters: Bool {

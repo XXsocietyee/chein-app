@@ -135,6 +135,41 @@ New checker kind **custom search**: `Image(systemName: "magnifyingglass")` with 
 App/DesignSystem → use `.searchable` or `CYFormSearchRow`. Baseline 0; allowed: `RoamBrowserView` map-mode sheet field
 (reason in the baseline). Self-test: the pre-fix `ActivityTemplateSelectionView.swift` fails at line 113.
 
+## Continue run 4 (2026-11-27, after merging combined-r7 f043090ce)
+
+Receipt had no Not done rows. Took the 16:37 sweep row addressed to mp-nav + ds-consistency (`d2-city`).
+
+| MP page | Native view | MP sections | Change (owner rule 2) |
+|---|---|---|---|
+| 城市 board (`CityPlayerView`, reached from 漫游 → 城市 and 领地; not a tab root) | `App/CityPlayerView.swift:93` | unchanged (city title → season / membership chips → rules → arrival / onsite / neutral entries → game slot → points / empty) | The city name was drawn **on** the generated `CYCoverArt` gradient (`.background`), hard to read in both languages. Now the standard hero: `CYHeroHeader { Cloud07Cover(...) }` — 16:9 cover above, title in `.title.bold()` on the system background, same as `CityNeutralTaskRuntimeHostView`. |
+| — | 16:37 "no large top-left title" on `d2-city` | — | Not a defect for this lane: `CityPlayerView` is a pushed page (inline title per owner rule 2); the fixture hosts it in its own `NavigationStack` so it looks like a root. The bar title is empty on purpose because the hero header carries the one visible title (`cyHeroScreen`). Tab roots are already enforced by the `root title` kind (0). |
+
+New checker kind **text on art**: `.background` whose content (same or next line) is `CYCoverArt(` outside
+App/DesignSystem → put the cover above the text as the hero illustration. Baseline 0, nothing allowed. Self-test: the
+pre-fix `CityPlayerView.swift` fails at line 95.
+
+## Continue run 5 (2026-11-27, after merging combined-r7)
+
+Receipt had no Not done rows. Scan: one segmented-control pattern (85 pickers use `.cyAdaptiveSegmented()`, 8 used a
+bare `.pickerStyle(.segmented)` that truncates in English / at accessibility sizes where the siblings switch to the
+system menu).
+
+| MP page | Native view | MP sections | Change (owner rule 2) |
+|---|---|---|---|
+| `subpackageRoam/components/scene-roam-task-list` `task-tabs` (进行中 / 即将 / 我的) | `App/RoamOfficialTasksView.swift:134` | unchanged | `.pickerStyle(.segmented)` → `.cyAdaptiveSegmented()` (identifier kept). |
+| 漫游 home peek near / city strip tabs | `App/RoamHomeTabsView.swift:137` | unchanged | same (city name can be long in English). |
+| 漫游 stamp album 我的 / 收到的 | `App/NativeR2/FreeExplore/NativeStampAlbumView.swift:40` | unchanged | same. |
+| 漫游 领地 附近格子 / 我的领地 / 赛季排行 | `App/RoamTerritoryView.swift:174` | unchanged | same ("Leaderboard" is the long one). |
+| workshop installed text 原文 / 已安装 | `App/WorkshopPaidInstalledTextView.swift:71` | unchanged | same; hash pin in `test_workshop_protected_text_lifecycle.py` updated with a one-line reason (presentation only). |
+| — (DEBUG native gallery) | `App/NativeGallery/NativeGalleryScreens.swift:228, 392` | — | same. |
+| 附近队伍 地图 / 列表 toolbar switch | `App/NearbyTeamMapViews.swift:33` | — | Kept (allowed, reason in baseline): a `.fixedSize()` toolbar control with two short titles; the adaptive swap is for in-content pickers. |
+
+New checker kind **raw segmented**: `.pickerStyle(.segmented)` outside App/DesignSystem → `.cyAdaptiveSegmented()`.
+Baseline 0; 1 allowed. Self-test: restoring the old `RoamOfficialTasksView.swift:134` line fails at that line.
+
+Gates (merged tree + this batch): `generate_project` PASS, `check_scaffold` PASS (design consistency: 0 debt, 65
+allowed, raw segmented 0), `check_a11y_lint` PASS (0 new), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
@@ -168,4 +203,7 @@ App/DesignSystem → use `.searchable` or `CYFormSearchRow`. Baseline 0; allowed
   52, **new 0**.
 - Continue run 3, batch 2 (d8d04c09e): `generate_project` PASS, `check_scaffold` PASS (includes design consistency:
   0 debt, 64 allowed, custom search 0), `check_a11y_lint` PASS (0 new), `contract_ratchet --check` 52 failing,
+  baseline 52, **new 0**.
+- Continue run 4 (8576daddc, merged combined-r7 f043090ce): `generate_project` PASS, `check_scaffold` PASS (includes design
+  consistency: 0 debt, 64 allowed, text on art 0), `check_a11y_lint` PASS (0 new), `contract_ratchet --check` 52 failing,
   baseline 52, **new 0**.

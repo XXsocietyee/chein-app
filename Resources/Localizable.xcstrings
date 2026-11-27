@@ -138137,9 +138137,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld runs lack a frozen location and aren't counted"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld run lacks a frozen location and isn't counted"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld runs lack a frozen location and aren't counted"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -149413,13 +149425,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Allow location in Settings to find merchants near you, then search again."
+            "value": "Location access is needed to find nearby merchants."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "到“设置”里允许定位，就能找到附近商家。然后再搜一次。"
+            "value": "需要定位权限才能找附近商家"
           }
         }
       }
@@ -149430,13 +149442,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Location is off"
+            "value": "Can't show nearby merchants"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "定位未开启"
+            "value": "当前无法查看附近商家"
           }
         }
       }
@@ -173768,13 +173780,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Signup is closed for this account under platform rules."
+            "value": "Under platform rules, you can't sign up for this one right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "按平台规则，当前账号暂不能报名"
+            "value": "按平台规则，你暂时不能报名这一场。"
           }
         }
       }
@@ -236920,13 +236932,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This clears locally cached roam drafts without affecting uploaded history."
+            "value": "This clears the fog, footprints and roam history on this phone, plus the recovery record of a roam you haven't finished. Footprint links you've shared stop working too. Records already uploaded to Chengyin aren't affected."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这会清除本机暂存的漫游草稿与缓存记录，不会影响已上传的记录。"
+            "value": "会清掉这台手机上的迷雾、足迹、漫游记录，以及还没结束那次漫游的找回记录；分享出去的足迹链接也会失效。已上传到城瘾的记录不受影响。"
           }
         }
       }
@@ -309753,7 +309765,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld runs · %2$@ · time %3$@"
+            "value": "%#@run@ · %2$@ · time %3$@"
+          },
+          "substitutions": {
+            "run": {
+              "argNum": 1,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg run"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg runs"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -346402,6 +346436,290 @@
         }
       }
     },
+    "mpr3.square.detail.allComments %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "View %lld comment"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "View all %lld comments"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看全部 %lld 条评论"
+          }
+        }
+      }
+    },
+    "mpr3.coop.nearby.refreshing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refreshing nearby merchants…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在刷新附近商家…"
+          }
+        }
+      }
+    },
+    "club.community.pinnedNoticesTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notices · Start here"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公告 · 新人先看"
+          }
+        }
+      }
+    },
+    "club.community.noticeNoText": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(No text)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "（无文字内容）"
+          }
+        }
+      }
+    },
+    "club.community.noticeUnreadA11y %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unread notice: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未读公告：%@"
+          }
+        }
+      }
+    },
+    "club.community.noticeA11y %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notice: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公告：%@"
+          }
+        }
+      }
+    },
+    "playx.coupon.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Added to your coupon wallet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已放入卡券包"
+          }
+        }
+      }
+    },
+    "playx.coupon.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show it in store · Tap to view"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到店出示核销 · 点击查看"
+          }
+        }
+      }
+    },
+    "castPlayer.name": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Players pick a name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩家起名"
+          }
+        }
+      }
+    },
+    "castPlayer.identity": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Player identities"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩家身份"
+          }
+        }
+      }
+    },
+    "castPlayer.identityTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identity, e.g. Reporter"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "身份，如：记者"
+          }
+        }
+      }
+    },
+    "castPlayer.identitySub": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One line: why they are here"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一句话：来做什么"
+          }
+        }
+      }
+    },
+    "castPlayer.addIdentity": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add identity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加身份"
+          }
+        }
+      }
+    },
+    "castPlayer.identityMax %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Up to %lld player identities"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩家身份最多 %lld 个"
+          }
+        }
+      }
+    },
+    "castPlayer.needIdentity": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Player identities are on: add at least one."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开了玩家身份，至少加一个身份"
+          }
+        }
+      }
+    },
+    "nativeR2.mapHome.card.rating %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rating %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "评分 %@"
+          }
+        }
+      }
+    },
     "wallet.tasks.empty": {
       "extractionState": "manual",
       "localizations": {
@@ -346483,6 +346801,108 @@
           "stringUnit": {
             "state": "translated",
             "value": "活动列表没能打开"
+          }
+        }
+      }
+    },
+    "mpr3.coop.list.viewCooperation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View cooperation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看合作"
+          }
+        }
+      }
+    },
+    "mpr3.coop.invite.topicsForbidden": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your current identity can't read topics"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前身份不能读取主题"
+          }
+        }
+      }
+    },
+    "mpr3.coop.invite.targetsForbidden": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your current identity can't view partners"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前身份不能查看合作对象"
+          }
+        }
+      }
+    },
+    "roam.w208.entry.momentsTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live moments"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现场动态"
+          }
+        }
+      }
+    },
+    "roam.w208.entry.moments %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live moments · %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现场动态 · %lld"
+          }
+        }
+      }
+    },
+    "roam.w208.entry.noMoments": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No live moments yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有现场动态"
           }
         }
       }

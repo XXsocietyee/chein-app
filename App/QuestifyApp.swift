@@ -163,7 +163,7 @@ struct QuestifyApp: App {
             .tint(CYColor.brand)
             .islandRoot()
             #if DEBUG
-            .modifier(FixtureThemeDomainModifier(isFixture: sessionContainer.session == nil))
+            .modifier(FixtureThemeDomainModifier(isFixture: sessionContainer.session == nil && !sessionContainer.isDesignFixture))
             #endif
         }
     }
@@ -192,12 +192,26 @@ final class AppSessionContainer: ObservableObject {
     #if DEBUG
     let integratedAcceptance: IntegratedNativeAcceptanceFixture?
     let couponRuntime: CouponRuntimeFixture?
+    /// `--design-fixture <id>` mounts a fixture screen with its own readers; the root keeps its theme rule as before.
+    let isDesignFixture: Bool
     #endif
 
     init(composition: AppCompositionRoot? = nil, arguments: [String] = ProcessInfo.processInfo.arguments) {
         #if DEBUG
         AppStoreScreenshotHarness.applyStoredLanguage(arguments: arguments)
         if AppStoreScreenshotHarness.mountedFixtureID(arguments: arguments) != nil {
+            integratedAcceptance = nil
+            couponRuntime = nil
+            isDesignFixture = false
+            session = nil
+            return
+        }
+        // mp-home r3 (16:53 sweep, d2-home dimmed under the launch screen): a design fixture never shows the session
+        // root, so building the production session (account restore, network clients) only delayed the first frame.
+        let designIndex = arguments.firstIndex(of: "--design-fixture")
+        let designFixture = composition == nil && designIndex.map { arguments.indices.contains($0 + 1) && !arguments[$0 + 1].hasPrefix("--") } == true
+        isDesignFixture = designFixture
+        if designFixture {
             integratedAcceptance = nil
             couponRuntime = nil
             session = nil

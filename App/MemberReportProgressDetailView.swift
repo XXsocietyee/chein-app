@@ -38,13 +38,12 @@ import SwiftUI
                             }
                             .font(.headline)
                             .fixedSize(horizontal: false, vertical: true)
-                            // PLY-29-3: mini-program stage hint (report-common STAGES[].hint).
-                            if ["SUBMITTED", "TRIAGED", "INVESTIGATING", "RESOLVED", "CLOSED", "APPEALED"].contains(record.stageKey) {
-                                Text(verbatim: copy("report.stageHint.\(record.stageKey)"))
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
+                            // PLY-29-3: mini-program stage hint (report-common STAGES[].hint); an unrecognised
+                            // stage reads 状态暂时无法识别，请稍后刷新 as in MP normalizeReport.
+                            Text(verbatim: copy(stageHintKey(record.stageKey)))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
                             // MP hides 提交于 when the time is missing (wxml:22).
                             if record.createTime != nil {
                                 HStack(spacing: 4) {
@@ -160,15 +159,21 @@ import SwiftUI
         .onChange(of: selection.reader.isCurrent) { _, valid in if !valid { retire() } }
         .cyDomainScreen(.player)
     }
+    private static let knownStages: Set<String> = ["SUBMITTED", "TRIAGED", "INVESTIGATING", "RESOLVED", "CLOSED", "APPEALED"]
+    private func stageHintKey(_ stage: String) -> String {
+        Self.knownStages.contains(stage) ? "report.stageHint.\(stage)" : "report.stageHint.UNKNOWN"
+    }
+    /// MP report-common `eventTitle`: 举报已提交 / 已提交申诉, else 进入「stage」, else 进度更新.
+    private func timelineTitle(_ event: MemberReportProgressEvent) -> String {
+        if event.eventType == "SUBMITTED" || event.eventType == "APPEALED" { return copy(event.titleKey) }
+        guard let stage = event.stageKey else { return copy("report.timeline.event") }
+        let label = Self.knownStages.contains(stage) ? copy("report.stage.\(stage)") : "—"
+        return String(format: copy("report.timeline.entered"), label)
+    }
     private func timelineRow(_ event: MemberReportProgressEvent) -> some View {
         Label {
             VStack(alignment: .leading, spacing: 4) {
-                Text(verbatim: shown(copy(event.titleKey)))
-                if let stage = event.stageKey {
-                    Text(verbatim: copy("report.stage.\(stage)"))
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
+                Text(verbatim: shown(timelineTitle(event)))
                 if let note = event.publicNote, !note.isEmpty {
                     Text(verbatim: shown(note))
                         .fixedSize(horizontal: false, vertical: true)

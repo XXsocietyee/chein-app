@@ -43,6 +43,8 @@ extension EnvironmentValues {
     @State private var detent: PresentationDetent = .height(120)
     /// P-053: the peek grows with Dynamic Type so the metrics row is never clipped at accessibility sizes.
     @ScaledMetric(relativeTo: .title2) private var peekHeight: CGFloat = 120
+    /// a11y-dt r3: teammate map marker grows with Dynamic Type, capped like Maps pins so it never covers the route.
+    @ScaledMetric(relativeTo: .caption) private var teammateMarkerSize: CGFloat = 28
     /// P-052: a tapped control-point marker opens its punch sheet.
     @State private var selectedStop: Int?
     /// Motion r1: the route and team trails draw on when the run map appears.
@@ -187,8 +189,10 @@ extension EnvironmentValues {
                     Annotation(team.name, coordinate: CLLocationCoordinate2D(latitude: last.latitude, longitude: last.longitude)) {
                         Text(verbatim: teammateInitial(team))
                             .font(.caption.bold())
-                            .frame(width: 28, height: 28)
-                            .background(Circle().fill(Color(uiColor: .tertiarySystemFill)))
+                            .minimumScaleFactor(0.6)
+                            .frame(width: min(teammateMarkerSize, 44), height: min(teammateMarkerSize, 44))
+                            .background(Circle().fill(.regularMaterial))
+                            .accessibilityLabel(Text(verbatim: team.name))
                             .accessibilityIdentifier("nativeR2.city.teammate.\(team.id)")
                     }
                 }
@@ -266,17 +270,30 @@ extension EnvironmentValues {
                             Text("nativeR2.city.banner.arrived").font(.headline)
                         } else if location.access == .denied {
                             Text("nativeR2.city.banner.locationOff").font(.headline)
-                        } else {
-                            Text(verbatim: CityOrientationFormat.distance(currentDistance))
+                        } else if let meters = currentDistance {
+                            Text(verbatim: CityOrientationFormat.distance(meters))
                                 .font(.title2.bold())
                                 .monospacedDigit()
-                                .nativeR2RollingNumber(currentDistance ?? 0)
+                                .nativeR2RollingNumber(meters)
+                        } else {
+                            // mp-journey r3 (16:37 sweep): no fix yet (or a paused run without coordinates). MP draws the
+                            // navtop only with a real remaining distance, so the banner leads with the stop name, never "—".
+                            Text(verbatim: stopTitle(stop))
+                                .font(.title2.bold())
+                                .lineLimit(2)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
-                        Text("nativeR2.city.banner.to \(stop.order) \(stopTitle(stop))")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(2)
-                            .fixedSize(horizontal: false, vertical: true)
+                        if currentDistance == nil, !inHighlight, location.access != .denied {
+                            Text("u10.template.stopNo \(stop.order)")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            Text("nativeR2.city.banner.to \(stop.order) \(stopTitle(stop))")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(2)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                         // MP index.wxml:600-604: 公里 · 预计 · 到达, estimated at walking pace.
                         if !inHighlight, location.access != .denied {
                             CityOrientationETAText(meters: currentDistance)
@@ -577,22 +594,28 @@ struct CityOrientationTeammatesSection: View {
 /// "N 队在路上". One VoiceOver element. Reads the same `TeamTrailSection` poll as the map; sends nothing.
 struct CityOrientationTeamStack: View {
     let teams: [TeamTrailTeam]
+    @ScaledMetric(relativeTo: .caption) private var faceSize: CGFloat = 24
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         HStack(spacing: CYSpacing.xs) {
-            HStack(spacing: -8) {
-                ForEach(teams.prefix(3)) { team in
-                    Text(verbatim: initial(team))
-                        .font(.caption.bold())
-                        .foregroundStyle(.white)
-                        .frame(width: 24, height: 24)
-                        .background(Circle().fill(NativeR2RoutePath.teamColor(team.colorIndex)))
-                        .overlay(Circle().stroke(.background, lineWidth: 2))
+            if !dynamicTypeSize.isAccessibilitySize {
+                HStack(spacing: -8) {
+                    ForEach(teams.prefix(3)) { team in
+                        Text(verbatim: initial(team))
+                            .font(.caption.bold())
+                            .foregroundStyle(.white)
+                            .frame(width: min(faceSize, 36), height: min(faceSize, 36))
+                            .background(Circle().fill(NativeR2RoutePath.teamColor(team.colorIndex)))
+                            .overlay(Circle().stroke(.background, lineWidth: 2))
+                    }
                 }
+                .accessibilityHidden(true)
             }
-            .accessibilityHidden(true)
             Text("design.roam.teamsOnRoute \(teams.count)")
                 .font(.footnote.weight(.semibold))
-                .lineLimit(1)
+                .lineLimit(2)
+                .minimumScaleFactor(0.85)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.horizontal, CYSpacing.sm)
         .padding(.vertical, 6)

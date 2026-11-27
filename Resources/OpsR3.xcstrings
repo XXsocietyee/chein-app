@@ -646,13 +646,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "结束主题"
+            "value": "结束并退款"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "End topic"
+            "value": "End and refund"
           }
         }
       }
@@ -662,13 +662,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未开始的场次全部取消，不再接受报名"
+            "value": "停止售卖并把未核销的票原价退回"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Upcoming sessions are cancelled and sign-ups close"
+            "value": "Stops sales and refunds every unredeemed ticket in full"
           }
         }
       }
@@ -678,13 +678,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已付款的报名自动退款，个别订单转人工处理"
+            "value": "只是想让它不再露出的话，下架就够了"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paid sign-ups are refunded; some orders may need manual handling"
+            "value": "If you only want to hide it, taking it offline is enough"
           }
         }
       }

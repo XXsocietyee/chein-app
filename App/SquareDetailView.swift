@@ -868,9 +868,30 @@ struct SquareDetailCompletionCard: View {
             if let cover {
                 NativeMediaGalleryEntry(sources: [cover], scope: scope, titleKey: "media.destination.squareImages")
             }
+            commentPreview
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("square.detail.completionCard")
+    }
+    /// MP CommentPreview (completion-share-card/index.wxml:63-70, tail defaults true on the detail page):
+    /// one comment (nick + text) unless the activity block already shows it, then 查看全部 N 条评论 when N > 0.
+    @ViewBuilder private var commentPreview: some View {
+        let count = post.commentCount ?? 0
+        let author = post.strava.commentAuthor
+        let line = post.strava.commentBody
+        if showsTitleRow && (author != nil || line != nil) {
+            HStack(alignment: .firstTextBaseline) {
+                if let author { Text(verbatim: author).font(.subheadline.weight(.medium)) }
+                if let line { Text(verbatim: line).font(.subheadline).foregroundStyle(.secondary).lineLimit(2) }
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("square.detail.completion.comment")
+        }
+        if count > 0 {
+            Text("mpr3.square.detail.allComments \(count)")
+                .font(.footnote).foregroundStyle(.secondary)
+                .accessibilityIdentifier("square.detail.completion.allComments")
+        }
     }
     @ViewBuilder private var titleText: some View {
         if let title = post.referenceTitle?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty {

@@ -292,6 +292,31 @@ struct ClubCommunityEntry: View {
     }
 }
 
+/// MP pages/club/utils/club-pinned-notice.js: newest ≤2 pinned 公告 (type 2); read ids live on this device only,
+/// per club, the last 50 kept (key `cy_club_notice_read_<clubId>`, same as the MP storage key).
+enum ClubPinnedNoticeReads {
+    static let maxShown = 2
+    static let maxKept = 50
+    struct Notice { let post: ClubCommunityPost; let unread: Bool }
+    private static func key(_ clubID: Int) -> String { "cy_club_notice_read_\(clubID)" }
+    static func readIDs(clubID: Int) -> [String] { UserDefaults.standard.stringArray(forKey: key(clubID)) ?? [] }
+    static func markRead(_ postID: Int, clubID: Int) {
+        var list = readIDs(clubID: clubID).filter { $0 != String(postID) }
+        list.append(String(postID))
+        UserDefaults.standard.set(Array(list.suffix(maxKept)), forKey: key(clubID))
+    }
+    static func summary(_ post: ClubCommunityPost) -> String {
+        let words = post.content.split(whereSeparator: { $0.isWhitespace || $0.isNewline })
+        return String(words.joined(separator: " ").prefix(60))
+    }
+    /// `revision` only makes SwiftUI re-read after a row was opened.
+    static func pick(_ posts: [ClubCommunityPost], clubID: Int, revision: Int) -> [Notice] {
+        let read = Set(readIDs(clubID: clubID))
+        let pinned = posts.filter { $0.pinned && $0.type == 2 }.sorted { $0.createTime > $1.createTime }
+        return pinned.prefix(maxShown).map { Notice(post: $0, unread: !read.contains(String($0.id))) }
+    }
+}
+
 private struct ClubCommunityDestination: Hashable {
     enum Screen: Hashable { case detail, comments, history }
     let post: ClubCommunityPost
@@ -332,6 +357,7 @@ struct ClubCommunityFeedView: View {
     private var operation: ClubCommunityRead { clubID.map { .posts(clubID: $0, page: page) } ?? .feed(page: page) }
     /// CLB-detail-16: compose only for members and the owner (MP wxml:100); the server still enforces memberPostAllowed.
     @State private var canPost = false
+    @State private var noticeReadRevision = 0
     private var canCompose: Bool { clubID != nil && identity.isSignedIn && canPost }
     var body: some View {
         ScrollViewReader { proxy in
@@ -363,25 +389,18 @@ struct ClubCommunityFeedView: View {
             } else if let notice = model.notice { Section { communityNotice(notice, identifier: "club.community.notice") } }
             if let pending = model.pendingRecord, let clubID { pendingLock(pending, clubID: clubID, identifierPrefix: "club.community") }
             if let snapshot = model.snapshot {
-                // CLB-detail-05: MP cy-club-pinned-notice, one line + chevron for the pinned 公告, opening the post.
-                if let clubID, let pinned = snapshot.posts.first(where: { $0.pinned && $0.type == 2 }) {
-                    Section {
-                        Button { destination = .init(post: pinned, clubID: pinned.clubID ?? clubID, screen: .detail) } label: {
-                            HStack {
-                                Label {
-                                    VStack(alignment: .leading) {
-                                        Text("club.community.pinnedNotice").font(.subheadline).foregroundStyle(.secondary)
-                                        Text(verbatim: pinned.content.isEmpty ? "—" : pinned.content).lineLimit(1)
-                                    }
-                                } icon: { Image(systemName: "pin.fill").foregroundStyle(.tint) }
-                                Spacer(minLength: 0)
-                                Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
-                                    .foregroundStyle(.tertiary).accessibilityHidden(true)
+                // mp-club r3 (MP components/club-pinned-notice + utils/club-pinned-notice.js): 「公告 · 新人先看」 lists the newest
+                // ≤2 pinned 公告 (type 2), each one line with an unread dot; opening one marks it read on this device.
+                if let clubID {
+                    let notices = ClubPinnedNoticeReads.pick(snapshot.posts, clubID: clubID, revision: noticeReadRevision)
+                    if !notices.isEmpty {
+                        Section {
+                            ForEach(notices, id: \.post.id) { notice in
+                                pinnedNoticeRow(notice.post, unread: notice.unread, clubID: clubID)
                             }
-                            .contentShape(Rectangle())
+                        } header: {
+                            Text("club.community.pinnedNoticesTitle").accessibilityAddTraits(.isHeader)
                         }
-                        .foregroundStyle(.primary)
-                        .accessibilityIdentifier("club.community.pinnedNotice")
                     }
                 }
                 // mp-club r3 (MP detail wxml:97-158): pinned notice, then the 发帖 pill, then the posts or the empty state —
@@ -525,6 +544,34 @@ struct ClubCommunityFeedView: View {
             }
             .accessibilityIdentifier("club.community.signedOut")
         }
+    }
+    /// One MP `cpn__row`: unread dot, one-line summary (「（无文字内容）」 when empty), opens the 公告 and marks it read.
+    private func pinnedNoticeRow(_ post: ClubCommunityPost, unread: Bool, clubID: Int) -> some View {
+        let summary = ClubPinnedNoticeReads.summary(post)
+        return Button {
+            ClubPinnedNoticeReads.markRead(post.id, clubID: clubID)
+            noticeReadRevision &+= 1
+            destination = .init(post: post, clubID: post.clubID ?? clubID, screen: .detail)
+        } label: {
+            HStack(spacing: CYSpacing.md) {
+                Circle()
+                    .fill(unread ? AnyShapeStyle(.tint) : AnyShapeStyle(.quaternary))
+                    .frame(width: 8, height: 8)
+                    .accessibilityHidden(true)
+                Group {
+                    if summary.isEmpty { Text("club.community.noticeNoText") } else { Text(verbatim: summary) }
+                }
+                .lineLimit(1)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary).accessibilityHidden(true)
+            }
+            .frame(minHeight: CYSpacing.minTouchTarget)
+            .contentShape(Rectangle())
+        }
+        .foregroundStyle(.primary)
+        .accessibilityLabel(unread ? Text("club.community.noticeUnreadA11y \(summary)") : Text("club.community.noticeA11y \(summary)"))
+        .accessibilityIdentifier("club.community.pinnedNotice")
     }
     /// MP detail wxml:100-113 `post-composer-collapsed`: one tappable row (prompt + photo glyph) opening the full composer
     /// sheet, in place of a toolbar button. Same gate and disabled rules as before (CLB-detail-16).

@@ -57,7 +57,14 @@ extension EnvironmentValues {
                     .disabled(!purposeAccepted || !model.available || model.isBusy)
                     .accessibilityIdentifier("nearbyMerchant.search")
                 if !model.available { Text("coopflow.nearby.unavailable").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
-                if model.isBusy { CYSkeleton(variant: .card) }
+                if model.isBusy {
+                    // MP coop/nearby: skeleton on the first load, 正在刷新附近商家… while results are already on screen.
+                    if model.rows.isEmpty { CYSkeleton(variant: .card) } else {
+                        Label { Text("mpr3.coop.nearby.refreshing") } icon: { ProgressView() }
+                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("nearbyMerchant.refreshing")
+                    }
+                }
                 if model.phase == .locationFailed { Text("nearbyMerchant.locationFailed").cyText(.meta).foregroundStyle(CYColor.warningText) }
                 if model.phase == .failed {
                     // Mini `cy-error` fill state: title, reason, one retry action (below).
@@ -95,8 +102,6 @@ extension EnvironmentValues {
             }
             if page.phase == .ready || page.phase == .empty {
                 Section {
-                    Text("nearbyMerchant.total \(page.totalText)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                        .accessibilityIdentifier("nearbyMerchant.total")
                     if invitableFailed {
                         Text("merchantCoop.nearby.topic.failed").cyText(.meta).foregroundStyle(CYColor.warningText)
                             .accessibilityIdentifier("nearbyMerchant.topic.failed")

@@ -78,6 +78,7 @@ MP: a page opened from outside (share card, subscribe message, scan) launches as
 | signed-out launch from a link | sheet over Welcome | `browsingAsGuest = true` (same as the error view's 返回首页), page keeps its own sign-in gate | fixed |
 | local play-window reminder (PlayAdvancedView 提醒我, `AppleLocalReminderProvider`) | userInfo had no `page` key, so a tap only opened the app where it was | adds `page = pages/topic/index/index?id=<topicID>` (topic id from the reminder identifier `activityID.topicID.nodeID`); the tap routes through `MPNotificationTapRouter` and lands as the topic pushed on 首页 like a subscribe-message page | fixed |
 | `pages/talent/list/index?tab=feed` (帖文 share card, MP index.js:289-290 onLoad) | switched to 俱乐部 but stayed on the 俱乐部 top tab | switches to 俱乐部 and selects the 帖文 top tab via `ClubHomeView.requestedTopTab` (applied once, cleared; QuestifyApp `deepLinkClubTopTab`); `?tab=club` selects 俱乐部 | fixed |
+| City local notifications (保护结束提醒 / 保护还剩 1 小时 with 开护盾 action / 今天收租 20:00 / 被拿走; App/CityKit/CityNotifications.swift) | no `page` in userInfo: a tap only opened the app where it was | `page = pages/roam/index` on all four: the tap routes through `MPNotificationTapRouter` → `HomeLanding.tab(.roam)` (MP `switchTab`; the City board is a 漫游 map mode, no MP page of its own) | fixed |
 
 ## Route coverage
 
@@ -86,3 +87,14 @@ All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScre
 ## Pins updated
 
 - Tests/ContractChecks/test_ticket_wallet_play_entry.py:19 — looks for the wallet `navigationDestination` line instead of the old `.cySheet` (wallet is now a push).
+
+## Coordinator sweep rows (16:37 / 16:53)
+
+| row | finding | status |
+|---|---|---|
+| `d2-city` "City tab root has no large top-left title, only a refresh button" | CityPlayerView is not a tab root: it is pushed from 漫游 ⋯ 更多 → 城市 (RoamBrowserView.swift:282 with `.cyPushedChrome()`) and from the 城市大富翁 ⋯ menu (RoamTerritoryView.swift:39). Per OWNER RULE 2 a pushed page keeps its inline title (`city.read.title`, CityPlayerView.swift:177-178); the d2-city fixture hosts it in a bare NavigationStack, so the screenshot shows no back button. The five tab roots all carry the large title (P1, P2, P7 above). Hero text on the gradient is ds-consistency's half | n/a (verified, no change) |
+
+## Open (carried)
+
+- 我的 → 设置 stays a `.large` sheet (AccountView.swift:146, WelcomeView.swift:66): MP navigateTo = push, but SettingsView owns its own NavigationStack, a 完成 dismiss, the guide hand-off and `profileOwner.retire()` on disappear; converting needs those lifetimes moved first. Needs the coordinator / a compiled run.
+- 漫游护照与工具 hub sheet (owner Q9) and topic 编辑 editor sheet — kept, see the edge table.
