@@ -96,28 +96,42 @@ import UIKit
     let mediaScope: UUID
     var makeAudio: (@MainActor () -> PlatformAudioPlayback)? = nil
     private var raw: PlayWireValue { context.segment }
+    private func text(_ key: String) -> String? {
+        let value = raw[key].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return value.isEmpty ? nil : value
+    }
+    /// MP `playkit-musiccorner` body: eyebrow + 到点 → title → player (track · time, play / pause, progress) → hint → 继续
+    /// (the bottom bar, `nativeKitSubmitB`). The MP default track name is 店主的歌单.
     var body: some View {
         Section {
-            if raw["arrived"].bool == true {
-                Label("playkitLegacy.music.arrived", systemImage: "mappin")
-                    .accessibilityIdentifier("playkit.musicCorner.arrived")
+            if let title = text("title") {
+                Text(verbatim: title).font(.title3.weight(.semibold)).accessibilityAddTraits(.isHeader)
             }
-            if let track = raw["trackName"].text {
-                LabeledContent {
-                    if let seconds = raw["durationSeconds"].integer, seconds > 0 {
-                        Text(verbatim: String(format: "%d:%02d", seconds / 60, seconds % 60)).monospacedDigit()
-                            .accessibilityLabel(Text("playkitLegacy.music.duration"))
-                    }
-                } label: {
-                    Label { Text(verbatim: track).font(.headline) } icon: { Image(systemName: "music.note") }
-                }
-            } else if let seconds = raw["durationSeconds"].integer, seconds > 0 {
-                LabeledContent("playkitLegacy.music.duration") {
+            LabeledContent {
+                if let seconds = raw["durationSeconds"].integer, seconds > 0 {
                     Text(verbatim: String(format: "%d:%02d", seconds / 60, seconds % 60)).monospacedDigit()
+                        .accessibilityLabel(Text("playkitLegacy.music.duration"))
                 }
+            } label: {
+                Label {
+                    if let track = text("trackName") { Text(verbatim: track).font(.headline) }
+                    else { Text("playkit.music.defaultTrack").font(.headline) }
+                } icon: { Image(systemName: "music.note") }
             }
             // Existing playback code (play / pause, progress, load failure + retry).
             PlatformAudioHost(rawURL: raw["audioUrl"].text, scope: mediaScope, makeModel: makeAudio)
+        } header: {
+            HStack {
+                if let eyebrow = text("eyebrow") { Text(verbatim: eyebrow) } else { Text("playkit.music.eyebrow") }
+                Spacer()
+                if raw["arrived"].bool == true {
+                    Label("playkitLegacy.music.arrived", systemImage: "mappin")
+                        .foregroundStyle(.green)
+                        .accessibilityIdentifier("playkit.musicCorner.arrived")
+                }
+            }
+        } footer: {
+            if let hint = text("hint") { Text(verbatim: hint) }
         }
     }
 }
