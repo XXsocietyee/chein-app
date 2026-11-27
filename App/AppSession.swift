@@ -2779,7 +2779,7 @@ final class AppSession: ObservableObject {
             if cached.gate.isCurrent { return cached.writer }
             channelHostWriter = nil
         }
-        let features: Set<BusinessRuntimeFeature> = [.imStart, .imRead, .imOrdinaryReadReceipt, .imOrdinaryReadState, .imMute, .imOrdinaryMuteReceipt, .imOrdinaryMuteState, .imSend, .imUpload, .imOrdinarySendReceipt, .imImageUploadReceipt, .imStaticLocationSend, .imStaticLocationReceipt, .imRouteShareRead, .imRouteSend, .imRouteReceipt, .imVoiceSend, .imVoiceReceipt, .imFileSend, .imFileReceipt, .imVideoSend, .imVideoReceipt]
+        let features: Set<BusinessRuntimeFeature> = [.imStart, .imRead, .imOrdinaryReadReceipt, .imOrdinaryReadState, .imMute, .imOrdinaryMuteReceipt, .imOrdinaryMuteState, .imSend, .imUpload, .imOrdinarySendReceipt, .imStaticLocationSend, .imStaticLocationReceipt, .imRouteShareRead, .imRouteSend, .imRouteReceipt, .imVoiceSend, .imVoiceReceipt, .imFileSend, .imFileReceipt, .imVideoSend, .imVideoReceipt]
         guard let (factory, gate) = channelHostRuntimeFactory(features), !factory.routes(features).isEmpty,
               let configuration = regionalConfiguration?.apiConfiguration else { return disabledIMWriter }
 
@@ -2791,7 +2791,6 @@ final class AppSession: ObservableObject {
             staticLocationReceiptEnabled: factory.permits(.imStaticLocationReceipt),
             ordinarySendEnabled: factory.permits(.imSend),
             ordinaryReceiptEnabled: factory.permits(.imOrdinarySendReceipt),
-            imageUploadReceiptEnabled: factory.permits(.imImageUploadReceipt),
             routeShareReadEnabled: factory.permits(.imRouteShareRead),
             routeSendEnabled: factory.permits(.imRouteSend),
             routeReceiptEnabled: factory.permits(.imRouteReceipt),
@@ -2828,7 +2827,7 @@ final class AppSession: ObservableObject {
     func channelHostImageUploadCoordinator(for conversationID: Int) -> IMImageUploadCoordinator? {
         guard let context = currentRuntimeDependencyContext, let storageScope,
               let expanded = channelHostExpandedCoordinator(for: conversationID),
-              let durable = try? NativeChannelTextScope(context: context, conversationID: conversationID),
+              (try? NativeChannelTextScope(context: context, conversationID: conversationID)) != nil,
               let target = try? ImageUploadTarget(accountID: expanded.scope.identity.accountID,
                 namespace: storageScope.service, realm: context.baseURL.absoluteString,
                 kind: "im", entityID: conversationID, field: "image") else { return nil }
@@ -2842,9 +2841,9 @@ final class AppSession: ObservableObject {
         let owner = IMImageUploadCoordinator(scope: scope, writer: writer,
             picker: retainedImagePickerHost.imPicker(scope: scope, currentScope: { current() ? scope : nil }, selectionApproval: { [weak self] in
                 guard let self, current(), let factory = self.businessRuntimeFactory else { return false }
-                return factory.permits(.imUpload) && factory.permits(.imImageUploadReceipt) && factory.configuration.imImageSelection
+                return factory.permits(.imUpload) && factory.configuration.imImageSelection
             }), journal: imageUploadJournal, target: target,
-            originalJournal: OrdinaryIMImageJournal(storage: ProjectEditSecureStorage(scope: storageScope), owner: durable),
+            originalJournal: nil,
             expanded: expanded, reader: messagingReader, stillCurrent: current)
         channelHostImages[scope] = owner; return owner
     }
