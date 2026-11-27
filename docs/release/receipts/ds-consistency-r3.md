@@ -148,6 +148,28 @@ New checker kind **text on art**: `.background` whose content (same or next line
 App/DesignSystem → put the cover above the text as the hero illustration. Baseline 0, nothing allowed. Self-test: the
 pre-fix `CityPlayerView.swift` fails at line 95.
 
+## Continue run 5 (2026-11-27, after merging combined-r7)
+
+Receipt had no Not done rows. Scan: one segmented-control pattern (85 pickers use `.cyAdaptiveSegmented()`, 8 used a
+bare `.pickerStyle(.segmented)` that truncates in English / at accessibility sizes where the siblings switch to the
+system menu).
+
+| MP page | Native view | MP sections | Change (owner rule 2) |
+|---|---|---|---|
+| `subpackageRoam/components/scene-roam-task-list` `task-tabs` (进行中 / 即将 / 我的) | `App/RoamOfficialTasksView.swift:134` | unchanged | `.pickerStyle(.segmented)` → `.cyAdaptiveSegmented()` (identifier kept). |
+| 漫游 home peek near / city strip tabs | `App/RoamHomeTabsView.swift:137` | unchanged | same (city name can be long in English). |
+| 漫游 stamp album 我的 / 收到的 | `App/NativeR2/FreeExplore/NativeStampAlbumView.swift:40` | unchanged | same. |
+| 漫游 领地 附近格子 / 我的领地 / 赛季排行 | `App/RoamTerritoryView.swift:174` | unchanged | same ("Leaderboard" is the long one). |
+| workshop installed text 原文 / 已安装 | `App/WorkshopPaidInstalledTextView.swift:71` | unchanged | same; hash pin in `test_workshop_protected_text_lifecycle.py` updated with a one-line reason (presentation only). |
+| — (DEBUG native gallery) | `App/NativeGallery/NativeGalleryScreens.swift:228, 392` | — | same. |
+| 附近队伍 地图 / 列表 toolbar switch | `App/NearbyTeamMapViews.swift:33` | — | Kept (allowed, reason in baseline): a `.fixedSize()` toolbar control with two short titles; the adaptive swap is for in-content pickers. |
+
+New checker kind **raw segmented**: `.pickerStyle(.segmented)` outside App/DesignSystem → `.cyAdaptiveSegmented()`.
+Baseline 0; 1 allowed. Self-test: restoring the old `RoamOfficialTasksView.swift:134` line fails at that line.
+
+Gates (merged tree + this batch): `generate_project` PASS, `check_scaffold` PASS (design consistency: 0 debt, 65
+allowed, raw segmented 0), `check_a11y_lint` PASS (0 new), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

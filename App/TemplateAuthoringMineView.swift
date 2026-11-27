@@ -252,7 +252,7 @@ import SwiftUI
         } else if readMessageKey == "templateOwnShelf.read.denied" || !coordinator.canRead {
             TemplateOwnShelfReadCopy(title: "templateOwnShelf.read.denied", subtitle: "templateOwnShelf.read.deniedHint", action: "templateOwnShelf.read.retry", identifier: "templateOwnShelf.read.retry") { Task { await refresh() } }
         } else if appliedKeyword == keyword, busy, rows.isEmpty, readMessageKey == nil {
-            ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("templateOwnShelf.read.loading")).accessibilityIdentifier("templateOwnShelf.read.loading")
+            ProgressView { Text("templateOwnShelf.read.loading") }.frame(maxWidth: .infinity).accessibilityIdentifier("templateOwnShelf.read.loading")
         } else if appliedKeyword == keyword, readMessageKey == "templateAuthor.listUnavailable", rows.isEmpty {
             TemplateOwnShelfReadCopy(title: "templateOwnShelf.read.failed", action: "templateOwnShelf.read.retry", identifier: "templateOwnShelf.read.retry") { Task { await refresh() } }
         } else if appliedKeyword == keyword, readMessageKey == "templateAuthor.listUnavailable" {

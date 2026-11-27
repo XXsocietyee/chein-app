@@ -369,7 +369,7 @@ struct SquareCloudJoinedActivityList: View {
         }
         switch phase {
         case .rows(let rows) where rows.isEmpty && !started:
-            ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("square.cloud.activity.loading")
+            ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity).accessibilityIdentifier("square.cloud.activity.loading")
         case .rows(let rows) where rows.isEmpty:
             ContentUnavailableView {
                 Label { Text(verbatim: copy("还没有可关联的活动", "No activity to attach")).accessibilityIdentifier("square.cloud.activity.empty") } icon: { Image(systemName: "flag") }

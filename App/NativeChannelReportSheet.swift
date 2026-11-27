@@ -27,7 +27,7 @@ import SwiftUI
                                 Button { Task { await owner.submit() } } label: { Text("d7.channelReport.submit") }
                                     .disabled(!owner.canSubmit || owner.selectedReason == nil || owner.note.utf16.count > 500)
                             }
-                        case .submitting, .reading: ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("d7.channelReport.submit"))
+                        case .submitting, .reading: ProgressView { Text("d7.channelReport.submit") }.frame(maxWidth: .infinity)
                         case .unknown:
                             Section {
                                 NativeChannelFlowNotice(title: Text("d7.channelReport.unknown"), symbol: "clock.arrow.circlepath")

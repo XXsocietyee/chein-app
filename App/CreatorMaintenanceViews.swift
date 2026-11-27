@@ -160,7 +160,7 @@ import QuestifyCore
         }
         Section {
             switch model.feedbackPhase {
-            case .idle, .loading: ProgressView().frame(maxWidth: .infinity)
+            case .idle, .loading: ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity)
             case .failed(let failure): CreatorStudioIssueView(failure: failure) { Task { await model.reloadFeedback() } }
             case .loaded:
                 if model.topicID == nil { ContentUnavailableView("creatorStudio.issue.noTopics", systemImage: "square.stack.3d.up.slash") }
@@ -186,7 +186,7 @@ import QuestifyCore
     @ViewBuilder private var ticketSections: some View {
         Section {
             switch model.ticketsPhase {
-            case .idle, .loading: ProgressView().frame(maxWidth: .infinity)
+            case .idle, .loading: ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity)
             case .failed(let failure): CreatorStudioIssueView(failure: failure) { Task { await model.reloadTickets() } }
             case .loaded:
                 if model.tickets.isEmpty { ContentUnavailableView("creatorStudio.tickets.empty", systemImage: "wrench.and.screwdriver") }
@@ -325,7 +325,7 @@ struct CreatorStudioWriteIssueText: View {
 
     var body: some View {
         List {
-            if loading && ticket == nil { ProgressView().frame(maxWidth: .infinity) }
+            if loading && ticket == nil { ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity) }
             else if let ticket { content(ticket) }
             else { CreatorStudioIssueView(failure: failure) { Task { await load() } } }
         }

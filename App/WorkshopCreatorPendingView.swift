@@ -41,7 +41,7 @@ import SwiftUI
                             Text(creatorString("workshopCreator.unknown")).fixedSize(horizontal: false, vertical: true)
                         }
                     }
-                    if controller.phase == .loading || controller.phase == .submitting { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text(verbatim: creatorString("workshopCreator.loading"))) }
+                    if controller.phase == .loading || controller.phase == .submitting { ProgressView { Text(verbatim: creatorString("workshopCreator.loading")) }.frame(maxWidth: .infinity) }
                     if let issue = controller.issue { Label(creatorString(issueKey(issue)), systemImage: "exclamationmark.triangle").foregroundStyle(.orange).accessibilityIdentifier("workshopPending.issue") }
                     if let pending = controller.pending {
                         Section(creatorString("workshopPending.saved")) {

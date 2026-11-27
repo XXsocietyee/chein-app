@@ -116,7 +116,7 @@ struct ClubOpsFailureSection: View {
                     }
             }
             if pager.loadingMore {
-                ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("clubOps.customers.loadingMore")
+                ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity).accessibilityIdentifier("clubOps.customers.loadingMore")
             } else if pager.failed {
                 Button { Task { await pager.loadMore(readPage) } } label: {
                     Text("clubOps.customers.loadMoreFailed", tableName: "ClubOpsCustomer").frame(maxWidth: .infinity)
