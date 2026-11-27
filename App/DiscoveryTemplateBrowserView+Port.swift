@@ -8,7 +8,9 @@ struct DiscoveryTopicCoverThumb: View {
     /// exists but fails to load. `seed` is kept for call-site compatibility.
     var seed: String = ""
     /// The square tracks body type size. The caption is not given a fixed height.
-    @ScaledMetric(relativeTo: .body) private var side: CGFloat = 60
+    @ScaledMetric(relativeTo: .body) private var scaledSide: CGFloat = 60
+    /// a11y-dt r3: capped like list artwork in Music, so the title keeps the row width at AX sizes.
+    private var side: CGFloat { min(scaledSide, 96) }
 
     var body: some View {
         Group {
