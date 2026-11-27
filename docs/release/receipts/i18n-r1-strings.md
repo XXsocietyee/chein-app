@@ -9,7 +9,7 @@ Branch `i18n/r1-strings`, based on `origin/ui/combined-r7` (fc95e6a19). No compi
 | en values containing CJK, `Resources/Localizable.xcstrings` | 34 | 0 |
 | en values containing CJK, side catalogs (AccountCompliance, AccountDeregistrationPresentation, AuthEntry ×3, ClubOpsJoinNotify, PublisherIdentityRegistration ×2, SocialParity) | 9 | 0 |
 | keys missing en (all catalogs incl. widget) | 0 | 0 |
-| hard-coded CJK literals in App/ (outside merchant/fixtures/previews/comments; catalog keys and inline `t("中文","English")` pairs count as localized) | 2847 in 248 files | 2797 in 243 files (ratchet baseline) |
+| hard-coded CJK literals in App/ (outside merchant/fixtures/previews/comments; catalog keys and inline `t("中文","English")` pairs count as localized) | 2847 in 248 files | 2795 in 243 files (ratchet baseline) |
 | new catalog keys | — | 53 (`compliance.confirmWord` + 52 in `docs/port/strings/i18n-r1-strings.json`) |
 
 ## (1) CJK in en values
