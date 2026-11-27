@@ -594,22 +594,28 @@ struct CityOrientationTeammatesSection: View {
 /// "N 队在路上". One VoiceOver element. Reads the same `TeamTrailSection` poll as the map; sends nothing.
 struct CityOrientationTeamStack: View {
     let teams: [TeamTrailTeam]
+    @ScaledMetric(relativeTo: .caption) private var faceSize: CGFloat = 24
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         HStack(spacing: CYSpacing.xs) {
-            HStack(spacing: -8) {
-                ForEach(teams.prefix(3)) { team in
-                    Text(verbatim: initial(team))
-                        .font(.caption.bold())
-                        .foregroundStyle(.white)
-                        .frame(width: 24, height: 24)
-                        .background(Circle().fill(NativeR2RoutePath.teamColor(team.colorIndex)))
-                        .overlay(Circle().stroke(.background, lineWidth: 2))
+            if !dynamicTypeSize.isAccessibilitySize {
+                HStack(spacing: -8) {
+                    ForEach(teams.prefix(3)) { team in
+                        Text(verbatim: initial(team))
+                            .font(.caption.bold())
+                            .foregroundStyle(.white)
+                            .frame(width: min(faceSize, 36), height: min(faceSize, 36))
+                            .background(Circle().fill(NativeR2RoutePath.teamColor(team.colorIndex)))
+                            .overlay(Circle().stroke(.background, lineWidth: 2))
+                    }
                 }
+                .accessibilityHidden(true)
             }
-            .accessibilityHidden(true)
             Text("design.roam.teamsOnRoute \(teams.count)")
                 .font(.footnote.weight(.semibold))
-                .lineLimit(1)
+                .lineLimit(2)
+                .minimumScaleFactor(0.85)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.horizontal, CYSpacing.sm)
         .padding(.vertical, 6)

@@ -831,5 +831,56 @@
         }
       }
     }
+  },
+  "roam.w208.entry.momentsTitle": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Live moments"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "现场动态"
+        }
+      }
+    }
+  },
+  "roam.w208.entry.moments %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Live moments · %lld"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "现场动态 · %lld"
+        }
+      }
+    }
+  },
+  "roam.w208.entry.noMoments": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No live moments yet"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "还没有现场动态"
+        }
+      }
+    }
   }
 }

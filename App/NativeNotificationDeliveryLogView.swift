@@ -50,7 +50,7 @@ import SwiftUI
                         }
                     }
                 }
-                if model.state == .loading { ProgressView().frame(maxWidth: .infinity) }
+                if model.state == .loading { ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity) }
                 if model.state == .unavailable {
                     ContentUnavailableView {
                         Label("d7.deliveryLog.failed", systemImage: "exclamationmark.triangle")

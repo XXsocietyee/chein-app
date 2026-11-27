@@ -629,6 +629,7 @@ private struct MessagingBubble: View {
     var answersInline = false
     @Environment(\.imRecipientPreview) private var recipientPreview
     @ScaledMetric(relativeTo: .caption) private var avatarSize: CGFloat = 28
+    @ScaledMetric(relativeTo: .body) private var noticeIconSide: CGFloat = 36
     private var isOwn: Bool { message.senderID == accountID && accountID > 0 }
     /// Received messages show a small avatar beside the bubble; only groups add the sender name.
     private var isGroup: Bool { conversation?.kind == .group }
@@ -639,7 +640,8 @@ private struct MessagingBubble: View {
     private var noticeCard: some View {
         HStack(alignment: .top, spacing: Theme.Space.s3) {
             Image(systemName: "bell.fill").font(.body).foregroundStyle(.secondary)
-                .frame(width: 36, height: 36).background(.quaternary, in: Circle()).accessibilityHidden(true)
+                .frame(width: min(noticeIconSide, 60), height: min(noticeIconSide, 60))
+                .background(.quaternary, in: Circle()).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: Theme.Space.s1) {
                 HStack(alignment: .firstTextBaseline) {
                     Text("messaging.system").font(.headline).foregroundStyle(.primary)

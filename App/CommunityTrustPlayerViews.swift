@@ -238,7 +238,7 @@ struct MerchantSafetyRatingSheet: View {
                     Label { Text(verbatim: receipt.isEmpty ? PlayerCapabilityCopy.text("评价已提交", "Rating sent", locale) : receipt) } icon: { Image(systemName: "checkmark.circle") }
                         .accessibilityIdentifier("merchant.safety.receipt")
                 } else if loading {
-                    ProgressView().frame(maxWidth: .infinity)
+                    ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity)
                 } else if levels.isEmpty {
                     Text(verbatim: error.isEmpty ? PlayerCapabilityCopy.text("评价选项暂时不可用", "Rating options aren't available right now", locale) : error).foregroundStyle(CYColor.textSecondary)
                     Button(PlayerCapabilityCopy.text("重试", "Retry", locale)) { Task { await load() } }

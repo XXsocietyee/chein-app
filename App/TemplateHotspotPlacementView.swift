@@ -187,7 +187,7 @@ import Combine
                     .accessibilityLabel("templateHotspots.canvas").accessibilityIdentifier("creator.hotspots.canvas")
             } else if phase.error != nil {
                 Text("templateHotspots.loadFailed").onAppear { editor.imageFailed(request) }
-            } else { ProgressView().frame(maxWidth: .infinity, minHeight: 200).accessibilityLabel(Text("templateHotspots.loading")) }
+            } else { ProgressView { Text("templateHotspots.loading") }.frame(maxWidth: .infinity, minHeight: 200) }
         }
     }
 }
