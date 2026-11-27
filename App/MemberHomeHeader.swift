@@ -136,13 +136,25 @@ import SwiftUI
 
     private var snapshot: MemberIdentitySnapshot? { if case .ready(let value) = phase { return value }; return nil }
 
-    /// MP `pc-actions`: two equal primary buttons and the ··· menu; the row stacks at accessibility sizes.
+    /// MP `pc-actions`: two equal primary buttons and the ··· menu. Labels stay on one line; when the row does not fit
+    /// (English at 375 pt, large Dynamic Type) it stacks vertically instead of wrapping words inside a button.
+    @ViewBuilder
     private func actionRow(_ onOpenTickets: @escaping () -> Void) -> some View {
-        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))
-        return layout {
+        if typeSize.isAccessibilitySize {
+            actionButtons(onOpenTickets, layout: AnyLayout(VStackLayout(alignment: .leading, spacing: 8)))
+        } else {
+            ViewThatFits(in: .horizontal) {
+                actionButtons(onOpenTickets, layout: AnyLayout(HStackLayout(spacing: 8)))
+                actionButtons(onOpenTickets, layout: AnyLayout(VStackLayout(alignment: .leading, spacing: 8)))
+            }
+        }
+    }
+    private func actionButtons(_ onOpenTickets: @escaping () -> Void, layout: AnyLayout) -> some View {
+        layout {
             if let onStartExplore {
                 Button(action: onStartExplore) {
                     Label { Text("member.card.startExplore") } icon: { Image(systemName: "safari") }
+                        .lineLimit(1)
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent).controlSize(.large)
@@ -150,6 +162,7 @@ import SwiftUI
             }
             Button(action: onOpenTickets) {
                 Label { Text("member.card.tickets", tableName: "MemberProfile") } icon: { Image(systemName: "ticket") }
+                    .lineLimit(1)
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent).controlSize(.large)
