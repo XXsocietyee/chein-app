@@ -769,7 +769,7 @@ private struct RoamMapBarMaterial: ViewModifier {
 /// design-r2-roam (en sweep d2-roam): a floating map control (rules / open map) is a 50 pt material circle with a
 /// `.primary` glyph, readable on light and dark map tiles alike. The one start action keeps `.borderedProminent`.
 /// a11y-dt r3: the circle scales with Dynamic Type but stops at 72 pt so the rules · GO · map row fits 375 pt at AX5.
-private struct RoamMapGlassControl: ViewModifier {
+struct RoamMapGlassControl: ViewModifier {
     @ScaledMetric(relativeTo: .title3) private var side: CGFloat = 50
     func body(content: Content) -> some View {
         content

@@ -104,10 +104,20 @@ struct D6MapFixture: View {
             Spacer()
             Text(verbatim: t("Walk anywhere — the fog lifts as you go.", "走到哪，雾散到哪。"))
                 .cyText(.body).foregroundStyle(Color.white.opacity(0.75)).padding(.bottom, CYSpacing.lg)
-            HStack(spacing: CYSpacing.xxl) {
-                CYGlassButton(systemImage: "info", label: "Rules", action: {})
-                CYGoButton(action: {})
-                CYGlassButton(systemImage: "map", label: "Nearby", action: {})
+            // Same floating row as the shipping roam root: material circles + the one `.borderedProminent` 走起.
+            HStack(spacing: CYSpacing.xl) {
+                Button(action: {}) {
+                    Label("roam.preflightRules.availability", systemImage: "info").labelStyle(.iconOnly)
+                        .modifier(RoamMapGlassControl())
+                }
+                .buttonStyle(.plain)
+                Button(action: {}) { Label("roam.w208.intro.start", systemImage: "figure.walk") }
+                    .buttonStyle(.borderedProminent).buttonBorderShape(.capsule).controlSize(.large)
+                Button(action: {}) {
+                    Label("nearby.title", systemImage: "map").labelStyle(.iconOnly)
+                        .modifier(RoamMapGlassControl())
+                }
+                .buttonStyle(.plain)
             }
             .padding(.bottom, CYSpacing.xxl * 2)
         }
