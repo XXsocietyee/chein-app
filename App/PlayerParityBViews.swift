@@ -144,7 +144,7 @@ struct FinishRouteAnalyticsModifier: ViewModifier {
             if service == nil {
                 EmptyView()
             } else if !loaded {
-                ProgressView().frame(maxWidth: .infinity)
+                ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity)
             } else if let control {
                 Section("parityB.shared.title") {
                     LabeledContent("parityB.shared.status") { statusText(control) }
@@ -252,7 +252,7 @@ struct FinishRouteAnalyticsModifier: ViewModifier {
             if service == nil {
                 EmptyView()
             } else if !probed {
-                ProgressView().frame(maxWidth: .infinity)
+                ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity)
             } else if organiser {
                 NavigationLink {
                     List { SharedRunControlSection(activityID: activityID) }.appNavigationTitle("parityB.shared.title").navigationBarTitleDisplayMode(.inline)
@@ -443,7 +443,7 @@ struct FinishRouteAnalyticsModifier: ViewModifier {
             if service == nil {
                 EmptyView()
             } else if !probed {
-                ProgressView().frame(maxWidth: .infinity)
+                ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity)
             } else if let topic {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Text("parityB.circle.review").cyText(.cardTitle)

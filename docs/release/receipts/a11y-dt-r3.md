@@ -116,10 +116,24 @@ Merged `origin/ui/combined-r7` (clean). Sweep index still 18:06 (build 070117595
 | Club detail member strip (MP `buildMemberStrip`) | `MPGap/Club/ClubGapManageExtensions.swift` (`ClubGapMemberAvatarStrip`) | ✓ (mp-club owns order) | Four names under avatars 1 → 2 lines at AX sizes (each slot ≈ 70 pt) | Done |
 | Single-hit files M–T (`ClubGapRemainingViews`, `PlayNavBubbleOverlay`, `PlayRoamRound2Views`, `MPPassEntries`, `CityOrientationFinishSummaryView`, `CityOrientationNavComponents`, `NativeFreeExploreMapView`, `PlayKitQuestionForms`, `ProjectEditFlowParity`, `RequestReferenceRow`, `RoamExplorationExportView`, `RoamFinishReportView`) | — | ✓ | Audit: numbers/ETA/dates/reference codes with `minimumScaleFactor`, a map bubble (short by design), cover chips, file name with middle truncation, picker ticks. No change | Done |
 
+## Run 7 (2026-11-27, hourly)
+
+Merged `origin/ui/combined-r7` (clean). Sweep 18:54 (build 1300a48db) a11y sheet read: `en-a11y-badges-ax5.jpg` /
+`en-a11y-passport-ax5.jpg` show the "3/6" ring at 56 pt beside an AX5 title (count glyphs ~8 pt); `en-a11y-roam-ax5.jpg` OK.
+Not done list from run 6 worked.
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `subpackageMember` 徽章墙 / 收集册 progress (`en-a11y-badges-ax5.jpg`) | `DesignSystem/CYCollectible.swift` (`CYCountRing`), `DesignSystem/CYAlbum.swift` (`CYAlbumProgressRing`, real badge wall + stamp album) | ✓ (mp-mine owns order) | Ring grows at accessibility sizes (1.6x / 1.4x capped 140 pt) so the count tracks the large title beside it; Reduce Motion + labels unchanged | Done |
+| Event / activity join rows (P2 "Starts in", club + home event cards) | `NativeR2/Components/CYJoinCountdownRow.swift` | ✓ | At AX sizes `AnyLayout` VStack: Join button moves under title · countdown · subtitle (same order) so the title keeps the width; subtitle 1 → 2 lines at AX sizes | Done |
+| Medal deck (成就 medals) | `DesignSystem/CYMedalStack.swift` (`CYMedalDeck`) | ✓ | Medal subtitle 1 → 2 lines, centered (name already 2) | Done |
+| Pass verified face (`subpackagePass`) | `DesignSystem/CYPassVerified.swift` | ✓ (mp-activity owns order) | Activity title 1 → 2 lines centered, 0.85 scale, instead of truncating long English | Done |
+| `pages/square` publish › pick activity | `DesignSystem/CYSquareActivityPicker.swift` | ✓ | Activity name 1 → 2 lines | Done |
+| Remaining DesignSystem / Components / NativeR2 single hits (`CYTicketPass`, `CYClubCards`, `CYMapChrome`, `CYPurchaseMotion`, `CYScan`, `CYOnboarding`, `CYCelebrationViews`, `CYSharedStates`, `CYShareCard`, `CYLoadingChoreography`, `CYChapterFlip`, `CYInPlaceResult`, `CYBalanceHero`, `CYGlassCarousel`, `CYStepChecklist` ring, `CYRecordStatGrid`, `CYCountdown`, `CYRing`, `CYLiveCounter`, `CYStatPill`, `PassportView` action, `QuestifyMotionComponents`, `MotionR2Metrics`, `IslandOverlay` compact, `NativeGameTimedKit`) | — | ✓ | Audit: numbers / timers / prices with `minimumScaleFactor`, a redacted skeleton, share-card renders (fixed image), the island compact one-liner (system pattern), and the passport action already `ViewThatFits` with a 2-line fallback. No change | Done |
+
 ## Not done (next run starts here)
-- `.lineLimit(1)` audit: `App/DesignSystem/*` single hits and `App/NativeR2/Components/*` (CYCountdown, CYJoinCountdownRow,
-  CYLiveCounter, CYRecordStatGrid, CYRing), `NativeGameTimedKit`, `IslandOverlay`, `MotionR2Metrics`, `PassportView`,
-  `QuestifyMotionComponents`, then files with 2+ hits (`grep -rln "lineLimit(1)" App` minus Merchant/Fixture/Diagnostics/SectionView/Story).
+- `.lineLimit(1)` audit: player files with 2+ hits (`grep -rlc "lineLimit(1)" App` minus Merchant/Fixture/Diagnostics/SectionView/Story), largest first.
+- VoiceOver order pass on tab roots with overlays (Roam map panel vs floating controls, Home banner vs greeting row).
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch
