@@ -17,12 +17,8 @@ import SwiftUI
             switch model.state {
             case .idle, .loading:
                 Section {
-                    HStack(spacing: CYSpacing.sm) {
-                        ProgressView()
-                        Text(verbatim: W8Text.t("加载中…", "Loading…")).foregroundStyle(.secondary)
-                    }
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(Text(verbatim: W8Text.t("加载中…", "Loading…")))
+                    ProgressView { Text(verbatim: W8Text.t("加载中…", "Loading…")) }
+                        .frame(maxWidth: .infinity)
                 }
             case .unavailable:
                 Section {
