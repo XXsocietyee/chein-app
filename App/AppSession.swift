@@ -1333,7 +1333,7 @@ final class AppSession: ObservableObject {
                 guard let self, snapshot == captured, current() == captured else { return }
                 self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: captured.token)
             })
-        playExperienceCoordinators[key] = coordinator; coordinator.liveActivity = QuestLiveActivityCenter.shared
+        playExperienceCoordinators[key] = coordinator; coordinator.liveActivity = QuestLiveActivityCenter.shared; QuestLiveActivityCenter.shared.attach(play: coordinator)
         registerPlayContinuationScope(scope)
         return coordinator
     }
@@ -6193,7 +6193,7 @@ final class AppSession: ObservableObject {
         }
         let controller = RoamLiveSessionController(service: liveService, location: location, journal: journal, history: roamHistoryStore)
         if liveService != nil { controller.locationConsent = roamLocationConsentHook() }
-        retainedRoamLiveSession = controller; controller.liveActivity = QuestLiveActivityCenter.shared
+        retainedRoamLiveSession = controller; controller.liveActivity = QuestLiveActivityCenter.shared; QuestLiveActivityCenter.shared.attach(roam: controller)
         return controller
     }
     private let roamExperienceService: RoamExperienceService?

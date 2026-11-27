@@ -499,6 +499,7 @@
         "PublishingAIPromptControlsTests",
         "PublishingAIQuotaSectionTests",
         "PushNotificationAndLiveActivitySectionViewTests",
+        "QuestLiveActivityComponentsTests",
         "QuestifyProgressiveBlurArtworkTests",
         "QuickPublishingJourneyOwnerTests",
         "R3PlayerMotionTests",

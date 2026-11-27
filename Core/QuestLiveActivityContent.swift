@@ -7,7 +7,8 @@ import ActivityKit
 /// This file is compiled into both targets; it holds no account, token, coordinate or server identifier.
 /// Design P1 L9: widget / Live Activity links (`QuestWidgetLinks`) and the next-stop widget store live here too.
 /// `story` (native r2 M4): story audio playing; started by the app's `QuestLiveActivityCenter`, never by Core mapping.
-public enum QuestLiveActivityKind: String, Codable, Hashable, Sendable { case roam, play, story }
+/// `event` (components r1 C1): a wallet ticket that starts soon — "Starts in mm:ss · 加入" countdown to the session start.
+public enum QuestLiveActivityKind: String, Codable, Hashable, Sendable { case roam, play, story, event }
 /// Which play flow a `.play` activity belongs to (native r2 M4). Nil keeps the original play layout.
 public enum QuestLiveActivityMode: String, Codable, Hashable, Sendable { case orientation, explore }
 public enum QuestLiveActivityStatus: String, Codable, Hashable, Sendable { case active, paused, finished }
@@ -33,21 +34,51 @@ public struct QuestLiveActivityContent: Codable, Hashable, Sendable {
     public var nextDistanceMeters: Int?
     public var mediaTitle: String?
     public var mediaPlaying: Bool?
+    /// Components r1 C1 (all optional, so older encoded content still decodes):
+    /// a server deadline for the run (counted down with `Text(timerInterval:countsDown: true)`), the 50 m arrival
+    /// highlight at the current stop, the player's server score / rank, and an event session's start time.
+    public var deadline: Date?
+    public var arrived: Bool?
+    public var score: Int?
+    public var rank: Int?
+    public var startsAt: Date?
     public init(status: QuestLiveActivityStatus, elapsedSeconds: Int? = nil, runningSince: Date? = nil,
                 distanceMeters: Int? = nil, placesRevealed: Int? = nil, stopName: String? = nil, stopIndex: Int? = nil,
                 stopCount: Int? = nil, cluesSolved: Int? = nil, cluesTotal: Int? = nil,
                 mode: QuestLiveActivityMode? = nil, nextDistanceMeters: Int? = nil,
-                mediaTitle: String? = nil, mediaPlaying: Bool? = nil) {
+                mediaTitle: String? = nil, mediaPlaying: Bool? = nil,
+                deadline: Date? = nil, arrived: Bool? = nil, score: Int? = nil, rank: Int? = nil, startsAt: Date? = nil) {
         self.status = status; self.elapsedSeconds = elapsedSeconds; self.runningSince = runningSince
         self.distanceMeters = distanceMeters; self.placesRevealed = placesRevealed; self.stopName = stopName
         self.stopIndex = stopIndex; self.stopCount = stopCount; self.cluesSolved = cluesSolved; self.cluesTotal = cluesTotal
         self.mode = mode; self.nextDistanceMeters = nextDistanceMeters
         self.mediaTitle = mediaTitle; self.mediaPlaying = mediaPlaying
+        self.deadline = deadline; self.arrived = arrived; self.score = score; self.rank = rank; self.startsAt = startsAt
     }
     /// Range for `Text(timerInterval:)` while the timer runs; nil when paused, finished or untimed.
     public var timerInterval: ClosedRange<Date>? {
         guard status == .active, let runningSince else { return nil }
         return runningSince...runningSince.addingTimeInterval(QuestLiveActivityText.timerHorizon)
+    }
+    /// Components r1 C1: `now...deadline` for a countdown while a run deadline is ahead; nil once it has passed.
+    public func deadlineInterval(now: Date) -> ClosedRange<Date>? {
+        guard status != .finished, let deadline, deadline > now else { return nil }
+        return now...deadline
+    }
+    /// Components r1 C1: `now...startsAt` for the "Starts in" countdown; nil once the session has started.
+    public func startInterval(now: Date) -> ClosedRange<Date>? {
+        guard let startsAt, startsAt > now else { return nil }
+        return now...startsAt
+    }
+    /// Whether the run can be paused (`true`) or resumed (`false`) from the Live Activity; nil hides the button.
+    /// Story audio and event countdowns have no run to pause.
+    public func runToggle(kind: QuestLiveActivityKind) -> Bool? {
+        guard kind == .roam || kind == .play, runningSince != nil || elapsedSeconds != nil else { return nil }
+        switch status {
+        case .active: return true
+        case .paused: return false
+        case .finished: return nil
+        }
     }
 }
 
@@ -79,6 +110,11 @@ public enum QuestLiveActivityText {
         guard let done, let total, total > 0 else { return "—" }
         return "\(min(done, total))/\(total)"
     }
+    /// `#3` for a ranked player, an em dash otherwise.
+    public static func rank(_ rank: Int?) -> String {
+        guard let rank, rank > 0 else { return "—" }
+        return "#\(rank)"
+    }
 }
 
 /// P-017 / G-087: links a widget or Live Activity hands to the app (`widgetURL` / `Link`). They reuse the app's existing
@@ -90,12 +126,16 @@ public enum QuestWidgetLinks {
     public static let passport = URL(string: "chein://mp/subpackageP3/pages/stamp-album/index/index")!
     /// The stories I joined (`subpackageMember/mycanyu/mycanyu`), where 继续故事 picks up.
     public static let stories = URL(string: "chein://mp/subpackageMember/mycanyu/mycanyu")!
+    /// Components r1 C1: 票夹 (`subpackageMember/signup/index`), where the ticket's check-in pass opens. The event
+    /// countdown's 加入 lands here; it carries no ticket identifier.
+    public static let wallet = URL(string: "chein://mp/subpackageMember/signup/index")!
 
     /// Live Activity tap target. Roam opens its tab; a play run or story audio opens the app where it already is
     /// (nil), so a tap never pushes a second run or reader over the live one.
     public static func liveActivity(_ kind: QuestLiveActivityKind) -> URL? {
         switch kind {
         case .roam: return roam
+        case .event: return wallet
         case .play, .story: return nil
         }
     }
@@ -172,10 +212,14 @@ public enum QuestWidgetStore {
 
 #if canImport(ActivityKit) && os(iOS)
 /// Static attributes. `title` is the activity or topic name for play and nil for roam.
+/// Components r1 C1: `place` (optional, so older attributes still decode) is an event session's venue name.
 public struct QuestLiveActivityAttributes: ActivityAttributes {
     public typealias ContentState = QuestLiveActivityContent
     public let kind: QuestLiveActivityKind
     public let title: String?
-    public init(kind: QuestLiveActivityKind, title: String?) { self.kind = kind; self.title = title }
+    public let place: String?
+    public init(kind: QuestLiveActivityKind, title: String?, place: String? = nil) {
+        self.kind = kind; self.title = title; self.place = place
+    }
 }
 #endif

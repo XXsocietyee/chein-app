@@ -486,6 +486,7 @@
         "PublishingAIPromptControlsTests",
         "PublishingAIQuotaSectionTests",
         "PushNotificationAndLiveActivitySectionViewTests",
+        "QuestLiveActivityComponentsTests",
         "QuestLiveActivityMappingTests",
         "R3PlayerMotionTests",
         "ReceivedStampsAndPassportToolsSectionViewTests",
