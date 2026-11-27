@@ -83,16 +83,22 @@ struct RoamStatusView: View {
     var retry: (() -> Void)? = nil
     /// Offered only for `.unauthorized`; hosts without a sign-in route leave it nil.
     var onSignIn: (() -> Void)? = nil
+    /// mp-states r3: the page's MP failure title (POI detail: 节点无法打开). Other issues keep their shared titles.
+    var failureTitle: LocalizedStringKey? = nil
     private var canRetry: Bool { if case .failed = issue, retry != nil { return true } else { return false } }
+    private var title: LocalizedStringKey {
+        if case .failed = issue, let failureTitle { return failureTitle }
+        return issue.title
+    }
     var body: some View {
-        // Kit state: icon, one line, one quiet action. Same copy and identifier as before.
-        VStack(spacing: CYSpacing.sm) {
-            CYEmptyState(systemImage: "map", issue.title, actionTitle: canRetry ? "action.retry" : nil, action: retry)
-            Text(issue.message).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
-                .multilineTextAlignment(.center).padding(.horizontal, CYSpacing.xxl)
+        // mp-states r3: one ContentUnavailableView — title, the hint as its description, one action
+        // (`.borderedProminent` 登录 when signed out, `.bordered` 重试 on a failure). Same copy and identifier as before.
+        Group {
             if case .unauthorized = issue, let onSignIn {
-                CYPillButton("auth.signIn", style: .primary, fullWidth: false, action: onSignIn)
-                    .accessibilityIdentifier("roam.signIn")
+                CYEmptyState(systemImage: "map", title, detail: issue.message, actionTitle: "auth.signIn", actionIdentifier: "roam.signIn",
+                             actionStyle: .primary, action: onSignIn)
+            } else {
+                CYEmptyState(systemImage: "map", title, detail: issue.message, actionTitle: canRetry ? "action.retry" : nil, action: retry)
             }
         }
         .frame(maxWidth: .infinity)

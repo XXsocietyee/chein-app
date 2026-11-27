@@ -345684,6 +345684,23 @@
           }
         }
       }
+    },
+    "roam.place.openFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t open this spot"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "节点无法打开"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
