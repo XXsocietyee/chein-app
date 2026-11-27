@@ -41,6 +41,13 @@ files; `mp/r3-mine` only gated 查看报名凭证 in `PlayerJourneyViews` (not o
 | `pages/play/index` (顶部栈 带领行进条 `leadbar` / `leadbar-retry`) | `PlayExperienceView.cityOrientationNative` + `App/MPGap/PlayRoam/PlayLeadBar.swift`; Core `PlayLeadProgress.total/ended/freeEntry/showsLeadBar`, `PlayExperienceCoordinator.probeLead` | dot · 到场 n/N 人 · chapter · 队长带领中 · 工具在更多 / 队长带队中; ended 本场已结束 · 你完成了 d/t 站; failed read 网络状态暂未刷新 · 点击重试 | **fixed**: the city run never read team-progress (only the classic list had a manual 读取 button), so lead rows, 集合 and 队伍位置 stayed empty. It now probes once after the nodes read (MP `loadData` → `loadTeamProgress`) and polls every 4 s while a team exists (existing `PlayLeadProgressPollingModifier`); a probe failure marks only the retry bar. Bar shows on status 2 or ended, free-entry teams only once ended (MP `hud.topBanner`). `PlayExperienceTests.testLeadBarFollowsTheMPTopBannerRule`. 券 toast: see Not done | top `safeAreaInset` under the route notice, `.regularMaterial`, `.footnote` monospaced digits, combined VoiceOver element, `.borderless` retry |
 | `pages/playkit/index` | — | MP placeholder page (`wx.reLaunch` home; no entry points) | nothing to build | — |
 
+## Design-system re-scan (OWNER RULE 2, play surfaces)
+
+- `App/DesignSystem/CYPlayVerdict.swift`: the three verdict marks used `.font(.system(size: 88 / 72))`; now resizable
+  symbols in the same 88 / 72 pt frames (typography lint raw size 47 → 44).
+- `App/PlayThemePresentation.swift` title card eyebrow: dropped `.tracking(2)` (text stays `.caption`).
+- Remaining `.tracking` in play paths: none outside the shared `cyEyebrow` (approved design system).
+
 ## Not done (next pass)
 
 - 本局线索 (`gameModule`) is the STORY / club session projection (`gameModule.enabled` is false for ROUTE runs, MP
