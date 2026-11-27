@@ -169,6 +169,17 @@ Screenshot: `docs/sweeps/latest/mp-home/zh-Hans-rep3-activity-detail.jpg`, `en-r
 | `pages/search2/result` → `d2-search-results` (`App/DesignFixtures/D2Fixtures.swift`) | Sweep `zh-Hans-d2-search-results.jpg` is identical to the empty search page — the fixture never ran a search, so the result list (scope tabs → rows → 没有更多了) was never shot. | **Fixed** — fixture passes `initialQuery: GlobalSearchQuery(keyword: "Lantern")` (the MP link-keyword path), so the page searches once on appear. App code unchanged. |
 | footer main button 「—」 | MP `actionFor`: `isSignUp` not 0/1 → `{state:'unavailable', text:'—'}` disabled. | ✓ matches MP (fixture has no `isSignUp`). |
 
+## Round 3 continue (6) — 18:54 sweep (build 1300a48db), mp-home sheets zh-Hans + en
+
+Build 1300a48db predates `56f6f8aaf` (d2-home-offline) and `67f829a46` (d2-search-results), so those two tiles still show the old feature-off / empty-search shots; recheck next sweep. Merged `origin/ui/combined-r7` into `mp/r3-home` first (clean).
+
+| MP page → native | Difference seen (screenshot) | Status |
+|---|---|---|
+| `scene-play-activity-detail/index.wxml:147-153` footer → `App/ActivityDetailView.swift` `registrationAction` | `zh-Hans-rep3-activity-detail.jpg` / `en-…`: footer still stacked 「¥58.00 起」 + avatar 「24 人已报名」 above the button; the count is already in the 已报名 fact row and the 「N 人已报名」 people section (3×). MP footer = share + one main button. | **Fixed** — footer is the one main button only (share stays in the toolbar). `pinnedSummary` kept for the city-event variant's 价格 fact row. |
+| `index.wxml:41-43` section title 关于这场活动 → `Section("activity.about")` | zh read 活动介绍. | **Fixed** — zh-Hans `关于这场活动` (en stays "About this activity"). |
+| `wave-today-club` (`App/DesignFixtures/WaveFixtures.swift`) | Bare `HomeTodayCard` + "Synthetic tap × 2" debug line. | **Not changed** — motion-only fixture; the Today card is not on the MP home and is not rendered on 首页 (row 5). |
+| `d2-home` | 首页 large title, banner + dots, greeting 玩家 · 上海, 编辑精选 footnote and first card. | ✓ matches the 15:09 check. |
+
 ## Not done / follow-ups
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
 - ~~活动列表 邀约 link hidden while loading / failed~~ — closed in continue 3.
@@ -178,5 +189,5 @@ Screenshot: `docs/sweeps/latest/mp-home/zh-Hans-rep3-activity-detail.jpg`, `en-r
 - Needs a simulator pass: 4:3 banner card height under the large title on small phones (first rails should stay near the fold).
 - 首页 city tap-to-relocate (MP `onTapHomeCity`): needs a foreground location → city read; the menu covers manual choice meanwhile.
 - Needs a simulator pass: 20-item city menu in en + zh-Hans.
-- Needs a simulator pass: `rep3-activity-detail` hero (no live line when ended, light 已结束) and one going count in the footer.
+- Needs a simulator pass: `rep3-activity-detail` hero (no live line when ended, light 已结束) and the footer as the one main button (continue 6).
 - Needs a simulator pass: `d2-home-offline` now renders the per-rail failure + feed error states; `d2-search-results` now shows the result list.
