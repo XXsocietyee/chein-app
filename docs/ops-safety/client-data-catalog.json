@@ -168,6 +168,15 @@
       "deletion": "Changing the language overwrites it; removed when the app is deleted"
     },
     {
+      "file": "App/UserMarketMemory.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "One-app market hints (owner 2026-11-27): preferences.userMarket.accountRegion (CN/US from /api/user/info when returned) and preferences.userMarket.signInDialCode (+86/+1 of the last phone sign-in). No phone number, token or account id (non-sensitive)",
+      "retention": "Device-local; replaced on the next sign-in or app deletion",
+      "deletion": "Each sign-in overwrites both hints (Apple sign-in clears them); removed when the app is deleted"
+    },
+    {
       "file": "App/MPFirstClubApprovals.swift",
       "kinds": [
         "file"

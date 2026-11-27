@@ -4,10 +4,11 @@ import QuestifyCore
 #endif
 
 extension PhoneCountryCode {
-    /// US launch r1: the picker default on every phone entry. The device region (`Locale.current.region`) wins
-    /// when it is US or CN; any other region falls back to the storefront market of this build.
+    /// US launch r1, one-app: the picker default on every phone entry follows the per-user market
+    /// (`RegionalLaunchConfiguration.storefrontMarket`: account region → last sign-in country code → device
+    /// region → build market). CN starts on +86 as before; US starts on +1.
     static var launchDefault: PhoneCountryCode {
-        .default(region: Locale.current.region?.identifier, marketCode: RegionalLaunchConfiguration.storefrontMarket?.rawValue)
+        .default(marketCode: RegionalLaunchConfiguration.storefrontMarket?.rawValue)
     }
 }
 

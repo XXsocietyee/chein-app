@@ -85,6 +85,8 @@ struct AuthChannelView: View {
         .onChange(of: model.phone) { _, _ in model.phoneChanged() }
         .onChange(of: model.state.signedIn) { _, signedIn in
             guard signedIn else { return }
+            // One-app: the sign-in phone country code decides the user market when the account has no region.
+            UserMarketMemory.recordSignIn(phoneCountry: model.signInCountry)
             model.clear()
             if !embedded { dismiss() }
         }

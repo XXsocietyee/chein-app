@@ -5,8 +5,13 @@ Verifies:
 1. Questify app target Release configuration has no DEBUG/TEST compilation conditions,
    points to Config/Release.xcconfig, generates dSYMs (dwarf-with-dsym), and optimizes (-O).
 2. Resolved Release build settings pin the production API base URL
-   (https://www.chengyinhub.com/prod-api/), realm (cn-prod), market (CN),
+   (https://www.chengyinhub.com/prod-api/), realm (cn-prod), fallback market (CN),
    bundle ID (com.chengyinhub.chengyinApp), and 10-char team ID.
+2b. One app for both markets (owner decision 2026-11-27, US launch r1 lane one-app): the one Release
+   binary serves China and the United States. QUESTIFY_MARKET (CN) is only the default/fallback; the
+   per-user market is decided at runtime (account region -> sign-in phone country code -> device region ->
+   build market) by App/UserMarketMemory.swift + Core/UserMarket.swift. So no Config/*.xcconfig may name a
+   second App Store bundle ID, and the US pay channel must key off the runtime market, not the build.
 3. Release-compiled Swift projection (DEBUG and TEST unset, Release exclusions applied)
    contains no DEBUG fixture hosts, test-host overrides, or E2E test-host endpoints.
 4. Money writes follow the host derivation in Release and default off when no host is installed.
@@ -191,6 +196,35 @@ def check_production_base_url_and_identity(root: Path, failures: list[str]) -> N
                 )
 
 
+def check_one_app_runtime_market(root: Path, failures: list[str]) -> None:
+    """Owner decision 2026-11-27: ONE App Store app (com.chengyinhub.chengyinApp) for China and the US."""
+    for config in sorted((root / "Config").glob("*.xcconfig")):
+        if config.name.startswith("Local") or config.name in ("Base.xcconfig", "AppUnitTests.xcconfig"):
+            continue
+        for match in re.finditer(r"^\s*PRODUCT_BUNDLE_IDENTIFIER\s*=\s*(\S+)", config.read_text(encoding="utf-8"), re.M):
+            if match.group(1) != PROD_BUNDLE_ID:
+                failures.append(f"Config/{config.name} names a second App Store bundle ID {match.group(1)!r}; "
+                                "one app serves both markets (owner 2026-11-27)")
+    launch = (root / "App/RegionalLaunchConfiguration.swift").read_text(encoding="utf-8")
+    if "return UserMarketMemory.resolve(buildDefault:market)" not in launch:
+        failures.append("App/RegionalLaunchConfiguration.swift: storefrontMarket must resolve the per-user market at runtime "
+                        "(UserMarketMemory.resolve(buildDefault:market)); QUESTIFY_MARKET is only the fallback")
+    resolver = root / "Core/UserMarket.swift"
+    if not resolver.exists():
+        failures.append("Core/UserMarket.swift (UserMarketResolver) is missing")
+    else:
+        text = resolver.read_text(encoding="utf-8")
+        order = [text.find(token) for token in ("market(region: accountRegion)", "market(phone: signInPhone)",
+                                                 "market(region: deviceRegion)", "buildDefault ?? .china")]
+        if -1 in order or order != sorted(order):
+            failures.append("Core/UserMarket.swift: resolution order must be account region, sign-in phone, device region, build")
+    stripe = (root / "App/StripePayBridge.swift").read_text(encoding="utf-8")
+    if "regionalConfiguration?.market == .unitedStates" in stripe or \
+            "RegionalLaunchConfiguration.storefrontMarket == .unitedStates" not in stripe:
+        failures.append("App/StripePayBridge.swift: Apple Pay / Stripe must key off the per-user market "
+                        "(RegionalLaunchConfiguration.storefrontMarket), not the shared deployment's market")
+
+
 def check_no_debug_fixtures_or_test_host_in_release(root: Path, excluded_names: set[str], failures: list[str]) -> None:
     project = exclusion.parse_project((root / "Questify.xcodeproj/project.pbxproj").read_text(encoding="utf-8"))
     objects, target = exclusion.app_target(project)
@@ -315,6 +349,7 @@ def run_checks(root: Path = ROOT) -> list[str]:
     failures: list[str] = []
     excluded = check_project_release_settings(root, failures)
     check_production_base_url_and_identity(root, failures)
+    check_one_app_runtime_market(root, failures)
     check_no_debug_fixtures_or_test_host_in_release(root, excluded, failures)
     check_switches_closed_for_production(root, failures)
     return failures
@@ -329,7 +364,8 @@ def main() -> int:
         return 1
     print(
         f"PASS release preflight assertions: Release config verified ({PROD_BUNDLE_ID}, "
-        f"{PROD_BASE_URL}, realm={PROD_REALM}), no DEBUG/test-host code in Release, "
+        f"{PROD_BASE_URL}, realm={PROD_REALM}, fallback market={PROD_MARKET}), one app for CN+US with the "
+        "per-user market at runtime (owner 2026-11-27), no DEBUG/test-host code in Release, "
         "money/merchant/password switches closed for production."
     )
     return 0

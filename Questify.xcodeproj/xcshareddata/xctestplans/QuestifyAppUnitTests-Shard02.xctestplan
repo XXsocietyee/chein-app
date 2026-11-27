@@ -661,6 +661,7 @@
         "UnifiedDecisionsU01ToU08SectionViewTests",
         "UnifiedTicketExecutionMatrixSectionViewTests",
         "UsageConsentHistoryHostTests",
+        "UserMarketMemoryTests",
         "VerificationPresentationAppTests",
         "VerifyR2AppFixTests",
         "WP01SeenAckRefreshTests",

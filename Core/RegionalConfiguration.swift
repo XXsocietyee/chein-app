@@ -5,12 +5,17 @@ public enum RegionalMarket: String, CaseIterable, Hashable, Sendable {
     case china = "CN"
     case unitedStates = "US"
 
+    /// The market's own language. One-app (owner 2026-11-27): no longer the first-launch default;
+    /// with no stored choice the UI follows the phone (`AppLanguage.deviceDefault`).
     public var defaultLanguage: AppLanguage {
         self == .china ? .simplifiedChinese : .english
     }
     /// Preserve every existing preference, including explicit System and its legacy fallback.
-    public func language(storedValue: String?) -> AppLanguage {
-        storedValue.map(AppLanguage.init(storedValue:)) ?? defaultLanguage
+    /// With no stored choice, follow the phone's preferred language (zh* → zh-Hans, otherwise English),
+    /// whatever the build market. The derived default is never written back.
+    public func language(storedValue: String?,
+                         preferredLanguages: [String] = Locale.preferredLanguages) -> AppLanguage {
+        storedValue.map(AppLanguage.init(storedValue:)) ?? AppLanguage.deviceDefault(preferredLanguages: preferredLanguages)
     }
 }
 

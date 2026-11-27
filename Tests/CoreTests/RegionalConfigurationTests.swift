@@ -7,8 +7,11 @@ final class RegionalConfigurationTests: XCTestCase {
     private let usURL = "https://us.example.com/api-root"
 
     func testFirstLaunchDefaultsAndExistingChoices() {
-        XCTAssertEqual(RegionalMarket.china.language(storedValue: nil), .simplifiedChinese)
-        XCTAssertEqual(RegionalMarket.unitedStates.language(storedValue: nil), .english)
+        // One-app (owner 2026-11-27): no stored choice follows the phone, not the build market.
+        XCTAssertEqual(RegionalMarket.china.language(storedValue: nil, preferredLanguages: ["zh-Hans"]), .simplifiedChinese)
+        XCTAssertEqual(RegionalMarket.china.language(storedValue: nil, preferredLanguages: ["en-GB"]), .english)
+        XCTAssertEqual(RegionalMarket.unitedStates.language(storedValue: nil, preferredLanguages: ["zh-Hans"]), .simplifiedChinese)
+        XCTAssertEqual(RegionalMarket.unitedStates.language(storedValue: nil, preferredLanguages: ["en-US"]), .english)
         for market in RegionalMarket.allCases {
             for language in AppLanguage.allCases {
                 XCTAssertEqual(market.language(storedValue: language.rawValue), language)

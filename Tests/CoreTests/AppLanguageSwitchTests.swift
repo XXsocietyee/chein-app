@@ -27,14 +27,23 @@ final class AppLanguageSwitchTests: XCTestCase {
         XCTAssertFalse(AppLanguage.system.isChinese(systemLanguageCode: "en"))
     }
 
-    func testFirstLaunchDefaultPerMarketIsUnchangedAndSystemChoiceSurvives() throws {
+    /// One-app (owner 2026-11-27): with no stored choice the phone decides (zh* → zh-Hans, else English),
+    /// for every market; the derived default is never written; an explicit choice (System included) wins.
+    func testFirstLaunchFollowsThePhoneAndExplicitChoiceSurvives() throws {
         let (defaults, cleanup) = try makeDefaults(); defer { cleanup() }
-        XCTAssertEqual(AppLanguagePreference(defaults: defaults, market: .china).language, .simplifiedChinese)
-        XCTAssertEqual(AppLanguagePreference(defaults: defaults, market: .unitedStates).language, .english)
-        XCTAssertEqual(AppLanguagePreference(defaults: defaults, market: nil).language, .system)
-        // Explicit System is a stored choice, not "unset": it must not fall back to the market default.
+        for market in [RegionalMarket.china, .unitedStates, nil] {
+            XCTAssertEqual(AppLanguagePreference(defaults: defaults, market: market, preferredLanguages: ["zh-Hans-US"]).language, .simplifiedChinese)
+            XCTAssertEqual(AppLanguagePreference(defaults: defaults, market: market, preferredLanguages: ["zh-HK"]).language, .simplifiedChinese)
+            XCTAssertEqual(AppLanguagePreference(defaults: defaults, market: market, preferredLanguages: ["en-CN"]).language, .english)
+            XCTAssertEqual(AppLanguagePreference(defaults: defaults, market: market, preferredLanguages: ["ja-JP", "zh-Hans"]).language, .english)
+            XCTAssertEqual(AppLanguagePreference(defaults: defaults, market: market, preferredLanguages: []).language, .english)
+        }
+        XCTAssertNil(defaults.string(forKey: AppLanguage.storageKey))
+        // Explicit System is a stored choice, not "unset": the phone default must not replace it.
         AppLanguagePreference(defaults: defaults, market: .china).select(.system)
-        XCTAssertEqual(AppLanguagePreference(defaults: defaults, market: .china).language, .system)
+        XCTAssertEqual(AppLanguagePreference(defaults: defaults, market: .china, preferredLanguages: ["en-US"]).language, .system)
+        AppLanguagePreference(defaults: defaults, market: .unitedStates).select(.english)
+        XCTAssertEqual(AppLanguagePreference(defaults: defaults, market: .unitedStates, preferredLanguages: ["zh-Hans"]).language, .english)
     }
 
     func testStorageKeyIsTheSettingsKey() {

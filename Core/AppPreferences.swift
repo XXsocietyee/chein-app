@@ -6,6 +6,11 @@ public enum AppLanguage: String, CaseIterable, Identifiable {
     public var w8Override: String? { self == .system ? nil : rawValue }
     public var id: String { rawValue }
     public init(storedValue: String) { self = Self(rawValue: storedValue) ?? .system }
+    /// One-app (owner 2026-11-27): the language used when the user has stored no choice. It follows the
+    /// phone (`Locale.preferredLanguages`): any zh* → Simplified Chinese, everything else → English.
+    public static func deviceDefault(preferredLanguages: [String] = Locale.preferredLanguages) -> AppLanguage {
+        (preferredLanguages.first ?? "").lowercased().hasPrefix("zh") ? .simplifiedChinese : .english
+    }
     public var locale: Locale {
         self == .system ? .autoupdatingCurrent : Locale(identifier: rawValue)
     }
@@ -38,17 +43,21 @@ public enum AppLanguage: String, CaseIterable, Identifiable {
     }
 }
 
-/// Persisted language choice. The market only supplies the first-launch default, so an
-/// explicit choice (including System) always wins and never changes the market default.
+/// Persisted language choice. An explicit choice (including System) always wins. With no stored
+/// choice the phone decides (`AppLanguage.deviceDefault`), for every market; the default is never stored.
 public struct AppLanguagePreference {
     private let defaults: UserDefaults
     private let market: RegionalMarket?
-    public init(defaults: UserDefaults = .standard, market: RegionalMarket?) {
-        self.defaults = defaults; self.market = market
+    private let preferredLanguages: [String]
+    public init(defaults: UserDefaults = .standard, market: RegionalMarket?,
+                preferredLanguages: [String] = Locale.preferredLanguages) {
+        self.defaults = defaults; self.market = market; self.preferredLanguages = preferredLanguages
     }
     public var language: AppLanguage {
         let stored = defaults.string(forKey: AppLanguage.storageKey)
-        return market?.language(storedValue: stored) ?? stored.map(AppLanguage.init(storedValue:)) ?? .system
+        return market?.language(storedValue: stored, preferredLanguages: preferredLanguages)
+            ?? stored.map(AppLanguage.init(storedValue:))
+            ?? AppLanguage.deviceDefault(preferredLanguages: preferredLanguages)
     }
     public func select(_ language: AppLanguage) {
         defaults.set(language.rawValue, forKey: AppLanguage.storageKey)

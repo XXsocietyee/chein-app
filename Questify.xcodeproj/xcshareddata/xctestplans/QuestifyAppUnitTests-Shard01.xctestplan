@@ -668,6 +668,7 @@
         "UnifiedReleaseAuditHubViewTests",
         "UnifiedTicketExecutionMatrixSectionViewTests",
         "UsageConsentHistoryHostTests",
+        "UserMarketMemoryTests",
         "VerificationPresentationAppTests",
         "VerifyR2AppFixTests",
         "WP06PartialPageHostTests",

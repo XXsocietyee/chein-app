@@ -11,6 +11,9 @@ final class AuthChannelModel: ObservableObject {
     /// i18n r1: +86 / +1. China sends the bare 11 digits as before; the US sends E.164.
     /// US launch r1: defaults from the device region (`Locale.current.region`), else the storefront market.
     @Published var country: PhoneCountryCode = .launchDefault
+    /// One-app: the country of the last phone sign-in attempt (nil after an Apple attempt). The view hands it to
+    /// `UserMarketMemory` once the sign-in succeeds; this model itself never writes defaults.
+    private(set) var signInCountry: PhoneCountryCode?
     let coordinator: AuthChannelCoordinator
     private let presentation: AuthChannelPresentation
     private var task: Task<Void, Never>?
@@ -37,12 +40,14 @@ final class AuthChannelModel: ObservableObject {
         guard canStart, let intent = coordinator.captureIntent(for: .phoneLogin) else { return }
         let phoneValue = country.wireValue(country.sanitize(phone)) ?? phone, codeValue = code
         code = ""
+        signInCountry = country
         schedule { [coordinator] in
             await coordinator.loginWithPhone(phone: phoneValue, code: codeValue, intent: intent)
         }
     }
     func exchangeApple(_ attempt: AuthChannelAppleAttempt, identityToken: String) {
         guard coordinator.ownsPresentation(presentation), coordinator.canCompleteAppleAuthorization(attempt) else { return }
+        signInCountry = nil
         // Native Apple authorization already captures its session/generation synchronously.
         schedule { [coordinator] in
             await coordinator.completeAppleAuthorization(attempt, identityToken: identityToken)

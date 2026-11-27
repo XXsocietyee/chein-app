@@ -267,6 +267,10 @@ elif "-exportArchive" in args:
                 "App/AppSession.swift",
                 "App/WalletCommerceViews.swift",
                 "App/QuestifyApp.swift",
+                # One app for CN + US (owner 2026-11-27): runtime market inputs.
+                "App/RegionalLaunchConfiguration.swift",
+                "App/StripePayBridge.swift",
+                "Core/UserMarket.swift",
             ):
                 dst = tmp_root / rel
                 dst.parent.mkdir(parents=True, exist_ok=True)
@@ -281,6 +285,20 @@ elif "-exportArchive" in args:
                     p.parent.mkdir(parents=True, exist_ok=True)
                     p.write_text("")
 
+            self.assertEqual(preflight.run_checks(tmp_root), [])
+
+            # One app (owner 2026-11-27): a second App Store bundle ID or a build-keyed US pay gate must fail.
+            us_prod = tmp_root / "Config/UnitedStates.Production.xcconfig"
+            original_us = us_prod.read_text()
+            us_prod.write_text(original_us + "\nPRODUCT_BUNDLE_IDENTIFIER = com.chengyinhub.chengyinApp.us\n")
+            self.assertTrue(any("second App Store bundle ID" in f for f in preflight.run_checks(tmp_root)))
+            us_prod.write_text(original_us)
+            stripe = tmp_root / "App/StripePayBridge.swift"
+            original_stripe = stripe.read_text()
+            stripe.write_text(original_stripe.replace("RegionalLaunchConfiguration.storefrontMarket == .unitedStates",
+                                                      "session.regionalConfiguration?.market == .unitedStates"))
+            self.assertTrue(any("StripePayBridge" in f for f in preflight.run_checks(tmp_root)))
+            stripe.write_text(original_stripe)
             self.assertEqual(preflight.run_checks(tmp_root), [])
 
             # Forcing the payment derivation default to true must fail

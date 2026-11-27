@@ -13,6 +13,8 @@ EXPECTED = {
     'PRODUCT_BUNDLE_IDENTIFIER': 'com.chengyinhub.chengyinApp',
     'DEVELOPMENT_TEAM': '9VHY8N755R',
     'QUESTIFY_SESSION_REALM': 'cn-prod',
+    # Owner decision 2026-11-27 (US launch r1, one-app): one binary serves CN and US; CN is only the
+    # default/fallback market. The per-user market is resolved at runtime (Core/UserMarket.swift).
     'QUESTIFY_MARKET': 'CN',
     'QUESTIFY_API_BASE_URL': 'https:/$()/www.chengyinhub.com/prod-api/',
 }
