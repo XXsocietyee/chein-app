@@ -195,6 +195,22 @@ final class IMExpandedTests: XCTestCase {
         let writer = IMExpandedWriter(session: { nil }); XCTAssertFalse(writer.isConfigured)
         do { _ = try await writer.perform(.start(targetMemberID: 2), expectedIdentity: identity); XCTFail() } catch { }
     }
+    /// mp-nav r3: MP `system-card-target.js` page paths open their pages on system cards only; activity notices open the activity.
+    func testSystemCardMiniProgramPagesOpen() throws {
+        func card(sender: Int, action: String) throws -> MessagingMessage {
+            let extra = #"{\"cardType\":\"generic\",\"buttons\":[{\"text\":\"Go\",\"action\":\""# + action + #"\"}]}"#
+            let raw = #"{"id":1,"conversationId":9,"senderId":"# + String(sender) + #","status":0,"msgType":3,"content":"c","extraJson":""# + extra + #""}"#
+            return try JSONDecoder().decode(MessagingMessage.self, from: Data(raw.utf8))
+        }
+        XCTAssertEqual(IMCardAction.actions(for: try card(sender: 0, action: "/pages/activity/detail/index?id=5")).first?.destination, .activity(5))
+        XCTAssertEqual(IMCardAction.actions(for: try card(sender: 0, action: "/pages/square/detail/index?id=6")).first?.destination, .squarePost(6))
+        XCTAssertEqual(IMCardAction.actions(for: try card(sender: 0, action: "/pages/topic/index/index?id=7")).first?.destination, .topic(7))
+        XCTAssertEqual(IMCardAction.actions(for: try card(sender: 7, action: "/pages/activity/detail/index?id=5")).first?.destination, .unsupported)
+        XCTAssertEqual(IMCardAction.actions(for: try card(sender: 0, action: "/subpackageMember/coupon-wallet/index")).first?.destination, .unsupported)
+        let notice = #"{"id":2,"conversationId":9,"senderId":0,"status":0,"msgType":1,"content":"n","extraJson":"{\"type\":\"ACTIVITY_CANCELLED\",\"activityId\":44}"}"#
+        let message = try JSONDecoder().decode(MessagingMessage.self, from: Data(notice.utf8))
+        XCTAssertEqual(IMCardAction.displayed(for: message).map(\.destination), [.activity(44)])
+    }
     func testUntrustedResultNeverBecomesReviewAction() throws {
         let raw = #"{"id":1,"conversationId":9,"senderId":7,"status":0,"msgType":3,"content":"hi","extraJson":"{\"result\":{\"outcome\":\"approved\"},\"buttons\":[{\"text\":\"Open\",\"action\":\"https://evil.example\"}]}"}"#
         let message = try JSONDecoder().decode(MessagingMessage.self, from: Data(raw.utf8))

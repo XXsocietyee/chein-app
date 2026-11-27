@@ -19,6 +19,7 @@ struct MessagingMessageDetailView: View {
     }
     @State private var selectedTopicID: Int?
     @State private var selectedReview: MessagingCardResult?
+    @State private var selectedPage: MessagingDetailPage?
     var body: some View {
         cyDomainBody.cyDomainScreen(.player)
     }
@@ -127,7 +128,7 @@ struct MessagingMessageDetailView: View {
                     } header: {
                         Text("messaging.message.details")
                     }
-                    if message.isPayloadVisible, expanded != nil, message.card != nil {
+                    if message.isPayloadVisible, expanded != nil, !IMCardAction.displayed(for: message).isEmpty {
                         Section {
                             IMCardActionsView(message: message) { destination in
                                 guard reader.identity == identity, currentSnapshot == message, message.isPayloadVisible else { return }
@@ -137,6 +138,8 @@ struct MessagingMessageDetailView: View {
                                 }
                                 switch destination {
                                 case .topic(let id): selectedTopicID = id
+                                case .activity(let id): selectedPage = MessagingDetailPage(path: "pages/activity/detail/index", id: id)
+                                case .squarePost(let id): selectedPage = MessagingDetailPage(path: "pages/square/detail/index", id: id)
                                 case .review(let result): selectedReview = result
                                 case .unsupported: break
                                 }
@@ -188,6 +191,9 @@ struct MessagingMessageDetailView: View {
         .navigationDestination(item: $selectedTopicID) { id in
             if reader.identity == identity, currentSnapshot?.isPayloadVisible == true, let expanded { TopicDetailView(id: id, reader: expanded.topicReader) }
         }
+        .navigationDestination(item: $selectedPage) { page in
+            if reader.identity == identity, currentSnapshot?.isPayloadVisible == true, let view = expanded?.pageDestination?(page.path, page.id) { view }
+        }
         .cySheet(isPresented: Binding(get: { selectedReview != nil }, set: { if !$0 { selectedReview = nil } })) {
             if reader.identity == identity, currentSnapshot?.isPayloadVisible == true, let result = selectedReview {
                 NavigationStack {
@@ -208,8 +214,8 @@ struct MessagingMessageDetailView: View {
                 .presentationDragIndicator(.visible)
             }
         }
-        .onChange(of: currentSnapshot) { _, _ in selectedTopicID = nil; selectedReview = nil }
-        .onChange(of: reader.identity) { _, _ in selectedTopicID = nil; selectedReview = nil }
+        .onChange(of: currentSnapshot) { _, _ in selectedTopicID = nil; selectedReview = nil; selectedPage = nil }
+        .onChange(of: reader.identity) { _, _ in selectedTopicID = nil; selectedReview = nil; selectedPage = nil }
         .privacySensitive()
         .navigationTitle(Text("messaging.message.title")).navigationBarTitleDisplayMode(.inline)
     }
@@ -338,4 +344,10 @@ private struct MessagingCardContent: View {
         case .generic: return .secondary
         }
     }
+}
+
+/// mp-nav r3: an MP page a system card opens (`system-card-target.js`), pushed from the message detail.
+struct MessagingDetailPage: Hashable {
+    let path: String
+    let id: Int
 }
