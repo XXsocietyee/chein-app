@@ -239,7 +239,7 @@ struct NativeR2RouteLeg: Identifiable {
             .navigationTitle(Text("nativeR2.motion.result.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .primaryAction) {
                     Button { replayToken += 1 } label: { Label("nativeR2.motion.replayAgain", systemImage: "arrow.counterclockwise") }
                         .accessibilityIdentifier("nativeR2.motion.replayAgain")
                 }

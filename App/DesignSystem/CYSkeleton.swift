@@ -18,14 +18,17 @@ public enum CYSkeletonVariant: Sendable, Hashable {
 /// will take. `variant` is kept for call sites; it no longer draws a redacted shape of its own.
 public struct CYSkeleton: View {
     private let variant: CYSkeletonVariant
+    private let label: LocalizedStringKey
 
-    public init(variant: CYSkeletonVariant = .row) {
+    /// `label` is the page's own loading words (default 加载中…); shown on screen and read by VoiceOver.
+    public init(variant: CYSkeletonVariant = .row, label: LocalizedStringKey = "accountCollection.loading") {
         self.variant = variant
+        self.label = label
     }
 
     public var body: some View {
         ProgressView {
-            Text("accountCollection.loading")
+            Text(label)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, CYSpacing.lg)

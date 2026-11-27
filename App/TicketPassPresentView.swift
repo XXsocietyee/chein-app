@@ -68,7 +68,7 @@ import SwiftUI
                 .accessibilityAddTraits(.isHeader)
             HStack {
                 if let date = ticket.participateDate, !date.isEmpty {
-                    Label { Text(verbatim: date) } icon: { Image(systemName: "calendar") }
+                    Label { Text(verbatim: LocaleDisplay.civil(date, locale: locale)) } icon: { Image(systemName: "calendar") }
                 }
                 if let place = ticket.addressName, !place.isEmpty {
                     Label { Text(verbatim: place).lineLimit(2) } icon: { Image(systemName: "mappin.and.ellipse") }

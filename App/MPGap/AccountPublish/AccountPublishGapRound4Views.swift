@@ -52,22 +52,28 @@ public struct ProjectEditGapRichStoryBlocksSection: View {
     }
 }
 
-/// Mount hook for `ProjectEditView` (`C-F5`):
-/// Cast editor sheet with add/remove roles + voice preview action.
+/// Mount hook for `ProjectEditView` (`C-F5`): MP `publish/fabu/cast-sheet.wxml` 角色 sheet.
+/// Player card first, then one row per role (face · name · identity · voice) that opens 编辑角色
+/// (`ProjectEditCastMemberEditor`, stacked sheet), then 添加角色 (max 12). Reorder = the MP 上移 / 下移.
 public struct ProjectEditGapCastEditorSheet: View {
     @Binding public var members: [TopicCastMemberDraft]
     @Binding public var player: ProjectEditCastPlayer
+    /// Saved chapters, for the 你知道的 unlock picker (MP `clueChapterOptions`).
+    public let chapters: [ProjectEditChapter]
     /// nil hides 试听 (owner decision 2026-11-24 #7: no live cast calls; the MP also hides it when TTS is off).
     public let onPreviewVoice: ((TopicCastMemberDraft) -> Void)?
     @Environment(\.dismiss) private var dismiss
+    @State private var editing: ProjectEditCastEditTarget?
 
     public init(
         members: Binding<[TopicCastMemberDraft]>,
         player: Binding<ProjectEditCastPlayer>,
+        chapters: [ProjectEditChapter] = [],
         onPreviewVoice: ((TopicCastMemberDraft) -> Void)?
     ) {
         self._members = members
         self._player = player
+        self.chapters = chapters
         self.onPreviewVoice = onPreviewVoice
     }
 
@@ -75,48 +81,38 @@ public struct ProjectEditGapCastEditorSheet: View {
         NavigationStack {
             List {
                 playerSection
-                if members.isEmpty {
-                    Text("fixr8.cast.empty").foregroundStyle(.secondary)
-                }
-                ForEach($members) { $member in
-                    VStack(alignment: .leading, spacing: 8) {
-                        TextField("fixr8.cast.name", text: $member.name)
-                            .onChange(of: member.name) { _, value in
-                                if value.count > ProjectEditCastConfig.nameMax { member.name = String(value.prefix(ProjectEditCastConfig.nameMax)) }
-                            }
-                        TextField("fixr8.cast.identity", text: $member.roleTitle, axis: .vertical)
-                            .font(.subheadline)
-                            .onChange(of: member.roleTitle) { _, value in
-                                if value.count > ProjectEditCastConfig.identityMax { member.roleTitle = String(value.prefix(ProjectEditCastConfig.identityMax)) }
-                            }
-                        Picker(selection: Binding(get: { member.voiceID ?? "none" },
-                                                  set: { member.voiceID = $0 == "none" ? nil : $0 })) {
-                            ForEach(ProjectEditCastConfig.voicePresets, id: \.value) { preset in
-                                Text(LocalizedStringKey(preset.labelKey)).tag(preset.value)
-                            }
-                            Text("fixr8.cast.voice.none").tag("none")
+                Section {
+                    if members.isEmpty {
+                        Text("fixr8.cast.empty").foregroundStyle(.secondary)
+                    }
+                    ForEach(members) { member in
+                        Button {
+                            editing = ProjectEditCastEditTarget(member: member, isNew: false)
                         } label: {
-                            Text("fixr8.cast.voice")
+                            castRow(member)
                         }
-                        if let onPreviewVoice, member.voiceID != nil {
-                            Button("fixr8.cast.preview") { onPreviewVoice(member) }
-                                .buttonStyle(.bordered)
+                        .buttonStyle(.plain)
+                        .accessibilityHint(Text("castMember.title"))
+                    }
+                    .onDelete { offsets in
+                        members.remove(atOffsets: offsets)
+                    }
+                    .onMove { source, destination in
+                        members.move(fromOffsets: source, toOffset: destination)
+                    }
+                    if members.count < ProjectEditCastConfig.maxCast {
+                        Button {
+                            let fresh = TopicCastMemberDraft(id: ProjectEditCastConfig.freshID(existing: members), name: "", roleTitle: "")
+                            editing = ProjectEditCastEditTarget(member: fresh, isNew: true)
+                        } label: {
+                            Label("fixr8.cast.add", systemImage: "plus")
                         }
+                        .accessibilityIdentifier("projectEdit.cast.add")
                     }
-                }
-                .onDelete { offsets in
-                    members.remove(atOffsets: offsets)
-                }
-                .onMove { source, destination in
-                    members.move(fromOffsets: source, toOffset: destination)
-                }
-                if members.count < ProjectEditCastConfig.maxCast {
-                    Button("fixr8.cast.add") {
-                        members.append(TopicCastMemberDraft(id: ProjectEditCastConfig.freshID(existing: members), name: "", roleTitle: ""))
+                } footer: {
+                    if members.count >= ProjectEditCastConfig.maxCast {
+                        Text("fixr8.cast.max \(ProjectEditCastConfig.maxCast)")
                     }
-                    .accessibilityIdentifier("projectEdit.cast.add")
-                } else {
-                    Text("fixr8.cast.max \(ProjectEditCastConfig.maxCast)").foregroundStyle(.secondary)
                 }
             }
             .cyPageTitle("fixr8.cast.title")
@@ -128,6 +124,59 @@ public struct ProjectEditGapCastEditorSheet: View {
                     ToolbarItem(placement: .topBarLeading) { EditButton() }
                 }
             }
+            .sheet(item: $editing) { target in
+                ProjectEditCastMemberEditor(
+                    target: target,
+                    others: members.filter { $0.id != target.member.id },
+                    chapters: chapters,
+                    onPreviewVoice: onPreviewVoice,
+                    onSave: { saved in
+                        if let index = members.firstIndex(where: { $0.id == saved.id }) {
+                            members[index] = saved
+                        } else if members.count < ProjectEditCastConfig.maxCast {
+                            members.append(saved)
+                        }
+                    },
+                    onDelete: {
+                        members.removeAll { $0.id == target.member.id }
+                    })
+                .cySheet(detents: [.large])
+            }
+        }
+    }
+
+    /// MP `cast-row`: face, name, then `identity · voice` when either is set.
+    private func castRow(_ member: TopicCastMemberDraft) -> some View {
+        HStack(spacing: CYSpacing.md) {
+            ProjectEditCastFace(name: member.name, colorHex: member.colorHex, size: .medium)
+            VStack(alignment: .leading, spacing: 2) {
+                if member.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    Text("castMember.untitled").foregroundStyle(.secondary)
+                } else {
+                    Text(verbatim: member.name)
+                }
+                castMeta(member)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 0)
+            Image(systemName: "chevron.right")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.tertiary)
+                .accessibilityHidden(true)
+        }
+        .contentShape(Rectangle())
+    }
+
+    @ViewBuilder private func castMeta(_ member: TopicCastMemberDraft) -> some View {
+        let identity = member.roleTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        let voiceKey = ProjectEditCastConfig.voicePresets.first { $0.value == member.voiceID }?.labelKey
+        if !identity.isEmpty, let voiceKey {
+            Text("\(Text(verbatim: identity)) · \(Text(LocalizedStringKey(voiceKey)))")
+        } else if !identity.isEmpty {
+            Text(verbatim: identity)
+        } else if let voiceKey {
+            Text(LocalizedStringKey(voiceKey))
         }
     }
 

@@ -277,9 +277,9 @@ extension EnvironmentValues {
             .navigationTitle(Text("nativeGames.result.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                // P16: share sits in the top bar next to the one Done.
+                // P16: share sits in the top bar trailing, next to the one Done.
                 if verdict == .passed {
-                    ToolbarItem(placement: .topBarLeading) {
+                    ToolbarItem(placement: .primaryAction) {
                         ShareLink(item: shareText) { Label("nativeR2.city.finish.share", systemImage: "square.and.arrow.up") }
                             .accessibilityIdentifier("nativeGames.result.share")
                     }

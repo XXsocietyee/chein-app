@@ -942,6 +942,15 @@
       "purpose": "mp-journey r3: the free-exploration 游玩工具 sheet reads and writes the same MP preferences as the city run (play.bgmOn, play.narrationOn, play_reduced_motion + legacy roam_reduced_motion), three Bools set by the player",
       "retention": "Until app data is deleted or the app is reinstalled",
       "deletion": "Deleted with app data; each toggle overwrites its own key"
+    },
+    {
+      "file": "App/SessionHomeFeedView.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "首页 manually chosen city label (key homeIndex.manualCity, a city name only, MP homeCity.saveLastCity); no location, never uploaded",
+      "retention": "Until the player picks another city or the app is deleted",
+      "deletion": "Removed with the app; overwritten by the next manual pick"
     }
   ]
 }

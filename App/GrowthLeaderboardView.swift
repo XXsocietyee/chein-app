@@ -34,11 +34,8 @@ import SwiftUI
             else if !reader.isConfigured { GrowthCenterIssueView(issue: .notConfigured) }
             else if model.isLoading || model.loadedKey != key {
                 // P10: MP cy-skeleton list ×3, with words saying what loads.
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    CYSkeleton()
-                    Text("growth.board.loading").cyText(.meta).foregroundStyle(palette.textSecondary)
-                }
-                .accessibilityElement(children: .combine)
+                ProgressView { Text("growth.board.loading") }
+                    .frame(maxWidth: .infinity)
             }
             else if let issue = model.issue(key: key) {
                 if issue == .notConfigured { GrowthNormalLeaderboardHoldView() }

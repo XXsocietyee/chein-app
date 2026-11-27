@@ -16,7 +16,7 @@ struct RoamShopVisitorsStack: View {
                             .accessibilityHidden(true)
                     }
                 }
-                Text(verbatim: visitors.label).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Text("roam.shop.visitors \(visitors.total)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("roam.shop.visitors.\(source.sourceType).\(source.sourceID)")

@@ -89,7 +89,7 @@ import UIKit
             }
         }
         .navigationTitle(flow.field == .logo ? String(localized: LocalizedStringResource("media.logo", table: "ClubProfileMedia", locale: locale)) : String(localized: LocalizedStringResource("media.cover", table: "ClubProfileMedia", locale: locale))).navigationBarTitleDisplayMode(.inline)
-        .toolbar { ToolbarItem(placement: .cancellationAction) { Button(String(localized: LocalizedStringResource("media.done", table: "ClubProfileMedia", locale: locale))) { dismiss() }.disabled(flow.state == .uploading) } }
+        .toolbar { ToolbarItem(placement: .confirmationAction) { Button(String(localized: LocalizedStringResource("media.done", table: "ClubProfileMedia", locale: locale))) { dismiss() }.disabled(flow.state == .uploading) } }
         .interactiveDismissDisabled(flow.state == .uploading)
         .cySheet(isPresented: $camera) {
             MerchantEvidenceCameraCapture { bytes in

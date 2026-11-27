@@ -28,12 +28,7 @@ import SwiftUI
             if let coordinator {
                 Section {
                     Group {
-                        if isBusy {
-                            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                                CYSkeleton()
-                                Text(LocalizedStringKey("media.poster.phase." + phaseKey(coordinator.phase)))
-                            }
-                        }
+                        if isBusy { ProgressView(LocalizedStringKey("media.poster.phase." + phaseKey(coordinator.phase))).frame(maxWidth: .infinity) }
                         else { Text(LocalizedStringKey("media.poster.phase." + phaseKey(coordinator.phase))) }
                     }.accessibilityFocused($focusedControl, equals: .status)
                 }

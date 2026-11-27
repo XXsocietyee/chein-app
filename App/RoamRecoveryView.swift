@@ -26,7 +26,7 @@ import Observation
                 else if !reader.isConfigured { Text("roam.notConfigured") }
             }
             Section {
-                if presentation.loading { CYSkeleton().accessibilityLabel(Text("roam.loading")) }
+                if presentation.loading { CYSkeleton(label: "roam.loading") }
                 else {
                     switch coordinator.phase {
                     case .idle, .loading: EmptyView()
