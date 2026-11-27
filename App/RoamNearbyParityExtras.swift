@@ -354,7 +354,7 @@ struct RoamPlaceExtrasSection: View {
                         }
                         Spacer()
                         Button {
-                            UIPasteboard.general.string = raw
+                            LocalPasteboard.copy(raw)
                         } label: {
                             Image(systemName: "doc.on.doc")
                         }
