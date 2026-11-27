@@ -21,11 +21,13 @@ public struct RoamEntryActivity: Decodable, Equatable, Identifiable {
     public let distance: Double?
     public let startDate: String?
     public let endDate: String?
+    /// MP `imageList(row)`: `postImages || imageUrls || images` (现场动态); empty when absent or malformed.
+    public let postImageURLs: [String]
     public var id: String { "\(kind)-\(sourceID)" }
     public var isSupported: Bool { sourceID > 0 && (kind == "activity" || kind == "topic") }
     /// A topic row is its own topic; an activity carries an optional linked topic.
     public var linkedTopicID: Int? { kind == "topic" ? sourceID : topicID.flatMap { $0 > 0 ? $0 : nil } }
-    enum CodingKeys: String, CodingKey { case id, kind, name, title, picUrl, coverUrl, imgUrl, topicId, productType, viewerHasTicket, latitude, longitude, addressName, distance, startDate, endDate }
+    enum CodingKeys: String, CodingKey { case id, kind, name, title, picUrl, coverUrl, imgUrl, topicId, productType, viewerHasTicket, latitude, longitude, addressName, distance, startDate, endDate, postImages, imageUrls, images }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         sourceID = c.roamInteger(.id) ?? 0
@@ -40,6 +42,10 @@ public struct RoamEntryActivity: Decodable, Equatable, Identifiable {
         addressName = try c.roamText(.addressName)
         distance = c.roamNumber(.distance).flatMap { $0 >= 0 ? $0 : nil }
         startDate = try c.roamText(.startDate); endDate = try c.roamText(.endDate)
+        let images = (try? c.decode([String?].self, forKey: .postImages))
+            ?? (try? c.decode([String?].self, forKey: .imageUrls))
+            ?? (try? c.decode([String?].self, forKey: .images))
+        postImageURLs = (images ?? []).compactMap { $0 }.filter { !$0.isEmpty }
     }
 }
 
@@ -90,8 +96,8 @@ public enum RoamEntryNearbyRoute {
     }
 }
 
-/// Mini-program `utils/roam-entry-map.js` `activityView`, minus remote faces and 现场动态 (the entry
-/// payload carries no post images). Teams come from a separate `team/nearby` read at the same centre.
+/// Mini-program `utils/roam-entry-map.js` `activityView`, minus remote faces; 现场动态 comes from the row's
+/// post images (MP `imageList`). Teams come from a separate `team/nearby` read at the same centre.
 public struct RoamEntryActivityCard: Equatable, Identifiable {
     public struct Team: Equatable, Identifiable {
         public let teamID: NearbyTeamID
@@ -137,7 +143,7 @@ public struct RoamEntryActivityCard: Equatable, Identifiable {
         if let topic = activity.linkedTopicID { return .topic(topic) }
         return activity.kind == "activity" ? .activity(activity.sourceID) : nil
     }
-    public var liveMomentFeedState: RoamLiveMomentFeedState { .hiddenWhenEmpty }
+    public var liveMomentFeedState: RoamLiveMomentFeedState { RoamLiveMomentFeedState.resolve(activity.postImageURLs) }
     static func date(_ text: String?, timeZone: TimeZone) -> Date? {
         guard let text, !text.isEmpty else { return nil }
         return NearbyServerTime.text(text).date(timeZone: timeZone)

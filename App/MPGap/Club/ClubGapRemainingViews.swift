@@ -62,7 +62,7 @@ struct ClubGapPlayRecordPickerRow: View {
     private var pickerContent: some View {
         switch state {
         case .idle, .loading:
-            ProgressView().frame(maxWidth: .infinity)
+            ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity)
         case let .failed(message):
             ContentUnavailableView {
                 Label("club.postRef.loadFailed", systemImage: "exclamationmark.triangle")

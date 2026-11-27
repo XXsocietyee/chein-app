@@ -46,7 +46,7 @@ import SwiftUI
             }
             if coordinator.accountID == nil { Text("orderLifecycle.issue.login") }
             else if coordinator.isLoading {
-                ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("orderLifecycle.loading"))
+                ProgressView { Text("orderLifecycle.loading") }.frame(maxWidth: .infinity)
             }
             else if let detail = coordinator.detail, detail.id == id {
                 acceptedDetail(detail)

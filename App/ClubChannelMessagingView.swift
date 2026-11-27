@@ -842,6 +842,7 @@ private struct ChannelBurstGroupCard: View {
     let onBlockAuthor: (Int) -> Void
     let onDeleteMessage: (MessagingMessage) -> Void
     @Environment(\.locale) private var locale
+    @ScaledMetric(relativeTo: .subheadline) private var initialSide: CGFloat = 28
 
     private func copy(_ zh: String, _ en: String) -> String { ChannelCopy.text(zh, en, locale: locale) }
 
@@ -862,10 +863,11 @@ private struct ChannelBurstGroupCard: View {
                 HStack(spacing: CYSpacing.sm) {
                     Circle()
                         .fill(group.isSystemGroup ? Color.orange.opacity(0.2) : Color(uiColor: .systemGray5))
-                        .frame(width: 28, height: 28)
+                        .frame(width: min(initialSide, 48), height: min(initialSide, 48))
                         .overlay(
                             Text(String(group.senderName.prefix(1)))
                                 .font(.subheadline.weight(.medium))
+                                .minimumScaleFactor(0.5)
                                 .foregroundStyle(group.isSystemGroup ? Color.orange : Color.primary)
                         )
                         .accessibilityHidden(true)
@@ -1009,6 +1011,7 @@ public struct ClubChannelMemberRosterSheet: View {
     @ObservedObject public var coordinator: ClubChannelModerationCoordinator
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
+    @ScaledMetric(relativeTo: .subheadline) private var initialSide: CGFloat = 32
 
     private func copy(_ zh: String, _ en: String) -> String { ChannelCopy.text(zh, en, locale: locale) }
 
@@ -1056,10 +1059,11 @@ public struct ClubChannelMemberRosterSheet: View {
                                 HStack(spacing: 10) {
                                     Circle()
                                         .fill(Color(uiColor: .systemGray5))
-                                        .frame(width: 32, height: 32)
+                                        .frame(width: min(initialSide, 52), height: min(initialSide, 52))
                                         .overlay(
                                             Text(String(member.nickname.prefix(1)))
                                                 .font(.subheadline.weight(.semibold))
+                                                .minimumScaleFactor(0.5)
                                         )
                                         .accessibilityHidden(true)
                                     VStack(alignment: .leading, spacing: 2) {
