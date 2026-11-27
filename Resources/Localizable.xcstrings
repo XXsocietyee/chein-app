@@ -17466,6 +17466,23 @@
         }
       }
     },
+    "club.detail.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading club details…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载俱乐部详情…"
+          }
+        }
+      }
+    },
     "club.detail.events.empty": {
       "extractionState": "manual",
       "localizations": {
