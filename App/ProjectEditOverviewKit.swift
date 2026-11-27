@@ -37,7 +37,7 @@ struct ProjectEditOverviewBar: View {
                     OpsR3Text.text(item.key).tag(item)
                 }
             } label: { OpsR3Text.text("editor.canvas.label") }
-            .pickerStyle(.segmented)
+            .cyAdaptiveSegmented()
             .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : 150)
             .accessibilityIdentifier("projectEdit.canvas")
         }

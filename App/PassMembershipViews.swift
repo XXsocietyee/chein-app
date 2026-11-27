@@ -431,7 +431,7 @@ struct PassLibraryView: View {
                     } label: {
                         Text("mp.library.title")
                     }
-                    .pickerStyle(.segmented)
+                    .cyAdaptiveSegmented()
                     .labelsHidden()
                     .accessibilityIdentifier("passLibrary.kinds")
                 }

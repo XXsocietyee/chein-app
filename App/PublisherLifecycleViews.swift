@@ -81,7 +81,7 @@ import SwiftUI
                 Picker(text("publisherPricing.format"), selection: $subtype) {
                     Text(text("publisherPricing.guided")).tag(PublisherPriceSubtype.guided)
                     Text(text("publisherPricing.selfGuided")).tag(PublisherPriceSubtype.selfPlay)
-                }.pickerStyle(.segmented).accessibilityIdentifier("publisher.subtype")
+                }.cyAdaptiveSegmented().accessibilityIdentifier("publisher.subtype")
             }
             if subtype == .guided {
                 Section(text("publisherPricing.leadCost")) {

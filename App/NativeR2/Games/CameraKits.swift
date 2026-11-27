@@ -75,7 +75,8 @@ import VisionKit
                     }
                     if bytes.count > 10 * 1024 * 1024 { Label("playkit.photo.tooLarge", systemImage: "exclamationmark.triangle") }
                 } else if !denied {
-                    HStack(spacing: 12) {
+                    // i18n r1: stacks "Take a photo" / "Choose a photo" when they don't fit side by side.
+                    CYAdaptiveButtonRow(spacing: 12) {
                         Button {
                             cameraPurpose = true
                         } label: {

@@ -187,7 +187,7 @@ import SwiftUI
         LazyVStack(alignment: .leading, spacing: 20) {
             Picker("nearby.section", selection: $tab) {
                 Text("nearby.title").tag(0); Text("nearby.mine").tag(1)
-            }.pickerStyle(.segmented).accessibilityIdentifier("nearby.section")
+            }.cyAdaptiveSegmented().accessibilityIdentifier("nearby.section")
             notice
             if tab == 0 {
                 let renderedDiscovery = discovery.snapshotID

@@ -162,7 +162,7 @@ import UIKit
                     Text(LocalizedStringKey("roam.share.visibility." + value.rawValue)).tag(value)
                 }
             }
-            .pickerStyle(.segmented)
+            .cyAdaptiveSegmented()
             .disabled(isBusy)
             .accessibilityIdentifier("roam.share.visibility")
             RoamShareChannelPicker(mode: Binding(get: { channelPolicy.mode }, set: { mode in

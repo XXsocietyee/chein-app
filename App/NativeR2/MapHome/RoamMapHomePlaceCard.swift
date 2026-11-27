@@ -198,7 +198,8 @@ import QuestifyCore
     private func actionLabel(_ key: LocalizedStringKey, systemImage: String) -> some View {
         VStack(spacing: 4) {
             Image(systemName: systemImage).accessibilityHidden(true)
-            Text(key).font(.caption).lineLimit(1)
+            Text(key).font(.caption).lineLimit(2).multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity)
     }

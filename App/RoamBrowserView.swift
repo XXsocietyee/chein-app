@@ -474,13 +474,13 @@ struct RoamBrowserView: View {
                 ForEach(RoamPlaceFilter.allCases, id: \.self) { value in
                     Text(LocalizedStringKey("roam.filter." + String(value.rawValue))).tag(value)
                 }
-            }.pickerStyle(.segmented).labelsHidden()
+            }.cyAdaptiveSegmented().labelsHidden()
         } else if layer == .events {
             Picker("roam.eventFilter", selection: $eventFilter) {
                 ForEach(RoamEventFilter.allCases, id: \.self) { value in
                     Text(LocalizedStringKey("roam.filter." + String(value.rawValue))).tag(value)
                 }
-            }.pickerStyle(.segmented).labelsHidden()
+            }.cyAdaptiveSegmented().labelsHidden()
         }
     }
     private var results: some View {

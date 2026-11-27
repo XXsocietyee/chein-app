@@ -374,7 +374,8 @@ public struct TopicPostPurchaseRevealView: View {
                     .padding(.horizontal, CYSpacing.md)
             }
 
-            HStack(spacing: CYSpacing.sm) {
+            // i18n r1: "Add to ticket wallet" / "Start game" stack when they don't fit side by side.
+            CYAdaptiveButtonRow(spacing: CYSpacing.sm) {
                 Button("topicReveal.addToWallet", action: onWallet)
                     .buttonStyle(.bordered)
                     .frame(maxWidth: .infinity)

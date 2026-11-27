@@ -424,7 +424,7 @@ import SwiftUI
                     Text("coopflow.invite.club").tag(CoopFlowTargetKind.club)
                     Text("context.coop.merchant").tag(CoopFlowTargetKind.merchant)
                 }
-                .pickerStyle(.segmented)
+                .cyAdaptiveSegmented()
                 .disabled(model.busy)
                 if model.kind == .merchant, nearbyDestination != nil {
                     // Source: "附近商家 · 含未入驻商家可电话联系" opens pages/coop/nearby for the chosen topic.

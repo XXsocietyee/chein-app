@@ -225,7 +225,7 @@ struct ClubInvitationFeedbackDetailRoute: Identifiable, Equatable {
                     Picker("club.inviteFeedback.direction", selection: $direction) {
                         Text("club.inviteFeedback.received").tag(ClubInvitationFeedbackDirection.received)
                         Text("club.inviteFeedback.sent").tag(ClubInvitationFeedbackDirection.sent)
-                    }.pickerStyle(.segmented).accessibilityIdentifier("club.inviteFeedback.direction")
+                    }.cyAdaptiveSegmented().accessibilityIdentifier("club.inviteFeedback.direction")
                         .cyHaptic(.selection, trigger: direction)
                 } footer: { Text("club.inviteFeedback.readOnly") }
                 Section {

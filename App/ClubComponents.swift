@@ -78,7 +78,9 @@ struct ClubRow: View {
         let key: LocalizedStringKey = club.isOwner ? "club.role.creator" : club.isJoined ? "club.membership.joined"
             : club.joinPending ? "club.membership.pending" : "club.action.join"
         let primary = !(club.isOwner || club.isJoined || club.joinPending)
-        Text(key).font(.subheadline).lineLimit(1)
+        // i18n r1: "Waiting for the host to approve" is far longer than 等待主理人审核; wrap to two lines.
+        Text(key).font(.subheadline).lineLimit(2).multilineTextAlignment(.trailing)
+            .fixedSize(horizontal: false, vertical: true)
             .foregroundStyle(primary ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
     }
 }

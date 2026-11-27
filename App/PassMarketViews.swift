@@ -221,7 +221,7 @@ struct PassMarketView: View {
                         Text(item.title).tag(item).accessibilityIdentifier("passMarket.tab.\(item.rawValue)")
                     }
                 } label: { EmptyView() }
-                .pickerStyle(.segmented)
+                .cyAdaptiveSegmented()
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
             }
@@ -690,7 +690,7 @@ struct PassDetailView: View {
                                 .accessibilityIdentifier("passDetail.for.\(whom.rawValue)")
                         }
                     } label: { EmptyView() }
-                    .pickerStyle(.segmented)
+                    .cyAdaptiveSegmented()
                     .listRowInsets(EdgeInsets())
                     .listRowBackground(Color.clear)
                 }

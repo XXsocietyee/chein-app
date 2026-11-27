@@ -105,7 +105,7 @@ struct TemplateXbTabs: View {
         } label: {
             Text("u10.template.tab.details")
         }
-        .pickerStyle(.segmented)
+        .cyAdaptiveSegmented()
         .labelsHidden()
         .sensoryFeedback(.selection, trigger: selection)
         .accessibilityIdentifier("template.xb.tabs")

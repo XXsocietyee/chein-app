@@ -24,7 +24,7 @@ struct MessagingHomeView: View {
                 Text("im.list.box.inbox").tag(MessagingBox.inbox)
                 Text("im.list.box.outbox").tag(MessagingBox.outbox)
             }
-            .pickerStyle(.segmented)
+            .cyAdaptiveSegmented()
             .labelsHidden()
             .accessibilityLabel(Text("messaging.scope"))
             .padding(.horizontal)

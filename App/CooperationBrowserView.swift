@@ -48,7 +48,7 @@ import SwiftUI
                     Picker("cooperation.direction", selection: $direction) {
                         Text("cooperation.received").tag(CooperationDirection.received)
                         Text("cooperation.sent").tag(CooperationDirection.sent)
-                    }.pickerStyle(.segmented).accessibilityIdentifier("cooperation.direction")
+                    }.cyAdaptiveSegmented().accessibilityIdentifier("cooperation.direction")
                     NavigationLink {
                         CooperationPoolView(reader: reader)
                             .cyPushedChrome(domain: .merchant)

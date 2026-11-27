@@ -52,7 +52,7 @@ struct TopicXcxTabs: View {
         } label: {
             Text(TopicXcxTab.details.titleKey(productType: productType))
         }
-        .pickerStyle(.segmented)
+        .cyAdaptiveSegmented()
         .labelsHidden()
             .accessibilityIdentifier("topic.tabs")
             .onChange(of: selection.wrappedValue) { _, tab in
