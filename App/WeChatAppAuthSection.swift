@@ -23,6 +23,11 @@ struct WeChatAppAuthSection: View {
         _model = StateObject(wrappedValue: WeChatAppAuthModel(coordinator)); self.context = context
     }
     var body: some View {
+        if model.coordinator.isOffered || model.coordinator.isWorking {
+            section
+        }
+    }
+    private var section: some View {
         Section {
             Button { model.coordinator.start() } label: {
                 Label("auth.wechat.signIn", systemImage: "bubble.left.and.bubble.right")

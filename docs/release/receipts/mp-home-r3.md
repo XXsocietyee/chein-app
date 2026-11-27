@@ -180,6 +180,20 @@ Build 1300a48db predates `56f6f8aaf` (d2-home-offline) and `67f829a46` (d2-searc
 | `wave-today-club` (`App/DesignFixtures/WaveFixtures.swift`) | Bare `HomeTodayCard` + "Synthetic tap × 2" debug line. | **Not changed** — motion-only fixture; the Today card is not on the MP home and is not rendered on 首页 (row 5). |
 | `d2-home` | 首页 large title, banner + dots, greeting 玩家 · 上海, 编辑精选 footnote and first card. | ✓ matches the 15:09 check. |
 
+## Round 3 continue (7) — 19:50 coordinator sweep (build 3568fe51b), mp-home sheets zh-Hans + en
+
+Screenshots: `docs/sweeps/latest/mp-home/sheet-en.jpg`, `sheet-zh-Hans.jpg`, `en-rep3-activity-detail.jpg`. Build 3568fe51b predates `bf305d1ba` (footer summary line removed), so the price/going line above the button is already gone on this branch. Merged `origin/ui/combined-r7` first (clean).
+
+| MP page → native | Difference seen (screenshot) | Status |
+|---|---|---|
+| `scene-play-activity-detail/index.js:78-79` `actionFor` 「—」 → `App/ActivityDetailView.swift` footer | `en-rep3-activity-detail.jpg`: empty grey capsule with "—" (fixture has no `isSignUp`). The MP 「—」 is not an action (`ActivityPrimaryAction.isPlaceholder`). | **Fixed** — `showsFooter(detail)`: keeps the `registrationEnabled` gate, hides the bar for `.unavailable` unless the host footer (取消活动并退款) applies; content margin follows. Pin in `test_activity_design_structure.py` updated with a one-line reason. |
+| `index.wxml:13-14` `activity-hero__fallback` → `App/E1ActivityDetailParts.swift` `E1ActivityHero` | Hero = generated "DEBUG ART" gradient + leaf glyph. MP: no image → plain subtle surface under the scrim. | **Fixed** — no safe URL → `palette.bgSurfaceSubtle`; a real cover uses `E1CoverArt` without the debug label/glyph. |
+| `rep3-activity-detail` fixture (`App/ActivityFixtureSupport.swift` reviews scenario) | zh UI showed Lantern Market Quest (fixture) / Lantern Square / Walk · Food. | **Fixed** — title, place, description, categories and ticket names follow the UI language. |
+| `pages/search2/result/index.wxml:31-32, 67-69` cover fallback → `App/SearchMapComponents.swift` `SearchMapCard` | `d2-search-results`: grey block with a generic stack glyph. MP fallback = the result kind icon on the subtle surface. | **Fixed** — `coverImage`: `AsyncImage` of the safe URL, else `bgSurfaceSubtle` + the kind symbol in `.secondary`, `CYRadius.md` corners. |
+| `d2-search` 推荐搜索 (`App/SearchMapFixtureSupport.swift`, `App/DesignFixtures/D2Fixtures.swift`) | 骑行 / 城市 / 外滩 … in the English UI. | **Fixed** — fixtures use `GlobalSearchRecommendedKeywords.fixtureKeywords` (zh = MP China list, en = the same eight terms in English). Production market logic unchanged. |
+| `d2-home` fixture (`App/HomeFeedFixtureSupport.swift`) | zh: 编辑精选 card "Sample neighborhood route", banners/category English. | **Fixed** — `HomeFixtureLanguage`: topic, activity, banner titles, category and Today candidates follow the UI language. |
+| `wave-today-club` (`App/DesignFixtures/WaveFixtures.swift`) | Debug line "Synthetic tap × N". | **Fixed** — line and counter removed; the synthetic tap loop stays. |
+
 ## Not done / follow-ups
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
 - ~~活动列表 邀约 link hidden while loading / failed~~ — closed in continue 3.
@@ -191,3 +205,4 @@ Build 1300a48db predates `56f6f8aaf` (d2-home-offline) and `67f829a46` (d2-searc
 - Needs a simulator pass: 20-item city menu in en + zh-Hans.
 - Needs a simulator pass: `rep3-activity-detail` hero (no live line when ended, light 已结束) and the footer as the one main button (continue 6).
 - Needs a simulator pass: `d2-home-offline` now renders the per-rail failure + feed error states; `d2-search-results` now shows the result list.
+- Needs a simulator pass (continue 7): `rep3-activity-detail` with no footer bar and the plain hero; `d2-search-results` kind-icon covers; zh fixtures on `d2-home` / `wave-today-club`.

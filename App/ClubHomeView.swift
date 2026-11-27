@@ -203,10 +203,8 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         switch locality.phase(in: discoveryScope) {
         case .idle, .loading:
             Section {
-                ProgressView()
+                ProgressView { Text("club.locality.loading") }
                     .frame(maxWidth: .infinity)
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(Text("club.locality.loading"))
                     .accessibilityIdentifier("club.home.locality.loading")
             }
         case .unavailable:
