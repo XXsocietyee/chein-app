@@ -22,13 +22,17 @@ files; `mp/r3-mine` only gated 查看报名凭证 in `PlayerJourneyViews` (not o
 | `pages/play/poi-challenge` | `App/ChallengePOIView.swift` | 一次一屏: loading skeleton · error (挑战暂时打不开 + 重试 + 返回地图) · photo screen · quiz screen · medal screen (写一张城市签 / 查看徽章墙) · gap pill (还差 xx 米 · 导航) | **fixed**: the photo card no longer stays on the quiz screen, and the photo screen of a node that still has a question shows no submit (the quiz screen sends photo + answer, as MP `/complete`) | place card + step checklist kept as the progress header (P4) |
 | `pages/play/index` (section C 节点详情卡) | `App/NativeR2/CityOrientation/CityOrientationPunchSheet.swift` | cover (station → chapter → route fallback) + 第 N 站 tag + done stamp · name · meta · description · distance / hours · actions · notes | **added** station header: `PlayStationArtwork` cover with a 第 N 站 capsule and done check, meta line, description (hidden while story-locked), 距离 and 开放时段 rows; the name stays the navigation title | material capsule tag, `LabeledContent`, monospaced distance in MP units (米 / 公里 in zh) |
 | `pages/play/index` (游玩工具 sheet) | `App/MPGap/PlayRoam/PlayToolsAndLeadSheetView.swift` | 领队 rows · 内容 rows · 证据卡 · 伏笔 · 本局读数 · 扫码到达 / 切换章节 · 入场码 · 背景音乐 / 旁白 / 动态效果 | **reordered**: 入场码 moved from the content rows to its MP slot just above the preference toggles | Form sections, Toggles |
+| `pages/play/index` (游玩工具, city rows) | `PlayToolsAndLeadSheetView` + `PlayExperienceView.playToolsSheet` | 自动记录足迹 · 到点提醒 (both follow `gpsOk`; off rows dim and ask for location) | **added** both rows with MP sub-lines (走过的路线会画进通关卡 / 定位没开，路线画不出来; 走到节点自动提示 / 定位没开，到站提不了醒) and an On / Off value; tapping an off row opens the app's location setting | `LabeledContent` + `Label` with subtitle, dimmed when off |
+| `pages/play/index` (P1 集合屏) | `PlayExperienceView` `PlayLeadSection` | 队伍集合中 · N/M · 已到集合点 · 我到了 / 已签到 · 开始行程 / 等队长开始行程… | **added** the gathering hero while `lead.status == 1` (eyebrow, the arrived count as the one large number, 已到集合点, 已签到, 等队长开始行程… for members); the existing 我到了 / 开始行程 actions stay below | P1 hero with `numericText` roll, monospaced digits, combined VoiceOver element |
+| `pages/play/index` (通关 banner) | `PlayExperienceView` finish row | b1 N 处旧址已点亮 · b2 领取你的城市足迹卡 → openFinish | **fixed** copy: the 查看通关勋章 row now reads as the MP banner (count line over 领取你的城市足迹卡), same finish screen | `Label` with two-line title |
+| `pages/play/index` (奖励掉落卡 `rdrop`) | `App/PlayRewardBadgeViews.swift` `PlayRewardBadgeRows` | reward name · 已记在你的收藏里 · 查看收藏 / 继续 | **fixed** order/copy: each reward name is followed by 已记在你的收藏里 (new `playBadge.savedLine`), replacing the generic read-back hint above the list | medal spring + confetti kept (P7/P8), headline name |
 | `pages/playkit/index` | — | MP placeholder page (`wx.reLaunch` home; no entry points) | nothing to build | — |
 
 ## Not done (next pass)
 
 - `pages/play/index` is the 2,078-line city-game runtime. This pass covered section C (station sheet) and the
-  游玩工具 sheet order. Still to compare section by section: 本局线索 / 队伍位置 / 旅程手记 / 自动记录足迹 /
-  到点提醒 tools rows (no native key found by zh copy — may live under other names), the free-explore card pack
+  游玩工具 sheet order. Still to compare section by section: 本局线索 / 队伍位置 / 旅程手记 tools rows (no native key found by
+  zh copy — may live under other names), the 夜深了，注意安全 night hint (no `nightWarning` decoding in Core yet), the free-explore card pack
   (mode 2), the hero card expansion, the assemble screen, and the task page (p03).
 - Settle 谢谢 pop: native shows the rating result in the submit button and moves on; MP shows a centred pop with
   去分享. Kept as the in-place pattern (xrefs-1 B.0); flag if the owner wants the pop.
@@ -38,8 +42,9 @@ files; `mp/r3-mine` only gated 查看报名凭证 in `PlayerJourneyViews` (not o
 - `python3 tools/generate_project.py` — ok
 - `python3 tools/check_scaffold.py` — PASS
 - `python3 -B tools/check_a11y_lint.py` — PASS, 0 new
-- `python3 -B tools/contract_ratchet.py --check` — see commit (new must be 0)
+- `python3 -B tools/contract_ratchet.py --check` — 104 failing, baseline 104, **new 0**, fixed 0
 
-No new string keys: every label reuses an existing catalog key with en + zh-Hans
-(`u10.template.stopNo`, `nativeR2.city.metric.distance`, `creator.family.timeWindow`, `mp.report.notScored`,
-`action.done`, `mp.settle.toRank`, `playTools.entryCode`).
+New strings (en + zh-Hans) in `Resources/Localizable.xcstrings` and `docs/port/strings/mp-journey-r3.json`:
+`playTools.loc.*` (8), `playx.lead.gathering|checkedIn|waitLeader`, `playx.finish.banner.lit %lld|claim`, `playBadge.savedLine`.
+Reused keys: `u10.template.stopNo`, `nativeR2.city.metric.distance`, `creator.family.timeWindow`,
+`mp.report.notScored`, `action.done`, `mp.settle.toRank`, `playTools.entryCode`, `playerGap.lead.arrived`.

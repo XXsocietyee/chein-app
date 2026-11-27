@@ -1,5 +1,6 @@
 import SwiftUI
 import MapKit
+import CoreLocation
 
 /// Integration entry for migrated runtime. Factories are scope-specific, optional, and
 /// never create provider/network permissions as a side effect of opening the screen.
@@ -605,9 +606,18 @@ struct PlayThemeMusicKey: Equatable {
                             }
                         }
                     }
-                    if model.snapshot?.availability == .completed, model.hasCurrentMediaSnapshot {
-                        Button { finishScreen = true } label: { Label("medalScreen.open", systemImage: "rosette") }
-                            .accessibilityIdentifier("medalScreen.open")
+                    if let snapshot = model.snapshot, snapshot.availability == .completed, model.hasCurrentMediaSnapshot {
+                        // mp-journey r3 (MP pages/play/index.wxml 通关 banner): N 处旧址已点亮 over 领取你的城市足迹卡.
+                        let lit = snapshot.visibleNodes.filter { snapshot.isDone($0) }.count
+                        Button { finishScreen = true } label: {
+                            Label {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("playx.finish.banner.lit \(lit)").font(.footnote).foregroundStyle(.secondary)
+                                    Text("playx.finish.banner.claim").font(.headline)
+                                }
+                            } icon: { Image(systemName: "rosette") }
+                        }
+                        .accessibilityIdentifier("medalScreen.open")
                     }
                     Button("playx.results.load") { Task { await model.loadEndingAndLeaderboard() } }.accessibilityIdentifier("playx.results.load")
                     NavigationLink("playx.stopwatch") { PlayStopwatchView() }
@@ -719,8 +729,20 @@ struct PlayThemeMusicKey: Equatable {
             reduceMotionOverride: playReducedMotionBinding,
             onClose: { showPlayTools = false },
             showsContentRows: false,
-            evidenceCards: model.snapshot.map(PlayRunKeepsakes.passTextEvidence(in:)) ?? []
+            evidenceCards: model.snapshot.map(PlayRunKeepsakes.passTextEvidence(in:)) ?? [],
+            locationOn: Self.locationAuthorized,
+            onLocationRow: Self.openLocationSettings
         )
+    }
+    /// mp-journey r3: MP `gpsOk` for the 游玩工具 location rows (when-in-use or always).
+    private static var locationAuthorized: Bool {
+        let status = CLLocationManager().authorizationStatus
+        return status == .authorizedWhenInUse || status == .authorizedAlways
+    }
+    /// MP `onLocationRowTap` with location off: send the player to this app's location setting.
+    private static func openLocationSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        UIApplication.shared.open(url)
     }
     /// `utils/motion-preference.js`: writes the primary and the legacy key.
     private var playReducedMotionBinding: Binding<Bool> {
@@ -1890,7 +1912,29 @@ struct PlayExperienceIssueView: View {
                 if !lead.exists { Text("playx.lead.notStarted") }
                 if let broadcast = lead.broadcast { Text(verbatim: broadcast) }
                 if let chapter = lead.chapterName { Text(verbatim: chapter) }
-                if let arrived = lead.arrived, !lead.members.isEmpty { LabeledContent("playx.lead.arrived") { Text(verbatim: "\(arrived) / \(lead.members.count)") } }
+                // mp-journey r3 (MP pages/play/index.wxml P1 集合屏, `lead.status == 1`): 队伍集合中, the arrived count as
+                // the one number (P1), 已到集合点, then 已签到 for me and 等队长开始行程… for members.
+                let gathering = lead.exists && lead.status == 1
+                if gathering {
+                    VStack(spacing: CYSpacing.xs) {
+                        Text("playx.lead.gathering").font(.subheadline).foregroundStyle(.secondary)
+                        (Text(verbatim: "\(lead.arrived ?? 0)").font(.largeTitle.weight(.bold))
+                            + Text(verbatim: "/\(lead.members.count)").font(.title3).foregroundStyle(.secondary))
+                            .monospacedDigit()
+                            .contentTransition(.numericText())
+                        Text("playerGap.lead.arrived").font(.footnote).foregroundStyle(.secondary)
+                        if lead.meArrived {
+                            Label("playx.lead.checkedIn", systemImage: "checkmark").font(.subheadline.weight(.semibold))
+                                .foregroundStyle(CYColor.successText)
+                        }
+                        if !lead.isLeader { Text("playx.lead.waitLeader").font(.footnote).foregroundStyle(.secondary) }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, CYSpacing.sm)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("playx.lead.gather")
+                }
+                if !gathering, let arrived = lead.arrived, !lead.members.isEmpty { LabeledContent("playx.lead.arrived") { Text(verbatim: "\(arrived) / \(lead.members.count)") } }
                 ForEach(lead.members) { member in
                     Label { if let name = member.name, !name.isEmpty { Text(verbatim: name) } else { Text("playx.player.unnamed") } }
                         icon: { Image(systemName: member.arrived ? "checkmark.circle.fill" : "circle").foregroundStyle(member.arrived ? CYColor.successText : CYColor.textTertiary) }

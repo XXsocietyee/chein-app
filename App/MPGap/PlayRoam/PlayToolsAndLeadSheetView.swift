@@ -27,6 +27,10 @@ public struct PlayToolsAndLeadSheetView: View {
     public var showsContentRows: Bool = true
     /// PLAY-r11-2: 证据卡 (station name + passText of finished stations); empty hides the row.
     public var evidenceCards: [PlayEvidenceCard] = []
+    /// mp-journey r3: MP 游玩工具 city rows 自动记录足迹 / 到点提醒 follow the location permission (`gpsOk`).
+    /// nil hides both rows; tapping an off row asks for location (MP `onLocationRowTap`).
+    public var locationOn: Bool? = nil
+    public var onLocationRow: () -> Void = {}
 
     public init(
         lead: PlayLeadToolsState = PlayLeadToolsState(),
@@ -49,8 +53,12 @@ public struct PlayToolsAndLeadSheetView: View {
         onOpenEntryCode: @escaping () -> Void = {},
         onClose: @escaping () -> Void = {},
         showsContentRows: Bool = true,
-        evidenceCards: [PlayEvidenceCard] = []
+        evidenceCards: [PlayEvidenceCard] = [],
+        locationOn: Bool? = nil,
+        onLocationRow: @escaping () -> Void = {}
     ) {
+        self.locationOn = locationOn
+        self.onLocationRow = onLocationRow
         self.lead = lead
         self.evidenceCount = evidenceCount
         self.thoughts = thoughts
@@ -96,6 +104,18 @@ public struct PlayToolsAndLeadSheetView: View {
                         }
                     }
                 }
+                if let locationOn {
+                    // mp-journey r3 (MP pages/play/index.wxml 游玩工具, city orientation): 自动记录足迹, 到点提醒.
+                    // Both follow the location permission; an off row reads dimmed and asks for location on tap.
+                    Section {
+                        locationRow("playTools.loc.track", on: locationOn,
+                                    detail: locationOn ? "playTools.loc.track.on" : "playTools.loc.track.off",
+                                    symbol: "point.topleft.down.to.point.bottomright.curvepath", identifier: "playTools.loc.track")
+                        locationRow("playTools.loc.remind", on: locationOn,
+                                    detail: locationOn ? "playTools.loc.remind.on" : "playTools.loc.remind.off",
+                                    symbol: "bell", identifier: "playTools.loc.remind")
+                    }
+                }
                 // mp-journey r3: MP 游玩工具 lists 入场码 after 本局读数 / 扫码到达 / 切换章节, just above the preferences.
                 if showsContentRows {
                     Section {
@@ -123,6 +143,19 @@ public struct PlayToolsAndLeadSheetView: View {
         }
         .presentationDetents([.medium, .large])
         .accessibilityIdentifier("playTools.sheet")
+    }
+
+    private func locationRow(_ title: LocalizedStringKey, on: Bool, detail: LocalizedStringKey, symbol: String,
+                             identifier: String) -> some View {
+        Button { if !on { onLocationRow() } } label: {
+            LabeledContent {
+                Text(on ? "playTools.loc.state.on" : "playTools.loc.state.off")
+            } label: {
+                Label { Text(title); Text(detail) } icon: { Image(systemName: symbol) }
+            }
+        }
+        .foregroundStyle(on ? Color.primary : Color.secondary)
+        .accessibilityIdentifier(identifier)
     }
 
     @ViewBuilder private var leadSection: some View {
