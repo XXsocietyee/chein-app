@@ -67,6 +67,7 @@ import SwiftUI
             }
         }
         .cyDomainScreen(.merchant)
+        .environment(\.cooperationListIssues, false)
     }
 
     private func poolSeed(_ row: CooperationPoolItem) -> String {
@@ -139,5 +140,6 @@ import SwiftUI
             Section { CooperationReadOnlyNotice() }
         }
         .cyHeroScreen()
+        .environment(\.cooperationListIssues, false)
     }
 }

@@ -53,8 +53,9 @@ class W204P2MemberToolsChecks(unittest.TestCase):
         self.assertEqual(self.zh('profile.inviteHistoryP2.summary %lld'), '累计邀请 %lld 人')
 
     def test_complaint_load_failure_copy_keeps_native_line_and_retry(self):
-        self.assertIn('Text(LocalizedStringKey(issue.sourceTitleKey))', self.complaint_view)
-        self.assertIn('Text(LocalizedStringKey(issue.titleKey)).accessibilityIdentifier("profile.complaint.issue")', self.complaint_view)
+        # mp-states r3 re-pin: current MP complaint wxml:19-31 titles (登录后发起投诉与查看进展 / 可投诉活动加载失败) on ContentUnavailableView.
+        self.assertIn('Text(LocalizedStringKey(complaintStateTitleKey(issue)))', self.complaint_view)
+        self.assertIn('.accessibilityIdentifier("profile.complaint.issue")', self.complaint_view)
         self.assertIn('if issue == .failed {', self.complaint_view)
         self.assertEqual(self.zh('profile.complaintP2.loadFailed.title'), '可投诉活动没能加载出来')
         self.assertEqual(self.zh('profile.complaintP2.loadFailed.generic'), '可投诉活动加载失败，请重试')

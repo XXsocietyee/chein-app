@@ -12,6 +12,7 @@ The 21 MP pages were compared section by section, top to bottom, against their n
 | `python3 tools/check_scaffold.py` | PASS (no FAIL lines; typography lint PASS) |
 | `python3 -B tools/check_a11y_lint.py` | PASS: 0 new |
 | `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (after merging combined-r7), **new 0**, fixed 0 |
+| `python3 tools/check_design_consistency.py` | PASS |
 
 There is no Swift compiler in this environment. Edits are kept type-simple and reuse existing keys, components and patterns.
 
@@ -67,7 +68,7 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/notify | `ClubGovernanceCommandForm.swift` | A failed 预览受众 is inline 受众预览失败 + reason + 重试 (wxml:59-62); native showed the generic form error. | **Fixed (pass 3).** Dedicated section before any review, 重试 re-runs the preview (`club.notify.previewFailed`) |
 | club/notify | same | 投递状态 section with 刷新 in the header; extra review fact rows. | **Not done** (send-button wording is a deliberate CLB-notify-01 choice) |
 | club/governance | `ClubGovernanceViews.swift` (.bans), `ClubOpsMemberActionCard.swift` | Full-page 暂无可治理成员 (wxml:18, js:403: no members and no bans). | **Fixed (pass 3).** The card reports its member count (`onLoaded`); no bans + 0 members shows a `ContentUnavailableView` instead of the records section |
-| club/governance | same | Extra appeal-mode headline. | Not done (small) |
+| club/governance | same | Appeal mode: MP page title 封禁申诉 (js:224); native drew it as an in-content headline section. | **Fixed (pass 3).** Inline bar title via `pageTitleKey` (`club.gov.casesAppeal`); headline section removed (OWNER RULE 2) |
 | club/customers | `ClubOpsCustomerViews.swift` | The count line sits as the list section header after the filter (native pattern; the count follows the filter); the filtered-empty CTA 查看全部客户 is a borderless button under the empty state, not inside it. | **Kept** (the CTA's fences are pinned in place by `test_club_customer_clear_filters`; moving it needs the clear closure threaded into the list view) |
 | club/customer-detail | `ClubOpsCustomerViews.swift`, `ClubCustomerInlineEditor.swift` | In edit mode the editor replaces the card, the heading reads 编辑标签与备注 and 取消 sits in the heading (wxml:82-99). | **Fixed (pass 2).** The editor owns the 标签与备注 section; 取消 moved from a row into the header (VoiceOver: 取消编辑标签与备注) |
 | club/payout-receiver | `ClubPayoutReceiverView.swift` | Binding needs a WeChat code (`PayoutReceiverBridge.payoutOpen`). | Blocked (WeChat/backend), not a view gap |
@@ -103,8 +104,11 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 | `club.joinRequests.loading` | Loading join requests | 正在加载入会申请 |
 | `clubR11.customer.cancelEditA11y` | Cancel editing tags and remark | 取消编辑标签与备注 |
 | `club.notify.previewFailed` | Audience preview failed | 受众预览失败 |
+| `club.gov.casesAppeal` | Ban appeal | 封禁申诉 |
 
 ## Contract test pins updated (with reason)
+
+- Pass 3: `test_club_ops_join_notify.test_appeal_mode_and_roles_title`: the appeal-mode title moved from an in-content headline to the inline bar title (OWNER RULE 2); the pin now checks the same `appealMode` gate in `pageTitleKey`.
 
 - Pass 2: `test_club_ops_customer.test_detail_keeps_topic_route_edit_gate_and_hidden_amount` and the `operation == .customer` span hash in `test_club_leaderboard_member_navigation`: the inline editor now owns the 标签与备注 section (MP edit heading 编辑标签与备注 + 取消). The route, edit gate and hidden amount they guard are unchanged.
 
@@ -122,4 +126,5 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 7. 角色与权限 empty state 暂无成员.
 9. Pass 3: topic-story answer sheet title + no-answer chip, event-ops denied 返回, notify 受众预览失败 + 重试.
 10. Pass 3: governance 暂无可治理成员 full-page empty state; topic-detail director-ended review hides 核销/主题/接下来.
+11. Pass 3: governance appeal-mode title 封禁申诉 in the nav bar.
 8. Pass 2: shared club thumbnail, customer-detail edit heading, create check-failed 返回上一页, enroll order, check-in rail refund note.
