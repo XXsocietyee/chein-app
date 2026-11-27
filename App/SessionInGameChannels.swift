@@ -23,28 +23,10 @@ extension EnvironmentValues {
 }
 
 extension AppSession {
-    /// Authenticated reader for `/api/im/ingame/summary` and `/api/im/ingame/resolve`.
+    /// In-game channels have no MP feature and no backend route (`/api/im/ingame/*` dropped);
+    /// the reader stays unconfigured so game screens hide the channel entry.
     var inGameChannelReader: InGameChannelReader {
-        guard let runtime = imRuntimePaths([.inGameChannels]) else {
-            return InGameChannelReader(service: nil, session: { nil })
-        }
-        let (factory, configuration, paths) = runtime
-        let captured = factory.captured
-        return InGameChannelReader(
-            service: InGameChannelService(
-                configuration: configuration,
-                transport: factory.client([.inGameChannels]),
-                enabledPaths: paths
-            ),
-            session: { [weak self] in
-                guard let self, self.currentRuntimeDependencyContext == captured else { return nil }
-                return self.currentIMSafetySession
-            },
-            onUnauthorized: { [weak self] snapshot in
-                guard let self, self.currentRuntimeDependencyContext == captured else { return }
-                self.expireIfMatching(error: APIError.unauthorized, stamp: snapshot.identity.epoch, credential: self.token)
-            }
-        )
+        InGameChannelReader(service: nil, session: { nil })
     }
 
     /// Host bundle injected into Activity, Play, Roam, and City game screens.

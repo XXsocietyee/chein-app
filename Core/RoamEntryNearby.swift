@@ -226,7 +226,8 @@ public enum RoamEntryPeekState: Equatable {
     case unavailable, login, denied, loading, failed, empty, loaded([RoamEntryActivityCard])
     public init(error: Error) {
         switch error as? APIError {
-        case .unauthorized?: self = .login
+        // MP 11-14: a failed public nearby read only offers 重试 (cy-error); 401 never becomes a sign-in prompt.
+        case .unauthorized?: self = .failed
         case .httpStatus(403)?, .businessCode(403)?: self = .denied
         case .notConfigured?: self = .unavailable
         default: self = .failed

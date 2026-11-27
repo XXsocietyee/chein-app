@@ -193,7 +193,7 @@ import SwiftUI
                     }
                     ForEach(item.stores, id: \.offerId) { store in
                         LabeledContent {
-                            if let end = store.validEnd { Text(verbatim: end).monospacedDigit() }
+                            if let end = store.validEnd { Text(verbatim: LocaleDisplay.civil(end, locale: locale)).monospacedDigit() }
                         } label: {
                             Label { Text(verbatim: store.merchantName ?? store.offerId.text) } icon: { Image(systemName: "storefront") }
                         }

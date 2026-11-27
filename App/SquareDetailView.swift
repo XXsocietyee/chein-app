@@ -54,7 +54,7 @@ import SwiftUI
         List {
             if let governanceContext { SquareGovernanceEntryView(context: governanceContext) }
             if let deletion { SquareDeletionStatusView(coordinator: deletion) { Task { await verifyDeletion() } } }
-            if reader.isOfflineExample { Text("square.offlineExample").font(.caption).foregroundStyle(.secondary) }
+            if reader.showsOfflineExampleNote { Text("square.offlineExample").font(.caption).foregroundStyle(.secondary) }
             if !reader.isConfigured { SquareIssueView(error: APIError.notConfigured) }
             else if loadedKey != key { ProgressView { Text("mpr3.square.detail.loading") }.frame(maxWidth: .infinity) }
             else {

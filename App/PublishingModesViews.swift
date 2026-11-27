@@ -514,7 +514,7 @@ extension QuickPublishingView {
                         do {
                             if let saved = try draftStore.loadActive(activity: true, session: account), let activity = saved.activity {
                                 draft = activity; draftID = saved.identity; message = "publishModes.restoredLocal"
-                                draftSaveState = .savedDraft(updatedAt: Self.draftTimestampNow())
+                                draftSaveState = .savedDraft(updatedAt: Self.draftTimestampNow(locale: locale))
                                 wizardStep = ActivityPublishingWizard.resume(savedStep: saved.wizardStep, draft: activity)
                                 wizardBlock = ActivityPublishingWizard.blockingField(wizardStep, activity)
                             } else { message = "publishModes.noSavedLocal" }
@@ -587,16 +587,20 @@ extension QuickPublishingView {
         do {
             try draftStore.saveActive(PublishingLocalDraft(session: account, identity: draftID, activity: draft, wizardStep: wizardStep), session: account)
             message = "publishModes.savedLocal"
-            draftSaveState = .savedDraft(updatedAt: Self.draftTimestampNow())
+            draftSaveState = .savedDraft(updatedAt: Self.draftTimestampNow(locale: locale))
         } catch {
             message = "publishModes.storageFailed"
             draftSaveState = .saveFailed(reason: appLocalized("publishModes.storageFailed", locale: locale), onRetry: { saveLocalDraft() })
         }
     }
-    private static func draftTimestampNow() -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        return formatter.string(from: Date())
+    private static func draftTimestampNow(locale: Locale) -> String {
+        // Chinese keeps the MP `HH:mm`; English uses the locale clock ("7:30 PM").
+        guard !LocaleDisplay.isChinese(locale) else {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "HH:mm"
+            return formatter.string(from: Date())
+        }
+        return Date().formatted(Date.FormatStyle(date: .omitted, time: .shortened).locale(locale))
     }
     private var mayEditTimeRange: Bool {
         editable && review == nil && !localReview && picker == nil &&
