@@ -19,6 +19,7 @@ import SwiftUI
         }
     }
     func categories() async throws -> [DiscoveryCategory] {
+        if scenario == "offline" { throw URLError(.notConnectedToInternet) }
         try JSONDecoder().decode([DiscoveryCategory].self, from: Data(#"[{"id":2,"categoryName":"Sample category"}]"#.utf8))
     }
     func section(_ section: HomeFeedSection) async throws -> [HomeFeedItem] {
@@ -27,6 +28,7 @@ import SwiftUI
         return try section == .recommended ? [HomeFeedSyntheticFixtures.topic()] : [HomeFeedSyntheticFixtures.activity()]
     }
     func page(query: HomeFeedQuery, number: Int) async throws -> HomeFeedPage {
+        if scenario == "offline" { throw URLError(.notConnectedToInternet) }
         if scenario == "retry", !failedOnce { failedOnce = true; throw APIError.httpStatus(503) }
         if scenario == "offline" { throw URLError(.notConnectedToInternet) }
         if scenario == "empty" || number > 1 || (!query.keyword.isEmpty && !"sample".contains(query.keyword.lowercased())) {

@@ -130,7 +130,7 @@ import UIKit
             case .ready:
                 EmptyView()
             case .loading:
-                Text("settingsNative.loading").font(.footnote).foregroundStyle(.secondary)
+                ProgressView { Text("settingsNative.loading") }.frame(maxWidth: .infinity)
             case .error:
                 Text("settingsNative.about.playerCodeUnavailable").font(.body.weight(.medium)).foregroundStyle(.primary)
                     .accessibilityIdentifier("settingsNative.about.playerCodeUnavailable")

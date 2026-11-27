@@ -217,14 +217,10 @@ import SwiftUI
     @ViewBuilder private var identityState: some View {
         switch phase {
         case .loading:
-            HStack(spacing: 8) {
-                ProgressView()
-                Text("member.card.loading", tableName: "MemberProfile")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .accessibilityIdentifier("member.card.loading")
+            // mp-states r3: the one loading pattern — a labelled system ProgressView.
+            ProgressView { Text("member.card.loading", tableName: "MemberProfile") }
+                .frame(maxWidth: .infinity)
+                .accessibilityIdentifier("member.card.loading")
         case .failed(let signedOut) where failureOffline && !signedOut:
             VStack(alignment: .leading, spacing: 8) {
                 Label { Text("cy.state.offline.title") } icon: { Image(systemName: "wifi.slash") }
