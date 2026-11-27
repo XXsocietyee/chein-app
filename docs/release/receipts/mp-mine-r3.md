@@ -79,9 +79,39 @@ Three read-only audits compared each page with the MP `.wxml` and `.js`, and I c
 | `market/pass-order` | `PassMarketViews.swift` | — | Refund terms are fixed text rather than read from `/api/platform-pass` `terms`. An empty reason disables 提交 instead of showing 请填写退款原因. |
 | `market/library` | `PassMembershipViews.swift` | The card's top row (¥0 可玩, city) is now above the title, as in the MP. | There is no 城 mark and there are no tag chips (`PassLibraryCard` does not carry `tags`). Error copy is fixed (the server `msg` needs Core). |
 
+## Coordinator visual check (14:13 UTC) — structure restored (continue 2)
+
+The 14:13 build rendered `--design-fixture d2-me`. That fixture (`App/DesignFixtures/D2Fixtures.swift` `D2MeFixture`) still drew the bare identity card and then 当前权益, with no tabs. The identity card itself also carried the 积分 hero and the 连续打卡天数 row on every host.
+
+| MP `cy/profile/index.wxml`, top to bottom | Native now | Fixed? |
+|---|---|---|
+| Large title 我的 (OWNER RULE 2), settings top-right | `.cyRootHeader(.mine)` in `AccountView` and now in the fixture (the fixture was an inline `account.title`) | **Fixed** (fixture) |
+| Identity card: avatar (pen), name, role/level, city | `MemberIdentityCardSection` | — |
+| 好友 / 关注 / 粉丝 (hidden at 0/0/0) | Same | — |
+| `pc-actions`: [开始探索] [票夹] same size, both primary, then [···] | New `actionRow`: two `.borderedProminent` buttons with `maxWidth: .infinity`, then a `.bordered` `Menu` (···: 公开主页, 编辑资料). It stacks at accessibility sizes. 开始探索 = `onOpenGuideDestination(.roam)` (MP `onPrimaryCta` → `goRoam`). | **Fixed.** New keys: `member.card.startExplore`, `member.card.more`. |
+| Tabs 项目 / 帖文 / 成就 / 关于 | Segmented `Picker` (`account.mine.tabs`). The first tab now reads 项目 (`account.mine.tab.projects`), so it no longer repeats the 我的 title. MP `TAB_LABELS.projects` is 我的; the wxml block is `TAB · 项目`, and the coordinator asked for 项目. | **Fixed** |
+| 积分 + 连续打卡 inside the card | `showsMetrics: false` removes them from the card | **Fixed** |
+| 成就 head: 积分 (→ 积分明细) + 如何获取积分, then 总积分排名 (累计打卡, → 成长中心) | New `MemberAchievementMetricsSection`: 积分 (→ ledger), 如何获取积分 (→ 积分任务 sheet), 连续打卡天数, 累计打卡, then the 成长中心 row, which moved here from 收集册. After that come stamps/badges and 收集册. | **Fixed** |
+| 项目 → 我的资产: 账户余额 (P-49: ¥0, never "—") | The wallet row is now `LabeledContent` 账户余额 · ¥0.00, reading the card's `/api/user/info` snapshot (no new request) | **Fixed** |
+| 关于 → 当前权益 | `MemberBenefitsSection` stays on 关于 only | — (fixture now shows it under 关于, not under the card) |
+
+The fixture can open a tab with `-d2MeTab achievements` or `-d2MeTab about`. It shows 项目 · 成就 · 关于, because 帖文 needs the community bundle.
+
+**MP note:** in the current wxml the self-player view hides 开始探索 (`(isSelf && isMerchantView)`) and the ··· (`!isSelf`), while `onPrimaryCta` still routes self → `goRoam`. The row follows the coordinator check. If the owner wants the literal current wxml, drop `onStartExplore`/`moreMenu` and it falls back to the single 票夹.
+
+Gates: generate_project (no change), check_scaffold PASS, a11y lint 0 new, design consistency PASS (0 raw font, 0 tracking), missing string keys 0, contract ratchet 52/52 with **new 0**.
+
+### Re-scan of 项目 (continue 2)
+
+| MP `cy/profile` 项目 | Native before | Fixed? |
+|---|---|---|
+| 我的订单 → 我的项目 → 视频悬赏 → 我的资产 → 通行证与礼品 | 我的发票, 我的参与/已完成 and the host-tip/redeem/landing section sat between 订单 and 我的资产 | **Fixed.** `MPParityAccountLinks(part:)` splits into `.bounty` (promo / 视频悬赏, before 我的资产) and `.extras` (app-only rows, after it). The app-only rows (我的参与, creator rows on the legacy host, extras) now follow the MP sections. |
+| 我的发票 is a 设置 row (MP `shezhi.js:221` → `invoice/index`) | Duplicated on 我的 | **Fixed.** Removed from 我的; Settings keeps `SettingsInvoiceEntry`. |
+
 ## Not done / next
 
-- 探索作品 images on 关于. The snapshot's `casePictures` can be object keys; the public profile link shows them.
+- 探索作品 images on 关于: **blocked.** `NativeMediaGalleryEntry` with no reader falls back to `RetainedPublicImageReader()`, which is disabled and origin-gated by design, and the session has no approved case-picture reader (`ProfileEditView` gets `caseImageReader: nil` too). Enabling one is an appsec/config decision, not a layout fix.
+- Simulator look needed: the `d2-me` fixture (`-d2MeTab achievements|about`) and the ··· `Menu` inside a `Form` row next to two `.borderedProminent` buttons.
 
 ## Strings
 

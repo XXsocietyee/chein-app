@@ -21,6 +21,12 @@ import SwiftUI
     var avatarAccess: MemberIdentityAvatarAccess? = nil
     /// mp-mine r3: hands the ready `/api/user/info` snapshot to the 关于 tab (MP reads one userInfo for both). Nil = not needed.
     var onSnapshot: ((MemberIdentitySnapshot?) -> Void)? = nil
+    /// mp-mine r3 (14:13 visual check): false keeps 积分 and 连续打卡 out of the card; the 我的 page shows them on 成就.
+    var showsMetrics = true
+    /// MP cy-profile `pc-actions` (self): 开始探索 (goRoam) beside 票夹, same size, both primary. Nil keeps the single 票夹.
+    var onStartExplore: (() -> Void)? = nil
+    /// The ··· menu after the two primary buttons. Nil hides it.
+    var moreMenu: AnyView? = nil
     @State private var readOwner = MemberIdentityCardReadOwner()
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dynamicTypeSize) private var typeSize
@@ -82,7 +88,7 @@ import SwiftUI
             }
             .padding(.vertical, 4)
             // xrefs-1 Adopt 6: the streak gets its own row under the name (native r2: a plain LabeledContent row).
-            if let streakDays {
+            if showsMetrics, let streakDays {
                 LabeledContent {
                     Text(verbatim: "\(streakDays)").monospacedDigit()
                 } label: {
@@ -93,7 +99,7 @@ import SwiftUI
             // 我的资产 (design hand-off r1 PL-30, owner Q-B; P 210:8603): 积分 first and large, as a plain number with no tile.
             // 积分 is the only currency. The ¥ 账户余额 column appears only when this account holds real money (the server
             // sent a balance). Unknown 积分 reads "—", never 0.
-            assets
+            if showsMetrics { assets }
             // The three counters (好友 / 关注 / 粉丝) as one row of plain columns.
             // mp-mine r3 (MP cy-profile wxml:109, 1121 N5): one's own page hides the row while all three are a known 0.
             if showsCounters {
@@ -105,8 +111,11 @@ import SwiftUI
                     statCell(snapshot?.fansCountText, id: "fans", key: "member.card.fans")
                 }
             }
-            // Mini-program member header: one full-width 票夹 button under the counters.
-            if let onOpenTickets {
+            // MP cy-profile `pc-actions`: [开始探索] [票夹] (same size, both primary) [···] under the counters.
+            if let onOpenTickets, onStartExplore != nil || moreMenu != nil {
+                actionRow(onOpenTickets)
+            } else if let onOpenTickets {
+                // Mini-program member header: one full-width 票夹 button under the counters.
                 Button(action: onOpenTickets) {
                     Label { Text("member.card.tickets", tableName: "MemberProfile") } icon: { Image(systemName: "ticket") }
                         .frame(maxWidth: .infinity)
@@ -126,6 +135,41 @@ import SwiftUI
     private struct TaskKey: Equatable { let scope: UUID; let refresh: Int; let active: Bool }
 
     private var snapshot: MemberIdentitySnapshot? { if case .ready(let value) = phase { return value }; return nil }
+
+    /// MP `pc-actions`: two equal primary buttons and the ··· menu; the row stacks at accessibility sizes.
+    private func actionRow(_ onOpenTickets: @escaping () -> Void) -> some View {
+        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))
+        return layout {
+            if let onStartExplore {
+                Button(action: onStartExplore) {
+                    Label { Text("member.card.startExplore") } icon: { Image(systemName: "safari") }
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent).controlSize(.large)
+                .accessibilityIdentifier("member.card.startExplore")
+            }
+            Button(action: onOpenTickets) {
+                Label { Text("member.card.tickets", tableName: "MemberProfile") } icon: { Image(systemName: "ticket") }
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent).controlSize(.large)
+            .pageTemplateControl(label: Text("member.card.tickets", tableName: "MemberProfile"), traits: .isButton)
+            .accessibilityIdentifier("member.card.tickets")
+            if let moreMenu {
+                Menu {
+                    moreMenu
+                } label: {
+                    Label { Text("member.card.more") } icon: { Image(systemName: "ellipsis") }
+                        .labelStyle(.iconOnly)
+                        .frame(minWidth: 28)
+                }
+                .buttonStyle(.bordered).controlSize(.large)
+                .accessibilityLabel(Text("member.card.more"))
+                .accessibilityIdentifier("member.card.more")
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
     /// Unknown counters keep the row (em dashes); only three known zeros hide it, as the MP does.
     private var showsCounters: Bool {
         guard let value = snapshot else { return true }
@@ -566,5 +610,98 @@ private struct MemberAssetRoll: ViewModifier {
     let value: Double?
     @ViewBuilder func body(content: Content) -> some View {
         if let value { content.cyNumericRoll(value) } else { content.monospacedDigit() }
+    }
+}
+
+/// mp-mine r3 (14:13 visual check): MP cy-profile 成就 tab head (`pc-achievement-metrics`, wxml:288-321): 积分 (opens
+/// 积分明细) with 如何获取积分, then 连续打卡 and 累计打卡; the caller adds the 总积分排名 → 成长中心 row. Unknown reads "—".
+@MainActor struct MemberAchievementMetricsSection<Trailing: View>: View {
+    let growth: any GrowthCenterReading
+    var refreshToken: Int = 0
+    var onOpenPoints: (() -> Void)? = nil
+    var onOpenPointsHelp: (() -> Void)? = nil
+    @ViewBuilder var trailing: () -> Trailing
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
+    @State private var points: Int?
+    @State private var streakDays: Int?
+    @State private var checkins: Int?
+
+    var body: some View {
+        Section {
+            HStack(alignment: .firstTextBaseline) {
+                pointsValue
+                Spacer(minLength: 8)
+                if let onOpenPointsHelp {
+                    Button(action: onOpenPointsHelp) { Text("member.card.pointsHelp") }
+                        .buttonStyle(.borderless)
+                        .font(.subheadline)
+                        .accessibilityIdentifier("member.achievements.pointsHelp")
+                }
+            }
+            LabeledContent {
+                Text(verbatim: CYUnknownValue.text(streakDays) { "\($0)" }).monospacedDigit()
+            } label: {
+                Label { Text("profile.selfGrowth.streak") } icon: { Image(systemName: "flame") }
+            }
+            .accessibilityIdentifier("member.achievements.streak")
+            LabeledContent {
+                Text(verbatim: CYUnknownValue.text(checkins) { "\($0)" }).monospacedDigit()
+            } label: {
+                Label { Text("profile.selfGrowth.checkins") } icon: { Image(systemName: "mappin.and.ellipse") }
+            }
+            .accessibilityIdentifier("member.achievements.checkins")
+            trailing()
+        }
+        .task(id: TaskKey(scope: growth.scope, refresh: refreshToken, active: scenePhase == .active)) { await load() }
+    }
+    private struct TaskKey: Equatable { let scope: UUID; let refresh: Int; let active: Bool }
+
+    private var pointsText: String { CYUnknownValue.text(points) { $0.formatted(.number.locale(locale)) } }
+
+    @ViewBuilder private var pointsValue: some View {
+        let content = VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 4) {
+                Text("member.card.points", tableName: "DesignR1")
+                if onOpenPoints != nil {
+                    Image(systemName: "chevron.right").imageScale(.small).accessibilityHidden(true)
+                }
+            }
+            .font(.subheadline).foregroundStyle(.secondary)
+            Text(verbatim: pointsText)
+                .font(.largeTitle.weight(.semibold)).monospacedDigit()
+                .foregroundStyle(points == nil ? Color.secondary : Color.primary)
+                .lineLimit(1).minimumScaleFactor(0.6)
+                .modifier(MemberAssetRoll(value: points.map { Double($0) }))
+                .accessibilityLabel(PageTemplateVoiceOver.spoken(pointsText, locale: locale))
+        }
+        .contentShape(Rectangle())
+        if let onOpenPoints {
+            Button(action: onOpenPoints) { content }
+                .buttonStyle(.borderless)
+                .tint(.primary)
+                .accessibilityElement(children: .combine)
+                .accessibilityAddTraits(.isButton)
+                .accessibilityIdentifier("member.achievements.points")
+        } else {
+            content
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("member.achievements.points")
+        }
+    }
+
+    private func load() async {
+        guard !Task.isCancelled, scenePhase == .active, growth.isConfigured, growth.isAuthenticated else { return }
+        let scope = growth.scope
+        guard let overview = try? await growth.overview(), !Task.isCancelled, scope == growth.scope else { return }
+        points = overview.center.value?.points
+        streakDays = overview.progress.value?.streakDays
+        checkins = overview.progress.value?.totalCheckins
+    }
+}
+
+extension MemberAchievementMetricsSection where Trailing == EmptyView {
+    init(growth: any GrowthCenterReading, refreshToken: Int = 0, onOpenPoints: (() -> Void)? = nil, onOpenPointsHelp: (() -> Void)? = nil) {
+        self.init(growth: growth, refreshToken: refreshToken, onOpenPoints: onOpenPoints, onOpenPointsHelp: onOpenPointsHelp, trailing: { EmptyView() })
     }
 }
