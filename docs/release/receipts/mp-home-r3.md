@@ -166,6 +166,7 @@ Screenshot: `docs/sweeps/latest/mp-home/zh-Hans-rep3-activity-detail.jpg`, `en-r
 | hero status badge | 已结束 (neutral = `.secondary`) rendered dark grey on the black scrim — unreadable. | **Fixed** — the hero text stack resolves in `.colorScheme(.dark)` (scrim is always black), so neutral reads light grey; tones unchanged. |
 | footer `activity-action` → `App/ActivityDetailView.swift` `registrationAction` | 「¥58.00 起 · 24 人已报名」 and the going stack 「24 人已报名」 said the count twice. MP footer = share + one main button. | **Fixed** — the summary line drops the count when the going stack (P6) shows it; price stays. |
 | `pages/index/index` offline (per-rail `cy-error` 加载失败 + 重试, feed error) → `d2-home-offline` (`App/DesignFixtures/D2Fixtures.swift`, `App/HomeFeedFixtureSupport.swift`) | Sweep `zh-Hans-d2-home-offline.jpg`: whole page 「首页暂不可用 · 这项功能还没开通」 — the fixture passed `auth.notConfigured` (feature-off), not an offline state. | **Fixed** — new fixture scenario `offline` throws `URLError(.notConnectedToInternet)` from every rail and the feed page, so the shot shows the real MP failure states (per-rail 加载失败 + 重试, feed error). App code unchanged. |
+| `pages/search2/result` → `d2-search-results` (`App/DesignFixtures/D2Fixtures.swift`) | Sweep `zh-Hans-d2-search-results.jpg` is identical to the empty search page — the fixture never ran a search, so the result list (scope tabs → rows → 没有更多了) was never shot. | **Fixed** — fixture passes `initialQuery: GlobalSearchQuery(keyword: "Lantern")` (the MP link-keyword path), so the page searches once on appear. App code unchanged. |
 | footer main button 「—」 | MP `actionFor`: `isSignUp` not 0/1 → `{state:'unavailable', text:'—'}` disabled. | ✓ matches MP (fixture has no `isSignUp`). |
 
 ## Not done / follow-ups
@@ -178,4 +179,4 @@ Screenshot: `docs/sweeps/latest/mp-home/zh-Hans-rep3-activity-detail.jpg`, `en-r
 - 首页 city tap-to-relocate (MP `onTapHomeCity`): needs a foreground location → city read; the menu covers manual choice meanwhile.
 - Needs a simulator pass: 20-item city menu in en + zh-Hans.
 - Needs a simulator pass: `rep3-activity-detail` hero (no live line when ended, light 已结束) and one going count in the footer.
-- Needs a simulator pass: `d2-home-offline` now renders the per-rail failure + feed error states.
+- Needs a simulator pass: `d2-home-offline` now renders the per-rail failure + feed error states; `d2-search-results` now shows the result list.
