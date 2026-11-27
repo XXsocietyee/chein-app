@@ -85,6 +85,9 @@
     "App/NativeStoryWalkingAuthorView.swift": {
       "hidden nav": "unsaved-changes guarded exit (confirmation dialog) in the story authoring flow; story-flow is out of scope"
     },
+    "App/NearbyTeamMapViews.swift": {
+      "raw segmented": "Toolbar control (地图 / 列表, two short titles) sized with .fixedSize() in the navigation bar; the adaptive ViewThatFits/menu swap is for in-content pickers."
+    },
     "App/PlayHUD.swift": {
       "button style": "game HUD circle controls over the live play surface"
     },

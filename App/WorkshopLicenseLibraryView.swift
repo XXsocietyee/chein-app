@@ -62,7 +62,7 @@ enum WorkshopLicenseLibraryPresentation {
                     }
                     Section {
                         if controller.busy || !hasReadLicenses {
-                            ProgressView().frame(maxWidth: .infinity).accessibilityLabel(licenseLibraryText("library.loading"))
+                            ProgressView { licenseLibraryText("library.loading") }.frame(maxWidth: .infinity)
                                 .accessibilityIdentifier("workshopLicenseLibrary.loading")
                         }
                         if let message = controller.licensesMessageKey {

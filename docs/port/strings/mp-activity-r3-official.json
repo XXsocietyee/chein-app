@@ -527,6 +527,23 @@
           }
         }
       }
+    },
+    "playerGap.signup.safetyBlocked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Under platform rules, you can't sign up for this one right now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按平台规则，你暂时不能报名这一场。"
+          }
+        }
+      }
     }
   }
 }

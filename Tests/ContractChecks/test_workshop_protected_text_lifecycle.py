@@ -13,7 +13,8 @@ class ProtectedTextLifecycleSourceContracts(unittest.TestCase):
     def test_all_product_bytes_match_original_protected_consumer_delivery(self):
         # native r2: view diff vs origin/ui/combined-r7 is presentation-only (CYLoadingStateView -> ProgressView,
         # CYPillButton -> Button with the same offerReload action/identifier, RevolutInsetRow -> LabeledContent)
-        expected = {'App/WorkshopPaidInstalledTextView.swift': '1f983759dc24461e9d9f21b915b29a946162635a9f500292b8150a57321e0fb9',
+        # ds-consistency r3: only .pickerStyle(.segmented) -> .cyAdaptiveSegmented() on the comparison picker.
+        expected = {'App/WorkshopPaidInstalledTextView.swift': '4d11538455dfa0d3618eff91508b7856728a0d61be251ba4589ef1395ff814c7',
                     'Core/WorkshopPaidInstalledTextController.swift': '13883b1365777e129cd8ccfa4c0e3b9c5ca6129896d5f73c8ab50e46f9118a73',
                     'Core/WorkshopPaidInstalledTextService.swift': '22b0d6fb506275c791fe7a478af14f4ce9bd0a8d05d4f6c3fa1a3ce983529703'}
         for p, expected_hash in expected.items():

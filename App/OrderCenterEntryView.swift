@@ -60,7 +60,7 @@ import QuestifyCore
             }
             switch model.phase {
             case .idle: EmptyView()
-            case .loading: Section { ProgressView().frame(maxWidth: .infinity) }
+            case .loading: Section { ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity) }
             case .failed(let key):
                 Section {
                     Text(LocalizedStringKey(key), tableName: "CreatorEditorUI")
