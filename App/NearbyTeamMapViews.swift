@@ -105,10 +105,11 @@ struct NearbyTeamMapSection: View {
 }
 
 struct NearbyTeamListHeader: View {
+    @Environment(\.locale) private var locale
     let radius: Int
     let count: Int
     var body: some View {
-        Text("nearby.w208.listHeader \(NearbyTeamPresentation.rangeText(radius)) \(count)")
+        Text("nearby.w208.listHeader \(LocaleDisplay.isChinese(locale) ? NearbyTeamPresentation.rangeText(radius) : (LocaleDisplay.radius(meters: Double(radius), locale: locale) ?? "—")) \(count)")
             .cyText(.bodyMedium).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("nearby.w208.listHeader")
     }
 }
@@ -141,12 +142,13 @@ struct NearbyTeamListRow: View {
 
 /// Corner controls 范围 N km · 我的队伍 (· N).
 struct NearbyTeamCornerBar: View {
+    @Environment(\.locale) private var locale
     let radius: Int
     let mineCount: Int
     let openMine: () -> Void
     var body: some View {
         HStack(spacing: 12) {
-            CYStatusChip("nearby.w208.range \(NearbyTeamPresentation.rangeText(radius))", tone: .neutral, systemImage: "scope")
+            CYStatusChip("nearby.w208.range \(LocaleDisplay.isChinese(locale) ? NearbyTeamPresentation.rangeText(radius) : (LocaleDisplay.radius(meters: Double(radius), locale: locale) ?? "—"))", tone: .neutral, systemImage: "scope")
                 .accessibilityIdentifier("nearby.w208.range")
             CYPillButton(mineCount > 0 ? "nearby.w208.myTeams.count \(mineCount)" : "nearby.w208.myTeams", style: .secondary, fullWidth: false, action: openMine)
                 .accessibilityIdentifier("nearby.w208.myTeams")
@@ -169,6 +171,7 @@ struct NearbyTeamBadgeView: View {
 
 /// `城市定向/自由探索 · {addr}集合/附近 · 距你 X km`.
 struct NearbyTeamSubLine: View {
+    @Environment(\.locale) private var locale
     let team: NearbyTeam
     private var line: Text {
         var parts: [Text] = []
@@ -176,7 +179,7 @@ struct NearbyTeamSubLine: View {
         if !team.addressName.isEmpty {
             parts.append(NearbyTeamPresentation.placeIsGather(team) ? Text("nearby.w208.place.gather \(team.addressName)") : Text("nearby.w208.place.near \(team.addressName)"))
         }
-        if let distance = team.distance { parts.append(Text("nearby.w208.distance \(NearbyTeamPresentation.distanceText(distance))")) }
+        if let distance = team.distance { parts.append(Text("nearby.w208.distance \(LocaleDisplay.isChinese(locale) ? NearbyTeamPresentation.distanceText(distance) : (LocaleDisplay.distance(meters: distance, locale: locale) ?? "—"))")) }
         guard var result = parts.first else { return Text(verbatim: "") }
         for part in parts.dropFirst() { result = result + Text(verbatim: " · ") + part }
         return result

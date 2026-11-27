@@ -62,11 +62,11 @@ import UIKit
     func testAmountUnknownOriginalPrecisionAndSignArePreserved() throws {
         let summary = try source("CoopFinanceSummarySection.swift")
         XCTAssertTrue(summary.contains("guard let value else { return Text(verbatim: \"—\") }"))
-        XCTAssertTrue(summary.contains("formatter.minimumFractionDigits = 2; formatter.maximumFractionDigits = 2"))
-        XCTAssertTrue(summary.contains("(negative ? \"−¥\" : \"¥\") + text"))
+        // i18n r1: the two-decimal U+2212 look moved into `LocaleDisplay.money(_:negative:locale:)` (Chinese unchanged).
+        XCTAssertTrue(summary.contains("LocaleDisplay.money(value, negative: negative, locale: locale)"))
         let profit = try source("CoopFinanceProfitView.swift")
         XCTAssertTrue(profit.contains("guard let amount = stat.amount else { return \"—\" }"))
-        XCTAssertTrue(profit.contains("(stat.key == .adjustExecuted ? \"−¥\" : \"¥\") + CoopFinanceProfit.plainText(amount)"))
+        XCTAssertTrue(profit.contains("LocaleDisplay.money(amount, negative: stat.key == .adjustExecuted, locale: locale)"))
         XCTAssertTrue(profit.contains("topic.status != .unsettled && topic.status != .settlementUnknown"))
     }
     func testAcceptedProjectKeepsActualSourceGateAndLifecycle() throws {

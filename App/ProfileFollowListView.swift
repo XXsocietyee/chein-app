@@ -35,7 +35,7 @@ import SwiftUI
                         Text("followList.following", tableName: "ProfileFollowList").tag(ProfileFollowListKind.following)
                         Text("followList.followers", tableName: "ProfileFollowList").tag(ProfileFollowListKind.followers)
                     } label: { Text("followList.title", tableName: "ProfileFollowList") }
-                    .pickerStyle(.segmented).accessibilityIdentifier("profile.followList.kind")
+                    .cyAdaptiveSegmented().accessibilityIdentifier("profile.followList.kind")
                     Text("followList.notFriends", tableName: "ProfileFollowList").font(.footnote).foregroundStyle(.secondary)
                     if let error = flow.error {
                         SocialIssueView(error: error, retry: flow.canRetry ? { flow.retry() } : nil)

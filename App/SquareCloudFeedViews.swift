@@ -125,7 +125,7 @@ struct SquareCloudStravaBlock: View {
                 .accessibilityIdentifier("square.cloud.activityTitle")
             }
             HStack(alignment: .top) {
-                stat(copy("距离", "Distance"), SquareStravaCard.distanceText(card.distanceKilometers)).accessibilityIdentifier("square.cloud.stat.distance")
+                stat(copy("距离", "Distance"), LocaleDisplay.isChinese(locale) ? SquareStravaCard.distanceText(card.distanceKilometers) : (card.distanceKilometers.flatMap { LocaleDisplay.distance(kilometers: $0, locale: locale) } ?? SquareStravaCard.distanceText(card.distanceKilometers))).accessibilityIdentifier("square.cloud.stat.distance")
                 stat(copy("完成节点", "Nodes done"), SquareStravaCard.nodeText(done: card.nodeDone, total: card.nodeTotal)).accessibilityIdentifier("square.cloud.stat.nodes")
                 stat(copy("时长", "Duration"), SquareStravaCard.durationText(card.durationSeconds)).accessibilityIdentifier("square.cloud.stat.duration")
             }

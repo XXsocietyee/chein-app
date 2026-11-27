@@ -70,7 +70,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The cooling-off deadline is in Beijing time and is set by 城瘾."
+            "value": "The cooling-off deadline is in Beijing time and is set by Chengyin."
           }
         },
         "zh-Hans": {
@@ -118,7 +118,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This account has no bound phone number, so deletion needs WeChat re-confirmation, which the app cannot do. Bind a phone number first, or apply in the 城瘾 mini program."
+            "value": "This account has no bound phone number, so deletion needs WeChat re-confirmation, which the app cannot do. Bind a phone number first, or apply in the Chengyin WeChat mini program."
           }
         },
         "zh-Hans": {
@@ -214,7 +214,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "城瘾 uses your location only after you start roaming or confirm location during play, to check in at points and record your trail. Recording continues while the screen is locked or the app is in the background, and stops when you end roaming or pause or end play. Home reads your current location only after you grant location access, and only to recommend nearby activities. Sharing your location with nearby users is off by default and needs separate consent; when on, it shows a blurred neighbourhood location, your nickname, avatar and this roam's information, and you can turn it off at any time without affecting your own trail. Photo judging, object cards, NPC chat and the AI creation assistant send the photos or text you submit to a third-party model provider (DeepSeek); voice cloning sends your recording to Alibaba Cloud's speech model (Tongyi CosyVoice) to create a voice. Photo and voice processing each need separate consent, and results are used only for that feature."
+            "value": "Chengyin uses your location only after you start roaming or confirm location during play, to check in at points and record your trail. Recording continues while the screen is locked or the app is in the background, and stops when you end roaming or pause or end play. Home reads your current location only after you grant location access, and only to recommend nearby activities. Sharing your location with nearby users is off by default and needs separate consent; when on, it shows a blurred neighbourhood location, your nickname, avatar and this roam's information, and you can turn it off at any time without affecting your own trail. Photo judging, object cards, NPC chat and the AI creation assistant send the photos or text you submit to a third-party model provider (DeepSeek); voice cloning sends your recording to Alibaba Cloud's speech model (Tongyi CosyVoice) to create a voice. Photo and voice processing each need separate consent, and results are used only for that feature."
           }
         },
         "zh-Hans": {

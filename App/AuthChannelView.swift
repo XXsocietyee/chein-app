@@ -57,7 +57,7 @@ struct AuthChannelView: View {
 
     private var form: some View {
         PhoneSignInForm(
-            phone: $model.phone, code: $model.code,
+            phone: $model.phone, code: $model.code, country: $model.country,
             phoneEnabled: domesticPhoneVisible, locked: model.state.isWorking,
             smsSent: model.state.smsSent,
             issueKey: model.state.issue?.localizationKey,
@@ -101,6 +101,8 @@ struct AuthChannelView: View {
 struct PhoneSignInForm<AppleContent: View>: View {
     @Binding var phone: String
     @Binding var code: String
+    /// i18n r1: country code chip (+86 / +1). Fixtures keep the China default.
+    var country: Binding<PhoneCountryCode> = .constant(.china)
     var phoneEnabled = true
     var locked = false
     var smsSent = false
@@ -133,10 +135,7 @@ struct PhoneSignInForm<AppleContent: View>: View {
             if phoneEnabled {
                 Section {
                     HStack {
-                        Text(verbatim: "+86")
-                            .monospacedDigit()
-                            .foregroundStyle(.secondary)
-                            .accessibilityLabel(Text("auth.phone.country"))
+                        countryMenu
                         phoneInput
                     }
                     sendButton
@@ -192,8 +191,12 @@ struct PhoneSignInForm<AppleContent: View>: View {
             if value != digits { code = digits }
         }
         .onChange(of: phone) { _, value in
-            let digits = String(value.filter { $0.isASCII && $0.isNumber }.prefix(11))
+            let digits = country.wrappedValue.sanitize(value)
             if value != digits { phone = digits }
+        }
+        .onChange(of: country.wrappedValue) { _, picked in
+            let digits = picked.sanitize(phone)
+            if phone != digits { phone = digits }
         }
         .onChange(of: smsSent) { _, sent in if sent { focus = .code } }
         .onChange(of: issueKey) { _, key in if key != nil, !issueIsSoft { shakes += 1 } }
@@ -202,8 +205,33 @@ struct PhoneSignInForm<AppleContent: View>: View {
         .sensoryFeedback(.error, trigger: shakes)
     }
 
+    /// i18n r1: +86 / +1 picker in the country chip's place. The chip shows only the dial code so the
+    /// field keeps its width in both languages; the menu rows carry the country names.
+    private var countryMenu: some View {
+        Menu {
+            Picker(selection: country) {
+                ForEach(PhoneCountryCode.allCases) { option in
+                    (Text(LocalizedStringKey(option.nameKey)) + Text(verbatim: " " + option.dialCode)).tag(option)
+                }
+            } label: {
+                Text("auth.phone.countryCode")
+            }
+        } label: {
+            HStack(spacing: 2) {
+                Text(verbatim: country.wrappedValue.dialCode).monospacedDigit()
+                Image(systemName: "chevron.up.chevron.down").imageScale(.small).accessibilityHidden(true)
+            }
+            .foregroundStyle(.secondary)
+            .fixedSize()
+        }
+        .disabled(locked)
+        .accessibilityLabel(Text("auth.phone.countryCode"))
+        .accessibilityValue(Text(LocalizedStringKey(country.wrappedValue.nameKey)) + Text(verbatim: " " + country.wrappedValue.dialCode))
+        .accessibilityIdentifier("auth.phone.countryCode")
+    }
+
     private var phoneInput: some View {
-        TextField("auth.channels.phone", text: $phone)
+        TextField(LocalizedStringKey(country.wrappedValue == .china ? "auth.channels.phone" : "auth.channels.phone.us"), text: $phone)
             .monospacedDigit()
             .keyboardType(.phonePad).textContentType(.telephoneNumber)
             .textInputAutocapitalization(.never).autocorrectionDisabled()
@@ -282,7 +310,10 @@ struct PhoneSignInForm<AppleContent: View>: View {
         .frame(maxWidth: .infinity)
     }
 
-    private var validPhone: Bool { (try? AuthChannelInput.phone(phone)) != nil }
+    private var validPhone: Bool {
+        guard let wire = country.wrappedValue.wireValue(phone) else { return false }
+        return (try? AuthChannelInput.phone(wire)) != nil
+    }
     private var validCode: Bool { (try? AuthChannelInput.code(code)) != nil }
     private var canSend: Bool { canStart && cooldown <= 0 && validPhone && !isSending && !locked }
 }

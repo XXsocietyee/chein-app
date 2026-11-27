@@ -7,7 +7,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start roam"
+            "value": "Start Roaming"
           }
         },
         "zh-Hans": {
@@ -41,7 +41,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check in"
+            "value": "Check In"
           }
         },
         "zh-Hans": {
@@ -81,7 +81,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "打开城因页面"
+            "value": "打开城瘾页面"
           }
         }
       }

@@ -34,7 +34,7 @@ struct TemplateRootRehearsalView: View {
             }
             if draft.enabled("roleViews") {
                 Section("creatorRoot.roleViews") {
-                    Picker("creatorRoot.roleLabel", selection: $role) { Text(verbatim: "A").tag("A"); Text(verbatim: "B").tag("B") }.pickerStyle(.segmented)
+                    Picker("creatorRoot.roleLabel", selection: $role) { Text(verbatim: "A").tag("A"); Text(verbatim: "B").tag("B") }.cyAdaptiveSegmented()
                     let fields = draft.value["roleViews"]?.object ?? [:]
                     if let view = (fields["views"]?.array ?? []).first(where: { $0.object?["roleId"]?.string == role })?.object {
                         Text(verbatim: view["title"]?.string ?? "").font(.headline)

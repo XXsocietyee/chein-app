@@ -111,7 +111,7 @@ private struct ClubActivityCard: View {
     @ViewBuilder private var stats: some View {
         if let count = row.signups { stat(count, title: "club.activityList.signups") }
         if let count = row.stations { stat(count, title: "club.activityList.stations") }
-        if let distance = row.mileageKM { stat(distance, title: "club.activityList.kilometers") }
+        if let distance = row.mileageKM { stat(LocaleDisplay.roadNumber(kilometers: distance, locale: locale), title: LocaleDisplay.usesMiles(locale) ? "club.activityList.miles" : "club.activityList.kilometers") }
     }
     private func stat(_ value: Double, title: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: 2) {

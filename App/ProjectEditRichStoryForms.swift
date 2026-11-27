@@ -117,7 +117,7 @@ import SwiftUI
                             Text(LocalizedStringKey("fixr9.ap.story.gallery.layout." + String(n))).tag(n)
                         }
                     }
-                    .pickerStyle(.segmented)
+                    .cyAdaptiveSegmented()
                     .accessibilityIdentifier("projectEdit.rich.gallery.layout")
                     ForEach(0..<galleryLayout, id: \.self) { index in
                         // r11 C-F18: MP fabu/index.js:2104 fillStoryGalleryCell picks one photo per cell.

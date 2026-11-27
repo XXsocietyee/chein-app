@@ -527,7 +527,7 @@ extension EnvironmentValues {
                 Text("wallet.all").tag("all")
                 Text(points ? "u9cde.points.earned" : "wallet.inflow").tag("income")
                 Text(points ? "u9cde.points.used" : "wallet.outflow").tag("expense")
-            }.pickerStyle(.segmented)
+            }.cyAdaptiveSegmented()
             }
             if points { NavigationLink("wallet.tasks") { WalletPointsTasksView(reader: reader) } }
             if model.pager.hasLoadedPage && model.pager.loadedScope == reader.scope {
@@ -820,7 +820,7 @@ enum WalletIncomeSegment: Hashable {
                     Text("wallet.income.tab.income").tag(false)
                     Text("g6.revenue.tab").tag(true)
                 }
-                .pickerStyle(.segmented).padding(.horizontal).padding(.top)
+                .cyAdaptiveSegmented().padding(.horizontal).padding(.top)
                 .accessibilityIdentifier("wallet.income.revenueTabs")
             }
             ZStack(alignment: .top) {
@@ -887,7 +887,7 @@ enum WalletIncomeSegment: Hashable {
                     .tag(WalletIncomeSegment.organizer)
             }
         }
-        .pickerStyle(.segmented)
+        .cyAdaptiveSegmented()
         .padding()
         .accessibilityIdentifier("wallet.income.filter")
         .onChange(of: segment) { _, next in selectSegment(next) }

@@ -132,7 +132,7 @@ import SwiftUI
                 Text(zh ? "原绑定安装稿" : "Original bound copy").tag(true)
                 Text(zh ? "已购冻结原文" : "Licensed frozen source").tag(false)
             }
-            .pickerStyle(.segmented)
+            .cyAdaptiveSegmented()
             .frame(minHeight: CYSpacing.minTouchTarget)
             if let fields = try? value.fields(installed: installed) {
                 ForEach(ModInstalledTextRead.fieldNames, id: \.self) { name in

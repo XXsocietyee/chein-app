@@ -37,7 +37,7 @@ import SwiftUI
             }
             Picker("club.gov.filter", selection: $selected) {
                 ForEach(ClubRosterBucket.allCases, id: \.self) { bucket in Text(LocalizedStringKey(bucket.localizationKey)).tag(bucket) }
-            }.pickerStyle(.segmented).accessibilityIdentifier("club.roster.filter")
+            }.cyAdaptiveSegmented().accessibilityIdentifier("club.roster.filter")
             // Mini CU-C-73: the operable window is stated in place only while corrections are closed.
             if roster.correctionOperable == false {
                 Group {

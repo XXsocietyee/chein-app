@@ -291,7 +291,7 @@ struct GlobalSearchResultTabsBar: View {
                     .accessibilityIdentifier("globalSearch.tab.\(tab.kind.rawValue)")
             }
         }
-        .pickerStyle(.segmented)
+        .cyAdaptiveSegmented()
     }
 
     private func segmentTitle(_ tab: GlobalSearchParityPresentation.ResultTabDescriptor) -> Text {
@@ -1489,7 +1489,7 @@ struct UnifiedSearchModeBar: View {
                     .accessibilityIdentifier("unifiedSearch.mode.\(item.rawValue)")
                 }
             }
-            .pickerStyle(.segmented)
+            .cyAdaptiveSegmented()
             .labelsHidden()
             .accessibilityIdentifier("unifiedSearch.modePicker")
 
@@ -1501,7 +1501,7 @@ struct UnifiedSearchModeBar: View {
                             .accessibilityIdentifier("unifiedSearch.mapScope.\(scope.rawValue)")
                     }
                 }
-                .pickerStyle(.segmented)
+                .cyAdaptiveSegmented()
                 .labelsHidden()
                 .accessibilityIdentifier("unifiedSearch.mapScopePicker")
             }

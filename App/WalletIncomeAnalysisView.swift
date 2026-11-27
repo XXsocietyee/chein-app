@@ -77,7 +77,7 @@ import Accessibility
                 readText("budget").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
             if dynamicTypeSize.isAccessibilitySize { modePicker.pickerStyle(.menu) }
-            else { modePicker.pickerStyle(.segmented) }
+            else { modePicker.cyAdaptiveSegmented() }
             if currencies.count > 1 {
                 Picker(selection: Binding(get: { currency ?? "" }, set: { selectedCurrency = $0 })) {
                     ForEach(currencies, id: \.self) { Text(verbatim: $0).tag($0) }

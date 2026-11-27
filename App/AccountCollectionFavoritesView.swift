@@ -45,7 +45,7 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
                 } label: {
                     Text("accountCollection.favorites.title")
                 }
-                .pickerStyle(.segmented)
+                .cyAdaptiveSegmented()
                 .padding(.horizontal).padding(.vertical, 8)
                     .accessibilityElement(children: .contain)
                     .accessibilityLabel(Text("accountCollection.favorites.title"))

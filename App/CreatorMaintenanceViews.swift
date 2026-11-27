@@ -130,7 +130,7 @@ import QuestifyCore
                 Picker("creatorStudio.maintenance.tab", selection: $tab) {
                     Text("creatorStudio.maintenance.tab.feedback").tag(CreatorMaintenanceModel.Tab.feedback)
                     Text("creatorStudio.maintenance.tab.tickets").tag(CreatorMaintenanceModel.Tab.tickets)
-                }.pickerStyle(.segmented).accessibilityIdentifier("creatorStudio.maintenance.tab")
+                }.cyAdaptiveSegmented().accessibilityIdentifier("creatorStudio.maintenance.tab")
             } footer: { Text("creatorStudio.maintenance.flow") }
             if tab == .feedback { feedbackSections } else { ticketSections }
         }

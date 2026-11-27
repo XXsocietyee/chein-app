@@ -58,7 +58,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             } label: {
                 Text(screenTitle)
             }
-            .pickerStyle(.segmented)
+            .cyAdaptiveSegmented()
             .padding(.horizontal, CYSpacing.pageHorizontal)
             .padding(.vertical, CYSpacing.sm)
             .zIndex(1)

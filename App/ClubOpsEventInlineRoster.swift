@@ -17,7 +17,7 @@ import SwiftUI
                     Text(LocalizedStringKey(bucket.localizationKey)).tag(bucket)
                 }
             }
-            .pickerStyle(.segmented)
+            .cyAdaptiveSegmented()
             .accessibilityIdentifier("clubOpsEvent.roster.tabs")
             // CLB-r11-event-ops-01 (MP event-ops wxml:86-87 correctionWindowText): while corrections are closed the
             // operable window is stated under the tabs, as on the full roster page (ClubRosterBucketContent).

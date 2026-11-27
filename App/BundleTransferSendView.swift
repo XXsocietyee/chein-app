@@ -127,7 +127,7 @@ import SwiftUI
                     text("transfer.channel.inApp").tag(BundleTransferChannel.inApp)
                     text("transfer.channel.sms").tag(BundleTransferChannel.sms)
                 } label: { text("transfer.channel") }
-                .pickerStyle(.segmented)
+                .cyAdaptiveSegmented()
                 .accessibilityLabel(text("transfer.channel"))
             } header: {
                 text("transfer.channel")
