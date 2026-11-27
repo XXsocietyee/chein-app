@@ -320,10 +320,13 @@ struct ClubCommunityFeedView: View {
     /// CLB-detail-14 (MP detail wxml:96-158): on the club page the feed sits inline under 帖文, so the page header and
     /// tab bar come in as leading sections of this List (the feed keeps its own navigation, refresh and sheets).
     private let leading: AnyView?
+    /// mp-club r3 (MP talent/list wxml:39, Round5 #2): a guest's feed is not a load failure — 登录后查看帖文 + 登录.
+    private let onSignIn: (() -> Void)?
     @State private var didFocusPost = false
     init(context: ClubCommunityContext, identity: ClubReadIdentity, clubID: Int? = nil, focusPostID: Int? = nil,
-         leading: AnyView? = nil) {
+         leading: AnyView? = nil, onSignIn: (() -> Void)? = nil) {
         self.identity = identity; self.clubID = clubID; self.focusPostID = focusPostID; self.leading = leading
+        self.onSignIn = onSignIn
         _model = StateObject(wrappedValue: ClubCommunityViewModel(context: context))
     }
     private var operation: ClubCommunityRead { clubID.map { .posts(clubID: $0, page: page) } ?? .feed(page: page) }
@@ -336,29 +339,17 @@ struct ClubCommunityFeedView: View {
             if let leading { leading }
             if model.loading {
                 Section {
-                    ProgressView()
+                    // P10 / MP cy-skeleton loading-label 正在加载帖文: say it in words, not a bare spinner.
+                    ProgressView { Text("club.community.loading") }
                         .frame(maxWidth: .infinity)
-                        .accessibilityLabel(Text("club.community.loading"))
+                        .accessibilityElement(children: .combine)
                 }
             }
-            if let notice = model.notice { Section { communityNotice(notice, identifier: "club.community.notice") } }
+            if guestSignIn != nil, model.snapshot == nil, !model.loading {
+                Section { guestState }
+            } else if let notice = model.notice { Section { communityNotice(notice, identifier: "club.community.notice") } }
             if let pending = model.pendingRecord, let clubID { pendingLock(pending, clubID: clubID, identifierPrefix: "club.community") }
             if let snapshot = model.snapshot {
-                if clubID == nil, snapshot.posts.isEmpty {
-                    // Cross-club feed (发现 · 帖文): mini-program cy-empty shows one title, 还没有帖文.
-                    ContentUnavailableView(LocalizedStringKey(ClubTabPresentation.feedEmptyKeys(clubCount: snapshot.clubCount).title),
-                                           systemImage: "text.bubble")
-                        .accessibilityIdentifier("clubTab.feed.emptyHint")
-                } else if snapshot.clubCount == 0 {
-                    ContentUnavailableView("club.community.joinFirst", systemImage: "person.3")
-                } else if snapshot.posts.isEmpty {
-                    // CLB-detail-15 (parity r2): MP 暂无帖文, with 入会后可发布 for viewers who cannot post yet.
-                    ContentUnavailableView {
-                        Label("club.community.empty", systemImage: "text.bubble")
-                    } description: {
-                        if clubID != nil && !canCompose { Text("club.community.emptyJoinHint") }
-                    }
-                }
                 // CLB-detail-05: MP cy-club-pinned-notice, one line + chevron for the pinned 公告, opening the post.
                 if let clubID, let pinned = snapshot.posts.first(where: { $0.pinned && $0.type == 2 }) {
                     Section {
@@ -378,6 +369,24 @@ struct ClubCommunityFeedView: View {
                         }
                         .foregroundStyle(.primary)
                         .accessibilityIdentifier("club.community.pinnedNotice")
+                    }
+                }
+                // mp-club r3 (MP detail wxml:97-158): pinned notice, then the 发帖 pill, then the posts or the empty state —
+                // the pill stays above the empty state too (M-33).
+                if canCompose { composerRow }
+                if clubID == nil, snapshot.posts.isEmpty {
+                    // Cross-club feed (发现 · 帖文): mini-program cy-empty shows one title, 还没有帖文.
+                    ContentUnavailableView(LocalizedStringKey(ClubTabPresentation.feedEmptyKeys(clubCount: snapshot.clubCount).title),
+                                           systemImage: "text.bubble")
+                        .accessibilityIdentifier("clubTab.feed.emptyHint")
+                } else if snapshot.clubCount == 0 {
+                    ContentUnavailableView("club.community.joinFirst", systemImage: "person.3")
+                } else if snapshot.posts.isEmpty {
+                    // CLB-detail-15 (parity r2): MP 暂无帖文, with 入会后可发布 for viewers who cannot post yet.
+                    ContentUnavailableView {
+                        Label("club.community.empty", systemImage: "text.bubble")
+                    } description: {
+                        if clubID != nil && !canCompose { Text("club.community.emptyJoinHint") }
                     }
                 }
                 ForEach(snapshot.feedItems) { item in
@@ -403,9 +412,9 @@ struct ClubCommunityFeedView: View {
                 }
             }
             // CLB-detail-15: pull to refresh covers a loaded feed; the button is only the retry when nothing loaded.
-            if (model.snapshot == nil && !model.loading) || writesUnavailable {
+            if (model.snapshot == nil && !model.loading && guestSignIn == nil) || writesUnavailable {
                 Section {
-                    if model.snapshot == nil, !model.loading {
+                    if model.snapshot == nil, !model.loading, guestSignIn == nil {
                         Button("action.retry") { Task { await model.load(operation) } }
                             .disabled(model.busy)
                     }
@@ -422,15 +431,6 @@ struct ClubCommunityFeedView: View {
         }
         }
         .modifier(ClubCommunityPushedTitle(title: clubID == nil || leading != nil ? nil : LocalizedStringKey("club.community.posts")))
-        .toolbar {
-            if canCompose {
-                ToolbarItem(placement: .primaryAction) {
-                    Button { composing = true } label: { Label("club.community.create", systemImage: "square.and.pencil") }
-                        .disabled(model.busy || model.pendingRecord != nil || model.context.coordinator?.permitsInjectedWrites != true)
-                        .accessibilityIdentifier("club.community.compose")
-                }
-            }
-        }
         .refreshable { await model.load(operation) }
         .background(alignment: .topLeading) { ClubPostDiscussionFixtureTraceView() }
         .navigationDestination(item: $destination) { target in
@@ -497,6 +497,47 @@ struct ClubCommunityFeedView: View {
         }
     }
     private var writesUnavailable: Bool { model.context.coordinator?.permitsInjectedWrites != true }
+    /// The host's sign-in entry, only while signed out.
+    private var guestSignIn: (() -> Void)? { identity.isSignedIn ? nil : onSignIn }
+    /// MP talent/list wxml:39: cy-error title 登录后查看帖文, retry button 登录.
+    @ViewBuilder private var guestState: some View {
+        if let guestSignIn {
+            ContentUnavailableView {
+                Label("club.community.signInToView", systemImage: "person.crop.circle")
+            } actions: {
+                Button("club.signIn", action: guestSignIn)
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("club.community.signIn")
+            }
+            .accessibilityIdentifier("club.community.signedOut")
+        }
+    }
+    /// MP detail wxml:100-113 `post-composer-collapsed`: one tappable row (prompt + photo glyph) opening the full composer
+    /// sheet, in place of a toolbar button. Same gate and disabled rules as before (CLB-detail-16).
+    private var composerRow: some View {
+        Section {
+            Button { composing = true } label: {
+                HStack(spacing: CYSpacing.md) {
+                    Image(systemName: "square.and.pencil")
+                        .font(.title3)
+                        .foregroundStyle(.tint)
+                        .accessibilityHidden(true)
+                    Text("club.community.composerPrompt")
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Image(systemName: "photo")
+                        .foregroundStyle(.secondary)
+                        .accessibilityHidden(true)
+                }
+                .frame(minHeight: CYSpacing.minTouchTarget)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(model.busy || model.pendingRecord != nil || writesUnavailable)
+            .accessibilityLabel(Text("club.community.create"))
+            .accessibilityIdentifier("club.community.compose")
+        }
+    }
     private func communityNotice(_ key: String, identifier: String) -> some View {
         Text(LocalizedStringKey(key))
             .foregroundStyle(.secondary)

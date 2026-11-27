@@ -44,12 +44,12 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     private var discoveryScope: ClubDiscoveryScope { reader.clubDiscoveryScope }
     /// Source talent/list top tabs 帖文 / 俱乐部; it opens on 俱乐部 and loads the feed only when chosen.
     @State private var topTab = ClubTabPresentation.TopTab.club
-    /// Design hand-off r1 PL-11: the title matches the tab (俱乐部), on both the 帖文 and 俱乐部 top tabs.
+    /// Accessibility label of the 帖文 / 俱乐部 picker. The page title itself is 发现 (MP talent/list wxml:19, mp-club r3).
     private var screenTitle: LocalizedStringKey { "club.title" }
     var body: some View {
         VStack(spacing: 0) {
         if community != nil {
-            // Mini-program talent/list: the title (system large title, `cyRootHeader(.club)`) stays for both tabs;
+            // Mini-program talent/list: the title (system large title 发现) stays for both tabs;
             // 帖文 / 俱乐部 is a native segmented picker (native-ios-r1 §4.4).
             Picker(selection: $topTab) {
                 ForEach(ClubTabPresentation.TopTab.allCases, id: \.self) { tab in
@@ -77,7 +77,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                 MPPassExploreCard()
                     .padding(.horizontal, CYSpacing.pageHorizontal)
                     .padding(.bottom, CYSpacing.sm)
-                ClubCommunityFeedView(context: community, identity: reader.clubIdentity)
+                ClubCommunityFeedView(context: community, identity: reader.clubIdentity, onSignIn: onSignIn)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -151,7 +151,9 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             guard let id else { return }
             openedClubID = id; requestedClubID?.wrappedValue = nil
         }
-        .cyRootHeader(.club)
+        // mp-club r3 (MP talent/list wxml:19-20, owner 2026-10-29): the page is titled 发现 on both top tabs; the tab bar
+        // item stays 俱乐部 (components/tabBar).
+        .cyRootHeader(.club, titleKey: "club.tab.title")
         .toolbar {
             // r11 A8-03: 查找俱乐部 moved off the list into the toolbar; only on the 俱乐部 top tab, like before.
             ToolbarItem(placement: .topBarTrailing) {

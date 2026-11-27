@@ -133,19 +133,22 @@ struct CYStatusTag: View {
 /// Content scrolls under the system bar and the large title collapses on scroll (system motion). The page's own actions
 /// stay in the trailing toolbar, after the 消息 entry, which sits in the same place on every root.
 extension View {
-    func cyRootHeader(_ tab: RootTab) -> some View {
-        modifier(CYRootHeaderModifier(tab: tab))
+    /// `titleKey` overrides the tab's own title where the MP page title differs from its tab label
+    /// (俱乐部 tab → page 发现, MP talent/list wxml:19).
+    func cyRootHeader(_ tab: RootTab, titleKey: String? = nil) -> some View {
+        modifier(CYRootHeaderModifier(tab: tab, titleKey: titleKey))
     }
 }
 
 private struct CYRootHeaderModifier: ViewModifier {
     let tab: RootTab
+    var titleKey: String? = nil
     @Environment(\.locale) private var locale
 
     func body(content: Content) -> some View {
         // Same lookup as `appNavigationTitle`, so the in-app language switch applies to the root titles too.
         content
-            .navigationTitle(appLocalized(String.LocalizationValue(stringLiteral: tab.titleKey), locale: locale))
+            .navigationTitle(appLocalized(String.LocalizationValue(stringLiteral: titleKey ?? tab.titleKey), locale: locale))
             .navigationBarTitleDisplayMode(.large)
     }
 }
