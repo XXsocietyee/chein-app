@@ -39,6 +39,16 @@ extension EnvironmentValues {
     var body: some View {
         NavigationStack {
             List {
+                // mp-roam r3: MP `dr-content` order is cover (`poi.imgUrl`) → name → 选一份见面礼; the cover shows only
+                // when the shop has a safe https image (no grey placeholder slab).
+                if let cover = place.coverImage, QuestifyCardArtwork.safeURL(cover) != nil {
+                    Section {
+                        RoamEntryCover(source: cover)
+                            .frame(height: 160)
+                            .listRowInsets(EdgeInsets())
+                    }
+                    .accessibilityIdentifier("roam.discover.cover")
+                }
                 Section {
                     Text(verbatim: place.name).font(.title3.weight(.semibold))
                     Text("roam.discover.pick").foregroundStyle(.secondary)

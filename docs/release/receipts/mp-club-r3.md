@@ -151,10 +151,19 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 15. Pass 6: merge combined-r7 (xcstrings: both sides' keys, 28 added); club 帖文 公告 · 新人先看 (≤2 pinned notices with unread dots).
 17. Pass 7: merge combined-r7 (xcstrings: both sides' keys, 16 added); notify review = preview card only (MP wxml:55-64).
 18. Pass 8: merge combined-r7 (xcstrings: combined is a superset; 35 keys take its newer values); 出示团码 card in MP order (code → session name → 保存到相册); 结束主题 confirm names the topic; 解散 confirm in the MP's three consequences.
+19. Pass 9: merge combined-r7 (xcstrings: combined is a superset); d4 club detail mounts the 帖文 feed (18:15 sweep); d4-badges / d4-stamps crash written up.
 8. Pass 2: shared club thumbnail, customer-detail edit heading, create check-failed 返回上一页, enroll order, check-in rail refund note.
 
 ## Sweep check (pass 7, build 070117595, `docs/sweeps/latest/mp-club/sheet-zh-Hans.jpg`)
 Most tiles are the launch logo (coordinator 17:40: taken under load, ignore). Readable tiles: `d4-enroll` 报名名册 and `d4-members` 成员 look right (inline titles, grouped lists). `d4-channels` shows the category headers 「Announcements」/「Community」 in the Chinese UI, but those are channel-category names from `App/DesignFixtures/D4Fixtures.swift:108-109` (server data), not app copy. Re-check on the clean sweep.
 
+## Pass 9: coordinator sweep 18:15 UTC (build 95b4643ab, `docs/sweeps/latest/mp-club/sheet-zh-Hans.jpg`)
+
+| MP page | Native | Sweep finding | Status |
+|---|---|---|---|
+| `pages/club/detail` 帖文 tab (wxml:96-158, `/api/club/post/list`) | `App/ClubDetailView.swift:111-168`, fixture `App/DesignFixtures/D4Fixtures.swift` | `zh-Hans-d4-tab-posts.jpg`: 帖文 showed 「当前版本暂不可查看俱乐部帖子」. The view is right: with a community context it mounts `ClubCommunityFeedView` (MP post list, 公告 · 新人先看, composer pill, MP empty state). The d4 fixture never passed one, so the sweep hit the no-community fallback. | **Fixed (fixture).** `ClubCommunityFixture.context(identity:clubID:)` (offline transport, rows carry the requested club id); `d4-tab-*` and `d4-detail` pass it for viewer 701 / club 81. Re-check on the next sweep |
+| `pages/talent/*` badge wall / stamp album (d4-badges, d4-stamps; also mp-roam `e2-stamp-album`, same `D4MeFixture(.stamps)`) | `D4MeFixture` → `ObjectBadgeWallView`, `RoamStampAlbumView` | App quits right after launch (home-screen tile), in both languages. | **Not done: not reproducible here** (no simulator in the cloud run). Checked statically: both cases resolve in `DesignFixtureRegistry.make` (lines 99, 103, 129); no `fatalError`/force-unwrap on the badge path; the only `try!` is `RoamExperienceFixtureReader.scope` (stamps only, constant input). Common to all three quitting fixtures (with mp-mine `e4-tickets`): `.cyHideTabBar()` + `cyPageTitle` on a fixture `NavigationStack` with **no** `AppSession` — new since 17:23, when design fixtures stopped building the production session (`5e2a0a57f`, mp-home). Needs the crash log from `xcrun simctl launch … --design-fixture d4-badges` (`~/Library/Logs/DiagnosticReports`) |
+
 ## For other lanes
+- mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.
 - en-layout / fixtures: `D4Fixtures.swift:108-109` channel categories are English in the zh-Hans sweep; localize the fixture if the sweep should read as zh-Hans.
