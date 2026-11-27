@@ -252,9 +252,11 @@ public enum EditorReviewStatus: Equatable, Sendable {
     }
 }
 
-/// CF-44: the gameplay editor's sticky section bar (信息 · 规则 · 玩法 · 反馈 · 奖励 · 工具).
+/// CF-44: the gameplay editor's sticky section bar, in page order. mp-r3-publish: MP temp/index.wxml:1213 puts the
+/// gameplay first, then the rules, then the cover / template info, then the optional reward, story and tools
+/// (玩法 · 规则 · 信息 · 奖励 · 反馈 · 工具).
 public enum EditorOutlineSection: String, CaseIterable, Identifiable, Sendable {
-    case info, rules, gameplay, feedback, reward, tools
+    case gameplay, rules, info, reward, feedback, tools
     public var id: String { rawValue }
     public var key: String { "editorKit.outline." + rawValue }
     /// Anchor id used with `ScrollViewReader.scrollTo`.

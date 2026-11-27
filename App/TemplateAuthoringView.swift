@@ -238,7 +238,7 @@ extension EnvironmentValues {
     @State private var discard = false
     @State private var toastMessage: String?
     // Design hand-off r1 CF-44 / CF-45 / CF-17: outline, preview gate and jump-to-first-error.
-    @State private var outlineCurrent: EditorOutlineSection = .info
+    @State private var outlineCurrent: EditorOutlineSection = .gameplay
     @State private var previewMissing = false
     @State private var pendingJump = false
     @State private var errorJumps = 0
@@ -295,7 +295,7 @@ extension EnvironmentValues {
         withAnimation(.easeOut(duration: EditorMotionSpec.pushSeconds)) { proxy.scrollTo(section.anchor, anchor: .top) }
     }
     private func jumpToFirstError(_ proxy: ScrollViewProxy) {
-        jump(to: outline.firstError ?? .info, proxy); errorJumps += 1
+        jump(to: outline.firstError ?? .gameplay, proxy); errorJumps += 1
     }
     /// verify-r2 N-01: the topic-editor domain wraps the whole page (ground, section bar, bottom bar), not only the Form.
     var body: some View {
@@ -526,8 +526,8 @@ extension EnvironmentValues {
                 .disabled(!model.draft.canSave || !model.canEdit).accessibilityIdentifier("templateAuthor.continue")
         }
     }
-    /// Mini-program publish/temp order: cover and name, template info, rules, completion
-    /// (game), reward and story, tools; then save draft, preview and publish.
+    /// Mini-program publish/temp order (index.wxml:1213): gameplay and its settings, participation, rules, cover and
+    /// name, template info, then the optional groups (reward and story, tools); then save draft, preview and publish.
     @ViewBuilder private var editor: some View {
         Group {
             // CF-22: one save status, an icon plus two characters; details on tap.
@@ -542,46 +542,6 @@ extension EnvironmentValues {
             }
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets())
-            Section {
-                // verify-r1 2.9: the name is edited on the cover (header below); no separate 名称 row.
-                // CF-44: no raw URL field. The 16:9 tile above shows the cover; the shared picker crops and uploads it.
-                if makeCoverService != nil || environmentCover != nil {
-                    ActivityCoverAuthoringSection(owner: cover, kind: .template)
-                        .accessibilityIdentifier("templateCover.section")
-                } else if model.draft.imgUrl?.isEmpty == false {
-                    HStack {
-                        Text("template.set", tableName: "ActivityCoverAuthoring").foregroundStyle(.secondary)
-                        Spacer(minLength: 8)
-                        TemplateBasicFieldClearButton(model: model, field: .cover)
-                    }
-                }
-            } header: {
-                // CF-44: a 16:9 cover with the title over its bottom edge.
-                TemplateAuthoringCoverHeader(imageURL: model.draft.imgUrl, title: $model.draft.title, editable: model.canEdit,
-                                             defaultCover: TemplateInteractionDefaultCover.image(title: model.draft.title, advanced: model.draft.advanced))
-            }
-            .id(EditorOutlineSection.info.anchor)
-            Section {
-                HStack(alignment: .bottom) {
-                    TemplateAuthoringField("description", text: $model.draft.description, multiline: true)
-                    TemplateBasicFieldClearButton(model: model, field: .description)
-                }
-                TemplateAuthoringField("requiredMaterials", text: model.optional(\.requiredMaterials))
-                TemplateAuthoringVenueField(model: model)
-                TemplateAuthoringMetadataFields(model: model, reader: metadataReader)
-                TemplateAuthoringField("difficulty", text: model.optional(\.difficulty))
-                Toggle("templateAuthor.sync", isOn: .init(get: { model.draft.isSync == 1 }, set: { model.draft.isSync = $0 ? 1 : 0 }))
-            } header: {
-                Text("templateAuthor.basics")
-            } footer: {
-                if model.draft.publishIssues.contains("templateAuthor.validation.descriptionLength") {
-                    Text("templateAuthor.validation.descriptionLength").foregroundStyle(.red)
-                }
-            }
-            Section {
-                TemplateAuthoringRuleFields(model: model)
-            }
-            .id(EditorOutlineSection.rules.anchor)
             Section("templateAuthor.finish") {
                 Toggle("templateAuthor.moduleEnabled", isOn: $model.draft.finishEnabled)
                 if model.draft.finishEnabled {
@@ -601,6 +561,52 @@ extension EnvironmentValues {
             .id(EditorOutlineSection.gameplay.anchor)
             // r9 C-T3: MP temp/index.wxml:108-118, :1056-1074 (扫完回复 · 状态不好时松一点 · 可触发的结果).
             if model.draft.finishEnabled { TemplateAuthoringGapRound4Section(model: model) }
+            // MP temp/index.wxml:1213 (owner 2026-11-19): 玩法 → 参与方式 → 玩法设置 → 结果反馈 → 玩法规则 → 封面 / 模板信息 →
+            // 高级设置. The rules and the cover / template info follow the gameplay blocks, as in the MP.
+            Section {
+                TemplateAuthoringRuleFields(model: model)
+            }
+            .id(EditorOutlineSection.rules.anchor)
+            Section {
+                // verify-r1 2.9: the name is edited on the cover (header below); no separate 名称 row.
+                // CF-44: no raw URL field. The 16:9 tile above shows the cover; the shared picker crops and uploads it.
+                if makeCoverService != nil || environmentCover != nil {
+                    ActivityCoverAuthoringSection(owner: cover, kind: .template)
+                        .accessibilityIdentifier("templateCover.section")
+                } else if model.draft.imgUrl?.isEmpty == false {
+                    HStack {
+                        Text("template.set", tableName: "ActivityCoverAuthoring").foregroundStyle(.secondary)
+                        Spacer(minLength: 8)
+                        TemplateBasicFieldClearButton(model: model, field: .cover)
+                    }
+                }
+            } header: {
+                // CF-44: a 16:9 cover with the title over its bottom edge.
+                TemplateAuthoringCoverHeader(imageURL: model.draft.imgUrl, title: $model.draft.title, editable: model.canEdit,
+                                             defaultCover: TemplateInteractionDefaultCover.image(title: model.draft.title, advanced: model.draft.advanced))
+            }
+            .id(EditorOutlineSection.info.anchor)
+            // MP temp/index.wxml:1265 `wx:if="{{from !== 'fabu'}}"`: a story gameplay bound to a topic draft never
+            // enters the public library, so 模板信息 (看点 / 类别 / …) is not shown when the editor comes from fabu.
+            if from != "fabu" {
+                Section {
+                    HStack(alignment: .bottom) {
+                        TemplateAuthoringField("description", text: $model.draft.description, multiline: true)
+                        TemplateBasicFieldClearButton(model: model, field: .description)
+                    }
+                    TemplateAuthoringField("requiredMaterials", text: model.optional(\.requiredMaterials))
+                    TemplateAuthoringVenueField(model: model)
+                    TemplateAuthoringMetadataFields(model: model, reader: metadataReader)
+                    TemplateAuthoringField("difficulty", text: model.optional(\.difficulty))
+                    Toggle("templateAuthor.sync", isOn: .init(get: { model.draft.isSync == 1 }, set: { model.draft.isSync = $0 ? 1 : 0 }))
+                } header: {
+                    Text("templateAuthor.basics")
+                } footer: {
+                    if model.draft.publishIssues.contains("templateAuthor.validation.descriptionLength") {
+                        Text("templateAuthor.validation.descriptionLength").foregroundStyle(.red)
+                    }
+                }
+            }
             TemplateAuthoringRewardStoryFields(model: model)
             Section {
                 NavigationLink("templateModules.title") { TemplateOptionalModuleManager(model: model) }
