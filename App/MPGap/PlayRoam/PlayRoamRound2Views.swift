@@ -20,10 +20,10 @@ public struct BadgeWallTwoColumnGridView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
                 if !split.unlocked.isEmpty {
-                    section(title: "已点亮", medals: split.unlocked)
+                    section(title: "profile.badges.unlocked", medals: split.unlocked)
                 }
                 if !split.locked.isEmpty {
-                    section(title: "未解锁", medals: split.locked)
+                    section(title: "profile.badges.notUnlocked", medals: split.locked)
                 }
             }
             .padding(CYSpacing.md)
@@ -32,7 +32,7 @@ public struct BadgeWallTwoColumnGridView: View {
     }
 
     @ViewBuilder
-    private func section(title: String, medals: [BadgeWallMedalItem]) -> some View {
+    private func section(title: LocalizedStringKey, medals: [BadgeWallMedalItem]) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(title)
                 .cyText(.sectionTitle)
@@ -138,7 +138,7 @@ public struct RoamPOIDetailGapSections: View {
             }
 
             HStack(spacing: CYSpacing.sm) {
-                Button(isFavorited ? "已收藏" : "收藏", systemImage: isFavorited ? "heart.fill" : "heart", action: onToggleFavorite)
+                Button(LocalizedStringKey(isFavorited ? "roamSub.w208.poi.favorited" : "i18nR3.favorite"), systemImage: isFavorited ? "heart.fill" : "heart", action: onToggleFavorite)
                     .buttonStyle(.bordered)
                     .frame(maxWidth: .infinity)
                 Button("导航", systemImage: "location", action: onNavigate)

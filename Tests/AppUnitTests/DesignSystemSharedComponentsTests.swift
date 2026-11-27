@@ -247,9 +247,13 @@ final class DesignSystemSharedComponentsTests: XCTestCase {
         XCTAssertEqual(CYSheetDetent.half.presentationDetent, .medium)
         XCTAssertEqual(CYSheetDetent.full.presentationDetent, .large)
 
-        // CYRouteArrivalRequirement labels
-        XCTAssertEqual(CYRouteArrivalRequirement.gps.label, "GPS 到达")
-        XCTAssertEqual(CYRouteArrivalRequirement.qr.label, "扫码打卡")
-        XCTAssertEqual(CYRouteArrivalRequirement.photo.label, "拍照核验")
+        // CYRouteArrivalRequirement labels (i18n r3: catalog keys, so the label follows the system language)
+        let zh = Locale(identifier: "zh-Hans")
+        XCTAssertEqual(appLocalized("cyBiz.arrival.gps", locale: zh), "GPS 到达")
+        XCTAssertEqual(appLocalized("cyBiz.arrival.qr", locale: zh), "扫码打卡")
+        XCTAssertEqual(appLocalized("cyBiz.arrival.photo", locale: zh), "拍照核验")
+        XCTAssertEqual(CYRouteArrivalRequirement.gps.label, appLocalized("cyBiz.arrival.gps", locale: .current))
+        XCTAssertEqual(CYRouteArrivalRequirement.qr.label, appLocalized("cyBiz.arrival.qr", locale: .current))
+        XCTAssertEqual(CYRouteArrivalRequirement.photo.label, appLocalized("cyBiz.arrival.photo", locale: .current))
     }
 }

@@ -292,7 +292,7 @@ import SwiftUI
             return
         }
         guard let command = PlayThemeGameplayExchange.command(view: view, operation: operation, contentID: contentID,
-            actionID: PlayThemeGameplayExchange.newActionID(), selections: selections) else { error = "操作失败"; return }
+            actionID: PlayThemeGameplayExchange.newActionID(), selections: selections) else { error = appLocalized("i18nR3.actionFailed", locale: .current); return }
         await send(command, client: client, applied: applied)
     }
 
@@ -340,7 +340,7 @@ import SwiftUI
         selections["previewVersion"] = .string(preview.pack.previewVersion)
         self.preview = nil
         guard let command = PlayThemeGameplayExchange.command(view: view, operation: preview.operation, contentID: preview.contentID,
-            actionID: PlayThemeGameplayExchange.newActionID(), selections: selections) else { error = "操作失败"; return }
+            actionID: PlayThemeGameplayExchange.newActionID(), selections: selections) else { error = appLocalized("i18nR3.actionFailed", locale: .current); return }
         await send(command, client: client, applied: applied)
     }
 
@@ -363,7 +363,7 @@ import SwiftUI
         case .rejected(let message):
             pendingCommand = nil; unknown = false; error = message
         case .unknown:
-            unknown = true; error = "操作结果未确认，点击重试"
+            unknown = true; error = appLocalized("i18nR3.actionUnknownRetry", locale: .current)
         }
     }
 }

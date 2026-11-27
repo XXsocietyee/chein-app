@@ -74,7 +74,7 @@ public struct ClubGapApplyCertImagesSection: View {
                             .buttonStyle(.bordered)
                             .controlSize(.small)
                     } else {
-                        Text(verbatim: urlString.isEmpty ? "上传中…" : "已上传")
+                        Text(urlString.isEmpty ? "clubApply.r3.uploading" : "clubApply.r3.uploaded")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
@@ -92,7 +92,7 @@ public struct ClubGapApplyCertImagesSection: View {
                 Button("添加资质 / 案例图片（还可传 \(draft.remainingCapacity) 张）", action: onAddImages)
             }
         } header: {
-            Text(verbatim: "\(ClubRound4Copy.certSectionTitle)（\(draft.uploadedURLs.count)/\(ClubApplyCertImagesDraft.maxCount)）")
+            Text("clubApply.r3.certSection \(draft.uploadedURLs.count) \(ClubApplyCertImagesDraft.maxCount)")
         }
     }
 }

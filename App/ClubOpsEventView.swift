@@ -299,7 +299,7 @@ import SwiftUI
         var text = row.topicName.map { Text(verbatim: $0) } ?? Text("clubOpsEvent.series.topicID \(row.topicID)", tableName: "ClubOpsEvent")
         text = text + Text(verbatim: " · ") + Text(LocalizedStringKey("club.gov.choice." + row.recurrence))
         guard !row.suffix.isEmpty else { return text }
-        text = text + Text(verbatim: "（")
+        text = text + Text("i18nR3.parenOpen")
         for (index, part) in row.suffix.enumerated() {
             if index > 0 { text = text + Text(verbatim: " · ") }
             switch part {
@@ -308,7 +308,7 @@ import SwiftUI
             case .series(let id): text = text + Text("clubOpsEvent.series.seriesID \(id)", tableName: "ClubOpsEvent")
             }
         }
-        return text + Text(verbatim: "）")
+        return text + Text("i18nR3.parenClose")
     }
 }
 

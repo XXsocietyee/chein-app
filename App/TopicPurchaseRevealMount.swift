@@ -1,9 +1,10 @@
 import SwiftUI
 
 /// R7-PC-B1-12: MP `cy-pass-reveal` after a successful self-play order (pages/topic/index/index.wxml:511-513, index.js:1007-1015).
+/// i18n r3: kind and duration lines come from `topicReveal.*` keys (zh keeps the MP wording).
 /// The window follows MP `passWindow` (pages/topic/utils/topic-motion.js:381-404): China natural days, 90 days or the topic end.
 enum TopicPurchaseRevealBuilder {
-    static func model(topic: TopicDetail, now: Date = Date()) -> TopicPurchaseRevealCardModel {
+    static func model(topic: TopicDetail, now: Date = Date(), locale: Locale = .current) -> TopicPurchaseRevealCardModel {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "Asia/Shanghai") ?? .current
         let today = calendar.startOfDay(for: now)
@@ -15,14 +16,14 @@ enum TopicPurchaseRevealBuilder {
         let parts = calendar.dateComponents([.month, .day], from: last)
         let month = parts.month ?? 1, day = parts.day ?? 1
         let days = max(0, calendar.dateComponents([.day], from: today, to: calendar.startOfDay(for: last)).day ?? 0)
-        let kind = topic.productType == 2 ? "自由探索" : "城市定向"
         return TopicPurchaseRevealCardModel(
             coverURL: topic.imageURL,
             topicName: topic.name,
-            kindText: "城瘾 · " + kind + "通行证",
+            kindText: appLocalized(topic.productType == 2 ? "topicReveal.kind.free" : "topicReveal.kind.city", locale: locale),
             untilText: String(format: "%02d/%02d", month, day),
             daysText: String(days),
-            durationLine: "可玩至 \(month) 月 \(day) 日" + (endsWithTopic ? "（主题结束）" : "") + " · 还剩 \(days) 天"
+            durationLine: endsWithTopic ? appLocalized("topicReveal.durationTopicEnd \(month) \(day) \(days)", locale: locale)
+                                        : appLocalized("topicReveal.duration \(month) \(day) \(days)", locale: locale)
         )
     }
 

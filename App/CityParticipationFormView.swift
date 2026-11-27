@@ -89,8 +89,8 @@ struct CityParticipationContent: View {
                     if let team = display.team {
                         HStack(spacing: CYSpacing.sm) {
                             CYStatusChip(verbatim: "\(team.members) " + ChannelCopy.text("人", "members", locale: locale), systemImage: "person.2.fill")
-                            CYStatusChip(verbatim: team.present ? "当前在队" : "已退出", tone: team.present ? .success : .neutral)
-                            CYStatusChip(verbatim: team.confirmed ? "已确认" : "未确认", tone: team.confirmed ? .success : .warning)
+                            CYStatusChip(team.present ? "cityParticipation.r3.inTeam" : "cityParticipation.r3.left", tone: team.present ? .success : .neutral)
+                            CYStatusChip(team.confirmed ? "cityParticipation.r3.confirmed" : "cityParticipation.r3.unconfirmed", tone: team.confirmed ? .success : .warning)
                         }
                         if !team.present { Text("已退出，可恢复原队伍").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                     } else { Text("尚未加入本轮队伍。").cyText(.body).foregroundStyle(CYColor.textPrimary) }
