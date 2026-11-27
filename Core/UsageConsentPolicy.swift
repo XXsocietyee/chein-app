@@ -158,6 +158,7 @@ public enum PrivacyProtectionPageAccessibility {
     public static let body = "privacy.page.body"
     public static let guide = "authEntry.privacy.guide"
     public static let agreement = "authEntry.privacy.agreement"
+    public static let offlineSignedOut = "usageConsent.offline.signedOut"
     public static let guideUnavailable = "privacy.page.guideUnavailable"
     public static let consentStatus = "authEntry.privacy.consentStatus"
     public static let consentGranted = "privacy.page.consentGranted"
