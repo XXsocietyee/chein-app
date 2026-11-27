@@ -188,6 +188,7 @@ extension PlayKitScreen {
         case .musicCorner: return "playkit.music.eyebrow"
         case .silentOrder: return "playkit.silent.eyebrow"
         case .diyName: return "playkit.diy.eyebrow"
+        case .note: return projection.title.isEmpty ? "playkit.note.kicker" : nil
         default: return nil
         }
     }
@@ -331,7 +332,8 @@ extension PlayKitScreen {
                                 title: label.map { Text(verbatim: $0) } ?? Text("playkitLegacy.name.submit"))
         case .note:
             guard !projection.complete else { return nil }
-            return nativeSubmit("SUBMIT_NOTE", ["text": .string(text)], valid: !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            return nativeSubmit("SUBMIT_NOTE", ["text": .string(text)], valid: !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                                title: Text("playkit.note.submit"))
         case .profile: return nativeProfileSubmit
         case .sort, .match, .classify: return nativeReasoningSubmit
         case .slowTask: return nativeSlowTaskSubmit
