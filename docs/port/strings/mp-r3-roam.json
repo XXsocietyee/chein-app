@@ -797,5 +797,22 @@
         }
       }
     }
+  },
+  "nativeR2.mapHome.card.rating %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Rating %@"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "评分 %@"
+        }
+      }
+    }
   }
 }
