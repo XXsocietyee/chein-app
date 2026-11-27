@@ -339,6 +339,7 @@ struct GrowthProfileDisc: View {
 
 /// gc-badge-row: initial tile, name and the obtained date shown directly (GROWTH-2: MP removed 查看获得时刻 / 查看 / 收起).
 struct GrowthBadgeMomentRow: View {
+    @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
     let badge: GrowthCenterBadge
     var body: some View {
@@ -353,7 +354,7 @@ struct GrowthBadgeMomentRow: View {
                 GrowthCenterName(name: badge.displayName, fallback: "growth.badge.unnamed")
                     .cyText(.cardTitle).foregroundStyle(palette.textPrimary)
                 Group {
-                    if let moment = GrowthCenterFormatting.badgeMoment(badge.obtainedAt) { Text("u10.growth.badge.obtained \(moment)") }
+                    if let moment = GrowthCenterFormatting.badgeMoment(badge.obtainedAt) { Text("u10.growth.badge.obtained \(LocaleDisplay.civil(moment, locale: locale))") }
                     else { Text("u10.growth.badge.noTime") }
                 }
                 .cyText(.meta).foregroundStyle(palette.textSecondary)

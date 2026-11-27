@@ -1,6 +1,7 @@
 import SwiftUI
 
 @MainActor struct NativeNotificationDeliveryLogView: View {
+    @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var phase
     let makeFlow: () -> NativeNotificationDeliveryLogCoordinator?
     @State private var model: NativeNotificationDeliveryLogCoordinator?
@@ -35,7 +36,7 @@ import SwiftUI
                                         HStack(spacing: 4) {
                                             Text(row.channel == "wx" ? LocalizedStringKey("d7.deliveryLog.channel.wx") : LocalizedStringKey("d7.deliveryLog.channel.push"))
                                             Text(verbatim: "·")
-                                            Text(verbatim: String(row.createTime.prefix(16)))
+                                            Text(verbatim: LocaleDisplay.civil(String(row.createTime.prefix(16)).replacingOccurrences(of: "T", with: " "), locale: locale))
                                         }
                                         .font(.footnote).foregroundStyle(.secondary)
                                         if let reason = row.reason { Text(verbatim: reason).font(.footnote).foregroundStyle(.secondary) }

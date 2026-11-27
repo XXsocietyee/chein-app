@@ -216,6 +216,7 @@ import SwiftUI
 
 /// One circular stamp image with its caption (or date) under it, like a Fitness award.
 struct NativeStampAlbumTile: View {
+    @Environment(\.locale) private var locale
     let stamp: RoamAlbumStamp
     let offline: Bool
     let allowsRemoteImages: Bool
@@ -231,7 +232,7 @@ struct NativeStampAlbumTile: View {
                 if let caption = stamp.caption, !caption.isEmpty {
                     Text(verbatim: caption)
                 } else if let date = stamp.createTime {
-                    Text(verbatim: String(date.prefix(10)))
+                    Text(verbatim: LocaleDisplay.civil(String(date.prefix(10)), locale: locale))
                 } else {
                     Text("roam.experience.cityStamp")
                 }

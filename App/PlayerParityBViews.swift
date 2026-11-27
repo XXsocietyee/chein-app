@@ -538,7 +538,7 @@ struct FinishRouteAnalyticsModifier: ViewModifier {
         case .foreign?: hint = Text("parityB.circle.foreign"); return
         case .missing(let roles)?:
             let names = roles.map { appLocalized(String.LocalizationValue(stringLiteral: "parityB.circle.role." + $0.rawValue), locale: locale) }
-            hint = Text("parityB.circle.missing \(names.joined(separator: "、"))"); return
+            hint = Text("parityB.circle.missing \(LocaleDisplay.list(names, locale: locale))"); return
         case nil: break
         }
         submitting = true; errorTitle = nil; errorText = nil

@@ -1,0 +1,93 @@
+{
+  "files": {
+    "App/CityKit/CityLiveOnMap.swift": {
+      "unit": 2
+    },
+    "App/CityKit/CityNotifications.swift": {
+      "pattern": 1
+    },
+    "App/ClubKit/ClubMPArt.swift": {
+      "yuan": 2
+    },
+    "App/DesignSystem/CYCelebrationViews.swift": {
+      "unit": 2
+    },
+    "App/DesignSystem/CYListRow.swift": {
+      "yuan": 1
+    },
+    "App/DesignSystem/CYShareCard.swift": {
+      "unit": 1
+    },
+    "App/DesignSystem/CYShareComposer.swift": {
+      "unit": 1
+    },
+    "App/E1CommerceComponents.swift": {
+      "yuan": 4
+    },
+    "App/ExternalGameReviewScreens.swift": {
+      "yuan": 3
+    },
+    "App/GrowthCenterView.swift": {
+      "unit": 1
+    },
+    "App/HostTipViews.swift": {
+      "yuan": 1
+    },
+    "App/MPGap/PlayRoam/NearbyAndHistoryGapViews.swift": {
+      "unit": 3
+    },
+    "App/MPParityPassSession.swift": {
+      "yuan": 2
+    },
+    "App/ModUpgradeView.swift": {
+      "joinzh": 4
+    },
+    "App/NativeR2/CityOrientation/CityOrientationNavComponents.swift": {
+      "pattern": 1
+    },
+    "App/NativeR2/Components/CYJoinCountdownRow.swift": {
+      "unit": 1
+    },
+    "App/NativeR2/MapHome/RoamMapHomeSheet.swift": {
+      "measure": 1
+    },
+    "App/NativeR2/Motion/MotionR2Metrics.swift": {
+      "unit": 1
+    },
+    "App/PlaySharedPlanLifecycleView.swift": {
+      "joinzh": 3
+    },
+    "App/ProfileOrdersView.swift": {
+      "yuan": 1
+    },
+    "App/PublisherLifecycleViews.swift": {
+      "yuan": 4
+    },
+    "App/PublishingModesViews.swift": {
+      "joinzh": 1,
+      "pattern": 1
+    },
+    "App/RoamHomeTabsView.swift": {
+      "unit": 1
+    },
+    "App/WalletCivilDateLocalization.swift": {
+      "pattern": 1
+    },
+    "App/WalletCommerceViews.swift": {
+      "yuan": 1
+    },
+    "App/WalletIncomeAnalysisPresentation.swift": {
+      "pattern": 1
+    },
+    "App/WalletIncomeAnalysisReader.swift": {
+      "pattern": 1
+    }
+  },
+  "totals": {
+    "joinzh": 8,
+    "measure": 1,
+    "pattern": 6,
+    "unit": 13,
+    "yuan": 19
+  }
+}

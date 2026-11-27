@@ -49,10 +49,10 @@ struct AccountDeregistrationImpactSection: View {
                 .accessibilityElement(children: .combine)
             }
             if !impact.unknownCoverage.isEmpty {
-                (Text("c08.display.32", tableName: "AccountDeregistrationPresentation") + Text(verbatim: impact.unknownCoverage.map {
+                (Text("c08.display.32", tableName: "AccountDeregistrationPresentation") + Text(verbatim: LocaleDisplay.list(impact.unknownCoverage.map {
                     let title = unknownTitle($0)
                     return title == $0 ? title : String(localized: String.LocalizationValue(stringLiteral: title), table: "AccountDeregistrationPresentation", locale: displayLocale)
-                }.joined(separator: "、")))
+                }, locale: displayLocale)))
                 Text("c08.display.33", tableName: "AccountDeregistrationPresentation")
             }
             (Text("c08.display.34", tableName: "AccountDeregistrationPresentation") + Text(verbatim: impact.revision)).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)

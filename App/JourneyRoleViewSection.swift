@@ -3,6 +3,7 @@ import SwiftUI
 /// Renders only the validated encounter projection. There is no role picker,
 /// team-order inference or fallback to author configuration in player UI.
 @MainActor struct JourneyRoleViewSection: View {
+    @Environment(\.locale) private var locale
     @Bindable var model: JourneyRoleViewCoordinator
     @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
@@ -88,7 +89,7 @@ import SwiftUI
             .accessibilityIdentifier("roleView.assignment")
             if !projection.otherRoleLabels.isEmpty {
                 LabeledContent("roleView.otherRole") {
-                    Text(verbatim: projection.otherRoleLabels.joined(separator: "、"))
+                    Text(verbatim: LocaleDisplay.list(projection.otherRoleLabels, locale: locale))
                 }
                 .font(.body)
                 .foregroundStyle(CYColor.textPrimary)

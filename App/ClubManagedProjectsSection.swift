@@ -32,7 +32,7 @@ struct ClubManagedProjectRow: Identifiable, Equatable {
     /// MP `eventTimeText` (js:299-306): 「周六 11月29日, 14:00」 in China time; a bare date drops the clock.
     static func eventTimeText(_ raw: String, locale: Locale) -> String {
         guard let date = ClubActivitySourceTime.date(raw) else {
-            return String(raw.prefix(16)).replacingOccurrences(of: "T", with: " ")
+            return LocaleDisplay.civil(String(raw.prefix(16)).replacingOccurrences(of: "T", with: " "), locale: locale)
         }
         let dateOnly = raw.range(of: #"^\d{4}[-/]\d{1,2}[-/]\d{1,2}$"#, options: .regularExpression) != nil
         let formatter = DateFormatter()

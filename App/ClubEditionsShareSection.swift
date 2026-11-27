@@ -4,6 +4,7 @@ import SwiftUI
 /// The link carries `sourceClubId` and `clubCode` (`club-<clubId>-t<topicId>`). Opening it puts
 /// `clubCode` on the later registration as `sourceChannelCode`. The paid registration itself stays off.
 @MainActor struct ClubEditionsShareSection: View {
+    @Environment(\.locale) private var locale
     let clubID: Int
     let access: any ClubGovernanceAccess
     private enum Phase: Equatable { case loading, failed, ready([Edition]) }
@@ -71,7 +72,7 @@ import SwiftUI
     }
 
     private func dateText(_ row: Edition) -> Text {
-        if let date = row.dateText { return Text(verbatim: date) }
+        if let date = row.dateText { return Text(verbatim: LocaleDisplay.civil(date, locale: locale)) }
         return Text("club.editions.dateTBD")
     }
 
