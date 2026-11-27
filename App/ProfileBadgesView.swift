@@ -102,6 +102,8 @@ struct ProfileBadgeDetailView: View {
             Section {
                 VStack(spacing: 12) {
                     ProfileBadgeMedal(badge: badge, size: 96)
+                        .motionR2HoloSheen(active: !badge.isLocked, cornerRadius: 48) // motion r2 R2 (unlocked only)
+                        .motionR2Tilt() // motion r2 R13: turns with the phone
                     ProfileBadgeTitle(badge: badge).font(.title2.weight(.semibold))
                     ProfileBadgeStatus(badge: badge)
                 }.frame(maxWidth: .infinity).padding(.vertical, 8)

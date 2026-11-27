@@ -240,6 +240,9 @@ struct PassMembershipView: View {
                     }
                 }
                 Spacer()
+                if NativeR2Flags.motion2, let index = content.plans.firstIndex(where: { $0.code == content.selectedPlan }) {
+                    MotionR2PlanSymbol(index: index) // motion r2 R18: the plan symbol morphs with the selection
+                }
                 // MP membership/index.wxml:27 `cy-frames` glass key (184 rpx = 92 pt).
                 PassGlassKeyFrames(size: 92)
             }

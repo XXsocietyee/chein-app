@@ -100,7 +100,10 @@ struct NR2StageResultTarget: Identifiable, Equatable {
         .presentationDetents([.medium])
         .presentationDragIndicator(.visible)
         .sensoryFeedback(.success, trigger: appeared)
-        .onAppear { appeared = true }
+        .onAppear {
+            appeared = true
+            if outcome.state == .completed { MotionR2Checklist.shared.mark(.storyChapter) } // motion r2 R10 (mark only)
+        }
         .accessibilityIdentifier("play.nr2.result")
     }
 

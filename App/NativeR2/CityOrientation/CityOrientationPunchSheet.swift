@@ -80,7 +80,9 @@ import SwiftUI
         .onChange(of: done) { old, new in
             // P-054: the punch is announced, not only shown.
             if !old, new { AccessibilityNotification.Announcement(appLocalized("nativeR2.city.punch.done", locale: locale)).post() }
+            if !old, new { MotionR2Checklist.shared.mark(.punch) } // motion r2 R10
         }
+        .motionR2EdgeGlow(when: done) // motion r2 R8
         .cySheet(isPresented: $scanning, onDismiss: {
             if let code = scannedCode { scannedCode = nil; prepareScan(code) }
         }) {
@@ -238,6 +240,21 @@ import SwiftUI
 
     // MARK: task
 
+    /// Motion r2 R16: the same three entries as the plain rows below (photo task, scan in place, task page).
+    private func captureActions(task: PlayNodeTask, node: PlayNode) -> [MotionR2CaptureAction] {
+        var actions: [MotionR2CaptureAction] = []
+        if node.validationMethod == 2 {
+            actions.append(MotionR2CaptureAction(id: "camera", titleKey: "motion2.capture.camera", systemImage: "camera") { onOpenTask(nodeID) })
+        }
+        if scansInPlace, model.phase != .submitting {
+            actions.append(MotionR2CaptureAction(id: "scan", titleKey: "motion2.capture.scan", systemImage: "qrcode.viewfinder") { startScan() })
+        }
+        if task != .arrive || actions.isEmpty {
+            actions.append(MotionR2CaptureAction(id: "task", titleKey: "motion2.capture.task", systemImage: "list.bullet.clipboard") { onOpenTask(nodeID) })
+        }
+        return actions
+    }
+
     @ViewBuilder private func taskSection(snapshot: PlaySnapshot, node: PlayNode) -> some View {
         let task = PlayNodeTask.resolve(mode: snapshot.result.mode, node: node)
         Section {
@@ -247,7 +264,11 @@ import SwiftUI
             if let requirement = node.photoRequirement?.trimmingCharacters(in: .whitespacesAndNewlines), !requirement.isEmpty {
                 Text(verbatim: requirement).foregroundStyle(.secondary)
             }
-            if !done {
+            if !done, NativeR2Flags.motion2 {
+                // Motion r2 R16: the capture actions this stop accepts, in one expanding bar.
+                MotionR2CaptureMenu(actions: captureActions(task: task, node: node))
+                if model.phase == .submitting { ProgressView("nativeR2.city.punch.submitting") }
+            } else if !done {
                 if node.validationMethod == 2 {
                     Button { onOpenTask(nodeID) } label: { Label("nativeR2.city.punch.photo", systemImage: "camera") }
                         .accessibilityIdentifier("nativeR2.city.punch.photo")

@@ -152,6 +152,10 @@ import SwiftUI
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text("playkit.ball.board"))
             Text("playkit.ball.instruction").font(.footnote).foregroundStyle(.secondary)
+            if NativeR2Flags.motion2 {
+                // Motion r2 R4: each hit from the kit's CoreMotion reader stirs the snow globe; it settles after.
+                MotionR2SnowGlobe(shakes: stage.ball.hits)
+            }
         case .quietHold, .shout:
             let level = kind == .quietHold ? stage.quiet.level : stage.shout.level
             let warning = kind == .quietHold ? stage.quiet.warningThreshold : stage.shout.warningThreshold

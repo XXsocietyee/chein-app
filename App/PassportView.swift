@@ -98,6 +98,7 @@ struct PassportBadge: Identifiable, Equatable {
                 EmptyView()
             }
             PassportOverviewContent(stampCount: stampCount, thumbnails: thumbnails, badges: badges, onOpenTickets: onOpenTickets, showsTicketsAction: showsTicketsAction, onOpenWallet: onOpenWallet, onOpenMessages: onOpenMessages, onOpenStamps: onOpenStamps, onOpenBadges: onOpenBadges)
+                .motionR2LoadIn(loading: stampPhase == .loading && stampCount == nil) // motion r2 R17: skeleton → fade in
         }
         .task(id: LoadKey(stamps: ObjectIdentifier(reader), album: album.map { ObjectIdentifier($0) },
                           growth: growth.map { ObjectIdentifier($0) }, refresh: refreshToken)) {

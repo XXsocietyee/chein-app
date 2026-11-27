@@ -320,14 +320,17 @@ final class CYPermissionPrimerWindow {
         }
         current = next.1
         let screen = CYPermissionPrimerScreen(kind: next.0, onPrimary: { [weak self] in self?.finish(true) }, onSecondary: { [weak self] in self?.finish(false) })
-        let controller = UIHostingController(rootView: AnyView(screen))
-        controller.view.backgroundColor = .black
+        // Motion r2 R7: the same primer inside one sheet that resizes from a welcome card to the full explanation.
+        let sheet = MotionR2PermissionSheetHost(kind: next.0, onPrimary: { [weak self] in self?.finish(true) }, onSecondary: { [weak self] in self?.finish(false) })
+        let controller = UIHostingController(rootView: NativeR2Flags.motion2 ? AnyView(sheet) : AnyView(screen))
+        // Motion r2: the sheet floats over the app (dimmed by the host view); the plain primer keeps its black page.
+        controller.view.backgroundColor = NativeR2Flags.motion2 ? .clear : .black
         controller.overrideUserInterfaceStyle = .dark
         controller.view.accessibilityViewIsModal = true
         let window = UIWindow(windowScene: scene)
         window.rootViewController = controller
         window.windowLevel = .alert + 1
-        window.backgroundColor = .black
+        window.backgroundColor = NativeR2Flags.motion2 ? .clear : .black
         // No transition. Reduce Motion and the ordinary path both appear at once.
         window.isHidden = false
         self.window = window
