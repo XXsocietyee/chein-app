@@ -126,7 +126,7 @@ import SwiftUI
                     Button("d7.channelModeration.tryAgain") { Task { await open() } }
                 }
             } else {
-                ProgressView().frame(maxWidth:.infinity,maxHeight:.infinity)
+                ProgressView { Text("cy.state.loading") }.frame(maxWidth:.infinity,maxHeight:.infinity)
             }
         }
         .nativeChannelFlowPage()

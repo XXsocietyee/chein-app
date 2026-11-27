@@ -97,7 +97,8 @@ struct CYPassVerifiedFace: View {
                     .cyText(.cardTitle).foregroundStyle(CYNight.ink0)
                 Text(verbatim: title.isEmpty ? "—" : title)
                     .cyText(.meta).foregroundStyle(CYNight.ink0)
-                    .lineLimit(1).padding(.horizontal, CYSpacing.xl)
+                    .lineLimit(2).multilineTextAlignment(.center).minimumScaleFactor(0.85)
+                    .padding(.horizontal, CYSpacing.xl)
             }
             .frame(maxWidth: .infinity)
             .frame(height: notchY)

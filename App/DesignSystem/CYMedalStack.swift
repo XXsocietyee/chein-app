@@ -177,7 +177,8 @@ struct CYMedalDeck: View {
                             Text(verbatim: item.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                                 .lineLimit(2).multilineTextAlignment(.center)
                             if let sub = item.subtitle, !sub.isEmpty {
-                                Text(verbatim: sub).cyText(.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1)
+                                Text(verbatim: sub).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                                    .lineLimit(2).multilineTextAlignment(.center)
                             }
                         }
                         .opacity(depth == 0 ? 1 : 0)
