@@ -68,6 +68,23 @@
           }
         }
       }
+    },
+    "mpr3.square.detail.routeStops": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route stops"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "路线节点"
+          }
+        }
+      }
     }
   }
 }

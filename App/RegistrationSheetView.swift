@@ -31,6 +31,8 @@ struct RegistrationSheetView: View {
     @State private var showingAddParticipant = false
     @State private var showingTicketSheet = false
     @State private var showingParticipantSheet = false
+    /// MP cy-empty 新增参与人信息 in the participant sheet: the add form opens once the sheet has closed.
+    @State private var addAfterParticipantSheet = false
     @State private var showingPaymentPending = false
     @State private var toastMessage: String?
     /// Last `payment-readiness` answer for the selected paid ticket (acceptance R2 F-02).
@@ -181,7 +183,9 @@ struct RegistrationSheetView: View {
             .overlay { registrationPopups }
             .cyToast(verbatimMessage: $toastMessage)
             .sheet(isPresented: $showingTicketSheet) { ticketSheetContent }
-            .sheet(isPresented: $showingParticipantSheet) { participantSheetContent }
+            .sheet(isPresented: $showingParticipantSheet, onDismiss: {
+                if addAfterParticipantSheet { addAfterParticipantSheet = false; showingAddParticipant = true }
+            }) { participantSheetContent }
             .background { systemDialogs }
             .modifier(RegistrationOrderAndLifecycleModifier(
                 flow: flow,
@@ -232,9 +236,21 @@ struct RegistrationSheetView: View {
         .presentationDetents([.medium, .large])
     }
     /// R10-PC-C-N8: 选择参与人信息 as a system `List` in a `.sheet`.
+    /// MP baoming.wxml:283-309 order: loading / 加载失败 + 重试 → rows → 还没有参与人信息 (新增参与人信息) → footer 管理参与人信息.
     private var participantSheetContent: some View {
         NavigationStack {
             List {
+                if flow.participantsState == .loading && flow.participants.isEmpty {
+                    ProgressView { Text("registration.form.loadingParticipants") }
+                        .frame(maxWidth: .infinity)
+                } else if flow.participantsState == .unavailable {
+                    Section {
+                        Label("profile.participants.loadFailed", systemImage: "exclamationmark.triangle")
+                            .foregroundStyle(.secondary)
+                        Button("action.retry") { Task { await flow.loadParticipants() } }
+                            .accessibilityIdentifier("registration.participantSheet.retry")
+                    }
+                }
                 ForEach(flow.participants, id: \.id) { row in
                     Button {
                         showingParticipantSheet = false
@@ -247,6 +263,20 @@ struct RegistrationSheetView: View {
                 }
             }
             .listStyle(.insetGrouped)
+            .overlay {
+                if flow.participantsState == .received && flow.participants.isEmpty {
+                    ContentUnavailableView {
+                        Label("profile.participants.empty", systemImage: "person.crop.circle.badge.plus")
+                    } actions: {
+                        if canAddParticipant {
+                            Button("mpr3.baoming.addParticipant") { addAfterParticipantSheet = true; showingParticipantSheet = false }
+                                .buttonStyle(.bordered)
+                                .accessibilityIdentifier("registration.participantSheet.add")
+                        }
+                    }
+                }
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) { participantSheetFooter }
             .navigationTitle(PlayCloseCopy.text("选择参与人信息", "Select participant", locale))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -257,6 +287,31 @@ struct RegistrationSheetView: View {
             }
         }
         .presentationDetents([.medium, .large])
+    }
+    private var canAddParticipant: Bool {
+        guard let participantReader, let participantCoordinator, participantReader.isConfigured,
+              participantReader.identity != nil, participantReader.identity == participantCoordinator.identity else { return false }
+        return participantCoordinator.canPrepare && flow.canEdit
+    }
+    /// MP `cy-sheet` footer 管理参与人信息 → pages/address?mode=participant; the list re-reads on the way back.
+    @ViewBuilder private var participantSheetFooter: some View {
+        if let participantReader {
+            VStack(spacing: 0) {
+                Divider()
+                NavigationLink {
+                    ProfileParticipantsView(reader: participantReader, coordinator: participantCoordinator)
+                        .onDisappear { Task { await flow.loadParticipants() } }
+                } label: {
+                    Text("mpr3.baoming.manageParticipants").frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .accessibilityIdentifier("registration.participantSheet.manage")
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+            }
+            .background(.bar)
+        }
     }
     @ViewBuilder private var recoveredOrderSection: some View {
         if let destination = flow.recoveredOrderDestination, let orderReader {

@@ -57,6 +57,12 @@ private struct SquareShareLinkKey: EnvironmentKey { static let defaultValue: (an
 private struct SquareRouteMapKey: EnvironmentKey { static let defaultValue: (any SquareRouteMapProviding)? = nil }
 private struct SquareCompletedActivityKey: EnvironmentKey { static let defaultValue: (any SquareCompletedActivityProviding)? = nil }
 private struct SquareAuthorFollowStateKey: EnvironmentKey { static let defaultValue: (any SquareAuthorFollowStateProviding)? = nil }
+/// MP square/detail `david_npl_left`: the signed-in viewer's avatar (`app.getAvatar()`), bound to the account it belongs to.
+struct SquareViewerAvatar: Equatable {
+    let memberID: Int
+    let avatar: String
+}
+private struct SquareViewerAvatarKey: EnvironmentKey { static let defaultValue: SquareViewerAvatar? = nil }
 
 extension EnvironmentValues {
     var squareShareLink: (any SquarePostShareLinkProviding)? {
@@ -70,5 +76,8 @@ extension EnvironmentValues {
     }
     var squareAuthorFollowState: (any SquareAuthorFollowStateProviding)? {
         get { self[SquareAuthorFollowStateKey.self] } set { self[SquareAuthorFollowStateKey.self] = newValue }
+    }
+    var squareViewerAvatar: SquareViewerAvatar? {
+        get { self[SquareViewerAvatarKey.self] } set { self[SquareViewerAvatarKey.self] = newValue }
     }
 }

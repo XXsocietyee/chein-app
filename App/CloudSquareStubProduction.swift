@@ -119,5 +119,6 @@ struct CloudSquareStubModifier: ViewModifier {
             .environment(\.squareShareLink, CloudSquareSessionBridge.share(for: session))
             .environment(\.squareCompletedActivities, CloudSquareSessionBridge.activities(for: session))
             .environment(\.squareAuthorFollowState, CloudSquareSessionBridge.follow(for: session))
+            .environment(\.squareViewerAvatar, session.account.map { SquareViewerAvatar(memberID: $0.id, avatar: $0.avatar) })
     }
 }

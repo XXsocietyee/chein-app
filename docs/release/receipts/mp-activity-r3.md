@@ -17,11 +17,19 @@ Skipped (owned by another lane, see `origin/mp/r3-home` receipt `mp-home-r3.md`)
 | `pages/activity/baoming/baoming` | `App/RegistrationSheetView.swift` (opened by `ActivityDetailView`) | already-registered ✓ · 参与人信息 ✓ · 活动信息 ✓ · 暂无可用票 ✓ · 报名已截止 **added** page-level · 优惠 **reordered** before 费用明细 · 费用明细: ticket, 儿童年龄 **reordered** under ticket, amounts ✓, 通行证 row **moved in** · 包含内容 **reordered** after price · 退款规则 / 主持预约 / 候补 ✓ · bottom: 商家暂停营业 **reordered** + MP copy, PIPL consent MP sentence **fixed**, submit label 付款 / 确认价格并付款 / 确认报名 **added** · non-MP coupon block removed | `ContentUnavailableView`; one primary; block reason in words below the button |
 | `subpackagePass/reveal/index` | `PassRevealView` (`App/PassMembershipViews.swift`) | nav bar (transparent, dark) ✓ · merchant empty ✓ · key intro/idle ✓ · gold gradient step **added** (Reduce Motion: static) · 跳过 ✓ · eyebrow/title/line/button ✓ | stage stays dark (MP theme-dark) via `CYNight.ink0`; P7 moment |
 
+## Round 3 continue (2026-11-27, second session)
+| MP page | Native view | MP sections (✓ present / added / reordered) | Optimizations |
+|---|---|---|---|
+| `pages/square/detail/index` | `App/SquareDetailView.swift`, `App/DesignSystem/CYSocialParityBindings.swift` (+`squareViewerAvatar`), `App/CloudSquareStubProduction.swift` | comment bar `david_npl`: viewer avatar left of the field **added** (session account avatar, default avatar otherwise) · A-04 inline 删除 on own **legacy** comments **added** → confirm 删除这条评论？ / 此操作不可撤销… → `POST /api/comment/delete` (`SquareReading.deleteOwnLegacyComment`, `CreativeSquareAuthorDeleteClient.deleteOwnComment`) → thread re-read; failure 删除失败，请重试 in the comment section · `cy-completion-share-card` **added** in MP place for completion shares (dataType 3, or 1 + completed + sportName): title row (walk, title or 本次漫游, medals), 路线节点 (not on roam results), result image; play card and photo strip hidden for completion shares as in MP | system `confirmationDialog` (destructive); 44pt targets; avatar hidden from VoiceOver (decorative, MP) |
+| `pages/team/join/index` | `TeamInvitationEntryView` (`App/NativeNavigationCompletionViews.swift`), `Core/TeamCoordinator.swift` (+`readRefused`) | PG-014 `_backToCodeEntry` **added**: 下一步 looks the code up first; an unresolved code stays on the field with the MP reason under it (网络没连上，检查网络后重试 / 当前邀请无法查看 / 邀请已失效 / 邀请暂时不可用); found → invitation page; signed out / unconfigured → invitation page as before | P10: button reads 正在查找队伍… while looking; one primary |
+| `pages/activity/baoming/baoming` | `App/RegistrationSheetView.swift` | 选择参与人信息 sheet: loading ✓ · 参与人信息加载失败 + 重试 **added** · rows ✓ · empty 还没有参与人信息 + 新增参与人信息 **added** (opens the add form after the sheet closes) · footer 管理参与人信息 **added** (pushes `ProfileParticipantsView`, list re-reads on return) | `ContentUnavailableView`; footer on `.bar` like the square comment bar; one prominent button (empty CTA is `.bordered`) |
+
+Strings added: `mpr3.square.detail.routeStops`, `mpr3.team.joinCode{Network,Forbidden,Looking}`, `mpr3.baoming.{addParticipant,manageParticipants}` (fragments + `Localizable.xcstrings`, en + zh-Hans). Reused: `square.xcx.delete.*`, `square.xcx.completionFallback`, `team.invite.unavailable`, `team.page.inviteUnavailable`, `profile.participants.{empty,loadFailed}`, `action.retry`.
+
 ## Not done
-- Square detail: viewer avatar left of the comment bar (no viewer-avatar source); inline 删除 on legacy comments (reader has no legacy comment-delete write); completion share-card fields (model + backend).
-- Team join: an unknown code goes to the invitation page's error state instead of back to the field with the reason (needs lookup result returned through the coordinator).
+- Square completion card: 探店 (`shopText`) has no backend field; 查看全部 N 条评论 line not added (the comment section sits right under it). Refused team reads have no server message in `TeamFailure`, so 邀请已失效 is the fixed fallback copy.
 - Official detail: 按平台规则，你暂时不能报名这一场 lives in `OfficialActionViews.swift` signup flow; native 参与情况 section kept (contract-pinned, holds signup action). Inbox refreshing line uses shared `official.refreshing` (`OfficialReadScreen`).
-- Baoming: MP participant sheet empty state + 管理参与人信息 footer; native manual name/phone entry kept.
+- Baoming: native manual name/phone entry kept beside the sheet.
 
 ## Gates
 - `python3 tools/generate_project.py` ok · `python3 tools/check_scaffold.py` PASS · `python3 -B tools/check_a11y_lint.py` PASS (0 new)

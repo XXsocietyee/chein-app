@@ -283,6 +283,15 @@ public struct CreativeSquareAuthorDeleteClient {
     public func ownIDs(token: String) async throws -> [Int] {
         try Self.ids(in: try await send(listRequest(token: token)))
     }
+    /// MP square/detail A-04 `deleteComment`: `POST /api/comment/delete` (form `id`); the backend checks ownership.
+    public func commentDeleteRequest(commentID: Int, token: String) throws -> URLRequest {
+        guard commentID > 0 else { throw APIError.invalidRequest }
+        return try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent("api/comment/delete"),
+            fields: ["id": String(commentID)], token: token)
+    }
+    public func deleteOwnComment(commentID: Int, token: String) async throws {
+        try Self.requireCode(try await send(commentDeleteRequest(commentID: commentID, token: token)))
+    }
     /// Deletes only when the viewer is the author, then re-reads the author's list. The deleted id must be gone.
     public func deleteOwnAndReread(_ command: CreativeSquareAuthorDelete, viewerMemberID: Int, token: String) async throws -> [Int] {
         guard viewerMemberID == command.authorMemberID else { throw SocialActionBlock.ownerRequired }

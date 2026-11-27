@@ -349,6 +349,7 @@ import SwiftUI
     @State private var sendOutcomeUnknown = false
     @Environment(\.coopInviteSent) private var inviteSent
     @Environment(\.cooperationNearbyDestination) private var nearbyDestination
+    @Environment(\.cooperationTopicNearbyDestination) private var topicNearbyDestination
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.coopTopicPublishDestination) private var topicPublishDestination
     @Environment(\.locale) private var locale
@@ -378,12 +379,10 @@ import SwiftUI
     var body: some View {
         let permit = model.permit
         Form {
-            Section {
-                CYHeroHeader("context.coop.new", subtitle: "context.coop.topic")
-                    .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
-                    .listRowBackground(Color.clear)
-            }
-            Section("context.coop.topic") {
+            // MP coop/invite wxml:13-27: send receipts and the unknown-result lookup sit above ① 关联主题.
+            CoopInviteReceiptSections(reader: reader, kind: model.kind, topicID: model.topic?.id, merchantMemberIDs: model.candidates.filter { model.selected.contains($0.id) && $0.kind == .merchant }.map(\.recipient.id),
+                                      showsRequests: sendOutcomeUnknown)
+            Section("mpr3.coop.invite.topicTitle") {
                 if model.topicsFailed { Button("action.retry") { Task { await model.retryTopics(permit) } }.disabled(model.topicsBusy) }
                 if let locked = model.lockedTopic {
                     CoopInviteLockedRow(title: locked.name, detail: "merchantCoop.invite.lockedTopicScope", identifier: "cooperation.invite.lockedTopic")
@@ -395,18 +394,18 @@ import SwiftUI
                                  action: { publishingTopic = true })
                 } else {
                 Picker("context.coop.topic", selection: Binding(get: { model.isCurrent ? model.topicID : nil }, set: { model.chooseTopic($0, permit: permit) })) {
-                    Text("context.coop.chooseTopic").tag(Optional<Int>.none)
+                    Text("mpr3.coop.invite.chooseTopic").tag(Optional<Int>.none)
                     ForEach(model.isCurrent ? model.topics : []) { row in
                         Text(verbatim: [row.name, row.startDate, row.address].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")).tag(Optional(row.id))
                     }
                 }.disabled(model.topicsBusy)
                 }
                 // Mini `.card-hint--warn`: topic not in its recruiting window.
-                if model.topic != nil, model.topic?.inviteWindowOpen != true { Text("context.coop.closed").cyText(.meta).foregroundStyle(CYColor.warningText) }
+                if model.topic != nil, model.topic?.inviteWindowOpen != true { Text("mpr3.coop.invite.closed").cyText(.meta).foregroundStyle(CYColor.warningText) }
                 if model.lockedTopic == nil, model.hasMore, !model.topics.isEmpty { Button("context.picker.more") { Task { await model.more(permit) } }.disabled(model.topicsBusy || model.topicsFailed) }
             }
             // Source order: ① 关联主题, ③ 邀请对象 (club / merchant switch inside it); terms follow in the editor.
-            Section("context.coop.targets") {
+            Section {
               if let lockedTargetTitle {
                 // MC8-31-4: 已选定，发送前不可更换.
                 CoopInviteLockedRow(title: lockedTargetTitle, detail: "merchantCoop.invite.lockedTargetHint", identifier: "cooperation.invite.lockedTarget")
@@ -426,16 +425,11 @@ import SwiftUI
                 }
                 .cyAdaptiveSegmented()
                 .disabled(model.busy)
-                if model.kind == .merchant, nearbyDestination != nil {
-                    // Source: "附近商家 · 含未入驻商家可电话联系" opens pages/coop/nearby for the chosen topic.
-                    NavigationLink { CoopFlowNearbyGate(reader: reader) } label: { Text("cooperation.invite.nearby") }
-                        .accessibilityIdentifier("cooperation.invite.nearby")
-                }
                 TextField("context.coop.search", text: $search).accessibilityIdentifier("context.coop.search")
                 if model.busy { CYSkeleton().accessibilityLabel(Text("cooperation.loading")) }
                 if model.targetsFailed { CYPillButton("action.retry", style: .secondary) { Task { await model.retryTargets(permit) } }.disabled(model.targetsBusy) }
                 if !model.busy, !model.targetsFailed, filtered.isEmpty {
-                    CYEmptyState("context.picker.empty")
+                    CYEmptyState(LocalizedStringKey(model.kind == .club ? "mpr3.coop.invite.noClubs" : "mpr3.coop.invite.noMerchants"))
                     // MC7-31-5: MP coop/invite/index.wxml:100,110 刷新合作对象.
                     Button { Task { await model.retryTargets(permit) } } label: {
                         Label("merchantCoop.invite.refreshTargets", systemImage: "arrow.clockwise").frame(minHeight: CYSpacing.minTouchTarget)
@@ -463,14 +457,33 @@ import SwiftUI
                         .accessibilityAddTraits(model.selected.contains(candidate.id) ? .isSelected : [])
                         .accessibilityIdentifier("context.coop.target.\(candidate.id)")
                 }
+                // MP wxml:132-134: 附近商家 · 含未入驻商家可电话联系 closes the targets card and keeps the chosen topic.
+                if model.kind == .merchant {
+                    if let topic = model.topic, let topicNearbyDestination {
+                        NavigationLink { topicNearbyDestination(CoopNearbyTopicContext(topicID: topic.id, topicName: topic.name)) } label: { Text("cooperation.invite.nearby") }
+                            .accessibilityIdentifier("cooperation.invite.nearby")
+                    } else if nearbyDestination != nil {
+                        NavigationLink { CoopFlowNearbyGate(reader: reader) } label: { Text("cooperation.invite.nearby") }
+                            .accessibilityIdentifier("cooperation.invite.nearby")
+                    }
+                }
               }
+            } header: {
+                // MP wxml:72: ③ 邀请对象 with 已选 N.
+                HStack {
+                    Text("mpr3.coop.invite.targetsTitle")
+                    Spacer()
+                    if !model.selected.isEmpty { Text("mpr3.coop.invite.selectedCount \(model.selected.count)") }
+                }
             }
-            CoopInviteReceiptSections(reader: reader, kind: model.kind, topicID: model.topic?.id, merchantMemberIDs: model.candidates.filter { model.selected.contains($0.id) && $0.kind == .merchant }.map(\.recipient.id),
-                                      showsRequests: sendOutcomeUnknown)
+            if model.topic == nil {
+                // MP cta-bar hint 请先选择主题 (wxml:138).
+                Text("mpr3.coop.invite.needTopic").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                    .listRowBackground(Color.clear)
+            }
             if !model.selected.isEmpty, model.isCurrent {
-                CYListRow("context.coop.selected", trailing: .value(model.selected.isEmpty ? "—" : String(model.selected.count)))
-                // Mini `.cta-bar`: one solid action for the whole screen.
-                CYPillButton("context.coop.continue") {
+                // Mini `.cta-bar`: one solid action for the whole screen, 发送邀约(N).
+                CYPillButton("mpr3.coop.invite.send \(model.selected.count)") {
                     guard let contexts = model.contexts(permit: permit) else { return }
                     editing = contexts; showEditor = true
                 }

@@ -1,5 +1,107 @@
-{"sourceLanguage":"en","strings":{
-"mpr3.team.captainTeam %@":{"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"%@'s team"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"%@的队伍"}}}},
-"mpr3.team.acceptJoin":{"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Accept invite and join"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"接受邀请并加入"}}}},
-"mpr3.team.joinCodeInvalid":{"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"That join code isn't right. Check it and try again."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"加入码不对，检查一下再输"}}}}
-}}
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "mpr3.team.captainTeam %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@'s team"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@的队伍"
+          }
+        }
+      }
+    },
+    "mpr3.team.acceptJoin": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accept invite and join"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接受邀请并加入"
+          }
+        }
+      }
+    },
+    "mpr3.team.joinCodeInvalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That join code isn't right. Check it and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入码不对，检查一下再输"
+          }
+        }
+      }
+    },
+    "mpr3.team.joinCodeNetwork": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No connection. Check your network and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网络没连上，检查网络后重试"
+          }
+        }
+      }
+    },
+    "mpr3.team.joinCodeForbidden": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can't view this invitation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前邀请无法查看"
+          }
+        }
+      }
+    },
+    "mpr3.team.joinCodeLooking": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finding the team…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在查找队伍…"
+          }
+        }
+      }
+    }
+  }
+}
