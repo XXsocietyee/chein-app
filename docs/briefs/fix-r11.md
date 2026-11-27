@@ -36,3 +36,10 @@ Trailer: `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 | member | `fix/r11-member` | member.md fix queue: all rows |
 
 Before each row, check the same id is not already fixed on `origin/ui/combined-r7` (another lane or a late r10 push).
+
+## Decisions (coordinator, 2026-11-27) — MP decides; never mark a row "owner decision" when the MP shows the answer
+
+- **No owner-decision rows.** If the MP source (`origin/mp-source:chengyinhub-xcx/`) shows the behavior, copy it and mark the row fixed. Only money-policy, production backend deploys and App Store account actions go to the owner. "Needs device" is not a blocker: describe the simulator check in the receipt.
+- **N-r11-2 (map locate-me button):** the MP maps have no locate-me control (`subpackageRoam/session/index.wxml:27`, `components/cy/route-thumb/index.wxml:6` set `show-location="{{false}}"`; the only control is 开启定位 when location is off, `pages/roam/index.wxml:150`). Do NOT add `MapUserLocationButton`; keep the panel and `test_map_camera_controls`. Mark fixed (MP parity, no change).
+- **ROAM-r11-10 (history route thumb):** MP `components/cy/route-thumb/index.js:1-8` draws a real basemap in the chosen map style with the track; schematic only without coordinates. Implement with `MKMapSnapshotter` + the track polyline drawn on the snapshot; keep the schematic fallback.
+- **N-RSESS (share composer):** use the system share (`ShareLink` / `UIActivityViewController`) — no custom composer, no redesign.
