@@ -32,16 +32,12 @@ struct E1TicketCard: View {
             stub
         }
         .onPreferenceChange(E1TicketTopHeightKey.self) { topHeight = $0 }
-        .background(CYColor.bgElevated)
+        // native-a r3: the pass sits on the system secondary background (Light/Dark by the system); no drawn gloss
+        // line and no custom double drop shadow. The notch cut-outs and foil edge stay (P20: a pass, not a receipt).
+        .background(.background.secondary)
         .cyFoilSheen(trigger: sheen + autoSheen)
         .clipShape(shape, style: FillStyle(eoFill: true))
         .cyPassFoilEdge(shape, active: ticket.status == .ready)
-        .overlay(alignment: .top) {
-            LinearGradient(colors: [.white.opacity(0.22), .clear], startPoint: .leading, endPoint: .trailing)
-                .frame(height: 1).padding(.horizontal, radius).allowsHitTesting(false)
-        }
-        .shadow(color: .black.opacity(0.45), radius: 18, y: 10)
-        .shadow(color: .black.opacity(0.25), radius: 3, y: 1)
         .opacity(state.isRetired ? 0.74 : 1)
         .modifier(E1TicketTilt(enabled: interactive))
         .onTapGesture { if interactive { sheen += 1 } }

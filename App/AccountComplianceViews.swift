@@ -834,9 +834,8 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 }.disabled(!agreed || busy).accessibilityIdentifier("compliance.scope.confirm")
             } else { Text("compliance.legalMissing") }
             if busy {
-                ProgressView()
+                ProgressView { Text("compliance.loading") }
                     .frame(maxWidth: .infinity)
-                    .accessibilityLabel(Text("compliance.loading"))
             }
             if let errorKey { Text(LocalizedStringKey(errorKey)) }
         }

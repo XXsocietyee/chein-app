@@ -25,8 +25,9 @@ import SwiftUI
                     .listRowInsets(Self.gutter)
                 }
             case .closed:
-                Button("roleView.open") { Task { await model.refresh() } }
-                    .buttonStyle(CYPillButtonStyle())
+                Button { Task { await model.refresh() } } label: { Text("roleView.open").frame(maxWidth: .infinity) }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
                     .accessibilityIdentifier("roleView.reopen")
                     .listRowInsets(Self.gutter)
                     .listRowBackground(Color.clear)
@@ -41,8 +42,9 @@ import SwiftUI
                             .accessibilityIdentifier("roleView.unavailable")
                     }
                     .listRowInsets(Self.gutter)
-                    Button("roleView.refresh") { Task { await model.refresh() } }
-                        .buttonStyle(CYPillButtonStyle())
+                    Button { Task { await model.refresh() } } label: { Text("roleView.refresh").frame(maxWidth: .infinity) }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
                         .accessibilityIdentifier("roleView.refresh")
                         .e1ActionRow()
                 }
@@ -54,12 +56,14 @@ import SwiftUI
                             readyBody(projection)
                         }
                         .listRowInsets(Self.gutter)
-                        Button("roleView.refresh") { Task { await model.refresh() } }
-                            .buttonStyle(CYPillButtonStyle())
+                        Button { Task { await model.refresh() } } label: { Text("roleView.refresh").frame(maxWidth: .infinity) }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.large)
                             .accessibilityIdentifier("roleView.refresh")
                             .e1ActionRow()
                         Button("roleView.close") { model.dismiss() }
-                            .buttonStyle(CYPillButtonStyle(style: .tertiary))
+                            .buttonStyle(.borderless)
+                            .controlSize(.large)
                             .accessibilityIdentifier("roleView.close")
                             .e1ActionRow()
                     }

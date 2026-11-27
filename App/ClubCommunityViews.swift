@@ -336,9 +336,8 @@ struct ClubCommunityFeedView: View {
             if let leading { leading }
             if model.loading {
                 Section {
-                    ProgressView()
+                    ProgressView { Text("club.community.loading") }
                         .frame(maxWidth: .infinity)
-                        .accessibilityLabel(Text("club.community.loading"))
                 }
             }
             if let notice = model.notice { Section { communityNotice(notice, identifier: "club.community.notice") } }
@@ -391,9 +390,8 @@ struct ClubCommunityFeedView: View {
                 // CLB-detail-15: the next page loads when the end of the list scrolls in (MP onReachBottom).
                 // The same row pages the cross-club feed (`scope:"all"`, `beforeId`).
                 if clubID == nil ? model.canLoadMoreFeed : model.canLoadMorePosts {
-                    ProgressView()
+                    ProgressView { Text("club.community.loading") }
                         .frame(maxWidth: .infinity)
-                        .accessibilityLabel(Text("club.community.loading"))
                         .onAppear {
                             Task {
                                 if let clubID { await model.loadMorePosts(clubID: clubID) }
@@ -815,9 +813,8 @@ struct ClubCommunityPostDetailView: View {
             }
             Section {
                 if model.loading {
-                    ProgressView()
+                    ProgressView { Text("club.community.loading") }
                         .frame(maxWidth: .infinity)
-                        .accessibilityLabel(Text("club.community.loading"))
                 }
                 if let notice = model.notice {
                     Text(LocalizedStringKey(notice))
@@ -1125,9 +1122,8 @@ struct ClubCommunityCommentsView: View {
             if model.loading || model.notice != nil {
                 Section {
                     if model.loading {
-                        ProgressView()
+                        ProgressView { Text("club.community.loading") }
                             .frame(maxWidth: .infinity)
-                            .accessibilityLabel(Text("club.community.loading"))
                     }
                     if let notice = model.notice {
                         Text(LocalizedStringKey(notice))
@@ -1223,9 +1219,8 @@ struct ClubCommunityHistoryView: View {
             if model.loading || model.notice != nil {
                 Section {
                     if model.loading {
-                        ProgressView()
+                        ProgressView { Text("club.community.loading") }
                             .frame(maxWidth: .infinity)
-                            .accessibilityLabel(Text("club.community.loading"))
                     }
                     if let notice = model.notice {
                         Text(LocalizedStringKey(notice))

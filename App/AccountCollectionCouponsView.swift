@@ -49,7 +49,7 @@ import SwiftUI
                     .accessibilityIdentifier("accountCollection.coupons.filter")
                 }
                 if model.isLoading || model.loadedRequest != offeredRequest {
-                    ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("accountCollection.loading"))
+                    ProgressView { Text("accountCollection.loading") }.frame(maxWidth: .infinity)
                 }
                 else if let issue = model.issue(for: offeredRequest) {
                     AccountCollectionIssueView(issue: issue, retry: {

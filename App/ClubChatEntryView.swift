@@ -75,7 +75,7 @@ import SwiftUI
     @ViewBuilder private var phaseStatus: some View {
         switch model.phase {
         case .entering:
-            ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("club.chat.loading"))
+            ProgressView { Text("club.chat.loading") }.frame(maxWidth: .infinity)
         case .unknown:
             Text("club.chat.unknown")
                 .foregroundStyle(.secondary)

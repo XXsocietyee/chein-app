@@ -277,13 +277,17 @@ struct EditorBottomBar<Secondary: View>: View {
                     secondary()
                 }
                 Button(action: primary) {
-                    if primaryBusy {
-                        ProgressView().tint(palette.actionPrimaryFg)
-                    } else {
-                        primaryTitle
+                    Group {
+                        if primaryBusy {
+                            ProgressView()
+                        } else {
+                            primaryTitle
+                        }
                     }
+                    .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.editorPrimary(fullWidth: true))
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
                 .disabled(!primaryEnabled || primaryBusy)
                 .modifier(EditorOptionalIdentifier(identifier: primaryID))
             }

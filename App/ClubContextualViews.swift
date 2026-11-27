@@ -97,9 +97,8 @@ struct ClubOperatingRulesView: View {
             }
             Section {
                 if busy {
-                    ProgressView()
+                    ProgressView { Text("club.loading") }
                         .frame(maxWidth: .infinity)
-                        .accessibilityLabel(Text("club.loading"))
                 }
                 Button {
                     review = try? ClubOpsTimeRequest(activityID: activityID, startDate: ClubOpsTimeRequest.submissionTime(date))

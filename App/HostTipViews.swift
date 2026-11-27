@@ -182,7 +182,8 @@ struct HostTipPlayerScreen: View {
                 HStack(spacing: CYSpacing.sm) {
                     ForEach(shortcuts, id: \.self) { value in
                         Button(action: { amount = value }) { Text(verbatim: value) }
-                            .buttonStyle(.cySecondary(fullWidth: false))
+                            .buttonStyle(.bordered)
+                            .controlSize(.large)
                             .accessibilityIdentifier("hostTip.player.amount.\(value)")
                     }
                 }

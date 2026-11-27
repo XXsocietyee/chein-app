@@ -1350,7 +1350,8 @@ struct JourneyShareCard: View {
         } label: {
             Text("mp.common.share").frame(maxWidth: .infinity)
         }
-        .buttonStyle(.cyPrimary)
+        .buttonStyle(.borderedProminent)
+        .controlSize(.large)
         .disabled(issuing)
         .accessibilityIdentifier(identifier)
         .sheet(item: $shared) { link in

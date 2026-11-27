@@ -102,8 +102,8 @@ struct E1GlassChip: View {
             .lineLimit(1)
             .foregroundStyle(.white)
             .padding(.horizontal, 10).padding(.vertical, 5)
-            .background(.black.opacity(0.42), in: Capsule(style: .continuous))
             .background(.ultraThinMaterial, in: Capsule(style: .continuous))
+            .environment(\.colorScheme, .dark)
     }
 }
 

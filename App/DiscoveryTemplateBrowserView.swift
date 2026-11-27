@@ -332,9 +332,8 @@ struct DiscoveryTemplateBrowserView: View {
     }
 
     private var loadingRow: some View {
-        ProgressView()
+        ProgressView { Text("discovery.loading") }
             .frame(maxWidth: .infinity)
-            .accessibilityLabel(Text("discovery.loading"))
     }
 
     /// R7-PC-A2-4: MP `openTopic` — a preview-only row says 暂未开放 instead of opening.

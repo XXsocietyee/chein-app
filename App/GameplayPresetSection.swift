@@ -74,8 +74,9 @@ import SwiftUI
                 if let message = model.message {
                     status(message, id: "preset.gameplay.message")
                 }
-                Button { Task { await model.create() } } label: { Text(verbatim: W8Text.t("建成草稿", "Create draft")) }
-                    .buttonStyle(.cyPrimary)
+                Button { Task { await model.create() } } label: { Text(verbatim: W8Text.t("建成草稿", "Create draft")).frame(maxWidth: .infinity) }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
                     .disabled(!canDraft)
                     .accessibilityIdentifier("preset.gameplay.create")
             }

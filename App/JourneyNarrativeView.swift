@@ -93,7 +93,7 @@ import SwiftUI
                         if let answer = question.answer { Text(verbatim: answer) }
                     } else {
                         Button("journey.record.ask") { model.prepare(question.id) }
-                            .buttonStyle(.cySecondary(fullWidth: false)).disabled(!model.canAsk || model.pending.contains(question.id)).accessibilityIdentifier("journey.record.ask." + question.id)
+                            .buttonStyle(.bordered).controlSize(.large).disabled(!model.canAsk || model.pending.contains(question.id)).accessibilityIdentifier("journey.record.ask." + question.id)
                     }
                 }
             }

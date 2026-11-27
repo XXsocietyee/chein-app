@@ -14,9 +14,8 @@ import SwiftUI
         Section("club.ownerFunds.title") {
             switch phase {
             case .loading:
-                ProgressView()
+                ProgressView { Text("wallet.loading") }
                     .frame(maxWidth: .infinity)
-                    .accessibilityLabel(Text("wallet.loading"))
             case .failed:
                 HStack {
                     Text("wallet.failed").foregroundStyle(.secondary)

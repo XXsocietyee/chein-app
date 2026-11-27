@@ -151,9 +151,8 @@ import SwiftUI
     private var choiceScreen: some View {
         List {
             if flow.loading && flow.choices.isEmpty && flow.failure == nil {
-                ProgressView()
+                ProgressView { Text("club.loading") }
                     .frame(maxWidth: .infinity)
-                    .accessibilityLabel(Text("club.loading"))
             }
             if let failure = flow.failure {
                 Section {

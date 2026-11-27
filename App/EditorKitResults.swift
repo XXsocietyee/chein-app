@@ -50,12 +50,14 @@ struct EditorResultContent: View {
                     .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
             }
             VStack(spacing: CYSpacing.sm) {
-                Button(action: primary) { primaryTitle }
-                    .buttonStyle(.editorPrimary(fullWidth: true))
+                Button(action: primary) { primaryTitle.frame(maxWidth: .infinity) }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
                     .modifier(EditorOptionalIdentifier(identifier: primaryID))
                 if let secondaryTitle, let secondary {
-                    Button(action: secondary) { secondaryTitle }
-                        .buttonStyle(.editorSecondary(fullWidth: true))
+                    Button(action: secondary) { secondaryTitle.frame(maxWidth: .infinity) }
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
                         .modifier(EditorOptionalIdentifier(identifier: secondaryID))
                 }
             }
@@ -122,28 +124,19 @@ struct EditorStateView: View {
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(EditorKitText.text("editorKit.state.loading"))
             } else {
-                VStack(spacing: CYSpacing.sm) {
-                    Image(systemName: kind.symbol)
-                        .font(.title2)
-                        .foregroundStyle(palette.textSecondary)
-                        .frame(width: EditorKitMetric.stateIconTile, height: EditorKitMetric.stateIconTile)
-                        .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(palette.inputFilledBg))
-                        .accessibilityHidden(true)
-                        .padding(.bottom, CYSpacing.xs)
-                    (title ?? defaultTitle).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
-                        .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
-                    if let text = message ?? defaultMessage {
-                        text.cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
-                            .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
-                    }
+                // native-a r3: the system empty/error state (icon, title, description, one action) instead of a
+                // hand-drawn icon tile + text stack; same copy and the same single action.
+                ContentUnavailableView {
+                    Label { title ?? defaultTitle } icon: { Image(systemName: kind.symbol) }
+                } description: {
+                    if let text = message ?? defaultMessage { text }
+                } actions: {
                     if let action {
                         Button(action: action) { actionTitle ?? defaultAction }
-                            .buttonStyle(.editorSecondary)
-                            .padding(.top, CYSpacing.xs)
+                            .buttonStyle(.bordered)
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, CYSpacing.xxl)
             }
         }
         .modifier(EditorOptionalIdentifier(identifier: accessibilityID))
@@ -277,7 +270,7 @@ struct EditorGameplayPickerGrid: View {
                     Spacer(minLength: CYSpacing.sm)
                     if let onPreview {
                         Button { onPreview(picked) } label: { EditorKitText.text("editorKit.gameplay.tryPreview") }
-                            .buttonStyle(.editorSecondary)
+                            .buttonStyle(.bordered)
                             .accessibilityIdentifier("editorKit.gameplay.tryPreview")
                     }
                 }
@@ -295,23 +288,31 @@ struct EditorGameplayPickerGrid: View {
         }
     }
 
+    /// native-a r3: category filters are system capsule buttons (`.borderedProminent` when selected, `.bordered`
+    /// otherwise); the dot still marks the category that holds the current pick.
+    @ViewBuilder
     private func chip(_ value: String?, title: Text) -> some View {
+        let isOn = category == value
+        Group {
+            if isOn {
+                chipButton(value, title: title).buttonStyle(.borderedProminent)
+            } else {
+                chipButton(value, title: title).buttonStyle(.bordered)
+            }
+        }
+        .buttonBorderShape(.capsule)
+        .accessibilityAddTraits(isOn ? [.isSelected] : [])
+        .sensoryFeedback(.selection, trigger: category)
+    }
+
+    private func chipButton(_ value: String?, title: Text) -> some View {
         let holdsPick = value != nil && picked?.category == value
         return Button { category = value } label: {
             HStack(spacing: 4) {
-                title.font(.subheadline.weight(category == value ? .semibold : .regular))
-                if holdsPick { Circle().fill(palette.textPrimary).frame(width: 5, height: 5).accessibilityHidden(true) }
+                title
+                if holdsPick { Image(systemName: "circle.fill").font(.caption2).imageScale(.small).accessibilityHidden(true) }
             }
-            .foregroundStyle(palette.textPrimary)
-            .padding(.horizontal, CYSpacing.md)
-            .frame(minHeight: EditorKitMetric.secondaryVisual)
-            .background(Capsule(style: .continuous).fill(category == value ? palette.bgElevated : palette.brandSoft))
-            .editorSelectedBorder(category == value, radius: 18)
-            .editorHitTarget()
         }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(category == value ? [.isSelected] : [])
-        .sensoryFeedback(.selection, trigger: category)
     }
 
     private func tile(_ choice: EditorGameplayChoice) -> some View {

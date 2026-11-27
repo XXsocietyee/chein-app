@@ -36,7 +36,7 @@ import SwiftUI
                 if model.services.isEmpty && !model.busy && model.issue == nil { CityPlayerValueCopy.text("noServices") }
                 if model.canBegin {
                     Button { bindTarget = model.selected?.poiId; bindReview = true } label: { CityPlayerValueCopy.text("bind").frame(maxWidth: .infinity) }
-                        .buttonStyle(.cyPrimary(fullWidth: true)).accessibilityIdentifier("cityValue.bind")
+                        .buttonStyle(.borderedProminent).controlSize(.large).accessibilityIdentifier("cityValue.bind")
                 }
                 if let visit = model.visit {
                     LabeledContent { CityPlayerValueCopy.text(visit.meaningfulAction == "OBSERVED" ? "observed" : "notObserved") } label: { CityPlayerValueCopy.text("meaningful") }

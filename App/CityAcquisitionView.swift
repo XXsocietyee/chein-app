@@ -204,9 +204,10 @@ import SwiftUI
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     Button(role: .destructive) { confirm(captured) } label: {
-                        Text("cityAcquire.confirm.pay", tableName: table)
+                        Text("cityAcquire.confirm.pay", tableName: table).frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
                     .disabled(!interactive || !controller.canWrite || !captured.unexpired)
                     .accessibilityLabel(Text("cityAcquire.confirm.pay", tableName: table))
                     CYPillButton("cityAcquire.confirm.cancel", style: .secondary, tableName: table) { controller.cancelConfirmation() }

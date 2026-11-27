@@ -84,10 +84,10 @@ import UIKit
             ShareLink(item: Image(uiImage: rendered),
                       preview: SharePreview(Text(verbatim: base.title), image: Image(uiImage: rendered))) {
                 Label("share.card.share", systemImage: "square.and.arrow.up")
-                    .cyText(.cardTitle)
-                    .frame(maxWidth: .infinity, minHeight: 56)
+                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.cyPrimary)
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
             .simultaneousGesture(TapGesture().onEnded { shareTick += 1 })
             .accessibilityIdentifier("share.card.share")
         } else {

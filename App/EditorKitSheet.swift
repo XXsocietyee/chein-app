@@ -11,82 +11,22 @@ enum EditorSheetLeading: Sendable {
     case none
 }
 
-/// The one sheet header: grabber 36 × 5 (resizable sheets only), round ✕ or ‹ at the leading edge,
-/// black `完成` pill (44 high) at the trailing edge, title 20 Bold centred below with an optional 12 pt eyebrow.
-/// Pick-one sheets that commit on tap pass `done == nil`. Result sheets do not use a header (CF-41).
-struct EditorSheetHeader: View {
+/// native-a r3: the sheet header is the system navigation bar of the sheet's own `NavigationStack` (inline title,
+/// optional eyebrow above it in the principal slot, ✕ as the cancellation action, 完成 / Done as the confirmation
+/// action, the system back button on pushed sub-pages) and the system drag indicator on resizable sheets. The
+/// former hand-drawn grabber / round ✕ / black Done pill header is gone.
+private struct EditorSheetNavigationTitle: View {
     let title: Text
-    var eyebrow: Text? = nil
-    var leading: EditorSheetLeading = .close
-    var showsGrabber: Bool = false
-    var doneTitle: Text? = nil
-    var doneEnabled: Bool = true
-    var onLeading: () -> Void = {}
-    var onDone: (() -> Void)? = nil
-
-    @Environment(\.cyPalette) private var palette
-
+    let eyebrow: Text?
     var body: some View {
         VStack(spacing: 0) {
-            if showsGrabber {
-                Capsule(style: .continuous)
-                    .fill(palette.sheetHandle)
-                    .frame(width: EditorKitMetric.grabberWidth, height: EditorKitMetric.grabberHeight)
-                    .padding(.top, CYSpacing.s1_5)
-                    .accessibilityHidden(true)
+            if let eyebrow {
+                eyebrow.font(.caption).foregroundStyle(.secondary)
             }
-            HStack {
-                leadingControl
-                Spacer(minLength: CYSpacing.sm)
-                if let onDone {
-                    Button(action: onDone) { doneTitle ?? EditorKitText.text("editorKit.done") }
-                        .buttonStyle(.editorPrimary)
-                        .disabled(!doneEnabled)
-                        .accessibilityIdentifier("editorKit.sheet.done")
-                } else {
-                    Color.clear.frame(width: EditorKitMetric.hit, height: EditorKitMetric.hit).accessibilityHidden(true)
-                }
-            }
-            .padding(.horizontal, CYSpacing.lg)
-            .frame(minHeight: 52)
-            VStack(spacing: 2) {
-                if let eyebrow {
-                    eyebrow
-                        .cyText(.meta)
-                        .foregroundStyle(palette.textTertiary)
-                        .multilineTextAlignment(.center)
-                }
-                title
-                    .cyText(.sectionTitle)
-                    .foregroundStyle(palette.textPrimary)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityAddTraits(.isHeader)
-            }
-            .padding(.horizontal, CYSpacing.lg)
-            .padding(.top, 2)
-            .padding(.bottom, CYSpacing.md)
+            title.font(.headline).accessibilityAddTraits(.isHeader)
         }
-        .frame(maxWidth: .infinity)
-    }
-
-    @ViewBuilder private var leadingControl: some View {
-        switch leading {
-        case .close, .back:
-            Button(action: onLeading) {
-                Image(systemName: leading == .close ? "xmark" : "chevron.backward")
-                    .font(.body.weight(.semibold))
-                    .foregroundStyle(palette.textPrimary)
-                    .frame(width: EditorKitMetric.closeVisual, height: EditorKitMetric.closeVisual)
-                    .background(Circle().fill(palette.brandSoft))
-                    .editorHitTarget()
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(EditorKitText.text(leading == .close ? "editorKit.close" : "editorKit.back"))
-            .accessibilityIdentifier(leading == .close ? "editorKit.sheet.close" : "editorKit.sheet.back")
-        case .none:
-            Color.clear.frame(width: EditorKitMetric.hit, height: EditorKitMetric.hit).accessibilityHidden(true)
-        }
+        .multilineTextAlignment(.center)
+        .lineLimit(2)
     }
 }
 
@@ -136,9 +76,9 @@ struct EditorSheetPage<Content: View>: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.cyPalette) private var palette
     @Environment(\.editorSheetScrollEnabled) private var scrollEnabled
-    @Environment(\.editorSheetIsResizable) private var isResizable
     @State private var confirmDiscard = false
-    @State private var headerHeight: CGFloat = 0
+    /// The inline navigation bar the sheet's `fit` detent has to make room for (it sits outside the measured body).
+    @ScaledMetric(relativeTo: .headline) private var headerHeight: CGFloat = 56
 
     var body: some View {
         ScrollView {
@@ -163,22 +103,30 @@ struct EditorSheetPage<Content: View>: View {
         }
         .scrollDisabled(!scrollEnabled)
         .scrollBounceBehavior(.basedOnSize)
-        .safeAreaInset(edge: .top, spacing: 0) {
-            EditorSheetHeader(
-                title: title, eyebrow: eyebrow, leading: leading,
-                showsGrabber: isResizable && leading != .back,
-                doneTitle: doneTitle, doneEnabled: doneEnabled,
-                onLeading: { leadingTapped() }, onDone: onDone
-            )
-            .background(palette.bgPage)
-            .background(GeometryReader { proxy in
-                Color.clear.preference(key: EditorSheetHeaderHeightKey.self, value: proxy.size.height)
-            })
-        }
-        .onPreferenceChange(EditorSheetHeaderHeightKey.self) { headerHeight = $0 }
         .background(palette.bgPage.ignoresSafeArea())
-        .toolbar(.hidden, for: .navigationBar)
-        .navigationBarBackButtonHidden(true)
+        .navigationTitle(title)
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(leading != .back)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                EditorSheetNavigationTitle(title: title, eyebrow: eyebrow)
+            }
+            ToolbarItem(placement: .cancellationAction) {
+                if leading == .close {
+                    Button { leadingTapped() } label: {
+                        Label { EditorKitText.text("editorKit.close") } icon: { Image(systemName: "xmark") }
+                    }
+                    .accessibilityIdentifier("editorKit.sheet.close")
+                }
+            }
+            ToolbarItem(placement: .confirmationAction) {
+                if let onDone {
+                    Button(action: onDone) { doneTitle ?? EditorKitText.text("editorKit.done") }
+                        .disabled(!doneEnabled)
+                        .accessibilityIdentifier("editorKit.sheet.done")
+                }
+            }
+        }
         .interactiveDismissDisabled(isDirty)
         .confirmationDialog(EditorKitText.text("editorKit.discard.title"), isPresented: $confirmDiscard, titleVisibility: .visible) {
             Button(role: .destructive) { close() } label: { EditorKitText.text("editorKit.discard.confirm") }
@@ -195,11 +143,6 @@ struct EditorSheetPage<Content: View>: View {
     private func close() {
         if let onClose { onClose() } else { dismiss() }
     }
-}
-
-private struct EditorSheetHeaderHeightKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = max(value, nextValue()) }
 }
 
 // MARK: - Resizable sheet (section 3)
@@ -259,7 +202,7 @@ struct EditorSheetHost<Content: View>: View {
             .environment(\.editorSheetIsResizable, family.isResizable)
             .presentationDetents(Set(detents), selection: $selection)
             .presentationContentInteraction(.resizes)
-            .presentationDragIndicator(.hidden)
+            .presentationDragIndicator(family.isResizable ? .visible : .hidden)
             .presentationCornerRadius(CYRadius.sheet)
             .presentationBackground(palette.bgPage)
             .presentationBackgroundInteraction(.disabled)

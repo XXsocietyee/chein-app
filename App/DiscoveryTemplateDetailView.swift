@@ -66,8 +66,7 @@ struct DiscoveryTemplateDetailView: View {
                     Text("auth.notConfigured")
                 }
             } else if detail.isLoading || loadedKey != requestKey {
-                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .accessibilityLabel(Text("discovery.loading"))
+                ProgressView { Text("discovery.loading") }.frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let error = detail.error {
                 DiscoveryErrorView(error: error, failureTitle: "discovery.play.openFailed") { Task { await reload() } }
             } else if let read = detail.value {
@@ -366,8 +365,7 @@ struct DiscoveryTopicTemplatePreview: View {
                                        description: Text("discovery.templateReopen"))
             } else if detail.isLoading {
                 // R7-PC-A7-2 (r1 PC-A-7-4): MP skeleton, not a centred spinner.
-                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .accessibilityLabel(Text("discovery.loading"))
+                ProgressView { Text("discovery.loading") }.frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let error = detail.error {
                 DiscoveryErrorView(error: error, failureTitle: "discovery.topicTemplate.openFailed") { Task { await detail.load() } }
             } else if let item = detail.value {
@@ -433,8 +431,7 @@ struct DiscoveryTopicTemplatePreview: View {
                 .refreshable { await detail.load() }
                 .accessibilityIdentifier("discovery.topicPreview.content")
             } else {
-                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .accessibilityLabel(Text("discovery.loading"))
+                ProgressView { Text("discovery.loading") }.frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .appNavigationTitle("discovery.topicPreview")
@@ -875,8 +872,7 @@ struct DiscoveryTopicTemplateDeckHost: View {
                     }
             } else {
                 // MP skeleton, not a centred spinner (R7-PC-A7-2); MP status 正在加载主题模板 (topic-preview/index.wxml:7).
-                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .accessibilityLabel(Text("discovery.topicPreview.loading"))
+                ProgressView { Text("discovery.topicPreview.loading") }.frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .navigationDestination(isPresented: $showsDetail) {
