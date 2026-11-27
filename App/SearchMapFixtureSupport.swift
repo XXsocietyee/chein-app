@@ -200,7 +200,7 @@ import SwiftUI
                 } else if entry == "route" {
                     SearchRoutePreviewView(origin: syntheticArea.coordinate, destination: RoamCoordinate(latitude: 1.004, longitude: 1.006)!, name: "Synthetic stop", scope: reader.scope, offline: true)
                 } else {
-                    GlobalSearchView(reader: reader, recommendedKeywords: GlobalSearchRecommendedKeywords.china, destination: detail)
+                    GlobalSearchView(reader: reader, recommendedKeywords: GlobalSearchRecommendedKeywords.fixtureKeywords, destination: detail)
                 }
             }
             .environment(\.walkingNavigationFactory, walking.factory)
@@ -226,6 +226,14 @@ import SwiftUI
         case .activity(let id): Text(verbatim: "Synthetic activity \(id)").accessibilityIdentifier("searchMap.destination.activity.\(id)")
         case .club(let id): Text(verbatim: "Synthetic club \(id)").accessibilityIdentifier("searchMap.destination.club.\(id)")
         }
+    }
+}
+
+extension GlobalSearchRecommendedKeywords {
+    /// mp-home r3 (19:50 sweep): design fixtures follow the UI language; zh keeps the MP China list, en shows the same terms in English.
+    static var fixtureKeywords: [String] {
+        Locale.preferredLanguages.first?.hasPrefix("zh") == true ? china
+            : ["Cycling", "City", "The Bund", "Bookstores", "Art museums", "Photography", "Suzhou Creek", "Food markets"]
     }
 }
 #endif
