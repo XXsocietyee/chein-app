@@ -344341,6 +344341,40 @@
           }
         }
       }
+    },
+    "profile.complaint.state.signIn": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to file a complaint and follow its progress"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后发起投诉与查看进展"
+          }
+        }
+      }
+    },
+    "profile.complaint.state.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load activities you can report"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可投诉活动加载失败"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
