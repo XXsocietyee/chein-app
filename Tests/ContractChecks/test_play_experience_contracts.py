@@ -107,7 +107,8 @@ class PlayExperienceSourceChecks(unittest.TestCase):
         shared=json.loads((ROOT/'Resources/Localizable.xcstrings').read_text())['strings']
         for key,entry in shared.items():
             if key.startswith('playx.') and key not in strings:
-                units={lang:entry['localizations'][lang]['stringUnit']['value'] for lang in ('en','zh-Hans')}
+                # en-layout r3: English count strings carry plural variations; read the `other` form.
+                units={lang:(entry['localizations'][lang].get('stringUnit') or entry['localizations'][lang]['variations']['plural']['other']['stringUnit'])['value'] for lang in ('en','zh-Hans')}
                 strings[key]=units
         for file in [*(ROOT/'App').glob('Play*.swift'), ROOT/'App/FreeExplorationViews.swift']:
             text=file.read_text()
