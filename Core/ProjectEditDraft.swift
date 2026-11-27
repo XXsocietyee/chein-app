@@ -383,6 +383,29 @@ public struct ProjectEditTicketGap: Equatable, Sendable {
     }
 }
 
+/// MP `utils/publisher-identity.js` `topicRequiresIdentity`: a topic needs 发布者实名 unless it has tickets and every
+/// ticket is free, and self-play (when on) is free too.
+public enum ProjectEditIdentityRule {
+    static func isZero(_ value: String) -> Bool {
+        let text = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty, let number = Double(text), number.isFinite else { return false }
+        return number == 0
+    }
+    static func isZero(_ value: ProjectEditJSON?) -> Bool {
+        switch value {
+        case .number(let number): return number == 0
+        case .string(let text): return isZero(text)
+        default: return false
+        }
+    }
+    public static func requiresIdentity(_ draft: ProjectEditDraft) -> Bool {
+        if draft.tickets.isEmpty || draft.tickets.contains(where: { !isZero($0.price) }) { return true }
+        let selfPlay = draft.preserved["selfPlay"]
+        let selfPlayOn = selfPlay == .bool(true) || selfPlay == .number(1)
+        return selfPlayOn && !isZero(draft.preserved["selfPlayPrice"])
+    }
+}
+
 /// MP `requestModeSwitch`: a local copy that changes product type. Merchant scope does not switch. Nothing is posted.
 public enum ProjectEditModeCopy {
     public static let confirmTitle = "复制为新草稿？"
