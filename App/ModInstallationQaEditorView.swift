@@ -139,7 +139,7 @@ import SwiftUI
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            if editor.busy { CYSkeleton().accessibilityLabel(Text("uiCloud24.qa.loading")) }
+            if editor.busy { CYSkeleton(label: "uiCloud24.qa.loading") }
             CYPillButton("modInstallation.recover", style: .secondary, tableName: "ModInstallation") { Task { await editor.open() } }
                 .disabled(editor.busy || !editor.isCurrent)
                 .listRowBackground(Color.clear)

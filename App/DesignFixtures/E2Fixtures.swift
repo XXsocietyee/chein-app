@@ -170,6 +170,10 @@ private final class Rep3PlayFixtureTransport: HTTPTransport, @unchecked Sendable
         if path.hasSuffix("api/play/route-state") {
             return (PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.route), 200)
         }
+        // mp-journey r3: a solo run has no led team (MP team-progress exists=false), so no retry bar on the fixture.
+        if path.hasSuffix("api/club/lead/team-progress") {
+            return (PlayExperienceSyntheticFixtures.envelope(#"{"exists":false}"#), 200)
+        }
         throw URLError(.notConnectedToInternet)
     }
 }

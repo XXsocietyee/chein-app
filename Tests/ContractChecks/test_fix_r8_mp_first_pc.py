@@ -56,7 +56,8 @@ class MPFirstPlayerContentPins(unittest.TestCase):
         self.assertNotIn('official.published.eventsEmptyDetail', official)
         self.assertIn('private var hidesMerchants: Bool { false }', read('App/GlobalSearchView.swift'))  # R7-PC-A3-1
         home = read('App/SessionHomeFeedView.swift')  # R8-PC-A1-1
-        self.assertIn('homeCityLabel = city', home)
+        # mp-home r3: the label is stored on the device (MP saveLastCity), still local only — never the roam centre.
+        self.assertIn('homeCityStored = city', home)
         self.assertNotIn('session.roamArea = RoamSearchArea(coordinate: centre, label: city)', home)
         self.assertIn('templateTabScope == .merchant(canManageProjects: true)', read('App/DiscoveryTemplateBrowserView.swift'))  # R7-PC-A2-8
         bounty = read('App/VideoBountyView.swift')  # R7-PC-D7-1

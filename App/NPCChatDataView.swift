@@ -229,7 +229,7 @@ struct NPCChatDataPresentation: Identifiable {
             .cyHeroScreen()
             .searchable(text: $query, prompt: "npcData.search")
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("action.done") { model.disappear(); query = ""; dismiss() } }
+                ToolbarItem(placement: .confirmationAction) { Button("action.done") { model.disappear(); query = ""; dismiss() } }
                 ToolbarItem(placement: .primaryAction) { NPCChatDataExportButton(data: coordinator.data) }
             }
             .cySheet(isPresented: Binding(
@@ -282,14 +282,8 @@ struct NPCChatDataPresentation: Identifiable {
                 .fixedSize(horizontal: false, vertical: true)
             switch coordinator.deletion {
             case .deleting:
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    CYSkeleton()
-                    Text("npcLogDelete.deleting", tableName: "NPCChatLogDeletion")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .accessibilityElement(children: .combine)
+                ProgressView { Text("npcLogDelete.deleting", tableName: "NPCChatLogDeletion") }
+                    .frame(maxWidth: .infinity)
             case .deleted(let count):
                 CYListRow(verbatim: npcDelete("npcLogDelete.deletedCount"), trailing: .value(String(count))) {
                     CYRowIcon(systemImage: "trash")

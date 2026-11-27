@@ -49,6 +49,7 @@ struct ActivityReviewsSection: View {
 }
 
 private struct ActivityReviewCard: View {
+    @Environment(\.locale) private var locale
     @Environment(\.ugcSafetySubjectID) private var safetySubjectID
     let review: ActivityReview
     let index: Int
@@ -69,7 +70,7 @@ private struct ActivityReviewCard: View {
                 .accessibilityIdentifier("activity.reviews.author.\(index)")
                 Spacer(minLength: 8)
                 if let date = review.createTime {
-                    Text(verbatim: date)
+                    Text(verbatim: LocaleDisplay.civil(date, locale: locale))
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }

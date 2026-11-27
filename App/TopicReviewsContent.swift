@@ -67,6 +67,7 @@ struct TopicReviewsContent: View {
 }
 
 private struct TopicReviewCard: View {
+    @Environment(\.locale) private var locale
     @Environment(\.ugcSafetySubjectID) private var safetySubjectID
     let review: TopicReview
     let index: Int
@@ -84,7 +85,7 @@ private struct TopicReviewCard: View {
             .font(.headline)
             .accessibilityIdentifier("topic.reviews.author.\(index)")
             if let date = review.createTime {
-                Text(verbatim: date)
+                Text(verbatim: LocaleDisplay.civil(date, locale: locale))
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }

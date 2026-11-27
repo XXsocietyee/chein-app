@@ -2019,7 +2019,9 @@ struct ClubGovernanceReadView: View {
                 if value["canManage"] == .bool(true) {
                     // CLB-topic-detail-06 (MP topic-detail/index.wxml:503-530): three inline switches, not a pushed form.
                     ClubTopicSettingsInlineToggles(value: value, scope: scope, coordinator: coordinator)
-                    edit(.endTopic, seed: ["cancellationEpoch": value["cancellationEpoch"]])
+                    // mp-club r3 pass 8 (MP topic-detail wxml:648 topic-name, club-topic-end-confirm js observers): the topic name
+                    // heads the 结束主题 confirm. Display only: the draft keeps just the cancellationEpoch anchor.
+                    edit(.endTopic, seed: ["cancellationEpoch": value["cancellationEpoch"], "topicName": value["topicName"]])
                 }
                 Section("club.gov.chapters") { ForEach(Array((value["chapters"].array ?? []).enumerated()), id: \.offset) { _, row in
                     ClubGovernanceFactRows(value: row, fields: ["name", "category", "recruiting", "merchantCount", "finishTime"])
