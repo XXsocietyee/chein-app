@@ -463,14 +463,14 @@ struct SquareCloudCompletedActivityPicker: View {
     @ViewBuilder private var list: some View {
         switch phase {
         case .rows(let rows) where rows.isEmpty && !started:
-            ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("square.cloud.completed.loading")
+            ProgressView {
+                Text(verbatim: copy("正在读取已完成的活动…", "Loading cleared activities…"))
+            }
+            .frame(maxWidth: .infinity)
+            .accessibilityIdentifier("square.cloud.completed.loading")
         case .rows(let rows):
             if rows.isEmpty {
-                ContentUnavailableView {
-                    Label { Text(verbatim: copy("暂无可关联的已完成活动或主题", "No cleared activity or topic to attach")).accessibilityIdentifier("square.cloud.completed.empty") } icon: { Image(systemName: "checkmark.circle") }
-                } description: {
-                    Text(verbatim: copy("仅显示已完成的活动", "Only cleared activities"))
-                }
+                emptyState
             } else {
                 Section {
                     ForEach(rows) { item in
@@ -480,15 +480,22 @@ struct SquareCloudCompletedActivityPicker: View {
                 }
             }
         case .empty:
-            ContentUnavailableView {
-                Label { Text(verbatim: copy("暂无可关联的已完成活动或主题", "No cleared activity or topic to attach")).accessibilityIdentifier("square.cloud.completed.empty") } icon: { Image(systemName: "checkmark.circle") }
-            }
+            emptyState
         case .failed:
             status("活动列表没能打开", "The activity list did not open", symbol: "exclamationmark.triangle", identifier: "square.cloud.completed.error")
         case .offline:
             status("你离线了", "You're offline", symbol: "wifi.slash", identifier: "square.cloud.completed.offline")
         case .permission:
             status("没有已完成活动的读取权限", "No permission to read cleared activities", symbol: "lock", identifier: "square.cloud.completed.permission")
+        }
+    }
+
+    /// MP `cy-empty`: title plus 仅显示已完成的活动 in every empty case.
+    private var emptyState: some View {
+        ContentUnavailableView {
+            Label { Text(verbatim: copy("暂无可关联的已完成活动或主题", "No cleared activity or topic to attach")).accessibilityIdentifier("square.cloud.completed.empty") } icon: { Image(systemName: "checkmark.circle") }
+        } description: {
+            Text(verbatim: copy("仅显示已完成的活动", "Only cleared activities"))
         }
     }
 
@@ -513,6 +520,8 @@ struct SquareCloudCompletedActivityPicker: View {
     private func status(_ zh: String, _ en: String, symbol: String, identifier: String) -> some View {
         ContentUnavailableView {
             Label { Text(verbatim: copy(zh, en)).accessibilityIdentifier(identifier) } icon: { Image(systemName: symbol) }
+        } description: {
+            Text(verbatim: copy("活动列表加载失败，请重试", "The activity list did not load. Try again."))
         } actions: {
             Button { Task { phase = await load() } } label: { Text(verbatim: copy("重试", "Retry")) }
                 .buttonStyle(.bordered)
