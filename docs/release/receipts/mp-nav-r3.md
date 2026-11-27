@@ -167,6 +167,9 @@ Sweep sheets (en / zh-Hans): inbox inline title, ia-tabs large titles, onboardin
 | 首页 更多玩法 → 浏览模板 = MP pages/template/index (tabBar page, switchTab) | a second copy of the 发布 tab root inside a sheet | selects the 发布 tab (`rootTabSwitch(.publish)`); the sheet stays only as the fallback for hosts without a tab switch (pin test_home_composition unchanged) | fixed |
 | 首页 今日票 → MP subpackageMember/signup/index (票夹, navigateTo) | sheet + 关闭 | push of `SessionTicketWalletHost(isPushed: true)` like 我的 → 票夹 | fixed |
 | 首页 小游戏 banner (app-only page, `native/mini-games`) → App/SessionHomeFeedView.swift | the only 首页 banner still opening a sheet + 关闭 (activity list / club apply banners push) | `navigationDestination(isPresented: $showsMiniGames)` push, inline title, system back | fixed |
+| 我的 合作 row → CooperationBrowserView sheet (App/AccountView.swift:163) | sheet + 关闭 although MP pages/coop/list is a navigateTo page | merchant-gated (`PlayerLaunch.merchantCenterEnabled`, hidden in Release): merchant out of scope | n/a |
+| pages/activity/detail → 票夹 (MP navigateTo subpackageMember/signup) → App/ActivityDetailView.swift:312 | `.cySheet` + 关闭 instead of a push | not changed: the footer pill is the zoom source of this sheet (continuity r1, `tileOpenedSheet`) and test_activity_design_structure pins the trigger; see For other lanes | open |
+| club detail 成员 / 贡献榜 → ClubPublicRosterView member profile sheet (App/ClubPublicRosterView.swift:76) | MP pages/userinfo is a navigateTo page | both hosts pass `profile: nil` (ClubDetailView.swift:291/334), so the sheet is unreachable; no change | n/a |
 | 票夹 empty state + 去探索主题 (MP signup/index.js:701 switchTab 首页) in a pushed wallet → App/SessionTicketWalletHost.swift | on 首页 the tab was already selected, so the pushed wallet stayed open (dead tap) | a pushed host pops (`dismiss`) before selecting 首页, like MP switchTab closing the page | fixed |
 
 ## Route coverage
@@ -189,6 +192,8 @@ All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScre
 - 漫游护照与工具 hub sheet (owner Q9) and topic 编辑 editor sheet — kept, see the edge table.
 
 ## For other lanes
+
+- mp-home / motion: activity detail → 票夹 (ActivityDetailView.swift:312) is still a sheet with 关闭; MP navigateTo = push (OWNER RULE 2). The footer-pill zoom can stay on a push (`navigationTransition(.zoom)`), so the owner of continuity r1 should convert it.
 
 - mp-states / coordinator: the 消息 inbox preview is always "打开会话查看消息" (`MessagingPreview`, App/MessagingComponents.swift:300; `MessagingConversation` drops `lastMsgText` because recalled text may survive in it). MP `fmtPreview` shows the last message text / [图片] / [系统卡片]. Showing it needs a recall-safe server field first; left as is (privacy decision).
 
