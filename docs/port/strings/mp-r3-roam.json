@@ -1120,5 +1120,22 @@
         }
       }
     }
+  },
+  "roam.shop.visitors %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%lld checked in here"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%lld 人打过卡"
+        }
+      }
+    }
   }
 }

@@ -175,6 +175,14 @@ New strings: `roamTools.runners.lighting %lld` (Lighting up this block: N / 这�
 
 Gates: generate_project OK · check_scaffold PASS (20726 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 
+## Round 3 continue (10) — live 附近商家 rows vs MP 商家横滑卡 (原型 f-fun / f-discover, pages/roam/index.wxml:500–532, index.js `openShopStrip` 497–530)
+
+| MP page / scene | Native view | Differences | Status |
+|---|---|---|---|
+| `pages/roam/index` shop strip: per merchant name → distance (`dist`) → 去这儿 + BL-70 `N 人打过卡` face pile (`/api/roam/shop/visitors`, sourceType 2 = `regId`, first 8 shops) → photo; layer failure = one cy-error | `App/RoamLiveSessionView.swift` 附近 registered-shop rows (`/api/map/nearby`) | Native rows had the name and the 探店 action only: no distance, no visitor pile. Shared `RoamShopVisitorsStack` printed the Core label `N 人打过卡` verbatim (Chinese in the English UI). Layer failure row already mirrored (`roam.liveRead.shopsFailed`). | **Fixed:** distance meta (`N m`, from the server `distance`, hidden when unknown) and the visitor stack (sourceType 2, shop id = registration row, loaded once for the first 8 shops via the existing `RoamShopVisitorsModel` with `socialRoamCapabilities`; failure draws nothing like the MP). Stack label is now `roam.shop.visitors %lld` (N checked in here / N 人打过卡) everywhere it is used. 去这儿 stays the 探店 / 查看主题 actions (MP 去这儿 opens the poi detail or recentres the map; native rows have no map pin layer yet). Photo not shown (rows, not cards). |
+
+Gates: generate_project OK · check_scaffold PASS (20727 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no

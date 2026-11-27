@@ -58,6 +58,9 @@ import QuestifyCore
     func withFogMap(_ value: RoamLiveFogMap?) -> Self { var copy = self; copy.fogMap = value; return copy }
     @StateObject private var browse: RoamPausedBrowsePresentation
     @StateObject private var model: RoamLiveViewModel
+    /// MP shop strip BL-70 「N 人打过卡」 (`_loadShopStripVisitors`, sourceType 2 = registered merchant).
+    @StateObject private var shopVisitors = RoamShopVisitorsModel()
+    @Environment(\.socialRoamCapabilities) private var socialCapabilities
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
@@ -756,7 +759,17 @@ import QuestifyCore
             RoamLiveRouteOverviewSection(track: track, paused: owner.phase == .paused)
         }
     }
+    private var shopVisitorSources: [RoamPlayerExtrasService.VisitorSource] {
+        owner.registeredShops.prefix(8).map { RoamPlayerExtrasService.VisitorSource(sourceType: 2, sourceID: $0.id) }
+    }
     @ViewBuilder private var nearby: some View {
+        nearbySection
+            .task(id: shopVisitorSources) {
+                guard let socialCapabilities, !shopVisitorSources.isEmpty else { return }
+                await shopVisitors.load(shopVisitorSources, client: socialCapabilities.client)
+            }
+    }
+    @ViewBuilder private var nearbySection: some View {
         Section("roam.live.nearby") {
             if owner.nearbyReadFailed {
                 if owner.placesReadError != nil {
@@ -783,6 +796,12 @@ import QuestifyCore
                 if nearbyExpanded || owner.busy || owner.error != nil || owner.registeredShopUnresolved(shop) || owner.registeredShopConfirmed(shop) {
                     VStack(alignment: .leading, spacing: 8) {
                         if shop.addressName.isEmpty { Text("roam.unnamed").cyText(.cardTitle) } else { Text(verbatim: shop.addressName).cyText(.cardTitle) }
+                        if let meters = shop.distance, meters.isFinite, meters > 0 {
+                            Text("roam.live.topic.meters \(Int(meters.rounded()))").cyText(.meta).foregroundStyle(.secondary)
+                                .accessibilityIdentifier("roam.live.shop.distance")
+                        }
+                        RoamShopVisitorsStack(source: RoamPlayerExtrasService.VisitorSource(sourceType: 2, sourceID: shop.id),
+                                              visitors: shopVisitors.visitors[RoamPlayerExtrasService.VisitorSource(sourceType: 2, sourceID: shop.id)])
                         if let topic = RoamLiveTopicShop(shop: shop), roamGap != nil {
                             Button { topicShop = topic } label: {
                                 Label("roam.live.topic.entry", systemImage: "map")
