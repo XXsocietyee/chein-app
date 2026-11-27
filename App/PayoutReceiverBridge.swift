@@ -4,16 +4,19 @@ import SwiftUI
 /// composition transport (`ChinaReviewedProductionTransport`), behind `PayoutReceiverTransport` (route list plus the
 /// payout switch) and this app-side lease (`PayoutReceiverRouteGrant` plus `ReviewedAreaSwitch`).
 @MainActor enum PayoutReceiverBridge {
-    /// Payout area: open for DEBUG/TEST off the production host, closed on www.chengyinhub.com and in Release.
+    /// Payout area (CLB-r11-settlement-02, owner 11-26: money is on in Release): open on any installed host, production
+    /// included, in every build (`ReviewedAreaSwitch.areaOpen`).
     static func payoutOpen(_ session: AppSession) -> Bool { ReviewedAreaSwitch.payoutOpen(session: session) }
     static func paymentsOpen(_ session: AppSession) -> Bool { ReviewedAreaSwitch.paymentsOpen(session: session) }
     /// CLB-settlement-05 (MP settlement/index.js:117-125; cy/fe-reference-settlement/index.js:41): the settlement **reads**
     /// (mine list, personal summary, direct ledger, FE payer list and export) move no money, so they are not behind the
-    /// payout area. Bind, unbind, settle and withdraw stay TEST-only (AppLease / ReleaseMoneyWriteSwitch / FE money gate).
+    /// payout area. Unbind and withdraw ride the payout area (AppLease); settle also needs the FE money gate; bind is
+    /// held only by the missing WeChat app code (below).
     static func readsOpen(_ session: AppSession) -> Bool { session.regionalConfiguration?.apiConfiguration != nil }
 
-    /// The native app has no mini-program `wx.login`. Bind needs a one-time WeChat code; the WeChat SDK is not configured
-    /// in this build, so this stays nil and bind answers 「请先完成微信登录」 instead of sending a request.
+    /// The native app has no mini-program `wx.login` (MP payout-receiver/index.js:95-121). Bind needs a one-time WeChat
+    /// code; the WeChat SDK is not configured yet (owner + backend, CLB-payout-receiver-01), so this stays nil and bind
+    /// answers 「请先完成微信登录」 instead of sending a request. Money itself is on in Release (owner 11-26).
     static var weChatCode: (@MainActor () async -> String?)?
 
     static func service(_ session: AppSession) -> PayoutReceiverService? {

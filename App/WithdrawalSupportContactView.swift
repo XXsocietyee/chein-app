@@ -31,23 +31,34 @@ extension EnvironmentValues {
     var body: some View {
         let offered = generation
         return NavigationStack {
+            // CLB-r11-nat-settlement-01 (MP settlement wxml:43-46 → utils/withdraw-cs): plain Form; the title and
+            // explanation are the Section header and footer, copy is a Button, the missing config an orange Label.
             Form {
-                Section { CYHeroHeader("withdrawal.support.contact", subtitle: "withdrawal.support.explanation").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
-
-                if busy { ProgressView("wallet.loading") }
-                if let configuration, loadedScope == reader?.scope {
-                    LabeledContent("withdrawal.support.weChat") { Text(verbatim: configuration.contact.weChatID) }
-                    CYPillButton("withdrawal.support.copyWeChat", systemImage: "doc.on.doc") { Task { await copy(configuration, offered: offered) } }
+                Section {
+                    if busy { ProgressView("wallet.loading") }
+                    if let configuration, loadedScope == reader?.scope {
+                        LabeledContent("withdrawal.support.weChat") { Text(verbatim: configuration.contact.weChatID) }
+                        Button { Task { await copy(configuration, offered: offered) } } label: {
+                            Label("withdrawal.support.copyWeChat", systemImage: "doc.on.doc")
+                        }
                         .disabled(busy).accessibilityIdentifier("withdrawal.support.copyWeChat")
-                    Text("withdrawal.support.manualContact")
-                } else if !busy {
-                    CYStatusChip("withdrawal.support.unconfigured", tone: .warning, systemImage: "exclamationmark.bubble")
-                        .accessibilityIdentifier("withdrawal.support.unconfigured")
+                    } else if !busy {
+                        Label("withdrawal.support.unconfigured", systemImage: "exclamationmark.bubble")
+                            .foregroundStyle(.orange)
+                            .accessibilityIdentifier("withdrawal.support.unconfigured")
+                    }
+                    if let issue { Text(LocalizedStringKey(issue)).accessibilityIdentifier("withdrawal.support.status") }
+                    Button("wallet.retry") { Task { await load(offered: offered) } }.disabled(busy)
+                } header: {
+                    Text("withdrawal.support.contact")
+                } footer: {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("withdrawal.support.explanation")
+                        if configuration != nil, loadedScope == reader?.scope { Text("withdrawal.support.manualContact") }
+                    }
                 }
-                if let issue { Text(LocalizedStringKey(issue)).accessibilityIdentifier("withdrawal.support.status") }
-                CYPillButton("wallet.retry", style: .tertiary) { Task { await load(offered: offered) } }.disabled(busy)
-            }.cyGroupedSurface()
-                .cyHeroScreen()
+            }
+                .navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { clear(); dismiss() }.accessibilityIdentifier("withdrawal.support.close") } }
         }
         .task(id: readerKey) { await load(offered: offered) }

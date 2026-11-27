@@ -39,6 +39,13 @@ struct ClubActionPanel: View {
     private var availability: ClubActionAvailability {
         ClubActionAvailability.resolve(club, viewerIsMerchant: coordinator.viewerIsMerchant)
     }
+    /// The 申请留言 field is on screen (same gates as the TextField row): signed in as this panel's identity, the
+    /// coordinator configured, apply available, and no settled apply chip.
+    private func showsApplyMessage() -> Bool {
+        guard coordinator.identity == identity, identity.isSignedIn, !rewardPlaying, coordinator.isConfigured,
+              case .available(let action) = availability, action == .apply else { return false }
+        return rewardAction != action
+    }
     /// True while the seal is landing. The joined or pending chip stays after this ends.
     private var rewardPlaying: Bool {
         rewardAction != nil && rewardAction != .leave && !rewardHandedOff
@@ -86,17 +93,6 @@ struct ClubActionPanel: View {
                             }
                                 .disabled(isWorking || state.preventsNewAction)
                                 .accessibilityIdentifier("club.application.message")
-                            Text("club.application.messageHelp").font(.footnote).foregroundStyle(.secondary)
-                            if !ClubApplicationMessage.isValid(joinMessage, for: .apply) {
-                                Group {
-                                    if ClubApplicationMessage.isMissingRequiredMessage(joinMessage) {
-                                        Text("club.admission.messageRequired", tableName: "ClubApplicationMessage")
-                                    } else {
-                                        Text("club.application.messageTooLong")
-                                    }
-                                }.foregroundStyle(.secondary)
-                                    .accessibilityIdentifier("club.application.messageTooLong")
-                            }
                         }
                         // A settled join or apply keeps the chip. Do not offer that action again.
                         if rewardAction != action {
@@ -120,6 +116,23 @@ struct ClubActionPanel: View {
                 .onChange(of: identity) { _, _ in reset() }
                 .onChange(of: club.id) { old, _ in reset(clubID: old) }
                 .onDisappear { reset() }
+        } footer: {
+            // CLB-r10-nat-detail-08: the message help and the required / too-long text are the Section footer.
+            if showsApplyMessage() {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("club.application.messageHelp")
+                    if !ClubApplicationMessage.isValid(joinMessage, for: .apply) {
+                        Group {
+                            if ClubApplicationMessage.isMissingRequiredMessage(joinMessage) {
+                                Text("club.admission.messageRequired", tableName: "ClubApplicationMessage")
+                            } else {
+                                Text("club.application.messageTooLong")
+                            }
+                        }
+                        .accessibilityIdentifier("club.application.messageTooLong")
+                    }
+                }
+            }
         }
         }
         }

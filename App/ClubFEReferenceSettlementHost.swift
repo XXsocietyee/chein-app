@@ -17,7 +17,7 @@ enum ClubFEReferenceMoneyWriteGate {
 @MainActor enum ClubFEReferenceBridge {
     /// CLB-settlement-05: the payer list and export are reads; they no longer wait on the payout area.
     static func open(_ session: AppSession) -> Bool { PayoutReceiverBridge.readsOpen(session) }
-    /// 标记已结清 is money: it still needs the payout area (TEST/DEBUG off the production host) and the TEST gate.
+    /// 标记已结清 is money: it needs the payout area (any installed host, Release included) and the settle gate.
     static func settleOpen(_ session: AppSession) -> Bool { PayoutReceiverBridge.payoutOpen(session) }
 
     private static func lease(_ session: AppSession) -> (any HTTPTransport)? {

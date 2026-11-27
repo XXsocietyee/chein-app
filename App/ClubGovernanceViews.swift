@@ -806,7 +806,9 @@ struct ClubGovernanceReadView: View {
             NavigationStack { ClubGovernanceCommandForm(route: route, identity: identity, access: access, coordinator: coordinator)
                 // CLB-group-code-04 (MP group-code wxml:38-39): the topic-detail 出示团码 carries its session label.
                 .environment(\.clubRoleActivityLabel, groupCodeSessionLabel(route)) }
-                .cyDomainSheet(detents: [.full])
+                // CLB-r10-nat-topic-detail-04: system detents for the editor sheet.
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
         }
         .background {
             if let item = seriesUpdateReturn.item {
@@ -1771,7 +1773,9 @@ struct ClubGovernanceReadView: View {
                     }
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("club.gov.close") { topicQuickSheet = nil } } }
                 }
-                .cyDomainSheet(detents: [.half, .full])
+                // CLB-r10-nat-topic-detail-04: system detents for the quick sheet.
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
             }
             // Mini 核销 card: only for running/ended, uncancelled sessions the server granted `canViewVerify`;
             // the counts come from topic-manage-stats. Missing counts render as an em dash.
@@ -1790,7 +1794,7 @@ struct ClubGovernanceReadView: View {
                     ClubTopicStoryCard(value: value, nodeCount: stats["nodeCount"].int)
                 }.accessibilityIdentifier("club.gov.openStory")
             } header: { Text("club.topic.card.title") }
-            Section("club.topic.upcoming") {
+            Section {
                 let sessions = value["activityList"].array ?? []
                 let groupCodePage = ClubGroupCodePage.project(value: value, scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope))
                 if sessions.isEmpty { ContentUnavailableView("club.topic.noSessions", systemImage: "calendar") }
@@ -1837,6 +1841,9 @@ struct ClubGovernanceReadView: View {
                         }
                     }
                 }
+            } header: { Text("club.topic.upcoming") } footer: {
+                // CLB-r11-topic-detail-02 (MP topic-detail/index.js:419, wxml:316): paidSessionsBlocked → paymentNotice.
+                if stats["paidSessionsBlocked"] == .bool(true) { Text("club.topic.paidSessionsBlocked") }
             }
             ClubTerminalSessionEntry(snapshot: snapshot, context: terminalContext, snapshotGeneration: terminalGeneration,
                 host: terminalSessions, access: access, sourceIsCurrent: {

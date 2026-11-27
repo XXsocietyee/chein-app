@@ -1,8 +1,8 @@
 import SwiftUI
 
 // WP-01. Ports mini-program pages/club/payout-receiver, pages/club/settlement (mine list and personal summary)
-// and components/cy/club-direct-ledger. Every page stays visible; when the payout area is closed (production host,
-// Release) it shows one sentence and sends nothing.
+// and components/cy/club-direct-ledger. Every page stays visible; the payout area is open on any installed host in
+// every build (owner 11-26); without a host it shows one sentence and sends nothing.
 
 enum PayoutPageState<Value: Equatable>: Equatable {
     case loading

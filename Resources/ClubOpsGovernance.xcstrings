@@ -1367,6 +1367,23 @@
           }
         }
       }
+    },
+    "clubOpsGov.success.dissolve": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Club dissolved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "俱乐部已解散"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

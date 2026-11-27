@@ -10,6 +10,21 @@ extension EnvironmentValues {
     }
 }
 
+/// CLB-r11-edit-01 (MP edit/index.js:23-30 onDissolved): the edit page's pop, called by the dissolve form 0.5 s after
+/// the acknowledged dissolve. Nil outside the edit page.
+struct ClubDissolvedReturn {
+    let leave: @MainActor () -> Void
+}
+private struct ClubDissolvedReturnKey: EnvironmentKey {
+    static let defaultValue: ClubDissolvedReturn? = nil
+}
+extension EnvironmentValues {
+    var clubDissolvedReturn: ClubDissolvedReturn? {
+        get { self[ClubDissolvedReturnKey.self] }
+        set { self[ClubDissolvedReturnKey.self] = newValue }
+    }
+}
+
 /// Session host owns access/coordinator and passes a published identity. This additive
 /// entry can be mounted on ClubHome (.create) and ClubDetail (.club(id)).
 struct ClubOperationsEntryButton: View {
@@ -491,6 +506,7 @@ struct ClubOperationsWorkspaceView: View {
                     ClubGovernanceReadView(operation: .dissolutionBlockers, scope: .init(clubID: profile.club.id), identity: identity,
                         access: governance.access, coordinator: governance.coordinator)
                         .environment(\.clubProfileDraftFlow, profileDraft)
+                        .environment(\.clubDissolvedReturn, ClubDissolvedReturn(leave: { dismiss() }))
                 } label: { Label("club.ops.dissolve", systemImage: "trash").foregroundStyle(.red) }
                     .disabled(loading || state.locksForm)
                     .accessibilityIdentifier("club.ops.dissolve")
@@ -516,35 +532,38 @@ struct ClubOperationsWorkspaceView: View {
         guard target != .create, case .rejected = state, let last = lastSubmittedReview, case .update = last.command else { return false }
         return true
     }
-    @ViewBuilder private func editSaveBar(_ value: ClubOperationsSnapshot) -> some View {
-        if editSaveFailed, case .rejected(let failure) = state {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("clubR8b.edit.saveFailed").font(.headline).foregroundStyle(.red)
-                    .accessibilityIdentifier("club.ops.edit.saveFailed")
-                if let message = failure.message { Text(verbatim: message).font(.subheadline).foregroundStyle(.secondary) }
-                HStack(spacing: 8) {
-                    Button { state = .idle } label: { Text("club.ops.keepEditing").frame(maxWidth: .infinity) }
-                        .buttonStyle(.bordered)
-                        .controlSize(.large)
-                        .accessibilityIdentifier("club.ops.edit.keepEditing")
-                    reviewProfileButton(value, titleKey: "clubR8b.edit.saveAgain")
-                        .disabled(loading || profileDraftBlocked)
-                        .accessibilityIdentifier("club.ops.edit.saveAgain")
+    /// CLB-r10-nat-edit-02 (MP scene-club-edit save-failed): the bar stays the plain 保存修改 button; a rejected save is
+    /// an alert with the server sentence, 重新保存 and 继续编辑 (cancel).
+    private func editSaveBar(_ value: ClubOperationsSnapshot) -> some View {
+        reviewProfileButton(value)
+            .disabled(loading || state.locksForm || profileDraftBlocked || !dirty)
+            .accessibilityIdentifier("club.ops.reviewProfile")
+            .alert("clubR8b.edit.saveFailed", isPresented: editSaveFailedPresented) {
+                Button("clubR8b.edit.saveAgain") {
+                    state = .idle
+                    saveProfile(value)
                 }
+                .disabled(loading || profileDraftBlocked)
+                .accessibilityIdentifier("club.ops.edit.saveAgain")
+                Button("club.ops.keepEditing", role: .cancel) { state = .idle }
+                    .accessibilityIdentifier("club.ops.edit.keepEditing")
+            } message: {
+                if case .rejected(let failure) = state, let message = failure.message { Text(verbatim: message) }
             }
-        } else {
-            reviewProfileButton(value)
-                .disabled(loading || state.locksForm || profileDraftBlocked || !dirty)
-                .accessibilityIdentifier("club.ops.reviewProfile")
-        }
+    }
+    private var editSaveFailedPresented: Binding<Bool> {
+        Binding(get: { editSaveFailed }, set: { presented in if !presented, editSaveFailed { state = .idle } })
+    }
+    private func saveProfile(_ value: ClubOperationsSnapshot) {
+        let command: ClubOperationsCommand
+        if let original = value.profile { command = .update(draft, original: original) }
+        else { command = .create(draft) }
+        // CLB-edit-05 (fix-r8-club): MP 保存修改 saves on the tap; the review sheet stays only when writes are unverified.
+        Task { await prepare(command, confirmsInline: target != .create) }
     }
     @ViewBuilder private func reviewProfileButton(_ value: ClubOperationsSnapshot, titleKey: LocalizedStringKey? = nil, inRow: Bool = false) -> some View {
         let button = Button {
-            let command: ClubOperationsCommand
-            if let original = value.profile { command = .update(draft, original: original) }
-            else { command = .create(draft) }
-            // CLB-edit-05 (fix-r8-club): MP 保存修改 saves on the tap; the review sheet stays only when writes are unverified.
-            Task { await prepare(command, confirmsInline: target != .create) }
+            saveProfile(value)
         } label: {
             Text(titleKey ?? LocalizedStringKey(target == .create ? "club.ops.create" : "club.ops.reviewProfile")).frame(maxWidth: inRow ? nil : .infinity)
         }

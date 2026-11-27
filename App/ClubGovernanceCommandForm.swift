@@ -74,6 +74,7 @@ import SwiftUI
     @Environment(\.locale) private var locale
     @Environment(\.clubOpsEventTopicFact) private var eventTopicFact
     @Environment(\.clubProfileDraftFlow) private var profileDraftFlow
+    @Environment(\.clubDissolvedReturn) private var dissolvedReturn
     /// CLB-group-code-04 (fix-r3-club-b round 3): the session label the event tools pass in (never a command field).
     @Environment(\.clubRoleActivityLabel) private var sessionLabel
     @QuestifyReduceMotion private var reduceMotion
@@ -198,6 +199,11 @@ import SwiftUI
                     commandLeadRows
                     commandFieldRows
                 }.disabled(busy || locked || review != nil)
+                // CLB-r10-nat-event-ops-04: the cancel / correct reason is its own Section with a footer.
+                if route.operation == .cancelOccurrence || route.operation == .correctAttendance {
+                    ClubOpsEventReasonField(operation: route.operation, reason: textBinding("reason"))
+                        .disabled(busy || locked || review != nil)
+                }
             }
             if let failure, route.operation == .issueGroupCode, ClubGroupCodePort.classify(failure) == .noPermission {
                 // Mini isPermissionDenial: terminal state with an exit, not a retry.
@@ -511,6 +517,14 @@ import SwiftUI
             guard !Task.isCancelled, receipt != nil else { return }
             dismiss()
         }
+        // CLB-r11-edit-01 (MP edit/index.js:23-30 onDissolved): 俱乐部已解散, then after 0.5 s leave the form and the
+        // edit page (navigateBack).
+        .task(id: route.operation == .dissolve && receipt != nil) {
+            guard route.operation == .dissolve, receipt != nil else { return }
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            guard !Task.isCancelled, receipt != nil else { return }
+            if let dissolvedReturn { dissolvedReturn.leave() } else { dismiss() }
+        }
         .onChange(of: identity) { _, _ in scheduleSession = nil; retirePresentation(); review = nil; receipt = nil; groupCode = nil; coordinator.cancelReview(); draft = .init(operation: route.operation, scope: route.scope); failure = .staleReview; dismiss() }
         .task(id: rolePickerContext) {
             guard route.operation == .assignRole, let permit = rolePicker.activate(rolePickerContext) else { return }
@@ -692,9 +706,6 @@ import SwiftUI
             ClubSeriesOfferWindowField(minutes: textBinding("offerMinutes"))
                 .clubOpsEventVisible(showsOfferWindow)
             ClubOpsEventOfferHelp(minutes: draft.text["offerMinutes"] ?? "", visible: showsOfferWindow)
-        }
-        if [.cancelOccurrence, .correctAttendance].contains(route.operation) {
-            ClubOpsEventReasonField(operation: route.operation, reason: textBinding("reason"))
         }
         if route.operation == .saveCustomer {
             ClubOpsCustomerTagRemarkEditor(tagsText: textBinding("tags"), remark: textBinding("remark"))
