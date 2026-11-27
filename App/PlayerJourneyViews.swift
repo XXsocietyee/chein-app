@@ -502,17 +502,12 @@ private struct ParticipationCoverPlaceholder: View {
             if loading { ProgressView("playerJourney.parity.detailLoading") }
             if let issue { ParticipationIssueView(issue: issue, retry: { Task { await load() } }) }
             if let detail {
+                // mp-mine r3: MP participation-detail order — title row, info card (cover, node, 接待时间), 自由探索权益,
+                // 我的角色卡, 定向成绩, 核销 stats, template, rules. No 参与日程 block (the date lives in the title row).
+                ParticipationDetailHeader(detail: detail)
                 // PLY-23-6: MP participation-detail index.wxml:29-30 `picUrl` cover (cmsTopic/cmsActivity imgUrl || imgArr),
                 // https only, none when absent. The topic banner has its own slot in the template row (wxml:101).
                 ParticipationDetailGapSections(coverURL: QuestifyCardArtwork.safeURL(detail.record.cover)?.absoluteString)
-                ParticipationDetailHeader(detail: detail)
-                // PLY-23-4: 自由探索权益 under the info card (MP wxml:64-66, `_bundleEntry`: ownerType 1 +
-                // cmsTopic + purchaseKind 3 or productType 2). The route opens FreeExploreBundleLaunchView.
-                ParticipationDetailGapSections(
-                    isFreeExplore: bundleEntryEnabled && detail.record.isFreeExplore && detail.record.order.id > 0,
-                    onOpenFreeExploreBundle: { open(.freeExploreBundle(registrationID: detail.record.order.id)) })
-                ProfileParticipationScheduleSection(start: detail.record.order.ownerStartDate,
-                    end: detail.record.order.ownerEndDate)
                 if detail.nodeName != nil || detail.cooperateDate != nil {
                     Section {
                         if let node = detail.nodeName {
@@ -527,8 +522,11 @@ private struct ParticipationCoverPlaceholder: View {
                         }
                     }
                 }
-                // Source result cards sit above the verification stats.
-                OrientScoreParticipationEntry(detail: detail)
+                // PLY-23-4: 自由探索权益 under the info card (MP wxml:64-66, `_bundleEntry`: ownerType 1 +
+                // cmsTopic + purchaseKind 3 or productType 2). The route opens FreeExploreBundleLaunchView.
+                ParticipationDetailGapSections(
+                    isFreeExplore: bundleEntryEnabled && detail.record.isFreeExplore && detail.record.order.id > 0,
+                    onOpenFreeExploreBundle: { open(.freeExploreBundle(registrationID: detail.record.order.id)) })
                 // MP「我的角色卡」card → character/index?topicId (PLY-23-2). The card page reads and gates itself.
                 if let topicID = detail.topicID, topicID > 0, (detail.record.order.memberID ?? 0) > 0,
                    characterProbe == nil || characterEntry == true {
@@ -540,9 +538,10 @@ private struct ParticipationCoverPlaceholder: View {
                         .accessibilityIdentifier("playerJourney.characterCard.entry")
                     }
                 }
+                OrientScoreParticipationEntry(detail: detail)
                 if detail.showOrderStats {
-                    Section("playerJourney.verification") {
-                        // Source shows two cells in 人 and 0 for unknown statistics.
+                    Section {
+                        // MP wxml:75 draws the two cells with no header. Source shows two cells in 人 and 0 for unknown statistics.
                         LabeledContent("playerJourney.pending") { Text("playerJourney.parity.people \(detail.pendingText)").monospacedDigit() }
                             .accessibilityIdentifier("playerJourney.stats.pending")
                         LabeledContent("playerJourney.parity.verifiedOfTotal") {
@@ -551,17 +550,6 @@ private struct ParticipationCoverPlaceholder: View {
                         NavigationLink { SessionNativeVerificationView() } label: {
                             Label("verification.title", systemImage: "qrcode.viewfinder")
                         }.accessibilityIdentifier("playerJourney.verification")
-                    }
-                }
-                if detail.rules != nil {
-                    // Source mycanyuinfo renders its fixed exit/pause text whenever ruleInstructions is present.
-                    Section("playerJourney.rules") {
-                        // MP mycanyuinfo wxml:110 puts the shipped `d_cyinfo4.png` figure beside the fixed rule text.
-                        HStack(alignment: .top, spacing: CYSpacing.md) {
-                            MPAsset.FeatureIcon.dCyinfo4.resizable().scaledToFit().frame(width: 36, height: 36).accessibilityHidden(true)
-                            Text("playerJourney.parity.fixedRules").fixedSize(horizontal: false, vertical: true)
-                                .accessibilityIdentifier("playerJourney.rules")
-                        }
                     }
                 }
                 if let rawID = detail.templateID, let id = MemberPlayTemplateID(rawValue: rawID) {
@@ -578,6 +566,17 @@ private struct ParticipationCoverPlaceholder: View {
                         NavigationLink { SessionMemberTemplateDetailView(id: id) } label: {
                             Label("memberTemplate.title", systemImage: "doc.text.magnifyingglass")
                         }.accessibilityIdentifier("playerJourney.template")
+                    }
+                }
+                if detail.rules != nil {
+                    // Source mycanyuinfo renders its fixed exit/pause text whenever ruleInstructions is present.
+                    Section {
+                        // MP mycanyuinfo wxml:110 puts the shipped `d_cyinfo4.png` figure beside the fixed rule text.
+                        HStack(alignment: .top, spacing: CYSpacing.md) {
+                            MPAsset.FeatureIcon.dCyinfo4.resizable().scaledToFit().frame(width: 36, height: 36).accessibilityHidden(true)
+                            Text("playerJourney.parity.fixedRules").fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("playerJourney.rules")
+                        }
                     }
                 }
                 Section {
