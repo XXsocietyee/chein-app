@@ -1,7 +1,9 @@
 # Receipt · components r1 · lane C5 social (`comp/r1-social`)
 
 Brief: `origin/design/handoff-r2:docs/briefs/components-r1.md` (lane C5: channel messages + community). Base `origin/ui/combined-r7` @ `64a344358`.
-Lane C3 (`origin/comp/r1-kit`) had not pushed when this round started, so C5 uses its own small social helpers. When `CYWaveform` / `CYLiveCounter` land, `CYSocialVoiceWaveform` / `CYSocialCountLabel` can wrap them; the call sites stay the same.
+Lane C3 (`origin/comp/r1-kit`) pushed during this round and is **merged into this branch**, so please merge `comp/r1-kit` before `comp/r1-social`.
+- `CYSocialVoiceWaveform` now draws through C3's `CYWaveform`. It passes the clip's levels, the played share and the bubble ink (`IMPreviewInk.sent` / `.page`).
+- `CYSocialCountLabel` intentionally does **not** use `CYLiveCounter`. That component sets its own `cyText` style and tint, which would override the club action bar's button tint and font. The count label keeps a system `Label` inside the `Button` and uses the same `.numericText` and compact notation.
 
 ## Added
 
@@ -39,6 +41,8 @@ Lane C3 (`origin/comp/r1-kit`) had not pushed when this round started, so C5 use
 - No compiler in the cloud. APIs were grepped and checked against iOS 17: `symbolEffect(_:options:value:)`, `contentTransition(.symbolEffect(.replace))`, `numericText(value:)`, `Text(timerInterval:countsDown:)`, `TimelineView(.animation(minimumInterval:paused:))`, `IntegerFormatStyle.notation(.compactName)`.
 
 ## For the coordinator
+
+- Merge order: `comp/r1-kit` → `comp/r1-social` (this branch already contains the kit).
 
 - No capabilities, entitlements or profiles are needed for this lane.
 - Please build `Questify` once. The likeliest compile-risk spots are `CYSocialCountLabel.icon` (`AnyShapeStyle(ForegroundStyle())`) and the `TimelineView` closure in `NativeChannelInlineVoiceView`.

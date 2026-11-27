@@ -2,33 +2,27 @@ import SwiftUI
 
 // Components r1 · lane C5 social. Channel messages and club community only.
 // Presentation only: counts, playback state and authorization come from the existing owners.
-// When lane C3's `CYWaveform` / `CYLiveCounter` land in `App/NativeR2/Components/`, these wrap them.
+// The voice waveform is drawn by lane C3's `CYWaveform`. Counts keep their own Label (see `CYSocialCountLabel`).
 
 /// Voice-note waveform drawn from bars. `samples` is the clip's own level data (`IMVoiceReference.waveform`, base64,
 /// at most 256 bytes, recorded on device); it is resampled to `barCount` and normalised. With no usable samples the bars
 /// fall back to a stable pattern seeded by the message id (same message, same shape). `progress` (0...1) fills
-/// played bars with the primary ink; unplayed bars use tertiary ink, so the shape reads in sent and received bubbles.
+/// played bars with the bubble ink and dims the rest (CYWaveform), so the shape reads in sent and received bubbles.
 /// Decorative: VoiceOver reads the play button and the duration instead.
 struct CYSocialVoiceWaveform: View {
     let seed: Int
     var samples: Data? = nil
     var progress: Double = 0
     var barCount = 26
-    @ScaledMetric(relativeTo: .body) private var height: CGFloat = 22
-    @ScaledMetric(relativeTo: .body) private var barWidth: CGFloat = 3
 
+    /// Sent bubbles hand down their own ink (`IMPreviewInk.sent`); the page ink elsewhere.
+    @Environment(\.imPreviewInk) private var ink
+
+    /// Drawn by lane C3's `CYWaveform`; C5 only supplies the clip's levels, the played share and the bubble ink.
     var body: some View {
         let levels = CYSocialVoiceWaveform.levels(samples: samples, count: barCount) ?? CYSocialVoiceWaveform.levels(seed: seed, count: barCount)
-        let played = Int((min(max(progress, 0), 1) * Double(barCount)).rounded(.down))
-        HStack(alignment: .center, spacing: barWidth * 0.7) {
-            ForEach(0..<barCount, id: \.self) { index in
-                Capsule()
-                    .foregroundStyle(index < played ? HierarchicalShapeStyle.primary : HierarchicalShapeStyle.tertiary)
-                    .frame(width: barWidth, height: max(barWidth, height * levels[index]))
-            }
-        }
-        .frame(height: height)
-        .accessibilityHidden(true)
+        CYWaveform(levels: levels.map { Double($0) }, progress: min(max(progress, 0), 1), tint: ink.primary, barWidth: 3, height: 22)
+            .accessibilityHidden(true)
     }
 
     /// Bucket maxima of the recorded levels, scaled to 0.15...1.0. Nil for empty or all-silent data.
@@ -67,6 +61,8 @@ struct CYSocialVoiceWaveform: View {
 /// Like / comment / reaction count: system Label, digits roll with `.numericText`, the symbol swaps
 /// (heart → heart.fill) and bounces once when the viewer's own state turns on. Reduce Motion keeps the
 /// change instant. A zero count shows `emptyTitle` (MP: 「赞」/「评论」 until there is a count).
+/// Not C3's `CYLiveCounter`: that one sets its own text style and tint, which would override the action bar's
+/// button tint and font; this keeps the system Label inside the Button.
 struct CYSocialCountLabel: View {
     let count: Int
     let symbol: String
