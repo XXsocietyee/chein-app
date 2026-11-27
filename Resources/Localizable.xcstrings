@@ -173768,13 +173768,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Signup is closed for this account under platform rules."
+            "value": "Under platform rules, you can't sign up for this one right now."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "按平台规则，当前账号暂不能报名"
+            "value": "按平台规则，你暂时不能报名这一场。"
           }
         }
       }
