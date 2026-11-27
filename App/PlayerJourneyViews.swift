@@ -314,11 +314,14 @@ extension AppSession {
     @Environment(\.participationModifyEditor) private var modifyEditor
     var body: some View {
         List {
+            // mp-mine r3: MP mycanyu sits behind its login gate; signed out, only the sign-in state shows (no tabs).
+            if reader.isAuthenticated {
             Section {
                 // Source mycanyu uses fill tabs over one client-side read.
                 Picker("playerJourney.filter", selection: $filter) {
                     ForEach(ParticipationFilter.allCases) { value in Text(LocalizedStringKey("playerJourney.filter." + value.rawValue)).tag(value) }
                 }.cyAdaptiveSegmented().accessibilityIdentifier("playerJourney.filter")
+            }
             }
             if !reader.isAuthenticated { PlayerJourneyLogin(key: "playerJourney.parity.login", signIn: signIn) }
             else if loading && (rows == nil || rowsScope != reader.scope) {
