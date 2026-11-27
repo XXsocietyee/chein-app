@@ -4,6 +4,7 @@ import SwiftUI
 /// explainer (mini-program scene-merchant-profit). Unknown amounts show "—".
 struct CoopFinanceSummarySection: View {
     let summary: CoopFinanceSummary
+    @Environment(\.locale) private var locale
     var body: some View {
         Section {
             VStack(alignment: .leading, spacing: Theme.Space.s2) {
@@ -34,11 +35,8 @@ struct CoopFinanceSummarySection: View {
     }
     private func amount(_ value: Decimal?, negative: Bool = false) -> Text {
         guard let value else { return Text(verbatim: "—") }
-        let formatter = NumberFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.minimumFractionDigits = 2; formatter.maximumFractionDigits = 2
-        let text = formatter.string(from: NSDecimalNumber(decimal: value)) ?? "—"
-        return Text(verbatim: (negative ? "−¥" : "¥") + text).monospacedDigit()
+        // i18n r1: two decimals, U+2212 sign; Chinese `−¥1234.50`, English `−CN¥1,234.50`.
+        return Text(verbatim: LocaleDisplay.money(value, negative: negative, locale: locale)).monospacedDigit()
     }
 }
 

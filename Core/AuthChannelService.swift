@@ -12,6 +12,8 @@ public enum AuthChannelError: Error, Equatable {
 public enum AuthChannelInput {
     public static func phone(_ value: String) throws -> String {
         let result = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        // i18n r1: a US number arrives in E.164 (`+1` and 10 NANP digits) from `PhoneCountryCode.wireValue`.
+        if result.hasPrefix("+1"), PhoneCountryCode.unitedStates.isValid(String(result.dropFirst(2))) { return result }
         guard result.utf8.count == 11, result.first == "1", result.utf8.allSatisfy({ (48...57).contains($0) }) else {
             throw AuthChannelError.invalidPhone
         }

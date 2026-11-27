@@ -280,7 +280,7 @@ struct TopicXcxActionBar: View {
     @ViewBuilder private func priceText(_ amount: Decimal?) -> some View {
         if let amount {
             if amount == 0 { Text("topicXcx.bar.free") }
-            else { Text(verbatim: MoneyDisplay.yuan(amount)) }  // owner decision 9: ¥12.50
+            else { Text(verbatim: LocaleDisplay.money(amount, locale: locale)) }  // owner decision 9: ¥12.50
         }
     }
 
@@ -716,7 +716,7 @@ struct TopicDepartSection: View {
         switch item {
         case .price(let name, let amount, let from, let sharedBy):
             // REV-B B-02: the one money switch (`MoneyDisplay`), not a locale currency formatter.
-            let price = MoneyDisplay.yuan(amount)
+            let price = LocaleDisplay.money(amount, locale: locale)
             HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                 if let name { Text(verbatim: name) } else { Text("topic.depart.selfPlay") }
                 Spacer(minLength: CYSpacing.sm)
