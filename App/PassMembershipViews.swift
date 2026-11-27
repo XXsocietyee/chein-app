@@ -363,6 +363,8 @@ struct PassLibraryCard: Identifiable, Equatable {
     let minutes: Int?
     /// "¥0 with pass" only when the server stated coverage (`covered == true`).
     let freeWithPass: Bool
+    /// MP `lb-card__tags` (server `tags`), shown under the data line.
+    var tags: [String] = []
 }
 
 enum PassLibraryPhase: Equatable {
@@ -527,6 +529,12 @@ struct PassLibraryCardView: View {
                         if let minutes = card.minutes { Text("mp.library.minutes \(minutes)") }
                     }
                     .font(.subheadline).foregroundStyle(.secondary)
+                }
+                // MP lb-card__tags: native r2 has no capsule chrome, so the tags read as one secondary footnote line.
+                if !card.tags.isEmpty {
+                    Text(verbatim: card.tags.joined(separator: " · "))
+                        .font(.footnote).foregroundStyle(.secondary).lineLimit(2)
+                        .accessibilityIdentifier("passLibrary.card.tags")
                 }
             }
             Spacer(minLength: 0)
