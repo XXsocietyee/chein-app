@@ -43,6 +43,9 @@ public struct PlayToolsAndLeadSheetView: View {
     public var freeTrackPerkOnly: Bool? = nil
     /// mp-journey r3: MP 同行者榜 row (mode != 2), pushed; nil hides the row.
     public var boardDestination: (() -> AnyView)? = nil
+    /// mp-journey r3: MP 游玩工具 本局用时 · 当前得分 (`sessStats`, mode 1 with an orient `routeState.sessionId`; both open
+    /// 本局成绩), pushed right before 同行者榜. Nil hides the row.
+    public var scoreDestination: (() -> AnyView)? = nil
 
     public init(
         lead: PlayLeadToolsState = PlayLeadToolsState(),
@@ -71,6 +74,7 @@ public struct PlayToolsAndLeadSheetView: View {
         teamLead: PlayLeadProgress? = nil,
         journalRows: [PlayJournalRow]? = nil,
         boardDestination: (() -> AnyView)? = nil,
+        scoreDestination: (() -> AnyView)? = nil,
         rights: PlayToolsRights? = nil,
         onRights: @escaping () -> Void = {},
         freeTrackPerkOnly: Bool? = nil
@@ -81,6 +85,7 @@ public struct PlayToolsAndLeadSheetView: View {
         self.teamLead = teamLead
         self.journalRows = journalRows
         self.boardDestination = boardDestination
+        self.scoreDestination = scoreDestination
         self.locationOn = locationOn
         self.onLocationRow = onLocationRow
         self.lead = lead
@@ -128,14 +133,24 @@ public struct PlayToolsAndLeadSheetView: View {
                         }
                     }
                 }
-                if let boardDestination {
+                if scoreDestination != nil || boardDestination != nil {
                     Section {
-                        NavigationLink {
-                            boardDestination()
-                        } label: {
-                            Label("playx.leaderboard", systemImage: "person.3")
+                        if let scoreDestination {
+                            NavigationLink {
+                                scoreDestination()
+                            } label: {
+                                Label("playTools.sessionScore", systemImage: "clock")
+                            }
+                            .accessibilityIdentifier("playTools.sessionScore")
                         }
-                        .accessibilityIdentifier("playTools.board")
+                        if let boardDestination {
+                            NavigationLink {
+                                boardDestination()
+                            } label: {
+                                Label("playx.leaderboard", systemImage: "person.3")
+                            }
+                            .accessibilityIdentifier("playTools.board")
+                        }
                     }
                 }
                 teamPositionSection
@@ -199,7 +214,7 @@ public struct PlayToolsAndLeadSheetView: View {
             .navigationTitle(Text("playTools.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
+                ToolbarItem(placement: .confirmationAction) {
                     Button("action.done", action: onClose)
                 }
             }

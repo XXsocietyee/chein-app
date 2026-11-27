@@ -508,21 +508,27 @@ import QuestifyCore
 /// One 附近 row: kind symbol, title, kind · distance (Maps' search result row).
 @MainActor struct RoamMapHomePinRow: View {
     let pin: RoamMapHomePin
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    /// a11y-dt r3: one line each at normal sizes (Maps row); at AX sizes the title wraps to 2 lines and kind · distance stacks.
+    private var lines: Int { dynamicTypeSize.isAccessibilitySize ? 2 : 1 }
+    private var metaLayout: AnyLayout {
+        dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2)) : AnyLayout(HStackLayout(spacing: 4))
+    }
     var body: some View {
         NavigationLink(value: RoamMapHomeRoute.pin(pin.id)) {
             Label {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(verbatim: pin.title).lineLimit(1)
-                    HStack(spacing: 4) {
+                    Text(verbatim: pin.title).lineLimit(lines)
+                    metaLayout {
                         Text(pin.kindKey)
                         if let meters = pin.distanceMeters {
-                            Text(verbatim: "·")
+                            if !dynamicTypeSize.isAccessibilitySize { Text(verbatim: "·").accessibilityHidden(true) }
                             Text(Measurement(value: meters, unit: UnitLength.meters), format: .measurement(width: .abbreviated, usage: .road))
                         }
                     }
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                    .lineLimit(lines)
                 }
             } icon: {
                 Image(systemName: pin.systemImage).foregroundStyle(pin.tint)

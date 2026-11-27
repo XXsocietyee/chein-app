@@ -104,7 +104,7 @@ struct ExploreCompletionProvider {
         List {
             if !isCurrent() || reader.identity != identity || !reader.isConfigured {
                 CYEmptyState(systemImage: "lock", "exploreCompletion.changed")
-            } else if model.isLoading { CYSkeleton().accessibilityLabel(Text("exploreCompletion.loading")) }
+            } else if model.isLoading { CYSkeleton(label: "exploreCompletion.loading") }
             else if let error = model.error {
                 Section {
                     if case ExploreCompletionFailure.rejected(_, let message) = error, let message, !message.isEmpty {
@@ -121,7 +121,7 @@ struct ExploreCompletionProvider {
             } else if let value = model.value {
                 if value.hasTopic { facts(value) }
                 else { CYEmptyState(systemImage: "questionmark.folder", "exploreCompletion.noTopic") }
-            } else { CYSkeleton().accessibilityLabel(Text("exploreCompletion.loading")) }
+            } else { CYSkeleton(label: "exploreCompletion.loading") }
             Section { Text("exploreCompletion.readOnly").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
         }.cyGroupedSurface()
         .navigationTitle("exploreCompletion.title").navigationBarTitleDisplayMode(.inline)

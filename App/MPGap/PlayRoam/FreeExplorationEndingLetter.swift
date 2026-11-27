@@ -42,7 +42,7 @@ struct FreeExplorationEndingLetter: View {
             .navigationTitle(Text("playFree.ending.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
+                ToolbarItem(placement: .confirmationAction) {
                     Button("action.done") { dismiss() }
                 }
             }

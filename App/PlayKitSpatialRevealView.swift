@@ -34,7 +34,7 @@ import simd
                     .accessibilityValue(Text("playkitSpatial.error.permissionDenied"))
                     .accessibilityHint(Text("playkitSpatial.purposeDetail"))
             }
-            if working { CYSkeleton().accessibilityLabel(Text("playkitSpatial.loading")) }
+            if working { CYSkeleton(label: "playkitSpatial.loading") }
         }
         .confirmationDialog("playkitSpatial.purpose", isPresented: $purpose, titleVisibility: .visible) {
             Button("playkitSpatial.open") { prepare() }

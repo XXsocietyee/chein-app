@@ -170,6 +170,47 @@ Baseline 0; 1 allowed. Self-test: restoring the old `RoamOfficialTasksView.swift
 Gates (merged tree + this batch): `generate_project` PASS, `check_scaffold` PASS (design consistency: 0 debt, 65
 allowed, raw segmented 0), `check_a11y_lint` PASS (0 new), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
 
+## Continue run 6 (2026-11-27, after merging combined-r7 into 75f53bd9e)
+
+Receipt had no Not done rows. Scan: legacy APIs (`NavigationView`, `ActionSheet`, `.foregroundColor`) — 0 real hits
+on player screens. Scan: toolbar placement (owner rule 2 "toolbar items in the standard places"; P16 "share + save at
+the top bar, one Done"). 17 leading toolbar items on player screens: Close / Cancel / back / `EditButton` / merchant
+switch / the documented 消息 tab-root 全部已读 are standard; three result sheets put Share / Replay in the **leading**
+slot (where every other sheet has Cancel / Close) while `SocialInviteHistoryView` and `ExternalGameImportView` share
+trailing.
+
+| MP page | Native view | MP sections | Change (owner rule 2) |
+|---|---|---|---|
+| city orientation finish (medal / 城市定向 完成) | `App/NativeR2/CityOrientation/CityOrientationFinishSummaryView.swift:162` | unchanged | `ShareLink` `.topBarLeading` → `.primaryAction` (trailing, next to 完成). Identifier `medalScreen.share` kept. |
+| playkit game result sheet (passed) | `App/NativeR2/Games/NativeGameShell.swift:282` | unchanged | same; identifier `nativeGames.result.share` kept. |
+| motion route replay result | `App/NativeR2/Motion/NativeR2RouteReplay.swift:242` | unchanged | 再看一遍 replay `.topBarLeading` → `.primaryAction`; identifier kept. |
+
+New checker kind **leading action**: a `.topBarLeading` / `.navigationBarLeading` toolbar item whose content (same or
+next 2 lines) is a `ShareLink(` or a share / replay glyph, outside App/DesignSystem → trailing `.primaryAction`.
+Baseline 0, nothing allowed. Self-test: the pre-fix `NativeGameShell.swift` fails at line 282.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS (design consistency: 0 debt, 65 allowed, leading action 0),
+`check_a11y_lint` PASS (0 new), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
+### Batch 2 — one place for Done
+Sheets whose only dismiss is Done put it trailing in 30 places (`.confirmationAction`, Apple default) and leading in
+15 (`.cancellationAction`, the Cancel slot). Cancel + Done pairs (`ContextualPickers`, `NativeConditionAuthorFieldForm`,
+`PublishingModesViews`) and the keyboard Done in `CooperationContextualViews` are correct and unchanged.
+
+| MP page | Native view | MP sections | Change (owner rule 2) |
+|---|---|---|---|
+| 漫游 bundle action / coupon detail / order lifecycle (sheets) | `FreeExploreBundleLaunchView.swift:142`, `CouponManagementView.swift:158`, `ProfileOrdersView.swift:217` | unchanged | Done `.cancellationAction` → `.confirmationAction` (trailing); identifiers kept. |
+| channel message context / pins / revision / search | `NativeChannelMessageContextView.swift:76`, `NativeChannelMessagePinsView.swift:67`, `NativeChannelMessageRevisionView.swift:55`, `NativeChannelMessageSearchView.swift:135` | unchanged | same. |
+| NPC chat data + read settings, avatar draft, club media editor | `NPCChatDataView.swift:232`, `NPCChatDataReadSettingsEntry.swift:120`, `ProfileAvatarDraftSection.swift:193`, `ClubProfileMediaEditor.swift:92` | unchanged | same (club media keeps `.disabled` while uploading). |
+| topic self play (2 sheets), free exploration ending letter, play tools sheet | `TopicSelfPlaySheet.swift:143, 193`, `MPGap/PlayRoam/FreeExplorationEndingLetter.swift:45`, `MPGap/PlayRoam/PlayToolsAndLeadSheetView.swift:202` | unchanged | same. |
+
+New checker kind **done leading**: a `Button("….done")` in a `.cancellationAction` / leading toolbar item (window cut
+at the next `ToolbarItem`) with no `.confirmationAction` within 8 lines. Baseline 0, nothing allowed. Self-test: the
+pre-fix `TopicSelfPlaySheet.swift` fails at lines 143 and 193.
+
+Gates (batch 2): `generate_project` PASS, `check_scaffold` PASS (design consistency 0 debt, 65 allowed, done leading 0),
+`check_a11y_lint` PASS (0 new), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
