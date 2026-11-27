@@ -554,13 +554,19 @@ extension EnvironmentValues {
                     }
                     .buttonStyle(.plain)
                     .disabled(!model.draft.advanced.enabledGames.isEmpty).accessibilityIdentifier("templateAuthor.method")
-                    TemplateAuthoringCompletionFields(model: model)
-                    NavigationLink("templateAuthor.advanced") { TemplateAuthoringAdvancedView(model: model) }.accessibilityIdentifier("creatorComposition.open")
                 }
             }
             .id(EditorOutlineSection.gameplay.anchor)
             // r9 C-T3: MP temp/index.wxml:108-118, :1056-1074 (扫完回复 · 状态不好时松一点 · 可触发的结果).
-            if model.draft.finishEnabled { TemplateAuthoringGapRound4Section(model: model) }
+            // mp-r3-publish: 参与方式 sits between 玩法 and 玩法设置 (MP :103-125), the rest after the settings.
+            if model.draft.finishEnabled {
+                TemplateAuthoringGapRound4Section(model: model, part: .participation)
+                Section {
+                    TemplateAuthoringCompletionFields(model: model)
+                    NavigationLink("templateAuthor.advanced") { TemplateAuthoringAdvancedView(model: model) }.accessibilityIdentifier("creatorComposition.open")
+                }
+                TemplateAuthoringGapRound4Section(model: model, part: .afterSettings)
+            }
             // MP temp/index.wxml:1213 (owner 2026-11-19): 玩法 → 参与方式 → 玩法设置 → 结果反馈 → 玩法规则 → 封面 / 模板信息 →
             // 高级设置. The rules and the cover / template info follow the gameplay blocks, as in the MP.
             Section {

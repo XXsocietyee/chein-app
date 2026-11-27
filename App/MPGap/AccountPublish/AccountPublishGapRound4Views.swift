@@ -151,10 +151,15 @@ public struct ProjectEditGapChapterExtrasSection: View {
 /// but the personal author-request pipe cannot post `/api/merchant/city-node/template/submit` (C-T3c).
 /// The picker stays off this screen so a city-node draft is not saved as a personal template.
 @MainActor struct TemplateAuthoringGapRound4Section: View {
+    /// mp-r3-publish: MP temp/index.wxml:1213 puts 参与方式 right after 玩法 and before 玩法设置, while the low-HP
+    /// relax and 可触发的结果 rows belong after the settings. The editor renders each part at its MP position.
+    enum Part { case all, participation, afterSettings }
     @ObservedObject var model: TemplateAuthoringModel
+    let part: Part
 
-    init(model: TemplateAuthoringModel) {
+    init(model: TemplateAuthoringModel, part: Part = .all) {
         self.model = model
+        self.part = part
     }
 
     /// MP r5-editor.js:25: participation is 扫码 when `scan.enabled` or `validationMethod === 4`.
@@ -226,7 +231,7 @@ public struct ProjectEditGapChapterExtrasSection: View {
 
     var body: some View {
         Group {
-            if isScanParticipation {
+            if part != .afterSettings, isScanParticipation {
                 Section {
                     Toggle("fixr9.ap.template.scanReply", isOn: scanReplyBinding)
                         .accessibilityIdentifier("templateAuthor.scanReply")
@@ -239,7 +244,7 @@ public struct ProjectEditGapChapterExtrasSection: View {
                     Text("fixr9.ap.template.participation")
                 }
             }
-            if !relaxConfiguration.options.isEmpty && relaxConfiguration.isSupported {
+            if part != .participation, !relaxConfiguration.options.isEmpty && relaxConfiguration.isSupported {
                 Section {
                     Toggle("fixr9.ap.template.relaxOnLowHP", isOn: relaxOn)
                         .accessibilityIdentifier("templateAuthor.relaxOnLowHP")
@@ -253,7 +258,7 @@ public struct ProjectEditGapChapterExtrasSection: View {
                     }
                 }
             }
-            if !model.draft.advanced.enabled("album") {
+            if part != .participation, !model.draft.advanced.enabled("album") {
                 Section {
                     ForEach(triggerableOutcomes.items) { item in
                         outcomeLabel(item.label)
