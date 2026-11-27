@@ -67,9 +67,8 @@ struct DiscoveryTemplateSyncingRow: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.updatesFrequently)
         } else {
-            ProgressView()
+            ProgressView { Text("discovery.loading") }
                 .frame(maxWidth: .infinity)
-                .accessibilityLabel(Text("discovery.loading"))
         }
     }
 }

@@ -23,9 +23,8 @@ import SwiftUI
             DisclosureGroup(isExpanded: $expanded) {
                 switch phase {
                 case .loading:
-                    ProgressView()
+                    ProgressView { Text("club.editions.loading") }
                         .frame(maxWidth: .infinity)
-                        .accessibilityLabel(Text("club.editions.loading"))
                 case .failed:
                     ContentUnavailableView {
                         Label("club.editions.loadFailed", systemImage: "exclamationmark.triangle")

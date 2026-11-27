@@ -49,9 +49,8 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
     var body: some View {
         Group {
             if isInitialLoading {
-                ProgressView()
+                ProgressView { Text("club.loading") }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .accessibilityLabel(Text("club.loading"))
                     .accessibilityIdentifier(accessibilityPrefix + ".loading")
             } else {
                 readBody

@@ -99,9 +99,8 @@ import SwiftUI
         let permit = model.permit(in: expected)
         List {
             if model.loading || permit == nil {
-                ProgressView()
+                ProgressView { Text("club.loading") }
                     .frame(maxWidth: .infinity)
-                    .accessibilityLabel(Text("club.loading"))
                     .accessibilityIdentifier("club.statsOverview.loading")
             }
             if permit != nil, let failure = model.failure {

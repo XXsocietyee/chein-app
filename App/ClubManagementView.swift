@@ -65,9 +65,8 @@ struct ClubManagementView: View {
                 ContentUnavailableView("club.management.unconfigured", systemImage: "network.slash")
             } else {
                 if loading && snapshot == nil {
-                    ProgressView()
+                    ProgressView { Text("club.management.loading") }
                         .frame(maxWidth: .infinity)
-                        .accessibilityLabel(Text("club.management.loading"))
                 }
                 let loadIssue = ClubOpsJoinRequestCopy.loadIssue(failed: failed, denied: denied, stale: stale, hasSnapshot: contextMatches && snapshot != nil)
                 if let issue = loadIssue {
@@ -424,7 +423,7 @@ struct ClubManagementView: View {
     @ViewBuilder private var status: some View {
         if stale { statusLine("club.management.stale", symbol: "clock.arrow.circlepath", identifier: "club.management.stale") }
         switch state {
-        case .checking, .submitting: ProgressView().accessibilityLabel(Text("club.management.loading"))
+        case .checking, .submitting: ProgressView { Text("club.management.loading") }
         case .notSent: statusLine("club.management.not_sent", symbol: "paperplane")
         case .acknowledged(let receipt):
             if let message = receipt.message { serverMessage(message) }

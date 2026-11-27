@@ -420,7 +420,7 @@ private struct ClubDetailLeaderboardMemberOpen: Hashable, Identifiable {
     @ViewBuilder private var rows: some View {
         switch model.phase {
         case .idle, .loading:
-            ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("club.loading"))
+            ProgressView { Text("club.loading") }.frame(maxWidth: .infinity)
         case .failed:
             ContentUnavailableView {
                 Label("clubR8.lb.failed", systemImage: "exclamationmark.triangle")

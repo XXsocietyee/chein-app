@@ -94,8 +94,7 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
             else if isLoadingNow || skeletonShown {
                 // Loading-to-content (docs/release/motion-spec-loading.md): spinner after 120 ms, held 350 ms.
                 if skeletonShown {
-                    ProgressView().frame(maxWidth: .infinity)
-                        .accessibilityLabel(Text("accountCollection.loading"))
+                    ProgressView { Text("accountCollection.loading") }.frame(maxWidth: .infinity)
                 }
             } else if let issue = model.state.issue {
                 AccountCollectionIssueView(issue: issue, retry: { Task { await refresh() } })
@@ -289,8 +288,7 @@ private struct AccountCollectionFavoriteCard: View {
             else if isLoadingNow || skeletonShown {
                 // Loading-to-content (docs/release/motion-spec-loading.md): spinner after 120 ms, held 350 ms.
                 if skeletonShown {
-                    ProgressView().frame(maxWidth: .infinity)
-                        .accessibilityLabel(Text("accountCollection.loading"))
+                    ProgressView { Text("accountCollection.loading") }.frame(maxWidth: .infinity)
                 }
             } else if let issue = model.state.issue {
                 AccountCollectionIssueView(issue: issue, retry: { Task { await refresh() } })

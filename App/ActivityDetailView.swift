@@ -345,8 +345,7 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
             brand: appLocalized("share.card.brand", locale: locale))
     }
     private var loadingState: some View {
-        ProgressView()
-            .accessibilityLabel(Text("activity.loading"))
+        ProgressView { Text("activity.loading") }
     }
 
     private func clubGate(_ message: String?) -> some View {
