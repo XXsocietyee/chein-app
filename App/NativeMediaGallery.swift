@@ -29,7 +29,7 @@ import UIKit
                                     .frame(width: compact ? 180 : 112, height: 112).clipped()
                             }.buttonStyle(.plain)
                                 .accessibilityLabel(Text("media.destination.openImage"))
-                                .accessibilityValue(Text("\(index + 1) / \(min(sources.count, 100))"))
+                                .accessibilityValue(Text("carousel.position \(index + 1) \(min(sources.count, 100))"))
                                 .accessibilityIdentifier("media.gallery.open.\(index)")
                                 .accessibilityFocused($focusedImageIndex, equals: index)
                         }
