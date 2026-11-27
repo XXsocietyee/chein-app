@@ -77,6 +77,9 @@ Merged `origin/ui/combined-r7` (conflicts: `LoginView.swift` took the single-mar
 | 31 | `subpackageMember/orderinfo` → `T5OrderCenterTransport` fixture (`en-t5-order-center`) | Order "杭州老城畅玩卡", status "已支付", error "订单不存在" in English | Fixture payload follows the UI language ("Hangzhou Old Town Play Pass", "Paid", "Order not found"); zh-Hans unchanged | Done |
 | 32 | `subpackagePass` pass market (`en-t5-pass-market`) | Pass names / city Chinese in English | Already done on `mp/r3-activity` (`tt(en, zh)` in `T5PageFixtures`); not duplicated here to avoid a conflict | Checked |
 | 33 | Ticket wallet date (`en-e4-tickets` "2030-04-20"), channel divider (`en-d4-channel-chat` "11-07 09:00"), enrollment "1 groups" (`en-d4-enroll`) | Still visible in build 3568fe51b | Fixed in rows 21/23/24 on this branch (not yet in that build) | Waiting for integration |
+| 34 | `subpackagePass` pass market product row → `PassMarketViews.swift:485` `PassProductCardView` | Checked: "Includes 3 works · 2 people" + "¥168.00 / 1,200 points" at AX sizes | Already `ViewThatFits`: row form when it fits, stacked otherwise. No change | Checked |
+| 35 | Wallet ledger row → `WalletCommerceViews.swift:706` (`en-e4-wallet-balance`) | Checked: "Weekend city walk share" wraps to 2 lines next to "+58.00 CNY" | The title wraps and the amount stays whole (stacked layout at AX sizes); correct list behaviour. No change | Checked |
+| 36 | Club enrollment roster topic row (`en-d4-enroll`) | Checked: "Date to be set · 8 registered" | Fits on one line at 375 pt in the sweep. No change | Checked |
 
 ## Not done
 
@@ -86,7 +89,7 @@ Merged `origin/ui/combined-r7` (conflicts: `LoginView.swift` took the single-mar
 
 
 ## Next pages (no row yet)
-Passes market (`en-t5-pass-market`) price rows at AX sizes; club enrollment roster topic row ("Date to be set · 8 registered") wrapping; wallet ledger title column squeezed by the amount column ("Weekend city / walk share", `en-e4-wallet-balance`). Club home checked (tabs already adaptive, `ClubDetailTabBar.swift`).
+Re-check the run 5/6 rows (21, 23, 24, 30, 31) in the next sweep once this branch is integrated; then publish (`pages/template/*`) and roam English sheets.
 
 ## For other lanes
 - mp-activity: Square fixture post text "A synthetic city walk / 一次示例城市漫步" (`Core/SquareSyntheticFixtures.swift`, shared with Core tests) shows Chinese in English (`en-d2-square`).
