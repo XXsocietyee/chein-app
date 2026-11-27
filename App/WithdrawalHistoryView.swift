@@ -38,31 +38,33 @@ import SwiftUI
                 }
                 // FIN-19-1: tixianjilu shows 加载更多 while another page exists.
                 // loadMore is the existing read; a failure keeps the rows already on screen.
-                if model.hasMore {
+                if model.hasMore && !model.loadMoreFailed {
                     Button("wallet.loadMore") { Task { await model.loadMore() } }
                         .frame(minHeight: 44)
                         .accessibilityIdentifier("withdrawal.history.loadMore")
                 }
                 // FIN-19-1: MP scene-member-withdraw-history index.wxml:16 `cy-error` 更多提现记录加载失败 · 重试 (onPageRetry).
                 if model.loadMoreFailed {
+                    // mp-states r3: one state with 重试 inside (cy-error), not a label over a separate button row.
                     Section {
-                        Label("withdrawal.history.loadMoreFailed", systemImage: "exclamationmark.triangle")
-                            .foregroundStyle(.secondary)
-                            .accessibilityIdentifier("withdrawal.history.loadMoreFailed")
-                        Button("wallet.retry") { Task { await model.loadMore() } }
-                            .accessibilityIdentifier("withdrawal.history.loadMoreRetry")
+                        CYEmptyState(systemImage: "exclamationmark.triangle", "withdrawal.history.loadMoreFailed",
+                                     messageIdentifier: "withdrawal.history.loadMoreFailed",
+                                     actionTitle: "wallet.retry", actionIdentifier: "withdrawal.history.loadMoreRetry",
+                                     kind: .failure) { Task { await model.loadMore() } }
                     }
                 }
             case .empty:
                 CYEmptyState(systemImage: "tray", "wallet.withdrawals.emptyTitle", messageIdentifier: "withdrawal.history.empty")
+            // mp-states r3: MP scene-member-withdraw-history index.wxml:19 cy-error is the title alone (no sub line);
+            // only the not-configured read keeps its explanation.
             case .login:
-                state(title: "withdrawal.history.login.title", detail: "withdrawal.history.login.detail", image: "person.crop.circle", id: "login")
+                state(title: "withdrawal.history.login.title", detail: nil, image: "person.crop.circle", id: "login")
             case .denied:
-                state(title: "withdrawal.history.denied.title", detail: "withdrawal.history.denied.detail", image: "lock", id: "denied")
+                state(title: "withdrawal.history.denied.title", detail: nil, image: "lock", id: "denied")
             case .unavailable:
                 state(title: "withdrawal.history.failed.title", detail: "withdrawal.history.unavailable.detail", image: "nosign", id: "unavailable")
             case .failed:
-                state(title: "withdrawal.history.failed.title", detail: "withdrawal.history.failed.detail", image: "exclamationmark.triangle", id: "failed")
+                state(title: "withdrawal.history.failed.title", detail: nil, image: "exclamationmark.triangle", id: "failed")
             }
         }
         .cyGroupedSurface()
@@ -75,7 +77,7 @@ import SwiftUI
         .cySheet(item: $selected) { item in WithdrawalHistoryDetailSheet(row: item.row) }
         .accessibilityIdentifier("withdrawal.history")
     }
-    @ViewBuilder private func state(title: LocalizedStringKey, detail: LocalizedStringKey, image: String, id: String) -> some View {
+    @ViewBuilder private func state(title: LocalizedStringKey, detail: LocalizedStringKey?, image: String, id: String) -> some View {
         // Retry only re-reads; FIN-19-4: the signed-out state offers 登录 when the host supplies it.
         if model.phase == .login, let onSignIn {
             CYEmptyState(systemImage: image, title, detail: detail, messageIdentifier: "withdrawal.history." + id,

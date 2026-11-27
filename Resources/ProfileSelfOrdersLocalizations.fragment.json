@@ -70,13 +70,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Orders could not be loaded. Try again."
+            "value": "Couldn’t load your orders"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "订单未能加载，请重试。"
+            "value": "订单加载失败"
           }
         }
       }
