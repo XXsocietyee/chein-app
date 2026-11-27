@@ -87,4 +87,37 @@ final class LocaleDisplayTests: XCTestCase {
         XCTAssertEqual(PhoneCountryCode.default(marketCode: "CN"), .china)
         XCTAssertEqual(PhoneCountryCode.default(marketCode: nil), .china)
     }
+
+    /// US launch r1: region default, US grouping while typing, E.164 drafts and validation.
+    func testUSLaunchPhoneEntryHelpers() {
+        XCTAssertEqual(PhoneCountryCode.default(region: "US", marketCode: "CN"), .unitedStates)
+        XCTAssertEqual(PhoneCountryCode.default(region: "CN", marketCode: "US"), .china)
+        XCTAssertEqual(PhoneCountryCode.default(region: "GB", marketCode: "US"), .unitedStates)
+        XCTAssertEqual(PhoneCountryCode.default(region: nil, marketCode: nil), .china)
+
+        XCTAssertEqual(PhoneCountryCode.unitedStates.fieldText("5551234567"), "(555) 123-4567")
+        XCTAssertEqual(PhoneCountryCode.unitedStates.fieldText("(555) 123-456"), "(555) 123-456")
+        XCTAssertEqual(PhoneCountryCode.unitedStates.fieldText("+1 555 123 4567"), "(555) 123-4567")
+        XCTAssertEqual(PhoneCountryCode.china.fieldText("138 0013 8000"), "13800138000")
+
+        XCTAssertEqual(PhoneCountryCode.unitedStates.draftWire("(415) 555-0132"), "+14155550132")
+        XCTAssertEqual(PhoneCountryCode.china.draftWire("13800138000"), "13800138000")
+        XCTAssertEqual(PhoneCountryCode.unitedStates.draftWire(""), "")
+
+        XCTAssertEqual(PhoneCountryCode.split(wire: "+14155550132").country, .unitedStates)
+        XCTAssertEqual(PhoneCountryCode.split(wire: "+14155550132").national, "4155550132")
+        XCTAssertEqual(PhoneCountryCode.split(wire: "13800138000").country, .china)
+        XCTAssertEqual(PhoneCountryCode.split(wire: "138****8000").national, "138****8000")
+
+        XCTAssertTrue(PhoneCountryCode.isValidUnitedStatesWire("+14155550132"))
+        XCTAssertFalse(PhoneCountryCode.isValidUnitedStatesWire("+11155550132"))
+        XCTAssertFalse(PhoneCountryCode.isValidUnitedStatesWire("4155550132"))
+
+        var participant = ParticipantFormDraft(); participant.fullName = "Ada"
+        participant.mobilePhone = "+14155550132"; XCTAssertNil(participant.validation)
+        participant.mobilePhone = "+1415555"; XCTAssertEqual(participant.validation, .invalidPhone)
+        participant.mobilePhone = "13800138000"; XCTAssertNil(participant.validation)
+        XCTAssertNil(RegistrationUIFormDraft(realName: "Ada", phone: "+14155550132").validation)
+        XCTAssertEqual(RegistrationUIFormDraft(realName: "Ada", phone: "+1415").validation, .invalidPhone)
+    }
 }

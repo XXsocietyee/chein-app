@@ -27,6 +27,8 @@ public struct ParticipantFormDraft: Equatable {
         let phone = mobilePhone.trimmingCharacters(in: .whitespacesAndNewlines)
         // Current mini form-state.js and address/action require ^1[3-9]\d{9}$,
         // not the older Flutter-only ^1\d{10}$ rule. Never reconstruct masked digits.
+        // US launch r1: a US participant phone is stored in E.164 (`+1` and a valid NANP number).
+        if PhoneCountryCode.isValidUnitedStatesWire(phone) { return nil }
         let bytes = Array(phone.utf8)
         if bytes.count != 11 || bytes.first != 49 || !(51...57).contains(bytes[1])
             || !bytes.allSatisfy({ (48...57).contains($0) }) {

@@ -60,7 +60,8 @@ class ProfileParticipantValidationTests(unittest.TestCase):
         self.assertIn('guard canSave, let identity = loadedIdentity else { return }', self.app)
         self.assertIn('confirmation = try coordinator.prepare(.save(draft), expectedIdentity: identity)', self.app)
     def test_does_not_add_visible_data_fields(self):
-        self.assertEqual(self.app.count('TextField('), 2)
+        # US launch r1: the phone entry is the shared +86/+1 PhoneCountryField.
+        self.assertEqual(self.app.count('TextField(') + self.app.count('PhoneCountryField('), 2)
         self.assertNotIn('text: $model.draft.province', self.app)
         self.assertNotIn('UIPasteboard', self.app)
     def test_fragment_three_bilingual_keys(self):

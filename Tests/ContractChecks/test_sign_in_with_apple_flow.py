@@ -46,10 +46,13 @@ class SignInWithAppleFlowContract(unittest.TestCase):
         self.assertNotIn("signInWithApple", china)
         self.assertNotIn("DEVELOPMENT_TEAM", china)
         self.assertNotIn("com.chengyinhub.chengyinApp", china)
+        # US launch r1 (owner 2026-11-27): the US storefront shares the reviewed backend and realm.
         united = read("Config/UnitedStates.Production.xcconfig")
-        self.assertNotIn("chengyinhub.com", united)
-        self.assertRegex(united, r"(?m)^QUESTIFY_API_BASE_URL =\s*$")
-        self.assertRegex(united, r"(?m)^QUESTIFY_SESSION_REALM =\s*$")
+        self.assertIn("QUESTIFY_API_BASE_URL = https:/$()/www.chengyinhub.com/prod-api/", united)
+        self.assertIn("QUESTIFY_SESSION_REALM = cn-prod", united)
+        self.assertNotIn("signInWithApple", united)
+        self.assertNotIn("DEVELOPMENT_TEAM", united)
+        self.assertNotIn("chengyinhub.com", read("Config/UnitedStates.Staging.xcconfig"))
 
     def test_flow_refuses_an_empty_url_and_is_not_mounted(self):
         flow = read("Core/SignInWithAppleFlow.swift")

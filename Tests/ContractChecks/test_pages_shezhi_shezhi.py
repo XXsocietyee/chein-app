@@ -93,7 +93,7 @@ class PagesShezhiShezhiTests(unittest.TestCase):
             self.assertIn(placeholder, note)
         view = self.read("App/SettingsView.swift")
         # The unknown market now renders through the Core helper (nil -> the em dash), never invented or shown as a value.
-        self.assertIn("SettingsHomePage.marketText(session.operationalMarket)", view)
+        self.assertIn("SettingsHomePage.marketText(RegionalLaunchConfiguration.storefrontMarket ?? session.operationalMarket)", view)
         core = self.read("Core/SettingsIdentityApplications.swift")
         self.assertIn("market?.rawValue ?? unknownDisplay", core)
 

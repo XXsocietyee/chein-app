@@ -39,6 +39,21 @@ import XCTest
         }
     }
 
+    /// US launch r1: a shipped US build on the reviewed host composes the same backend deployment (backend market CN,
+    /// same realm). Any other US host stays unconfigured.
+    func testShippedUnitedStatesBuildSharesTheReviewedBackend() throws {
+        let admitted = RegionalLaunchConfiguration.shippedComposition(build: .init(
+            market: "US", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: realm))
+        guard case .reviewed(let shipped) = admitted.deployment else {
+            return XCTFail("a US build on the reviewed host selects the shared backend deployment")
+        }
+        XCTAssertEqual(shipped.regional.market, .china)
+        XCTAssertTrue(shipped.playerWritesEnabled)
+        let other = RegionalLaunchConfiguration.shippedComposition(build: .init(
+            market: "US", baseURL: "https://api.example.com/", bundleIdentifier: bundle, realm: realm))
+        XCTAssertNil(other.reviewed)
+    }
+
     func testCrossMarketURLIsRejected() {
         let china = RegionalLaunchConfiguration.reviewedMarketComposition(
             market: .china,

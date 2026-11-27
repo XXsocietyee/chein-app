@@ -3,7 +3,14 @@
 // Reset earlier local inputs so deployments cannot inherit another environment's address.
 QUESTIFY_API_BASE_URL =
 QUESTIFY_SESSION_REALM =
+// US launch r1 (owner 2026-11-27): the US storefront runs on the same reviewed production backend as China.
+// `$()` keeps the URL from being read as an xcconfig comment. The backend has no market split (no market/region
+// on accounts, orders or tokens), so the US build shares the China session realm: one account, one token space.
+// The shipped composition selects this host only through `ReviewedMarketLaunch.admitsShippedUnitedStates`.
+// Merchant center stays off (`PlayerLaunch`); money stays behind the Release money switch.
+QUESTIFY_API_BASE_URL = https:/$()/www.chengyinhub.com/prod-api/
+QUESTIFY_SESSION_REALM = cn-prod
 #include? "Local.UnitedStates.Production.xcconfig"
-// Bind environment and market after optional overrides; endpoints and realms remain local inputs.
+// Bind environment and market after optional overrides; a local file may replace the realm.
 QUESTIFY_DEPLOYMENT_ENVIRONMENT = production
 QUESTIFY_MARKET = US
