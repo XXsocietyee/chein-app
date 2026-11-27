@@ -159,6 +159,15 @@ import FoundationNetworking
         let empty = try PlayLeadProgress(PlayExperienceSyntheticFixtures.wire(#"{"exists":false}"#))
         XCTAssertFalse(empty.exists); XCTAssertFalse(empty.allArrived)
     }
+    func testLeadBarFollowsTheMPTopBannerRule() throws {
+        func lead(_ text: String) throws -> PlayLeadProgress { try PlayLeadProgress(PlayExperienceSyntheticFixtures.wire(text)) }
+        let going = try lead(#"{"exists":true,"status":2,"arrived":3,"total":12}"#)
+        XCTAssertTrue(going.showsLeadBar); XCTAssertEqual(going.total, 12); XCTAssertFalse(going.ended)
+        XCTAssertFalse(try lead(#"{"exists":true,"status":1}"#).showsLeadBar)
+        XCTAssertFalse(try lead(#"{"exists":true,"status":2,"freeEntry":true}"#).showsLeadBar)
+        XCTAssertTrue(try lead(#"{"exists":true,"status":2,"freeEntry":true,"sessionEnded":true}"#).showsLeadBar)
+        XCTAssertFalse(try lead(#"{"exists":false,"sessionEnded":true}"#).showsLeadBar)
+    }
     func testLeaderEditOpsIsJSONNotMultipart() async throws {
         let transport = PlayExperienceTestTransport { _ in (PlayExperienceSyntheticFixtures.envelope("null"), 200) }
         try await service(transport).lead(activityID: 41, action: .editTime, text: "2026-10-02 10:00", token: "synthetic")

@@ -1001,5 +1001,90 @@
         }
       }
     }
+  },
+  "playx.leadBar.ended %lld %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Session ended · you finished %1$lld/%2$lld stops"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本场已结束 · 你完成了 %1$lld/%2$lld 站"
+        }
+      }
+    }
+  },
+  "playx.leadBar.arrived %lld %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%1$lld/%2$lld on site"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "到场 %1$lld/%2$lld 人"
+        }
+      }
+    }
+  },
+  "playx.leadBar.leader": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "You're leading · tools are under More"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "队长带领中 · 工具在更多"
+        }
+      }
+    }
+  },
+  "playx.leadBar.member": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your leader is guiding the team"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "队长带队中"
+        }
+      }
+    }
+  },
+  "playx.leadBar.retry": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Status didn't refresh · tap to retry"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "网络状态暂未刷新 · 点击重试"
+        }
+      }
+    }
   }
 }

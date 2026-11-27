@@ -238,7 +238,7 @@ struct JourneyCheckDCTrack: View {
     var locationSource: (any JourneyAmbientLocationSource)? = nil
     var body: some View {
         Group {
-            if let line = model.line { Section("journey.companion") { Text(verbatim: line).accessibilityIdentifier("journey.companion.line") } }
+            // The companion line is the MP floating bubble (`PlayNavBubbleOverlay`), not a list row.
             if let egg = model.eggBubble {
                 Section("journey.egg") {
                     Text(verbatim: egg.text).accessibilityIdentifier("journey.egg.text")
