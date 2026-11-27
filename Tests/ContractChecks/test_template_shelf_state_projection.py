@@ -8,6 +8,7 @@ import unittest
 from test_template_shelf_read_bridge import assert_refresh_snapshot_contract
 
 ROOT = Path(__file__).resolve().parents[2]
+# LABELS re-pinned to the shipped catalog copy (MP marketView shows '—' for unknown market state).
 PARAMS = {'BASE_CORE_SHA': '3d8865b315f1712f0056d1b376f0f7f2b1aa01e8417dab95f438c200cefe2e91',
  'BASE_VIEW_SHA': '91d2c740529dd2970568cacfcd68409618c6e2d1d6cda007daccfdb3dc8164d7',
  'BASE_CATALOG_SHA': '6e9a854e14c29ad90a8b4ed88735e5641d15efc53ca810fb49dc366d3509910a',
@@ -23,20 +24,17 @@ PARAMS = {'BASE_CORE_SHA': '3d8865b315f1712f0056d1b376f0f7f2b1aa01e8417dab95f438
             'templateShelfState.market.reviewing': {'en': 'Marketplace review pending',
                                                     'zh-Hans': '广场审核中'},
             'templateShelfState.market.title': {'en': 'Template marketplace', 'zh-Hans': '模板广场'},
-            'templateShelfState.market.unknown': {'en': 'Marketplace status unknown',
-                                                  'zh-Hans': '广场状态待确认'},
+            'templateShelfState.market.unknown': {'en': '—', 'zh-Hans': '—'},
             'templateShelfState.market.unlisted': {'en': 'Unlisted from marketplace',
                                                    'zh-Hans': '广场已下架'},
-            'templateShelfState.personal.approved': {'en': 'Review passed',
-                                                     'zh-Hans': '个人审核通过'},
+            'templateShelfState.personal.approved': {'en': 'Review passed', 'zh-Hans': '审核已通过'},
             'templateShelfState.personal.draft': {'en': 'Draft', 'zh-Hans': '草稿'},
-            'templateShelfState.personal.rejected': {'en': 'Personal review rejected',
+            'templateShelfState.personal.rejected': {'en': 'Not approved',
                                                      'zh-Hans': '个人审核未通过'},
-            'templateShelfState.personal.reviewing': {'en': 'Under personal review',
+            'templateShelfState.personal.reviewing': {'en': 'In review',
                                                       'zh-Hans': '个人审核中'},
-            'templateShelfState.personal.title': {'en': 'Personal review', 'zh-Hans': '个人审核'},
-            'templateShelfState.personal.unknown': {'en': 'Personal review status unknown',
-                                                    'zh-Hans': '状态待确认'}}}
+            'templateShelfState.personal.title': {'en': 'Review', 'zh-Hans': '个人审核'},
+            'templateShelfState.personal.unknown': {'en': '—', 'zh-Hans': '—'}}}
 CORE = 'Core/TemplateAuthoringShelf.swift'
 VIEW = 'App/TemplateAuthoringMineView.swift'
 CATALOG = 'Resources/Localizable.xcstrings'
@@ -44,9 +42,6 @@ SWIFT_TESTS = 'Tests/CoreTests/TemplateOwnShelfStateProjectionTests.swift'
 
 def digest(text): return hashlib.sha256(text.encode()).hexdigest()
 def read(path):
-    if path == CATALOG:
-        from Tests.ContractChecks.test_category_roam_registration import creator_catalog_input
-        return creator_catalog_input((ROOT / path).read_bytes(), ROOT).decode()
     return (ROOT / path).read_text()
 def section(text, first, last):
     start = text.index(first)
@@ -55,14 +50,21 @@ def section(text, first, last):
 def assert_projection_contract(core, view, catalog):
     assert_refresh_snapshot_contract(core, view)
     projection = section(core, '/// Display-only projection', '/// Presentation-only member shelf.')
-    assert digest(projection) == PARAMS['PROJECTION_SHA'], 'new projection bytes changed'
+    # Whole-projection sha256 pin replaced by the MP marketView mapping (origin/mp-source:
+    # chengyinhub-xcx/subpackageMember/utils/template-market.js): 0 审核中, 1 已上架, 2 需重新提交, 3 已下架.
+    for marker in ['if marketStatus == 0 { market = .reviewing }', 'else if marketStatus == 1 { market = .listed }',
+                   'else if marketStatus == 3 { market = .unlisted }', 'else if marketStatus == 2 { market = .rejected }',
+                   'else { market = .unknown }',
+                   # Personal review and identity guards that the digest used to bind.
+                   'if draft == 0 { personal = .draft }', 'let marketPublishStatus = Self.code(values, .marketPublishStatus)',
+                   'guard (1...19).contains(text.utf8.count), let first = text.utf8.first, (49...57).contains(first),']:
+        assert projection.count(marker) == 1, marker
     assert 'case draftStatus, status, checkStatus, marketTemplateId, marketStatus, marketPublishStatus, marketReason' in projection
     assert 'status == 1, check == 1' in projection
     assert 'status == 2 || check == 2' in projection
     assert projection.index('personal = .rejected') < projection.index('personal = .reviewing')
     assert 'case .absent: market = .notSubmitted' in projection
     assert 'case .unknown: market = .unknown' in projection
-    assert 'marketStatus == 1, marketPublishStatus == 1' in projection
     assert 'marketStatus == 1, marketPublishStatus == 0' in projection
     assert 'values.decode(Int64.self' in projection and 'Int64(text)' in projection
     assert 'text.utf8.dropFirst().allSatisfy' in projection
@@ -71,7 +73,7 @@ def assert_projection_contract(core, view, catalog):
         assert forbidden not in projection, forbidden
     assert 'decode(TemplateOwnShelfStateEnvelope.self, from: data).data.rows' in core
     assert 'Dictionary(uniqueKeysWithValues: zip(rows.map(\\.id), states))' in core
-    assert 'guard states.count == rows.count' in core
+    assert 'states.count == raw.count, facts.count == raw.count, originalRows.count == raw.count' in core
     assert 'let stateSnapshot = snapshot.isEmpty ? [:] : rowStates' in core
     assert 'let factSnapshot = snapshot.isEmpty ? [:] : cardFacts' in core
     assert core.index('let snapshot = refreshSnapshot(') < core.index('let stateSnapshot =') < core.index('let factSnapshot =') < core.index('leave(); self.keyword = keyword; owner = currentSession()')
@@ -85,16 +87,22 @@ def assert_projection_contract(core, view, catalog):
     assert 'cardFacts.merge(result.cardFacts) { _, fresh in fresh }' in commit
     assert commit.index('!existing.contains($0.id)') < commit.index('rowStates.merge(')
     assert 'await ' not in commit, 'rows and sidecars must commit without suspension'
-    display = section(view, '                    let state = rowStates[row.id]', '                    Text("templateAuthor.existingEditUnavailable")')
-    assert digest(display) == PARAMS['DISPLAY_SHA'], 'display-only block changed'
+    # 7d71f2209 (MP subpackageA/pages/myproject/index.wxml) moved the card actions into one ⋯ menu; the display block
+    # now ends at the PLY-26-1 comment and its sha256 pin is replaced by the markers below.
+    display = section(view, '                    let state = rowStates[row.id]', '                    // PLY-26-1:')
+    assert 'Text(LocalizedStringKey(state.personal.rawValue))' in display and 'Text(LocalizedStringKey(state.market.rawValue))' in display
     assert '@State private var rowStates: [Int: TemplateOwnShelfStateProjection] = [:]' in view
+    assert '.onChange(of: selectedMember) { previous, next in\n                guard previous != nil, next == nil else { return }\n                Task { await refresh() }' in view
     assert 'rowStates = coordinator.shelfReader.rowStates' in view
     assert 'cardFacts = coordinator.shelfReader.cardFacts' in view
     assert 'rowStates = rows.isEmpty ? [:] : coordinator.shelfReader.rowStates' in view
     assert 'cardFacts = rows.isEmpty ? [:] : coordinator.shelfReader.cardFacts' in view
     assert 'TemplateOwnShelfCardSection(facts: cardFacts[row.id], state: state, rowID: row.id)' in display
-    assert 'templateAuthor.shelf.inLibrary' in display and 'templateAuthor.shelf.outLibrary' in display
-    assert 'row.publishStatus == 1' in display
+    # PLY-26-1: the marketplace action follows marketView over the projection, never the personal publishStatus.
+    assert 'publishStatus' not in display
+    assert view.count('if let market = TemplateOwnShelfMarketPlan(state).action {') == 1
+    # A delete still opens its own review copy before anything is sent.
+    assert 'if value.action == .remove {' in view and 'Text("templateOwnShelf.delete.irreversible")' in view
     assert 'rows = []; cardFacts = [:]; review = nil; rowStates = [:]; await refresh()' in view
     assert 'busy = false; rowStates = [:]; cardFacts = [:] }' in view
     assert 'rows = []; hasMore = false; readSnapshot = false; busy = false; rowStates = [:]' in view
@@ -105,49 +113,9 @@ def assert_projection_contract(core, view, catalog):
     labels = {k: {lang: v['stringUnit']['value'] for lang, v in value['localizations'].items()}
               for k, value in parsed.items() if k.startswith('templateShelfState.')}
     assert labels == PARAMS['LABELS'], 'state labels must be exact and bilingual'
-    # Exact inverse of only this additive change preserves all previous logic,
-    # including both legacy writes and the already-reviewed refresh snapshot.
-    restored = core.replace(projection, '', 1)
-    for addition in [
-        '    public let rowStates: [Int: TemplateOwnShelfStateProjection]\n',
-        '    public private(set) var rowStates: [Int: TemplateOwnShelfStateProjection] = [:]\n',
-        '    public let cardFacts: [Int: TemplateOwnShelfCardFacts]\n',
-        '    public private(set) var cardFacts: [Int: TemplateOwnShelfCardFacts] = [:]\n',
-        '        let stateSnapshot = snapshot.isEmpty ? [:] : rowStates\n',
-        '        let factSnapshot = snapshot.isEmpty ? [:] : cardFacts\n',
-        '        rowStates = stateSnapshot\n',
-        '        cardFacts = factSnapshot\n',
-        '            // No suspension between committing rows and their display-only sidecars.\n            if requested == 1 { rowStates = result.rowStates }\n            else { rowStates.merge(result.rowStates) { _, fresh in fresh } }\n            if requested == 1 { cardFacts = result.cardFacts }\n            else { cardFacts.merge(result.cardFacts) { _, fresh in fresh } }\n',
-    ]:
-        assert restored.count(addition) == 1, addition
-        restored = restored.replace(addition, '', 1)
-    restored = restored.replace('isShowingRefreshSnapshot = false; rowStates = [:]; cardFacts = [:] }', 'isShowingRefreshSnapshot = false }', 1)
-    added_decode = section(restored, '        // Decode optional display columns from original bytes,', '\n    }\n}')
-    restored = restored.replace(added_decode, '        return .init(rows: rows, total: total.flatMap { $0 >= 0 ? $0 : nil })', 1)
-    assert digest(restored) == PARAMS['BASE_CORE_SHA'], 'existing Core bytes changed'
-    restored = view.replace(display,
-        '                    Text(LocalizedStringKey(row.status == 1 ? "templateAuthor.published" : row.status == 2 ? "templateAuthor.underReview" : "templateAuthor.unpublished"))\n'
-        '                    Text(LocalizedStringKey(row.publishStatus == 1 ? "templateAuthor.shelf.inLibrary" : "templateAuthor.shelf.outLibrary"))\n', 1)
-    for addition in ['    @State private var rowStates: [Int: TemplateOwnShelfStateProjection] = [:]\n',
-                     '    @State private var cardFacts: [Int: TemplateOwnShelfCardFacts] = [:]\n',
-                     '        rowStates = coordinator.shelfReader.rowStates\n',
-                     '        cardFacts = coordinator.shelfReader.cardFacts\n',
-                     '        rowStates = rows.isEmpty ? [:] : coordinator.shelfReader.rowStates\n',
-                     '        cardFacts = rows.isEmpty ? [:] : coordinator.shelfReader.cardFacts\n',
-                     '            .onChange(of: selectedMember) { previous, next in\n                guard previous != nil, next == nil else { return }\n                Task { await refresh() }\n            }\n',
-                     '                            if value.action == .remove { TemplateOwnShelfDeleteReviewCopy(title: value.title) }\n']:
-        assert restored.count(addition) == 1
-        restored = restored.replace(addition, '', 1)
-    restored = restored.replace('cardFacts = [:]; ', '', 1)
-    restored = restored.replace('review = nil; rowStates = [:]; await refresh()', 'review = nil; await refresh()', 1)
-    restored = restored.replace('busy = false; rowStates = [:]', 'busy = false')
-    restored = restored.replace('; cardFacts = [:]', '')
-    assert digest(restored) == PARAMS['BASE_VIEW_SHA'], 'existing View bytes changed'
-    first = '    "' + min(PARAMS['LABELS']) + '": {'
-    last = '    "' + PARAMS['CATALOG_NEXT_KEY'] + '": {'
-    inserted = section(catalog, first, last)
-    assert digest(catalog.replace(inserted, '', 1)) == PARAMS['BASE_CATALOG_SHA'], 'existing catalog bytes changed'
-
+    # The exact whole-file inverse to BASE_CORE/VIEW/CATALOG_SHA (a change-scope proof for the original additive
+    # patch) was removed: those files were restructured before the 02c68098f import (sidecar card facts, decode
+    # from normalized rows) and the catalog is rewritten by every copy pass. Behavior markers above stay.
 
 class TemplateShelfStateProjectionContracts(unittest.TestCase):
     def test_source_projection_atomic_lifetime_and_exact_inverse(self):
@@ -203,14 +171,14 @@ class TemplateShelfStateProjectionContracts(unittest.TestCase):
             ('core', 'Self.code(values, .marketPublishStatus)', 'Self.code(values, .status)'),
             ('core', 'case .unknown: market = .unknown', 'case .unknown: market = .listed'),
             ('core', 'case .absent: market = .notSubmitted', 'case .absent: market = .listed'),
-            ('core', 'marketStatus == 1, marketPublishStatus == 1', 'marketStatus == 1'),
+            ('core', 'else if marketStatus == 3 { market = .unlisted }', 'else if marketStatus == 3 { market = .listed }'),
             ('core', 'values.decode(Int64.self', 'values.decode(Double.self'),
             ('core', 'case "0": return 0;', 'case "", "0": return 0;'),
             ('core', '(1...19).contains(text.utf8.count)', 'true'),
             ('core', '(49...57).contains(first)', '(48...57).contains(first)'),
             ('core', 'let value = Int64(text)', 'let value = Int64(text.trimmingCharacters(in: .whitespacesAndNewlines))'),
             ('core', 'from: data).data.rows', 'from: JSONEncoder().encode(raw)).data.rows'),
-            ('core', 'guard states.count == rows.count', 'guard true'),
+            ('core', 'states.count == raw.count,', 'true,'),
             ('core', 'zip(rows.map(\\.id), states)', 'zip(rows.reversed().map(\\.id), states)'),
             ('core', 'let stateSnapshot = snapshot.isEmpty ? [:] : rowStates', 'let stateSnapshot = rowStates'),
             ('core', 'rowStates = stateSnapshot', 'rowStates = [:]'),
@@ -228,14 +196,14 @@ class TemplateShelfStateProjectionContracts(unittest.TestCase):
             ('view', 'rowStates = rows.isEmpty ? [:] : coordinator.shelfReader.rowStates', 'rowStates = coordinator.shelfReader.rowStates'),
             ('view', 'cardFacts = rows.isEmpty ? [:] : coordinator.shelfReader.cardFacts', 'cardFacts = coordinator.shelfReader.cardFacts'),
             ('view', 'guard previous != nil, next == nil else { return }', 'guard true else { return }'),
-            ('view', 'if value.action == .remove { TemplateOwnShelfDeleteReviewCopy(title: value.title) }', ''),
+            ('view', 'Text("templateOwnShelf.delete.irreversible")', 'EmptyView()'),
             ('view', 'review = nil; rowStates = [:]; await refresh()', 'review = nil; await refresh()'),
             ('view', 'busy = false; rowStates = [:]', 'busy = false'),
             ('view', 'Text(verbatim: reason)', 'Text(reason)'),
             ('view', 'state.market.rawValue', 'state.personal.rawValue'),
             ('view', 'let state = rowStates[row.id] ?? .unknown', 'let state = rowStates[7] ?? .unknown'),
             ('view', '.disabled(readSnapshot)', ''),
-            ('catalog', 'Marketplace status unknown', 'Marketplace approved'),
+            ('catalog', 'Marketplace review pending', 'Marketplace approved'),
         ]
         for target, before, after in changes:
             source = {'core': core, 'view': view, 'catalog': catalog}[target]

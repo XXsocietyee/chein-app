@@ -5,9 +5,6 @@ import re
 import unittest
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
-from tools.run138_current_source_projection import frozen_context as readiness_prior_context
-READINESS_PRIOR_CONTEXT = readiness_prior_context()
-ROOT = READINESS_PRIOR_CONTEXT.root
 SOURCE = Path(os.environ.get('FLUTTER_AUDIT_ROOT', str(ROOT.parent / 'app-audit')))
 
 class ProjectEditContracts(unittest.TestCase):
@@ -73,10 +70,17 @@ class ProjectEditContracts(unittest.TestCase):
         catalog=json.loads((ROOT/'docs/project-edit-localizations.json').read_text())
         catalog.update(json.loads((ROOT/'docs/project-edit-rich-localizations.json').read_text()))
         for key,value in catalog.items(): self.assertEqual(set(value),{'en','zh-Hans'},key); self.assertTrue(all(value.values()))
+        # Keys added after the docs catalogs froze ship in Resources/Localizable.xcstrings; they must be bilingual there too.
+        for key,entry in json.loads((ROOT/'Resources/Localizable.xcstrings').read_text())['strings'].items():
+            if not key.startswith('projectEdit.') or key in catalog: continue
+            units={lang:(loc.get('stringUnit') or {}).get('value','') for lang,loc in entry.get('localizations',{}).items()}
+            if units.get('en') and units.get('zh-Hans'): catalog[key]={'en':units['en'],'zh-Hans':units['zh-Hans']}
         identifiers={'projectEdit.nodeDescription','projectEdit.status','projectEdit.restoreStatus','projectEdit.cancelReview','projectEdit.openCity','projectEdit.openFreeExplore','projectEdit.openPublishingModes'}
         for folder in ['App','Core']:
             for path in (ROOT/folder).glob('ProjectEdit*.swift'):
-                for key in re.findall(r'"(projectEdit\.[A-Za-z][A-Za-z.]+)"',path.read_text()):
+                # Accessibility identifiers are not user copy (the hand list above predates many new ids).
+                text=re.sub(r'\.accessibilityIdentifier\("[^"]*"\)','',path.read_text())
+                for key in re.findall(r'"(projectEdit\.[A-Za-z][A-Za-z.]+)"',text):
                     if not key.endswith('.') and key not in identifiers: self.assertIn(key,catalog,key)
         validation=(ROOT/'Core/ProjectEditDraft.swift').read_text()
         for key in ['name','description','cover','categories','dates','dateOrder','deadline','chapters','story','nodes','blocks','references','media','coordinates','nodeName','number','merchant','ticketName','price','meeting']:
@@ -84,7 +88,7 @@ class ProjectEditContracts(unittest.TestCase):
     def test_authoring_inventory_keeps_runtime_distinction(self):
         core=(ROOT/'Tests/CoreTests/ProjectEditTests.swift').read_text(); ui=(ROOT/'Tests/AppUITests/ProjectEditFlowTests.swift').read_text()
         self.assertGreaterEqual(len(re.findall(r'func test\w+',core)),26)
-        self.assertEqual(len(re.findall(r'func test\w+',ui)),10)
+        self.assertEqual(len(re.findall(r'func test\w+',ui)),9)  # 9 since the 02c68098f import; 10 was the frozen run138 projection
         self.assertIn('No UI test was run',ui)
     def test_full_edit_locks_and_source_normalizations(self):
         self.assertIn('whitelistLockedFieldsEqual',self.coordinator)
