@@ -314,12 +314,13 @@ struct RoamRouteSketchView: View {
     }
 }
 struct RoamRecordedStats: View {
+    @Environment(\.locale) private var locale
     let record: RoamHistoryRecord
     var body: some View {
         // Mini-program kv: 总距离 / 时长 / 探店 / 探索度 rows with hairlines; a missing value shows —.
         VStack(spacing: 0) {
             row("roam.experience.distance") {
-                if let distance = record.distance { Text(distance, format: .number.precision(.fractionLength(1))) + Text(verbatim: " ") + Text("roam.history.km") }
+                if let distance = record.distance { Text(LocaleDisplay.roadNumber(kilometers: distance, locale: locale), format: .number.precision(.fractionLength(1))) + Text(verbatim: " ") + Text(LocalizedStringKey(LocaleDisplay.usesMiles(locale) ? "unit.mile.abbr" : "roam.history.km")) }
                 else { Text(verbatim: "—") }
             }
             row("roam.experience.duration") { Text(verbatim: record.durationText ?? "—") }

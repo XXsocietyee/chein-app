@@ -157,6 +157,9 @@ struct RoamPlaceExtrasSection: View {
     @State private var showingReviewSheet = false
     @State private var confirmPublishReview = false
     @State private var toastMessage: String?
+    /// i18n r1: quote/review cards widen with Dynamic Type so English copy wraps inside the card.
+    @ScaledMetric(relativeTo: .body) private var quoteCardWidth: CGFloat = 240
+    @ScaledMetric(relativeTo: .body) private var reviewCardWidth: CGFloat = 220
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
 
     var body: some View {
@@ -258,7 +261,7 @@ struct RoamPlaceExtrasSection: View {
                                 Text(verbatim: "「\(quote.text)」").cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary).lineLimit(4)
                                 Text(verbatim: "\(quote.sourceLabel) · " + c.t("复制原文链接", "Copy source link")).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                             }
-                            .frame(width: 240, alignment: .leading)
+                            .frame(width: quoteCardWidth, alignment: .leading)
                             .padding(CYSpacing.md)
                             .background(CYNight.ink2, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                         }
@@ -301,7 +304,7 @@ struct RoamPlaceExtrasSection: View {
                                 }
                                 Text(verbatim: review.text).cyText(.bodyCompact).lineLimit(4)
                             }
-                            .frame(width: 220, alignment: .leading)
+                            .frame(width: reviewCardWidth, alignment: .leading)
                             .padding(CYSpacing.md)
                             .background(CYNight.ink2, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                             .accessibilityElement(children: .combine)

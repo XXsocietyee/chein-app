@@ -243,13 +243,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "已撤销"
+          "value": "Reversed"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "Reversed"
+          "value": "已撤销"
         }
       }
     }
@@ -294,13 +294,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "提出成绩争议"
+          "value": "Raise a score dispute"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "Raise a score dispute"
+          "value": "提出成绩争议"
         }
       }
     }
@@ -362,13 +362,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "本局计分 · %@"
+          "value": "Round score · %@"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "Round score · %@"
+          "value": "本局计分 · %@"
         }
       }
     }
@@ -600,7 +600,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "待同步"
+          "value": "Syncing"
         }
       },
       "zh-Hans": {
@@ -838,13 +838,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "积分变动"
+          "value": "Points change"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "Points change"
+          "value": "积分变动"
         }
       }
     }

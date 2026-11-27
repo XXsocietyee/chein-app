@@ -89,7 +89,7 @@ import SwiftUI
                 Text("club.calendar.list").tag(false)
                 Text("club.calendar.monthView").tag(true)
             }
-            .pickerStyle(.segmented)
+            .cyAdaptiveSegmented()
             .accessibilityIdentifier("club.calendar.mode")
             if model.loading {
                 ProgressView()

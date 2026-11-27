@@ -248,7 +248,7 @@ struct MerchantSafetyRatingSheet: View {
                             get: { level }, set: { key = ""; level = $0 })) {
                             ForEach(levels, id: \.key) { item in Text(verbatim: item.label).tag(item.key) }
                         }
-                        .pickerStyle(.segmented)
+                        .cyAdaptiveSegmented()
                         TextField(PlayerCapabilityCopy.text("说说原因", "Why", locale),
                                   text: Binding(get: { reason }, set: { key = ""; reason = $0 }), axis: .vertical)
                             .lineLimit(3...6)

@@ -69,7 +69,12 @@ struct AccountDeregistrationImpactConfirmation: View {
     @State private var confirmation = ""
     @State private var confirming = false
     @FocusState private var focused: Bool
-    private var matches: Bool { confirmation == "注销" }
+    @Environment(\.locale) private var locale
+    private var matches: Bool {
+        let typed = confirmation.trimmingCharacters(in: .whitespaces)
+        let word = appLocalized("compliance.confirmWord", locale: locale)
+        return typed == "注销" || typed.caseInsensitiveCompare(word) == .orderedSame
+    }
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("compliance.typeToConfirm").font(.subheadline).foregroundStyle(.secondary)

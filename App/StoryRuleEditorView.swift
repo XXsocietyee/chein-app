@@ -45,7 +45,7 @@ import QuestifyCore
                         Text("storyRule.matchAll").tag("AND")
                         Text("storyRule.matchAny").tag("OR")
                     }
-                    .pickerStyle(.segmented)
+                    .cyAdaptiveSegmented()
                     .frame(maxWidth: 180)
                 }
             }
@@ -110,7 +110,7 @@ import QuestifyCore
                     Text("storyRule.matchAll").tag("AND")
                     Text("storyRule.matchAny").tag("OR")
                 }
-                .pickerStyle(.segmented)
+                .cyAdaptiveSegmented()
                 .padding(.leading, 16)
 
             case "groupAdd":
@@ -209,7 +209,7 @@ import QuestifyCore
                         Text(opt.label).tag(opt.value)
                     }
                 }
-                .pickerStyle(.segmented)
+                .cyAdaptiveSegmented()
             }
 
             if let names = editor.names {
@@ -221,7 +221,7 @@ import QuestifyCore
                         Text(opt.label).tag(opt.value)
                     }
                 }
-                .pickerStyle(.segmented)
+                .cyAdaptiveSegmented()
             } else if let renameLabel = editor.renameLabel {
                 Button {
                     model.openRename(path: path)
@@ -245,7 +245,7 @@ import QuestifyCore
                         Text(opt.label).tag(opt.value)
                     }
                 }
-                .pickerStyle(.segmented)
+                .cyAdaptiveSegmented()
             }
 
             if let result = editor.result {
@@ -257,7 +257,7 @@ import QuestifyCore
                         Text(opt.label).tag(opt.value)
                     }
                 }
-                .pickerStyle(.segmented)
+                .cyAdaptiveSegmented()
             }
 
             if let varOp = editor.varOp {
@@ -269,7 +269,7 @@ import QuestifyCore
                         Text(opt.label).tag(opt.value)
                     }
                 }
-                .pickerStyle(.segmented)
+                .cyAdaptiveSegmented()
             }
 
             if let amount = editor.amount {

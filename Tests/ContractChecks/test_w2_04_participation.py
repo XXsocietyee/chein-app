@@ -19,7 +19,7 @@ class ParticipationParityChecks(unittest.TestCase):
 
     def test_list_uses_fill_tabs_and_source_status_filter(self):
         history = self.journey.split('@MainActor struct ParticipationHistoryView: View {', 1)[1].split('private struct ParticipationRow: View {', 1)[0]
-        self.assertIn('.pickerStyle(.segmented).accessibilityIdentifier("playerJourney.filter")', history)
+        self.assertIn('.cyAdaptiveSegmented().accessibilityIdentifier("playerJourney.filter")', history)
         self.assertNotIn('.pickerStyle(.menu)', history)
         self.assertIn('rows.filter { filter.matches($0) }', history)
         self.assertIn('LocalizedStringKey(filter.emptyTitleKey)', history)

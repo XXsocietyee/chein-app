@@ -309,7 +309,7 @@ private struct RoamExportFileSaveLink: View {
         Section {
             Picker("roam.export.range", selection: Binding(get: { preset }, set: { use($0) })) {
                 ForEach(RoamExportRangePreset.Kind.allCases, id: \.self) { Text(presetKey($0)).tag($0) }
-            }.pickerStyle(.segmented).accessibilityIdentifier("roam.export.rangePicker")
+            }.cyAdaptiveSegmented().accessibilityIdentifier("roam.export.rangePicker")
             DatePicker("roam.export.start", selection: Binding(get: { RoamShanghaiPicker.date(startDate) }, set: { startDate = RoamShanghaiPicker.text($0) }), displayedComponents: .date)
                 .environment(\.timeZone, RoamShanghaiPicker.timeZone).accessibilityIdentifier("roam.export.startDate")
             DatePicker("roam.export.end", selection: Binding(get: { RoamShanghaiPicker.date(endDate) }, set: { endDate = RoamShanghaiPicker.text($0) }),

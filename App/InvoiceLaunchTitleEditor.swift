@@ -59,7 +59,7 @@ import SwiftUI
                 Picker(selection: $type) {
                     invoiceText("COMPANY").tag("COMPANY")
                     invoiceText("PERSONAL").tag("PERSONAL")
-                } label: { requiredLabel("titleType") }.pickerStyle(.segmented)
+                } label: { requiredLabel("titleType") }.cyAdaptiveSegmented()
                 TextField(text: $name) { requiredLabel("titleName") }
                     .accessibilityIdentifier("invoice.title.name")
                 if type == "COMPANY" {

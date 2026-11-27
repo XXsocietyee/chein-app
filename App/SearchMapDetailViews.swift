@@ -35,10 +35,10 @@ import SwiftUI
                     }
                     Section("searchMap.nodeDetails") {
                         if let radius = detail.radiusM, radius > 0 {
-                            LabeledContent("searchMap.radius") { Text(Measurement(value: Double(radius), unit: UnitLength.meters), format: .measurement(width: .abbreviated)) }
+                            LabeledContent("searchMap.radius") { Text(Measurement(value: Double(radius), unit: UnitLength.meters), format: .measurement(width: .abbreviated, usage: .road)) }
                         }
                         if let distance = detail.distance, distance >= 0 {
-                            LabeledContent("searchMap.distance") { Text(Measurement(value: distance, unit: UnitLength.meters), format: .measurement(width: .abbreviated)) }
+                            LabeledContent("searchMap.distance") { Text(Measurement(value: distance, unit: UnitLength.meters), format: .measurement(width: .abbreviated, usage: .road)) }
                         }
                         if let method = detail.validationMethod {
                             Text(LocalizedStringKey((0...7).contains(method) ? "searchMap.validation.\(method)" : "searchMap.validation.unknown"))

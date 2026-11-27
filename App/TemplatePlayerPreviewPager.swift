@@ -48,7 +48,7 @@ struct TemplatePlayerPreviewPager: View {
                 ConfigR4Text.text(item.titleKey).tag(item)
             }
         } label: { ConfigR4Text.text(step.titleKey) }
-        .pickerStyle(.segmented)
+        .cyAdaptiveSegmented()
     }
 
     // MARK: Pages

@@ -558,7 +558,7 @@ struct TopicDetailView: View {
                     Text(TopicXcxFacts.showsInStorePerks(value) ? "topicXcx.paywall.detail" : "topicXcx.paywall.detailNoPerks").cyText(.bodyCompact)
                     // PC-B-1-15: the price of what unlocks (MP paywall price row); unknown price → row hidden.
                     if value.selfPlay == 1, let price = value.selfPlayPrice {
-                        Text(verbatim: MoneyDisplay.yuan(price))  // owner decision 9: ¥12.50
+                        Text(verbatim: LocaleDisplay.money(price, locale: locale))  // owner decision 9: ¥12.50
                             .font(.title3.weight(.semibold)).monospacedDigit()
                             .accessibilityIdentifier("topic.paywall.price")
                     }

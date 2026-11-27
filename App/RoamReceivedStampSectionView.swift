@@ -44,7 +44,7 @@ import SwiftUI
                 } label: {
                     Text(verbatim: model.selectedTab.title)
                 }
-                .pickerStyle(.segmented)
+                .cyAdaptiveSegmented()
                 .accessibilityIdentifier("roam.receivedStamp.tabPicker")
 
                 if let activeReader = model.activeReader {

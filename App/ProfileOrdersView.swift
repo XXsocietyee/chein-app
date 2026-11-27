@@ -862,7 +862,13 @@ private struct ProfileOrderCodeText: View {
 /// Owner decision #9 (11-24): money shows two decimals (¥12.50) through the one shared formatter.
 /// `OwnedOrderMoneyText` keeps the exact decimal digits; `MoneyDisplay.text` pads them lexically (no Double).
 enum ProfileOrderYuan {
-    static func text(_ amount: Decimal) -> String { "¥" + MoneyDisplay.text(OwnedOrderMoneyText.string(amount)) }
+    static func text(_ amount: Decimal) -> String { text(amount, locale: .current) }
+    /// i18n r1: Chinese keeps `¥x`; other languages name the currency (`CN¥x`).
+    static func text(_ amount: Decimal, locale: Locale) -> String {
+        let raw = OwnedOrderMoneyText.string(amount)
+        guard LocaleDisplay.isChinese(locale) else { return LocaleDisplay.money(text: raw, locale: locale) }
+        return "¥" + MoneyDisplay.text(raw)
+    }
 }
 
 /// FIN-17-2: real money reads "¥x" like the MP and the list row, with no currency caveat.

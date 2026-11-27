@@ -707,7 +707,7 @@ struct RoamAnniversaryReadIntent {
             Section {
                 Picker("roam.tools.recap.kind", selection: Binding(get: { model.kind }, set: { value in lifetime.run(reader) { await $0.select(kind: value) } })) {
                     ForEach(RoamRecapKind.allCases) { value in Text(kindKey(value)).tag(value) }
-                }.pickerStyle(.segmented).disabled(loading)
+                }.cyAdaptiveSegmented().disabled(loading)
                     .accessibilityIdentifier("roam.tools.recap.kindPicker")
             }
             if let page, !page.weeks.isEmpty {

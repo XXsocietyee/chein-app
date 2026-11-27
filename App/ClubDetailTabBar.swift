@@ -14,7 +14,7 @@ struct ClubDetailTabBar: View {
                 if typeSize.isAccessibilitySize {
                     picker.pickerStyle(.menu)
                 } else {
-                    picker.pickerStyle(.segmented).labelsHidden()
+                    picker.cyAdaptiveSegmented().labelsHidden()
                 }
             }
             .sensoryFeedback(.selection, trigger: selection)

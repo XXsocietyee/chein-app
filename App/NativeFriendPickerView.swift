@@ -19,7 +19,7 @@ import SwiftUI
                 Text("d7.friendPicker.recent").tag(NativeFriendDirectorySection.recent)
                 Text("d7.friendPicker.all").tag(NativeFriendDirectorySection.all)
             }
-            .pickerStyle(.segmented).labelsHidden()
+            .cyAdaptiveSegmented().labelsHidden()
             .disabled(flow.busy || flow.hasPickerReview)
             // A row inside the host's Form: `.searchable` belongs to the host's navigation container, so the
             // filter stays a system text field with the search symbol.

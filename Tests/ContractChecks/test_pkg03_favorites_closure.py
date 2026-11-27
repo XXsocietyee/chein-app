@@ -53,7 +53,7 @@ class Pkg03FavoritesClosureTests(unittest.TestCase):
         # native-r2: system segmented Picker replaces CYTabs; the tab row and the posts tab stay conditional.
         self.assertIn('if postsAllowed || showsCityNodesTab {', host)
         self.assertIn('Picker(selection: $selectedTab) {', host)
-        self.assertIn('.pickerStyle(.segmented)', host)
+        self.assertIn('.cyAdaptiveSegmented()', host)
         self.assertIn('if postsAllowed { Text("social.posts").tag(Tab.posts) }', host)
         self.assertEqual(host.count('.tag(Tab.posts)'), 1)
         self.assertIn('if postsAllowed && selectedTab == .posts {', host)

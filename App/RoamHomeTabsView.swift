@@ -11,7 +11,7 @@ struct RoamHomeTabPicker: View {
         Picker("roam.w208.tab.label", selection: $selection) {
             ForEach(RoamHomeTab.allCases, id: \.self) { tab in Text(tab.titleKey).tag(tab) }
         }
-        .pickerStyle(.segmented)
+        .cyAdaptiveSegmented()
         .accessibilityIdentifier("roam.home.tabs")
     }
 }

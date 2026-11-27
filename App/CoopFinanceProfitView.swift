@@ -161,7 +161,7 @@ extension EnvironmentValues {
         .padding(.vertical, CYSpacing.sm)
     }
     private func topicAmount(_ topic: CoopFinanceProfit.Topic) -> some View {
-        Text(verbatim: topic.status != .unsettled && topic.status != .settlementUnknown ? topic.income.map { "¥" + CoopFinanceProfit.plainText($0) } ?? "—" : "—")
+        Text(verbatim: topic.status != .unsettled && topic.status != .settlementUnknown ? topic.income.map { LocaleDisplay.money($0, negative: false, locale: locale) } ?? "—" : "—")
             .cyText(.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
     }
     private func topicStatus(_ topic: CoopFinanceProfit.Topic) -> some View {
@@ -207,7 +207,7 @@ extension EnvironmentValues {
     }
     private func statText(_ stat: CoopFinanceProfit.Stat) -> String {
         guard let amount = stat.amount else { return "—" }
-        return (stat.key == .adjustExecuted ? "−¥" : "¥") + CoopFinanceProfit.plainText(amount)
+        return LocaleDisplay.money(amount, negative: stat.key == .adjustExecuted, locale: locale)
     }
     private func withdrawAccessibilityKey(_ state: CoopFinanceProfit.WithdrawState) -> String {
         switch state { case .positive: return "cooperation.finance.withdraw"; case .unknown: return "cooperation.finance.withdraw.a11y.unknown"; case .zero: return "cooperation.finance.withdraw.a11y.zero" }

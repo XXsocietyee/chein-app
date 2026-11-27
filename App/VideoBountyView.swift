@@ -151,7 +151,7 @@ struct VideoBountyView: View {
                         Text("mp.vb.tab.submissions").tag(VideoBountyTab.submissions)
                         Text("mp.vb.tab.accruals").tag(VideoBountyTab.accruals)
                     }
-                    .pickerStyle(.segmented)
+                    .cyAdaptiveSegmented()
                     .labelsHidden()
                     .accessibilityIdentifier("videoBounty.tab")
                     .listRowBackground(Color.clear)

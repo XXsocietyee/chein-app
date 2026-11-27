@@ -172,7 +172,10 @@ struct QuestLiveActivityHeader: View {
                 if let title = attributes.title {
                     Text(verbatim: title).lineLimit(1)
                 } else {
+                    // i18n r1: "Orientation run" / "Free explore" may need two lines in the narrow leading region.
                     Text(QuestLiveActivityTitles.key(attributes.kind, mode: state.mode))
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             } icon: {
                 Image(systemName: QuestLiveActivityGlyph.symbol(attributes.kind, mode: state.mode))
@@ -291,8 +294,13 @@ struct QuestLiveActivityMetric: View {
     let value: String
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
+            // i18n r1: English metric labels ("To next stop") wrap instead of truncating; the value stays one line.
             Text(label).font(.caption).foregroundStyle(.secondary)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
             Text(verbatim: value).font(.body.monospacedDigit())
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
         }
     }
 }
@@ -321,12 +329,16 @@ struct QuestLiveActivityCompactValue: View {
                 .frame(maxWidth: 52)
         } else {
             switch attributes.kind {
+            // i18n r1: "0.3 mi" / "1.2 km" in the compact slot: one line, shrink the number rather than clip it.
             case .roam: Text(verbatim: QuestLiveActivityText.distance(state.distanceMeters))
+                .lineLimit(1).minimumScaleFactor(0.8).frame(maxWidth: 52)
             case .play:
                 if state.nextDistanceMeters != nil {
                     Text(verbatim: QuestLiveActivityText.distance(state.nextDistanceMeters))
+                        .lineLimit(1).minimumScaleFactor(0.8).frame(maxWidth: 52)
                 } else {
                     Text(verbatim: QuestLiveActivityText.fraction(state.cluesSolved, state.cluesTotal))
+                        .lineLimit(1).minimumScaleFactor(0.8).frame(maxWidth: 52)
                 }
             case .story:
                 Image(systemName: state.mediaPlaying == true ? "speaker.wave.2.fill" : "pause.fill")
@@ -350,6 +362,7 @@ struct QuestLiveActivityRunExtras: View {
                 if let deadline {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("liveActivity.play.deadline").font(.caption).foregroundStyle(.secondary)
+                        .lineLimit(2).fixedSize(horizontal: false, vertical: true)
                         Text(timerInterval: deadline, countsDown: true).font(.body.monospacedDigit())
                     }
                     Spacer()

@@ -266,7 +266,7 @@ struct QuestEventEmpty: View {
                 QuestBoardHeading(title: "widget.event.heading", symbol: "calendar", tint: .orange)
                 Spacer(minLength: 0)
                 Text("widget.event.empty").font(.headline).lineLimit(2)
-                Text("widget.event.browse").font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                Text("widget.event.browse").font(.caption).foregroundStyle(.secondary).lineLimit(2)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .combine)
@@ -398,9 +398,12 @@ struct QuestStreakHeadline: View {
                     .monospacedDigit()
                     .foregroundStyle(streak > 0 ? Color.green : Color.secondary)
                     .contentTransition(.numericText(value: Double(streak)))
+                // i18n r1: "days in a row" is three words in English; let it wrap beside the big number.
                 Text("widget.streak.days").font(.caption).foregroundStyle(.secondary)
+                    .lineLimit(2).fixedSize(horizontal: false, vertical: true)
             }
             Text("widget.streak.walked \(walked) \(span)").font(.caption2).foregroundStyle(.secondary)
+                .lineLimit(2).fixedSize(horizontal: false, vertical: true)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("widget.streak.a11y \(streak) \(walked) \(span)"))

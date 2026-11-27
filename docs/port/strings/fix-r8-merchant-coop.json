@@ -534,7 +534,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": ""
+            "value": " check-ins"
           }
         },
         "zh-Hans": {
@@ -551,7 +551,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": ""
+            "value": " orders"
           }
         },
         "zh-Hans": {
@@ -568,7 +568,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": ""
+            "value": " visitors"
           }
         },
         "zh-Hans": {

@@ -122,7 +122,7 @@ import UIKit
     private var cardContent: CYShareCardContent {
         let sketch = RoamShareRoutePrivacy.sketch(for: record)
         let stats = [
-            CYShareStat(appLocalized("roam.experience.distance", locale: locale), record.distance.map { String(format: "%.1f km", $0) }),
+            CYShareStat(appLocalized("roam.experience.distance", locale: locale), record.distance.flatMap { LocaleDisplay.isChinese(locale) ? String(format: "%.1f km", $0) : LocaleDisplay.distance(kilometers: $0, locale: locale) }),
             CYShareStat(appLocalized("roam.experience.duration", locale: locale), record.durationText),
             CYShareStat(appLocalized("roam.experience.shops", locale: locale), record.shops.map(String.init)),
             CYShareStat(appLocalized("roam.experience.explorePct", locale: locale), record.explorePct.map { "\($0)%" }),
@@ -162,7 +162,7 @@ import UIKit
                     Text(LocalizedStringKey("roam.share.visibility." + value.rawValue)).tag(value)
                 }
             }
-            .pickerStyle(.segmented)
+            .cyAdaptiveSegmented()
             .disabled(isBusy)
             .accessibilityIdentifier("roam.share.visibility")
             RoamShareChannelPicker(mode: Binding(get: { channelPolicy.mode }, set: { mode in
