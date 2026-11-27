@@ -227,10 +227,11 @@ struct JourneyRankBoardView: View {
                             Image(systemName: "chevron.down")
                         }
                         .cyText(.label)
-                        .padding(.horizontal, CYSpacing.md).frame(minHeight: CYSpacing.minTouchTarget)
-                        .background(scopeInMore ? CYColor.selection.opacity(0.2) : CYNight.ink2, in: Capsule())
+                        .frame(minHeight: CYSpacing.minTouchTarget)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.bordered)
+                    .buttonBorderShape(.capsule)
+                    .tint(scopeInMore ? nil : Color.secondary)
                     .accessibilityIdentifier("rankBoard.more")
                 }
             }

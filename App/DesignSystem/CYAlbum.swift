@@ -94,6 +94,7 @@ struct CYAlbumProgressRing: View {
     var lineWidth: CGFloat = 9
     var accessibilityLabel: Text
     @QuestifyReduceMotion private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var shown = false
 
     private var fraction: Double {
@@ -101,6 +102,8 @@ struct CYAlbumProgressRing: View {
         return min(1, Double(max(0, value)) / Double(total))
     }
     private var known: Bool { (total ?? 0) > 0 }
+    /// Accessibility sizes: the ring grows 1.4x (capped at 140 pt) so the count tracks the text around it (a11y-dt r3).
+    private var ringSize: CGFloat { dynamicTypeSize.isAccessibilitySize ? min(size * 1.4, 140) : size }
 
     var body: some View {
         ZStack {
@@ -112,19 +115,19 @@ struct CYAlbumProgressRing: View {
                 .shadow(color: CYAlbumMotion.gold.opacity(shown && known ? 0.35 : 0), radius: 6)
             VStack(spacing: 0) {
                 if known {
-                    CYCountUpLabel(number: shown ? Double(value) : 0, font: .system(size: size * 0.30, weight: .bold, design: .rounded))
+                    CYCountUpLabel(number: shown ? Double(value) : 0, font: .system(size: ringSize * 0.30, weight: .bold, design: .rounded))
                     Text(verbatim: "/ \(total ?? 0)")
-                        .font(.system(size: size * 0.14, weight: .semibold, design: .rounded)).monospacedDigit()
+                        .font(.system(size: ringSize * 0.14, weight: .semibold, design: .rounded)).monospacedDigit()
                         .foregroundStyle(palette.textTertiary)
                 } else {
                     Text(verbatim: CYAlbumCopy.unknownMark)
-                        .font(.system(size: size * 0.30, weight: .bold, design: .rounded))
+                        .font(.system(size: ringSize * 0.30, weight: .bold, design: .rounded))
                         .foregroundStyle(palette.textTertiary)
                 }
             }
             .minimumScaleFactor(0.6)
         }
-        .frame(width: size, height: size)
+        .frame(width: ringSize, height: ringSize)
         .onAppear { reveal() }
         .onChange(of: value) { _, _ in reveal() }
         .onChange(of: total) { _, _ in reveal() }

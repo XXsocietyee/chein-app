@@ -77,7 +77,7 @@ struct CYSquareActivityPicker: View {
             .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
             .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text(verbatim: activity.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                Text(verbatim: activity.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(2)
                 Text("activityPicker.progress \(Self.count(activity.doneCount)) \(Self.count(activity.total))", tableName: "SocialParity")
                     .cyText(.meta, monospacedDigit: true).foregroundStyle(CYColor.textTertiary)
             }

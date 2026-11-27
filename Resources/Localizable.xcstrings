@@ -61070,13 +61070,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You're offline. Showing what was saved."
+            "value": "Looks like you’re offline. Showing what’s saved."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前离线，显示已保存的内容。"
+            "value": "网络好像断开了，先显示已保存的内容"
           }
         }
       }
@@ -61359,13 +61359,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You're offline. Showing what's saved."
+            "value": "Looks like you’re offline. Showing what’s saved."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你离线了，先显示已保存的内容"
+            "value": "网络好像断开了，先显示已保存的内容"
           }
         }
       }
@@ -81170,13 +81170,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Home can’t open right now"
+            "value": "Home is unavailable"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "首页无法打开"
+            "value": "首页暂不可用"
           }
         }
       }
