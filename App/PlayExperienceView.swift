@@ -261,6 +261,10 @@ struct PlayThemeMusicKey: Equatable {
         presentationLayer
         .modifier(PlayNightHintOverlay(receipt: model.reward))
         .modifier(PlayFlyScoreOverlay(receipt: model.reward))
+        // mp-journey r3: MP loadData → loadTeamProgress after every nodes read, then the 4 s poll while a team exists.
+        // One page-level host (the lead section used to own the poll, so it only ran while that row was on screen).
+        .task(id: model.interactionContext) { await model.probeLead(context: model.interactionContext) }
+        .modifier(PlayLeadProgressPollingModifier(model: model, context: model.interactionContext))
         .onChange(of: model.snapshot?.result.topicID) { _, topicID in
             chapterFilter = nil
             presentTitleCardIfNeeded(topicID)
@@ -816,8 +820,6 @@ struct PlayThemeMusicKey: Equatable {
                 PlayLeadBar(model: model)
             }
         }
-        .task(id: model.interactionContext) { await model.probeLead(context: model.interactionContext) }
-        .modifier(PlayLeadProgressPollingModifier(model: model, context: model.interactionContext))
         .modifier(PlayNavBubbleOverlay(model: ambientModel, nodeID: hudStop?.node.id, meters: cityNextStopMeters))
     }
     @ViewBuilder private var cityRunPanel: some View {
@@ -2005,7 +2007,6 @@ struct PlayExperienceIssueView: View {
                 })
             }
         }
-        .modifier(PlayLeadProgressPollingModifier(model: model, context: context))
         .modifier(PlaySystemConfirm(
             isPresented: review,
             title: appLocalized("playx.review", locale: .current),
