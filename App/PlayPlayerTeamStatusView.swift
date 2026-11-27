@@ -4,6 +4,8 @@ import SwiftUI
 /// has no member navigation, location, evidence, completion or invitation action.
 struct PlayPlayerTeamStatusView: View {
     let state: PlayPlayerTeamState
+    /// R-island: the run's team id; when set, member changes feed the shared team-status Live Activity.
+    var planScope: String? = nil
     var body: some View {
         Group {
             switch state {
@@ -35,5 +37,10 @@ struct PlayPlayerTeamStatusView: View {
                 }
             }
         }.privacySensitive().accessibilityIdentifier("playerTeam.readback")
+        .onChange(of: state, initial: true) { _, value in
+            guard let planScope, case .members(let members) = value else { return }
+            QuestPlanActivityCenter.shared.teamStatus(scope: planScope, title: nil, members: members)
+        }
+        .onDisappear { if let planScope { QuestPlanActivityCenter.shared.teamStatus(scope: planScope, title: nil, members: nil) } }
     }
 }
