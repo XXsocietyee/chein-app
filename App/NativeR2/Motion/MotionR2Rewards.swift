@@ -92,7 +92,7 @@ struct MotionR2StampPress: View {
         .frame(width: 104, height: 130)
         .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
         .padding(6)
-        .background(Color(uiColor: .systemBackground), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+        .background(.background, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 6, style: .continuous)
                 .strokeBorder(Color.secondary.opacity(0.4), style: StrokeStyle(lineWidth: 1, dash: [2, 3]))
