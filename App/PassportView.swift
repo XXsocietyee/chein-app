@@ -157,16 +157,13 @@ struct PassportBadge: Identifiable, Equatable {
 private struct PassportRollingCount: View {
     let value: Int?
     let total: Int?
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 4) {
             if let value {
                 let shown = total == nil ? max(0, value) : PassportStampGrid.earnedSlots(value)
-                Text(verbatim: "\(shown)")
-                    .font(.largeTitle.bold()).monospacedDigit()
-                    .contentTransition(.numericText(value: Double(shown)))
-                    .animation(reduceMotion ? nil : .smooth, value: shown)
+                // Components r1: the shared rolling counter (numericText, Reduce Motion, full-number VoiceOver value).
+                CYLiveCounter(shown, style: .dataXL)
                 if let total {
                     Text("passport.stamps.ofTotal \(total)")
                         .font(.headline).monospacedDigit().foregroundStyle(.secondary)
