@@ -125,6 +125,55 @@ public struct ProjectEditTicket: Identifiable, Codable, Equatable {
     public var saleEndTime = ""
     public var localMetadata: [String: ProjectEditJSON] = [:]
     public init() {}
+    /// MP utils/family-ticket.js (F12 亲子票): one ticket, one code, 1 adult + 1 child; only the child age band is recorded.
+    public static let familyAgeRange = 0...17
+    /// MP `familyTicketDraft()`: the 亲子票（1 大 1 小） template with the common 3–12 age band; the author can change it.
+    public static func family(named name: String) -> ProjectEditTicket {
+        var ticket = ProjectEditTicket()
+        ticket.name = name
+        ticket.localMetadata["adultCount"] = .number(1)
+        ticket.localMetadata["childCount"] = .number(1)
+        ticket.localMetadata["childAgeMin"] = .number(3)
+        ticket.localMetadata["childAgeMax"] = .number(12)
+        return ticket
+    }
+    public var isFamily: Bool { localMetadata["childCount"]?.integer == 1 }
+    public var childAgeMin: String {
+        get { Self.ageText(localMetadata["childAgeMin"]) }
+        set { localMetadata["childAgeMin"] = Self.ageValue(newValue) }
+    }
+    public var childAgeMax: String {
+        get { Self.ageText(localMetadata["childAgeMax"]) }
+        set { localMetadata["childAgeMax"] = Self.ageValue(newValue) }
+    }
+    /// MP `familyBlockReason`: both ages are whole numbers in 0–17 and the start is not above the end.
+    public var familyAgesValid: Bool {
+        guard isFamily else { return true }
+        guard let low = Int(childAgeMin), let high = Int(childAgeMax) else { return false }
+        return Self.familyAgeRange.contains(low) && Self.familyAgeRange.contains(high) && low <= high
+    }
+    /// MP `familyFields`: a family ticket sends 1 + 1 with its band; a ticket that came back with a
+    /// composition sends the plain 1 + 0 shape; other tickets send nothing new.
+    public func familyPayload() throws -> [String: ProjectEditJSON] {
+        if isFamily {
+            guard familyAgesValid, let low = Int(childAgeMin), let high = Int(childAgeMax) else { throw ProjectEditError.invalidDraft }
+            return ["adultCount": .number(1), "childCount": .number(1),
+                    "childAgeMin": .number(Decimal(low)), "childAgeMax": .number(Decimal(high))]
+        }
+        guard localMetadata["childCount"] != nil else { return [:] }
+        return ["adultCount": .number(1), "childCount": .number(0), "childAgeMin": .null, "childAgeMax": .null]
+    }
+    private static func ageText(_ raw: ProjectEditJSON?) -> String {
+        guard let raw else { return "" }
+        if let value = raw.integer { return String(value) }
+        return raw.text ?? ""
+    }
+    private static func ageValue(_ text: String) -> ProjectEditJSON {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty { return .null }
+        if let value = Int(trimmed) { return .number(Decimal(value)) }
+        return .string(trimmed)
+    }
     /// Mini's syncWithTheme is stored/read back by the backend, but date
     /// resolution is client-side. Never infer this preference from equal dates.
     public var syncsWithThemeDates: Bool { localMetadata["syncWithTheme"] == .bool(true) }
@@ -304,6 +353,7 @@ public enum ProjectEditValidation {
             need(!ticket.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, "ticketName\(ticket.id)", "ticketName")
             need(decimal(ticket.price).map { $0 >= 0 } ?? false, "price\(ticket.id)", "price")
             need(Int(ticket.totalStock).map { $0 >= 0 } ?? false, "stock\(ticket.id)", "number")
+            need(ticket.familyAgesValid, "ticketChildAge\(ticket.id)", "childAge")
             // An absent server team size reads back as "" (unknown, never an invented 0) and stays valid; it is omitted from the payload.
             need(ticket.teamSize.isEmpty || Int(ticket.teamSize).map { $0 >= 0 } == true, "team\(ticket.id)", "number")
             let schedule = ticket.schedule(in: draft)
