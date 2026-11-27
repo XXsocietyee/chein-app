@@ -567,6 +567,12 @@ struct MessagingHistoryView: View {
         case .topic(let id):
             if let label = MessagingInlineCardAnswers.choiceLabel(action, in: message) { cardChoices[messageID] = label }
             cardRoute = .topic(id)
+        case .activity(let id):
+            if let label = MessagingInlineCardAnswers.choiceLabel(action, in: message) { cardChoices[messageID] = label }
+            cardRoute = .activity(id)
+        case .squarePost(let id):
+            if let label = MessagingInlineCardAnswers.choiceLabel(action, in: message) { cardChoices[messageID] = label }
+            cardRoute = .squarePost(id)
         case .review:
             cardRoute = .detail(messageID: messageID)
         case .unsupported:
@@ -586,6 +592,10 @@ struct MessagingHistoryView: View {
         switch route {
         case .topic(let id):
             if currentHistoryReady, let expanded { TopicDetailView(id: id, reader: expanded.topicReader) }
+        case .activity(let id):
+            if currentHistoryReady, let page = expanded?.pageDestination?("pages/activity/detail/index", id) { page }
+        case .squarePost(let id):
+            if currentHistoryReady, let page = expanded?.pageDestination?("pages/square/detail/index", id) { page }
         case .detail(let messageID):
             if let message = history.messages.first(where: { $0.id == messageID }) {
                 MessagingMessageDetailView(message: message, conversation: conversation,
@@ -657,7 +667,7 @@ private struct MessagingBubble: View {
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         // Messages-style notice: system grouped fill in the system bubble shape (no tinted card).
-        .background(.quaternary, in: .rect(cornerRadius: 18, style: .continuous))
+        .background(.quaternary, in: .rect(cornerRadius: CYRadius.bubble, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityHint(Text("messaging.openDetail"))
     }

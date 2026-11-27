@@ -410,7 +410,7 @@ import QuestifyCore
                         }
                         .frame(maxWidth: .infinity)
                         .aspectRatio(1, contentMode: .fit)
-                        .clipShape(.rect(cornerRadius: 8))
+                        .clipShape(.rect(cornerRadius: CYRadius.inner))
                         .accessibilityHidden(true)
                     }
                 }

@@ -89,9 +89,12 @@ Merged `origin/ui/combined-r7` (clean). Sweep index still 18:06 (build 070117595
 | `pages/topic/index` route stops | `TopicXcxSections.swift` (`TopicXcxRouteSection`) | ✓ (mp-publish owns order) | Stop address (Maps link) 1 → 3 lines at AX sizes | Done |
 | `pages/member/index` card buttons | `MemberHomeHeader.swift` | ✓ | Left to mp-mine (18:15 sweep: they own the `ViewThatFits` fix for 开始探索 / 票夹); asset values `lineLimit(1)` + scale are numbers, fine | Skipped (other lane) |
 | Club fixtures `E3PostCard` | `ClubComponents.swift` | — | Fixture-only (`DesignFixtures/E3Fixtures.swift`), skipped | Skipped |
+| `pages/topic/index` 章节卡片 rail | `TopicChapterCardsSection.swift` (`TopicChapterCardView`) | ✓ (mp-publish owns order) | 156 pt rail card: title and meta 1 → 3 lines at AX sizes (one AX5 line held ~4 glyphs) | Done |
+| `pages/topic/index` 附近组队 card | `TopicTeamsCard.swift` | ✓ | Team name and meeting place 1 → 2 lines at AX sizes | Done |
+| Journey report / roam live stats / play lead bar | `JourneyReportViews.swift`, `RoamLiveSessionView.swift`, `MPGap/PlayRoam/PlayLeadBar.swift` | ✓ | Audit: `lineLimit(1)` hits are numbers with `minimumScaleFactor` (score, stop count, live values) or a short role tag beside a spacer; Reduce Motion already gates numeric transitions. No change | Done |
 
 ## Not done (next run starts here)
-- Continue `.lineLimit(1)` audit on pushed player pages: `JourneyReportViews.swift`, `CityKit/CityDeedCard.swift`, `RoamLiveSessionView.swift`, `TopicTeamsCard.swift`, `TopicChapterCardsSection.swift`, `NativeR2/Social/CYPeopleComponents.swift`, `MPGap/PlayRoam/PlayLeadBar.swift`.
+- Continue `.lineLimit(1)` audit: `CityKit/CityDeedCard.swift`, `NativeR2/Social/CYPeopleComponents.swift`, `NativeR2/Story/NR2StoryReaderParts.swift`, `NativeR2/Components/CYStepChecklist.swift`, then the single-hit files.
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch

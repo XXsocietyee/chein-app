@@ -265,7 +265,7 @@ struct CastRememberedLines: View {
                         if let sub = identity.sub { Text(verbatim: sub).font(.subheadline).foregroundStyle(.secondary) }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading).padding(16)
-                    .background(RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
                         .strokeBorder(identityKey == identity.key ? AnyShapeStyle(.tint) : AnyShapeStyle(.quaternary), lineWidth: identityKey == identity.key ? 2 : 1))
                 }
                 .buttonStyle(.plain)

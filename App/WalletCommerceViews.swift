@@ -729,13 +729,13 @@ extension EnvironmentValues {
                 if income, let day = WalletIncomeDay.make(row.createTime) { WalletIncomeDayText(day: day).font(.footnote).foregroundStyle(.secondary) }
                 else if let date = row.createTime {
                     // FIN-18-6: MP rows.js shortTimeText (10月27日 10:30); the month is already the group title.
-                    Text(verbatim: points ? WalletPointsShortTime.text(date, isEnglish: locale.language.languageCode?.identifier == "en") : date)
+                    Text(verbatim: points ? WalletPointsShortTime.text(date, isEnglish: locale.language.languageCode?.identifier == "en") : LocaleDisplay.civil(date, locale: locale))
                         .font(.footnote).foregroundStyle(.secondary)
                 }
             }
             Spacer(minLength: 8)
             VStack(alignment: stacked ? .leading : .trailing, spacing: 4) {
-                HStack(spacing: 2) {
+                HStack(spacing: 4) {
                     Text(verbatim: format.signed(row, points: points, income: income))
                     if points, row.changePoints != nil { Text(verbatim: format.pointsUnit(for: row.changePoints)) }
                     else if !points { Text(verbatim: row.currency ?? appLocalized("wallet.currencyUnknown", locale: locale)) }

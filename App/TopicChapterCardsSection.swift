@@ -41,6 +41,9 @@ struct TopicChapterCardView: View {
     let isOpen: Bool
     let toggle: () -> Void
     private static let width: CGFloat = 156
+    /// a11y-dt r3: in the 156 pt rail card one AX5 line holds a few glyphs; title and meta wrap there instead of truncating.
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    private var titleLines: Int { dynamicTypeSize.isAccessibilitySize ? 3 : 1 }
 
     var body: some View {
         Button(action: toggle) {
@@ -65,13 +68,13 @@ struct TopicChapterCardView: View {
                 Text(verbatim: card.title)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.primary)
-                    .lineLimit(1)
+                    .lineLimit(titleLines)
                 if let metaText {
                     metaText
                         .font(.caption)
                         .monospacedDigit()
                         .foregroundStyle(.secondary)
-                        .lineLimit(1)
+                        .lineLimit(titleLines)
                 }
                 if isOpen, let description = card.description {
                     Text(verbatim: description)

@@ -195,12 +195,9 @@ import SwiftUI
         if let topics = accepted(scope) { topicChoices(topics, scope) }
     }
     private var sessionLoading: some View {
-        HStack(spacing: 8) {
-            ProgressView().accessibilityHidden(true)
-            Text("club.loading").foregroundStyle(.secondary)
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("club.sessionStart.loading")
+        ProgressView { Text("club.loading") }
+            .frame(maxWidth: .infinity)
+            .accessibilityIdentifier("club.sessionStart.loading")
     }
     private func sessionReload(_ scope: ClubSessionQuickStartContext) -> some View {
         Button { reload(scope) } label: {

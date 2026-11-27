@@ -282,8 +282,8 @@ struct CityClaimSheet: View {
         HStack(spacing: CYSpacing.md) {
             Image(uiImage: photo).resizable().scaledToFill()
                 .frame(width: 64, height: 64)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(palette.textPrimary.opacity(0.9), lineWidth: 1.5))
+                .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).strokeBorder(palette.textPrimary.opacity(0.9), lineWidth: 1.5))
                 .opacity(claimed == nil ? 1 : 0)
                 .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { thumbFrame = $0 }
                 .accessibilityLabel(Text(verbatim: copy("现场照片", "On-site photo")))

@@ -377,7 +377,7 @@ private struct TicketWalletRow: View {
             }
             // a11y-dt r3: artwork capped at 96 pt (Music list rule) so the title keeps the row width at AX5.
             .frame(width: min(thumb, 96), height: min(thumb, 96))
-            .clipShape(.rect(cornerRadius: 8))
+            .clipShape(.rect(cornerRadius: CYRadius.inner))
             .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
                 // Owner rule (MP 2026-10-28): no status on the card. Only the MP tag: M月D日开始 / 退款中 / 已通关 / 未通关.
