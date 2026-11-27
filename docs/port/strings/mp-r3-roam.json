@@ -202,5 +202,39 @@
         }
       }
     }
+  },
+  "roam.album.lockCell": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Not received yet"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "还没收到"
+        }
+      }
+    }
+  },
+  "roam.album.mini": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Each stamp you get back for one you post lands here."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "每投一张换来的那张，就落在这儿。"
+        }
+      }
+    }
   }
 }
