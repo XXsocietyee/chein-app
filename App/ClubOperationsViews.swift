@@ -245,11 +245,15 @@ struct ClubOperationsWorkspaceView: View {
                 } description: {
                     Text(LocalizedStringKey(errorKey)).accessibilityIdentifier("club.ops.error")
                 } actions: {
+                    // MP create wxml:18: primary 重新检查, secondary 返回上一页.
                     if !loading, identity != nil {
                         Button("club.ops.recheck") { Task { await load() } }
-                            .buttonStyle(.bordered)
+                            .buttonStyle(.borderedProminent)
                             .accessibilityIdentifier("club.ops.recheck")
                     }
+                    Button("team.page.goBack") { dismiss() }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("clubCreate.checkFailed.back")
                 }
             } else if let errorKey {
                 Text(LocalizedStringKey(errorKey)).accessibilityIdentifier("club.ops.error")

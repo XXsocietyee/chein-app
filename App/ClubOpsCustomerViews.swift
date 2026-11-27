@@ -208,7 +208,9 @@ struct ClubOpsCustomerRowView: View {
     var page: ClubCustomerDetailPage? = nil
     /// Non-nil only when the existing history-topic route accepts this exact returned record.
     let topicAction: (ClubOpsCustomerRecord) -> (id: Int, open: () -> Void)?
-    let editButton: AnyView?
+    /// CLB-customer-detail-04 (MP wxml:82-118): owns the 标签与备注 section when the viewer can edit, so the editor can
+    /// replace the card in place and the heading can read 编辑标签与备注 with 取消 beside it. Receives the read-only rows.
+    let editSection: ((AnyView) -> AnyView)?
     @Environment(\.dynamicTypeSize) private var typeSize
     @ScaledMetric(relativeTo: .headline) private var avatarSide: CGFloat = 56
     @ViewBuilder private var avatarView: some View {
@@ -305,20 +307,26 @@ struct ClubOpsCustomerRowView: View {
                 } else { ClubOpsCustomerRecordRow(record: record, linked: false) }
             }
         } header: { ClubOpsCustomerHeading("clubOps.customer.records") }
-        Section {
-            if !detail.tags.isEmpty {
-                ClubOpsTagFlow(tags: detail.tags)
-            }
-            if let remark = detail.remark {
-                Text("clubOps.customer.remark \(remark)", tableName: "ClubOpsCustomer")
-                    .fixedSize(horizontal: false, vertical: true)
-            } else {
-                Text("clubOps.customer.noRemark", tableName: "ClubOpsCustomer")
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            if detail.canEdit, let editButton { editButton }
-        } header: { ClubOpsCustomerHeading("clubOps.customer.tagsAndRemark") }
+        if detail.canEdit, let editSection {
+            editSection(AnyView(tagsAndRemarkRows))
+        } else {
+            Section {
+                tagsAndRemarkRows
+            } header: { ClubOpsCustomerHeading("clubOps.customer.tagsAndRemark") }
+        }
+    }
+    @ViewBuilder private var tagsAndRemarkRows: some View {
+        if !detail.tags.isEmpty {
+            ClubOpsTagFlow(tags: detail.tags)
+        }
+        if let remark = detail.remark {
+            Text("clubOps.customer.remark \(remark)", tableName: "ClubOpsCustomer")
+                .fixedSize(horizontal: false, vertical: true)
+        } else {
+            Text("clubOps.customer.noRemark", tableName: "ClubOpsCustomer")
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
     /// Withheld stays the permission sentence. Unknown is the page model's em dash, never 0.
     private var paidText: String? {
@@ -334,7 +342,7 @@ struct ClubOpsCustomerRowView: View {
     }
 }
 
-private struct ClubOpsCustomerHeading: View {
+struct ClubOpsCustomerHeading: View {
     let key: String
     init(_ key: String) { self.key = key }
     var body: some View {

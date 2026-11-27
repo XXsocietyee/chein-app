@@ -9,16 +9,36 @@ import SwiftUI
     let scope: ClubGovernanceScope
     let identity: ClubReadIdentity?
     let coordinator: ClubGovernanceCoordinator
+    /// The read-only tags and remark rows; the editor replaces them while a draft is open (MP wxml:89 vs 99).
+    let display: AnyView
     let onSaved: () -> Void
     @State private var draft: ClubGovernanceFormDraft?
     @State private var saving = false
     @State private var failure: ClubGovernanceFailure?
 
     var body: some View {
-        if draft != nil { editing } else {
-            Button { start() } label: { Text("clubR3b.customer.edit") }
-                .accessibilityLabel(Text("club.gov.action.saveCustomer"))
-                .accessibilityIdentifier("club.gov.customer.edit")
+        Section {
+            if draft != nil { editing } else {
+                display
+                Button { start() } label: { Text("clubR3b.customer.edit") }
+                    .accessibilityLabel(Text("club.gov.action.saveCustomer"))
+                    .accessibilityIdentifier("club.gov.customer.edit")
+            }
+        } header: {
+            // MP wxml:84-86: the heading reads 编辑标签与备注 while editing, with 取消 at its trailing edge.
+            if draft != nil {
+                HStack {
+                    Text("club.gov.action.saveCustomer").accessibilityAddTraits(.isHeader)
+                    Spacer()
+                    Button("clubR11.customer.cancelEdit") { draft = nil; failure = nil }
+                        .font(.footnote)
+                        .disabled(saving)
+                        .accessibilityLabel(Text("clubR11.customer.cancelEditA11y"))
+                        .accessibilityIdentifier("club.gov.customer.cancelEdit")
+                }
+            } else {
+                ClubOpsCustomerHeading("clubOps.customer.tagsAndRemark")
+            }
         }
     }
 
@@ -31,9 +51,6 @@ import SwiftUI
         }
         .disabled(saving || locked)
         .accessibilityIdentifier("club.gov.customer.save")
-        Button("clubR11.customer.cancelEdit", role: .cancel) { draft = nil; failure = nil }
-            .disabled(saving)
-            .accessibilityIdentifier("club.gov.customer.cancelEdit")
     }
 
     @ViewBuilder private func failureRows(_ failure: ClubGovernanceFailure) -> some View {

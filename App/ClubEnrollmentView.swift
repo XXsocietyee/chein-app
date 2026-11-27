@@ -86,6 +86,18 @@ extension EnvironmentValues {
     }
     var body: some View {
         List {
+            // mp-club r3 (MP enroll wxml:17-20): the sub line comes first, then 正在更新报名名册…, then the stale error.
+            if host == liveHost, scenePhase == .active, reader.isCurrentAccess, identity == reader.identity, identity == access.identity, reader.hasLoaded {
+                // Mini-program sub line: 「俱乐部名 · N 个团」 (俱乐部名 falls back to 我的俱乐部), then the escrow note.
+                Section {
+                    subLine.accessibilityIdentifier("club.enroll.headerLine")
+                    Label("club.enroll.escrow", systemImage: "lock.shield")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("club.enroll.escrow")
+                }
+            }
             if reader.loading, reader.hasLoaded {
                 // CLB-r9-enroll-01 (MP enroll wxml:18): a refresh over a loaded roster says 正在更新报名名册… and keeps it.
                 HStack {
@@ -144,15 +156,6 @@ extension EnvironmentValues {
                 }
             }
             if host == liveHost, scenePhase == .active, reader.isCurrentAccess, identity == reader.identity, identity == access.identity, reader.hasLoaded {
-                // Mini-program sub line: 「俱乐部名 · N 个团」 (俱乐部名 falls back to 我的俱乐部), then the escrow note.
-                Section {
-                    subLine.accessibilityIdentifier("club.enroll.headerLine")
-                    Label("club.enroll.escrow", systemImage: "lock.shield")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .accessibilityIdentifier("club.enroll.escrow")
-                }
                 if reader.teams.isEmpty {
                     ContentUnavailableView {
                         Label { Text("club.enroll.emptyTeams").accessibilityIdentifier("club.enroll.emptyTeams") } icon: { Image(systemName: "person.3") }

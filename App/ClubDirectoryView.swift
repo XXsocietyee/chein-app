@@ -118,16 +118,7 @@ private struct ClubDirectoryCard: View {
                         }
                     }
                 } icon: {
-                    ZStack {
-                        Image(systemName: "person.3.fill").foregroundStyle(.secondary)
-                        if let url = QuestifyCardArtwork.safeURL(club.cover) ?? QuestifyCardArtwork.safeURL(club.logo) {
-                            PlayerFeedRemoteImage(url: url, maxPixel: 168, placeholder: { Color.clear }, failure: { Color.clear })
-                        }
-                    }
-                    .frame(width: 48, height: 48)
-                    .background(.fill.tertiary)
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    .accessibilityHidden(true)
+                    ClubRowThumbnail(url: QuestifyCardArtwork.safeURL(club.cover) ?? QuestifyCardArtwork.safeURL(club.logo))
                 }
             }
             .buttonStyle(.borderless)
