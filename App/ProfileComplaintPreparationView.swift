@@ -112,24 +112,27 @@ private struct ProfileComplaintPresentationKey: Hashable {
                 }
                 if let issue = model.issue {
                     Section {
-                        Text(LocalizedStringKey(issue.sourceTitleKey)).font(.headline)
-                            .accessibilityIdentifier("profile.complaint.issueTitle")
-                        if issue != .unavailable {
-                            if model.isNetworkFailure && issue == .failed {
-                                Text("profile.complaint.read.network").font(.subheadline).foregroundStyle(.secondary)
-                                    .accessibilityIdentifier("profile.complaint.issueDetail")
-                            } else {
-                                Text(LocalizedStringKey(issue.sourceDetailKey)).font(.subheadline).foregroundStyle(.secondary)
-                                    .accessibilityIdentifier("profile.complaint.issueDetail")
+                        // mp-states r3 (MP complaint wxml:19-31): 登录后发起投诉与查看进展 · 登录, or 可投诉活动加载失败 with the
+                        // reason under it and 重试 — the one state pattern (ContentUnavailableView, one system button).
+                        ContentUnavailableView {
+                            Label { Text(LocalizedStringKey(complaintStateTitleKey(issue))).accessibilityIdentifier("profile.complaint.issueTitle") } icon: {
+                                Image(systemName: issue == .signIn ? "person.crop.circle.badge.exclamationmark" : "exclamationmark.triangle")
                             }
-                        }
-                        Text(LocalizedStringKey(issue.titleKey)).accessibilityIdentifier("profile.complaint.issue")
-                        if issue == .failed {
-                            Button("action.retry") { Task { await model.load() } }
-                                .disabled(model.isLoading).accessibilityIdentifier("profile.complaint.retry")
-                        } else if issue == .signIn, let onSignIn {
-                            Button("auth.signIn", action: onSignIn)
-                                .accessibilityIdentifier("profile.complaint.signIn")
+                        } description: {
+                            if issue == .failed {
+                                Text(LocalizedStringKey(model.isNetworkFailure ? "profile.complaint.read.network" : issue.titleKey))
+                                    .accessibilityIdentifier("profile.complaint.issue")
+                            }
+                        } actions: {
+                            if issue == .failed {
+                                Button("action.retry") { Task { await model.load() } }
+                                    .buttonStyle(.bordered)
+                                    .disabled(model.isLoading).accessibilityIdentifier("profile.complaint.retry")
+                            } else if issue == .signIn, let onSignIn {
+                                Button("auth.signIn", action: onSignIn)
+                                    .buttonStyle(.borderedProminent)
+                                    .accessibilityIdentifier("profile.complaint.signIn")
+                            }
                         }
                     }
                 }
@@ -141,9 +144,6 @@ private struct ProfileComplaintPresentationKey: Hashable {
                                 Label { Text("profile.complaint.sourceEmpty").accessibilityIdentifier("profile.complaint.empty") } icon: {
                                     Image(systemName: "tray")
                                 }
-                            } description: {
-                                Text("profile.complaint.sourceEmptyHint")
-                                    .accessibilityIdentifier("profile.complaint.emptyHint")
                             }
                         }
                     } else if !topics.isEmpty {
@@ -191,6 +191,13 @@ private struct ProfileComplaintPresentationKey: Hashable {
                 if let review = model.review { Task { await sending.send(review: review, isCurrent: { model.contextMatches }) } }
             }
             .themeDomain(.player)
+        }
+    }
+    private func complaintStateTitleKey(_ issue: ProfileComplaintReadIssue) -> String {
+        switch issue {
+        case .signIn: return "profile.complaint.state.signIn"
+        case .failed: return "profile.complaint.state.failed"
+        case .unavailable: return issue.titleKey
         }
     }
     private func editor(_ topics: [ProfileComplaintTopic]) -> some View {
