@@ -248,10 +248,19 @@ struct RoamHomeTabPicker: View {
 struct RoamEntryCardView: View {
     let card: RoamEntryActivityCard
     var body: some View {
-        CYImageCard(title: title, meta: Text(LocalizedStringKey(card.tagKey)) + Text(verbatim: " · ") + RoamEntryMetaLine(card: card).text,
-            imageURL: card.activity.coverURL.flatMap(URL.init(string:)), style: .shelf)
-            // MP roam `.entry-card__cover`: item.cover || /images/home-route-city-placeholder.jpg
-            .fallbackArtwork(MPAsset.BannerCover.homeRouteCityPlaceholder)
+        // N-r11-4: a plain Label row with the MP placeholder art (`.entry-card__cover` fallback) instead of the shelf card.
+        Label {
+            VStack(alignment: .leading, spacing: 2) {
+                title.font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
+                (Text(LocalizedStringKey(card.tagKey)) + Text(verbatim: " · ") + RoamEntryMetaLine(card: card).text)
+                    .font(.caption).foregroundStyle(.secondary).lineLimit(2)
+            }
+        } icon: {
+            MPAsset.BannerCover.homeRouteCityPlaceholder.resizable().scaledToFill()
+                .frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .accessibilityHidden(true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
     private var title: Text {
         card.activity.title.isEmpty ? Text("roam.w208.entry.untitled") : Text(verbatim: card.activity.title)
