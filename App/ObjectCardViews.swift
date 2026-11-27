@@ -57,18 +57,24 @@ extension EnvironmentValues {
         List {
             // OCARDS-4 (signed-out part): 去登录 opens 我的, like the MP access gate.
             if !reader.isAuthenticated {
-                CYEmptyState(systemImage: "person.crop.circle", "objects.login",
+                CYEmptyState(systemImage: "person.crop.circle", "objectCards.signIn",  // MP 登录后查看自己的册子
                              actionTitle: rootTabSwitch.isAvailable ? "auth.signIn" : nil, actionIdentifier: "objects.signIn",
                              action: rootTabSwitch.isAvailable ? { rootTabSwitch(.mine) } : nil)
             }
             else if !reader.isConfigured { CYEmptyState(systemImage: "rectangle.stack", "objects.disabled") }
             else {
                 Section {
-                    if model.loading { CYSkeleton().accessibilityLabel(Text("objects.loading")) }
+                    if model.loading {
+                        // P10: MP cy-skeleton with words saying what opens.
+                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            CYSkeleton()
+                            Text("objectCards.loading").font(.footnote).foregroundStyle(.secondary)
+                        }.accessibilityElement(children: .combine)
+                    }
                     if model.failed, model.access == .denied {
                         Text("objectCards.denied").accessibilityIdentifier("objects.denied")
                     } else if model.failed {
-                        Text(model.collection == nil ? "objects.failed" : "objects.filterFailed")
+                        Text(model.collection == nil ? "objectCards.openFailed" : "objects.filterFailed")  // MP 藏品册无法打开
                             .accessibilityIdentifier("objects.failed")
                         CYPillButton("objects.retry") { Task { await model.load(category: model.category, reader: reader) } }
                     }

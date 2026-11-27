@@ -5,9 +5,6 @@ import SwiftUI
     @EnvironmentObject private var session: AppSession
     var makeAIDraft: (() -> any PublishingAIDraftServing)? = nil
     var appliesPushedChrome: Bool = true
-    /// 发布 tab root (P 210:8374): large root title and the 从模板开始 section.
-    var isTabRoot = false
-    var openTemplates: (() -> Void)? = nil
     @State private var seed: ProjectEditDraft?
     @State private var showEditor = false
     @State private var resource: PublishedResource?
@@ -18,20 +15,9 @@ import SwiftUI
     }
     /// 互动: template intro, naming, then the template editor.
     private func templateAuthoring() -> AnyView { sessionTemplateAuthoringEntry(session) }
-    /// 发布 tab root (P 210:8374) or the pushed publish menu; both get the same inputs and destinations.
+    /// The pushed publish menu (home, 我的, deep links).
     @ViewBuilder private var modes: some View {
-        if isTabRoot {
-            PublishRootContent(service: session.publishingService, account: session.publishingSession, makeAIDraft: makeAIDraft ?? session.g6PublishingAIDraftFactory,
-                            makeIdentityRegistration: { session.makePublisherIdentityRegistrationService() },
-                            makeActivityTemplate: { activityTemplateCreator() }, makeActivityCover: { session.makeActivityCoverService() },
-                            placeSearch: PublishingMapKitAdapter(), draftStore: session.publishingDraftStore, openProfessional: { seed = $0; showEditor = true },
-                            openResource: { resource = $0 },
-                            makeProfessional: { professionalEditor($0) },
-                            makeTemplateAuthoring: { templateAuthoring() },
-                               makeProjects: { AnyView(SessionCreatorProjectsView(session: session)) },
-                               openTemplates: openTemplates)
-        } else {
-            PublishingModesView(service: session.publishingService, account: session.publishingSession, makeAIDraft: makeAIDraft ?? session.g6PublishingAIDraftFactory,
+        PublishingModesView(service: session.publishingService, account: session.publishingSession, makeAIDraft: makeAIDraft ?? session.g6PublishingAIDraftFactory,
                             makeIdentityRegistration: { session.makePublisherIdentityRegistrationService() },
                             makeActivityTemplate: { activityTemplateCreator() }, makeActivityCover: { session.makeActivityCoverService() },
                             placeSearch: PublishingMapKitAdapter(), draftStore: session.publishingDraftStore, openProfessional: { seed = $0; showEditor = true },
@@ -39,7 +25,6 @@ import SwiftUI
                             makeProfessional: { professionalEditor($0) },
                             makeTemplateAuthoring: { templateAuthoring() },
                             makeProjects: { AnyView(SessionCreatorProjectsView(session: session)) })
-        }
     }
     var body: some View {
         modes

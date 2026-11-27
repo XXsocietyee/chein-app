@@ -31,7 +31,7 @@ One contract pin needed care. `test_w2_04_orders` requires the literal `ProfileO
 | 成就 → points, 总积分排名, 收集册 (勋章 / 邮票 / 藏品) | Passport overview with Wallet/Messages capsules, then the 收集册 section | The capsules were extra | **Fixed.** `showsActions: false` removes them. Messages stays in the toolbar entry. The stamps, badges and 收集册 now sit on 成就. |
 | 关于 → 个人介绍 (编辑) / 兴趣标签 (添加兴趣) / 加入时间 | Only links | Missing | **Fixed.** New `MemberAboutSection` reads the identity card's own `/api/user/info` snapshot, so there is no second request. One new key: `member.about.addInterest`. |
 | 关于 → 探索与更多 (我的优惠券, 邀请好友), 当前权益 | Collection links, then benefits | Same order | Moved to 关于 |
-| (Settings-only in the MP) teams, guide, location share, complaint, report history, support | Spread through the page | Extra | Kept at the end of 关于, because moving them into Settings would change many entry points. See "Not done". |
+| (Settings-only in the MP) teams, guide, location share, complaint, report history, support | Spread through the page | Extra | **Fixed (continue).** Removed from 我的. Settings (`SettingsView.swift`, MP `pages/shezhi` order) already had 城瘾玩法 and 投诉建议. 个人位置共享 now follows 隐私与定位, and 我的举报 follows 我的申诉 (MP `appeal-mine` is modelled on `report-mine`). Teams and 客服工单 have no MP 我的/设置 row, so they sit with the app-only rows after 关于. The entry ids are now `settings.personalLocationShare`, `settings.reportMine` and `settings.teams`. `tools/check_personal_location_share.py` and `test_social_guide_templates` now read `SettingsView.swift`. |
 
 ## Subpages
 
@@ -51,20 +51,17 @@ The audit of 14 member subpackage pages was done read-only, and every change bel
 | `signup` (票夹) | `TicketWalletView.swift` | The empty state had no 去探索 | **Fixed.** Uses the existing `onExplore`. New key: `ticketWallet.emptyExplore`. |
 | `appeal-mine` (我的申诉) | `MemberScoreAppealListView.swift` | 账号信誉 showed only after a clean load and had no chevron | **Fixed.** It shows whenever it is known, with a chevron. |
 | `orderinfo` (订单详情) | `ProfileOrdersView.swift` + `ProfileOrderSourceDetailSections.swift` | Team, 商家消息 and 发票 were out of MP order | **Fixed.** The order is now team → 订单进度 → 商家消息 → 支付信息 → 发票 → 报名人 → 凭证. |
-| `order` (我的订单) | `ProfileOrdersView` | Pending rows show 查看详情 rather than 立即支付; `pendingPayAmount` is not decoded | Not done. Payment stays behind the reviewed gate (FIN-16), and adding the field needs Core. |
-| `order` | same | The filter is hidden when there are no orders; MP always shows the tabs | Not done (low) |
+| `order` (我的订单) | `ProfileOrdersView` | Pending rows show 查看详情 rather than 立即支付; `pendingPayAmount` is not decoded | **Fixed (continue).** Core `ProfileOrder.pendingPayAmount` is `payableAmount` on `registrationStatus == 1`, as in MP OR-021. The 待付款 line uses it and hides when it is nil. Under the card, pending rows show 取消订单 (`.bordered`) and 立即支付 (`.borderedProminent`). Both open the existing reviewed `OrderLifecycleView` sheet. They show only when `cardPayNowShown` (payment switch on, which is the 11-26 owner decision) and a reviewed writer is mounted. Otherwise the 查看详情 pill stays. |
+| `order` | same | The filter is hidden when there are no orders; MP always shows the tabs | **Fixed (continue).** `ProfileOrderFilterSection` sits above the empty state. The UI test `testTrueEmptyIsNotFilteredEmpty` asserts the picker. |
 | `coupon/coupon` | `CouponManagementView` | The title reads 我发布的优惠券; MP says 优惠券 | Not done. This is a publisher/merchant-scoped screen, which is out of scope. |
-| `coupon-wallet` | same | The shop line comes after the dates; MP puts it before | Not done. The 导航 capsule overlay is anchored to the card bottom and would separate from the shop line. |
-| `market/passes` | `PassMarketViews.swift` | The pass-order row drops `time` under the amount; the gift row has no `name` | Not done. The gift name needs a Core field. |
+| `coupon-wallet` | same | The shop line comes after the dates; MP puts it before | **Fixed (continue).** Order is now head → description → shop address → dates → code footer. The line shows when `shopAddress` is present and draws the address only, as MP `wallet-card__shop` does. The 导航 capsule is re-anchored with a custom `VerticalAlignment.couponShopLine` guide set on the shop line. Its default is the view's own centre, so without propagation it would sit at the card's vertical centre. This needs a simulator look. The 44 pt bottom spacer is gone. |
+| `market/passes` | `PassMarketViews.swift` | The pass-order row drops `time` under the amount; the gift row has no `name` | **Fixed (continue).** The 通行证订单 row shows `time` under the amount. Core `PlatformPassGift.productID` (`productId`) and `name(nameByID:)` mirror MP `giftRow`. The gift title is name, else state, and the state moves to the sub line. |
 | `tixianjilu`, `orient-score`, `character`, `complaint` | various | Already matched, or covered by the `mp-prme` receipt | — |
 | `signup` | `TicketWalletView` | No avatar → 我的 button; no inline QR flip deck | Not done. This is a deliberate layout (NAT-12). |
 
 ## Not done / next
 
-- Moving the MP Settings-only rows (teams, guide, location share, complaint, report history, support) from 关于 into `SettingsView`.
 - 探索作品 images on 关于. The snapshot's `casePictures` can be object keys; the public profile link shows them.
-- The order list 立即支付 pill and `pendingPayAmount` (needs Core plus the payment gate owner).
-- The coupon-wallet shop/date order (needs the nav capsule re-anchored).
 
 ## Strings
 

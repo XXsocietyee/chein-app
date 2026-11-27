@@ -217,6 +217,14 @@ struct SettingsView: View {
                 // 投诉建议, 我的申诉, 发票, 用户服务协议, 账号注销, 关于 (legal → 注销 → 关于 inside SettingsSupportSections).
                 // App-only rows (notifications, usage consent, region, language, safety, merchant tools) follow 关于; 退出 last (:42-47).
                 SettingsPrivacyLocationEntry(session: session).environment(\.settingsTileTint, SettingsTint.green)
+                // mp-mine r3: personal location sharing sits with 隐私与定位 (moved here from 我的).
+                Section {
+                    NavigationLink { PersonalLocationShareEntry(recipientId: nil) } label: {
+                        Label { Text("personalLocationShare.title.management", tableName: "PersonalLocationShare") } icon: { Image(systemName: "location") }
+                    }
+                    .accessibilityIdentifier("settings.personalLocationShare")
+                }
+                .environment(\.settingsTileTint, SettingsTint.green)
                 NPCChatDataReadSettingsEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
                 AccountComplianceMarketingSettingsEntry(coordinator: session.accountComplianceCoordinator, market: session.operationalMarket)
                 SettingsPostGovernanceEntry(session: session).environment(\.settingsTileTint, SettingsTint.red)
@@ -224,11 +232,28 @@ struct SettingsView: View {
                 Section { ProfileComplaintPreparationLink(session: session) }
                     .environment(\.settingsTileTint, SettingsTint.teal)
                 MemberScoreAppealSettingsEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
+                // mp-mine r3: 我的举报 (MP report-mine, the page 我的申诉 copies) follows 我的申诉; moved here from 我的.
+                Section {
+                    NavigationLink { SquareReportProgressView(session: session) } label: {
+                        Label { Text("report.history.title", tableName: "MemberReportProgress") } icon: { Image(systemName: "flag") }
+                    }
+                    .accessibilityIdentifier("settings.reportMine")
+                }
+                .environment(\.settingsTileTint, SettingsTint.red)
                 SettingsInvoiceEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
                 SettingsSupportSections(market: session.operationalMarket, complianceCoordinator: session.accountComplianceCoordinator)
                     .hidingNPCChatDataEntry() // B-SZ-03: 「AI 对话记录」 above is the one NPC chat data row.
                     .hidingMarketingEntry() // r11 B-SZ-10: 营销消息与优惠券 sits after AI 对话记录 above.
                     .followingMPShezhiOrder() // mp-settings r3: 用户服务协议 → 账号注销 → 关于, nothing between them.
+                // mp-mine r3: app-only rows moved from 我的 (no MP 我的 row): teams, then support tickets.
+                Section {
+                    NavigationLink { SessionTeamHomeView() } label: {
+                        Label("team.title", systemImage: "person.3")
+                    }
+                    .accessibilityIdentifier("settings.teams")
+                }
+                .environment(\.settingsTileTint, SettingsTint.blue)
+                SupportTicketReadEntry(session: session).environment(\.settingsTileTint, SettingsTint.teal)
                 // mp-settings r3: app-only creator rows (no MP shezhi row) follow the MP list instead of splitting
                 // 成为商家 from 城瘾玩法 (shezhi.wxml:19-20).
                 AccountRoleSections(gatesCreatorByCapability: true).environment(\.settingsTileTint, SettingsTint.orange)

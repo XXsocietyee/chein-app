@@ -135,27 +135,32 @@ struct RegistrationSheetView: View {
                         }
                         recoveredOrderSection
                     } else {
-                        // Source order (RegistrationCheckoutSection): 参与人信息 → 活动信息 →
-                        // 费用明细 (票种 → 订单金额 → 权益 → 积分 → 总计) → 候补 → 提交.
+                        // Source order (MP baoming.wxml top-to-bottom): 参与人信息 → 活动信息 → 报名已截止 →
+                        // 优惠 → 费用明细 (票种 → 儿童年龄 → 订单金额 → 权益 → 原价/减免 → 通行证 → 积分 → 总计) →
+                        // 包含内容 → 退款规则 → 主持预约 → 候补 → 底栏 (商家暂停营业 → 信息共享同意 → 提交).
+                        // MP baoming has no coupon block, so the read-only coupon list is not drawn here.
                         if flow.activity.tickets.isEmpty {
                             noTicketsBlock
                         } else {
                         participantSection
                         activitySection
-                        registrationGapSections
-                        ticketSection
+                        signupClosedBlock
                         if flow.selectedTicket != nil {
                             G6PromotionCatalogSection(activityID: flow.activity.summary.id,
                                                       rewardCouponName: flow.quoteState.quoteValue?.completeRewardCouponName)
                         }
+                        ticketSection
+                        childAgeSection
                         quoteSection
-                        CouponUsabilitySection(phase: couponPhase, onRetry: { Task { await reloadCoupons() } })
-                        // R11-PC-C-5: a quote that lists channels without APP skips the readiness probe (MP quote-view.js:79-84).
-                        RegistrationPaymentReadinessSection(price: flow.quoteState.quoteValue?.paymentChannelUnavailable == true ? nil : flow.selectedTicket?.price,
-                                                            onResult: { paymentReadiness = $0 })
+                        deliverySection
                         refundTiersSection
                         hostReservationSection
                         waitlistSection
+                        // R11-PC-C-5: a quote that lists channels without APP skips the readiness probe (MP quote-view.js:79-84).
+                        // MP shows readiness on the pay button (检查支付服务… / 重新检查支付服务), so it sits by the footer.
+                        RegistrationPaymentReadinessSection(price: flow.quoteState.quoteValue?.paymentChannelUnavailable == true ? nil : flow.selectedTicket?.price,
+                                                            onResult: { paymentReadiness = $0 })
+                        merchantClosedSection
                         confirmationSection
                         }
                     }
@@ -163,7 +168,6 @@ struct RegistrationSheetView: View {
             }
             .scrollDismissesKeyboard(.interactively)
             .modifier(G6PromotionCatalogLoader(activityID: flow.activity.summary.id))
-            .task { await reloadCoupons() }
             .safeAreaInset(edge: .bottom, spacing: 0) { if showsCheckoutBar { checkoutBar } }
             .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
@@ -528,6 +532,18 @@ struct RegistrationSheetView: View {
         default: return copy.t("暂时无法继续", "Not available right now")
         }
     }
+    /// mp-activity r3 (MP baoming.wxml bmbottom cy-btn): when nothing blocks, the button says what it will do —
+    /// 付款 (priced, quote in hand) / 确认价格并付款 (priced, quote pending) / 确认报名 (free). Blocked keeps the review key; the reason sits below.
+    private func submitLabelText(_ copy: CoreLoopCopy, blocked: Bool) -> String? {
+        if blocked { return nil }
+        guard let ticket = flow.selectedTicket else { return nil }
+        if flow.quoteEnabled, case .received(let quote) = flow.quoteState, let amount = quote.payAmount {
+            if amount == .zero { return copy.t("确认报名", "Confirm sign-up") }
+            return PlayAreaPopupCopy.paymentsOpen ? copy.t("付款", "Pay") : nil
+        }
+        if ticket.price == 0 { return copy.t("确认报名", "Confirm sign-up") }
+        return PlayAreaPopupCopy.paymentsOpen ? copy.t("确认价格并付款", "Confirm price and pay") : nil
+    }
     private func footerNoticeText(_ notice: RegistrationCheckoutFooterNotice, _ copy: CoreLoopCopy) -> String {
         switch notice {
         case .checkingPrice: return copy.t("正在核对价格…", "Checking the price…")
@@ -565,7 +581,13 @@ struct RegistrationSheetView: View {
                                     showingConfirmation = true
                                 }
                             }
-                        } label: { Text("registration.form.review").frame(maxWidth: .infinity, minHeight: 44) }
+                        } label: {
+                            if let mpLabel = submitLabelText(copy, blocked: blocked) {
+                                Text(verbatim: mpLabel).frame(maxWidth: .infinity, minHeight: 44)
+                            } else {
+                                Text("registration.form.review").frame(maxWidth: .infinity, minHeight: 44)
+                            }
+                        }
                         .buttonStyle(.cyPrimary)
                         // Blocked keeps the full primary look (never a grey slab); the flow ignores the tap and the reason sits below.
                         .cyHaptic(.warning, trigger: blockedTaps)
@@ -657,15 +679,44 @@ struct RegistrationSheetView: View {
     /// R7-PC-C2-1: MP baoming.wxml:155-161 (儿童年龄, sent as `childAge` with quote/create, js:1876),
     /// 206-212 + js:760-764 (商家暂停营业) and js:1871-1876 (通行证 row).
     /// 包含内容 = quote `delivery` rows (MP baoming.wxml:205-212, pages/activity/utils/quote-view.js:20-71).
-    private var registrationGapSections: some View {
+    /// Split by MP position: 儿童年龄 sits right under the ticket row, 包含内容 after 费用明细,
+    /// 商家暂停营业 in the bottom bar above the consent; 通行证 is a row inside 费用明细 (quoteSection).
+    private var childAgeSection: some View {
         ActivityRegistrationGapSections(
             childAgeRange: flow.selectedTicket?.childAgeRange,
-            selectedChildAge: childAgeBinding,
-            deliveryItems: flow.quoteState.quoteValue?.delivery?.rows(locale: locale) ?? [],
-            merchantClosed: flow.activity.merchantClosed,
-            coveredByPass: flow.quoteState.quoteValue?.coveredByPass == true
+            selectedChildAge: childAgeBinding
         )
         .disabled(!flow.canEdit)
+    }
+    private var deliverySection: some View {
+        ActivityRegistrationGapSections(
+            deliveryItems: flow.quoteState.quoteValue?.delivery?.rows(locale: locale) ?? []
+        )
+    }
+    /// MP baoming.wxml bottom bar `bm-closed` (aria-role alert): 商家暂停营业，暂不可报名.
+    @ViewBuilder private var merchantClosedSection: some View {
+        if flow.activity.merchantClosed {
+            Section {
+                Label("topicXcx.merchantClosed", systemImage: "exclamationmark.triangle.fill")
+                    .cyText(.bodyCompact)
+                    .foregroundStyle(CYColor.warningText)
+                    .accessibilityIdentifier("registration.merchantClosed")
+            }
+        }
+    }
+    /// MP baoming.wxml 报名已截止 (cy-empty): page-level, not when sold out (候补 owns that) or already registered.
+    @ViewBuilder private var signupClosedBlock: some View {
+        if flow.signupClosed, flow.selectedTicket?.isSoldOut != true,
+           !RegistrationCheckoutFacts(activity: flow.activity, ticket: flow.selectedTicket).viewerAlreadyRegistered {
+            Section {
+                ContentUnavailableView {
+                    Label("registration.r3.signupClosedTitle", systemImage: "calendar.badge.exclamationmark")
+                } description: {
+                    Text("registration.form.signupClosed")
+                        .accessibilityIdentifier("registration.form.signupClosed")
+                }
+            }
+        }
     }
 
     private var childAgeBinding: Binding<Int?> {
@@ -701,12 +752,6 @@ struct RegistrationSheetView: View {
                 if let ticket = flow.selectedTicket {
                     RegistrationAmountRow(key: "registration.form.ticketPrice", amount: ticket.price)
                     if let description = ticket.description, !description.isEmpty { Text(verbatim: description) }
-                    TimelineView(.periodic(from: .now, by: 1)) { _ in
-                        if flow.signupClosed {
-                            Text("registration.form.signupClosed").foregroundStyle(.secondary)
-                                .accessibilityIdentifier("registration.form.signupClosed")
-                        }
-                    }
                     if ticket.isSoldOut {
                         TimelineView(.periodic(from: .now, by: 1)) { context in
                             Text(LocalizedStringKey(RegistrationUIWaitlistGuidance.soldOutKey(
@@ -865,6 +910,11 @@ struct RegistrationSheetView: View {
                                                   currencyCode: RegistrationUIMoney.yuanCurrencyCode, verbatimLabel: adjustment.label)
                         }
                     }
+                    // MP baoming.wxml 费用明细 通行证 row (mkt.coveredByPass): after the reductions, before 积分.
+                    if quote.coveredByPass {
+                        LabeledContent("registration.pass.label") { Text("registration.pass.covered") }
+                            .accessibilityIdentifier("registration.fees.coveredByPass")
+                    }
                     if Self.positive(quote.couponDeductYuan) {
                         RegistrationAmountRow(key: "registration.form.couponDiscount", amount: quote.couponDeductYuan, deduction: true, currencyCode: RegistrationUIMoney.yuanCurrencyCode)
                     }
@@ -949,7 +999,8 @@ struct RegistrationSheetView: View {
                         NavigationLink { complianceSignupDestination() } label: { Text("compliance.title") }
                     }
                 }
-                Toggle(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.fixtureConsent" : "registration.waitlist.reviewConsent"), isOn: Binding(get: { flow.consented }, set: flow.setConsent))
+                // MP bottom bar: a separate, unticked consent whose label is the sharing sentence itself (PIPL Art. 23).
+                Toggle(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.fixtureConsent" : "registration.r3.hostShareConsent"), isOn: Binding(get: { flow.consented }, set: flow.setConsent))
                     .disabled(!flow.canEdit).accessibilityIdentifier("registration.form.consent")
                 if flow.creationPolicy.recordsServerConsent {
                     CYPillButton("registration.waitlist.recordConsent", style: .secondary) { Task { await flow.recordSignupConsent() } }
@@ -968,7 +1019,7 @@ struct RegistrationSheetView: View {
                 }
             }
             if flow.block == .confirmationChanged { Text("registration.form.confirmationChanged").foregroundStyle(.secondary) }
-        } footer: { Text("registration.form.sharingPurpose") }
+        }
     }
 }
 

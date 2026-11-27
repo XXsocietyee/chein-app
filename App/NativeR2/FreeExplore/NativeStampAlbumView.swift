@@ -1,37 +1,17 @@
 import SwiftUI
 
-/// Native r2 stamp album (集邮册, spec §11): a `LazyVGrid` of circular stamp images with captions (MP has no kind
-/// filter, so none is drawn; `Filter` is kept for the old screen's tests), the stamp count, and an exchange row that opens the
-/// received-stamp list. Reads, paging, scopes and capture rules are `RoamStampAlbumView`'s: the same
+/// Native r2 stamp album (集邮册), in MP `scene-roam-stamp-album` order: the 收到的 entry (MP 我的 / 收到的 tabs),
+/// 共 N 枚, a `LazyVGrid` of circular stamp images with captions ending in the dashed 还没收到 cell, the
+/// 每投一张换来的那张 line, then paging states. Reads, paging, scopes and capture rules are `RoamStampAlbumView`'s: the same
 /// `RoamAlbumReadPresentation` pager (50 per page), the same read-only scope and remote-image policy.
 @MainActor struct NativeStampAlbumView: View {
     let album: RoamStampAlbumView
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.roamReceivedStampReader) private var receivedReader
     @StateObject private var presentation: RoamAlbumReadPresentation
-    @State private var filter: Filter = .all
     @State private var receivedTarget: ReceivedTarget?
 
     private struct ReceivedTarget: Hashable { let id = UUID(); let owner: RoamAlbumReadOwner }
-
-    enum Filter: Hashable, CaseIterable {
-        case all, stamps, photos
-        var titleKey: LocalizedStringKey {
-            switch self {
-            case .all: return "nativeR2.freeExplore.album.filter.all"
-            case .stamps: return "nativeR2.freeExplore.album.filter.stamps"
-            case .photos: return "nativeR2.freeExplore.album.filter.photos"
-            }
-        }
-        /// Original VO `kind`: 0 free photo, 1 cancelled stamp; unknown kinds show under 全部 only.
-        func includes(_ stamp: RoamAlbumStamp) -> Bool {
-            switch self {
-            case .all: return true
-            case .stamps: return stamp.kind == 1
-            case .photos: return stamp.kind == 0
-            }
-        }
-    }
 
     init(album: RoamStampAlbumView) {
         self.album = album
@@ -41,7 +21,6 @@ import SwiftUI
     private var reader: any RoamExperienceReading { album.reader }
     private var pager: RoamAlbumPager { presentation.pager }
     private var offline: Bool { reader.isOfflineExample }
-    /// mp-subpkg r3 (MP stamp-album wxml): the album is one stamp grid with no kind filter, so every stamp shows.
     private var stamps: [RoamAlbumStamp] { pager.stamps }
 
     var body: some View {
@@ -82,7 +61,7 @@ import SwiftUI
         .accessibilityIdentifier("roam.experience.album")
     }
 
-    // MARK: Header: count, filter, exchange row
+    // MARK: Header (MP scene-roam-stamp-album order: 我的 / 收到的 head, then 共 N 枚)
 
     @ViewBuilder private var header: some View {
         if offline {
@@ -91,6 +70,9 @@ import SwiftUI
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("roam.experience.notice")
         }
+        // MP `cy-tabs` 我的 / 收到的: this page is 我的; 收到的 opens the received list (its own reader and scope).
+        // mp-roam r3: the native-only 全部 / 邮票 / 照片 kind filter is removed (the MP has no such filter).
+        exchangeRow
         if pager.loaded, let total = pager.total {
             LabeledContent {
                 Text("stampAlbum.total \(total)").monospacedDigit().contentTransition(.numericText())
@@ -99,7 +81,6 @@ import SwiftUI
             }
             .accessibilityIdentifier("roam.experience.album.total")
         }
-        exchangeRow
     }
 
     /// The received-stamp entry (`RoamReceivedStampNavigation`), as one plain row instead of a material banner.
@@ -170,11 +151,17 @@ import SwiftUI
             .accessibilityIdentifier("roam.experience.album.empty")
         }
         grid
+        if !stamps.isEmpty, !reader.isOfflineExample, !(reader is RoamReceivedStampReader) {
+            // MP `album-mini` under the 我的 grid.
+            Text("roam.album.mini").font(.footnote).foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity)
+                .accessibilityIdentifier("roam.experience.album.mini")
+        }
         if let error = pager.error, StampAlbumErrorPresentation.resolve(error: error, hasStamps: !pager.stamps.isEmpty) == .retryContinuation {
             StampAlbumContinuationRetry(retry: read).frame(maxWidth: .infinity)
         }
         if presentation.loading {
-            ProgressView(LocalizedStringKey(pager.stamps.isEmpty ? "stampAlbum.loading" : "stampAlbum.loadingNext")).frame(maxWidth: .infinity)
+            ProgressView(LocalizedStringKey(pager.stamps.isEmpty ? "roam.stamps.loading" : "stampAlbum.loadingNext")).frame(maxWidth: .infinity)
         }
         if pager.hasMore && !presentation.loading && pager.loaded {
             Button("roam.experience.loadMore", action: read)
@@ -196,6 +183,10 @@ import SwiftUI
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("roam.experience.album.stamp")
                 .onAppear { requestNextPageIfLast(stamp, index: index) }
+            }
+            if pager.loaded, !pager.hasMore, !stamps.isEmpty, !(reader is RoamReceivedStampReader) {
+                // MP `stkcell--lock`: the dashed last cell 还没收到 once 我的 is read to the end (not a loading state).
+                NativeStampAlbumLockTile()
             }
         }
     }
@@ -267,5 +258,23 @@ struct NativeStampAlbumTile: View {
     static func safeURL(_ source: String) -> URL? {
         guard let url = URL(string: source), url.scheme == "https", url.host != nil, url.user == nil, url.password == nil else { return nil }
         return url
+    }
+}
+
+/// MP `stkcell stkcell--lock`: a dashed circle the size of a stamp tile with 还没收到 under it.
+struct NativeStampAlbumLockTile: View {
+    @ScaledMetric(relativeTo: .body) private var diameter: CGFloat = 88
+    var body: some View {
+        VStack(spacing: 8) {
+            Circle()
+                .strokeBorder(style: StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
+                .foregroundStyle(.tertiary)
+                .frame(width: diameter, height: diameter)
+                .accessibilityHidden(true)
+            Text("roam.album.lockCell").font(.caption).foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("roam.experience.album.lock")
     }
 }

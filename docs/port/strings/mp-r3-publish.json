@@ -117,5 +117,39 @@
         }
       }
     }
+  },
+  "publishTab.publish.notReady": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Publishing info isn't ready yet. Try again in a moment."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "发布信息尚未就绪，请稍后重试"
+        }
+      }
+    }
+  },
+  "publishTab.publish.identityBlocked": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your current role can't publish topics."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前身份不可发布主题"
+        }
+      }
+    }
   }
 }

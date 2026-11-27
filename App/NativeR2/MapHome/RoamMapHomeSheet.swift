@@ -106,6 +106,10 @@ import QuestifyCore
     @State private var location: RoamLocationSettingsSnapshot?
     /// MP `unfinishedRoam` / `recoveryError`: the same local journal read the roam browser's 走起 tab uses.
     @State private var recoveryEntry = RoamHomeRecoveryEntry()
+    /// MP `entryStripTab` ('near' | 'city'): the entry-peek tabs 附近活动 / 本城推荐.
+    @State private var showsCityTab = false
+    /// MP `onEntryCityPlaceTap` toast when the card's seeded place is not in the loaded read.
+    @State private var cityOpenFailed = false
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     private var recoveryBanner: RoamHomeRecoveryBanner? { recoveryEntry.banner(reader: dependencies.experienceReader) }
@@ -114,7 +118,10 @@ import QuestifyCore
     private var area: RoamSearchArea? { dependencies.entryReader?.searchArea ?? dependencies.roamReader.searchArea }
     private var entryState: RoamEntryPeekState? { dependencies.entryReader.map { model.entry.visibleState(reader: $0) } }
     private var pins: [RoamMapHomePin] {
-        model.listPins(from: model.allPins(reader: dependencies.entryReader, center: area?.coordinate))
+        let rows = model.listPins(from: model.allPins(reader: dependencies.entryReader, center: area?.coordinate))
+        // MP 附近活动 strip lists the entry read's activities and places; teams show only after 找队伍 narrows to them.
+        guard model.category == .all else { return rows }
+        return rows.filter { $0.category == .activities || $0.category == .places }
     }
     private var isSearching: Bool { !model.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     private var locationDenied: Bool {
@@ -248,6 +255,7 @@ import QuestifyCore
             }
             Button {
                 model.category = .teams
+                showsCityTab = false
                 model.detent = .medium
             } label: {
                 LabeledContent {
@@ -284,50 +292,97 @@ import QuestifyCore
 
     @ViewBuilder private var nearbySection: some View {
         Section {
-            if !pins.isEmpty {
-                ForEach(pins) { pin in RoamMapHomePinRow(pin: pin) }
-            } else if isLoading {
-                ForEach(0..<4, id: \.self) { _ in
-                    Label("nativeR2.mapHome.loading", systemImage: "mappin")
-                        .redacted(reason: .placeholder)
+            if showsCityTab, let strip = cityStrip {
+                // MP entry-peek city tab: the 本城推荐 cards (cy-roam-city-strip), same cards as the roam browser.
+                RoamCityGuideCards(strip: strip, places: model.places, onOpen: openCityPlace)
+                    .listRowInsets(EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 12))
+                if cityOpenFailed {
+                    Label("roam.cityGuide.openFailed", systemImage: "exclamationmark.triangle")
+                        .font(.footnote).foregroundStyle(.secondary)
                 }
-            } else if entryState == .login, model.places.isEmpty {
-                ContentUnavailableView {
-                    Label("nativeR2.mapHome.signIn.title", systemImage: "person.crop.circle")
-                } actions: {
-                    if let onOpenAccount = dependencies.onOpenAccount {
-                        Button("nativeR2.mapHome.signIn", action: onOpenAccount).buttonStyle(.bordered)
-                    }
+            } else {
+                if model.category != .all {
+                    // The 找队伍 ticket narrows the map to teams; one tap returns to the MP 附近活动 list.
+                    Button("nativeR2.mapHome.category.all") { model.category = .all }
+                        .accessibilityIdentifier("roam.mapHome.nearby.showAll")
                 }
-            } else if entryState == .denied, model.places.isEmpty {
-                ContentUnavailableView("nativeR2.mapHome.denied", systemImage: "lock")
-            } else if readFailed {
-                ContentUnavailableView {
-                    Label("nativeR2.mapHome.nearby.failed", systemImage: "exclamationmark.triangle")
-                } actions: {
-                    Button("action.retry") { model.reloadGeneration += 1 }
-                        .buttonStyle(.bordered)
-                        .accessibilityIdentifier("roam.home.peek.refresh")
-                }
-            } else if area != nil {
-                ContentUnavailableView("nativeR2.mapHome.nearby.empty", systemImage: "mappin.slash",
-                                       description: Text("nativeR2.mapHome.nearby.empty.detail"))
+                nearbyRows
             }
         } header: {
-            Picker("nativeR2.mapHome.section.nearby", selection: $model.category) {
-                ForEach(RoamMapHomeCategory.allCases) { category in
-                    Text(category.titleKey).tag(category)
-                }
+            // MP entry-peek head: 附近活动 tab, then the 本城推荐 / `<城市> · N 处推荐` tab when a city strip exists.
+            // This replaces the native r2 all/activities/places/routes/teams picker (MP structure wins).
+            if let strip = cityStrip {
+                Picker(selection: $showsCityTab) {
+                    Text("roam.w208.entry.title").tag(false)
+                    cityTabLabel(strip).tag(true)
+                } label: { Text("roam.w208.entry.title") }
+                .cyAdaptiveSegmented()
+                .textCase(nil)
+                .accessibilityIdentifier("city.roam.nearby")
+            } else {
+                Text("roam.w208.entry.title")
+                    .accessibilityAddTraits(.isHeader)
+                    .accessibilityIdentifier("city.roam.nearby")
             }
-            .cyAdaptiveSegmented()
-            .textCase(nil)
-            .accessibilityIdentifier("city.roam.nearby")
         } footer: {
             if dependencies.roamReader.isOfflineExample {
                 Label("nativeR2.mapHome.offline", systemImage: "wifi.slash")
             } else if !pins.isEmpty, readFailed {
                 Label("nativeR2.mapHome.partialFailure", systemImage: "exclamationmark.triangle")
             }
+        }
+    }
+
+    /// MP 附近活动 tab body: loaded rows, skeleton, sign-in / denied / cy-error / empty states.
+    @ViewBuilder private var nearbyRows: some View {
+        if !pins.isEmpty {
+            ForEach(pins) { pin in RoamMapHomePinRow(pin: pin) }
+        } else if isLoading {
+            ForEach(0..<4, id: \.self) { _ in
+                Label("nativeR2.mapHome.loading", systemImage: "mappin")
+                    .redacted(reason: .placeholder)
+            }
+        } else if entryState == .login, model.places.isEmpty {
+            ContentUnavailableView {
+                Label("nativeR2.mapHome.signIn.title", systemImage: "person.crop.circle")
+            } actions: {
+                if let onOpenAccount = dependencies.onOpenAccount {
+                    Button("nativeR2.mapHome.signIn", action: onOpenAccount).buttonStyle(.bordered)
+                }
+            }
+        } else if entryState == .denied, model.places.isEmpty {
+            ContentUnavailableView("nativeR2.mapHome.denied", systemImage: "lock")
+        } else if readFailed {
+            ContentUnavailableView {
+                Label("nativeR2.mapHome.nearby.failed", systemImage: "exclamationmark.triangle")
+            } actions: {
+                Button("action.retry") { model.reloadGeneration += 1 }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("roam.home.peek.refresh")
+            }
+        } else if area != nil {
+            ContentUnavailableView("nativeR2.mapHome.nearby.empty", systemImage: "mappin.slash",
+                                   description: Text("nativeR2.mapHome.nearby.empty.detail"))
+        }
+    }
+
+    /// MP `stripFor(nearestCity || defaultCity())` at the sheet's area.
+    private var cityStrip: RoamCityGuideStrip? {
+        RoamCityGuideStrip.resolve(latitude: area?.coordinate.latitude, longitude: area?.coordinate.longitude)
+    }
+
+    /// MP `entryCityLabel`: `<城市> · N 处推荐` when the map faces a catalog city, else 本城推荐.
+    private func cityTabLabel(_ strip: RoamCityGuideStrip) -> Text {
+        strip.inCity ? Text("roam.cityGuide.tab.inCity \(appLocalized(String.LocalizationValue(strip.city.name), locale: locale)) \(strip.items.count)") : Text("roam.cityGuide.tab.default")
+    }
+
+    /// MP `onEntryCityPlaceTap`: open the loaded place that carries the card's seed tag (never matched by name).
+    private func openCityPlace(_ item: RoamCityGuidePlace) {
+        if let row = model.places.first(where: { $0.carriesCityGuideSeed(item.seed) }) {
+            cityOpenFailed = false
+            model.open(pinID: "place-" + String(row.id))
+        } else {
+            cityOpenFailed = true
         }
     }
 

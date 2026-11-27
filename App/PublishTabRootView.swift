@@ -13,6 +13,11 @@ import SwiftUI
     @State private var showsProjects = false
     @State private var showsCreatorCenter = false
     @State private var publishRoute: PublishTabRoute?
+    /// MP `openPublishSheet`: the `api/publish/home` snapshot the three choices check first (`pub`). Nil while it
+    /// loads or after it fails.
+    @State private var publishHome: [String: ProjectEditJSON]?
+    /// MP `toast` for the pre-checks (发布信息尚未就绪 / 当前身份不可发布主题).
+    @State private var publishNotice: LocalizedStringKey?
 
     var body: some View {
         DiscoveryTemplateBrowserView(
@@ -56,25 +61,54 @@ import SwiftUI
         .onChange(of: session.publishingSession) { _, _ in
             publishRoute = nil
         }
+        // MP reads `api/publish/home` each time the sheet opens; here each time the shelf appears or the account changes.
+        .task(id: session.publishingSession) {
+            await loadPublishHome()
+        }
+        .cyToast(message: $publishNotice)
+    }
+
+    private func loadPublishHome() async {
+        publishHome = nil
+        guard let service = session.publishingService, let account = session.publishingSession else { return }
+        let home = try? await service.read(.capability, session: account)
+        guard account == session.publishingSession else { return }
+        publishHome = home?.object
+    }
+
+    /// MP `chooseTopicMode` / `choosePro` / `goTemplate` pre-checks, in the MP order: no snapshot → 发布信息尚未就绪；
+    /// a topic type with `permission.canProPublish == false` → 当前身份不可发布主题. 互动 checks only the snapshot.
+    /// (MP's non-blocking 在架已满 toast is answered inside the editor by `projectEdit.quotaFull`.)
+    private func choose(_ route: PublishTabRoute) {
+        guard let home = publishHome else {
+            publishNotice = "publishTab.publish.notReady"
+            Task { await loadPublishHome() }
+            return
+        }
+        if route != .interaction, home["permission"]?.object?["canProPublish"] == ProjectEditJSON.bool(false) {
+            publishNotice = "publishTab.publish.identityBlocked"
+            return
+        }
+        publishRoute = route
     }
 
     /// MP `cy-publish-sheet`: 自由探索, 城市定向, 互动 (in that order); dismissing the menu is 返回.
     private var publishMenu: some View {
         Menu {
             Button {
-                publishRoute = .freeExplore
+                choose(.freeExplore)
             } label: {
                 Label("projectEdit.freeExplore", systemImage: "location.magnifyingglass")
             }
             .accessibilityIdentifier("publishTab.publish.freeExplore")
             Button {
-                publishRoute = .city
+                choose(.city)
             } label: {
                 Label("projectEdit.city", systemImage: "map")
             }
             .accessibilityIdentifier("publishTab.publish.city")
             Button {
-                publishRoute = .interaction
+                choose(.interaction)
             } label: {
                 Label("publishTab.publish.interaction", systemImage: "puzzlepiece.extension")
             }

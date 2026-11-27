@@ -167,7 +167,9 @@ import UIKit
         defer { close(window) }
         try await reveal("roam.home.peek.card.activity-71", in: window)
         rig.wire.status = 503
-        try await tap("roam.home.peek.refresh", in: window)
+        // mp-roam r3: the MP-extra header refresh was removed; the MP team 重试 row reloads the same scope.
+        try await reveal("roam.home.peek.teamsRetry", in: window)
+        try await tap("roam.home.peek.teamsRetry", in: window)
         try await reveal("roam.home.peek.failed", in: window)
         XCTAssertNil(find("roam.home.peek.card.activity-71", in: window)); XCTAssertNil(find("roam.home.peek.empty", in: window))
         rig.wire.status = 200

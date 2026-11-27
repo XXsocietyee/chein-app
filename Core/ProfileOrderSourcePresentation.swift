@@ -139,6 +139,13 @@ public struct ProfileReadIssueCopy: Equatable {
         failureTitleKey: "profile.orderParity.detail.unavailable", failureDetailKey: "profile.retryHint",
         malformedDetailKey: "profile.orderParity.error.malformed", loadingKey: "profile.orderParity.detail.loading")
 
+    /// MP subpackageP3 badge-wall: 正在加载勋章 / 登录后查看我的勋章 / 勋章数据没有到达.
+    public static let badgeWall = ProfileReadIssueCopy(
+        signInTitleKey: "badgeWall.signIn", signInDetailKey: "auth.expired",
+        forbiddenTitleKey: "badgeWall.denied",
+        failureTitleKey: "badgeWall.loadFailed", failureDetailKey: "profile.retryHint",
+        malformedDetailKey: "auth.invalidResponse", loadingKey: "badgeWall.loading")
+
     public static func kind(of error: Error) -> Kind {
         let failure = error as? ProfileReadFailure
         if error as? APIError == .unauthorized || failure?.isUnauthorized == true { return .signIn }

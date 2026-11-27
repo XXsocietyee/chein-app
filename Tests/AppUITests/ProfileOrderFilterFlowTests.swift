@@ -64,6 +64,8 @@ import XCTest
     func testTrueEmptyIsNotFilteredEmpty() {
         launch(empty:true);XCTAssertTrue(app.staticTexts["profile.orders.empty"].waitForExistence(timeout:5))
         XCTAssertFalse(app.staticTexts["profile.orderFilter.empty"].exists)
+        // mp-mine r3: MP order history keeps its filter tabs above the empty body.
+        XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "profile.orderFilter.picker").firstMatch.exists)
     }
     func testRevocationHidesLoadedList() {
         launch();XCTAssertTrue(app.buttons["profile.order.701"].waitForExistence(timeout:5))

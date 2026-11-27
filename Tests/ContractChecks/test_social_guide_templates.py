@@ -18,8 +18,10 @@ class GuideTemplateContracts(unittest.TestCase):
         self.assertEqual(guide.count('SocialGuideTemplateSection('),1)
         host=(ROOT/'App/ProfileGuideHost.swift').read_text()
         self.assertIn('SocialPlayGuideView(reader: reader, onOpenDestination: onOpenDestination, templateReader: templateReader,',host)
-        account=(ROOT/'App/AccountView.swift').read_text()
-        self.assertEqual(account.count('NavigationLink { ProfileGuideHost(reader: session.makeProfileGuideReader()'),1)
+        # mp-mine r3: 城瘾玩法 lives in Settings only (MP pages/shezhi); 我的 no longer carries a second entry.
+        account=(ROOT/'App/SettingsView.swift').read_text()
+        self.assertEqual(account.count('ProfileGuideHost(reader: session.makeProfileGuideReader()'),1)
+        self.assertNotIn('ProfileGuideHost(', (ROOT/'App/AccountView.swift').read_text())
         self.assertIn('templateReader: session',account[account.index('ProfileGuideHost(reader:'):][:400])
     def test_existing_ticket_play_and_read_contracts_are_unchanged(self):
         # PROTECTED (21 whole-file hashes incl. AppSession/Settings) was the change-scope proof for the original

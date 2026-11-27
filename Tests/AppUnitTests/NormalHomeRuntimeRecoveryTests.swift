@@ -127,7 +127,8 @@ import UIKit
     func testOfflineAndValidEmptyHomeRemainDifferentStates() async throws {
         let wire = Wire(), vault = Vault(), session = root(wire, vault, try deployment()).makeSession(), model = HomeFeedModel()
         wire.offline = true; await model.resume(reader: session.homeFeedReader, query: HomeFeedQuery())
-        XCTAssertTrue(model.pageFailed); XCTAssertTrue(model.categoryFailed); XCTAssertTrue(model.bannerFailed)
+        // mp-home r3: 首页 no longer reads categories or `/banner` (MP reads neither), so only the page records the failure.
+        XCTAssertTrue(model.pageFailed); XCTAssertFalse(model.categoryFailed); XCTAssertFalse(model.bannerFailed)
         XCTAssertTrue(model.pagination.items.isEmpty); XCTAssertFalse(model.loading)
         wire.offline = false; wire.empty = true
         await model.reload(reader: session.homeFeedReader, query: HomeFeedQuery())
