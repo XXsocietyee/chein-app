@@ -85,7 +85,11 @@ import XCTest
         if case .outcomeUnknown = session.participantCoordinator.state {} else { XCTFail() }
         XCTAssertFalse(session.participantCoordinator.canPrepare)
         let restarted = await h.login(); h.install(restarted, writes: true)
-        XCTAssertEqual(restarted.participantCoordinator.state, .idle) // No durable claim or automatic replay.
+        // debt/appunit-b: expectation updated per 7623036a3 (ProfileParticipantHost defaults to ParticipantFileJournal.applicationSupport: the PII-free durable lock is restored on restart, as ProfileParticipantDurableHostTests pins)
+        XCTAssertEqual(restarted.participantCoordinator.state, .outcomeUnknown(.transport)) // Durable lock only; no payload.
+        XCTAssertFalse(restarted.participantCoordinator.canPrepare)
+        XCTAssertNil(restarted.participantCoordinator.savedParticipant)
+        XCTAssertTrue(h.wire.addressRequests.isEmpty) // No automatic replay.
     }
     func testChangedOwnerDiscardsLate401WithoutExpiringReplacement() async throws {
         let h = try ParticipantHostSpecimen(); addTeardownBlock { @MainActor in h.cleanup() }
