@@ -41,20 +41,19 @@ struct SearchMapAllResultsSheet: View {
     let offline: Bool
     let retry: () -> Void
     let open: (ActivitySummary) -> Void
+    /// MP `smap-more` 加载更多 inside the sheet, and the 更多活动加载失败 / 重试这一页 inline error above the list.
+    var hasMore: Bool = false
+    var loadingMore: Bool = false
+    var pageFailed: Bool = false
+    var loadMore: () -> Void = {}
     var body: some View {
         NavigationStack {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 12) {
+                    // MP order (pages/searchmap 全部结果 sheet): 正在更新商家节点… first, then error / empty / loading,
+                    // then 正在更新地图结果…, the refresh or page inline error, the list and 加载更多.
                     if refreshing {
-                        ProgressView("searchMap.w208.sheet.refreshingActivities")
                         Text("searchMap.w208.sheet.refreshingNodes").font(.subheadline).foregroundStyle(.secondary)
-                    }
-                    if refreshFailed {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Label("searchMap.w208.sheet.refreshFailed", systemImage: "exclamationmark.circle").font(.headline)
-                            Text("searchMap.w208.sheet.refreshFailed.detail").font(.subheadline).foregroundStyle(.secondary)
-                            Button("mapRefresh.retry", action: retry).buttonStyle(.bordered)
-                        }.accessibilityIdentifier("searchMap.w208.sheet.refreshFailed")
                     }
                     if loading {
                         ProgressView("search.r3.loading.map").frame(maxWidth: .infinity).padding(.vertical)
@@ -75,6 +74,21 @@ struct SearchMapAllResultsSheet: View {
                         }
                         .accessibilityIdentifier("searchMap.w208.sheet.empty")
                     }
+                    if refreshing && !rows.isEmpty {
+                        ProgressView("searchMap.w208.sheet.refreshingActivities")
+                    }
+                    if refreshFailed {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Label("searchMap.w208.sheet.refreshFailed", systemImage: "exclamationmark.circle").font(.headline)
+                            Text("searchMap.w208.sheet.refreshFailed.detail").font(.subheadline).foregroundStyle(.secondary)
+                            Button("mapRefresh.retry", action: retry).buttonStyle(.bordered)
+                        }.accessibilityIdentifier("searchMap.w208.sheet.refreshFailed")
+                    } else if pageFailed && !rows.isEmpty {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Label("mapPagination.failed", systemImage: "exclamationmark.circle").font(.headline)
+                            Button("mapPagination.retry", action: loadMore).buttonStyle(.bordered)
+                        }.accessibilityIdentifier("searchMap.w208.sheet.pageFailed")
+                    }
                     let listOnly = rows.filter { !$0.hasValidCoordinates }.count
                     if listOnly > 0 {
                         Text("searchMap.w208.sheet.listOnlyTip \(listOnly)").font(.subheadline).foregroundStyle(.secondary)
@@ -94,6 +108,21 @@ struct SearchMapAllResultsSheet: View {
                             }
                             .accessibilityIdentifier("searchMap.w208.sheet.openInMaps.\(row.id)")
                         }
+                    }
+                    if hasMore && !rows.isEmpty && (!pageFailed || refreshFailed) {
+                        Button {
+                            loadMore()
+                        } label: {
+                            if loadingMore {
+                                ProgressView("mapPagination.loading")
+                            } else {
+                                Text("mapPagination.more")
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                        .disabled(loadingMore)
+                        .frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("searchMap.w208.sheet.more")
                     }
                 }.padding()
             }
