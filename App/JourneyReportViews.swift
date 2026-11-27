@@ -906,6 +906,8 @@ struct JourneySettleView: View {
     @State private var skipped = false
     /// The success haptic 150 ms after the seal's contact (skill-r2 SR2-49 "Seal lands").
     @State private var sealSuccess = false
+    /// mp-journey r3: MP `st-pop` 谢谢 — the centred pop after a rating lands; it stays until 去分享.
+    @State private var thanksPop = false
     @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
     @QuestifyReduceMotion private var reduceMotion
@@ -985,11 +987,47 @@ struct JourneySettleView: View {
             .frame(maxHeight: .infinity)
             footer(report)
         }
-        .task(id: rate) {
-            guard rate == .thanks, step == .rate else { return }
-            try? await Task.sleep(for: .seconds(CYMotion.Delay.sheetDismiss))
-            guard !Task.isCancelled, step == .rate else { return }
-            go(.share)
+        .overlay {
+            if thanksPop { thanksCard.transition(.opacity) }
+        }
+        .onChange(of: rate) { _, value in
+            if value == .thanks && step == .rate {
+                withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) { thanksPop = true }
+            }
+        }
+    }
+
+    /// MP settle wxml `st-pop` (proto pop-rated): dimmed page, a centred card with the star, 谢谢 and the one 去分享.
+    /// The MP mask does not close it; 去分享 moves to the share step.
+    private var thanksCard: some View {
+        ZStack {
+            Color.black.opacity(0.4).ignoresSafeArea()
+                .accessibilityHidden(true)
+            VStack(spacing: 16) {
+                Image(systemName: "star.fill")
+                    .font(.largeTitle).imageScale(.large)
+                    .foregroundStyle(.yellow)
+                    .symbolEffect(.bounce, value: thanksPop)
+                    .accessibilityHidden(true)
+                Text("mp.settle.thanks")
+                    .font(.title2.weight(.bold))
+                    .accessibilityAddTraits(.isHeader)
+                Button {
+                    go(.share)
+                } label: {
+                    Text("mp.settle.toShare").frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .accessibilityIdentifier("journeySettle.thanks.share")
+            }
+            .padding(24)
+            .frame(maxWidth: 300)
+            .background(.regularMaterial, in: .rect(cornerRadius: 20))
+            .padding(.horizontal, 40)
+            .accessibilityElement(children: .contain)
+            .accessibilityAddTraits(.isModal)
+            .accessibilityIdentifier("journeySettle.thanks")
         }
     }
 
@@ -1200,8 +1238,8 @@ struct JourneySettleView: View {
             case .rank:
                 CYPillButton("mp.settle.toRate") { go(.rate) }.accessibilityIdentifier("journeySettle.toRate")
             case .rate:
-                // The rating result lands in the button that sent it (xrefs-1 B.0 "in place"): 提交 → 正在提交 → 已提交,
-                // then the flow moves on to 分享 after the hold. No thank-you card over the page.
+                // 提交 → 正在提交 → 已提交 in the button, then the MP 谢谢 pop (st-pop) with 去分享 over the page
+                // (mp-journey r3: MP behaviour wins over the earlier in-place hold).
                 CYResultButton("mp.settle.rate.submit", loading: "mp.settle.rate.submitting", done: "mp.settle.rate.submitted",
                                phase: ratePhase, action: submit)
                     .identifier("journeySettle.submitRate")
@@ -1234,10 +1272,18 @@ struct JourneySettleView: View {
     }
 
     private func go(_ next: Step) {
-        withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) { step = next }
+        withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) {
+            step = next
+            thanksPop = false
+        }
     }
 
     private func submit() {
+        // MP submitRate: an already rated run only shows the 谢谢 pop again.
+        if rate == .thanks {
+            withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) { thanksPop = true }
+            return
+        }
         guard stars > 0 else { localError = "mp.settle.rate.needStars"; return }
         let picked = Self.tagKeys.indices.filter { tags.contains($0) }.map { String(localized: Self.tagResource[$0], locale: locale) }
         let text = review.trimmingCharacters(in: .whitespacesAndNewlines)

@@ -31,6 +31,10 @@ public struct PlayToolsAndLeadSheetView: View {
     /// nil hides both rows; tapping an off row asks for location (MP `onLocationRowTap`).
     public var locationOn: Bool? = nil
     public var onLocationRow: () -> Void = {}
+    /// mp-journey r3: MP 游玩工具 队伍位置 (`lead.exists`, value arrived/total). Nil or not started hides the row.
+    public var teamLead: PlayLeadProgress? = nil
+    /// mp-journey r3: MP 游玩工具 旅程手记 (`buildJournal`). Nil hides the row.
+    public var journalRows: [PlayJournalRow]? = nil
 
     public init(
         lead: PlayLeadToolsState = PlayLeadToolsState(),
@@ -55,8 +59,12 @@ public struct PlayToolsAndLeadSheetView: View {
         showsContentRows: Bool = true,
         evidenceCards: [PlayEvidenceCard] = [],
         locationOn: Bool? = nil,
-        onLocationRow: @escaping () -> Void = {}
+        onLocationRow: @escaping () -> Void = {},
+        teamLead: PlayLeadProgress? = nil,
+        journalRows: [PlayJournalRow]? = nil
     ) {
+        self.teamLead = teamLead
+        self.journalRows = journalRows
         self.locationOn = locationOn
         self.onLocationRow = onLocationRow
         self.lead = lead
@@ -104,6 +112,7 @@ public struct PlayToolsAndLeadSheetView: View {
                         }
                     }
                 }
+                teamPositionSection
                 if let locationOn {
                     // mp-journey r3 (MP pages/play/index.wxml 游玩工具, city orientation): 自动记录足迹, 到点提醒.
                     // Both follow the location permission; an off row reads dimmed and asks for location on tap.
@@ -116,11 +125,22 @@ public struct PlayToolsAndLeadSheetView: View {
                                     symbol: "bell", identifier: "playTools.loc.remind")
                     }
                 }
-                // mp-journey r3: MP 游玩工具 lists 入场码 after 本局读数 / 扫码到达 / 切换章节, just above the preferences.
-                if showsContentRows {
+                // mp-journey r3: MP 游玩工具 lists 入场码 then 旅程手记 after 本局读数 / 扫码到达 / 切换章节 / 队伍位置,
+                // just above the preferences.
+                if showsContentRows || journalRows != nil {
                     Section {
-                        Button("playTools.entryCode", action: onOpenEntryCode)
-                            .accessibilityIdentifier("playTools.entryCode")
+                        if showsContentRows {
+                            Button("playTools.entryCode", action: onOpenEntryCode)
+                                .accessibilityIdentifier("playTools.entryCode")
+                        }
+                        if let journalRows {
+                            NavigationLink {
+                                PlayJournalListView(rows: journalRows)
+                            } label: {
+                                Label("playTools.journal", systemImage: "book.pages")
+                            }
+                            .accessibilityIdentifier("playTools.journal")
+                        }
                     }
                 }
                 // MP pages/play/index.wxml 游玩工具 sheet: 背景音乐 / 到站自动播放 / 减少动态效果.
@@ -156,6 +176,38 @@ public struct PlayToolsAndLeadSheetView: View {
         }
         .foregroundStyle(on ? Color.primary : Color.secondary)
         .accessibilityIdentifier(identifier)
+    }
+
+    /// MP 队伍位置: the arrived count on the right; the pushed page lists who has arrived (positions stay private).
+    @ViewBuilder private var teamPositionSection: some View {
+        if let teamLead, teamLead.exists {
+            Section {
+                NavigationLink {
+                    List {
+                        if let broadcast = teamLead.broadcast, !broadcast.isEmpty {
+                            Section("playTools.team.broadcast") { Text(verbatim: broadcast) }
+                        }
+                        Section {
+                            ForEach(teamLead.members) { member in
+                                Label {
+                                    if let name = member.name, !name.isEmpty { Text(verbatim: name) } else { Text("playx.player.unnamed") }
+                                } icon: {
+                                    Image(systemName: member.arrived ? "checkmark.circle.fill" : "circle")
+                                        .foregroundStyle(member.arrived ? Color.green : Color.secondary)
+                                }
+                                .accessibilityValue(Text(member.arrived ? "playTools.team.arrived" : "playTools.team.notArrived"))
+                            }
+                        }
+                    }
+                    .navigationTitle(Text("playTools.team"))
+                } label: {
+                    LabeledContent("playTools.team") {
+                        Text(verbatim: "\(teamLead.arrived ?? 0)/\(teamLead.members.count)").monospacedDigit()
+                    }
+                }
+                .accessibilityIdentifier("playTools.team")
+            }
+        }
     }
 
     @ViewBuilder private var leadSection: some View {
@@ -219,5 +271,102 @@ public struct PlayToolsAndLeadSheetView: View {
                 Button("playTools.rewards", action: onOpenRewards)
             }
         }
+    }
+}
+
+/// mp-journey r3: MP 旅程手记 sheet — one row per station: key (第 N 站 / 此刻 / 前路未知), title, first line.
+/// Rows ahead of the next station stay closed and show a placeholder instead of their text (no spoilers).
+struct PlayJournalListView: View {
+    let rows: [PlayJournalRow]
+
+    var body: some View {
+        List {
+            if rows.isEmpty {
+                ContentUnavailableView("playTools.journal.empty", systemImage: "book.pages")
+            }
+            ForEach(rows) { row in
+                if let head = row.chapterHead, !head.isEmpty {
+                    Text(verbatim: head).font(.footnote.weight(.semibold)).foregroundStyle(.secondary)
+                        .listRowSeparator(.hidden)
+                }
+                if row.opensStory {
+                    NavigationLink {
+                        PlayJournalStoryView(row: row)
+                    } label: {
+                        rowLabel(row)
+                    }
+                    .accessibilityIdentifier("playTools.journal.\(row.id)")
+                } else {
+                    rowLabel(row)
+                        .accessibilityIdentifier("playTools.journal.\(row.id)")
+                }
+            }
+        }
+        .navigationTitle(Text("playTools.journal"))
+    }
+
+    private func rowLabel(_ row: PlayJournalRow) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
+            keyText(row.key)
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(row.key == .now ? Color.accentColor : Color.secondary)
+                .frame(minWidth: 64, alignment: .leading)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: row.title).font(.body)
+                if row.redacted {
+                    Text(verbatim: "xxxxxxxxx xxxxx xxxxxxxx xxxx").font(.subheadline)
+                        .redacted(reason: .placeholder)
+                        .accessibilityHidden(true)
+                } else if let excerpt = row.excerpt {
+                    Text(verbatim: excerpt).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
+                }
+            }
+        }
+        .foregroundStyle(row.opensStory ? Color.primary : Color.secondary)
+        .accessibilityElement(children: .combine)
+    }
+
+    @ViewBuilder private func keyText(_ key: PlayJournalRow.Key) -> some View {
+        switch key {
+        case .station(let number):
+            Text("playTools.journal.station \(number)")
+        case .step(let number):
+            Text("playTools.journal.step \(number)")
+        case .now:
+            Text("playTools.journal.now")
+        case .ahead:
+            Text("playTools.journal.ahead")
+        case .notYet:
+            Text("playTools.journal.notYet")
+        }
+    }
+}
+
+/// MP `openStory`: the station's full text with its cover.
+struct PlayJournalStoryView: View {
+    let row: PlayJournalRow
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                if let cover = row.coverURL, let url = URL(string: cover) {
+                    AsyncImage(url: url) { image in
+                        image.resizable().scaledToFill()
+                    } placeholder: {
+                        Rectangle().fill(.fill.tertiary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 200)
+                    .clipShape(.rect(cornerRadius: 12))
+                    .accessibilityHidden(true)
+                }
+                Text(verbatim: row.story ?? "")
+                    .font(.body)
+                    .textSelection(.enabled)
+            }
+            .padding()
+        }
+        .navigationTitle(Text(verbatim: row.title))
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
