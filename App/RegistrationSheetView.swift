@@ -403,11 +403,22 @@ struct RegistrationSheetView: View {
                                 .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                                 .accessibilityIdentifier("registration.activity.meetingPoint")
                         }
-                        Label {
-                            if let venue = checkout.venue { Text(verbatim: venue) } else { Text(verbatim: "—") }
-                        } icon: { Image(systemName: "mappin.and.ellipse") }
-                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        // MP baoming.wxml:100 `onAddressTap`: the venue line opens the map when the activity has a place.
+                        if let venue = checkout.venue, let mapURL = venueMapURL(venue) {
+                            Link(destination: mapURL) {
+                                Label { Text(verbatim: venue) } icon: { Image(systemName: "mappin.and.ellipse") }
+                                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            }
+                            .buttonStyle(.borderless)
+                            .accessibilityHint(Text(verbatim: copy.t("在地图中打开", "Opens in Maps")))
                             .accessibilityIdentifier("registration.activity.venue")
+                        } else {
+                            Label {
+                                if let venue = checkout.venue { Text(verbatim: venue) } else { Text(verbatim: "—") }
+                            } icon: { Image(systemName: "mappin.and.ellipse") }
+                                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                                .accessibilityIdentifier("registration.activity.venue")
+                        }
                     }
                     Spacer(minLength: 0)
                 }
@@ -435,6 +446,17 @@ struct RegistrationSheetView: View {
             .cyDomainCard(radius: CYRadius.lg, padding: 0)
             .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0)).listRowBackground(Color.clear)
         } header: { E1IconHeader(systemImage: "calendar", title: copy.t("活动信息", "Activity")) }
+    }
+    /// Apple Maps link for the venue: the activity's coordinate when valid, else an address search (MP `openAddress`).
+    private func venueMapURL(_ venue: String) -> URL? {
+        let summary = flow.activity.summary
+        var parts = URLComponents(string: "https://maps.apple.com/")
+        if summary.hasValidCoordinates, let lat = summary.latitude, let lng = summary.longitude {
+            parts?.queryItems = [URLQueryItem(name: "ll", value: "\(lat),\(lng)"), URLQueryItem(name: "q", value: venue)]
+        } else {
+            parts?.queryItems = [URLQueryItem(name: "q", value: venue)]
+        }
+        return parts?.url
     }
     private func ticketPriceText(_ copy: CoreLoopCopy) -> String {
         guard let ticket = flow.selectedTicket else { return "—" }
