@@ -370,13 +370,17 @@ struct RoamBrowserView: View {
     private func peekLine(count: Int?) -> some View {
         HStack(spacing: CYSpacing.sm) {
             Text(entryReader != nil ? "roam.w208.entry.title" : "roam.browse.header")
-                .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                .cyText(.bodyMedium).foregroundStyle(.primary)
             Spacer(minLength: 0)
             Group { if let count { Text(count, format: .number) } else { Text(verbatim: "—").accessibilityLabel(Text("roam.peek.countUnknown")) } }
-                .cyText(.bodyMedium, monospacedDigit: true).foregroundStyle(CYColor.textSecondary)
-            Image(systemName: "chevron.up").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                .cyText(.bodyMedium, monospacedDigit: true).foregroundStyle(.primary)
+            Image(systemName: "chevron.up").font(.footnote.weight(.semibold)).foregroundStyle(.secondary).accessibilityHidden(true)
         }
-        .padding(.horizontal, CYSpacing.xl).frame(maxWidth: .infinity, minHeight: 44)
+        // design-r2-roam (en sweep d2-roam): the collapsed line sits on a material with semantic foregrounds so the
+        // count and chevron read on the black panel in light and dark (CYColor.text* is black in light mode).
+        .padding(.horizontal, CYSpacing.lg).frame(maxWidth: .infinity, minHeight: 44)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .padding(.horizontal, CYSpacing.md)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("roam.sheet.peek")
     }
@@ -504,8 +508,9 @@ struct RoamBrowserView: View {
                     HStack(spacing: CYSpacing.xl) {
                         NavigationLink { RoamPreflightRulesView().cyPushedChrome() } label: {
                             Label("roam.preflightRules.availability", systemImage: "info").labelStyle(.iconOnly)
+                                .modifier(RoamMapGlassControl())
                         }
-                            .buttonStyle(.bordered).buttonBorderShape(.circle).controlSize(.large)
+                            .buttonStyle(.plain)
                             .accessibilityIdentifier("roam.rules")
                         NavigationLink { startDestination().cyPushedChrome() } label: {
                             Label("roam.w208.intro.start", systemImage: "figure.walk")   // ROAM-12: 走起
@@ -516,8 +521,9 @@ struct RoamBrowserView: View {
                         if let nearbyTeamsDestination {
                             NavigationLink { nearbyTeamsDestination().cyPushedChrome() } label: {
                                 Label("nearby.title", systemImage: "map").labelStyle(.iconOnly)
+                                    .modifier(RoamMapGlassControl())
                             }
-                                .buttonStyle(.bordered).buttonBorderShape(.circle).controlSize(.large)
+                                .buttonStyle(.plain)
                                 .accessibilityIdentifier("roam.openMap")
                         }
                     }
@@ -741,7 +747,37 @@ private struct RoamBrowserHeader: ViewModifier {
             content
                 .navigationTitle(appLocalized(String.LocalizationValue(stringLiteral: RootTab.roam.titleKey), locale: locale))
                 .navigationBarTitleDisplayMode(inline ? .inline : .large)
+                .modifier(RoamMapBarMaterial(enabled: inline))
         }
+    }
+}
+
+/// design-r2-roam (en sweep d2-roam): over the map the inline bar sits on a material, so the system title and the
+/// overflow button keep their semantic `.primary` colour on any map style (the dark map made a black title unreadable).
+private struct RoamMapBarMaterial: ViewModifier {
+    let enabled: Bool
+    @ViewBuilder func body(content: Content) -> some View {
+        if enabled {
+            content
+                .toolbarBackground(.regularMaterial, for: .navigationBar)
+                .toolbarBackground(.visible, for: .navigationBar)
+        } else { content }
+    }
+}
+
+/// design-r2-roam (en sweep d2-roam): a floating map control (rules / open map) is a 50 pt material circle with a
+/// `.primary` glyph, readable on light and dark map tiles alike. The one start action keeps `.borderedProminent`.
+private struct RoamMapGlassControl: ViewModifier {
+    @ScaledMetric(relativeTo: .title3) private var side: CGFloat = 50
+    func body(content: Content) -> some View {
+        content
+            .font(.title3.weight(.semibold))
+            .foregroundStyle(.primary)
+            .frame(width: side, height: side)
+            .background(.regularMaterial, in: Circle())
+            .overlay(Circle().strokeBorder(Color.primary.opacity(0.12), lineWidth: 1))
+            .shadow(color: .black.opacity(0.25), radius: 6, y: 2)
+            .contentShape(Circle())
     }
 }
 

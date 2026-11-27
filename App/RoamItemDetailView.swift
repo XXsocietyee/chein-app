@@ -148,7 +148,7 @@ struct RoamItemDetailView: View {
                 ToolbarItem(placement: .confirmationAction) { Button("roam.close") { merchantRetry.cancel(); dismiss() } }
                 // RPOI-4 (r10; MP subpackageRoam/poi-detail/index.js:52-66 onShareAppMessage): share the loaded place
                 // as the reviewed universal link (docs/release/aasa.json lists /subpackageRoam/poi-detail/index).
-                ToolbarItem(placement: .primaryAction) { poiShareButton }
+                // design-r2-roam (P15): the share now sits in the place header's pill row (`placeHeader`).
             }
             .task(id: offeredReadKey) {
                 guard !Task.isCancelled, offeredReadKey.active, offeredReadKey == readKey, readsActive else { return }
@@ -188,9 +188,18 @@ struct RoamItemDetailView: View {
     }
     private var content: some View {
         List {
-            Section {
-                Label(item.kindLabel, systemImage: item.symbol)
-                if reader.isOfflineExample { Text("roam.offlineExample").cyText(.meta) }
+            // design-r2-roam (P15): a loaded place reads name → category · area → live status, then the pill row.
+            if let place = currentPlace, let node, !nodeUnavailable {
+                Section {
+                    placeHeader(place: place, node: node)
+                    if reader.isOfflineExample { Text("roam.offlineExample").cyText(.meta) }
+                }
+                .accessibilityIdentifier("roam.place.header")
+            } else {
+                Section {
+                    Label(item.kindLabel, systemImage: item.symbol)
+                    if reader.isOfflineExample { Text("roam.offlineExample").cyText(.meta) }
+                }
             }
             switch item {
             case .place(let place): placeContent(place)
@@ -207,9 +216,6 @@ struct RoamItemDetailView: View {
             }.accessibilityIdentifier("roamPlaceRead.detail")
         }
         if let node {
-            if !node.isPublished {
-                Section { Label("roam.notPublished", systemImage: "eye.slash") }
-            }
             // Mini-program order: merchant hero and 招牌主推, the node card, then 地点详情.
             if let merchant { merchantContent(merchant) }
             else if merchantFailed {
@@ -227,13 +233,6 @@ struct RoamItemDetailView: View {
                         startLoad(visit: eventPresentationID)
                     }
                 }
-                NavigationLink { if let posterDestination { posterDestination(node) } else { AnyView(RoamPosterScanView(node: node)) } } label: { Label("media.poster.title", systemImage: "qrcode.viewfinder") }
-                    .accessibilityIdentifier("media.poster.open")
-                if node.isPublished && !node.completed {
-                    NavigationLink { ChallengePOIHostView(node: node, reader: reader) } label: { Label("playx.poi.title", systemImage: "flag.checkered") }
-                        .accessibilityIdentifier("roam.poiChallenge.open")
-                }
-                NavigationLink { if let stampDestination { stampDestination() } else { AnyView(RoamStampCameraView()) } } label: { Label("media.stamp.title", systemImage: "camera") }
                 // ROAM-2 / RSTAMP-1: the citystamp 投一张换一张 flow (城市贴纸 / 今日城市签) for this place.
                 RoamCheckinStampRows(place: node.name.isEmpty ? nil : node.name)
             }
@@ -248,6 +247,34 @@ struct RoamItemDetailView: View {
                 if let xp = place.xp, xp >= 0 { LabeledContent("roam.potentialXP") { Text(xp, format: .number) } }
                 PlatformExternalMapHost(destination: .init(name: node.name, address: node.merchantAddress ?? place.address, latitude: node.coordinate?.latitude, longitude: node.coordinate?.longitude), scope: mediaScope, makeModel: makeExternalMaps)
             }
+        }
+    }
+    /// P15 header. The challenge is the one prominent capsule (P3) while it is open; stamp camera, poster scan and
+    /// share follow as bordered capsules. Same destinations and identifiers as the rows they replace.
+    private func placeHeader(place: RoamPlace, node: RoamNodeDetail) -> some View {
+        let isCompleted = poiActionModel.completedOverride ?? node.completed
+        let name = node.name.isEmpty ? place.name : node.name
+        let status: RoamPlaceLiveStatus = !node.isPublished ? .unpublished : (isCompleted ? .completed : .open)
+        return RoamPlaceHeaderView(name: name, kind: item.kindLabel, symbol: item.symbol,
+                                   area: node.merchantAddress ?? place.address, status: status) {
+            if node.isPublished && !node.completed {
+                NavigationLink { ChallengePOIHostView(node: node, reader: reader) } label: {
+                    Label("design.roam.place.action.challenge", systemImage: "flag.checkered")
+                }
+                .buttonStyle(.borderedProminent).buttonBorderShape(.capsule)
+                .accessibilityIdentifier("roam.poiChallenge.open")
+            }
+            NavigationLink { if let stampDestination { stampDestination() } else { AnyView(RoamStampCameraView()) } } label: {
+                Label("design.roam.place.action.stamp", systemImage: "camera")
+            }
+            .buttonStyle(.bordered).buttonBorderShape(.capsule)
+            .accessibilityIdentifier("media.stamp.open")
+            NavigationLink { if let posterDestination { posterDestination(node) } else { AnyView(RoamPosterScanView(node: node)) } } label: {
+                Label("design.roam.place.action.poster", systemImage: "qrcode.viewfinder")
+            }
+            .buttonStyle(.bordered).buttonBorderShape(.capsule)
+            .accessibilityIdentifier("media.poster.open")
+            poiShareButton.buttonStyle(.bordered).buttonBorderShape(.capsule)
         }
     }
     private func merchantRetrySection(node: RoamNodeDetail) -> some View {

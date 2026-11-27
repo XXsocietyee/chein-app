@@ -915,6 +915,15 @@
       "purpose": "App Group shared defaults: next-stop snapshot (topic, stop name, distance) read by the Live Activity / widget extension",
       "retention": "until QuestNextStopSnapshot.lifetime passes or the play context is cleared",
       "deletion": "cleared on run end / play context clear; removed with the app"
+    },
+    {
+      "file": "App/RoamStampPhotoStrip.swift",
+      "kinds": [
+        "file"
+      ],
+      "purpose": "Read-only: resolves a roam history stamp photo path (RoamHistoryRecord.photos) relative to Documents and reads that existing file to show it in the finish report; writes, copies or caches nothing",
+      "retention": "n/a (reads files owned by the roam history archive)",
+      "deletion": "n/a (no own data; the files follow the roam history they belong to)"
     }
   ]
 }
