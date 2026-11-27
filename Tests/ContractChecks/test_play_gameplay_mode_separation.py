@@ -21,8 +21,10 @@ class PlayGameplayModeSeparationContracts(unittest.TestCase):
         self.assertIn('FreeExplorationReadStoreView(nodeID: nodeID, model: model)',fallback)
     def test_free_cards_keep_server_order_variable_count_and_accessibility(self):
         source=self.read('App/FreeExplorationViews.swift')
-        for marker in ['playFree.pack.open','LazyVGrid','let stores = presentation.stores.filter { chapterFilter == nil || $0.chapterID == chapterFilter }','ForEach(Array(stores.enumerated()), id: \\.element.id)','typeSize.isAccessibilitySize ? 1 : 2','playFree.choiceHint']:
+        for marker in ['playFree.pack.open','LazyVGrid','let stores = presentation.stores.filter { chapterFilter == nil || $0.chapterID == chapterFilter }','ForEach(Array(stores.enumerated()), id: \\.element.id)','typeSize.isAccessibilitySize ? 1 : 2']:
             self.assertIn(marker,source)
+        # mp-journey r3: MP fx-pass has no choice hint line (owner rule: MP sections only).
+        self.assertNotIn('playFree.choiceHint',source)
         for denied in ['playx.run.resume','playx.run.pause','playx.run.end','currentNodeID','sorted(', 'prefix(6)', 'startRun(', 'CityMapPresentation']:
             self.assertNotIn(denied,source)
         self.assertIn('stores = snapshot.availability == .registrationRequired ? [] : snapshot.visibleNodes',self.read('Core/PlayGameplayMode.swift'))
@@ -61,7 +63,8 @@ class PlayGameplayModeSeparationContracts(unittest.TestCase):
         keys=[key for key in strings if key.startswith('playFree.') or key.startswith('playMode.')]
         # Port plan C1/C2 (P2): story lock, offline archive, and visit steps added 21 playFree keys
         # to the original 27. Each still needs en and zh-Hans.
-        self.assertEqual(len(keys),48)
+        # mp-journey r3: +16 for the MP fx-pass meta lines, 探索节点, the tile chapter label and the fx-hero sections (本店权益, 本站游戏, 小瘾说).
+        self.assertEqual(len(keys),64)
         for key in keys:
             for language in ['en','zh-Hans']:self.assertTrue(strings[key]['localizations'][language]['stringUnit']['value'])
         tests=self.read('Tests/AppUITests/PlayExperienceFlowTests.swift')
@@ -77,7 +80,8 @@ class PlayGameplayModeSeparationContracts(unittest.TestCase):
 
     def test_ax_ids_are_on_leaf_or_concrete_list_not_virtual_parent_groups(self):
         source=self.read('App/FreeExplorationViews.swift')
-        self.assertIn('Text("playFree.title").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("playFree.pass")',source)
+        # mp-journey r3: the pass id moved to the MP claim line (topic name, page title style); still a leaf Text.
+        self.assertIn('.cyText(.pageTitle).accessibilityAddTraits(.isHeader)\n                    .accessibilityIdentifier("playFree.pass")',source)
         self.assertNotIn('}.accessibilityIdentifier("playFree.pass")',source)
         root=self.read('App/PlayExperienceView.swift')
         # The map-first screen wraps the list in a scaffold; the id stays on the concrete task list, never on the wrapper.

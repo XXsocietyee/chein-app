@@ -12,6 +12,10 @@ enum NativeR2Flags {
 
     /// Free exploration (自由探索) native flow. `-nativeR2.freeExplore NO` restores the old screens.
     static var freeExplore: Bool { isEnabled("nativeR2.freeExplore") }
+    /// mp-journey r3 (owner rule round3-1127, MP wins): the MP play page for mode 2 is the card pack → grid
+    /// (pages/play/index.wxml `fx`; the map state was removed on 2026-09-22). Default off; `-nativeR2.freeExploreMapHome YES`
+    /// brings back the map-first home.
+    static var freeExploreMapHome: Bool { isEnabled("nativeR2.freeExploreMapHome", default: false) }
     /// Story route page, reader and in-place stage result.
     static var storyFlow: Bool { isEnabled("nativeR2.storyFlow") }
     /// Native game shell and the six kit templates (games A and B).

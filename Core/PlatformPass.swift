@@ -1036,6 +1036,11 @@ public struct PlatformPassGift: Equatable, Sendable {
     public let claimReachable: Bool
     /// Claim deadline as `yyyy.MM.dd`, or empty when this gift has no deadline. The sentence stays in `expires`.
     public let claimDay: String
+    /// `productId` on the gift row; MP market-view giftRow names the gift from the on-sale catalog by this id. Empty when absent.
+    public let productID: String
+
+    /// MP giftRow `name`: the catalog product name, or empty (the row then leads with its state).
+    public func name(nameByID: [String: String]) -> String { nameByID[productID] ?? "" }
 
     static func decodeList(_ data: Any, side: String) throws -> [PlatformPassGift] {
         guard let rows = PlatformPassJSON.rows(data) else { throw APIError.malformedResponse }
@@ -1059,7 +1064,8 @@ public struct PlatformPassGift: Equatable, Sendable {
         let when = PlatformPassJSON.text(row["claimedAt"]) ?? PlatformPassJSON.text(row["createdAt"])
         return PlatformPassGift(key: side + "-" + id, state: state,
                                 expires: claimDay.isEmpty ? "" : "领取截止 \(claimDay)",
-                                time: MPParityChinaClock.dotDay(when), claimReachable: false, claimDay: claimDay)
+                                time: MPParityChinaClock.dotDay(when), claimReachable: false, claimDay: claimDay,
+                                productID: PlatformPassJSON.text(row["productId"]) ?? "")
     }
 }
 
