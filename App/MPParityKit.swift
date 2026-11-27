@@ -334,7 +334,7 @@ enum MPParityRoute: Hashable, Identifiable {
     private var unavailable: some View {
         CYEmptyState(systemImage: "tray", "mp.route.unavailable", messageIdentifier: "mp.route.unavailable")
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(uiColor: .systemBackground).ignoresSafeArea())
+            .background(.background)
     }
 }
 
@@ -555,7 +555,7 @@ struct MPAvatar: View {
     var size: CGFloat = 40
     var body: some View {
         ZStack {
-            Circle().fill(Color(uiColor: .secondarySystemFill))
+            Circle().fill(.fill.secondary)
             if let url {
                 AsyncImage(url: url) { image in image.resizable().scaledToFill() } placeholder: { Text(verbatim: initial).cyText(.label) }
                     .clipShape(Circle())

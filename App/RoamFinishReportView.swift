@@ -85,7 +85,7 @@ struct RoamFinishReport: Equatable {
             .padding(.bottom, CYSpacing.xxl)
         }
         // native-r3-b: system background — the semantic text colours above were unreadable on forced black in light mode.
-        .background(Color(uiColor: .systemBackground).ignoresSafeArea())
+        .background(.background)
         .toolbar(.hidden, for: .navigationBar)
         .cySheet(isPresented: $showShare) {
             Group { if let record = report.record { NavigationStack { RoamHistoryShareView(record: record, reader: history) } } }
@@ -254,7 +254,7 @@ struct RoamFinishReport: Equatable {
                 Label("u10.roamFinish.noTrack", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
                     .cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary)
                     .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
-                    .overlay(Capsule().strokeBorder(Color(uiColor: .separator), lineWidth: 1))
+                    .overlay(Capsule().strokeBorder(.separator, lineWidth: 1))
                     .accessibilityIdentifier("roam.finishReport.noTrack")
             }
         }

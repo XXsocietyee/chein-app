@@ -53,7 +53,7 @@ enum RoamStampPhotoSource: Equatable {
     var body: some View {
         let source = RoamStampPhotoSource(path)
         ZStack {
-            Rectangle().fill(Color(uiColor: .secondarySystemFill))
+            Rectangle().fill(.fill.secondary)
             switch source {
             case .remote(let url):
                 AsyncImage(url: url) { phase in
@@ -100,7 +100,7 @@ enum RoamStampPhotoSource: Equatable {
                                     .frame(width: tileWidth, height: tileWidth * 4 / 3)
                                     .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                                     .overlay(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)
-                                        .strokeBorder(Color(uiColor: .separator), lineWidth: 1))
+                                        .strokeBorder(.separator, lineWidth: 1))
                                 Text("design.roam.stamp.caption").cyText(.caption).foregroundStyle(CYColor.textSecondary)
                                     .lineLimit(2).fixedSize(horizontal: false, vertical: true)
                                     .frame(width: tileWidth, alignment: .leading)

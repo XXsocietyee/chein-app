@@ -1031,7 +1031,7 @@ import SwiftUI
     private var unavailable: some View {
         CYEmptyState(systemImage: "tray", "mp.route.unavailable", messageIdentifier: "mp.route.unavailable")
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(uiColor: .systemBackground).ignoresSafeArea())
+            .background(.background)
     }
 }
 

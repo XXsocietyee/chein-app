@@ -197,7 +197,7 @@ extension PlayKitScreen {
     }
     private var divider: some View {
         Rectangle().fill(.clear).frame(height: 1)
-            .overlay(Line().stroke(style: StrokeStyle(lineWidth: 1, dash: [4, 3])).foregroundStyle(Color(uiColor: .separator)))
+            .overlay(Line().stroke(style: StrokeStyle(lineWidth: 1, dash: [4, 3])).foregroundStyle(.separator))
     }
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {

@@ -64,7 +64,7 @@ struct PassCheckoutPass: Identifiable, Equatable {
                         ForEach(card.covers.prefix(3), id: \.self) { cover in
                             Text(verbatim: cover).cyText(.caption).foregroundStyle(CYColor.textPrimary).lineLimit(1)
                                 .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
-                                .background(Color(uiColor: .tertiarySystemFill), in: Capsule())
+                                .background(.fill.tertiary, in: Capsule())
                         }
                     }
                 }
