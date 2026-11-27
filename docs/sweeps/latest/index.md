@@ -1,6 +1,4 @@
-# Screenshot sweep — build 070117595 — 2026-11-27T17:24Z
-
-> **Coordinator 17:40 UTC: ignore the black logo / grey-faded tiles in this sweep.** They were taken while a Release archive loaded the Mac (load average 169), so the app had not finished launching. This is not an app regression; do not change launch code for it. A clean sweep replaces this one after the archive.
+# Screenshot sweep — build 070117595 — 2026-11-27T18:06Z
 
 Debug build of `ui/combined-r7` on iPhone 17 simulator, design fixtures, light mode. Files: `docs/sweeps/latest/<lane>/<lang>-<fixture>.jpg`; one contact sheet per lane and language: `<lane>/sheet-<lang>.jpg`. **Lanes: open your sheets with the Read tool before and after your work; compare with the MP page and OWNER RULE 2.**
 
