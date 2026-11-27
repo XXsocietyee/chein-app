@@ -347739,6 +347739,23 @@
           }
         }
       }
+    },
+    "im.full.viewActivity": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View event"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看活动"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
