@@ -36,13 +36,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Working"
+          "value": "Working…"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "正在处理"
+          "value": "正在处理…"
         }
       }
     }
