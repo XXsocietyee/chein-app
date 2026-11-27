@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 
 /// Native counterpart of mini-program pages/crop: a centered frame of the requested ratio, pinch/pan
-/// under it (clamped by `MiniCropGeometry`), and cancel / use-original / confirm for each image in turn.
+/// under it (clamped by `MiniCropGeometry`), and cancel / reset (use-original after a failure) / confirm for each image in turn.
 /// Purely local: it returns source rectangles and never uploads or writes anything.
 @MainActor struct MiniCropView: View {
     enum Result: Equatable { case original, crop(MiniCropGeometry.SourceRect) }
@@ -104,6 +104,13 @@ import UIKit
         }
     }
 
+    /// MP `onReset` (还原): the frame returns to the initial scale and offset.
+    private func resetFrame() {
+        gestureScale = 1
+        gestureOffset = .zero
+        session.reset()
+    }
+
     /// r9 A7-08b: MP `onRetrySource` re-starts the current image without advancing.
     private func retrySource() {
         gestureScale = 1
@@ -140,10 +147,18 @@ import UIKit
             .buttonStyle(.borderless)
             .accessibilityIdentifier("miniCrop.cancel")
         if !typeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
-        Button("publishParity.crop.useOriginal") { if session.useOriginal() { afterAdvance() } }
-            .buttonStyle(.bordered)
-            .disabled(!page.canUseOriginal)
-            .accessibilityIdentifier("miniCrop.useOriginal")
+        // mp-settings r3: MP crop/index.wxml:56-66 — a ready frame offers 取消 · 还原 · 选取; 使用原图 appears only when the
+        // source failed to open or the export failed (page.canUseOriginal).
+        if page.canUseOriginal {
+            Button("publishParity.crop.useOriginal") { if session.useOriginal() { afterAdvance() } }
+                .buttonStyle(.bordered)
+                .accessibilityIdentifier("miniCrop.useOriginal")
+        } else if page.phase != .error {
+            Button { resetFrame() } label: { Label("fixr8.crop.reset", systemImage: "arrow.counterclockwise") }
+                .buttonStyle(.bordered)
+                .disabled(!page.canReset)
+                .accessibilityIdentifier("miniCrop.reset")
+        }
         Button(LocalizedStringKey(page.confirmKey)) { confirm() }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)

@@ -342471,6 +342471,74 @@
           }
         }
       }
+    },
+    "participant.form.loadingFirst": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading participant details…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取参与人信息"
+          }
+        }
+      }
+    },
+    "privacy.page.moreSettings": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "City location and more privacy settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城市定位与更多隐私设置"
+          }
+        }
+      }
+    },
+    "privacy.page.moreSettingsDetail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home-city location, nearby sharing, roam location, and media under review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首页城市自动定位、附近的人位置分享、漫游定位、我的待审媒体"
+          }
+        }
+      }
+    },
+    "compliance.status.unconfirmed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account status not confirmed yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号状态待确认"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

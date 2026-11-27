@@ -97,7 +97,8 @@ import SwiftUI
         case "pages/roam/index":
             roam
         case "pages/privacy/index":
-            PrivacyProtectionView(market: session.operationalMarket, legalReader: session.legalReader, signedIn: session.account != nil)
+            PrivacyProtectionView(market: session.operationalMarket, legalReader: session.legalReader, signedIn: session.account != nil,
+                                  moreSettings: { AnyView(SettingsPrivacyLocationEntry.destination(session: session)) })
         case "pages/agreement/index":
             SettingsLegalDocumentView(type: SettingsLegalType.resolve(query["type"] ?? ""), market: session.operationalMarket, reader: session.legalReader)
         case "pages/deregister/index":

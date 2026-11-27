@@ -220,7 +220,7 @@ enum ProfileParticipantDisplay {
         let page = page
         Group {
             if reader.isConfigured && page.phase == .loading {
-                ProgressView("profile.loading")
+                ProgressView("participant.form.loadingFirst") // mp-settings r3: P10 — say what is loading (参与人信息)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .accessibilityIdentifier("profile.participants.loading")
             } else {

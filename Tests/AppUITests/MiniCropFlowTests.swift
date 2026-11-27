@@ -11,12 +11,15 @@ final class MiniCropFlowTests: XCTestCase {
         let app = launch()
         XCTAssertTrue(app.staticTexts["miniCrop.progress"].waitForExistence(timeout: 5))
         XCTAssertEqual(app.staticTexts["miniCrop.progress"].label, "Crop 1/2")
-        app.buttons["miniCrop.useOriginal"].tap()
+        // mp-settings r3: a ready frame offers 还原, not 使用原图 (MP crop/index.wxml:56-66).
+        XCTAssertFalse(app.buttons["miniCrop.useOriginal"].exists)
+        app.buttons["miniCrop.reset"].tap()
+        app.buttons["miniCrop.confirm"].tap()
         XCTAssertEqual(app.staticTexts["miniCrop.progress"].label, "Crop 2/2")
         app.buttons["miniCrop.confirm"].tap()
-        // Untouched 1:1 crop of a 300x400 image selects the centered 300x300 square.
+        // Untouched 1:1 crops of 400x300 and 300x400 images select the centered 300x300 squares.
         XCTAssertTrue(app.staticTexts["miniCrop.outcome"].waitForExistence(timeout: 5))
-        XCTAssertEqual(app.staticTexts["miniCrop.outcome"].label, "original, crop 300x300")
+        XCTAssertEqual(app.staticTexts["miniCrop.outcome"].label, "crop 300x300, crop 300x300")
     }
     func testCancelReturnsWithoutResults() {
         let app = launch()
