@@ -433,6 +433,22 @@
         }
       }
     },
+    "detailTag.issuing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Issuing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开具中"
+          }
+        }
+      }
+    },
     "edit": {
       "localizations": {
         "en": {
@@ -1117,6 +1133,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "已选订单"
+          }
+        }
+      }
+    },
+    "selectedCountValue %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 笔"
           }
         }
       }
