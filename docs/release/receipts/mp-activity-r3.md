@@ -48,6 +48,7 @@ Gates (each push): generate_project ok · scaffold PASS · a11y PASS (0 new) · 
 | MP page | Native view | MP sections (✓ present / added / reordered) | Optimizations |
 |---|---|---|---|
 | `pages/square/components/activity-picker` | `SquareCloudCompletedActivityPicker` (`App/SquareCloudFeedViews.swift`) | title 选择已完成的活动 + ✕ ✓ · loading ✓ (words 正在读取已完成的活动… **added**) · error 活动列表没能打开 + MP sub 活动列表加载失败，请重试 **added** + 重试 ✓ · empty 暂无可关联的已完成活动或主题 + 仅显示已完成的活动 now in **both** empty paths (was missing on `.empty`) · rows cover, name, 完成 n/m · 已通关, check ✓ · 生成路线预览中… ✓ | one shared empty view; P10 loading words; `ContentUnavailableView`; inline title + cancellation ✕ (sheet) |
+| `pages/square/components/cy/post-actions` | `SquareCloudPostActions` (`App/SquareCloudFeedViews.swift`) | title 帖文操作 ✓ · card 1 收藏/取消收藏 + 编辑 and card 2 删除 + 举报 now **two groups** (were one section) · delete danger confirm ✓ | two `Section`s in `.insetGrouped`; destructive roles; sheet detents |
 | `pages/square/components/cy/post-drafts` | `CYSquarePostDraftsSheet` (`App/DesignSystem`) | re-scan: 草稿 title + ✕ ✓ · loading skeleton ✓ · rows avatar, name, date, summary, trash ✓ · 只有 N 条草稿 ✓ · empty 还没有草稿 + sub ✓ — no change needed | — |
 
 ## Not done

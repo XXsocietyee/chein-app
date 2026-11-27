@@ -236,13 +236,14 @@ struct SquareCloudPostActions: View {
                         .foregroundStyle(.secondary)
                         .accessibilityIdentifier("square.cloud.actions.empty")
                 } else {
-                    Section {
-                        ForEach(items) { item in
-                            Button(role: item.isDanger ? .destructive : nil) { select(item.id) } label: {
-                                Label { Text(verbatim: item.title) } icon: { Image(systemName: item.systemImage) }
-                            }
-                            .accessibilityIdentifier(item.identifier)
-                        }
+                    // MP `.pa-card` x2: 收藏 / 编辑 in the first group, 删除 / 举报 in the second.
+                    let plain = items.filter { !$0.isDanger }
+                    let danger = items.filter { $0.isDanger }
+                    if !plain.isEmpty {
+                        Section { ForEach(plain) { item in actionRow(item) } }
+                    }
+                    if !danger.isEmpty {
+                        Section { ForEach(danger) { item in actionRow(item) } }
                     }
                 }
             }
@@ -275,6 +276,13 @@ struct SquareCloudPostActions: View {
         }
         .presentationDetents([.medium, .large])
         .accessibilityIdentifier("square.cloud.actions")
+    }
+
+    private func actionRow(_ item: ActionItem) -> some View {
+        Button(role: item.isDanger ? .destructive : nil) { select(item.id) } label: {
+            Label { Text(verbatim: item.title) } icon: { Image(systemName: item.systemImage) }
+        }
+        .accessibilityIdentifier(item.identifier)
     }
 
     private func select(_ id: String) {
