@@ -532,7 +532,9 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     @ViewBuilder private func pageHeader(club: ClubRecord, tabs: ClubDetailTabPolicy, tab: ClubDetailTab,
                                          facts: (meta: String, raw: String, channels: Bool, content: ClubDetailPageContent?)) -> some View {
         Section {
-            ClubDetailHeader(club: club, memberText: facts.meta, content: facts.content)
+            ClubDetailHeader(club: club, memberText: facts.meta, content: facts.content,
+                             people: club.canSeeMembers ? r8Mounts.memberAvatars.map { CYFacePile.Person(id: $0.id, name: $0.name, url: $0.url) } : [],
+                             peopleTotal: r8Mounts.memberTotal)
                 .listRowInsets(EdgeInsets())
         }
         if let actionCoordinator {
@@ -704,6 +706,9 @@ private struct ClubDetailHeader: View {
     let club: ClubRecord
     let memberText: String
     let content: ClubDetailPageContent?
+    /// Design pass P6: members the viewer may see (MP 成员 strip), shown as faces beside the meta line.
+    var people: [CYFacePile.Person] = []
+    var peopleTotal: Int = 0
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
     @ScaledMetric(relativeTo: .title) private var bannerHeight: CGFloat = 160  // CLB-detail-37: MP cover-wrap 160
@@ -752,6 +757,12 @@ private struct ClubDetailHeader: View {
                             Text(verbatim: metaLine).font(.subheadline).foregroundStyle(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
                                 .accessibilityIdentifier("club.detail.fact.memberCount")
+                        }
+                        if !people.isEmpty {
+                            // P6 people present + P2 live: the "+N" rolls when the member total changes.
+                            CYFacePile(people: people, total: max(peopleTotal, people.count))
+                                .transition(.opacity)
+                                .accessibilityIdentifier("club.detail.header.people")
                         }
                     }
                     Spacer(minLength: 0)

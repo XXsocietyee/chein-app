@@ -568,7 +568,7 @@ private struct MessagingBubble: View {
                     let stamp = ChatDisplay.stamp(message.createdAt)
                     Text(verbatim: stamp).font(.caption).foregroundStyle(.secondary)
                 }
-                MessagingMessageContent(message: message).foregroundStyle(.primary)
+                MessagingMessageContent(message: message, inTranscript: true).foregroundStyle(.primary)
                     .fixedSize(horizontal: false, vertical: true)
                 IMRecipientPreviewRow(message: message, input: recipientPreview)
             }
@@ -600,7 +600,7 @@ private struct MessagingBubble: View {
                 }
             } content: {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    MessagingMessageContent(message: message)
+                    MessagingMessageContent(message: message, inTranscript: true)
                     IMRecipientPreviewRow(message: message, input: recipientPreview)
                 }
             }

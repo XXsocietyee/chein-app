@@ -102,13 +102,23 @@ import SwiftUI
             if !flow.incoming.isEmpty {
                 Section {
                     ForEach(flow.incoming) { item in
-                        VStack(alignment: .leading) {
-                            row(item)
-                            HStack {
-                                action("friend.accept", .accept, item)
-                                action("friend.reject", .reject, item)
-                            }
+                        // Design pass P11: a friend request is a small invite card (who + their note) with one
+                        // prominent yes and a quieter no. Both still open the existing review step.
+                        let name = item.displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+                        CYInviteCard(symbol: "person.badge.plus", tint: .accentColor,
+                                     kicker: Text("comp.social.invite.friend"),
+                                     title: Text(verbatim: name.isEmpty ? "—" : name),
+                                     note: item.message,
+                                     people: [CYFacePile.Person(id: String(item.peerID), name: name, url: nil)]) {
+                            CYInviteAnswers(primary: Text(verbatim: localized("friend.accept")), primaryDisabled: !flow.canWrite,
+                                            onPrimary: { flow.reviewAction(.accept, item: item) },
+                                            secondary: Text(verbatim: localized("friend.reject")), secondaryIsDestructive: true,
+                                            secondaryDisabled: !flow.canWrite,
+                                            onSecondary: { flow.reviewAction(.reject, item: item) },
+                                            primaryIdentifier: "friend.\(NativeFriendAction.accept.rawValue).\(item.peerID)",
+                                            secondaryIdentifier: "friend.\(NativeFriendAction.reject.rawValue).\(item.peerID)")
                         }
+                        .accessibilityIdentifier("friend.row.\(item.peerID)")
                     }
                 } header: { Text("d7.friends.received \(flow.incoming.count)", tableName: "NativeFriend") }
             }
@@ -366,7 +376,8 @@ import SwiftUI
                     }
                 }
             } icon: {
-                Image(systemName: "person.crop.circle.fill")
+                // Design pass P6: a person reads as a face (initials until the source has an avatar), not a glyph.
+                CYAvatarView(name: name.isEmpty ? "—" : name, size: .sm)
                     .accessibilityHidden(true)
             }
             if item.starred == 1 {

@@ -16,6 +16,8 @@ extension EnvironmentValues {
     let makeFlow: @MainActor (NativeFriendTeamInviteMode) -> NativeFriendTeamInviteFlow?
     @State private var flow: NativeFriendTeamInviteFlow?
     @Environment(\.scenePhase) private var phase
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     var body: some View {
         Group {
             if let flow {
@@ -60,23 +62,31 @@ extension EnvironmentValues {
                     }
                     ForEach(flow.offers) { offer in
                         Section {
-                            VStack(alignment: .leading, spacing: Theme.Space.s1) {
-                                Text(verbatim: offer.name).cyText(.sectionTitle).fixedSize(horizontal: false, vertical: true)
-                                if let inviter = offer.inviter { Text("d7.teamInvite.invitedBy \(inviter.displayName)").foregroundStyle(.secondary) }
-                                Text(offerStateKey(offer.state)).cyText(.label).foregroundStyle(.secondary)
-                            }
-                            if case .offer = mode {
-                                if offer.canAct {
+                            // Design pass P11 / P6: the offer reads as an invite card (what · who · state) and the
+                            // recipient answers on the card. Each answer still opens the existing review step below.
+                            CYInviteCard(symbol: "person.3.fill", tint: Theme.Color.accent(in: domain),
+                                         kicker: Text("comp.social.invite.team"),
+                                         title: Text(verbatim: offer.name.isEmpty ? "—" : offer.name),
+                                         facts: [CYInviteFact(symbol: offerStateSymbol(offer.state), text: offerStateText(offer.state))],
+                                         people: offer.inviter.map { [CYFacePile.Person(id: String($0.peerID), name: $0.displayName, url: nil)] } ?? []) {
+                                if let inviter = offer.inviter { Text("d7.teamInvite.invitedBy \(inviter.displayName)").font(.subheadline).foregroundStyle(.secondary) }
+                                if case .offer = mode, offer.canAct {
                                     if offer.recipient {
-                                        Button { flow.prepare(offer, action: "FRIEND_CONFIRM") } label: { Text(LocalizedStringKey(offer.joinMode == 2 ? "d7.teamInvite.requestJoin" : "d7.teamInvite.join")) }
-                                            .disabled(!flow.canWrite || flow.hasPickerReview)
-                                        Button(role: .destructive) { flow.prepare(offer, action: "FRIEND_DECLINE") } label: { Text("d7.teamInvite.decline") }
-                                            .disabled(!flow.canWrite || flow.hasPickerReview)
+                                        CYInviteAnswers(primary: Text(LocalizedStringKey(offer.joinMode == 2 ? "d7.teamInvite.requestJoin" : "d7.teamInvite.join")),
+                                                        primaryDisabled: !flow.canWrite || flow.hasPickerReview,
+                                                        onPrimary: { flow.prepare(offer, action: "FRIEND_CONFIRM") },
+                                                        secondary: Text("d7.teamInvite.decline"), secondaryIsDestructive: true,
+                                                        secondaryDisabled: !flow.canWrite || flow.hasPickerReview,
+                                                        onSecondary: { flow.prepare(offer, action: "FRIEND_DECLINE") },
+                                                        showsLater: flow.reviewContext == nil, onLater: { dismiss() })
                                     } else {
                                         Button(role: .destructive) { flow.prepare(offer, action: "FRIEND_REVOKE") } label: { Text("d7.teamInvite.revoke") }
+                                            .buttonStyle(.bordered).buttonBorderShape(.capsule)
                                             .disabled(!flow.canWrite || flow.hasPickerReview)
                                     }
                                 }
+                            }
+                            if case .offer = mode {
                                 if offer.state == "JOINED", let id = Int(offer.teamID), id > 0 {
                                     NavigationLink { SessionTeamDetailView(lookup: .id(id)) } label: { Text("d7.teamInvite.viewTeam") }
                                 }
@@ -110,7 +120,18 @@ extension EnvironmentValues {
         .privacySensitive()
         .tint(Theme.Color.accent(in: domain))
     }
-    private func offerStateKey(_ state: String) -> LocalizedStringKey {
+    private func offerStateText(_ state: String) -> String {
+        appLocalized(String.LocalizationValue(offerStateRawKey(state)), locale: locale)
+    }
+    private func offerStateSymbol(_ state: String) -> String {
+        switch state {
+        case "WAITING_CONFIRM", "PENDING_REVIEW": return "clock"
+        case "JOINED": return "checkmark.circle"
+        case "DECLINED", "REJECTED", "REVOKED", "WITHDRAWN": return "xmark.circle"
+        default: return "minus.circle"
+        }
+    }
+    private func offerStateRawKey(_ state: String) -> String {
         switch state {
         case "WAITING_CONFIRM": return "d7.teamInvite.state.waiting"
         case "PENDING_REVIEW": return "d7.friendInvite.state.pendingReview"
