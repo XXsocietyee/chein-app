@@ -757,12 +757,13 @@ extension MPParityBindings {
     private func reload() async {
         guard let session else { phase = .failed; return }
         if session.mpViewerIsMerchant { phase = .merchant; return }
-        guard let reader = session.makePlatformPassReader(), let token = session.passReadToken() else {
+        // MP market/membership loads the plans for a guest as well; 购买 asks to sign in (`ensureLoginFor`).
+        guard let reader = session.makePlatformPassReader() else {
             phase = .failed
             return
         }
         do {
-            let overview = try await reader.overview(token: token, viewerIsMerchant: false)
+            let overview = try await reader.overview(token: session.passReadToken(), viewerIsMerchant: false)
             if overview.merchantBlocked { phase = .merchant; return }
             if !overview.enabled { phase = .notEnabled; return }
             phase = .ready(MPParityBindings.membershipContent(overview))

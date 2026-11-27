@@ -1297,6 +1297,22 @@
         }
       }
     },
+    "titleSave.notFound": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This save wasn't found yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂未查到这次保存"
+          }
+        }
+      }
+    },
     "titleSave.unknown": {
       "localizations": {
         "en": {

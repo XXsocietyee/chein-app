@@ -34,7 +34,7 @@ final class RoamOfficialTasksFlowTests: XCTestCase {
     }
     func testSourceKeywordHasRealNoResultsState() {
         let app = app(); XCTAssertTrue(app.buttons["roam.tasks.event.71"].waitForExistence(timeout: 10))
-        let field = app.textFields["roam.tasks.search"]; field.tap(); field.typeText("no-match")
+        let field = app.searchFields.firstMatch; field.tap(); field.typeText("no-match")
         XCTAssertTrue(element("roam.tasks.empty", app).waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["roam.tasks.event.71"].exists)
         XCTAssertFalse(element("roam.tasks.error", app).exists)

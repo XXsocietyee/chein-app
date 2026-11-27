@@ -198,6 +198,8 @@ struct CityDeedCard: View {
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
     @ScaledMetric(relativeTo: .caption) private var bandHeight: CGFloat = 32
+    /// a11y-dt r3: the initial grows with Dynamic Type instead of clipping in a fixed 22 pt circle.
+    @ScaledMetric(relativeTo: .caption) private var ownerAvatar: CGFloat = 22
 
     private var copy: CityCopy { CityCopy(locale: locale) }
     private var unlit: Bool { place.ownership == .fogged }
@@ -388,7 +390,7 @@ struct CityDeedCard: View {
     private func avatar(_ letter: String, mine: Bool) -> some View {
         Text(verbatim: letter).cyText(.caption, weight: .bold)
             .foregroundStyle(mine ? CityTokens.bandInk : palette.textPrimary)
-            .frame(width: 22, height: 22)
+            .frame(width: ownerAvatar, height: ownerAvatar)
             .background(mine ? CityTokens.mine : palette.bgRaised, in: Circle())
             .accessibilityHidden(true)
     }

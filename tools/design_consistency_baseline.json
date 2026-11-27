@@ -107,6 +107,7 @@
       "raw colour": "brand tint token definition (light/dark), the palette itself"
     },
     "App/RoamBrowserView.swift": {
+      "custom search": "漫游 browser map mode: Maps-style search field pinned inside the persistent results sheet over the live map; list mode uses system .searchable (RoamBrowserView searchable modifier)",
       "list style": "map mode only: results list in the panel over the full-screen map (map chrome); list mode stays the standard list"
     },
     "App/RoamLiveSessionView.swift": {

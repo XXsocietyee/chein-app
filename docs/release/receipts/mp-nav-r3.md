@@ -53,6 +53,13 @@ Audited, unchanged (allowed by the rule): hidden nav bar only in live roam / fre
 | pages/topic/index/index → session picker / self-play form (MP popups) | topic bar 选择场次 / 自己玩 | sheets with `[.half, .full]` detents | OK |
 | pages/club/detail/index → member list (MP `expandMembers`, in-page) | 查看成员 | sheet `[.medium, .large]` | OK |
 | pages/club/detail/index → settings panel (MP cset popup, wxml:663-797) | toolbar gear | sheet `[.medium, .large]`; rows push the MP pages (customers / enroll / event-ops / roles / settlement) | OK |
+| pages/roam/index → pages/userinfo/userinfo, subpackageB/pages/im/chat (runnerOpenProfile / runnerSayHi, navigateTo) | 漫游工具 runner row → RoamRunnerDetailView 看 TA 的漫游 / 打个招呼 | `NavigationLink` + `navigationDestination(item:)` pushes (RoamRunnerDetailView.swift) | OK (re-scan 11-27 pm) |
+| pages/topic/index/index → subpackageRoam/my-teams (openTeamLobby), pages/club/detail + pages/userinfo (onLineupTap), subpackageMember/market/pass (onCheckoutPass) | 组队 card, lineup rows, self-play checkout pass rows | `NavigationLink` pushes (TopicTeamsCard.swift:37, TopicXcxSections.swift:584, MPPassEntries.swift:111 inside the checkout sheet stack) | OK |
+| pages/topic/index/index → pages/publish/fabu (owner 编辑, navigateTo) | topic bar 编辑 (owner, productType 2) | full-detent sheet with its own stack: an editor with discard state, kept modal like every native editor (OWNER RULE 2 popups vs pages); flagged, not changed | open |
+| pages/activity/official-detail → pages/roam/index (goRoam, switchTab + globalData eventId) | 去漫游完成 / 去点亮 | `RoamOfficialEventHandoff.hand(eventID:missionCode:)` then `rootTabSwitch(.roam)` (OfficialOrganizerConsoleView.swift:589/629) | OK |
+| pages/activity/list → official-mine / official-inbox (goMine / goInbox, navigateTo) | 我发布的 / 邀约 (top-right, no WeChat capsule) | `NavigationLink` pushes (OfficialEventsBrowserView.swift:82/86) | OK |
+| pages/club/detail → badges / notify / governance / coop list / customer-detail / club topic-detail / userinfo (navigateTo) | club page rows and settings rows | `NavigationLink` / `navigationDestination` pushes (ClubDetailView.swift:197-474); 成员 stays a sheet (MP in-page expand) | OK |
+| pages/play/index → subpackageP3/pages/badge-3d (openBadge3d) | — | MP `openBadge3d` is bound in no `.wxml` (dead in MP), so the unrouted badge-3d page below is correct | n/a |
 
 ## External entries → MP page (deep links, universal links, notifications, widgets, Siri)
 
@@ -69,8 +76,8 @@ MP: a page opened from outside (share card, subscribe message, scan) launches as
 | merchant pages, team / merchant invitations, door, badge showroom, unsupported route error | entry sheet | unchanged: invitation / door are MP landing flows with their own sign-in step; merchant out of scope (keeps its discard confirmation); errors keep 返回首页 | OK |
 | link arrives while consent gate or a tab-level sheet (设置, 合作, 票夹) is open | sheet stacked on top | waits, like chein:// links, until the gate / sheet closes, then lands (`onChange` of `hasBlockingSheet` / `consentActive`) | fixed |
 | signed-out launch from a link | sheet over Welcome | `browsingAsGuest = true` (same as the error view's 返回首页), page keeps its own sign-in gate | fixed |
-
-Known gap: `pages/talent/list/index?tab=feed` switches to 俱乐部 but does not preselect the 帖文 sub-tab (the tab root has no external sub-tab input yet).
+| local play-window reminder (PlayAdvancedView 提醒我, `AppleLocalReminderProvider`) | userInfo had no `page` key, so a tap only opened the app where it was | adds `page = pages/topic/index/index?id=<topicID>` (topic id from the reminder identifier `activityID.topicID.nodeID`); the tap routes through `MPNotificationTapRouter` and lands as the topic pushed on 首页 like a subscribe-message page | fixed |
+| `pages/talent/list/index?tab=feed` (帖文 share card, MP index.js:289-290 onLoad) | switched to 俱乐部 but stayed on the 俱乐部 top tab | switches to 俱乐部 and selects the 帖文 top tab via `ClubHomeView.requestedTopTab` (applied once, cleared; QuestifyApp `deepLinkClubTopTab`); `?tab=club` selects 俱乐部 | fixed |
 
 ## Route coverage
 

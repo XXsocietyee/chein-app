@@ -479,9 +479,21 @@
     "extractionState": "manual",
     "localizations": {
       "en": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "%lld shops"
+        "variations": {
+          "plural": {
+            "one": {
+              "stringUnit": {
+                "state": "translated",
+                "value": "%lld shop"
+              }
+            },
+            "other": {
+              "stringUnit": {
+                "state": "translated",
+                "value": "%lld shops"
+              }
+            }
+          }
         }
       },
       "zh-Hans": {
@@ -498,7 +510,49 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "%1$lld chapters · %2$lld shops"
+          "value": "%#@chapter@ · %#@shop@"
+        },
+        "substitutions": {
+          "chapter": {
+            "argNum": 1,
+            "formatSpecifier": "lld",
+            "variations": {
+              "plural": {
+                "one": {
+                  "stringUnit": {
+                    "state": "translated",
+                    "value": "%arg chapter"
+                  }
+                },
+                "other": {
+                  "stringUnit": {
+                    "state": "translated",
+                    "value": "%arg chapters"
+                  }
+                }
+              }
+            }
+          },
+          "shop": {
+            "argNum": 2,
+            "formatSpecifier": "lld",
+            "variations": {
+              "plural": {
+                "one": {
+                  "stringUnit": {
+                    "state": "translated",
+                    "value": "%arg shop"
+                  }
+                },
+                "other": {
+                  "stringUnit": {
+                    "state": "translated",
+                    "value": "%arg shops"
+                  }
+                }
+              }
+            }
+          }
         }
       },
       "zh-Hans": {
@@ -736,7 +790,29 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "%1$lld shops · %2$lld redeemed"
+          "value": "%#@shop@ · %2$lld redeemed"
+        },
+        "substitutions": {
+          "shop": {
+            "argNum": 1,
+            "formatSpecifier": "lld",
+            "variations": {
+              "plural": {
+                "one": {
+                  "stringUnit": {
+                    "state": "translated",
+                    "value": "%arg shop"
+                  }
+                },
+                "other": {
+                  "stringUnit": {
+                    "state": "translated",
+                    "value": "%arg shops"
+                  }
+                }
+              }
+            }
+          }
         }
       },
       "zh-Hans": {
@@ -1008,7 +1084,29 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Session ended · you finished %1$lld/%2$lld stops"
+          "value": "Session ended · you finished %1$lld/%#@stop@"
+        },
+        "substitutions": {
+          "stop": {
+            "argNum": 2,
+            "formatSpecifier": "lld",
+            "variations": {
+              "plural": {
+                "one": {
+                  "stringUnit": {
+                    "state": "translated",
+                    "value": "%arg stop"
+                  }
+                },
+                "other": {
+                  "stringUnit": {
+                    "state": "translated",
+                    "value": "%arg stops"
+                  }
+                }
+              }
+            }
+          }
         }
       },
       "zh-Hans": {
@@ -1176,9 +1274,21 @@
     "extractionState": "manual",
     "localizations": {
       "en": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "%lld stops"
+        "variations": {
+          "plural": {
+            "one": {
+              "stringUnit": {
+                "state": "translated",
+                "value": "%lld stop"
+              }
+            },
+            "other": {
+              "stringUnit": {
+                "state": "translated",
+                "value": "%lld stops"
+              }
+            }
+          }
         }
       },
       "zh-Hans": {
