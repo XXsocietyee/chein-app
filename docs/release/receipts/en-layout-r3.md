@@ -89,6 +89,16 @@ Merged `origin/ui/combined-r7` (conflict `LoginView.swift`: kept the "Chein" Voi
 |---|---|---|---|---|
 | 37 | Remaining raw server timestamps on player screens: bundle reviews (`BundleReviewListView.swift`), club feed post (`ClubGovernanceFeedPostView.swift`), club roster "Joined …" (`ClubPublicRosterView.swift`), club join requests "Requested …" (`ClubManagementView.swift`, 2 rows), coupon used time (`CouponCodeView.swift`), free-explore story archive "Visited …" (`FreeExplorationViews.swift`, `NativeR2/FreeExplore/NativeFreeExploreMapView.swift`) | English showed "2026-10-02 12:00:00" as the server sent it | `LocaleDisplay.civil(_, locale:)` (same helper as rows 14/23): English "Oct 2, 2026 at 12:00 PM"; Chinese and unparsable text unchanged (MP parity). Text only, no layout/order change | Done |
 
+### Run 8 (2026-11-27, hourly)
+
+Merged `origin/ui/combined-r7` (clean). Sweep build bb76e327c (20:45Z) en sheets: roam, home, mine, club, journey. Row 30 confirmed (search chips English in `en-d2-search`), row 31 confirmed (`en-t5-order-center`), rows 21/24 still good. Roam en (`en-d2-roam`, `en-d6-roam`, `en-e2-stamp-album`, `en-e5b-stamp`): no English layout problem.
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 38 | `subpackagePass` free-explore pass catalog store row → `FreeExploreBundleLaunchView.swift:198`; native bundle detail store row → `NativeR2/FreeExplore/NativeFreeExploreBundleDetailView.swift:131`; swap-merchant targets → `BundleExitSwapView.swift:92` | `en-t5-free-explore`: store validity read raw "2026-12-31" | `LocaleDisplay.civil(_, locale:)` → "Dec 31, 2026"; Chinese keeps the MP text. Text only, no order/layout change. `BundleMerchantStallView` is not mounted (doc comment); not touched | Done |
+| 39 | `pages/topic/index` 场次 session chip (`周X M.D HH:mm`) → `TopicXcxSections.swift` `TopicXcxSessionChip` (topic detail activity rows, `TopicDetailView.swift:476`) | English read "Sat 12.6 14:00" (M.D reads as a decimal, 24 h clock) | English: one locale-formatted string "Sat, Dec 6 · 2:00 PM" (China wall time, time omitted at 00:00 as the MP does). Chinese keeps the MP three-part text; Core `sessionChip` and its tests unchanged | Done |
+| 40 | `pages/publish/*` activity publish wizard draft chip ("Saved · HH:mm") → `PublishingModesViews.swift` `draftTimestampNow` → `ActivityPublishingWizardView.swift:117` | English showed a 24 h "19:30" | English: locale short time "7:30 PM"; Chinese keeps the MP `HH:mm` | Done |
+
 ## Not done
 
 | Item | Why |
@@ -97,7 +107,7 @@ Merged `origin/ui/combined-r7` (conflict `LoginView.swift`: kept the "Chein" Voi
 
 
 ## Next pages (no row yet)
-Re-check rows 23, 30, 31, 37 in the next sweep once this branch is integrated; then publish (`pages/template/*`) and roam English sheets.
+Re-check rows 23, 37–40 in the next sweep once this branch is integrated; then publish (`pages/template/*`) and roam English sheets.
 
 ## For other lanes
 - mp-activity: Square fixture post text "A synthetic city walk / 一次示例城市漫步" (`Core/SquareSyntheticFixtures.swift`, shared with Core tests) shows Chinese in English (`en-d2-square`).
