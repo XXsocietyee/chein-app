@@ -74,7 +74,7 @@ import SwiftUI
                 }
             }
             if model.busy {
-                ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("officialAction.working"))
+                ProgressView { Text("officialAction.working") }.frame(maxWidth: .infinity)
                 // R7-PC-C5-2 (MP official-inbox/index.wxml:32): the inbox card's polite busy line while the write runs.
                 if noticeTitleKey != nil {
                     Text("official.inbox.submitting").font(.caption).foregroundStyle(.secondary)

@@ -19,7 +19,7 @@ import SwiftUI
         Form {
           if navigation.isCurrentPackageVisit(route) {
             switch browser.phase {
-            case .idle, .loading: ProgressView().frame(maxWidth: .infinity).accessibilityLabel(packageText("loading")).accessibilityIdentifier("workshopOwned.package.loading")
+            case .idle, .loading: ProgressView { packageText("loading") }.frame(maxWidth: .infinity).accessibilityIdentifier("workshopOwned.package.loading")
             case .unavailable: packageText("unavailable").fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("workshopOwned.package.unavailable")
             case .failed, .invalidated:
                 packageText(browser.issue == .staleSession ? "sessionChanged" : "error").fixedSize(horizontal: false, vertical: true)

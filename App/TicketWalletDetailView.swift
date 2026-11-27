@@ -34,7 +34,7 @@ import SwiftUI
             if !reader.isAuthenticated { TicketWalletIssueView(issue: .login) }
             else if !reader.isConfigured { TicketWalletIssueView(issue: .notConfigured) }
             else if model.isLoading || model.loadedOwner != key {
-                ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("ticketWallet.loading"))
+                ProgressView { Text("ticketWallet.loading") }.frame(maxWidth: .infinity)
             }
             else if let issue = model.issue(owner: key) {
                 TicketWalletIssueView(issue: issue, retry: { schedule(offeredPresentation) })

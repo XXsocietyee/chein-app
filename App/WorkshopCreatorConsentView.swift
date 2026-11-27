@@ -42,7 +42,7 @@ import SwiftUI
             Section {
                 Text(creatorString("workshopCreator.boundary")).foregroundStyle(.secondary)
             }
-            if controller.phase == .loading || controller.phase == .submitting { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text(verbatim: creatorString("workshopCreator.loading"))) }
+            if controller.phase == .loading || controller.phase == .submitting { ProgressView { Text(verbatim: creatorString("workshopCreator.loading")) }.frame(maxWidth: .infinity) }
             if let issue = controller.issue { Text(creatorString(issueKey(issue))).foregroundStyle(.red).accessibilityIdentifier("workshopCreator.issue") }
             if let pending = controller.pending {
                 Section(creatorString("workshopCreator.request")) { Text(verbatim: pending.requestId).font(.footnote).textSelection(.enabled) }
