@@ -80,6 +80,7 @@ match is a queue item (133 at the start). Tab roots first, then their pushed pag
 | 城市大富翁 附近列表 failed / empty (`CityRoamRootView`) | MP cy-error · 重试 / cy-empty | `ContentUnavailableView` with a separate `CYPillButton` 重试 / 选择区域 below it | `CityEmptyLine` takes an optional action: one `ContentUnavailableView` with its `.bordered` 重试 (Retry) / 选择区域 (Choose area) inside |
 | Hand-built loading rows → labelled `ProgressView`: 我的 identity card (`MemberHomeHeader`), club quick start (`ClubSessionQuickStartView`), role view (`JourneyRoleViewSection`), city fairness (`CityFairnessView`), 关于 player code (`SettingsAboutView`) | MP cy-skeleton / 加载中 | `HStack(ProgressView + Text)`, text-only loading, or text + skeleton | one `ProgressView { <same words> }` |
 | More `HStack(ProgressView + Text)` page loaders: IM compose, bundle redeem, report peer, order meeting point, bundle review compose | MP cy-skeleton / 加载中 | spinner beside a grey footnote | one `ProgressView { <same words> }` (in-button “submitting” spinners left as button content) |
+| `CYPhaseView` / `CYListChoreography` / `CYLoadSlot` (shared phase loader) | page loading words | `CYLoadingStateView` + VoiceOver-only `loadingLabel` | `CYLoadingStateView(label: loadingLabel)` — the caller's words are on screen |
 
 ## For other lanes
 
