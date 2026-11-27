@@ -47,6 +47,16 @@ Audited, unchanged (allowed by the rule): hidden nav bar only in live roam / fre
 | profile → pages/shezhi/shezhi (navigateTo) | 我的 top-right 设置 | sheet kept: SettingsView's profile/favorites route owners retire on `onDisappear`, so hosting it as a push would retire them on every sub-push. Needs an owner-lifetime change first (coordinator) | open |
 | profile → subpackageMember/points-history, assetcenter/earnings (钱包), stamp-album, badge-wall, im/list | 我的 rows | `navigationDestination(isPresented:)` pushes with pushed chrome | OK |
 | profile → points help (MP popup) | 积分 ⓘ | `.cySheet` with `[.medium, .large]` detents | OK |
+| pages/topic/index/index → subpackageMember/signup/index (票, navigateTo) | topic bottom bar 我的票 | `.cySheet` half/full with bar hero zoom (TopicDetailView.swift:128) | open — MP page shown as a half sheet; left because the bar's matched hero transitions are built on sheets |
+| pages/topic/index/index → pages/topic/pricing/index (navigateTo) | topic bar 定价 (owner) | sheet half/full (TopicDetailView.swift:626) | open — same reason |
+| pages/topic/index/index → pages/play/index (navigateTo) | topic bar 开始 | `navigationDestination(isPresented: $showingPlay)` push | OK |
+| pages/topic/index/index → session picker / self-play form (MP popups) | topic bar 选择场次 / 自己玩 | sheets with `[.half, .full]` detents | OK |
+| pages/club/detail/index → member list (MP `expandMembers`, in-page) | 查看成员 | sheet `[.medium, .large]` | OK |
+| pages/club/detail/index → settings panel (MP cset popup, wxml:663-797) | toolbar gear | sheet `[.medium, .large]`; rows push the MP pages (customers / enroll / event-ops / roles / settlement) | OK |
+
+## Route coverage
+
+All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScreen cases or `MPParityDestination`), except dev/util pages with no player control: `pages/playkit/index/index`, `pages/publishkit/index/index` (kit galleries), `pages/crop/index` (MP image crop; native uses the system photo editor), `subpackageP3/pages/badge-3d/index` (native badge wall detail).
 
 ## Pins updated
 
