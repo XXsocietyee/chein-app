@@ -21,7 +21,8 @@ import XCTest
         XCTAssertEqual(Adapt2MerchantTopicRoute.legacyReplacements["api/merchant/insight"]?.rawValue, "api/ai/merchant/insight")
         XCTAssertEqual(Adapt2MerchantTopicRoute.legacyReplacements["api/merchant/poi/detail"]?.rawValue, "api/merchant/public-detail")
         XCTAssertEqual(Adapt2MerchantTopicRoute.legacyReplacements["api/merchant/shop/apply"]?.rawValue, "api/merchant/merchant_registration")
-        XCTAssertEqual(Adapt2MerchantTopicRoute.legacyReplacements["api/topic/detail"]?.rawValue, "api/topic/info-to-user")
+        // Round 3 contract cleanup: the dead api/topic/detail literal is dropped; topic reads call .topicInfoToUser directly.
+        XCTAssertNil(Adapt2MerchantTopicRoute.legacyReplacements["api/topic/detail"])
         XCTAssertEqual(Adapt2MerchantTopicRoute.legacyReplacements["api/merchant/npc/voice/revoke"]?.rawValue, "api/merchant/npc/voice/reset")
         for legacy in Adapt2MerchantTopicRoute.legacyReplacements.keys {
             XCTAssertNil(Adapt2MerchantTopicRoute(rawValue: legacy))
