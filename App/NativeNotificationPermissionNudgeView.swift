@@ -9,7 +9,7 @@ import SwiftUI
         Form {
             Section {
                 if model.busy {
-                    ProgressView().frame(maxWidth: .infinity)
+                    CYLoadingState()
                         .accessibilityLabel(Text("d7.notifyPermission.title"))
                         .accessibilityIdentifier("notification.permission.busy")
                 }

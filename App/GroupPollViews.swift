@@ -147,7 +147,7 @@ import SwiftUI
                         TextField("poll.optionPrompt", text: $options[index], axis: .vertical).focused($focused)
                             .accessibilityIdentifier("poll.option.\(index)")
                         if options.count > 2 {
-                            Button { options.remove(at: index) } label: { Image(systemName: "minus.circle") }
+                            Button { options.remove(at: index) } label: { Image(systemName: "minus.circle").frame(minWidth: 44, minHeight: 44).contentShape(Rectangle()) }
                                 .buttonStyle(.borderless).accessibilityLabel(Text("poll.removeOption"))
                                 .accessibilityIdentifier("poll.remove.\(index)")
                         }

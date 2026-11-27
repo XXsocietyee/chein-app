@@ -6,6 +6,8 @@ struct RoamItemDetailView: View {
     let reader: any RoamReading
     let mediaScope: UUID
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
+    /// mp-nav r3: false when pushed (a poi-detail link landed on 首页): no nested stack, system back instead of 关闭.
+    private let embedsNavigationStack: Bool
     @State private var originatingIdentity: RoamReadIdentity?
     private let stampDestination: (() -> AnyView)?
     private let posterDestination: ((RoamNodeDetail) -> AnyView)?
@@ -40,7 +42,8 @@ struct RoamItemDetailView: View {
     @State private var generation = 0
     @StateObject private var poiActionModel = RoamPOIActionModel()
     @Environment(\.roamPOIActions) private var poiActions
-    init(item: RoamMapItem, reader: any RoamReading, mediaScope: UUID = UUID(), makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil, stampDestination: (() -> AnyView)? = nil, posterDestination: ((RoamNodeDetail) -> AnyView)? = nil, eventDestination: ((RoamEventDestination) -> AnyView)? = nil, playerProfileDestination: ((Int) -> AnyView)? = nil, couponWalletDestination: (() -> AnyView)? = nil) {
+    init(item: RoamMapItem, reader: any RoamReading, mediaScope: UUID = UUID(), makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil, stampDestination: (() -> AnyView)? = nil, posterDestination: ((RoamNodeDetail) -> AnyView)? = nil, eventDestination: ((RoamEventDestination) -> AnyView)? = nil, playerProfileDestination: ((Int) -> AnyView)? = nil, couponWalletDestination: (() -> AnyView)? = nil, embedsNavigationStack: Bool = true) {
+        self.embedsNavigationStack = embedsNavigationStack
         self.stampDestination = stampDestination; self.posterDestination = posterDestination; self.eventDestination = eventDestination; self.playerProfileDestination = playerProfileDestination
         self.couponWalletDestination = couponWalletDestination
         _originatingReaderID = State(initialValue: ObjectIdentifier(reader)); _originatingArea = State(initialValue: reader.searchArea)
@@ -89,7 +92,7 @@ struct RoamItemDetailView: View {
     }
     var body: some View {
         let offeredReadVisit = eventPresentationID, offeredReadKey = readKey
-        NavigationStack {
+        RoamItemDetailStack(embedded: embedsNavigationStack) {
             ZStack {
                 if scenePhase != .active { Color.clear }
                 else if !reader.isConfigured { RoamStatusView(issue: .notConfigured) }
@@ -147,7 +150,9 @@ struct RoamItemDetailView: View {
                 }
             }
             .toolbar {
-                ToolbarItem(placement: .confirmationAction) { Button("roam.close") { merchantRetry.cancel(); dismiss() } }
+                if embedsNavigationStack {
+                    ToolbarItem(placement: .confirmationAction) { Button("roam.close") { merchantRetry.cancel(); dismiss() } }
+                }
                 // RPOI-4 (r10; MP subpackageRoam/poi-detail/index.js:52-66 onShareAppMessage): share the loaded place
                 // as the reviewed universal link (docs/release/aasa.json lists /subpackageRoam/poi-detail/index).
                 // design-r2-roam (P15): the share now sits in the place header's pill row (`placeHeader`).
@@ -581,5 +586,14 @@ private struct RoamItemDetailTitle: ViewModifier {
     @ViewBuilder func body(content: Content) -> some View {
         // RPOI-r11-1: pre-load title is 据点详情 (MP subpackageRoam/poi-detail/index.json:3).
         if let name { content.cyPageTitle(verbatim: name) } else { content.cyPageTitle("roam.detail.title") }
+    }
+}
+
+/// Own stack when shown as the map's place sheet; none when pushed onto a tab stack.
+private struct RoamItemDetailStack<Content: View>: View {
+    let embedded: Bool
+    @ViewBuilder var content: Content
+    var body: some View {
+        if embedded { NavigationStack { content } } else { content }
     }
 }

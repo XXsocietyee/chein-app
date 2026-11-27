@@ -65,7 +65,7 @@ and `#Preview { ... }` blocks; comments are ignored) and counts, per file:
                   Capsule())`). Native r2 status words have no capsule chrome: use `CYStatusChip(_:tone:)` (footnote
                   `Label`, system tone colour) like its 249 call sites
   silent spinner  a bare `ProgressView()` stretched as the page / section loader (`.frame(maxWidth: .infinity` on the
-                  next line) outside App/DesignSystem: P10 "say what's happening in words, never a spinner alone".
+                  same or the next line) outside App/DesignSystem: P10 "say what's happening in words, never a spinner alone".
                   Use `CYLoadingState(_:messageIdentifier:)` (system `ProgressView` with the MP loading words)
 
 Build-break guards (module-wide: App/ and Core/ compile into ONE module, so every file is scanned, merchant and
@@ -137,6 +137,7 @@ SILENT_SPINNER = 'silent spinner'
 # One loading pattern (P10): a page loader shows its words; `CYLoadingState` is the system ProgressView with a label.
 SILENT_SPINNER_PATTERN = re.compile(r'^\s*ProgressView\(\)\s*$')
 SILENT_SPINNER_FRAME = re.compile(r'^\s*\.frame\(maxWidth:\s*\.infinity')
+SILENT_SPINNER_INLINE = re.compile(r'\bProgressView\(\)\s*\.frame\(maxWidth:\s*\.infinity')
 DUPLICATE_TYPE = 'duplicate type'
 UNDECLARED_STATE = 'undeclared state'
 KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, CUSTOM_BACK, BUTTON_STYLE, POPUP_SCRIM,
@@ -339,7 +340,8 @@ def scan_file(rel, text):
             hits.append((number, CUSTOM_TABS, code.strip()))
     if not design_system:
         for index, (number, code) in enumerate(lines):
-            if SILENT_SPINNER_PATTERN.match(code) and index + 1 < len(lines) and SILENT_SPINNER_FRAME.match(lines[index + 1][1]):
+            if (SILENT_SPINNER_PATTERN.match(code) and index + 1 < len(lines) and SILENT_SPINNER_FRAME.match(lines[index + 1][1])) \
+                    or SILENT_SPINNER_INLINE.search(code):
                 hits.append((number, SILENT_SPINNER, code.strip()))
         for index, (number, code) in enumerate(lines):
             if not LEADING_PLACEMENT.search(code):

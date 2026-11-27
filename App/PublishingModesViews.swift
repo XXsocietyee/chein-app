@@ -1135,7 +1135,7 @@ struct ActivityPublishingTimeRangeDraft {
                     if isCollaborator {
                         ProgressView { Text("publishModes.collaborator.loading") }.frame(maxWidth: .infinity)
                     } else {
-                        ProgressView().frame(maxWidth: .infinity)
+                        CYLoadingState()
                     }
                 }
                 if failed {
@@ -1200,7 +1200,7 @@ struct ActivityPublishingTimeRangeDraft {
     var body: some View {
         NavigationStack {
             List {
-                if busy { ProgressView().frame(maxWidth: .infinity) }
+                if busy { CYLoadingState() }
                 if failed || provider == nil { Text("publishModes.mapUnavailable").foregroundStyle(CYColor.dangerText) }
                 if let selected {
                     Map(initialPosition: .region(.init(center: .init(latitude: selected.latitude, longitude: selected.longitude), span: .init(latitudeDelta: 0.01, longitudeDelta: 0.01)))) {

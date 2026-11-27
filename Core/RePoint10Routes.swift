@@ -19,7 +19,6 @@ public enum RePoint10Routes {
     public static let table: [RePoint10Mapping] = {
         func gap(_ p: String) -> RePoint10Mapping { .init(iosPath: p, productionMethod: nil, productionPath: nil, encoding: nil, status: .trueGap) }
         return [
-            .init(iosPath: "/api/topic/detail", productionMethod: "POST", productionPath: "/api/topic/info-to-user", encoding: "form", status: .repointed),
             .init(iosPath: "/api/ugc/block", productionMethod: "POST", productionPath: "/api/im/block", encoding: "form", status: .repointed),
             .init(iosPath: "/api/user/sms/send", productionMethod: "POST", productionPath: "/api/sms/send", encoding: "form", status: .repointed),
             .init(iosPath: "/api/us/auth/apple/exchange", productionMethod: nil, productionPath: nil, encoding: nil, status: .needsOwner),

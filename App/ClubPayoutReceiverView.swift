@@ -72,7 +72,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
     @ViewBuilder private var content: some View {
         switch state {
         case .loading:
-            Section { ProgressView().frame(maxWidth: .infinity) }.accessibilityIdentifier("payoutReceiver.loading")
+            Section { CYLoadingState() }.accessibilityIdentifier("payoutReceiver.loading")
         case .empty:
             // CLB-r7-D-04 (fix-r3-club-b): MP 还没有自己的俱乐部 offers 创建俱乐部.
             Section {
@@ -221,7 +221,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                 PayoutAreaClosedNote()
             } else {
                 switch state {
-                case .loading: Section { ProgressView().frame(maxWidth: .infinity) }
+                case .loading: Section { CYLoadingState() }
                 case .empty:
                     Section { ClubMPEmptyState(title: Text("clubSettlement.empty", tableName: "PayoutReceiver"), messageIdentifier: "clubSettlement.mine.empty") }
                 case .failed(let issue):
@@ -290,7 +290,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                 PayoutAreaClosedNote()
             } else {
                 switch state {
-                case .loading: Section { ProgressView().frame(maxWidth: .infinity) }
+                case .loading: Section { CYLoadingState() }
                 case .empty: Section { ClubMPEmptyState(title: Text("clubSettlement.empty", tableName: "PayoutReceiver")) }
                 case .failed(let issue):
                     Section {
@@ -476,7 +476,7 @@ struct ClubPayoutReceiverLink: View {
             } else {
                 Section {
                     switch state {
-                    case .loading, .empty: ProgressView().frame(maxWidth: .infinity)
+                    case .loading, .empty: CYLoadingState()
                     case .failed:
                         HStack {
                             Text("directLedger.failed", tableName: "PayoutReceiver").foregroundStyle(.secondary)
