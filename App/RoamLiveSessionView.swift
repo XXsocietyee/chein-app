@@ -97,6 +97,9 @@ import QuestifyCore
     @State private var sessionDetent: PresentationDetent = .fraction(0.3)
     /// ROAM-r11-3: the place marker the player tapped.
     @State private var selectedPlaceID: Int?
+    /// ROAM-r11-1: the official event carried in from 去漫游 (MP onLoad `eventId` / `missionCode`).
+    @ObservedObject private var officialHandoff = RoamOfficialEventHandoff.shared
+    @Environment(\.roamOfficialArrival) private var officialArrival
     init(controller: RoamLiveSessionController, offlineExample: Bool = false, localHistoryReader: (any RoamExperienceReading)? = nil, albumMetadataReader: RoamAlbumMetadataReader? = nil, browsePresentation: RoamPausedBrowsePresentation? = nil) {
         self.offlineExample = offlineExample; self.localHistoryReader = localHistoryReader; self.albumMetadataReader = albumMetadataReader
         _browse = StateObject(wrappedValue: browsePresentation ?? RoamPausedBrowsePresentation())
@@ -269,9 +272,19 @@ import QuestifyCore
                 .accessibilityIdentifier("roam.live.map")
         }
     }
+    /// ROAM-r11-1: MP 官方活动 · 到达验证 overlay, shown only in an event context.
+    @ViewBuilder private var officialArrivalSection: some View {
+        if let deps = officialArrival, let target = officialHandoff.target {
+            RoamOfficialArrivalSection(deps: deps, target: target, sessionID: owner.record?.sessionID, fix: owner.lastFix,
+                                       finished: owner.phase == .finished,
+                                       explored: (owner.record?.distanceMeters ?? 0) > 0 || !(owner.record?.confirmedPOIIDs.isEmpty ?? true),
+                                       onClose: { officialHandoff.clear() })
+        }
+    }
     private var sessionList: some View {
         List {
             if owner.phase != .unavailable { hud }
+            officialArrivalSection
             if offlineExample { RoamExperienceNotice(offline: true) }
             if model.syncStatus.isOffline {
                 Section {

@@ -162,7 +162,9 @@ public struct OfficialActionSnapshot: Equatable {
         case .signup(let id):
             guard let event, event.id == id, event.signed == false, !event.paused, [2, 3].contains(event.status ?? -1) else { throw OfficialActionFailure.forbidden }
         case .complete(let id):
-            guard let event, event.id == id, event.signed == true, !event.paused, event.status == 3, !event.isV2, !event.roamEnabled else { throw OfficialActionFailure.forbidden }
+            // ROAM-r11-1: roam-bound V1 events complete after the walk (MP pages/roam/index.js:4884-4890); the detail
+            // page still offers 完成 only for non-roam V1 events (OfficialParticipationActions.command).
+            guard let event, event.id == id, event.signed == true, !event.paused, event.status == 3, !event.isV2 else { throw OfficialActionFailure.forbidden }
         case .arrival(let evidence):
             guard let event, event.id == evidence.eventID, event.isV2, event.signed == true, event.status == 3, !event.paused,
                   evidence.identity == identity, evidence.expiresAt > now,

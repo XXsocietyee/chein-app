@@ -312,14 +312,14 @@ struct SessionRootView: View {
                         .themeDomain(.player)
                         .environment(\.cyTabBarVisibility, roamTabBarVisibility)
         } else {
-                    SessionCityRoamRoot(liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost)) },
+                    SessionCityRoamRoot(liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost).environment(\.roamOfficialArrival, RoamOfficialArrivalDeps(reader: session.officialEventReader, actions: session.officialActionCoordinator))) },
                                         passportDestination: { AnyView(roamBrowser) }, onChooseArea: { showsAreaPicker = true })
                         .environment(\.cyTabBarVisibility, roamTabBarVisibility)
         }
     }
 
     private var roamLiveDestination: AnyView {
-        AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost))
+        AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost).environment(\.roamOfficialArrival, RoamOfficialArrivalDeps(reader: session.officialEventReader, actions: session.officialActionCoordinator)))
     }
 
     private func roamEventDestination(_ target: RoamEventDestination) -> AnyView {
@@ -369,7 +369,7 @@ struct SessionRootView: View {
 
     /// The shipped roam page (走起, 漫游护照, tools). Owner Q9: the 漫游 root is the map; this page opens from it.
     @ViewBuilder private var roamBrowser: some View {
-                    RoamBrowserView(reader:session.roamReader,nearbyEventsReader:session.roamNearbyEventsReader,nearbyPlayersReader:session.roamNearbyPlayersReader,onChooseArea:{ showsAreaPicker=true },onOpenAccount:{ openAccountOrSignIn() },experienceReader:session.roamExperienceReader, albumMetadataReader:session.roamAlbumMetadataReader, tileMemoryReader:session.roamTileMemoryReader, sessionFactReader:session.roamSessionFactReader, cityDestination: { AnyView(SessionCityPlayerView()) }, territoryDestination: { AnyView(SessionRoamTerritoryView()) }, nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView().environment(\.nearbyTeamsSignIn, { requestSignIn() })) }, stampDestination: { AnyView(SessionRoamStampCameraView()) }, liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost)) }, posterDestination: { AnyView(SessionRoamPosterView(node: $0)) }, eventDestination: { target in
+                    RoamBrowserView(reader:session.roamReader,nearbyEventsReader:session.roamNearbyEventsReader,nearbyPlayersReader:session.roamNearbyPlayersReader,onChooseArea:{ showsAreaPicker=true },onOpenAccount:{ openAccountOrSignIn() },experienceReader:session.roamExperienceReader, albumMetadataReader:session.roamAlbumMetadataReader, tileMemoryReader:session.roamTileMemoryReader, sessionFactReader:session.roamSessionFactReader, cityDestination: { AnyView(SessionCityPlayerView()) }, territoryDestination: { AnyView(SessionRoamTerritoryView()) }, nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView().environment(\.nearbyTeamsSignIn, { requestSignIn() })) }, stampDestination: { AnyView(SessionRoamStampCameraView()) }, liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost).environment(\.roamOfficialArrival, RoamOfficialArrivalDeps(reader: session.officialEventReader, actions: session.officialActionCoordinator))) }, posterDestination: { AnyView(SessionRoamPosterView(node: $0)) }, eventDestination: { target in
                         switch target {
                         case .activity(let id): return AnyView(ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true))
                         case .topic(let id): return AnyView(SessionTopicDetailView(id: id, session: session))
