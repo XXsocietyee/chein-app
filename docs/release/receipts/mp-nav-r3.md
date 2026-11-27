@@ -132,6 +132,7 @@ Test: Tests/CoreTests/IMExpandedTests.swift `testSystemCardMiniProgramPagesOpen`
 |---|---|---|---|
 | pages/login (MP 微信一键登录 is the WeChat runtime's own; app login) → App/LoginView.swift + App/WeChatAppAuthSection.swift (`login-player` zh-Hans) | a disabled 微信登录 row plus 微信登录暂不可用 / 这项功能还没开通 shown to every CN player while the SDK is not wired (dead control, OWNER RULE 2) | `WeChatAppAuthCoordinator.isOffered` (gate open + SDK adapter + exchange service, Core/WeChatAppAuth.swift); the section renders only when offered (or mid-authorization). Apple / 手机号 entries unchanged. UI test `WeChatAppAuthFlowTests` now asserts the row is absent offline | fixed |
 | same screen, `这项功能还没开通` / "This isn't switched on yet." row (LoginView.swift:146) | shown only when `session.isConfigured` is false (no API base URL: design fixtures / unconfigured dev builds); a Release build always has a backend, so players never see it | kept as the dev/fixture notice | OK (verified) |
+| subpackageB/pages/im/list/index → `d2-inbox` fixture (App/MessagingFixtureSupport.swift, sheet-zh-Hans) | conversation names read "Fixture conversation N" in the Chinese UI (19:50: fixture data follows the UI language) | names are 示例会话 N / Sample conversation N by UI language | fixed |
 
 ## Route coverage
 
