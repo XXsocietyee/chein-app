@@ -1,8 +1,8 @@
 import SwiftUI
 
 /// `ROAM-9a/9b`: in-session roam 更多 tools (MP pages/roam/index.wxml roam-settings scene), as a system `Form` sheet.
-/// - 附近正在走的人: rows from `POST /api/roam/nearby-runners` (pages/roam/index.js:2827-2842). There is no greet
-///   request in the MP, so there is no greet button.
+/// - 附近正在走的人: rows from `POST /api/roam/nearby-runners` (pages/roam/index.js:2827-2842). ROAM-r11-4: a row opens
+///   the runner (`openRunner`, :2905) with 打个招呼 (`POST /api/im/start`, then the chat) and 看 TA 的漫游 (TA 的主页).
 /// - 迷雾: `RoamFogPreference` (`roam_fog_off`, stored true = fog off).
 /// - 地图样式: `FreeMapKind` (`cy_map_kind`: 白 / 黑 / 纸本 / 2077), not the MapKit standard / satellite picker.
 /// - 减少动态效果: `PlayReducedMotionPreference` (writes `play_reduced_motion` and legacy `roam_reduced_motion`,
@@ -16,6 +16,7 @@ struct RoamSessionToolsSheetView: View {
     @Binding var reduceMotion: Bool
     var onOpenLocationSettings: (() -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.roamRunnerActions) private var runnerActions
 
     var body: some View {
         NavigationStack {
@@ -27,7 +28,13 @@ struct RoamSessionToolsSheetView: View {
                         Text("roamTools.runners.empty").foregroundStyle(.secondary)
                             .accessibilityIdentifier("roamTools.runners.empty")
                     } else {
-                        ForEach(runners) { runner in runnerRow(runner) }
+                        ForEach(runners) { runner in
+                            if let runnerActions {
+                                NavigationLink { RoamRunnerDetailView(runner: runner, actions: runnerActions) } label: { runnerRow(runner) }
+                            } else {
+                                runnerRow(runner)
+                            }
+                        }
                     }
                 } header: {
                     Text("roamTools.runners.section")
