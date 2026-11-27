@@ -154,6 +154,9 @@ Next scan (hand-made search fields → `.searchable` / one filter-row pattern):
   list style / custom sheet / custom tabs 0), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
   Self-test: the pre-fix `PlayKitQuestoViews` (scrim + `.isModal`), `CollectionAlbumViews` and `MPParityKit` (chip tab
   rows) and `CityTerritoryNoticeCard` (page button style) each fail the checker at the replaced lines.
+- Continue run 2 (00867f18f, merged combined-r7): `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint`
+  PASS (0 new), `check_design_consistency` PASS (0 debt, 63 allowed; duplicate type 0, undeclared state 0, font design
+  0), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
 - Continue run 3 (e0bd7724b, merged combined-r7): `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint`
   PASS (0 new), `check_design_consistency` PASS (0 debt, 63 allowed), `contract_ratchet --check` 52 failing, baseline
   52, **new 0**.
