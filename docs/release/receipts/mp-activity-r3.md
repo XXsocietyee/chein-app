@@ -52,6 +52,8 @@ Gates (each push): generate_project ok · scaffold PASS · a11y PASS (0 new) · 
 | `pages/square/components/cy/post-actions` | `SquareCloudPostActions` (`App/SquareCloudFeedViews.swift`) | title 帖文操作 ✓ · card 1 收藏/取消收藏 + 编辑 and card 2 删除 + 举报 now **two groups** (were one section) · delete danger confirm ✓ | two `Section`s in `.insetGrouped`; destructive roles; sheet detents |
 | `pages/square/components/cy/post-drafts` | `CYSquarePostDraftsSheet` (`App/DesignSystem`) | re-scan: 草稿 title + ✕ ✓ · loading skeleton ✓ · rows avatar, name, date, summary, trash ✓ · 只有 N 条草稿 ✓ · empty 还没有草稿 + sub ✓ — no change needed | — |
 
+Re-scan (fourth session, no change needed): `subpackagePass/components/cy-frames` is the decorative key animation inside `PassRevealView` (covered by the reveal row); `pages/square/components/cy/popover` is a generic anchor bubble (native `Menu`s); `pages/square/components/route-map` is rendered by `SquareCloudRouteMap`. Every MP page in this lane's area now has a row; next runs work the Not done list.
+
 ## Not done
 - Attendance (player): Apple Maps gets the stored WGS84 point (MP converts to GCJ-02 for `wx.openLocation`); organizer 联系与签到配置 form (duty phones, window, public-confirm switch, scan, recovery 查询原结果 / 原请求重试 / 终止 / 确认归档) lives in `OfficialOrganizerConsoleView`, not in this section.
 - Square completion card: 探店 (`shopText`) has no backend field; 查看全部 N 条评论 line not added (the comment section sits right under it). Refused team reads have no server message in `TeamFailure`, so 邀请已失效 is the fixed fallback copy.
