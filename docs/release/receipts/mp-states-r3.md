@@ -74,6 +74,7 @@ match is a queue item (133 at the start). Tab roots first, then their pushed pag
 | `CYLoadingStateView(...).accessibilityLabel(Text(key))` sites (18: nearby, team, session nearby, IM, roam …) | page loading words | visible 加载中… while VoiceOver read a different page key | `CYLoadingStateView(label:)` — the page key is the visible label and the spoken one |
 | `CYSkeleton(...).accessibilityLabel(Text(key))` sites (48: roam hub, cooperation, play kits, mod installation, roam share …) | page loading words | visible 加载中… while VoiceOver read the page key | `CYSkeleton(label:)` — the page key is shown and spoken |
 | Skeleton + separate words pairs (growth leaderboard, poster scan, NPC log delete) | MP cy-skeleton with loading-label | `CYSkeleton` stacked over its own footnote (now would read twice) | one `ProgressView { <the same words> }` |
+| Not-set-up / disabled states drawn with the offline glyph: 通票核销结果 (`BundleRedeemResultView`), 通票退订 (`BundleCancelView`), 本周统计 (`ProfileWeeklyPointsSection`) | `components/cy/empty` kind offline is only for a lost connection; these are disabled / not-configured reads | `ContentUnavailableView` with `wifi.slash` (tells the player their network is down when it is not); redeem title 核销结果暂不可用 (banned tone phrase) | `exclamationmark.circle` glyph, same as the shared not-set-up state; redeem title 暂时看不到核销结果。 (en unchanged) |
 
 ## For other lanes
 
