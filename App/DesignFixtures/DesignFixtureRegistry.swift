@@ -48,7 +48,7 @@ enum DesignFixtureRegistry {
         case "e5b-checkin": return AnyView(E5bMomentFixture(kind: .checkIn))
         case "e5b-badge-wall": return AnyView(E5bBadgeWallFixture())
         case "a11y-roam-ax5": return AnyView(A11yRoamAX5Fixture())
-        case "a11y-badges-ax5": return AnyView(A11yPassportAX5Fixture())
+        case "a11y-badges-ax5": return AnyView(A11yBadgesAX5Fixture())
         case "a11y-passport-ax5": return AnyView(A11yPassportAX5Fixture())
         case "e5b-join": return AnyView(E5bJoinFixture())
         // Activity detail collapse (W3-3): synthetic ActivityFixtureReader data, pinned pill on.
