@@ -124,7 +124,7 @@ enum BundlePayResultPresentation: Equatable {
     @ViewBuilder private var details: some View {
         if presentation == .processing {
             Section {
-                ProgressView().frame(maxWidth: .infinity)
+                CYLoadingState()
             }
         } else {
             Section {

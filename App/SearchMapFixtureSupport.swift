@@ -247,8 +247,19 @@ enum SearchMapFixtureKeywords {
 /// pinned English values the UI tests read.
 enum SearchMapFixtureLanguage {
     static var isChinese: Bool { Locale.preferredLanguages.first?.hasPrefix("zh") == true }
+    /// mp-home r3 (continue 9, 20:45 sweep d2-search / d2-search-results en): the design fixture shows real-looking
+    /// names instead of "Synthetic …"; UI-test runs (no `--design-fixture`) keep the pinned English values.
+    static var isDesignFixture: Bool { ProcessInfo.processInfo.arguments.contains("--design-fixture") }
     static func rowTitle(_ kind: GlobalSearchKind) -> String {
-        guard isChinese else { return "Synthetic \(kind.rawValue)" }
+        guard isChinese else {
+            guard isDesignFixture else { return "Synthetic \(kind.rawValue)" }
+            switch kind {
+            case .topic: return "Lantern Night Walk"
+            case .activity: return "Lantern Market Tour"
+            case .club: return "Old Town Walkers"
+            case .merchant: return "Lantern Tea House"
+            }
+        }
         switch kind {
         case .topic: return "示例主题"
         case .activity: return "示例活动"
@@ -257,10 +268,15 @@ enum SearchMapFixtureLanguage {
         }
     }
     static func rowDetail(_ keyword: String) -> String {
-        isChinese ? "离线示例 · \(keyword)" : "Offline \(keyword)"
+        if isChinese { return isDesignFixture ? "老城 · \(keyword)" : "离线示例 · \(keyword)" }
+        return isDesignFixture ? "Old Town · \(keyword)" : "Offline \(keyword)"
     }
     static func categories(_ json: String) -> String {
-        guard isChinese else { return json }
+        guard isChinese else {
+            guard isDesignFixture else { return json }
+            return json.replacingOccurrences(of: "Synthetic culture", with: "Culture")
+                .replacingOccurrences(of: "Synthetic outdoors", with: "Outdoors")
+        }
         return json.replacingOccurrences(of: "Synthetic culture", with: "人文")
             .replacingOccurrences(of: "Synthetic outdoors", with: "户外")
     }

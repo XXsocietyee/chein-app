@@ -140,7 +140,7 @@ struct SquarePostVideoComposerSection: View {
             case .policyUnavailable:
                 Label("square.video.policyUnavailable", systemImage: "video.slash").accessibilityIdentifier("square.video.policyUnavailable")
             case .empty: Text("square.video.empty").foregroundStyle(.secondary)
-            case .working: ProgressView().frame(maxWidth: .infinity)
+            case .working: CYLoadingState()
             case .failed:
                 Label { Text("square.video.failed") } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.red) }
                     .accessibilityIdentifier("square.video.failed")

@@ -71,7 +71,24 @@ struct LoginView: View {
                     // Asked here only when the launch agreement was declined (P-008: consent is asked once).
                     UsageConsentSignInRequirement(market: session.operationalMarket, granted: $consentGranted)
                 }
-                // L1 P-006: Sign in with Apple is on the first screen, Apple's own button.
+                Section {
+                    Button {
+                        session.weChatAuth.cancel(); password=""; path.append(.phone)
+#if DEBUG
+                        recordIntegratedLoginPhase("other_action")
+#endif
+                    } label: {
+                        Label(LocalizedStringKey(session.operationalMarket == .china ? "auth.channels.phoneTitle" : "auth.channels.title"), systemImage: "iphone")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .modifier(LoginOtherChannelsStyle(prominent: !showsPasswordForm))
+                    .disabled(working || !consentGranted)
+                    .accessibilityIdentifier("auth.otherChannels")
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                }
+                // L1 P-006: Sign in with Apple is on the first screen, Apple's own button, under phone sign-in (20:55 sweep);
+                // gated channels render nothing (P27).
                 if consentGranted && model.coordinator.appleConfigurationVerified {
                     Section {
                         appleButton(model)
@@ -86,22 +103,6 @@ struct LoginView: View {
                             .accessibilityIdentifier("auth.channels.error")
                         }
                     }
-                }
-                Section {
-                    Button {
-                        session.weChatAuth.cancel(); password=""; path.append(.phone)
-#if DEBUG
-                        recordIntegratedLoginPhase("other_action")
-#endif
-                    } label: {
-                        Label(LocalizedStringKey(session.operationalMarket == .china ? "auth.channels.phoneTitle" : "auth.channels.title"), systemImage: "iphone")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .modifier(LoginOtherChannelsStyle(prominent: !showsPasswordForm && !model.coordinator.appleConfigurationVerified))
-                    .disabled(working || !consentGranted)
-                    .accessibilityIdentifier("auth.otherChannels")
-                    .listRowInsets(EdgeInsets())
-                    .listRowBackground(Color.clear)
                 }
                 if session.operationalMarket == .china && consentGranted {
                     WeChatAppAuthSection(coordinator: session.weChatAuth, context: session.authChannelSnapshot)
@@ -142,11 +143,6 @@ struct LoginView: View {
                 } else if session.operationalMarket != .china {
                     Section {
                         Text("region.usLoginPending").foregroundStyle(.secondary).accessibilityIdentifier("region.auth.pending")
-                    }
-                }
-                if !session.isConfigured {
-                    Section {
-                        Label("auth.notConfigured",systemImage:"info.circle").foregroundStyle(.secondary)
                     }
                 }
                 if !showsPasswordForm, let key = shownErrorKey {

@@ -432,6 +432,7 @@ typealias PlayKitAccusationWrite = (String) -> Void
     @State private var openClue: Int?
     /// a11y-dt r3: the initial grows with Dynamic Type instead of clipping in a fixed 52 pt circle.
     @ScaledMetric(relativeTo: .title3) private var suspectInitial: CGFloat = 52
+    @ScaledMetric(relativeTo: .largeTitle) private var confirmInitial: CGFloat = 72
     @State private var unavailable = false
     @QuestifyReduceMotion private var reduceMotion
     @Environment(\.locale) private var locale
@@ -603,7 +604,7 @@ typealias PlayKitAccusationWrite = (String) -> Void
     private func confirmPanel(_ suspect: PlayKitAccusationProjection.Suspect) -> some View {
         PlayKitCenteredPanel(dismiss: { confirmOpen = false }) {
             Text(verbatim: suspect.initial).cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)
-                .frame(width: 72, height: 72).background(Circle().fill(CYColor.bgRaised)).accessibilityHidden(true)
+                .frame(width: confirmInitial, height: confirmInitial).background(Circle().fill(CYColor.bgRaised)).accessibilityHidden(true)
             let name = suspect.name.isEmpty ? appLocalized("playkit.accusation.someone", locale: locale) : suspect.name
             Text(verbatim: appLocalized("playkit.accusation.confirmTitle \(name)", locale: locale))
                 .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)

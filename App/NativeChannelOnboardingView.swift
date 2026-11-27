@@ -54,7 +54,7 @@ import SwiftUI
                     Section {
                         if let confirmed = flow.confirmed { notice(confirmed, symbol: "checkmark.circle.fill", tone: .green) }
                         if let issue = flow.issue { notice(issue, symbol: "exclamationmark.circle", tone: .red) }
-                        if flow.busy { ProgressView().frame(maxWidth: .infinity) }
+                        if flow.busy { CYLoadingState() }
                     }
                 }
                 if flow.pending != nil {

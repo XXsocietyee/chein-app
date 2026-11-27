@@ -177,15 +177,14 @@ import SwiftUI
             // PC-D-2-1: the mode cards keep their 去看看 (MP switchTab to 首页 / 漫游).
             SocialPlayGuideView(reader: session.socialAccountReader,
                                 onOpenDestination: rootTabSwitch.isAvailable ? { destination in
-                                    session.dismissNativeEntry()
-                                    rootTabSwitch(destination == .roam ? .roam : .home)
+                                    leaveForTab(destination == .roam ? .roam : .home)
                                 } : nil,
                                 templateReader: session)
             .socialGuideSessionCatalog(session)
             // R7-PC-D2-1: 去发布广场 / 更多玩法 leave this entry for the 发布 tab, like the mode cards.
+            // mp-nav r3: MP switchTab closes the page, so the landed push pops too (leaveForTab).
             .environment(\.rootTabSwitch, rootTabSwitch.isAvailable ? RootTabSwitch { tab in
-                session.dismissNativeEntry()
-                rootTabSwitch(tab)
+                leaveForTab(tab)
             } : .unavailable)
         case "subpackageA/pages/infomationdetail/infomationdetail":
             if let id = reviewedID(query) {

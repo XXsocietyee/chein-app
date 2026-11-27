@@ -1,7 +1,7 @@
 #if DEBUG
 import SwiftUI
 
-@MainActor final class SquareFixtureReader: SquareReading {
+@MainActor final class SquareFixtureReader: SquareReading, SquareOfflineNoteHiding {
     enum Scenario: String { case content, empty, failure, unauthorized, unconfigured, unavailable, partial, pageFailure, invalidCursor, delayed, relatedTopic, relatedCommunity, relatedUnavailable, relatedMissing }
     let scenario: Scenario
     /// Design fixtures (`d2-square`) show posts in the UI language; UI tests keep the Core synthetic posts.
@@ -9,6 +9,7 @@ import SwiftUI
     let scope = UUID()
     var isConfigured: Bool { scenario != .unconfigured }
     var isOfflineExample: Bool { true }
+    var hidesOfflineExampleNote: Bool { designLocalized }
     var isSignedIn: Bool { false }
     private var feedPageFailed = false
     private var commentsFailed = false

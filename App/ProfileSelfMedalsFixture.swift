@@ -7,7 +7,7 @@ import Observation
     var presentationRevision: UInt64 = 1
     var scope = UUID()
     var isConfigured = true
-    let isOfflineExample = true
+    var isOfflineExample = true
     var isSignedIn: Bool { identity.accountID != nil }
     func publicProfile(memberID:Int) async throws -> SocialPublicProfile {
         try JSONDecoder().decode(SocialPublicProfile.self,from:Data("{\"id\":\(memberID),\"nickname\":\"Synthetic medal owner\"}".utf8))
@@ -53,6 +53,8 @@ import Observation
     init(scenario:String="content", showsTestControls:Bool=true) {
         self.showsTestControls=showsTestControls
         let social=ProfileSelfMedalsFixturePublicReader(),reader=ProfileSelfMedalsFixtureReader(scenario)
+        // The design sweep is an online player screen: no offline banner (UI tests keep the offline example).
+        social.isOfflineExample=showsTestControls
         if scenario == "guest" { social.identity = .init(accountID:nil,epoch:1);reader.identity=nil }
         self.social=social;self.reader=reader;memberID=scenario == "other" ? 92 : 81
     }
