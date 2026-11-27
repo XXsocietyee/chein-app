@@ -101,6 +101,7 @@ import QuestifyCore
     @ObservedObject private var officialHandoff = RoamOfficialEventHandoff.shared
     @Environment(\.roamOfficialArrival) private var officialArrival
     @Environment(\.roamPresenceVisibility) private var roamPresenceVisibility
+    @Environment(\.roamClearLocal) private var roamClearLocal
     init(controller: RoamLiveSessionController, offlineExample: Bool = false, localHistoryReader: (any RoamExperienceReading)? = nil, albumMetadataReader: RoamAlbumMetadataReader? = nil, browsePresentation: RoamPausedBrowsePresentation? = nil) {
         self.offlineExample = offlineExample; self.localHistoryReader = localHistoryReader; self.albumMetadataReader = albumMetadataReader
         _browse = StateObject(wrappedValue: browsePresentation ?? RoamPausedBrowsePresentation())
@@ -159,7 +160,7 @@ import QuestifyCore
         .sheet(isPresented: $showTools) {
             RoamSessionToolsSheetView(runners: runners, presenceEnabled: owner.presenceEnabled,
                                       fogOn: fogOnBinding, mapKind: mapKindBinding, reduceMotion: reducedMotionBinding,
-                                      onSetPresence: presenceSwitch)
+                                      onSetPresence: presenceSwitch, onClearLocal: roamClearLocal)
         }
         .sheet(isPresented: $showingLocationPriming, onDismiss: {
             guard locationPrimingAllowed else { return }

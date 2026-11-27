@@ -6208,6 +6208,8 @@ final class AppSession: ObservableObject {
     private lazy var roamHistoryStore = RoamHistoryStore(storage: RoamHistoryKeychainStorage(), currentScope: { [weak self] in
         self?.currentRoamExperienceSession?.identity.scope
     })
+    /// ROAM-r11-6: the same store, for 清空本机缓存.
+    var roamHistoryStoreForClear: RoamHistoryStore { roamHistoryStore }
     lazy var roamExperienceReader = RoamExperienceSessionReader(service: roamExperienceService, store: roamHistoryStore,
         localJournal: RoamLiveJournal(storage: RoamHistoryKeychainStorage()),
         currentSession: { [weak self] in self?.currentRoamExperienceSession }, onUnauthorized: { [weak self] captured in

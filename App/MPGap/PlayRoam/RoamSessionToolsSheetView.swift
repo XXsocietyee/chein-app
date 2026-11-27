@@ -21,6 +21,11 @@ struct RoamSessionToolsSheetView: View {
     @State private var presenceSubmitting = false
     @State private var presenceConsentShown = false
     @State private var presenceFailed = false
+    /// ROAM-r11-6: 清空本机缓存 (MP pages/roam/index.js:5637-5651). Nil hides the row.
+    var onClearLocal: (@MainActor () -> Bool)? = nil
+    @Environment(\.socialRoamCapabilities) private var capabilities
+    @State private var clearAsk = false
+    @State private var clearResult: LocalizedStringKey?
     @Environment(\.dismiss) private var dismiss
     @Environment(\.roamRunnerActions) private var runnerActions
 
@@ -62,6 +67,21 @@ struct RoamSessionToolsSheetView: View {
                         .accessibilityIdentifier("roamTools.reduceMotion")
                 }
 
+                if let onClearLocal {
+                    Section {
+                        Button("roamTools.clearCache", role: .destructive) { clearAsk = true }
+                            .accessibilityIdentifier("roamTools.clearCache")
+                        if let clearResult {
+                            Text(clearResult).font(.footnote).foregroundStyle(.secondary)
+                        }
+                    }
+                    .confirmationDialog("roamTools.clearCache.confirmTitle", isPresented: $clearAsk, titleVisibility: .visible) {
+                        Button("roamTools.clearCache.confirmAction", role: .destructive) { Task { await clearLocal(onClearLocal) } }
+                    } message: {
+                        Text("roamTools.clearCache.confirmMessage")
+                    }
+                }
+
                 if let onOpenLocationSettings {
                     Section("roamTools.permissions.section") {
                         Button("roamTools.locationSettings", action: onOpenLocationSettings)
@@ -99,6 +119,16 @@ struct RoamSessionToolsSheetView: View {
         } message: {
             Text("roamTools.presence.disclosure")
         }
+    }
+
+    /// MP order: keep the revoke mark first, wipe the local copy, then revoke shared footprint links.
+    private func clearLocal(_ clear: @MainActor () -> Bool) async {
+        if let capabilities { RoamShareRevokePending.mark(true, accountID: capabilities.accountID) }
+        guard clear() else { clearResult = "roamTools.clearCache.failed"; return }
+        guard let capabilities else { clearResult = "roamTools.clearCache.done"; return }
+        let revoked = await RoamPlayerExtrasService(client: capabilities.client).revokeShareSnapshots()
+        if revoked { RoamShareRevokePending.mark(false, accountID: capabilities.accountID) }
+        clearResult = revoked ? "roamTools.clearCache.done" : "roamTools.clearCache.revokeLater"
     }
 
     private func submit(_ visible: Bool, _ apply: @MainActor (Bool) async -> Bool?) async {

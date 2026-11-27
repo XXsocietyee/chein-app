@@ -327912,6 +327912,57 @@
           }
         }
       }
+    },
+    "roamTools.clearCache.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't clear: storage refused the change."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清不干净，存储读写被拒了"
+          }
+        }
+      }
+    },
+    "roamTools.clearCache.done": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local cache cleared"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已清空本机缓存"
+          }
+        }
+      }
+    },
+    "roamTools.clearCache.revokeLater": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shared footprint links still open; they'll be revoked before your next share."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分享过的足迹链接暂未失效，下次分享前会先作废"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

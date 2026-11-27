@@ -35,7 +35,16 @@ private struct RoamPresenceVisibilityKey: EnvironmentKey {
     static let defaultValue: (@MainActor (Int?, Bool) async -> Bool?)? = nil
 }
 
+/// ROAM-r11-6: wipe this device's settled roam history; false = storage refused.
+private struct RoamClearLocalKey: EnvironmentKey {
+    static let defaultValue: (@MainActor () -> Bool)? = nil
+}
+
 extension EnvironmentValues {
+    var roamClearLocal: (@MainActor () -> Bool)? {
+        get { self[RoamClearLocalKey.self] }
+        set { self[RoamClearLocalKey.self] = newValue }
+    }
     var roamPresenceVisibility: (@MainActor (Int?, Bool) async -> Bool?)? {
         get { self[RoamPresenceVisibilityKey.self] }
         set { self[RoamPresenceVisibilityKey.self] = newValue }
