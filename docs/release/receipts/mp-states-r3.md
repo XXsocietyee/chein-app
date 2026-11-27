@@ -86,6 +86,7 @@ match is a queue item (133 at the start). Tab roots first, then their pushed pag
 | More `HStack(ProgressView + Text)` page loaders: IM compose, bundle redeem, report peer, order meeting point, bundle review compose | MP cy-skeleton / 加载中 | spinner beside a grey footnote | one `ProgressView { <same words> }` (in-button “submitting” spinners left as button content) |
 | `CYPhaseView` / `CYListChoreography` / `CYLoadSlot` (shared phase loader) | page loading words | `CYLoadingStateView` + VoiceOver-only `loadingLabel` | `CYLoadingStateView(label: loadingLabel)` — the caller's words are on screen |
 | Multi-line `ProgressView()` + `.accessibilityLabel(...)` loaders (43 sites in 35 files: club badges / lead progress / terminal, channel views, friend directory / home, ticket wallet focus, ticket pass, square cloud composer / feed, chapter story, member template / score appeal, wallet earnings stages …) | page loading words | spinner with the words for VoiceOver only | `ProgressView { <the same Text> }` — shown and spoken (merchant locality spinner, and the hash-pinned club governance + invitation feedback views, left as is) |
+| Offline banners over saved content (`CYOfflineBanner`, `CYOfflineStrip`) | `components/cy/empty` kind `offline` 网络好像断开了 | 你离线了，先显示已保存的内容 / 当前离线，显示已保存的内容。 (two wordings) | one wording led by the MP title: 网络好像断开了，先显示已保存的内容 (Looks like you’re offline. Showing what’s saved.) |
 
 ## For other lanes
 
