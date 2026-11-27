@@ -290,6 +290,16 @@ Base re-merged with `origin/ui/combined-r7` (xcstrings: both sides' keys kept, b
 
 Gates: generate_project OK · check_scaffold PASS (20911 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 
+## Round 3 continue (20) — 结算 finish record vs MP settle order + P30 result screen
+
+Base re-merged with `origin/ui/combined-r7` (xcstrings: two pure-addition conflicts, both sides kept, 20929 keys). Sweep unchanged (build 8fa84e4d3, reviewed in continue 19); new design principle P30 (result screen) names the roam finish record.
+
+| MP page / scene | Native view | Differences | Status |
+|---|---|---|---|
+| `pages/roam/index` 结算 `screen=='arrive'` (wxml:893–948: `settle__meta` date → `zone · 自由漫游` + ✕ → rule → `settle__big` 处到达 → six `sgc` cells → 这段足迹 → `finish-stamps` → errors → `settle__map` with 查看漫游数据 → bottom `settle__cta` 分享 + `settle__minor` 漫游记录) | `App/RoamFinishReportView.swift` | 1. Route map was the first block (MP: last, after the stamps). 2. Title above the date line (MP: date first). 3. Stamp strip and medals came before 这段足迹 (MP: story then stamps). 4. Share + Done sat in the nav bar, 漫游记录 at the end of the scroll (MP: bottom CTA bar). 5. No success haptic (P30). | **Fixed:** MP order date → title → rule → 处到达 → six cells → 这段足迹 → stamps → (native P8 medal tiles) → map with 查看漫游数据; P30 bottom bar on `.bar`: 分享 `.bordered` capsule beside the primary 完成 `.borderedProminent` capsule, 漫游记录 / 勋章收藏 `.borderless` under them; `.sensoryFeedback(.success)` once when the hero reveals; the existing hero roll-up and medal `symbolEffect(.bounce)` stay (Reduce Motion: no roll). Ids unchanged. MP `roamPrompt` fallback (漫游提示 when no route story) not added: Core settlement has no `roamPrompt` field. No new strings. |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no
