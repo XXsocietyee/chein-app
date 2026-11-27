@@ -11,7 +11,9 @@ import SwiftUI
     @State private var seed: ProjectEditDraft?
     var body: some View {
         NavigationStack {
-            PublishingModesView(service: nil, account: nil, placeSearch: PublishingFixturePlaces(), openProfessional: { seed = $0 }, openResource: { _ in })
+            PublishingModesView(service: nil, account: nil, placeSearch: PublishingFixturePlaces(), openProfessional: { seed = $0 }, openResource: { _ in },
+                                makeProfessional: { product in AnyView(Text(verbatim: product == .city ? "city" : "freeExplore").accessibilityIdentifier("publishModes.fixture.editor")) },
+                                makeTemplateAuthoring: { AnyView(Text(verbatim: "interaction").accessibilityIdentifier("publishModes.fixture.interaction")) })
                 .cySheet(isPresented: Binding(get: { seed != nil }, set: { if !$0 { seed = nil } })) {
                     Group {
                         if let seed { List { Text("Synthetic editor seed; nothing published"); Text(seed.name).accessibilityIdentifier("publishModes.fixture.seed"); Text(seed.preserved["publishMode"] == .string("ai_simple") ? "ai_simple" : "unexpected") } }

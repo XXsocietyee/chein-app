@@ -16,7 +16,9 @@ class TemplateIntroPageReadyContract(unittest.TestCase):
         catalog = json.loads(STRINGS.read_text())
         self.assertEqual(catalog["page"], "pages/publish/template-intro/index")
         self.assertGreaterEqual(len(catalog["strings"]), 12)
-        self.assertGreaterEqual(len(catalog["accessibilityIdentifiers"]), 5)
+        # mp-r3-publish: the MP intro shows covers only (no category caption), so the retired
+        # `creatorIntro.example.category.{index}` left the catalog; four identifiers remain.
+        self.assertGreaterEqual(len(catalog["accessibilityIdentifiers"]), 4)
         for key, entry in catalog["strings"].items():
             self.assertEqual(set(entry), {"en", "zh-Hans"}, key)
             self.assertTrue(entry["en"] and entry["zh-Hans"], key)
@@ -31,9 +33,9 @@ class TemplateIntroPageReadyContract(unittest.TestCase):
             "publishParity.intro.value",
             "creatorIntro.retry",
             "creatorIntro.example.{index}",
-            "creatorIntro.example.category.{index}",
         ):
             self.assertIn(item, identifiers)
+        self.assertNotIn("creatorIntro.example.category.{index}", identifiers)
         for item in catalog["accessibilityIdentifiers"]:
             self.assertEqual(item["locales"], ["en", "zh-Hans"])
 
