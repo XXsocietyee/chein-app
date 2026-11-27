@@ -211,11 +211,11 @@ struct OfficialEventCard: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityElement(children: .combine)
             }
+            // Source card meta (list/index.wxml:66-70): time · city · "N 人参与", then "全城已点亮 N%" — mp-home r3 keeps that order.
+            if let countdown = event.countdown(now: Date()) { OfficialCountdownText(value: countdown, target: event.countdownTarget) }
             if let city = event.city, !city.isEmpty {
                 QuestifyImageEntityMetadata(label: "official.city", value: city, systemImage: "mappin")
             }
-            // Source card meta: countdown · city · "N 人参与", then "全城已点亮 N%".
-            if let countdown = event.countdown(now: Date()) { OfficialCountdownText(value: countdown, target: event.countdownTarget) }
             // Source: "{{participants != null ? n + ' 人' : '—'}}参与"; a missing count is an em dash, never 0.
             if let participants = event.participants { Text("official.card.participants \(participants)") }
             else { Text("official.card.participantsUnknown") }
