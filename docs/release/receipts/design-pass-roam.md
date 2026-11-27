@@ -42,6 +42,14 @@ pulse is off with it. VoiceOver: hero values are one element (label + value); de
 - UI tests that tap a **completed** city stop by `playx.node.<id>` in the live run would now need to open 已完成 first
   (none found by grep; `PlayExperienceFlowTests` use the generic play list).
 
+## Merge notes
+
+- Merged `origin/ui/combined-r7` at `77c566c6c` (i18n r1). Conflict in `RoamLiveSessionView` HUD: the hero keeps the
+  i18n unit switch (`LocaleDisplay.usesMiles` → `unit.mile.abbr` / `roam.live.stat.distance`) as its `unit:`.
+  The roam result's new 公里 cell uses `LocaleDisplay.roadNumber` + the same unit switch.
+- `check_l10n.py` currently FAILS on `App/E1CommerceComponents.swift` (3 CJK literals, baseline 2). That is upstream
+  (file unchanged by this lane); this lane adds no CJK string literals.
+
 ## Strings
 
 Fragment `docs/port/strings/design-pass-roam.json` (8 keys, en + zh-Hans) merged into `Resources/Localizable.xcstrings`.
