@@ -19,7 +19,7 @@ STEPS = [
 ]
 # native r2: quick/prefix/suffix slices re-pinned after the presentation-only native SwiftUI conversion
 # (List/Form/LabeledContent/toolbar replace CY rows/pills; same actions, identifiers and request logic).
-QUICK_SHA = "65a1870d689dc9c181dbfa35be9dbfd925ff93451b78227c90f148fb4856c703"
+QUICK_SHA = "2d7c01f1e09c0bcc0104221960717c25ce0e8f76481b835c88a017d798727485"  # design-r2-play: P4 CYStepProgressHeader section + stepsDone (layout-only; was 65a1870d)
 # fix/r8-player-content: re-pinned for R7-PC-D1-1 (pushed menu 我的项目 → makeProjects) only.
 PREFIX_SHA = "ff668a23c35e84e692473af532ab5b4c51fea425386bfc4fc2142cb528611d0f"  # R9-PC-D1-1: passes makeProjects to the activity form
 SUFFIX_SHA = "52c7c5f642c52f20f97ec5443a52d8bd8cfaae574ed11bb378f3cf5ab22da50c"

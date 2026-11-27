@@ -1153,12 +1153,11 @@ private struct ClubOperationsProfileForm: View {
             // and on step 2 the 已选 n / 3 count at the trailing end.
             Section {
                 VStack(alignment: .leading, spacing: 8) {
-                    ProgressView(value: Double(min(max(createStep, 0), 4)), total: 4)
-                        .accessibilityHidden(true)
-                    Text(verbatim: ClubPlayerCopy.progressLabel(createStep, locale: formLocale))
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .accessibilityIdentifier("club.player.create.progress")
+                    // design-r2-play P4: the shared step header (MP 第n步，共4步 as its title, "n / 4 done" + ring)
+                    // replaces the bare progress bar; the step title and the 已选 n / 3 count below are unchanged.
+                    CYStepProgressHeader(Text(verbatim: ClubPlayerCopy.progressLabel(createStep, locale: formLocale)),
+                                         systemImage: "person.3.fill", done: min(max(createStep - 1, 0), 4), total: 4,
+                                         identifier: "club.player.create.progress")
                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                         Text(verbatim: ClubPlayerCopy.createTitle(step: createStep, locale: formLocale))
                             .font(.title2.bold())
