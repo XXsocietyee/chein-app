@@ -6,11 +6,35 @@ enum E1ActivityAnchor: String, CaseIterable, Hashable {
     case details
 }
 
-/// Poster hero for the activity detail (Template 4): full-bleed cover with bottom scrim,
-/// experience category/status/price chips, bold title, and location/date summary.
+/// Start – end for an activity (same calendar day: the end shows the time only). MP `dateText` source.
+enum E1ActivityWhen {
+    static func text(summary: ActivitySummary, locale: Locale, timeZone: TimeZone) -> String? {
+        let s = QuestifyCardText.date(summary.startDate, locale: locale, displayTimeZone: timeZone)
+        var e = QuestifyCardText.date(summary.endDate, locale: locale, displayTimeZone: timeZone)
+        // Same calendar day: the end shows the time only.
+        let utc = TimeZone(secondsFromGMT: 0)!
+        func parse(_ raw: String?) -> Date? { HomeFeedDate.parse(raw) ?? HomeFeedDate.parse(raw, sourceTimeZone: utc) }
+        let zone = HomeFeedDate.parse(summary.endDate) == nil ? utc : timeZone
+        var cal = Calendar(identifier: .gregorian); cal.timeZone = zone
+        if let sd = parse(summary.startDate), let ed = parse(summary.endDate), cal.isDate(sd, inSameDayAs: ed) {
+            var style = Date.FormatStyle.dateTime.hour().minute().locale(locale); style.timeZone = zone
+            e = ed.formatted(style)
+        }
+        switch (s, e) {
+        case let (s?, e?): return s == e ? s : s + " – " + e
+        case let (s?, nil): return s
+        case let (nil, e?): return e
+        default: return nil
+        }
+    }
+}
+
+/// Poster hero for the activity detail in MP `activity-hero` order: cover with bottom shade, status chip, bold title,
+/// then the live time-to-start and the MP date line (活动时间 · start – end).
 struct E1ActivityHero: View {
     let summary: ActivitySummary
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.timeZone) private var timeZone
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
     private var copy: CoreLoopCopy { CoreLoopCopy(locale: locale) }
@@ -28,8 +52,6 @@ struct E1ActivityHero: View {
                     let chipLayout = dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.xs)) : AnyLayout(HStackLayout(spacing: CYSpacing.xs))
                     chipLayout {
                         if let state = E1ActivityState.of(start: summary.startDate, end: summary.endDate) { state.chip(copy) }
-                        if let a = summary.minimumAmount, a == 0 { CYStatusChip(verbatim: copy.t("免费", "Free"), tone: .success) }
-                        else if let p = E1Money.yuan(summary.minimumAmount, locale: locale) { CYStatusChip(verbatim: copy.t("\(p) 起", "From \(p)")) }
                     }
                     Text(verbatim: ActivityPresentation.nonempty(summary.name) ?? "—")
                         .font(.system(dynamicTypeSize.isAccessibilitySize ? .title : .largeTitle, design: .default).weight(.bold))
@@ -40,15 +62,13 @@ struct E1ActivityHero: View {
                         .cyHeroTitleRise()
                     // Design pass explore P1/P2: the hero leads with the live time-to-start (or time left while it runs).
                     ExploreStartsInLine(startRaw: summary.startDate, endRaw: summary.endDate, tint: palette.onCoverFg)
-                    if let place = ActivityPresentation.place(summary) {
-                        Label {
-                            Text(verbatim: place)
-                                .fixedSize(horizontal: false, vertical: true)
-                        } icon: {
-                            Image(systemName: "mappin.and.ellipse").accessibilityHidden(true)
-                        }
-                        .cyText(.meta)
-                        .foregroundStyle(palette.onCoverFgDim)
+                    // MP activity-hero__date: 「活动时间 · start - end」. The place is the 集合点 fact right below the hero.
+                    if let when = E1ActivityWhen.text(summary: summary, locale: locale, timeZone: timeZone) {
+                        Text("activity.hero.when \(when)")
+                            .cyText(.meta)
+                            .foregroundStyle(palette.onCoverFgDim)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("activity.detail.when")
                     }
                 }
                 .padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.lg).padding(.top, dynamicTypeSize.isAccessibilitySize ? CYSpacing.lg : 84)
@@ -200,23 +220,7 @@ struct E1ActivityInfoCard: View {
     private var copy: CoreLoopCopy { CoreLoopCopy(locale: locale) }
 
     private var whenText: String? {
-        let s = QuestifyCardText.date(detail.summary.startDate, locale: locale, displayTimeZone: timeZone)
-        var e = QuestifyCardText.date(detail.summary.endDate, locale: locale, displayTimeZone: timeZone)
-        // Same calendar day: the end shows the time only.
-        let utc = TimeZone(secondsFromGMT: 0)!
-        func parse(_ raw: String?) -> Date? { HomeFeedDate.parse(raw) ?? HomeFeedDate.parse(raw, sourceTimeZone: utc) }
-        let zone = HomeFeedDate.parse(detail.summary.endDate) == nil ? utc : timeZone
-        var cal = Calendar(identifier: .gregorian); cal.timeZone = zone
-        if let sd = parse(detail.summary.startDate), let ed = parse(detail.summary.endDate), cal.isDate(sd, inSameDayAs: ed) {
-            var style = Date.FormatStyle.dateTime.hour().minute().locale(locale); style.timeZone = zone
-            e = ed.formatted(style)
-        }
-        switch (s, e) {
-        case let (s?, e?): return s == e ? s : s + " – " + e
-        case let (s?, nil): return s
-        case let (nil, e?): return e
-        default: return nil
-        }
+        E1ActivityWhen.text(summary: detail.summary, locale: locale, timeZone: timeZone)
     }
 
     private var priceSummaryText: String? {

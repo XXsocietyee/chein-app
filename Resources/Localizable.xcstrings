@@ -3285,6 +3285,23 @@
         }
       }
     },
+    "activity.hero.when %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动时间 · %@"
+          }
+        }
+      }
+    },
     "activity.inventoryUnknown": {
       "extractionState": "manual",
       "localizations": {
