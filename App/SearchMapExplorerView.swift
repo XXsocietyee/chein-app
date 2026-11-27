@@ -81,9 +81,8 @@ import SwiftUI
         ScrollViewReader { scroll in
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                if reader.isOfflineExample { Text("searchMap.offline").font(.caption).foregroundStyle(.secondary) }
-                SearchMapOfflineBannerView(state: offlineBanner, stillOffline: stillOffline, retry: retryConnection)
-                if let area, !area.label.isEmpty { Text(verbatim: area.label).font(.headline).accessibilityAddTraits(.isHeader) }
+                // MP pages/searchmap order: the search + 筛选 row (`smapso_bar`), then the offline bar under it,
+                // then the map and the result capsule.
                 if mode == .city {
                     // The keyword field is the navigation bar's system search field (`.searchable` below);
                     // place suggestions for the typed keyword still list here.
@@ -94,6 +93,9 @@ import SwiftUI
                     HStack(spacing: 12) { filterControls }
                     VStack(alignment: .leading, spacing: 8) { filterControls }
                 }
+                if reader.isOfflineExample { Text("searchMap.offline").font(.caption).foregroundStyle(.secondary) }
+                SearchMapOfflineBannerView(state: offlineBanner, stillOffline: stillOffline, retry: retryConnection)
+                if let area, !area.label.isEmpty { Text(verbatim: area.label).font(.headline).accessibilityAddTraits(.isHeader) }
                 if mode == .city { layerControls }
                 Button { startLoad() } label: { Text("searchMap.searchArea").frame(maxWidth: .infinity) }
                     .buttonStyle(.borderedProminent).controlSize(.large)
@@ -177,7 +179,10 @@ import SwiftUI
                                      failed: visibleCityResults?.activityFailure != nil,
                                      refreshing: refresh.isLoading, refreshFailed: refresh.retainedActivities,
                                      offline: reader.isOfflineExample, retry: { startLoad() },
-                                     open: { row in showsAllResults = false; openLayerActivity(row, rendered: renderedContext) })
+                                     open: { row in showsAllResults = false; openLayerActivity(row, rendered: renderedContext) },
+                                     hasMore: visibleCityResults != nil && pagination.nextPage != nil,
+                                     loadingMore: pagination.isLoading, pageFailed: pagination.failure != nil,
+                                     loadMore: { startLoadMore() })
                 .presentationDetents([.medium, .large])
         }
         .navigationDestination(item: $layerNavigation) { route in

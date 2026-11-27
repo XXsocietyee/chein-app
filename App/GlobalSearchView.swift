@@ -120,8 +120,8 @@ import SwiftUI
                     results(snapshot.results, retainedKinds: snapshot.retainedKinds)
                 } else if !loading && issue == nil { suggestions }
             }
-            // P18: on the empty page the map entries lead (`nearbySection`); under results they stay last.
-            if !showsSuggestions { mapSection }
+            // MP order: `search-actions__map` (在地图上找) is the last block of search2; `search2/result` has no map entry.
+            if showsSuggestions { mapSection }
         }
         .listStyle(.insetGrouped)
         .globalSearchPageChrome(hostsField ? ownSearchSession : nil)
@@ -210,7 +210,7 @@ import SwiftUI
         .onChange(of: filter.keyword) { _, _ in emptySearchNotice = nil }
     }
     private var categoryOwner: SearchMapCategoryRecovery.Owner { .init(reader: reader) }
-    /// The empty search page (no results, not loading, no failure): suggestions instead of results.
+    /// The search2 page itself (no results, not loading, no failure): suggestions instead of results.
     private var showsSuggestions: Bool {
         reader.isConfigured && !loading && issue == nil && retainedResults.snapshot(in: resultContext) == nil
     }
@@ -244,31 +244,17 @@ import SwiftUI
     }
     @ViewBuilder private var suggestions: some View {
         let context = categoryRecovery.context(for: categoryOwner)
-        // P18: Nearby first, before anything is typed (MP `search-actions__map` 在地图上找, lifted to the top).
-        nearbySection
         // Mini-program 搜索历史: recent keywords as system rows with 清空 on the header line (App Store "Recent" pattern).
-        // P18: each row also removes itself (trailing ✕ and swipe), so one wrong search never forces Clear all.
+        // Additive to MP: a trailing swipe removes one keyword, so one wrong search never forces Clear all.
         if !history.isEmpty {
             Section {
                 ForEach(history, id: \.self) { keyword in
-                    HStack(spacing: CYSpacing.sm) {
-                        Button { setKeyword(keyword); Task { await search() } } label: {
-                            Label { Text(verbatim: keyword).foregroundStyle(.primary) } icon: { Image(systemName: "clock.arrow.circlepath") }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.borderless)
-                        Button { removeHistory(keyword) } label: {
-                            Image(systemName: "xmark")
-                                .font(.footnote.weight(.semibold))
-                                .foregroundStyle(.secondary)
-                                .frame(minWidth: 44, minHeight: 44)
-                                .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.borderless)
-                        .accessibilityLabel(Text("search.r3.history.remove.a11y \(keyword)"))
-                        .accessibilityIdentifier("searchMap.history.remove")
+                    Button { setKeyword(keyword); Task { await search() } } label: {
+                        Label { Text(verbatim: keyword).foregroundStyle(.primary) } icon: { Image(systemName: "clock.arrow.circlepath") }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
                     }
+                    .accessibilityAction(named: Text("search.r3.history.remove.a11y \(keyword)")) { removeHistory(keyword) }
                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                         Button(role: .destructive) { removeHistory(keyword) } label: {
                             Label("search.r3.history.remove", systemImage: "trash")
@@ -360,30 +346,6 @@ import SwiftUI
             .accessibilityIdentifier("searchMap.citySearch")
             moreWaysMenu(includesNearby: true)
         }
-    }
-    /// P18 "Nearby first": the empty page opens with the nearby map (with the reason it asks for location),
-    /// then the city map, then the remaining finders.
-    private var nearbySection: some View {
-        Section {
-            Button { mapRoute = .nearby } label: {
-                Label {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("search.r3.nearby.row").foregroundStyle(.primary)
-                        Text("search.r3.nearby.reason").font(.footnote).foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                } icon: {
-                    Image(systemName: "location.fill")
-                }
-            }
-            .accessibilityIdentifier("searchMap.nearbyFirst")
-            Button { mapRoute = .city } label: {
-                Label { Text("searchMap.citySearch").foregroundStyle(.primary) } icon: { Image(systemName: "map") }
-            }
-            .pageTemplateControl(label: Text("searchMap.citySearch"), traits: .isButton)
-            .accessibilityIdentifier("searchMap.citySearch")
-            moreWaysMenu(includesNearby: false)
-        } header: { sectionTitle("search.r3.nearby.header") }
     }
     private func moreWaysMenu(includesNearby: Bool) -> some View {
         Menu {
