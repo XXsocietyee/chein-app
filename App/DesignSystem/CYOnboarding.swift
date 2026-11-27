@@ -769,7 +769,7 @@ private struct GOHoldDemo: View {
                         .animation(reduceMotion ? CYMotion.reduced : .easeOut(duration: 0.9).delay(Double(i) * 0.15), value: done)
                 }
                 Circle().fill(CYColor.textPrimary).frame(width: 52, height: 52)
-                    .overlay(Text(verbatim: "GO").cyText(.cardTitle, weight: .heavy).foregroundStyle(CYColor.textInverse))
+                    .overlay(Text(verbatim: "GO").cyText(.cardTitle, weight: .heavy).lineLimit(1).minimumScaleFactor(0.5).foregroundStyle(CYColor.textInverse))
                 Circle().trim(from: 0, to: done ? 1 : progress)
                     .stroke(CYNight.lantern, style: StrokeStyle(lineWidth: 3, lineCap: .round))
                     .rotationEffect(.degrees(-90)).frame(width: 62, height: 62)
