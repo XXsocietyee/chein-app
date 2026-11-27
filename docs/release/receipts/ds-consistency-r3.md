@@ -284,10 +284,31 @@ Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0
 `check_design_consistency` PASS (status capsule 29 baselined debt, 75 allowed), `contract_ratchet --check` 52 failing,
 baseline 52, **new 0**.
 
+Not done (run 9) → done in run 10 below.
+
+## Continue run 10 (2026-11-27, after merging combined-r7 into eb141b5c1)
+
+Run 9 Not done row: `.buttonStyle(.plain)` buttons whose label draws its own filled capsule / rounded background.
+Scanned all player files (26 plain buttons with a drawn background in the 14 lines above). Per site: game cells
+(hangman letters, jigsaw tiles, accusation clue pins, preference options, journey mode tiles), map controls on a
+material (`CityRoamRootView`, `CityMapLayer`, `RoamFinishReportView`, `SearchMapCanvas`, `PlayRouteMapView`) and card
+rows are not button looks and stay. `CityHoldButton` is hold-to-confirm (custom gesture, allowed). Two real primary
+actions drew their own capsule; one unused helper did too. Content, order, copy and identifiers unchanged (look only).
+
+| MP page | Native view | MP sections | Change (owner rule 2) |
+|---|---|---|---|
+| 城市地盘 live run (继续 / 正在定位… / 正在结束… bottom action) | `App/CityKit/CityLiveOnMap.swift:149` | unchanged | `.plain` + hand-drawn `actionPrimaryBg` capsule, 52 pt → `.borderedProminent` + `.buttonBorderShape(.capsule)` + `.controlSize(.large)`, palette tint kept; identifiers `city.live.*` kept |
+| `subpackageP3/badge-3d` badge detail 分享徽章 | `App/ObjectBadgeViews.swift:274` | unchanged | ShareLink label drawn as a 56 pt capsule on a 96 % page-colour strip → `.borderedProminent` capsule `.large` on the standard `.bar` material; `.cardTitle` → `.button` text style (same as every primary button) |
+| search map (dead code) | `App/SearchMapComponents.swift` `searchNightPill` | n/a | unused hand-drawn pill helper removed (0 call sites) |
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(status capsule 29 baselined debt, 75 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0** (badge detail
+hash pin in `test_object_badge_wall_layout` updated with a one-line reason).
+
 ### Not done (next run)
 | Item | Why not now |
 |---|---|
-| Scan `.buttonStyle(.plain)` buttons whose label draws its own filled `Capsule` / rounded background (like the rank board 更多 fixed above) → `.bordered` / `.borderedProminent` + `.buttonBorderShape`. | Next run: needs a per-site look (cards and map controls legitimately use `.plain` + `QuestifyCardButtonStyle`). |
+| — | Receipt empty; next run picks the next design-system scan (candidate: one empty-state pattern — hand-built `VStack { Image; Text }` empty states vs `ContentUnavailableView` / `CYStateView`). |
 
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,

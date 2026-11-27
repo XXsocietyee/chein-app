@@ -143,12 +143,6 @@ struct SearchMapCard: View {
     }
 }
 
-extension View {
-    /// Borderless capsule. Selected pills use the neutral primary fill.
-    func searchNightPill(selected: Bool = false) -> some View {
-        background(Capsule(style: .continuous).fill(selected ? CYColor.actionPrimaryBg : CYColor.bgElevated))
-    }
-}
 /// Match the source's local secure-storage history rather than writing queries to ordinary defaults.
 /// A nil namespace (fixtures/unconfigured) is memory-only and never touches Keychain.
 /// Queries and inserts set `kSecAttrSynchronizable` to false. New items stay
