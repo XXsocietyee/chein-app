@@ -161,6 +161,8 @@ extension EnvironmentValues {
                         Button { Task { if canRead { await reader.toggle(topicID: team.id) } } } label: {
                             teamHeader(team)
                         }
+                        // Sweep 1300a48db d4-enroll: the row read as tint-blue text; titles stay primary, meta secondary.
+                        .tint(.primary)
                         .disabled(reader.loading)
                         .accessibilityValue(Text(reader.expanded.contains(team.id) ? "club.enroll.expanded" : "club.enroll.collapsed"))
                         .accessibilityIdentifier("club.enroll.team.\(team.id)")
