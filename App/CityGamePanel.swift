@@ -34,7 +34,7 @@ struct CityGamePanel: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("cityGame.title", tableName: "CityGame").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
             phaseText.cyText(.meta).foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("cityGame.phase")
-            if model.phase == .loading || model.phase == .quoting || model.phase == .sending { ProgressView().frame(maxWidth: .infinity) }
+            if model.phase == .loading || model.phase == .quoting || model.phase == .sending { CYLoadingState() }
             if let notice = model.notice { noticeText(notice).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("cityGame.notice") }
             if let outcome = model.lastOutcome { outcomeText(outcome).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("cityGame.outcome") }
             if model.phase == .unknown { unknownSection }

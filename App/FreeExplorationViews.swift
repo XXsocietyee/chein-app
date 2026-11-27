@@ -513,6 +513,7 @@ struct FreeExplorationStoreName: View {
 /// Offline or expired chapters, in the same card surface as the store browser.
 @MainActor struct FreeExplorationArchiveCards: View {
     let model: PlayExperienceCoordinator
+    @Environment(\.locale) private var locale
     var body: some View {
         if let archive = model.storyArchive {
             CYSectionHeader(model.storyArchiveSource == .expired ? "playFree.archive.expired" : "playFree.archive.offline")
@@ -523,7 +524,7 @@ struct FreeExplorationStoreName: View {
                 VStack(alignment: .leading, spacing: 8) {
                     FreeExplorationStoreName(name: place.name).font(.headline)
                     if let time = place.visitTimeText {
-                        Text("playFree.story.visitedOn \(time)").font(.subheadline).foregroundStyle(.secondary)
+                        Text("playFree.story.visitedOn \(LocaleDisplay.civil(time, locale: locale))").font(.subheadline).foregroundStyle(.secondary)
                     }
                     ForEach(Array(place.paragraphs.enumerated()), id: \.offset) { _, paragraph in
                         Text(verbatim: paragraph).font(.body)

@@ -63,7 +63,7 @@ private final class EntryRecordingTransport: HTTPTransport {
     }
 
     func testPeekStatesFollowSourceOrder() throws {
-        XCTAssertEqual(RoamEntryPeekState(error: APIError.unauthorized), .login)
+        XCTAssertEqual(RoamEntryPeekState(error: APIError.unauthorized), .failed) // MP 11-14: 401 = cy-error retry
         XCTAssertEqual(RoamEntryPeekState(error: APIError.httpStatus(403)), .denied)
         XCTAssertEqual(RoamEntryPeekState(error: APIError.businessCode(403)), .denied)
         XCTAssertEqual(RoamEntryPeekState(error: APIError.notConfigured), .unavailable)

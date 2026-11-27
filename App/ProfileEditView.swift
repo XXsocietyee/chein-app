@@ -766,7 +766,7 @@ struct ProfileEditView: View {
                 .buttonStyle(.bordered)
                 .controlSize(.large)
                 .disabled(model.busy || model.textEdit != nil).accessibilityIdentifier("profile.edit.reload")
-                if model.busy { ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("profile.edit.busy") }
+                if model.busy { CYLoadingState(messageIdentifier: "profile.edit.busy") }
             }
         }
     }

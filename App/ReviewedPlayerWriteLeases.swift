@@ -1447,7 +1447,6 @@ enum ReviewedPlayerReadRoute {
             .imStart: Set([try? BusinessRuntimeRoute.post("api/im/start")].compactMap { $0 }),
             .imSend: Set([try? BusinessRuntimeRoute.post("api/im/send"), try? BusinessRuntimeRoute.post("api/im/send-receipt")].compactMap { $0 }),
             .imUnreadTotal: Set([try? BusinessRuntimeRoute.post("api/im/unread-total")].compactMap { $0 }),
-            .inGameChannels: Set([try? BusinessRuntimeRoute.post("api/im/ingame/resolve"), try? BusinessRuntimeRoute.get("api/im/ingame/summary")].compactMap { $0 }),
             .clubChat: Set([try? BusinessRuntimeRoute.post("api/club/chat")].compactMap { $0 })
         ]
         if socialRole(context) { imRoutes.merge(Self.imMediaRoutes()) { $0.union($1) } }

@@ -19,8 +19,8 @@ struct D6MapFixture: View {
             content
         }
         .themeDomain(.player)
-        .preferredColorScheme(.dark)
-        .background(Color.black)
+        .preferredColorScheme(kind == .roam ? nil : .dark)
+        .background(kind == .roam ? Color.clear : Color.black)
     }
 
     @ViewBuilder private var content: some View {
@@ -102,8 +102,6 @@ struct D6MapFixture: View {
     private var roamBody: some View {
         VStack {
             Spacer()
-            Text(verbatim: t("Walk anywhere — the fog lifts as you go.", "走到哪，雾散到哪。"))
-                .cyText(.body).foregroundStyle(Color.white.opacity(0.75)).padding(.bottom, CYSpacing.lg)
             // Same floating row as the shipping roam root: material circles + the one `.borderedProminent` 走起.
             HStack(spacing: CYSpacing.xl) {
                 Button(action: {}) {

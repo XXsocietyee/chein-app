@@ -64,6 +64,9 @@ and `#Preview { ... }` blocks; comments are ignored) and counts, per file:
                   colour at opacity 0.05–0.29 (`Capsule().fill(x.opacity(0.15))`, `.background(x.opacity(0.12), in:
                   Capsule())`). Native r2 status words have no capsule chrome: use `CYStatusChip(_:tone:)` (footnote
                   `Label`, system tone colour) like its 249 call sites
+  silent spinner  a bare `ProgressView()` stretched as the page / section loader (`.frame(maxWidth: .infinity` on the
+                  same or the next line) outside App/DesignSystem: P10 "say what's happening in words, never a spinner alone".
+                  Use `CYLoadingState(_:messageIdentifier:)` (system `ProgressView` with the MP loading words)
 
 Build-break guards (module-wide: App/ and Core/ compile into ONE module, so every file is scanned, merchant and
 fixtures included; there is no Swift compiler in the lanes' cloud sessions):
@@ -130,11 +133,17 @@ STATUS_CAPSULE = 'status capsule'
 # One status word (CYStatusChip, no capsule): a capsule filled with a soft tint (opacity 0.05–0.29) is a per-page chip.
 STATUS_CAPSULE_SHAPE = re.compile(r'\bCapsule\s*\(|in:\s*\.capsule\b')
 STATUS_CAPSULE_TINT = re.compile(r'\.opacity\(\s*0?\.(?:0[5-9]|[12]\d?)\d*\s*\)')
+SILENT_SPINNER = 'silent spinner'
+# One loading pattern (P10): a page loader shows its words; `CYLoadingState` is the system ProgressView with a label.
+SILENT_SPINNER_PATTERN = re.compile(r'^\s*ProgressView\(\)\s*$')
+SILENT_SPINNER_FRAME = re.compile(r'^\s*\.frame\(maxWidth:\s*\.infinity')
+SILENT_SPINNER_INLINE = re.compile(r'\bProgressView\(\)\s*\.frame\(maxWidth:\s*\.infinity')
 DUPLICATE_TYPE = 'duplicate type'
 UNDECLARED_STATE = 'undeclared state'
 KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, CUSTOM_BACK, BUTTON_STYLE, POPUP_SCRIM,
          RAW_COLOUR, LIST_STYLE, CUSTOM_SHEET, CUSTOM_TABS, FONT_DESIGN, CUSTOM_SEARCH, TEXT_ON_ART, RAW_SEGMENTED,
-         LEADING_ACTION, DONE_LEADING, RAW_RADIUS, LINE_SPACING, STATUS_CAPSULE, DUPLICATE_TYPE, UNDECLARED_STATE)
+         LEADING_ACTION, DONE_LEADING, RAW_RADIUS, LINE_SPACING, STATUS_CAPSULE, SILENT_SPINNER, DUPLICATE_TYPE,
+         UNDECLARED_STATE)
 
 # The five player tab roots (Core/RootTab.swift, QuestifyApp root TabView) and the files that own their title.
 # 漫游 is the full-screen map home: its chrome is allowed in the baseline instead.
@@ -330,6 +339,10 @@ def scan_file(rel, text):
         if not design_system and rel != APP_ROOT and DS_TAB_BAR.search(code):
             hits.append((number, CUSTOM_TABS, code.strip()))
     if not design_system:
+        for index, (number, code) in enumerate(lines):
+            if (SILENT_SPINNER_PATTERN.match(code) and index + 1 < len(lines) and SILENT_SPINNER_FRAME.match(lines[index + 1][1])) \
+                    or SILENT_SPINNER_INLINE.search(code):
+                hits.append((number, SILENT_SPINNER, code.strip()))
         for index, (number, code) in enumerate(lines):
             if not LEADING_PLACEMENT.search(code):
                 continue

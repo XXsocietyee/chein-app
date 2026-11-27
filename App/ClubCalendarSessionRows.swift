@@ -61,11 +61,11 @@ import SwiftUI
         List {
             HStack {
                 Button { if let previous = month.shifted(by: -1) { month = previous } }
-                    label: { Image(systemName: "chevron.left") }
+                    label: { Image(systemName: "chevron.left").frame(minWidth: 44, minHeight: 44).contentShape(Rectangle()) }
                     .accessibilityLabel("club.calendar.previous").disabled(month.shifted(by: -1) == nil)
                 Spacer(); Text(verbatim: month.key); Spacer()
                 Button { if let next = month.shifted(by: 1) { month = next } }
-                    label: { Image(systemName: "chevron.right") }
+                    label: { Image(systemName: "chevron.right").frame(minWidth: 44, minHeight: 44).contentShape(Rectangle()) }
                     .accessibilityLabel("club.calendar.next").disabled(month.shifted(by: 1) == nil)
             }
             .buttonStyle(.borderless)
