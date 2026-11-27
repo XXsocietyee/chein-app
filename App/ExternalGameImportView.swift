@@ -565,7 +565,7 @@ struct ExternalGameNodePlayContext: Equatable, Sendable {
                                 .foregroundStyle(CYColor.textPrimary)
                                 .accessibilityIdentifier("externalGame.signedResult")
                         } else if sessionTicket != nil {
-                            Button(isSubmittingResult ? W8Text.t("正在签名提交...", "Submitting...") : W8Text.t("完成并签名上报结果", "Submit signed result")) {
+                            Button(isSubmittingResult ? W8Text.t("正在签名提交…", "Submitting…") : W8Text.t("完成并签名上报结果", "Submit signed result")) {
                                 Task {
                                     await reportSignedResult(passed: true, score: nil, digest: nil)
                                 }

@@ -416,7 +416,21 @@ Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0
 ### Not done (next run)
 | Item | Why not now |
 |---|---|
-| — | Next scan candidate: busy words — the same "working" state reads 处理中 / 正在提交 / 提交中… / Submitting / processing across sheets; one key per verb. |
+| Busy-word verbs: the same state reads 正在提交… / 提交中… / 处理中 and Sending… / 正在提交… (en and zh name different verbs) across catalogs | Copy choice per screen (MP wording), shared with i18n-r3; next run maps each to its MP page before unifying. |
+
+### Batch 2 — one ellipsis, sentence case in busy words
+Player-visible busy / placeholder words used ASCII `...` next to the `…` used by 200+ strings, and one button said
+lowercase "processing". → `…` and sentence case; wording unchanged.
+
+| Area | File | Change |
+|---|---|---|
+| 套票 detail + order summary pay button | `App/BundleDetailView.swift:157`, `App/BundleOrderSummarySheet.swift:31` | 处理中 / processing → 处理中… / Processing… |
+| external game submit / launch buttons | `App/ExternalGameImportView.swift:568`, `App/PlayNodeDetailView.swift:159` | `...` → `…` (zh + en) |
+| play area join note placeholder | `App/PlayAreaPopupCloseSurfaces.swift:42` | en `...` → `…` |
+| catalogs | `Resources/Localizable.xcstrings` (map layers loading, scratch reveal, audio clip recording / uploading, review placeholder), `MapPublicLayers`, `PayoutReceiver` (检查支付服务…), `ClubOpsCustomer` (加载中… / Loading…) | 10 values `...` → `…` |
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS,
+`contract_ratchet --check` 52 failing, baseline 52, **new 0**.
 
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
