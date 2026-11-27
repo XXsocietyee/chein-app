@@ -55,6 +55,8 @@ struct OfficialRouteDetailContent: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     /// Stops whose `imgUrl` failed to load. The title stays; the tile is not shown again.
     @State private var hiddenNodeImages: Set<String> = []
+    /// a11y-dt r3: the node number grows with Dynamic Type instead of clipping in a fixed 28 pt circle.
+    @ScaledMetric(relativeTo: .body) private var nodeBadge: CGFloat = 28
     private var route: OfficialRoute { detail.route }
 
     var body: some View {
@@ -99,7 +101,7 @@ struct OfficialRouteDetailContent: View {
         let body = HStack(alignment: .top, spacing: CYSpacing.md) {
             VStack(spacing: 0) {
                 Text(verbatim: "\(node.order)").cyText(.numericBody)
-                    .foregroundStyle(palette.textInverse).frame(width: 28, height: 28)
+                    .foregroundStyle(palette.textInverse).frame(width: nodeBadge, height: nodeBadge)
                     .background(Circle().fill(palette.textPrimary)).accessibilityHidden(true)
                 if !last { Rectangle().fill(palette.borderStrong).frame(width: 2).frame(maxHeight: .infinity) }
             }

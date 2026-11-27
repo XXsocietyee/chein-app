@@ -3118,7 +3118,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Spend %1$lld points to unlock %2$@? Unlocked clues can be reread for free."
+            "value": "Spend %#@point@ to unlock %2$@? Unlocked clues can be reread for free."
+          },
+          "substitutions": {
+            "point": {
+              "argNum": 1,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg point"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg points"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -3133,9 +3155,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Spend %lld points"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Spend %lld point"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Spend %lld points"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -3184,9 +3218,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unlock for %lld points"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Unlock for %lld point"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Unlock for %lld points"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -3509,7 +3555,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chengyin · Free Explore pass"
+            "value": "Chein · Free Explore pass"
           }
         },
         "zh-Hans": {
@@ -3526,7 +3572,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chengyin · City Orienteering pass"
+            "value": "Chein · City Orienteering pass"
           }
         },
         "zh-Hans": {
@@ -3949,9 +3995,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld teams nearby"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld team nearby"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld teams nearby"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -4000,9 +4058,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld results nearby · Nearest first"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld result nearby · Nearest first"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld results nearby · Nearest first"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {

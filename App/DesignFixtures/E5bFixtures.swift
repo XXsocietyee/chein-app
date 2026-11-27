@@ -40,8 +40,23 @@ struct E5bBadgeWallFixture: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private let badges: [ProfileBadgeSelection]
     init() {
-        let json = #"[{"badgeCode":"A","badgeName":"Night Owl","category":"EXPLORE","unlocked":true,"unlockTime":"2026-10-01 10:00:00"},{"badgeCode":"B","badgeName":"First Stamp","category":"EXPLORE","unlocked":true},{"badgeCode":"C","badgeName":"Market Regular","category":"FOOD","unlocked":true},{"badgeCode":"D","badgeName":"Ten Spots","category":"EXPLORE","unlockHint":"Check in at 10 spots","unlocked":false},{"badgeCode":"E","badgeName":"Club Founder","category":"SOCIAL","unlockHint":"Create a club","unlocked":false},{"badgeCode":"F","badgeName":"Rainy Day Walker","category":"EXPLORE","unlockHint":"Finish a roam on a rainy day","unlocked":false}]"#
-        let list = (try? JSONDecoder().decode([ProfileIdentityBadge].self, from: Data(json.utf8))) ?? []
+        // Fixture data follows the UI language (server badge names are Chinese in production; en reads English).
+        let rows: [(String, String, String, Bool, String?, String?)] = [
+            ("A", tt("Night Owl", "夜行者"), "EXPLORE", true, nil, "2026-10-01 10:00:00"),
+            ("B", tt("First Stamp", "第一枚印章"), "EXPLORE", true, nil, nil),
+            ("C", tt("Market Regular", "市集常客"), "FOOD", true, nil, nil),
+            ("D", tt("Ten Spots", "十处打卡"), "EXPLORE", false, tt("Check in at 10 spots", "在 10 个地点打卡"), nil),
+            ("E", tt("Club Founder", "俱乐部创始人"), "SOCIAL", false, tt("Create a club", "创建一个俱乐部"), nil),
+            ("F", tt("Rainy Day Walker", "雨天漫步者"), "EXPLORE", false, tt("Finish a roam on a rainy day", "在雨天完成一次漫游"), nil),
+        ]
+        let objects: [[String: Any]] = rows.map { row in
+            var item: [String: Any] = ["badgeCode": row.0, "badgeName": row.1, "category": row.2, "unlocked": row.3]
+            if let hint = row.4 { item["unlockHint"] = hint }
+            if let time = row.5 { item["unlockTime"] = time }
+            return item
+        }
+        let json = (try? JSONSerialization.data(withJSONObject: objects)) ?? Data("[]".utf8)
+        let list = (try? JSONDecoder().decode([ProfileIdentityBadge].self, from: json)) ?? []
         badges = list.map { .identity($0) }
     }
     var body: some View {

@@ -41,6 +41,8 @@ public struct PlayToolsAndLeadSheetView: View {
     /// mp-journey r3: MP mode 2 lists only 自动记录足迹, after 旅程手记, with its own copy. Non-nil switches to that row
     /// (true = perk-only topic: 走过的路会记下来). Needs `locationOn`.
     public var freeTrackPerkOnly: Bool? = nil
+    /// mp-journey r3: MP 同行者榜 row (mode != 2), pushed; nil hides the row.
+    public var boardDestination: (() -> AnyView)? = nil
 
     public init(
         lead: PlayLeadToolsState = PlayLeadToolsState(),
@@ -68,6 +70,7 @@ public struct PlayToolsAndLeadSheetView: View {
         onLocationRow: @escaping () -> Void = {},
         teamLead: PlayLeadProgress? = nil,
         journalRows: [PlayJournalRow]? = nil,
+        boardDestination: (() -> AnyView)? = nil,
         rights: PlayToolsRights? = nil,
         onRights: @escaping () -> Void = {},
         freeTrackPerkOnly: Bool? = nil
@@ -77,6 +80,7 @@ public struct PlayToolsAndLeadSheetView: View {
         self.onRights = onRights
         self.teamLead = teamLead
         self.journalRows = journalRows
+        self.boardDestination = boardDestination
         self.locationOn = locationOn
         self.onLocationRow = onLocationRow
         self.lead = lead
@@ -122,6 +126,16 @@ public struct PlayToolsAndLeadSheetView: View {
                         if remainingGamesCount > 0 {
                             LabeledContent("playTools.stats.remainingGames") { Text(verbatim: "\(remainingGamesCount)").monospacedDigit() }
                         }
+                    }
+                }
+                if let boardDestination {
+                    Section {
+                        NavigationLink {
+                            boardDestination()
+                        } label: {
+                            Label("playx.leaderboard", systemImage: "person.3")
+                        }
+                        .accessibilityIdentifier("playTools.board")
                     }
                 }
                 teamPositionSection

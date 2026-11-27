@@ -186,13 +186,7 @@ struct ClubOpsCaseSection: View {
     }
     var body: some View {
         Group {
-        if list.appealMode {
-            // Mini governance `mode=appeal` page title, reached by a viewer this club has banned.
-            Section {
-                ClubOpsGovernanceCopy.text("clubOpsGov.appeal.mode").font(.headline)
-                    .accessibilityAddTraits(.isHeader).accessibilityIdentifier("clubOpsGov.appeal.mode")
-            }
-        }
+        // Mini governance `mode=appeal` page title 封禁申诉 is the inline bar title (ClubGovernanceReadView.pageTitleKey).
         if list.canReport, let report {
             // CLB-governance-15 (parity r2): the 请提交可核实的事实 note stays once, in the form.
             Section {

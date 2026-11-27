@@ -218,6 +218,9 @@ struct TeamTrailSection: View {
     /// Native r2 city run map: mirrors this section's last team read onto the map (no extra request).
     @Environment(\.cityOrientationTeamsSink) private var teamsSink
 
+    /// mp-journey r3: MP 同场路线 sheet (`teamConsent`), asked once per entry before the run uploads anything.
+    @State private var consentShown = false
+    @State private var consentAsked = false
     /// L01-039: never upload for a player who has not decided, even when the server's default says share.
     private var recording: Bool { scenePhase == .active && model?.canRun == true && model?.needsConsent == false }
 
@@ -226,10 +229,11 @@ struct TeamTrailSection: View {
             if let model, model.state.available {
                 VStack(alignment: .leading, spacing: 8) {
                     if model.needsConsent {
-                        Toggle("playerGap.trail.share", isOn: $share)
-                        Button("playerGap.trail.confirm") { Task { await model.consent(share) } }
-                            .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
-                            .accessibilityIdentifier("gap.trail.confirm")
+                        // mp-journey r3: MP m-consent is a popup; the row only reopens it.
+                        Button { consentShown = true } label: {
+                            Label("playerGap.trail.title", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
+                        }
+                        .accessibilityIdentifier("gap.trail.open")
                     } else if model.state.share {
                         if !TeamTrailForegroundRecorder.isAuthorized {
                             Text("playerGap.trail.needsLocation").cyText(.meta).foregroundStyle(CYColor.textSecondary)
@@ -264,12 +268,46 @@ struct TeamTrailSection: View {
                 wait = ok ? TeamTrailModel.interval : min(wait * 2, TeamTrailModel.maxInterval)
             }
         }
+        .onChange(of: model?.needsConsent == true, initial: true) { _, needs in
+            guard needs, !consentAsked else { return }
+            consentAsked = true
+            consentShown = true
+        }
+        .sheet(isPresented: $consentShown) {
+            if let model { consentSheet(model) }
+        }
         .onChange(of: recording, initial: true) { _, on in if on { recorder.start() } else { recorder.stop() } }
         .onChange(of: model?.state.share == true ? (model?.teams ?? []) : [], initial: true) { _, teams in teamsSink?(teams) }
         .onDisappear {
             recorder.stop()
             if let model { Task { await model.finish() } }
         }
+    }
+
+    /// MP `team-consent`: title 同场路线 · 让同场队伍看到我的路线 switch · 开始. Dragging it away decides nothing.
+    private func consentSheet(_ model: TeamTrailModel) -> some View {
+        NavigationStack {
+            Form {
+                Toggle("playerGap.trail.share", isOn: $share)
+                    .accessibilityIdentifier("gap.trail.share")
+            }
+            .navigationTitle(Text("playerGap.trail.title"))
+            .navigationBarTitleDisplayMode(.inline)
+            .safeAreaInset(edge: .bottom) {
+                Button {
+                    consentShown = false
+                    Task { await model.consent(share) }
+                } label: {
+                    Text("playerGap.trail.confirm").frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .padding()
+                .accessibilityIdentifier("gap.trail.confirm")
+            }
+        }
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
     }
 }
 

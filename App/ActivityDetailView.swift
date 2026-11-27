@@ -177,19 +177,20 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                     ContentUnavailableView {
                         Label { Text("activity.detail.missing") } icon: { Image(systemName: "calendar.badge.exclamationmark") }
                     } actions: {
-                        Button { dismiss() } label: { Text("common.back") }
+                        Button { dismiss() } label: { Text("activity.cancelled.backToList") }
                             .buttonStyle(.bordered)
                     }
                     .accessibilityIdentifier("activity.detail.missing")
                 } else {
                     ContentUnavailableView {
                         Label {
-                            Text("activity.loadFailed")
+                            Text("activity.detail.openFailed")
                                 .accessibilityIdentifier("activity.detail.error")
                         } icon: { Image(systemName: "exclamationmark.triangle") }
                     } actions: {
-                        Button { loads.start { await load() } } label: { Text("action.retry") }
-                            .buttonStyle(.borderedProminent)
+                        // mp-states r3: scene-play-activity-detail cy-error 活动详情无法打开 · 重新读取.
+                        Button { loads.start { await load() } } label: { Text("parityB.alt.reload") }
+                            .buttonStyle(.bordered)
                             .accessibilityIdentifier("activity.detail.retry")
                     }
                 }

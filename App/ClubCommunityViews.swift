@@ -347,6 +347,19 @@ struct ClubCommunityFeedView: View {
             }
             if guestSignIn != nil, model.snapshot == nil, !model.loading {
                 Section { guestState }
+            } else if model.notice == "club.community.loadError", model.snapshot == nil, !model.loading {
+                // mp-states r3 (MP talent/list wxml:41 动态加载失败 · detail wxml:156 帖文加载失败): a failed first read is the
+                // MP cy-error with 重试, not a grey line.
+                Section {
+                    ContentUnavailableView {
+                        Label(LocalizedStringKey(clubID == nil ? "club.community.feedFailed" : "club.community.postsFailed"), systemImage: "exclamationmark.triangle")
+                    } actions: {
+                        Button("action.retry") { Task { await model.load(operation) } }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("club.community.retry")
+                    }
+                    .accessibilityIdentifier("club.community.notice")
+                }
             } else if let notice = model.notice { Section { communityNotice(notice, identifier: "club.community.notice") } }
             if let pending = model.pendingRecord, let clubID { pendingLock(pending, clubID: clubID, identifierPrefix: "club.community") }
             if let snapshot = model.snapshot {
@@ -411,9 +424,11 @@ struct ClubCommunityFeedView: View {
                 }
             }
             // CLB-detail-15: pull to refresh covers a loaded feed; the button is only the retry when nothing loaded.
-            if (model.snapshot == nil && !model.loading && guestSignIn == nil) || writesUnavailable {
+            // mp-states r3: a failed first read already shows its retry in the MP error state above.
+            let showsBareRetry = model.snapshot == nil && !model.loading && guestSignIn == nil && model.notice != "club.community.loadError"
+            if showsBareRetry || writesUnavailable {
                 Section {
-                    if model.snapshot == nil, !model.loading, guestSignIn == nil {
+                    if showsBareRetry {
                         Button("action.retry") { Task { await model.load(operation) } }
                             .disabled(model.busy)
                     }
