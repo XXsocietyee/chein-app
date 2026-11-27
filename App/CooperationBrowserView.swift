@@ -124,7 +124,7 @@ import SwiftUI
                 }
             }
             .navigationDestination(item: $listHandle) { item in
-                CoopFlowHandleEditor(inviteID: item.inviteID, action: item.accept ? .accept : .reject, currentStatus: 0,
+                CoopFlowHandleEditor(inviteID: item.inviteID, action: item.action, currentStatus: 0,
                                      supplyStationID: item.stationID, supplyStationName: item.stationName,
                                      flowReader: item.stationID == nil ? nil : peerReader)
                     .cyPushedChrome(domain: .merchant)
@@ -264,15 +264,22 @@ import SwiftUI
                     if direction == .received, case .decide = CooperationInvitePresentation(invite: row, direction: direction).footer {
                         // MP wxml:84-87: 拒绝 (secondary) then 接受合作 (the card's one solid action).
                         HStack(spacing: CYSpacing.sm) {
-                            Button("cooperation.detail.reject") { listHandle = CoopListHandle(row: row, accept: false) }
+                            Button("cooperation.detail.reject") { listHandle = CoopListHandle(row: row, action: .reject) }
                                 .buttonStyle(.bordered)
                                 .accessibilityIdentifier("cooperation.invite.received.reject.\(row.id).\(index)")
-                            Button("cooperation.detail.accept") { listHandle = CoopListHandle(row: row, accept: true) }
+                            Button("cooperation.detail.accept") { listHandle = CoopListHandle(row: row, action: .accept) }
                                 .buttonStyle(.borderedProminent)
                                 .accessibilityIdentifier("cooperation.invite.received.accept.\(row.id).\(index)")
                         }
                         .controlSize(.regular)
                         .frame(maxWidth: .infinity, alignment: .trailing)
+                    }
+                    if direction == .sent, case .withdraw = CooperationInvitePresentation(invite: row, direction: direction).footer {
+                        // MP wxml:222-224: a pending sent card offers 撤回邀约 (secondary only).
+                        Button("cooperation.detail.withdraw") { listHandle = CoopListHandle(row: row, action: .cancel) }
+                            .buttonStyle(.bordered)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
+                            .accessibilityIdentifier("cooperation.invite.sent.withdraw.\(row.id).\(index)")
                     }
                     // MC8-30-6 (wxml:225-227 `goInviteOthers`): a declined sent invite offers 再邀别人 → 找商家 for that topic.
                     if direction == .sent, row.status == 2, !row.legacyReadonly, let topic = row.topicId, topic > 0, let topicNearbyDestination {
@@ -477,13 +484,13 @@ struct CoopCloudCoverThumb: View {
 
 struct CoopListHandle: Hashable {
     let inviteID: Int
-    let accept: Bool
+    let action: CoopFlowHandle
     let stationID: Int?
     let stationName: String?
-    init(row: CooperationInvite, accept: Bool) {
-        inviteID = row.id; self.accept = accept
-        stationID = accept ? row.supplyStationId : nil
-        stationName = accept && row.supplyStationId != nil ? row.supplyStationName : nil
+    init(row: CooperationInvite, action: CoopFlowHandle) {
+        inviteID = row.id; self.action = action
+        stationID = action == .accept ? row.supplyStationId : nil
+        stationName = action == .accept && row.supplyStationId != nil ? row.supplyStationName : nil
     }
 }
 
