@@ -40,7 +40,7 @@ MP order: `sec-hero` (action-banner swiper, logo, greeting, 玩家 · 城市, av
 | Card meta order was city → countdown → participants; MP `oe-meta` = time · city · N 人参与. | **Fixed** (`App/OfficialEventComponents.swift`). |
 | Search → chip tabs → summary row → list; 我发布的 / 邀约 links in the toolbar (no WeChat capsule). | Matches (toolbar placement is the prior documented native choice). |
 | 首页 opened the list as a sheet (with 关闭); MP `navigateTo('/pages/activity/list/index')` is a page. | **Fixed (r3 continue, OWNER RULE 2)** — `App/SessionHomeFeedView.swift`: `.navigationDestination(isPresented: $showsOfficialEvents)` pushes it onto the 首页 stack (inline title, system back, no 关闭), same as the reviewed-page route; banner and 更多玩法 entry both push. `.id(officialEventReader.scope)` and the scope reset kept. |
-| MP shows 邀约 only when not loading/failed; native always shows it. | Not changed (low impact). |
+| MP shows 邀约 only when not loading/failed; native always shows it. | **Fixed (continue 3)** — `App/OfficialEventsBrowserView.swift`: `listLoaded` set by the loaded list's `onAppear` / cleared on `onDisappear` (MP list/index.wxml:27 `!loading && !curError`); the toolbar 邀约 link shows only then. UI test `testGuestCanBrowseButPrivateInboxRequiresLogin` waits for the list first, unchanged. |
 
 ### `pages/activity/detail` → `scene-play-activity-detail` → `App/ActivityDetailView.swift`
 
@@ -144,7 +144,7 @@ Merged `origin/ui/combined-r7` (fast-forward). No compiler/simulator here: edits
 
 ## Not done / follow-ups
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
-- 活动列表 邀约 link: MP hides it while loading / failed; native always shows it (the load state lives inside `OfficialReadScreen`; low impact, not changed).
+- ~~活动列表 邀约 link hidden while loading / failed~~ — closed in continue 3.
 - Needs a simulator pass: P21 bar height over each tab's last row, zoom source/destination match on iOS 18 and 26, Reduce Motion crossfade, the roam HUD's persistent sheet inside the cover.
 - Re-scan after the queue (r3 continue): home hero / rails / stream / consent card / activity list / activity detail / topic detail have no `.font(.system(size:))`, `.tracking`/`.kerning`, custom fonts or transparent-bar chrome; 编辑精选 footnote, per-rail 正在更新…, stream failed/empty/loading-more/no-more and 长期开放 all present.
 - Needs a simulator pass: `d2-home` first frame without the launch-screen fade (continue 3) and the 类别 capsules in en + zh-Hans.
