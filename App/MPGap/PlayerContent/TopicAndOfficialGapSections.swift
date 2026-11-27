@@ -90,24 +90,21 @@ public struct TopicPricingGapSection: View {
 
     public var body: some View {
         Group {
+            // MP 你的终价 card with one row per ticket (pages/topic/pricing/index.wxml:45).
             if !ticketFields.isEmpty {
-                Section("topicPricing.perTicket.title") {
+                Section("publisherPricing.yourFinalPrice") {
                     ForEach($ticketFields) { $field in
                         ticketRow($field)
                     }
                 }
             }
 
-            if extraStatus.saleStatusText != nil || extraStatus.settlementPendingText != nil {
-                Section("topicPricing.extra.title") {
-                    if let sale = extraStatus.saleStatusText {
-                        LabeledContent("topicPricing.saleStatus", value: sale)
-                            .cyText(.bodyCompact)
-                    }
-                    if let pending = extraStatus.settlementPendingText {
-                        LabeledContent("topicPricing.settlementPending", value: pending)
-                            .cyText(.bodyCompact)
-                    }
+            // MP 结算待处理 card (index.wxml:79). The sale status is the note above the confirm button
+            // (index.wxml:104), which the page draws itself, so it is not repeated here.
+            if let pending = extraStatus.settlementPendingText {
+                Section("topicPricing.pendingSettlement.title") {
+                    Text(verbatim: pending)
+                        .cyText(.bodyCompact)
                 }
             }
         }

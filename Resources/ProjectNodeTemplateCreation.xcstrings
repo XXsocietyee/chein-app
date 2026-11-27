@@ -70,13 +70,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Back to the stop"
+            "value": "Back to route editing"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "返回地点"
+            "value": "返回路线编辑"
           }
         }
       }
@@ -173,6 +173,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "无法确认该玩法草稿，站点未改动。重试不会另存一份模板。"
+          }
+        }
+      }
+    },
+    "projectNodeCreate.saved": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Node play saved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "节点玩法已保存"
+          }
+        }
+      }
+    },
+    "projectNodeCreate.untitled": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New play"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新玩法"
           }
         }
       }
