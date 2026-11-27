@@ -150416,13 +150416,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This account cannot view this collection. Go back and open it again."
+            "value": "This identity can’t view it"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前账号无法查看，请返回后重新进入"
+            "value": "当前身份不能查看"
           }
         }
       }
@@ -252172,13 +252172,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This account cannot view this album. Go back and open it again."
+            "value": "This identity can’t view it"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前账号无法查看，请返回后重新进入"
+            "value": "当前身份不能查看"
           }
         }
       }
