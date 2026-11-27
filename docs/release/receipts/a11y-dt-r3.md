@@ -142,10 +142,11 @@ small 3/6 ring because the build predates run 7's ring fix (not yet in combined-
 | City board status tags + district chips (roam city, `subpackageJourney` city) | `CityKit/CityTokens.swift` (`CityStatusTag`, `CityDistrictChip`) | ✓ (mp-roam / mp-journey own order) | Chip text truncated at AX sizes → wraps (status 3 lines, district 2) and the outline turns from a capsule into a `CYRadius.md` rounded rect so wrapped text is not clipped by the oval | Done |
 | `pages/roam/index` map tab root + every `CYMapScaffold` screen (city run, free explore, nearby teams…) | `DesignSystem/CYMapChrome.swift` (`CYMapScaffold`) | ✓ | VoiceOver order: top controls, floating actions and the panel are now `.contain` groups ranked 3 / 2 / 1 above the map, so the reading order is controls → GO · rules · open map → list panel → map pins (before: rules / open-map sorted in with the map pins by position, only GO was lifted). Layout and hit-testing unchanged | Done (`en-a11y-roam-ax5.jpg`) |
 | `pages/index/index` (Home: banner vs greeting row) | `HomeFeedView.swift`, `HomeSearchTabParityViews.swift` | ✓ (mp-home owns order) | Audit: banner, greeting and feed sit in one scroll in MP order with no floating overlay, so VoiceOver follows the visual order; banner art hidden, title read. No change | Done |
+| Chapter flip gate (`pages/play` chapter transition) | `DesignSystem/CYChapterFlip.swift` | ✓ (mp-journey owns order) | Contrast audit of white-opacity text on the ink0 → indigo #1B1E4A ground (worst case, bottom): "tap to continue" 0.5 → 4.9:1, chapter meta 0.6 → 6.5:1, subtitle 0.72 → 8.7:1 (all ≥ 4.5:1). Only other low-opacity text hit is the DEBUG ART fixture label. No change | Done |
 
 ## Not done (next run starts here)
 - Re-read the a11y sheets once combined-r7 carries runs 7–8 (ring size at AX5, roam VoiceOver order).
-- Contrast pass: secondary/tertiary text on tinted cards (`*.opacity(` foregrounds on player screens) at ≥ 4.5:1.
+- Contrast pass continued: `Text` with palette `.opacity(` foregrounds split over several lines (multi-line modifiers; the one-line grep is done).
 - 44 pt target pass on `.buttonStyle(.plain)` icon-only controls outside `RoamMapGlassControl`.
 
 ## For other lanes
