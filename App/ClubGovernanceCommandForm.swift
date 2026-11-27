@@ -290,7 +290,11 @@ import SwiftUI
             } else if busy { ProgressView() }
             if let review, !(Self.directOperations.contains(route.operation) && consequenceReview?.id == review.id) {
                 Section {
+                    // mp-club r3 (MP notify wxml:55-64): the notify review is the preview card (N 人) only; 受众/标题/内容
+                    // stay visible in the form above, so they are not repeated as fact rows.
+                    if route.operation != .sendNotification {
                     ClubGovernanceFactRows(value: .object(review.command.fields), fields: Array(review.command.fields.keys).sorted().filter { $0 != "expiresAtEpochMs" && $0 != "durationDays" && $0 != "id" && !$0.hasSuffix("Id") && !$0.hasSuffix("Ids") && !$0.hasSuffix("ID") }, showUnknown: true, localizesEnums: true)
+                    }
                     if route.operation == .createSeries, review.command.fields["defaultLeadMemberId"] == .null {
                         LabeledContent("club.gov.field.defaultLeadMemberId") { Text("clubOpsEvent.lead.ownerDefault", tableName: "ClubOpsEvent") }
                             .accessibilityIdentifier("clubOpsEvent.review.ownerDefault")
@@ -300,7 +304,6 @@ import SwiftUI
                         Text("club.schedule.customConversion", tableName: "ClubSeriesSchedule")
                             .accessibilityIdentifier("club.schedule.reviewConversion")
                     }
-                    if route.operation == .sendNotification { ClubGovernanceFactRows(value: review.snapshot.value, fields: ["inApp", "wechatSubscription"], localizesEnums: true) }
                     if route.operation == .sendNotification { ClubOpsNotifyPreviewSummary(value: review.snapshot.value) }
                     // CLB-notify-01 (fix-r3-club-b), MC-26: the send primary names the action and the head count.
                     Button {
