@@ -33,9 +33,19 @@ import SwiftUI
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.offlineWriteSession) private var offlineWriteSession
+    @AppStorage(PlatformBGMPreference.storageKey) private var stationBGMOn = PlatformBGMPreference.defaultValue
     @ViewBuilder var body: some View {
-        if !model.hasCurrentReadLifetime { Text("playMode.recoveryBlocked") }
-        else { currentContent }
+        Group {
+            if !model.hasCurrentReadLifetime { Text("playMode.recoveryBlocked") }
+            else { currentContent }
+        }
+        // PLAY-r11-1: station 背景音乐 (`playKit.backgroundMusic`, MP pages/play/index.js:4175-4192, :1513-1518).
+        .task(id: PlayThemeMusicKey(url: model.state?.playKit["backgroundMusic"]["audioUrl"].text, enabled: stationBGMOn)) {
+            let music = model.state?.playKit["backgroundMusic"]
+            PlayBackgroundMusic.shared.syncStation(rawURL: music?["audioUrl"].text, loop: music?["loop"].bool != false,
+                                                   enabled: stationBGMOn, approvedHosts: approvedArtworkHosts)
+        }
+        .onDisappear { PlayBackgroundMusic.shared.stopStation() }
     }
     private var currentContent: some View {
         List {

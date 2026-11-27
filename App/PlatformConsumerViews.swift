@@ -24,8 +24,11 @@ import SwiftUI
         .onAppear { model.select(source) }
         .onChange(of: source) { _, next in review = false; model.select(next) }
         .onChange(of: scenePhase) { _, next in if next != .active { review = false; model.suspend() } }
-        .onDisappear { review = false; model.dispose() }
+        // PLAY-r11-1: narration ducks the play music while it is audible (MP pages/play/index.js:4092-4098 `_duckBgm`).
+        .onChange(of: model.state) { _, next in PlayBackgroundMusic.shared.duck(duckSource, next == .playing) }
+        .onDisappear { review = false; model.dispose(); PlayBackgroundMusic.shared.duck(duckSource, false) }
     }
+    private var duckSource: String { "narration-" + String(UInt(bitPattern: ObjectIdentifier(model).hashValue)) }
 }
 @MainActor struct PlatformExternalMapButton: View {
     @Bindable var model: PlatformExternalMaps

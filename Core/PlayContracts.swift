@@ -316,6 +316,8 @@ public struct PlayNodesResult: Decodable, Equatable {
     public let teamID: Int?
     /// Raw `topicCover` for the station image chain. `themeFacts.coverURL` is the https URL the title card already uses.
     public let topicCover: String?
+    /// PLAY-r11-1: theme music (`topicAudioUrl`, MP pages/play/index.js:4642). Raw; the player gates the host.
+    public let topicAudioURL: String?
     /// Both counts or neither. A mismatched pair fails the route; a missing pair stays nil.
     public let storyUnlocked: Int?
     public let storyTotal: Int?
@@ -326,7 +328,7 @@ public struct PlayNodesResult: Decodable, Equatable {
     private enum CodingKeys: String, CodingKey {
         case topicId, topicName, topicDesc, mode, playable, registered, leadSpectator, selfPlay, total, doneCount, teamId
         case timeNote, expiresAt, nodes, chapters, routeState, eggs
-        case topicAiGenerated, productType, topicCover
+        case topicAiGenerated, productType, topicCover, topicAudioUrl
         case lookJSON = "look_json"
         case storyUnlocked, storyTotal, runStartMode, altStations, perkOnly
     }
@@ -348,6 +350,7 @@ public struct PlayNodesResult: Decodable, Equatable {
         teamID = (try? c.playInt(.teamId)).flatMap { $0 }.flatMap { $0 > 0 ? $0 : nil }
         let coverRaw = (try? c.decodeIfPresent(String.self, forKey: .topicCover)) ?? nil
         topicCover = coverRaw
+        topicAudioURL = (try? c.decodeIfPresent(String.self, forKey: .topicAudioUrl)) ?? nil
         themeFacts = PlayThemeServerFacts(
             aiGenerated: (try? c.decode(Bool.self, forKey: .topicAiGenerated)) == true,
             productType: PlayThemeServerFacts.lenientInt(c, .productType),
