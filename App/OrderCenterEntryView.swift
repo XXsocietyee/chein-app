@@ -46,6 +46,7 @@ import QuestifyCore
     /// A deep link fills this and loads at once, as the mini-program page does.
     var initialOutTradeNo: String = ""
     @Environment(\.mpParity) private var parity
+    @Environment(\.locale) private var locale
     @State private var number = ""
 
     var body: some View {
@@ -76,7 +77,7 @@ import QuestifyCore
                         LabeledContent { Text(verbatim: summary.statusText) } label: { Text("orderCenter.status", tableName: "CreatorEditorUI") }
                         LabeledContent { Text(verbatim: summary.amountText).monospacedDigit() } label: { Text("orderCenter.amount", tableName: "CreatorEditorUI") }
                         if let created = summary.createdAtText {
-                            LabeledContent { Text(verbatim: created) } label: { Text("orderCenter.created", tableName: "CreatorEditorUI") }
+                            LabeledContent { Text(verbatim: LocaleDisplay.civil(created, locale: locale)) } label: { Text("orderCenter.created", tableName: "CreatorEditorUI") }
                         }
                     }.accessibilityIdentifier("orderCenter.summary")
                 }
