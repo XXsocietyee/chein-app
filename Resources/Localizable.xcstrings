@@ -344375,6 +344375,40 @@
           }
         }
       }
+    },
+    "club.community.feedFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load posts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "动态加载失败"
+          }
+        }
+      }
+    },
+    "club.community.postsFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load the club’s posts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帖文加载失败"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
