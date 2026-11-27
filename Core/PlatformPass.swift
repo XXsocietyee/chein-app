@@ -94,7 +94,8 @@ public struct PlatformPass: @unchecked Sendable {
     }
 
     /// GET `/api/platform-pass`. A merchant viewer returns before the request (membership page).
-    public func overview(token: String, viewerIsMerchant: Bool) async throws -> PlatformPassOverview {
+    /// MP market/membership reads it without a session too (login is asked only on 购买), so a guest passes nil.
+    public func overview(token: String?, viewerIsMerchant: Bool) async throws -> PlatformPassOverview {
         if viewerIsMerchant { return .merchantBlocked }
         let data = try await get(Self.overviewPath, query: [], token: token)
         return try PlatformPassOverview.decode(data)
