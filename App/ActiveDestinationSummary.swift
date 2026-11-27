@@ -52,7 +52,7 @@ struct ActiveDestinationSummary<Actions: View>: View {
 struct WalkingDistanceText: View {
     let meters: Double
     var body: some View {
-        Text(Measurement(value: meters, unit: UnitLength.meters), format: .measurement(width: .abbreviated))
+        Text(Measurement(value: meters, unit: UnitLength.meters), format: .measurement(width: .abbreviated, usage: .road))
     }
 }
 struct WalkingDurationText: View {

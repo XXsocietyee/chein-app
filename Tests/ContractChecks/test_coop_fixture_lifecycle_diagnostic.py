@@ -48,7 +48,8 @@ class CoopFixtureLifecycleDiagnosticChecks(unittest.TestCase):
         # Re-pinned for fix/r3-merchant-coop-b MC7-28-5: 重新加载 button under the partial notice only.
         # Re-pinned for 7ccdecd2f (MP empty art on the empty state) and e79a8b061 MC8-28-4 (guest 登录 button via
         # MerchantCoopSignInState). Presentation only; owner/lifetime tokens and the three reversals above unchanged.
-        self.assertEqual('550a2553c82663ed6caf89cda402b1773ed8f1ed703784c4761c95c1eefc9de6', hashlib.sha256(normalized.encode()).hexdigest())
+        # Re-pinned for i18n r1 layout: only .pickerStyle(.segmented) -> .cyAdaptiveSegmented(). Tokens above unchanged.
+        self.assertEqual('108904900463f5cb2a123b8970c93c60765d206bf6fb3e1c4eb89f84a694fc9f', hashlib.sha256(normalized.encode()).hexdigest())
 
     def test_failure_projection_is_small_and_does_not_change_read_count_label(self):
         source = (ROOT / 'Tests/AppUITests/CoopRelationDiscoveryFlowTests.swift').read_text()

@@ -33,25 +33,42 @@ struct CYStatPill: View {
     }
 
     var body: some View {
+        // i18n r1: an English title can be twice as wide as the Chinese one. When the titled pill doesn't fit
+        // the HUD row, drop the visible title (VoiceOver still reads it) instead of truncating the value.
+        Group {
+            if showsTitle {
+                ViewThatFits(in: .horizontal) {
+                    pillContent(showsTitle: true)
+                    pillContent(showsTitle: false)
+                }
+            } else {
+                pillContent(showsTitle: false)
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(titleKey))
+        .accessibilityValue(accessibilityValueText)
+    }
+
+    private func pillContent(showsTitle: Bool) -> some View {
         HStack(spacing: CYSpacing.xs) {
             Image(systemName: systemImage)
                 .imageScale(.small)
                 .foregroundStyle(tint)
                 .accessibilityHidden(true)
             valueView
+                .layoutPriority(1)
             if showsTitle {
                 Text(titleKey)
                     .cyText(.caption)
                     .foregroundStyle(CYColor.textSecondary)
                     .lineLimit(1)
+                    .fixedSize()
             }
         }
         .padding(.horizontal, CYSpacing.md)
         .padding(.vertical, CYSpacing.xs)
         .background(Capsule(style: .continuous).fill(CYColor.bgRaised))
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(titleKey))
-        .accessibilityValue(accessibilityValueText)
     }
 
     @ViewBuilder
@@ -62,6 +79,7 @@ struct CYStatPill: View {
                 .cyText(.label, monospacedDigit: true)
                 .foregroundStyle(CYColor.textPrimary)
                 .lineLimit(1)
+                .fixedSize()
         case .count(let count, let compact):
             CYLiveCounter(count, style: .label, compact: compact)
         }

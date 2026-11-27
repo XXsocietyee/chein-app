@@ -738,7 +738,7 @@ struct ClubGovernanceReadView: View {
                                 .accessibilityIdentifier("club.gov.customers.filter." + value)
                         }
                     }
-                    .pickerStyle(.segmented)
+                    .cyAdaptiveSegmented()
                     .labelsHidden()
                 }
             }
@@ -2421,7 +2421,7 @@ struct ClubGovernanceEventView: View {
                 Picker("club.story.sections", selection: $tab) {
                     Text("club.story.route").tag(ClubStoryTab.route).accessibilityIdentifier("club.story.tab.route")
                     Text("club.story.play").tag(ClubStoryTab.play).accessibilityIdentifier("club.story.tab.play")
-                }.pickerStyle(.segmented).labelsHidden().accessibilityIdentifier("club.story.tabs")
+                }.cyAdaptiveSegmented().labelsHidden().accessibilityIdentifier("club.story.tabs")
                 // Mini topic-story `story-aigc` (P0-14): explicit generative-AI label when publishMode is ai_simple.
                 if snapshot?.value["publishMode"].string?.trimmingCharacters(in: .whitespaces).lowercased() == "ai_simple" {
                     Label { Text("story.aigc", tableName: "SocialParity") } icon: { Image(systemName: "sparkles") }

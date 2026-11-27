@@ -10,7 +10,7 @@ class ClubStoryNavigationContractTests(unittest.TestCase):
     def test_route_play_and_chapter_content_is_typed_and_separate(self):
         view = self.text('App/ClubGovernanceViews.swift')
         story = view.split('@MainActor struct ClubGovernanceStoryView:', 1)[1].split('struct ClubGovernanceFactRows:', 1)[0]
-        for text in ['ClubStoryPresentation(snapshot:', '.pickerStyle(.segmented)', 'tab == .route',
+        for text in ['ClubStoryPresentation(snapshot:', '.cyAdaptiveSegmented()', 'tab == .route',
                      'chapterPicker(presentation.chapters)', 'playContent(chapter)', 'ClubStoryStopCard(',
                      'ClubStoryGameplayCard(', 'storyExpanded ? nil : 4', 'guard presentation?.chapters.contains(chapter) == true']:
             self.assertIn(text, story)

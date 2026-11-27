@@ -272,7 +272,7 @@ private struct GrowthBoardChips<Option: Hashable & Identifiable>: View {
                 Text(verbatim: appLocalized(String.LocalizationValue(key(option)), locale: locale)).tag(option)
             }
         } label: { Text(title) }
-            .pickerStyle(.segmented)
+            .cyAdaptiveSegmented()
             .sensoryFeedback(.selection, trigger: selection)
             .accessibilityElement(children: .contain)
             .accessibilityLabel(Text(title))

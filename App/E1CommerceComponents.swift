@@ -109,12 +109,19 @@ struct E1GlassChip: View {
 
 enum E1Money {
     /// `¥12.5`; nil when the amount is unknown (never rendered as 0).
+    /// i18n r1: Chinese keeps `¥12.5`; other languages name the currency (`CN¥12.50`).
     static func yuan(_ value: Decimal?, locale: Locale) -> String? {
         guard let value, value >= 0 else { return nil }
+        guard LocaleDisplay.isChinese(locale) else { return LocaleDisplay.money(value, locale: locale) }
         return "¥" + value.formatted(.number.precision(.fractionLength(0...2)).locale(locale))
     }
-    static func yuan(text: String?) -> String? {
+    static func yuan(text: String?) -> String? { yuan(text: text, locale: .current) }
+    static func yuan(text: String?, locale: Locale) -> String? {
         guard let text = text?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return nil }
+        guard LocaleDisplay.isChinese(locale) else {
+            let body = text.hasPrefix("¥") || text.hasPrefix("￥") ? String(text.dropFirst()) : text
+            return LocaleDisplay.money(text: body, locale: locale) == body ? text : LocaleDisplay.money(text: body, locale: locale)
+        }
         return text.hasPrefix("¥") ? text : "¥" + text
     }
 }

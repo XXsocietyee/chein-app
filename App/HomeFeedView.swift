@@ -306,7 +306,7 @@ import UIKit
             } label: {
                 Text("homeFeed.content")
             }
-            .pickerStyle(.segmented)
+            .cyAdaptiveSegmented()
             .accessibilityIdentifier("homeFeed.kind")
             .accessibilityLabel(Text("homeFeed.content"))
             ForEach(model.pagination.items) { item in

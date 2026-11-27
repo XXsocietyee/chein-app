@@ -125,7 +125,7 @@ import SwiftUI
                 PlayAreaNearbyRangeSheet(radii: NearbyQueryContext.radii, selected: radius, onSelect: { picked in
                     radius = picked
                     showingRange = false
-                    toastMessage = PlayCloseCopy.text("已切换范围 \(picked / 1000) km", "Range updated to \(picked / 1000) km", locale)
+                    toastMessage = PlayCloseCopy.text("已切换范围 \(picked / 1000) km", "Range updated to \(LocaleDisplay.radius(meters: Double(picked), locale: locale) ?? "\(picked / 1000) km")", locale)
                 }, onClose: { showingRange = false })
             }
             .cySheet(isPresented: $showingMapStyle) {
@@ -187,7 +187,7 @@ import SwiftUI
         LazyVStack(alignment: .leading, spacing: 20) {
             Picker("nearby.section", selection: $tab) {
                 Text("nearby.title").tag(0); Text("nearby.mine").tag(1)
-            }.pickerStyle(.segmented).accessibilityIdentifier("nearby.section")
+            }.cyAdaptiveSegmented().accessibilityIdentifier("nearby.section")
             notice
             if tab == 0 {
                 let renderedDiscovery = discovery.snapshotID
@@ -328,7 +328,7 @@ import SwiftUI
             }
             HStack {
                 Button { showingRange = true } label: {
-                    Text(verbatim: "\(radius / 1000) km")
+                    Text(verbatim: LocaleDisplay.isChinese(locale) ? "\(radius / 1000) km" : (LocaleDisplay.radius(meters: Double(radius), locale: locale) ?? "\(radius / 1000) km"))
                         .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                 }

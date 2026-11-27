@@ -36,7 +36,7 @@ import SwiftUI
                     Text("nativeR2.city.lobby.join").tag(Role.join)
                     Text("nativeR2.city.lobby.mine").tag(Role.mine)
                 }
-                .pickerStyle(.segmented)
+                .cyAdaptiveSegmented()
                 .accessibilityIdentifier("nativeR2.city.lobby.role")
             }
         }

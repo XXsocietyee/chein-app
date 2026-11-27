@@ -31,7 +31,7 @@ import SwiftUI
                         } label: {
                             invoiceText("history")
                         }
-                        .pickerStyle(.segmented)
+                        .cyAdaptiveSegmented()
                         .labelsHidden()
                         .accessibilityIdentifier("invoice.history.filter")
                     }

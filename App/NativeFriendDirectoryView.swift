@@ -50,7 +50,7 @@ import SwiftUI
                         text("friendDirectory." + section.rawValue).tag(section)
                     }
                 }
-                .pickerStyle(.segmented).labelsHidden()
+                .cyAdaptiveSegmented().labelsHidden()
                 .accessibilityIdentifier("friendDirectory.partition")
             }
             if flow.busy {

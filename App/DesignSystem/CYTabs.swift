@@ -181,7 +181,7 @@ public struct CYTabs<ID: Hashable>: View {
             } label: {
                 EmptyView()
             }
-            .pickerStyle(.segmented)
+            .cyAdaptiveSegmented()
             .labelsHidden()
             .padding(.horizontal, variant == .segmented ? 0 : CYSpacing.pageHorizontal)
         } else {

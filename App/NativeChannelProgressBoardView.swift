@@ -72,7 +72,7 @@ public struct NativeChannelProgressTeamOption: Identifiable, Equatable {
                     Text("top", tableName: "NativeChannelProgress").tag("top")
                     Text("d7.channelProgress.detail", tableName: "NativeChannelProgress").tag("detail")
                 } label: { Text("d7.channelProgress.boardView", tableName: "NativeChannelProgress") }
-                    .pickerStyle(.segmented).labelsHidden()
+                    .cyAdaptiveSegmented().labelsHidden()
                 Picker(selection: $period) {
                     ForEach(["ALL","TOPIC","WEEK","MONTH"], id: \.self) { Text(LocalizedStringKey($0), tableName: "NativeChannelProgress").tag($0) }
                 } label: { Text("period", tableName: "NativeChannelProgress") }

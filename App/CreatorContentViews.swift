@@ -193,7 +193,7 @@ private struct CreatorContentIssueView: View {
                     .tag(value)
             }
         } label: { Text("creatorContent.type") }
-        .pickerStyle(.segmented)
+        .cyAdaptiveSegmented()
         .sensoryFeedback(.selection, trigger: query.type)
     }
     private func issue(_ value: CreatorContentIssue) -> some View {

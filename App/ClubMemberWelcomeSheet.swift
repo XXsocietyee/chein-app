@@ -48,6 +48,7 @@ import SwiftUI
     let close: () -> Void
     let goEvents: () -> Void
     @State private var arrived = false
+    @Environment(\.locale) private var locale
     var body: some View {
         NavigationStack {
             List {
@@ -130,7 +131,7 @@ import SwiftUI
         if let text = value.club.memberDiscountPriceText?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty {
             return text
         }
-        return MoneyDisplay.yuan(Decimal(price))
+        return LocaleDisplay.money(Decimal(price), locale: locale)
     }
 
     private func step(_ symbol: String, _ text: Text) -> some View {
