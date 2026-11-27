@@ -1135,6 +1135,8 @@ private struct PassOrderRefusedWrites: View {
     @State private var confirmCancel = false
     @State private var refunding = false
     @State private var reason = ""
+    /// MP pass-order `onRefundSubmit`: an empty reason keeps 提交申请 tappable and answers 请填写退款原因.
+    @State private var reasonMissing = false
     /// R8-MEM-5-1: MP `cy-inline-error` notice. A refused write says so instead of doing nothing.
     @State private var refusedNotice = false
 
@@ -1181,22 +1183,29 @@ private struct PassOrderRefusedWrites: View {
                             .lineLimit(3...6)
                             .onChange(of: reason) { _, newValue in
                                 if newValue.count > 200 { reason = String(newValue.prefix(200)) }
+                                if reasonMissing, !newValue.isEmpty { reasonMissing = false }
                             }
                     } header: {
                         Text("mp.passOrder.refundApply.reason")
                     } footer: {
-                        Text(verbatim: "\(reason.count)/200").monospacedDigit()
+                        VStack(alignment: .leading, spacing: 4) {
+                            if reasonMissing {
+                                Label { Text("mp.passOrder.refundApply.placeholder") } icon: { Image(systemName: "exclamationmark.circle") }
+                                    .foregroundStyle(.red)
+                                    .accessibilityIdentifier("passOrder.refund.reasonMissing")
+                            }
+                            Text(verbatim: "\(reason.count)/200").monospacedDigit()
+                        }
                     }
                     Section {
                         Button(role: .destructive) {
                             let trimmed = reason.trimmingCharacters(in: .whitespacesAndNewlines)
-                            guard !trimmed.isEmpty else { return }
+                            guard !trimmed.isEmpty else { reasonMissing = true; return }
                             refunding = false
                             refuse(.refund, reason: trimmed)
                         } label: {
                             Text("mp.passOrder.refundApply.submit")
                         }
-                        .disabled(reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                         .accessibilityIdentifier("passOrder.refund.submit")
                     }
                 }

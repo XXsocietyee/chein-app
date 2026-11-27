@@ -84,7 +84,8 @@ import SwiftUI
         }
         // NAT-6 (native-r2): 保存 is the navigation bar's confirmation action, not a custom footer bar.
         .toolbar {
-            if model.allows(.saveTitle), !saveLocked {
+            // MP keeps 保存 on screen while a save is unconfirmed and only disables it (`disabled="{{!canSubmit || titlePending}}"`).
+            if model.allows(.saveTitle) {
                 ToolbarItem(placement: .confirmationAction) {
                     Button {
                         do {
@@ -97,7 +98,7 @@ import SwiftUI
                         Text("save", tableName: "InvoiceLaunchUI")
                     }
                     .fontWeight(.semibold)
-                    .disabled(!InvoiceLaunchTitleRules.canSubmit(type: type, name: name, tax: tax))
+                    .disabled(saveLocked || model.busy || !InvoiceLaunchTitleRules.canSubmit(type: type, name: name, tax: tax))
                     .accessibilityIdentifier("invoice.title.save")
                 }
             }

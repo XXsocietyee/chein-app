@@ -126,3 +126,20 @@ Gates: generate_project (no change), check_scaffold PASS, a11y lint 0 new, desig
 - `member.about.addInterest` (Add interests / 添加兴趣)
 - `ticketWallet.emptyExplore` (Explore / 去探索)
 - `profile.inviteRewards.heroPending` (zh-Hans changed to 待同步)
+
+## Continue 3 (re-arm after the 15:09 check): Not-done rows from the subpage re-scan
+
+Merged `origin/ui/combined-r7` (clean). The 我的 structure from the 14:13 check was already in place (tabs 项目/帖文/成就/关于, [开始探索][票夹][···], 积分/打卡 in 成就, 当前权益 in 关于), so this pass works the re-scan's Not done rows that need only view changes.
+
+| MP page | Native view | MP says | Fixed now |
+|---|---|---|---|
+| `invoice-titles` | `InvoiceLaunchTitlesView.swift` | Footer 新增发票抬头 shows once loaded and is `disabled` while a save is pending or writing | **Fixed.** Shows on `facts.showsAdd`, disabled on `!facts.canAdd`. |
+| `invoice-titles` (+ shared state section) | `InvoiceLaunchPresentation.swift` `InvoiceLaunchStateSection` | A missed title recheck: toast 暂未查到这次保存, and the inline error stays 上次保存结果未确认 · 确认前请勿修改抬头 · 查询结果 | **Fixed.** A title save that was not found reads 暂未查到这次保存 with the 确认前请勿修改抬头 line and keeps 查询结果. Apply/cancel keep 暂未查到这次申请 · 再查一次. New key `titleSave.notFound` in `InvoiceLaunchUI.xcstrings`. |
+| `invoice-title-edit` | `InvoiceLaunchTitleEditor.swift` | 保存 stays and is `disabled="{{!canSubmit \|\| titlePending}}"`, loading while writing | **Fixed.** The toolbar 保存 stays while a save is unconfirmed and is disabled on pending, busy or invalid input. |
+| `invoice-detail` | `InvoiceLaunchDetailView.swift` | `cy-skeleton type="form-section" count="2"` while the detail loads | **Fixed.** Two `CYSkeleton(.formSection)` sections (system redacted placeholder) until the detail arrives. |
+| `market/pass-order` | `PassMarketViews.swift` `PassOrderRefusedWrites` | 提交申请 is always tappable; an empty reason answers 请填写退款原因 | **Fixed.** No longer disabled. An empty submit shows 请填写退款原因 in the footer (red, cleared on typing). |
+| `market/gift` | `MPParityKit.swift` `.gift` route | A guest sees 好友送你一份通行证 · 领取; 领取 asks to sign in (`ensureLoginFor`) | **Fixed.** Guests get `PassGiftClaimView` in the ready state and 领取 opens sign-in. The separate sign-in wall is gone (`mp.gift.signIn` is now unused). |
+| `mycanyuinfo` | `PlayerJourneyViews.swift` | Unknown order stats read 0 | **Kept, on purpose.** Core `ParticipationDetail.pendingText` documents "unknown statistics stay an em dash" and `test_w2_04_participation` pins it. A literal 0 still reads 0. Owner call if 0 is wanted. |
+
+Still open from the re-scan table (need Core/coordinator work or are gated): invoice shared pending keyed by kind, server `msg` passthrough (titles delete, coupon-qr, library), pass `giftAllowed`/quote, membership guest overview, library tags, report-detail coordinator states, participation countdown/footer bar.
+| `points-history` | `WalletCommerceViews.swift` `WalletLedgerView` | No 积分任务 row on the page; first load is `cy-skeleton type="list" count="3"` | **Fixed.** The 积分任务 link is gone from 积分明细 (如何获取积分 stays on 成就). First load shows three `CYSkeleton(.row)` placeholders. The balance hero stays: it is the zoom target from 成就 → 积分 (motion, not a section). |
