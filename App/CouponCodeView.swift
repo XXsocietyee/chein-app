@@ -18,6 +18,7 @@ extension EnvironmentValues {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     @State private var viewPresentation = CouponCodeViewPresentation()
     private struct TaskKey: Hashable { let active: Bool; let presentationID: UUID? }
     var body: some View {
@@ -182,7 +183,7 @@ extension EnvironmentValues {
                     .foregroundStyle(.green)
                     .accessibilityHidden(true)
                 Text("u9cde.coupon.used").font(.headline)
-                if let time = model.useTime { Text(verbatim: time).font(.footnote).monospacedDigit().foregroundStyle(.secondary) }
+                if let time = model.useTime { Text(verbatim: LocaleDisplay.civil(time, locale: locale)).font(.footnote).monospacedDigit().foregroundStyle(.secondary) }
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical)
