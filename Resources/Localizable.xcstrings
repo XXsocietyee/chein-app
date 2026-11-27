@@ -177826,13 +177826,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Estimate result: close"
+            "value": "So close"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "估数结果：接近"
+            "value": "差一点"
           }
         }
       }
@@ -177843,13 +177843,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Estimate result: on target"
+            "value": "Got it"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "估数结果：命中"
+            "value": "猜中了"
           }
         }
       }
@@ -177860,13 +177860,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Estimate result: outside the target range"
+            "value": "Quite a way off"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "估数结果：偏离目标范围"
+            "value": "差得有点远"
           }
         }
       }
@@ -350724,6 +350724,176 @@
           "stringUnit": {
             "state": "translated",
             "value": "把俱乐部交给别人打理，成员和内容都留着"
+          }
+        }
+      }
+    },
+    "playkit.slow.eyebrow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slow down · a task across days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "慢一点 · 跨日任务"
+          }
+        }
+      }
+    },
+    "playkit.slow.startHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Make a start now and let time do the rest."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现在开个头，剩下的交给时间。"
+          }
+        }
+      }
+    },
+    "playkit.slow.startLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That's settled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "就这么定了"
+          }
+        }
+      }
+    },
+    "playkit.slow.waitHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Around this time tomorrow, there will be a little more here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明天这个时候，这里会多出一点东西。"
+          }
+        }
+      }
+    },
+    "playkit.slow.waitCta": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Come back tomorrow"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明天再来"
+          }
+        }
+      }
+    },
+    "playkit.slow.ready": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "It's ready. Claim it to reveal today's discovery."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已经准备好了，领取后揭示今天的发现。"
+          }
+        }
+      }
+    },
+    "playkit.slow.unlockLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See what was left"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "看看留下了什么"
+          }
+        }
+      }
+    },
+    "playkit.estimate.detail.exact %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exactly %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正好 %@"
+          }
+        }
+      }
+    },
+    "playkit.estimate.detail.pair %@ %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You guessed %1$@ · Actual %2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你猜 %1$@ · 实际 %2$@"
+          }
+        }
+      }
+    },
+    "playkit.estimate.detail.diff %@ %@ %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You guessed %1$@ · Actual %2$@ · Off by %3$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你猜 %1$@ · 实际 %2$@ · 差 %3$@"
           }
         }
       }
