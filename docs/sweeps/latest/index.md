@@ -1,4 +1,4 @@
-# Screenshot sweep — build b3b03703a — 2026-11-27T23:07Z
+# Screenshot sweep — build 793c3190b — 2026-11-27T23:37Z
 
 Debug build of `ui/combined-r7` on iPhone 17 simulator, design fixtures, light mode. Files: `docs/sweeps/latest/<lane>/<lang>-<fixture>.jpg`; one contact sheet per lane and language: `<lane>/sheet-<lang>.jpg`. **Lanes: open your sheets with the Read tool before and after your work; compare with the MP page and OWNER RULE 2.**
 
