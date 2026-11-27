@@ -407,6 +407,12 @@ public struct PlayLeadProgress: Equatable {
     public let nextChapterID: Int?
     /// Members stuck at a sensor station who asked to skip it. At most eight, as the mini-program shows.
     public let skipRequests: [SkipRequest]
+    /// mp-journey r3: MP `lead.total` (the whole team; `members` is capped at eight), `sessionEnded`, `freeEntry` (P-13).
+    public let total: Int?
+    public let ended: Bool
+    public let freeEntry: Bool
+    /// MP `hud.topBanner` leadbar: a team in progress (status 2) or an ended session; a free-entry team only once ended.
+    public var showsLeadBar: Bool { exists && (status == 2 || ended) && (!freeEntry || ended) }
     public struct SkipRequest: Equatable, Identifiable {
         public var id: String { "\(memberID):\(nodeID)" }
         public let memberID: Int; public let nodeID: Int; public let nickname: String?
@@ -416,6 +422,7 @@ public struct PlayLeadProgress: Equatable {
         guard let exists = raw["exists"].bool else { throw PlayExperienceError.malformed }
         self.exists = exists; isLeader = raw["isLeader"].bool == true; leaderMemberID = raw["leaderMemberId"].integer
         status = raw["status"].integer; chapterName = raw["chapterName"].text; broadcast = raw["broadcast"].text
+        total = raw["total"].integer; ended = raw["sessionEnded"].bool == true; freeEntry = raw["freeEntry"].bool == true
         arrived = raw["arrived"].integer; meArrived = raw["meArrived"].bool == true || raw["meArrived"].integer == 1
         members = try (raw["members"].array ?? []).map { item in
             guard let id = item["memberId"].integer, id > 0 else { throw PlayExperienceError.malformed }
@@ -569,6 +576,30 @@ public enum PlayNightWarning {
     public static func isOn(_ receipt: PlayWireValue?) -> Bool {
         guard let receipt else { return false }
         return receipt["nightWarning"].bool == true || receipt["nightWarning"].integer == 1
+    }
+}
+
+/// mp-journey r3: MP `pages/play/index` `.play-timebar` (路线恢复横幅, `_routeNoticeForState`) by route status.
+/// The route notice wins over the 非阻断 time line (`timeNote` while `playable == false`).
+public enum PlayRunRouteNotice: String, Equatable {
+    case withdrawn, ended, fallback
+
+    public static func of(_ route: PlayRouteState?) -> PlayRunRouteNotice? {
+        switch route?.status ?? "" {
+        case "UNAVAILABLE", "WITHDRAWN", "CONFIG_WITHDRAWN": return .withdrawn
+        case "ENDED", "CANCELLED", "EXPIRED": return .ended
+        case "FALLBACK": return .fallback
+        default: return nil
+        }
+    }
+
+    public var key: String { "playx.routeNotice." + rawValue }
+
+    /// The time line under the route notice: only when the run is not playable and the server wrote one.
+    public static func timeLine(_ result: PlayNodesResult) -> String? {
+        guard result.playable == false else { return nil }
+        let note = (result.timeNote ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        return note.isEmpty ? nil : note
     }
 }
 

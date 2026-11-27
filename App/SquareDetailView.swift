@@ -686,7 +686,7 @@ private struct SquareDetailProfileRoute: Identifiable, Hashable {
                 Text("cooperation.login").foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             } else {
                 switch phase {
-                case .loading: ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text(verbatim: locale.pick("读取中", "Loading")))
+                case .loading: ProgressView { Text(verbatim: locale.pick("读取中", "Loading")) }.frame(maxWidth: .infinity)
                 case .empty:
                     ContentUnavailableView(locale.pick("还没有你发布的广场帖", "You have no square posts"), systemImage: "square.and.pencil")
                 case .failed:

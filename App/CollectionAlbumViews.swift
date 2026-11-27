@@ -36,44 +36,27 @@ extension View {
     func cyAlbumChildTitle(_ key: String.LocalizationValue) -> some View { modifier(CollectionAlbumChildTitle(key: key)) }
 }
 
-/// `album-head`: the segment chips (R2 204:30158). The page title 收集册 is the system inline title (type-and-chrome
-/// §2: a pushed page draws no second page-type title in its content). The selected chip is the neutral solid capsule
-/// and slides to the picked segment in place (`standard`; a cross-fade under Reduce Motion). Chips scroll sideways when
-/// long labels or large Dynamic Type no longer fit.
+/// `album-head`: the 勋章 / 邮票 / 藏品 segments as the system segmented control (owner rule 2: one control for
+/// in-page tabs; a menu when a long English title or an accessibility text size would truncate a segment). The page
+/// title 收集册 is the system inline title (type-and-chrome §2: a pushed page draws no second title in its content).
 struct CollectionAlbumHead: View {
     let segments: [CollectionAlbumSegment]
     let active: CollectionAlbumSegment
     let select: (CollectionAlbumSegment) -> Void
-    @Environment(\.cyPalette) private var palette
-    @Namespace private var chip
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: CYSpacing.sm) {
-                ForEach(segments, id: \.self) { segment in
-                    let on = segment == active
-                    Button { select(segment) } label: {
-                        Text(segment.title).cyText(.label)
-                            .foregroundStyle(on ? palette.actionPrimaryFg : palette.textPrimary)
-                            .lineLimit(1)
-                            .padding(.horizontal, CYSpacing.xl).frame(minHeight: CYSpacing.minTouchTarget)
-                            .background {
-                                if on {
-                                    Capsule().fill(palette.textPrimary)
-                                        .matchedGeometryEffect(id: "selected", in: chip)
-                                } else {
-                                    Capsule().fill(palette.bgElevated)
-                                }
-                            }
-                            .contentShape(Capsule())
-                    }
-                    .buttonStyle(.cyPressable)
-                    .accessibilityAddTraits(on ? [.isSelected] : [])
+        Picker(selection: Binding(get: { active }, set: { select($0) })) {
+            ForEach(segments, id: \.self) { segment in
+                Text(segment.title)
+                    .tag(segment)
                     .accessibilityIdentifier("collection.album.segment.\(segment.rawValue)")
-                }
             }
-            .padding(.horizontal, CYSpacing.lg)
-            .accessibilityElement(children: .contain)
+        } label: {
+            Text(active.title)
         }
+        .cyAdaptiveSegmented()
+        .labelsHidden()
+        .sensoryFeedback(.selection, trigger: active)
+        .padding(.horizontal, CYSpacing.pageHorizontal)
         .padding(.top, CYSpacing.sm).padding(.bottom, CYSpacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityIdentifier("collection.album.head")

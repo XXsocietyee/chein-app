@@ -226,8 +226,8 @@
   },
   {
     "key": "social.guide.noContent",
-    "en": "This guide does not have readable content yet.",
-    "zh-Hans": "这篇说明暂时没有正文。"
+    "en": "This how-to-play guide has no content yet",
+    "zh-Hans": "这篇玩法说明暂时没有内容"
   },
   {
     "key": "social.invites.title",

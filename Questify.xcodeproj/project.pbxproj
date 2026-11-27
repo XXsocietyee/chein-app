@@ -7035,6 +7035,26 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "27309F2EBC634A4CB24AB698";
 		};
+		"7F2FE08D0A27D546494A1B6D" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/MPGap/PlayRoam/PlayLeadBar.swift";
+			"sourceTree" = "<group>";
+		};
+		"D8E57E99F18FAD90E9F7DC55" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "7F2FE08D0A27D546494A1B6D";
+		};
+		"519DAAA090D80633AC0B8824" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/MPGap/PlayRoam/PlayNavBubbleOverlay.swift";
+			"sourceTree" = "<group>";
+		};
+		"18CFFA49A341A7A11FF68AAB" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "519DAAA090D80633AC0B8824";
+		};
 		"EB88423E6C4EF0EED2989145" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -7054,6 +7074,16 @@
 		"69B968B9DCFC3965AB969843" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "A0D4CC32FB87D0D7DDBEFAA0";
+		};
+		"E7D314765D7615243DB24A47" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/MPGap/PlayRoam/PlayRunNoticeBanner.swift";
+			"sourceTree" = "<group>";
+		};
+		"C9BBBC3F0B5AA36909C80B6C" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "E7D314765D7615243DB24A47";
 		};
 		"5D10D65046148A7DF2CDB6AA" = {
 			"isa" = "PBXFileReference";
@@ -43867,8 +43897,11 @@
 				"428759243823B33ED4A1FA5D",
 				"2DEF2BCC2E9C62657721E6B1",
 				"27309F2EBC634A4CB24AB698",
+				"7F2FE08D0A27D546494A1B6D",
+				"519DAAA090D80633AC0B8824",
 				"EB88423E6C4EF0EED2989145",
 				"A0D4CC32FB87D0D7DDBEFAA0",
+				"E7D314765D7615243DB24A47",
 				"5D10D65046148A7DF2CDB6AA",
 				"BD0CA023989307C97F1445B7",
 				"8AF29D39B759CD5B2D4200C1",
@@ -49369,8 +49402,11 @@
 				"1ABAF7E177754A0223FD504C",
 				"550061A6CE959185D5B35040",
 				"FE929920E0D4A5AF561009B3",
+				"D8E57E99F18FAD90E9F7DC55",
+				"18CFFA49A341A7A11FF68AAB",
 				"DAC699AF88C0A46A353ABA35",
 				"69B968B9DCFC3965AB969843",
+				"C9BBBC3F0B5AA36909C80B6C",
 				"5A20ADA238DFC4FD65BE9434",
 				"F64963C2301B60FB720718C5",
 				"2525D1E768195D63310D715C",
