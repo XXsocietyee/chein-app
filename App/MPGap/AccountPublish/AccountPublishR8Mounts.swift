@@ -32,7 +32,7 @@ extension AccountPublishContractLane {
                   envelope.ok else { return .failed }
             return .rows(envelope.data.map {
                 TeamApplicantItem(id: $0.memberID.rawValue, userID: $0.memberID.rawValue,
-                                  nickname: $0.name.isEmpty ? "这位玩家" : $0.name,
+                                  nickname: $0.name.isEmpty ? appLocalized("i18nR3.thisPlayer", locale: .current) : $0.name,
                                   avatarURL: $0.avatar.isEmpty ? nil : $0.avatar,
                                   message: $0.message.isEmpty ? nil : $0.message)
             })

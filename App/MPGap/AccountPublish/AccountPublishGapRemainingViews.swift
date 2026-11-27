@@ -143,7 +143,7 @@ public struct ActivityPublishGapOrganizerAndPOISection: View {
         Group {
             Section {
                 Button(action: onPickLocation) {
-                    LabeledContent("活动地点", value: (pickedPlaceName?.isEmpty == false) ? (pickedPlaceName ?? "") : "选择地点")
+                    LabeledContent("活动地点", value: (pickedPlaceName?.isEmpty == false) ? (pickedPlaceName ?? "") : appLocalized("i18nR3.choosePlace", locale: .current))
                 }
                 .foregroundStyle(.primary)
                 .disabled(isSoldLocked)

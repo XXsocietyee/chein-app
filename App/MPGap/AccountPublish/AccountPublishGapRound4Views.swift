@@ -26,7 +26,7 @@ public struct ProjectEditGapRichStoryBlocksSection: View {
                 TextField(AccountPublishRound4Copy.speakerPlaceholder, text: $dialogueSpeaker)
                 Button(AccountPublishRound4Copy.lineDividerLabel, action: onInsertDividerLine)
             } header: {
-                Text(verbatim: "对白与分割线")
+                Text("i18nR3.dialogueAndDividers")
             }
 
             Section {
