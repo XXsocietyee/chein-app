@@ -173921,13 +173921,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Share my route with teams in this session"
+            "value": "Let teams in this session see my route"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "与同场队伍共享我的路线"
+            "value": "让同场队伍看到我的路线"
           }
         }
       }
@@ -343811,6 +343811,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "网络状态暂未刷新 · 点击重试"
+          }
+        }
+      }
+    },
+    "playerGap.trail.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shared routes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同场路线"
           }
         }
       }

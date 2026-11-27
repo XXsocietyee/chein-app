@@ -1086,5 +1086,22 @@
         }
       }
     }
+  },
+  "playerGap.trail.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Shared routes"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "同场路线"
+        }
+      }
+    }
   }
 }
