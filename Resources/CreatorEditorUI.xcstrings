@@ -273,6 +273,38 @@
         }
       }
     },
+    "creatorEditor.playSetup.header": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play window and prep"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可玩时段与开局前准备"
+          }
+        }
+      }
+    },
+    "creatorEditor.playSetup.saveFirst": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save the topic first to set the play window and the prep list."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存为主题后，才能设置可玩时段与开局前准备。"
+          }
+        }
+      }
+    },
     "creatorEditor.prep": {
       "localizations": {
         "en": {
@@ -321,6 +353,34 @@
         }
       }
     },
+    "creatorEditor.prep.count %lld": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld item"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld items"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 项"
+          }
+        }
+      }
+    },
     "creatorEditor.prep.footer": {
       "localizations": {
         "en": {
@@ -333,6 +393,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "最多 6 项，每项不超过 20 字。玩家开局前会逐项确认。"
+          }
+        }
+      }
+    },
+    "creatorEditor.prep.none": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not set"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未设置"
           }
         }
       }
@@ -925,6 +1001,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "只在夜间"
+          }
+        }
+      }
+    },
+    "creatorEditor.window.range %@ %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@–%2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@–%2$@"
           }
         }
       }

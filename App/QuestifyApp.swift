@@ -502,6 +502,9 @@ struct SessionRootView: View {
                 .environment(\.publisherIdentityRegistrationSource, session.publishingSession.map { account in
                     PublisherIdentityRegistrationSource(account: account, make: { session.makePublisherIdentityRegistrationService() })
                 })
+                .environment(\.topicPlaySetupSource, session.currentRuntimeDependencyContext.map { runtime in
+                    TopicPlaySetupSource(ownerKey: String(runtime.session.accountID), make: { CreatorEditorProduction.topicEditor(session: session) })
+                })
                 .sessionOfflineBanner(reachability: reachability, session: session)
                 .cyScreenStyle()
                 .cyTabBarAccessibilityIdentifiers(["rootTabBar.tab.player.0", "rootTabBar.tab.player.1", "rootTabBar.tab.player.2", "rootTabBar.tab.player.3", "rootTabBar.tab.player.4"])

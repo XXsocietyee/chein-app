@@ -9728,13 +9728,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading"
+            "value": "Loading…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在加载"
+            "value": "正在加载…"
           }
         }
       }
@@ -56926,13 +56926,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading"
+            "value": "Loading…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在加载"
+            "value": "正在加载…"
           }
         }
       }
@@ -81170,13 +81170,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Home is unavailable"
+            "value": "Home can’t open right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "首页暂不可用"
+            "value": "首页无法打开"
           }
         }
       }
@@ -139939,13 +139939,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Submitting"
+            "value": "Submitting…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在提交"
+            "value": "正在提交…"
           }
         }
       }
@@ -146705,13 +146705,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Working"
+            "value": "Working…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在处理"
+            "value": "正在处理…"
           }
         }
       }
@@ -150999,13 +150999,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading"
+            "value": "Loading…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "加载中"
+            "value": "加载中…"
           }
         }
       }
@@ -157970,13 +157970,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Working"
+            "value": "Working…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "处理中"
+            "value": "处理中…"
           }
         }
       }
@@ -159685,13 +159685,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading order"
+            "value": "Loading order details"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在加载订单"
+            "value": "订单详情加载中"
           }
         }
       }
@@ -163857,13 +163857,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Processing"
+            "value": "Processing…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "处理中"
+            "value": "处理中…"
           }
         }
       }
@@ -170633,13 +170633,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sending"
+            "value": "Sending…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "提交中"
+            "value": "提交中…"
           }
         }
       }
@@ -184783,7 +184783,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "上传中"
+            "value": "上传中…"
           }
         }
       }
@@ -189814,13 +189814,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Submitting"
+            "value": "Submitting…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在提交"
+            "value": "正在提交…"
           }
         }
       }
@@ -190572,7 +190572,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在上传"
+            "value": "正在上传…"
           }
         }
       }
@@ -198032,7 +198032,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "处理中"
+            "value": "提交中…"
           }
         }
       }
@@ -218362,13 +218362,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Checking"
+            "value": "Checking…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在检查"
+            "value": "正在检查…"
           }
         }
       }
@@ -282509,13 +282509,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading"
+            "value": "Loading…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "加载中"
+            "value": "加载中…"
           }
         }
       }
@@ -310153,13 +310153,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Generating"
+            "value": "Generating…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "生成中"
+            "value": "生成中…"
           }
         }
       }
@@ -316245,13 +316245,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading"
+            "value": "Loading…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在加载"
+            "value": "正在加载…"
           }
         }
       }
@@ -350371,6 +350371,261 @@
         }
       }
     },
+    "playkit.steps.readError": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steps can't be read yet. Allow step access to count them."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要授权读取步数才能计步"
+          }
+        }
+      }
+    },
+    "playkit.walk.heading.left": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steps to go"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还差多少"
+          }
+        }
+      }
+    },
+    "playkit.walk.heading.done": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Goal reached"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "走到了"
+          }
+        }
+      }
+    },
+    "playkit.walk.left": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To go"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还差"
+          }
+        }
+      }
+    },
+    "playkit.walk.unit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "steps"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "步"
+          }
+        }
+      }
+    },
+    "playkit.walk.arrived": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reached"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到了"
+          }
+        }
+      }
+    },
+    "playkit.walk.progress %@ %@ %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ / %2$@ · %3$lld%%"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ / %2$@ · %3$lld%%"
+          }
+        }
+      }
+    },
+    "playkit.walk.stat.goal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Goal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标"
+          }
+        }
+      }
+    },
+    "playkit.walk.stat.walked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walked"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已走"
+          }
+        }
+      }
+    },
+    "playkit.walk.stat.co2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CO₂ saved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "少排"
+          }
+        }
+      }
+    },
+    "playkit.walk.co2 %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ kg"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ kg"
+          }
+        }
+      }
+    },
+    "playkit.window.eyebrow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limited hours"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时段限定"
+          }
+        }
+      }
+    },
+    "playkit.window.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not open yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没到开放时间"
+          }
+        }
+      }
+    },
+    "playkit.window.subscribe": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remind me when it opens"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订阅开播提醒"
+          }
+        }
+      }
+    },
+    "playkit.window.subscribed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reminder set · we'll remind you when it opens"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已订阅 · 到点会提醒你"
+          }
+        }
+      }
+    },
     "roam.official.pausedReason %@": {
       "extractionState": "manual",
       "localizations": {
@@ -350401,6 +350656,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在读取活动…"
+          }
+        }
+      }
+    },
+    "playx.board.loadingLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading the companions board…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载同行者榜…"
+          }
+        }
+      }
+    },
+    "orderLifecycle.unavailableTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This order can’t be viewed right now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订单暂不可查看"
+          }
+        }
+      }
+    },
+    "orderLifecycle.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试"
           }
         }
       }

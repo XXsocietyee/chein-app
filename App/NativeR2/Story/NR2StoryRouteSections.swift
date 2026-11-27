@@ -99,11 +99,10 @@ import SwiftUI
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(alignment: .top, spacing: 16) {
                         ForEach(cast) { member in
-                            VStack(spacing: 6) {
+                            NR2CastColumn {
                                 NR2CastAvatar(member: member, size: 44)
                                 Text(verbatim: member.name).font(.caption).lineLimit(1)
                             }
-                            .frame(width: 64)
                             .accessibilityElement(children: .combine)
                         }
                     }
@@ -176,5 +175,23 @@ enum NR2StoryRoute {
             .resizable().scaledToFit()
             .foregroundStyle(.secondary)
             .accessibilityHidden(true)
+    }
+}
+
+/// One cast column in the horizontal rail: 64 pt at the default size, wider with Dynamic Type so the name is not cut to
+/// a couple of letters at AX sizes (the rail scrolls, so a wider column costs nothing).
+private struct NR2CastColumn<Content: View>: View {
+    @ScaledMetric(relativeTo: .caption) private var width: CGFloat = 64
+    let content: Content
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    var body: some View {
+        VStack(spacing: 6) {
+            content
+        }
+        .frame(width: width)
     }
 }

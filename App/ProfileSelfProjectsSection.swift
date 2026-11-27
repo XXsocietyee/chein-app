@@ -47,6 +47,7 @@ struct ProfileSelfProjectSelection: Identifiable, Hashable {
     @State private var model = ProfileSelfProjectsController()
     @State private var selection: ProfileSelfProjectSelection?
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     private let detail: (CreatorContentDestination) -> AnyView
     init(context: ProfileSelfProjectsContext, accountReader: any SocialAccountReading,
          access: ProfileSelfProjectsAccess, isCurrent: @escaping @MainActor () -> Bool) {
@@ -112,7 +113,7 @@ struct ProfileSelfProjectSelection: Identifiable, Hashable {
             if let status = ProfileSelfProjectCalendar.status(start: project.startTime, end: project.endTime, today: today) {
                 Text(LocalizedStringKey("profile.selfProjects.schedule." + status.rawValue)).font(.subheadline).foregroundStyle(.secondary)
             }
-            if let start = project.startTime { Text(verbatim: start).font(.subheadline).foregroundStyle(.secondary) }
+            if let start = project.startTime { Text(verbatim: LocaleDisplay.civil(start, locale: locale)).font(.subheadline).foregroundStyle(.secondary) }
         }.frame(maxWidth: .infinity, alignment: .leading).foregroundStyle(.primary)
     }
 }

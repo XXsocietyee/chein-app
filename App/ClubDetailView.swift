@@ -403,6 +403,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     }
                 }
             }
+            .safeAreaInset(edge: .bottom) { floatingJoin(club: club, tab: tab) }
             } }
             .cyTracksHeroScroll($heroScrolledAway)
             .onChange(of: club.name, initial: true) { _, name in loadedClubName = name }
@@ -543,16 +544,28 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 .listRowInsets(EdgeInsets())
         }
         .listSectionSpacing(.compact)
-        // MP detail wxml:1028-1036: 加入 / 申请加入 / 等待主理人审核 only on 概览; a member's 退出 (meta row) stays on every tab.
-        if let actionCoordinator, tab == .overview || club.isJoined {
+        // MP detail wxml:1028-1036: 加入 / 申请加入 / 等待主理人审核 are the floating capsule on 概览 (`floatingJoin`);
+        // a member's 退出 (meta row) stays on the other tabs here, and closes 概览 as the page-end row.
+        if let actionCoordinator, tab != .overview, club.isJoined {
             ClubActionPanel(club: club, identity: reader.clubIdentity, coordinator: actionCoordinator, onSignIn: onSignIn,
-                            leavesAtPageEnd: tab == .overview,
                             onReadbackStarted: { detailGeneration &+= 1; return detailGeneration }) { detail, identity, generation in
                 guard identity == reader.clubIdentity, detail.id == id, generation == detailGeneration else { return }
                 actionDetail = detail; actionIdentity = identity
             }
         }
         ClubDetailTabBar(tabs: tabs.tabs, selection: tab) { selectedTab = tabs.select($0, from: tab) }
+    }
+    /// MP detail wxml:1028-1036: the 加入 capsule floats over 概览 only (never 帖文 / 活动), and only when the viewer
+    /// is not the owner. It stays mounted after a join so the joined chip and the server readback stay readable.
+    @ViewBuilder private func floatingJoin(club: ClubRecord, tab: ClubDetailTab) -> some View {
+        if let actionCoordinator, tab == .overview {
+            ClubActionPanel(club: club, identity: reader.clubIdentity, coordinator: actionCoordinator, onSignIn: onSignIn,
+                            placement: .floating,
+                            onReadbackStarted: { detailGeneration &+= 1; return detailGeneration }) { detail, identity, generation in
+                guard identity == reader.clubIdentity, detail.id == id, generation == detailGeneration else { return }
+                actionDetail = detail; actionIdentity = identity
+            }
+        }
     }
     private func detailFacts(_ club: ClubRecord) -> (meta: String, raw: String, channels: Bool, content: ClubDetailPageContent?) {
         var body: [String: Any] = ["id": club.id, "name": club.name, "isOwner": club.isOwner, "isJoined": club.isJoined, "viewerIsAdmin": club.viewerIsAdmin]
