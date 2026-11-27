@@ -350018,6 +350018,23 @@
           }
         }
       }
+    },
+    "playkit.random.faceDown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not turned over yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没翻开"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
