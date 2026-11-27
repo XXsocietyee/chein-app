@@ -366,7 +366,7 @@ import UIKit
     @ViewBuilder private func segmentBody(_ segment: ChapterStorySegment) -> some View {
         switch segment.content {
         case .text(let text) where NativeR2Flags.storyFlow: NR2NarrationText(text: text)
-        case .text(let text): Text(verbatim: text).cyText(.body).foregroundStyle(CYColor.textPrimary).lineSpacing(8).fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+        case .text(let text): Text(verbatim: text).cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
         case .image(let url):
             ChapterStoryArtwork(url: url, alt: segment.alt, reader: imageReader) { image in zoomedImage = .init(image: image, alt: segment.alt) }
                 .id(mediaScope)
