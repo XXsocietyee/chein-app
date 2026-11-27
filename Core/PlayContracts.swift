@@ -231,7 +231,10 @@ public struct PlayChapter: Decodable, Equatable, Identifiable {
     public let chapterLocked: Bool?
     /// `img_arr` / `imgArr`, split by `PlayStationImageResolver`. Malformed input is an empty list.
     public let images: [String]
-    private enum CodingKeys: String, CodingKey { case chapterId, name, description, audioUrl, chapterLocked, imgArr }
+    /// VIDEO-r11-1: chapter film and its poster (MP pages/play/index.js:4911). Raw; the player gates the host.
+    public let videoURL: String?
+    public let videoPosterURL: String?
+    private enum CodingKeys: String, CodingKey { case chapterId, name, description, audioUrl, chapterLocked, imgArr, videoUrl, videoPosterUrl }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         guard let id = try c.playInt(.chapterId), id > 0 else { throw APIError.malformedResponse }
@@ -241,6 +244,8 @@ public struct PlayChapter: Decodable, Equatable, Identifiable {
         if let value = try? c.decodeIfPresent(Bool.self, forKey: .chapterLocked) { chapterLocked = value }
         else { chapterLocked = nil }
         images = PlayStationImageResolver.list((try? c.decodeIfPresent(PlayWireValue.self, forKey: .imgArr)) ?? nil)
+        videoURL = (try? c.decodeIfPresent(String.self, forKey: .videoUrl)) ?? nil
+        videoPosterURL = (try? c.decodeIfPresent(String.self, forKey: .videoPosterUrl)) ?? nil
     }
 }
 
