@@ -115,6 +115,13 @@ Sweep build predates `4b502b451` (ninth session: Register disabled while blocked
 
 Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0**.
 
+## Round 3 continue (2026-11-27, eleventh session — sweep 20:45 build bb76e327c)
+Coordinator rows for this lane (19:50: Square "330 d ago", baoming Register enabled) are closed: `en-t5-baoming` now shows the disabled 请先勾选信息共享同意 / "Tick the sharing consent first" primary ✓. `d2-square` still shows the Core synthetic posts in this build; the localized d2 posts (`b0af9367f`) are not yet in `ui/combined-r7` — recheck next sweep.
+| MP page | Native view | MP sections (✓ present / added / reordered) | Optimizations |
+|---|---|---|---|
+| `subpackagePass` market (积分 card, MP `subpackageMember/points-history` balance) | `App/PassMarketViews.swift` `balanceRow` | screenshots `en-t5-pass-market` / `zh-Hans-t5-pass-market`: balance read 「1280」 while the bundle row under it reads 「1,200 points」. Balance now `Text(balance, format: .number)` → 1,280 in both languages | locale number format; `.numericText` transition kept |
+| `pages/square/*` feed + detail (fixture) | `App/SquareBrowserView.swift`, `App/SquareDetailView.swift`, `App/SquareFixtureSupport.swift` | screenshots `*-d2-square`: a 「示例内容 / Example content」 caption sat above 动态来源 in the design fixture (the MP feed has no such line). New `showsOfflineExampleNote` (App-side `SquareOfflineNoteHiding`): the d2 design fixture hides the note; `isOfflineExample` stays true so composer/report writes stay offline; UI-test fixtures and real offline readers unchanged | no debug labels in the visible fixture |
+
 ## Not done
 - Attendance (player): organizer 联系与签到配置 form (duty phones, window, public-confirm switch, scan, recovery 查询原结果 / 原请求重试 / 终止 / 确认归档) lives in `OfficialOrganizerConsoleView`, not in this section.
 - Square completion card: 探店 (`shopText`) has no backend field. Refused team reads have no server message in `TeamFailure`, so 邀请已失效 is the fixed fallback copy.

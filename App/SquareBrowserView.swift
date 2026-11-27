@@ -52,7 +52,7 @@ import SwiftUI
                 // 我的草稿 and 举报进度 are demoted into the toolbar menu; governance keeps its own entry.
                 if let context = governanceContext(postID: nil) { SquareGovernanceEntryView(context: context) }
                 Section {
-                    if reader.isOfflineExample { Text("square.offlineExample").font(.caption).foregroundStyle(.secondary) }
+                    if reader.showsOfflineExampleNote { Text("square.offlineExample").font(.caption).foregroundStyle(.secondary) }
                     Picker("square.feed", selection: $query.mode) {
                         ForEach(SquareFeedMode.visible, id: \.self) { mode in Text(mode.labelKey).tag(mode) }
                     }.accessibilityIdentifier("square.feed")
@@ -361,4 +361,13 @@ private struct SquareCloudReportRoute: Identifiable {
 
 private struct SquareCloudProfileRoute: Identifiable, Hashable {
     let id: Int
+}
+
+/// Design fixtures (`d2-square`) render as a screenshot of the real page: the 示例内容 note is hidden there while
+/// `isOfflineExample` still keeps every write offline.
+@MainActor protocol SquareOfflineNoteHiding { var hidesOfflineExampleNote: Bool { get } }
+extension SquareReading {
+    var showsOfflineExampleNote: Bool {
+        isOfflineExample && (self as? any SquareOfflineNoteHiding)?.hidesOfflineExampleNote != true
+    }
 }
