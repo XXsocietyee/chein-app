@@ -52,10 +52,12 @@ struct CityCopy {
         return chinese ? "街区 \(place.districtIndex)" : "District \(place.districtIndex)"
     }
 
+    /// i18n r1: Chinese keeps `850 m` / `1.2 公里`; other languages follow the locale's road unit (`0.5 mi`).
     func distance(_ metres: Double?) -> String? {
         guard let metres, metres.isFinite else { return nil }
+        guard chinese else { return LocaleDisplay.distance(meters: metres, locale: locale) }
         if metres < 1000 { return "\(Int(metres.rounded())) m" }
-        return String(format: chinese ? "%.1f 公里" : "%.1f km", metres / 1000)
+        return String(format: "%.1f 公里", metres / 1000)
     }
 
     func title(_ place: CityPlace) -> String {
@@ -67,16 +69,13 @@ struct CityCopy {
     func clock(_ date: Date, now: Date = Date()) -> String {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "Asia/Shanghai") ?? .current
-        let formatter = DateFormatter()
-        formatter.timeZone = calendar.timeZone
-        formatter.dateFormat = "HH:mm"
-        let time = formatter.string(from: date)
+        // i18n r1: Chinese keeps `HH:mm` / `M月d日 HH:mm`; English uses the locale clock (`9:30 PM`, `Nov 27, 2:20 PM`).
+        let time = LocaleDisplay.time(date, locale: locale, timeZone: calendar.timeZone)
         if calendar.isDate(date, inSameDayAs: now) { return self("今天 ", "today ") + time }
         if let tomorrow = calendar.date(byAdding: .day, value: 1, to: now), calendar.isDate(date, inSameDayAs: tomorrow) {
             return self("明天 ", "tomorrow ") + time
         }
-        formatter.dateFormat = chinese ? "M月d日 HH:mm" : "MMM d HH:mm"
-        return formatter.string(from: date)
+        return LocaleDisplay.monthDayTime(date, locale: locale, timeZone: calendar.timeZone)
     }
 }
 

@@ -176,7 +176,7 @@ struct CityLiveMapControls: View {
             divider
             reading(RoamLiveCoveragePresentation(controller: owner).percentage.map { "\($0)%" } ?? "—", label: copy("地盘", "Turf"))
             divider
-            reading(distance, label: copy("公里", "km"))
+            reading(distance, label: copy("公里", usesMiles ? "mi" : "km"))
         }
         .padding(.vertical, CYSpacing.sm)
         .background {
@@ -201,9 +201,11 @@ struct CityLiveMapControls: View {
         .frame(maxWidth: .infinity)
     }
 
+    /// i18n r1: miles where the locale is not metric (US English); Chinese and metric locales keep km.
+    private var usesMiles: Bool { !copy.chinese && locale.measurementSystem != .metric }
     private var distance: String {
         guard let meters = owner.record?.distanceMeters, meters.isFinite, meters >= 0 else { return "—" }
-        return (meters / 1000).formatted(.number.precision(.fractionLength(1)))
+        return (meters / (usesMiles ? 1609.344 : 1000)).formatted(.number.precision(.fractionLength(1)).locale(locale))
     }
 
     /// The live page's cadence: one pulse every 3 s while active, in the foreground or holding background location.

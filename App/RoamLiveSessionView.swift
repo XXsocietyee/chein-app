@@ -592,7 +592,7 @@ import QuestifyCore
                 RoamLiveElapsedRow(seconds: owner.record == nil ? nil : owner.localForegroundElapsedSeconds)
             }
             RoamLiveCoverageRow(presentation: .init(controller: owner))
-            RoamLiveStatTile(value: hudDistance, label: "roam.live.stat.distance")
+            RoamLiveStatTile(value: hudDistance, label: LocaleDisplay.usesMiles(locale) ? "unit.mile.abbr" : "roam.live.stat.distance")
                 .accessibilityIdentifier("roam.live.distance")
         } header: {
             HStack(alignment: .firstTextBaseline) {
@@ -614,7 +614,7 @@ import QuestifyCore
     }
     private var hudDistance: String {
         guard let meters = owner.record?.distanceMeters, meters.isFinite, meters >= 0 else { return "—" }
-        return (meters / 1000).formatted(.number.precision(.fractionLength(1)))
+        return LocaleDisplay.roadNumber(kilometers: meters / 1000, locale: locale).formatted(.number.precision(.fractionLength(1)).locale(locale))
     }
     /// Bottom bar of the session sheet. Every button keeps its identifier and controller call (P-040: system buttons,
     /// a tap on 开始 instead of hold-to-start).
