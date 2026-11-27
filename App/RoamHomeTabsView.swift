@@ -134,7 +134,7 @@ struct RoamHomeTabPicker: View {
                         Text("roam.w208.entry.title").tag(false)
                         cityTabLabel(cityStrip).tag(true)
                     } label: { Text("roam.w208.entry.title") }
-                    .pickerStyle(.segmented)
+                    .cyAdaptiveSegmented()
                     .accessibilityIdentifier("roam.home.peek.tabs")
                 } else {
                     Text("roam.w208.entry.title").cyText(.cardTitle).accessibilityAddTraits(.isHeader)
