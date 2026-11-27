@@ -11,7 +11,7 @@ The 21 MP pages were compared section by section, top to bottom, against their n
 | `python3 tools/generate_project.py` | OK |
 | `python3 tools/check_scaffold.py` | PASS (no FAIL lines; typography lint PASS) |
 | `python3 -B tools/check_a11y_lint.py` | PASS: 0 new |
-| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 10, after merging combined-r7 again), **new 0**, fixed 0 |
+| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 11, after merging combined-r7 again), **new 0**, fixed 0 |
 | `python3 tools/check_design_consistency.py` | PASS |
 
 There is no Swift compiler in this environment. Edits are kept type-simple and reuse existing keys, components and patterns.
@@ -52,7 +52,7 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/create | same | Extra step checklist on the intro; media above the step header on step 3; extra 上一步. | **Not done.** Step 3 order is large |
 | club/enroll | `ClubEnrollmentView.swift` | The stale inline error's action should read 重试更新 (wxml:20). | **Fixed** (`club.enroll.retryUpdate`, also added to `ClubEnrollmentLocalizations.fragment.json`) |
 | club/enroll | same | MP order is sub line → 正在更新报名名册… → stale error (wxml:17-20); native had the sub line last. | **Fixed (pass 2)** |
-| club/enroll | same | Extra escrow line (pinned by `test_club_member_pages`); the ticket count comes from the rows instead of `tk.signups`. | **Not done** |
+| club/enroll | same | Extra escrow line (pinned by `test_club_member_pages`); the ticket count comes from the rows instead of `tk.signups`; MP hides zero-signup tickets once any ticket has signups (js:421-422 `hideEmpty`), native listed them all. | **Fixed (pass 11).** Escrow 「报名费由平台担保托管」 removed (not in any MP page; pin flipped to assertNotIn). Count re-checked: MP `signups: regs.length` (js:397) = native `registrants.count`, matches. `visibleTickets` applies hideEmpty |
 | club/enroll | same | The 已支付 · 可退款 · 截止 summary is one dot line in the MP (wxml:50-53); native shows three `LabeledContent` rows. | **Kept** (same fields, same order; native rows keep each value readable at large Dynamic Type and in English, P12) |
 | club/checkin-detail | `ClubCheckinRailView` via `ClubGovernanceViews` | The server `errorText` should be the missing title / denied sub-line (wxml:13-16); native dropped it on the loaded path. | **Fixed.** `reason: failure?.message` |
 | club/checkin-detail | same | Extra 已退款 note on the rail (MP: the rail is just unlit; the header status says 已退款). | **Fixed (pass 2).** Visible line removed; the sentence is now the rail's VoiceOver hint |
@@ -172,6 +172,12 @@ Most tiles are the launch logo (coordinator 17:40: taken under load, ignore). Re
 |---|---|---|---|
 | none (查找俱乐部 has no MP page; the MP searches clubs through unified search, and talent/list wxml:74 keeps one unsplit list on the tab root) | `App/ClubDirectoryView.swift` | `en-d4-directory.jpg`: every result was the same three-line row (name / style · city / N members) with an "Apply to join" pill, whether or not the viewer was already in the club. P25: the viewer's clubs are navigation, other clubs are a decision. | **Fixed.** Section 你的俱乐部 (`club.home.yours`; owner / joined): thumbnail, name, member count, chevron. Section 发现 (`club.home.discover`, header shown only when both sections exist): thumbnail, name, one secondary line (N 名成员 · description, else style · city, `.lineLimit(1)`) and one trailing `.bordered` `+ 加入` / 申请加入 (`.fixedSize()`, same ids `club.directory.<id>.join`); pending keeps 审核中. 我创建的俱乐部 (`ClubOwnedView`) uses the 你的俱乐部 row. Existing keys only. Talent/list tab root **not split** (MP UI-19 comment: 不再分「我的 / 附近」两段) |
 | club/detail 帖文 (P26) | `ClubDetailView` 帖文 tab | Non-member must see real posts, never a "not available in this version" placeholder; one prominent Join. | Feed mounted in pass 9 (fixture). Join stays the 概览 加入 section (MP floating capsule is 概览-only); no second CTA on 帖文. Re-check on the next sweep |
+
+## Pass 11: sweep 18:54 UTC (build 1300a48db, `docs/sweeps/latest/mp-club/sheet-zh-Hans.jpg`, `sheet-en.jpg`)
+| Screen (shot) | Native view | Seen | Fixed? |
+|---|---|---|---|
+| club/enroll (`zh-Hans-d4-enroll.jpg`) | `ClubEnrollmentView` | Sub line followed by 「报名费由平台担保托管」 (not in the MP); the team row (title + 时间待定 · 已报名 8 人) drawn in tint blue / light blue because `.primary`/`.secondary` resolve against the Button's tint. | **Fixed.** Escrow row removed (see table); team Button `.tint(.primary)` so the title reads primary and the meta secondary, row highlight kept |
+| club/detail 帖文 (`zh-Hans-d4-tab-posts.jpg`) | `ClubDetailView` | Still 「当前版本暂不可查看俱乐部帖子」. | Build predates pass 9 (`bb15728bd` mounts the feed in the d4 fixture); re-check on the next sweep |
 
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.

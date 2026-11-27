@@ -41,7 +41,7 @@
       "raw font": "procedural art: SF Symbol / numeral sized as a fraction of its own drawn frame (badge, medal, cover), not reading text"
     },
     "App/DesignSystem/CYOnboardingLight.swift": {
-      "raw font": "brand wordmark 城瘾 drawn as a logo, not reading text"
+      "raw font": "brand wordmark 城瘾 / Chein drawn as a logo, not reading text"
     },
     "App/DesignSystem/CYShareCard.swift": {
       "raw font": "share card is rendered to a fixed-size image for export (ImageRenderer); type must not reflow with Dynamic Type"
@@ -97,6 +97,9 @@
     "App/PlayHUD.swift": {
       "button style": "game HUD circle controls over the live play surface"
     },
+    "App/PlayJourneyContentViews.swift": {
+      "status capsule": "Journey check difficulty scale: three tiers in a row with the author's tier lit (a read-only scale, one accessibility label), not a status word."
+    },
     "App/PlayKitQuestoViews.swift": {
       "font design": "game board: crossword grid letters are the puzzle face (fixed 34x44 cells), not reading text"
     },
@@ -135,5 +138,60 @@
       "hidden nav": "full-screen photo viewer (black stage), system close button"
     }
   },
-  "baseline": {}
+  "baseline": {
+    "App/AssetPointsAndOrderCancellationSectionView.swift": {
+      "status capsule": 2
+    },
+    "App/CloudCIShardStatusSectionView.swift": {
+      "status capsule": 1
+    },
+    "App/FinalReleaseSignoffAndZeroGapCertificateView.swift": {
+      "status capsule": 1
+    },
+    "App/FinalThreeDocumentAndSevenDayGoalCompletionView.swift": {
+      "status capsule": 1
+    },
+    "App/FinalTwentyBatchMasterCompletionView.swift": {
+      "status capsule": 2
+    },
+    "App/GrowthAndLeaderboardParitySectionView.swift": {
+      "status capsule": 2
+    },
+    "App/ImageAndVideoDiskCacheBudgetSectionView.swift": {
+      "status capsule": 1
+    },
+    "App/LocalizationCompletenessSectionView.swift": {
+      "status capsule": 1
+    },
+    "App/PhotoLibraryAndCameraPermissionSectionView.swift": {
+      "status capsule": 2
+    },
+    "App/ReformWorkPackagesW02ToW20SectionView.swift": {
+      "status capsule": 2
+    },
+    "App/ReleaseArchiveChecklistSectionView.swift": {
+      "status capsule": 2
+    },
+    "App/SevenDayLaunchCriticalPathSectionView.swift": {
+      "status capsule": 2
+    },
+    "App/StoreKit2SubscriptionAndRefundSectionView.swift": {
+      "status capsule": 2
+    },
+    "App/StoryWalkingAndFogSectionView.swift": {
+      "status capsule": 1
+    },
+    "App/ThreeDocumentMasterCrosswalkSectionView.swift": {
+      "status capsule": 2
+    },
+    "App/UITestFlowReadinessAnchorSectionView.swift": {
+      "status capsule": 2
+    },
+    "App/Wave3HandoffStatusSectionView.swift": {
+      "status capsule": 2
+    },
+    "App/WeChatAndAppleSignInNonceStateSectionView.swift": {
+      "status capsule": 1
+    }
+  }
 }

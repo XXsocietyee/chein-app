@@ -19,7 +19,7 @@ import SwiftUI
                     SocialPlayGuideView(reader: reader, onOpenDestination: onOpenDestination, templateReader: templateReader,
                         informationDestination: { row in AnyView(ProfileGuideArticleDestination(row: row, reader: reader, makeReader: makeArticleReader)) })
                         .socialGuideSessionCatalog(templateReader as? AppSession)
-                } else { ProgressView() }
+                } else { ProgressView("social.loading") }
             } else { SocialIssueView(error: APIError.unauthorized) }
         }
         .onAppear { reader?.appear(foreground: scenePhase == .active) }
@@ -39,7 +39,7 @@ import SwiftUI
         ZStack {
             if let reader {
                 if reader.hasAppeared { SocialInformationView(id: reader.selection.row.id, reader: reader) }
-                else { ProgressView() }
+                else { ProgressView("social.loading") }
             } else { SocialIssueView(error: SocialActionBlock.changed) }
         }
         .onAppear { reader?.appear(foreground: scenePhase == .active) }

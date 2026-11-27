@@ -87,7 +87,11 @@ private final class RegistrationFixtureStore: RegistrationCoordinatingService, P
     }
     func profileParticipants() async throws -> [ProfileParticipant] {
         if scenario == .participantsError { throw URLError(.notConnectedToInternet) }
-        return try decode(#"[{"id":9401,"fullName":"Fixture Guest","mobilePhone":"13800000000"},{"id":9402,"fullName":"Fixture Default","mobilePhone":"13900000000","isDefault":true}]"#)
+        // Fixture names follow the UI language (coordinator 19:15: no English data in the Chinese UI).
+        let zh = Locale.preferredLanguages.first?.hasPrefix("zh") == true
+        let guest = zh ? "陈晓" : "Alex Chen"
+        let saved = zh ? "林佳" : "Jamie Lin"
+        return try decode("[{\"id\":9401,\"fullName\":\"\(guest)\",\"mobilePhone\":\"13800000000\"},{\"id\":9402,\"fullName\":\"\(saved)\",\"mobilePhone\":\"13900000000\",\"isDefault\":true}]")
     }
     func profileParticipant(id: Int) async throws -> ProfileParticipant { throw APIError.invalidRequest }
     func profileOrders() async throws -> [ProfileOrder] { [] }
