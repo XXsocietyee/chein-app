@@ -329547,6 +329547,23 @@
           }
         }
       }
+    },
+    "compliance.confirmWord": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DELETE"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "注销"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

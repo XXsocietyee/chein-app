@@ -22,7 +22,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use your location when you choose to roam, play a location-based activity or find nearby places. When you tap I've arrived, location is read once to confirm you are near the start or a place you are visiting. While a roam walk you started is running, your route keeps recording in the background, also when the screen is locked, and the system shows the location indicator; it stops when you pause or finish the walk, sign out, or withdraw roam location in Privacy. While a city orientation run you started is in progress, its walked distance keeps counting in the background, also when the screen is locked, and the system shows the location indicator; it stops when the run ends. Your location is never shared with other players."
+            "value": "Your location is used only when you choose to roam, play a location-based activity or find nearby places. When you tap I'm Here, your location is read once to confirm you're near the start or the place you're visiting. During a roam walk you started, your route keeps recording in the background, even with the screen locked, and iOS shows the location indicator; it stops when you pause or finish the walk, sign out, or turn off roam location in Privacy. During a city orienteering run you started, your walking distance keeps counting in the background with the same indicator until the run ends. Your location is never shared with other players."
           }
         },
         "zh-Hans": {
@@ -38,7 +38,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use the microphone only when you choose to record an IM voice message, talk to or set up an NPC voice, or measure sound peak levels locally on this iPhone during interactive sound gameplay. IM recordings are uploaded only after your separate confirmation for the original audio safety check; sending the message requires another confirmation. Sound-challenge amplitude is measured on device without uploading audio, and microphone access stops when you finish and never runs in the background."
+            "value": "The microphone is used only when you choose to record a voice message, talk to or set up an NPC voice, or measure sound peak levels on this iPhone in sound-based gameplay. Voice messages are uploaded for a safety check only after you confirm, and sending needs a second confirmation. In sound challenges, amplitude is measured on device without uploading audio. The microphone turns off when you finish and never runs in the background."
           }
         },
         "zh-Hans": {
@@ -54,7 +54,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read step counts from this iPhone when you choose to review a walking activity. Counts are not proof of walking and do not unlock rewards."
+            "value": "Step counts are read from this iPhone only when you view a walking activity. Step counts don't prove you walked and don't unlock rewards."
           }
         },
         "zh-Hans": {

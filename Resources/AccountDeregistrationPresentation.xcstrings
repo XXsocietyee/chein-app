@@ -550,7 +550,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "After reading this impact list, type “注销” to confirm"
+            "value": "After reading this impact list, type DELETE to confirm"
           }
         },
         "zh-Hans": {
