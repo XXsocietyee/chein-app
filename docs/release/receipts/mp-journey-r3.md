@@ -61,6 +61,7 @@ files; `mp/r3-mine` only gated 查看报名凭证 in `PlayerJourneyViews` (not o
 
 ## Not done (next pass)
 
+- **next run first:** `pages/playkit/components/playkit-stopwatch` → `NativeGameTimedKit` `.stopwatch`: MP intro (eyebrow · 目标 N 秒 · 误差 ±N 秒 · rewardNote · 开始), run (第 N 局 chip · giant / —— · —— when blind · pill 目标 · 允许差 · cap), over (没停准 · deviation · 还有 N 次机会 · 再来一局 from `tries` / `used`), 暂停 / 继续 with 已暂停. Native has target + tolerance rows, clock and a result section; eyebrow, round chip, tries-left line, 再来一局 and pause are missing. Then the remaining playkit kits (stage shell `cy-play-stage`: 退出 · tries capsule · verdict) one per row.
 - 本局线索 (`gameModule`) is the STORY / club session projection (`gameModule.enabled` is false for ROUTE runs, MP
   `_loadPlayerGameModule`); it belongs to the story-flow theme, out of scope this round. No native row.
 - 旅程手记 `journeyAttributes` rows (branch-route attributes) and branch-graph ordering: Core does not decode
