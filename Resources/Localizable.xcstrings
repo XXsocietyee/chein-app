@@ -345344,6 +345344,40 @@
           }
         }
       }
+    },
+    "playFree.ending.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your city story"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的城市故事"
+          }
+        }
+      }
+    },
+    "playFree.ending.step %lld %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Step %1$lld · %2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %1$lld 步 · %2$@"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
