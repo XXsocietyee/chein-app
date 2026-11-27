@@ -540,6 +540,8 @@ struct OfficialOrganizerEntryRow: View {
                     if let onOpenRoam {
                         onOpenRoam(event.id, nil)
                     } else if rootTabSwitch.isAvailable {
+                        // ROAM-r11-1: carry the event into the live roam (MP goRoam `?eventId=&missionCode=`).
+                        RoamOfficialEventHandoff.shared.hand(eventID: event.id, missionCode: nil)
                         rootTabSwitch(.roam)
                     }
                 } label: {
@@ -578,6 +580,8 @@ struct OfficialOrganizerEntryRow: View {
                 if let onOpenRoam {
                     onOpenRoam(event.id, code)
                 } else if rootTabSwitch.isAvailable {
+                    // ROAM-r11-1: carry the event and mission into the live roam (MP goRoam).
+                    RoamOfficialEventHandoff.shared.hand(eventID: event.id, missionCode: code)
                     rootTabSwitch(.roam)
                 }
             } label: {

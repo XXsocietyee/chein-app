@@ -231,7 +231,10 @@ public struct PlayChapter: Decodable, Equatable, Identifiable {
     public let chapterLocked: Bool?
     /// `img_arr` / `imgArr`, split by `PlayStationImageResolver`. Malformed input is an empty list.
     public let images: [String]
-    private enum CodingKeys: String, CodingKey { case chapterId, name, description, audioUrl, chapterLocked, imgArr }
+    /// VIDEO-r11-1: chapter film and its poster (MP pages/play/index.js:4911). Raw; the player gates the host.
+    public let videoURL: String?
+    public let videoPosterURL: String?
+    private enum CodingKeys: String, CodingKey { case chapterId, name, description, audioUrl, chapterLocked, imgArr, videoUrl, videoPosterUrl }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         guard let id = try c.playInt(.chapterId), id > 0 else { throw APIError.malformedResponse }
@@ -241,6 +244,8 @@ public struct PlayChapter: Decodable, Equatable, Identifiable {
         if let value = try? c.decodeIfPresent(Bool.self, forKey: .chapterLocked) { chapterLocked = value }
         else { chapterLocked = nil }
         images = PlayStationImageResolver.list((try? c.decodeIfPresent(PlayWireValue.self, forKey: .imgArr)) ?? nil)
+        videoURL = (try? c.decodeIfPresent(String.self, forKey: .videoUrl)) ?? nil
+        videoPosterURL = (try? c.decodeIfPresent(String.self, forKey: .videoPosterUrl)) ?? nil
     }
 }
 
@@ -316,6 +321,8 @@ public struct PlayNodesResult: Decodable, Equatable {
     public let teamID: Int?
     /// Raw `topicCover` for the station image chain. `themeFacts.coverURL` is the https URL the title card already uses.
     public let topicCover: String?
+    /// PLAY-r11-1: theme music (`topicAudioUrl`, MP pages/play/index.js:4642). Raw; the player gates the host.
+    public let topicAudioURL: String?
     /// Both counts or neither. A mismatched pair fails the route; a missing pair stays nil.
     public let storyUnlocked: Int?
     public let storyTotal: Int?
@@ -326,7 +333,7 @@ public struct PlayNodesResult: Decodable, Equatable {
     private enum CodingKeys: String, CodingKey {
         case topicId, topicName, topicDesc, mode, playable, registered, leadSpectator, selfPlay, total, doneCount, teamId
         case timeNote, expiresAt, nodes, chapters, routeState, eggs
-        case topicAiGenerated, productType, topicCover
+        case topicAiGenerated, productType, topicCover, topicAudioUrl
         case lookJSON = "look_json"
         case storyUnlocked, storyTotal, runStartMode, altStations, perkOnly
     }
@@ -348,6 +355,7 @@ public struct PlayNodesResult: Decodable, Equatable {
         teamID = (try? c.playInt(.teamId)).flatMap { $0 }.flatMap { $0 > 0 ? $0 : nil }
         let coverRaw = (try? c.decodeIfPresent(String.self, forKey: .topicCover)) ?? nil
         topicCover = coverRaw
+        topicAudioURL = (try? c.decodeIfPresent(String.self, forKey: .topicAudioUrl)) ?? nil
         themeFacts = PlayThemeServerFacts(
             aiGenerated: (try? c.decode(Bool.self, forKey: .topicAiGenerated)) == true,
             productType: PlayThemeServerFacts.lenientInt(c, .productType),

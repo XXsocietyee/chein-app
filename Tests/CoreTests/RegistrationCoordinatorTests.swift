@@ -272,10 +272,37 @@ final class RegistrationCoordinatorTests: XCTestCase {
         XCTAssertTrue(service.reads.isEmpty)
     }
 
+    /// R11-PC-C-2: MP baoming.js:1492-1498 — both 409 kinds show their own copy and re-quote; a new request id follows.
+    func testQuoteConflict409ReleasesIntentAndRequotes() async throws {
+        let cases: [(Error, String)] = [
+            (RegistrationResponseFailure(code: 409, message: "优惠已变化或与本单不一致"), CheckoutOrderRebuildRule.marketingConflictUserMessage),
+            (RegistrationResponseFailure(code: 409, message: "fixture price changed"), CheckoutOrderRebuildRule.quoteUpdatedUserMessage),
+            (RegistrationHTTPFailure(statusCode: 409, response: nil), CheckoutOrderRebuildRule.quoteUpdatedUserMessage)
+        ]
+        for (failure, copy) in cases {
+            let service = ControlledRegistrationService()
+            let coordinator = try makeCoordinator(service)
+            try await loadQuote(coordinator, service)
+            let task = Task { await coordinator.confirm(participant) }
+            await service.waitFor(.create, count: 1)
+            service.completeCreate(0, .failure(failure))
+            await service.waitFor(.quote, count: 2)
+            service.completeQuote(1, .success(try quote(#"{"payAmount":0,"quoteSign":"fixture-signature-2"}"#)))
+            let action = await task.value
+            XCTAssertEqual(action, .applied)
+            XCTAssertEqual(coordinator.creationState, .idle)
+            XCTAssertNil(coordinator.retainedIntent)
+            XCTAssertEqual(coordinator.createConflictMessage, copy)
+            XCTAssertTrue(coordinator.canConfirm)
+        }
+    }
+
     func testMalformedBusinessAndHTTPCreateErrorsStayLockedWithoutRoutingByCode() async throws {
         let failures: [Error] = [
             APIError.malformedResponse,
-            RegistrationResponseFailure(code: 409, message: "fixture price changed"),
+            // R11-PC-C-2: a quote-conflict 409 now re-quotes (MP baoming.js:1492-1498); see the test below.
+            // The terminal-idempotency 409 (MP checkout-workflow.js:42-50) still stays locked here.
+            RegistrationResponseFailure(code: 409, message: "该幂等键对应的报名已取消，请重新发起报名"),
             RegistrationResponseFailure(code: 410, message: "fixture expired"),
             RegistrationHTTPFailure(statusCode: 401, response: nil)
         ]
