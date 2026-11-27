@@ -1,4 +1,5 @@
 import ActivityKit
+import AppIntents
 import SwiftUI
 import WidgetKit
 
@@ -7,11 +8,17 @@ import WidgetKit
 /// (`Text(timerInterval:)`), free-explore next stop and story audio, in the in-app island's symbols and tints.
 /// Design P1 L9: taps carry `QuestWidgetLinks.liveActivity` (P-017 / G-087); stop / clue progress is a system
 /// `ProgressView` in the activity's keyline tint (G-088).
+/// Components r1 C1: the event "Starts in mm:ss · 加入" countdown (`Text(timerInterval:countsDown: true)`), a run
+/// deadline countdown, the 50 m arrival with its 打卡 button, score / rank, and pause / resume buttons
+/// (`QuestLiveActivityRunToggleIntent`, a `LiveActivityIntent`). Dark, high-contrast lock-screen surface.
 struct QuestLiveActivityWidget: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: QuestLiveActivityAttributes.self) { context in
-            QuestLiveActivityLockScreenView(attributes: context.attributes, state: context.state)
+            QuestLiveActivityLockScreenView(attributes: context.attributes, state: context.state, isStale: context.isStale)
                 .padding()
+                .activityBackgroundTint(Color.black.opacity(0.82))
+                .activitySystemActionForegroundColor(.white)
+                .environment(\.colorScheme, .dark)
                 .widgetURL(QuestWidgetLinks.liveActivity(context.attributes.kind))
         } dynamicIsland: { context in
             DynamicIsland {
@@ -19,7 +26,7 @@ struct QuestLiveActivityWidget: Widget {
                     QuestLiveActivityHeader(attributes: context.attributes, state: context.state)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    QuestLiveActivityClock(state: context.state)
+                    QuestLiveActivityClock(attributes: context.attributes, state: context.state, isStale: context.isStale)
                         .font(.title3.monospacedDigit())
                         .multilineTextAlignment(.trailing)
                 }
@@ -27,12 +34,15 @@ struct QuestLiveActivityWidget: Widget {
                     QuestLiveActivityIslandCenter(attributes: context.attributes, state: context.state)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    QuestLiveActivityMetrics(attributes: context.attributes, state: context.state)
+                    VStack(spacing: 8) {
+                        QuestLiveActivityMetrics(attributes: context.attributes, state: context.state, isStale: context.isStale)
+                        QuestLiveActivityActionRow(attributes: context.attributes, state: context.state)
+                    }
                 }
             } compactLeading: {
                 QuestLiveActivityGlyphView(attributes: context.attributes, state: context.state)
             } compactTrailing: {
-                QuestLiveActivityCompactValue(attributes: context.attributes, state: context.state)
+                QuestLiveActivityCompactValue(attributes: context.attributes, state: context.state, isStale: context.isStale)
                     .font(.caption.monospacedDigit())
             } minimal: {
                 QuestLiveActivityGlyphView(attributes: context.attributes, state: context.state)
@@ -55,6 +65,7 @@ enum QuestLiveActivityGlyph {
             case nil: return "flag.checkered"
             }
         case .story: return "waveform"
+        case .event: return "calendar.badge.clock"
         }
     }
 
@@ -62,7 +73,7 @@ enum QuestLiveActivityGlyph {
         switch kind {
         case .roam: return .green
         case .play: return mode == .orientation ? .orange : .accentColor
-        case .story: return .accentColor
+        case .story, .event: return .accentColor
         }
     }
 }
@@ -71,8 +82,8 @@ struct QuestLiveActivityGlyphView: View {
     let attributes: QuestLiveActivityAttributes
     let state: QuestLiveActivityContent
     var body: some View {
-        Image(systemName: QuestLiveActivityGlyph.symbol(attributes.kind, mode: state.mode))
-            .foregroundStyle(QuestLiveActivityGlyph.tint(attributes.kind, mode: state.mode))
+        Image(systemName: state.arrived == true ? "mappin.and.ellipse" : QuestLiveActivityGlyph.symbol(attributes.kind, mode: state.mode))
+            .foregroundStyle(state.arrived == true ? Color.green : QuestLiveActivityGlyph.tint(attributes.kind, mode: state.mode))
             .accessibilityLabel(Text(QuestLiveActivityTitles.key(attributes.kind, mode: state.mode)))
     }
 }
@@ -88,6 +99,7 @@ enum QuestLiveActivityTitles {
             case nil: return "liveActivity.play.title"
             }
         case .story: return "liveActivity.story.title"
+        case .event: return "liveActivity.event.title"
         }
     }
 }
@@ -101,7 +113,22 @@ struct QuestLiveActivityIslandCenter: View {
         case .play:
             if let name = state.stopName {
                 Label {
-                    Text(verbatim: name).lineLimit(1)
+                    if state.arrived == true {
+                        Text("liveActivity.play.arrived") + Text(verbatim: " · " + name)
+                    } else {
+                        Text(verbatim: name)
+                    }
+                } icon: {
+                    Image(systemName: state.arrived == true ? "checkmark.seal.fill" : "mappin.and.ellipse")
+                        .foregroundStyle(state.arrived == true ? Color.green : Color.secondary)
+                }
+                .font(.subheadline)
+                .lineLimit(1)
+            }
+        case .event:
+            if let place = attributes.place {
+                Label {
+                    Text(verbatim: place).lineLimit(1)
                 } icon: {
                     Image(systemName: "mappin.and.ellipse")
                 }
@@ -120,16 +147,18 @@ struct QuestLiveActivityIslandCenter: View {
 struct QuestLiveActivityLockScreenView: View {
     let attributes: QuestLiveActivityAttributes
     let state: QuestLiveActivityContent
+    let isStale: Bool
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline) {
                 QuestLiveActivityHeader(attributes: attributes, state: state)
                 Spacer()
-                QuestLiveActivityClock(state: state)
+                QuestLiveActivityClock(attributes: attributes, state: state, isStale: isStale)
                     .font(.title2.monospacedDigit())
                     .multilineTextAlignment(.trailing)
             }
-            QuestLiveActivityMetrics(attributes: attributes, state: state)
+            QuestLiveActivityMetrics(attributes: attributes, state: state, isStale: isStale)
+            QuestLiveActivityActionRow(attributes: attributes, state: state)
         }
     }
 }
@@ -152,6 +181,10 @@ struct QuestLiveActivityHeader: View {
             .font(.headline)
             switch state.status {
             case .paused where attributes.kind == .story: Text("liveActivity.story.paused").font(.caption).foregroundStyle(.secondary)
+            case .active where attributes.kind == .event:
+                if let place = attributes.place {
+                    Text(verbatim: place).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                }
             case .paused: Text("liveActivity.status.paused").font(.caption).foregroundStyle(.secondary)
             case .finished: Text("liveActivity.status.finished").font(.caption).foregroundStyle(.secondary)
             case .active: EmptyView()
@@ -161,10 +194,20 @@ struct QuestLiveActivityHeader: View {
 }
 
 /// Running: system timer that keeps counting while the app is suspended. Paused or finished: frozen value.
+/// Components r1 C1: an event counts down to its start (`countsDown: true`), then reads 已开始.
 struct QuestLiveActivityClock: View {
+    let attributes: QuestLiveActivityAttributes
     let state: QuestLiveActivityContent
+    let isStale: Bool
     var body: some View {
-        if let interval = state.timerInterval {
+        if attributes.kind == .event {
+            if !isStale, let interval = state.startInterval(now: Date()) {
+                Text(timerInterval: interval, countsDown: true)
+                    .foregroundStyle(QuestLiveActivityGlyph.tint(.event, mode: nil))
+            } else {
+                Text("liveActivity.event.started")
+            }
+        } else if let interval = state.timerInterval {
             Text(timerInterval: interval, countsDown: false)
         } else if state.elapsedSeconds != nil {
             Text(verbatim: QuestLiveActivityText.elapsed(state.elapsedSeconds))
@@ -177,6 +220,7 @@ struct QuestLiveActivityClock: View {
 struct QuestLiveActivityMetrics: View {
     let attributes: QuestLiveActivityAttributes
     let state: QuestLiveActivityContent
+    let isStale: Bool
     var body: some View {
         switch attributes.kind {
         case .roam:
@@ -206,6 +250,7 @@ struct QuestLiveActivityMetrics: View {
                     QuestLiveActivityMetric(label: "liveActivity.play.clues", value: QuestLiveActivityText.fraction(state.cluesSolved, state.cluesTotal))
                 }
                 QuestLiveActivityProgress(attributes: attributes, state: state)
+                QuestLiveActivityRunExtras(state: state)
             }
         case .story:
             HStack {
@@ -218,6 +263,8 @@ struct QuestLiveActivityMetrics: View {
                 .foregroundStyle(.secondary)
                 Spacer()
             }
+        case .event:
+            QuestLiveActivityJoinRow(state: state, isStale: isStale)
         }
     }
 }
@@ -255,8 +302,21 @@ struct QuestLiveActivityMetric: View {
 struct QuestLiveActivityCompactValue: View {
     let attributes: QuestLiveActivityAttributes
     let state: QuestLiveActivityContent
+    let isStale: Bool
     var body: some View {
-        if let interval = state.timerInterval {
+        if attributes.kind == .event {
+            if !isStale, let interval = state.startInterval(now: Date()) {
+                Text(timerInterval: interval, countsDown: true)
+                    .frame(maxWidth: 52)
+            } else {
+                Image(systemName: "ticket.fill")
+                    .accessibilityLabel(Text("liveActivity.event.started"))
+            }
+        } else if state.arrived == true {
+            Image(systemName: "checkmark.seal.fill")
+                .foregroundStyle(Color.green)
+                .accessibilityLabel(Text("liveActivity.play.arrived"))
+        } else if let interval = state.timerInterval {
             Text(timerInterval: interval, countsDown: false)
                 .frame(maxWidth: 52)
         } else {
@@ -271,7 +331,103 @@ struct QuestLiveActivityCompactValue: View {
             case .story:
                 Image(systemName: state.mediaPlaying == true ? "speaker.wave.2.fill" : "pause.fill")
                     .accessibilityLabel(Text(state.mediaPlaying == true ? "liveActivity.story.playing" : "liveActivity.story.paused"))
+            case .event:
+                EmptyView()
             }
+        }
+    }
+}
+
+// MARK: Components r1 C1
+
+/// Run deadline countdown and the player's server score / rank, when known.
+struct QuestLiveActivityRunExtras: View {
+    let state: QuestLiveActivityContent
+    var body: some View {
+        let deadline = state.deadlineInterval(now: Date())
+        if deadline != nil || state.score != nil || state.rank != nil {
+            HStack(alignment: .top) {
+                if let deadline {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("liveActivity.play.deadline").font(.caption).foregroundStyle(.secondary)
+                        Text(timerInterval: deadline, countsDown: true).font(.body.monospacedDigit())
+                    }
+                    Spacer()
+                }
+                if state.score != nil {
+                    QuestLiveActivityMetric(label: "liveActivity.play.score", value: state.score.map(String.init) ?? "—")
+                    Spacer()
+                }
+                if state.rank != nil {
+                    QuestLiveActivityMetric(label: "liveActivity.play.rank", value: QuestLiveActivityText.rank(state.rank))
+                }
+            }
+            .accessibilityElement(children: .combine)
+        }
+    }
+}
+
+/// "Starts in mm:ss · 加入": the countdown to the session start, then 已开始, with the 加入 link to 票夹 (the ticket's pass).
+struct QuestLiveActivityJoinRow: View {
+    let state: QuestLiveActivityContent
+    let isStale: Bool
+    var body: some View {
+        HStack(spacing: 8) {
+            if !isStale, let interval = state.startInterval(now: Date()) {
+                HStack(spacing: 4) {
+                    Text("liveActivity.event.startsIn")
+                    Text(timerInterval: interval, countsDown: true)
+                        .monospacedDigit()
+                        .frame(maxWidth: 72, alignment: .leading)
+                }
+                .font(.subheadline)
+                .accessibilityElement(children: .combine)
+            } else {
+                Text("liveActivity.event.started").font(.subheadline)
+            }
+            Spacer()
+            Link(destination: QuestWidgetLinks.wallet) {
+                Label("liveActivity.event.join", systemImage: "ticket.fill")
+                    .font(.subheadline.weight(.semibold))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Capsule().fill(QuestLiveActivityGlyph.tint(.event, mode: nil)))
+                    .foregroundStyle(Color.white)
+            }
+            .accessibilityLabel(Text("liveActivity.event.join"))
+        }
+    }
+}
+
+/// Interactive buttons: 打卡 at the arrived stop (opens the punch sheet), pause / resume for a timed run.
+struct QuestLiveActivityActionRow: View {
+    let attributes: QuestLiveActivityAttributes
+    let state: QuestLiveActivityContent
+    private var toggle: Bool? { state.runToggle(kind: attributes.kind) }
+    private var checkIn: Bool { attributes.kind == .play && state.arrived == true && state.status != .finished }
+    var body: some View {
+        if toggle != nil || checkIn {
+            HStack(spacing: 8) {
+                if checkIn {
+                    Button(intent: QuestLiveActivityCheckInIntent()) {
+                        Label("liveActivity.action.checkIn", systemImage: "checkmark.seal")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .tint(Color.green)
+                    .accessibilityLabel(Text("liveActivity.action.checkIn"))
+                }
+                if let pause = toggle {
+                    Button(intent: QuestLiveActivityRunToggleIntent(kind: attributes.kind, pause: pause)) {
+                        Label(pause ? "liveActivity.action.pause" : "liveActivity.action.resume",
+                              systemImage: pause ? "pause.fill" : "play.fill")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .tint(QuestLiveActivityGlyph.tint(attributes.kind, mode: state.mode))
+                    .accessibilityLabel(Text(pause ? "liveActivity.action.pause" : "liveActivity.action.resume"))
+                }
+            }
+            .buttonStyle(.bordered)
+            .font(.subheadline.weight(.semibold))
         }
     }
 }

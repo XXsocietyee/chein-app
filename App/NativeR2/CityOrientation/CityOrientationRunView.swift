@@ -95,13 +95,24 @@ extension EnvironmentValues {
             .onChange(of: peekHeight) { old, new in
                 if detent == .height(old) { detent = .height(new) }
             }
-            .onDisappear { QuestLiveActivityCenter.shared.clearPlayContext() }
+            .onDisappear {
+                QuestLiveActivityCenter.shared.clearPlayContext()
+                QuestLiveActivityCenter.shared.setCheckInHandler(nil)
+            }
             .onChange(of: scenePhase) { _, phase in
                 if phase == .active { location.start() }
             }
             // Native r2 M4: Dynamic Island shows this run as an orientation run with the distance to the next control point.
             .onChange(of: currentDistance, initial: true) { _, meters in
-                QuestLiveActivityCenter.shared.setPlayContext(mode: .orientation, nextDistanceMeters: meters)
+                QuestLiveActivityCenter.shared.setPlayContext(mode: .orientation, nextDistanceMeters: meters, arrived: inHighlight)
+            }
+            // Components r1 C1: the Live Activity 打卡 button opens this stop's punch sheet (same as the arrival island).
+            .onChange(of: currentStop?.id, initial: true) { _, id in
+                if let id {
+                    QuestLiveActivityCenter.shared.setCheckInHandler { onPunch(id) }
+                } else {
+                    QuestLiveActivityCenter.shared.setCheckInHandler(nil)
+                }
             }
             // Native r2 M4: entering the 50 m highlight pops an arrival island whose action opens the same punch sheet.
             .onChange(of: inHighlight) { old, new in

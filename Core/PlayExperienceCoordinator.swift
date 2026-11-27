@@ -118,7 +118,8 @@ public struct PlayCompletionReview: Equatable {
     private func publishLiveActivity() {
         guard let liveActivity else { return }
         liveActivity.publish(QuestLiveActivityMapping.play(key: "play:\(scope)", snapshot: snapshot, clockPhase: clock.phase,
-            elapsedSeconds: clock.elapsed(monotonicNow: ProcessInfo.processInfo.systemUptime), now: Date()))
+            elapsedSeconds: clock.elapsed(monotonicNow: ProcessInfo.processInfo.systemUptime), now: Date(),
+            score: leaderboard?.me.score, rank: leaderboard?.me.rank))
     }
     public private(set) var extras: [Int: PlayNodeExtras] = [:]
     public private(set) var chapterStories: [Int: ChapterStoryDocument] = [:]
@@ -775,6 +776,7 @@ public struct PlayCompletionReview: Equatable {
             let ending = try await service.ending(scope: scope, token: session.token); try check(session, request); self.ending = ending
             let board = try await service.leaderboard(scope: scope, token: session.token); try check(session, request)
             guard board.me.id == session.accountID else { throw PlayExperienceError.malformed }; leaderboard = board
+            publishLiveActivity() // components r1 C1: the final Live Activity card shows the player's score / rank
         } catch { fail(error, session: session, generation: request) }
     }
     public func loadLead(context: PlayInteractionContext? = nil) async {

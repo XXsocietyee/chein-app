@@ -164,7 +164,13 @@ import SwiftUI
             .appSwitcherPrivacyShield()
             .onAppear { focusTopic(proxy) }
             .onChange(of: model.value(owner: key)?.tickets.map(\.id)) { _, _ in focusTopic(proxy); focusRegistration(proxy) }
-            .onChange(of: model.isLoading) { _, loading in if !loading { focusRegistration(proxy) } }
+            .onChange(of: model.isLoading) { _, loading in
+                if !loading { focusRegistration(proxy) }
+                // Components r1 C1: a session starting soon counts down on the Lock Screen / Dynamic Island.
+                if !loading, let tickets = model.value(owner: key)?.tickets {
+                    QuestLiveActivityCenter.shared.eventCountdown(tickets: tickets)
+                }
+            }
             .task { await followFocusedRegistration() }
         }
         }
