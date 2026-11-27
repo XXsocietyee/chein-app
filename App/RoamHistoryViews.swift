@@ -343,6 +343,14 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                         .accessibilityLabel(Text("roam.medalShare.open") + Text(verbatim: ": " + medal.card.name))
                         .accessibilityIdentifier("roam.medalShare.open." + medal.card.kind.rawValue)
                     }
+                    // Design pass roam (P8): a kept medal has two exits, share (above) and the collection.
+                    if !medals.isEmpty {
+                        NavigationLink { RoamBadgeWallDestination(roamReader: reader) } label: {
+                            Label("design.roam.medals.collection", systemImage: "square.grid.2x2")
+                                .frame(minHeight: 44, alignment: .leading)
+                        }
+                        .accessibilityIdentifier("roam.experience.session.collection")
+                    }
                     Text("roam.experience.recordedPlaces").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
                     if record.pois.isEmpty {
                         Text("roam.experience.recordedPlacesEmpty").foregroundStyle(CYColor.textSecondary)

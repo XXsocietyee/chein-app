@@ -38,6 +38,8 @@ struct E1ActivityHero: View {
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("activity.detail.name")
                         .cyHeroTitleRise()
+                    // Design pass explore P1/P2: the hero leads with the live time-to-start (or time left while it runs).
+                    ExploreStartsInLine(startRaw: summary.startDate, endRaw: summary.endDate, tint: palette.onCoverFg)
                     if let place = ActivityPresentation.place(summary) {
                         Label {
                             Text(verbatim: place)

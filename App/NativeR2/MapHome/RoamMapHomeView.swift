@@ -115,8 +115,8 @@ struct RoamMapHomeDependencies {
             }
         }
         .mapStyle(model.satellite ? .hybrid(elevation: .realistic) : .standard(elevation: .realistic, pointsOfInterest: .excludingAll))
+        // MP maps set show-location="{{false}}" (pages/roam): no locate-me button (fix-r11 N-r11-2, P9 minimal controls).
         .mapControls {
-            MapUserLocationButton()
             MapCompass()
             MapPitchToggle()
             MapScaleView()

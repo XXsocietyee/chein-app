@@ -500,6 +500,7 @@
         "PublishingAIQuotaSectionTests",
         "PushNotificationAndLiveActivitySectionViewTests",
         "QuestLiveActivityComponentsTests",
+        "QuestPlanActivityAndChecklistTests",
         "QuestifyProgressiveBlurArtworkTests",
         "QuickPublishingJourneyOwnerTests",
         "R3PlayerMotionTests",

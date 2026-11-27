@@ -78,7 +78,7 @@ class PlayPlayerTeamStatusContract(unittest.TestCase):
         self.assertNotIn('retired = false', self.core.split('public init(model:')[1])
 
     def test_mounts_public_progress_in_existing_player_screen(self):
-        self.assertIn('PlayPlayerTeamStatusView(state: teamReadback?.state ?? .unconfirmed, planScope: String(projection.teamID))', self.host)
+        self.assertIn('PlayPlayerTeamStatusView(state: teamReadback?.state ?? .unconfirmed)', self.host)
         self.assertIn('if model.hasCurrentProjection, let projection = model.projection', self.host)
         self.assertIn('.privacySensitive()', self.view)
         self.assertIn('.fixedSize(horizontal: false, vertical: true)', self.view)

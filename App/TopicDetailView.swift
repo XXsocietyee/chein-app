@@ -77,7 +77,7 @@ struct TopicDetailView: View {
     var body: some View {
         Group {
             if !reader.isConfigured { TopicIssueView(issue: .notConfigured) }
-            else if phase.isLoading || loadedKey != key { ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity).accessibilityLabel(Text("topic.loading")) }
+            else if phase.isLoading || loadedKey != key { ProgressView("topic.loading").frame(maxWidth: .infinity, maxHeight: .infinity) }
             else {
                 switch phase {
                 case .failed(let issue, _): TopicDetailIssueState(issue: issue) { loads.start { await load() } }

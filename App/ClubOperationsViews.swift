@@ -1147,6 +1147,7 @@ private struct ClubOperationsProfileForm: View {
                     // A Section's own onAppear does not fire inside a List; the row's does.
                     .onAppear { publishCreateBar() }
             }
+            Section { ClubCreateStepChecklist(locale: formLocale) { setCreateStep($0) } } // R-steps
         } else {
             // verify-r1 2.2 / N-08: the step header is a system progress bar, the step eyebrow and the step title,
             // and on step 2 the 已选 n / 3 count at the trailing end.
