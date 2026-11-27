@@ -177398,6 +177398,40 @@
         }
       }
     },
+    "playkit.countdown.again": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再来一次"
+          }
+        }
+      }
+    },
+    "playkit.countdown.running": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Counting down"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "计时中"
+          }
+        }
+      }
+    },
     "playkit.daily.audience": {
       "extractionState": "manual",
       "localizations": {
