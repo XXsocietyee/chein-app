@@ -107,7 +107,7 @@ struct DiscoveryTemplateBrowserView: View {
                         Picker("discovery.shelf", selection: $tab) {
                             Text("discovery.topics").tag(Shelf.topics)
                             Text("discovery.games").tag(Shelf.games)
-                        }.pickerStyle(.segmented).accessibilityIdentifier("discovery.shelf")
+                        }.cyAdaptiveSegmented().accessibilityIdentifier("discovery.shelf")
                             .pageTemplateReadingOrder(30)
                     }
                     if tab == .topics { topicShelf }

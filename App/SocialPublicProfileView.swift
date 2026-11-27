@@ -202,7 +202,7 @@ import SwiftUI
                         Picker(selection: $tab) {
                             ForEach(profileTabs) { item in Text(verbatim: item.title).tag(item.id) }
                         } label: { Text("social.profileSection") }
-                            .pickerStyle(.segmented)
+                            .cyAdaptiveSegmented()
                             .accessibilityElement(children: .contain)
                             .accessibilityLabel(Text("social.profileSection"))
                             .accessibilityIdentifier("social.profile.tabs")

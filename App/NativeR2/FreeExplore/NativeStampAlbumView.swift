@@ -101,7 +101,7 @@ import SwiftUI
         Picker("nativeR2.freeExplore.album.filter", selection: $filter) {
             ForEach(Filter.allCases, id: \.self) { item in Text(item.titleKey).tag(item) }
         }
-        .pickerStyle(.segmented)
+        .cyAdaptiveSegmented()
         .accessibilityIdentifier("nativeR2.freeExplore.album.filter")
         exchangeRow
     }

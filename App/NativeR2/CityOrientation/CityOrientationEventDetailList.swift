@@ -16,6 +16,7 @@ struct CityOrientationEventCTA {
 /// `List` with `LabeledContent` facts and the CTA in the bottom toolbar. Read-only; every action is a
 /// closure supplied by the existing detail screen.
 @MainActor struct CityOrientationEventDetailList<More: View>: View {
+    @Environment(\.locale) private var locale
     let detail: ActivityDetail
     let priceLine: Text?
     /// Nil when this entry point does not offer registration (same `registrationEnabled` gate as before).
@@ -99,7 +100,7 @@ struct CityOrientationEventCTA {
                 }
                 ForEach(detail.tickets) { ticket in
                     LabeledContent {
-                        Text(verbatim: ticket.price.map { MoneyDisplay.yuan($0) } ?? "—").monospacedDigit()
+                        Text(verbatim: ticket.price.map { LocaleDisplay.money($0, locale: locale) } ?? "—").monospacedDigit()
                     } label: {
                         Text(verbatim: ticket.name)
                         if let left = ticket.remainingInventory { Text("nativeR2.city.event.remaining \(left)") }

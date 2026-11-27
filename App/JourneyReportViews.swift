@@ -217,7 +217,7 @@ struct JourneyRankBoardView: View {
                     Picker(selection: Binding(get: { scopeInMore ? nil : state.scope }, set: { if let new = $0 { onScope(new) } })) {
                         ForEach(state.tabs) { Text($0.label).tag(Optional($0)) }
                     } label: { Text("mp.rank.title") }
-                    .pickerStyle(.segmented)
+                    .cyAdaptiveSegmented()
                     .accessibilityIdentifier("rankBoard.scope")
                 }
                 if !state.more.isEmpty {
@@ -240,7 +240,7 @@ struct JourneyRankBoardView: View {
                     Text("mp.rank.period.all").tag(JourneyRankPeriod.all)
                     Text("mp.rank.period.week").tag(JourneyRankPeriod.week)
                 } label: { Text("mp.rank.period") }
-                .pickerStyle(.segmented)
+                .cyAdaptiveSegmented()
                 .accessibilityIdentifier("rankBoard.period")
             }
             switch state.phase {
@@ -1178,7 +1178,7 @@ struct JourneySettleView: View {
                 Text("mp.settle.share.post").tag(ShareKind.post)
                 Text("mp.settle.share.story").tag(ShareKind.story)
             } label: { Text("mp.settle.share.kind") }
-            .pickerStyle(.segmented)
+            .cyAdaptiveSegmented()
             .accessibilityIdentifier("journeySettle.shareKind")
             JourneyShareCard(report: report, topicName: topicName, story: shareKind == .story)
                 .frame(maxWidth: shareKind == .story ? 260 : .infinity)

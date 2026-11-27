@@ -50,7 +50,7 @@ import QuestifyCore
                 HStack(spacing: 4) {
                     if !route.city.isEmpty { Text(verbatim: route.city) }
                     if route.distanceKm > 0 {
-                        Text(Measurement(value: route.distanceKm, unit: UnitLength.kilometers), format: .measurement(width: .abbreviated))
+                        Text(Measurement(value: route.distanceKm, unit: UnitLength.kilometers), format: .measurement(width: .abbreviated, usage: .road))
                     }
                     if route.totalMinutes > 0 {
                         Text(Measurement(value: Double(route.totalMinutes), unit: UnitDuration.minutes), format: .measurement(width: .abbreviated))

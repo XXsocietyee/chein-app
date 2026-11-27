@@ -132,7 +132,7 @@ struct CYShareComposer<Controls: View, Actions: View>: View {
         } label: {
             Text(verbatim: locale.pick("尺寸", "Size"))
         }
-        .pickerStyle(.segmented)
+        .cyAdaptiveSegmented()
         .accessibilityIdentifier(accessibilityPrefix + ".ratio")
     }
 

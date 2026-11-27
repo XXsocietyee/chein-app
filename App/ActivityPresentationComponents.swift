@@ -86,7 +86,7 @@ struct ActivityListCard: View {
     @ViewBuilder private var priceLabel: some View {
         if let amount = item.minimumAmount, amount >= 0 {
             if amount == 0 { Text(verbatim: copy.t("免费", "Free")).foregroundStyle(.green) }
-            else { let p = MoneyDisplay.yuan(amount)  // owner decision 9: ¥12.50
+            else { let p = LocaleDisplay.money(amount, locale: locale)  // owner decision 9: ¥12.50
                 Text(verbatim: copy.t("\(p) 起", "From \(p)")).monospacedDigit() }
         }
     }

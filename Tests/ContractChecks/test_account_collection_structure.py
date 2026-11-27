@@ -99,7 +99,7 @@ class AccountCollectionStructureTests(unittest.TestCase):
             self.assertIn('Text("' + key + '").tag(Tab.', view)
             entry = json.loads(self.text('Resources/Localizable.xcstrings'))['strings'][key]
             self.assertEqual(set(entry['localizations']), {'en', 'zh-Hans'})
-        self.assertIn('.pickerStyle(.segmented)', view)
+        self.assertIn('.cyAdaptiveSegmented()', view)
         self.assertIn('AccountCollectionFavoritePostsView(reader: reader', view)
         self.assertIn('AccountCollectionFavoriteTopicsView(reader: reader', view)
         self.assertIn('model.state.loadedScope == reader.scope, post.generation == .legacySquare', view)

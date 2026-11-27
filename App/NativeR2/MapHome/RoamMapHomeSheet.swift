@@ -258,7 +258,7 @@ import QuestifyCore
                     Text(category.titleKey).tag(category)
                 }
             }
-            .pickerStyle(.segmented)
+            .cyAdaptiveSegmented()
             .textCase(nil)
             .accessibilityIdentifier("city.roam.nearby")
         } footer: {

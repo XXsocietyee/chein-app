@@ -59,7 +59,7 @@ extension EnvironmentValues {
                 case .clubs: Text("cooprelation.clubs").tag(item)
                 }
             }
-        }.pickerStyle(.segmented).accessibilityIdentifier("cooprelation.tabs")
+        }.cyAdaptiveSegmented().accessibilityIdentifier("cooprelation.tabs")
     }
     @StateObject private var presentation: CoopRelationPresentationOwner
     @State private var loadedKey: LoadKey?

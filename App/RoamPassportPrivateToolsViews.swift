@@ -817,14 +817,14 @@ extension RoamGoalState {
         Section {
             Picker("roam.goals.metric", selection: $metric) {
                 ForEach(RoamGoalMetric.allCases) { Text($0.titleKey).tag($0) }
-            }.pickerStyle(.segmented).accessibilityIdentifier("roam.goals.metricPicker")
+            }.cyAdaptiveSegmented().accessibilityIdentifier("roam.goals.metricPicker")
             Stepper(value: $target, in: 1...100) { amountText(metric, target).monospacedDigit() }
                 .accessibilityIdentifier("roam.goals.target")
         }.disabled(model.isBusy || model.pending != nil)
         Section {
             Picker("roam.goals.period", selection: Binding(get: { period }, set: { usePeriod($0) })) {
                 ForEach(RoamGoalPeriod.Kind.allCases, id: \.self) { Text(periodKey($0)).tag($0) }
-            }.pickerStyle(.segmented).accessibilityIdentifier("roam.goals.periodPicker")
+            }.cyAdaptiveSegmented().accessibilityIdentifier("roam.goals.periodPicker")
             DatePicker("roam.goals.start", selection: Binding(get: { RoamShanghaiPicker.date(startDate) }, set: { startDate = RoamShanghaiPicker.text($0) }),
                        in: RoamShanghaiPicker.date(model.today)..., displayedComponents: .date)
                 .environment(\.timeZone, RoamShanghaiPicker.timeZone).accessibilityIdentifier("roam.goals.startDate")

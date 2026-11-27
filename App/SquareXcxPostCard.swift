@@ -123,6 +123,8 @@ struct SquareXcxRelativeTime: View {
     @State private var loadingScope: UUID?
     @State private var items: [SquareUpcomingBannerItem] = []
     @State private var loadedScope: UUID?
+    /// i18n r1: the card grows with Dynamic Type so English kicker/countdown copy wraps instead of clipping.
+    @ScaledMetric(relativeTo: .headline) private var cardWidth: CGFloat = 240
     var body: some View {
         Group {
             if loadedScope == reader.scope, !items.isEmpty {
@@ -169,7 +171,7 @@ struct SquareXcxRelativeTime: View {
             }
             .font(.caption)
         }
-        .frame(width: 240, alignment: .leading)
+        .frame(width: cardWidth, alignment: .leading)
         .contentShape(Rectangle())
     }
     private func load() async {

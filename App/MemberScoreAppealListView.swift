@@ -64,7 +64,7 @@ private struct MemberScorePlayLayer: Hashable, Identifiable {
                     } label: {
                         memberScoreText("score.mine.title")
                     }
-                    .pickerStyle(.segmented)
+                    .cyAdaptiveSegmented()
                     .accessibilityIdentifier("score.mine.filter")
                     let shown = visibleRows(flow.rows)
                     if shown.isEmpty {

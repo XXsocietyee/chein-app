@@ -50,7 +50,7 @@ import SwiftUI
                     Text(verbatim: copy("收到", "Received")).tag(CooperationDirection.received)
                     Text(verbatim: copy("发出", "Sent")).tag(CooperationDirection.sent)
                 }
-                .pickerStyle(.segmented)
+                .cyAdaptiveSegmented()
                 .frame(maxWidth: 220)
                 .accessibilityIdentifier("im.coopStrip.direction")
             }

@@ -196,7 +196,7 @@ struct NearbyMapDiscoveryControls: View {
                 Text("nearby.map.places", tableName: "NearbyMapDiscovery").tag(NearbyMapDiscoveryLayer.place)
                 Text("nearby.map.shops", tableName: "NearbyMapDiscovery").tag(NearbyMapDiscoveryLayer.shop)
             } label: { Text("nearby.map.layers", tableName: "NearbyMapDiscovery") }
-                .pickerStyle(.segmented)
+                .cyAdaptiveSegmented()
                 .padding(4)
                 .accessibilityIdentifier("nearby.discovery.layers")
             if filter.layer == .place || filter.layer == .shop {

@@ -116,9 +116,9 @@ import SwiftUI
                     CoopSettlementToneBadge(status: detail.status, tone: detail.tone)
                 }
                 Text("cooperation.settlement.line.income").cyText(.label).foregroundStyle(CYColor.textSecondary).padding(.top, CYSpacing.md)
-                Text(verbatim: detail.amount.map { "¥" + CoopFinanceProfit.plainText($0) } ?? "—").cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: detail.amount.map { LocaleDisplay.money($0, negative: false, locale: locale) } ?? "—").cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                     .cyWrapText()
-                    .accessibilityLabel(detail.amount.map { Text(verbatim: "¥" + CoopFinanceProfit.plainText($0)) } ?? Text("coopflow.amount.unknown"))
+                    .accessibilityLabel(detail.amount.map { Text(verbatim: LocaleDisplay.money($0, negative: false, locale: locale)) } ?? Text("coopflow.amount.unknown"))
                     .accessibilityIdentifier("cooperation.settlement.amount")
             }.padding(.vertical, CYSpacing.xs)
         }
@@ -182,7 +182,7 @@ import SwiftUI
     }
     private func valueText(_ value: CoopSettlementDetailModel.Value) -> String {
         switch value {
-        case .money(let amount): return "¥" + CoopFinanceProfit.plainText(amount)
+        case .money(let amount): return LocaleDisplay.money(amount, negative: false, locale: locale)
         case .heads(let count): return appLocalized("cooperation.settlement.value.heads \(count)", locale: locale)
         case .key(let key): return appLocalized(String.LocalizationValue(stringLiteral: "cooperation.settlement.value." + key), locale: locale)
         case .shareRate(let rate): return appLocalized("cooperation.settlement.value.shareRate \(NSDecimalNumber(decimal: rate).stringValue)", locale: locale)

@@ -126,7 +126,7 @@ import SwiftUI
             Text("playx.backpack.tab.clues").tag(Tab.clues)
             Text("playx.backpack.tab.game").tag(Tab.game)
         }
-        .pickerStyle(.segmented).accessibilityIdentifier("playx.backpack.tabs")
+        .cyAdaptiveSegmented().accessibilityIdentifier("playx.backpack.tabs")
         if bag.claimOnly { Text("playx.backpack.claimOnly").cyText(.bodyCompact) }
         switch tab {
         case .items:

@@ -204,10 +204,12 @@ import SwiftUI
                                 .foregroundStyle(palette.textSecondary)
                                 .lineLimit(1)
                         } else {
+                            // i18n r1: the localized hint can run long in English; wrap rather than truncate.
                             Text(subtitleKey)
                                 .cyText(.meta)
                                 .foregroundStyle(palette.textSecondary)
-                                .lineLimit(1)
+                                .lineLimit(2)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                     }
                     Spacer(minLength: CYSpacing.sm)
