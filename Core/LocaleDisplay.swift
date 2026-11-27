@@ -237,7 +237,7 @@ public enum LocaleDisplay {
         var components = PersonNameComponents()
         components.givenName = given?.trimmingCharacters(in: .whitespaces).nilIfEmpty
         components.familyName = family?.trimmingCharacters(in: .whitespaces).nilIfEmpty
-        return PersonNameComponents.FormatStyle(style: .default, locale: locale).format(components)
+        return PersonNameComponents.FormatStyle(style: .medium, locale: locale).format(components)
     }
 
     // MARK: Addresses

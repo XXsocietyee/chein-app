@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """Writes Resources/AuthEntry.xcstrings (w2-01 entry/auth copy). zh copy follows the mini-program verbatim where it exists."""
 import json,pathlib,sys
 S={
