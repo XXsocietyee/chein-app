@@ -68,7 +68,7 @@ typealias WorkshopPaidInstalledTextControllerFactory = @MainActor (WorkshopPaidI
                             paidText("original").tag(false)
                             paidText("installed").tag(true)
                         } label: { paidText("comparison") }
-                            .pickerStyle(.segmented)
+                            .cyAdaptiveSegmented()
                         let fields = showsInstalled ? content.installedFields : content.sourceFields
                         ForEach(WorkshopPaidInstalledTextFields.names, id: \.self) { name in
                             if let value = fields[name] {

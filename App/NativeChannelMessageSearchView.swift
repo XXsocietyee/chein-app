@@ -107,7 +107,7 @@ import SwiftUI
                     Label { Text("access.closed", tableName: "NativeChannelMessage") } icon: { Image(systemName: "lock") }
                 }
             }
-            if model.loading { ProgressView().frame(maxWidth: .infinity) }
+            if model.loading { ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity) }
             if model.failed {
                 Section {
                     ContentUnavailableView {
