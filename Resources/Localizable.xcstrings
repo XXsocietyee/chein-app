@@ -245247,13 +245247,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This link is incomplete. Go back to choose another item."
+            "value": "This link is no longer valid"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "链接不完整，请返回选择其他内容。"
+            "value": "链接已失效"
           }
         }
       }
