@@ -232,6 +232,9 @@ allowed with reasons (procedural art drawn to its own frame): `CityMomentView` c
 stamp perforation, `ProfileBadgesView` holo sheen on the round medal, `RoamSubpageParityViews` MP stamp printer art and
 scratch foil. Self-test: the pre-fix `SettingsSupportSections.swift` fails at line 202.
 
+Stale pin updated: `Tests/ContractChecks/test_object_badge_wall_layout.py` detail hash (artwork clip 16 →
+`CYRadius.card`, look only; one-line reason in the test).
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
