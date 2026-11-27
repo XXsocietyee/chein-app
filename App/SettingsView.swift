@@ -374,6 +374,8 @@ struct SettingsAccountCard: View {
     /// Merchant view: MP `icon_lc_store` in place of the initial.
     var brandMark = false
     @Environment(\.locale) private var locale
+    /// a11y-dt r3: the initial is `.title`, so the 60 pt circle grows with it instead of clipping at AX sizes.
+    @ScaledMetric(relativeTo: .title) private var avatar: CGFloat = 60
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
             Group {
@@ -384,7 +386,7 @@ struct SettingsAccountCard: View {
                 }
             }
                 .font(.title.weight(.semibold)).foregroundStyle(.secondary)
-                .frame(width: 60, height: 60)
+                .frame(width: avatar, height: avatar)
                 .background(.quaternary, in: Circle())
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
