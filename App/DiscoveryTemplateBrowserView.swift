@@ -18,6 +18,9 @@ struct DiscoveryTemplateBrowserView: View {
     let publishDestination: (() -> AnyView)?
     /// Round 4 (MP template/index.wxml:16 `tpl-bell` → `subpackageB/pages/im/list/index`): the bell opens the IM inbox.
     let inboxDestination: (() -> AnyView)?
+    /// mp-r3-publish: the shelf is the 发布 tab itself (MP `pages/template/index` is a tab page), so it takes the
+    /// large root title instead of the pushed inline 模板 title.
+    let isTabRoot: Bool
     @State private var tab = Shelf.topics
     @State private var topicTag: String?
     @State private var gameTag: String?
@@ -25,15 +28,22 @@ struct DiscoveryTemplateBrowserView: View {
     @StateObject private var topics = PublicTemplateCatalogVisitOwner()
     @State private var topicSelection: PublicTemplateCatalogSelection?
     @StateObject private var shelfGames = DiscoveryLoader<[DiscoveryPlayTemplate]>()
-    @StateObject private var home = DiscoveryLoader<DiscoveryTemplateHome>()
     @State private var toastMessage: String?
     @Environment(\.locale) private var locale
 
     private enum Shelf: String, CaseIterable { case topics, games }
 
+    /// MP shelf/index.js `shelfNoun` (1121 N6): players see 主题 / 玩法; the merchant creator view keeps 主题模板 / 玩法模板.
+    private var isPlayerShelf: Bool { templateTabScope == .consumer }
+    private var emptyTopicsKey: LocalizedStringKey { isPlayerShelf ? "discovery.player.emptyTopics" : "discovery.emptyTopics" }
+    private var emptyGamesKey: LocalizedStringKey { isPlayerShelf ? "discovery.player.emptyGames" : "discovery.emptyGames" }
+    private var topicsFailedKey: LocalizedStringKey { isPlayerShelf ? "discovery.player.topicsFailed" : "discovery.topicsFailed" }
+    private var gamesFailedKey: LocalizedStringKey { isPlayerShelf ? "discovery.player.gamesFailed" : "discovery.gamesFailed" }
+
     /// `searchDestination` stays so existing callers still compile. MP `goSearch` has one entrance, so this shelf
     /// does not open that closure as a second screen.
-    init(reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil, authoringCompletion: TemplateAuthoringCompletionContext? = nil, templateTabScope: TemplateTabScope = .consumer, merchantAccessError: Bool = false, onRetryMerchantAccess: (() -> Void)? = nil, publishDestination: (() -> AnyView)? = nil, startOnGames: Bool = false, searchDestination _: (() -> AnyView)? = nil, inboxDestination: (() -> AnyView)? = nil) {
+    init(reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil, authoringCompletion: TemplateAuthoringCompletionContext? = nil, templateTabScope: TemplateTabScope = .consumer, merchantAccessError: Bool = false, onRetryMerchantAccess: (() -> Void)? = nil, publishDestination: (() -> AnyView)? = nil, startOnGames: Bool = false, searchDestination _: (() -> AnyView)? = nil, inboxDestination: (() -> AnyView)? = nil, isTabRoot: Bool = false) {
+        self.isTabRoot = isTabRoot
         _tab = State(initialValue: startOnGames ? .games : .topics)
         self.inboxDestination = inboxDestination
         self.publishDestination = publishDestination
@@ -54,11 +64,9 @@ struct DiscoveryTemplateBrowserView: View {
                     Text("auth.notConfigured")
                 }
             } else {
+                // mp-r3-publish: MP template/index.wxml order — merchant access note, then tpl-shelf (主题/玩法 tabs
+                // and search, featured rail, tags, shelves). The shelf has no presets block, so none is shown here.
                 List {
-                    Section {
-                        GameplayPresetSection(canDraft: !templateTabScope.isStaffReadOnly)
-                    }
-                    .pageTemplateReadingOrder(10)
                     if merchantAccessError || (templateTabScope == .merchant(canManageProjects: nil) && onRetryMerchantAccess != nil) {
                         Section {
                             if let onRetryMerchantAccess {
@@ -94,21 +102,22 @@ struct DiscoveryTemplateBrowserView: View {
                         .pageTemplateReadingOrder(40)
                     }
                     Section {
+                        // MP shelf `sh-top`: the 主题 / 玩法 tabs first, the search pill after them.
+                        Picker("discovery.shelf", selection: $tab) {
+                            Text("discovery.topics").tag(Shelf.topics)
+                            Text("discovery.games").tag(Shelf.games)
+                        }.cyAdaptiveSegmented().accessibilityIdentifier("discovery.shelf")
+                            .pageTemplateReadingOrder(30)
                         // MP pages/template/index.js goSearch → /pages/search2/index. One entrance, both shelves.
                         NavigationLink { templateShelfSearch } label: {
                             Label {
-                                Text("discovery.searchAll")
+                                if isPlayerShelf { Text("discovery.player.searchAll") } else { Text("discovery.searchAll") }
                             } icon: {
                                 Image(systemName: "magnifyingglass")
                             }
                         }
                         .accessibilityIdentifier("discovery.globalSearch")
                         .pageTemplateReadingOrder(35)
-                        Picker("discovery.shelf", selection: $tab) {
-                            Text("discovery.topics").tag(Shelf.topics)
-                            Text("discovery.games").tag(Shelf.games)
-                        }.cyAdaptiveSegmented().accessibilityIdentifier("discovery.shelf")
-                            .pageTemplateReadingOrder(30)
                     }
                     if tab == .topics { topicShelf }
                     else { gameShelf }
@@ -117,7 +126,8 @@ struct DiscoveryTemplateBrowserView: View {
                 .refreshable { await reloadCurrent() }
             }
         }
-        .cyPageTitle("discovery.templateTab.title") // PC-A-2-3: pushed / sheet-hosted page, inline title
+        // PC-A-2-3: pushed / sheet-hosted page, inline title; the 发布 tab root takes the large root title.
+        .modifier(DiscoveryTemplateShelfTitle(isTabRoot: isTabRoot))
         .cyToast(verbatimMessage: $toastMessage)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -139,10 +149,6 @@ struct DiscoveryTemplateBrowserView: View {
                     .accessibilityIdentifier("discovery.templateTab.inbox")
                 }
             }
-        }
-        .task {
-            guard reader.isConfigured, home.value == nil else { return }
-            await loadHome()
         }
         .task(id: tab) {
             guard reader.isConfigured, tab == .games, shelfGames.value == nil else { return }
@@ -221,35 +227,35 @@ struct DiscoveryTemplateBrowserView: View {
         .accessibilityHint(title)
     }
 
+    /// MP shelf/index.wxml topic block: skeleton / error / empty replace the whole shelf; otherwise the 精选 rail,
+    /// then the tag row, then what the tag picks (标签只换标签下方内容 — the rail stays when a tag is chosen).
     @ViewBuilder private var topicShelf: some View {
-        Section {
-            shelfChipRow(SearchDiscoveryFilterParity.topicTags(in: topics.value ?? [], selected: topicTag), field: "shelf.topic") { topicTag = $0 }
-        }
-        .pageTemplateReadingOrder(20)
         if let error = topics.error {
-            Section { shelfIssue(error, failedTitle: "discovery.topicsFailed") { Task { await loadTopics() } } }
+            Section { shelfIssue(error, failedTitle: topicsFailedKey) { Task { await loadTopics() } } }
         }
         if topics.isLoading {
             Section { DiscoveryTemplateSyncingRow(hasLoadedRows: topics.value != nil) }
         }
         if let rows = topics.value {
-            if rows.isEmpty {
+            let catalog = SearchDiscoveryFilterParity.visibleTopics(rows)
+            if catalog.isEmpty {
                 Section { emptyTopics }
             } else {
-                let catalog = SearchDiscoveryFilterParity.visibleTopics(rows)
                 let tags = SearchDiscoveryFilterParity.topicTags(in: catalog, selected: topicTag)
                 let shown = SearchDiscoveryFilterParity.topics(catalog, matching: tags.selection)
-                if catalog.isEmpty {
-                    Section { emptyTopics }
-                } else if shown.isEmpty {
+                // R7-PC-A2-3 topic half (MP shelf/index.js:309 `buildTopics`): 精选 rail in FEATURED_TOPICS order.
+                let featured = TemplateShelfArt.featuredTopics(catalog)
+                if !featured.isEmpty { featuredTopicRail(featured) }
+                Section {
+                    shelfChipRow(SearchDiscoveryFilterParity.topicTags(in: rows, selected: topicTag), field: "shelf.topic") { topicTag = $0 }
+                }
+                .pageTemplateReadingOrder(20)
+                if shown.isEmpty {
                     Section { ContentUnavailableView("discovery.noResults", systemImage: "magnifyingglass") }
                 } else if let selection = tags.selection, let tag = tags.row.first(where: { $0.key == selection }) ?? tags.groups.flatMap(\.tags).first(where: { $0.key == selection }) {
                     topicSection("discovery.topics", rows: shown, hero: true, verbatimTitle: locale.pick(tag.zh, tag.en))
                 } else {
-                    // R7-PC-A2-3 topic half (MP shelf/index.js:309 `buildTopics`): 精选 rail in FEATURED_TOPICS order,
-                    // then 全部主题, then the TOPIC_SHELVES rows that have content.
-                    let featured = TemplateShelfArt.featuredTopics(shown)
-                    if !featured.isEmpty { featuredTopicRail(featured) }
+                    // Then 全部主题, then the TOPIC_SHELVES rows that have content.
                     topicSection("discovery.shelf.allTopics", rows: shown)
                     topicSection("discovery.shelf.withinTwoHours", rows: shown.filter { ($0.totalTime ?? 0) > 0 && ($0.totalTime ?? 0) <= 7200 }, shelfKey: "shelf2h")
                     topicSection("discovery.shelf.scifi", rows: SearchDiscoveryFilterParity.topics(shown, matching: "scifi"), shelfKey: "shelfScifi")
@@ -262,7 +268,7 @@ struct DiscoveryTemplateBrowserView: View {
 
     private var emptyTopics: some View {
         ContentUnavailableView {
-            Label("discovery.emptyTopics", systemImage: "map")
+            Label(emptyTopicsKey, systemImage: "map")
         } description: {
             EmptyView()
         } actions: {
@@ -277,57 +283,57 @@ struct DiscoveryTemplateBrowserView: View {
             : SearchDiscoveryFilterParity.gameTags(in: shelfGames.value ?? [], selected: gameTag).groups
     }
 
+    /// MP shelf/index.wxml game block: skeleton / error / empty, else the FEATURED_GAMES rail, the tag row, then
+    /// one shelf per GROUPS entry (or the picked tag's games). All of it comes from the paged `api/template/list`.
     @ViewBuilder private var gameShelf: some View {
-        Section {
-            shelfChipRow(SearchDiscoveryFilterParity.gameTags(in: shelfGames.value ?? [], selected: gameTag), field: "shelf.game") { gameTag = $0 }
-            if gameTag != nil {
-                Button("discovery.clearFilters") {
-                    gameTag = nil
-                }
-                .accessibilityLabel(Text("discovery.clearFilters"))
-                .accessibilityValue(Text(verbatim: clearFilterSpoken))
-                .accessibilityHint(Text("discovery.clearFilters"))
-            }
-        }
-        .pageTemplateReadingOrder(20)
         if let error = shelfGames.error, shelfGames.value == nil {
-            Section { DiscoveryErrorView(error: error) { Task { await loadShelfGames() } } }
-        }
-        if let selection = SearchDiscoveryFilterParity.gameTags(in: shelfGames.value ?? [], selected: gameTag).selection {
-            if shelfGames.isLoading, shelfGames.value == nil { Section { loadingRow } }
-            if let rows = shelfGames.value {
-                let shown = SearchDiscoveryFilterParity.games(rows, matching: selection)
-                if shown.isEmpty { Section { ContentUnavailableView("discovery.noResults", systemImage: "magnifyingglass") } }
-                else if let tag = shelfTag(SearchDiscoveryFilterParity.gameTags(in: rows, selected: selection), key: selection) {
-                    gameSection("discovery.searchResults", rows: shown, verbatimTitle: locale.pick(tag.zh, tag.en))
-                } else { gameSection("discovery.searchResults", rows: shown) }
-            }
-        } else if let rows = shelfGames.value, !SearchDiscoveryFilterParity.shelfGames(rows).isEmpty {
-            // R7-PC-A2-3 / A2-6 (MP shelf/index.js:340 `buildGames`): the default 玩法 view is built from the paged
-            // `api/template/list` rows: the FEATURED_GAMES paging rail, then one shelf per GROUPS entry.
+            Section { shelfIssue(error, failedTitle: gamesFailedKey) { Task { await loadShelfGames() } } }
+        } else if let rows = shelfGames.value {
             let shelf = SearchDiscoveryFilterParity.shelfGames(rows)
-            let featured = TemplateShelfArt.featuredGameTitles.compactMap { title in
-                shelf.first { $0.title.trimmingCharacters(in: .whitespacesAndNewlines) == title }
+            if shelf.isEmpty {
+                Section { emptyGames }
+            } else {
+                // R7-PC-A2-3 / A2-6 (MP shelf/index.js:340 `buildGames`).
+                let featured = TemplateShelfArt.featuredGameTitles.compactMap { title in
+                    shelf.first { $0.title.trimmingCharacters(in: .whitespacesAndNewlines) == title }
+                }
+                if !featured.isEmpty { featuredGameRail(featured) }
+                Section {
+                    shelfChipRow(SearchDiscoveryFilterParity.gameTags(in: rows, selected: gameTag), field: "shelf.game") { gameTag = $0 }
+                    if gameTag != nil {
+                        Button("discovery.clearFilters") {
+                            gameTag = nil
+                        }
+                        .accessibilityLabel(Text("discovery.clearFilters"))
+                        .accessibilityValue(Text(verbatim: clearFilterSpoken))
+                        .accessibilityHint(Text("discovery.clearFilters"))
+                    }
+                }
+                .pageTemplateReadingOrder(20)
+                if let selection = SearchDiscoveryFilterParity.gameTags(in: rows, selected: gameTag).selection {
+                    let shown = SearchDiscoveryFilterParity.games(rows, matching: selection)
+                    if shown.isEmpty { Section { ContentUnavailableView("discovery.noResults", systemImage: "magnifyingglass") } }
+                    else if let tag = shelfTag(SearchDiscoveryFilterParity.gameTags(in: rows, selected: selection), key: selection) {
+                        gameSection("discovery.searchResults", rows: shown, verbatimTitle: locale.pick(tag.zh, tag.en))
+                    } else { gameSection("discovery.searchResults", rows: shown) }
+                } else {
+                    gameSection("discovery.shelf.group.shop", rows: SearchDiscoveryFilterParity.games(rows, matching: "shop"))
+                    gameSection("discovery.shelf.group.team", rows: SearchDiscoveryFilterParity.games(rows, matching: "team"))
+                    gameSection("discovery.shelf.group.city", rows: SearchDiscoveryFilterParity.games(rows, matching: "city"))
+                }
             }
-            if !featured.isEmpty { featuredGameRail(featured) }
-            gameSection("discovery.shelf.group.shop", rows: SearchDiscoveryFilterParity.games(rows, matching: "shop"))
-            gameSection("discovery.shelf.group.team", rows: SearchDiscoveryFilterParity.games(rows, matching: "team"))
-            gameSection("discovery.shelf.group.city", rows: SearchDiscoveryFilterParity.games(rows, matching: "city"))
-        } else if shelfGames.isLoading, shelfGames.value == nil {
-            Section { loadingRow }
         } else {
-            if home.isLoading { Section { loadingRow } }
-            if let error = home.error {
-                Section { shelfIssue(error, failedTitle: "discovery.gamesFailed") { Task { await loadHome() } } }
-            }
-            if let value = home.value {
-                if value.isEmpty { Section { ContentUnavailableView("discovery.emptyGames", systemImage: "sparkles.rectangle.stack") } }
-                gameSection("discovery.featured", rows: value.banner, hero: true)
-                gameSection("discovery.latest", rows: value.latest)
-                gameSection("discovery.recommended", rows: value.recommended)
-                gameSection("discovery.mustPlay", rows: value.mustPlay)
-                gameSection("discovery.hot", rows: value.hot)
-            }
+            Section { loadingRow }
+        }
+    }
+
+    private var emptyGames: some View {
+        ContentUnavailableView {
+            Label(emptyGamesKey, systemImage: "sparkles.rectangle.stack")
+        } description: {
+            EmptyView()
+        } actions: {
+            DiscoveryTemplateEmptyRefresh { Task { await loadShelfGames() } }
         }
     }
 
@@ -525,7 +531,6 @@ struct DiscoveryTemplateBrowserView: View {
         return title + Text(verbatim: ", ") + Text(verbatim: detail)
     }
 
-    private func loadHome() async { await home.load { try await reader.discoveryTemplateHome() } }
     private func loadTopics() async {
         await topics.load(reader: reader, visit: topics.visit)
     }
@@ -573,14 +578,18 @@ struct DiscoveryTemplateBrowserView: View {
         await shelfGames.load { try await reader.discoveryPlayTemplates(keyword: "", packType: .single) }
     }
     private func reloadCurrent() async {
-        if tab == .topics {
-            async let a: Void = loadTopics()
-            async let b: Void = loadHome()
-            _ = await (a, b)
+        if tab == .topics { await loadTopics() } else { await loadShelfGames() }
+    }
+}
+
+/// Inline 模板 title when pushed or sheet-hosted; the large 发布 root title when the shelf is the tab root.
+private struct DiscoveryTemplateShelfTitle: ViewModifier {
+    let isTabRoot: Bool
+    func body(content: Content) -> some View {
+        if isTabRoot {
+            content.cyRootHeader(.publish)
         } else {
-            async let a: Void = loadHome()
-            async let b: Void = loadShelfGames()
-            _ = await (a, b)
+            content.cyPageTitle("discovery.templateTab.title")
         }
     }
 }

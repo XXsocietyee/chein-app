@@ -333,11 +333,9 @@ extension QuickPublishingView {
         // tickets (collaborators, ticket options, add ticket, publisher identity).
         // Input errors sit in red under the field they refer to.
         Form {
-            Section { // R-steps
-                ActivityPublishStepChecklist(step: wizardStep, draft: draft) { target in
-                    wizardStep = ActivityPublishingWizard.clamp(target); wizardBlock = nil
-                }
-            }
+            // mp-r3-publish: MP publish/activity has one step-dots row (基本信息 · 活动内容 · 票务与合作). The wizard
+            // chrome is that row (progress header, tappable visited steps, save state); a second checklist card
+            // repeating the same three steps is not shown.
             Section {
                 ActivityPublishingWizardChrome(
                     step: wizardStep,
@@ -496,7 +494,14 @@ extension QuickPublishingView {
                         }
                         .disabled(!editable)
                 }
-                // Mini-program publish/activity: 添加票单 directly follows the ticket list, before publisher identity.
+                // mp-r3-publish: MP publish/activity/index.wxml step 2 order — tickets, then the 发布前摘要 box,
+                // then 添加票单, then publisher identity.
+                Section {
+                    ActivityPublishingReviewSummaryCard(
+                        summary: ActivityPublishingWizard.reviewSummary(draft: draft),
+                        merchantHost: account?.role == "merchant"
+                    )
+                } header: { Text(verbatim: CoreLoopCopy(locale: locale).t("发布前预览", "Preview Before Publishing")) }
                 Section {
                     EditorAddRow(title: Text("publishModes.addTicket"), accessibilityID: "editorKit.activity.addTicket") { draft.tickets.append(.init()) }
                         .disabled(!editable)
@@ -507,12 +512,6 @@ extension QuickPublishingView {
                     // form (only when the publisher still needs them), not on a separate pushed page.
                     PublisherIdentityRegistrationSection(owner: identityRegistration, makeService: makeIdentityRegistration, enabled: mayClear)
                 }
-                Section {
-                    ActivityPublishingReviewSummaryCard(
-                        summary: ActivityPublishingWizard.reviewSummary(draft: draft),
-                        merchantHost: account?.role == "merchant"
-                    )
-                } header: { Text(verbatim: CoreLoopCopy(locale: locale).t("发布前预览", "Preview Before Publishing")) }
             }
             if account != nil && draftStore != nil {
                 Section {

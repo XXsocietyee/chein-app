@@ -6,6 +6,8 @@ public struct TopicTemplateDeckPreviewView: View {
     public let preview: TopicTemplatePreviewData
     public var onViewDetail: () -> Void
     public var onUseTemplate: () -> Void
+    /// MP topic-preview `intro.chapters` (intro.js `buildIntro`): named chapters, each with its short guide.
+    public var introChapters: [TopicTemplateIntroChapter] = []
 
     @Environment(\.locale) private var locale
     /// R9-PC-A-N1: MP check / clock icons follow Dynamic Type.
@@ -17,8 +19,10 @@ public struct TopicTemplateDeckPreviewView: View {
     public init(
         preview: TopicTemplatePreviewData,
         onViewDetail: @escaping () -> Void,
-        onUseTemplate: @escaping () -> Void
+        onUseTemplate: @escaping () -> Void,
+        introChapters: [TopicTemplateIntroChapter] = []
     ) {
+        self.introChapters = introChapters
         self.preview = preview
         self.onViewDetail = onViewDetail
         self.onUseTemplate = onUseTemplate
@@ -62,6 +66,22 @@ public struct TopicTemplateDeckPreviewView: View {
                             .foregroundStyle(.secondary)
                             .padding(.top, CYSpacing.xs)
                     }
+
+                    // mp-r3-publish: MP `tp-intro__ch` — each chapter's heading (第一章 · name / 终章) and its guide.
+                    ForEach(Array(introChapters.enumerated()), id: \.element.id) { index, chapter in
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(verbatim: chapterHeading(index, count: introChapters.count, name: chapter.name))
+                                .font(.subheadline.weight(.semibold))
+                            if !chapter.guide.isEmpty {
+                                Text(verbatim: chapter.guide)
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityElement(children: .combine)
+                        .padding(.top, index == 0 ? CYSpacing.xs : 0)
+                    }
                 }
                 .padding(.horizontal, CYSpacing.md)
             }
@@ -88,6 +108,19 @@ public struct TopicTemplateDeckPreviewView: View {
             .padding(.vertical, CYSpacing.sm)
             .background(.bar)
         }
+    }
+
+    /// MP intro.js `heading`: a name that already says which chapter it is stays as it is; otherwise 第N章 · name,
+    /// and the last of three or more is 终章.
+    private func chapterHeading(_ index: Int, count: Int, name: String) -> String {
+        let selfOrdinal = #"^(第\s*[0-9一二三四五六七八九十百零两]+\s*章|结局|终章|序章|尾声)"#
+        if name.range(of: selfOrdinal, options: .regularExpression) != nil { return name }
+        let numerals = ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十"]
+        let isFinal = index == count - 1 && count > 2
+        let zhLead = isFinal ? "终章" : "第" + (index < numerals.count ? numerals[index] : String(index + 1)) + "章"
+        let enLead = isFinal ? "Final chapter" : "Chapter \(index + 1)"
+        let lead = locale.pick(zhLead, enLead)
+        return name.isEmpty ? lead : lead + " · " + name
     }
 
     @ViewBuilder
@@ -210,5 +243,34 @@ public struct TopicTemplateDeckPreviewView: View {
 
     private func footLine(_ card: TopicTemplatePreviewCard) -> String {
         rendered(card.footCopy, fallback: card.footText)
+    }
+}
+
+/// One chapter line of the topic-template preview intro (MP topic-preview/intro.js).
+public struct TopicTemplateIntroChapter: Identifiable, Equatable, Sendable {
+    public let id: String
+    public let name: String
+    public let guide: String
+    public init(id: String, name: String, guide: String) {
+        self.id = id
+        self.name = name
+        self.guide = guide
+    }
+
+    /// MP intro.js `guide`: the chapter description up to the first puzzle marker, whitespace collapsed, at most
+    /// 60 characters (cut at the last sentence end when that keeps 12+ characters, else trimmed with an ellipsis).
+    public static func guide(_ raw: String?) -> String {
+        var text = (raw ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let puzzleMark = #"【\s*(题目|观察位置|谜题|提示|线索|密码表?|密文|答案)[^】]*】|(?:^|\s)(?:题目|观察位置)[:：]|密码表|对照表|[A-Z]\s*=\s*\d"#
+        if let range = text.range(of: puzzleMark, options: .regularExpression) {
+            text = String(text[..<range.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        text = text.replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+        guard text.count > 60 else { return text }
+        let head = String(text.prefix(60))
+        if let cut = head.lastIndex(where: { "。！？.".contains($0) }), head.distance(from: head.startIndex, to: cut) >= 12 {
+            return String(head[...cut])
+        }
+        return head.replacingOccurrences(of: #"[，,、；;\s]+$"#, with: "", options: .regularExpression) + "…"
     }
 }
