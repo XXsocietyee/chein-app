@@ -69,7 +69,9 @@ class IMConversationReplyPolicyContracts(unittest.TestCase):
     def test_media_child_guards_queued_picker_upload_and_local_review(self):
         source = self.read('App/IMExpandedViews.swift')
         # R9-PC-D9-1 (MP subpackageB/pages/im/chat/index.js:735-736): the plus-sheet entry opens the picker on appear.
-        self.assertIn('IMImageComposeView(owner: uploadOwner, identity: identity, canReply: { permitsReply }, selectsOnAppear: selectsOnAppear)', source)
+        self.assertIn('IMImageComposeView(owner: uploadOwner, identity: identity, canReply: { permitsReply }, selectsOnAppear: selectsOnAppear,', source)
+        # R9-PC-D9-1 (MP subpackageB/pages/im/chat/index.js:850-858): cancelling that picker returns to the chat.
+        self.assertIn('onPickerCancel: focus == .image ? { closeAfterPickerCancel() } : nil', source)
         self.assertIn('owner.visibleState == token.state', source)
         self.assertIn('model.apply(url, canReply: canReply(), consume: onReviewImage)', source)
         self.assertIn('Task { await model.perform(token, canReply: { identity == model.owner.scope.identity && canReply() }) }', source)

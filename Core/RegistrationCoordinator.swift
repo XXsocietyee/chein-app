@@ -118,6 +118,9 @@ public final class RegistrationCoordinator {
     public private(set) var selection: RegistrationQuoteRequest?
     public private(set) var quoteState: RegistrationQuoteState = .idle
     public private(set) var readbackState: RegistrationReadbackState = .idle
+    /// R11-PC-C-2: MP baoming.js:1492-1498 — a create 409 that is a quote/promotion conflict is a definite
+    /// server refusal (no order was made). The lock is dropped, the copy below is shown, and a new quote is asked for.
+    public private(set) var createConflictMessage: String?
 
     private let service: any RegistrationCoordinatingService
     private let makeRequestID: () -> String
@@ -179,6 +182,7 @@ public final class RegistrationCoordinator {
         selection = nil
         quoteState = .idle
         readbackState = .idle
+        createConflictMessage = nil
     }
 
     /// A submitted intent locks selection. It cannot be silently replaced after a timeout.
@@ -190,6 +194,7 @@ public final class RegistrationCoordinator {
         quoteGeneration &+= 1
         self.selection = selection
         quoteState = .idle
+        createConflictMessage = nil
         return .applied
     }
 
@@ -260,6 +265,7 @@ public final class RegistrationCoordinator {
             )
         } catch { return .blocked(.invalidRequest) }
         let accountStamp = accountGeneration
+        createConflictMessage = nil
         records[id] = SubmittedRecord(intent: intent, state: .submitting(requestID: intent.requestID))
         do {
             let result = try await service.create(intent, token: token)
@@ -269,6 +275,15 @@ public final class RegistrationCoordinator {
         } catch {
             guard isCurrentSubmission(id, accountStamp, intent.requestID) else { return .ignoredStale }
             let issue = RegistrationCoordinatorIssue(error)
+            if let message = Self.quoteConflictMessage(issue) {
+                // MP baoming.js:1492-1498: tips(CONFLICT_TEXT[conflict]) then refreshQuote(). The server built no
+                // order for this request id, so the intent is released; the next confirm uses a fresh request id.
+                records[id] = nil
+                createConflictMessage = message
+                quoteState = .idle
+                _ = await requestQuote()
+                return .applied
+            }
             records[id]?.state = .outcomeUnknown(
                 requestID: intent.requestID,
                 reason: issue == .cancelled ? .cancelledLocally : .requestDidNotProduceUsableResponse(issue)
@@ -319,6 +334,22 @@ public final class RegistrationCoordinator {
             record.state = .outcomeUnknown(requestID: record.intent.requestID, reason: .cancelledLocally)
             records[id] = record
         }
+    }
+
+    /// R11-PC-C-2: only a code-409 refusal that `CheckoutOrderRebuildRule` maps to a re-quote
+    /// (MP utils/checkout/checkout-workflow.js:42-50, quote-view.js:130-140). Anything else stays unknown.
+    static func quoteConflictMessage(_ issue: RegistrationCoordinatorIssue) -> String? {
+        let code: Int?, message: String?
+        switch issue {
+        case .business(let value): code = value.code; message = value.message
+        case .http(let value): code = value.response?.code ?? value.statusCode; message = value.response?.message
+        default: return nil
+        }
+        guard code == 409 else { return nil }
+        if case .refreshQuoteAndReconfirm(let copy) = CheckoutOrderRebuildRule.classifyCreateFailure(code: code, message: message) {
+            return copy
+        }
+        return nil
     }
 
     private func isCurrent(_ id: Int, _ stamp: UInt64) -> Bool {
