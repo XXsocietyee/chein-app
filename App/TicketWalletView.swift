@@ -367,9 +367,13 @@ private struct TicketWalletRow: View {
     /// R7-MEM-21-3: activity image, else topic image. The MP illustration stays only when that URL is absent.
     private var httpsCover: URL? { ticket.walletHTTPSCoverURL }
     private var coverIllustration: some View {
-        // MP signup wxml:68 `wc__im--illus`: with no cover the card shows the shipped route illustration (cover-route.svg).
-        MPAsset.BannerCover.coverRoute.resizable().scaledToFit().padding(6)
-            .background(Color(uiColor: .tertiarySystemFill))
+        // MP signup wxml:68 `wc__im--illus` keeps a placeholder slot when there is no cover. 20:25 sweep: the
+        // route illustration read as an empty grey box at 60 pt, so the slot shows the `ticket` symbol instead.
+        Image(systemName: "ticket")
+            .font(.title2)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(CYColor.bgSurfaceSubtle)
             .accessibilityHidden(true)
     }
     var body: some View {
@@ -381,7 +385,7 @@ private struct TicketWalletRow: View {
                         if let image = phase.image {
                             image.resizable().scaledToFill()
                         } else {
-                            Color(uiColor: .tertiarySystemFill)
+                            coverIllustration
                         }
                     }
                 } else {

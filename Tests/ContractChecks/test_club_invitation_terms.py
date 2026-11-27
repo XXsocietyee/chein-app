@@ -101,8 +101,8 @@ class ClubInvitationTermsContracts(unittest.TestCase):
         self.assertIn("return model.accepted(item.context,", owner)
         # native-r2 club round 2: ContentUnavailableView and ProgressView replace CYEmptyState and CYSkeleton.
         self.assertIn('Label { Text("cooperation.unavailable").accessibilityIdentifier("club.inviteFeedback.detail.unavailable") } icon: { Image(systemName: "envelope") }', owner)
-        self.assertIn('ProgressView()', owner)
-        self.assertIn('.accessibilityLabel(Text("club.loading"))', owner)
+        # ds-consistency r3 (P10): the loading words are the shared CYLoadingState label, not a silent spinner.
+        self.assertIn('CYLoadingState("club.loading")', owner)
         self.assertIn(".task(id: current)", owner)
         self.assertIn("await model.load(permit, clubReader: clubReader, reader: reader, access: access,", owner)
         self.assertEqual(owner.count("isCurrent: { current }"), 2)

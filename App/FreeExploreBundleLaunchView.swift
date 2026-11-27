@@ -55,18 +55,11 @@ import SwiftUI
     var body: some View {
         let screen = self.screen
         return List {
-            if let units = model.order?.bundle?.units.filter({ $0.status == "AVAILABLE" }).count, units > 0 {
-                Section {
-                    Label { Text(verbatim: ChannelCopy.text("\(units) 个章节可预约", units == 1 ? "1 chapter ready to book" : "\(units) chapters ready to book", locale: locale)) } icon: { Image(systemName: "ticket.fill") }
-                }
-            }
             switch screen {
             case .error(.stale):
                 CYEmptyState(systemImage: "clock.arrow.circlepath", LocalizedStringKey("stale"), tableName: table)
             case .loading:
-                ProgressView()
-                    .frame(maxWidth: .infinity)
-                    .accessibilityIdentifier("freeBundle.loading")
+                CYLoadingState(messageIdentifier: "freeBundle.loading")
             case .empty:
                 CYEmptyState(systemImage: "tray", LocalizedStringKey("empty"), tableName: table)
                     .accessibilityIdentifier("freeBundle.empty")
@@ -178,36 +171,62 @@ import SwiftUI
                 Label { text("confirmed") } icon: { Image(systemName: "checkmark.seal.fill").foregroundStyle(.green) }
             }
         }
-        if let order = model.order, let bundle = order.bundle {
-            // Booking: chapter and store pickers, the date, then 预约 (the review sheet confirms).
+        // MP order: the catalog (topic name, 暂未开售, chapter cards with stores) comes before the order.
+        if let catalog = model.catalog {
             Section {
-                Picker(selection: $unitID) {
-                    Text(verbatim: "—").tag(FreeExploreLaunchID?.none)
-                    ForEach(bundle.units.filter { $0.status == "AVAILABLE" }, id: \.id) { unit in
-                        Text(verbatim: chapterName(unit.chapterId) ?? unit.id.text).tag(FreeExploreLaunchID?.some(unit.id))
-                    }
-                } label: { text("unit") }
-                if let unit = bundle.units.first(where: { $0.id == unitID }),
-                   let item = model.catalog?.items.first(where: { $0.chapterId == unit.chapterId }) {
-                    Picker(selection: $offerID) {
-                        Text(verbatim: "—").tag(FreeExploreLaunchID?.none)
-                        ForEach(item.stores, id: \.offerId) { store in
-                            Text(verbatim: store.merchantName ?? store.offerId.text).tag(FreeExploreLaunchID?.some(store.offerId))
-                        }
-                    } label: { text("offer") }
+                // R7-MEM-7-1: MP `暂未开售` note under the topic when the catalog is not on sale.
+                if !catalog.saleEnabled {
+                    Text("freeBundle.catalog.notOnSale").font(.subheadline).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("freeBundle.catalog.notOnSale")
                 }
-                DatePicker(selection: $date, in: Date()...) { text("date") }
-                Button {
-                    guard let unitID, let offerID else { return }
-                    let millis = date.timeIntervalSince1970 * 1_000
-                    guard millis.isFinite, millis > 0, millis < Double(Int64.max) else { return }
-                    model.prepare(unitID: unitID, offerID: offerID, startAt: Int64(millis))
-                } label: { text("review") }
-                .disabled(!model.canReserve || unitID == nil || offerID == nil)
+                if catalog.items.isEmpty { CYEmptyState(systemImage: "tray", LocalizedStringKey("empty"), tableName: table) }
+                ForEach(catalog.items, id: \.chapterId) { item in
+                    VStack(alignment: .leading, spacing: 4) {
+                        if let name = item.name { Text(verbatim: name).font(.headline) }
+                        // R7-MEM-7-1: MP `{name} · 每人N次`, 次数待确认 when the server count is not positive.
+                        Group {
+                            if item.unitsPerHolder > 0 { Text("freeBundle.catalog.unitsPerHolder \(item.unitsPerHolder)") }
+                            else { Text("freeBundle.catalog.unitsUnknown") }
+                        }
+                        .font(.subheadline).foregroundStyle(.secondary)
+                        if let terms = item.termsMode { Text(verbatim: terms).font(.subheadline).foregroundStyle(.secondary) }
+                    }
+                    ForEach(item.stores, id: \.offerId) { store in
+                        LabeledContent {
+                            if let end = store.validEnd { Text(verbatim: end).monospacedDigit() }
+                        } label: {
+                            Label { Text(verbatim: store.merchantName ?? store.offerId.text) } icon: { Image(systemName: "storefront") }
+                        }
+                    }
+                }
             } header: {
-                if model.order?.bundle != nil { stepHeader }
-            } footer: {
-                if !model.canReserve { text("disabled") }
+                if let name = catalog.topicName { Text(verbatim: name) } else { text("catalog") }
+            }
+        }
+        if let order = model.order, let bundle = order.bundle {
+            // MP order: 订单号 · 支付 / 报名 line · refund hold (the order section always shows).
+            Section {
+                if let number = order.registrationNo {
+                    Text(verbatim: number).font(.footnote).monospacedDigit().foregroundStyle(.secondary).textSelection(.enabled)
+                }
+                // mp-journey r3 (sweep 19:15): the MP page has no 实付金额 line; show it only once the amount is known.
+                if facts.paidAmountText != "—" {
+                    LabeledContent { Text(verbatim: facts.paidAmountText).monospacedDigit() } label: { text("paidAmount") }
+                        .accessibilityIdentifier("freeBundle.paidAmount")
+                }
+                // MKT-7-3: MP `支付：{paymentText} · 报名：{registrationText}` under the order number; mp-journey r3 (sweep 19:15):
+                // hidden while neither status has arrived, so "confirming · confirming" never reads as data.
+                if order.paymentStatus != nil || order.registrationStatus != nil {
+                    Text("freeBundle.order.statusLine \(Self.paymentText(order.paymentStatus)) \(Self.registrationText(order.registrationStatus))")
+                        .font(.subheadline).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("freeBundle.order.statusLine")
+                }
+                // MKT-7-3: refund hold is a status row under the order line (MP order). It does not start a refund.
+                if let hold = bundle.refundHold, let title = Self.refundHoldTitle(hold.state) {
+                    title.accessibilityIdentifier("freeBundle.refundHold")
+                }
+            } header: {
+                text("order")
             }
             // MKT-7-3: every unit with its MP status (`{chapter} · {statusText}`), chapter content, and 有效期至.
             if !bundle.units.isEmpty {
@@ -244,18 +263,8 @@ import SwiftUI
                     Text("freeBundle.units.title")
                 }
             }
-            // MKT-7-3: refund hold is a status row. It does not start a refund.
-            if let hold = bundle.refundHold, let title = Self.refundHoldTitle(hold.state) {
-                Section {
-                    title.accessibilityIdentifier("freeBundle.refundHold")
-                }
-            }
-            // MKT-7-6: the order section always shows (order number, 实付金额); an empty list reads 暂无预约记录.
+            // MP 预约记录: title, 暂无预约记录 when empty, one card per reservation.
             Section {
-                // MKT-7-3: MP `支付：{paymentText} · 报名：{registrationText}` under the order number.
-                Text("freeBundle.order.statusLine \(Self.paymentText(order.paymentStatus)) \(Self.registrationText(order.registrationStatus))")
-                    .font(.subheadline).foregroundStyle(.secondary)
-                    .accessibilityIdentifier("freeBundle.order.statusLine")
                 if bundle.reservations.isEmpty {
                     text("reservationsEmpty").foregroundStyle(.secondary)
                         .accessibilityIdentifier("freeBundle.reservations.empty")
@@ -295,13 +304,38 @@ import SwiftUI
                             .accessibilityIdentifier("freeBundle.reservation.review.\(reservation.id.text)")
                     }
                 }
-                if let number = order.registrationNo {
-                    Text(verbatim: number).font(.footnote).monospacedDigit().foregroundStyle(.secondary).textSelection(.enabled)
-                }
-                LabeledContent { Text(verbatim: facts.paidAmountText).monospacedDigit() } label: { text("paidAmount") }
-                    .accessibilityIdentifier("freeBundle.paidAmount")
             } header: {
-                text("order")
+                Text("reservations.title", tableName: table)
+            }
+            // MP reserve form (after 预约记录): chapter and store pickers (请选择 until chosen), the date, then 确认预约.
+            Section {
+                Picker(selection: $unitID) {
+                    text("choose").tag(FreeExploreLaunchID?.none)
+                    ForEach(bundle.units.filter { $0.status == "AVAILABLE" }, id: \.id) { unit in
+                        Text(verbatim: chapterName(unit.chapterId) ?? unit.id.text).tag(FreeExploreLaunchID?.some(unit.id))
+                    }
+                } label: { text("unit") }
+                if let unit = bundle.units.first(where: { $0.id == unitID }),
+                   let item = model.catalog?.items.first(where: { $0.chapterId == unit.chapterId }) {
+                    Picker(selection: $offerID) {
+                        text("choose").tag(FreeExploreLaunchID?.none)
+                        ForEach(item.stores, id: \.offerId) { store in
+                            Text(verbatim: store.merchantName ?? store.offerId.text).tag(FreeExploreLaunchID?.some(store.offerId))
+                        }
+                    } label: { text("offer") }
+                }
+                DatePicker(selection: $date, in: Date()...) { text("date") }
+                Button {
+                    guard let unitID, let offerID else { return }
+                    let millis = date.timeIntervalSince1970 * 1_000
+                    guard millis.isFinite, millis > 0, millis < Double(Int64.max) else { return }
+                    model.prepare(unitID: unitID, offerID: offerID, startAt: Int64(millis))
+                } label: { text("review") }
+                .disabled(!model.canReserve || unitID == nil || offerID == nil)
+            } header: {
+                if model.order?.bundle != nil { stepHeader }
+            } footer: {
+                if !model.canReserve { text("disabled") }
             }
             if bundle.exitCases.contains(where: { Self.exitCaseTitle($0.decision) != nil }) {
                 Section {
@@ -317,37 +351,6 @@ import SwiftUI
             }
         } else if model.order != nil {
             Section { text("legacy").foregroundStyle(.secondary) }
-        }
-        if let catalog = model.catalog {
-            Section {
-                // R7-MEM-7-1: MP `暂未开售` note under the topic when the catalog is not on sale.
-                if !catalog.saleEnabled {
-                    Text("freeBundle.catalog.notOnSale").font(.subheadline).foregroundStyle(.secondary)
-                        .accessibilityIdentifier("freeBundle.catalog.notOnSale")
-                }
-                if catalog.items.isEmpty { CYEmptyState(systemImage: "tray", LocalizedStringKey("empty"), tableName: table) }
-                ForEach(catalog.items, id: \.chapterId) { item in
-                    VStack(alignment: .leading, spacing: 4) {
-                        if let name = item.name { Text(verbatim: name).font(.headline) }
-                        // R7-MEM-7-1: MP `{name} · 每人N次`, 次数待确认 when the server count is not positive.
-                        Group {
-                            if item.unitsPerHolder > 0 { Text("freeBundle.catalog.unitsPerHolder \(item.unitsPerHolder)") }
-                            else { Text("freeBundle.catalog.unitsUnknown") }
-                        }
-                        .font(.subheadline).foregroundStyle(.secondary)
-                        if let terms = item.termsMode { Text(verbatim: terms).font(.subheadline).foregroundStyle(.secondary) }
-                    }
-                    ForEach(item.stores, id: \.offerId) { store in
-                        LabeledContent {
-                            if let end = store.validEnd { Text(verbatim: end).monospacedDigit() }
-                        } label: {
-                            Label { Text(verbatim: store.merchantName ?? store.offerId.text) } icon: { Image(systemName: "storefront") }
-                        }
-                    }
-                }
-            } header: {
-                if let name = catalog.topicName { Text(verbatim: name) } else { text("catalog") }
-            }
         }
     }
 

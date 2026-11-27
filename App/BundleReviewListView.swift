@@ -3,13 +3,13 @@ import SwiftUI
 /// IWP-8a. Unmounted. Shows server-approved reviews only (the model filters again defensively).
 @MainActor struct BundleReviewListView: View {
     @ObservedObject var model: BundleReviewListModel
+    @Environment(\.locale) private var locale
 
     var body: some View {
         List {
             switch model.state {
             case .idle, .loading where model.items.isEmpty:
-                ProgressView()
-                    .frame(maxWidth: .infinity)
+                CYLoadingState()
                     .listRowBackground(Color.clear)
             case .unavailable:
                 ContentUnavailableView {
@@ -41,7 +41,7 @@ import SwiftUI
                     VStack(alignment: .leading, spacing: 4) {
                         Label { Text(verbatim: String(review.rating)).font(.headline).monospacedDigit() } icon: { Image(systemName: "star.fill").foregroundStyle(.orange) }
                         Text(verbatim: review.content)
-                        if let time = review.createTime { Text(verbatim: time).font(.footnote).foregroundStyle(.secondary) }
+                        if let time = review.createTime { Text(verbatim: LocaleDisplay.civil(time, locale: locale)).font(.footnote).foregroundStyle(.secondary) }
                     }
                 }
                 if model.hasMore {

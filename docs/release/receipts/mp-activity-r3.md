@@ -97,7 +97,23 @@ Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · contract_rat
 Sweep 18:54 still shows the pre-fix 合计 "—" bar and dark appearance on `t5-baoming` / `t5-pass-market`: both were fixed in the sixth session (`13aa04c35`, already in `ui/combined-r7`) after that build; recheck in the next sweep.
 Re-scan: `pages/coop/list/index` card lines (`.inv-terms` 对方已拒绝，可再邀其他商家。, 核销据点, contact, deposit strip, message, countdown) all present in `CoopListParitySections.swift` — no change. `subpackagePass` holds only `reveal` + `cy-frames` (rows above).
 
-**For other lanes:** `d2-square` (mp-home feed) shows Core synthetic data 「A synthetic city walk / 一次示例城市漫步」, 「Example walker」, 「Synthetic notice」 in both languages; `Core/SquareSyntheticFixtures.swift` is pinned by Core tests, so the d2 host (`App/SquareFixtureSupport.swift`) would need its own localized posts.
+**For other lanes (closed in tenth session, fixture-only):** `d2-square` (mp-home feed) showed Core synthetic data 「A synthetic city walk / 一次示例城市漫步」, 「Example walker」, 「Synthetic notice」 in both languages; `Core/SquareSyntheticFixtures.swift` is pinned by Core tests, so the d2 host (`App/SquareFixtureSupport.swift`) would need its own localized posts.
+
+## Round 3 continue (2026-11-27, ninth session — sweep 19:36 build 3568fe51b, coordinator 19:50)
+| MP page | Native view | MP sections (✓ present / added / reordered) | Optimizations |
+|---|---|---|---|
+| `pages/activity/baoming/baoming` (wxml:329 `cy-btn disabled="{{!canPay}}"`) | `App/RegistrationSheetView.swift` checkout bar | screenshot `en-t5-baoming`: Register looked enabled while the footnote said "Tick the confirmation above to continue". Primary now `.disabled(blocked)` (system disabled look) and, as the MP label chain, reads 请先勾选信息共享同意 / 请选择参与人信息 / 报名已截止 while blocked; reason line stays below. Pin `test_review_presentation` updated (blocked = disabled, coordinator 19:50) | system disabled state; matches `testRegistrationProductionPolicyCannotCreate` (`isEnabled == false`) |
+| `pages/square/*` feed time (`formatTimeDifference`, card via `SquareXcxRelativeTime`) | `App/SquareXcxPostCard.swift` | screenshot `en-d2-square`: "330 d ago". Now 1–6 days → 3 days ago / 3天前 (en plural), ≥ 7 days → locale date (Oct 1 / 10月1日, year added outside the current year); hours → 2 hours ago (plural) | `Text(date, format:)` follows the environment locale |
+
+Strings: `mpr3.square.{ageDays,ageHours} %lld` (fragment `mp-activity-r3-square.json`, en plural + zh-Hans).
+
+## Round 3 continue (2026-11-27, tenth session — sweep 20:11 build a250afd77)
+Sweep build predates `4b502b451` (ninth session: Register disabled while blocked, Square ages "330 d ago" → locale date); both still show in `en-t5-baoming` / `en-d2-square` and are already fixed on this branch — recheck next sweep.
+| MP page | Native view | MP sections (✓ present / added / reordered) | Optimizations |
+|---|---|---|---|
+| `pages/square/*` feed card (fixture) | `App/SquareFixtureSupport.swift` (`SquareFixtureReader(designLocalized:)`), `App/DesignFixtures/D2Fixtures.swift` | screenshots `en-d2-square` / `zh-Hans-d2-square`: both posts read 「A synthetic city walk / 一次示例城市漫步」 by 「Example walker」 · 「Example walking club」 · 「Synthetic notice」 in both languages. The d2 design fixture now serves its own posts in the UI language (`tt(en, zh)`): two different authors and texts, club 河畔步行俱乐部 / Riverside Walking Club, badge 官方 / Official, route 运河灯笼线 / Canal Lantern Route; detail reads the same post. UI tests and Core tests keep `SquareSyntheticFixtures` unchanged (flag defaults off) | both languages read well; no debug labels in the visible fixture |
+
+Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0**.
 
 ## Not done
 - Attendance (player): organizer 联系与签到配置 form (duty phones, window, public-confirm switch, scan, recovery 查询原结果 / 原请求重试 / 终止 / 确认归档) lives in `OfficialOrganizerConsoleView`, not in this section.

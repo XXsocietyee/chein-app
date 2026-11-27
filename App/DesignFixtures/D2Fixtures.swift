@@ -18,19 +18,19 @@ struct D2Fixture: View {
     @ViewBuilder private var host: some View {
         switch screen {
         case .home: HomeFeedFixtureHostView(forceHero: true)
-        case .homeOffline: HomeFeedFixtureHostView(scenario: "offline")
-        case .search: SearchMapFixtureHostView()
+        case .homeOffline: HomeFeedFixtureHostView(forceHero: true, scenario: "offline")
+        case .search: SearchMapFixtureHostView(showsTestControls: false)
         case .searchResults:
             NavigationStack {
-                GlobalSearchView(reader: SearchMapFixtureReader(scenario: .content), recommendedKeywords: GlobalSearchRecommendedKeywords.china,
-                                 initialQuery: GlobalSearchQuery(keyword: "Lantern")) { _ in Color.clear }
+                GlobalSearchView(reader: SearchMapFixtureReader(scenario: .content), recommendedKeywords: GlobalSearchRecommendedKeywords.fixtureKeywords,
+                                 initialQuery: GlobalSearchQuery(keyword: SearchMapFixtureLanguage.resultsKeyword)) { _ in Color.clear }
             }
         case .searchOffline:
             NavigationStack {
-                GlobalSearchView(reader: SearchMapFixtureReader(scenario: .unconfigured), recommendedKeywords: GlobalSearchRecommendedKeywords.china) { _ in Color.clear }
+                GlobalSearchView(reader: SearchMapFixtureReader(scenario: .unconfigured), recommendedKeywords: GlobalSearchRecommendedKeywords.fixtureKeywords) { _ in Color.clear }
             }
-        case .square: SquareFixtureHostView()
-        case .squareEmpty: SquareFixtureHostView(scenario: .empty)
+        case .square: SquareFixtureHostView(designLocalized: true)
+        case .squareEmpty: SquareFixtureHostView(scenario: .empty, designLocalized: true)
         case .play: PlayExperienceFixtureHostView()
         case .city: CityGameFixtureHost()
         case .npc: ShopNPCFixtureView(enabled: true)

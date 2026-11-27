@@ -126,6 +126,27 @@ Test: Tests/CoreTests/IMExpandedTests.swift `testSystemCardMiniProgramPagesOpen`
 | City local notification 稍后 / Later action (App/CityKit/CityNotifications.swift) → `MPNotificationTapRouter` | the background 稍后 action (and a custom dismiss) still routed the `page`, so the next foreground jumped to 漫游 although the player chose "later" | `MPNotificationTapRouter.nonOpeningActions` (laterAction + `UNNotificationDismissActionIdentifier`) skip routing; default tap and 开护盾 still land on 漫游 | fixed |
 | `login-player` sweep still shows the logo twice | the fix (b9a93003c) is on `mp/r3-nav` but not yet in `ui/combined-r7` (sweep build 1300a48db) | — waits for the integration merge | OK (pending merge) |
 
+## Re-scan 11-27 20:xx (19:15 sweep row, mp-nav zh)
+
+| MP page / edge → native | finding | change | status |
+|---|---|---|---|
+| pages/login (MP 微信一键登录 is the WeChat runtime's own; app login) → App/LoginView.swift + App/WeChatAppAuthSection.swift (`login-player` zh-Hans) | a disabled 微信登录 row plus 微信登录暂不可用 / 这项功能还没开通 shown to every CN player while the SDK is not wired (dead control, OWNER RULE 2) | `WeChatAppAuthCoordinator.isOffered` (gate open + SDK adapter + exchange service, Core/WeChatAppAuth.swift); the section renders only when offered (or mid-authorization). Apple / 手机号 entries unchanged. UI test `WeChatAppAuthFlowTests` now asserts the row is absent offline | fixed |
+| same screen, `这项功能还没开通` / "This isn't switched on yet." row (LoginView.swift:146) | shown only when `session.isConfigured` is false (no API base URL: design fixtures / unconfigured dev builds); a Release build always has a backend, so players never see it | kept as the dev/fixture notice | OK (verified) |
+| subpackageB/pages/im/list/index → `d2-inbox` fixture (App/MessagingFixtureSupport.swift, sheet-zh-Hans) | conversation names read "Fixture conversation N" in the Chinese UI (19:50: fixture data follows the UI language) | names are 示例会话 N / Sample conversation N by UI language | fixed |
+
+## Re-scan 11-27 20:3x (sweep build a250afd77, mp-nav sheets)
+
+| MP page / edge → native | finding | change | status |
+|---|---|---|---|
+| app.json tabBar roots → `ia-tabs` fixture (App/DesignFixtures/IAFixtures.swift, sheet-zh-Hans / sheet-en tile 2) | tab roots showed a centred 首页 / Home plus the debug line "Synthetic fixture" and no large title, so the sweep did not show the real root chrome | each fixture root uses `cyRootHeader(tab)` (large top-left title, OWNER RULE 2) over an empty scroll view with a tertiary tab symbol; debug copy removed | fixed |
+| pages/square/list/index landed from a link / notification (`HomeLanding.page` push on 首页) → App/SquareBrowserView.swift | the page owned `NavigationStack(path: [Int])`: pushed onto 首页's `[AppRoute]` stack it nested a second stack (double bar) and `NavigationLink(value: Int)` post rows had no matching destination in the outer path (dead taps) | `embedsNavigationStack` (default true for the 首页 ⋯ 动态 and 消息 sheets); MPReviewedPageScreen passes false. Post rows are view-destination `NavigationLink`s and governance `openPost` sets `navigationDestination(item:)`, so both work in either host. Sections / order unchanged | fixed |
+| pages/coop/list/index (link, `.coopList` subscribe tap, club director 联系商家) → CooperationBrowserView | pushed everywhere but `embedsNavigationStack` defaulted to true: nested stack / double bar | both MPReviewedPageScreen and SubscribeMessageTapScreens pass `embedsNavigationStack: false` | fixed |
+| pages/addressinfo/addressinfo → ParticipantFormView | the screen wrapped the pushed form in its own `NavigationStack` | `Group` instead; the form's 取消 / 保存 stay | fixed |
+| pages/deregister/index and pages/shezhi/shezhi?scene=settings-deregister → AccountComplianceSheet | pushed page showed a `compliance.close` cancellation button next to system back | `showsCloseButton: false` (like pages/shezhi/marketing) | fixed |
+| pages/member/index/index, pages/roam/index reaching MPReviewedPageScreen (tab roots) | rendered a second AccountView / RoamBrowserView with its own stack | `MPTabHandoff` → `rootTabSwitch(.mine / .roam)` like pages/index/index (MP switchTab); hosts without the tab switch keep the old screen | fixed |
+| pages/shezhi/shezhi (plain) → SettingsView; subpackageRoam/poi-detail → RoamItemDetailView | own `NavigationStack` + 完成 / 关闭 `dismiss()` on the landed push | not changed: SettingsView's route owners retire on disappear (see Open); RoamItemDetailView needs an embed flag through RoamPOIDetailHost — next run | open |
+| `login-player`, `d2-inbox` tiles | still show 微信登录 / "Fixture conversation N": sweep build a250afd77 predates 81a815048 / 9723767a1 (not yet in `ui/combined-r7`) | — | OK (pending merge) |
+
 ## Route coverage
 
 All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScreen cases or `MPParityDestination`), except four pages that are parsed (`Core/MiniProgramPageLink.swift`) but have no native screen case: `pages/playkit/index/index`, `pages/publishkit/index/index` (MP kit galleries), `pages/crop/index` (MP image-crop utility) and `subpackageP3/pages/badge-3d/index` (MP 3D badge viewer). No native player control links to them; left for the coordinator to confirm they stay unrouted.
