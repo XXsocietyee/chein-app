@@ -122,8 +122,15 @@ struct SearchMapCard: View {
                 .font(.body).foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
                 if let detail = row.detail, !detail.isEmpty {
-                    Text(verbatim: detail).font(.subheadline).foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                    if row.kind == .activity {
+                        // P18: an activity's second line is its area (native detail = addressName ?? address).
+                        Label { Text(verbatim: detail) } icon: { Image(systemName: "mappin.and.ellipse").accessibilityHidden(true) }
+                            .font(.subheadline).foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    } else {
+                        Text(verbatim: detail).font(.subheadline).foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
                 if !row.tags.isEmpty {
                     // Mini-program result tags (at most three), as one quiet secondary line.
