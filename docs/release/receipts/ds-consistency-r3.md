@@ -135,6 +135,19 @@ New checker kind **custom search**: `Image(systemName: "magnifyingglass")` with 
 App/DesignSystem → use `.searchable` or `CYFormSearchRow`. Baseline 0; allowed: `RoamBrowserView` map-mode sheet field
 (reason in the baseline). Self-test: the pre-fix `ActivityTemplateSelectionView.swift` fails at line 113.
 
+## Continue run 4 (2026-11-27, after merging combined-r7 f043090ce)
+
+Receipt had no Not done rows. Took the 16:37 sweep row addressed to mp-nav + ds-consistency (`d2-city`).
+
+| MP page | Native view | MP sections | Change (owner rule 2) |
+|---|---|---|---|
+| 城市 board (`CityPlayerView`, reached from 漫游 → 城市 and 领地; not a tab root) | `App/CityPlayerView.swift:93` | unchanged (city title → season / membership chips → rules → arrival / onsite / neutral entries → game slot → points / empty) | The city name was drawn **on** the generated `CYCoverArt` gradient (`.background`), hard to read in both languages. Now the standard hero: `CYHeroHeader { Cloud07Cover(...) }` — 16:9 cover above, title in `.title.bold()` on the system background, same as `CityNeutralTaskRuntimeHostView`. |
+| — | 16:37 "no large top-left title" on `d2-city` | — | Not a defect for this lane: `CityPlayerView` is a pushed page (inline title per owner rule 2); the fixture hosts it in its own `NavigationStack` so it looks like a root. The bar title is empty on purpose because the hero header carries the one visible title (`cyHeroScreen`). Tab roots are already enforced by the `root title` kind (0). |
+
+New checker kind **text on art**: `.background` whose content (same or next line) is `CYCoverArt(` outside
+App/DesignSystem → put the cover above the text as the hero illustration. Baseline 0, nothing allowed. Self-test: the
+pre-fix `CityPlayerView.swift` fails at line 95.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
