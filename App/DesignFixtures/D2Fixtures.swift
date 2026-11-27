@@ -22,12 +22,12 @@ struct D2Fixture: View {
         case .search: SearchMapFixtureHostView()
         case .searchResults:
             NavigationStack {
-                GlobalSearchView(reader: SearchMapFixtureReader(scenario: .content), recommendedKeywords: GlobalSearchRecommendedKeywords.china,
+                GlobalSearchView(reader: SearchMapFixtureReader(scenario: .content), recommendedKeywords: SearchMapFixtureKeywords.list,
                                  initialQuery: GlobalSearchQuery(keyword: "Lantern")) { _ in Color.clear }
             }
         case .searchOffline:
             NavigationStack {
-                GlobalSearchView(reader: SearchMapFixtureReader(scenario: .unconfigured), recommendedKeywords: GlobalSearchRecommendedKeywords.china) { _ in Color.clear }
+                GlobalSearchView(reader: SearchMapFixtureReader(scenario: .unconfigured), recommendedKeywords: SearchMapFixtureKeywords.list) { _ in Color.clear }
             }
         case .square: SquareFixtureHostView()
         case .squareEmpty: SquareFixtureHostView(scenario: .empty)
