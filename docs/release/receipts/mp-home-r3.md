@@ -144,7 +144,7 @@ Merged `origin/ui/combined-r7` (fast-forward). No compiler/simulator here: edits
 
 ## Round 3 continue (4) — hourly re-scan
 
-Merged `origin/ui/combined-r7` (fast-forward). Sweep `docs/sweeps/latest/mp-home/sheet-zh-Hans.jpg` (build 070117595) shows only the launch logo — coordinator 17:40 note: taken under archive load, not a regression; no launch-code change made from it.
+Merged `origin/ui/combined-r7` (fast-forward). Sweep `docs/sweeps/latest/mp-home/sheet-zh-Hans.jpg` (build 070117595) shows only the launch logo — coordinator 17:40 note: taken under archive load, not a regression; no launch-code change made from it. Gates on `3c349eef2`: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract ratchet 52 / baseline 52, new 0 (the new `@AppStorage` key is catalogued in `docs/ops-safety/client-data-catalog.json`).
 
 | MP page → native | MP sections | Difference | Status |
 |---|---|---|---|
