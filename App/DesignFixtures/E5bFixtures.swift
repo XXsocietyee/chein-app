@@ -31,7 +31,7 @@ struct E5bMomentFixture: View {
             }
         }
         .themeDomain(.player)
-        .preferredColorScheme(.dark)
+        // a11y-dt r3: follows the system appearance (18:15 rule); the map placeholder and title adapt, so contrast holds in both.
     }
 }
 
@@ -52,9 +52,13 @@ struct E5bBadgeWallFixture: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                    HStack(spacing: CYSpacing.lg) {
+                    // a11y-dt r3 (22:11 sweep, a11y-badges-ax5): beside the ring the AX5 heading broke as "已收集 3 / 6"
+                    // over two lines; at accessibility sizes the ring sits above the heading and the count stays one token.
+                    let header = dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(spacing: CYSpacing.lg))
+                    header {
                         CYCountRing(value: 3, total: 6)
-                        Text(verbatim: tt("3 of 6 collected", "已收集 3 / 6")).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                        Text(verbatim: tt("3 of 6 collected", "已收集 3/6")).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                            .accessibilityAddTraits(.isHeader)
                     }
                     LazyVGrid(columns: CYCollectionGrid.columns(accessibility: dynamicTypeSize.isAccessibilitySize), alignment: .leading, spacing: CYCollectionGrid.spacing) {
                         ForEach(Array(badges.enumerated()), id: \.offset) { _, badge in
@@ -106,11 +110,13 @@ struct A11yRoamAX5Fixture: View {
             HStack(spacing: CYSpacing.sm) {
                 Text(verbatim: tt("Nearby activities", "附近活动")).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 Spacer(minLength: 0)
-                Text(verbatim: "—").accessibilityLabel(Text(verbatim: tt("Count unknown", "数量未知"))).foregroundStyle(CYColor.textSecondary)
+                // a11y-dt r3 (22:11 sweep): a bare "—" read as a placeholder shown as data; the peek states the count (P29).
+                Text(verbatim: "2").cyText(.bodyMedium).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                    .accessibilityLabel(Text(verbatim: tt("2 nearby", "附近 2 个")))
             }.padding(.horizontal, CYSpacing.xl).frame(maxWidth: .infinity, minHeight: 44)
         ), map: { CYMapPlaceholder() }, controls: {
             HStack(alignment: .center) {
-                Text(verbatim: tt("Roam", "漫游")).cyText(.pageTitle).foregroundStyle(.white)
+                Text(verbatim: tt("Roam", "漫游")).cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)
                     .lineLimit(2).minimumScaleFactor(0.6).layoutPriority(1).accessibilityAddTraits(.isHeader)
                 Spacer(minLength: 0)
                 CYGlassLabel(systemImage: "ellipsis")
@@ -124,7 +130,7 @@ struct A11yRoamAX5Fixture: View {
         }, panel: { Color.clear })
         .environment(\.dynamicTypeSize, .accessibility5)
         .themeDomain(.player)
-        .preferredColorScheme(.dark)
+        // a11y-dt r3: follows the system appearance (18:15 rule); the map placeholder and title adapt, so contrast holds in both.
     }
 }
 

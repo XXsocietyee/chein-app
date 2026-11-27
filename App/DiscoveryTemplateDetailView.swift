@@ -345,6 +345,8 @@ struct DiscoveryTopicTemplatePreview: View {
     @Environment(\.topicEditorDestination) private var editorDestination
     /// Summary cards stay on the system text styles. Accessibility sizes stack them instead of squeezing the row.
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    /// a11y-dt r3: node rail column; 150 pt broke node names letter by letter at AX sizes, so it widens (the rail scrolls).
+    private var nodeColumnWidth: CGFloat { dynamicTypeSize.isAccessibilitySize ? 260 : 150 }
     @State private var copiedDraft: CopiedTopicDraft?
     @State private var detail: PublicTopicTemplateCoordinator
     @State private var tab: TemplateDetailTab = .details
@@ -569,7 +571,7 @@ struct DiscoveryTopicTemplatePreview: View {
                         ForEach(Array(nodes.enumerated()), id: \.offset) { index, node in
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                 let cover = DiscoveryArtwork(source: node.imgUrl, height: 150)
-                                    .frame(width: 150, height: 150)
+                                    .frame(width: nodeColumnWidth, height: 150)
                                 if let raw = nonempty(node.imgUrl), let galleryIndex = gallery.firstIndex(of: raw) {
                                     Button { nodeGallery = NodeGallerySelection(snapshot: .init(sources: gallery, selectedIndex: galleryIndex)) } label: { cover }
                                         .buttonStyle(.plain)
@@ -588,7 +590,7 @@ struct DiscoveryTopicTemplatePreview: View {
                                     TopicTemplateNodeCredit(reference: reference)
                                 }
                             }
-                            .frame(width: 150, alignment: .leading)
+                            .frame(width: nodeColumnWidth, alignment: .leading)
                             .accessibilityElement(children: .contain)
                         }
                     }

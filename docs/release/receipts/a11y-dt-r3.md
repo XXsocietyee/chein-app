@@ -219,9 +219,28 @@ share preview, progress bars and art tiles):
 | `pages/play` story route cast rail | `NativeR2/Story/NR2StoryRouteSections.swift` | ✓ (mp-journey owns order) | Column fixed 64 pt → scaled `NR2CastColumn` (`relativeTo: .caption`) | Done |
 | `pages/play` city-run finish leaderboard | `NativeR2/CityOrientation/CityOrientationFinishSummaryView.swift` | ✓ (mp-journey owns order) | Rank fixed 32 pt → `minWidth: 32` (same as run 11 leaderboards) | Done |
 
+## Run 13 (2026-11-27, hourly)
+Merged `origin/ui/combined-r7` (8fa84e4d3). Not done item 1: re-read the a11y sheets of sweep 8fa84e4d3 (22:11Z,
+`docs/sweeps/latest/a11y-dt/sheet-en.jpg`, `sheet-zh-Hans.jpg`). `a11y-passport-ax5` now mounts the passport ✓ (20:55 note
+closed); badge wall stacks one column ✓; roam chrome readable ✓. Fixed what the shots still showed:
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `subpackageMember` badge wall (`zh-Hans-a11y-badges-ax5.jpg`) | `DesignFixtures/E5bFixtures.swift` (`E5bBadgeWallFixture`) | ✓ (mp-mine owns order) | Heading beside the ring broke as "已收集 3 / 6" over two lines at AX5 → ring above heading at AX sizes (`AnyLayout`), count one token "3/6", heading trait | Done |
+| `pages/member` passport actions (`en-a11y-passport-ax5.jpg`) | `PassportView.swift` (`PassportOverviewContent.action`) | ✓ (票夹 / 账户收益 / 消息, MP order) | Stacked AX capsules kept symbol-over-label (two tall lines each) → symbol leads the label on one line at AX sizes; default sizes unchanged | Done |
+| `pages/roam` map chrome (`en-a11y-roam-ax5.jpg`) | `DesignFixtures/E5bFixtures.swift` (`A11yRoamAX5Fixture`) | ✓ (mp-roam owns order) | Peek showed a bare "—" as data → count "2" (P29) with a VoiceOver label; forced `.dark` removed (18:15 rule), title `textPrimary` so it reads on the light and dark map | Done |
+
+Not done item 2 (fixed-width rails at AX5):
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/template/index` 精选 banner rail | `DiscoveryHomeView.swift` (`DiscoveryHomeBannerCard`) | ✓ (mp-publish owns order) | 260 pt tile + `lineLimit(2)` cut captions to 2–3 words at AX sizes → 300 pt and 4 lines at AX sizes; VoiceOver label = the highlight's own caption (was always "Open highlight n") | Done |
+| (scan) other horizontal rails with fixed widths ≥ 120 pt | `DiscoveryTemplateDetailView` mosaic, `JourneyLandingViews` share render, `CYAlbum`, `CYShareCard`, `ClubChannelMessagingView` iPad sidebar | — | Image-only tiles, off-screen share renders or iPad sidebar: no text to clip; no change | Done (no fix needed) |
+| `pages/templatedetail` 节点 rail | `DiscoveryTemplateDetailView.swift` (`DiscoveryTopicTemplatePreview`) | ✓ (mp-publish owns order) | 150 pt column broke node names letter by letter at AX sizes → 260 pt column at AX sizes (rail scrolls), cover follows the column | Done |
+
 ## Not done (next run starts here)
-- Re-read the a11y sheets (ring size at AX5, roam VoiceOver order, `a11y-passport-ax5` = passport at AX5) once a sweep build is newer than 405948d58; combined-r7 46ebaf0b6 carries runs 7–11.
-- Dynamic Type: horizontal rails whose cards keep a fixed width and `lineLimit(2)` (`DiscoveryHomeView` banner 260 pt, `DiscoveryTemplateDetailView` nodes 150 pt): check at AX5 whether a scaled width reads better.
+- Re-read the a11y sheets after the next sweep (newer than 8fa84e4d3) to confirm run 13 (badge heading, passport AX rows, roam light map).
+- VoiceOver: image-only rail buttons share one generic label ("Open image", e.g. `DiscoveryTemplateDetailView` mosaic) — add "n of N" so items are distinguishable.
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch
