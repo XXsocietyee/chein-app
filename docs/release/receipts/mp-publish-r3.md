@@ -97,7 +97,7 @@ Scope: `pages/template/index`, the tabBar publish sheet, `pages/publish/*`, `pag
 - `Tests/CoreTests/EditorKitModelTests.swift`: `EditorOutlineSection.allCases` now expects the MP page order.
 
 ## Gates (last run on the branch head)
-- **Continue pass 13 (玩法规则 switches):** merged `ui/combined-r7` (clean); generate_project OK, check_scaffold OK, a11y lint 0 new, design consistency PASS, contract ratchet RATCHET_RESULT. No Swift compiler here.
+- **Continue pass 13 (玩法规则 switches):** merged `ui/combined-r7` (clean); generate_project OK, check_scaffold OK, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**. No Swift compiler here.
 - **Continue pass 12 (runtime values into 主题详情):** merged `ui/combined-r7` (42 commits, clean); generate_project OK, check_scaffold OK, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**. No Swift compiler here.
 - **Continue pass 11 (可玩时段 / 开局前准备 in 主题详情):** merged `ui/combined-r7` (clean); generate_project OK, check_scaffold OK, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**. No Swift compiler here.
 - **Continue pass 10 (发布者实名):** generate_project OK, check_scaffold OK, a11y lint 0 new, contract ratchet 52 failing / baseline 52 / **new 0**, design consistency PASS; `test_privacy_manifest_contract` OK.
