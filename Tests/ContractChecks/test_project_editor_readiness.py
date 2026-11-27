@@ -37,42 +37,14 @@ def original_source(path, source):
     return source
 
 
+# Retired by debt-r3 (2026-11-27): byte-exact inverses of the original readiness patch over 9 UI-test/pbxproj files plus whole-file hashes of shared helpers/workflow/budget via the run138 frozen projection. Every file has moved on since (UI-test helpers, pbxproj regeneration, workflow), so they proved only that the repo had not changed; the mutation test was vacuous (the inverse raises for any current input). The forward checks below (form-bounded name reveal, max-type launch, fixture chrome, gesture geometry) stay.
+#   - ProjectEditorReadinessContracts.test_exact_inverse_preserves_all_original_assertions_and_helpers
+#   - ProjectEditorReadinessContracts.test_inverse_rejects_unrelated_changed_missing_or_repeated_hunks
+#   - ProjectEditorReadinessContracts.test_shared_helpers_environment_workflow_and_budget_history_are_unchanged
+
 class ProjectEditorReadinessContracts(unittest.TestCase):
-    def test_exact_inverse_preserves_all_original_assertions_and_helpers(self):
-        self.assertEqual(set(CONTRACT['files']), {
-            'Tests/AppUITests/ProjectEditFlowTests.swift',
-            'Tests/AppUITests/ApprovedTopicSelectedCoverChineseFlowTests.swift',
-            'App/ProjectEditFixtureSupport.swift',
-            'Tests/AppUITests/ApprovedTopicReviewCurrentChineseFlowTests.swift',
-            'Tests/AppUITests/ProjectEditReviewReadinessFlowTests.swift',
-            'Questify.xcodeproj/project.pbxproj',
-            'Tests/AppUITests/ApprovedReleaseRecoveryFlowTests.swift',
-            'Tests/AppUITests/OwnedTopicCoverRecoveryFlowTests.swift',
-            'Tests/AppUITests/ProjectStoryTemplateFlowSupport.swift',
-        })
-        for path, row in CONTRACT['files'].items():
-            with self.subTest(path=path):
-                source = (ROOT / path).read_text()
-                before = original_source(path, source)
-                self.assertEqual(digest(before) if before is not None else None, row['before_sha256'])
 
-    def test_inverse_rejects_unrelated_changed_missing_or_repeated_hunks(self):
-        for path, row in CONTRACT['files'].items():
-            source = (ROOT / path).read_text()
-            for mutant in [source + '\n', source[:-1] + ('X' if source[-1:] != 'X' else 'Y')]:
-                with self.subTest(path=path), self.assertRaises(ValueError):
-                    original_source(path, mutant)
-            for hunk in row['hunks']:
-                for mutant in [source.replace(hunk['after'], hunk['before'], 1),
-                               source.replace(hunk['after'], hunk['after'] * 2, 1)]:
-                    with self.subTest(path=path), self.assertRaises(ValueError):
-                        original_source(path, mutant)
 
-    def test_shared_helpers_environment_workflow_and_budget_history_are_unchanged(self):
-        for path, expected in CONTRACT['protected_sha256'].items():
-            with self.subTest(path=path):
-                from tools.run138_current_source_projection import historical_entry_bytes
-                self.assertEqual(hashlib.sha256(historical_entry_bytes(ROOT, path)).hexdigest(), expected)
 
     def test_root_name_reveal_uses_form_bounds_and_actual_fixed_actions(self):
         source = (ROOT / 'Tests/AppUITests/ProjectEditFlowTests.swift').read_text()

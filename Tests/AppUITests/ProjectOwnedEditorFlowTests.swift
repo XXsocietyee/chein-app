@@ -30,9 +30,8 @@ import XCTest
     private func assertMode(_ mode: String, in app: XCUIApplication) {
         let value = app.staticTexts["projectRemote.mode"]
         XCTAssertTrue(value.waitForExistence(timeout: 5)); XCTAssertEqual(value.label, mode)
-        let version = app.staticTexts["projectRemote.version.value"]
-        XCTAssertTrue(version.exists, app.debugDescription)
-        XCTAssertEqual(Array(version.label.utf8), Array("fixture-r2".utf8))
+        // MP fabu/index.js keeps baseRevision as hidden save state only; the editor shows no version row.
+        XCTAssertFalse(app.staticTexts["projectRemote.version.value"].exists)
     }
     // UNMEASURED complete method estimate: 480 seconds.
     func testCityOwnedDetailReadsStoryAndPreparedNodeWithoutInferringPublication() throws {

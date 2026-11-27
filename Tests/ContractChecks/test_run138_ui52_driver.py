@@ -10,6 +10,15 @@ from tools import run138_ui52_driver_inverse as driver
 ROOT = Path(__file__).resolve().parents[2]
 
 
+# Retired by debt-r3 (2026-11-27): byte-exact inverses of the run138 UI52 patch over MerchantMarketingUITests.swift / ProjectStoryImageFlowTests.swift plus the club-chain protected-bytes check; both UI files have changed since, so every inverse raises. The three mutation tests were vacuous for the same reason (the inverse raises for any input). Marketing selection, story barrier (rewritten on the live file), costs and contract-integrity checks stay.
+#   - UI52DriverCandidateTests.test_both_whole_files_restore_to_exact_published_preimages
+#   - UI52DriverCandidateTests.test_changed_original_assertion_is_rejected
+#   - UI52DriverCandidateTests.test_exactly_one_new_five_second_wait_per_source_no_existing_wait_inflation
+#   - UI52DriverCandidateTests.test_extra_wait_or_repeated_barrier_is_rejected
+#   - UI52DriverCandidateTests.test_isolated_candidate_and_all_protected_original_bytes
+#   - UI52DriverCandidateTests.test_missing_barrier_and_preimage_cannot_masquerade_as_current
+#   - UI52DriverCandidateTests.test_non_test_helpers_and_other_methods_are_byte_identical
+
 class UI52DriverCandidateTests(unittest.TestCase):
     def setUp(self):
         self.c = driver.contract(ROOT)
@@ -20,32 +29,8 @@ class UI52DriverCandidateTests(unittest.TestCase):
     def original(self, relative):
         return driver.original_source(relative, self.current(relative), ROOT)
 
-    def test_isolated_candidate_and_all_protected_original_bytes(self):
-        result = driver.validate_current(ROOT)
-        self.assertEqual(result["new_wait_allowance_seconds"], 35)
 
-    def test_both_whole_files_restore_to_exact_published_preimages(self):
-        for relative, row in self.c["files"].items():
-            restored = self.original(relative)
-            self.assertEqual(driver.digest(restored), row["before_sha256"])
-            current = self.current(relative).decode()
-            for hunk in reversed(row["hunks"]):
-                self.assertEqual(current.count(hunk["after"]), 1)
-                current = current.replace(hunk["after"], hunk["before"], 1)
-            self.assertEqual(current.encode(), restored)
 
-    def test_non_test_helpers_and_other_methods_are_byte_identical(self):
-        approved = {
-            driver.MARKETING: "testNormalMerchantWorkbenchOpensDormantMarketingInBothLanguages",
-            driver.STORY: "testChosenStoryImageAppliesOnlyAfterUploadAndRestoresIntoExactPreparedOrder",
-        }
-        for relative, method in approved.items():
-            pattern = r"(?m)^    func " + re.escape(method) + r"\b[\s\S]*?^    }"
-            before = self.original(relative).decode()
-            after = self.current(relative).decode()
-            self.assertEqual(len(re.findall(pattern, before)), 1)
-            self.assertEqual(len(re.findall(pattern, after)), 1)
-            self.assertEqual(re.sub(pattern, "", before), re.sub(pattern, "", after))
 
     def test_marketing_verifies_selected_value_title_and_closed_menu_after_single_tap(self):
         hunk = self.c["files"][driver.MARKETING]["hunks"][0]
@@ -65,34 +50,20 @@ class UI52DriverCandidateTests(unittest.TestCase):
         self.assertIn('["Shop insights", "Entitlements", "Prediction inbox"]', current)
         self.assertIn('["店铺参谋", "付费权益", "竞猜待答"]', current)
 
-    def test_story_barrier_only_second_apply_and_original_back_bytes(self):
-        old = self.original(driver.STORY).decode()
+    def test_story_barrier_only_second_apply_on_current_source(self):
+        # debt-r3: rewritten on the live file; the old/new comparison went through the byte inverse,
+        # which rejects every current ProjectStoryImageFlowTests.swift.
         text = self.current(driver.STORY).decode()
         first = 'tap("projectStoryImage.apply", app); XCTAssertFalse(app.buttons["projectStoryImage.close"].exists); back(app)'
-        self.assertEqual(old.count(first), 1)
         self.assertEqual(text.count(first), 1)
-        helper = lambda s: s.split("    private func back(", 1)[1].split("    // UNMEASURED", 1)[0]
-        self.assertEqual(helper(old), helper(text))
-        new = self.c["files"][driver.STORY]["hunks"][0]["after"]
+        self.assertEqual(text.count("    private func back("), 1)
         for required in ('!app.buttons["projectStoryImage.close"].exists',
                          'app.navigationBars["Chapter"].buttons["BackButton"]',
-                         "chapterBack.exists && chapterBack.isEnabled && chapterBack.isHittable"):
-            self.assertIn(required, new)
-        self.assertTrue(new.endswith("        back(app); saved = try inspect(app)"))
+                         "chapterBack.exists && chapterBack.isEnabled && chapterBack.isHittable",
+                         "back(app); saved = try inspect(app)"):
+            self.assertIn(required, text)
         self.assertEqual(text.count("let replacementDismissed ="), 1)
 
-    def test_exactly_one_new_five_second_wait_per_source_no_existing_wait_inflation(self):
-        for relative in self.c["files"]:
-            before = self.original(relative).decode()
-            current = self.current(relative).decode()
-            self.assertEqual(current.count("timeout: 5"), before.count("timeout: 5") + 1)
-            self.assertEqual(current.count(".tap()"), before.count(".tap()"))
-            for hunk in self.c["files"][relative]["hunks"]:
-                self.assertNotIn("sleep(", hunk["after"])
-                self.assertNotIn("coordinate(", hunk["after"])
-                self.assertNotIn("try?", hunk["after"])
-                self.assertNotIn("continueAfterFailure", hunk["after"])
-                self.assertNotIn("while ", hunk["after"])
 
     def test_exact_full_method_costs_and_explicit_current_only_905_exception(self):
         costs = driver.validate_costs(ROOT)
@@ -105,25 +76,8 @@ class UI52DriverCandidateTests(unittest.TestCase):
         key = next(key for key in costs if key.startswith("ProjectStoryImage"))
         self.assertEqual(profile["estimated_method_seconds"][key], 900)
 
-    def test_changed_original_assertion_is_rejected(self):
-        raw = self.current(driver.STORY)
-        mutated = raw.replace(b"XCTAssertEqual(saved.storyImageUploadCount, 2)",
-                              b"XCTAssertEqual(saved.storyImageUploadCount, 1)", 1)
-        self.assertNotEqual(raw, mutated)
-        with self.assertRaises(ValueError):
-            driver.original_source(driver.STORY, mutated, ROOT)
 
-    def test_extra_wait_or_repeated_barrier_is_rejected(self):
-        raw = self.current(driver.STORY)
-        for mutated in (raw.replace(b"timeout: 5", b"timeout: 10", 1),
-                        raw + self.c["files"][driver.STORY]["hunks"][0]["after"].encode()):
-            with self.assertRaises(ValueError):
-                driver.original_source(driver.STORY, mutated, ROOT)
 
-    def test_missing_barrier_and_preimage_cannot_masquerade_as_current(self):
-        for relative in self.c["files"]:
-            with self.assertRaises(ValueError):
-                driver.original_source(relative, self.original(relative), ROOT)
 
     def test_unknown_path_is_rejected(self):
         with self.assertRaises(ValueError):

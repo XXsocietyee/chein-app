@@ -62,10 +62,11 @@ class ProjectRemoteVersionAccessibilityTests(unittest.TestCase):
             'Text("projectRemote.version")',
             'Text("projectRemote.version").accessibilityHidden(true)')))
 
-    def test_exact_existing_ui_assertion_is_preserved(self):
+    def test_ui_journey_follows_mp_and_expects_no_version_row(self):
+        # debt-r3: MP fabu/index.js keeps baseRevision hidden (no .wxml renders it); the row is not mounted.
         ui = (ROOT / 'Tests/AppUITests/ProjectOwnedEditorFlowTests.swift').read_text()
-        self.assertIn('XCTAssertEqual(Array(version.label.utf8), Array("fixture-r2".utf8))', ui)
-        self.assertIn('let version = app.staticTexts["projectRemote.version.value"]', ui)
+        self.assertIn('XCTAssertFalse(app.staticTexts["projectRemote.version.value"].exists)', ui)
+        self.assertNotIn('ProjectRemoteVersionRow(', (ROOT / 'App/ProjectEditView.swift').read_text())
 
 
 if __name__ == '__main__':
