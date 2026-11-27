@@ -110,6 +110,18 @@ import SwiftUI
         self.reader = reader; _viewModel = StateObject(wrappedValue: .init(roam: roamReader, official: reader))
     }
     private var model: RoamOfficialTasksModel { viewModel.model }
+    /// MP `tabs: ['进行中', '即将', '我的']`.
+    private static let tabs: [OfficialEventBucket] = [.live, .upcoming, .mine]
+    /// MP `summary`: `<tab> · 共 N 个活动`, or the keyword result line while searching.
+    private func summary(count: Int) -> Text {
+        if query.isSearching { return Text("official.summary.search \(query.trimmedKeyword) \(count)") }
+        switch bucket {
+        case .live: return Text("official.summary.live \(count)")
+        case .upcoming: return Text("official.summary.upcoming \(count)")
+        case .ended: return Text("official.summary.ended \(count)")
+        case .mine: return Text("official.summary.mine \(count)")
+        }
+    }
     private var query: OfficialEventBrowseQuery { .init(bucket: bucket, keyword: keyword) }
     var body: some View {
         let retry = viewModel.readAction(), refresh = viewModel.refreshAction()
@@ -118,22 +130,30 @@ import SwiftUI
             Section {
                 TextField("official.search", text: $keyword).textFieldStyle(.roundedBorder)
                     .accessibilityIdentifier("roam.tasks.search")
+                // MP scene-roam-task-list `task-tabs`: 进行中 / 即将 / 我的 (no 已结束 tab), shown as one segmented row.
                 Picker("official.filter", selection: $bucket) {
-                    ForEach(OfficialEventBucket.allCases) { value in Text(LocalizedStringKey(value.titleKey)).tag(value) }
-                }.pickerStyle(.menu).accessibilityIdentifier("roam.tasks.filter")
+                    ForEach(Self.tabs) { value in Text(LocalizedStringKey(value.tabTitleKey)).tag(value) }
+                }.pickerStyle(.segmented).accessibilityIdentifier("roam.tasks.filter")
                 OfficialReadOnlyNotice(offline: reader.isOfflineExample)
             }
             if let snapshot = model.snapshot {
+                let rows = snapshot.visible(query)
+                // MP order: `task-summary` (进行中 · 共 N 个活动), then the stale / refreshing line, then the list.
+                Section {
+                    summary(count: rows.count)
+                        .font(.footnote).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("roam.tasks.results")
+                }
                 if let error = model.error {
                     Section {
                         Text("roam.tasks.stale").cyText(.meta).foregroundStyle(.secondary)
                         OfficialIssueView(issue: .init(error), retry: retry)
                     }.accessibilityIdentifier("roam.tasks.stale")
+                } else if model.isLoading {
+                    Text("official.refreshing").font(.footnote).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("roam.tasks.refreshing")
                 }
-                let rows = snapshot.visible(query)
                 Section {
-                    LabeledContent("official.results", value: String(rows.count))
-                        .accessibilityIdentifier("roam.tasks.results")
                     if rows.isEmpty {
                         Text(LocalizedStringKey(query.emptyKey)).accessibilityIdentifier("roam.tasks.empty")
                     }
@@ -151,7 +171,7 @@ import SwiftUI
                 Section { OfficialIssueView(issue: .init(error), retry: retry) }
                     .accessibilityIdentifier("roam.tasks.error")
             }
-            if model.isLoading || (model.snapshot == nil && model.error == nil) {
+            if model.snapshot == nil, model.isLoading || model.error == nil {
                 ProgressView("official.loading").accessibilityIdentifier("roam.tasks.loading")
             }
             } else { ProgressView("official.loading").accessibilityIdentifier("roam.tasks.loading") }
