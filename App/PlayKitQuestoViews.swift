@@ -434,6 +434,10 @@ typealias PlayKitAccusationWrite = (String) -> Void
     @QuestifyReduceMotion private var reduceMotion
     @Environment(\.locale) private var locale
 
+    private var clueShown: Binding<Bool> {
+        Binding(get: { openClue != nil }, set: { shown in if !shown { openClue = nil } })
+    }
+
     /// The three board notes of the mini-program prototype, cycled: tilt in degrees.
     private static let pinTilt: [Double] = [-4, 3, -2, 4, -3, 2]
 
@@ -463,8 +467,13 @@ typealias PlayKitAccusationWrite = (String) -> Void
             }
         }
         .frame(maxWidth: .infinity)
-        .overlay { if confirmOpen, let suspect = suspect { confirmPanel(suspect) } }
-        .overlay { if let openClue, projection.clues.indices.contains(openClue) { cluePanel(projection.clues[openClue]) } }
+        // Owner rule 2: the MP confirm / clue popups are native sheets with detents, not a dimmed overlay.
+        .sheet(isPresented: $confirmOpen) {
+            if let suspect = suspect { confirmPanel(suspect) }
+        }
+        .sheet(isPresented: clueShown) {
+            if let openClue, projection.clues.indices.contains(openClue) { cluePanel(projection.clues[openClue]) }
+        }
         .onChange(of: projection.suspects.count) { _, count in current = min(current, max(0, count - 1)) }
         .cyHapticEvent(.wrongAnswer, trigger: projection.wrongAttempt) { old, next in !old && next }
         .cyHapticEvent(.rewardOrMedal, trigger: projection.showsEnding) { old, next in !old && next }
@@ -700,21 +709,22 @@ typealias PlayKitAccusationWrite = (String) -> Void
 
 // MARK: - Shared pieces
 
-/// Centred dialog over a dimmed screen; tapping outside dismisses. Not a sheet, so it never stacks on one.
+/// Body of an MP popup shown as a native sheet (owner rule 2): centred content, medium / large detents, the system
+/// grabber and swipe-down dismiss. `dismiss` is kept for call sites; the sheet binding owns presentation.
 @MainActor struct PlayKitCenteredPanel<Content: View>: View {
     let dismiss: () -> Void
     @ViewBuilder let content: () -> Content
     var body: some View {
-        ZStack {
-            CYColor.bgOverlay.ignoresSafeArea().onTapGesture(perform: dismiss).accessibilityHidden(true)
+        ScrollView {
             VStack(spacing: CYSpacing.md, content: content)
-                .padding(CYSpacing.xl)
-                .frame(maxWidth: 340)
-                .background(RoundedRectangle(cornerRadius: CYRadius.sheet, style: .continuous).fill(CYColor.bgElevated))
-                .padding(CYSpacing.lg)
-                .accessibilityElement(children: .contain)
-                .accessibilityAddTraits(.isModal)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, CYSpacing.pageHorizontal)
+                .padding(.vertical, CYSpacing.xl)
         }
+        .scrollBounceBehavior(.basedOnSize)
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+        .accessibilityElement(children: .contain)
     }
 }
 

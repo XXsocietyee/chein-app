@@ -89,7 +89,7 @@ import SwiftUI
                     }
                 } else {
                     // Nothing has arrived yet: not an empty shelf and not a price of 0.
-                    ProgressView().frame(maxWidth: .infinity)
+                    ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity)
                 }
             case .ready(let facts):
                 readyContent(facts)

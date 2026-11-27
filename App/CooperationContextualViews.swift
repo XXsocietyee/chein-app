@@ -354,6 +354,13 @@ import SwiftUI
     @Environment(\.coopTopicPublishDestination) private var topicPublishDestination
     @Environment(\.locale) private var locale
     @State private var publishingTopic = false
+    /// MP coop/invite wxml:51-66 ② 合作条款 lives on the page between ① and ③ (shareMode 0 / 2 + fee).
+    @State private var fixedTerms = false
+    @State private var fee = ""
+    @FocusState private var feeFocused: Bool
+    private var termsReady: Bool {
+        !fixedTerms || Double(fee.trimmingCharacters(in: .whitespacesAndNewlines)).map { $0 > 0 } == true
+    }
     private let lockedTargetPreset: CoopInviteLockedTarget?
     private let initialTopicID: Int?
     init(reader: any CoopFlowReading, operationScope: String?, initialType: Int? = nil,
@@ -404,7 +411,33 @@ import SwiftUI
                 if model.topic != nil, model.topic?.inviteWindowOpen != true { Text("mpr3.coop.invite.closed").cyText(.meta).foregroundStyle(CYColor.warningText) }
                 if model.lockedTopic == nil, model.hasMore, !model.topics.isEmpty { Button("context.picker.more") { Task { await model.more(permit) } }.disabled(model.topicsBusy || model.topicsFailed) }
             }
-            // Source order: ① 关联主题, ③ 邀请对象 (club / merchant switch inside it); terms follow in the editor.
+            // MP wxml:51-66: ② 合作条款 — 引流合作（不产生现金结算） or the per-kind fee, with ¥ amount + unit.
+            Section("mpr3.coop.invite.termsTitle") {
+                Picker("cooperation.invite.terms", selection: $fixedTerms) {
+                    Text("cooperation.invite.terms.traffic").tag(false)
+                    Text(LocalizedStringKey(model.kind == .club ? "cooperation.invite.fee.club" : "cooperation.invite.fee.merchant")).tag(true)
+                }
+                .pickerStyle(.inline)
+                .labelsHidden()
+                .accessibilityIdentifier("cooperation.invite.terms")
+                if fixedTerms {
+                    LabeledContent {
+                        HStack(spacing: CYSpacing.xxs) {
+                            Text(verbatim: LocaleDisplay.currencySymbol(locale: locale))
+                            TextField(text: $fee, prompt: Text(verbatim: "0.00")) { Text("coopflow.field.fixedFee") }
+                                .keyboardType(.decimalPad)
+                                .multilineTextAlignment(.trailing)
+                                .focused($feeFocused)
+                            Text(LocalizedStringKey(model.kind == .club ? "cooperation.invite.feeUnit.club" : "cooperation.invite.feeUnit.merchant"))
+                                .cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                        }
+                    } label: {
+                        Text(LocalizedStringKey(model.kind == .club ? "cooperation.invite.fee.club" : "cooperation.invite.fee.merchant"))
+                    }
+                    .accessibilityIdentifier("cooperation.invite.fee")
+                }
+            }
+            // MP order: ① 关联主题 → ② 合作条款 → ③ 邀请对象.
             Section {
               if let lockedTargetTitle {
                 // MC8-31-4: 已选定，发送前不可更换.
@@ -417,7 +450,7 @@ import SwiftUI
               } else {
                 Picker("context.coop.kind", selection: Binding(get: { model.kind }, set: { value in
                     guard let next = model.changeKind(value, permit: permit) else { return }
-                    editing = []; showEditor = false; search = ""
+                    editing = []; showEditor = false; search = ""; fixedTerms = false; fee = ""
                     Task { await model.loadInitial(next) }
                 })) {
                     Text("coopflow.invite.club").tag(CoopFlowTargetKind.club)
@@ -488,16 +521,19 @@ import SwiftUI
                     editing = contexts; showEditor = true
                 }
                 .listRowBackground(Color.clear)
-                .disabled(model.contexts(permit: permit) == nil)
+                .disabled(model.contexts(permit: permit) == nil || !termsReady)
             }
             CoopFlowSafetyNotice()
         }.cyMiniListScreen().navigationTitle("context.coop.new").navigationBarTitleDisplayMode(.inline).scrollDismissesKeyboard(.interactively)
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("action.done") { feeFocused = false } }
+            }
             .onAppear {
                 let value = model.appear(active: scenePhase == .active)
                 Task { await model.loadInitial(value) }
             }
             .onChange(of: reader.session) { _, _ in
-                model.identityChanged(); editing = []; showEditor = false; search = ""
+                model.identityChanged(); editing = []; showEditor = false; search = ""; fixedTerms = false; fee = ""
                 let value = model.permit; Task { await model.loadInitial(value) }
             }
             .onChange(of: scenePhase) { _, phase in
@@ -509,7 +545,7 @@ import SwiftUI
                 if let topicPublishDestination { topicPublishDestination(operationScope) }
             }
             .cySheet(isPresented: $showEditor) {
-                NavigationStack { CoopFlowBatchInviteEditor(reader: reader, contexts: editing) }
+                NavigationStack { CoopFlowBatchInviteEditor(reader: reader, contexts: editing, fixed: fixedTerms, fee: fee, topicName: model.topic?.name) }
                     .environment(\.coopInviteOutcomeUnknown, { sendOutcomeUnknown = true })
                     // flows-g2 108: only a one-target send leaves the page; with several drafts the others stay sendable.
                     // MC8-31-7: a several-target batch ends on one summary, whose 完成 does the same (the editor sends each
@@ -583,9 +619,12 @@ import SwiftUI
     @Environment(\.dismiss) private var dismiss
     let reader: any CoopFlowReading
     let contexts: [CoopFlowInvitationContext]
+    /// ② 合作条款 chosen on the invite page (MP wxml:51-66); the sheet shows them read-only (拟议条款).
+    var fixed: Bool = false
+    var fee: String = ""
+    /// MP `.iv-topic`: 关联主题 · {topicName}, or 整主题合作邀请 without a name.
+    var topicName: String? = nil
     @State private var message = ""
-    @State private var fixed = false
-    @State private var fee = ""
     @State private var discard = false
     @FocusState private var typing: Bool
     /// MC8-31-7 (coop/invite index.js:952-959): with several recipients each draft keeps its own reviewed submit,
@@ -597,7 +636,12 @@ import SwiftUI
         CoopFlowBatchInvite.drafts(contexts: contexts, message: message, defaultMessage: defaultMessage,
                                    fixed: fixed, fee: fee, currentSession: reader.session)
     }
-    private var dirty: Bool { !message.isEmpty || fixed || !fee.isEmpty }
+    private var dirty: Bool { !message.isEmpty }
+    private var topicLine: Text {
+        let name = topicName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if name.isEmpty { return Text("mpr3.coop.invite.wholeTopic") }
+        return Text("mpr3.coop.invite.topicLine \(name)")
+    }
     private var isClub: Bool { contexts.first?.kind == .club }
     @Environment(\.locale) private var locale
     private var defaultMessage: String {
@@ -605,34 +649,44 @@ import SwiftUI
     }
     var body: some View {
         Form {
-            Section {
-                CYHeroHeader("coopflow.invite.title", subtitle: "context.coop.targets")
-                    .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
-                    .listRowBackground(Color.clear)
-            }
-            Section("context.coop.targets") {
+            // MP sheet `编辑邀约语` order: 邀请对象 · 已锁定 → 拟议条款 → 协作邀请 + 关联主题 → 收到的 hint → 邀请语 → send.
+            Section("mpr3.coop.invite.lockedTargets") {
                 ForEach(contexts) { context in
                     let name = context.recipientName.trimmingCharacters(in: .whitespacesAndNewlines)
-                    Text(verbatim: name.isEmpty ? "—" : name)
+                    LabeledContent {
+                        CYStatusChip("mpr3.coop.invite.locked", tone: .neutral, systemImage: "lock.fill")
+                    } label: {
+                        Text(verbatim: name.isEmpty ? "—" : name)
+                    }
                 }
             }
-            TextField("cooperation.invite.messagePlaceholder", text: $message, axis: .vertical).lineLimit(3...8).focused($typing)
-                .onChange(of: message) { _, value in if value.count > 100 { message = String(value.prefix(100)) } }
-            Text(verbatim: "\(message.count) / 100").cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textTertiary)
-                .frame(maxWidth: .infinity, alignment: .trailing)
-            Picker("cooperation.invite.terms", selection: $fixed) {
-                Text("cooperation.invite.terms.traffic").tag(false)
-                Text(LocalizedStringKey(isClub ? "cooperation.invite.fee.club" : "cooperation.invite.fee.merchant")).tag(true)
-            }.pickerStyle(.inline).accessibilityIdentifier("cooperation.invite.terms")
-            if fixed {
+            Section {
+                // MP sheet `.iv-terms`: 拟议条款 · 对方接受并成单后锁定, value = the page's ② 合作条款.
                 LabeledContent {
-                    HStack(spacing: 4) {
-                        Text(verbatim: LocaleDisplay.currencySymbol(locale: locale))
-                        TextField(text: $fee, prompt: Text(verbatim: "0.00")) { Text("coopflow.field.fixedFee") }.keyboardType(.decimalPad).focused($typing)
-                        Text(LocalizedStringKey(isClub ? "cooperation.invite.feeUnit.club" : "cooperation.invite.feeUnit.merchant")).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                    if fixed {
+                        Text(verbatim: "\(LocaleDisplay.currencySymbol(locale: locale))\(fee) ") + Text(LocalizedStringKey(isClub ? "cooperation.invite.feeUnit.club" : "cooperation.invite.feeUnit.merchant"))
+                    } else {
+                        Text("cooperation.invite.terms.traffic")
                     }
-                } label: { Text("coopflow.field.fixedFee") }
-                Text("coopflow.currency")
+                } label: {
+                    Text("mpr3.coop.invite.proposedTerms")
+                }
+                .accessibilityIdentifier("cooperation.invite.proposedTerms")
+            }
+            Section {
+                // MP `.iv-hero` + `.iv-copy`.
+                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                    Text("mpr3.coop.invite.heroType").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                    topicLine.cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                }
+                .accessibilityElement(children: .combine)
+                Text("mpr3.coop.invite.receivedHint").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+            }
+            Section("mpr3.coop.invite.messageTitle") {
+                TextField("cooperation.invite.messagePlaceholder", text: $message, axis: .vertical).lineLimit(3...8).focused($typing)
+                    .onChange(of: message) { _, value in if value.count > 100 { message = String(value.prefix(100)) } }
+                Text(verbatim: "\(message.count) / 100").cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textTertiary)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
             }
             if let drafts {
                 NavigationLink {
@@ -686,7 +740,7 @@ import SwiftUI
                 CYListRow("coopflow.reviewAction", trailing: .value("—"))
             }
             CoopFlowSafetyNotice()
-        }.cyMiniListScreen().navigationTitle("coopflow.invite.title").navigationBarTitleDisplayMode(.inline).scrollDismissesKeyboard(.interactively)
+        }.cyMiniListScreen().navigationTitle("mpr3.coop.invite.editorTitle").navigationBarTitleDisplayMode(.inline).scrollDismissesKeyboard(.interactively)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { if dirty { discard = true } else { dismiss() } } }
                 ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("action.done") { typing = false } }
@@ -699,7 +753,7 @@ import SwiftUI
                 }
                 .cyDomainSheet(detents: [.half])
             }
-            .onChange(of: reader.session) { _, _ in message = ""; fee = ""; fixed = false; dismiss() }
+            .onChange(of: reader.session) { _, _ in message = ""; dismiss() }
     }
 }
 

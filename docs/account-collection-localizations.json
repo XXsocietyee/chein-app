@@ -303,5 +303,10 @@
     "key": "accountCollection.favorites.failed",
     "en": "Couldn’t load your favorites",
     "zh-Hans": "收藏加载失败"
+  },
+  {
+    "key": "accountCollection.coupon.signIn",
+    "en": "Sign in to see your coupons",
+    "zh-Hans": "登录后查看我的优惠券"
   }
 ]

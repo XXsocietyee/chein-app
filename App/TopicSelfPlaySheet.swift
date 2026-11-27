@@ -108,13 +108,25 @@ private enum TopicRevealDestination: Hashable, Identifiable { case wallet, play;
                         }
                         .disabled(!model.flow.canCreate)
                         .accessibilityIdentifier("contextSelfPlay.consent")
-                        Button(action: { model.flow.prepare() }) {
-                            Text("contextSelfPlay.review").frame(maxWidth: .infinity)
+                        // MP self-play-checkout ck__pay-row: total + 1 人 on the left, the pay button on the right.
+                        HStack(spacing: CYSpacing.md) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                if let price = model.flow.topic.selfPlayPrice {
+                                    Text(verbatim: NSDecimalNumber(decimal: price).stringValue).font(.title3.weight(.semibold)).monospacedDigit()
+                                } else {
+                                    Text("topic.priceUnknown").font(.headline)
+                                }
+                                Text("contextSelfPlay.onePerson").font(.caption).foregroundStyle(.secondary)
+                            }
+                            .accessibilityElement(children: .combine)
+                            Button(action: { model.flow.prepare() }) {
+                                Text("contextSelfPlay.review").frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.large)
+                            .disabled(!model.flow.canCreate)
+                            .accessibilityIdentifier("contextSelfPlay.review")
                         }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.large)
-                        .disabled(!model.flow.canCreate)
-                        .accessibilityIdentifier("contextSelfPlay.review")
                     }
                     .padding(.horizontal, Theme.Space.pageX)
                     .padding(.vertical, Theme.Space.s2_5)
@@ -127,7 +139,7 @@ private enum TopicRevealDestination: Hashable, Identifiable { case wallet, play;
                 case .play: if let play { play() }
                 }
             }
-            .navigationTitle("contextSelfPlay.title").navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("contextSelfPlay.checkoutTitle").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { model.flow.leave(); dismiss() } } }
             .task { await model.flow.open() }
             .onDisappear { model.flow.leave() }

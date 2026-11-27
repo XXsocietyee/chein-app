@@ -14,6 +14,8 @@ import Observation
     /// Last referral, gift, or seat landing. Recording it does not claim, pay, or start a run.
     private(set) var pendingJourney: JourneyLinkIntake?
     private var pendingSince: Date?
+    /// mp-nav r3: a link or notification page that lands as a push on the 首页 stack, consumed once by that stack.
+    var homeLanding: HomeLanding?
 
     var hasBlockingSheet: Bool { !blockingSheets.isEmpty }
     /// Native entry and the area picker never overlap the consent gate (consent first, the rest queue).
@@ -39,4 +41,17 @@ import Observation
         clear()
         return link
     }
+}
+
+/// mp-nav r3: the MP opens a shared / subscribe-message page as the first page with a home button. Native: the same
+/// page pushed on the 首页 stack, so the system back button returns to 首页 (no root sheet with a close button).
+struct HomeLanding: Equatable {
+    enum Target: Equatable {
+        case page(MPParityRoute)
+        case topic(Int)
+        /// A tab-root MP page (MP switchTab): select the tab, push nothing.
+        case tab(RootTab)
+    }
+    let id = UUID()
+    let target: Target
 }

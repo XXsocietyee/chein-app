@@ -82,8 +82,7 @@ struct PassportBadge: Identifiable, Equatable {
         Section {
             switch stampPhase {
             case .loading:
-                ProgressView().frame(maxWidth: .infinity)
-                    .accessibilityLabel(Text("cy.state.loading"))
+                ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity)
                     .accessibilityIdentifier("passport.stamps.loading")
             case .offline:
                 HStack {

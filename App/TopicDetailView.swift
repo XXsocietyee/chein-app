@@ -125,13 +125,14 @@ struct TopicDetailView: View {
         .navigationDestination(isPresented: $showingPlay) {
             if let playDestination { playDestination(id) }
         }
-        .cySheet(isPresented: $showingTickets, onDismiss: { barSheetOrigin = nil }) {
+        // mp-nav r3: MP 我的票 is navigateTo subpackageMember/signup/index (a page): push, standard back.
+        .navigationDestination(isPresented: $showingTickets) {
             if let ticketWalletDestination {
                 ticketWalletDestination(id)
-                    .modifier(TopicBarHeroDestination(sheet: .tickets, origin: barSheetOrigin, namespace: barHero))
-                    .cyDomainSheet(detents: [.half, .full])
+                    .cyPushedChrome()
             }
         }
+        .onChange(of: showingTickets) { _, shown in if !shown { barSheetOrigin = nil } }
         .cySheet(isPresented: $showingSelfPlay, onDismiss: { barSheetOrigin = nil }) {
             Group {
                 if let detail {
@@ -623,17 +624,15 @@ struct TopicDetailView: View {
                     .cyDomainSheet(detents: [.full])
             }
         }
-        .cySheet(isPresented: $showsPricing, onDismiss: { barSheetOrigin = nil }) {
+        // mp-nav r3: MP 定价 is navigateTo pages/topic/pricing/index (a page): push; its confirm pops back (MP index.js:451).
+        .navigationDestination(isPresented: $showsPricing) {
             if let pricingDestination {
-                NavigationStack {
-                    pricingDestination(value.id)
-                        .environment(\.topicPricingScope, { () -> String? in if case .pricing(let scope) = TopicXcxFacts.ownerSaleRoute(value) { return scope }; return nil }())
-                }
-                    .modifier(TopicBarHeroDestination(sheet: .pricing, origin: barSheetOrigin, namespace: barHero))
-                    .cyPlayerSheetGlass()
-                    .cyDomainSheet(detents: [.half, .full])
+                pricingDestination(value.id)
+                    .environment(\.topicPricingScope, { () -> String? in if case .pricing(let scope) = TopicXcxFacts.ownerSaleRoute(value) { return scope }; return nil }())
+                    .cyPushedChrome()
             }
         }
+        .onChange(of: showsPricing) { _, shown in if !shown { barSheetOrigin = nil } }
         .accessibilityIdentifier("topic.detail.content")
         }
     }

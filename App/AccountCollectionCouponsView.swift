@@ -33,7 +33,7 @@ import SwiftUI
         let appearance = viewPresentation
         let offeredRequest = request
         return List {
-            if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
+            if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login, couponWallet: true) }
             else if !reader.isConfigured { AccountCollectionIssueView(issue: .notConfigured) }
             else {
                 // Native r2: a menu Picker replaces the filter pills (same cases, same selection).

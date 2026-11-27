@@ -112,19 +112,19 @@ struct CYPlayVerdictOverlay: View {
             ZStack {
                 Circle().fill(CYNight.glow(radius: 64)).frame(width: 220, height: 220)
                 Image(systemName: "checkmark.seal.fill")
-                    .font(.system(size: 88, weight: .semibold))
+                    .resizable().scaledToFit().fontWeight(.semibold).frame(width: 88, height: 88)
                     .symbolRenderingMode(.palette)
                     .foregroundStyle(CYNight.lanternHot, CYNight.verify)
                     .scaleEffect(landed || reduceMotion ? 1 : 0.6)
             }.accessibilityHidden(true)
         case .neutral:
             Image(systemName: "arrow.triangle.branch")
-                .font(.system(size: 72, weight: .semibold)).foregroundStyle(.white.opacity(0.9))
+                .resizable().scaledToFit().fontWeight(.semibold).frame(width: 72, height: 72).foregroundStyle(.white.opacity(0.9))
                 .scaleEffect(landed || reduceMotion ? 1 : 0.7)
                 .accessibilityHidden(true)
         case .fail:
             Image(systemName: verdict.timedOut ? "hourglass.bottomhalf.filled" : "xmark.circle")
-                .font(.system(size: 72, weight: .semibold)).foregroundStyle(.white.opacity(0.9))
+                .resizable().scaledToFit().fontWeight(.semibold).frame(width: 72, height: 72).foregroundStyle(.white.opacity(0.9))
                 .scaleEffect(landed || reduceMotion ? 1 : 0.7)
                 .accessibilityHidden(true)
         }

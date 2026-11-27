@@ -782,6 +782,11 @@ public struct PlayCompletionReview: Equatable {
     public func loadLead(context: PlayInteractionContext? = nil) async {
         await readLead(context: context, polling: false)
     }
+    /// mp-journey r3: MP `loadData` probes team-progress once after the nodes read (`loadTeamProgress`). A probe failure
+    /// only marks `leadReadFailed` (MP `leadLoadError`), never the page phase.
+    public func probeLead(context: PlayInteractionContext? = nil) async {
+        await readLead(context: context, polling: true)
+    }
     /// Mini pages/play polls team-progress every 4s while a team exists. The loop
     /// ends when its task is cancelled (page left or scene inactive), the context
     /// changes or a read reports exists=false. It never dispatches a leader command.

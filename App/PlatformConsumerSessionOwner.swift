@@ -58,7 +58,7 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                     guestSignIn: session.account == nil ? { promptGuestSignIn() } : nil,
                     selfPlayDestination: { AnyView(SessionTopicSelfPlayView(session: session, topic: $0, ticketSource: ticketSource)) },
                     ticketWalletDestination: { topicID in
-                        AnyView(SessionTicketWalletHost(focusTopicID: topicID).environmentObject(session))
+                        AnyView(SessionTicketWalletHost(isPushed: true, focusTopicID: topicID).environmentObject(session))
                     },
                     playDestination: { topicID in
                         AnyView(SessionPlayRuntimeView(session: session, destination: .journey(.topic(topicID))))
