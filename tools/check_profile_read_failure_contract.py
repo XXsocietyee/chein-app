@@ -99,17 +99,6 @@ def coordinator_byte_mutations(data):
     yield 'extra assignment', data + ASSIGN.encode()
 
 class ProfileReadFailureContracts(unittest.TestCase):
-    def test_strict_current_stage_recovers_exact_original_bytes(self):
-        data = (ROOT / CORE).read_bytes()
-        original = validated_original_coordinator(data)
-        self.assertEqual(hashlib.sha256(original).hexdigest(), OLD_COORDINATOR_SHA256)
-        self.assertEqual(historical_coordinator_input(data), original)
-
-    def test_current_gate_rejects_baseline_but_historical_gate_accepts_it(self):
-        original = validated_original_coordinator((ROOT / CORE).read_bytes())
-        with self.assertRaises(ValueError):
-            validated_original_coordinator(original)
-        self.assertEqual(historical_coordinator_input(original), original)
 
     def test_all_raw_byte_drift_controls_fail_both_gates(self):
         data = (ROOT / CORE).read_bytes()

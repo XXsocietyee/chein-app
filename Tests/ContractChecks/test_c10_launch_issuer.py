@@ -25,27 +25,38 @@ def struct_body(text, name, end_marker):
 
 class C10LaunchIssuerContract(unittest.TestCase):
     def test_platform_issues_the_held_https_host_and_a_new_nonce(self):
+        # 02c68098f turned the issuer into a fail-closed legacy facade: without a
+        # server-issued one-use ticket and isolated origin no launch is issued and
+        # no client nonce is minted. The check now pins that fail-closed contract.
         text = ISSUER.read_text()
         license = struct_body(text, "LicenseInstall", "struct AuthorSubmission")
-        author = struct_body(text, "AuthorSubmission", "private struct IssuedOrigin")
+        author = struct_body(text, "AuthorSubmission", "public let owned")
         for record in (license, author):
             self.assertNotIn("parentOrigin", record)
             self.assertNotIn("nonce", record)
             self.assertNotIn("shellURL", record)
         self.assertIn("APIConfiguration", text)
         self.assertIn("configuration?.baseURL", text)
-        self.assertIn("baseURL.scheme == \"https\"", text)
-        self.assertIn("UUID().uuidString", text)
-        self.assertIn("H5LaunchDescription(parentOrigin:", text)
-        self.assertIn("mainToken: nil", text)
-        self.assertIn("https://\\(name)", text)
-        self.assertIn("H5ShellParentFlow.loadRequest", text)
+        self.assertIn("guard baseURL.scheme == \"https\" else { return fail(.notHTTPS) }", text)
+        self.assertIn("guard baseURL.user == nil, baseURL.password == nil, baseURL.host != nil else { return fail(.hostMismatch) }", text)
+        self.assertIn("return fail(.serverIssuedLaunchUnavailable)", text)
+        issue = text[text.index("mutating func issue(baseURL: URL?)"):text.index("private mutating func readClosed")]
+        self.assertNotIn("URLRequest(", issue)
+        self.assertNotIn("UUID()", text)
+        self.assertIn("No client nonce is minted or sent to the API origin.", text)
+        self.assertIn("status == \"ACTIVE\"", license)
+        self.assertIn("guard owned.requestID != author.requestID else { return nil }", text)
+        self.assertIn("Self.bodyIsNonceOnly(opened, nonce: launch.nonce)", text)
         self.assertIn("nonce=\\(encoded)", text)
         self.assertIn("parent.open", text)
         self.assertIn("parent.readOriginalReceipt", text)
         self.assertIn("entry.recover", text)
+        self.assertIn("return fail(.advancedStartRefused)", text)
+        self.assertIn("return fail(.paymentNativeContextRefused)", text)
         self.assertIn("advanced/start", text)
         self.assertIn("native-context", text)
+        self.assertIn("try entry.rejectPageClear(requestID: owned.requestID)", text)
+        self.assertIn("try entry.rejectJavaScriptClear(requestID: owned.requestID)", text)
         self.assertNotIn("owned.launch", text)
         self.assertNotIn("author.launch", text)
         self.assertNotIn("EntryLaunch", text)
@@ -67,12 +78,14 @@ class C10LaunchIssuerContract(unittest.TestCase):
         self.assertTrue(PARENT.is_file())
         self.assertTrue(RECOVER.is_file())
         self.assertNotIn("struct H5LaunchIssuer", PRODUCER.read_text())
-        self.assertNotIn("H5LaunchIssuer.swift", PBX.read_text())
+        self.assertIn("Core/H5LaunchIssuer.swift", PBX.read_text())
         self.assertTrue(SESSION.is_file())
         self.assertTrue(ROOT_COMPOSITION.is_file())
-        self.assertFalse(SHELL_VIEW.exists())
-        self.assertFalse(SHELL_LOAD.exists())
-
+        # The shell view and load helper were added later (02c68098f); they must
+        # not bypass the fail-closed issuer by constructing it themselves.
+        for later in (SHELL_VIEW, SHELL_LOAD):
+            if later.exists():
+                self.assertNotIn("H5LaunchIssuer", later.read_text())
 
 if __name__ == "__main__":
     unittest.main()

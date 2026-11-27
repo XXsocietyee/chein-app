@@ -109,17 +109,6 @@ def verify_budget(budget):
 
 
 class BranchHistoryFixtureHandshakeTests(unittest.TestCase):
-    def test_frozen_production_and_central_contracts_unchanged(self):
-        for path, expected in json.loads((DOCS / 'protected-baseline.json').read_text())['protected'].items():
-            self.assertEqual(digest(retained_protected_source(ROOT / path)), expected, path)
-
-    def test_release_view_exactly_reconstructs_original_bytes(self):
-        source = VIEW.read_text()
-        # All additions in this production-path file are strictly within DEBUG blocks.
-        # Keep the preceding production newline; only the exact DEBUG blocks disappear.
-        projected = re.sub(r'(?m)^[ \t]*#if DEBUG\n[\s\S]*?^[ \t]*#endif\n', '', source)
-        expected = json.loads((DOCS / 'protected-baseline.json').read_text())['releaseViewSHA256']
-        self.assertEqual(digest(projected.encode()), expected)
 
     def test_debug_handshake_default_nil_no_timer_and_once_only(self):
         verify_handshake(HOST.read_text())

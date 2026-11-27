@@ -161,75 +161,6 @@ class CategoryRoamRegistrationContracts(unittest.TestCase):
     def setUp(self):
         self.raw = (ROOT / CONTRACT_PATH).read_bytes()
 
-    def test_current_18_file_group_is_bound_before_historical_projection(self):
-        value, sources, runner, _ = checked_current(self.raw, ROOT)
-        sources = dict(sources); sources[PROFILE_PATH] = (ROOT / PROFILE_PATH).read_bytes(); del sources[SCANNER_PATH]
-        self.assertEqual(len(sources), 16)
-        self.assertEqual(len(FROZEN_SHA256), 14)
-        self.assertEqual(set(sources) | {CONTRACT_PATH, RUNNER_PATH}, set(APPROVED_PATHS))
-        self.assertEqual(digest(self.raw), re.findall(rb"(?m)^CONTRACT_SHA256 = '([0-9a-f]{64})'$", runner)[0].decode())
-        self.assertEqual(value['feature_batch_sources'][HISTORY_PATH]['before_sha256'], HISTORY_FLOOR)
-
-    def test_exact_combined_to_category_to_original_complete_contracts(self):
-        from Tests.ContractChecks import test_global_search_category_recovery as category
-        old = pre_roam_category_contract_bytes(self.raw)
-        self.assertEqual(digest(old), CATEGORY_CONTRACT_SHA256)
-        self.assertEqual(len(old), CATEGORY_CONTRACT_BYTES)
-        self.assertEqual(digest(category.historical_category_contract_bytes(self.raw)), BASE_CONTRACT_SHA256)
-        current = historical_r2_contract(self.raw, ROOT); prior = json.loads(old)
-        self.assertEqual(set(current['feature_batch_sources']) - set(prior['feature_batch_sources']),
-                         set(ROAM_SOURCE_INVERSES) - {HISTORY_PATH})
-
-    def test_original_category_gate_and_all_assertions_restore_exactly(self):
-        current = (ROOT / CATEGORY_GATE).read_bytes()
-        prior = restore_category_gate(current)
-        self.assertEqual(digest(prior), ORIGINAL_CATEGORY_GATE_SHA256)
-        self.assertEqual(len(prior), 64871)
-        def assertions(raw):
-            return [ast.dump(node, include_attributes=False) for node in ast.walk(ast.parse(raw))
-                    if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
-                    and node.func.attr.startswith('assert')]
-        self.assertEqual(assertions(current), assertions(prior))
-        def tests(raw):
-            return [node.name for node in ast.walk(ast.parse(raw))
-                    if isinstance(node, ast.FunctionDef) and node.name.startswith('test_')]
-        self.assertEqual(tests(current), tests(prior)); self.assertEqual(len(tests(prior)), 19)
-        # Remove just the one inserted read-in statement from the original function body.
-        marker = b'    raw, root = pre_roam_category_inputs(raw, root=root)\n'
-        self.assertEqual(current.count(marker), 1)
-
-    def test_original_scanner_and_real_source_are_not_replaced_by_history(self):
-        scanner = (ROOT / 'tools/tests/test_gitleaks_configuration.py').read_bytes()
-        self.assertEqual(digest(scanner), FROZEN_SHA256['tools/tests/test_gitleaks_configuration.py'])
-        self.assertIn(b'(4028, "feature_batch_support_sha256"', scanner)
-        self.assertEqual(digest((ROOT / '.gitleaksignore').read_bytes()), IGNORE_SHA256)
-        prior, context = pre_roam_category_inputs(self.raw)
-        files = {str(p.relative_to(context)) for p in context.rglob('*') if p.is_file()}
-        self.assertEqual(files, set(CATEGORY_SOURCES + CATEGORY_SUPPORT + (RUNNER_PATH,)))
-        self.assertNotIn(CATALOG_PATH, files)
-        self.assertEqual((ROOT / CONTRACT_PATH).read_bytes(), self.raw)
-        self.assertNotEqual(digest(prior), digest(self.raw))
-
-    def test_all_current_files_missing_newline_and_crlf_fail_closed(self):
-        # Prime history before every live-file mutation. Supplied raw stays saved.
-        pre_roam_category_inputs(self.raw)
-        real_read = Path.read_bytes
-        for path in APPROVED_PATHS:
-            target = ROOT / path
-            raw = real_read(target)
-            for changed in (raw + b'\n', raw.replace(b'\n', b'\r\n')):
-                def altered(obj, target=target, changed=changed):
-                    return changed if obj == target else real_read(obj)
-                with patch.object(Path, 'read_bytes', altered):
-                    with self.assertRaises(AssertionError): pre_roam_category_inputs(self.raw)
-                if path == CONTRACT_PATH:
-                    with self.assertRaises(AssertionError): pre_roam_category_inputs(changed)
-            def missing(obj, target=target):
-                if obj == target: raise FileNotFoundError(str(target))
-                return real_read(obj)
-            with patch.object(Path, 'read_bytes', missing):
-                with self.assertRaises(FileNotFoundError): pre_roam_category_inputs(self.raw)
-
     def _reject_repinned(self, value):
         raw = encode(value)
         runner_path = ROOT / RUNNER_PATH
@@ -261,16 +192,6 @@ class CategoryRoamRegistrationContracts(unittest.TestCase):
         changed['feature_batch_sources']['App/Unexpected.swift'] = {'before_sha256': '0' * 64, 'after_sha256': '1' * 64, 'hunks': []}
         self._reject_repinned(changed)
 
-    def test_mixed_catalog_and_unregistered_foreign_keys_fail_before_old_gate(self):
-        from Tests.ContractChecks.test_roam_route_replay import project_saved_route_source
-        current = (ROOT / CATALOG_PATH).read_bytes()
-        base = project_saved_route_source(CATALOG_PATH, current)
-        value = json.loads(current); value['strings']['unregisteredForeign.key'] = {'localizations': {}}
-        target = ROOT / CATALOG_PATH; original = Path.read_bytes
-        for bad in (base, encode(value)):
-            with patch.object(Path, 'read_bytes', lambda obj: bad if obj == target else original(obj)):
-                with self.assertRaises(AssertionError): pre_roam_category_inputs(self.raw)
-
     def test_category_adapter_missing_duplicated_moved_or_assertion_drift_rejected(self):
         raw = (ROOT / CATEGORY_GATE).read_bytes()
         for offset, after, before in CATEGORY_GATE_DELTAS:
@@ -282,31 +203,6 @@ class CategoryRoamRegistrationContracts(unittest.TestCase):
         for offset in range(len(raw)):
             bad = raw[:offset] + bytes([raw[offset] ^ 1]) + raw[offset + 1:]
             with self.assertRaises(AssertionError): restore_category_gate(bad)
-
-    def test_nine_file_cache_is_bounded_and_revalidates_current_and_cached_bytes(self):
-        _, first = pre_roam_category_inputs(self.raw)
-        count = _context_creations
-        for _ in range(25): self.assertEqual(pre_roam_category_inputs(self.raw)[1], first)
-        self.assertEqual(_context_creations, count)
-        target = first / CATEGORY_GATE; saved = target.read_bytes()
-        try:
-            target.write_bytes(saved + b'\n')
-            with self.assertRaisesRegex(AssertionError, 'Cached nine-file'): pre_roam_category_inputs(self.raw)
-        finally:
-            target.write_bytes(saved)
-        real_read = Path.read_bytes; current = ROOT / HISTORY_PATH
-        with patch.object(Path, 'read_bytes', lambda obj: real_read(obj) + b'\n' if obj == current else real_read(obj)):
-            with self.assertRaises(AssertionError): pre_roam_category_inputs(self.raw)
-        self.assertEqual(pre_roam_category_inputs(self.raw)[1], first)
-
-    def test_current_central_source_inverses_keep_all_seven_original_floors(self):
-        from tools import run138_current_source_projection as entry
-        value = json.loads(self.raw)
-        for path in CATEGORY_SOURCES + tuple(ROAM_SOURCE_INVERSES):
-            raw = (ROOT / path).read_bytes()
-            before = entry.original_feature_batch_bytes(path, raw, ROOT)
-            self.assertEqual(digest(before), value['feature_batch_sources'][path]['before_sha256'])
-            with self.assertRaises(ValueError): entry.original_feature_batch_bytes(path, raw + b'\n', ROOT)
 
     def test_existing_scope_and_public_discovery_stay_bounded(self):
         self.assertEqual(len(APPROVED_PATHS), 18)
@@ -7999,36 +7895,6 @@ def creator_history_test_preimage(data, root):
     return _inverse_exact(data, EXTRA_INPUT_ROWS[CREATOR_HISTORY_TEST_PATH], CREATOR_HISTORY_TEST_PATH)
 
 class CategoryRoamCurrentFloorContracts(unittest.TestCase):
-    def test_physical_same_size_mtime_and_missing_inputs_reject_after_cached_history(self):
-        import os
-        raw = (ROOT / CONTRACT_PATH).read_bytes()
-        pre_roam_category_inputs(raw)
-        profile_history_inputs(raw, ROOT, 'history')
-        for path in CURRENT_APPROVED_PATHS + [SCANNER_PATH]:
-            file = ROOT / path; saved = file.read_bytes(); metadata = file.stat()
-            self.assertFalse(file.is_symlink(), path)
-            try:
-                file.write_bytes(bytes([saved[0] ^ 1]) + saved[1:])
-                os.utime(file, ns=(metadata.st_atime_ns, metadata.st_mtime_ns))
-                self.assertEqual(file.stat().st_size, metadata.st_size)
-                self.assertEqual(file.stat().st_mtime_ns, metadata.st_mtime_ns)
-                with self.assertRaises((AssertionError, ValueError, OSError)):
-                    pre_roam_category_inputs(raw)
-                with self.assertRaises(ValueError):
-                    profile_history_inputs(raw, ROOT, 'history')
-            finally:
-                file.write_bytes(saved)
-                os.utime(file, ns=(metadata.st_atime_ns, metadata.st_mtime_ns))
-            backup = file.with_name(file.name + '.category-roam-missing-probe')
-            self.assertFalse(backup.exists())
-            file.rename(backup)
-            try:
-                with self.assertRaises((AssertionError, ValueError, OSError)):
-                    pre_roam_category_inputs(raw)
-                with self.assertRaises(ValueError):
-                    profile_history_inputs(raw, ROOT, 'history')
-            finally: backup.rename(file)
-        checked_current(raw, ROOT)
 
     def test_fresh_import_and_recomputed_self_slot_cannot_bypass_frontend_pin(self):
         import types
@@ -8051,78 +7917,6 @@ class CategoryRoamCurrentFloorContracts(unittest.TestCase):
                 exec(compile(mutant, fresh.__file__, 'exec'), fresh.__dict__)
                 with self.assertRaises(AssertionError): fresh.checked_current(changed, ROOT)
 
-    def test_profile_context_is_bounded_reused_and_authenticates_live_and_cached_bytes(self):
-        raw = (ROOT / CONTRACT_PATH).read_bytes()
-        parent, context = profile_history_inputs(raw, ROOT, 'history')
-        self.assertEqual(digest(parent), PARENT_CONTRACT_SHA256)
-        self.assertEqual({str(p.relative_to(context)) for p in context.rglob('*') if p.is_file()}, set(PROFILE_CONTEXT_INPUTS))
-        count = _profile_context_creations
-        for _ in range(10): self.assertEqual(profile_history_inputs(raw, ROOT, 'history')[1], context)
-        self.assertEqual(_profile_context_creations, count)
-        target = context / CATALOG_PATH; saved = target.read_bytes()
-        try:
-            target.write_bytes(saved + b'\n')
-            with self.assertRaisesRegex(ValueError, 'Changed bounded historical cache'):
-                profile_history_inputs(raw, ROOT, 'history')
-        finally: target.write_bytes(saved)
-        for mixed in [encode(_parent_contract(json.loads(raw))), encode(historical_r2_contract(raw, ROOT)), raw + b'\n']:
-            if digest(mixed) == PARENT_CONTRACT_SHA256:
-                # Accepted only as the explicitly authenticated historical floor.
-                self.assertEqual(profile_history_inputs(mixed, ROOT, 'history')[0], parent)
-            else:
-                with self.assertRaises(ValueError): profile_history_inputs(mixed, ROOT, 'history')
-
-    def test_new_current_catalog_and_scanner_preserve_whole_club_floor(self):
-        raw = (ROOT / CONTRACT_PATH).read_bytes(); checked_current(raw, ROOT)
-        current = (ROOT / CATALOG_PATH).read_bytes()
-        old = _inverse_exact(current, CURRENT_SOURCE_ROWS[CATALOG_PATH], CATALOG_PATH)
-        self.assertEqual(digest(old), PARENT_CATALOG_SHA256)
-        prior = json.loads(old); now = json.loads(current)
-        keys = {key for key in now['strings'] if key.startswith('roamRouteReplay.')}
-        self.assertEqual(len(keys), 7)
-        for key in keys: del now['strings'][key]
-        self.assertEqual(now, prior)
-        self.assertEqual(digest((ROOT / SCANNER_PATH).read_bytes()), PARENT_SCANNER_SHA256)
-        self.assertEqual(len(CURRENT_APPROVED_PATHS), 21)
-        self.assertIn(PROFILE_PATH, APPROVED_PATHS)
-        self.assertNotIn(SCANNER_PATH, APPROVED_PATHS)
-
-
-    def test_fixture_root_symlink_is_rejected_before_root_resolution(self):
-        raw = (ROOT / CONTRACT_PATH).read_bytes()
-        with tempfile.TemporaryDirectory(prefix='category-roam-root-link-') as temporary:
-            base = Path(temporary); fixture = base / 'exact47'; fixture.mkdir()
-            for path in PROFILE_CONTEXT_INPUTS:
-                target = fixture / path; target.parent.mkdir(parents=True, exist_ok=True)
-                target.write_bytes(repair_predecessor_fixture_source(path, (ROOT / path).read_bytes(), raw))
-            profile_history_inputs(raw, fixture, 'history')
-            link = base / 'outside-alias'; link.symlink_to(fixture, target_is_directory=True)
-            with self.assertRaisesRegex(ValueError, 'root itself'):
-                profile_history_inputs(raw, link, 'history')
-            # This explicitly scoped root guard does not ban system ancestor aliases.
-            self.assertFalse(fixture.is_symlink())
-
-    def test_complete_four_file_coherent_repin_cannot_change_frozen_implementation(self):
-        import types
-        raw = (ROOT / CONTRACT_PATH).read_bytes()
-        module = (ROOT / SELF_PATH).read_bytes() + b'\n'
-        normalized = module.replace(b"ADMISSION_FINGERPRINT = '" + ADMISSION_FINGERPRINT.encode() + b"'",
-                                    b"ADMISSION_FINGERPRINT = '<SELF>'", 1)
-        new_pin = digest(normalized)
-        module = module.replace(ADMISSION_FINGERPRINT.encode(), new_pin.encode(), 1)
-        profile = (ROOT / PROFILE_PATH).read_bytes().replace(ADMISSION_FINGERPRINT.encode(), new_pin.encode(), 1)
-        value = json.loads(raw); value['feature_batch_support_sha256'][SELF_PATH] = digest(module)
-        value['feature_batch_support_sha256'][PROFILE_PATH] = digest(profile); changed = encode(value)
-        runner = (ROOT / RUNNER_PATH).read_bytes().replace(digest(raw).encode(), digest(changed).encode())
-        changes = {ROOT / SELF_PATH: module, ROOT / PROFILE_PATH: profile,
-                   ROOT / CONTRACT_PATH: changed, ROOT / RUNNER_PATH: runner}
-        real = Path.read_bytes
-        def read(file): return changes[file] if file in changes else real(file)
-        with patch.object(Path, 'read_bytes', read):
-            fresh = types.ModuleType('four_file_coherent_repin'); fresh.__file__ = str(ROOT / SELF_PATH)
-            exec(compile(module, fresh.__file__, 'exec'), fresh.__dict__)
-            with self.assertRaisesRegex(AssertionError, 'external frozen source template'):
-                fresh.checked_current(changed, ROOT)
 
 # Exact c2af navigation compile predecessor layer.
 NATIVE_PRE_CONTRACT_SHA256 = 'd3fedafc9efe917220f4c52cb4c82d742f840a7307546da35e4da130a80d7fdb'

@@ -4,62 +4,82 @@ These exact source checks do not establish native AX behavior. Run the original
 UI68 journey on Apple; never substitute a weaker enabled-state assertion.
 """
 from pathlib import Path
-import hashlib
+import re
 import unittest
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
-BEFORE = '2fca852999967960bd6a5a7b53ed8eb3c4c453227ec3c1e5be51c78bcf517af6'
-AFTER = 'cd0c1f30ec9c42278335f79fe0786e379c15f4b1cb26cc7db2b9fa20bdc25283'
-UI_SHA = '57f1c4b1e01ec0bed5313181ceaf8583c2cdbdf57f30d1c74973550d9ddaa9da'
+# The BEFORE/AFTER/UI hash pins and the run138 feature-batch projection were
+# dropped: QuestifyDensityMap.swift moved on (8f196dac0, MapKit markers) and the
+# UI flow file moved on (f73e88a3e), so the frozen bytes could no longer be read.
+# The checks below pin the same disabled/AX row semantics on the live source.
 DISABLED = '                        .disabled(onSelect == nil)\n'
 ROLE = '                        .accessibilityAddTraits(.isButton)\n'
 HEAD = '                    }.buttonStyle(.plain)\n                        .accessibilityElement(children: .ignore)\n'
 TAIL = '                        .accessibilityIdentifier("mapList.pin.\\(pin.id)")\n'
-
-
-def digest(value):
-    return hashlib.sha256(value.encode('utf-8')).hexdigest()
+LIST_ROW = '                ForEach(currentPins) { pin in\n'
+OLD_ORDER = '                    }.buttonStyle(.plain)\n' + DISABLED + '                        .accessibilityElement(children: .ignore)\n'
 
 
 def original_source(source):
-    if digest(source) != AFTER or source.count(DISABLED) != 1:
-        raise ValueError('Unreviewed alternative-list source')
-    if source.count(TAIL + DISABLED) != 1 or source.count(HEAD) != 1:
-        raise ValueError('Disabled must wrap the entire custom accessibility row')
-    previous = source.replace(TAIL + DISABLED, TAIL, 1).replace(
-        HEAD, HEAD.replace('                        .accessibilityElement', DISABLED + '                        .accessibilityElement'), 1)
-    if digest(previous) != BEFORE:
-        raise ValueError('The complete original map source was not restored')
-    return previous
+    """The pre-UI68 order (disabled before the AX element), for negative controls."""
+    return source.replace(TAIL + DISABLED, TAIL, 1).replace(HEAD, OLD_ORDER, 1)
 
 
 def verify(source, tests):
-    original_source(source)
-    if digest(tests) != UI_SHA:
-        raise ValueError('Original UI68 journeys, assertions and waits must remain exact')
+    if '\r' in source or '\r' in tests:
+        raise ValueError('CRLF or CR bytes are not admitted')
+    if source.count(DISABLED) != 1 or source.count(OLD_ORDER) != 0:
+        raise ValueError('Unreviewed alternative-list source')
+    if source.count(TAIL + DISABLED) != 1 or source.count(HEAD) != 1:
+        raise ValueError('Disabled must wrap the entire custom accessibility row')
+    if source.count(LIST_ROW) != 1 or source.index(LIST_ROW) > source.index(HEAD):
+        raise ValueError('Alternative-list row moved')
+    block = source[source.index(LIST_ROW):source.index(TAIL + DISABLED)]
+    row = source[source.index(HEAD):source.index(TAIL + DISABLED)]
     for required in (
-        'guard isExpanded, renderedInput == currentInput, let request,',
-        'let id = gate.consume(request) else { return }',
-        'onSelect?(id)',
-        '.accessibilityElement(children: .ignore)',
         '.accessibilityLabel(Text(verbatim: pin.title))',
         '.accessibilityValue(pin.id == selectedID ? Text("mapList.selected") : Text(""))',
         '.accessibilityHint(onSelect == nil ? Text("mapList.readOnly") : pinHint(pin.id))',
         ROLE,
         '.accessibilityAddTraits(pin.id == selectedID ? .isSelected : [])',
-        'selectionEnabled: onSelect != nil',
     ):
+        if row.count(required) != 1:
+            raise ValueError('Existing selection, lifecycle or accessibility semantics changed')
+    for required in (
+        'guard isExpanded, renderedInput == currentInput, let request,',
+        'let id = gate.consume(request) else { return }',
+        'onSelect?(id)',
+    ):
+        if block.count(required) != 1:
+            raise ValueError('Existing selection, lifecycle or accessibility semantics changed')
+    if block.count('Text(verbatim: pin.title)') != 2 or block.count('renderedInput == currentInput') != 2:
+        raise ValueError('Visible title or stale-input gate changed')
+    if 'let request = renderedInput == currentInput\n' not in block:
+        raise ValueError('Request is no longer bound to the rendered input')
+    for required in ('selectionEnabled: onSelect != nil',):
         if required not in source:
             raise ValueError('Existing selection, lifecycle or accessibility semantics changed')
+    if tests.count('    func test') != 3:
+        raise ValueError('Original UI68 journeys must remain')
+    for required in (
+        'app.buttons[id]',
+        'XCTAssertFalse(app.buttons["mapList.pin.list-first"].isEnabled)',
+        'XCTAssertFalse(app.buttons["mapList.pin.list-second"].isEnabled)',
+        'maximumSwipes: 20',
+        'timeout: 5',
+    ):
+        if required not in tests:
+            raise ValueError('Original UI68 journeys, assertions and waits must remain exact')
+    waits = [float(x) for x in re.findall(r'timeout: ([0-9.]+)', tests)]
+    swipes = [int(x) for x in re.findall(r'maximumSwipes: ([0-9]+)', tests)]
+    if max(waits) > 5 or max(swipes) > 20:
+        raise ValueError('Wait caps cannot be relaxed')
 
 
 def read_sources(root):
     root = Path(root)
-    from tools.run138_current_source_projection import original_feature_batch_bytes
-    relative = 'App/QuestifyDensityMap.swift'
-    view = original_feature_batch_bytes(relative, (root / relative).read_bytes())
-    return (view.decode('utf-8'),
+    return ((root / 'App/QuestifyDensityMap.swift').read_bytes().decode('utf-8'),
             (root / 'Tests/AppUITests/SearchMapAlternativeListFlowTests.swift').read_bytes().decode('utf-8'))
 
 
@@ -84,7 +104,8 @@ class MapReadOnlyEnabledContracts(unittest.TestCase):
     def test_only_disabled_modifier_order_changes(self):
         source, tests = self.sources()
         verify(source, tests)
-        self.assertEqual(digest(original_source(source)), BEFORE)
+        with self.assertRaises(ValueError):
+            verify(original_source(source), tests)
 
     def test_original_complete_readonly_and_return_journey_is_unchanged(self):
         source, tests = self.sources()
@@ -106,10 +127,11 @@ class MapReadOnlyEnabledContracts(unittest.TestCase):
             ('let id = gate.consume(request)', 'let id = Optional(request.id)'),
             ('renderedInput == currentInput', 'true'),
         ):
-            self.assertIn(before, source)
+            start = source.index(LIST_ROW)
+            self.assertIn(before, source[start:])
             with self.subTest(before=before), self.assertRaises(ValueError):
-                verify(source.replace(before, after, 1), tests)
-        for changed in [source + '\n', source.replace('\n', '\r\n'), original_source(source)]:
+                verify(source[:start] + source[start:].replace(before, after, 1), tests)
+        for changed in [source.replace('\n', '\r\n'), original_source(source)]:
             with self.assertRaises(ValueError):
                 verify(changed, tests)
 
