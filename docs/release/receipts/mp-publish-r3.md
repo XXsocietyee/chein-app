@@ -74,5 +74,6 @@ Scope: `pages/template/index`, the tabBar publish sheet, `pages/publish/*`, `pag
 - **Scaffold:** `python3 tools/check_scaffold.py` passes.
 - **Accessibility lint:** `python3 -B tools/check_a11y_lint.py` passes with 0 new findings.
 - **Contract ratchet:** `python3 -B tools/contract_ratchet.py --check` shows 52 failing against a baseline of 52, with **new 0** (round 3 queue pass at the pricing/partner/node-play commit, after merging `ui/combined-r7`). generate_project, check_scaffold and check_a11y_lint (0 new) also pass on that head.
+- **Continue pass 2 (topic components):** merged `ui/combined-r7` (fast-forward, 84 commits), then contract ratchet 52 failing / baseline 52 / **new 0**; design consistency PASS (all counts 0); a11y lint 0 new; generate_project and check_scaffold pass. The theme-records commit was checked with its contract files (`test_w2_07_topic_parity`, `test_topic_session_selection`, `test_contextual_selfplay_payment`: OK).
 - **Not run:** no Swift compiler is available here. The edits mirror existing patterns: `ViewModifier` with if/else, `navigationDestination(item:)` on a `Hashable` enum, `ProgressView { Text }`, and `@ViewBuilder` parts.
 - **Nothing deployed.**
