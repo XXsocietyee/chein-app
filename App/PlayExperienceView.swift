@@ -113,7 +113,7 @@ struct PlayThemeMusicKey: Equatable {
     private var navigationLayer: some View {
         Group {
             if model.gameplayMode == .freeExploration || (model.snapshot == nil && presentedMode == .freeExploration) {
-                if NativeR2Flags.freeExplore {
+                if NativeR2Flags.freeExplore && NativeR2Flags.freeExploreMapHome {
                     NativeFreeExploreMapView(model: model, storeDestination: { AnyView(freeStoreDestination($0)) },
                                              rewardCollectionDestination: rewardCollectionDestination,
                                              castConfig: castModel?.config, castEnding: model.castPayload,

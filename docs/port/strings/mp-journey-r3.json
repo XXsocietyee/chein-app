@@ -440,5 +440,73 @@
         }
       }
     }
+  },
+  "playFree.nodes.header": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Places to explore"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "探索节点"
+        }
+      }
+    }
+  },
+  "playFree.selfPlayBanner %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Exploring on your own · valid until %@"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "自由探索中 · 有效期至 %@"
+        }
+      }
+    }
+  },
+  "playFree.meta.stores %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%lld shops"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%lld 家商家"
+        }
+      }
+    }
+  },
+  "playFree.meta.chaptersStores %lld %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%1$lld chapters · %2$lld shops"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%1$lld 章 · %2$lld 家商家"
+        }
+      }
+    }
   }
 }

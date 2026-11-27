@@ -21,37 +21,11 @@ import SwiftUI
         if let presentation = FreeExplorationPresentation(snapshot: snapshot) {
             let stores = presentation.stores.filter { chapterFilter == nil || $0.chapterID == chapterFilter }
             VStack(alignment: .leading, spacing: 20) {
-                Text("playFree.title").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("playFree.pass")
-                if let title = snapshot.result.topicName { CYHeroHeader(verbatim: title, subtitle: snapshot.result.topicDescription) }
-                else if let description = snapshot.result.topicDescription { Text(verbatim: description).cyText(.body).foregroundStyle(CYColor.textSecondary) }
-                Text("playFree.choiceHint").cyText(.body).foregroundStyle(CYColor.textSecondary)
-                let facts = FreeExplorationStoryFacts(snapshot: snapshot)
-                if !facts.isPerkOnly, let unlocked = facts.storyUnlocked, let total = facts.storyTotal {
-                    Text("playFree.story.unlocked.count \(unlocked) \(total)")
-                        .font(.subheadline)
-                        .monospacedDigit()
-                        .accessibilityIdentifier("playFree.story.unlocked.count")
+                // mp-journey r3 (MP pages/play/index.wxml `fx`, mode 2): before the pack opens the screen holds only the
+                // pack; the pass head (claim · sub · ring or 已解锁 · meta) and 探索节点 arrive with the first card.
+                if packOpen || skipsPack || presentation.stores.isEmpty || snapshot.availability == .registrationRequired {
+                    passHead(presentation)
                 }
-                if let done = presentation.redeemed, let total = presentation.total {
-                    // Mini-program 已核销环: one ring that fills as stores are redeemed.
-                    HStack(spacing: 14) {
-                        // Components r1: the shared `CYRing` (Reduce Motion aware fill animation).
-                        CYRing(progress: CYRingMath.fraction(done, of: total), tint: CYColor.textPrimary, diameter: 52, lineWidth: 5) {
-                            Text(verbatim: "\(done)/\(total)")
-                                .cyText(.micro, monospacedDigit: true)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.5)
-                                .contentTransition(.numericText(value: Double(done)))
-                        }
-                        .accessibilityHidden(true)
-                        Text("playFree.redeemed.count \(done) \(total)").monospacedDigit()
-                            .cyText(.label).foregroundStyle(CYColor.textPrimary)
-                    }
-                    .accessibilityElement(children: .combine)
-                    .accessibilityIdentifier("playFree.redeemed.count")
-                }
-                if let expiry = snapshot.result.expiresAt { LabeledContent("play.expiresAt") { Text(verbatim: expiry) } }
-                if let note = snapshot.result.timeNote { Text(verbatim: note).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
                 if snapshot.availability == .registrationRequired { Text("playFree.registrationRequired") }
                 else if !packOpen && !skipsPack && !presentation.stores.isEmpty {
                     // Foil pack printed with the topic name (x-fix7 P-6). Tap tears it open: a short shake and
@@ -59,9 +33,9 @@ import SwiftUI
                     Button { openPack(count: presentation.stores.count) } label: {
                         // MP `.fx-pack__foil` (pages/play/assets/pack-foil.png) is the pack body; the topic name is printed in black.
                         VStack(spacing: 18) {
+                            // MP x-fix7 P-6: the pack carries the topic name only; no chapter subtitle, no "tap to open".
                             Text(verbatim: snapshot.result.topicName ?? "").cyText(.sectionTitle).cyLookTitle()
                                 .foregroundStyle(Color.black).multilineTextAlignment(.center).lineLimit(2)
-                            Text("playFree.pack.open").cyText(.label).foregroundStyle(Color.black.opacity(0.6))
                         }.frame(maxWidth: .infinity, minHeight: 200)
                             .padding(CYSpacing.xl)
                             .background {
@@ -72,10 +46,13 @@ import SwiftUI
                             .rotationEffect(.degrees(tearing && !reduceMotion ? -2.5 : 0))
                             .scaleEffect(tearing && !reduceMotion ? 1.06 : 1)
                             .opacity(tearing ? 0 : 1)
-                    }.buttonStyle(.plain).accessibilityIdentifier("playFree.pack.open")
+                    }.buttonStyle(.plain)
+                    .accessibilityLabel(Text("playFree.pack.open"))
+                    .accessibilityIdentifier("playFree.pack.open")
                     .sensoryFeedback(.impact(weight: .heavy), trigger: tearing)
                 } else {
-                    CYSectionHeader("playFree.stores")
+                    // MP `fx-lhd__t` 探索节点 (hidden for a perk-only topic).
+                    if !FreeExplorationStoryFacts(snapshot: snapshot).isPerkOnly { CYSectionHeader("playFree.nodes.header") }
                     if stores.isEmpty { CYEmptyState(systemImage: "storefront", "playFree.stores.empty") }
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: typeSize.isAccessibilitySize ? 1 : 2), spacing: 12) {
                         ForEach(Array(stores.enumerated()), id: \.element.id) { index, node in
@@ -110,7 +87,65 @@ import SwiftUI
         }
     }
 }
+extension FreeExplorationExperienceView {
+    /// `utils/motion-preference.js`: the same stored preference the city run's 游玩工具 writes.
+    fileprivate var freeReducedMotionBinding: Binding<Bool> {
+        Binding(get: { _ = playReducedMotion; return PlayReducedMotionPreference.isEnabled(in: .standard) },
+                set: { on in PlayReducedMotionPreference.set(on, in: .standard); playReducedMotion = on })
+    }
+}
+
 extension FreeExplorationCardBrowser {
+    /// MP `fx-pass`: the topic name as the claim, the description under it, then the ring (已完成 done/total) or, for a
+    /// story-gated topic, 已解锁 x / y 章, and the meta lines (自由探索中 · 有效期至 …, N 章 · M 家商家).
+    @ViewBuilder fileprivate func passHead(_ presentation: FreeExplorationPresentation) -> some View {
+        let facts = FreeExplorationStoryFacts(snapshot: snapshot)
+        let claim = snapshot.result.topicName ?? snapshot.result.chapters.first?.name
+        VStack(alignment: .leading, spacing: 12) {
+            if let claim, !claim.isEmpty {
+                Text(verbatim: claim).cyText(.pageTitle).accessibilityAddTraits(.isHeader)
+                    .accessibilityIdentifier("playFree.pass")
+            } else {
+                Text("playFree.title").cyText(.pageTitle).accessibilityAddTraits(.isHeader)
+                    .accessibilityIdentifier("playFree.pass")
+            }
+            if let description = snapshot.result.topicDescription ?? snapshot.result.chapters.first?.description, !description.isEmpty {
+                Text(verbatim: description).cyText(.body).foregroundStyle(CYColor.textSecondary)
+            }
+            HStack(spacing: 14) {
+                if !facts.isPerkOnly, let unlocked = facts.storyUnlocked, let total = facts.storyTotal {
+                    Text("playFree.story.unlocked.count \(unlocked) \(total)")
+                        .font(.subheadline)
+                        .monospacedDigit()
+                        .accessibilityIdentifier("playFree.story.unlocked.count")
+                } else if !facts.isPerkOnly, let done = presentation.redeemed, let total = presentation.total {
+                    // Mini-program 已核销环: one ring that fills as stores are redeemed.
+                    CYRing(progress: CYRingMath.fraction(done, of: total), tint: CYColor.textPrimary, diameter: 52, lineWidth: 5) {
+                        Text(verbatim: "\(done)/\(total)")
+                            .cyText(.micro, monospacedDigit: true)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
+                            .contentTransition(.numericText(value: Double(done)))
+                    }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text("playFree.redeemed.count \(done) \(total)"))
+                    .accessibilityIdentifier("playFree.redeemed.count")
+                }
+                VStack(alignment: .leading, spacing: 4) {
+                    if snapshot.result.selfPlay == true, let expiry = snapshot.result.expiresAt, !expiry.isEmpty {
+                        Text("playFree.selfPlayBanner \(expiry)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    }
+                    if facts.isPerkOnly {
+                        Text("playFree.meta.stores \(presentation.stores.count)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    } else {
+                        Text("playFree.meta.chaptersStores \(snapshot.result.chapters.count) \(presentation.stores.count)")
+                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    }
+                }
+            }
+        }
+    }
+
     private func openPack(count: Int) {
         if tearing || dealing {
             // D-26: tapping during opening/dealing after 300ms skips straight to settled open state.
@@ -160,6 +195,11 @@ struct FreeExplorationStoreName: View {
     @State private var chapterFilter: Int?
     @State private var showChapterPicker = false
     @State private var showEmergencyHelp = false
+    /// mp-journey r3 (MP P-28): free exploration opens the same 游玩工具 sheet as city orientation (旅程手记, preferences).
+    @State private var showPlayTools = false
+    @AppStorage(PlatformBGMPreference.storageKey) private var playBGMOn = PlatformBGMPreference.defaultValue
+    @AppStorage(PlatformNarrationAutoplayPreference.storageKey) private var playNarrationOn = PlatformNarrationAutoplayPreference.defaultValue
+    @AppStorage(PlayReducedMotionPreference.storageKey) private var playReducedMotion = false
     @Environment(\.locale) private var locale
     @Environment(\.playThemePresentationReader) private var themeReader
     private var themeFacts: PlayThemePresentationFacts? {
@@ -230,10 +270,21 @@ struct FreeExplorationStoreName: View {
             ToolbarItem(placement: .topBarTrailing) {
                 // Mini-program mode 2 keeps 切换章节 in the tools layer (the old bottom-bar left key).
                 PlayToolsMenu(showsChapters: model.snapshot.map { !FreeExplorationStoryFacts(snapshot: $0).isPerkOnly && $0.result.chapters.count > 1 } == true, showsEmergency: model.snapshot != nil,
-                              openChapters: { showChapterPicker = true }, openEmergency: { showEmergencyHelp = true })
+                              openChapters: { showChapterPicker = true }, openEmergency: { showEmergencyHelp = true },
+                              openPreferences: model.snapshot == nil ? nil : { showPlayTools = true })
             }
         }
         .cySheet(isPresented: $showEmergencyHelp) { PlayEmergencyHelpSheet() }
+        .sheet(isPresented: $showPlayTools) {
+            PlayToolsAndLeadSheetView(
+                bgmEnabled: $playBGMOn,
+                narrationAutoplay: $playNarrationOn,
+                reduceMotionOverride: freeReducedMotionBinding,
+                onClose: { showPlayTools = false },
+                showsContentRows: false,
+                journalRows: model.snapshot.map(PlayJournal.rows(in:))
+            )
+        }
         .cySheet(isPresented: $showChapterPicker) {
             if let snapshot = model.snapshot {
                 PlayChapterPickerSheet(rows: PlayChapterPickRow.rows(snapshot), current: chapterFilter) { picked in
