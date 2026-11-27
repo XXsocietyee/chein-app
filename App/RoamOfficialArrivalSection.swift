@@ -101,7 +101,11 @@ extension EnvironmentValues {
         if let event {
             Text(verbatim: event.title).font(.headline)
             if event.paused {
-                Text("roam.official.paused").foregroundStyle(.orange)
+                if let reason = event.pausedReason?.trimmingCharacters(in: .whitespacesAndNewlines), !reason.isEmpty {
+                    Text("roam.official.pausedReason \(reason)").foregroundStyle(.orange)
+                } else {
+                    Text("roam.official.paused").foregroundStyle(.orange)
+                }
             } else if event.signed != true {
                 Text("roam.official.signupFirst").foregroundStyle(.secondary)
             }
@@ -120,7 +124,8 @@ extension EnvironmentValues {
         } else if loadFailed {
             Button("roam.official.retry") { Task { await load() } }
         } else {
-            ProgressView()
+            ProgressView("roam.official.loading")
+                .accessibilityIdentifier("roam.official.loading")
         }
     }
 
