@@ -524,11 +524,11 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
         // E2E-20261113b N3: the List did not inset for the pinned action, so the last section ("More info", which holds
         // the play row) ended under it. Reserve the pinned action's height below the content.
         // +36 for the going stack (design pass explore P6) above the pill.
-        .contentMargins(.bottom, registrationEnabled ? 148 : 0, for: .scrollContent)
+        .contentMargins(.bottom, showsFooter(detail) ? 148 : 0, for: .scrollContent)
         .safeAreaInset(edge:.bottom,spacing:0) {
             // This view exists only for .allowed details. Preserve the caller's
             // existing gate; the unchanged registration sheet owns further checks.
-            if registrationEnabled { registrationAction(detail) }
+            if showsFooter(detail) { registrationAction(detail) }
         }
     }
     // MARK: native r2 city orientation (NativeR2Flags.cityOrientation)
@@ -704,6 +704,14 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
         guard var line = parts.first else { return nil }
         for part in parts.dropFirst() { line = line + Text(verbatim: " · ") + part }
         return line
+    }
+    /// mp-home r3 (19:50 sweep, OWNER RULE 2 no dead controls): the MP `actionFor` 「—」 state is not a button, so with no
+    /// host footer the bar is hidden instead of showing an empty disabled pill.
+    private func showsFooter(_ detail: ActivityDetail) -> Bool {
+        guard registrationEnabled else { return false }
+        guard primaryAction == .unavailable else { return true }
+        let hostID: Int? = hostCancelAccess?.accountID ?? viewerAccountID
+        return !detail.isCancelled && ActivityHostCancelRules.isHost(hostMemberID: detail.hostMemberID, accountID: hostID)
     }
     private func registrationAction(_ detail: ActivityDetail) -> some View { CYFooterBar {
         // mp-home r3 (MP scene-play-activity-detail index.wxml:147-153): the footer is the one main button (share is in

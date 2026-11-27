@@ -22,7 +22,8 @@ class ObjectBadgeWallLayoutContracts(unittest.TestCase):
         # i18n/r1-strings: the badge share text's English half says "on Chengyin" instead of "on 城瘾" (copy only).
         # us/r1-one-app (owner 2026-11-27, English brand Chein): "on Chengyin" -> "on Chein" (copy only).
         # design/r3-consistency: detail artwork clip radius 16 -> CYRadius.card (one radius scale; look only).
-        self.assertEqual(hashlib.sha256(value).hexdigest(), 'b21bc9a4f374ba90d79d5b5a03224259e301232c09b0273cb096bf6b43f6ab48')
+        # design/r3-consistency run 10: share button hand-drawn capsule -> .borderedProminent capsule on .bar (look only).
+        self.assertEqual(hashlib.sha256(value).hexdigest(), '9dd1b54eeb23df2cef1fd4209928cd6cc8348b1390fbce7ee55656e5758f3ccd')
         self.assertIn('let capturedIdentity = reader.identity', self.wall)
         self.assertIn('ObjectBadgeDetailView(badge: badge, reader: reader, expectedIdentity: capturedIdentity, media: media,', self.wall)
     def test_list_wall_switch_is_not_required(self):

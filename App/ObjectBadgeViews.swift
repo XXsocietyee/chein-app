@@ -273,11 +273,13 @@ struct ObjectBadgeWallBadgeLabel: View {
             if valid, !badge.isLocked {
                 ShareLink(item: ChannelCopy.text("我在「城瘾」点亮了徽章「\(displayName)」", "I earned the “\(displayName)” badge on Chein", locale: locale)) {
                     Label { Text(verbatim: ChannelCopy.text("分享徽章", "Share badge", locale: locale)) } icon: { Image(systemName: "square.and.arrow.up") }
-                        .cyText(.cardTitle).foregroundStyle(palette.actionPrimaryFg)
-                        .frame(maxWidth: .infinity, minHeight: 56).background(palette.actionPrimaryBg, in: Capsule())
+                        .cyText(.button)
+                        .frame(maxWidth: .infinity, minHeight: 44)
                 }
+                .buttonStyle(.borderedProminent).buttonBorderShape(.capsule).controlSize(.large)
+                .tint(palette.actionPrimaryBg)
                 .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.md)
-                .background(palette.bgPage.opacity(0.96))
+                .background(.bar)
                 .accessibilityIdentifier("objects.badge.share")
             }
         }

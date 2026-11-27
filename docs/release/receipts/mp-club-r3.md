@@ -11,7 +11,7 @@ The 21 MP pages were compared section by section, top to bottom, against their n
 | `python3 tools/generate_project.py` | OK |
 | `python3 tools/check_scaffold.py` | PASS (no FAIL lines; typography lint PASS) |
 | `python3 -B tools/check_a11y_lint.py` | PASS: 0 new |
-| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 11, after merging combined-r7 again), **new 0**, fixed 0 |
+| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 12, after merging combined-r7 again), **new 0**, fixed 0 |
 | `python3 tools/check_design_consistency.py` | PASS |
 
 There is no Swift compiler in this environment. Edits are kept type-simple and reuse existing keys, components and patterns.
@@ -46,10 +46,10 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/badges | `ClubBadgeManagementView.swift` | Matches: list, 全部勋章 · N 枚, create, grant picker, states. | Matches |
 | club/apply | `ClubGovernanceCommandForm` (hostApply) | Submit must read 成为俱乐部主理人 / 提交中… (wxml:164-165); native read 提交申请. | **Fixed** (existing keys `settings.becomeClubHost`, `gap.club.coopPool.submitting`) |
 | club/apply | same | 上一步 button: the MP nav back steps back (js:212 `onBack` → `step - 1`); native is a sheet with 关闭 in the bar, so 上一步 carries that behaviour. | **Kept** (reason given) |
-| club/apply | same | Extra required-fields footer; 状态 row on the done card; done-state loading/error + 可建俱乐部 row. | Footer: **kept** (pass 7 re-check: it carries the MP `*` required marks and the MP 联系方式仅用于审核 note, wxml:63-80, as a native footer, CLB-r10-nat-apply-03). Done state: **not done** (large) |
+| club/apply | same | Extra required-fields footer; 状态 row on the done card; done-state loading/error + 可建俱乐部 row. | Footer: **kept** (pass 7 re-check: it carries the MP `*` required marks and the MP 联系方式仅用于审核 note, wxml:63-80, as a native footer, CLB-r10-nat-apply-03). Done state: **re-checked (pass 12): matches** MP wxml:168-186: 已生效 status, 主理人 name when present, 可建俱乐部 (allowance), then 创建我的俱乐部 (`ClubCreateMyClubLink`) |
 | club/create | `ClubOperationsViews.swift` | 返回上一页 was missing on the no-permission and limit states (wxml:23, 27). | **Fixed.** Secondary `Button("team.page.goBack") { dismiss() }` |
 | club/create | same | 创建资格未确认 needs primary 重新检查 + secondary 返回上一页 (wxml:16-18). | **Fixed (pass 2).** 重新检查 `.borderedProminent`, 返回上一页 `.bordered` |
-| club/create | same | Extra step checklist on the intro; media above the step header on step 3; extra 上一步. | **Not done.** Step 3 order is large |
+| club/create | same | Extra step checklist on the intro; media above the step header on step 3; extra 上一步. | **Fixed (pass 12).** Intro = title + 开始创建 (pinned step bar) only, the R-steps checklist removed (MP wxml:34-37). Step 3: the 封面 / Logo section moved under the step header and above 名称 (MP wxml:57-97) through a `stepMedia` slot on `ClubOperationsProfileForm`; edit and the flat UI-test form keep it before the form. 上一步: kept (MP nav back steps back, js `onBack`) |
 | club/enroll | `ClubEnrollmentView.swift` | The stale inline error's action should read 重试更新 (wxml:20). | **Fixed** (`club.enroll.retryUpdate`, also added to `ClubEnrollmentLocalizations.fragment.json`) |
 | club/enroll | same | MP order is sub line → 正在更新报名名册… → stale error (wxml:17-20); native had the sub line last. | **Fixed (pass 2)** |
 | club/enroll | same | Extra escrow line (pinned by `test_club_member_pages`); the ticket count comes from the rows instead of `tk.signups`; MP hides zero-signup tickets once any ticket has signups (js:421-422 `hideEmpty`), native listed them all. | **Fixed (pass 11).** Escrow 「报名费由平台担保托管」 removed (not in any MP page; pin flipped to assertNotIn). Count re-checked: MP `signups: regs.length` (js:397) = native `registrants.count`, matches. `visibleTickets` applies hideEmpty |
@@ -61,7 +61,7 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/detail · `components/cy/timeline`, club/settlement · `components/cy/fe-reference-range`, topic-detail · `components/club-director-*` (10 sheets) | management / director surfaces | Owner-stage timeline, settlement date range + 导出, and the live-run director sheets (ready, recap, chapter, team, role, incident, broadcast, end confirm). | **Not done.** Checked for scope: all are owner/director tools under the large topic-detail director row above; queued after the floating 加入 capsule |
 | club/join-requests | `ClubManagementView.swift` | Loading should read 正在加载入会申请 (wxml:11); the empty state is the title only (wxml:20). | **Fixed** (`club.joinRequests.loading`) |
 | club/join-requests | `MPReviewedPageScreen.swift` | A link without `clubId` should show the missing-param state with 返回 (wxml:12). | **Fixed.** `MemberMissingLinkState` |
-| club/join-requests | same | Native rows push a detail page and 通过/拒绝 go through a review sheet; the MP does both in one tap. | **Not done.** large |
+| club/join-requests | same | Native rows push a detail page and 通过/拒绝 go through a review sheet; the MP does both in one tap. | **Re-checked (pass 12): matches.** The MP does not act in one tap either: 通过 opens a named confirm modal and 拒绝 a named reason sheet (js:131-157, `confirmReview` / `askRejectReason`). Native rows already carry visible 拒绝 (`.bordered`) / 通过 (`.borderedProminent`) like the card (wxml:31-40), plus 申请于 and the join message. The row's detail push is kept (no MP section added or reordered) |
 | club/roles | `ClubOpsGovernanceSections.swift` | The owner row is name + 主理人 only; there is no footer line (wxml:23-45). | **Fixed** |
 | club/roles | same | No members → full-page 暂无成员 (wxml:19, js:364). | **Fixed.** `ContentUnavailableView` when there are no delegable members and no assignments |
 | club/settlement | `ClubGovernanceViews.swift` settlement | The direct ledger is for the owner only (`summary.isOwner`, wxml:9). | **Fixed** |
@@ -154,6 +154,8 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 18. Pass 8: merge combined-r7 (xcstrings: combined is a superset; 35 keys take its newer values); 出示团码 card in MP order (code → session name → 保存到相册); 结束主题 confirm names the topic; 解散 confirm in the MP's three consequences.
 20. Pass 10: merge combined-r7 (xcstrings: combined is a superset); 查找俱乐部 split into 你的俱乐部 / 发现 rows (P25); 解散 confirm titled 解散「name」？.
 19. Pass 9: merge combined-r7 (xcstrings: combined is a superset); d4 club detail mounts the 帖文 feed (18:15 sweep); d4-badges / d4-stamps crash written up.
+21. Pass 11: 报名名册 escrow line removed, hideEmpty tickets, team row colours.
+22. Pass 12: merge combined-r7 (xcstrings: combined is a superset, plural variants); club fixtures follow the UI language; 创建俱乐部 intro without the checklist and 封面/Logo under the step-3 header; join-requests and apply done re-checked.
 8. Pass 2: shared club thumbnail, customer-detail edit heading, create check-failed 返回上一页, enroll order, check-in rail refund note.
 
 ## Sweep check (pass 7, build 070117595, `docs/sweeps/latest/mp-club/sheet-zh-Hans.jpg`)
@@ -164,7 +166,7 @@ Most tiles are the launch logo (coordinator 17:40: taken under load, ignore). Re
 | MP page | Native | Sweep finding | Status |
 |---|---|---|---|
 | `pages/club/detail` 帖文 tab (wxml:96-158, `/api/club/post/list`) | `App/ClubDetailView.swift:111-168`, fixture `App/DesignFixtures/D4Fixtures.swift` | `zh-Hans-d4-tab-posts.jpg`: 帖文 showed 「当前版本暂不可查看俱乐部帖子」. The view is right: with a community context it mounts `ClubCommunityFeedView` (MP post list, 公告 · 新人先看, composer pill, MP empty state). The d4 fixture never passed one, so the sweep hit the no-community fallback. | **Fixed (fixture).** `ClubCommunityFixture.context(identity:clubID:)` (offline transport, rows carry the requested club id); `d4-tab-*` and `d4-detail` pass it for viewer 701 / club 81. Re-check on the next sweep |
-| `pages/talent/*` badge wall / stamp album (d4-badges, d4-stamps; also mp-roam `e2-stamp-album`, same `D4MeFixture(.stamps)`) | `D4MeFixture` → `ObjectBadgeWallView`, `RoamStampAlbumView` | App quits right after launch (home-screen tile), in both languages. | **Not done: not reproducible here** (no simulator in the cloud run). Checked statically: both cases resolve in `DesignFixtureRegistry.make` (lines 99, 103, 129); no `fatalError`/force-unwrap on the badge path; the only `try!` is `RoamExperienceFixtureReader.scope` (stamps only, constant input). Common to all three quitting fixtures (with mp-mine `e4-tickets`): `.cyHideTabBar()` + `cyPageTitle` on a fixture `NavigationStack` with **no** `AppSession` — new since 17:23, when design fixtures stopped building the production session (`5e2a0a57f`, mp-home). Needs the crash log from `xcrun simctl launch … --design-fixture d4-badges` (`~/Library/Logs/DiagnosticReports`) |
+| `pages/talent/*` badge wall / stamp album (d4-badges, d4-stamps; also mp-roam `e2-stamp-album`, same `D4MeFixture(.stamps)`) | `D4MeFixture` → `ObjectBadgeWallView`, `RoamStampAlbumView` | App quits right after launch (home-screen tile), in both languages. | **Not done: not reproducible here** (no simulator in the cloud run). Checked statically: both cases resolve in `DesignFixtureRegistry.make` (lines 99, 103, 129); no `fatalError`/force-unwrap on the badge path; the only `try!` is `RoamExperienceFixtureReader.scope` (stamps only, constant input). Common to all three quitting fixtures (with mp-mine `e4-tickets`): `.cyHideTabBar()` + `cyPageTitle` on a fixture `NavigationStack` with **no** `AppSession` — new since 17:23, when design fixtures stopped building the production session (`5e2a0a57f`, mp-home). Needs the crash log from `xcrun simctl launch … --design-fixture d4-badges` (`~/Library/Logs/DiagnosticReports`). **Fixed by the coordinator in `1300a48db`** (palette `.accentColor` ↔ root `.tint` recursion); the 19:36 sweep renders both |
 
 ## Pass 10: P25 / P26 (design-principles e08794fe6)
 
@@ -179,6 +181,16 @@ Most tiles are the launch logo (coordinator 17:40: taken under load, ignore). Re
 | club/enroll (`zh-Hans-d4-enroll.jpg`) | `ClubEnrollmentView` | Sub line followed by 「报名费由平台担保托管」 (not in the MP); the team row (title + 时间待定 · 已报名 8 人) drawn in tint blue / light blue because `.primary`/`.secondary` resolve against the Button's tint. | **Fixed.** Escrow row removed (see table); team Button `.tint(.primary)` so the title reads primary and the meta secondary, row highlight kept |
 | club/detail 帖文 (`zh-Hans-d4-tab-posts.jpg`) | `ClubDetailView` | Still 「当前版本暂不可查看俱乐部帖子」. | Build predates pass 9 (`bb15728bd` mounts the feed in the d4 fixture); re-check on the next sweep |
 
+## Pass 12: sweep 19:36 UTC (build 3568fe51b, `docs/sweeps/latest/mp-club/sheet-zh-Hans.jpg`, `sheet-en.jpg`) + Not done rows
+| Screen (shot) | Native view | Seen / difference | Fixed? |
+|---|---|---|---|
+| club/detail 帖文 (`zh-Hans-d4-tab-posts.jpg`) | `ClubDetailView` | Shows the MP feed now (composer pill, post card). | ✓ re-checked (pass 9 fix landed) |
+| club/detail, members, posts, channels, channel chat (`zh-Hans-d4-detail.jpg`, `-d4-members`, `-d4-tab-posts`, `-d4-channels`, `-d4-channel-chat`) | `ClubFixtureReader`, `ClubCommunityFixture`, `D4ChannelsHost` | Fixture data English in the Chinese UI (Fixture club 81, Offline sample club description, Fixture creator/type/city, Announcements / Community, club-news, Saturday route…), coordinator 19:50 "fixture data must follow the UI language". | **Fixed.** `ClubFixtureReader.designCopy` (set only by the D4 design fixture, so UI tests keep their English pins) and `ClubCommunityFixture.context(…, designCopy:)` pick zh-Hans copy when the UI is Chinese; channel categories, names, senders and messages use `tt(en, zh)` (the en golden-path pin "Saturday route…" is unchanged) |
+| club/create intro + step 3 | `ClubOperationsViews.swift` | See table row club/create. | **Fixed** |
+| club/join-requests, club/apply done | see table | Re-checked against the MP js/wxml. | Matches |
+| club/detail (`zh-Hans-d4-detail.jpg`) | `ClubDetailView` | ~60 pt gap between the header card and the 帖文/活动/概览 bar. Not reproducible without a simulator (likely list section spacing around the tab-bar row). | **Not done**, re-check on the next sweep |
+
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.
-- en-layout / fixtures: `D4Fixtures.swift:108-109` channel categories are English in the zh-Hans sweep; localize the fixture if the sweep should read as zh-Hans.
+- ~~en-layout / fixtures: `D4Fixtures.swift:108-109` channel categories~~ fixed in pass 12.
+- mp-mine / mp-roam: d4-badges and d4-stamps (same readers as e5b-badge-wall / e2-stamp-album) still show English data in zh-Hans: `App/ProfileFixtureSupport.swift:50-52` (Fixture city medal, Synthetic unlock condition) and the `RoamExperienceFixtureReader` stamp names. `RoamBadgeWallFlowTests` pins "Fixture city medal" in English, so use a design-only flag like `ClubFixtureReader.designCopy`.
