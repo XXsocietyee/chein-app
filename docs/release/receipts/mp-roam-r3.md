@@ -126,7 +126,7 @@ Base re-merged with `origin/ui/combined-r7` (xcstrings: both sides' keys kept; `
 
 New string: `roam.live.idle` (Staying in place / 原地停留中), also in `docs/port/strings/mp-r3-roam.json`. No motion added (symbol swap only).
 
-Gates: generate_project OK · check_scaffold PASS (20662 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+Gates: generate_project OK · check_scaffold PASS (20668 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 
 ## Not done / next
 
