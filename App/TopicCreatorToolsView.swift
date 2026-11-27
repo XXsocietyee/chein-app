@@ -244,6 +244,23 @@ import QuestifyCore
         } header: { Text("creatorEditor.draft", tableName: "CreatorEditorUI") }
     }
 
+    /// MP `start-prep` suggestions (theme-d20.js `PREP_SUGGESTIONS`); the first three not yet on the list are offered.
+    private static let prepSuggestionKeys = (1...6).map { "creatorEditor.prep.suggestion." + String($0) }
+    private static let prepMaxLength = 20
+    private var prepSuggestions: [String] {
+        let have = Set(model.setup.prepItems)
+        let all = Self.prepSuggestionKeys.map { String(localized: String.LocalizationValue($0), table: "CreatorEditorUI") }
+        return Array(all.filter { !have.contains($0) }.prefix(3))
+    }
+    private var canAddPrep: Bool { model.setup.prepItems.count < TopicPlaySetup.maximumPrepItems }
+
+    private func addPrep(_ text: String) -> Bool {
+        let item = String(text.trimmingCharacters(in: .whitespacesAndNewlines).prefix(Self.prepMaxLength))
+        guard !item.isEmpty, canAddPrep, !model.setup.prepItems.contains(item) else { return false }
+        model.setup.prepItems.append(item)
+        return true
+    }
+
     @ViewBuilder private var playSetupSection: some View {
         Section {
             Picker(selection: $model.setup.window.mode) {
@@ -259,20 +276,44 @@ import QuestifyCore
                     ForEach(TopicPlayWindow.ends, id: \.self) { Text(verbatim: $0).tag($0) }
                 } label: { Text("creatorEditor.window.end", tableName: "CreatorEditorUI") }
             }
+        }
+        Section {
             ForEach(Array(model.setup.prepItems.enumerated()), id: \.offset) { _, item in Text(verbatim: item) }
                 .onDelete { model.setup.prepItems.remove(atOffsets: $0) }
-            if model.setup.prepItems.count < TopicPlaySetup.maximumPrepItems {
+                .onMove { model.setup.prepItems.move(fromOffsets: $0, toOffset: $1) }
+            if canAddPrep {
                 HStack {
-                    TextField(text: $newPrep) { Text("creatorEditor.prep.add", tableName: "CreatorEditorUI") }
+                    TextField(text: Binding(get: { newPrep }, set: { newPrep = String($0.prefix(Self.prepMaxLength)) })) { Text("creatorEditor.prep.add", tableName: "CreatorEditorUI") }
+                        .submitLabel(.done)
+                        .onSubmit { if addPrep(newPrep) { newPrep = "" } }
                     Button {
-                        let item = newPrep.trimmingCharacters(in: .whitespacesAndNewlines)
-                        if !item.isEmpty { model.setup.prepItems.append(item); newPrep = "" }
-                    } label: { Image(systemName: "plus.circle") }.accessibilityLabel(Text("creatorEditor.prep.add", tableName: "CreatorEditorUI"))
+                        if addPrep(newPrep) { newPrep = "" }
+                    } label: { Text("creatorEditor.prep.addAction", tableName: "CreatorEditorUI") }
+                        .buttonStyle(.borderless)
+                        .disabled(newPrep.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
+        } header: {
+            HStack {
+                Text("creatorEditor.prep", tableName: "CreatorEditorUI")
+                Spacer()
+                if !model.setup.prepItems.isEmpty { EditButton().font(.footnote) }
+            }
+        } footer: {
+            Text("creatorEditor.prep.footer", tableName: "CreatorEditorUI")
+        }
+        .accessibilityIdentifier("creatorEditor.prep")
+        if canAddPrep && !prepSuggestions.isEmpty {
+            Section {
+                ForEach(prepSuggestions, id: \.self) { item in
+                    Button { _ = addPrep(item) } label: { Label { Text(verbatim: item) } icon: { Image(systemName: "plus.circle.fill") } }
+                }
+            } header: { Text("creatorEditor.prep.suggestions", tableName: "CreatorEditorUI") }
+        }
+        Section {
             Button { Task { await model.savePlaySetup() } } label: { Text("creatorEditor.save", tableName: "CreatorEditorUI") }
                 .accessibilityIdentifier("creatorEditor.playSetup.save")
-        } header: { Text("creatorEditor.playSetup", tableName: "CreatorEditorUI") }
+        }
     }
 
     @ViewBuilder private var stateKeySection: some View {

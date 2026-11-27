@@ -103,7 +103,7 @@ private struct ChanceSymbolSize {
                     HStack(spacing: 16) {
                         ForEach(Array(values.enumerated()), id: \.offset) { _, value in
                             Text(verbatim: String(value))
-                                .font(.system(.largeTitle, design: .rounded).weight(.bold))
+                                .cyText(.dataXL)
                                 .monospacedDigit()
                                 .contentTransition(.numericText())
                         }
@@ -237,7 +237,7 @@ private struct ChanceSymbolSize {
                 Section {
                     GroupBox {
                         Text(verbatim: model.receipt?.total.map(String.init) ?? "—")
-                            .font(.system(.largeTitle, design: .rounded).weight(.bold))
+                            .cyText(.dataXL)
                             .monospacedDigit()
                             .contentTransition(.numericText())
                             .frame(maxWidth: .infinity)

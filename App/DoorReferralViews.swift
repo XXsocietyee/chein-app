@@ -76,11 +76,8 @@ import SwiftUI
     @State private var received: DoorIntent?
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
-            CYSkeleton()
-            Text("door.resolving")
-                .cyText(.body)
-                .foregroundStyle(CYColor.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
+            ProgressView { Text("door.resolving") }
+                .frame(maxWidth: .infinity)
         }
         .padding(CYSpacing.pageHorizontal)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
