@@ -47,7 +47,11 @@ import UIKit
     func testActualReceiptRefusalKeepsReceiptOnlyLockAndNoEmptyOrWriter() async throws {
         let r = try PrivateReadDenialRig(seedLocks: true), state = PrivateDenialHostState(reader: r.reader)
         let window = mount(state, destination: "capsule"); defer { close(window) }
-        try await waitFor { r.wire.cursors.count == 1 }
+        // The wire records the first list GET before the read returns, and the (disabled) verify Button is
+        // already rendered while it is in flight. RoamPrivatePageOwner.settle drops a tap while readInFlight
+        // (App/RoamPassportPrivateToolsViews.swift `!settlementInFlight, !readInFlight`), so wait until the
+        // first page has rendered before tapping; otherwise the receipt GET is never sent (intermittent).
+        try await waitFor { r.wire.cursors.count == 1 && self.find("roam.capsule.row.open", in: window) != nil }
         let bytes = r.storage.values
         r.wire.status = 403; try await tap("roam.capsule.verify", in: window)
         try await waitFor { self.find("roam.private.issue", in: window) != nil }
