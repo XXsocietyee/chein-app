@@ -138,7 +138,7 @@ Base re-merged with `origin/ui/combined-r7` (xcstrings: both sides' keys kept, o
 | `pages/roam/index` intro tickets (`introCards`: 开始漫游 / 打开地图·寻找组队 / 我的队伍, `introTeamsLive`) | `NativeR2/MapHome/RoamMapHomeSheet.swift` `roamSection` | MP has three tickets; native had four rows: an extra native 找队伍 row (narrowed the map/list to teams, with a count) before 打开地图·寻找组队, and the NO.02 row had no live line. | **Fixed:** the 找队伍 row and its 全部 return row are removed; NO.02 = 打开地图 with sub 寻找组队 (`roam.w208.intro.map` / `.sub`, same keys as the legacy tickets) → `subpackageRoam/nearby` push, plus `附近 N 支队伍在组队` (`roam.w208.intro.live %lld`) only when the team read returned rows (MP: empty string hides it). Teams stay as map pins. No new strings. |
 | `pages/roam/index` entry-sheet `activity` (pin tap: cover · title · meta → 报名/查看 → attendees → 一起参加 · N 队正在招募 → 发起组队 → 现场动态) | map home `.event` push → event detail (`eventDestination`) | Native opens the full activity page (pushed in the panel) instead of the MP half-sheet summary. | Not done: compare the event page against these MP half-sheet sections (event page is mp-activity's area; roam side only needs the summary if sections are missing). |
 
-Gates: generate_project OK · check_scaffold PASS (20679 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+Gates: generate_project OK · check_scaffold PASS (20680 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0** (after rebasing onto the parallel run and re-merging the base).
 
 ## Not done / next
 
