@@ -36,7 +36,7 @@ Fragment `docs/port/strings/comp-r1-nav.json` (10 keys, en + zh-Hans), merged in
 
 ## Gates (last push)
 
-`check_scaffold.py` PASS structural checks · `check_a11y_lint.py` PASS (0 new) · `contract_ratchet.py --check`: see commit.
+`check_scaffold.py` PASS structural checks · `check_a11y_lint.py` PASS (0 new) · `contract_ratchet.py --check` 104 failing, baseline 105, new 0 (1 unrelated now-passing: test_profile_read_failure_remote_admission, left for the coordinator's `--update`).
 
 ## For the coordinator
 
