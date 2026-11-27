@@ -52,7 +52,7 @@ import SwiftUI
         .listStyle(.insetGrouped)
         .navigationTitle(Text("revisions.title", tableName: "NativeChannelMessage"))
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { dismiss() } } }
+        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { dismiss() } } }
         .task(id: phase) {
             clear()
             guard phase == .active else { return }

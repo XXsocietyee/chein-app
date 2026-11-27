@@ -65,7 +65,7 @@ import SwiftUI
         .navigationTitle(Text("pins.title", tableName: "NativeChannelMessage"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .cancellationAction) { Button("action.done") { dismiss() } }
+            ToolbarItem(placement: .confirmationAction) { Button("action.done") { dismiss() } }
             if coordinator.client.allows(.mutate(.sort)) {
                 ToolbarItem(placement: .primaryAction) {
                     EditButton().disabled(!coordinator.canStart || !coordinator.pins.isCurrent || coordinator.pins.loading)
