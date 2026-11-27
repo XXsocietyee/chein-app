@@ -14,6 +14,8 @@ public struct RegistrationUIFormDraft: Equatable {
         if trimmedName.isEmpty { return .nameRequired }
         if trimmedPhone.isEmpty { return .phoneRequired }
         // Source activity checkout uses ^1\d{10}$. Accept ASCII wire digits only.
+        // US launch r1: a US registration phone is sent in E.164 (`+1` and a valid NANP number).
+        if PhoneCountryCode.isValidUnitedStatesWire(trimmedPhone) { return nil }
         let bytes = Array(trimmedPhone.utf8)
         if bytes.count != 11 || bytes.first != 49 || !bytes.allSatisfy({ (48...57).contains($0) }) {
             return .invalidPhone

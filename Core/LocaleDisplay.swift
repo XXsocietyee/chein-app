@@ -290,6 +290,45 @@ public enum PhoneCountryCode: String, CaseIterable, Identifiable, Sendable {
         (marketCode ?? "").uppercased() == "US" ? .unitedStates : .china
     }
 
+    /// US launch r1: the picker default. The device region wins when it is US or CN (`Locale.current.region`);
+    /// any other region falls back to the storefront market.
+    public static func `default`(region: String?, marketCode: String?) -> PhoneCountryCode {
+        switch (region ?? "").uppercased() {
+        case "US": return .unitedStates
+        case "CN": return .china
+        default: return .default(marketCode: marketCode)
+        }
+    }
+
+    /// Field text while typing: the US groups as `(555) 123-4567`; China keeps the bare digits it always showed.
+    public func fieldText(_ raw: String) -> String {
+        let digits = sanitize(raw)
+        return self == .unitedStates ? display(digits) : digits
+    }
+
+    /// Draft value for a form that stores the server string (register, participants). China keeps the bare
+    /// digits; the US stores `+1` and the digits typed so far. No digits stays empty.
+    public func draftWire(_ raw: String) -> String {
+        let digits = sanitize(raw)
+        guard !digits.isEmpty else { return "" }
+        return self == .china ? digits : dialCode + digits
+    }
+
+    /// Splits a stored server value: `+1…` is a US number, anything else is the China bare-digit form.
+    public static func split(wire: String) -> (country: PhoneCountryCode, national: String) {
+        let trimmed = wire.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.hasPrefix("+1") { return (.unitedStates, unitedStates.sanitize(String(trimmed.dropFirst(2)))) }
+        if trimmed.hasPrefix("+86") { return (.china, china.sanitize(String(trimmed.dropFirst(3)))) }
+        return (.china, trimmed)
+    }
+
+    /// True for a complete E.164 US number (`+1` and a valid 10-digit NANP number).
+    public static func isValidUnitedStatesWire(_ value: String) -> Bool {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.hasPrefix("+1") else { return false }
+        return unitedStates.isValid(String(trimmed.dropFirst(2)))
+    }
+
     /// Keeps ASCII digits only, capped at the national length (a pasted leading `1` / `86` country code is dropped).
     public func sanitize(_ raw: String) -> String {
         var digits = raw.filter { $0.isASCII && $0.isNumber }

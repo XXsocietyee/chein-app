@@ -311,12 +311,13 @@ struct ParticipantFormView: View {
                             } label: { requiredLabel("profile.participants.phone") }
                         } else {
                         LabeledContent {
-                            TextField("profile.participants.phone", text: $model.draft.mobilePhone, prompt: Text("participant.form.phonePrompt"))
-                            .textContentType(.telephoneNumber).keyboardType(.phonePad)
+                            // US launch r1: +86 / +1 picker; the draft keeps the server value (China bare digits, US E.164).
+                            PhoneCountryField("profile.participants.phone", wire: $model.draft.mobilePhone,
+                                              prompt: Text("participant.form.phonePrompt"), identifier: "participant.form.phone",
+                                              focus: $focusedField, equals: .phone)
                             .multilineTextAlignment(.trailing)
-                            .submitLabel(.done).focused($focusedField, equals: .phone)
+                            .submitLabel(.done)
                             .onSubmit { focusedField = model.reviewForSave(); if focusedField == nil, model.pendingIsSave { Task { await commitMutation() } } }
-                            .accessibilityIdentifier("participant.form.phone")
                         } label: { requiredLabel("profile.participants.phone") }
                         }
                         // Input errors sit in red under the fields (ui-spec States).

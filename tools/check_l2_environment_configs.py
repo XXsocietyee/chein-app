@@ -52,7 +52,8 @@ def settings(entry, files):
 def expected_session_realm(market, environment, code):
     if environment == 'Development':
         return code.lower() + '-development'
-    if market == 'China' and environment == 'Production':
+    if environment == 'Production':
+        # US launch r1: the US storefront shares the China production backend and realm (no market split).
         return 'cn-prod'
     return ''
 
@@ -101,7 +102,7 @@ class L2EnvironmentConfigChecks(unittest.TestCase):
                     files = dict(self.files)
                     files[f'Local.{market}.xcconfig'] = 'QUESTIFY_API_BASE_URL = https:/$()/earlier.example.test\nQUESTIFY_SESSION_REALM = earlier\n'
                     result = settings(f'{market}.{environment}.xcconfig', files)
-                    expected = CHINA_PRODUCTION_API if market == 'China' and environment == 'Production' else ''
+                    expected = CHINA_PRODUCTION_API if environment == 'Production' else ''
                     self.assertEqual(result['QUESTIFY_API_BASE_URL'], expected)
                     self.assertNotEqual(result['QUESTIFY_API_BASE_URL'], 'https://earlier.example.test')
                     self.assertEqual(result['QUESTIFY_SESSION_REALM'], expected_session_realm(market, environment, MARKETS[market]))
@@ -139,7 +140,7 @@ class L2EnvironmentConfigChecks(unittest.TestCase):
                 result = settings(f'{market}.{environment}.xcconfig', files)
                 if environment == 'Development':
                     expected = 'http://127.0.0.1:8099'
-                elif market == 'China' and environment == 'Production':
+                elif environment == 'Production':
                     expected = CHINA_PRODUCTION_API
                 else:
                     expected = ''

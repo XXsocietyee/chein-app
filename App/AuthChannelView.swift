@@ -191,12 +191,13 @@ struct PhoneSignInForm<AppleContent: View>: View {
             if value != digits { code = digits }
         }
         .onChange(of: phone) { _, value in
-            let digits = country.wrappedValue.sanitize(value)
-            if value != digits { phone = digits }
+            // US launch r1: the US groups as `(555) 123-4567` while typing; China keeps bare digits.
+            let text = country.wrappedValue.fieldText(value)
+            if value != text { phone = text }
         }
         .onChange(of: country.wrappedValue) { _, picked in
-            let digits = picked.sanitize(phone)
-            if phone != digits { phone = digits }
+            let text = picked.fieldText(phone)
+            if phone != text { phone = text }
         }
         .onChange(of: smsSent) { _, sent in if sent { focus = .code } }
         .onChange(of: issueKey) { _, key in if key != nil, !issueIsSoft { shakes += 1 } }
@@ -311,7 +312,7 @@ struct PhoneSignInForm<AppleContent: View>: View {
     }
 
     private var validPhone: Bool {
-        guard let wire = country.wrappedValue.wireValue(phone) else { return false }
+        guard let wire = country.wrappedValue.wireValue(country.wrappedValue.sanitize(phone)) else { return false }
         return (try? AuthChannelInput.phone(wire)) != nil
     }
     private var validCode: Bool { (try? AuthChannelInput.code(code)) != nil }

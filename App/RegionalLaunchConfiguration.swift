@@ -37,13 +37,17 @@ enum RegionalLaunchConfiguration {
         let base = build.baseURL ?? ""
         let bundle = build.bundleIdentifier ?? ""
         let realm = build.realm ?? ""
+        // US launch r1: a US build on the reviewed production host composes the same backend deployment
+        // (backend market CN). `storefrontMarket` keeps the build's US market for presentation.
         guard let market, ReviewedMarketLaunch.admitsShippedChina(
+            market: market, baseURL: base, bundleIdentifier: bundle, realm: realm
+        ) || ReviewedMarketLaunch.admitsShippedUnitedStates(
             market: market, baseURL: base, bundleIdentifier: bundle, realm: realm
         ) else {
             return makeComposition(reviewed: nil, build: .current)
         }
         let pinned = BuildMetadata(
-            market: market.rawValue,
+            market: RegionalMarket.china.rawValue,
             baseURL: ReviewedMarketLaunch.chinaProductionBaseURL,
             bundleIdentifier: bundle.trimmingCharacters(in: .whitespacesAndNewlines),
             realm: realm.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -223,6 +227,10 @@ enum RegionalLaunchConfiguration {
             baseURL:Bundle.main.object(forInfoDictionaryKey:"QuestifyAPIBaseURL") as? String,
             approvedBaseURLs:approved,verifiedCapabilities:[])
     }
+    /// US launch r1: the storefront the build ships to (Info.plist `QuestifyMarket`). It drives presentation only:
+    /// phone country default, merchant center visibility and the market label. Backend gates keep reading the
+    /// deployment's market, which is China for both storefronts on the shared production backend.
+    static var storefrontMarket:RegionalMarket? { market }
     static func language(_ stored:String?)->AppLanguage {
         market?.language(storedValue:stored) ?? stored.map(AppLanguage.init(storedValue:)) ?? .system
     }

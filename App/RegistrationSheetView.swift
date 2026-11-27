@@ -645,10 +645,9 @@ struct RegistrationSheetView: View {
                 .focused($focusedField, equals: .name).submitLabel(.next)
                 .onSubmit { focusedField = .phone }
                 .accessibilityIdentifier("registration.form.name")
-            TextField("registration.form.phone", text: Binding(get: { flow.draft.phone }, set: flow.setPhone))
-                .textContentType(.telephoneNumber).keyboardType(.phonePad)
-                .focused($focusedField, equals: .phone)
-                .accessibilityIdentifier("registration.form.phone")
+            // US launch r1: +86 / +1 picker; the draft keeps the server value (China bare digits, US E.164).
+            PhoneCountryField("registration.form.phone", wire: Binding(get: { flow.draft.phone }, set: flow.setPhone),
+                              identifier: "registration.form.phone", focus: $focusedField, equals: .phone)
             if !flow.draft.phone.isEmpty, flow.draft.validation == .invalidPhone {
                 Text("registration.form.phoneHint").cyText(.meta).foregroundStyle(CYColor.dangerText)
             }

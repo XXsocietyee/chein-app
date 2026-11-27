@@ -144,6 +144,15 @@ public enum ReviewedMarketLaunch {
         return (try? storageScope(market: market, baseURL: base, bundleIdentifier: bundle, realm: realm)) != nil
     }
 
+    /// US launch r1 (owner 2026-11-27): the US storefront runs on the same reviewed production backend.
+    /// The backend has no market split, so the US build is admitted onto the China backend deployment
+    /// (same host, same realm rules, same verified capabilities); the storefront market stays US for
+    /// presentation (phone country default, locale, merchant center off). Any other host returns false.
+    public static func admitsShippedUnitedStates(market: RegionalMarket, baseURL: String, bundleIdentifier: String, realm: String) -> Bool {
+        guard market == .unitedStates else { return false }
+        return admitsShippedChina(market: .china, baseURL: baseURL, bundleIdentifier: bundleIdentifier, realm: realm)
+    }
+
     public static func configuration(market: RegionalMarket, baseURL: String) throws -> RegionalConfiguration {
         let value = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
         guard market == .china, approvedBaseURLs[market]?.contains(value) == true else {

@@ -238,7 +238,7 @@ struct SettingsView: View {
                 .environment(\.settingsTileTint, SettingsTint.red)
                 UsageConsentReadSettingsEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
                 Section {
-                    LabeledContent { Text(verbatim: SettingsHomePage.marketText(session.operationalMarket)).accessibilityIdentifier("region.market.value") } label: { Text("region.market") }
+                    LabeledContent { Text(verbatim: SettingsHomePage.marketText(RegionalLaunchConfiguration.storefrontMarket ?? session.operationalMarket)).accessibilityIdentifier("region.market.value") } label: { Text("region.market") }
                 }
                 Section {
                     Picker("settings.language", selection: language) {

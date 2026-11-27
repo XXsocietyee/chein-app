@@ -100,7 +100,7 @@ class NativePresentationReuseChecks(unittest.TestCase):
         self.assertEqual(text.count('@AppStorage(AppLanguage.storageKey)'), 1)
         self.assertIn('preferences.language', source('Core/AppPreferences.swift'))
         self.assertIn('Form {', text)
-        self.assertIn('LabeledContent { Text(verbatim: SettingsHomePage.marketText(session.operationalMarket))', text)
+        self.assertIn('LabeledContent { Text(verbatim: SettingsHomePage.marketText(RegionalLaunchConfiguration.storefrontMarket ?? session.operationalMarket))', text)
         self.assertNotIn('Picker("region.market"', text)
         self.assertNotIn('AppLanguage', source('Core/SettingsSourceLegalCatalog.swift'))
         self.assertIn('SettingsAttributionsSection(copyText: copyText)', source('App/SettingsAboutView.swift'))
