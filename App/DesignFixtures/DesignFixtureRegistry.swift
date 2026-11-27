@@ -230,7 +230,7 @@ enum E4Fixtures {
         case "e4-participants": return wrap(ParticipantFixtureHostView())
         case "e4-self-projects": return wrap(ProfileSelfProjectsFixtureHost(scenario: "content"))
         case "e4-self-growth": return wrap(ProfileSelfGrowthFixtureHost(scenario: "content"))
-        case "e4-self-medals": return wrap(ProfileSelfMedalsFixtureHost(scenario: "content"))
+        case "e4-self-medals": return wrap(ProfileSelfMedalsFixtureHost(scenario: "content", showsTestControls: false))
         case "e4-template-mine": return wrap(TemplateAuthoringFixtureHostView())
         case "e4-wallet-income": return wrap(WalletCommerceFixtureHost(designPage: "income"))
         case "e4-wallet-points": return wrap(WalletCommerceFixtureHost(designPage: "points"))
