@@ -23,10 +23,12 @@ import SwiftUI
     }
     func section(_ section: HomeFeedSection) async throws -> [HomeFeedItem] {
         if scenario == "empty" { return [] }
+        if scenario == "offline" { throw URLError(.notConnectedToInternet) }
         return try section == .recommended ? [HomeFeedSyntheticFixtures.topic()] : [HomeFeedSyntheticFixtures.activity()]
     }
     func page(query: HomeFeedQuery, number: Int) async throws -> HomeFeedPage {
         if scenario == "retry", !failedOnce { failedOnce = true; throw APIError.httpStatus(503) }
+        if scenario == "offline" { throw URLError(.notConnectedToInternet) }
         if scenario == "empty" || number > 1 || (!query.keyword.isEmpty && !"sample".contains(query.keyword.lowercased())) {
             return HomeFeedPage(items: [], number: number, size: query.pageSize)
         }
