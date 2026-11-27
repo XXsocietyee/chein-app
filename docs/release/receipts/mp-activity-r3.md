@@ -75,6 +75,10 @@ Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consi
 | `subpackagePass/*` market, baoming (fixtures) | `App/DesignFixtures/DesignFixtureRegistry.swift` `wrapPlayer` | screenshots `t5-pass-market`, `t5-baoming` rendered dark while `d2-square` rendered light in the same light-mode run. `wrapPlayer` forced `.preferredColorScheme(.dark)` — **removed**, player fixtures follow the system (coordinator 18:15: fixtures must not force a color scheme). Shared helper: also affects `t5-order-center` (mp-mine) and `t5-free-explore` (mp-journey) | system appearance |
 | `pages/activity/baoming/baoming` (wxml:100 `onAddressTap` → `openAddress`) | `App/RegistrationSheetView.swift` 活动信息 card | venue line (address ‖ addressName) **now opens Apple Maps** (coordinate when valid, else address search); no venue keeps the MP "—" as plain text | native `Link` with `.borderless` so only the line (not the whole list row) is tappable; VoiceOver hint 在地图中打开 / Opens in Maps |
 
+Re-scan (sixth session): `d2-square` (Square feed) has no MP page in `pages/square/*` (only `detail` + components); the MP feed lives in the Home feed tabs (`pages/index`, mp-home) — no change here. `t5-pass-market` content is `subpackageMember` market (mp-mine) — only the forced dark appearance was fixed here. Baoming consent stays as the last form section's `Toggle` (button hint says to tick it) rather than inside the bottom bar: native form pattern, same sentence and same unticked default (PIPL Art. 23).
+
+**For other lanes:** `wrapPlayer` in `DesignFixtureRegistry.swift` no longer forces `.dark` — `t5-order-center` (mp-mine) and `t5-free-explore` (mp-journey) will now render in the system appearance in the next sweep.
+
 ## Not done
 - Attendance (player): organizer 联系与签到配置 form (duty phones, window, public-confirm switch, scan, recovery 查询原结果 / 原请求重试 / 终止 / 确认归档) lives in `OfficialOrganizerConsoleView`, not in this section.
 - Square completion card: 探店 (`shopText`) has no backend field. Refused team reads have no server message in `TeamFailure`, so 邀请已失效 is the fixed fallback copy.
