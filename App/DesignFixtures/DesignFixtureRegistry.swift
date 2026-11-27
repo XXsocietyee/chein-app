@@ -245,7 +245,7 @@ enum E4Fixtures {
     }
 
     @MainActor private static func wrap<V: View>(_ view: V) -> AnyView {
-        AnyView(view.themeDomain(.player).cyDomainPageBackground().themeDomain(.player).preferredColorScheme(.dark))
+        AnyView(view.themeDomain(.player).cyDomainPageBackground().themeDomain(.player))
     }
 }
 #endif
