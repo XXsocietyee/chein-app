@@ -186,7 +186,7 @@ import SwiftUI
                     .animation(reduceMotion ? nil : .linear(duration: 0.15), value: stage.compass.needleDegrees)
                     .accessibilityHidden(true)
                 Text(verbatim: stage.compass.heading.map { "\(Int($0.rounded()) % 360)°" } ?? "—")
-                    .font(.system(.largeTitle, design: .rounded).weight(.semibold)).monospacedDigit()
+                    .cyText(.dataXL)
                     .contentTransition(.numericText())
                     .accessibilityLabel(Text("playkit.compass.heading"))
             }
@@ -221,7 +221,7 @@ import SwiftUI
     private func bigValue(_ value: String, label: LocalizedStringKey) -> some View {
         VStack(spacing: 2) {
             Text(verbatim: value)
-                .font(.system(.largeTitle, design: .rounded).weight(.semibold))
+                .cyText(.dataXL)
                 .monospacedDigit()
                 .contentTransition(.numericText())
             Text(label).font(.subheadline).foregroundStyle(.secondary)
