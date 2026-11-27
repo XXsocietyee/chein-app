@@ -1666,6 +1666,23 @@
         }
       }
     },
+    "account.inviteFriends": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invite friends"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请好友"
+          }
+        }
+      }
+    },
     "account.merchantOverview": {
       "extractionState": "manual",
       "localizations": {
