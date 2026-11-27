@@ -744,7 +744,8 @@ struct PlayThemeMusicKey: Equatable {
             locationOn: Self.locationAuthorized,
             onLocationRow: Self.openLocationSettings,
             teamLead: model.lead,
-            journalRows: model.snapshot.map(PlayJournal.rows(in:))
+            journalRows: model.snapshot.map(PlayJournal.rows(in:)),
+            boardDestination: model.snapshot == nil ? nil : { [model] in AnyView(PlayCompanionBoardView(model: model)) }
         )
     }
     /// mp-journey r3: MP `gpsOk` for the 游玩工具 location rows (when-in-use or always).
