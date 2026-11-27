@@ -36,6 +36,12 @@ final class PlayContractTests: XCTestCase {
         let playable = try self.decodeResult(#"{"playable":true,"nodes":[{"nodeId":7}],"expiresAt":"2001-01-01"}"#)
         XCTAssertEqual(try PlaySnapshot(scope: .activity(41), result: playable).availability, .active)
     }
+    func testLeadSpectatorIsNotStoppedByTheSignupState() throws {
+        let lead = try decodeResult(#"{"registered":false,"leadSpectator":true,"playable":true,"nodes":[{"nodeId":7}]}"#)
+        XCTAssertEqual(try PlaySnapshot(scope: .activity(41), result: lead).availability, .active)
+        let member = try decodeResult(#"{"registered":false,"leadSpectator":false,"playable":true,"nodes":[{"nodeId":7}]}"#)
+        XCTAssertEqual(try PlaySnapshot(scope: .activity(41), result: member).availability, .registrationRequired)
+    }
     func testExactTopicIdentityAndInvalidScopeFailClosed() throws {
         let data = try decodeResult(#"{"topicId":71,"nodes":[]}"#)
         XCTAssertThrowsError(try PlaySnapshot(scope: .topic(72), result: data))

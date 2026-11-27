@@ -831,5 +831,107 @@
         }
       }
     }
+  },
+  "playx.empty.signup": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "You haven't signed up for this session"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "你还没有报名这个场次"
+        }
+      }
+    }
+  },
+  "playx.empty.signup.action": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sign up"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "去报名"
+        }
+      }
+    }
+  },
+  "playx.empty.route": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The route is still being set up"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "路线配置中"
+        }
+      }
+    }
+  },
+  "playx.empty.needPass": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Get a self-play pass before you start"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请先购买自玩通行证后再开始"
+        }
+      }
+    }
+  },
+  "playx.empty.getPass": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Get a pass"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "获取通行证"
+        }
+      }
+    }
+  },
+  "playx.empty.backDetail": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Back to event details"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "返回活动详情"
+        }
+      }
+    }
   }
 }

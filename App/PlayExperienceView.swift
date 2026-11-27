@@ -112,7 +112,9 @@ struct PlayThemeMusicKey: Equatable {
     /// Split from body so the type checker handles the modifier chain in parts.
     private var navigationLayer: some View {
         Group {
-            if model.gameplayMode == .freeExploration || (model.snapshot == nil && presentedMode == .freeExploration) {
+            if model.gameplayMode != .freeExploration, let blocked = PlayEmptyKind.blocking(model.snapshot?.availability) {
+                PlayEmptyStateCard(kind: blocked, topicID: model.snapshot?.result.topicID)
+            } else if model.gameplayMode == .freeExploration || (model.snapshot == nil && presentedMode == .freeExploration) {
                 if NativeR2Flags.freeExplore && NativeR2Flags.freeExploreMapHome {
                     NativeFreeExploreMapView(model: model, storeDestination: { AnyView(freeStoreDestination($0)) },
                                              rewardCollectionDestination: rewardCollectionDestination,
@@ -137,11 +139,14 @@ struct PlayThemeMusicKey: Equatable {
                     }
                 } else {
                     VStack(spacing: CYSpacing.md) {
-                        if model.available {
+                        if model.available, let pass = PlayEmptyKind.failure(model.issue) {
+                            PlayEmptyStateCard(kind: pass, topicID: { if case .topic(let id) = model.scope { return id }; return nil }())
+                        } else if model.available {
                             CYEmptyState(systemImage: "exclamationmark.triangle", "playx.error.title", actionTitle: "playx.refresh") {
                                 if model.phase != .submitting { Task { await model.load() } }
                             }
                             if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
+                            PlayBackToDetailButton()
                         } else {
                             CYEmptyState(systemImage: "gamecontroller", "playx.disabled.title")
                             Text("playx.disabled").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
