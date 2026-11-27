@@ -71,8 +71,8 @@
       "zh-Hans": "主题"
     },
     "creatorContent.loading": {
-      "en": "Loading",
-      "zh-Hans": "正在加载"
+      "en": "Loading…",
+      "zh-Hans": "正在加载…"
     },
     "creatorContent.network": {
       "en": "Connection failed. Try again.",

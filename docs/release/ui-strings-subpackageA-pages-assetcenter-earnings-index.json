@@ -3,7 +3,7 @@
   "unknownMoney": "—",
   "strings": [
     {"key": "wallet.title", "table": "Localizable", "en": "Account earnings", "zh-Hans": "账户收益", "accessibilityIdentifier": "wallet.earnings.overview"},
-    {"key": "wallet.loading", "table": "Localizable", "en": "Loading", "zh-Hans": "加载中", "accessibilityIdentifier": "wallet.earnings.loading"},
+    {"key": "wallet.loading", "table": "Localizable", "en": "Loading…", "zh-Hans": "加载中…", "accessibilityIdentifier": "wallet.earnings.loading"},
     {"key": "withdrawal.support.balance", "table": "Localizable", "en": "Current balance", "zh-Hans": "当前余额", "accessibilityIdentifier": "wallet.earnings.balance"},
     {"key": "member.wallet.noEarnings", "table": "MemberProfile", "en": "No earnings yet", "zh-Hans": "还没有收益", "accessibilityIdentifier": "wallet.earnings.empty"},
     {"key": "member.wallet.noEarningsHint", "table": "MemberProfile", "en": "Creator earnings and host revenue share appear here once they arrive.", "zh-Hans": "创作收益与主办分润到账后都会显示在这里", "accessibilityIdentifier": "wallet.earnings.empty"},

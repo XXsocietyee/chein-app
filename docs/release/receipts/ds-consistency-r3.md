@@ -466,6 +466,19 @@ status chips / filters / server states (`SUBMITTED`, `g6.ai.state.PROCESSING`, `
 | creator appeal attach | `App/PlayCreatorTailViews.swift:294` | `audit.attach.uploading` | + `…` |
 | privacy page | `Core/UsageConsentPolicy.swift:178` | `privacy.page.state.loading` | + `…` |
 
+String-manifest pins updated to the new values (stale copy pins, one-line reason: the progress word now ends in `…`):
+14 JSON manifests / fragments (`Resources/NativePlatformLocalizations.fragment.json`, `ObjectCardLocalizations.fragment.json`,
+`docs/*-localizations.json`, `docs/port/strings/*`, `docs/release/ui-strings-*.json`).
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(status capsule 29 baselined — all in internal release-checklist `*SectionView` screens, not player surfaces),
+`contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
+### Not done (next run)
+| Item | Why not now |
+|---|---|
+| zh/en verb mismatches left (`playHelp.sending` 提交中… / Sending…, `audit.attach.uploading` key vs 提交中…) | Needs the MP page wording per screen; next run checks each against `mp-source`. |
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
