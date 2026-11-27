@@ -39,7 +39,7 @@ struct CityTerritoryNoticeCard: View {
     var body: some View {
         if let territoryId = notice.territoryId {
             Button { open(territoryId) } label: { card(chevron: true) }
-                .buttonStyle(CityNoticePressStyle())
+                .buttonStyle(QuestifyCardButtonStyle())
                 .accessibilityHint(Text(verbatim: copy("打开这块地的地契", "Opens the place's deed")))
                 .accessibilityIdentifier("city.notice.\(notice.kind.rawValue.lowercased())")
         } else {
@@ -119,12 +119,3 @@ struct CityTerritoryNoticeCard: View {
     }
 }
 
-/// Press feedback for the card (CYMotion press 0.97 / release), interruptible.
-private struct CityNoticePressStyle: ButtonStyle {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed && !reduceMotion ? CYMotion.Scale.press : 1)
-            .animation(configuration.isPressed ? CYMotion.press : CYMotion.release, value: configuration.isPressed)
-    }
-}

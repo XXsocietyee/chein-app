@@ -1,13 +1,11 @@
 {
   "allowed": {
+    "App/CityKit/CityPropertySheet.swift": {
+      "custom sheet": "full-screen 漫游 City board map: Maps-style persistent place sheet over the live map (map stays interactive, deed tile flies into it); map chrome"
+    },
     "App/CityKit/CityRoamRootView.swift": {
+      "custom sheet": "full-screen 漫游 City board map: Maps-style persistent nearby drawer (peek / medium / large) over the live map; map chrome",
       "hidden nav": "full-screen City board map (漫游): map chrome owns the top edge"
-    },
-    "App/CityKit/CityTerritoryNoticeCard.swift": {
-      "button style": "press-scale feedback on a tappable card (no button chrome; label is the card)"
-    },
-    "App/ClubComponents.swift": {
-      "button style": "E3PressStyle: press scale used only by DEBUG design fixtures"
     },
     "App/DesignSystem/CYAlbum.swift": {
       "raw font": "procedural art: SF Symbol / numeral sized as a fraction of its own drawn frame (badge, medal, cover), not reading text"
@@ -60,11 +58,26 @@
     "App/FogOverlayLayer.swift": {
       "raw colour": "full-screen map fog layer: colour components come from the fog engine"
     },
+    "App/HomeFeedView.swift": {
+      "list style": "首页 is a shelf feed (App Store-style horizontal rails that run to the screen edge, no cell chrome); .grouped is the full-width variant of the grouped system list"
+    },
+    "App/HomeSearchTabParityViews.swift": {
+      "custom tabs": "MerchantRootModeSwitchBannerView: merchant root container mode switch (merchant is out of scope)"
+    },
     "App/MapCoreEntryHubView.swift": {
       "raw colour": "map legend swatch built from the map style manifest token (data, not a literal)"
     },
+    "App/MasterSevenDayLaunchCommandCenterView.swift": {
+      "list style": "unreferenced internal command hub, not reachable from player navigation"
+    },
+    "App/MasterThreeDocument312LaneCommandHubView.swift": {
+      "list style": "unreferenced internal command hub, not reachable from player navigation"
+    },
     "App/NativeAttributeAuthorViews.swift": {
       "raw colour": "preview of a server-provided #RRGGBB attribute colour (data, not a literal)"
+    },
+    "App/NativeChannelHistoryView.swift": {
+      "list style": "chat transcript (Messages-style plain list anchored to the bottom above the composer), not a settings-style list page"
     },
     "App/NativeR2/FreeExplore/NativeFreeExploreMapView.swift": {
       "hidden nav": "full-screen free-explore map"
@@ -90,8 +103,8 @@
     "App/QuestifyPalette.swift": {
       "raw colour": "brand tint token definition (light/dark), the palette itself"
     },
-    "App/RoamFinishReportView.swift": {
-      "hidden nav": "shown in place of the live roam HUD inside the same full-screen game container (no stack under it)"
+    "App/RoamBrowserView.swift": {
+      "list style": "map mode only: results list in the panel over the full-screen map (map chrome); list mode stays the standard list"
     },
     "App/RoamLiveSessionView.swift": {
       "hidden nav": "live roam game HUD over a full-screen map"
@@ -101,9 +114,6 @@
     },
     "App/SocialPublicProfileView.swift": {
       "hidden nav": "full-screen photo viewer (black stage), system close button"
-    },
-    "App/SquareBrowserView.swift": {
-      "pushed large": "广场 is a sheet root with its own NavigationStack (not pushed); large title is the sheet page title"
     }
   },
   "baseline": {}
