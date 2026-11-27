@@ -158,7 +158,8 @@ struct ObjectBadgeWallBadgeLabel: View {
         .accessibilityValue(Text(verbatim: isNew ? ChannelCopy.text("新获得", "New", locale: locale) : ""))
     }
     private var description: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+        // design-r2-play: title and status line share the tile's centre axis.
+        VStack(alignment: .center, spacing: CYSpacing.xxs) {
             // Titles wrap on word boundaries only (one column at accessibility sizes keeps the width generous).
             Group { if badge.name.isEmpty { Text(badge.familyKey) } else { Text(verbatim: badge.name) } }
                 .allowsTightening(true)
@@ -178,7 +179,9 @@ struct ObjectBadgeWallBadgeLabel: View {
         func day(_ value: String?) -> String? {
             guard let value = nonempty(value), value.count >= 10 else { return nil }
             let head = String(value.prefix(10))
-            return head.range(of: #"^\d{4}-\d{2}-\d{2}$"#, options: .regularExpression) == nil ? nil : head
+            guard head.range(of: #"^\d{4}-\d{2}-\d{2}$"#, options: .regularExpression) != nil else { return nil }
+            // zh keeps the MP `YYYY-MM-DD`; other locales read an abbreviated civil date ("Oct 1, 2026").
+            return LocaleDisplay.civil(head, locale: locale)
         }
         let condition: String?
         let obtained: String?

@@ -296026,7 +296026,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not lit yet"
+            "value": "Locked"
           }
         },
         "zh-Hans": {
@@ -332209,6 +332209,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "距开始"
+          }
+        }
+      }
+    },
+    "designR2Play.run.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading your run…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取本局…"
+          }
+        }
+      }
+    },
+    "designR2Play.city.metric.toNext": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To next point"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "距下一站"
+          }
+        }
+      }
+    },
+    "designR2Play.passport.wallet.short": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earnings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收益"
           }
         }
       }

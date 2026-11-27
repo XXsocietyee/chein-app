@@ -339,7 +339,12 @@ extension EnvironmentValues {
 @MainActor struct CityOrientationRunMetricsRow<Trailing: View>: View {
     @Bindable var model: PlayExperienceCoordinator
     let walkedMeters: Double
+    /// design-r2-play P1: metres to the current stop; before any walking the distance cell leads with it.
+    var nextStopMeters: Double? = nil
     @ViewBuilder var trailing: () -> Trailing
+    /// Paused dims the stats only; the primary (Continue) keeps full strength (P3).
+    private var statsOpacity: Double { model.clock.phase == .paused ? 0.6 : 1 }
+    private var leadsWithNextStop: Bool { walkedMeters <= 0 && nextStopMeters != nil }
 
     private var doneCount: Int {
         guard let snapshot = model.snapshot else { return 0 }
@@ -381,7 +386,6 @@ extension EnvironmentValues {
                 trailing()
             }
         }
-        .opacity(model.clock.phase == .paused ? 0.6 : 1)
         .padding(.horizontal)
         .padding(.top, 20)
         .padding(.bottom, 8)
@@ -402,15 +406,18 @@ extension EnvironmentValues {
                 .font(.caption).foregroundStyle(.secondary)
         }
         .fixedSize()
+        .opacity(statsOpacity)
     }
     private var distanceCell: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(verbatim: walkedMeters > 0 ? CityOrientationFormat.distance(walkedMeters) : "—")
+            Text(verbatim: CityOrientationFormat.distance(walkedMeters > 0 ? walkedMeters : (nextStopMeters ?? 0)))
                 .font(.title2.bold().monospacedDigit())
-                .nativeR2RollingNumber(walkedMeters)
-            Text("nativeR2.city.metric.distance").font(.caption).foregroundStyle(.secondary)
+                .nativeR2RollingNumber(walkedMeters > 0 ? walkedMeters : (nextStopMeters ?? 0))
+            Text(leadsWithNextStop ? "designR2Play.city.metric.toNext" : "nativeR2.city.metric.distance")
+                .font(.caption).foregroundStyle(.secondary)
         }
         .fixedSize()
+        .opacity(statsOpacity)
     }
     private var pointsCell: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -419,6 +426,7 @@ extension EnvironmentValues {
             Text("nativeR2.city.metric.points").font(.caption).foregroundStyle(.secondary)
         }
         .fixedSize()
+        .opacity(statsOpacity)
     }
 }
 
