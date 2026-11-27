@@ -456,8 +456,8 @@ import UIKit
     /// 编辑精选 also speaks Beta 试玩, the category tags, the status and the club when the list row has them.
     private func feedCardLabel(_ item: HomeFeedItem, includeFeaturedFacts: Bool = false) -> Text {
         let price: Text
-        if let amount = HomeFeedMoney.plain(item.amount) {
-            price = Text("playx.finishRoute.priceFrom \(amount)")
+        if let amount = HomeFeedMoney.display(item.amount, currencyCode: item.currencyCode, locale: locale) {
+            price = Text("activity.pinned.price \(amount)")
         } else {
             price = PageTemplateVoiceOver.spoken(HomeFeedSurfaceState.unknownText, locale: locale)
         }
@@ -555,7 +555,8 @@ struct HomeFeedShelfCard: View {
     var body: some View {
         let date = QuestifyCardText.date(item.startDate, sourceTimeZone: sourceTimeZone, locale: locale, displayTimeZone: timeZone)
         // Currency + 起/From come from the shared price key; unknown price shows an em dash, never 0.
-        let price = HomeFeedMoney.plain(item.amount).map { appLocalized("playx.finishRoute.priceFrom \($0)", locale: locale) } ?? "—"
+        let price = HomeFeedMoney.display(item.amount, currencyCode: item.currencyCode, locale: locale)
+            .map { appLocalized("activity.pinned.price \($0)", locale: locale) } ?? "—"
         let line = [QuestifyCardText.metaLine(date: date, place: item.place), price].compactMap { $0 }.joined(separator: " · ")
         // P-019: the App Store shelf lockup — cover, then title and one meta line in system type, no scrim or shadow.
         let card = HomeFeedShelfLockup(title: item.name, meta: line, imageURL: QuestifyCardArtwork.safeURL(item.imageURL),
@@ -723,8 +724,8 @@ struct HomeFeedCard: View {
     }
     private var priceRow: some View {
         statusRow("homeFeed.status.price", tabular: true) {
-            if let amount = HomeFeedMoney.plain(item.amount) {
-                Text("playx.finishRoute.priceFrom \(amount)")
+            if let amount = HomeFeedMoney.display(item.amount, currencyCode: item.currencyCode, locale: locale) {
+                Text("activity.pinned.price \(amount)")
             } else {
                 Text(verbatim: HomeFeedSurfaceState.unknownText)
             }
@@ -1008,5 +1009,11 @@ enum HomeFeedMoney {
     static func plain(_ value: Decimal?) -> String? {
         guard let value, value >= 0 else { return nil }
         return MoneyDisplay.plain(value)
+    }
+    /// US r2: the amount with its own currency symbol (`¥12.50` for CNY, `$12.50` for USD) in every locale.
+    /// The list contracts carry no currency yet, so `currencyCode` is nil and the shared default (CNY) applies.
+    static func display(_ value: Decimal?, currencyCode: String?, locale: Locale) -> String? {
+        guard let value, value >= 0 else { return nil }
+        return LocaleDisplay.money(value, currencyCode: currencyCode, locale: locale)
     }
 }

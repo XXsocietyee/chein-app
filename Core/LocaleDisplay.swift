@@ -7,7 +7,7 @@ import Foundation
 ///   returns display text for the given `Locale` (pass SwiftUI's `@Environment(\.locale)`).
 /// - Chinese (`zh`) keeps the exact look the owner approved (`¥12.50`, `yyyy-MM-dd HH:mm`,
 ///   `1.2 公里`) so the CN launch does not move; every other language uses Apple's locale-aware
-///   formatting (`CN¥12.50` / `$12.50`, `Nov 27, 2026 at 3:05 PM`, `0.7 mi`).
+///   formatting (`¥12.50` for CNY / `$12.50` for USD, `Nov 27, 2026 at 3:05 PM`, `0.7 mi`).
 /// - Currency always comes from the order or price (`currencyCode`), never from the device locale.
 ///   CNY is the default only because the current wire contracts carry no currency field.
 /// - Distance follows the locale's measurement system for road usage: miles/feet in the US, km/m in CN.
@@ -22,13 +22,14 @@ public enum LocaleDisplay {
 
     // MARK: Money
 
-    /// `¥12.50` in Chinese; `CN¥12.50` / `$12.50` elsewhere. Always two fraction digits (owner 2026-11-24).
+    /// `¥12.50` for CNY and `$12.50` for USD in every locale (US r2: the order's currency, not the locale, picks the symbol). Always two fraction digits (owner 2026-11-24).
     public static func money(_ amount: Decimal, currencyCode: String? = nil, locale: Locale) -> String {
         let code = normalizedCurrency(currencyCode)
         if isChinese(locale), code == "CNY" { return MoneyDisplay.yuan(amount) }
         var rounded = Decimal(), value = amount
         NSDecimalRound(&rounded, &value, 2, .plain)
-        let style = Decimal.FormatStyle.Currency(code: code, locale: locale).precision(.fractionLength(2))
+        // US r2: the currency's own narrow symbol (`¥` for CNY, `$` for USD) in every locale; never re-labelled by locale.
+        let style = Decimal.FormatStyle.Currency(code: code, locale: locale).presentation(.narrow).precision(.fractionLength(2))
         return style.format(rounded)
     }
 

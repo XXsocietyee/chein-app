@@ -5,6 +5,7 @@ import SwiftUI
 @MainActor struct PlayFinishRouteCardView: View {
     let card: PlayFinishRouteCard
     var destination: ((Int) -> AnyView)?
+    @Environment(\.locale) private var locale
 
     var body: some View {
         if let destination {
@@ -48,7 +49,8 @@ import SwiftUI
     }
     @ViewBuilder private var price: some View {
                 switch card.price {
-                case .from(let amount)?: Text("playx.finishRoute.priceFrom \(NSDecimalNumber(decimal: amount).stringValue)").cyText(.numericBody)
+                case .from(let amount)?: // US r2: currency symbol from the shared formatter, not baked into the string.
+                    Text("activity.pinned.price \(LocaleDisplay.money(amount, locale: locale))").cyText(.numericBody)
                 case .free?: Text("playx.finishRoute.free").cyText(.numericBody)
                 case nil: EmptyView()
                 }

@@ -106,10 +106,15 @@ struct OrderAmountHero: View {
     let label: LocalizedStringKey
     let amount: Decimal?
     var showsCurrencyCaveat = true
+    /// US r2: the order's own currency when the server sends one (`USD` → `$12.50`); nil keeps the bare figure + caveat.
+    var currencyCode: String? = nil
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
     private var figure: String {
         guard let amount else { return "—" }
+        if let currencyCode, let text = RegistrationUIMoney.display(amount, locale: locale, currencyCode: currencyCode) {
+            return text
+        }
         let formatter = NumberFormatter(); formatter.locale = locale; formatter.numberStyle = .decimal
         formatter.minimumFractionDigits = 2; formatter.maximumFractionDigits = 2
         return formatter.string(from: NSDecimalNumber(decimal: amount)) ?? "—"
@@ -122,7 +127,7 @@ struct OrderAmountHero: View {
                 .monospacedDigit()
                 .foregroundStyle(.primary)
                 .privacySensitive()
-            if amount != nil, showsCurrencyCaveat {
+            if amount != nil, showsCurrencyCaveat, currencyCode == nil {
                 Text(verbatim: appLocalized("activity.currencyUnconfirmed", locale: locale))
                     .font(.caption).foregroundStyle(.tertiary)
             }

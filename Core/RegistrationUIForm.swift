@@ -138,15 +138,23 @@ public enum MoneyDisplay {
 
 public enum RegistrationUIMoney {
     public static let yuanCurrencyCode = "CNY"
+    public static let dollarCurrencyCode = "USD"
+    /// US r2: with a currency code the amount carries the order currency's own narrow symbol in every
+    /// locale (`USD` → `$12.50`, `CNY` → `¥12.50`); the device locale only picks separators. Without a
+    /// code the amount stays a bare decimal (currency unknown).
     public static func display(_ amount: Decimal?, locale: Locale, currencyCode: String? = nil) -> String? {
         guard let amount, !amount.isNaN, amount >= .zero else { return nil }
+        let code = (currencyCode ?? "").trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        if !code.isEmpty {
+            let digits = MoneyDisplay.minimumFractionDigits()...MoneyDisplay.maximumFractionDigits
+            let style = Decimal.FormatStyle.Currency(code: code == "RMB" ? yuanCurrencyCode : code, locale: locale)
+                .presentation(.narrow)
+                .precision(.fractionLength(digits))
+            return style.format(amount)
+        }
         let formatter = NumberFormatter()
         formatter.locale = locale
-        if let currencyCode {
-            formatter.numberStyle = .currency
-            formatter.currencyCode = currencyCode
-            formatter.currencySymbol = currencyCode
-        } else { formatter.numberStyle = .decimal }
+        formatter.numberStyle = .decimal
         formatter.minimumFractionDigits = MoneyDisplay.minimumFractionDigits()
         formatter.maximumFractionDigits = MoneyDisplay.maximumFractionDigits
         return formatter.string(from: NSDecimalNumber(decimal: amount))

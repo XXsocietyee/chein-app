@@ -63,8 +63,10 @@ final class SignInWithAppleFlowTests: XCTestCase {
         let plist = try PropertyListSerialization.propertyList(from: data, options: [], format: &format)
         let dict = try XCTUnwrap(plist as? [String: Any])
         let values = try XCTUnwrap(dict[SignInWithAppleEntitlement.key] as? [String])
-        XCTAssertEqual(dict.keys.count, 1)
+        // The entitlements file also carries the app group and Apple Pay merchant keys;
+        // only the Sign in with Apple value is pinned here.
         XCTAssertEqual(values, SignInWithAppleEntitlement.requiredValues)
+        XCTAssertEqual(values.count, 1)
         XCTAssertTrue(SignInWithAppleEntitlement(values: values).isSatisfied)
     }
 

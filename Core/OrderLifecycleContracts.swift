@@ -36,12 +36,14 @@ public struct OrderLifecycleDetail: Decodable, Equatable, Identifiable {
     public let settlement: OrderSettlementFacts?
     /// OWN-U07-02. Channel names only. A WeChat flag is not an in-app purchase approval.
     public let paymentChannels: [String]?
+    /// US r2: order `currency` (ISO 4217, e.g. `USD`). Nil on an old backend or a China order; nil stays CNY.
+    public let currency: String?
 
     enum CodingKeys: String, CodingKey {
         case id, memberId, ownerType, ownerId, registrationNo, registrationStatus, paymentStatus, verificationStatus
         case payableAmount, ticketName, purchaseKind, createTime, paymentTime, verificationTime, payExpireTime
         case cmsActivity, cmsTopic, refundInfo, refundApplication, manualRefundCaseStatus, entitlements
-        case delivery, settlementSummary, paymentChannels
+        case delivery, settlementSummary, paymentChannels, currency
     }
     private struct Owner: Decodable {
         let name: String?
@@ -87,6 +89,9 @@ public struct OrderLifecycleDetail: Decodable, Equatable, Identifiable {
         delivery = try? c.decodeIfPresent(OrderDeliveryFacts.self, forKey: .delivery)
         settlement = try? c.decodeIfPresent(OrderSettlementFacts.self, forKey: .settlementSummary)
         paymentChannels = try? c.decodeIfPresent([String].self, forKey: .paymentChannels)
+        let rawCurrency: String? = try? c.decodeIfPresent(String.self, forKey: .currency)
+        let trimmedCurrency = rawCurrency?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        currency = trimmedCurrency.isEmpty ? nil : trimmedCurrency.uppercased()
     }
 }
 

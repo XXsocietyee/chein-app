@@ -103,6 +103,9 @@ extension EnvironmentValues {
     let requiresFreshQuote: Bool
     let channel: RegistrationPayChannel
     let onExpiredRebuild: (() -> Void)?
+    /// US r2: the order's own `currency` / `paymentChannels` (order detail has no quote). A quote wins when present.
+    let orderCurrency: String?
+    let orderPaymentChannels: [String]?
 
     @StateObject private var viewModel = RegistrationPayViewModel()
     @State private var readiness: RegistrationPaymentReadiness?
@@ -114,7 +117,9 @@ extension EnvironmentValues {
          consented: Bool,
          requiresFreshQuote: Bool = true,
          channel: RegistrationPayChannel = .standard,
-         onExpiredRebuild: (() -> Void)? = nil) {
+         onExpiredRebuild: (() -> Void)? = nil,
+         orderCurrency: String? = nil,
+         orderPaymentChannels: [String]? = nil) {
         self.registrationID = registrationID
         self.payableAmount = payableAmount
         self.quote = quote
@@ -123,7 +128,13 @@ extension EnvironmentValues {
         self.requiresFreshQuote = requiresFreshQuote
         self.channel = channel
         self.onExpiredRebuild = onExpiredRebuild
+        self.orderCurrency = orderCurrency
+        self.orderPaymentChannels = orderPaymentChannels
     }
+
+    /// Quote first (registration sheet), else the order detail's own fields; nil on a China order.
+    private var payCurrency: String? { quote?.currency ?? orderCurrency }
+    private var payChannels: [String]? { quote?.paymentChannels ?? orderPaymentChannels }
 
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
 
@@ -154,7 +165,7 @@ extension EnvironmentValues {
                     statusView
                     if let stripePay, usesStripe(stripePay) {
                         RegistrationStripePayRows(context: stripePay, registrationID: registrationID,
-                                                  paymentChannels: quote?.paymentChannels, consented: consented,
+                                                  paymentChannels: payChannels, consented: consented,
                                                   readiness: readiness)
                     } else if canTapPay {
                         CYPillButton(verbatim: c.t("立即支付", "Pay now"), style: .primary) {
@@ -198,7 +209,7 @@ extension EnvironmentValues {
 
     /// US launch r1: a USD quote listing `APPLE_PAY` / `APP_STRIPE` in the US market. China quotes never match.
     private func usesStripe(_ context: StripePayContext) -> Bool {
-        StripePayEligibility.applies(market: context.market, currency: quote?.currency, paymentChannels: quote?.paymentChannels)
+        StripePayEligibility.applies(market: context.market, currency: payCurrency, paymentChannels: payChannels)
     }
 
     /// A missing amount stays on screen as an em dash. A decoded zero stays off this section.
@@ -209,7 +220,9 @@ extension EnvironmentValues {
     }
 
     private var amountText: String {
-        RegistrationUIMoney.display(payableAmount, locale: locale) ?? "—"
+        // US r2: the order currency picks the symbol; a backend without `currency` is the China one (MP shows ¥).
+        RegistrationUIMoney.display(payableAmount, locale: locale,
+                                    currencyCode: payCurrency ?? RegistrationUIMoney.yuanCurrencyCode) ?? "—"
     }
 
     private var payOnceHint: String {

@@ -137,7 +137,9 @@ import SwiftUI
                     payableAmount: detail.payableAmount,
                     consented: coordinator.issue != .reconsentRequired,
                     requiresFreshQuote: false,
-                    channel: .standard
+                    channel: .standard,
+                    orderCurrency: detail.currency,
+                    orderPaymentChannels: detail.paymentChannels
                 )
             }
             timeline(detail)
@@ -189,7 +191,7 @@ import SwiftUI
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 // Revolut hero: unknown amount is an em dash, never 0.
-                OrderAmountHero(label: "orderLifecycle.amount", amount: detail.payableAmount)
+                OrderAmountHero(label: "orderLifecycle.amount", amount: detail.payableAmount, currencyCode: detail.currency)
             }.padding(.vertical, 4)
                 .alignmentGuide(.listRowSeparatorLeading) { $0[.leading] }
             OrderLifecycleField(label: "orderLifecycle.number", value: detail.registrationNumber)

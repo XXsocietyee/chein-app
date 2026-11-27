@@ -25,9 +25,38 @@ final class RegistrationUIFormTests: XCTestCase {
         let en = RegistrationUIMoney.display(.zero, locale: Locale(identifier: "en_US"), currencyCode: RegistrationUIMoney.yuanCurrencyCode)
         XCTAssertNotNil(en)
         XCTAssertTrue(en?.contains("0.00") == true)
-        XCTAssertTrue(en?.contains("CN") == true || en?.contains("CNY") == true || en?.contains("¥") == true)
+        XCTAssertTrue(en?.contains("¥") == true)
         let zh = RegistrationUIMoney.display(12.5, locale: Locale(identifier: "zh_Hans_CN"), currencyCode: RegistrationUIMoney.yuanCurrencyCode)
         XCTAssertTrue(zh?.contains("12.50") == true)
+    }
+    /// US r2: optional order currency on the order detail; absent or blank stays nil (China behaviour).
+    func testOrderDetailCurrencyAndPaymentChannelsDecodeLeniently() throws {
+        func detail(_ extra: String) throws -> OrderLifecycleDetail {
+            try JSONDecoder().decode(OrderLifecycleDetail.self, from: Data(("{\"id\":7," + extra + "}").utf8))
+        }
+        let us = try detail("\"currency\":\" usd \",\"paymentChannels\":[\"APPLE_PAY\",\"APP_STRIPE\"]")
+        XCTAssertEqual(us.currency, "USD")
+        XCTAssertEqual(us.paymentChannels, ["APPLE_PAY", "APP_STRIPE"])
+        XCTAssertNil(try detail("\"currency\":\"  \"").currency)
+        XCTAssertNil(try detail("\"currency\":7").currency)
+        let china = try detail("\"payableAmount\":12.5")
+        XCTAssertNil(china.currency)
+        XCTAssertNil(china.paymentChannels)
+    }
+    /// US r2: the order currency picks the symbol (USD → `$`, CNY → `¥`), never the device locale.
+    func testDisplayUsesTheOrderCurrencySymbolInEveryLocale() {
+        for id in ["en_US", "zh_Hans_CN"] {
+            let locale = Locale(identifier: id)
+            let usd = RegistrationUIMoney.display(12.5, locale: locale, currencyCode: RegistrationUIMoney.dollarCurrencyCode)
+            XCTAssertTrue(usd?.contains("$12.50") == true, "\(id) \(usd ?? "nil")")
+            XCTAssertFalse(usd?.contains("US") == true, "\(id) \(usd ?? "nil")")
+            XCTAssertFalse(usd?.contains("¥") == true, "\(id) \(usd ?? "nil")")
+            let cny = RegistrationUIMoney.display(12.5, locale: locale, currencyCode: "cny")
+            XCTAssertTrue(cny?.contains("¥12.50") == true, "\(id) \(cny ?? "nil")")
+            XCTAssertFalse(cny?.contains("CN") == true, "\(id) \(cny ?? "nil")")
+            XCTAssertFalse(cny?.contains("$") == true, "\(id) \(cny ?? "nil")")
+        }
+        XCTAssertEqual(RegistrationUIMoney.display(12.5, locale: Locale(identifier: "en_US")), "12.50")
     }
     /// Owner 2026-11-24: one shared MoneyDisplay, two decimals (¥12.50). The live switch stays `.twoDecimals`.
     func testMoneyDisplaySwitchDefaultsToCurrentTwoDecimals() throws {

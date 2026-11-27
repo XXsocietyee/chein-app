@@ -146,9 +146,11 @@ enum QuestifyCardText {
         style.timeZone = zone
         return date.formatted(style)
     }
-    static func amount(_ value: Decimal?, locale: Locale) -> String? {
+    /// US r2: the price with its currency's own symbol (`¥12.50` / `$12.50`) from the shared formatter;
+    /// the list contract carries no currency yet, so the shared CNY default applies.
+    static func amount(_ value: Decimal?, currencyCode: String? = nil, locale: Locale) -> String? {
         guard let value, value >= 0 else { return nil }
-        return value.formatted(.number.precision(.fractionLength(0...2)).locale(locale))
+        return LocaleDisplay.money(value, currencyCode: currencyCode, locale: locale)
     }
     static func metaLine(date: String?, place: String?) -> String? {
         let parts = [date, place?.trimmingCharacters(in: .whitespacesAndNewlines)].compactMap { $0 }.filter { !$0.isEmpty }
@@ -168,7 +170,7 @@ struct QuestifyCardSummary: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         if let price {
-            Text("playx.finishRoute.priceFrom \(price)").font(.headline).monospacedDigit()
+            Text("activity.pinned.price \(price)").font(.headline).monospacedDigit()
         }
     }
 }
