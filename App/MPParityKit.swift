@@ -528,7 +528,8 @@ struct MPLoadSwitch<Value: Equatable, Content: View>: View {
                 .padding(.horizontal, CYSpacing.pageHorizontal)
                 .accessibilityIdentifier("\(identifier).loading")
         case .failed(let message):
-            CYStateLayout(kind: .failure, title: message.map { Text(verbatim: $0) } ?? Text(errorTitle),
+            // MP cy-error: the page's own title (e.g. 读取失败) stays the title; the server sentence is the sub.
+            CYStateLayout(kind: .failure, title: Text(errorTitle), detail: message.map { Text(verbatim: $0) },
                           primary: (title: "action.retry", action: onRetry), primaryStyle: .secondary, primaryIdentifier: "\(identifier).retry")
                 .accessibilityIdentifier("\(identifier).error")
         case .ready(let value):
