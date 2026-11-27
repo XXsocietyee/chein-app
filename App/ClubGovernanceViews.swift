@@ -196,6 +196,8 @@ struct ClubGovernanceReadView: View {
     /// CLB-topic-story-01: `pages/club/topic-story/index` opens the story directly. The topic overview stays the
     /// host that owns the read; once it has loaded, the story is pushed one time.
     var opensStoryOnLoad = false
+    /// mp-club r3: members the 对成员执行 card loaded (nil until loaded); 0 with no ban records = MP 暂无可治理成员.
+    @State private var governanceMemberCount: Int? = nil
     @State private var storyAutoOpen = false
     /// CLB-r10-apply-01: 切换到商家端 (MP reLaunch) presents the merchant home as a new root.
     @State private var merchantRelaunch = false
