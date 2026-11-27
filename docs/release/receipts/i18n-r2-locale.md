@@ -71,4 +71,7 @@ interpolation (`Text("key \(a) \(b)")`). Fragments that round-trip byte for byte
 
 ## Gates (pushed head)
 
-See the commit message / bottom of this file for results.
+- `generate_project.py` OK; `check_scaffold.py` PASS (19906 bilingual keys); `check_a11y_lint.py` 0 new;
+  `contract_ratchet.py --check` **new 0** (104 failing = baseline 104); `check_locale_format.py` PASS (yuan 15, plural +
+  substitution ratchets PASS); `check_catalog_coverage.py` gaps 0. (The ratchet run started before the last one-line
+  `RoamHistoryShareView` zh-format tweak and tool-only edits.)
