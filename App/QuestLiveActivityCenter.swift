@@ -80,6 +80,11 @@ import QuestifyCore
         }
     }
 
+    /// P21: the mini bar's / HUD's pause and resume, the same path as the Live Activity buttons.
+    func toggleRun(kind: QuestLiveActivityKind, pause: Bool) -> Bool {
+        perform(pause ? .pause : .resume, kind: kind)
+    }
+
     private func runningPlayCoordinator() -> PlayExperienceCoordinator? {
         guard let key = running[.play]?.key, let coordinator = playCoordinators[key]?.value, coordinator.canManageRun else { return nil }
         return coordinator
@@ -98,6 +103,7 @@ import QuestifyCore
     /// City orientation run or free explore map on screen: tags the running `.play` activity with its flow and
     /// the distance to the next stop (rounded to 10 m so walking does not flood ActivityKit with updates).
     func setPlayContext(mode: QuestLiveActivityMode, nextDistanceMeters: Double?, arrived: Bool = false) {
+        ActiveSessionStore.shared.setPlayScreenVisible(true)
         guard NativeR2Flags.island else { return }
         let meters = nextDistanceMeters.flatMap { $0.isFinite && $0 >= 0 ? Int(($0 / 10).rounded()) * 10 : nil }
         if let current = playContext, current.mode == mode, current.nextDistanceMeters == meters, current.arrived == arrived { return }
@@ -107,6 +113,7 @@ import QuestifyCore
 
     /// The play screen left; the activity keeps its Core values without the distance.
     func clearPlayContext() {
+        ActiveSessionStore.shared.setPlayScreenVisible(false)
         guard playContext != nil else { return }
         playContext = nil
         redecoratePlay()
@@ -150,6 +157,7 @@ import QuestifyCore
         current.content = decorated
         running[.play] = current
         let activity = current.activity
+        ActiveSessionStore.shared.update(QuestLiveActivityDescriptor(kind: .play, key: current.key, title: activity.attributes.title), content: decorated)
         Task { await activity.update(ActivityContent(state: decorated, staleDate: nil)) }
         publishNextStop(title: activity.attributes.title, content: decorated)
     }
@@ -198,6 +206,7 @@ import QuestifyCore
 
     private func show(_ descriptor: QuestLiveActivityDescriptor, _ incoming: QuestLiveActivityContent) {
         let content = decorate(incoming, kind: descriptor.kind)
+        ActiveSessionStore.shared.update(descriptor, content: content)
         if var current = running[descriptor.kind], current.key == descriptor.key {
             guard current.content != content else { return }
             current.content = content
@@ -222,6 +231,7 @@ import QuestifyCore
     }
 
     private func end(kind: QuestLiveActivityKind, key: String?, last: QuestLiveActivityContent?) {
+        ActiveSessionStore.shared.end(kind: kind, key: key)
         if kind == .play, last != nil { clearNextStop() }
         guard let current = running[kind], key == nil || key == current.key else {
             refreshEnded(kind: kind, key: key, last: last)
