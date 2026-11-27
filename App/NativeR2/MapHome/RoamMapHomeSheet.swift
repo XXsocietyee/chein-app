@@ -47,19 +47,6 @@ import QuestifyCore
             dependencies.passportDestination?()
                 .presentationDragIndicator(.visible)
         }
-        // The team pages are push destinations elsewhere, so each sheet gives them a stack.
-        .cySheet(isPresented: $model.showsMyTeams) {
-            NavigationStack { dependencies.myTeamsDestination?() }
-                .presentationDragIndicator(.visible)
-        }
-        .cySheet(isPresented: $model.showsNearbyTeams) {
-            NavigationStack { dependencies.nearbyTeamsDestination?() }
-                .presentationDragIndicator(.visible)
-        }
-        .cySheet(item: $model.teamSheet) { team in
-            NavigationStack { dependencies.nearbyTeamDestination?(team.teamID) }
-                .presentationDragIndicator(.visible)
-        }
     }
 
     private func pin(_ id: String) -> RoamMapHomePin? {
@@ -95,6 +82,12 @@ import QuestifyCore
             if let reader = dependencies.officialRouteReader {
                 RoamMapHomeRouteCard(reader: reader, routeID: id, model: model)
             }
+        case .nearbyTeams:
+            dependencies.nearbyTeamsDestination?()
+        case .myTeams:
+            dependencies.myTeamsDestination?()
+        case .team(let teamID):
+            dependencies.nearbyTeamDestination?(teamID)
         }
     }
 }
@@ -266,14 +259,14 @@ import QuestifyCore
             }
             .accessibilityIdentifier("roam.home.intro.teams")
             if dependencies.nearbyTeamsDestination != nil {
-                Button { model.showsNearbyTeams = true } label: {
+                Button { model.push(.nearbyTeams) } label: {
                     Label("nativeR2.mapHome.teamsMap", systemImage: "map")
                 }
                 .accessibilityIdentifier("roam.home.intro.map")
             }
             if dependencies.myTeamsDestination != nil {
                 // MP ticket NO.03: 我的队伍 with its sub line.
-                Button { model.showsMyTeams = true } label: {
+                Button { model.push(.myTeams) } label: {
                     Label {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("nativeR2.mapHome.myTeams")
