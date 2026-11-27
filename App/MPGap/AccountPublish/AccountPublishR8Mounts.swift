@@ -173,7 +173,19 @@ enum ProjectEditCastConfig {
         preserved[key] = .object(object)
     }
 
-    static func setMembers(_ members: [TopicCastMemberDraft], in preserved: inout [String: ProjectEditJSON]) {
+    /// MP story-cast.js `draftView`: blank clues and clues whose unlock chapter was deleted are not saved
+    /// (turning them into 开局就有 would show them early; the backend rejects a blank clue with 400).
+    /// `chapterIDs == nil` means the chapter list is unknown, so only blank clues are dropped.
+    static func savableClues(_ clues: [TopicCastClueDraft], chapterIDs: [ProjectEditJSON]?) -> [TopicCastClueDraft] {
+        clues.filter { clue in
+            if clue.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return false }
+            guard let ids = chapterIDs, let unlock = clue.chapterID, unlock != .null else { return true }
+            return ids.contains(unlock)
+        }
+    }
+
+    static func setMembers(_ members: [TopicCastMemberDraft], chapterIDs: [ProjectEditJSON]? = nil,
+                           in preserved: inout [String: ProjectEditJSON]) {
         var object = root(preserved) ?? ["enabled": .bool(true), "playerName": .bool(true), "playerIdentity": .bool(false),
                                          "identities": .array([])]
         let previous = Dictionary(rawMembers(preserved).compactMap { m in m["id"]?.text.map { ($0, m) } }, uniquingKeysWith: { a, _ in a })
@@ -196,7 +208,7 @@ enum ProjectEditCastConfig {
                 row["voice"] = .object(["mode": .string("none")])
             }
             // MP story-cast.js serialize: clues trimmed (≤6, ≤40), ending lines trimmed (≤60).
-            row["clues"] = .array(member.clues.prefix(maxClues).map { clue in
+            row["clues"] = .array(savableClues(member.clues, chapterIDs: chapterIDs).prefix(maxClues).map { clue in
                 .object(["text": .string(String(clue.text.trimmingCharacters(in: .whitespacesAndNewlines).prefix(clueMax))),
                          "chapterId": clue.chapterID ?? .null])
             })
@@ -305,7 +317,11 @@ enum ProjectEditCastConfig {
             })
         .disabled(readOnly)
         .cySheet(isPresented: $editing, onDismiss: {
-            ProjectEditCastConfig.setMembers(sheetMembers, in: &preserved)
+            let chapterIDs: [ProjectEditJSON] = chapters.compactMap { chapter in
+                guard let id = chapter.preserved["id"], id != .null, id != .string("") else { return nil }
+                return id
+            }
+            ProjectEditCastConfig.setMembers(sheetMembers, chapterIDs: chapterIDs, in: &preserved)
             ProjectEditCastConfig.setPlayer(sheetPlayer, in: &preserved)
         }) {
             ProjectEditGapCastEditorSheet(members: $sheetMembers, player: $sheetPlayer, chapters: chapters, onPreviewVoice: nil)
@@ -330,7 +346,8 @@ enum ProjectEditCastConfig {
                                stampDestination: { AnyView(SessionRoamStampCameraView()) },
                                posterDestination: { AnyView(SessionRoamPosterView(node: $0)) },
                                eventDestination: { AnyView(RoamNearbyEventsDetailHost(target: $0, session: session)) },
-                               couponWalletDestination: session.makeRoamCouponWalletDestination(reader: session.roamReader))
+                               couponWalletDestination: session.makeRoamCouponWalletDestination(reader: session.roamReader),
+                               embedsNavigationStack: false)
         } else {
             RoamStatusView(issue: .notConfigured)
         }

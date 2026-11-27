@@ -108,7 +108,7 @@ import SwiftUI
                                         retention: $appealRetention)
                 }
                 if flow.busy {
-                    Section { ProgressView().frame(maxWidth: .infinity) }
+                    Section { CYLoadingState() }
                 }
                 if let failure = flow.failure {
                     ContentUnavailableView {

@@ -160,13 +160,34 @@ no ≥ 44 frame): 16 hits, 8 real (glyph-sized hit area); the rest are full rows
 | `pages/club/*` apply (proof images) | `MPGap/Club/ClubGapRound4Views.swift` | ✓ | Delete-proof trash glyph → 44 × 44 hit area | Done |
 | `pages/publishkit` hint ladder editor | `TemplateHintLadderFields.swift` | ✓ (mp-publish owns order) | Remove-layer ⊖ glyph → 44 × 44 hit area | Done |
 
+## Run 10 (2026-11-27, half-hourly)
+
+Rebased on `origin/design/r3-a11y`. Coordinator 20:55 finding for this lane worked first; 16:37 `ia-passport` capsule contrast
+re-checked (already `.footnote.weight(.medium)`, brand on bordered fill ~9:1, stacks at AX sizes): no change.
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/member/*` passport (sweep fixture) | `DesignFixtures/E5bFixtures.swift`, `DesignFixtureRegistry.swift` | ✓ (mp-mine owns order) | `a11y-passport-ax5` now mounts the passport page (`IAPassportFixture`: stamp ring, badge rail 2 of 6, action capsules) at AX5; the badge wall at AX5 moved to its own `A11yBadgesAX5Fixture` under `a11y-badges-ax5` (release-exclusion audit + view map updated) | Done (next sweep: `a11y-passport-ax5`) |
+| `pages/club/*` calendar (month prev / next) | `ClubCalendarSessionRows.swift` | ✓ (mp-club owns order) | Borderless chevrons in a `List` row had a glyph-sized hit area → label min 44 × 44 + `contentShape` | Done |
+| `pages/club/*` channel poll composer | `GroupPollViews.swift` | ✓ | Remove-option ⊖ → 44 × 44 hit area | Done |
+| `pages/publishkit` condition value editor | `NativeConditionAuthorFieldForm.swift` | ✓ (mp-publish owns order) | Remove ⊖ and move-up ↑ (adjacent, borderless) → 44 × 44 each, so they no longer share one small target | Done |
+| Contrast, multi-line `.opacity(` foregrounds | `CYOnboarding.swift`, `CYShareCard.swift`, `CYChapterFlip.swift`, `CYDesignedCover.swift`, `CYSignature.swift` | — | Audit: onboarding body white 0.6 on indigo/ink ≈ 6.5:1; share-card brand black 0.55 on light ≈ 5:1; chapter meta 0.66 ≈ 7:1; cover watermark + DEBUG ART label decorative / debug only, hidden. No `textSecondary.opacity(<0.75)` on text. No change | Done |
+| Reduce Motion, looping / symbol effects | `FogOverlayLayer.swift` (+ `RoamFogMapView`), `GrowthCenterView`, `ChanceKits`, `RoamStampCameraView`, `PassMarketViews` | — | Audit: every `repeatForever` file reads Reduce Motion; fog shimmer and wipes are off under Reduce Motion (caller passes `shimmer: !reduceMotion`, crossfade instead); remaining `symbolEffect` / `.contentTransition(.symbolEffect)` are system effects that follow Reduce Motion. No change | Done |
+
+| `pages/member/*` settings account card | `SettingsView.swift` (`SettingsAccountCard`) | ✓ (mp-mine owns order) | Initial is `.title` inside a fixed 60 pt circle (clips at AX sizes) → `@ScaledMetric(relativeTo: .title)` circle | Done |
+| `pages/playkit` accusation confirm panel | `PlayKitQuestoViews.swift` (`confirmPanel`) | ✓ (mp-journey owns order) | Suspect initial `.pageTitle` in a fixed 72 pt circle → `@ScaledMetric(relativeTo: .largeTitle)` circle (same as the 52 pt list initial) | Done |
+| VoiceOver, `.onTapGesture` without button trait | `JourneyReportViews`, `CityMomentView`, `SettingsAboutView`, `CYMedalStack`, `CYPlayerKit`, `IMExpandedViews`, `E1TicketCard` | — | Audit: every hit carries `.isButton` / `accessibilityAction` / adjustable action, is a skip-animation tap with a real button beside it, or is a map with `.allowsDirectInteraction` + a VoiceOver button (use map centre). No change | Done |
+
 ## Not done (next run starts here)
-- Re-read the a11y sheets once combined-r7 carries runs 7–8 (ring size at AX5, roam VoiceOver order).
-- Contrast pass continued: `Text` with palette `.opacity(` foregrounds split over several lines (multi-line modifiers; the one-line grep is done).
-- 44 pt pass continued: icon-only buttons with *no* button style inside `List` rows / toolbars-free `HStack`s (default style, same glyph-sized hit area).
+- Re-read the a11y sheets once combined-r7 carries runs 7–10 (ring size at AX5, roam VoiceOver order, `a11y-passport-ax5` now the passport).
+- Dynamic Type: fixed-height containers — the one-line scan (`.frame(height:)` right after a text modifier) is done; next: `.frame(height:)` on `HStack`/`VStack` holding text (multi-line).
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch
   overlay with the logo watermark at capture time (same symptom as the 16:53 `d2-home` note) — it must never dim a
   tab root. Also the `a11y-passport-ax5` fixture opens the badge wall, not the passport.
+- Release-exclusion audit (`tools/check_design_fixture_release_exclusion.py`) fails on combined-r7 independent of this lane:
+  `CityDiceFixture`, `CityKitFixture*`, `D2MeFixture`, `E3PressStyle`, `FixR3PlayRoamBFixtures`, `R3InPlaceKitFixture`, `R4*` are
+  declared under `App/DesignFixtures` but missing from `DesignFixtureReleaseExclusionAudit.symbols` (ds-consistency / owning lanes).
+- i18n-r3: `ClubComponents.swift:357` video play glyph `.accessibilityLabel(Text(verbatim: "Play"))` is English-only.
 - i18n-r3: `MPGap/Club/ClubGapRound4Views.swift` accessibility label `"删除凭证图片 \(index + 1)"` is a Chinese literal key (no en).

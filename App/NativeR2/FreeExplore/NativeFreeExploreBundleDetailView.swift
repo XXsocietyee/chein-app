@@ -128,7 +128,7 @@ enum NativeFreeExploreBundleState: Equatable {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(verbatim: store.merchantName ?? "—")
                     if let end = store.validEnd, !end.isEmpty {
-                        Text(verbatim: appLocalized("nativeR2.freeExplore.bundle.validEnd", locale: locale) + " " + end)
+                        Text(verbatim: appLocalized("nativeR2.freeExplore.bundle.validEnd", locale: locale) + " " + LocaleDisplay.civil(end, locale: locale))
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
