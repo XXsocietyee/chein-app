@@ -1,6 +1,6 @@
 # Chengyin design principles (living document)
 
-Owner 11-27: references are examples, not specs. Extract why they work, apply the principle to every surface where it fits, and keep adding references found independently. Every design lane reads this file first. **Owner 11-27: every page is built FROM its mini-program page first (all MP sections, MP order, fields, states, copy) and only then optimized with these principles — principles and reference apps never add, drop or reorder MP sections.** Story-flow theme stays on hold; everything else is in scope. Native Apple components, MP-first content, zh-Hans + en (US) both must read well.
+Owner 11-27: references are examples, not specs. Extract why they work, apply the principle to every surface where it fits, and keep adding references found independently. Every design lane reads this file first. **Owner 11-27 14:25: MP decides content/order only; navigation and look are native app (large top-left title on tab roots, inline on pushes, sheets for popups), Apple system components or the approved native-r2 system, ONE type system (Dynamic Type styles, no custom sizes/tracking) on every page.** **Owner 11-27: every page is built FROM its mini-program page first (all MP sections, MP order, fields, states, copy) and only then optimized with these principles — principles and reference apps never add, drop or reorder MP sections.** Story-flow theme stays on hold; everything else is in scope. Native Apple components, MP-first content, zh-Hans + en (US) both must read well.
 
 ## Principles
 
