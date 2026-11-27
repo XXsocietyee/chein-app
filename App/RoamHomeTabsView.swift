@@ -141,7 +141,9 @@ struct RoamHomeTabPicker: View {
             if showsCityTab, let cityStrip, let onOpenCityPlace {
                 RoamCityGuideCards(strip: cityStrip, places: cityPlaces, onOpen: onOpenCityPlace)
             } else if (reader.isSignedIn || reader.allowsPublicEntry), reader.isConfigured, reader.searchArea == nil {
+                // Containers like the sibling peek states (73a06a74f): iOS 27 drops a plain stack's identifier.
                 RoamStatusView(issue: .areaRequired)
+                    .accessibilityElement(children: .contain)
                     .accessibilityIdentifier("roam.home.peek.areaRequired")
                 if let onChooseArea { Button("roam.area.title", action: onChooseArea) }
             } else { content }
@@ -155,7 +157,7 @@ struct RoamHomeTabPicker: View {
                     Button("action.retry", action: refresh).frame(minHeight: 44)
 
                         .accessibilityIdentifier("roam.home.peek.teamsRetry")
-                }.accessibilityIdentifier("roam.home.peek.teamsFailed")
+                }.accessibilityElement(children: .contain).accessibilityIdentifier("roam.home.peek.teamsFailed")
             }
         }
         .task(id: reader.readKey) { await load() }
