@@ -34,7 +34,7 @@ Strings: 4 keys (`r2social.*`) in zh-Hans and en, fragment `docs/port/strings/de
 - `python3 tools/generate_project.py`: 4076 native sources. The new file is under `App/NativeR2/**`.
 - `python3 tools/check_scaffold.py`: PASS structural checks (19904 bilingual keys), typography lint PASS.
 - `python3 -B tools/check_a11y_lint.py`: PASS, 0 new.
-- `python3 -B tools/contract_ratchet.py --check`: RATCHET_RESULT
+- `python3 -B tools/contract_ratchet.py --check`: **104 failing, baseline 104, new 0, fixed 0**. The first run found 1 new failure: `test_social_account_contracts…test_bilingual_keys_fixture_isolation_and_real_guide_tab_mapping` pins the count of `social.*` keys at 125. The new keys were moved from `social.r2.*` to `r2social.*`, so the pin is unchanged, and the rerun is clean.
 
 ## For the coordinator
 
