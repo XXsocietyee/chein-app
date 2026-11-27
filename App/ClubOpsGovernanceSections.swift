@@ -299,7 +299,6 @@ struct ClubOpsRoleSection: View {
                 VStack(alignment: .leading, spacing: 4) {
                     if let owner = roster.ownerName { Text(verbatim: owner).font(.headline) }
                     else { Text("club.gov.role.CLUB_OWNER").font(.headline) }
-                    ClubOpsGovernanceCopy.text("clubOpsGov.roles.ownerSummary").font(.footnote).foregroundStyle(.secondary)
                 }
                 Spacer()
                 ClubOpsTag(label: Text("club.gov.role.CLUB_OWNER"))
@@ -317,10 +316,8 @@ struct ClubOpsRoleSection: View {
                     revoke(row).accessibilityLabel(Text("club.gov.a11y.revoke \(row.memberName ?? "#\(row.targetMemberID)")"))
                 }.accessibilityIdentifier("clubOpsGov.roles.assignment.\(row.id)")
             }
-        } header: { Text("club.gov.assignments") } footer: {
-            // Mini-program roles page: the one consequence line under the delegation list.
-            if !roster.assignments.isEmpty { ClubOpsGovernanceCopy.text("clubOpsGov.roles.footer") }
-        }
+        } header: { Text("club.gov.assignments") }
+        // mp-club r3 (MP roles wxml:23-45): the owner row is name + 主理人 tag only, and the list has no footer line.
         Section {
             if roster.delegableMemberCount == 0 {
                 // CLB-roles-10: MP roles empty copy 暂无成员.
