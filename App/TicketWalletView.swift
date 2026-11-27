@@ -229,8 +229,7 @@ import SwiftUI
     }
     @ViewBuilder private var focusSection: some View {
         if focusPhase == .resolving {
-            ProgressView()
-                .accessibilityLabel(Text("ticketWallet.loading"))
+            ProgressView { Text("ticketWallet.loading") }
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .accessibilityIdentifier("ticketWallet.focus.resolving")
         } else if focusPhase == .missing {

@@ -43,8 +43,7 @@ struct ClubGroupCodeSessionStep: View {
     @ViewBuilder private var content: some View {
         switch phase {
         case .loading:
-            ProgressView()
-                .accessibilityLabel(Text("clubR3b.groupCode.sessionsLoading"))
+            ProgressView { Text("clubR3b.groupCode.sessionsLoading") }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         case .failed(let title):
             // MP cy-error: the sentence plus 重试 (`onRetry` re-reads the sessions).

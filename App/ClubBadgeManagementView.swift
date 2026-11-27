@@ -77,9 +77,8 @@ import SwiftUI
     @ViewBuilder private func badgeContent(_ flow: ClubBadgeManagementFlow) -> some View {
         Section {
             if model.working || flow.screenState == .loading {
-                ProgressView()
+                ProgressView { Text("loading", tableName: "ClubBadge") }
                     .frame(maxWidth: .infinity)
-                    .accessibilityLabel(Text("loading", tableName: "ClubBadge"))
             }
             switch flow.screenState {
             case .notAvailable:
@@ -191,9 +190,8 @@ import SwiftUI
                 Section {
                     switch flow.memberPickerState {
                     case .loading:
-                        ProgressView()
+                        ProgressView { Text("membersLoading", tableName: "ClubBadge") }
                             .frame(maxWidth: .infinity)
-                            .accessibilityLabel(Text("membersLoading", tableName: "ClubBadge"))
                     case .error:
                         Text("membersError", tableName: "ClubBadge")
                             .foregroundStyle(.secondary)

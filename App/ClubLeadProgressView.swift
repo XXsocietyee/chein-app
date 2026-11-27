@@ -155,10 +155,8 @@ enum ClubOwnerStageNow {
             }
             else {
                 if model.phase == .loading {
-                    ProgressView()
+                    ProgressView { Text("club.leadProgress.loading") }
                         .frame(maxWidth: .infinity)
-                        .accessibilityElement(children: .ignore)
-                        .accessibilityLabel(Text("club.leadProgress.loading"))
                         .accessibilityIdentifier("club.leadProgress.loading")
                 }
                 if model.phase == .failed {

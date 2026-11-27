@@ -71,9 +71,8 @@ import CryptoKit
                         .accessibilityIdentifier("nativeEnrollment.retryRevoke")
                 }
                 if working {
-                    ProgressView()
+                    ProgressView { Text("nativePlatform.working") }
                         .frame(maxWidth: .infinity)
-                        .accessibilityLabel(Text("nativePlatform.working"))
                     Text("nativePlatform.working")
                         .font(.footnote)
                         .foregroundStyle(.secondary)

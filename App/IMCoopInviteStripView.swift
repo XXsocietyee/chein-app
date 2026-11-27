@@ -60,9 +60,7 @@ import SwiftUI
     @ViewBuilder private var content: some View {
         switch phase {
         case .loading:
-            ProgressView()
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(Text(verbatim: copy("正在加载合作邀请", "Loading invites")))
+            ProgressView { Text(verbatim: copy("正在加载合作邀请", "Loading invites")) }
                 .accessibilityIdentifier("im.coopStrip.loading")
                 .frame(maxWidth: .infinity, alignment: .leading)
         case .failed(let issue):
