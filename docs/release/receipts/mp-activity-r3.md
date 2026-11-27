@@ -97,7 +97,7 @@ Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · contract_rat
 Sweep 18:54 still shows the pre-fix 合计 "—" bar and dark appearance on `t5-baoming` / `t5-pass-market`: both were fixed in the sixth session (`13aa04c35`, already in `ui/combined-r7`) after that build; recheck in the next sweep.
 Re-scan: `pages/coop/list/index` card lines (`.inv-terms` 对方已拒绝，可再邀其他商家。, 核销据点, contact, deposit strip, message, countdown) all present in `CoopListParitySections.swift` — no change. `subpackagePass` holds only `reveal` + `cy-frames` (rows above).
 
-**For other lanes:** `d2-square` (mp-home feed) shows Core synthetic data 「A synthetic city walk / 一次示例城市漫步」, 「Example walker」, 「Synthetic notice」 in both languages; `Core/SquareSyntheticFixtures.swift` is pinned by Core tests, so the d2 host (`App/SquareFixtureSupport.swift`) would need its own localized posts.
+**For other lanes (closed in tenth session, fixture-only):** `d2-square` (mp-home feed) showed Core synthetic data 「A synthetic city walk / 一次示例城市漫步」, 「Example walker」, 「Synthetic notice」 in both languages; `Core/SquareSyntheticFixtures.swift` is pinned by Core tests, so the d2 host (`App/SquareFixtureSupport.swift`) would need its own localized posts.
 
 ## Round 3 continue (2026-11-27, ninth session — sweep 19:36 build 3568fe51b, coordinator 19:50)
 | MP page | Native view | MP sections (✓ present / added / reordered) | Optimizations |
@@ -106,6 +106,23 @@ Re-scan: `pages/coop/list/index` card lines (`.inv-terms` 对方已拒绝，可�
 | `pages/square/*` feed time (`formatTimeDifference`, card via `SquareXcxRelativeTime`) | `App/SquareXcxPostCard.swift` | screenshot `en-d2-square`: "330 d ago". Now 1–6 days → 3 days ago / 3天前 (en plural), ≥ 7 days → locale date (Oct 1 / 10月1日, year added outside the current year); hours → 2 hours ago (plural) | `Text(date, format:)` follows the environment locale |
 
 Strings: `mpr3.square.{ageDays,ageHours} %lld` (fragment `mp-activity-r3-square.json`, en plural + zh-Hans).
+
+## Round 3 continue (2026-11-27, tenth session — sweep 20:11 build a250afd77)
+Sweep build predates `4b502b451` (ninth session: Register disabled while blocked, Square ages "330 d ago" → locale date); both still show in `en-t5-baoming` / `en-d2-square` and are already fixed on this branch — recheck next sweep.
+| MP page | Native view | MP sections (✓ present / added / reordered) | Optimizations |
+|---|---|---|---|
+| `pages/square/*` feed card (fixture) | `App/SquareFixtureSupport.swift` (`SquareFixtureReader(designLocalized:)`), `App/DesignFixtures/D2Fixtures.swift` | screenshots `en-d2-square` / `zh-Hans-d2-square`: both posts read 「A synthetic city walk / 一次示例城市漫步」 by 「Example walker」 · 「Example walking club」 · 「Synthetic notice」 in both languages. The d2 design fixture now serves its own posts in the UI language (`tt(en, zh)`): two different authors and texts, club 河畔步行俱乐部 / Riverside Walking Club, badge 官方 / Official, route 运河灯笼线 / Canal Lantern Route; detail reads the same post. UI tests and Core tests keep `SquareSyntheticFixtures` unchanged (flag defaults off) | both languages read well; no debug labels in the visible fixture |
+
+Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0**.
+
+## Round 3 continue (2026-11-27, eleventh session — sweep 20:45 build bb76e327c)
+Coordinator rows for this lane (19:50: Square "330 d ago", baoming Register enabled) are closed: `en-t5-baoming` now shows the disabled 请先勾选信息共享同意 / "Tick the sharing consent first" primary ✓. `d2-square` still shows the Core synthetic posts in this build; the localized d2 posts (`b0af9367f`) are not yet in `ui/combined-r7` — recheck next sweep.
+| MP page | Native view | MP sections (✓ present / added / reordered) | Optimizations |
+|---|---|---|---|
+| `subpackagePass` market (积分 card, MP `subpackageMember/points-history` balance) | `App/PassMarketViews.swift` `balanceRow` | screenshots `en-t5-pass-market` / `zh-Hans-t5-pass-market`: balance read 「1280」 while the bundle row under it reads 「1,200 points」. Balance now `Text(balance, format: .number)` → 1,280 in both languages | locale number format; `.numericText` transition kept |
+| `pages/square/*` feed + detail (fixture) | `App/SquareBrowserView.swift`, `App/SquareDetailView.swift`, `App/SquareFixtureSupport.swift` | screenshots `*-d2-square`: a 「示例内容 / Example content」 caption sat above 动态来源 in the design fixture (the MP feed has no such line). New `showsOfflineExampleNote` (App-side `SquareOfflineNoteHiding`): the d2 design fixture hides the note; `isOfflineExample` stays true so composer/report writes stay offline; UI-test fixtures and real offline readers unchanged | no debug labels in the visible fixture |
+
+Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · square contract suites 31 OK.
 
 ## Not done
 - Attendance (player): organizer 联系与签到配置 form (duty phones, window, public-confirm switch, scan, recovery 查询原结果 / 原请求重试 / 终止 / 确认归档) lives in `OfficialOrganizerConsoleView`, not in this section.

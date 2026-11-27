@@ -96,9 +96,8 @@ struct PassMembershipView: View {
         Group {
             switch phase {
             case .loading:
-                ProgressView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .accessibilityIdentifier("membership.loading")
+                CYLoadingState(messageIdentifier: "membership.loading")
+                    .frame(maxHeight: .infinity)
             case .failed:
                 ContentUnavailableView {
                     Label("mp.common.loadFailed", systemImage: "exclamationmark.triangle")
@@ -435,9 +434,7 @@ struct PassLibraryView: View {
             }
             switch phase {
             case .loading:
-                ProgressView()
-                    .frame(maxWidth: .infinity)
-                    .accessibilityIdentifier("passLibrary.loading")
+                CYLoadingState(messageIdentifier: "passLibrary.loading")
             case .failed(let message):
                 ContentUnavailableView {
                     Label {

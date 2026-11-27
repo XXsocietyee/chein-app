@@ -115,12 +115,13 @@ public struct JourneyDialogueReceipt: Equatable {
     public let effects: [JourneyDialogueEffect]
     public let relation: JourneyRecordRelation?
     public let stateVersion: Int
-    init(_ raw: PlayWireValue, npcID: Int, routeActionID: String) throws {
+    /// MP `_onResponse`: only a SUCCEEDED + PASS reply for the same request id is shown; anything else is a failure.
+    init(chat raw: PlayWireValue, requestID: String, npcID: Int, routeActionID: String) throws {
         guard raw.object != nil,
-              raw["npcId"].integer == npcID,
-              raw["routeActionId"].text == routeActionID,
-              let reply = raw["reply"].text, !reply.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-              let version = raw["stateVersion"].integer, version >= 0 else {
+              raw["requestId"].text?.lowercased() == requestID,
+              raw["outcomeStatus"].text == "SUCCEEDED",
+              raw["safetyDecision"].text == "PASS",
+              let reply = raw["safeText"].text, !reply.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw PlayExperienceError.malformed
         }
         self.npcID = npcID
@@ -128,7 +129,7 @@ public struct JourneyDialogueReceipt: Equatable {
         self.reply = reply
         self.effects = try JourneyDialogueEffect.decodeList(raw["effects"])
         self.relation = raw["relation"] == .null ? nil : try JourneyRecordRelation(raw["relation"])
-        self.stateVersion = version
+        self.stateVersion = raw["stateVersion"].integer ?? 0
     }
 }
 public struct JourneyRecordLog: Equatable {

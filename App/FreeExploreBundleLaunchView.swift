@@ -59,9 +59,7 @@ import SwiftUI
             case .error(.stale):
                 CYEmptyState(systemImage: "clock.arrow.circlepath", LocalizedStringKey("stale"), tableName: table)
             case .loading:
-                ProgressView { Text("cy.state.loading") }
-                    .frame(maxWidth: .infinity)
-                    .accessibilityIdentifier("freeBundle.loading")
+                CYLoadingState(messageIdentifier: "freeBundle.loading")
             case .empty:
                 CYEmptyState(systemImage: "tray", LocalizedStringKey("empty"), tableName: table)
                     .accessibilityIdentifier("freeBundle.empty")
@@ -195,7 +193,7 @@ import SwiftUI
                     }
                     ForEach(item.stores, id: \.offerId) { store in
                         LabeledContent {
-                            if let end = store.validEnd { Text(verbatim: end).monospacedDigit() }
+                            if let end = store.validEnd { Text(verbatim: LocaleDisplay.civil(end, locale: locale)).monospacedDigit() }
                         } label: {
                             Label { Text(verbatim: store.merchantName ?? store.offerId.text) } icon: { Image(systemName: "storefront") }
                         }

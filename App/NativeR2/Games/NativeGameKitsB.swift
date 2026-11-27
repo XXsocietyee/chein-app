@@ -47,7 +47,9 @@ extension PlayKitScreen {
             return NativeGameSubmit(title: Text("playkit.coin.flip"), enabled: enabled, busy: model.phase == "submitting",
                                     identifier: "playkit.coin.flip", action: { nativePrepare("FLIP_COIN") })
         case .diceRoll:
-            return NativeGameSubmit(title: Text("playkit.dice.roll"), enabled: enabled, busy: model.phase == "submitting",
+            // MP: 掷骰子 for d6, 掷 D20 for the D20 check.
+            let d20 = raw["mode"].text == "d20"
+            return NativeGameSubmit(title: Text(d20 ? LocalizedStringKey("playkit.d20.roll") : LocalizedStringKey("playkit.dice.roll")), enabled: enabled, busy: model.phase == "submitting",
                                     identifier: "playkit.dice.roll", action: { nativePrepare("ROLL_DICE") })
         case .random:
             let remaining = (raw["drawCount"].integer ?? 0) - (raw["drawn"].array ?? []).count

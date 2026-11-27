@@ -230,10 +230,7 @@ struct ClubInvitationFeedbackDetailRoute: Identifiable, Equatable {
                 } footer: { Text("club.inviteFeedback.readOnly") }
                 Section {
                     if model.phase == .loading {
-                        ProgressView()
-                            .frame(maxWidth: .infinity)
-                            .accessibilityElement(children: .ignore)
-                            .accessibilityLabel(Text("club.loading"))
+                        CYLoadingState("club.loading")
                             .accessibilityIdentifier("club.inviteFeedback.loading")
                     }
                     if model.phase == .failed {
@@ -355,10 +352,7 @@ struct ClubInvitationFeedbackDetailRoute: Identifiable, Equatable {
                                 }
                             }
                         } else {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
-                                .accessibilityElement(children: .ignore)
-                                .accessibilityLabel(Text("club.loading"))
+                            CYLoadingState("club.loading")
                                 .accessibilityIdentifier("club.inviteFeedback.detail.loading")
                         }
                         if current {

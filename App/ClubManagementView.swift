@@ -326,7 +326,7 @@ struct ClubManagementView: View {
                     .font(.headline)
                     .fixedSize(horizontal: false, vertical: true)
                 Group {
-                    if let time = request.requestTimeText { Text("club.management.requestedAt \(time)") }
+                    if let time = request.requestTimeText { Text("club.management.requestedAt \(LocaleDisplay.civil(time, locale: locale))") }
                     else { Text("club.management.timeUnknown") }
                 }
                 .font(.subheadline)
@@ -362,7 +362,7 @@ struct ClubManagementView: View {
                             .font(.headline).fixedSize(horizontal: false, vertical: true)
                     }
                     if let time = request.requestTimeText {
-                        Text("club.management.requestedAt \(time)")
+                        Text("club.management.requestedAt \(LocaleDisplay.civil(time, locale: locale))")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)

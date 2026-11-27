@@ -50,6 +50,7 @@ import SwiftUI
                 Spacer()
                 Button(role: .destructive) { edit { $0.removeHintLayer(layer.index) } } label: {
                     Image(systemName: "minus.circle")
+                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget).contentShape(Rectangle())
                 }
                 .buttonStyle(.borderless)
                 .disabled(!model.canEdit)

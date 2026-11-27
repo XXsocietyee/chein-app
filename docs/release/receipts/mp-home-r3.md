@@ -194,6 +194,25 @@ Screenshots: `docs/sweeps/latest/mp-home/sheet-en.jpg`, `sheet-zh-Hans.jpg`, `en
 | `d2-home` fixture (`App/HomeFeedFixtureSupport.swift`) | zh: 编辑精选 card "Sample neighborhood route", banners/category English. | **Fixed** — `HomeFixtureLanguage`: topic, activity, banner titles, category and Today candidates follow the UI language. |
 | `wave-today-club` (`App/DesignFixtures/WaveFixtures.swift`) | Debug line "Synthetic tap × N". | **Fixed** — line and counter removed; the synthetic tap loop stays. |
 
+## Round 3 continue (8) — 20:11 sweep (build a250afd77), mp-home sheets zh-Hans + en
+
+Merged `origin/ui/combined-r7` first (clean). Build a250afd77 predates `66c41fe9e` (continue 7: dead 「—」 footer hidden, plain hero, kind-icon covers, zh fixtures, no "Synthetic tap"), so those tiles still show the old state; recheck next sweep.
+
+| MP page → native | Difference seen (screenshot) | Status |
+|---|---|---|
+| `pages/index/index.wxml` `sec-hero` → `d2-home-offline` (`App/DesignFixtures/D2Fixtures.swift`) | `zh-Hans-d2-home-offline.jpg`: only 首页 + 「网络好像断开了」 + a bottom search field; banner, greeting and city are gone. MP hero is local content (fixed action banners, member info) and stays above the failed rails offline; the session host always passes it. | **Fixed** — fixture uses `HomeFeedFixtureHostView(forceHero: true, scenario: "offline")`, so the shot is what a signed-in player sees offline: banner → greeting / 玩家 · 上海 → the one offline state. App code unchanged. |
+| `pages/search2/result` → `d2-search-results` (`App/SearchMapFixtureSupport.swift`) | `zh-Hans-d2-search-results.jpg`: rows "Synthetic topic / Offline Lantern", category "Synthetic culture" and keyword "Lantern" in the Chinese UI. | **Fixed** — `SearchMapFixtureLanguage`: zh rows 示例主题 / 示例活动 / 示例俱乐部 / 示例商家 with 「离线示例 · 关键词」, categories 人文 / 户外, keyword 灯笼; en keeps the pinned English values the UI tests read. |
+| `pages/search2/index` → `d2-search` (`SearchMapFixtureHostView`) | `zh-Hans-d2-search.jpg` / `en-d2-search.jpg`: two UI-test capsules 「示例：游客」「示例：切换账号」 above the search title — not on the MP page. | **Fixed** — `SearchMapFixtureHostView(showsTestControls: false)` for the design fixture; the module fixture (UI tests) keeps them. |
+| `onTapHomeCity` → city relocate | Still open. Native `HomeCityLocationConsentModel.agree` records consent but never locates; `api/map/reverse-geocode` is sent today only inside `SearchMapService.nearby`, and `CompositionHTTPTransport` admits map reads through `ManualMapReadRoute`, which has no reverse-geocode case. | **Not done** — a foreground fix → GCJ-02 → reverse-geocode path needs a transport admission rule for the standalone call and a device check; not safe to add blind (no compiler, precise location leaves the device). |
+
+## Round 3 continue (9) — 20:45 sweep (build bb76e327c), mp-home sheets zh-Hans + en
+| MP page → native view | Difference (screenshot) | Fixed / not |
+|---|---|---|
+| `pages/activity/detail` → `rep3-activity-detail` (`App/ActivityFixtureSupport.swift`) | `en-rep3-activity-detail.jpg` / `zh-Hans-…`: title "Lantern Market Quest (fixture)" / 灯笼集市探索（示例）, meeting point "(fixture)", about text ends "Offline fixture copy." — debug text on screen. | **Fixed** — plain names 灯笼集市探索 / Lantern Market Quest, 灯笼广场 / Lantern Square, no fixture sentence. No test pins these. |
+| `pages/search` → `d2-search` / `d2-search-results` (`App/SearchMapFixtureSupport.swift`) | `en-d2-search.jpg`: category capsule "Synthetic culture"; `en-d2-search-results.jpg`: rows "Synthetic topic" / "Offline Lantern". | **Fixed** — under `--design-fixture` only: categories Culture / Outdoors, rows Lantern Night Walk / Lantern Market Tour / Old Town Walkers, detail "Old Town · Lantern" (zh 老城 · 灯笼). UI-test runs keep the pinned "Synthetic …" values. |
+| `pages/index/index` `onAddressTap`, `onHeroBannerTap` | Re-checked: feed 地点 opens Maps (`HomeFeedView.swift:939-987`); banners → 活动列表 / 成为俱乐部 / (成为商家 merchant, gated). | No change needed. |
+| `d2-search` 示例内容 / Example content line under 筛选 | Honest offline-example marker (`reader.isOfflineExample`), false for the live reader. | Kept (not shown in production). |
+
 ## Not done / follow-ups
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
 - ~~活动列表 邀约 link hidden while loading / failed~~ — closed in continue 3.
@@ -201,8 +220,10 @@ Screenshots: `docs/sweeps/latest/mp-home/sheet-en.jpg`, `sheet-zh-Hans.jpg`, `en
 - Re-scan after the queue (r3 continue): home hero / rails / stream / consent card / activity list / activity detail / topic detail have no `.font(.system(size:))`, `.tracking`/`.kerning`, custom fonts or transparent-bar chrome; 编辑精选 footnote, per-rail 正在更新…, stream failed/empty/loading-more/no-more and 长期开放 all present.
 - Needs a simulator pass: `d2-home` first frame without the launch-screen fade (continue 3) and the 类别 capsules in en + zh-Hans.
 - Needs a simulator pass: 4:3 banner card height under the large title on small phones (first rails should stay near the fold).
-- 首页 city tap-to-relocate (MP `onTapHomeCity`): needs a foreground location → city read; the menu covers manual choice meanwhile.
+- 首页 city tap-to-relocate (MP `onTapHomeCity`): needs a foreground location → city read **and** a `CompositionHTTPTransport` admission rule for a standalone `POST api/map/reverse-geocode` (today only inside `nearby`); the menu covers manual choice meanwhile.
 - Needs a simulator pass: 20-item city menu in en + zh-Hans.
 - Needs a simulator pass: `rep3-activity-detail` hero (no live line when ended, light 已结束) and the footer as the one main button (continue 6).
 - Needs a simulator pass: `d2-home-offline` now renders the per-rail failure + feed error states; `d2-search-results` now shows the result list.
 - Needs a simulator pass (continue 7): `rep3-activity-detail` with no footer bar and the plain hero; `d2-search-results` kind-icon covers; zh fixtures on `d2-home` / `wave-today-club`.
+- Needs a simulator pass (continue 8): `d2-home-offline` with the hero above the offline state; `d2-search-results` zh rows; `d2-search` without the test capsules.
+- Needs a simulator pass (continue 9): `rep3-activity-detail` and `d2-search(-results)` without fixture/synthetic names.
