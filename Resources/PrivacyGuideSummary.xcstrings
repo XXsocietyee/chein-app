@@ -118,13 +118,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading"
+            "value": "Loading…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在加载"
+            "value": "正在加载…"
           }
         }
       }
