@@ -176,10 +176,12 @@ extension MPParityBindings {
                             timeText: order.time.isEmpty ? MPText.unknown : order.time)
     }
 
-    static func giftRow(_ gift: PlatformPassGift) -> PassGiftRow {
-        PassGiftRow(id: gift.key, status: giftStatus(gift.state),
+    static func giftRow(_ gift: PlatformPassGift, names: [String: String] = [:]) -> PassGiftRow {
+        let name = gift.name(nameByID: names)
+        return PassGiftRow(id: gift.key, status: giftStatus(gift.state),
                     claimDeadlineText: gift.claimDay.isEmpty ? nil : gift.claimDay,
-                    timeText: gift.time.isEmpty ? MPText.unknown : gift.time)
+                    timeText: gift.time.isEmpty ? MPText.unknown : gift.time,
+                    name: name.isEmpty ? nil : name)
     }
 
     static func libraryCard(_ card: PlatformPassLibraryCard) -> PassLibraryCard {
@@ -539,8 +541,8 @@ struct MPParityRegistrationOrder: View {
                 // Buyer walk 1122: an extra seat is bought from its original order, so it is not listed as on sale.
                 products: products.filter { !$0.isExtraSeat }.map(MPParityBindings.productCard),
                 orders: orders.map { MPParityBindings.orderRow($0, names: names) },
-                giftsBought: gifts.bought.map(MPParityBindings.giftRow),
-                giftsReceived: gifts.received.map(MPParityBindings.giftRow),
+                giftsBought: gifts.bought.map { MPParityBindings.giftRow($0, names: names) },
+                giftsReceived: gifts.received.map { MPParityBindings.giftRow($0, names: names) },
                 passOrders: passOrders))
             state.member = overview.flatMap { MPParityBindings.memberSide(viewerIsMerchant: false, overview: $0) }
             state.pointBalance = MPParityBindings.wholePoints(points)

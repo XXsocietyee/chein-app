@@ -83,7 +83,7 @@ import SwiftUI
                                 } label: { AccountCollectionCouponRow(coupon: coupon) }
                             }
                         }
-                        .overlay(alignment: .bottomTrailing) { AccountCollectionCouponNavigateButton(coupon: coupon) }
+                        .overlay(alignment: Alignment(horizontal: .trailing, vertical: .couponShopLine)) { AccountCollectionCouponNavigateButton(coupon: coupon) }
                         .accessibilityIdentifier("accountCollection.coupon.\(coupon.id)")
                     }
                 }
@@ -168,6 +168,13 @@ struct AccountCollectionCouponRow: View {
                 Text(verbatim: description).font(.subheadline).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
+            // mp-mine r3: MP wallet-card order — head, description, shop address (导航 on the same line), then the date foot.
+            if coupon.shopAddress != nil {
+                AccountCollectionCouponShopLine(coupon: coupon)
+                    .padding(.trailing, coupon.hasShopNavigation ? 96 : 0)
+                    .frame(minHeight: coupon.hasShopNavigation ? 44 : 0)
+                    .alignmentGuide(.couponShopLine) { d in d[VerticalAlignment.center] }
+            }
             if let day = coupon.futureStartDay(relativeTo: Date()) {
                 Text("accountCollection.coupon.startsLater").font(.subheadline)
                     .accessibilityIdentifier("accountCollection.coupon.futureStart")
@@ -186,20 +193,24 @@ struct AccountCollectionCouponRow: View {
                                      value: AccountCollectionCoupon.calendarDay(coupon.endTime).map { appLocalized("couponWallet.validUntil \($0)", locale: locale) } ?? "—",
                                      systemImage: "calendar")
             }
-            if coupon.shopName != nil || coupon.shopAddress != nil {
-                AccountCollectionCouponShopLine(coupon: coupon)
-            }
             if showsCodeFooter {
                 Label(coupon.futureStartDay(relativeTo: Date()) != nil ? "accountCollection.coupon.viewAvailability" : "couponCode.show",
                       systemImage: coupon.futureStartDay(relativeTo: Date()) != nil ? "calendar" : "qrcode")
                     .font(.subheadline).foregroundStyle(.tint)
                     .accessibilityIdentifier("accountCollection.coupon.codeFooter")
             }
-            // Room for the 导航 capsule the list overlays on the card (MKT-8-4).
-            if coupon.hasShopNavigation { Color.clear.frame(height: 44).accessibilityHidden(true) }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
+}
+
+/// mp-mine r3: the list's 导航 capsule sits on the shop line, as in the MP wallet card.
+/// The row sets the guide to the shop line's centre; any view without it uses its own centre.
+extension VerticalAlignment {
+    private enum CouponShopLine: AlignmentID {
+        static func defaultValue(in context: ViewDimensions) -> CGFloat { context[VerticalAlignment.center] }
+    }
+    static let couponShopLine = VerticalAlignment(CouponShopLine.self)
 }
 
 /// Public shop on a received coupon. Unknown name or address is left out, never an empty place.
@@ -209,9 +220,9 @@ struct AccountCollectionCouponShopLine: View {
         HStack(alignment: .firstTextBaseline) {
             Image(systemName: "storefront").foregroundStyle(.tertiary).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
-                if let name = coupon.shopName { Text(verbatim: name).font(.subheadline).foregroundStyle(.primary) }
+                // MP wallet-card__shop draws the address only; the shop name is in the 导航 label.
                 if let address = coupon.shopAddress {
-                    Text(verbatim: address).font(.footnote).foregroundStyle(.secondary)
+                    Text(verbatim: address).font(.subheadline).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
