@@ -20,7 +20,9 @@ import SwiftUI
         List {
             switch model.phase {
             case .idle, .loading:
+                // MP `cy-skeleton type="list" count="{{4}}"`.
                 CYSkeleton(variant: .row).accessibilityIdentifier("withdrawal.history.loading")
+                ForEach(0..<3, id: \.self) { _ in CYSkeleton(variant: .row) }
             case .ready:
                 // Revolut-style: rows grouped by China calendar day, tap opens a read-only detail sheet.
                 ForEach(Array(WithdrawalHistoryGrouping.groups(model.rows).enumerated()), id: \.offset) { _, group in
@@ -88,6 +90,15 @@ import SwiftUI
     }
 }
 
+/// MP L09-023 `moneyText`: −¥ with the site amount format (¥0 for zero), never a bare "-12.00".
+enum WithdrawalAmountDisplay {
+    static func text(_ row: WithdrawalHistoryRow, locale: Locale) -> String {
+        guard let amount = row.receivedAmount else { return "—" }
+        let signed: Decimal = amount == 0 ? 0 : -amount
+        return signed.formatted(.currency(code: "CNY").locale(locale).precision(.fractionLength(2)))
+    }
+}
+
 struct WithdrawalHistoryRowView: View {
     let row: WithdrawalHistoryRow
     @Environment(\.locale) private var locale
@@ -99,7 +110,7 @@ struct WithdrawalHistoryRowView: View {
             }
             Spacer(minLength: CYSpacing.sm)
             VStack(alignment: .trailing, spacing: CYSpacing.xs) {
-                Text(verbatim: row.amountText ?? "—").cyText(.cardTitle, monospacedDigit: true)
+                Text(verbatim: WithdrawalAmountDisplay.text(row, locale: locale)).cyText(.cardTitle, monospacedDigit: true)
                 CYStatusChip(LocalizedStringKey(row.statusKey), tone: tone)
             }
         }
@@ -130,7 +141,7 @@ struct WithdrawalHistoryDetailSheet: View {
             List {
                 Section {
                     LabeledContent("withdrawal.history.detail.amount") {
-                        Text(verbatim: row.amountText ?? "—").monospacedDigit()
+                        Text(verbatim: WithdrawalAmountDisplay.text(row, locale: locale)).monospacedDigit()
                     }
                     LabeledContent("withdrawal.history.detail.status") { Text(LocalizedStringKey(row.statusKey)) }
                     LabeledContent("withdrawal.history.detail.created") { Text(verbatim: row.createTime.map { LocaleDisplay.civil($0, locale: locale) } ?? "—") }
