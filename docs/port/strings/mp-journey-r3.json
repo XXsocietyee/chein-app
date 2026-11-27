@@ -2403,5 +2403,73 @@
         }
       }
     }
+  },
+  "playkit.window.eyebrow": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Limited hours"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "时段限定"
+        }
+      }
+    }
+  },
+  "playkit.window.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Not open yet"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "还没到开放时间"
+        }
+      }
+    }
+  },
+  "playkit.window.subscribe": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Remind me when it opens"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "订阅开播提醒"
+        }
+      }
+    }
+  },
+  "playkit.window.subscribed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reminder set · we'll remind you when it opens"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已订阅 · 到点会提醒你"
+        }
+      }
+    }
   }
 }

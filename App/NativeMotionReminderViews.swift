@@ -221,7 +221,11 @@ extension NativeStepsHostView {
     private var active: Bool { runtime?.isCurrent == true }
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
-            Label("nativePlatform.reminder.title", systemImage: "bell")
+            // MP `playkit-timewindow` body: eyebrow (server, default 时段限定) → glyph + title (server, default 还没到开放时间)
+            // + 开放时段 from – to → clock + 后开播 · 到点提醒我 → footer CTA 订阅开播提醒 / 已订阅 · 到点会提醒你.
+            Text(verbatim: serverText("eyebrow") ?? appLocalized("playkit.window.eyebrow", locale: locale))
+                .font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+            Label { Text(verbatim: serverText("title") ?? appLocalized("playkit.window.title", locale: locale)) } icon: { Image(systemName: "clock") }
                 .font(.headline)
             .accessibilityElement(children: .combine)
             .accessibilityAddTraits(.isHeader)
@@ -243,20 +247,14 @@ extension NativeStepsHostView {
                 countdown(nil)
                     .accessibilityIdentifier("nativePlatform.reminder.countdown")
             }
-            Text("nativePlatform.reminder.boundary")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
             // Legacy subscribed is deliberately neither read nor written here.
             if let stage {
-                if let window = stage.window {
-                    LabeledContent("nativePlatform.timeZone") { Text(verbatim: window.timeZone.isEmpty ? "—" : window.timeZone) }
-                    LabeledContent("nativePlatform.reminder.next") { Text(verbatim: formatted(window.nextOpenAt, zone: window.timeZone)).monospacedDigit() }
-                    Label(LocalizedStringKey(window.openNow ? "nativePlatform.reminder.open" : "nativePlatform.reminder.closed"), systemImage: window.openNow ? "clock" : "clock.badge.xmark")
-                        .foregroundStyle(window.openNow ? Color.green : Color.secondary)
+                if let window = stage.window, window.openNow {
+                    Label("nativePlatform.reminder.open", systemImage: "clock")
+                        .foregroundStyle(Color.green)
                 }
                 if let scheduled = stage.scheduled {
-                    Label("nativePlatform.reminder.scheduled", systemImage: "bell.badge")
+                    Label("playkit.window.subscribed", systemImage: "bell.badge")
                         .font(.headline)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("nativePlatform.reminder.scheduled")
@@ -271,7 +269,7 @@ extension NativeStepsHostView {
                         .accessibilityIdentifier("nativePlatform.reminder.cancel")
                 } else {
                     Button { reviewed = stage.window } label: {
-                        Label("nativePlatform.reminder.enable", systemImage: "bell")
+                        Label("playkit.window.subscribe", systemImage: "bell")
                     }
                         .buttonStyle(.borderedProminent)
                         .controlSize(.large)
@@ -284,11 +282,19 @@ extension NativeStepsHostView {
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("nativePlatform.reminder.issue")
                 }
+                // Under the MP CTA: the next opening in the service zone and what the reminder does (one local alert).
+                if let window = stage.window {
+                    LabeledContent("nativePlatform.reminder.next") { Text(verbatim: formatted(window.nextOpenAt, zone: window.timeZone)).monospacedDigit() }
+                        .font(.footnote)
+                }
+                Text("nativePlatform.reminder.boundary")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
                 Button { Task { await refresh() } } label: {
                     Label("nativePlatform.reminder.refresh", systemImage: "arrow.clockwise")
                 }
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
+                    .buttonStyle(.borderless)
                     .disabled(!active)
                     .accessibilityIdentifier("nativePlatform.reminder.refresh")
             } else {
@@ -340,6 +346,10 @@ extension NativeStepsHostView {
                 }
             }
         }
+    }
+    private func serverText(_ key: String) -> String? {
+        let value = (segment[key].text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        return value.isEmpty ? nil : value
     }
     private func clock(_ value: String?) -> String {
         let shown = (value ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
