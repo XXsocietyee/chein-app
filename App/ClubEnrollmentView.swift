@@ -107,13 +107,8 @@ extension EnvironmentValues {
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("club.enroll.refreshing")
             } else if reader.loading {
-                HStack(spacing: 12) {
-                    ProgressView()
-                    Text("club.enroll.loading")
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                ProgressView { Text("club.enroll.loading").fixedSize(horizontal: false, vertical: true) }
+                .frame(maxWidth: .infinity)
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("club.enroll.loading")
             }
@@ -313,12 +308,8 @@ extension EnvironmentValues {
     }
     @ViewBuilder private func detail(_ team: ClubEnrollmentTeam) -> some View {
         if reader.detailLoading.contains(team.id) {
-            HStack(spacing: CYSpacing.sm) {
-                ProgressView()
-                Text("club.enroll.detailLoading")
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+            ProgressView { Text("club.enroll.detailLoading").fixedSize(horizontal: false, vertical: true) }
+                .frame(maxWidth: .infinity)
         }
         if let issue = reader.detailFailures[team.id] {
             if reader.rosters[team.id] != nil {
