@@ -167,7 +167,7 @@ struct CYMedalDeck: View {
     var body: some View {
         if !items.isEmpty {
             VStack(spacing: CYSpacing.md) {
-                Text("medalDeck.earned \(items.count)").cyText(.caption).textCase(.uppercase)
+                Text("medalDeck.earned \(items.count)").cyText(.caption)
                     .foregroundStyle(CYColor.textSecondary)
                 ZStack {
                     ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
