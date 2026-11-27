@@ -193,6 +193,8 @@ public enum ChinaReviewedRouteCapability {
         "/api/club/personal-receiver/bind": .payout, "/api/club/personal-receiver/unbind": .payout,
         "/api/club-direct-merchant/club": .payout, "/api/club-direct-merchant/merchant": .payout,
         "/api/registration/payment-readiness": .payment, "/api/registration/pay": .payment, "/api/registration/pay/app": .payment,
+        // US launch r1 (lane app-pay): Stripe / Apple Pay for USD orders on the same backend. Payment kind only.
+        "/api/pay/stripe/intent": .payment, "/api/pay/stripe/applepay": .payment, "/api/pay/stripe/checkout": .payment,
         "/api/fund/preflight/bank-withdrawal": .withdrawal, "/api/fund/preflight/{}/confirm": .withdrawal,
         "/api/fund/preflight/{}/reject": .withdrawal, "/api/withdrawal/create": .withdrawal,
         // CLB-r11-settlement-01 (MP components/cy/fe-reference-settlement/index.js:68-69): 标记已结清, payer side only.
@@ -2741,6 +2743,9 @@ public enum ReleaseMoneyWriteSwitch {
             "/api/marketing/group-checkout/create", "/api/marketing/product/activate",
             "/api/marketing/product/orders/{}/pay", "/api/platform-pass/orders/{}/pay",
             "/api/external-game/orders", "/api/external-game/orders/{}/confirm-test":
+            return .payment
+        case "/api/pay/stripe/intent", "/api/pay/stripe/applepay", "/api/pay/stripe/checkout":
+            // US launch r1: Stripe channel for USD orders. Same payment switch as the China pay routes.
             return .payment
         case "/api/club/settlement/withdraw",
              "/api/club/personal-receiver/unbind", "/api/club/personal-receiver/bind":

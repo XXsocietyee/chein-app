@@ -13,8 +13,9 @@ class UniversalLinkAssociatedDomains(unittest.TestCase):
 
     def test_entitlement_claims_sign_in_with_apple_only(self):
         plist = plistlib.loads((ROOT / "Config/Questify.entitlements").read_bytes())
-        # Components r1 (C2): plus the widget App Group, nothing else.
+        # Components r1 (C2): plus the widget App Group. US launch r1: plus the Apple Pay merchant id. Nothing else.
         self.assertEqual(plist, {"com.apple.developer.applesignin": ["Default"],
+                                 "com.apple.developer.in-app-payments": ["merchant.com.chengyinhub.chengyinApp"],
                                  "com.apple.security.application-groups": ["group.com.chengyinhub.chengyinApp"]})
         self.assertNotIn("associated-domains", (ROOT / "Config/Questify.entitlements").read_text())
         self.assertNotIn("CFBundleURLTypes", self.read("Config/Info.plist"))

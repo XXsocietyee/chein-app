@@ -673,6 +673,8 @@ struct SessionRootView: View {
         .environment(\.couponCodeFactory, { session.makeCouponCodeCoordinator(historyID: $0) })
         .environment(\.registrationPaymentReadiness, readiness)
         .environment(\.registrationPayExecutor, payExecutor)
+        // US launch r1 (app-pay): Stripe / Apple Pay for USD orders. Nil outside the US market or with payments closed.
+        .environment(\.stripePayContext, StripePayBridge.context(session))
     }
 
     private func chain3_2<V: View>(_ v: V) -> some View {

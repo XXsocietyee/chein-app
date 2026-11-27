@@ -92,6 +92,8 @@ extension EnvironmentValues {
     @Environment(\.locale) private var locale
     @Environment(\.registrationPaymentReadiness) private var readinessReader
     @Environment(\.registrationPayExecutor) private var payExecutor
+    /// US launch r1: non-nil only in the US market with payments open. Nil keeps the China flow exactly as before.
+    @Environment(\.stripePayContext) private var stripePay
 
     let registrationID: Int
     let payableAmount: Decimal?
@@ -150,7 +152,11 @@ extension EnvironmentValues {
                     .accessibilityValue(Text(verbatim: amountText))
                     .accessibilityHint(Text(verbatim: payOnceHint))
                     statusView
-                    if canTapPay {
+                    if let stripePay, usesStripe(stripePay) {
+                        RegistrationStripePayRows(context: stripePay, registrationID: registrationID,
+                                                  paymentChannels: quote?.paymentChannels, consented: consented,
+                                                  readiness: readiness)
+                    } else if canTapPay {
                         CYPillButton(verbatim: c.t("立即支付", "Pay now"), style: .primary) {
                             Task {
                                 await viewModel.model.pay(
@@ -188,6 +194,11 @@ extension EnvironmentValues {
                 }
             }
         }
+    }
+
+    /// US launch r1: a USD quote listing `APPLE_PAY` / `APP_STRIPE` in the US market. China quotes never match.
+    private func usesStripe(_ context: StripePayContext) -> Bool {
+        StripePayEligibility.applies(market: context.market, currency: quote?.currency, paymentChannels: quote?.paymentChannels)
     }
 
     /// A missing amount stays on screen as an em dash. A decoded zero stays off this section.

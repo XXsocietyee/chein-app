@@ -17,8 +17,9 @@ def read(name):
 class SignInWithAppleFlowContract(unittest.TestCase):
     def test_entitlement_file_is_only_the_default_sign_in_value(self):
         plist = plistlib.loads((ROOT / "Config/Questify.entitlements").read_bytes())
-        # Components r1 (C2): plus the widget App Group, nothing else.
+        # Components r1 (C2): plus the widget App Group. US launch r1: plus the Apple Pay merchant id. Nothing else.
         self.assertEqual(plist, {"com.apple.developer.applesignin": ["Default"],
+                                 "com.apple.developer.in-app-payments": ["merchant.com.chengyinhub.chengyinApp"],
                                  "com.apple.security.application-groups": ["group.com.chengyinhub.chengyinApp"]})
         flow = read("Core/SignInWithAppleFlow.swift")
         self.assertIn('static let key = "com.apple.developer.applesignin"', flow)
