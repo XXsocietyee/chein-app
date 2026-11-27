@@ -636,7 +636,7 @@ enum T5PageFixtures {
                     rank: JourneyRankState(),
                     rate: .idle,
                     shareURL: nil,
-                    topicName: "西湖夜游漫步",
+                    topicName: mpJourneyFixtureText("West Lake Night Walk", "西湖夜游漫步"),
                     onRetry: {},
                     onSignIn: {},
                     onLoadRank: {},
@@ -820,9 +820,9 @@ private actor T5OrderCenterTransport: HTTPTransport {
         }
         func catalog(topicID: FreeExploreLaunchID) async throws -> FreeExploreLaunchCatalog {
             if failed { throw FreeExploreLaunchFailure.response(status: 503, code: 503, businessCode: nil, message: nil) }
-            return try decode(["topicId": 88, "topicName": "示例自由探索套票：河坊街茶韵线", "productType": 2, "saleEnabled": false, "reservationEnabled": true,
-                               "items": [["chapterId": 3, "name": "老城茶街章节", "unitsPerHolder": 1,
-                                          "stores": [["offerId": 29, "merchantName": "清河坊示范茶馆", "validEnd": "2026-12-31"]]]]])
+            return try decode(["topicId": 88, "topicName": mpJourneyFixtureText("Sample free-explore pass: Hefang Street tea trail", "示例自由探索套票：河坊街茶韵线"), "productType": 2, "saleEnabled": false, "reservationEnabled": true,
+                               "items": [["chapterId": 3, "name": mpJourneyFixtureText("Old Town Tea Street chapter", "老城茶街章节"), "unitsPerHolder": 1,
+                                          "stores": [["offerId": 29, "merchantName": mpJourneyFixtureText("Qinghefang sample teahouse", "清河坊示范茶馆"), "validEnd": "2026-12-31"]]]]])
         }
         func order(registrationID: FreeExploreLaunchID) async throws -> FreeExploreLaunchOrder {
             try decode(["registrationId": 41, "bundle": [
@@ -920,7 +920,8 @@ enum T12T13DesignFixtures {
     }
 
     @MainActor private static func player<V: View>(_ view: V) -> AnyView {
-        AnyView(view.themeDomain(.player).cyDomainPageBackground().themeDomain(.player).preferredColorScheme(.dark))
+        // mp-journey r3 (sweep 19:15): player fixtures follow the system appearance, never a forced scheme.
+        AnyView(view.themeDomain(.player).cyDomainPageBackground().themeDomain(.player))
     }
 
     @MainActor private static func operationsReader(denied: Bool) -> MerchantOperationsFixtureReader {
@@ -987,5 +988,9 @@ private struct T12T13WithdrawalTransport: HTTPTransport {
     func command(_ command: OfficialOrganizerCommand, mode: OfficialOrganizerCommandMode) async throws -> OfficialOrganizerReceipt? {
         OfficialOrganizerReceipt(requestId: command.requestId, state: .applied, message: "ok")
     }
+}
+/// mp-journey r3 (sweep 19:15): journey fixture data follows the UI language.
+func mpJourneyFixtureText(_ en: String, _ zh: String) -> String {
+    Locale.preferredLanguages.first?.hasPrefix("zh") == true ? zh : en
 }
 #endif

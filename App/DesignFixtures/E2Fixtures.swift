@@ -23,7 +23,6 @@ struct E2Fixture: View {
             content
         }
         .themeDomain(.player)
-        .preferredColorScheme(.dark)
         .background(CYColor.bgPage.ignoresSafeArea())
     }
 
@@ -164,7 +163,10 @@ private final class Rep3PlayFixtureTransport: HTTPTransport, @unchecked Sendable
             throw URLError(.notConnectedToInternet)
         }
         if path.hasSuffix("api/play/nodes") {
-            let payload = #"{"topicId":71,"topicName":"古城夜游线（离线示例）","mode":1,"registered":true,"playable":true,"total":3,"doneCount":1,"nodes":[{"nodeId":701,"name":"鼓楼驿站","address":"鼓楼东大街 12 号","done":true,"arrived":true,"validationMethod":1},{"nodeId":702,"name":"灯笼石门","address":"景山前街 18 号","done":false,"arrived":true,"needGps":true,"validationMethod":3,"question":"石拱门上方悬挂的灯笼是什么颜色？","options":{"A":"朱红灯笼","B":"青石宫灯","C":"素白纸灯"}},{"nodeId":703,"name":"白塔茶室","address":"阜成门内大街 5 号","done":false,"locked":true,"lockReason":"完成「灯笼石门」后解锁","unlockAfterNodeId":702,"validationMethod":2}]}"#
+            // mp-journey r3 (sweep 19:15): fixture data follows the UI language.
+            let payload = Locale.preferredLanguages.first?.hasPrefix("zh") == true
+                ? #"{"topicId":71,"topicName":"古城夜游线（离线示例）","mode":1,"registered":true,"playable":true,"total":3,"doneCount":1,"nodes":[{"nodeId":701,"name":"鼓楼驿站","address":"鼓楼东大街 12 号","done":true,"arrived":true,"validationMethod":1},{"nodeId":702,"name":"灯笼石门","address":"景山前街 18 号","done":false,"arrived":true,"needGps":true,"validationMethod":3,"question":"石拱门上方悬挂的灯笼是什么颜色？","options":{"A":"朱红灯笼","B":"青石宫灯","C":"素白纸灯"}},{"nodeId":703,"name":"白塔茶室","address":"阜成门内大街 5 号","done":false,"locked":true,"lockReason":"完成「灯笼石门」后解锁","unlockAfterNodeId":702,"validationMethod":2}]}"#
+                : #"{"topicId":71,"topicName":"Old Town Night Walk (offline sample)","mode":1,"registered":true,"playable":true,"total":3,"doneCount":1,"nodes":[{"nodeId":701,"name":"Drum Tower Post","address":"12 Gulou East St","done":true,"arrived":true,"validationMethod":1},{"nodeId":702,"name":"Lantern Stone Gate","address":"18 Jingshan Front St","done":false,"arrived":true,"needGps":true,"validationMethod":3,"question":"What colour are the lanterns above the stone arch?","options":{"A":"Vermilion lanterns","B":"Blue-stone palace lamps","C":"Plain white paper lamps"}},{"nodeId":703,"name":"White Pagoda Tea Room","address":"5 Fuchengmennei St","done":false,"locked":true,"lockReason":"Unlocks after Lantern Stone Gate","unlockAfterNodeId":702,"validationMethod":2}]}"#
             return (PlayExperienceSyntheticFixtures.envelope(payload), 200)
         }
         if path.hasSuffix("api/play/route-state") {
