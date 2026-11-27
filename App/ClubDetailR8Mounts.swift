@@ -398,6 +398,7 @@ private struct ClubDetailLeaderboardMemberOpen: Hashable, Identifiable {
 }
 
 @MainActor struct ClubInlineLeaderboardRows: View {
+    @Environment(\.dynamicTypeSize) private var typeSize
     @ObservedObject var model: ClubInlineLeaderboardModel
     let club: ClubRecord
     let identity: ClubReadIdentity
@@ -466,7 +467,7 @@ private struct ClubDetailLeaderboardMemberOpen: Hashable, Identifiable {
                 HStack(spacing: 4) {
                     Text(verbatim: row.isMe ? appLocalized("clubR8.lb.you", locale: locale)
                          : (row.nickname.isEmpty ? appLocalized("club.community.user", locale: locale) : row.nickname))
-                        .lineLimit(1)
+                        .lineLimit(typeSize.isAccessibilitySize ? 2 : 1)
                     if row.isMe { Text("clubR8.lb.me").font(.caption).foregroundStyle(.tint) }
                 }
                 Text(verbatim: appLocalized("clubR8.lb.meta \(row.clearCount) \(mileageText(row)) \(durationText(row))", locale: locale))

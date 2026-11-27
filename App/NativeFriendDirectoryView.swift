@@ -55,10 +55,9 @@ import SwiftUI
             }
             if flow.busy {
                 Section {
-                    ProgressView()
+                    ProgressView { Text("cloud31.loading.friends") }
                         .frame(maxWidth: .infinity)
                         .accessibilityIdentifier("friendDirectory.loading")
-                        .accessibilityLabel(Text("cloud31.loading.friends"))
                 }
             }
             if flow.phase == .closed {
@@ -288,9 +287,8 @@ import SwiftUI
                         Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(.secondary)
                     }
                 } else if flow.busy {
-                    ProgressView()
+                    ProgressView { Text("cloud31.loading.friends") }
                         .frame(maxWidth: .infinity)
-                        .accessibilityLabel(Text("cloud31.loading.friends"))
                 }
                 if let detail = flow.detail {
                     if detail.conversationID != nil {

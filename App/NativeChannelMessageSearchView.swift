@@ -11,6 +11,7 @@ import SwiftUI
     @Environment(\.scenePhase) private var phase
     @Environment(\.themeDomain) private var domain
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     var locateOriginal: ((NativeChannelMessageID) -> Void)?
     private var groups: [(String, [NativeChannelMessageSnapshot])] {
         var keys: [String] = []; var grouped: [String: [NativeChannelMessageSnapshot]] = [:]
@@ -88,7 +89,7 @@ import SwiftUI
                             .accessibilityHint(locateOriginal == nil ? Text(verbatim: "") : Text("a11y.locateHint", tableName: "NativeChannelMessage"))
                         }
                     } header: {
-                        Text(verbatim: group.0)
+                        Text(verbatim: LocaleDisplay.civil(group.0, locale: locale))
                             .accessibilityAddTraits(.isHeader)
                     }
                 }

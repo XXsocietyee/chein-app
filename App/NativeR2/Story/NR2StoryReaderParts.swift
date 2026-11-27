@@ -37,8 +37,7 @@ import SwiftUI
     let text: String
     var body: some View {
         Text(verbatim: text)
-            .font(.body)
-            .lineSpacing(6)
+            .cyText(.body)
             .fixedSize(horizontal: false, vertical: true)
             .textSelection(.enabled)
             .frame(maxWidth: .infinity, alignment: .leading)

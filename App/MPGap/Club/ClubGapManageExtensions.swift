@@ -163,6 +163,7 @@ public struct ClubGapMemberAvatarStrip: View {
     public let onTapAll: () -> Void
     /// CLB-r9-detail-01 (MP detail wxml:266-277 `goMemberProfile`): nil sends every tap to 查看全部成员.
     public var onTapMember: ((Int) -> Void)? = nil
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     public init(avatars: [AvatarItem], totalCount: Int, onTapAll: @escaping () -> Void) {
         self.avatars = avatars
@@ -189,7 +190,7 @@ public struct ClubGapMemberAvatarStrip: View {
                         Text(verbatim: item.name.isEmpty ? "—" : item.name)
                             .font(.caption)
                             .foregroundStyle(.primary)
-                            .lineLimit(1)
+                            .lineLimit(typeSize.isAccessibilitySize ? 2 : 1)
                         if let roleKey = item.roleKey {
                             Text(LocalizedStringKey(roleKey))
                                 .font(.caption)

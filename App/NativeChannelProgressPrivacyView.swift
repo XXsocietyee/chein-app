@@ -18,10 +18,8 @@ import SwiftUI
                             Label { Text("d7.channelProgress.closed", tableName: "NativeChannelProgress") } icon: { Image(systemName: "hand.raised") }
                         }
                     } else {
-                        ProgressView()
+                        ProgressView { Text("cy.state.loading") }
                             .frame(maxWidth: .infinity)
-                            .accessibilityElement(children: .ignore)
-                            .accessibilityLabel(Text("cy.state.loading"))
                     }
                 }
                 .listStyle(.insetGrouped)
@@ -207,10 +205,8 @@ import SwiftUI
 }
 private struct NativeChannelProgressPrivacyLoading: View {
     var body: some View {
-        ProgressView()
+        ProgressView { Text("cy.state.loading") }
             .frame(maxWidth: .infinity)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text("cy.state.loading"))
     }
 }
 

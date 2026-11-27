@@ -53,9 +53,8 @@ struct SquareCloudRouteMap: View {
         VStack(alignment: .leading) {
             switch phase {
             case .loading:
-                ProgressView()
+                ProgressView { Text(verbatim: copy("正在读取路线", "Loading the route")) }
                     .frame(maxWidth: .infinity)
-                    .accessibilityLabel(Text(verbatim: copy("正在读取路线", "Loading the route")))
                     .accessibilityIdentifier("square.cloud.route.loading")
             case .permission:
                 state("没有路线读取权限", "No permission to read this route", symbol: "lock").accessibilityIdentifier("square.cloud.route.permission")

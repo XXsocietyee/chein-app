@@ -94,6 +94,7 @@ struct AccountCollectionIssueView: View {
     var couponWallet = false
     /// mp-states r3 (MP mylike.wxml:19-20): 登录后查看收藏 with 登录, and 收藏加载失败 with the reason under it and 重试.
     var favorites = false
+    var retryIdentifier = "accountCollection.retry"
     @Environment(\.profileReadSignIn) var signIn
     private var favoritesFailed: Bool {
         favorites && issue != .login && issue != .notConfigured && issue != .unavailable
@@ -142,7 +143,7 @@ struct AccountCollectionIssueView: View {
         }
         if let retry, issue != .login, issue != .notConfigured {
             layout.primary = (title: LocalizedStringKey("accountCollection.retry"), action: retry)
-            layout.primaryIdentifier = "accountCollection.retry"
+            layout.primaryIdentifier = retryIdentifier
         }
         return layout.accessibilityIdentifier("accountCollection.issue")
     }

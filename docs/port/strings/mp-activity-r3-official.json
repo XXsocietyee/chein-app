@@ -528,6 +528,23 @@
         }
       }
     },
+    "mpr3.official.inbox.refreshing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Syncing the latest invitations…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在同步最新邀约…"
+          }
+        }
+      }
+    },
     "playerGap.signup.safetyBlocked": {
       "extractionState": "manual",
       "localizations": {

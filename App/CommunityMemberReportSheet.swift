@@ -138,10 +138,8 @@ enum CommunityMemberReportTaxonomy {
         switch stage {
         case .loading:
             Section {
-                HStack(spacing: 12) {
-                    ProgressView()
-                    Text("im.reportPeer.loading").foregroundStyle(.secondary)
-                }
+                ProgressView { Text("im.reportPeer.loading") }
+                    .frame(maxWidth: .infinity)
             }
         case .loadFailed(let why):
             result(title: "im.reportPeer.loadFailed.title", why: why, identifier: "im.reportPeer.loadFailed",

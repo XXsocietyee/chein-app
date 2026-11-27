@@ -31,8 +31,7 @@ import SwiftUI
         if client == nil {
             status(W8Text.t("预设列表还不能读取。", "The preset list cannot be read yet."), id: "preset.gameplay.unavailable")
         } else if model.phase == .loading || model.phase == .idle {
-            ProgressView()
-                .accessibilityLabel(Text(verbatim: W8Text.t("正在读取预设", "Loading presets")))
+            ProgressView { Text(verbatim: W8Text.t("正在读取预设", "Loading presets")) }
                 .accessibilityIdentifier("preset.gameplay.loading")
         } else if model.phase == .empty {
             status(W8Text.t("还没有玩法预设。", "There are no gameplay presets."), id: "preset.gameplay.empty")

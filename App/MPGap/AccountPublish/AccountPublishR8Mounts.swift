@@ -371,16 +371,34 @@ enum ProjectEditCastConfig {
 // MARK: - C-F7 画面风格 (MP fabu topic-detail-sheet.wxml:79-88, look-sheet.wxml, theme-look-editor.js, utils/publish/theme-look.js)
 
 /// MP `formData.look`: a JSON string sent as `payload.look`. The app keeps it in `ProjectEditDraft.preserved["look"]`,
-/// and `topicCarryOver` loads and posts that string. Keys the app does not edit (map, times, textFx,
-/// transition) are kept; a style change resets that style's params to the MP defaults, as `normalizeLook` does.
+/// and `topicCarryOver` loads and posts that string. Keys the app does not edit (map, transition) are kept;
+/// a style change resets that style's params to the MP defaults, as `onLookStyle` + `normalizeLook` do.
 enum ProjectEditLook {
     static let key = "look"
-    struct Style { let value: String; let labelKey: String; let params: [String: String] }
+    struct Param { let key: String; let options: [String]; let defaultValue: String }
+    struct Style { let value: String; let labelKey: String; let params: [Param] }
+    /// MP `STYLES` (theme-look.js): each style's own params, in MP order, with the MP defaults.
     static let styles: [Style] = [
-        .init(value: "STARDUST", labelKey: "fixr8.look.style.stardust", params: ["density": "NORMAL", "drift": "SLOW", "tone": "WHITE"]),
-        .init(value: "PAPER", labelKey: "fixr8.look.style.paper", params: ["paper": "KRAFT", "grain": "MEDIUM", "stamp": "VERIFIED"]),
-        .init(value: "SURVIVAL", labelKey: "fixr8.look.style.survival", params: ["climate": "RAIN", "volatility": "SHIFTING", "edge": "HP"]),
-        .init(value: "CYBER", labelKey: "fixr8.look.style.cyber", params: ["neon": "YELLOW_CYAN", "current": "MID", "glitch": "TRANSITION"])
+        .init(value: "STARDUST", labelKey: "fixr8.look.style.stardust", params: [
+            .init(key: "density", options: ["SPARSE", "NORMAL", "DENSE"], defaultValue: "NORMAL"),
+            .init(key: "drift", options: ["SLOW", "NORMAL", "FAST"], defaultValue: "SLOW"),
+            .init(key: "tone", options: ["WHITE", "WARM", "COOL"], defaultValue: "WHITE")
+        ]),
+        .init(value: "PAPER", labelKey: "fixr8.look.style.paper", params: [
+            .init(key: "paper", options: ["KRAFT", "XUAN", "CARD"], defaultValue: "KRAFT"),
+            .init(key: "grain", options: ["LIGHT", "MEDIUM", "HEAVY"], defaultValue: "MEDIUM"),
+            .init(key: "stamp", options: ["VERIFIED", "VISITED", "SEAL"], defaultValue: "VERIFIED")
+        ]),
+        .init(value: "SURVIVAL", labelKey: "fixr8.look.style.survival", params: [
+            .init(key: "climate", options: ["CLEAR", "RAIN", "STORM", "SAND"], defaultValue: "RAIN"),
+            .init(key: "volatility", options: ["CALM", "SHIFTING", "VIOLENT"], defaultValue: "SHIFTING"),
+            .init(key: "edge", options: ["HP", "FIXED", "OFF"], defaultValue: "HP")
+        ]),
+        .init(value: "CYBER", labelKey: "fixr8.look.style.cyber", params: [
+            .init(key: "neon", options: ["YELLOW_CYAN", "CYAN_PINK", "RED_CYAN"], defaultValue: "YELLOW_CYAN"),
+            .init(key: "current", options: ["LOW", "MID", "HIGH"], defaultValue: "MID"),
+            .init(key: "glitch", options: ["TRANSITION", "OFF"], defaultValue: "TRANSITION")
+        ])
     ]
     static let palettes: [(value: String, labelKey: String)] = [
         ("DEFAULT", "fixr8.look.palette.default"), ("BLUE", "fixr8.look.palette.blue"), ("RED", "fixr8.look.palette.red"),
@@ -390,6 +408,16 @@ enum ProjectEditLook {
         ("HAND", "fixr8.look.font.hand"), ("SONG", "fixr8.look.font.song"), ("KAI", "fixr8.look.font.kai"),
         ("HEI", "fixr8.look.font.hei"), ("BOLD", "fixr8.look.font.bold")
     ]
+    /// MP `TIMES`: one per chapter, 末世 only; "" = this chapter has none.
+    static let times = ["DAWN", "NOON", "DUSK", "NIGHT"]
+    static let maxTimes = 60
+    /// MP `TEXT_FX`; "" = 跟随风格.
+    static let textEffects = ["rise", "type", "ink", "gather", "glow", "wipe", "drop", "wind", "signal", "fog", "neon", "scan", "decode"]
+
+    static func paramLabelKey(_ param: String) -> String { "mpPublish.look.param.\(param)" }
+    static func optionLabelKey(_ param: String, _ option: String) -> String { "mpPublish.look.option.\(param).\(option.lowercased())" }
+    static func timeLabelKey(_ time: String) -> String { "mpPublish.look.time.\(time.lowercased())" }
+    static func textEffectLabelKey(_ effect: String) -> String { "mpPublish.look.textFx.\(effect)" }
 
     static func object(_ preserved: [String: ProjectEditJSON]) -> [String: ProjectEditJSON] {
         switch preserved[key] {
@@ -406,6 +434,10 @@ enum ProjectEditLook {
         let raw = (object(preserved)["style"]?.text ?? "").uppercased()
         return styles.contains { $0.value == raw } ? raw : "STARDUST"
     }
+    static func styleDefinition(_ preserved: [String: ProjectEditJSON]) -> Style {
+        let current = style(preserved)
+        return styles.first { $0.value == current } ?? styles[0]
+    }
     static func palette(_ preserved: [String: ProjectEditJSON]) -> String {
         let raw = (object(preserved)["palette"]?.text ?? "").uppercased()
         return palettes.contains { $0.value == raw } ? raw : ""
@@ -413,6 +445,21 @@ enum ProjectEditLook {
     static func font(_ preserved: [String: ProjectEditJSON]) -> String {
         let raw = (object(preserved)["storyFont"]?.text ?? "").uppercased()
         return fonts.contains { $0.value == raw } ? raw : "HAND"
+    }
+    /// MP `normalizeLook` for one param: an unknown value falls back to the style default.
+    static func param(_ preserved: [String: ProjectEditJSON], _ param: Param) -> String {
+        let raw = (object(preserved)["params"]?.object?[param.key]?.text ?? "").uppercased()
+        return param.options.contains(raw) ? raw : param.defaultValue
+    }
+    static func time(_ preserved: [String: ProjectEditJSON], chapter index: Int) -> String {
+        let list = object(preserved)["times"]?.array ?? []
+        guard index >= 0, index < list.count else { return "" }
+        let raw = (list[index].text ?? "").uppercased()
+        return times.contains(raw) ? raw : ""
+    }
+    static func textEffect(_ preserved: [String: ProjectEditJSON]) -> String {
+        let raw = (object(preserved)["textFx"]?.text ?? "").lowercased()
+        return textEffects.contains(raw) ? raw : ""
     }
 
     static func update(_ preserved: inout [String: ProjectEditJSON], style newStyle: String? = nil, palette: String? = nil, font: String? = nil) {
@@ -423,46 +470,167 @@ enum ProjectEditLook {
         if look["storyFont"] == nil { look["storyFont"] = .string("HAND") }
         if look["params"]?.object == nil || (newStyle != nil && newStyle != current) {
             let target = newStyle ?? current
-            let defaults = styles.first { $0.value == target }?.params ?? [:]
-            look["params"] = .object(defaults.mapValues { ProjectEditJSON.string($0) })
+            let defaults = styles.first { $0.value == target }?.params ?? []
+            var params: [String: ProjectEditJSON] = [:]
+            for item in defaults { params[item.key] = .string(item.defaultValue) }
+            look["params"] = .object(params)
         }
-        if let newStyle { look["style"] = .string(newStyle) }
+        if let newStyle {
+            look["style"] = .string(newStyle)
+            look["transition"] = .string("AUTO")
+            if newStyle != "SURVIVAL" { look["times"] = nil }
+        }
         if let palette { if palette.isEmpty { look["palette"] = nil } else { look["palette"] = .string(palette) } }
         if let font { look["storyFont"] = .string(font) }
+        write(look, into: &preserved)
+    }
+
+    /// MP `onLookParam`.
+    static func update(_ preserved: inout [String: ProjectEditJSON], param: Param, value: String) {
+        update(&preserved)
+        var look = object(preserved)
+        var params = look["params"]?.object ?? [:]
+        params[param.key] = .string(value)
+        look["params"] = .object(params)
+        write(look, into: &preserved)
+    }
+
+    /// MP `onLookTime`: pad with "" up to the chapter, then drop trailing blanks (`normalizeLook`).
+    static func update(_ preserved: inout [String: ProjectEditJSON], chapter index: Int, time: String) {
+        guard index >= 0, index < maxTimes else { return }
+        update(&preserved)
+        var look = object(preserved)
+        var list = (look["times"]?.array ?? []).map { $0.text ?? "" }
+        while list.count <= index { list.append("") }
+        list[index] = time
+        while let last = list.last, last.isEmpty { list.removeLast() }
+        look["times"] = list.isEmpty ? nil : .array(list.map { ProjectEditJSON.string($0) })
+        write(look, into: &preserved)
+    }
+
+    /// MP `onLookTextFx`: "" removes the key (跟随风格).
+    static func update(_ preserved: inout [String: ProjectEditJSON], textEffect: String) {
+        update(&preserved)
+        var look = object(preserved)
+        look["textFx"] = textEffect.isEmpty ? nil : .string(textEffect)
+        write(look, into: &preserved)
+    }
+
+    private static func write(_ look: [String: ProjectEditJSON], into preserved: inout [String: ProjectEditJSON]) {
         guard let data = try? JSONEncoder().encode(ProjectEditJSON.object(look)),
               let text = String(data: data, encoding: .utf8) else { return }
         preserved[key] = .string(text)
     }
 }
 
-/// 画面风格 row on the fabu editor: style, 主题配色 (unset keeps each chapter's own colours) and 故事字体.
+/// 画面风格 card in the 主题详情 sheet (MP topic-detail-sheet.wxml:79): title + summary 风格 · 主题配色 · 字体,
+/// tap opens the MP look sheet as a pushed page.
 @MainActor struct ProjectEditLookHost: View {
     @Binding var preserved: [String: ProjectEditJSON]
     let readOnly: Bool
+    var chapterNames: [String] = []
 
     var body: some View {
         Section {
-            Picker(selection: Binding(get: { ProjectEditLook.style(preserved) },
-                                      set: { ProjectEditLook.update(&preserved, style: $0) })) {
-                ForEach(ProjectEditLook.styles, id: \.value) { Text(LocalizedStringKey($0.labelKey)).tag($0.value) }
-            } label: { Text("fixr8.look.style") }
-            .accessibilityIdentifier("projectEdit.look.style")
-            Picker(selection: Binding(get: { ProjectEditLook.palette(preserved) },
-                                      set: { ProjectEditLook.update(&preserved, palette: $0) })) {
-                Text("fixr8.look.palette.chapter").tag("")
-                ForEach(ProjectEditLook.palettes, id: \.value) { Text(LocalizedStringKey($0.labelKey)).tag($0.value) }
-            } label: { Text("fixr8.look.palette") }
-            .accessibilityIdentifier("projectEdit.look.palette")
-            Picker(selection: Binding(get: { ProjectEditLook.font(preserved) },
-                                      set: { ProjectEditLook.update(&preserved, font: $0) })) {
-                ForEach(ProjectEditLook.fonts, id: \.value) { Text(LocalizedStringKey($0.labelKey)).tag($0.value) }
-            } label: { Text("fixr8.look.font") }
-            .accessibilityIdentifier("projectEdit.look.font")
-        } header: {
-            // r10 N-29: plain system Section header (no custom section-title type).
-            Text("fixr8.look.title")
+            NavigationLink {
+                ProjectEditLookPage(preserved: $preserved, readOnly: readOnly, chapterNames: chapterNames)
+            } label: {
+                LabeledContent {
+                    summary
+                } label: {
+                    Label("fixr8.look.title", systemImage: "photo")
+                }
+            }
+            .accessibilityIdentifier("projectEdit.look.open")
+        }
+    }
+
+    private var summary: Text {
+        let style = ProjectEditLook.styleDefinition(preserved)
+        let palette = ProjectEditLook.palette(preserved)
+        let paletteKey = ProjectEditLook.palettes.first { $0.value == palette }?.labelKey ?? "fixr8.look.palette.chapter"
+        let fontKey = ProjectEditLook.fonts.first { $0.value == ProjectEditLook.font(preserved) }?.labelKey ?? "fixr8.look.font.hand"
+        return Text(LocalizedStringKey(style.labelKey)) + Text(verbatim: " · ") + Text(LocalizedStringKey(paletteKey))
+            + Text(verbatim: " · ") + Text(LocalizedStringKey(fontKey))
+    }
+}
+
+/// MP look-sheet.wxml in MP order: 风格 → this style's params → (末世) each chapter's time → 主题配色 → 字体 → 文字动效.
+/// A choice applies at once, as on the MP (no save button). The live preview (`cy-look-preview`) is not ported.
+@MainActor struct ProjectEditLookPage: View {
+    @Binding var preserved: [String: ProjectEditJSON]
+    let readOnly: Bool
+    let chapterNames: [String]
+
+    var body: some View {
+        Form {
+            Section {
+                Picker(selection: Binding(get: { ProjectEditLook.style(preserved) },
+                                          set: { ProjectEditLook.update(&preserved, style: $0) })) {
+                    ForEach(ProjectEditLook.styles, id: \.value) { Text(LocalizedStringKey($0.labelKey)).tag($0.value) }
+                } label: { Text("fixr8.look.style") }
+                .accessibilityIdentifier("projectEdit.look.style")
+            }
+            Section {
+                ForEach(ProjectEditLook.styleDefinition(preserved).params, id: \.key) { param in
+                    Picker(selection: Binding(get: { ProjectEditLook.param(preserved, param) },
+                                              set: { ProjectEditLook.update(&preserved, param: param, value: $0) })) {
+                        ForEach(param.options, id: \.self) { option in
+                            Text(LocalizedStringKey(ProjectEditLook.optionLabelKey(param.key, option))).tag(option)
+                        }
+                    } label: { Text(LocalizedStringKey(ProjectEditLook.paramLabelKey(param.key))) }
+                    .accessibilityIdentifier("projectEdit.look.param.\(param.key)")
+                }
+            }
+            if ProjectEditLook.style(preserved) == "SURVIVAL", !chapterNames.isEmpty {
+                Section {
+                    ForEach(Array(chapterNames.prefix(ProjectEditLook.maxTimes).enumerated()), id: \.offset) { item in
+                        Picker(selection: Binding(get: { ProjectEditLook.time(preserved, chapter: item.offset) },
+                                                  set: { ProjectEditLook.update(&preserved, chapter: item.offset, time: $0) })) {
+                            Text("mpPublish.look.time.none").tag("")
+                            ForEach(ProjectEditLook.times, id: \.self) { time in
+                                Text(LocalizedStringKey(ProjectEditLook.timeLabelKey(time))).tag(time)
+                            }
+                        } label: { chapterLabel(item.offset, item.element) }
+                    }
+                }
+            }
+            Section {
+                Picker(selection: Binding(get: { ProjectEditLook.palette(preserved) },
+                                          set: { ProjectEditLook.update(&preserved, palette: $0) })) {
+                    Text("fixr8.look.palette.chapter").tag("")
+                    ForEach(ProjectEditLook.palettes, id: \.value) { Text(LocalizedStringKey($0.labelKey)).tag($0.value) }
+                } label: { Text("fixr8.look.palette") }
+                .accessibilityIdentifier("projectEdit.look.palette")
+            }
+            Section {
+                Picker(selection: Binding(get: { ProjectEditLook.font(preserved) },
+                                          set: { ProjectEditLook.update(&preserved, font: $0) })) {
+                    ForEach(ProjectEditLook.fonts, id: \.value) { Text(LocalizedStringKey($0.labelKey)).tag($0.value) }
+                } label: { Text("fixr8.look.font") }
+                .accessibilityIdentifier("projectEdit.look.font")
+                Picker(selection: Binding(get: { ProjectEditLook.textEffect(preserved) },
+                                          set: { ProjectEditLook.update(&preserved, textEffect: $0) })) {
+                    Text("mpPublish.look.textFx.auto").tag("")
+                    ForEach(ProjectEditLook.textEffects, id: \.self) { effect in
+                        Text(LocalizedStringKey(ProjectEditLook.textEffectLabelKey(effect))).tag(effect)
+                    }
+                } label: { Text("mpPublish.look.textFx") }
+                .accessibilityIdentifier("projectEdit.look.textFx")
+            }
         }
         .disabled(readOnly)
+        .navigationTitle(Text("fixr8.look.title"))
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    @ViewBuilder private func chapterLabel(_ index: Int, _ name: String) -> some View {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            Text("castMember.clue.chapterNumber \(index + 1)")
+        } else {
+            Text(verbatim: trimmed)
+        }
     }
 }
 

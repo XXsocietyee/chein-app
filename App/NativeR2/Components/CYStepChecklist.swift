@@ -43,6 +43,8 @@ struct CYStepChecklist<Result: View>: View {
     private let result: Result
     @State private var doneExpanded = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @ScaledMetric(relativeTo: .body) private var doneThumb: CGFloat = 28
 
     init(_ title: LocalizedStringKey, systemImage: String, steps: [CYChecklistStep], tint: Color = CYColor.brand,
          startTitle: LocalizedStringKey = "comp.steps.start", onStart: ((String) -> Void)? = nil,
@@ -176,23 +178,40 @@ struct CYStepChecklist<Result: View>: View {
                 .foregroundStyle(CYColor.successText)
                 .symbolEffect(.bounce, value: reduceMotion ? 0 : doneSteps.count)
                 .accessibilityHidden(true)
-            Text(verbatim: step.title)
-                .cyText(.body)
-                .foregroundStyle(CYColor.textSecondary)
-                .lineLimit(1)
-            Spacer(minLength: CYSpacing.sm)
-            if let summary = step.detail {
-                Text(verbatim: summary).cyText(.caption).foregroundStyle(CYColor.textTertiary).lineLimit(1)
-            } else if let symbol = step.thumbnailSymbol {
-                Image(systemName: symbol)
-                    .foregroundStyle(tint)
-                    .frame(width: 28, height: 28)
-                    .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(tint.opacity(0.12)))
-                    .accessibilityHidden(true)
+            doneLayout {
+                Text(verbatim: step.title)
+                    .cyText(.body)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .lineLimit(typeSize.isAccessibilitySize ? 3 : 1)
+                if !typeSize.isAccessibilitySize {
+                    Spacer(minLength: CYSpacing.sm)
+                }
+                doneTrailing(step)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .accessibilityElement(children: .combine)
         .accessibilityValue(Text("comp.steps.state.done"))
+    }
+
+    @ViewBuilder
+    private func doneTrailing(_ step: CYChecklistStep) -> some View {
+        if let summary = step.detail {
+            Text(verbatim: summary).cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                .lineLimit(typeSize.isAccessibilitySize ? 2 : 1)
+        } else if let symbol = step.thumbnailSymbol {
+            Image(systemName: symbol)
+                .foregroundStyle(tint)
+                .frame(width: min(doneThumb, 44), height: min(doneThumb, 44))
+                .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(tint.opacity(0.12)))
+                .accessibilityHidden(true)
+        }
+    }
+
+    private var doneLayout: AnyLayout {
+        typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.xs))
+            : AnyLayout(HStackLayout(spacing: CYSpacing.sm))
     }
 
     private func stateKey(_ step: CYChecklistStep, current: Bool) -> LocalizedStringKey {

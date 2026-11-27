@@ -36,13 +36,15 @@ SINGULAR = {
     'spots': 'spot', 'stations': 'station', 'steps': 'step', 'stops': 'stop', 'tasks': 'task',
     'teams': 'team', 'themes': 'theme', 'tickets': 'ticket', 'times': 'time', 'topics': 'topic',
     'weeks': 'week', 'works': 'work', 'years': 'year', 'stamps': 'stamp', 'districts': 'district',
-    'runs': 'run', 'visits': 'visit', 'votes': 'vote', 'tries': 'try', 'winners': 'winner', 'pieces': 'piece',
+    'groups': 'group', 'runs': 'run', 'visits': 'visit', 'votes': 'vote', 'tries': 'try', 'winners': 'winner', 'pieces': 'piece',
 }
 # Keys where the matched word is a verb ("the invite for seat %lld stops working"), not a counted noun.
 VERB_KEYS = {'mp.seats.cancel.message %lld'}
 # Keys whose call site runs `String(format:)` on the resolved value; they stay plain stringUnits.
 FORMAT_KEYS = {'club.settings.customerCount %lld'}
 FRAGMENTS = 'docs/port/strings/'
+# One-shot generators that seeded a key's first values: they compare nothing, so they do not pin it.
+GENERATORS = ('tools/add_u9_cde_localizations.py',)
 
 
 def stable_fragment(name):
@@ -66,8 +68,10 @@ def pinned_keys():
     blob = []
     for name in files:
         if name.endswith(('.py', '.json', '.swift', '.md', '.txt', '.xcstrings')) and name != 'tools/add_i18n_r1_plurals.py':
-            if name == 'tools/add_i18n_r2_substitutions.py' or stable_fragment(name):
+            if name == 'tools/add_i18n_r2_substitutions.py' or name in GENERATORS or stable_fragment(name):
                 continue
+            if name.startswith('docs/') and name.endswith('.md'):
+                continue  # receipts and briefs only mention keys; they do not compare values
             try:
                 blob.append((ROOT / name).read_text(encoding='utf-8'))
             except (UnicodeDecodeError, OSError):
