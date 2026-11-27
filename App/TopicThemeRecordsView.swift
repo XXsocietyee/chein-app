@@ -14,7 +14,7 @@ import SwiftUI
     var body: some View {
         List {
             Section { Text(verbatim: topicName).font(.subheadline).foregroundStyle(.secondary) }
-            if loading && rows.isEmpty { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("topicXcx.records.loading")) }
+            if loading && rows.isEmpty { ProgressView { Text("topicXcx.records.loading") }.frame(maxWidth: .infinity) }
             else if failed && rows.isEmpty {
                 ContentUnavailableView {
                     Label { Text("topicXcx.records.failed").accessibilityIdentifier("topic.records.failed") } icon: { Image(systemName: "exclamationmark.triangle") }
@@ -90,15 +90,16 @@ import SwiftUI
     }
     var body: some View {
         List {
-            if card != nil, topicID > 0 { runActions }
+            // MP theme-records card sheet: title → summary → 场景 + values → items → medals → epilogues → next scene,
+            // then 本局战报 / 再玩一次 at the end.
             if let card {
                 Section {
                     if let title = card.title { Text(verbatim: title).font(.title3.weight(.semibold)) } else { Text("topicXcx.records.cardTitle").font(.title3.weight(.semibold)) }
-                    if let scene = card.scene { LabeledContent { Text(verbatim: scene) } label: { Text("topicXcx.records.scene") } }
                     if let summary = card.summary { Text(verbatim: summary) }
                 }
-                if !card.values.isEmpty {
+                if card.scene != nil || !card.values.isEmpty {
                     Section {
+                        if let scene = card.scene { LabeledContent { Text(verbatim: scene) } label: { Text("topicXcx.records.scene") } }
                         ForEach(Array(card.values.enumerated()), id: \.offset) { _, row in
                             LabeledContent {
                                 Text(verbatim: String(row.value))
@@ -117,7 +118,8 @@ import SwiftUI
                         }
                     }
                 }
-                if let next = card.nextScene { Text("topicXcx.records.nextScene \(next)") }
+                if let next = card.nextScene { Text("topicXcx.records.nextScene \(next)").foregroundStyle(.secondary) }
+                if topicID > 0 { runActions }
             } else if failed {
                 ContentUnavailableView {
                     Label { Text("topicXcx.records.cardFailed").accessibilityIdentifier("topic.records.cardFailed") } icon: { Image(systemName: "exclamationmark.triangle") }
@@ -125,7 +127,9 @@ import SwiftUI
                     Button { Task { await load() } } label: { Text("topicXcx.records.cardReload") }
                         .buttonStyle(.bordered)
                 }
-            } else { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("topicXcx.records.cardLoading")) }
+            } else {
+                ProgressView { Text("topicXcx.records.cardLoading") }.frame(maxWidth: .infinity)
+            }
         }
         .task(id: reader.scope) { await load() }
         .task(id: sessionID) { await loadReplay() }
