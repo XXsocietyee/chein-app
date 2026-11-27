@@ -14,6 +14,9 @@ import QuestifyCore
     let dependencies: RoamMapHomeDependencies
     @State private var externalMaps: PlatformExternalMaps?
     @State private var confirmingDirections = false
+    /// MP roam-place-card rating cell: `/api/city/nodes/{id}` averageRating / ratingCount; a failed read shows 「—」.
+    @State private var rating: String?
+    @State private var ratingFailed = false
 
     private struct CardAction {
         let titleKey: LocalizedStringKey
@@ -31,6 +34,18 @@ import QuestifyCore
                         .font(.title2.bold())
                         .accessibilityAddTraits(.isHeader)
                     HStack(spacing: 4) {
+                        // MP rpc__row: rating first, then distance.
+                        if rating != nil || ratingFailed {
+                            Label {
+                                Text(verbatim: rating ?? "—").monospacedDigit()
+                            } icon: {
+                                Image(systemName: "star.fill").foregroundStyle(.yellow)
+                            }
+                            .labelStyle(.titleAndIcon)
+                            .accessibilityLabel(Text("nativeR2.mapHome.card.rating \(rating ?? "—")"))
+                            .accessibilityIdentifier("roam.mapHome.card.rating")
+                            Text(verbatim: "·")
+                        }
                         Text(pin.kindKey)
                         if let meters = pin.distanceMeters {
                             Text(verbatim: "·")
@@ -100,6 +115,22 @@ import QuestifyCore
             Button("nativeR2.mapHome.card.copyAddress") { externalMaps?.copySelectedAddress() }
         }
         .accessibilityIdentifier("roam.detail")
+        .task(id: pin.id) { await loadRating() }
+    }
+
+    /// MP `_loadRating`: only server POIs (shareKind poi) are read; the card stays usable whatever happens.
+    private func loadRating() async {
+        rating = nil
+        ratingFailed = false
+        guard case .place(let place) = pin.payload, place.type == 1, place.id > 0 else { return }
+        do {
+            let detail = try await dependencies.roamReader.roamNodeDetail(id: place.id)
+            guard !Task.isCancelled else { return }
+            rating = detail.ratingText
+        } catch {
+            guard !Task.isCancelled else { return }
+            ratingFailed = true
+        }
     }
 
     // MARK: Action row (Maps: one prominent action, then bordered ones)

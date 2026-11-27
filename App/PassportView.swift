@@ -242,9 +242,11 @@ private struct PassportRollingCount: View {
                     .font(.title3)
                     .accessibilityHidden(true)
                 ViewThatFits(in: .horizontal) {
-                    Text(title).font(.caption).lineLimit(1)
+                    // a11y-dt r3 (16:37 sweep): .caption read as tiny; .footnote medium. Brand on the bordered fill is
+                    // ~9:1 (light) / ~10:1 (dark), above 4.5:1.
+                    Text(title).font(.footnote.weight(.medium)).lineLimit(1)
                     Text(short ?? title)
-                        .font(.caption)
+                        .font(.footnote.weight(.medium))
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                 }

@@ -30,6 +30,7 @@ struct DiscoveryTemplateBrowserView: View {
     @StateObject private var shelfGames = DiscoveryLoader<[DiscoveryPlayTemplate]>()
     @State private var toastMessage: String?
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private enum Shelf: String, CaseIterable { case topics, games }
 
@@ -373,7 +374,8 @@ struct DiscoveryTemplateBrowserView: View {
             }
             .tabViewStyle(.page(indexDisplayMode: .always))
             .indexViewStyle(.page(backgroundDisplayMode: .interactive))
-            .aspectRatio(16.0 / 13.0, contentMode: .fit)
+            // a11y-dt r3: taller pages at accessibility sizes so the two-line title and meta are not cut off.
+            .aspectRatio(dynamicTypeSize.isAccessibilitySize ? 2.0 / 3.0 : 16.0 / 13.0, contentMode: .fit)
             .accessibilityIdentifier("discovery.featuredTopics")
         } header: {
             Text("discovery.featured")
@@ -687,7 +689,9 @@ private struct DiscoveryShelfFeatureTile: View {
 private struct DiscoveryShelfHeaderImage: View {
     let art: Image?
     let imageSource: String?
-    @ScaledMetric(relativeTo: .body) private var height: CGFloat = 180
+    @ScaledMetric(relativeTo: .body) private var scaledHeight: CGFloat = 180
+    /// a11y-dt r3: the picture grows a little with Dynamic Type but stops at 240 pt, so the title under it stays on screen.
+    private var height: CGFloat { min(scaledHeight, 240) }
     var body: some View {
         if let art {
             art.resizable().scaledToFill()

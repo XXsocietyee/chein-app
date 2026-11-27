@@ -9,13 +9,31 @@ import QuestifyCore
 /// Hidden while the binding client is gated or the topic has no place contract.
 @MainActor struct TopicLocationTodosSection: View {
     let nodes: [TopicLocationEditorNode]
+    /// MP `replacePlace`: change only this stop's address in the editor's own place picker (not a re-bind).
+    let replace: ((String) -> Void)?
     @StateObject private var model: TopicLocationTodosModel
     @State private var open = false
 
-    init(topicID: Int, scope: String?, nodes: [TopicLocationEditorNode]) {
+    init(topicID: Int, scope: String?, nodes: [TopicLocationEditorNode], replace: ((String) -> Void)? = nil) {
         self.nodes = nodes
+        self.replace = replace
         _model = StateObject(wrappedValue: TopicLocationTodosModel(client: TopicTemplateAdoptionFactory.makeBindingClient(),
                                                                    topicId: topicID, scope: scope))
+    }
+
+    private func replacePlace(_ nodeID: String) {
+        open = false
+        replace?(nodeID)
+    }
+
+    /// Passed to the sheet only when the editor supplied `replace` (MP shows 替换地点 only then).
+    private var replaceAction: ((String) -> Void)? {
+        guard replace != nil else { return nil }
+        return { nodeID in replacePlace(nodeID) }
+    }
+
+    private func countText(_ todos: TopicLocationTodos) -> String {
+        todos.summaryText ?? W8Text.t("\(todos.rows.count) 个地点", "\(todos.rows.count) place(s)")
     }
 
     var body: some View {
@@ -27,7 +45,7 @@ import QuestifyCore
                             Label(W8Text.t("地点待办", "Place to-dos"), systemImage: "mappin.and.ellipse")
                                 .foregroundStyle(.primary)
                             Spacer()
-                            Text(todos.summaryText ?? W8Text.t("\(todos.rows.count) 个地点", "\(todos.rows.count) place(s)"))
+                            Text(countText(todos))
                                 .foregroundStyle(todos.blockingCount > 0 ? Color.red : Color.secondary)
                         }
                     }
@@ -35,7 +53,7 @@ import QuestifyCore
                 }
                 .cySheet(isPresented: $open) {
                     NavigationStack {
-                        TopicLocationTodosSheet(model: model, nodes: nodes)
+                        TopicLocationTodosSheet(model: model, nodes: nodes, replace: replaceAction)
                             .toolbar {
                                 ToolbarItem(placement: .cancellationAction) {
                                     Button(W8Text.t("完成", "Done")) { open = false }
@@ -57,6 +75,7 @@ import QuestifyCore
 @MainActor private struct TopicLocationTodosSheet: View {
     @ObservedObject var model: TopicLocationTodosModel
     let nodes: [TopicLocationEditorNode]
+    let replace: ((String) -> Void)?
     @State private var picking: TopicLocationTodoRow?
     @Environment(\.locale) private var locale
 
@@ -69,14 +88,11 @@ import QuestifyCore
                                                  busy: model.busySlot == row.slotKey, anyBusy: model.busySlot != nil,
                                                  error: model.rowErrors[row.slotKey],
                                                  confirm: { node in Task { await model.bind(row, nodeId: node.id) } },
+                                                 replace: replace,
                                                  pick: {
                                                      if nodes.isEmpty { model.pickError(row) } else { picking = row }
                                                  })
                     }
-                } footer: {
-                    Text(W8Text.t("模板的地点要求和你这份草稿的实际地点分开保存。换了地址后，请确认相关题面、现场答案和照片仍然成立。",
-                                  "The template's place requirements and your draft's actual places are saved separately. After changing an address, check that the related prompts, on-site answers and photos still hold."))
-                        .accessibilityIdentifier("locationTodos.reconfirmNote")
                 }
             }
         }
@@ -123,12 +139,8 @@ import QuestifyCore
     let anyBusy: Bool
     let error: String?
     let confirm: (TopicLocationEditorNode) -> Void
+    let replace: ((String) -> Void)?
     let pick: () -> Void
-
-    private func nonempty(_ value: String?) -> String? {
-        guard let value = value?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty else { return nil }
-        return value
-    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
@@ -144,24 +156,17 @@ import QuestifyCore
             if let mapped { Text(mapped.node.place).font(.subheadline).foregroundStyle(.secondary).lineLimit(1) }
             Text(TopicLocationTodos.statusText(row.status)).font(.subheadline)
                 .foregroundStyle(row.blocking ? Color.red : Color.secondary)
-            // What to look at / what to do / when it can't be seen: shown only when the author contract has them.
-            if let what = nonempty(row.observationTarget) {
-                Text(W8Text.t("看什么：\(what)", "Look at: \(what)")).font(.subheadline).foregroundStyle(.secondary)
-            }
-            if let how = nonempty(row.observationAction) {
-                Text(W8Text.t("怎么做：\(how)", "What to do: \(how)")).font(.subheadline).foregroundStyle(.secondary)
-            }
-            if let fallback = TopicLocationTodos.fallbackText(row.alternativePolicy) {
-                Text(fallback).font(.subheadline).foregroundStyle(.secondary)
-            }
-            if let message = nonempty(row.issueMessage) {
-                Text(message).font(.subheadline).foregroundStyle(row.blocking ? Color.red : Color.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+            // MP b4-u02-03: each row is name + current address + status, then its actions (no extra lines).
             HStack(spacing: CYSpacing.sm) {
+                if let mapped, let replace {
+                    Button(W8Text.t("替换地点", "Replace place")) { replace(mapped.node.id) }
+                        .buttonStyle(.bordered)
+                        .accessibilityLabel(Text(W8Text.t("替换\(row.title)的地点", "Replace the place for \(row.title)")))
+                        .accessibilityIdentifier("locationTodos.replace.\(row.slotKey)")
+                }
                 if let mapped, mapped.claimed {
                     Button(busy ? W8Text.t("确认中…", "Confirming…") : W8Text.t("确认地点", "Confirm place")) { confirm(mapped.node) }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.borderedProminent)
                         .accessibilityLabel(Text(W8Text.t("确认\(row.title)的地点", "Confirm the place for \(row.title)")))
                         .accessibilityIdentifier("locationTodos.confirm.\(row.slotKey)")
                 } else if mapped == nil {

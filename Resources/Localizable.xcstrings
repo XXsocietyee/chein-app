@@ -61012,13 +61012,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Saved content is still here; new updates wait for the network."
+            "value": "Check your connection and try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已缓存的内容还在；新内容等网络回来后再更新"
+            "value": "检查网络后再试一次"
           }
         }
       }
@@ -61063,13 +61063,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You're offline"
+            "value": "Looks like you’re offline"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你离线了"
+            "value": "网络好像断开了"
           }
         }
       }
@@ -61080,13 +61080,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "We've logged it. Try again."
+            "value": "Try again in a moment."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已经记下来了，再试一次"
+            "value": "过一会儿再试一次"
           }
         }
       }
@@ -61097,13 +61097,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Something broke on our side"
+            "value": "Something went wrong"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这边出了点问题"
+            "value": "出错了"
           }
         }
       }
@@ -138137,9 +138137,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld runs lack a frozen location and aren't counted"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld run lacks a frozen location and isn't counted"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld runs lack a frozen location and aren't counted"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -173955,13 +173967,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Share my route with teams in this session"
+            "value": "Let teams in this session see my route"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "与同场队伍共享我的路线"
+            "value": "让同场队伍看到我的路线"
           }
         }
       }
@@ -230271,13 +230283,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Shop details didn't load."
+            "value": "Couldn’t open the shop details"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "商家信息没有加载出来。"
+            "value": "商家信息无法打开"
           }
         }
       }
@@ -236920,13 +236932,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This clears locally cached roam drafts without affecting uploaded history."
+            "value": "This clears the fog, footprints and roam history on this phone, plus the recovery record of a roam you haven't finished. Footprint links you've shared stop working too. Records already uploaded to Chengyin aren't affected."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这会清除本机暂存的漫游草稿与缓存记录，不会影响已上传的记录。"
+            "value": "会清掉这台手机上的迷雾、足迹、漫游记录，以及还没结束那次漫游的找回记录；分享出去的足迹链接也会失效。已上传到城瘾的记录不受影响。"
           }
         }
       }
@@ -245247,13 +245259,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This link is incomplete. Go back to choose another item."
+            "value": "This link is no longer valid"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "链接不完整，请返回选择其他内容。"
+            "value": "链接已失效"
           }
         }
       }
@@ -273235,9 +273247,21 @@
     "topic.chapterCard.games %lld": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld games"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld game"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld games"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -273475,9 +273499,21 @@
     "topic.depart.sharedBy %lld": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld people per ticket"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld person per ticket"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld people per ticket"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -297229,9 +297265,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Send to %lld people"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Send to %lld person"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Send to %lld people"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -302453,9 +302501,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld stops"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld stop"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld stops"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -302470,9 +302530,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Based on %lld reviews"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Based on %lld review"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Based on %lld reviews"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -304986,9 +305058,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Used %lld times"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Used %lld time"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Used %lld times"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -308657,9 +308741,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld teams forming nearby"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld team forming nearby"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld teams forming nearby"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -308674,9 +308770,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld teams formed"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld team formed"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld teams formed"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -309303,9 +309411,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld chapters"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld chapter"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld chapters"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -309645,7 +309765,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld runs · %2$@ · time %3$@"
+            "value": "%#@run@ · %2$@ · time %3$@"
+          },
+          "substitutions": {
+            "run": {
+              "argNum": 1,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg run"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg runs"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -311071,9 +311213,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Visit all %lld shops in any order while the pass is valid; each one redeems once."
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Visit all %lld shop in any order while the pass is valid; each one redeems once."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Visit all %lld shops in any order while the pass is valid; each one redeems once."
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -311105,9 +311259,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld stops in all"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld stop in all"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld stops in all"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -317992,9 +318158,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "View all %lld members"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "View all %lld member"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "View all %lld members"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -321561,9 +321739,21 @@
     "play.nr2.route.stops %lld": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld stops"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld stop"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld stops"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -322479,9 +322669,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "* %lld items still empty"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "* %lld item still empty"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "* %lld items still empty"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -332567,9 +332769,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld teams on the route"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld team on the route"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld teams on the route"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -338978,7 +339192,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Spend %1$lld points to unlock %2$@? Unlocked clues can be reread for free."
+            "value": "Spend %#@point@ to unlock %2$@? Unlocked clues can be reread for free."
+          },
+          "substitutions": {
+            "point": {
+              "argNum": 1,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg point"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg points"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -338993,9 +339229,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Spend %lld points"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Spend %lld point"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Spend %lld points"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -339044,9 +339292,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unlock for %lld points"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Unlock for %lld point"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Unlock for %lld points"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -339369,7 +339629,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chengyin · Free Explore pass"
+            "value": "Chein · Free Explore pass"
           }
         },
         "zh-Hans": {
@@ -339386,7 +339646,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chengyin · City Orienteering pass"
+            "value": "Chein · City Orienteering pass"
           }
         },
         "zh-Hans": {
@@ -343241,9 +343501,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld shops"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld shop"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld shops"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -343260,7 +343532,49 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld chapters · %2$lld shops"
+            "value": "%#@chapter@ · %#@shop@"
+          },
+          "substitutions": {
+            "chapter": {
+              "argNum": 1,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg chapter"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg chapters"
+                    }
+                  }
+                }
+              }
+            },
+            "shop": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg shop"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg shops"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -343498,7 +343812,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%1$lld shops · %2$lld redeemed"
+            "value": "%#@shop@ · %2$lld redeemed"
+          },
+          "substitutions": {
+            "shop": {
+              "argNum": 1,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg shop"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg shops"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -344552,7 +344888,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Session ended · you finished %1$lld/%2$lld stops"
+            "value": "Session ended · you finished %1$lld/%#@stop@"
+          },
+          "substitutions": {
+            "stop": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg stop"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg stops"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -344886,23 +345244,6 @@
         }
       }
     },
-    "club.gov.casesAppeal": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ban appeal"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "封禁申诉"
-          }
-        }
-      }
-    },
     "mpr3.coop.list.forbidden": {
       "extractionState": "manual",
       "localizations": {
@@ -344967,6 +345308,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在加载协作详情…"
+          }
+        }
+      }
+    },
+    "club.gov.casesAppeal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ban appeal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "封禁申诉"
           }
         }
       }
@@ -345060,9 +345418,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld stops"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld stop"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld stops"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -345277,23 +345647,6 @@
         }
       }
     },
-    "club.notify.deliveryStatus": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Delivery status"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "投递状态"
-          }
-        }
-      }
-    },
     "mpr3.coop.invite.topicsRefreshing": {
       "extractionState": "manual",
       "localizations": {
@@ -345341,6 +345694,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "合作对象加载失败"
+          }
+        }
+      }
+    },
+    "club.notify.deliveryStatus": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delivery status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "投递状态"
           }
         }
       }
@@ -345770,74 +346140,6 @@
         }
       }
     },
-    "club.community.pinnedNoticesTitle": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notices · Start here"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "公告 · 新人先看"
-          }
-        }
-      }
-    },
-    "club.community.noticeNoText": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "(No text)"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "（无文字内容）"
-          }
-        }
-      }
-    },
-    "club.community.noticeUnreadA11y %@": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unread notice: %@"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未读公告：%@"
-          }
-        }
-      }
-    },
-    "club.community.noticeA11y %@": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notice: %@"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "公告：%@"
-          }
-        }
-      }
-    },
     "publishModes.collaborator.title": {
       "extractionState": "manual",
       "localizations": {
@@ -346106,6 +346408,375 @@
           "stringUnit": {
             "state": "translated",
             "value": "收到的邮票无法打开"
+          }
+        }
+      }
+    },
+    "mpr3.square.detail.allComments %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "View %lld comment"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "View all %lld comments"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看全部 %lld 条评论"
+          }
+        }
+      }
+    },
+    "mpr3.coop.nearby.refreshing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refreshing nearby merchants…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在刷新附近商家…"
+          }
+        }
+      }
+    },
+    "club.community.pinnedNoticesTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notices · Start here"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公告 · 新人先看"
+          }
+        }
+      }
+    },
+    "club.community.noticeNoText": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(No text)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "（无文字内容）"
+          }
+        }
+      }
+    },
+    "club.community.noticeUnreadA11y %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unread notice: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未读公告：%@"
+          }
+        }
+      }
+    },
+    "club.community.noticeA11y %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notice: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公告：%@"
+          }
+        }
+      }
+    },
+    "playx.coupon.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Added to your coupon wallet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已放入卡券包"
+          }
+        }
+      }
+    },
+    "playx.coupon.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show it in store · Tap to view"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到店出示核销 · 点击查看"
+          }
+        }
+      }
+    },
+    "castPlayer.name": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Players pick a name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩家起名"
+          }
+        }
+      }
+    },
+    "castPlayer.identity": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Player identities"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩家身份"
+          }
+        }
+      }
+    },
+    "castPlayer.identityTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Identity, e.g. Reporter"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "身份，如：记者"
+          }
+        }
+      }
+    },
+    "castPlayer.identitySub": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One line: why they are here"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一句话：来做什么"
+          }
+        }
+      }
+    },
+    "castPlayer.addIdentity": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add identity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加身份"
+          }
+        }
+      }
+    },
+    "castPlayer.identityMax %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Up to %lld player identities"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩家身份最多 %lld 个"
+          }
+        }
+      }
+    },
+    "castPlayer.needIdentity": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Player identities are on: add at least one."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开了玩家身份，至少加一个身份"
+          }
+        }
+      }
+    },
+    "nativeR2.mapHome.card.rating %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rating %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "评分 %@"
+          }
+        }
+      }
+    },
+    "wallet.tasks.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No points tasks yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无积分任务"
+          }
+        }
+      }
+    },
+    "topic.sessionSelection.ticketsEmpty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No tickets on sale"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无可买票种"
+          }
+        }
+      }
+    },
+    "topic.sessionSelection.ticketsEmpty.singleDay": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can buy once tickets are released."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放票后可购买"
+          }
+        }
+      }
+    },
+    "topic.sessionSelection.ticketsEmpty.otherDay": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try another date."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "换个日期试试"
+          }
+        }
+      }
+    },
+    "roam.tasks.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t open the event list"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动列表没能打开"
           }
         }
       }

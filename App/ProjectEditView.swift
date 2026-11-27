@@ -319,6 +319,7 @@ import SwiftUI
     @State private var lastToastAcknowledged = false
     @FocusState private var focusedField: String?
     @State private var canvas: ProjectEditCanvas = .list
+    @State private var replacingPlace: ProjectEditPlaceTarget?
     @StateObject private var undoCenter = ProjectEditUndoCenter()
     @Environment(\.undoManager) private var undoManager
 
@@ -411,6 +412,17 @@ import SwiftUI
                 if model.coordinator.snapshot?.scope != .whitelist {
                     ProjectEditLookHost(preserved: $model.draft.preserved, readOnly: model.coordinator.isReadOnly)
                 }
+                // U02-03 place to-dos (MP fabu wxml:187: page 1, right above 章节) for an adopted template copy. Hidden while gated or without a place contract.
+                if let topicID = model.coordinator.snapshot?.topicID, TopicTemplateAdoptionFactory.bindingIsLive {
+                    TopicLocationTodosSection(topicID: topicID, scope: model.draft.owner == .merchant ? "MERCHANT" : nil,
+                                              nodes: model.draft.chapters.flatMap(\.nodes).compactMap {
+                                                  TopicLocationEditorNode(id: $0.id, name: $0.name, address: $0.address, hasCoordinates: $0.hasUsableCoordinates)
+                                              }, replace: { nodeID in replacingPlace = model.placeTarget(nodeID: nodeID) })
+                        .id(topicID)
+                } else if let topicID = model.coordinator.snapshot?.topicID {
+                    // One place to-do section: the G4/G5 mount only when the H1 binding client is not installed.
+                    TemplateLocationTodosEntry(topicID: topicID, scope: model.draft.owner.rawValue, nodes: model.draft.chapters.flatMap(\.nodes))
+                }
                 if canvas == .list {
                     chapterStructure(opening: opening).id("project-issue-anchor-chapters")
                 } else {
@@ -451,17 +463,6 @@ import SwiftUI
             }
             if let topicID = model.coordinator.snapshot?.topicID, let publisherClient {
                 PublisherXPBudgetSection(topicID: topicID, client: publisherClient)
-            }
-            // U02-03 place to-dos for an adopted template copy. Hidden while gated or without a place contract.
-            if let topicID = model.coordinator.snapshot?.topicID, TopicTemplateAdoptionFactory.bindingIsLive {
-                TopicLocationTodosSection(topicID: topicID, scope: model.draft.owner == .merchant ? "MERCHANT" : nil,
-                                          nodes: model.draft.chapters.flatMap(\.nodes).compactMap {
-                                              TopicLocationEditorNode(id: $0.id, name: $0.name, address: $0.address, hasCoordinates: $0.hasUsableCoordinates)
-                                          })
-                    .id(topicID)
-            } else if let topicID = model.coordinator.snapshot?.topicID {
-                // One place to-do section: the G4/G5 mount only when the H1 binding client is not installed.
-                TemplateLocationTodosEntry(topicID: topicID, scope: model.draft.owner.rawValue, nodes: model.draft.chapters.flatMap(\.nodes))
             }
             if model.coordinator.snapshot != nil {
                 ProjectSubmissionEvidenceSection(model: model)
@@ -743,6 +744,9 @@ import SwiftUI
             guard let copiedTarget, copiedCoordinator === copiedTarget else { return }; showingCopy = showing
         })) {
             if let copiedTarget { AnyView(ProjectEditView(coordinator: copiedTarget, sessionRevision: sessionRevision, publisherClient: publisherClient, publisherHost: publisherHost, cloudDraftProjectsHost: cloudDraftProjectsHost)) }
+        }
+        .navigationDestination(item: $replacingPlace) { target in
+            ProjectEditNodeView(model: model, chapterID: target.chapterID, nodeID: target.nodeID)
         }
         .navigationDestination(item: $submittedResource) { destination in
             if model.submissionDestinationIsCurrent(destination), let publisherHost {
@@ -1240,5 +1244,20 @@ private extension View {
     func cyCreatorLightSheet() -> some View {
         self
             .themeDomain(.topicEditor)
+    }
+}
+
+/// U02-03 替换地点 (MP location-todos `replacePlace`): the stop whose place the author changes in its own editor page.
+struct ProjectEditPlaceTarget: Hashable {
+    let chapterID: String
+    let nodeID: String
+}
+
+extension ProjectEditModel {
+    func placeTarget(nodeID: String) -> ProjectEditPlaceTarget? {
+        for chapter in draft.chapters where chapter.nodes.contains(where: { $0.id == nodeID }) {
+            return ProjectEditPlaceTarget(chapterID: chapter.id, nodeID: nodeID)
+        }
+        return nil
     }
 }

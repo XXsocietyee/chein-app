@@ -32,11 +32,22 @@ Whole-tree scans done first (player files; Merchant / Fixture / Diagnostics / *S
 | Journey record (`subpackageJourney` narrative) | `JourneyNarrativeView.swift` | ✓ | Found-count ring 88 pt → `@ScaledMetric(relativeTo: .title)` capped at 132; number scales down (0.5) instead of clipping | Done |
 | Club month calendar (design component) | `ClubComponents.swift` (`E3MonthGrid`) | ✓ | Seven 38 pt day circles capped at `.xxxLarge` (as Calendar's month grid); each day keeps its VoiceOver label | Done (only fixture-hosted today) |
 
+## Run 2 (2026-11-27, hourly)
+
+Merged `origin/ui/combined-r7` (clean). Gates as above.
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| City orientation run map (`subpackageJourney`) | `NativeR2/CityOrientation/CityOrientationRunView.swift` (teammate annotation) | ✓ (mp-journey owns order) | Teammate initial 28 pt → `@ScaledMetric(relativeTo: .caption)` capped at 44 (Maps-pin size, never covers the route); `.regularMaterial` disc instead of translucent fill so the letter reads on any map tile; VoiceOver hears the team name, not the initial | Done |
+| `pages/template/index` (Publish tab root, template shelf) | `DiscoveryTemplateBrowserView.swift`, `+Port.swift`, `TemplateShelfArt.swift` | ✓ (mp-publish owns order) | Row artwork (60/72 pt scaled) capped at 96 pt so the title keeps the row at AX5 (Music list artwork rule; also fixes search result rows that share `DiscoveryTopicCoverThumb`); shelf header picture capped at 240 pt (was 180 × AX5 ≈ 560 pt); featured page view 16:13 → 2:3 at accessibility sizes so title + meta are not cut off. Toolbar items, menu and sections unchanged | Done |
+| `pages/member/index` passport actions (16:37 sweep `ia-passport`) | `PassportView.swift` (`action`) | ✓ | Labels `.caption` → `.footnote` medium (was "tiny"); contrast checked: brand #33363C on the bordered fill ≈ 9:1 light, #F8F8F8 ≈ 10:1 dark (≥ 4.5:1). AX stacking from run 1 kept | Done |
+| `subpackageMember` ticket wallet (票夹) | `TicketWalletView.swift` (row), `TicketWalletDetailView.swift`, `TicketPassSheet.swift` | ✓ (mp-mine owns order) | Row cover 60 pt scaled → capped at 96 pt so title/date/place keep the width at AX5. Detail + pass sheet audited: QR band already shrinks at AX sizes, labels present. | Done |
+| `pages/club/*` (Club tab root) | `ClubHomeView.swift` | ✓ (mp-club owns order) | Audit: system `List`/`Label` rows, no fixed sizes, no `font(.system)`, event rows wrap. No change needed | Done |
+
 ## Not done (next run starts here)
-- `CityOrientationRunView.swift:190` teammate initial on the map annotation (28 pt, `.caption.bold()`): Map annotation;
-  decide whether to scale or cap. 
-- Next pages without a row: Publish tab root (`PublishTabRootView`), Club home (`ClubHomeView`)
-  full AX5 / VoiceOver order pass; `.lineLimit(1)` audit on tab-root rows (P12 + AX5).
+- Next pages without a row: Roam browser list (`RoamBrowserView`), messages inbox (`SessionMessaging*`) —
+  AX5 / VoiceOver order pass; `.lineLimit(1)` audit on tab-root rows (P12 + AX5), e.g.
+  `CityOrientationTeamStack` "N teams on the route" (`lineLimit(1)` in a capsule; long English at AX5).
 
 ## For other lanes
 - none this run.

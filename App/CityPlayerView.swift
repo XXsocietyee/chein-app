@@ -90,9 +90,10 @@ struct CityPlayerView: View {
                 case .available(let snapshot):
                     // Board header: title, then season state and my membership as status chips.
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        CYHeroHeader(verbatim: snapshot.board.title)
-                            .padding(CYSpacing.lg).padding(.top, CYSpacing.xl)
-                            .background { CYCoverArt(seed: snapshot.board.regionId, symbol: "building.2.fill", cornerRadius: CYRadius.lg) }
+                        // Standard hero: generated cover above, title in the system text style below (never text on art).
+                        CYHeroHeader(verbatim: snapshot.board.title) {
+                            Cloud07Cover(seed: snapshot.board.regionId, symbol: "building.2.fill")
+                        }
                         ViewThatFits(in: .horizontal) {
                             HStack(spacing: CYSpacing.sm) {
                             CYStatusChip(lifecycle(snapshot.board.lifecycle), tone: snapshot.board.acceptsNewActions ? .success : .neutral,

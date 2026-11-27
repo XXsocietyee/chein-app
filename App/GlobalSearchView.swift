@@ -316,6 +316,11 @@ import SwiftUI
                                 } icon: {
                                     Image(systemName: SearchCategorySymbol.name(for: category.name)).accessibilityHidden(true)
                                 }
+                                // 16:37 sweep: the capsule rendered as one tall narrow icon pill. Always icon + name on
+                                // one line at its natural width (the flow wraps whole capsules, never the name).
+                                .labelStyle(.titleAndIcon)
+                                .lineLimit(1)
+                                .fixedSize()
                             }
                             .buttonStyle(.bordered)
                             .buttonBorderShape(.capsule)
