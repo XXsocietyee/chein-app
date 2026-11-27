@@ -194,6 +194,7 @@ import SwiftUI
             WalletIncomeAnalysisView(reader: session.walletHistoryReader, onSignIn: signIn)
         case "subpackageP3/pages/growthcenter/index/index":
             GrowthCenterView(reader: session.growthCenterReader)
+                .environment(\.objectCardMedia, session.makeObjectCardImageLoader())  // MP gc-badge-disc iconUrl
         case "subpackageP3/pages/growthcenter/leaderboard/index":
             GrowthLeaderboardView(reader: session.growthCenterReader)
         case "subpackageP3/pages/stamp-camera/index/index":

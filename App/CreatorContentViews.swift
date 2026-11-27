@@ -137,11 +137,10 @@ private struct CreatorContentIssueView: View {
                                 card(project).allowsHitTesting(false)
                             }
                         }
-                        else if model.state.isLoading || model.state.loadedScope != key.scope { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("creatorContent.loading")) }
+                        else if model.state.isLoading || model.state.loadedScope != key.scope { ProgressView("myProject.loading").frame(maxWidth: .infinity)  // MP 项目加载中 }
                         else if let failure = model.state.visibleIssue(scope: key.scope) { issue(failure) }
                         else if let page = model.state.visibleValue(scope: key.scope) {
                             if page.rows.isEmpty { MyProjectEmptyView(type: query.type) }
-                            if page.isTruncated { Text("creatorContent.truncated").accessibilityIdentifier("creatorContent.truncated") }
                             let rowScope = key.scope
                             // PC-D-1-5: no 发布单场活动 row above a non-empty list (MP owner ruling m693; the empty state keeps it).
                             ForEach(MyProjectListPresentation.sorted(page.rows)) { project in
@@ -160,6 +159,11 @@ private struct CreatorContentIssueView: View {
                                 } else {
                                     card(project)
                                 }
+                            }
+                            // MP myproject mp-more: 仅显示最近 200 条 closes the list (below the rows).
+                            if page.isTruncated {
+                                Text("creatorContent.truncated").font(.footnote).foregroundStyle(.secondary)
+                                    .frame(maxWidth: .infinity).accessibilityIdentifier("creatorContent.truncated")
                             }
                         }
                     }
@@ -263,7 +267,7 @@ private struct CreatorContentIssueView: View {
             if reader.isOfflineExample { Label("creatorContent.offlineExample", systemImage: "testtube.2").foregroundStyle(.orange) }
             if !reader.isAuthenticated { issue(.login) }
             else if !reader.isConfigured { issue(.notConfigured) }
-            else if model.state.isLoading || model.state.loadedScope != key.scope { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("creatorContent.loading")) }
+            else if model.state.isLoading || model.state.loadedScope != key.scope { ProgressView("myProject.loading").frame(maxWidth: .infinity)  // MP 项目加载中 }
             else if let failure = model.state.visibleIssue(scope: key.scope) { issue(failure) }
             else if let center = model.state.visibleValue(scope: key.scope) {
                 Section {

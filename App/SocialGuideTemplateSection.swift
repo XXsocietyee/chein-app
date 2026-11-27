@@ -188,10 +188,10 @@ enum SocialGuideTemplateRows {
                     .accessibilityIdentifier("social.guideTemplates.retry")
                 }
             } else {
-                ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("discovery.loading"))
+                ProgressView("guideXcx.templatesLoading").frame(maxWidth: .infinity)  // P10: says what loads
             }
-            // 更多玩法 follows the rows only; the empty state carries its own 去发布广场.
-            if model.visibleSnapshot(reader: reader)?.rows.isEmpty != true {
+            // 更多玩法 follows the rows only (MP infomation.wxml wx:else block); not while loading, failed or empty.
+            if scenePhase == .active, let rows = model.visibleSnapshot(reader: reader)?.rows, !rows.isEmpty {
                 Button("social.guideTemplates.browse") {
                     guard scenePhase == .active else { return }
                     openSquare(catalogPermit)

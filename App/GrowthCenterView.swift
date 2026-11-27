@@ -65,7 +65,12 @@ extension RootTabSwitch {
             if !reader.isAuthenticated { GrowthCenterIssueView(issue: .login) }
             else if !reader.isConfigured { GrowthCenterIssueView(issue: .notConfigured) }
             else if model.isLoading || model.loadedKey != key {
-                CYSkeleton().padding(.vertical, CYSpacing.sm).accessibilityIdentifier("growth.loading")
+                // P10 (MP aria 正在加载积分/足迹/徽章): the skeleton says what is loading.
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    CYSkeleton()
+                    Text("growth.loading").cyText(.meta).foregroundStyle(palette.textSecondary)
+                }
+                .padding(.vertical, CYSpacing.sm).accessibilityElement(children: .combine).accessibilityIdentifier("growth.loading")
             }
             else if let issue = model.issue(key: key) { GrowthCenterIssueView(issue: issue, retry: reload) }
             else if let overview = model.value(key: key) {
@@ -247,7 +252,7 @@ extension RootTabSwitch {
             if let issue = overview.center.issue { GrowthCenterIssueView(issue: issue, retry: reload, failedTitle: "mp.growth.badgesFailed") }
             else if let center = overview.center.value {
                 if center.badges.isEmpty {
-                    CYEmptyState(systemImage: "star", "growth.badges.empty", messageIdentifier: "growth.badges.empty")
+                    CYEmptyState(systemImage: "star", "mp.growth.badges.empty", messageIdentifier: "growth.badges.empty")  // MP wxml: 还没有点亮任何徽章
                     if let onExploreHome {
                         let selection = GrowthBadgeExploreSelection(readerID: ObjectIdentifier(reader), key: key,
                             center: center, presentationID: badgePresentationID)
@@ -342,22 +347,37 @@ struct GrowthBadgeMomentRow: View {
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
     let badge: GrowthCenterBadge
+    private var iconURL: String? {
+        guard let raw = GrowthCenterFormatting.nonempty(badge.iconURL), let url = URL(string: raw),
+              url.scheme?.lowercased() == "https" else { return nil }
+        return raw
+    }
+    private var initialText: some View {
+        Text(verbatim: badge.displayName.map { String($0.prefix(1)) } ?? "—")
+            .cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
     var body: some View {
         HStack(spacing: CYSpacing.md) {
-            Text(verbatim: badge.displayName.map { String($0.prefix(1)) } ?? "—")
-                .cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(minWidth: 40, minHeight: 40)
-                .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
-                .accessibilityHidden(true)
+            // MP gc-badge-disc: the badge's iconUrl, else its initial.
+            // Through the bounded `objectCardMedia` loader (badge-wall art); the initial until bytes arrive.
+            Group {
+                if let icon = iconURL {
+                    BoundedMediaThumbnail(url: icon) { initialText }
+                        .frame(width: 40, height: 40)
+                } else { initialText }
+            }
+            .frame(minWidth: 40, minHeight: 40)
+            .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+            .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 GrowthCenterName(name: badge.displayName, fallback: "growth.badge.unnamed")
                     .cyText(.cardTitle).foregroundStyle(palette.textPrimary)
-                Group {
-                    if let moment = GrowthCenterFormatting.badgeMoment(badge.obtainedAt) { Text("u10.growth.badge.obtained \(LocaleDisplay.civil(moment, locale: locale))") }
-                    else { Text("u10.growth.badge.noTime") }
+                // MP unlockDate: no unlock_time → no date line (no stand-in text).
+                if let moment = GrowthCenterFormatting.badgeMoment(badge.obtainedAt) {
+                    Text("u10.growth.badge.obtained \(LocaleDisplay.civil(moment, locale: locale))")
+                        .cyText(.meta).foregroundStyle(palette.textSecondary)
                 }
-                .cyText(.meta).foregroundStyle(palette.textSecondary)
             }
             Spacer(minLength: 0)
         }

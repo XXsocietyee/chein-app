@@ -32,7 +32,14 @@ import SwiftUI
             .listRowBackground(Color.clear).listRowSeparator(.hidden)
             if !reader.isAuthenticated { GrowthCenterIssueView(issue: .login) }
             else if !reader.isConfigured { GrowthCenterIssueView(issue: .notConfigured) }
-            else if model.isLoading || model.loadedKey != key { CYSkeleton().accessibilityLabel(Text("growth.loading")) }
+            else if model.isLoading || model.loadedKey != key {
+                // P10: MP cy-skeleton list ×3, with words saying what loads.
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    CYSkeleton()
+                    Text("growth.board.loading").cyText(.meta).foregroundStyle(palette.textSecondary)
+                }
+                .accessibilityElement(children: .combine)
+            }
             else if let issue = model.issue(key: key) {
                 if issue == .notConfigured { GrowthNormalLeaderboardHoldView() }
                 // MP leaderboard wxml cy-error: 当前内容无法查看 (denied) / 排行榜加载失败, 重新加载.

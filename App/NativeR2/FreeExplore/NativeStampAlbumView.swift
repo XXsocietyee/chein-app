@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Native r2 stamp album (集邮册, spec §11): a `LazyVGrid` of circular stamp images with captions, a segmented
-/// `Picker` filter (全部 / 邮票 / 照片, local only over `kind`), the stamp count, and an exchange row that opens the
+/// Native r2 stamp album (集邮册, spec §11): a `LazyVGrid` of circular stamp images with captions (MP has no kind
+/// filter, so none is drawn; `Filter` is kept for the old screen's tests), the stamp count, and an exchange row that opens the
 /// received-stamp list. Reads, paging, scopes and capture rules are `RoamStampAlbumView`'s: the same
 /// `RoamAlbumReadPresentation` pager (50 per page), the same read-only scope and remote-image policy.
 @MainActor struct NativeStampAlbumView: View {
@@ -41,7 +41,8 @@ import SwiftUI
     private var reader: any RoamExperienceReading { album.reader }
     private var pager: RoamAlbumPager { presentation.pager }
     private var offline: Bool { reader.isOfflineExample }
-    private var stamps: [RoamAlbumStamp] { pager.stamps.filter(filter.includes) }
+    /// mp-subpkg r3 (MP stamp-album wxml): the album is one stamp grid with no kind filter, so every stamp shows.
+    private var stamps: [RoamAlbumStamp] { pager.stamps }
 
     var body: some View {
         let read = presentation.readAction(), refresh = presentation.refreshAction()
@@ -98,11 +99,6 @@ import SwiftUI
             }
             .accessibilityIdentifier("roam.experience.album.total")
         }
-        Picker("nativeR2.freeExplore.album.filter", selection: $filter) {
-            ForEach(Filter.allCases, id: \.self) { item in Text(item.titleKey).tag(item) }
-        }
-        .cyAdaptiveSegmented()
-        .accessibilityIdentifier("nativeR2.freeExplore.album.filter")
         exchangeRow
     }
 
@@ -172,15 +168,13 @@ import SwiftUI
                 }
             }
             .accessibilityIdentifier("roam.experience.album.empty")
-        } else if pager.loaded && stamps.isEmpty && !pager.stamps.isEmpty {
-            ContentUnavailableView("nativeR2.freeExplore.album.filterEmpty", systemImage: "line.3.horizontal.decrease.circle")
         }
         grid
         if let error = pager.error, StampAlbumErrorPresentation.resolve(error: error, hasStamps: !pager.stamps.isEmpty) == .retryContinuation {
             StampAlbumContinuationRetry(retry: read).frame(maxWidth: .infinity)
         }
         if presentation.loading {
-            ProgressView(LocalizedStringKey(pager.stamps.isEmpty ? "roam.loading" : "stampAlbum.loadingNext")).frame(maxWidth: .infinity)
+            ProgressView(LocalizedStringKey(pager.stamps.isEmpty ? "stampAlbum.loading" : "stampAlbum.loadingNext")).frame(maxWidth: .infinity)
         }
         if pager.hasMore && !presentation.loading && pager.loaded {
             Button("roam.experience.loadMore", action: read)

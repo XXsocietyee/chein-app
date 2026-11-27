@@ -165,7 +165,7 @@ enum WalletPayoutCapability {
             if visibility.income {
                 Section {
                     if earnings.loading {
-                        ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("wallet.earnings.loading")
+                        ProgressView("wallet.earnings.loadingWords").frame(maxWidth: .infinity).accessibilityIdentifier("wallet.earnings.loading")
                     } else if let value = earnings.value, reader.isConfigured,
                               earnings.loadedScope == reader.scope, reader.scope != nil {
                         // PC-D-5-3: MP label 账户收益 (the currency symbol is drawn beside the number).
@@ -174,7 +174,6 @@ enum WalletPayoutCapability {
                                            symbol: WalletCurrencySymbol.symbol(value.currency))
                             .privacySensitive()
                             .accessibilityIdentifier("wallet.earnings.balance")
-                        if value.balance.value == 0 { WalletEarningsEmptyNote() }
                     } else {
                         WalletIssueView(reader: reader, requiresLogin: earnings.requiresLogin,
                             unavailable: earnings.unavailable, failedKey: "wallet.earnings.loadFailed",
@@ -183,6 +182,8 @@ enum WalletPayoutCapability {
                 }.accessibilityIdentifier("wallet.earnings.overview")
             }
             quickActions
+            // MP scene-asset-earnings: the 还没有收益 empty (去发布路线) sits under the action row, not inside the hero.
+            if showsZeroBalanceOnly { Section { WalletEarningsEmptyNote() } }
             if !showsZeroBalanceOnly {
                 if visibility.income { monthIncomeSection }
                 if visibility.assets { assetsSection }
@@ -287,7 +288,12 @@ enum WalletPayoutCapability {
                     }.accessibilityIdentifier("wallet.month.rows")
                 }
             } else if monthModel.pager.isLoading {
-                ProgressView().frame(maxWidth: .infinity)
+                ProgressView("wallet.monthIncome.loading").frame(maxWidth: .infinity)  // P10
+            } else if monthModel.pager.failed {
+                // MP earnings-overview eo-none: 没加载出来，点这里重试 (retryMonth).
+                Button("wallet.monthIncome.retry") { monthModel.reset(); Task { await loadMonth() } }
+                    .frame(maxWidth: .infinity, minHeight: 44)
+                    .accessibilityIdentifier("wallet.monthIncome.retry")
             } else {
                 Text(verbatim: WalletIncomeDetailPageModel.unknownMoney).foregroundStyle(.secondary).frame(maxWidth: .infinity)
             }

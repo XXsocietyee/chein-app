@@ -62,6 +62,14 @@ import Accessibility
         .accessibilityIdentifier("wallet.analysis")
         .cyDomainScreen(.player)
     }
+    /// `yyyy-MM` → the locale's short month (zh 「11月」, en 「Nov」), as the MP month label.
+    private func monthLabel(_ id: String) -> String {
+        let parts = id.split(separator: "-")
+        guard parts.count == 2, let year = Int(parts[0]), let month = Int(parts[1]) else { return id }
+        var components = DateComponents(); components.year = year; components.month = month; components.day = 15
+        guard let date = Calendar(identifier: .gregorian).date(from: components) else { return id }
+        return date.formatted(Date.FormatStyle(locale: locale).month(.abbreviated))
+    }
     @ViewBuilder private func content(_ slice: WalletIncomeAnalysisSlice) -> some View {
         let currencies = WalletIncomeAnalysisPresentation.currencies(slice.rows)
         let currency = selectedCurrency.flatMap { currencies.contains($0) ? $0 : nil } ?? currencies.first
@@ -104,7 +112,12 @@ import Accessibility
             Section {
                 if let current = summary.months.last {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(verbatim: current.id).font(.footnote).foregroundStyle(.secondary)
+                        // MP an-card__k: 「{月}收入」 / 「{月}提现」 (was the raw yyyy-MM id).
+                        Group {
+                            if mode == .income { Text("mp.analysis.monthIncome \(monthLabel(current.id))") }
+                            else { Text("mp.analysis.monthWithdraw \(monthLabel(current.id))") }
+                        }
+                        .font(.footnote).foregroundStyle(.secondary)
                         if summary.unknownCount > 0, current.count == 0 {
                             monthAmount(current, summary: summary, currency: currency)
                                 .font(.largeTitle.bold()).monospacedDigit()
