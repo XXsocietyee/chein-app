@@ -29,7 +29,8 @@ public struct CYSkeletonBlock: View {
 
 // MARK: 2. Loading state
 
-/// Native r2: the system `ProgressView`. `rows` is kept for call sites. One VoiceOver label.
+/// Native r2: the system `ProgressView` with the MP `cy-empty kind="loading"` / `cy-loading-mask` words visible
+/// (加载中… / Loading…), the one loading pattern on player screens. `rows` is kept for call sites.
 public struct CYLoadingStateView: View {
     private let rows: Int
 
@@ -38,11 +39,11 @@ public struct CYLoadingStateView: View {
     }
 
     public var body: some View {
-        ProgressView()
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, CYSpacing.xxl)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text("cy.state.loading"))
+        ProgressView {
+            Text("cy.state.loading")
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, CYSpacing.xxl)
     }
 }
 

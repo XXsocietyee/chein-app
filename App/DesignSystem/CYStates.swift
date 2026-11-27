@@ -94,11 +94,11 @@ private extension View {
     }
 }
 
-/// Loading sibling of `CYEmptyState` / `CYErrorState`. Skeleton only, no spinner, no invented rows.
+/// Loading sibling of `CYEmptyState` / `CYErrorState`: the one loading pattern, a system `ProgressView` with the
+/// MP loading words as its visible label (加载中… / Loading…). No invented rows.
 struct CYLoadingState: View {
     private let message: LocalizedStringKey
     private let messageIdentifier: String?
-    @Environment(\.cyPalette) private var palette
 
     init(_ message: LocalizedStringKey = "accountCollection.loading", messageIdentifier: String? = nil) {
         self.message = message
@@ -106,17 +106,12 @@ struct CYLoadingState: View {
     }
 
     var body: some View {
-        VStack(spacing: CYSpacing.lg) {
-            CYSkeleton()
+        ProgressView {
             Text(message)
-                .cyText(.meta)
-                .foregroundStyle(palette.textSecondary)
-                .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, CYSpacing.xxl)
         .padding(.horizontal, CYSpacing.lg)
-        .accessibilityElement(children: .combine)
         .cyIdentifier(messageIdentifier)
     }
 }

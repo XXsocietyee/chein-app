@@ -13,6 +13,9 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
     /// CLB-detail-28 (parity r2): the club page's own states. Sign-in reads 登录后查看俱乐部, and a business rejection
     /// (a dissolved or closed club) shows the server sentence with 返回 instead of a pointless 重试. Default off.
     let usesClubPageStates: Bool
+    /// mp-states r3 (MP talent/list wxml:65 cy-error): the club tab's list titles — 登录后查看我的俱乐部 /
+    /// 当前身份不能查看俱乐部 / 俱乐部列表加载失败. Default off.
+    let usesClubTabStates: Bool
     @Environment(\.dismiss) private var dismiss
     private struct LoadIdentity: Equatable {
         let identity: ClubReadIdentity
@@ -31,11 +34,12 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
     @State private var generation: UInt64 = 0
 
     init(reader: Reader, accessibilityPrefix: String, requiresSignIn: Bool = false, refreshRevision: UInt64 = 0,
-         showsToolbarRefresh: Bool = false, usesClubPageStates: Bool = false, onSignIn: (() -> Void)? = nil, load: @escaping () async throws -> Value,
+         showsToolbarRefresh: Bool = false, usesClubPageStates: Bool = false, usesClubTabStates: Bool = false, onSignIn: (() -> Void)? = nil, load: @escaping () async throws -> Value,
          @ViewBuilder content: @escaping (Value) -> Content) {
         self.reader = reader; self.accessibilityPrefix = accessibilityPrefix
         self.refreshRevision = refreshRevision; self.showsToolbarRefresh = showsToolbarRefresh
         self.usesClubPageStates = usesClubPageStates
+        self.usesClubTabStates = usesClubTabStates
         self.requiresSignIn = requiresSignIn; self.onSignIn = onSignIn
         self.load = load; self.content = content
     }
@@ -128,13 +132,14 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
             else { Task { await reload() } }
         }
         let signInPage = usesClubPageStates && issue.needsSignIn
+        let titleKey = usesClubTabStates ? clubTabTitleKey(issue) : (signInPage ? "club.detail.signIn" : issue.titleKey)
         ContentUnavailableView {
             Label {
-                Text(LocalizedStringKey(signInPage ? "club.detail.signIn" : issue.titleKey))
+                Text(LocalizedStringKey(titleKey))
                     .accessibilityIdentifier(accessibilityPrefix + ".error")
             } icon: { Image(systemName: symbol) }
         } description: {
-            if !signInPage {
+            if !signInPage && !(usesClubTabStates && issue.needsSignIn) {
                 if let message = issue.message { Text(verbatim: message) }
                 else { Text(LocalizedStringKey(issue.hintKey)) }
             }
@@ -145,6 +150,11 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
                     .accessibilityIdentifier(actionID)
             }
         }
+    }
+    private func clubTabTitleKey(_ issue: ClubLoadIssue) -> String {
+        if issue.needsSignIn { return "club.tab.state.signIn" }
+        if issue.titleKey == "club.accessDenied" { return "club.tab.state.forbidden" }
+        return "club.tab.state.loadFailed"
     }
     private func reload() async {
         // A cancelled refresh must not retire a newer read or clear its accepted state.

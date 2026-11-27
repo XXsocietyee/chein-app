@@ -80,7 +80,7 @@ struct SocialReadPresentationKey: Hashable {
             }
             if requiresSignIn && reader.identity.accountID == nil { SocialIssueView(error: APIError.unauthorized) }
             else if !reader.isConfigured { SocialIssueView(error: APIError.notConfigured) }
-            else if loadedKey != key || busy { ProgressView().padding().frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top).accessibilityElement(children: .ignore).accessibilityLabel(Text("social.loading")) }
+            else if loadedKey != key || busy { ProgressView { Text("social.loading") }.padding().frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top) }
             else if let error { SocialIssueView(error: error) { loadedKey = nil; loads.start { await reload() } } }
             else if let value { content(value) }
         }
