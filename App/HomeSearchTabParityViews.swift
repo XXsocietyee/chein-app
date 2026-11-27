@@ -254,7 +254,7 @@ private struct HomeHeroAvatar: View {
         }
         .frame(width: 56, height: 56)
         .clipShape(Circle())
-        .overlay { Circle().strokeBorder(Color(.systemBackground), lineWidth: 2) }
+        .overlay { Circle().strokeBorder(.background, lineWidth: 2) }
         .accessibilityHidden(true)
     }
     /// MP asset (pages/index/index.wxml:38): a missing avatar is `/images/d_profile.png`.
