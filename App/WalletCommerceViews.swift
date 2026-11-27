@@ -410,7 +410,7 @@ enum WalletPayoutCapability {
     var body: some View {
         List {
             Section("wallet.fundStages") {
-                if funds.loading { ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("wallet.assets.loading") }
+                if funds.loading { ProgressView { Text("wallet.loading") }.frame(maxWidth: .infinity).accessibilityIdentifier("wallet.assets.loading") }
                 else if let value = funds.value, funds.loadedScope == reader.scope {
                     if !value.amountsKnown {
                         Text("wallet.amountsUnknown").accessibilityIdentifier("wallet.assets.unknown")
@@ -587,8 +587,7 @@ extension EnvironmentValues {
                                 deniedKey: income ? "wallet.income.denied" : nil) { Task { await model.load(reader, kind: kind) } }
             }
             if model.pager.isLoading {
-                if income { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("wallet.loading")) }
-                else { ProgressView().frame(maxWidth: .infinity) }
+                ProgressView { Text("wallet.loading") }.frame(maxWidth: .infinity)
             }
             else if hasLocalMore && model.pager.hasLoadedPage && reader.isConfigured && reader.scope != nil {
                 Button("wallet.loadMore") { shownCount += Self.pointsPageSize }
@@ -941,7 +940,7 @@ enum WalletIncomeSegment: Hashable {
             Picker("wallet.sort", selection: $sort) {
                 ForEach(0..<5) { value in Text(LocalizedStringKey("wallet.sort." + String(value))).tag(value) }
             }.onChange(of: sort) { _, _ in scheduleLoad() }
-            if model.loading { ProgressView().frame(maxWidth: .infinity) }
+            if model.loading { ProgressView { Text("wallet.loading") }.frame(maxWidth: .infinity) }
             else if let page = model.value, model.loadedScope == reader.scope {
                 if page.rows.isEmpty { ContentUnavailableView("wallet.empty", systemImage: "gift") }
                 ForEach(page.rows) { item in
@@ -1015,7 +1014,7 @@ enum WalletIncomeSegment: Hashable {
     @StateObject private var model = WalletScreen<WalletProduct>()
     var body: some View {
         List {
-            if model.loading { ProgressView().frame(maxWidth: .infinity) }
+            if model.loading { ProgressView { Text("wallet.loading") }.frame(maxWidth: .infinity) }
             else if let item = model.value, model.loadedScope == reader.scope {
                 Text(verbatim: item.productName ?? appLocalized("wallet.product", locale: locale)).font(.title3.bold())
                 LabeledContent("wallet.price", value: format.points(item.price))
@@ -1046,7 +1045,7 @@ enum WalletIncomeSegment: Hashable {
     @State private var selected = Set<Int>()
     var body: some View {
         List {
-            if model.loading { ProgressView().frame(maxWidth: .infinity) }
+            if model.loading { ProgressView { Text("wallet.loading") }.frame(maxWidth: .infinity) }
             else if let page = model.value, model.loadedScope == reader.scope {
                 if page.rows.isEmpty { ContentUnavailableView("wallet.empty", systemImage: "cart") }
                 ForEach(page.rows) { item in
@@ -1081,7 +1080,7 @@ enum WalletIncomeSegment: Hashable {
     @StateObject private var model = WalletScreen<WalletCheckoutPreview>()
     var body: some View {
         List {
-            if model.loading { ProgressView().frame(maxWidth: .infinity) }
+            if model.loading { ProgressView { Text("wallet.loading") }.frame(maxWidth: .infinity) }
             else if let preview = model.value, model.loadedScope == reader.scope {
                 LabeledContent("wallet.productAmount", value: format.points(preview.productAmount))
                 LabeledContent("wallet.deliveryFee", value: format.points(preview.deliveryFee))
@@ -1113,7 +1112,7 @@ enum WalletIncomeSegment: Hashable {
     var body: some View {
         List {
             Label("bank.withdrawal.historyNotice", systemImage: "info.circle")
-            if model.loading { ProgressView().frame(maxWidth: .infinity) }
+            if model.loading { ProgressView { Text("wallet.loading") }.frame(maxWidth: .infinity) }
             else if let page = model.value, model.loadedScope == reader.scope {
                 if page.rows.isEmpty { ContentUnavailableView("wallet.withdrawals.emptyTitle", systemImage: "tray").accessibilityIdentifier("wallet.withdrawals.empty") }
                 ForEach(page.rows) { item in
@@ -1334,7 +1333,7 @@ extension EnvironmentValues {
     var body: some View {
         Group {
             switch phase {
-            case .loading: ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+            case .loading: ProgressView { Text("wallet.loading") }.frame(maxWidth: .infinity, maxHeight: .infinity)
             case .allowed: WithdrawalSupportContactView()
             case .denied:
                 ContentUnavailableView("wallet.withdraw.noPermission", systemImage: "lock")
