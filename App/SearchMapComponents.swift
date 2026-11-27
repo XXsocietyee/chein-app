@@ -14,7 +14,12 @@ struct GlobalTemplateResultRow: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         // R7-PC-A4-2 (r8): MP search2/result draws template results as cover cards too; accessibility sizes keep the row.
-        if typeSize.isAccessibilitySize { rowLayout } else { coverLayout }
+        if typeSize.isAccessibilitySize || !hasArt { rowLayout } else { coverLayout }
+    }
+    /// mp-home r3 (21:20 sweep, P18): no cover and no MP template art → a text row, never an empty image frame.
+    private var hasCoverURL: Bool { QuestifyCardArtwork.safeURL(row.imageURL) != nil }
+    private var hasArt: Bool {
+        hasCoverURL || (row.kind != .topicTemplate && TemplateShelfArt.interactionIcon(row.title) != nil)
     }
     /// One plain header image above the row text (no card chrome).
     private var coverLayout: some View {
@@ -40,7 +45,9 @@ struct GlobalTemplateResultRow: View {
     }
     private var rowLayout: some View {
         HStack(alignment: .top, spacing: 12) {
-            DiscoveryTopicCoverThumb(urlString: row.imageURL, seed: row.title)
+            if hasCoverURL {
+                DiscoveryTopicCoverThumb(urlString: row.imageURL, seed: row.title)
+            }
             textColumn
             Spacer(minLength: 0)
         }
@@ -91,7 +98,9 @@ struct SearchMapCard: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.cyPalette) private var palette
     /// R7-PC-A4-2 (r1 PC-A-4-3): MP result page draws topics and activities as cover cards; clubs and merchants keep rows.
-    private var usesCoverCard: Bool { (row.kind == .topic || row.kind == .activity) && !typeSize.isAccessibilitySize }
+    /// mp-home r3 (21:20 sweep, P18): a result with no loadable cover is a text row — no empty image frame.
+    private var coverURL: URL? { offline ? nil : QuestifyCardArtwork.safeURL(row.imageURL) }
+    private var usesCoverCard: Bool { (row.kind == .topic || row.kind == .activity) && !typeSize.isAccessibilitySize && coverURL != nil }
     var body: some View {
         if usesCoverCard { coverCard } else { rowCard }
     }
@@ -106,7 +115,7 @@ struct SearchMapCard: View {
     /// mp-home r3 (19:50 sweep; MP search2/result wxml:31-32, 67-69): no cover = the kind icon on the subtle surface,
     /// never a grey block with a generic glyph.
     private var coverImage: some View {
-        AsyncImage(url: offline ? nil : QuestifyCardArtwork.safeURL(row.imageURL)) { phase in
+        AsyncImage(url: coverURL) { phase in
             if let image = phase.image { image.resizable().scaledToFill() }
             else {
                 palette.bgSurfaceSubtle
@@ -119,8 +128,8 @@ struct SearchMapCard: View {
     }
     private var rowCard: some View {
         HStack(alignment: .center, spacing: 12) {
-            if !typeSize.isAccessibilitySize {
-                DiscoveryTopicCoverThumb(urlString: offline ? nil : row.imageURL, seed: row.title)
+            if !typeSize.isAccessibilitySize, coverURL != nil {
+                DiscoveryTopicCoverThumb(urlString: row.imageURL, seed: row.title)
             }
             textColumn
         }
