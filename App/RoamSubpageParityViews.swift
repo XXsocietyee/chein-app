@@ -411,6 +411,13 @@ struct RoamPOIMissingView: View {
     /// MP `step === 'cam'`: the page opens on the camera; the write step follows the shot (or close).
     @State private var showsCamera = false
     @State private var cameraOffered = false
+    /// MP `onNoteDown/Move/Up`: the note can be dragged onto the mailbox; dropping it there sends, else it springs back.
+    @State private var noteDrag: CGSize = .zero
+    @State private var noteGrabbed = false
+    @State private var boxArmed = false
+    @State private var boxFrame: CGRect = .zero
+    @QuestifyReduceMotion private var reduceMotion
+    private static let writeSpace = "roamStampWrite"
     private let openedAt = Date()
     private var placeText: Text { place.map { Text(verbatim: $0) } ?? Text("roamSub.w208.stamp.defaultPlace") }
     private var canSend: Bool { exchange != nil && draft != nil && !working }
@@ -433,6 +440,39 @@ struct RoamPOIMissingView: View {
     }
     private var writeStep: some View {
         VStack(alignment: .leading, spacing: 14) {
+            noteCard
+            // MP citystamp send step: the mailbox photo (`subpackageRoam/citystamp/mailbox.png`) above 投进信箱.
+            // It lifts a little while the dragged note is over it (MP `boxArmed`).
+            MPAsset.Other.mailbox.resizable().scaledToFit().frame(maxWidth: 200)
+                .scaleEffect(boxArmed ? 1.035 : 1)
+                .background(GeometryReader { proxy in
+                    Color.clear
+                        .onAppear { boxFrame = proxy.frame(in: .named(Self.writeSpace)) }
+                        .onChange(of: proxy.frame(in: .named(Self.writeSpace))) { _, frame in boxFrame = frame }
+                })
+                .frame(maxWidth: .infinity).accessibilityHidden(true)
+            // MP `sghint`: 把它拖进信箱，或点下面 / 松手，投进去.
+            Text(LocalizedStringKey(boxArmed ? "roamSub.w208.stamp.releaseHint" : "roamSub.w208.stamp.dragHint"))
+                .cyText(.meta).foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity)
+                .accessibilityIdentifier("roamSub.w208.stamp.hint")
+            Button {
+                Task { await send() }
+            } label: { Text(LocalizedStringKey(working ? "roamSub.w208.stamp.sending" : "roamSub.w208.stamp.send")).frame(maxWidth: .infinity, minHeight: 44) }
+                .buttonStyle(.questifyPrimary).disabled(!canSend && fixtureReceipt == nil)
+                .accessibilityIdentifier("roamSub.w208.stamp.send")
+            if failed { Text("roamSub.w208.stamp.retry").cyText(.bodyCompact).foregroundStyle(.red).accessibilityIdentifier("roamSub.w208.stamp.failed") }
+            if exchange == nil && fixtureReceipt == nil && !RoamExperienceCapabilities.stampExchange {
+                Text("roamSub.w208.stamp.dormant").cyText(.meta).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("roamSub.w208.stamp.dormant")
+            }
+        }
+        .coordinateSpace(name: Self.writeSpace)
+    }
+    /// MP `sgnote`: header + text field on one paper that follows the finger (tilt ±6°, scale .88 while held).
+    /// The 投进信箱 button below stays the accessible way to send.
+    private var noteCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
             // MP `sgnote__h`: title + counter on the left, the square photo on the right (tap = 拍一张 / 重拍).
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
@@ -450,20 +490,45 @@ struct RoamPOIMissingView: View {
                 .lineLimit(2...4).textFieldStyle(.roundedBorder)
                 .onChange(of: note) { _, value in if value.count > RoamStampSlip.captionLimit { note = String(value.prefix(RoamStampSlip.captionLimit)) } }
                 .accessibilityIdentifier("roamSub.w208.stamp.note")
-            // MP citystamp send step: the mailbox photo (`subpackageRoam/citystamp/mailbox.png`) above 投进信箱.
-            MPAsset.Other.mailbox.resizable().scaledToFit().frame(maxWidth: 200)
-                .frame(maxWidth: .infinity).accessibilityHidden(true)
-            Button {
-                Task { await send() }
-            } label: { Text(LocalizedStringKey(working ? "roamSub.w208.stamp.sending" : "roamSub.w208.stamp.send")).frame(maxWidth: .infinity, minHeight: 44) }
-                .buttonStyle(.questifyPrimary).disabled(!canSend && fixtureReceipt == nil)
-                .accessibilityIdentifier("roamSub.w208.stamp.send")
-            if failed { Text("roamSub.w208.stamp.retry").cyText(.bodyCompact).foregroundStyle(.red).accessibilityIdentifier("roamSub.w208.stamp.failed") }
-            if exchange == nil && fixtureReceipt == nil && !RoamExperienceCapabilities.stampExchange {
-                Text("roamSub.w208.stamp.dormant").cyText(.meta).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("roamSub.w208.stamp.dormant")
-            }
         }
+        .padding(12)
+        .background(.background.secondary, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .scaleEffect(noteGrabbed ? 0.88 : 1)
+        .rotationEffect(.degrees(noteTilt))
+        .offset(noteDrag)
+        .zIndex(1)
+        .gesture(noteDragGesture)
+        .accessibilityIdentifier("roamSub.w208.stamp.noteCard")
+    }
+    private var noteTilt: Double {
+        Double(max(-6, min(6, noteDrag.width / 18)))
+    }
+    private var noteDragGesture: some Gesture {
+        DragGesture(minimumDistance: 12, coordinateSpace: .named(Self.writeSpace))
+            .onChanged { value in
+                guard receipt == nil, !working else { return }
+                noteGrabbed = true
+                noteDrag = value.translation
+                boxArmed = overBox(value.location)
+            }
+            .onEnded { value in
+                let over = overBox(value.location)
+                noteGrabbed = false
+                boxArmed = false
+                withAnimation(reduceMotion ? nil : .spring(response: 0.34, dampingFraction: 0.6)) {
+                    noteDrag = .zero
+                }
+                if over && (canSend || fixtureReceipt != nil) {
+                    Task { await send() }
+                }
+            }
+    }
+    /// MP `_overBox`: judged by the finger, not the paper centre; 34 pt wider on each side, 24 pt above the box.
+    private func overBox(_ point: CGPoint) -> Bool {
+        guard boxFrame.width > 0 else { return false }
+        let target = CGRect(x: boxFrame.minX - 34, y: boxFrame.minY - 24,
+                            width: boxFrame.width + 68, height: boxFrame.height + 24)
+        return target.contains(point)
     }
     @ViewBuilder private var cameraView: some View {
         if let cameraDestination { cameraDestination() } else { RoamStampCameraView() }
