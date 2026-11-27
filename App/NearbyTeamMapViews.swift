@@ -303,7 +303,7 @@ struct NearbyRecruitingSection: View {
                     Text("nearby.w208.recruit.onMap").cyText(.meta, weight: .semibold).foregroundStyle(CYColor.textPrimary)
                 }
             }.frame(maxWidth: .infinity, alignment: .leading).padding()
-                .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)).contentShape(Rectangle())
+                .background(.background.secondary, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)).contentShape(Rectangle())
         }.buttonStyle(.plain).accessibilityIdentifier("nearby.w208.recruit.\(team.id.rawValue)")
     }
 }

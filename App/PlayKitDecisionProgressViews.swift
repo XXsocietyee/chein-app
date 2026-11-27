@@ -148,7 +148,7 @@ extension PlayKitScreen {
             Text(verbatim: value).cyText(.numericBody).monospacedDigit()
         }
         .frame(maxWidth: .infinity, alignment: .leading).padding(CYSpacing.md)
-        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYNight.ink2))
+        .background(.background.secondary, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .accessibilityElement(children: .combine)
     }
     @ViewBuilder var bingoBoard: some View {
@@ -197,7 +197,7 @@ extension PlayKitScreen {
     }
     private var divider: some View {
         Rectangle().fill(.clear).frame(height: 1)
-            .overlay(Line().stroke(style: StrokeStyle(lineWidth: 1, dash: [4, 3])).foregroundStyle(CYNight.glassEdgeTop))
+            .overlay(Line().stroke(style: StrokeStyle(lineWidth: 1, dash: [4, 3])).foregroundStyle(Color(uiColor: .separator)))
     }
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
@@ -247,7 +247,7 @@ extension PlayKitScreen {
             }
         }
         .padding(CYSpacing.lg)
-        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYNight.ink2))
+        .background(.background.secondary, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .accessibilityIdentifier("playkit.dailySign.ticket")
     }
     private struct Line: Shape {

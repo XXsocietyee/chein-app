@@ -221,11 +221,11 @@ import SwiftUI
                 Spacer()
                 if model.skipPending { Text("playHelp.keepChecking").cyText(.label).foregroundStyle(CYColor.textPrimary) }
             }
-            .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
-            .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.bgRaised))
-            .contentShape(Rectangle())
+            .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.plain)
+        // native-r3-b: system bordered button (was a plain button on a hand-drawn raised rectangle).
+        .buttonStyle(.bordered)
+        .controlSize(.large)
         .disabled(model.busy)
         .accessibilityIdentifier("playHelp.skip")
     }

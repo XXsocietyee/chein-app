@@ -263,7 +263,7 @@ struct RoamPlaceExtrasSection: View {
                             }
                             .frame(width: quoteCardWidth, alignment: .leading)
                             .padding(CYSpacing.md)
-                            .background(CYNight.ink2, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                            .background(.background.secondary, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel(Text(verbatim: c.t("复制原文链接：", "Copy source link: ") + quote.sourceLabel))
@@ -306,7 +306,7 @@ struct RoamPlaceExtrasSection: View {
                             }
                             .frame(width: reviewCardWidth, alignment: .leading)
                             .padding(CYSpacing.md)
-                            .background(CYNight.ink2, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                            .background(.background.secondary, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                             .accessibilityElement(children: .combine)
                         }
                     }

@@ -101,9 +101,7 @@ import SwiftUI
         }
         Section {
             if flow.entries.isEmpty {
-                Label("d7.chain.entries.empty", systemImage: "tray")
-                    .foregroundStyle(.secondary)
-                    .accessibilityElement(children: .combine)
+                ContentUnavailableView("d7.chain.entries.empty", systemImage: "tray")
             }
             ForEach(flow.entries) { entry in chainEntry(entry) }
             if page.hasMore {

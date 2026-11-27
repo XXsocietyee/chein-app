@@ -334,7 +334,7 @@ enum MPParityRoute: Hashable, Identifiable {
     private var unavailable: some View {
         CYEmptyState(systemImage: "tray", "mp.route.unavailable", messageIdentifier: "mp.route.unavailable")
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(CYNight.ink0.ignoresSafeArea())
+            .background(Color(uiColor: .systemBackground).ignoresSafeArea())
     }
 }
 
@@ -425,7 +425,7 @@ struct MPRow: View {
 
 /// Hairline between rows inside an `MPCard`.
 struct MPDivider: View {
-    var body: some View { Rectangle().fill(CYColor.borderSubtle).frame(height: 0.5).padding(.leading, CYSpacing.lg).accessibilityHidden(true) }
+    var body: some View { Divider().padding(.leading, CYSpacing.lg).accessibilityHidden(true) } // native-r3-b: system hairline
 }
 
 /// Rows separated by hairlines.
@@ -555,7 +555,7 @@ struct MPAvatar: View {
     var size: CGFloat = 40
     var body: some View {
         ZStack {
-            Circle().fill(CYNight.ink2)
+            Circle().fill(Color(uiColor: .secondarySystemFill))
             if let url {
                 AsyncImage(url: url) { image in image.resizable().scaledToFill() } placeholder: { Text(verbatim: initial).cyText(.label) }
                     .clipShape(Circle())

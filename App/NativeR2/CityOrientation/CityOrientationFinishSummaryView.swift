@@ -266,7 +266,7 @@ import MapKit
             }
             Section("playx.leaderboard") {
                 if board.entries.isEmpty {
-                    Text("nativeR2.city.finish.boardEmpty").foregroundStyle(.secondary)
+                    ContentUnavailableView("nativeR2.city.finish.boardEmpty", systemImage: "list.number")
                 }
                 ForEach(board.entries) { row in
                     rankRow(rank: row.rank, name: row.name, score: row.score, mine: row.id == board.me.id)

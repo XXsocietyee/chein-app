@@ -133,9 +133,7 @@ import SwiftUI
         }
         Section {
             if status.history.isEmpty {
-                Label("d7.checkin.history.empty", systemImage: "calendar")
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                ContentUnavailableView("d7.checkin.history.empty", systemImage: "calendar")
             }
             ForEach(status.history) { day in historyRow(day) }
         } header: { Text("d7.checkin.history") }
@@ -217,9 +215,7 @@ import SwiftUI
                         Section {
                             ForEach(page.list) { row($0) }
                             if page.list.isEmpty {
-                                Label("d7.checkin.history.empty", systemImage: "person.2")
-                                    .foregroundStyle(.secondary)
-                                    .fixedSize(horizontal: false, vertical: true)
+                                ContentUnavailableView("d7.checkin.history.empty", systemImage: "person.2")
                             }
                             if page.hasMore {
                                 Button("d7.checkinRank.showTop50") { Task { await load(50) } }
