@@ -22,7 +22,7 @@ import SwiftUI
                         Section {
                             Text(verbatim: presentation.record.title).cyText(.sheetTitle)
                             LabeledContent {
-                                Text(verbatim: presentation.record.occurredAt)
+                                Text(verbatim: LocaleDisplay.civil(presentation.record.occurredAt, locale: locale))
                             } label: { Text(verbatim: localized("occurredAt")) }
                             Text(verbatim: localized("shanghai")).cyText(.meta).foregroundStyle(.secondary)
                         }
