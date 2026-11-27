@@ -574,10 +574,10 @@ public enum PlayNightWarning {
 
 /// mp-journey r3: MP `pages/play/index` `.play-timebar` (路线恢复横幅, `_routeNoticeForState`) by route status.
 /// The route notice wins over the 非阻断 time line (`timeNote` while `playable == false`).
-public enum PlayRouteNotice: String, Equatable {
+public enum PlayRunRouteNotice: String, Equatable {
     case withdrawn, ended, fallback
 
-    public static func of(_ route: PlayRouteState?) -> PlayRouteNotice? {
+    public static func of(_ route: PlayRouteState?) -> PlayRunRouteNotice? {
         switch route?.status ?? "" {
         case "UNAVAILABLE", "WITHDRAWN", "CONFIG_WITHDRAWN": return .withdrawn
         case "ENDED", "CANCELLED", "EXPIRED": return .ended

@@ -49,10 +49,10 @@ final class PlayJournalTests: XCTestCase {
             try JSONDecoder().decode(PlayNodesResult.self, from: Data(text.utf8))
         }
         let ended = try result(#"{"playable":true,"nodes":[{"nodeId":7}],"routeState":{"routeMode":"LINEAR","status":"EXPIRED"}}"#)
-        XCTAssertEqual(PlayRouteNotice.of(ended.routeState), .ended)
-        XCTAssertNil(PlayRouteNotice.of(try result(#"{"nodes":[{"nodeId":7}],"routeState":{"routeMode":"LINEAR","status":"ACTIVE"}}"#).routeState))
-        XCTAssertEqual(PlayRouteNotice.timeLine(try result(#"{"playable":false,"timeNote":"活动已结束","nodes":[]}"#)), "活动已结束")
-        XCTAssertNil(PlayRouteNotice.timeLine(try result(#"{"playable":true,"timeNote":"活动已结束","nodes":[]}"#)))
+        XCTAssertEqual(PlayRunRouteNotice.of(ended.routeState), .ended)
+        XCTAssertNil(PlayRunRouteNotice.of(try result(#"{"nodes":[{"nodeId":7}],"routeState":{"routeMode":"LINEAR","status":"ACTIVE"}}"#).routeState))
+        XCTAssertEqual(PlayRunRouteNotice.timeLine(try result(#"{"playable":false,"timeNote":"活动已结束","nodes":[]}"#)), "活动已结束")
+        XCTAssertNil(PlayRunRouteNotice.timeLine(try result(#"{"playable":true,"timeNote":"活动已结束","nodes":[]}"#)))
     }
 
     private func snapshot(mode: Int, nodes: String) throws -> PlaySnapshot {

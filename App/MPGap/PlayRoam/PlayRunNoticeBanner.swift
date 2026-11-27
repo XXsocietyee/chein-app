@@ -7,9 +7,9 @@ struct PlayRunNoticeBanner: View {
     let snapshot: PlaySnapshot?
 
     var body: some View {
-        if let snapshot, let notice = PlayRouteNotice.of(snapshot.route) {
+        if let snapshot, let notice = PlayRunRouteNotice.of(snapshot.route) {
             line(Text(LocalizedStringKey(notice.key)))
-        } else if let snapshot, let time = PlayRouteNotice.timeLine(snapshot.result) {
+        } else if let snapshot, let time = PlayRunRouteNotice.timeLine(snapshot.result) {
             line(Text(verbatim: time))
         }
     }
