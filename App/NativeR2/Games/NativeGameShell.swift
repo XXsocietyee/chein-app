@@ -225,15 +225,13 @@ extension EnvironmentValues {
 
     private func submitButton(_ submit: NativeGameSubmit) -> some View {
         Button(action: submit.action) {
-            Group {
-                if submit.busy { ProgressView() } else { submit.title }
-            }
-            .frame(maxWidth: .infinity)
+            CYBusyLabel(busy: submit.busy) { submit.title }
+                .frame(maxWidth: .infinity)
         }
         .buttonStyle(.borderedProminent)
         .controlSize(.large)
         .disabled(!submit.enabled || submit.busy)
-        // G-006: the spinner replaces the title, so VoiceOver keeps the title and hears "sending" as the value.
+        // G-006: the spinner sits before the title (CYBusyLabel); VoiceOver keeps the title and hears "sending" as the value.
         .accessibilityLabel(submit.title)
         .accessibilityValue(submit.busy ? Text("playkit.sending") : Text(verbatim: ""))
         .accessibilityIdentifier(submit.identifier)
