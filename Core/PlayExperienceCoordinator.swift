@@ -779,6 +779,16 @@ public struct PlayCompletionReview: Equatable {
             publishLiveActivity() // components r1 C1: the final Live Activity card shows the player's score / rank
         } catch { fail(error, session: session, generation: request) }
     }
+    /// mp-journey r3: MP 同行者榜 sheet (`openBoard`, `/api/play/leaderboard`). A failure stays in the sheet (MP
+    /// `board.error`) and never fails the page.
+    public func readLeaderboard() async throws -> PlayCompanionLeaderboard {
+        guard let session = loadedSession, session == currentSession() else { throw PlayExperienceError.staleSession }
+        let request = generation
+        let board = try await service.leaderboard(scope: scope, token: session.token)
+        try check(session, request)
+        guard board.me.id == session.accountID else { throw PlayExperienceError.malformed }
+        return board
+    }
     public func loadLead(context: PlayInteractionContext? = nil) async {
         await readLead(context: context, polling: false)
     }

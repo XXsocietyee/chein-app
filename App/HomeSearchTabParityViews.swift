@@ -162,21 +162,20 @@ struct HomeHeroHeaderSectionView: View {
                 .accessibilityIdentifier("homeIndex.hero.greeting")
             (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2)) : AnyLayout(HStackLayout(spacing: 6))) {
                 if hasNickname {
-                    // MP asset (pages/index/index.wxml:46): the player badge is `index-figma/icon-member.png`.
-                    Label {
-                        Text(LocalizedStringKey(isMerchantViewer ? "account.role.merchant" : "homeFeed.player"))
-                    } icon: {
-                        if isMerchantViewer { Image(systemName: "storefront.fill") }
-                        // en sweep 11-27: the MP's tick badge (✓ 玩家) read as a checkbox next to "Player"; English shows a person badge.
-                        else if locale.language.languageCode?.identifier != "zh" { Image(systemName: "person.crop.circle.badge.checkmark").accessibilityHidden(true) }
-                        else { MPAsset.FeatureIcon.iconMember.resizable().scaledToFit().frame(width: 16, height: 16).accessibilityHidden(true) }
+                    // MP `v3-hero-mem` (index.wxml:44): a filled `--cy-color-rare` member badge + 玩家 (no tick, no checkbox).
+                    // Native: the design-system role label `CYStatusChip` (same as other identity/role rows), person glyph in indigo (= rare).
+                    if isMerchantViewer {
+                        CYStatusChip("account.role.merchant", tone: .info, systemImage: "storefront.fill")
+                            .accessibilityIdentifier("homeIndex.hero.role")
+                    } else {
+                        CYStatusChip("homeFeed.player", tone: .rare, systemImage: "person.fill")
+                            .accessibilityIdentifier("homeIndex.hero.role")
                     }
-                        .foregroundStyle(.tint)
                 }
                 // Round5 #8: guests (no nickname) still see and switch the city on this row.
                 if hasCity { cityControl }
             }
-            .font(.subheadline)
+            .font(.footnote)
         }
     }
 
