@@ -60,7 +60,7 @@ Scope: `pages/template/index`, the tabBar publish sheet, `pages/publish/*`, `pag
 - Changed: `discovery.topics` English value, "Routes" → "Topics".
 - Round 3 queue: `publisherPricing.freeTicket` (免费门票), `publisherPricing.ticketPrice` (门票价格), `topicPricing.pendingSettlement.title` (结算待处理); `ProjectNodeTemplateCreation`: `projectNodeCreate.saved` (节点玩法已保存), `projectNodeCreate.untitled` (新玩法), `projectNodeCreate.return` value → 返回路线编辑 / Back to route editing.
 - Continue pass 2: `contextSelfPlay.checkoutTitle`, `contextSelfPlay.onePerson`, `topic.sessionSelection.{dates,tickets,soldOut,ticketTitle}`, `topicReveal.{arrived,until,remaining}`, `topicReveal.days %@`.
-- Continue pass 3 (`Resources/CreatorEditorUI.xcstrings`): new `creatorEditor.prep`, `creatorEditor.prep.addAction`, `creatorEditor.prep.suggestions`, `creatorEditor.prep.footer`, `creatorEditor.prep.suggestion.1…6`; changed `creatorEditor.window` 游玩时段 → 可玩时段, `creatorEditor.prep.add` 添加准备事项 → 添加准备项; removed `creatorEditor.playSetup`.
+- Continue pass 3 (`Resources/CreatorEditorUI.xcstrings`): new `creatorEditor.prep`, `creatorEditor.prep.addAction`, `creatorEditor.prep.suggestions`, `creatorEditor.prep.footer`, `creatorEditor.prep.suggestion.1…6`; changed `creatorEditor.window` 游玩时段 → 可玩时段, `creatorEditor.prep.add` 添加准备事项 → 添加准备项; removed `creatorEditor.playSetup`; new `creatorEditor.window.nextDay %@` (次日 %@ / %@ next day), so the MP end option 次日 02:00 no longer shows Chinese in the English UI.
 - Continue pass: `publishTab.publish.notReady` (发布信息尚未就绪，请稍后重试), `publishTab.publish.identityBlocked` (当前身份不可发布主题).
 
 ## Contract pins updated
