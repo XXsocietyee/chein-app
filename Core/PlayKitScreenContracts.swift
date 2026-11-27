@@ -42,7 +42,7 @@ public struct PlayKitScreenProjection: Equatable {
         case .scratchCard: return segment["revealed"].bool == true || segment["finished"].bool == true
         case .branch: return segment["currentStep"]["terminal"].bool == true || segment["ended"].bool == true
         case .estimate: return segment["submitted"].bool == true
-        case .predict: return !(segment["myOptionKey"].text ?? "").isEmpty
+        case .predict: return !(segment["myOptionKey"].text ?? "").isEmpty || segment["skipped"].bool == true
         case .scan: return segment["scanned"].bool == true
         case .blindTaste: return segment["solved"].bool == true
         case .diyName: return !(segment["name"].text ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -308,7 +308,10 @@ public enum PlayKitInputContract {
             }
         case .branch: try require(keys == ["optionId"] && projection.options.contains { $0.id == payload["optionId"]?.text })
         case .pricePair: try require(keys == ["pickId"] && projection.options.contains { $0.id == payload["pickId"]?.text })
-        case .predict: try require(keys == ["optionKey"] && projection.options.contains { $0.id == payload["optionKey"]?.text })
+        case .predict:
+            // MP `predict:skip` (不选，继续) only for a closed round the player never picked in.
+            if action == "SKIP_CLOSED_PREDICT" { try require(keys.isEmpty && segment["closed"].bool == true); return }
+            try require(keys == ["optionKey"] && projection.options.contains { $0.id == payload["optionKey"]?.text })
         case .estimate:
             guard let lo = segment["min"].double, let hi = segment["max"].double, lo.isFinite, hi.isFinite, hi >= lo else { throw PlayExperienceError.malformed }
             try require(keys == ["value"] && finite("value", range: lo...hi))

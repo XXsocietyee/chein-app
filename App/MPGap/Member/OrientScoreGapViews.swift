@@ -54,7 +54,7 @@ public struct OrientScoreLeaderboardSheetView: View {
         HStack {
             Text("\(row.rank)")
                 .cyText(.numericBody, monospacedDigit: true)
-                .frame(width: 32, alignment: .leading)
+                .frame(minWidth: 32, alignment: .leading)
             (row.isMine ? Text("orientScore.board.mine") : Text("orientScore.board.player"))
                 .cyText(.bodyMedium)
             Spacer()

@@ -30,6 +30,8 @@ private struct RoamRunnerConversation: Identifiable, Hashable { let id: Int }
     let runner: RoamNearbyRunner
     let actions: RoamRunnerActions
     @State private var conversation: RoamRunnerConversation?
+    /// Avatar circle scales with the initial's text style so it never clips at AX sizes (a11y-dt r3).
+    @ScaledMetric(relativeTo: .headline) private var avatarSide: CGFloat = 52
 
     var body: some View {
         // MP roam-runner (原型 otherSheet), in MP order: head (avatar · nickname · 正在附近漫游 · since) → 地盘 / 探店 / 在走
@@ -44,7 +46,7 @@ private struct RoamRunnerConversation: Identifiable, Hashable { let id: Int }
                             BoundedMediaThumbnail(url: avatar) { Color.clear }.clipShape(Circle())
                         }
                     }
-                    .frame(width: 52, height: 52)
+                    .frame(width: min(avatarSide, 96), height: min(avatarSide, 96))
                     .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: runner.nickname).font(.headline)

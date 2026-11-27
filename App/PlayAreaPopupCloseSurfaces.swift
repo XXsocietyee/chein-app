@@ -39,7 +39,7 @@ struct PlayNearbyApplyNoteModal: View {
             title: PlayCloseCopy.text("申请加入这支队伍", "Apply to join this team", locale),
             message: teamName.isEmpty ? nil : teamName,
             text: $note,
-            placeholder: PlayCloseCopy.text("想跟队长说一句(可选):同场打算、几个人…", "Optional note for captain: plan, party size...", locale),
+            placeholder: PlayCloseCopy.text("想跟队长说一句(可选):同场打算、几个人…", "Optional note for captain: plan, party size…", locale),
             validationMessage: validation,
             cancelTitle: PlayCloseCopy.cancel(locale),
             confirmTitle: PlayCloseCopy.text("提交申请", "Submit application", locale),

@@ -56,9 +56,10 @@ struct NPCChatDataReadPresentation: Identifiable {
                                 locale: locale))
                         } else {
                             toastTone = .info
+                            // MP ai-chat-records exportRecords: empty export toasts 还没有对话记录.
                             toastMessage = LocalizedStringKey(MemberPopupCopy.text(
-                                "暂无可导出的对话记录",
-                                "No chat records available to export",
+                                "还没有对话记录",
+                                "No chat records yet",
                                 locale: locale))
                         }
                     }
