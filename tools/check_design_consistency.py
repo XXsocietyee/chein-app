@@ -21,6 +21,8 @@ and `#Preview { ... }` blocks; comments are ignored) and counts, per file:
                   (use the system bar; `cyGuardedBack(when:onBack:)` for an unsaved-changes exit)
   button style    a page-level `struct …: ButtonStyle` outside App/DesignSystem, or `.buttonStyle(.questifyPrimary)`
                   (one button system: `.borderedProminent` / `.bordered` / `.borderless` or the CY styles)
+  popup scrim     `Color.black.opacity(0.2…0.8).ignoresSafeArea(` outside App/DesignSystem: an MP popup copied as a
+                  dimmed overlay (use `.sheet` + `.presentationDetents`)
   raw colour      `Color(red:` / `UIColor(red:` / `Color(hex:` / `"#RRGGBB"` / `0xRRGGBB` outside App/DesignSystem
                   and App/Theme  -> semantic system colours or the CY palette
 
@@ -51,7 +53,9 @@ RAW_COLOUR = 'raw colour'
 CUSTOM_BACK = 'custom back'
 TITLE_MODE = 'title mode'
 BUTTON_STYLE = 'button style'
-KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, CUSTOM_BACK, BUTTON_STYLE, RAW_COLOUR)
+POPUP_SCRIM = 'popup scrim'
+KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, CUSTOM_BACK, BUTTON_STYLE, POPUP_SCRIM,
+         RAW_COLOUR)
 
 # The five player tab roots (Core/RootTab.swift, QuestifyApp root TabView) and the files that own their title.
 # 漫游 is the full-screen map home: its chrome is allowed in the baseline instead.
@@ -96,6 +100,8 @@ BUTTON_STYLE_PATTERNS = (
     re.compile(r'\bstruct\s+\w+\s*:\s*(?:Primitive)?ButtonStyle\b'),
     re.compile(r'\.buttonStyle\s*\(\s*\.questifyPrimary\s*\)'),
 )
+# A hand-made dimmed full-screen scrim = an MP popup copied as an overlay. MP popups are `.sheet` with detents.
+POPUP_SCRIM_PATTERN = re.compile(r'Color\.black\.opacity\(\s*0?\.[2-8]\d*\s*\)\s*\.ignoresSafeArea\(')
 COLOUR_PATTERNS = (
     re.compile(r'(?<![\w.])(?:UI)?Color\s*\(\s*red\s*:'),
     re.compile(r'(?<![\w.])(?:UI)?Color\s*\(\s*hex\s*:'),
@@ -203,6 +209,8 @@ def scan_file(rel, text):
             hits.append((number, CUSTOM_BACK, code.strip()))
         if not design_system and any(p.search(code) for p in BUTTON_STYLE_PATTERNS):
             hits.append((number, BUTTON_STYLE, code.strip()))
+        if not design_system and POPUP_SCRIM_PATTERN.search(code):
+            hits.append((number, POPUP_SCRIM, code.strip()))
         if not colour_exempt and any(p.search(code) for p in COLOUR_PATTERNS):
             hits.append((number, RAW_COLOUR, code.strip()))
     if not design_system and rel not in TITLE_MODE_EXEMPT and not any(ANY_MODE_PATTERN.search(c) for _, c in lines):
