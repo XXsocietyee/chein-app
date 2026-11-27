@@ -697,7 +697,7 @@ struct MemberCoopInviteSheet: View {
 
                 if loading {
                     Section {
-                        ProgressView().frame(maxWidth: .infinity)
+                        ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity)
                     }
                 } else if topics.isEmpty {
                     ContentUnavailableView(

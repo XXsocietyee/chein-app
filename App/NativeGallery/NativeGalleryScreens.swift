@@ -225,7 +225,7 @@ struct NativeGalleryTopicDetail: View {
                     Text("路线节点").tag(1)
                     Text("路线").tag(2)
                 }
-                .pickerStyle(.segmented)
+                .cyAdaptiveSegmented()
                 Text("还没有人评价过这条路线")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -389,7 +389,7 @@ struct NativeGalleryClubHome: View {
                     Text("概览").tag(2)
                     Text("管理").tag(3)
                 }
-                .pickerStyle(.segmented)
+                .cyAdaptiveSegmented()
             }
             if tab == 0 {
                 Section("帖子") {

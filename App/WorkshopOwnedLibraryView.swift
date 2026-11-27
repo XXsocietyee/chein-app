@@ -52,7 +52,7 @@ private struct WorkshopOwnedUnavailableView: View {
             WorkshopOwnedScopeSection()
             switch browser.phase {
             case .idle, .loading:
-                ProgressView().frame(maxWidth: .infinity).accessibilityLabel(workshopText("loading")).accessibilityIdentifier("workshopOwned.loading")
+                ProgressView { workshopText("loading") }.frame(maxWidth: .infinity).accessibilityIdentifier("workshopOwned.loading")
             case .notEnabled: WorkshopOwnedUnavailableView()
             case .empty:
                 ContentUnavailableView {
@@ -131,7 +131,7 @@ private struct WorkshopOwnedUnavailableView: View {
           if navigation.isCurrentDetailVisit(routeID: routeID, visitID: visitID) {
             WorkshopOwnedScopeSection()
             if browser.detailLoading {
-                ProgressView().frame(maxWidth: .infinity).accessibilityLabel(workshopText("loading")).accessibilityIdentifier("workshopOwned.detailLoading")
+                ProgressView { workshopText("loading") }.frame(maxWidth: .infinity).accessibilityIdentifier("workshopOwned.detailLoading")
             } else if let response = browser.detail {
                 if response.metadata.availability == .notEnabled { WorkshopOwnedUnavailableView() }
                 else if let item = response.item, item.claimId == claimId {
