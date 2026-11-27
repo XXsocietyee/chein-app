@@ -511,6 +511,26 @@ import SwiftUI
                 TextField("projectEdit.teamSize", text: ticket.teamSize).keyboardType(.numberPad).id("project-issue-anchor-team")
                 TextField("projectEdit.description", text: ticket.description, axis: .vertical).lineLimit(3...8)
             }
+            // MP step3.wxml F12: only a 亲子票 asks for the child age band (no child name).
+            if ticket.wrappedValue.isFamily {
+                Section {
+                    LabeledContent("mpPublish.ticket.childAgeMin") {
+                        TextField("mpPublish.ticket.childAgeMin", text: ticket.childAgeMin, prompt: Text(verbatim: "3"))
+                            .keyboardType(.numberPad).multilineTextAlignment(.trailing)
+                            .accessibilityIdentifier("projectEdit.childAgeMin")
+                    }
+                    LabeledContent("mpPublish.ticket.childAgeMax") {
+                        TextField("mpPublish.ticket.childAgeMax", text: ticket.childAgeMax, prompt: Text(verbatim: "12"))
+                            .keyboardType(.numberPad).multilineTextAlignment(.trailing)
+                            .accessibilityIdentifier("projectEdit.childAgeMax")
+                    }
+                } header: {
+                    Text("mpPublish.ticket.familyComposition")
+                } footer: {
+                    Text("mpPublish.ticket.childAgeFooter")
+                }
+                .id("project-issue-anchor-ticketChildAge")
+            }
             Section("projectEdit.saleSchedule") {
                 ProjectEditDateField(title: "projectEdit.saleStart", value: ticket.saleStartTime, identifier: "projectEdit.saleStart").dateEditing(.init(model: model, field: .saleStart(ticketID)))
                     .disabled(!ticket.wrappedValue.canEditSaleTime(end: false))

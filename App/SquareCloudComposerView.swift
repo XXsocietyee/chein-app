@@ -133,7 +133,7 @@ import SwiftUI
         HStack {
             Label { Text(verbatim: title) } icon: { Image(systemName: symbol) }
             Spacer(minLength: 0)
-            Button(action: clear) { Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary) }
+            Button(action: clear) { Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary).frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget).contentShape(Rectangle()) }
                 .buttonStyle(.borderless)
                 .accessibilityLabel(Text(verbatim: copy("清除", "Clear")))
         }

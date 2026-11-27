@@ -1113,6 +1113,12 @@ import SwiftUI
                 .onMove { if model.fullEdit { model.draft.tickets.move(fromOffsets: $0, toOffset: $1) } }
                 Button("projectEdit.addTicket", systemImage: "plus") { model.draft.tickets.append(.init()) }
                     .disabled(!model.fullEdit).accessibilityIdentifier("projectEdit.addTicket")
+                // MP step3.wxml F12: 亲子票（1 大 1 小） template right under 添加票种.
+                Button("mpPublish.ticket.addFamily", systemImage: "plus") {
+                    let name = String(localized: LocalizedStringResource("mpPublish.ticket.familyName", locale: locale))
+                    model.draft.tickets.append(.family(named: name))
+                }
+                .disabled(!model.fullEdit).accessibilityIdentifier("projectEdit.addFamilyTicket")
             } header: {
                 HStack {
                     Text("projectEdit.tickets")
