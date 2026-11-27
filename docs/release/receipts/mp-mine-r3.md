@@ -265,3 +265,17 @@ Merged `origin/ui/combined-r7` (clean). The 20:45 sweep includes Continue 8 but 
 Still open for the owner: the en Me tab picker falls back to the menu ("Profile section · Projects") because four segments do not fit at 375 pt.
 
 Gates (this pass): generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+## Continue 11 (half-hourly re-arm, sweep 21:09 UTC build 405948d58)
+
+Merged `origin/ui/combined-r7` (clean). The 21:09 sweep was built before Continue 10 (e1668c680), so the self-medals "— City explorer", offline banner and 暂无动态 in `sheet-*.jpg` are the pre-fix state. No new mp-mine rows in the 21:20 coordinator sweep or the contract-cleanup table. Screens checked: `docs/sweeps/latest/mp-mine/sheet-en.jpg`, `sheet-zh-Hans.jpg`.
+
+| Screenshot | MP | Native file | Fixed now |
+|---|---|---|---|
+| `*-t5-order-center.jpg`: 金额 reads a bare "168.00" | `subpackageMember/components/cy/order-center-entry/index.wxml:9` `money.amount(summary.amountText)` → ¥168.00 | `App/OrderCenterEntryView.swift` | **Fixed.** Uses the shared `MemberBalanceDisplay.text` (¥168.00 zh, CN¥168.00 en per the i18n r1 currency rule). |
+| same: rows read 订单 → 订单号 → 状态 → 金额 → 创建时间 | MP card: title → status → 金额 → 订单号 → 创建时间, then the 联系客服 button | same | **Fixed.** Rows in MP order; a 联系客服 row (`ParticipationSupportView`, the same support page the participation footer opens; id `orderCenter.support`) follows the card. No new strings. |
+| `en-d2-me.jpg`: 账户余额 reads CN¥0.00 | — | — | Kept: the app's i18n r1 rule names the currency outside Chinese (`CN¥`). |
+
+Every `subpackageMember` page now has a row; next runs re-scan the components (`ai-chat-records`, `scene-member-withdraw-history`, …).
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
