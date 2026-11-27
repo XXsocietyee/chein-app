@@ -244997,13 +244997,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This guide does not have readable content yet."
+            "value": "This how-to-play guide has no content yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这篇说明暂时没有正文。"
+            "value": "这篇玩法说明暂时没有内容"
           }
         }
       }
@@ -344848,6 +344848,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ 天"
+          }
+        }
+      }
+    },
+    "accountCollection.coupon.signIn": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to see your coupons"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后查看我的优惠券"
+          }
+        }
+      }
+    },
+    "guideXcx.detailFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load this how-to-play guide"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩法说明加载失败"
           }
         }
       }

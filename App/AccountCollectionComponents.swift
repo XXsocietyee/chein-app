@@ -106,8 +106,16 @@ struct AccountCollectionIssueView: View {
         default: return nil
         }
     }
+    /// mp-states r3 (MP scene-game-coupon-wallet wxml:3,6): 登录后查看我的优惠券 with 登录; a server refusal keeps the
+    /// title 优惠券暂时没能打开 and puts the server sentence under it.
+    private var couponServerMessage: String? {
+        guard couponWallet, case .server(let message) = issue, !message.isEmpty else { return nil }
+        return message
+    }
     private var titleText: Text {
         if favorites && issue == .login { return Text("accountCollection.favorites.signIn") }
+        if couponWallet && issue == .login { return Text("accountCollection.coupon.signIn") }
+        if couponServerMessage != nil { return Text("accountCollection.coupon.errorTitle") }
         if favoritesFailed { return Text("accountCollection.favorites.failed") }
         if case .server(let message) = issue, !message.isEmpty { return Text(verbatim: message) }
         if couponDetailKey != nil { return Text("accountCollection.coupon.errorTitle") }
@@ -123,11 +131,12 @@ struct AccountCollectionIssueView: View {
         }()
         var layout = CYStateLayout(kind: kind, title: titleText)
         if let couponDetailKey { layout.detail = Text(couponDetailKey) }
+        if let couponServerMessage { layout.detail = Text(verbatim: couponServerMessage) }
         if favoritesFailed {
             if case .server(let message) = issue, !message.isEmpty { layout.detail = Text(verbatim: message) }
             else { layout.detail = Text(LocalizedStringKey(issue.localizationKey)) }
         }
-        if favorites, issue == .login, let signIn {
+        if favorites || couponWallet, issue == .login, let signIn {
             layout.primary = (title: LocalizedStringKey("auth.signIn"), action: signIn)
             layout.primaryStyle = .primary
         }
