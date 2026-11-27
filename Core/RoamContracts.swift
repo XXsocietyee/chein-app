@@ -232,6 +232,15 @@ public struct RoamNodeDetail: Decodable, Equatable, Identifiable {
     /// raw. MP subpackageRoam/nearby/index.js:956-957; parsing in utils/map-layers.js `poiQuotes`, roam-place-map.js `credit`.
     public let quotesJSON: String?
     public let photoCreditRaw: String?
+    /// MP roam-place-card `ratingText(averageRating, ratingCount)`: shown only when the average is > 0 and the count,
+    /// when present, is > 0. Lenient: a missing or odd value is nil, never a decode failure.
+    public let averageRating: Double?
+    public let ratingCount: Int?
+    public var ratingText: String? {
+        guard let averageRating, averageRating.isFinite, averageRating > 0 else { return nil }
+        if let ratingCount, ratingCount <= 0 { return nil }
+        return String(format: "%.1f", averageRating)
+    }
     public var isPublished: Bool { status == 1 }
     /// MP: quiz = validationMethod === 3 && options.length > 0.
     public var isQuiz: Bool { validationMethod == 3 && !quizOptions.isEmpty }
@@ -240,6 +249,7 @@ public struct RoamNodeDetail: Decodable, Equatable, Identifiable {
         case merchantName, merchantAddress, templateTitle, validationMethod, completed, favorited, canInteract, needRedeem, couponId
         case photoRequired, questionName, questionA, questionB, questionC, questionD, badgeCode, photoRequireDesc
         case quotesJson, photoCredit, photo_credit, credit
+        case averageRating, ratingCount
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -271,6 +281,8 @@ public struct RoamNodeDetail: Decodable, Equatable, Identifiable {
         quotesJSON = (try? c.roamText(.quotesJson)) ?? nil
         photoCreditRaw = [CodingKeys.photoCredit, .photo_credit, .credit].lazy
             .compactMap { ((try? c.roamText($0)) ?? nil).flatMap { $0.isEmpty ? nil : $0 } }.first
+        averageRating = (try? c.decodeIfPresent(Double.self, forKey: .averageRating)) ?? nil
+        ratingCount = c.roamInteger(.ratingCount)
     }
 }
 

@@ -51,8 +51,8 @@
   },
   {
     "key": "social.incompleteLink",
-    "en": "This link is incomplete. Go back to choose another item.",
-    "zh-Hans": "链接不完整，请返回选择其他内容。"
+    "en": "This link is no longer valid",
+    "zh-Hans": "链接已失效"
   },
   {
     "key": "social.profile",

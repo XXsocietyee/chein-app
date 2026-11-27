@@ -469,8 +469,7 @@ private struct ClubDetailLeaderboardMemberOpen: Hashable, Identifiable {
                         .lineLimit(1)
                     if row.isMe { Text("clubR8.lb.me").font(.caption).foregroundStyle(.tint) }
                 }
-                Text(verbatim: String(format: appLocalized("clubR8.lb.meta %lld %@ %@", locale: locale),
-                                      row.clearCount, mileageText(row), durationText(row)))
+                Text(verbatim: appLocalized("clubR8.lb.meta \(row.clearCount) \(mileageText(row)) \(durationText(row))", locale: locale))
                     .font(.subheadline).foregroundStyle(.secondary)
             }
             Spacer(minLength: 8)

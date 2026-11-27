@@ -101,6 +101,8 @@ struct RoamPlaceExtras: Equatable {
     var sources: [String] = []
     var reviewBusy = false
     var reviewError: String?
+    /// MP scene-roam-poi-detail wxml:67 cy-error 评价暂时无法读取 · 重试: the review read returned no list.
+    var reviewsFailed = false
 }
 
 /// Logic stub for Cursor: official place facts (template game, info rows, cited quotes, photo credit) and
@@ -134,7 +136,7 @@ extension EnvironmentValues {
             if let production = binding as? RoamPlaceExtrasProduction {
                 RoamPlaceExtrasLive(binding: production)
             } else if let binding, let extras = binding.extras {
-                RoamPlaceExtrasSection(extras: extras, onPublish: { binding.publishReview(stars: $0, text: $1) })
+                RoamPlaceExtrasSection(extras: extras, onPublish: { binding.publishReview(stars: $0, text: $1) }, onRetryReviews: { binding.load() })
             }
         }
         .task(id: poiID) {
@@ -148,6 +150,7 @@ extension EnvironmentValues {
 struct RoamPlaceExtrasSection: View {
     let extras: RoamPlaceExtras
     let onPublish: (Int, String) -> Void
+    var onRetryReviews: (() -> Void)? = nil
     @Environment(\.locale) private var locale
     @State private var sourcesOpen = false
     @State private var creditOpen = false
@@ -282,7 +285,17 @@ struct RoamPlaceExtrasSection: View {
             }
             .accessibilityAddTraits(.isHeader)
             if extras.reviews.isEmpty {
-                if extras.reviewsLoaded {
+                if extras.reviewsFailed {
+                    ContentUnavailableView {
+                        Label { Text(verbatim: c.t("评价暂时无法读取", "Couldn’t load reviews")) } icon: { Image(systemName: "text.bubble") }
+                    } actions: {
+                        if let onRetryReviews {
+                            Button { onRetryReviews() } label: { Text(verbatim: c.t("重试", "Retry")) }
+                                .buttonStyle(.bordered)
+                        }
+                    }
+                    .accessibilityIdentifier("roam.place.reviewsFailed")
+                } else if extras.reviewsLoaded {
                     Text(verbatim: c.t("还没有评价。完成挑战后来写第一条。", "No reviews yet. Finish the challenge and write the first one."))
                         .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("roam.place.reviewsEmpty")

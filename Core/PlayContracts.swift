@@ -100,6 +100,8 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
     public let feedbackText: String?
     /// Player photo of a finished station (`picUrl`). Not the station `imgUrl`.
     public let photoURL: String?
+    /// mp-journey r3: the node's shop coupon (`couponId`); > 0 drops a coupon into the wallet on completion (MP 券 toast).
+    public let couponID: Int?
 
     private enum CodingKeys: String, CodingKey {
         case nodeId, name, npc, address, latitude, longitude, sortId, done, arrived, selfReported, hasGame, gameDone, locked, validationMethod
@@ -108,7 +110,7 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
         case players, photoRequireDesc, photoDesc, businessTime, openStatus, crowded, inStoreLoad, serviceCapacity, expectedWaitMinutes, quantityUnavailable, routeNodeState, lockReason, weatherLocked
         case unlockAfterNodeId, chapterId, xp, puzzleScore, completionMode, sensorType, advancedConfigJson, externalGame
         case imgUrl, imgHidden, storyImg, visited, visitTime, visitCheck, visitRadius, storyLocked, visitedByTeam
-        case fragmentText, cardHookLong, addressHidden, perk, feedbackText, picUrl
+        case fragmentText, cardHookLong, addressHidden, perk, feedbackText, picUrl, couponId
     }
     private enum ServiceCapacityKeys: String, CodingKey { case perHour }
     public init(from decoder: Decoder) throws {
@@ -183,6 +185,7 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
         perk = (try? c.decodeIfPresent(PlayNodePerk.self, forKey: .perk)) ?? nil
         feedbackText = (try? c.decodeIfPresent(String.self, forKey: .feedbackText)) ?? nil
         photoURL = (try? c.decodeIfPresent(String.self, forKey: .picUrl)) ?? nil
+        couponID = (try? c.playInt(.couponId)) ?? nil
     }
     public var hasAdvancedPrerequisite: Bool {
         guard let advancedConfig else { return false }
