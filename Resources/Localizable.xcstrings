@@ -87445,7 +87445,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading public map layers..."
+            "value": "Loading public map layers…"
           }
         },
         "zh-Hans": {
@@ -181042,13 +181042,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scratched open — confirming result..."
+            "value": "Scratched open — confirming result…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已刮开，正在确认结果..."
+            "value": "已刮开，正在确认结果…"
           }
         }
       }
@@ -184761,7 +184761,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recording..."
+            "value": "Recording…"
           }
         },
         "zh-Hans": {
@@ -184777,7 +184777,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Uploading..."
+            "value": "Uploading…"
           }
         },
         "zh-Hans": {
@@ -306899,13 +306899,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Write your review..."
+            "value": "Write your review…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请输入您的评价内容..."
+            "value": "请输入您的评价内容…"
           }
         }
       }
