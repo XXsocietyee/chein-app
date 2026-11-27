@@ -37,7 +37,7 @@ struct MessagingInlineCardAnswers: View {
             }
             if let chosenLabel {
                 MessagingQuietSystemLine(symbol: "checkmark.circle") {
-                    Text("social.r2.chat.chose \(chosenLabel)")
+                    Text("r2social.chat.chose \(chosenLabel)")
                 }
                 .accessibilityIdentifier("messaging.card.choiceLine.\(message.id)")
             }
@@ -92,7 +92,7 @@ struct MessagingInlinePollAnswer: View {
         VStack(alignment: isOwn ? .trailing : .leading, spacing: 6) {
             Button(action: onOpen) {
                 Label {
-                    Text(LocalizedStringKey(votedOption == nil ? "social.r2.poll.vote" : "social.r2.poll.results"))
+                    Text(LocalizedStringKey(votedOption == nil ? "r2social.poll.vote" : "r2social.poll.results"))
                         .fixedSize(horizontal: false, vertical: true)
                 } icon: {
                     Image(systemName: "chart.bar.xaxis")
@@ -104,7 +104,7 @@ struct MessagingInlinePollAnswer: View {
             .accessibilityIdentifier("poll.inlineEntry.\(message.id)")
             if let votedOption {
                 MessagingQuietSystemLine(symbol: "checkmark.circle") {
-                    Text("social.r2.poll.voted \(votedOption)")
+                    Text("r2social.poll.voted \(votedOption)")
                 }
                 .accessibilityIdentifier("poll.votedLine.\(message.id)")
             }

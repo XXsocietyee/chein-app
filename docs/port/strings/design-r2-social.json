@@ -1,7 +1,7 @@
 {
   "sourceLanguage": "zh-Hans",
   "strings": {
-    "social.r2.chat.chose %@": {
+    "r2social.chat.chose %@": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -18,7 +18,7 @@
         }
       }
     },
-    "social.r2.poll.vote": {
+    "r2social.poll.vote": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -35,7 +35,7 @@
         }
       }
     },
-    "social.r2.poll.results": {
+    "r2social.poll.results": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -52,7 +52,7 @@
         }
       }
     },
-    "social.r2.poll.voted %@": {
+    "r2social.poll.voted %@": {
       "extractionState": "manual",
       "localizations": {
         "en": {
