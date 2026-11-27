@@ -99,7 +99,9 @@ import SwiftUI
             // 我的资产 (design hand-off r1 PL-30, owner Q-B; P 210:8603): 积分 first and large, as a plain number with no tile.
             // 积分 is the only currency. The ¥ 账户余额 column appears only when this account holds real money (the server
             // sent a balance). Unknown 积分 reads "—", never 0.
-            if showsMetrics { assets }
+            // MP cy-profile shows the metrics only when `profileMetricState === 'ready'`: an unknown 积分 hides the
+            // block instead of reading "Points —" (18:15 sweep, e4-member).
+            if showsMetrics, points != nil || balanceDisplay != nil { assets }
             // The three counters (好友 / 关注 / 粉丝) as one row of plain columns.
             // mp-mine r3 (MP cy-profile wxml:109, 1121 N5): one's own page hides the row while all three are a known 0.
             if showsCounters {
@@ -141,28 +143,30 @@ import SwiftUI
     private func actionRow(_ onOpenTickets: @escaping () -> Void) -> some View {
         Group {
             if typeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: 8) { actionButtons(onOpenTickets) }
+                VStack(alignment: .leading, spacing: 8) { actionButtons(onOpenTickets, fixedLabels: false) }
             } else {
+                // The row's labels are fixed to their one-line width, so ViewThatFits sees the real need and
+                // stacks instead of truncating ("Star…", "Tick…" in the 18:15 en sweep).
                 ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 8) { actionButtons(onOpenTickets) }
-                    VStack(alignment: .leading, spacing: 8) { actionButtons(onOpenTickets) }
+                    HStack(spacing: 8) { actionButtons(onOpenTickets, fixedLabels: true) }
+                    VStack(alignment: .leading, spacing: 8) { actionButtons(onOpenTickets, fixedLabels: false) }
                 }
             }
         }
         .frame(maxWidth: .infinity)
     }
     @ViewBuilder
-    private func actionButtons(_ onOpenTickets: @escaping () -> Void) -> some View {
+    private func actionButtons(_ onOpenTickets: @escaping () -> Void, fixedLabels: Bool) -> some View {
         if let onStartExplore {
             Button(action: onStartExplore) {
-                Label { Text("member.card.startExplore").lineLimit(1) } icon: { Image(systemName: "safari") }
+                Label { Text("member.card.startExplore").lineLimit(1).fixedSize(horizontal: fixedLabels, vertical: false) } icon: { Image(systemName: "safari") }
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent).controlSize(.large)
             .accessibilityIdentifier("member.card.startExplore")
         }
         Button(action: onOpenTickets) {
-            Label { Text("member.card.tickets", tableName: "MemberProfile").lineLimit(1) } icon: { Image(systemName: "ticket") }
+            Label { Text("member.card.tickets", tableName: "MemberProfile").lineLimit(1).fixedSize(horizontal: fixedLabels, vertical: false) } icon: { Image(systemName: "ticket") }
                 .frame(maxWidth: .infinity)
         }
         .buttonStyle(.borderedProminent).controlSize(.large)
@@ -327,7 +331,7 @@ import SwiftUI
     /// 积分 hero + optional ¥ column. Columns stack at accessibility sizes (no hairline then).
     private var assets: some View {
         rowLayout {
-            pointsBlock
+            if points != nil { pointsBlock }
             if let balance = balanceDisplay {
                 if !typeSize.isAccessibilitySize {
                     Divider().frame(height: assetDivider).accessibilityHidden(true)
@@ -640,28 +644,36 @@ private struct MemberAssetRoll: ViewModifier {
 
     var body: some View {
         Section {
-            HStack(alignment: .firstTextBaseline) {
-                pointsValue
-                Spacer(minLength: 8)
-                if let onOpenPointsHelp {
-                    Button(action: onOpenPointsHelp) { Text("member.card.pointsHelp") }
-                        .buttonStyle(.borderless)
-                        .font(.subheadline)
-                        .accessibilityIdentifier("member.achievements.pointsHelp")
+            // MP `pc-achievement-metrics` is `wx:if="{{profileMetricState === 'ready'}}"`: unknown values hide their
+            // row rather than showing "—" as data (18:15 sweep).
+            if points != nil {
+                HStack(alignment: .firstTextBaseline) {
+                    pointsValue
+                    Spacer(minLength: 8)
+                    if let onOpenPointsHelp {
+                        Button(action: onOpenPointsHelp) { Text("member.card.pointsHelp") }
+                            .buttonStyle(.borderless)
+                            .font(.subheadline)
+                            .accessibilityIdentifier("member.achievements.pointsHelp")
+                    }
                 }
             }
-            LabeledContent {
-                Text(verbatim: CYUnknownValue.text(streakDays) { "\($0)" }).monospacedDigit()
-            } label: {
-                Label { Text("profile.selfGrowth.streak") } icon: { Image(systemName: "flame") }
+            if let streakDays {
+                LabeledContent {
+                    Text(verbatim: "\(streakDays)").monospacedDigit()
+                } label: {
+                    Label { Text("profile.selfGrowth.streak") } icon: { Image(systemName: "flame") }
+                }
+                .accessibilityIdentifier("member.achievements.streak")
             }
-            .accessibilityIdentifier("member.achievements.streak")
-            LabeledContent {
-                Text(verbatim: CYUnknownValue.text(checkins) { "\($0)" }).monospacedDigit()
-            } label: {
-                Label { Text("profile.selfGrowth.checkins") } icon: { Image(systemName: "mappin.and.ellipse") }
+            if let checkins {
+                LabeledContent {
+                    Text(verbatim: "\(checkins)").monospacedDigit()
+                } label: {
+                    Label { Text("profile.selfGrowth.checkins") } icon: { Image(systemName: "mappin.and.ellipse") }
+                }
+                .accessibilityIdentifier("member.achievements.checkins")
             }
-            .accessibilityIdentifier("member.achievements.checkins")
             trailing()
         }
         .task(id: TaskKey(scope: growth.scope, refresh: refreshToken, active: scenePhase == .active)) { await load() }
