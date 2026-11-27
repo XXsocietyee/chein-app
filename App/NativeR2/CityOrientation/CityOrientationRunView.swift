@@ -266,17 +266,30 @@ extension EnvironmentValues {
                             Text("nativeR2.city.banner.arrived").font(.headline)
                         } else if location.access == .denied {
                             Text("nativeR2.city.banner.locationOff").font(.headline)
-                        } else {
-                            Text(verbatim: CityOrientationFormat.distance(currentDistance))
+                        } else if let meters = currentDistance {
+                            Text(verbatim: CityOrientationFormat.distance(meters))
                                 .font(.title2.bold())
                                 .monospacedDigit()
-                                .nativeR2RollingNumber(currentDistance ?? 0)
+                                .nativeR2RollingNumber(meters)
+                        } else {
+                            // mp-journey r3 (16:37 sweep): no fix yet (or a paused run without coordinates). MP draws the
+                            // navtop only with a real remaining distance, so the banner leads with the stop name, never "—".
+                            Text(verbatim: stopTitle(stop))
+                                .font(.title2.bold())
+                                .lineLimit(2)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
-                        Text("nativeR2.city.banner.to \(stop.order) \(stopTitle(stop))")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(2)
-                            .fixedSize(horizontal: false, vertical: true)
+                        if currentDistance == nil, !inHighlight, location.access != .denied {
+                            Text("u10.template.stopNo \(stop.order)")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            Text("nativeR2.city.banner.to \(stop.order) \(stopTitle(stop))")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(2)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                         // MP index.wxml:600-604: 公里 · 预计 · 到达, estimated at walking pace.
                         if !inHighlight, location.access != .denied {
                             CityOrientationETAText(meters: currentDistance)
