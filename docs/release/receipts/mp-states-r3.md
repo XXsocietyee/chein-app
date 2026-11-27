@@ -30,6 +30,9 @@ match is a queue item (133 at the start). Tab roots first, then their pushed pag
 | 搜索结果 (`GlobalSearchView`, MP result merged into search2) | `pages/search2/result/index.wxml:23` cy-error 没能完成搜索 · 重试; `:24` cy-empty 没有找到 | failure 结果未能加载 · 重试; empty 没有找到 ✓ | failure 没能完成搜索 (Couldn’t finish the search) · 重试 (only the generic failure key is remapped; sign-in / not-configured keep their own titles) |
 | 集邮册 (`RoamStampAlbumView`) and every roam read using `RoamExperienceIssue` (20 call sites: history, session, summary, stamps …) | `subpackageP3/pages/stamp-album/index/index.wxml:29` cy-error 集邮册无法打开 · 重新载入 | custom `Label` + `CYPillButton` 重试 (not the system pattern); album title 加载失败，请重试。 | `ContentUnavailableView` + `.bordered` retry for all 20 sites; the album passes 集邮册无法打开 (Couldn’t open the stamp album) · 重新载入 (Reload); sign-in / not-configured keep 请先登录 / 未配置 |
 | 玩法文档 (`SocialGuideViews` → `SocialReadScreen failureTitle:`) and every `SocialIssueView` (16 call sites) | `subpackageA/pages/infomation/infomation.wxml:63` cy-error 玩法文档加载失败 · sub docsError · 重试 | non-network failures drew a leading `Label` + `Label(重试)` button VStack; generic title 加载失败 | `ContentUnavailableView` for every social issue (server sentence as the description, one `.bordered` 重试); guides list title 玩法文档加载失败 (Couldn’t load the how-to-play docs) |
+| 广场帖子详情 (`SquareDetailView` → `SquareIssueView`, 3 sites) | `pages/square/detail` cy-error 加载失败 / 评论加载失败 · 重试 (titles already MP) | leading `Label` + caption + plain `Button` | `ContentUnavailableView`, server sentence as the description, `.bordered` 重试 |
+| 主题/路线 reads (`TopicIssueView`, 9 sites) | topic pages cy-error · 重试 | `Label` + bordered button VStack | `ContentUnavailableView` + `.bordered` 重试 |
+| 票夹 / ticket detail / enrolled chapters (`TicketWalletIssueView`, 7 sites) | ticket wallet cy-empty no-permission / cy-error · 重试 | `Label` + button VStack | `ContentUnavailableView` + `.bordered` 重试 |
 
 ## Gates
 
