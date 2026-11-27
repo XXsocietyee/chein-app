@@ -116,7 +116,6 @@ import UIKit
                 }
                 .listStyle(.grouped)
                 .scrollContentBackground(.hidden)
-                .modifier(HomeFeedHeroEdge(enabled: hasHeroHeader))
                 .environment(\.defaultMinListRowHeight, 0)
                 .modifier(HomeFeedNavigationSearch(text: $keyword, enabled: !hasHeroHeader, usesDrawer: onOpenUnifiedSearch != nil))
                 .onSubmit(of: .search) { submitFeedSearch() }
@@ -126,9 +125,10 @@ import UIKit
                 .refreshable { await model.reload(reader: reader, query: query) }
             }
         }
-        // Owner rule 2: large title 首页 top left on the tab root; the MP hero banner is the first row under it.
+        // OWNER RULE 2 (11-27 14:25): a tab root keeps the standard large top-left title 首页; the MP content order
+        // (banner → greeting/city → location card → rails → feed) applies to the List under it.
         .appNavigationTitle("homeFeed.title")
-        .modifier(HomeFeedHeroChrome(enabled: hasHeroHeader && reader.isConfigured && unavailableMessageKey == nil))
+        .navigationBarTitleDisplayMode(.large)
         .task(id: binding) { await model.resume(reader: reader, query: query, available: unavailableMessageKey == nil, expectedBinding: binding) }
         .onDisappear { model.suspend() }
         .cyDomainScreen(.player)
@@ -469,24 +469,8 @@ extension View {
     }
 }
 
-/// ds-consistency r3 (owner rule 2, 11-27 14:25): 首页 keeps the standard large top-left title; the MP hero banner is the
-/// first content under it (no banner bleeding under a transparent bar, no MP custom nav logo). Both modifiers keep
-/// their call sites so the MP content order above is unchanged.
-private struct HomeFeedHeroEdge: ViewModifier {
-    let enabled: Bool
-    func body(content: Content) -> some View {
-        content
-    }
-}
-
-/// Tab root title: large, top left, same as every other tab root (`cyRootHeader`).
-private struct HomeFeedHeroChrome: ViewModifier {
-    let enabled: Bool
-    func body(content: Content) -> some View {
-        content.navigationBarTitleDisplayMode(.large)
-    }
-}
-
+/// Keeps the system search only when the navigation bar is showing. The hero top bar owns search
+/// when the bar is hidden, so the feed does not draw a second field.
 private struct HomeFeedNavigationSearch: ViewModifier {
     @Binding var text: String
     var enabled: Bool

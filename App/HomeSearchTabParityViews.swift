@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Home hero (`pages/index/index` `sec-hero`) in MP order: the action-banner swiper at the top edge of the page (avatar
-/// floating over it, page dots at the image bottom), then the greeting row (name, then `玩家 · 城市`; guests keep the city).
+/// Home hero (`pages/index/index` `sec-hero`) in MP order under the 首页 large title: the action-banner swiper (page
+/// dots under it), then the greeting row (name, then `玩家 · 城市`; guests keep the city) with the avatar trailing.
 @MainActor
 struct HomeHeroHeaderSectionView: View {
     @Environment(\.dynamicTypeSize) private var typeSize
@@ -19,8 +19,6 @@ struct HomeHeroHeaderSectionView: View {
     @Environment(\.homeMoreMenuContent) private var moreMenuContent
     @Environment(\.rootTabSwitch) private var rootTabSwitch
     @State private var currentBannerID: String?
-    /// MP `heroBannerH`: 480 at launch (then 60% of the viewport). Fixed here so the first rails still show on screen.
-    private let bannerHeight: CGFloat = 480
     /// The fixed banners, plus Mini games for a signed-in session where the external-games switch is open.
     private var actionBanners: [HomeIndexParityPresentation.ActionBanner] {
         guard let externalGameSession, ExternalGameSessionRead.externalGamesOpen(baseURL: externalGameSession.baseURL)
@@ -38,15 +36,17 @@ struct HomeHeroHeaderSectionView: View {
 
     var body: some View {
         Section {
-            VStack(alignment: .leading, spacing: 0) {
-                // 1. MP `v3-hero-banner`: Banner 顶到页面顶部，头像浮层，白点在图最底部.
+            VStack(alignment: .leading, spacing: 12) {
+                // OWNER RULE 2: the 首页 large title stays in the bar; MP `sec-hero` order applies under it.
+                // 1. MP `v3-hero-banner`: the action-banner swiper with page dots.
                 heroBanner
-                    .zIndex(1) // the floating avatar's lower half stays above the greeting row
-                // 2. MP `v3-hero-greet-row`: name on its own line, then `玩家 · 城市` (P-01); trailing room for the avatar.
-                greetingRow
-                    .padding(.leading, 16)
-                    .padding(.trailing, 88)
-                    .padding(.top, 12)
+                // 2. MP `v3-hero-greet-row`: name on its own line, then `玩家 · 城市` (P-01); MP `v3-avatar` → 我的.
+                HStack(alignment: .top, spacing: 12) {
+                    greetingRow
+                    Spacer(minLength: 0)
+                    avatar
+                }
+                .padding(.horizontal, CYSpacing.pageHorizontal)
                 // verify-r1 2.5 / N-12 (owner Q9): the header's former ⋯ items (templates, project editor) stay in one
                 // quiet menu row under the greeting, so the 首页 bar keeps only 消息 and map.
                 if let moreMenuContent {
@@ -62,51 +62,46 @@ struct HomeHeroHeaderSectionView: View {
                         .foregroundStyle(.secondary)
                         .frame(minHeight: CYSpacing.minTouchTarget)
                     }
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, CYSpacing.pageHorizontal)
                     .accessibilityIdentifier("homeIndex.actionBanner.menu")
                 }
             }
-            .padding(.bottom, 4)
+            .padding(.vertical, 4)
             .listRowInsets(EdgeInsets())
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
         }
     }
 
-    /// mp-home r3: MP `sec-hero` swiper of the fixed action banners (和朋友报名活动 / 成为俱乐部 / 成为商家): full width,
-    /// black stage, poster centred, title above the dots. Native: a paging scroll view; one tap opens the route.
+    /// mp-home r3: MP `sec-hero` swiper of the fixed action banners (和朋友报名活动 / 成为俱乐部 / 成为商家), each a
+    /// poster with its title. Native (OWNER RULE 2): a paging shelf of inset rounded cards under the large title, page
+    /// dots below; one tap opens the route.
     private var heroBanner: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            LazyHStack(spacing: 0) {
-                ForEach(actionBanners) { banner in
-                    Button {
-                        onSelectBanner?(banner)
-                    } label: {
-                        HomeActionBannerSlide(id: banner.id, title: banner.title(locale: locale))
+        VStack(spacing: 8) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(spacing: 0) {
+                    ForEach(actionBanners) { banner in
+                        Button {
+                            onSelectBanner?(banner)
+                        } label: {
+                            HomeActionBannerSlide(id: banner.id, title: banner.title(locale: locale))
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.horizontal, CYSpacing.pageHorizontal)
+                        .containerRelativeFrame(.horizontal)
+                        .id(banner.id)
+                        .accessibilityLabel(Text(verbatim: banner.title(locale: locale)))
+                        .accessibilityAddTraits(.isButton)
+                        .accessibilityIdentifier("homeIndex.actionBanner.\(banner.id)")
                     }
-                    .buttonStyle(.plain)
-                    .containerRelativeFrame(.horizontal)
-                    .id(banner.id)
-                    .accessibilityLabel(Text(verbatim: banner.title(locale: locale)))
-                    .accessibilityAddTraits(.isButton)
-                    .accessibilityIdentifier("homeIndex.actionBanner.\(banner.id)")
                 }
+                .scrollTargetLayout()
             }
-            .scrollTargetLayout()
-        }
-        .scrollTargetBehavior(.paging)
-        .scrollPosition(id: $currentBannerID)
-        .frame(height: bannerHeight)
-        .background(Color.black)
-        .overlay(alignment: .bottom) {
+            .scrollTargetBehavior(.paging)
+            .scrollPosition(id: $currentBannerID)
+            .accessibilityIdentifier("homeIndex.actionBanner.carousel")
             if actionBanners.count > 1 { bannerDots }
         }
-        .overlay(alignment: .bottomTrailing) {
-            avatar
-                .padding(.trailing, 16)
-                .offset(y: 28)
-        }
-        .accessibilityIdentifier("homeIndex.actionBanner.carousel")
         .onAppear { if currentBannerID == nil { currentBannerID = actionBanners.first?.id } }
         // MP `autoplay="{{!reducedMotion}}" interval="5500"`; also paused while VoiceOver reads the page.
         .task(id: actionBanners.count) {
@@ -130,16 +125,16 @@ struct HomeHeroHeaderSectionView: View {
         (currentBannerID ?? actionBanners.first?.id) == id
     }
 
-    /// MP `v3-hero-dots`: white dots at the image bottom; the current one is a short bar.
+    /// MP `v3-hero-dots`: one dot per banner; the current one is a short bar (system page-indicator colours).
     private var bannerDots: some View {
         HStack(spacing: 6) {
             ForEach(actionBanners) { banner in
                 Capsule()
-                    .fill(isCurrentBanner(banner.id) ? Color.white : Color.white.opacity(0.4))
+                    .fill(isCurrentBanner(banner.id) ? AnyShapeStyle(.primary) : AnyShapeStyle(.quaternary))
                     .frame(width: isCurrentBanner(banner.id) ? 16 : 6, height: 6)
             }
         }
-        .padding(.bottom, 32)
+        .frame(maxWidth: .infinity)
         .accessibilityHidden(true)
     }
 
@@ -158,9 +153,9 @@ struct HomeHeroHeaderSectionView: View {
 
     private var greetingRow: some View {
         VStack(alignment: .leading, spacing: 6) {
-            // MP `v3-hero-hi` (display size, bold): the greeting line.
+            // MP `v3-hero-hi` (bold): the greeting line, one step under the 首页 large title.
             Text(verbatim: HomeIndexParityPresentation.greetingText(nickname: nickname, locale: locale))
-                .font(.title2.weight(.bold))
+                .font(.title3.weight(.bold))
                 .foregroundStyle(.primary)
                 .lineLimit(typeSize.isAccessibilitySize ? nil : 1)
                 .accessibilityAddTraits(.isHeader)
@@ -239,7 +234,7 @@ enum HomeHeroCityNames {
     ]
 }
 
-/// Round account avatar floating over the Home banner (MP `v3-avatar`: pill, strong border).
+/// Round account avatar trailing the Home greeting row (MP `v3-avatar`; opens 我的).
 private struct HomeHeroAvatar: View {
     let source: String?
     var body: some View {
@@ -252,9 +247,8 @@ private struct HomeHeroAvatar: View {
                 fallback
             }
         }
-        .frame(width: 56, height: 56)
+        .frame(width: 48, height: 48)
         .clipShape(Circle())
-        .overlay { Circle().strokeBorder(.background, lineWidth: 2) }
         .accessibilityHidden(true)
     }
     /// MP asset (pages/index/index.wxml:38): a missing avatar is `/images/d_profile.png`.
@@ -263,40 +257,28 @@ private struct HomeHeroAvatar: View {
     }
 }
 
-/// One MP `v3-hero-action` slide: black stage, poster centred (`aspectFit`, 68% wide, from 23% down), the scrim for the
-/// floating bar and dots, and the title above the dots.
+/// One MP `v3-hero-action` slide: the poster centred on its dark stage (`aspectFit`) in a rounded card, the title
+/// under it in a text style (no scrim over the art).
 private struct HomeActionBannerSlide: View {
     let id: String
     let title: String
     var body: some View {
-        ZStack(alignment: .bottom) {
+        VStack(alignment: .leading, spacing: 6) {
             Color.black
-            HomeActionBannerPoster(id: id)
-                .containerRelativeFrame(.horizontal) { width, _ in width * 0.68 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                .padding(.top, 110)
+                .aspectRatio(4.0 / 3.0, contentMode: .fit)
+                .overlay {
+                    HomeActionBannerPoster(id: id)
+                        .padding(.vertical, 16)
+                        .accessibilityHidden(true)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                 .accessibilityHidden(true)
-            // MP `v3-hero-fade--action`: dark at the top for the bar, clear in the middle, black at the bottom edge.
-            LinearGradient(
-                stops: [
-                    .init(color: .black.opacity(0.58), location: 0),
-                    .init(color: .black.opacity(0.04), location: 0.32),
-                    .init(color: .clear, location: 0.58),
-                    .init(color: .black.opacity(0.55), location: 0.82),
-                    .init(color: .black, location: 1),
-                ],
-                startPoint: .top, endPoint: .bottom
-            )
-            .accessibilityHidden(true)
             Text(verbatim: title)
-                .font(.title3.weight(.bold))
-                .foregroundStyle(.white)
-                .multilineTextAlignment(.center)
-                .lineLimit(2)
-                .padding(.horizontal, 16)
-                .padding(.bottom, 64)
+                .font(.headline)
+                .foregroundStyle(.primary)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .clipped()
         .contentShape(Rectangle())
     }
 }

@@ -5,7 +5,7 @@ MP source: `origin/mp-source:chengyinhub-xcx` (snapshot of hengyin master 2026-1
 
 Gates (last run on the tip): `tools/generate_project.py` OK · `tools/check_scaffold.py` PASS · `tools/check_a11y_lint.py` PASS (0 new) · `tools/check_typography_lint.py` PASS · `tools/contract_ratchet.py --check` new 0 (re-arm run: the one new raw-colour hit, the avatar ring `Color(.systemBackground)`, fixed to `.background`). No Swift compiler here: edits mirror existing patterns; nothing deployed. Merchant features and the story-flow theme untouched.
 
-Strings: `docs/port/strings/mp-home-r3.json` (5 keys, en + zh-Hans) merged into `Resources/Localizable.xcstrings`: `homeFeed.type.orienteering` 城市定向 / City orienteering, `homeFeed.type.freeExplore` 自由探索 / Free exploration, `homeFeed.startingSoon` 即将开始 / Starting soon, `homeFeed.loadingMore` 正在加载更多 / Loading more…, `homeIndex.logo` 城瘾 / Chein (re-arm).
+Strings: `docs/port/strings/mp-home-r3.json` (4 keys, en + zh-Hans) merged into `Resources/Localizable.xcstrings`: `homeFeed.type.orienteering` 城市定向 / City orienteering, `homeFeed.type.freeExplore` 自由探索 / Free exploration, `homeFeed.startingSoon` 即将开始 / Starting soon, `homeFeed.loadingMore` 正在加载更多 / Loading more…. (`homeIndex.logo` from the re-arm was removed again in round 3 continue — the logo bar item is gone.)
 
 ## MP sections top-to-bottom vs native
 
@@ -83,7 +83,21 @@ Test files edited for MP-driven changes (no compiler here): `Tests/AppUnitTests/
 
 Gates on the tip: see the line at the top.
 
+## Round 3 continue — OWNER RULE 2 (11-27 ~14:25): native navigation, one design system
+
+Merged `origin/ui/combined-r7` (fast-forward). The re-arm's transparent-bar treatment is MP nav chrome, which OWNER RULE 2 forbids ("Lanes that moved a banner under a transparent nav bar must restore the standard large title").
+
+| Re-arm change | Now |
+|---|---|
+| Inline transparent bar over the banner (`HomeFeedHeroChrome`: `.inline`, `toolbarBackground(.hidden)`, `.toolbarColorScheme(.dark)`, hidden principal title, MP logo item) | **Reverted** — `App/HomeFeedView.swift`: `.appNavigationTitle("homeFeed.title")` + `.navigationBarTitleDisplayMode(.large)` on every state; large top-left 首页. Logo toolbar item and `homeIndex.logo` key removed. |
+| List under the status bar (`HomeFeedHeroEdge`: `ignoresSafeArea(.top)`, `contentMargins(.top, 0)`) | **Reverted** — the List keeps the system safe area under the large title. |
+| 480 pt black edge-to-edge stage, top/bottom `LinearGradient` scrim, white title over the art, white dots | **Replaced** — `HomeActionBannerSlide`: 4:3 rounded card (`CYRadius.card`, continuous) inset by `CYSpacing.pageHorizontal`, poster `scaledToFit` on the dark stage, title under it in `.headline`; no gradient. Dots under the shelf in hierarchical styles (`.primary` / `.quaternary`). Paging, `scrollPosition(id:)`, 5.5 s autoplay (off with Reduce Motion / VoiceOver) and ids `homeIndex.actionBanner.<id>` / `.carousel` kept. |
+| 56 pt avatar with a ring floating half over the banner (`offset`) | **Replaced** — 48 pt avatar trailing the greeting row (same `homeIndex.hero.avatar` button → 我的). |
+| Greeting `.title2.bold` | `.title3.bold` — one step under the large title. |
+
+MP content order under the title is unchanged: banner → greeting / 玩家 · city → location card → 编辑精选 → (我的地盘 owner rail) → 附近活动 → 即将上线 → 主题 / 活动 feed.
+
 ## Not done / follow-ups
-- Needs a simulator pass: the grouped List's first-section top spacing under `contentMargins(.top, 0)` (banner must touch the top edge), and the `.globalSearchField` drawer over the transparent bar (search placement is the search lane's, row 16).
+- Needs a simulator pass: 4:3 banner card height under the large title on small phones (first rails should stay near the fold).
 - Activity detail map / info card are native extras kept because contracts pin them.
 - Fixtures that seed continuation/Today on `d2-home` still pass the inputs; they simply no longer render on 首页.
