@@ -64,7 +64,8 @@ import XCTest
         XCTAssertEqual(model.pagination.items.count, 1)
         await model.resume(reader: reader, query: .init())
         XCTAssertEqual(reader.requests.map(\.1), [1, 2])
-        XCTAssertEqual(reader.bannerReads, 1)
+        // mp-home r3: MP 首页 reads no `/banner`; the home model never asks for it on resume.
+        XCTAssertEqual(reader.bannerReads, 0)
         XCTAssertEqual(model.pagination.nextPage, 3)
         XCTAssertFalse(model.pagination.hasMore)
         XCTAssertFalse(model.loading)
@@ -81,7 +82,8 @@ import XCTest
         XCTAssertEqual(reader.requests.count, 3)
         XCTAssertEqual(reader.requests.last?.0, query)
         XCTAssertEqual(reader.requests.last?.1, 1)
-        XCTAssertEqual(reader.bannerReads, 2)
+        // mp-home r3: refresh re-reads the rails and the first page, not `/banner` (MP 首页 has none).
+        XCTAssertEqual(reader.bannerReads, 0)
     }
     func testScopeReaderReplacementAndObservedABADoNotReuseSnapshot() async {
         let model = HomeFeedModel(), a = Reader(), b = Reader()
@@ -274,6 +276,11 @@ import XCTest
         XCTAssertEqual(model.streamReadiness, .empty)
         XCTAssertEqual(model.sectionReadiness(.recommended), .empty)
         XCTAssertEqual(model.sectionReadiness(.nearby), .empty)
+        // mp-home r3: resume does not read `/banner` or categories (MP 首页 reads neither); an explicit read still settles them.
+        XCTAssertEqual(model.bannerReadiness, .loading)
+        XCTAssertEqual(model.categoryReadiness, .loading)
+        await model.loadBanners(reader: reader)
+        await model.loadCategories(reader: reader)
         XCTAssertEqual(model.bannerReadiness, .empty)
         XCTAssertEqual(model.categoryReadiness, .empty)
         XCTAssertNotEqual(model.streamReadiness, .unknown)

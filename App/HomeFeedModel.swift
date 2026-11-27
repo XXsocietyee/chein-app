@@ -130,24 +130,22 @@ import SwiftUI
         await loadMissing(reader: reader)
     }
     private func loadMissing(reader: any HomeFeedReading) async {
-        let needsRead = !bannersLoaded && !bannerFailed || !categoriesLoaded && !categoryFailed ||
-            HomeFeedSection.allCases.contains { sections[$0] == nil && !failedSections.contains($0) } || !pageLoaded && !pageFailed
+        // mp-home r3: MP pages/index/index.js reads neither `/banner` ("固定行动 Banner 不再请求后台随机图") nor the
+        // category list on 首页, so a resume reads only the three rails and the stream. `schedule(.banners/.categories)`
+        // still reads them on explicit request.
+        let needsRead = HomeFeedSection.allCases.contains { sections[$0] == nil && !failedSections.contains($0) } || !pageLoaded && !pageFailed
         guard needsRead else { return }
         let ticket = generation, pageTicket = pageGeneration
         loading = true
-        let bannersNeeded = !bannersLoaded && !bannerFailed
-        let categoriesNeeded = !categoriesLoaded && !categoryFailed
         let recommendedNeeded = sections[.recommended] == nil && !failedSections.contains(.recommended)
         let nearbyNeeded = sections[.nearby] == nil && !failedSections.contains(.nearby)
         let upcomingNeeded = sections[.upcoming] == nil && !failedSections.contains(.upcoming)
         let pageNeeded = !pageLoaded && !pageFailed
-        async let a: Void = bannersNeeded ? loadBanners(reader: reader, expected: ticket) : ()
-        async let b: Void = categoriesNeeded ? loadCategories(reader: reader, expected: ticket) : ()
         async let c: Void = recommendedNeeded ? loadSection(.recommended, reader: reader, expected: ticket) : ()
         async let d: Void = nearbyNeeded ? loadSection(.nearby, reader: reader, expected: ticket) : ()
         async let e: Void = upcomingNeeded ? loadSection(.upcoming, reader: reader, expected: ticket) : ()
         async let f: Void = pageNeeded ? loadMore(reader: reader, expected: ticket, expectedPage: pageTicket) : ()
-        _ = await (a, b, c, d, e, f)
+        _ = await (c, d, e, f)
         if owns(ticket, reader) { loading = false }
     }
     private var bannersLoaded = false

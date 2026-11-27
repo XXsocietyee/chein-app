@@ -71,7 +71,7 @@ import UIKit
                 // P-019: a system List of sections and shelves (App Store / Music browse), not a scroll view of cards.
                 // Reading order is the List order; each section owns its title, so VoiceOver's rotor lists them.
                 List {
-                    // mp-home r3: MP pages/index/index.wxml order — hero (greeting + action banners), the city
+                    // mp-home r3: MP pages/index/index.wxml order — hero (action banners at the top edge, then greeting), the city
                     // location card, 编辑精选, 附近活动, 即将上线, then the 主题 / 活动 stream. Nothing else sits between.
                     if hasHeroHeader {
                         HomeHeroHeaderSectionView(
@@ -116,6 +116,7 @@ import UIKit
                 }
                 .listStyle(.grouped)
                 .scrollContentBackground(.hidden)
+                .modifier(HomeFeedHeroEdge(enabled: hasHeroHeader))
                 .environment(\.defaultMinListRowHeight, 0)
                 .modifier(HomeFeedNavigationSearch(text: $keyword, enabled: !hasHeroHeader, usesDrawer: onOpenUnifiedSearch != nil))
                 .onSubmit(of: .search) { submitFeedSearch() }
@@ -125,10 +126,10 @@ import UIKit
                 .refreshable { await model.reload(reader: reader, query: query) }
             }
         }
-        // Design hand-off r1 PL-11: one root header. The large title is the tab label (首页); the greeting is its
-        // subtitle line, and the feed scrolls under the bar (the large title collapses on scroll).
+        // mp-home r3 (coordinator 13:34): MP 首页 has no title row; the banner sits at the top edge. With the hero, the
+        // bar is inline and transparent over the banner (logo leading, 消息 / map trailing); without it, the tab title.
         .appNavigationTitle("homeFeed.title")
-        .navigationBarTitleDisplayMode(.large)
+        .modifier(HomeFeedHeroChrome(enabled: hasHeroHeader && reader.isConfigured && unavailableMessageKey == nil))
         .task(id: binding) { await model.resume(reader: reader, query: query, available: unavailableMessageKey == nil, expectedBinding: binding) }
         .onDisappear { model.suspend() }
         .cyDomainScreen(.player)
@@ -471,6 +472,52 @@ extension View {
 
 /// Keeps the system search only when the navigation bar is showing. The hero top bar owns search
 /// when the bar is hidden, so the feed does not draw a second field.
+/// mp-home r3: MP `v3-hero-banner` starts at the page's top edge — the List runs under the status bar and the bar.
+private struct HomeFeedHeroEdge: ViewModifier {
+    let enabled: Bool
+    func body(content: Content) -> some View {
+        if enabled {
+            content
+                .contentMargins(.top, 0, for: .scrollContent)
+                .ignoresSafeArea(.container, edges: .top)
+        } else {
+            content
+        }
+    }
+}
+
+/// mp-home r3: over the banner the bar is inline and transparent with light items (MP `v3-hero-head` floats on the
+/// image; `v3-home-logo` at the leading edge). Without the hero, the tab keeps its large title.
+private struct HomeFeedHeroChrome: ViewModifier {
+    let enabled: Bool
+    func body(content: Content) -> some View {
+        if enabled {
+            content
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbarBackground(.hidden, for: .navigationBar)
+                .toolbarColorScheme(.dark, for: .navigationBar)
+                .toolbar {
+                    ToolbarItem(placement: .principal) {
+                        Color.clear.frame(width: 1, height: 1).accessibilityHidden(true)
+                    }
+                    ToolbarItem(placement: .topBarLeading) {
+                        MPAsset.BrandLogo.cyLogoMark
+                            .resizable()
+                            .renderingMode(.template)
+                            .scaledToFit()
+                            .foregroundStyle(Color.white)
+                            .frame(width: 32, height: 28)
+                            .accessibilityLabel(Text("homeIndex.logo"))
+                            .accessibilityAddTraits(.isImage)
+                            .accessibilityIdentifier("homeIndex.hero.logo")
+                    }
+                }
+        } else {
+            content.navigationBarTitleDisplayMode(.large)
+        }
+    }
+}
+
 private struct HomeFeedNavigationSearch: ViewModifier {
     @Binding var text: String
     var enabled: Bool
