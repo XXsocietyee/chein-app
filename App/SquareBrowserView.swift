@@ -210,7 +210,7 @@ import SwiftUI
     }
 
     private var loadingRow: some View {
-        ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("square.loading")
+        ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity).accessibilityIdentifier("square.loading")
     }
 
     private func squareIssueKey(_ error: Error) -> LocalizedStringKey {

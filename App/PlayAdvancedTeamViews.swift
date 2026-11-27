@@ -96,7 +96,8 @@ import SwiftUI
             if let metric = model.leaderboardMetric {
                 Text(metric == .elapsed ? "advancedBoard.elapsed" : metric == .units ? "advancedBoard.units" : "advancedBoard.score").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 Text("advancedBoard.scope").cyText(.meta).foregroundStyle(CYColor.textTertiary)
-                if model.leaderboardPhase == "loading" { CYLoadingStateView(rows: 1).accessibilityLabel(Text("advancedBoard.loading")) }
+                // mp-states r3 (MP pages/play/components/advanced-game/index.wxml:52-55): the loader says 正在读取排行榜… on screen.
+                if model.leaderboardPhase == "loading" { ProgressView { Text("advancedBoard.loading") }.frame(maxWidth: .infinity) }
                 else {
                     switch LeaderboardFetchPresentation.resolve(phase: model.leaderboardPhase, rowCount: model.leaderboard.count) {
                     case .error:

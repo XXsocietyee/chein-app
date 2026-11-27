@@ -66,7 +66,7 @@ import Observation
                         Task { await load(retryOwner) }
                     }
                 }
-                else { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("searchMap.loading")) }
+                else { ProgressView { Text("searchMap.loading") }.frame(maxWidth: .infinity) }
                 Text("searchMap.routeBoundary").font(.footnote).foregroundStyle(.secondary)
             }.padding()
         }

@@ -98,7 +98,19 @@ extension EnvironmentValues {
                 LabeledContent("verificationCode.remaining") { Text(model.remainingSeconds, format: .number).monospacedDigit() }
             }
         } else if model.phase == .loading {
-            ProgressView()
+            // mp-states r3: P10 — the loader says what it is doing (正在获取实时码…), not a bare spinner.
+            ProgressView { Text(LocalizedStringKey(phaseKey)) }
+        } else if model.phase == .failed, model.target.kind == .ticket {
+            // mp-states r3 (MP pages/play/components/scene-qr-ticket/index.wxml:3): cy-error 入场码没生成出来 · sub · 重试.
+            ContentUnavailableView {
+                Label("verificationCode.ticket.failedTitle", systemImage: "qrcode")
+            } description: {
+                Text(LocalizedStringKey(phaseKey)).accessibilityIdentifier("verificationCode.phase")
+            } actions: {
+                Button("action.retry") { run { await model.present() } }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("verificationCode.show")
+            }
         } else {
             Text(LocalizedStringKey(phaseKey))
                 .multilineTextAlignment(.center).accessibilityIdentifier("verificationCode.phase")

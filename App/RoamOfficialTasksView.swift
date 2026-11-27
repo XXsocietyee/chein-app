@@ -131,7 +131,7 @@ import SwiftUI
                 // MP scene-roam-task-list `task-tabs`: 进行中 / 即将 / 我的 (no 已结束 tab), shown as one segmented row.
                 Picker("official.filter", selection: $bucket) {
                     ForEach(Self.tabs) { value in Text(LocalizedStringKey(value.tabTitleKey)).tag(value) }
-                }.pickerStyle(.segmented).accessibilityIdentifier("roam.tasks.filter")
+                }.cyAdaptiveSegmented().accessibilityIdentifier("roam.tasks.filter")
                 OfficialReadOnlyNotice(offline: reader.isOfflineExample)
             }
             if let snapshot = model.snapshot {

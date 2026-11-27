@@ -86,7 +86,7 @@ import SwiftUI
             }
         case .uploading:
             status("d7.imCompose.uploading", symbol: "arrow.up.circle", color: .secondary)
-            ProgressView().frame(maxWidth: .infinity).accessibilityElement(children: .ignore).accessibilityLabel(Text("d7.imCompose.uploading"))
+            ProgressView { Text("d7.imCompose.uploading") }.frame(maxWidth: .infinity)
         case .unknown:
             status("d7.imCompose.uploadUnknown", symbol: "clock.arrow.circlepath", color: .secondary)
             if owner.canRecover { pill("d7.imCompose.checkStatus", image: "arrow.clockwise", primary: false) { Task { await owner.recover() } } }
@@ -121,7 +121,7 @@ import SwiftUI
         switch owner.originalSendState {
         case .reading:
             status("d7.imCompose.checking", symbol: "clock", color: .secondary)
-            ProgressView().frame(maxWidth: .infinity).accessibilityElement(children: .ignore).accessibilityLabel(Text("d7.imCompose.checking"))
+            ProgressView { Text("d7.imCompose.checking") }.frame(maxWidth: .infinity)
         case .notFound: status("d7.imCompose.notFound", symbol: "questionmark.circle", color: .secondary)
         case .unknown: status("d7.imCompose.stillUnknown", symbol: "clock.arrow.circlepath", color: .secondary)
         case .found:
@@ -140,7 +140,7 @@ import SwiftUI
             }
         case .submitting:
             status("d7.imCompose.sending", symbol: "paperplane", color: .secondary)
-            ProgressView().frame(maxWidth: .infinity).accessibilityElement(children: .ignore).accessibilityLabel(Text("d7.imCompose.sending"))
+            ProgressView { Text("d7.imCompose.sending") }.frame(maxWidth: .infinity)
         case .outcomeUnknown(.send(let intent)), .rejected(.send(let intent)):
             if case .voice = intent.payload {
                 status("d7.imCompose.sendUnknown", symbol: "clock.arrow.circlepath", color: .secondary)

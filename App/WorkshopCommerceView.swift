@@ -239,7 +239,7 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         Form {
-            if controller.licenseSnapshotLoading { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(commerceText("loadingLicense")) }
+            if controller.licenseSnapshotLoading { ProgressView { commerceText("loadingLicense") }.frame(maxWidth: .infinity) }
             else if let snapshot = controller.licenseSnapshot, snapshot.license.licenseId == licenseId, controller.isCurrent {
                 let item = snapshot.license
                 Section {

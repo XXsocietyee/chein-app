@@ -11,7 +11,7 @@ The 21 MP pages were compared section by section, top to bottom, against their n
 | `python3 tools/generate_project.py` | OK |
 | `python3 tools/check_scaffold.py` | PASS (no FAIL lines; typography lint PASS) |
 | `python3 -B tools/check_a11y_lint.py` | PASS: 0 new |
-| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 6, after merging combined-r7 again), **new 0**, fixed 0 |
+| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 7, after merging combined-r7 again), **new 0**, fixed 0 |
 | `python3 tools/check_design_consistency.py` | PASS |
 
 There is no Swift compiler in this environment. Edits are kept type-simple and reuse existing keys, components and patterns.
@@ -46,7 +46,7 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/badges | `ClubBadgeManagementView.swift` | Matches: list, 全部勋章 · N 枚, create, grant picker, states. | Matches |
 | club/apply | `ClubGovernanceCommandForm` (hostApply) | Submit must read 成为俱乐部主理人 / 提交中… (wxml:164-165); native read 提交申请. | **Fixed** (existing keys `settings.becomeClubHost`, `gap.club.coopPool.submitting`) |
 | club/apply | same | 上一步 button: the MP nav back steps back (js:212 `onBack` → `step - 1`); native is a sheet with 关闭 in the bar, so 上一步 carries that behaviour. | **Kept** (reason given) |
-| club/apply | same | Extra required-fields footer; 状态 row on the done card; done-state loading/error + 可建俱乐部 row. | **Not done** (the done state is large) |
+| club/apply | same | Extra required-fields footer; 状态 row on the done card; done-state loading/error + 可建俱乐部 row. | Footer: **kept** (pass 7 re-check: it carries the MP `*` required marks and the MP 联系方式仅用于审核 note, wxml:63-80, as a native footer, CLB-r10-nat-apply-03). Done state: **not done** (large) |
 | club/create | `ClubOperationsViews.swift` | 返回上一页 was missing on the no-permission and limit states (wxml:23, 27). | **Fixed.** Secondary `Button("team.page.goBack") { dismiss() }` |
 | club/create | same | 创建资格未确认 needs primary 重新检查 + secondary 返回上一页 (wxml:16-18). | **Fixed (pass 2).** 重新检查 `.borderedProminent`, 返回上一页 `.bordered` |
 | club/create | same | Extra step checklist on the intro; media above the step header on step 3; extra 上一步. | **Not done.** Step 3 order is large |
@@ -71,7 +71,7 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/notify | `ClubGovernanceCommandForm` (sendNotification) | 当前身份不能发通知 | Already present (`ClubOpsNotifyDeniedText`, a `ContentUnavailableView`) |
 | club/notify | `ClubGovernanceCommandForm.swift` | A failed 预览受众 is inline 受众预览失败 + reason + 重试 (wxml:59-62); native showed the generic form error. | **Fixed (pass 3).** Dedicated section before any review, 重试 re-runs the preview (`club.notify.previewFailed`) |
 | club/notify | same | 投递状态 is its own section with 刷新 / 刷新中… in the section head, then the five counts and 只重试失败项 (wxml:72-111); native mixed the counts and a 刷新 row into the generic 已提交 receipt section (a parallel pass-4 run had only retitled that section). | **Fixed (pass 5).** New `Section` headed 投递状态 (`club.notify.deliveryStatus` from the parallel pass-4 run, header trait) with a `.borderless` 刷新 button (`notifyRefreshButton`, same id `club.notify.refreshCampaign`) in the header; counts, 只重试失败项 and the refresh notice moved into it |
-| club/notify | same | Extra review fact rows. | **Not done** (send-button wording is a deliberate CLB-notify-01 choice) |
+| club/notify | same | Extra review fact rows: after 预览受众 the MP shows only the preview card 「N 人」 (+ 该分群暂无成员 at 0, wxml:55-64); native repeated 受众/标题/内容 and 站内/订阅消息 as fact rows above it. | **Fixed (pass 7).** The notify review section is the preview summary + the send button only (title/content stay in the form above). Send-button wording 发送给 N 人 kept (deliberate CLB-notify-01 choice) |
 | club/governance | `ClubGovernanceViews.swift` (.bans), `ClubOpsMemberActionCard.swift` | Full-page 暂无可治理成员 (wxml:18, js:403: no members and no bans). | **Fixed (pass 3).** The card reports its member count (`onLoaded`); no bans + 0 members shows a `ContentUnavailableView` instead of the records section |
 | club/governance | same | Appeal mode: MP page title 封禁申诉 (js:224); native drew it as an in-content headline section. | **Fixed (pass 3).** Inline bar title via `pageTitleKey` (`club.gov.casesAppeal`); headline section removed (OWNER RULE 2) |
 | club/customers | `ClubOpsCustomerViews.swift` | The count line sits as the list section header after the filter (native pattern; the count follows the filter); the filtered-empty CTA 查看全部客户 is a borderless button under the empty state, not inside it. | **Kept** (the CTA's fences are pinned in place by `test_club_customer_clear_filters`; moving it needs the clear closure threaded into the list view) |
@@ -142,4 +142,11 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 14. Pass 5: merge combined-r7 (xcstrings: both sides' keys, 22 added); notify 投递状态 section with 刷新 in its header.
 16. Pass 6: 结束主题 confirm in MP copy (结束并退款, 下架就够了).
 15. Pass 6: merge combined-r7 (xcstrings: both sides' keys, 28 added); club 帖文 公告 · 新人先看 (≤2 pinned notices with unread dots).
+17. Pass 7: merge combined-r7 (xcstrings: both sides' keys, 16 added); notify review = preview card only (MP wxml:55-64).
 8. Pass 2: shared club thumbnail, customer-detail edit heading, create check-failed 返回上一页, enroll order, check-in rail refund note.
+
+## Sweep check (pass 7, build 070117595, `docs/sweeps/latest/mp-club/sheet-zh-Hans.jpg`)
+Most tiles are the launch logo (coordinator 17:40: taken under load, ignore). Readable tiles: `d4-enroll` 报名名册 and `d4-members` 成员 look right (inline titles, grouped lists). `d4-channels` shows the category headers 「Announcements」/「Community」 in the Chinese UI, but those are channel-category names from `App/DesignFixtures/D4Fixtures.swift:108-109` (server data), not app copy. Re-check on the clean sweep.
+
+## For other lanes
+- en-layout / fixtures: `D4Fixtures.swift:108-109` channel categories are English in the zh-Hans sweep; localize the fixture if the sweep should read as zh-Hans.

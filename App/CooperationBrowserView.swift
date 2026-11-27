@@ -204,8 +204,7 @@ import SwiftUI
                 // Ordinal identities preserve duplicate server IDs without merging unrelated entries.
                 ForEach(rows, id: \.offset) { index, row in
                     NavigationLink {
-                        CooperationInviteDetailView(key: CooperationInviteKey(id: row.id, direction: direction), reader: reader, peerReader: peerReader)
-                            .environment(\.cooperationProjectDestination, topicDestination)
+                        inviteDetail(row, direction: direction)
                     } label: {
                         // Mini `.inv`: row 1 status badge + peer ("来自/发给 X"), row 2 title/sub, row 3 terms, then meta.
                         VStack(alignment: .leading, spacing: CYSpacing.md) {
@@ -275,6 +274,17 @@ import SwiftUI
                         .controlSize(.regular)
                         .frame(maxWidth: .infinity, alignment: .trailing)
                     }
+                    if direction == .received, row.status == 1, !row.legacyReadonly {
+                        // MP wxml:92-95: an accepted received card offers 查看合作 (secondary) under the card.
+                        NavigationLink {
+                            inviteDetail(row, direction: direction)
+                        } label: {
+                            Text("mpr3.coop.list.viewCooperation")
+                        }
+                        .buttonStyle(.bordered)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                        .accessibilityIdentifier("cooperation.invite.received.view.\(row.id).\(index)")
+                    }
                     if direction == .sent, case .withdraw = CooperationInvitePresentation(invite: row, direction: direction).footer {
                         // MP wxml:222-224: a pending sent card offers 撤回邀约 (secondary only).
                         Button("cooperation.detail.withdraw") { listHandle = CoopListHandle(row: row, action: .cancel) }
@@ -295,6 +305,11 @@ import SwiftUI
                 }
             }
         }
+    }
+    /// One destination for the card and its 查看合作 button (MP `goInviteDetail` with the current box).
+    private func inviteDetail(_ row: CooperationInvite, direction: CooperationDirection) -> some View {
+        CooperationInviteDetailView(key: CooperationInviteKey(id: row.id, direction: direction), reader: reader, peerReader: peerReader)
+            .environment(\.cooperationProjectDestination, topicDestination)
     }
     @ViewBuilder private func applicationSection(_ state: CooperationSection<[CooperationApplication]>, direction: CooperationDirection, sentInvites: [CooperationInvite] = []) -> some View {
         Section("cooperation.applications") {

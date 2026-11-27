@@ -36,7 +36,7 @@ import SwiftUI
                     Button("square.gov.signIn", action: context.signIn).accessibilityIdentifier("square.gov.signIn")
                 }
             } else {
-                if loading { ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("square.gov.loading") }
+                if loading { ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity).accessibilityIdentifier("square.gov.loading") }
                 if let message { Text(LocalizedStringKey(message)).accessibilityIdentifier("square.gov.message") }
                 if let snapshot {
                     Button("square.gov.drafts", action: context.openDrafts)

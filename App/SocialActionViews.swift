@@ -283,7 +283,7 @@ private struct SocialActionStateView: View {
         Group {
             switch state {
             case .idle, .reviewing: EmptyView()
-            case .preparing, .preflighting, .submitting: ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("social.loading"))
+            case .preparing, .preflighting, .submitting: ProgressView { Text("social.loading") }.frame(maxWidth: .infinity)
             case .notSent: Label("social.notSent", systemImage: "paperplane").foregroundStyle(.secondary).accessibilityIdentifier("social.state.notSent")
             case .rejected:
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {

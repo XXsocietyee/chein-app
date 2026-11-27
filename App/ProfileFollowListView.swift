@@ -64,7 +64,7 @@ import SwiftUI
                         .id(member.id)
                         .accessibilityIdentifier("profile.followList.member.\(member.id)")
                     }
-                    if flow.loading { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("social.loading")) }
+                    if flow.loading { ProgressView { Text("social.loading") }.frame(maxWidth: .infinity) }
                     else if flow.hasLoaded && flow.visibleRows.isEmpty && flow.error == nil {
                         ContentUnavailableView {
                             Label {
