@@ -95,4 +95,10 @@ match is a queue item (133 at the start). Tab roots first, then their pushed pag
 
 ## Gates
 
-See the last commit message on the branch for the gate run that accompanied each push.
+Every push ran, on the merged head: `python3 tools/generate_project.py` (no project diff), `python3 tools/check_scaffold.py`
+(PASS, incl. design / typography / a11y sub-lints), `python3 tools/check_a11y_lint.py` (0 new) and
+`python3 -B tools/contract_ratchet.py --check` (52 failing = baseline 52, **new 0**). Stale pins touched with a one-line
+reason: `test_global_search_category_recovery` (view hash), `test_w2_04_p2_member_tools` (complaint copy). Files whose
+bytes are hash-pinned (`WorkshopPaidInstalledTextView`, `ClubGovernanceViews`, `ClubInvitationFeedbackView`) were left as is.
+No Swift compiler here: every edit mirrors an existing call pattern (`ProgressView { Text(…) }`,
+`ContentUnavailableView { Label … } description: { … } actions: { … }`).
