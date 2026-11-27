@@ -64,7 +64,7 @@ public enum ProjectEditIssueLocation: Equatable {
         }
         for ticket in draft.tickets {
             for (prefix, field) in [("ticketMeetingPoint", "ticketSchedule"), ("ticketSaleDates", "ticketSale"),
-                ("ticketName", "ticketName"), ("price", "price"), ("stock", "stock"), ("team", "team"),
+                ("ticketName", "ticketName"), ("ticketChildAge", "ticketChildAge"), ("price", "price"), ("stock", "stock"), ("team", "team"),
                 ("ticketDates", "ticketSchedule"), ("ticketOrder", "ticketSchedule"), ("meeting", "ticketSchedule")] where id == prefix + ticket.id {
                 candidates.append(.ticket(id: ticket.id, anchor: "project-issue-anchor-" + field))
             }

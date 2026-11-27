@@ -69,6 +69,7 @@ public enum ProjectEditContract {
             if !ticket.description.isEmpty { p["description"] = .string(ticket.description) }
             p.merge(try ProjectTicketMeetingPoint.wireFields(ticket)) { _, edited in edited }
             p.merge(try ticket.saleTimePayloads()) { _, edited in edited }
+            p.merge(try ticket.familyPayload()) { _, edited in edited }
             // Exact stored preference, including an untouched legacy value. The
             // server does not resolve date sync; start/end above already do so.
             if let sync = ticket.localMetadata["syncWithTheme"] { p["syncWithTheme"] = sync }
