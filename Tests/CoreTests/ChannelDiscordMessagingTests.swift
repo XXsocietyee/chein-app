@@ -584,6 +584,8 @@ final class ChannelDiscordMessagingTests: XCTestCase {
         XCTAssertEqual(filter.evaluate(message: hidden.wireMessage).displayText, "x")
         XCTAssertEqual(ChannelMessageBurstGrouper.formatDivider(.today(clock: "08:30"), locale: en), "Today 08:30")
         XCTAssertEqual(ChannelMessageBurstGrouper.formatDivider(.today(clock: "08:30")), "今天 08:30")
+        XCTAssertEqual(ChannelMessageBurstGrouper.formatDivider(.date(month: 11, day: 7, clock: "09:00"), locale: en), "Nov 7, 09:00")
+        XCTAssertEqual(ChannelMessageBurstGrouper.formatDivider(.date(month: 11, day: 7, clock: "09:00"), locale: zh), "11-07 09:00")
     }
 
     func testClubRecordDecodesMyJoinReviewReasonAndTrimsBlank() throws {

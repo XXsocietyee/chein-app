@@ -44,7 +44,7 @@ struct CYSquareActivityPicker: View {
     @ViewBuilder private var content: some View {
         switch phase {
         case .loading:
-            VStack(spacing: CYSpacing.lg) { ForEach(0..<3, id: \.self) { _ in CYSkeleton() } }
+            CYSkeleton()
                 .accessibilityIdentifier("square.activityPicker.loading")
         case .failed:
             CYEmptyState(systemImage: "exclamationmark.triangle", "activityPicker.failed", tableName: "SocialParity",

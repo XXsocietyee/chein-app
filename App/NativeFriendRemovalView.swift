@@ -31,9 +31,8 @@ import SwiftUI
                 }
             }
             if flow.busy {
-                ProgressView()
+                ProgressView { Text("cy.state.loading") }
                     .frame(maxWidth: .infinity)
-                    .accessibilityLabel(Text("cy.state.loading"))
                     .accessibilityIdentifier("friendRemoval.loading")
             }
             if flow.phase == .closed { notice("friendRemoval.closed") }

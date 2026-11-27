@@ -11,7 +11,7 @@ The 21 MP pages were compared section by section, top to bottom, against their n
 | `python3 tools/generate_project.py` | OK |
 | `python3 tools/check_scaffold.py` | PASS (no FAIL lines; typography lint PASS) |
 | `python3 -B tools/check_a11y_lint.py` | PASS: 0 new |
-| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 8, after merging combined-r7 again), **new 0**, fixed 0 |
+| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 10, after merging combined-r7 again), **new 0**, fixed 0 |
 | `python3 tools/check_design_consistency.py` | PASS |
 
 There is no Swift compiler in this environment. Edits are kept type-simple and reuse existing keys, components and patterns.
@@ -80,7 +80,7 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/customer-detail | `ClubOpsCustomerViews.swift`, `ClubCustomerInlineEditor.swift` | In edit mode the editor replaces the card, the heading reads 编辑标签与备注 and 取消 sits in the heading (wxml:82-99). | **Fixed (pass 2).** The editor owns the 标签与备注 section; 取消 moved from a row into the header (VoiceOver: 取消编辑标签与备注) |
 | club/payout-receiver | `ClubPayoutReceiverView.swift` | Binding needs a WeChat code (`PayoutReceiverBridge.payoutOpen`). | Blocked (WeChat/backend), not a view gap |
 | club/edit | `ClubOperationsViews.swift` | 改为转让主理人 is only inside the dissolve confirm in the MP (scene-club-edit `cy-danger-confirm` alt, utils/danger-actions.js `club.dissolve.alt`); native shows a permanent row. | Not done (pass 5 re-checked: the native confirm is `ClubGovernanceConsequence.sheet` inside the command form, reached through the blockers page; adding the alt there needs a new callback through that shared sheet, too risky without a compiler) |
-| club/edit · 解散 confirm (`utils/danger-actions.js` `club.dissolve`) | `ClubGovernanceConsequence` (dissolve) | MP lists three consequences: 全部成员会被移出俱乐部，同时失去群聊入口 / 俱乐部名下的活动与会员权益一并下架；已报名的不会自动取消，也不会自动退款 / 此操作不可撤销. Native had two lines, and the first said upcoming events close, which reads as if sign-ups were cancelled (the MP says they are **not** cancelled or refunded automatically). | **Fixed (pass 8).** OpsR3 `r3club.consequence.dissolve.line1-3` = the MP's three sentences (en + zh-Hans), symbols `person.2.slash` / `calendar.badge.minus` / `exclamationmark.triangle`. Title 解散「name」？ **not done** (the blockers page does not carry the club name into the form) |
+| club/edit · 解散 confirm (`utils/danger-actions.js` `club.dissolve`) | `ClubGovernanceConsequence` (dissolve) | MP lists three consequences: 全部成员会被移出俱乐部，同时失去群聊入口 / 俱乐部名下的活动与会员权益一并下架；已报名的不会自动取消，也不会自动退款 / 此操作不可撤销. Native had two lines, and the first said upcoming events close, which reads as if sign-ups were cancelled (the MP says they are **not** cancelled or refunded automatically). | **Fixed (pass 8).** OpsR3 `r3club.consequence.dissolve.line1-3` = the MP's three sentences (en + zh-Hans), symbols `person.2.slash` / `calendar.badge.minus` / `exclamationmark.triangle`. Title 解散「name」？: **fixed (pass 10)**: the edit page's `ClubDissolvedReturn` now carries `profile.club.name` through the blockers page into the form, and the sheet titles itself `club.gov.consequence.dissolve.titleNamed` (Dissolve “%@”? / 解散「%@」？); without a name it keeps 解散这个俱乐部？ |
 | club/detail · 退出 confirm (`utils/danger-actions.js` `club.quit`) | `ClubActionPanel` confirmation dialog | MP: 退出「name」？, 重新进来时… line, three consequences, confirm 退出俱乐部. | Matches (pass 8 check): system confirmation dialog with 退出「name」？, the rejoin line and `ClubLeaveConsequences` (the MP's three sentences). The MP alt 只关掉群聊提醒 is not offered (no per-club mute in the native panel); flagged |
 | club/workbench | `MPReviewedPageScreen.swift` redirect | MP error state 没能进入俱乐部管理 + 重试进入 + 返回俱乐部. | Already present (CLB-workbench-03, CLB-r11-workbench-01) |
 
@@ -118,6 +118,7 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 | `r3club.consequence.dissolve.line2` (OpsR3, value changed) | The club’s events and member perks are taken down. Existing sign-ups aren’t cancelled or refunded automatically. | 俱乐部名下的活动与会员权益一并下架；已报名的不会自动取消，也不会自动退款 |
 | `r3club.consequence.dissolve.line3` (OpsR3, new) | This can’t be undone. A dissolved club can’t be restored. | 此操作不可撤销，解散后无法恢复这个俱乐部 |
 | `club.notify.deliveryStatus` | Delivery status | 投递状态 |
+| `club.gov.consequence.dissolve.titleNamed %@` | Dissolve “%@”? | 解散「%@」？ |
 | `club.community.pinnedNoticesTitle` | Notices · Start here | 公告 · 新人先看 |
 | `club.community.noticeNoText` | (No text) | （无文字内容） |
 | `club.community.noticeUnreadA11y %@` | Unread notice: %@ | 未读公告：%@ |
@@ -151,6 +152,7 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 15. Pass 6: merge combined-r7 (xcstrings: both sides' keys, 28 added); club 帖文 公告 · 新人先看 (≤2 pinned notices with unread dots).
 17. Pass 7: merge combined-r7 (xcstrings: both sides' keys, 16 added); notify review = preview card only (MP wxml:55-64).
 18. Pass 8: merge combined-r7 (xcstrings: combined is a superset; 35 keys take its newer values); 出示团码 card in MP order (code → session name → 保存到相册); 结束主题 confirm names the topic; 解散 confirm in the MP's three consequences.
+20. Pass 10: merge combined-r7 (xcstrings: combined is a superset); 查找俱乐部 split into 你的俱乐部 / 发现 rows (P25); 解散 confirm titled 解散「name」？.
 19. Pass 9: merge combined-r7 (xcstrings: combined is a superset); d4 club detail mounts the 帖文 feed (18:15 sweep); d4-badges / d4-stamps crash written up.
 8. Pass 2: shared club thumbnail, customer-detail edit heading, create check-failed 返回上一页, enroll order, check-in rail refund note.
 
@@ -163,6 +165,13 @@ Most tiles are the launch logo (coordinator 17:40: taken under load, ignore). Re
 |---|---|---|---|
 | `pages/club/detail` 帖文 tab (wxml:96-158, `/api/club/post/list`) | `App/ClubDetailView.swift:111-168`, fixture `App/DesignFixtures/D4Fixtures.swift` | `zh-Hans-d4-tab-posts.jpg`: 帖文 showed 「当前版本暂不可查看俱乐部帖子」. The view is right: with a community context it mounts `ClubCommunityFeedView` (MP post list, 公告 · 新人先看, composer pill, MP empty state). The d4 fixture never passed one, so the sweep hit the no-community fallback. | **Fixed (fixture).** `ClubCommunityFixture.context(identity:clubID:)` (offline transport, rows carry the requested club id); `d4-tab-*` and `d4-detail` pass it for viewer 701 / club 81. Re-check on the next sweep |
 | `pages/talent/*` badge wall / stamp album (d4-badges, d4-stamps; also mp-roam `e2-stamp-album`, same `D4MeFixture(.stamps)`) | `D4MeFixture` → `ObjectBadgeWallView`, `RoamStampAlbumView` | App quits right after launch (home-screen tile), in both languages. | **Not done: not reproducible here** (no simulator in the cloud run). Checked statically: both cases resolve in `DesignFixtureRegistry.make` (lines 99, 103, 129); no `fatalError`/force-unwrap on the badge path; the only `try!` is `RoamExperienceFixtureReader.scope` (stamps only, constant input). Common to all three quitting fixtures (with mp-mine `e4-tickets`): `.cyHideTabBar()` + `cyPageTitle` on a fixture `NavigationStack` with **no** `AppSession` — new since 17:23, when design fixtures stopped building the production session (`5e2a0a57f`, mp-home). Needs the crash log from `xcrun simctl launch … --design-fixture d4-badges` (`~/Library/Logs/DiagnosticReports`) |
+
+## Pass 10: P25 / P26 (design-principles e08794fe6)
+
+| MP page | Native | Difference | Status |
+|---|---|---|---|
+| none (查找俱乐部 has no MP page; the MP searches clubs through unified search, and talent/list wxml:74 keeps one unsplit list on the tab root) | `App/ClubDirectoryView.swift` | `en-d4-directory.jpg`: every result was the same three-line row (name / style · city / N members) with an "Apply to join" pill, whether or not the viewer was already in the club. P25: the viewer's clubs are navigation, other clubs are a decision. | **Fixed.** Section 你的俱乐部 (`club.home.yours`; owner / joined): thumbnail, name, member count, chevron. Section 发现 (`club.home.discover`, header shown only when both sections exist): thumbnail, name, one secondary line (N 名成员 · description, else style · city, `.lineLimit(1)`) and one trailing `.bordered` `+ 加入` / 申请加入 (`.fixedSize()`, same ids `club.directory.<id>.join`); pending keeps 审核中. 我创建的俱乐部 (`ClubOwnedView`) uses the 你的俱乐部 row. Existing keys only. Talent/list tab root **not split** (MP UI-19 comment: 不再分「我的 / 附近」两段) |
+| club/detail 帖文 (P26) | `ClubDetailView` 帖文 tab | Non-member must see real posts, never a "not available in this version" placeholder; one prominent Join. | Feed mounted in pass 9 (fixture). Join stays the 概览 加入 section (MP floating capsule is 概览-only); no second CTA on 帖文. Re-check on the next sweep |
 
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.

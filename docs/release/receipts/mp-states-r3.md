@@ -76,14 +76,30 @@ match is a queue item (133 at the start). Tab roots first, then their pushed pag
 | Skeleton + separate words pairs (growth leaderboard, poster scan, NPC log delete) | MP cy-skeleton with loading-label | `CYSkeleton` stacked over its own footnote (now would read twice) | one `ProgressView { <the same words> }` |
 | Not-set-up / disabled states drawn with the offline glyph: 通票核销结果 (`BundleRedeemResultView`), 通票退订 (`BundleCancelView`), 本周统计 (`ProfileWeeklyPointsSection`) | `components/cy/empty` kind offline is only for a lost connection; these are disabled / not-configured reads | `ContentUnavailableView` with `wifi.slash` (tells the player their network is down when it is not); redeem title 核销结果暂不可用 (banned tone phrase) | `exclamationmark.circle` glyph, same as the shared not-set-up state; redeem title 暂时看不到核销结果。 (en unchanged) |
 | 城市大富翁 empties (`CityEmptyLine`, 5 sites: home rail, board, root, property sheet) | MP cy-empty | custom raised card (icon + secondary text on `bgRaised`) | `ContentUnavailableView` (symbol + the same sentence as the description) |
+| Stacked skeleton loaders → one labelled loader: 城市大富翁 附近列表 (`CityRoamRootView`, 3 blocks ×2 phases), 城市 board (`CityBoardScreens.skeleton`, 7 blocks), 广场 · 选活动 (`CYSquareActivityPicker`, 3), 发票详情 (`InvoiceLaunchDetailView`, MP `cy-skeleton count="2"`), 章节换人 sending (`ChapterReplacementInvitationView`, skeleton + bare spinner) | MP `cy-skeleton` count N = one loading area (加载中) | after `CYSkeleton` became a labelled `ProgressView`, these drew 2–7 identical "加载中…" spinners in a column | one `CYSkeleton` (`ProgressView { 加载中… }`); identifiers kept |
+| 城市大富翁 附近列表 failed / empty (`CityRoamRootView`) | MP cy-error · 重试 / cy-empty | `ContentUnavailableView` with a separate `CYPillButton` 重试 / 选择区域 below it | `CityEmptyLine` takes an optional action: one `ContentUnavailableView` with its `.bordered` 重试 (Retry) / 选择区域 (Choose area) inside |
+| Hand-built loading rows → labelled `ProgressView`: 我的 identity card (`MemberHomeHeader`), club quick start (`ClubSessionQuickStartView`), role view (`JourneyRoleViewSection`), city fairness (`CityFairnessView`), 关于 player code (`SettingsAboutView`) | MP cy-skeleton / 加载中 | `HStack(ProgressView + Text)`, text-only loading, or text + skeleton | one `ProgressView { <same words> }` |
+| More `HStack(ProgressView + Text)` page loaders: IM compose, bundle redeem, report peer, order meeting point, bundle review compose | MP cy-skeleton / 加载中 | spinner beside a grey footnote | one `ProgressView { <same words> }` (in-button “submitting” spinners left as button content) |
+| `CYPhaseView` / `CYListChoreography` / `CYLoadSlot` (shared phase loader) | page loading words | `CYLoadingStateView` + VoiceOver-only `loadingLabel` | `CYLoadingStateView(label: loadingLabel)` — the caller's words are on screen |
+| 奖励 list (`NonCashRewardViews`) + 奖励承诺 list (`RewardPledgeViews`) — no MP page (native-only surface); one state pattern | MP cy-error pattern: title + 重试 inside the state | rewards: `ContentUnavailableView` with a separate `CYPillButton` 刷新 below it; pledges: a bare 刷新 pill with no error text at all | `AccountCollectionIssueView(retry:, retryIdentifier:)` — one `ContentUnavailableView` with the failure title and its `.bordered` 重试 inside; identifiers `rewards.retry` / `rewards.pledge.retry` kept (new `retryIdentifier` parameter, default unchanged) |
+| 附近 · 我的 joined teams failure (`NearbyTeamViews`) | `subpackageRoam/nearby/index.wxml:62` cy-error · 重试 | red `CYStatusChip` with the reason + a separate `CYPillButton` 重试 | one `CYEmptyState` (`ContentUnavailableView`, failure kind) with the same reason as the title and `.bordered` 重试 inside; identifiers `nearby.mine.owned.error` / `.retry` kept |
+| Multi-line `ProgressView()` + `.accessibilityLabel(...)` loaders (43 sites in 35 files: club badges / lead progress / terminal, channel views, friend directory / home, ticket wallet focus, ticket pass, square cloud composer / feed, chapter story, member template / score appeal, wallet earnings stages …) | page loading words | spinner with the words for VoiceOver only | `ProgressView { <the same Text> }` — shown and spoken (merchant locality spinner, and the hash-pinned club governance + invitation feedback views, left as is) |
 
 ## For other lanes
 
 - mp-settings: 营销同意 (`AccountComplianceViews.marketing`) has no visible loading words (MP 正在加载…) and its failure is a 当前状态未确认 line instead of the MP cy-inline-error 营销同意状态加载失败 · 重试.
 - debt: `tools/check_contextual_flows.py` already fails on the branch base (asserts `payload: .route(topicID: row.id)` in the IM UI, no longer present) — not one of the brief's gates.
 - mp-activity: `TeamOrientBoardView` progress card title reads 任务进度; MP `pages/team/detail/index.wxml:115` says 队伍进度.
-| Hand-built loading rows → labelled `ProgressView`: 我的 identity card (`MemberHomeHeader`), club quick start (`ClubSessionQuickStartView`), role view (`JourneyRoleViewSection`), city fairness (`CityFairnessView`), 关于 player code (`SettingsAboutView`) | MP cy-skeleton / 加载中 | `HStack(ProgressView + Text)`, text-only loading, or text + skeleton | one `ProgressView { <same words> }` |
 
 ## Gates
 
-See the last commit message on the branch for the gate run that accompanied each push.
+Every push ran, on the merged head: `python3 tools/generate_project.py` (no project diff), `python3 tools/check_scaffold.py`
+(PASS, incl. design / typography / a11y sub-lints), `python3 tools/check_a11y_lint.py` (0 new) and
+`python3 -B tools/contract_ratchet.py --check` (52 failing = baseline 52, **new 0**). Stale pins touched with a one-line
+reason: `test_global_search_category_recovery` (view hash), `test_w2_04_p2_member_tools` (complaint copy). Files whose
+bytes are hash-pinned (`WorkshopPaidInstalledTextView`, `ClubGovernanceViews`, `ClubInvitationFeedbackView`) were left as is.
+Supplementary syntax check: `tools/check_swift_syntax.py` (tree-sitter 0.26.0 / tree-sitter-swift 0.7.3 in a scratch venv)
+over all 315 App files changed vs `origin/ui/combined-r7` gives the same per-file result as the base for every file present
+in both (the grammar already flags most SwiftUI files; no file gained an error from this lane).
+No Swift compiler here: every edit mirrors an existing call pattern (`ProgressView { Text(…) }`,
+`ContentUnavailableView { Label … } description: { … } actions: { … }`).

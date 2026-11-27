@@ -117,14 +117,7 @@ struct CityBoardView: View {
     }
 
     private var skeleton: some View {
-        VStack(spacing: CYSpacing.md) {
-            CYSkeleton().frame(height: 220)
-            CYSkeleton().frame(height: 60)
-            CYSkeleton().frame(height: 52)
-            CYSkeleton().frame(height: 52)
-            ForEach(0..<3, id: \.self) { _ in CYSkeleton().frame(height: 72) }
-        }
-        .accessibilityLabel(Text(verbatim: copy("加载中", "Loading")))
+        CYSkeleton(variant: .detail)
     }
 
     private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {

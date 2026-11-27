@@ -90,6 +90,9 @@ extension AppSession {
     static let shared = MPNotificationTapRouter()
     /// The mini-program subscribe-message field that carries the page path.
     nonisolated static let routeKeys = ["page"]
+    /// mp-nav r3: actions that do not bring the app forward (City 稍后, a custom dismiss) never move the player.
+    /// Before, 稍后 queued the `page` route, so the next launch jumped to 漫游 without the player asking.
+    nonisolated static let nonOpeningActions: Set<String> = [CityNotifications.laterAction, UNNotificationDismissActionIdentifier]
     /// Posted on the main actor when an IM / channel notification arrives in the foreground (G-021).
     nonisolated static let foregroundMessageArrived = Notification.Name("chein.im.foregroundMessageArrived")
     private weak var session: AppSession?
@@ -110,6 +113,7 @@ extension AppSession {
 
     nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse,
                                             withCompletionHandler completionHandler: @escaping () -> Void) {
+        guard !Self.nonOpeningActions.contains(response.actionIdentifier) else { completionHandler(); return }
         let userInfo = response.notification.request.content.userInfo
         var payload: [String: String] = [:]
         for key in Self.routeKeys { if let value = userInfo[key] as? String { payload[key] = value } }

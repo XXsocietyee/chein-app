@@ -92,6 +92,8 @@ struct OfficialIssueView: View {
     var onBack: (() -> Void)? = nil
     /// Round 4 copy: page wording for an issue label (MP activity/list 我的, official-mine); nil keeps the shared key.
     var issueLabel: ((OfficialScreenIssue) -> LocalizedStringKey?)? = nil
+    /// Page wording for the refresh line (MP official-inbox 正在同步最新邀约…); nil keeps official.refreshing.
+    var refreshingLabel: LocalizedStringKey? = nil
     let load: () async throws -> Value
     @ViewBuilder let content: (Value) -> Content
     @StateObject private var sourceObservation = OfficialReadInvalidationObserver()
@@ -119,6 +121,11 @@ struct OfficialIssueView: View {
         if isPrivate && !reader.isAuthenticated { return false }
         return reader.isConfigured && (loadedKey != key || loading)
     }
+    private var refreshLine: Text {
+        if !refreshing { return Text("official.refreshFailed") }
+        if let refreshingLabel { return Text(refreshingLabel) }
+        return Text("official.refreshing")
+    }
     var body: some View {
         // Own loading/cancellation on a stable container, not Group's changing
         // branches, which can restart the initial read when an error appears.
@@ -131,7 +138,7 @@ struct OfficialIssueView: View {
                 else if let value {
                     VStack(alignment: .leading, spacing: 0) {
                         if refreshing || refreshFailed {
-                            Text(refreshing ? "official.refreshing" : "official.refreshFailed")
+                            refreshLine
                                 .font(.footnote).foregroundStyle(.secondary)
                                 .padding(.horizontal).padding(.vertical, 4)
                                 .accessibilityIdentifier(refreshing ? "official.refreshing" : "official.refreshFailed")
