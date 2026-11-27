@@ -257,7 +257,8 @@ Content, order, identifiers and text selection unchanged (look only).
 New checker kind **line spacing**: a literal `.lineSpacing(N)` outside App/DesignSystem and App/Theme. Baseline 0,
 nothing allowed. Self-test: the pre-fix tree fails in all six files (ShopNPC 2).
 
-GATES_RUN8
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_typography_lint` PASS,
+`check_design_consistency` PASS (0 debt, 74 allowed, line spacing 0), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
 
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
