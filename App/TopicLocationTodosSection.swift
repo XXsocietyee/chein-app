@@ -26,6 +26,16 @@ import QuestifyCore
         replace?(nodeID)
     }
 
+    /// Passed to the sheet only when the editor supplied `replace` (MP shows 替换地点 only then).
+    private var replaceAction: ((String) -> Void)? {
+        guard replace != nil else { return nil }
+        return { nodeID in replacePlace(nodeID) }
+    }
+
+    private func countText(_ todos: TopicLocationTodos) -> String {
+        todos.summaryText ?? W8Text.t("\(todos.rows.count) 个地点", "\(todos.rows.count) place(s)")
+    }
+
     var body: some View {
         Group {
             if let todos = model.todos {
@@ -35,7 +45,7 @@ import QuestifyCore
                             Label(W8Text.t("地点待办", "Place to-dos"), systemImage: "mappin.and.ellipse")
                                 .foregroundStyle(.primary)
                             Spacer()
-                            Text(todos.summaryText ?? W8Text.t("\(todos.rows.count) 个地点", "\(todos.rows.count) place(s)"))
+                            Text(countText(todos))
                                 .foregroundStyle(todos.blockingCount > 0 ? Color.red : Color.secondary)
                         }
                     }
@@ -43,7 +53,7 @@ import QuestifyCore
                 }
                 .cySheet(isPresented: $open) {
                     NavigationStack {
-                        TopicLocationTodosSheet(model: model, nodes: nodes, replace: replace == nil ? nil : replacePlace)
+                        TopicLocationTodosSheet(model: model, nodes: nodes, replace: replaceAction)
                             .toolbar {
                                 ToolbarItem(placement: .cancellationAction) {
                                     Button(W8Text.t("完成", "Done")) { open = false }
