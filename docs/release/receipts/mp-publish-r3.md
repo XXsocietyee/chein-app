@@ -93,6 +93,7 @@ Scope: `pages/template/index`, the tabBar publish sheet, `pages/publish/*`, `pag
 - `Tests/CoreTests/EditorKitModelTests.swift`: `EditorOutlineSection.allCases` now expects the MP page order.
 
 ## Gates (last run on the branch head)
+- **Continue pass 10 (发布者实名):** generate_project OK, check_scaffold OK, a11y lint 0 new, contract ratchet 52 failing / baseline 52 / **new 0**, design consistency PASS; `test_privacy_manifest_contract` OK.
 - **Continue pass 10 (contract cleanup):** merged `ui/combined-r7`; contract ratchet 52 / baseline 52 / **new 0**; design consistency PASS; a11y lint 0 new; generate_project and check_scaffold pass. No Swift compiler here.
 - **Continue pass 7 (画面风格 page):** merged `ui/combined-r7` (Localizable.xcstrings: union of both sides' keys); contract ratchet 52 / baseline 52 / **new 0**; design consistency PASS; a11y lint 0 new; missing string keys 0; generate_project and check_scaffold pass.
 - **Continue pass 6 (主题详情 sheet):** merged `ui/combined-r7` (Localizable.xcstrings: union of both sides' keys); contract ratchet 52 / baseline 52 / **new 0** (`test_run130_topic_media_source_adapter` hunk `basicFields` → `ProjectTopicMediaHost` kept, now inside the sheet); design consistency PASS; a11y lint 0 new; missing string keys 0; generate_project and check_scaffold pass. `CodeR3OpsTests.testTopicCardCountsTheFourTopicDetailSheetFields` replaces the six-field test (MP `TOPIC_DETAIL_ISSUE_KEYS`).
