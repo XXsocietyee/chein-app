@@ -11,7 +11,34 @@ extension MPParityRoute {
     }
 }
 
-/// Presented by `NativeEntryLandingView`. The root sheet sits outside the player root environment, so the parity
+extension HomeLanding {
+    /// Page links with a native player screen land on 首页; errors, invitations, door and merchant links keep the entry sheet.
+    init?(intent: NativeEntryIntent) {
+        switch intent {
+        case .miniProgramPage(let link):
+            if let tab = Self.tabRoots[link.page] { self.init(target: .tab(tab)); return }
+            // Merchant pages (out of the player app) keep the entry sheet and its discard confirmation.
+            guard !link.page.contains("merchant"), let route = MPParityRoute(link: link) else { return nil }
+            self.init(target: .page(route))
+        case .content(let content):
+            guard content.kind == .topic else { return nil }
+            self.init(target: .topic(content.id))
+        default:
+            return nil
+        }
+    }
+
+    /// MP `app.json` tabBar pages: a link to one switches tabs, as MP `switchTab` does.
+    static let tabRoots: [String: RootTab] = [
+        "pages/index/index": .home,
+        "pages/roam/index": .roam,
+        "pages/template/index": .publish,
+        "pages/talent/list/index": .club,
+        "pages/member/index/index": .mine
+    ]
+}
+
+/// Presented by `NativeEntryLandingView` for links that do not land on 首页 (see `HomeLanding`). The root sheet sits outside the player root environment, so the parity
 /// bindings are installed here again; every screen keeps its own sign-in, capability and money gating.
 @MainActor struct MPParityPageEntry: View {
     let link: MiniProgramPageLink

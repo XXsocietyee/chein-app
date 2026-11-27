@@ -453,59 +453,6 @@ struct MPSectionHeader: View {
     }
 }
 
-/// Chip tabs with a sliding selection pill (matched geometry; cross-fade under Reduce Motion).
-struct MPChipTabs<Tab: Hashable & Identifiable>: View {
-    let tabs: [Tab]
-    @Binding var selection: Tab?
-    let title: (Tab) -> Text
-    var identifier: (Tab) -> String
-    @Namespace private var pill
-
-    init(tabs: [Tab], selection: Binding<Tab?>, title: @escaping (Tab) -> Text, identifier: @escaping (Tab) -> String = { "mp.tab.\($0.id)" }) {
-        self.tabs = tabs; self._selection = selection; self.title = title; self.identifier = identifier
-    }
-
-    init(tabs: [Tab], selection: Binding<Tab>, title: @escaping (Tab) -> Text, identifier: @escaping (Tab) -> String = { "mp.tab.\($0.id)" }) {
-        self.init(tabs: tabs, selection: Binding<Tab?>(get: { selection.wrappedValue }, set: { if let new = $0 { selection.wrappedValue = new } }),
-                  title: title, identifier: identifier)
-    }
-    @QuestifyReduceMotion private var reduceMotion
-
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: CYSpacing.sm) {
-                ForEach(tabs) { tab in
-                    let on = tab == selection
-                    Button {
-                        withAnimation(CYMotion.resolve(.spring(response: 0.32, dampingFraction: 0.82), reduceMotion: reduceMotion)) { selection = tab }
-                    } label: {
-                        title(tab)
-                            .cyText(.label)
-                            .foregroundStyle(on ? CYColor.textOnAccent : CYColor.textSecondary)
-                            .padding(.horizontal, CYSpacing.lg)
-                            .frame(minHeight: 36)
-                            .background {
-                                if on {
-                                    Capsule(style: .continuous).fill(CYColor.selection).matchedGeometryEffect(id: "pill", in: pill)
-                                } else {
-                                    Capsule(style: .continuous).fill(CYColor.bgElevated)
-                                }
-                            }
-                            .frame(minHeight: CYSpacing.minTouchTarget)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityAddTraits(on ? [.isSelected] : [])
-                    .accessibilityIdentifier(identifier(tab))
-                    .cyHaptic(.selection, trigger: on)
-                }
-            }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-        }
-        .accessibilityElement(children: .contain)
-    }
-}
-
 /// Read-only note used where a commerce or claim CTA would sit while the gate is OFF.
 struct MPGatedNote: View {
     let text: Text

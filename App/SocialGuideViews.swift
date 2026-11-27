@@ -85,7 +85,8 @@ import SwiftUI
                 }
             }
             else {
-                SocialReadScreen(reader: reader, requestKey: "information-\(id)", load: { try await reader.information(id: id) }) { row in
+                // mp-states r3 (MP scene-how-to-play-detail wxml:10): a failed read is 玩法说明加载失败 · 重试.
+                SocialReadScreen(reader: reader, requestKey: "information-\(id)", failureTitle: "guideXcx.detailFailed", load: { try await reader.information(id: id) }) { row in
                     // subpackageA/pages/infomationdetail: removed, mismatched, or blank documents never render as an article.
                     let page = InformationDetailPageModel(readCapabilityPresent: true, path: InformationDetailPageModel.contractPath,
                                                           requestedID: id, outcome: .article(row))

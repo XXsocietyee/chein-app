@@ -261,6 +261,10 @@ struct PlayThemeMusicKey: Equatable {
         presentationLayer
         .modifier(PlayNightHintOverlay(receipt: model.reward))
         .modifier(PlayFlyScoreOverlay(receipt: model.reward))
+        // mp-journey r3: MP loadData → loadTeamProgress after every nodes read, then the 4 s poll while a team exists.
+        // One page-level host (the lead section used to own the poll, so it only ran while that row was on screen).
+        .task(id: model.interactionContext) { await model.probeLead(context: model.interactionContext) }
+        .modifier(PlayLeadProgressPollingModifier(model: model, context: model.interactionContext))
         .onChange(of: model.snapshot?.result.topicID) { _, topicID in
             chapterFilter = nil
             presentTitleCardIfNeeded(topicID)
@@ -740,7 +744,8 @@ struct PlayThemeMusicKey: Equatable {
             locationOn: Self.locationAuthorized,
             onLocationRow: Self.openLocationSettings,
             teamLead: model.lead,
-            journalRows: model.snapshot.map(PlayJournal.rows(in:))
+            journalRows: model.snapshot.map(PlayJournal.rows(in:)),
+            boardDestination: model.snapshot == nil ? nil : { [model] in AnyView(PlayCompanionBoardView(model: model)) }
         )
     }
     /// mp-journey r3: MP `gpsOk` for the 游玩工具 location rows (when-in-use or always).
@@ -810,6 +815,13 @@ struct PlayThemeMusicKey: Equatable {
             panel: { cityRunPanel })
         .onAppear { cityRunSheet = true }
         .onDisappear { cityRunSheet = false; cityPunchNode = nil; cityHintNode = nil }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            VStack(spacing: 0) {
+                PlayRunNoticeBanner(snapshot: model.snapshot)
+                PlayLeadBar(model: model)
+            }
+        }
+        .modifier(PlayNavBubbleOverlay(model: ambientModel, nodeID: hudStop?.node.id, meters: cityNextStopMeters))
     }
     @ViewBuilder private var cityRunPanel: some View {
         VStack(spacing: 0) {
@@ -1997,7 +2009,6 @@ struct PlayExperienceIssueView: View {
                 })
             }
         }
-        .modifier(PlayLeadProgressPollingModifier(model: model, context: context))
         .modifier(PlaySystemConfirm(
             isPresented: review,
             title: appLocalized("playx.review", locale: .current),

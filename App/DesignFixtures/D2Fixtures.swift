@@ -48,19 +48,50 @@ struct D2Fixture: View {
 }
 
 /// design-r2-play: the signed-in 我的 header. A bare `AppSession()` is signed out, which painted the signed-out line and
-/// dash counters under the name "Mia"; the fixture readers are signed in, so name, counters and 积分 (P1 hero) are real values.
+/// dash counters under the name "Mia"; the fixture readers are signed in, so name, counters and 积分 are real values.
+/// mp-mine r3 (14:13 visual check): the same MP structure as `AccountView` — identity card → 好友/关注/粉丝 →
+/// [开始探索][票夹][···] → tabs 项目 · 成就 · 关于 (帖文 needs the community bundle). `-d2MeTab achievements|about` opens a tab.
 @MainActor struct D2MeFixture: View {
     @State private var member = MemberHomeFixtureReader(scenario: "ready")
     @State private var growth = GrowthCenterFixtureReader(scenario: .content)
+    @State private var tab: AccountMineTab = AccountMineTab(rawValue: UserDefaults.standard.string(forKey: "d2MeTab") ?? "") ?? .mine
+    @Environment(\.locale) private var locale
     private let account = try! JSONDecoder().decode(Account.self, from: Data(#"{"id":81,"nickname":"Mia","role":"player","levelId":2}"#.utf8))
+    private let tabs: [AccountMineTab] = [.mine, .achievements, .about]
     var body: some View {
         NavigationStack {
             Form {
-                MemberIdentityCardSection(account: account, reader: member, growth: growth)
-                MemberBenefitsSection(reader: member)
+                MemberIdentityCardSection(account: account, reader: member, growth: growth, onOpenTickets: {},
+                                          onEditProfile: {}, showsMetrics: false, onStartExplore: {},
+                                          moreMenu: AnyView(Group {
+                                              Button {} label: { Label("social.profile", systemImage: "person.crop.rectangle") }
+                                              Button {} label: { Label("profile.edit.title", systemImage: "pencil") }
+                                          }))
+                Section {
+                    Picker(selection: $tab) {
+                        ForEach(tabs, id: \.self) { item in Text(item.titleKey).tag(item) }
+                    } label: { Text("social.profileSection") }
+                        .cyAdaptiveSegmented()
+                        .accessibilityIdentifier("account.mine.tabs")
+                }
+                switch tab {
+                case .mine, .posts:
+                    Section("wallet.assets") {
+                        LabeledContent {
+                            Text(verbatim: MemberBalanceDisplay.text("0", locale: locale)).monospacedDigit()
+                        } label: {
+                            Label { Text("member.card.balance", tableName: "MemberProfile") } icon: { Image(systemName: "wallet.pass") }
+                        }
+                    }
+                case .achievements:
+                    MemberAchievementMetricsSection(growth: growth, onOpenPoints: {}, onOpenPointsHelp: {}) {
+                        Label("growth.title", systemImage: "chart.bar.xaxis")
+                    }
+                case .about:
+                    MemberBenefitsSection(reader: member)
+                }
             }
-            .navigationTitle(Text("account.title"))
-            .navigationBarTitleDisplayMode(.inline)
+            .cyRootHeader(.mine)
         }
     }
 }

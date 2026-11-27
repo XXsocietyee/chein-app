@@ -354,7 +354,7 @@ struct ParticipantListDeleteView: View {
             if model.showsOwnedUnknown {
                 Form { ParticipantOperationSections(state: model.coordinator.state, readback: model.coordinator.readbackState, canReadAgain: model.canReadBack, actionIssue: model.issue) { Task { await model.readBack() } } }
             } else if model.loading || (model.loaded && !model.hasCurrentProjection) {
-                ProgressView()
+                ProgressView { Text("cy.state.loading") }
             } else if !model.loaded {
                 ParticipantLoadFailureView(issue: model.issue) { Task { await model.load() } }
             } else {

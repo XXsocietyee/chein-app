@@ -39,20 +39,29 @@ struct NearbyLoadIssueCard: View {
     let issue: NearbyLoadIssue
     let onSignIn: (() -> Void)?
     let retry: () -> Void
+    /// mp-states r3 (MP subpackageRoam/nearby wxml:62 cy-error 附近信息获取失败 / 当前内容无法查看 · 重试): the one state
+    /// pattern — ContentUnavailableView, one action (`.borderedProminent` 去登录, `.bordered` 重试).
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(LocalizedStringKey(issue.titleKey)).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-            Text(LocalizedStringKey(issue.subKey)).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+        ContentUnavailableView {
+            Label(LocalizedStringKey(issue.titleKey), systemImage: issue == .signIn ? "person.crop.circle.badge.exclamationmark" : "exclamationmark.triangle")
+        } description: {
+            Text(LocalizedStringKey(issue.subKey))
+        } actions: {
             if !issue.offersRetry {
                 EmptyView()
             } else if issue == .signIn {
-                if let onSignIn { CYPillButton(LocalizedStringKey(issue.actionKey), style: .secondary, action: onSignIn).accessibilityIdentifier("nearby.w208.issue.action") }
+                if let onSignIn {
+                    Button(LocalizedStringKey(issue.actionKey), action: onSignIn)
+                        .buttonStyle(.borderedProminent).controlSize(.large)
+                        .accessibilityIdentifier("nearby.w208.issue.action")
+                }
             } else {
-                CYPillButton(LocalizedStringKey(issue.actionKey), style: .secondary, action: retry).accessibilityIdentifier("nearby.w208.issue.action")
+                Button(LocalizedStringKey(issue.actionKey), action: retry)
+                    .buttonStyle(.bordered).controlSize(.large)
+                    .accessibilityIdentifier("nearby.w208.issue.action")
             }
-        }.fixedSize(horizontal: false, vertical: true).padding().frame(maxWidth: .infinity, alignment: .leading)
-            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-            .accessibilityElement(children: .contain).accessibilityIdentifier("nearby.w208.issue.\(issue.rawValue)")
+        }
+        .accessibilityElement(children: .contain).accessibilityIdentifier("nearby.w208.issue.\(issue.rawValue)")
     }
 }
 

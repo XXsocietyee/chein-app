@@ -33,7 +33,7 @@ import SwiftUI
                 }
                 titlesRows
             } else if model.loading {
-                ProgressView().frame(maxWidth: .infinity)
+                ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity)
             }
             if let issue = model.issueCode {
                 Label { Text(verbatim: copy("六维暂不可用：", "Attributes unavailable: ") + issue) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange) }

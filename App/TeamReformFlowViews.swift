@@ -90,7 +90,7 @@ struct TeamReformSheetHost: View {
                     ContentUnavailableView {
                         Label { Text("teamReform.unavailable").accessibilityIdentifier("teamReform.invite.unavailable") } icon: { Image(systemName: "lock") }
                     }
-                case .loading: ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("teamReform.loading"))
+                case .loading: ProgressView { Text("teamReform.loading") }.frame(maxWidth: .infinity)
                 case .failed:
                     Label { Text("teamReform.invite.loadFailed") } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.red) }
                         .accessibilityElement(children: .combine)
@@ -202,7 +202,7 @@ struct TeamReformSheetHost: View {
                     ContentUnavailableView {
                         Label { Text("teamReform.unavailable").accessibilityIdentifier("teamReform.meeting.unavailable") } icon: { Image(systemName: "lock") }
                     }
-                case .loading: ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("teamReform.loading"))
+                case .loading: ProgressView { Text("teamReform.loading") }.frame(maxWidth: .infinity)
                 case .notEligible:
                     ContentUnavailableView {
                         Label { Text("teamReform.meeting.notEligible").accessibilityIdentifier("teamReform.meeting.notEligible") } icon: { Image(systemName: "person.crop.circle.badge.xmark") }

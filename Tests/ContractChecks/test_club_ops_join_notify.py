@@ -123,7 +123,8 @@ class ClubOpsJoinNotifyContracts(unittest.TestCase):
 
     def test_appeal_mode_and_roles_title(self):
         self.assertIn('public var appealMode: Bool { !canReport || canAppeal }', text('Core/ClubOpsGovernancePresentation.swift'))
-        self.assertIn('if list.appealMode {', self.gov_ui)
+        # mp-club r3 (OWNER RULE 2): the appeal-mode title 封禁申诉 moved from an in-content headline to the inline bar title.
+        self.assertIn('cases.appealMode {\n            return "club.gov.casesAppeal"', text('App/ClubGovernanceViews.swift'))
         self.assertIn('if route.operation == .assignRole { return Text("clubOpsGov.roles.assign.title", tableName: "ClubOpsGovernance") }',
                       text('App/ClubOpsEventFormFields.swift'))
 

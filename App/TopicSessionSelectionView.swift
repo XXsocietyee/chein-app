@@ -23,6 +23,9 @@ struct TopicSessionSelectionView: View {
         TopicSessionSelectionResolution.resolve(activities: detail.activities, hasDestination: activityDestination != nil)
     }
 
+    /// MP session-picker title: 选择票种 when the topic has one day, else 选择场次.
+    private var isSingleDay: Bool { resolution.activities.count == 1 }
+
     var body: some View {
         NavigationStack(path: $path) {
             List {
@@ -38,19 +41,24 @@ struct TopicSessionSelectionView: View {
                         .accessibilityIdentifier("topic.sessionSelection.destinationUnavailable")
                     ForEach(activities) { activity in activityRow(activity) }
                 case .ready(let activities):
-                    ForEach(activities) { activity in
-                        Button {
-                            if let selected = flow.select(activityID: activity.id, hasDestination: activityDestination != nil) {
-                                path.append(selected)
+                    // MP session-picker: several days list under 日期; a single day is written out without a header.
+                    Section {
+                        ForEach(activities) { activity in
+                            Button {
+                                if let selected = flow.select(activityID: activity.id, hasDestination: activityDestination != nil) {
+                                    path.append(selected)
+                                }
+                            } label: {
+                                activityRow(activity)
                             }
-                        } label: {
-                            activityRow(activity)
+                            .accessibilityIdentifier("topic.sessionSelection.activity.\(activity.id)")
                         }
-                        .accessibilityIdentifier("topic.sessionSelection.activity.\(activity.id)")
+                    } header: {
+                        if activities.count > 1 { Text("topic.sessionSelection.dates") }
                     }
                 }
                 if !detail.tickets.isEmpty {
-                    Section("topic.tickets") {
+                    Section("topic.sessionSelection.tickets") {
                         Text("topic.sessionSelection.ticketDependency")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
@@ -61,7 +69,13 @@ struct TopicSessionSelectionView: View {
                             HStack(alignment: .top) {
                                 VStack(alignment: .leading, spacing: 6) {
                                     Text(verbatim: ticket.name).font(.headline)
+                                    if let rule = ticket.refundRule, !rule.isEmpty {
+                                        Text(verbatim: rule).font(.footnote).foregroundStyle(.secondary)
+                                    }
                                     TopicPrice(value: ticket.price, label: "topic.price")
+                                    if ticket.remaining == 0 {
+                                        Text("topic.sessionSelection.soldOut").font(.footnote).foregroundStyle(.secondary)
+                                    }
                                     if let start = ticket.startTime { LabeledContent("topic.start", value: start) }
                                     if let end = ticket.endTime { LabeledContent("topic.end", value: end) }
                                 }
@@ -75,7 +89,7 @@ struct TopicSessionSelectionView: View {
                     }
                 }
             }
-            .appNavigationTitle("topic.sessionSelection.title")
+            .appNavigationTitle(isSingleDay ? "topic.sessionSelection.ticketTitle" : "topic.sessionSelection.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

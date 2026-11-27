@@ -483,4 +483,15 @@ struct E3PeopleFixture: View {
         }
     }
 }
+
+/// Press feedback for the DEBUG design fixtures only (a small spring scale, off under Reduce Motion).
+/// Shipped screens use the system button styles or `QuestifyCardButtonStyle` (ds-consistency r3).
+struct E3PressStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.96 : 1)
+            .animation(reduceMotion ? nil : .spring(response: 0.25, dampingFraction: 0.7), value: configuration.isPressed)
+    }
+}
 #endif
