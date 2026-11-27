@@ -13,10 +13,9 @@ import SwiftUI
         List {
             switch model.state {
             case .idle, .loading where model.items.isEmpty:
-                ProgressView()
+                ProgressView { text("shelf.loading") }
                     .frame(maxWidth: .infinity)
                     .listRowBackground(Color.clear)
-                    .accessibilityLabel(text("shelf.loading"))
             case .unavailable:
                 ContentUnavailableView {
                     Label {

@@ -34,6 +34,7 @@ match is a queue item (133 at the start). Tab roots first, then their pushed pag
 | 主题/路线 reads (`TopicIssueView`, 9 sites) | topic pages cy-error · 重试 | `Label` + bordered button VStack | `ContentUnavailableView` + `.bordered` 重试 |
 | 票夹 / ticket detail / enrolled chapters (`TicketWalletIssueView`, 7 sites) | ticket wallet cy-empty no-permission / cy-error · 重试 | `Label` + button VStack | `ContentUnavailableView` + `.bordered` 重试 |
 | 附近 (`NearbyTeamsView` → `NearbyLoadIssueCard`, list + 我的) | `subpackageRoam/nearby/index.wxml:62` cy-error 附近信息获取失败 / 当前内容无法查看 · 重试 (login → 去登录) | elevated custom card + `CYPillButton`; titles 附近信息没能读到 / 当前账号无法查看附近信息 | `ContentUnavailableView`, MP titles (Couldn’t get nearby information / This content can’t be viewed), `.borderedProminent` 去登录 or `.bordered` 重试 |
+| Page-level spinners with words for VoiceOver only → visible label: 票夹 (`TicketWalletView`), 广场评论 (`SquareDetailView`), 重组队伍 (`TeamReformFlowViews` ×2), 护照邮票 (`PassportView`), 六维 (`MemberAttributesSection`), 首页 search-tab states (`HomeSearchTabParityViews`), 通票货架 (`BundleShelfView`), 我的申诉 (`MemberScoreAppealListView`), 参与人 (`ProfileParticipantsView`), 自由探索通票 (`FreeExploreBundleLaunchView`) | MP `cy-empty kind="loading"` 加载中 / page loading words | `ProgressView()` + `.accessibilityLabel` (or an unlabeled spinner, or a spinner + separate Text) | `ProgressView { Text(<same key>) }` — the words are on screen; unlabeled ones use 加载中… (`cy.state.loading`) |
 
 ## Gates
 
