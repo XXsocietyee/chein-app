@@ -492,7 +492,8 @@ import SwiftUI
         .cySheet(isPresented: Binding(get: { consequenceReview != nil }, set: { if !$0 { consequenceReview = nil } })) {
             if let kind = ClubGovernanceConsequence(route.operation) {
                 kind.sheet(locale: locale, name: route.operation == .revokeRole ? route.seed["roleName"]?.string
-                                                 : (route.operation == .ban ? route.seed["targetNickname"]?.string : nil)) {
+                                                 : (route.operation == .ban ? route.seed["targetNickname"]?.string
+                                                    : (route.operation == .endTopic ? route.seed["topicName"]?.string : nil))) {
                     guard let pending = consequenceReview, pending.id == review?.id else { consequenceReview = nil; return }
                     consequenceReview = nil; consequenceAccepted = pending.id; Task { await confirm(pending) }
                 }

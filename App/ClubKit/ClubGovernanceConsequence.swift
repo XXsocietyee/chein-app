@@ -38,7 +38,8 @@ enum ClubGovernanceConsequence: Equatable {
         }
     }
 
-    /// `name`: the member (ban) or the role (revoke) the MP names in its title; nil keeps the generic title.
+    /// `name`: the member (ban) or the role (revoke) the MP names in its title, or the topic (结束主题) it names
+    /// above the body; nil keeps the generic sheet.
     func sheet(locale: Locale, name: String? = nil, onConfirm: @escaping () -> Void) -> ClubConsequenceSheet {
         let named = name?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyForConsequence
         let text: (String) -> String = { OpsR3Text.string("r3club.consequence.\(key).\($0)", locale: locale) }
@@ -68,8 +69,11 @@ enum ClubGovernanceConsequence: Equatable {
                 confirmTitle: mp("confirm"),
                 onConfirm: onConfirm)
         default:
+            // mp-club r3 pass 8 (MP club-topic-end-confirm, CU-C-154): the title stays 结束主题; the topic name is the
+            // first line above the consequences, not part of the title. Only 结束主题 passes a name here.
             return ClubConsequenceSheet(
                 title: text("title"),
+                objectName: self == .endTopic ? named : nil,
                 consequences: [
                     CYConfirmConsequence(systemImage: symbols.0, text: text("line1")),
                     CYConfirmConsequence(systemImage: symbols.1, text: text("line2")),
