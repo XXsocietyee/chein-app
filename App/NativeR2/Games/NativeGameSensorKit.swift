@@ -85,26 +85,37 @@ import SwiftUI
         }
     }
 
+    /// MP `g-kicker` + sub lines (ballshake / quiethold / shout / compass): the server `kicker` leads when present,
+    /// then the kit's own line, the server `sub` (quiet hold) or `hint` (compass), and 这一站已跳过 when skipped.
     @ViewBuilder private var kicker: some View {
         Group {
+            if let line = serverText("kicker") {
+                Text(verbatim: line).font(.headline).foregroundStyle(.primary)
+            }
             switch kind {
             case .ballShake:
-                // MP `bl__hud`: the server kicker first, then the goal and the 限时 line; 这一站已跳过 when skipped.
-                if let line = segment["kicker"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !line.isEmpty {
-                    Text(verbatim: line).font(.headline).foregroundStyle(.primary)
-                }
                 Text("playkit.ball.kicker \(stage.ball.goal)")
                 if stage.ball.limitSeconds > 0 { Text("playkit.ball.limitLine \(decimal(stage.ball.limitSeconds))") }
-                if segment["skipped"].bool == true { Text("playkit.sensor.skipped") }
-            case .quietHold: Text("playkit.quiet.kicker")
-            case .shout: Text("playkit.shout.kicker")
-            case .compass: Text("playkit.compass.kicker")
+            case .quietHold:
+                if serverText("kicker") == nil { Text("playkit.quiet.kicker") }
+                if let sub = serverText("sub") { Text(verbatim: sub) }
+            case .shout:
+                if serverText("kicker") == nil { Text("playkit.shout.kicker") }
+            case .compass:
+                if serverText("kicker") == nil { Text("playkit.compass.kicker") }
+                if let hint = serverText("hint") { Text(verbatim: hint) }
             default: EmptyView()
             }
+            if segment["skipped"].bool == true { Text("playkit.sensor.skipped") }
         }
         .font(.footnote)
         .foregroundStyle(.secondary)
         .accessibilityIdentifier("playkit.sensor.kicker")
+    }
+
+    private func serverText(_ key: String) -> String? {
+        let text = segment[key].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return text.isEmpty ? nil : text
     }
 
     @ViewBuilder private var liveSection: some View {
