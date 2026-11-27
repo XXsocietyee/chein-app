@@ -137,7 +137,7 @@ private struct CreatorContentIssueView: View {
                                 card(project).allowsHitTesting(false)
                             }
                         }
-                        else if model.state.isLoading || model.state.loadedScope != key.scope { ProgressView("myProject.loading").frame(maxWidth: .infinity)  // MP 项目加载中 }
+                        else if model.state.isLoading || model.state.loadedScope != key.scope { ProgressView("myProject.loading").frame(maxWidth: .infinity) } // MP 项目加载中
                         else if let failure = model.state.visibleIssue(scope: key.scope) { issue(failure) }
                         else if let page = model.state.visibleValue(scope: key.scope) {
                             if page.rows.isEmpty { MyProjectEmptyView(type: query.type) }
@@ -267,7 +267,7 @@ private struct CreatorContentIssueView: View {
             if reader.isOfflineExample { Label("creatorContent.offlineExample", systemImage: "testtube.2").foregroundStyle(.orange) }
             if !reader.isAuthenticated { issue(.login) }
             else if !reader.isConfigured { issue(.notConfigured) }
-            else if model.state.isLoading || model.state.loadedScope != key.scope { ProgressView("myProject.loading").frame(maxWidth: .infinity)  // MP 项目加载中 }
+            else if model.state.isLoading || model.state.loadedScope != key.scope { ProgressView("myProject.loading").frame(maxWidth: .infinity) } // MP 项目加载中
             else if let failure = model.state.visibleIssue(scope: key.scope) { issue(failure) }
             else if let center = model.state.visibleValue(scope: key.scope) {
                 Section {
