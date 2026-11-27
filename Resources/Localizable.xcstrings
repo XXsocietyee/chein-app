@@ -342744,23 +342744,6 @@
         }
       }
     },
-    "homeIndex.logo": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chein"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "城瘾"
-          }
-        }
-      }
-    },
     "playTools.journal": {
       "extractionState": "manual",
       "localizations": {
