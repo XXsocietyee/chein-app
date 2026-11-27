@@ -232,6 +232,9 @@ allowed with reasons (procedural art drawn to its own frame): `CityMomentView` c
 stamp perforation, `ProfileBadgesView` holo sheen on the round medal, `RoamSubpageParityViews` MP stamp printer art and
 scratch foil. Self-test: the pre-fix `SettingsSupportSections.swift` fails at line 202.
 
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_typography_lint` PASS,
+`check_design_consistency` PASS (0 debt, 74 allowed, raw radius 0), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
 Stale pin updated: `Tests/ContractChecks/test_object_badge_wall_layout.py` detail hash (artwork clip 16 →
 `CYRadius.card`, look only; one-line reason in the test).
 
