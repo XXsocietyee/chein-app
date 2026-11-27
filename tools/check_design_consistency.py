@@ -41,6 +41,9 @@ and `#Preview { ... }` blocks; comments are ignored) and counts, per file:
   custom search   a hand-drawn search field outside App/DesignSystem: an `Image(systemName: "magnifyingglass")`
                   followed within 3 lines by a `TextField(` (use `.searchable` on the page, or `CYFormSearchRow` for a
                   filter that is one row of a Form / List section)
+  text on art     a generated cover `CYCoverArt(` used as the `.background` of a view outside App/DesignSystem
+                  (a title / text laid on busy procedural art): put the cover above the text as the hero
+                  illustration (`CYHeroHeader { Cloud07Cover(...) }`) and keep text on system backgrounds
 
 Build-break guards (module-wide: App/ and Core/ compile into ONE module, so every file is scanned, merchant and
 fixtures included; there is no Swift compiler in the lanes' cloud sessions):
@@ -88,10 +91,11 @@ CUSTOM_SHEET = 'custom sheet'
 CUSTOM_TABS = 'custom tabs'
 FONT_DESIGN = 'font design'
 CUSTOM_SEARCH = 'custom search'
+TEXT_ON_ART = 'text on art'
 DUPLICATE_TYPE = 'duplicate type'
 UNDECLARED_STATE = 'undeclared state'
 KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, CUSTOM_BACK, BUTTON_STYLE, POPUP_SCRIM,
-         RAW_COLOUR, LIST_STYLE, CUSTOM_SHEET, CUSTOM_TABS, FONT_DESIGN, CUSTOM_SEARCH,
+         RAW_COLOUR, LIST_STYLE, CUSTOM_SHEET, CUSTOM_TABS, FONT_DESIGN, CUSTOM_SEARCH, TEXT_ON_ART,
          DUPLICATE_TYPE, UNDECLARED_STATE)
 
 # The five player tab roots (Core/RootTab.swift, QuestifyApp root TabView) and the files that own their title.
@@ -155,6 +159,7 @@ TABS_SELECTED = re.compile(r'==\s*(?:self\.)?(?:selection|selected\w*|active|cur
 DS_TAB_BAR = re.compile(r'(?<![\w.])(?:CYNightTabBar|CYDomainTabBar)\s*\(')
 APP_ROOT = 'App/QuestifyApp.swift'
 # Hand-drawn search fields: the search symbol drawn next to a TextField.
+BACKGROUND_OPEN = re.compile(r'\.background\s*[({]')
 SEARCH_GLYPH = re.compile(r'Image\(systemName:\s*"magnifyingglass"\)')
 FONT_DESIGN_PATTERN = re.compile(r'\bdesign\s*:\s*\.(?:rounded|serif)\b|\.fontDesign\s*\(\s*\.(?:rounded|serif)\b')
 COLOUR_PATTERNS = (
@@ -285,6 +290,10 @@ def scan_file(rel, text):
             window = ' '.join(c for _, c in lines[index:index + 8])
             if TABS_BUTTON.search(window) and TABS_SELECTED.search(window):
                 hits.append((number, CUSTOM_TABS, code.strip()))
+        for index, (number, code) in enumerate(lines):
+            match = BACKGROUND_OPEN.search(code)
+            if match and any('CYCoverArt(' in c for c in [code[match.start():]] + [c for _, c in lines[index + 1:index + 2]]):
+                hits.append((number, TEXT_ON_ART, code.strip()))
         for index, (number, code) in enumerate(lines):
             if SEARCH_GLYPH.search(code) and any('TextField(' in c for _, c in lines[index:index + 4]):
                 hits.append((number, CUSTOM_SEARCH, code.strip()))

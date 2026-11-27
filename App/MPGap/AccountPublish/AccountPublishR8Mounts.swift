@@ -102,6 +102,20 @@ private struct TeamApplicantsEnvelope: Decodable {
 /// The app keeps that object in `ProjectEditDraft.preserved["castConfig"]`. `ProjectEditContract` posts it as the
 /// JSON string `serializeCastConfig` sends, and loads the topic or edit-detail value back into the same key.
 /// Member fields the app does not edit (avatar, colour, clues, ending lines) are kept as they were.
+/// One MP player identity (`castConfig.identities[]`: key · title · sub).
+public struct ProjectEditCastIdentity: Identifiable, Equatable {
+    public let id: String
+    public var title: String
+    public var sub: String
+}
+
+/// MP cast sheet player card: 玩家起名 / 玩家身份 and, when on, up to 4 identities.
+public struct ProjectEditCastPlayer: Equatable {
+    public var playerName: Bool
+    public var playerIdentity: Bool
+    public var identities: [ProjectEditCastIdentity]
+}
+
 enum ProjectEditCastConfig {
     static let key = "castConfig"
     static let maxCast = 12
@@ -179,6 +193,45 @@ enum ProjectEditCastConfig {
         preserved[key] = .object(object)
     }
 
+    /// MP story-cast.js: at most 4 player identities, title 1–8 characters, line up to 24.
+    static let maxIdentities = 4
+    static let identityTitleMax = 8
+    static let identitySubMax = 24
+
+    /// MP `castView.playerName / playerIdentity / identities`; an absent config reads as `emptyCastConfig()`.
+    static func player(_ preserved: [String: ProjectEditJSON]) -> ProjectEditCastPlayer {
+        guard let object = root(preserved) else { return ProjectEditCastPlayer(playerName: true, playerIdentity: false, identities: []) }
+        let identities: [ProjectEditCastIdentity] = (object["identities"]?.array ?? []).compactMap(\.object).map { row in
+            ProjectEditCastIdentity(id: row["key"]?.text ?? "", title: row["title"]?.text ?? "", sub: row["sub"]?.text ?? "")
+        }
+        return ProjectEditCastPlayer(playerName: object["playerName"] == .bool(true),
+                                     playerIdentity: object["playerIdentity"] == .bool(true),
+                                     identities: identities)
+    }
+
+    static func setPlayer(_ player: ProjectEditCastPlayer, in preserved: inout [String: ProjectEditJSON]) {
+        var object = root(preserved) ?? ["enabled": .bool(true), "cast": .array([])]
+        object["playerName"] = .bool(player.playerName)
+        object["playerIdentity"] = .bool(player.playerIdentity)
+        let rows: [ProjectEditJSON] = player.identities.prefix(maxIdentities).map { identity in
+            .object(["key": .string(identity.id),
+                     "title": .string(String(identity.title.prefix(identityTitleMax))),
+                     "sub": .string(String(identity.sub.prefix(identitySubMax)))])
+        }
+        object["identities"] = .array(rows)
+        preserved[key] = .object(object)
+    }
+
+    /// MP `newIdentity`: `i_` + 6 base-36 characters, unique among the identities.
+    static func freshIdentityKey(existing: [ProjectEditCastIdentity]) -> String {
+        let alphabet = Array("0123456789abcdefghijklmnopqrstuvwxyz")
+        for _ in 0..<50 {
+            let id = "i_" + String((0..<6).map { _ in alphabet.randomElement()! })
+            if !existing.contains(where: { $0.id == id }) { return id }
+        }
+        return "i_" + UUID().uuidString.prefix(6).lowercased()
+    }
+
     /// MP `freshId('c_', …)`: `c_` + 6 base-36 characters, unique in this cast.
     static func freshID(existing: [TopicCastMemberDraft]) -> String {
         let alphabet = Array("0123456789abcdefghijklmnopqrstuvwxyz")
@@ -198,6 +251,7 @@ enum ProjectEditCastConfig {
     let readOnly: Bool
     @State private var editing = false
     @State private var sheetMembers: [TopicCastMemberDraft] = []
+    @State private var sheetPlayer = ProjectEditCastPlayer(playerName: true, playerIdentity: false, identities: [])
 
     var body: some View {
         let enabled = Binding<Bool>(
@@ -209,11 +263,15 @@ enum ProjectEditCastConfig {
             selectedLookID: nil,
             onOpenCastEditor: {
                 sheetMembers = ProjectEditCastConfig.members(preserved)
+                sheetPlayer = ProjectEditCastConfig.player(preserved)
                 editing = true
             })
         .disabled(readOnly)
-        .cySheet(isPresented: $editing, onDismiss: { ProjectEditCastConfig.setMembers(sheetMembers, in: &preserved) }) {
-            ProjectEditGapCastEditorSheet(members: $sheetMembers, onPreviewVoice: nil)
+        .cySheet(isPresented: $editing, onDismiss: {
+            ProjectEditCastConfig.setMembers(sheetMembers, in: &preserved)
+            ProjectEditCastConfig.setPlayer(sheetPlayer, in: &preserved)
+        }) {
+            ProjectEditGapCastEditorSheet(members: $sheetMembers, player: $sheetPlayer, onPreviewVoice: nil)
                 .cySheet(detents: [.large])
         }
     }

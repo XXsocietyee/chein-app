@@ -2,6 +2,7 @@ import SwiftUI
 
 enum OfficialScreenIssue {
     case unconfigured, unauthorized, noPublisherPermission, forbidden, unavailable, failed
+    var isFailed: Bool { if case .failed = self { return true } else { return false } }
     init(_ error: Error) {
         switch error {
         case APIError.notConfigured: self = .unconfigured

@@ -77,6 +77,15 @@
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
     {
+      "file": "App/ClubCommunityViews.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Read ids of a club's pinned notices (公告 · 新人先看 unread dots), key cy_club_notice_read_<clubId>; post ids only, no content (MP utils/club-pinned-notice.js)",
+      "retention": "Last 50 post ids per club, on this device only",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
       "file": "App/ClubOrdinaryAdmissionComposition.swift",
       "kinds": [
         "file"

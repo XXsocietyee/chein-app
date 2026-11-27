@@ -13,7 +13,7 @@ PAIRS = {
 'social.failed': ('Unable to load this information. Try again.', '暂时无法获取信息，请重试。'),
 'social.offline': ('Example content. People, records and outcomes here aren\'t real.', '示例内容，人物、记录和结果均非真实。'),
 'social.loading': ('Loading…', '正在加载…'),
-'social.incompleteLink': ('This link is incomplete. Go back to choose another item.', '链接不完整，请返回选择其他内容。'),
+'social.incompleteLink': ('This link is no longer valid', '链接已失效'),
 'social.profile': ('Public profile', '公开主页'),
 'social.profileSection': ('Profile section', '主页内容'),
 'social.level': ('Level', '等级'),

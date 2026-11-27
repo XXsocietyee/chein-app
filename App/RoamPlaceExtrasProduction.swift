@@ -6,7 +6,7 @@ struct RoamPlaceExtrasLive: View {
 
     var body: some View {
         if let extras = binding.extras {
-            RoamPlaceExtrasSection(extras: extras, onPublish: { binding.publishReview(stars: $0, text: $1) })
+            RoamPlaceExtrasSection(extras: extras, onPublish: { binding.publishReview(stars: $0, text: $1) }, onRetryReviews: { binding.load() })
         }
     }
 }
@@ -275,6 +275,7 @@ struct RoamPlaceExtrasLive: View {
             photoCredit: RoamPlaceSources.credit(node?.photoCreditRaw)
         )
         next.sources = RoamCityGuideCatalog.sourcesFor(tags: node?.tags)
+        next.reviewsFailed = reviews == .unavailable
         if attempt.locked {
             next.reviewError = copy("评价结果未确认，请用同一条评价再试。", "This review was not confirmed. Send the same review again.")
         }

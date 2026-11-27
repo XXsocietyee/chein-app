@@ -122,7 +122,12 @@ import SwiftUI
                         }
                             .accessibilityIdentifier(page.accessibilityIdentifier ?? "")
                     case .empty(.incompleteLink):
-                        ContentUnavailableView(LocalizedStringKey(InformationDetailPageModel.Copy.incompleteLink), systemImage: "link")
+                        // mp-states r3 (MP cy-empty kind="missing-param" 链接已失效 · cta 返回).
+                        ContentUnavailableView {
+                            Label(LocalizedStringKey(InformationDetailPageModel.Copy.incompleteLink), systemImage: "link")
+                        } actions: {
+                            Button("action.back") { dismiss() }.buttonStyle(.bordered)
+                        }
                             .accessibilityIdentifier(page.accessibilityIdentifier ?? "")
                     case .unknown:
                         ContentUnavailableView(LocalizedStringKey(InformationDetailPageModel.Copy.unknown), systemImage: "questionmark.folder")
