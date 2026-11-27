@@ -516,7 +516,7 @@ private struct RoamStampImage: View {
             AsyncImage(url: url) { phase in
                 if let image = phase.image { image.resizable().scaledToFit() }
                 else if phase.error != nil { Label("roam.experience.imageUnavailable", systemImage: "photo.badge.exclamationmark") }
-                else { ProgressView("roam.loading") }
+                else { ProgressView() }
             }.frame(maxWidth: .infinity, minHeight: 100, maxHeight: 240).accessibilityLabel(Text("roam.experience.stampImage"))
         } else { Label("roam.experience.imageUnavailable", systemImage: "photo") }
     }
@@ -687,7 +687,7 @@ private struct RoamStampReadOnlyUnavailable: View {
                     .background { RoamAlbumMetadataLifetime(scope: scope).id(scope.id) }
             } else if reader.identity == nil {
                 RoamExperienceIssue(error: APIError.unauthorized)
-            } else { ProgressView("roam.loading") }
+            } else { ProgressView { Text("roam.stamps.loading") } }
         }
         .onAppear { mounted = true; attachIfVisible() }
         .onDisappear { mounted = false }

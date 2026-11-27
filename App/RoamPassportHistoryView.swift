@@ -98,7 +98,7 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
                                 }
                             }.accessibilityIdentifier("roam.serverHistory.record")
                         }
-                        if model.busy { ProgressView("roam.loading") }
+                        if model.busy { ProgressView { Text("roamSub.w208.history.loading") } }
                         else if model.hasMore {
                             Button("roam.experience.loadMore") { Task { await model.read(more) } }.accessibilityIdentifier("roam.serverHistory.more")
                         }
@@ -204,7 +204,7 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
                         } header: { passportText("localSupplement") }
                     }
                 }
-                if model.busy { ProgressView("roam.loading") }
+                if model.busy { ProgressView { Text("roamSub.w208.history.loading") } }
                 else { Button("action.retry") { Task { await model.read(retry) } }.accessibilityIdentifier("roam.serverHistory.detail.retry") }
             }
         }.cyGroupedSurface()

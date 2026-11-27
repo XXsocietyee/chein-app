@@ -199,7 +199,8 @@ struct RoamHomeTabPicker: View {
         case .denied:
             Label("roam.w208.entry.denied", systemImage: "hand.raised").accessibilityIdentifier("roam.home.peek.denied")
         case .loading:
-            ProgressView("roam.loading").accessibilityIdentifier("roam.home.peek.loading")
+            // MP aria 正在读取附近活动.
+            ProgressView { Text("roam.w208.entry.loading") }.accessibilityIdentifier("roam.home.peek.loading")
         case .failed:
             VStack(alignment: .leading, spacing: 6) {
                 Label("roam.w208.entry.failed", systemImage: "exclamationmark.triangle")

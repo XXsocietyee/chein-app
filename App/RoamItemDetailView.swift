@@ -94,7 +94,8 @@ struct RoamItemDetailView: View {
                 if scenePhase != .active { Color.clear }
                 else if !reader.isConfigured { RoamStatusView(issue: .notConfigured) }
                 else if !isCurrent { RoamStatusView(issue: .unauthorized) }
-                else if loading { ProgressView("roam.loading") }
+                // MP cy-skeleton while the node reads; P10 says it in words.
+                else if loading { ProgressView { Text("roam.place.loading") } }
                 else if nodeUnavailable { RoamPOIUnavailableView { merchantRetry.cancel(); dismiss() } }
                 else if let issue { RoamStatusView(issue: issue) { startLoad(visit: offeredReadVisit) } }
                 else { content }
@@ -222,8 +223,6 @@ struct RoamItemDetailView: View {
                 merchantRetrySection(node: node)
             }
             Section { RoamPOINodeParityCard(node: node, stampDestination: stampDestination, showsFavorite: poiActions == nil) }
-            // Official place extras (play, Xiaohongshu, quotes, player reviews, photo credit); hidden without a binding.
-            RoamPlaceExtrasMount(poiID: node.poiId)
             Section("roam.yourStatus") {
                 let isCompleted = poiActionModel.completedOverride ?? node.completed
                 Label(LocalizedStringKey(isCompleted ? "roam.completed" : "roam.notCompleted"), systemImage: isCompleted ? "checkmark.circle" : "circle")
@@ -247,6 +246,10 @@ struct RoamItemDetailView: View {
                 if let xp = place.xp, xp >= 0 { LabeledContent("roam.potentialXP") { Text(xp, format: .number) } }
                 PlatformExternalMapHost(destination: .init(name: node.name, address: node.merchantAddress ?? place.address, latitude: node.coordinate?.latitude, longitude: node.coordinate?.longitude), scope: mediaScope, makeModel: makeExternalMaps)
             }
+            // Official place extras (play, Xiaohongshu, quotes, player reviews, photo credit); hidden without a binding.
+            // MP scene-roam-poi-detail order: node card + 收藏/导航/投一张, 地点详情, then 玩家评价 — so the
+            // extras (which carry the reviews) follow 地点详情.
+            RoamPlaceExtrasMount(poiID: node.poiId)
         }
     }
     /// P15 header. The challenge is the one prominent capsule (P3) while it is open; stamp camera, poster scan and
@@ -283,7 +286,7 @@ struct RoamItemDetailView: View {
         return Section("roam.merchant") {
             Text("roam.merchantFailed").foregroundStyle(.secondary)
             if merchantRetry.isLoading {
-                ProgressView("roam.loading").accessibilityIdentifier("roam.merchant.retry.loading")
+                ProgressView { Text("roam.merchant.loading") }.accessibilityIdentifier("roam.merchant.retry.loading")
             }
             Button("action.retry", systemImage: "arrow.clockwise") {
                 retryMerchant(node: node, rendered: renderedScope, snapshot: renderedSnapshot)
