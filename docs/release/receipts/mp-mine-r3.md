@@ -101,9 +101,17 @@ The fixture can open a tab with `-d2MeTab achievements` or `-d2MeTab about`. It 
 
 Gates: generate_project (no change), check_scaffold PASS, a11y lint 0 new, design consistency PASS (0 raw font, 0 tracking), missing string keys 0, contract ratchet 52/52 with **new 0**.
 
+### Re-scan of 项目 (continue 2)
+
+| MP `cy/profile` 项目 | Native before | Fixed? |
+|---|---|---|
+| 我的订单 → 我的项目 → 视频悬赏 → 我的资产 → 通行证与礼品 | 我的发票, 我的参与/已完成 and the host-tip/redeem/landing section sat between 订单 and 我的资产 | **Fixed.** `MPParityAccountLinks(part:)` splits into `.bounty` (promo / 视频悬赏, before 我的资产) and `.extras` (app-only rows, after it). The app-only rows (我的参与, creator rows on the legacy host, extras) now follow the MP sections. |
+| 我的发票 is a 设置 row (MP `shezhi.js:221` → `invoice/index`) | Duplicated on 我的 | **Fixed.** Removed from 我的; Settings keeps `SettingsInvoiceEntry`. |
+
 ## Not done / next
 
-- 探索作品 images on 关于. The snapshot's `casePictures` can be object keys; the public profile link shows them.
+- 探索作品 images on 关于: **blocked.** `NativeMediaGalleryEntry` with no reader falls back to `RetainedPublicImageReader()`, which is disabled and origin-gated by design, and the session has no approved case-picture reader (`ProfileEditView` gets `caseImageReader: nil` too). Enabling one is an appsec/config decision, not a layout fix.
+- Simulator look needed: the `d2-me` fixture (`-d2MeTab achievements|about`) and the ··· `Menu` inside a `Form` row next to two `.borderedProminent` buttons.
 
 ## Strings
 

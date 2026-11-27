@@ -7,8 +7,16 @@ import SwiftUI
     @Environment(\.mpParity) private var bindings
     @EnvironmentObject private var session: AppSession
     @State private var showsRedeem = false
+    /// mp-mine r3: MP 项目 order puts 视频悬赏 before 我的资产; the app-only host-tip rows come after it.
+    enum Part { case all, bounty, extras }
+    var part: Part = .all
 
     var body: some View {
+        if part != .bounty { extrasSection }
+        if part != .extras { bountySection }
+    }
+
+    @ViewBuilder private var extrasSection: some View {
         Section {
             NavigationLink { HostTipConfigScreen(session: session) } label: {
                 CYListRow("hostTip.entry.config", trailing: .none) { CYRowIcon(systemImage: "heart") }
@@ -30,6 +38,9 @@ import SwiftUI
             Text("hostTip.section")
         }
         .cySheet(isPresented: $showsRedeem) { ChannelRedeemSheet(session: session) }
+    }
+
+    @ViewBuilder private var bountySection: some View {
         // 通行证与礼品 lives under 资产 (`MPPassAssetsLink`), as in the mini-program profile.
         if bindings.journeyPromo != nil || bindings.videoBounty != nil {
             Section {

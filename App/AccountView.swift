@@ -198,25 +198,16 @@ import SwiftUI
         .onChange(of: scenePhase) { _, phase in savedPostOwner.setForeground(phase == .active); savedTopicOwner.setForeground(phase == .active) }
     }
 
-    /// MP 我的: 订单 → 项目 → 视频悬赏 → 我的资产 (钱包 · 通行证与礼品).
+    /// MP 项目: 订单 → 项目 → 视频悬赏 → 我的资产 (账户余额 · 通行证与礼品), then the app-only rows.
     @ViewBuilder private var mineTabSections: some View {
         MotionR2ChecklistSection() // motion r2 R10: first-run checklist (hidden once done or off)
         ProfileAccountLinks(reader:session.profileReader,scoreAppealsDestination:{ AnyView(MemberScoreAppealListView(session: session)) },ordersDestination:{ AnyView(SessionOwnedOrdersView(session: session)) },participantReader:session.participantReader,participantCoordinator:session.participantCoordinator,orderLifecycleCoordinator:session.orderLifecycleCoordinator, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory, part: .orders)
-        if let invoice = session.makeInvoiceLaunchPresentation() {
-            NavigationLink {
-                InvoiceLaunchSessionHistory(session: session, model: invoice)
-                    .cyPushedChrome()
-            } label: { invoiceText("history") }
-            .accessibilityIdentifier("account.invoices")
-        }
-        PlayerJourneyAccountLinks()
         // MP 我的项目 (管理全部): the same project preview the public profile 我的 tab shows; legacy host keeps the creator rows.
         if showsPassportOverview {
             ProfileSelfProjectsEntry(memberID: account.id, accountReader: session.socialAccountReader,
                 access: .init(session: session), isCurrent: { session.account?.id == account.id })
         }
-        if !showsPassportOverview { AccountRoleSections() } // Passport hosts these in Settings instead
-        MPParityAccountLinks() // passes / promo / video bounty; hidden until their bindings are injected
+        MPParityAccountLinks(part: .bounty) // promo / video bounty; hidden until their bindings are injected
         Section("wallet.assets") {
             // mp-mine r3: MP 我的 → 我的资产 is a row on the 我的 tab for every host (the Passport circle row is gone).
             // MP pc-asset: 账户余额 with the balance (P-49: unknown reads ¥0, never "—") → earnings/wallet.
@@ -230,6 +221,10 @@ import SwiftUI
             ModSettlementAccountLink(makeReader: { session.makeModSettlementReader() })
             MPPassAssetsLink() // 通行证与礼品 under assets; hidden until its binding is injected, and for merchants
         }
+        // App-only rows after the MP sections (MP 我的发票 is a 设置 row: SettingsInvoiceEntry, MP shezhi.js goInvoice).
+        PlayerJourneyAccountLinks()
+        if !showsPassportOverview { AccountRoleSections() } // Passport hosts these in Settings instead
+        MPParityAccountLinks(part: .extras) // host tips, channel redeem, content landing
     }
 
     /// MP 帖文: the member's own posts (and bookmarks), shown only when the community bundle is readable.
