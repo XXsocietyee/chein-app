@@ -111,7 +111,7 @@ import SwiftUI
                 .accessibilityLabel(Text(verbatim: phrase("刷新状态", "Refresh status")))
             }
         case .unavailable:
-            ContentUnavailableView(phrase("暂未开放", "Not open yet"), systemImage: "wifi.slash")
+            ContentUnavailableView(phrase("暂未开放", "Not open yet"), systemImage: "exclamationmark.circle")
                 .listRowBackground(Color.clear)
         }
     }

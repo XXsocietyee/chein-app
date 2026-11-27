@@ -102,7 +102,7 @@ struct RoamCityGuideCards: View {
                             }
                         } icon: {
                             MPAsset.BannerCover.homeRouteCityPlaceholder.resizable().scaledToFill()
-                                .frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                .frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                                 .accessibilityHidden(true)
                         }
                         .frame(width: cardWidth, alignment: .leading)

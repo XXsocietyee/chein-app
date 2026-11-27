@@ -512,18 +512,19 @@ struct CityNearbyDrawer: View {
     }
 }
 
+/// mp-states r3: the one empty pattern — a system ContentUnavailableView (symbol + the sentence), not a raised card.
 struct CityEmptyLine: View {
     let symbol: String
     let text: String
-    @Environment(\.cyPalette) private var palette
     var body: some View {
-        HStack(alignment: .top, spacing: CYSpacing.sm) {
-            Image(systemName: symbol).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
-            Text(verbatim: text).cyText(.body).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+        ContentUnavailableView {
+            Image(systemName: symbol)
+                .font(.largeTitle)
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+        } description: {
+            Text(verbatim: text)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(CYSpacing.md)
-        .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .accessibilityElement(children: .combine)
     }
 }

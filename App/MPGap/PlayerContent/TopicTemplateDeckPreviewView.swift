@@ -141,7 +141,7 @@ public struct TopicTemplateDeckPreviewView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(.background.secondary)
             // Cover photo card in a paged deck: clip like a system photo tile.
-            .clipShape(.rect(cornerRadius: 12))
+            .clipShape(.rect(cornerRadius: CYRadius.card))
         }
         .buttonStyle(.plain)
         .accessibilityLabel(card.isCover ? preview.name : card.title)

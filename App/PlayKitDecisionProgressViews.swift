@@ -39,7 +39,7 @@ extension PlayKitScreen {
         HStack {
             ForEach(Array(values.enumerated()), id: \.offset) { _, value in
                 if !d20 && (1...6).contains(value) { Image(systemName: "die.face.\(value).fill").resizable().scaledToFit().frame(width: 72, height: 72).accessibilityLabel(Text(verbatim: String(value))) }
-                else { Text(verbatim: String(value)).cyText(.dataXL).padding().background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16)) }
+                else { Text(verbatim: String(value)).cyText(.dataXL).padding().background(.thinMaterial, in: RoundedRectangle(cornerRadius: CYRadius.card)) }
             }
         }.frame(maxWidth: .infinity)
         if values.isEmpty {
@@ -87,7 +87,7 @@ extension PlayKitScreen {
                 else { Text(verbatim: "\(index + 1)").cyText(.meta) }
                 if let label = card["label"].text { Text(verbatim: label).cyText(.sheetTitle) }
                 if let content = card["content"].text { Text(verbatim: content) }
-            }.padding().frame(maxWidth: .infinity, alignment: .leading).background(.thinMaterial, in: RoundedRectangle(cornerRadius: 20))
+            }.padding().frame(maxWidth: .infinity, alignment: .leading).background(.thinMaterial, in: RoundedRectangle(cornerRadius: CYRadius.hero))
         }
         if count == 0, drawn.isEmpty {
             ContentUnavailableView("playkit.unavailable", systemImage: "rectangle.stack")
@@ -172,7 +172,7 @@ extension PlayKitScreen {
                     Text(verbatim: board.instruction(at: index)).cyText(.meta).fixedSize(horizontal: false, vertical: true)
                     if board.linePositions.contains(index) { Text("playkit.bingo.inLine").cyText(.meta) }
                 }.padding(10).frame(maxWidth: .infinity, minHeight: 130, alignment: .topLeading)
-                    .background(board.filled.contains(index) ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+                    .background(board.filled.contains(index) ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: CYRadius.card))
                     .accessibilityElement(children: .combine)
                     .accessibilityValue(Text(board.filled.contains(index) ? "playkit.bingo.filled" : "playkit.bingo.empty"))
             }

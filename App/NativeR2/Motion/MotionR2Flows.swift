@@ -154,7 +154,7 @@ struct MotionR2ConfirmPill: View {
                 .matchedGeometryEffect(id: "title", in: namespace)
         }
         .padding(28)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: CYRadius.sheet, style: .continuous))
         .matchedGeometryEffect(id: "frame", in: namespace)
         .accessibilityElement(children: .combine)
     }

@@ -16,6 +16,8 @@ import SwiftUI
     var channelGovernanceDestination: ((NativeChannelGovernanceNotice) -> AnyView?)? = nil
     var safetyCoordinator: ((Int) -> IMSafetyCoordinator?)? = nil
     var channelReadCoordinator: ((Int) -> NativeChannelNotificationCoordinator?)? = nil
+    /// mp-nav r3: MP pages a system card opens with navigateTo (page path, `id`), pushed above the chat.
+    var pageDestination: ((String, Int) -> AnyView?)? = nil
 }
 extension AppSession {
     var imExpandedNavigation: IMExpandedNavigationContext {
@@ -27,7 +29,11 @@ extension AppSession {
                   guard let flow = self?.makeNativeChannelAppealFlow(notice: notice) else { return nil }
                   return AnyView(NativeChannelAppealEntry(flow: flow))
               },
-              safetyCoordinator: { [weak self] in self?.imSafetyCoordinator(for: $0) })
+              safetyCoordinator: { [weak self] in self?.imSafetyCoordinator(for: $0) },
+              pageDestination: { [weak self] page, id in
+                  guard let self else { return nil }
+                  return AnyView(MPReviewedPageScreen(page: page, query: ["id": String(id)]).environmentObject(self))
+              })
     }
 }
 

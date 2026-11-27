@@ -751,7 +751,7 @@ struct ChapterStoryZoomedImage: Identifiable {
                     if let alt { Text(verbatim: alt).cyText(.body).foregroundStyle(CYColor.textPrimary) }
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }
-        }.frame(maxWidth: .infinity).clipShape(RoundedRectangle(cornerRadius: 18))
+        }.frame(maxWidth: .infinity).clipShape(RoundedRectangle(cornerRadius: CYRadius.card))
         .task(id: requestKey) {
             guard !Task.isCancelled else { return }
             let captured = requestKey

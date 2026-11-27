@@ -231,7 +231,7 @@ private struct RoamPassportTrackView: View {
     var body: some View {
         let sketch = RoamRouteSketch(track: track, places: places)
         ZStack {
-            RoundedRectangle(cornerRadius: 12).fill(Color.accentColor.opacity(0.08))
+            RoundedRectangle(cornerRadius: CYRadius.card).fill(Color.accentColor.opacity(0.08))
             if sketch.track.isEmpty { Text("roam.experience.noTrack").cyText(.meta) }
             else {
                 Canvas { context, size in

@@ -70,7 +70,7 @@ import VisionKit
                         Image(uiImage: image)
                             .resizable()
                             .scaledToFit()
-                            .clipShape(.rect(cornerRadius: 12))
+                            .clipShape(.rect(cornerRadius: CYRadius.card))
                             .accessibilityLabel(Text("playkit.photo.preview"))
                     }
                     if bytes.count > 10 * 1024 * 1024 { Label("playkit.photo.tooLarge", systemImage: "exclamationmark.triangle") }

@@ -43,6 +43,8 @@ import SwiftUI
 }
 
 @MainActor struct TicketWalletFixtureHostView: View {
+    /// TicketWalletView and its detail read `@EnvironmentObject AppSession`; without one the fixture quit at launch (18:15 sweep, e4-tickets).
+    @StateObject private var session = AppSession()
     @State private var reader: TicketWalletFixtureReader
     @State private var revision = 0
     init() {
@@ -60,7 +62,9 @@ import SwiftUI
             if reader.scenario == .unavailable || reader.scenario == .refreshed {
                 NavigationStack { TicketWalletDetailView(id: 901, reader: reader) }
             } else { TicketWalletView(reader: reader) }
-        }.id(revision)
+        }
+        .id(revision)
+        .environmentObject(session)
     }
 }
 #endif

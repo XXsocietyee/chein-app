@@ -174,6 +174,7 @@ struct PassCardHostFixture: View {
 struct E1TicketHolderFixture: View {
     enum Kind { case wallet, valid, pending, used, expired, present }
     let kind: Kind
+    @StateObject private var session = AppSession()
     @State private var reader = E1TicketHolderReader()
 
     var body: some View {
@@ -192,7 +193,7 @@ struct E1TicketHolderFixture: View {
         }
         .themeDomain(.player)
         .cyDomainPageBackground()
-        .preferredColorScheme(.dark)
+        .environmentObject(session)
     }
 }
 #endif

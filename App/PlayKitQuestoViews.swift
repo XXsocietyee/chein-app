@@ -369,7 +369,7 @@ typealias PlayKitAccusationWrite = (String) -> Void
             .frame(minWidth: cell, minHeight: cell)
             .background {
                 if !fixed {
-                    RoundedRectangle(cornerRadius: 12).strokeBorder(text == nil ? Color.secondary : Color.accentColor, lineWidth: text == nil ? 1 : 2)
+                    RoundedRectangle(cornerRadius: CYRadius.card).strokeBorder(text == nil ? Color.secondary : Color.accentColor, lineWidth: text == nil ? 1 : 2)
                 }
             }
     }

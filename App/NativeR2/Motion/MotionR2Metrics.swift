@@ -84,7 +84,7 @@ struct MotionR2MoodHero: View {
         .frame(maxWidth: .infinity, minHeight: 150, alignment: .bottomLeading)
         .padding(20)
         .background { MotionR2MoodGradient(mood: mood) }
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(LocalizedStringKey(captionKey)))
         .accessibilityValue(Text(verbatim: value))

@@ -701,7 +701,7 @@ struct ProjectPublishPreviewSummary: View {
             HStack(spacing: 12) {
                 CYCachedAsyncImage(draft.imgUrl.isEmpty ? nil : draft.imgUrl, role: .cover)
                     .frame(width: cover, height: cover)
-                    .clipShape(.rect(cornerRadius: 8, style: .continuous)) // image crop only
+                    .clipShape(.rect(cornerRadius: CYRadius.inner, style: .continuous)) // image crop only
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 4) {
                     Group {

@@ -96,14 +96,8 @@ struct CityFairnessView: View {
     }
 
     private var loadingBlock: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Text("fairness.loading", tableName: table)
-                .cyText(.body)
-                .foregroundStyle(palette.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-            CYSkeleton().accessibilityHidden(true)
-        }
-        .accessibilityElement(children: .combine)
+        ProgressView { Text("fairness.loading", tableName: table) }
+            .frame(maxWidth: .infinity)
     }
 
     private func ratioBlock(_ page: CityFairnessPage) -> some View {
