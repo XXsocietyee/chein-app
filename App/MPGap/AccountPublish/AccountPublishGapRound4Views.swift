@@ -56,21 +56,25 @@ public struct ProjectEditGapRichStoryBlocksSection: View {
 /// Cast editor sheet with add/remove roles + voice preview action.
 public struct ProjectEditGapCastEditorSheet: View {
     @Binding public var members: [TopicCastMemberDraft]
+    @Binding public var player: ProjectEditCastPlayer
     /// nil hides 试听 (owner decision 2026-11-24 #7: no live cast calls; the MP also hides it when TTS is off).
     public let onPreviewVoice: ((TopicCastMemberDraft) -> Void)?
     @Environment(\.dismiss) private var dismiss
 
     public init(
         members: Binding<[TopicCastMemberDraft]>,
+        player: Binding<ProjectEditCastPlayer>,
         onPreviewVoice: ((TopicCastMemberDraft) -> Void)?
     ) {
         self._members = members
+        self._player = player
         self.onPreviewVoice = onPreviewVoice
     }
 
     public var body: some View {
         NavigationStack {
             List {
+                playerSection
                 if members.isEmpty {
                     Text("fixr8.cast.empty").foregroundStyle(.secondary)
                 }
@@ -103,6 +107,9 @@ public struct ProjectEditGapCastEditorSheet: View {
                 .onDelete { offsets in
                     members.remove(atOffsets: offsets)
                 }
+                .onMove { source, destination in
+                    members.move(fromOffsets: source, toOffset: destination)
+                }
                 if members.count < ProjectEditCastConfig.maxCast {
                     Button("fixr8.cast.add") {
                         members.append(TopicCastMemberDraft(id: ProjectEditCastConfig.freshID(existing: members), name: "", roleTitle: ""))
@@ -112,10 +119,55 @@ public struct ProjectEditGapCastEditorSheet: View {
                     Text("fixr8.cast.max \(ProjectEditCastConfig.maxCast)").foregroundStyle(.secondary)
                 }
             }
-            .cyPageTitle("fixr8.cast.list")
+            .cyPageTitle("fixr8.cast.title")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("fixr8.common.done") { dismiss() }
+                }
+                if !members.isEmpty {
+                    ToolbarItem(placement: .topBarLeading) { EditButton() }
+                }
+            }
+        }
+    }
+
+    /// MP cast-sheet `#cast-player` card, first in the sheet: 玩家起名, 玩家身份, then its identities (max 4).
+    @ViewBuilder private var playerSection: some View {
+        Section {
+            Toggle(isOn: $player.playerName) { Label("castPlayer.name", systemImage: "person.text.rectangle") }
+            Toggle(isOn: $player.playerIdentity) { Label("castPlayer.identity", systemImage: "star") }
+            if player.playerIdentity {
+                ForEach($player.identities) { $identity in
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        TextField("castPlayer.identityTitle", text: $identity.title)
+                            .onChange(of: identity.title) { _, value in
+                                if value.count > ProjectEditCastConfig.identityTitleMax { identity.title = String(value.prefix(ProjectEditCastConfig.identityTitleMax)) }
+                            }
+                        TextField("castPlayer.identitySub", text: $identity.sub)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .onChange(of: identity.sub) { _, value in
+                                if value.count > ProjectEditCastConfig.identitySubMax { identity.sub = String(value.prefix(ProjectEditCastConfig.identitySubMax)) }
+                            }
+                    }
+                }
+                .onDelete { offsets in
+                    player.identities.remove(atOffsets: offsets)
+                }
+                if player.identities.count < ProjectEditCastConfig.maxIdentities {
+                    Button {
+                        let key = ProjectEditCastConfig.freshIdentityKey(existing: player.identities)
+                        player.identities.append(ProjectEditCastIdentity(id: key, title: "", sub: ""))
+                    } label: { Label("castPlayer.addIdentity", systemImage: "plus") }
+                        .accessibilityIdentifier("projectEdit.cast.addIdentity")
+                }
+            }
+        } footer: {
+            if player.playerIdentity {
+                if player.identities.isEmpty {
+                    Text("castPlayer.needIdentity").foregroundStyle(.red)
+                } else if player.identities.count >= ProjectEditCastConfig.maxIdentities {
+                    Text("castPlayer.identityMax \(ProjectEditCastConfig.maxIdentities)")
                 }
             }
         }
