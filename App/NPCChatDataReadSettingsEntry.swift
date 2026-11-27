@@ -117,7 +117,7 @@ struct NPCChatDataReadPresentation: Identifiable {
             } else {
                 NavigationStack {
                     Text("npcData.contentCleared")
-                        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { dismiss() } } }
+                        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { dismiss() } } }
                 }
             }
         }

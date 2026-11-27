@@ -192,6 +192,25 @@ Baseline 0, nothing allowed. Self-test: the pre-fix `NativeGameShell.swift` fail
 Gates: `generate_project` PASS, `check_scaffold` PASS (design consistency: 0 debt, 65 allowed, leading action 0),
 `check_a11y_lint` PASS (0 new), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
 
+### Batch 2 — one place for Done
+Sheets whose only dismiss is Done put it trailing in 30 places (`.confirmationAction`, Apple default) and leading in
+15 (`.cancellationAction`, the Cancel slot). Cancel + Done pairs (`ContextualPickers`, `NativeConditionAuthorFieldForm`,
+`PublishingModesViews`) and the keyboard Done in `CooperationContextualViews` are correct and unchanged.
+
+| MP page | Native view | MP sections | Change (owner rule 2) |
+|---|---|---|---|
+| 漫游 bundle action / coupon detail / order lifecycle (sheets) | `FreeExploreBundleLaunchView.swift:142`, `CouponManagementView.swift:158`, `ProfileOrdersView.swift:217` | unchanged | Done `.cancellationAction` → `.confirmationAction` (trailing); identifiers kept. |
+| channel message context / pins / revision / search | `NativeChannelMessageContextView.swift:76`, `NativeChannelMessagePinsView.swift:67`, `NativeChannelMessageRevisionView.swift:55`, `NativeChannelMessageSearchView.swift:135` | unchanged | same. |
+| NPC chat data + read settings, avatar draft, club media editor | `NPCChatDataView.swift:232`, `NPCChatDataReadSettingsEntry.swift:120`, `ProfileAvatarDraftSection.swift:193`, `ClubProfileMediaEditor.swift:92` | unchanged | same (club media keeps `.disabled` while uploading). |
+| topic self play (2 sheets), free exploration ending letter, play tools sheet | `TopicSelfPlaySheet.swift:143, 193`, `MPGap/PlayRoam/FreeExplorationEndingLetter.swift:45`, `MPGap/PlayRoam/PlayToolsAndLeadSheetView.swift:202` | unchanged | same. |
+
+New checker kind **done leading**: a `Button("….done")` in a `.cancellationAction` / leading toolbar item (window cut
+at the next `ToolbarItem`) with no `.confirmationAction` within 8 lines. Baseline 0, nothing allowed. Self-test: the
+pre-fix `TopicSelfPlaySheet.swift` fails at lines 143 and 193.
+
+Gates (batch 2): `generate_project` PASS, `check_scaffold` PASS (design consistency 0 debt, 65 allowed, done leading 0),
+`check_a11y_lint` PASS (0 new), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

@@ -155,7 +155,7 @@ import SwiftUI
             NavigationStack {
                 CouponManagementDetailView(model: model, id: item.id, scope: scope)
                     .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
+                        ToolbarItem(placement: .confirmationAction) {
                             Button("action.done") { detailItem = nil }
                                 .accessibilityIdentifier("couponManagement.detail.done")
                         }

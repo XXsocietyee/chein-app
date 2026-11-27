@@ -199,7 +199,7 @@ public struct PlayToolsAndLeadSheetView: View {
             .navigationTitle(Text("playTools.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
+                ToolbarItem(placement: .confirmationAction) {
                     Button("action.done", action: onClose)
                 }
             }
