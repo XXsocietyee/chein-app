@@ -470,7 +470,7 @@ import SwiftUI
     }
     @ViewBuilder private var refreshControls: some View {
         if refresh.isLoading {
-            ProgressView().accessibilityLabel(Text("mapRefresh.loading")).accessibilityIdentifier("mapRefresh.loading")
+            ProgressView("mapRefresh.loading").accessibilityIdentifier("mapRefresh.loading")
             Text("mapRefresh.previousWhileLoading")
                 .font(.footnote).fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("mapRefresh.previousWhileLoading")
@@ -495,7 +495,7 @@ import SwiftUI
     }
     @ViewBuilder private var activityPaginationControls: some View {
         if pagination.isLoading {
-            ProgressView().accessibilityLabel(Text("mapPagination.loading")).accessibilityIdentifier("mapPagination.loading")
+            ProgressView("mapPagination.loading").accessibilityIdentifier("mapPagination.loading")
         } else if let failure = pagination.failure {
             VStack(alignment: .leading, spacing: 8) {
                 Label(LocalizedStringKey(failure == .unauthorized ? "searchMap.partialSignIn" : "mapPagination.failed"), systemImage: "exclamationmark.circle")

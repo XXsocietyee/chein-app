@@ -57,7 +57,7 @@ struct SearchMapAllResultsSheet: View {
                         }.accessibilityIdentifier("searchMap.w208.sheet.refreshFailed")
                     }
                     if loading {
-                        ProgressView().frame(maxWidth: .infinity).padding(.vertical)
+                        ProgressView("search.r3.loading.map").frame(maxWidth: .infinity).padding(.vertical)
                     } else if failed && rows.isEmpty {
                         ContentUnavailableView {
                             Label("searchMap.w208.sheet.failed", systemImage: "exclamationmark.triangle")
