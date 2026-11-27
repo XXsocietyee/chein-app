@@ -407,7 +407,7 @@ private struct ProfileOrderRow: View {
                 if let range = ProfileOrderTimeRangeText.text(start: order.startDate, end: order.endDate) {
                     meta(Text(verbatim: range).monospacedDigit(), mp: MPAsset.FeatureIcon.dOrderIcon).accessibilityIdentifier("profile.orderRow.timeRange")
                 } else if let date = order.participateDate ?? order.startDate, !date.isEmpty {
-                    meta(Text(verbatim: date), mp: MPAsset.FeatureIcon.dOrderIcon)
+                    meta(Text(verbatim: LocaleDisplay.civil(date, locale: locale)), mp: MPAsset.FeatureIcon.dOrderIcon)
                 }
                 if let location = order.addressName?.trimmingCharacters(in: .whitespaces), !location.isEmpty, location.lowercased() != "null" {
                     // FIN-16-7: MP onAddressTap opens the address in the map app; the card tap still opens the detail.
