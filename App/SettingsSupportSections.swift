@@ -199,7 +199,7 @@ struct SettingsTileLabelStyle: LabelStyle {
                 .font(.body.weight(.semibold))
                 .foregroundStyle(.white)
                 .frame(width: 30, height: 30)
-                .background(tint, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+                .background(tint, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                 .accessibilityHidden(true)
             configuration.title
                 .fixedSize(horizontal: false, vertical: true)

@@ -564,7 +564,7 @@ struct HomeFeedShelfLockup: View {
             Color.clear
                 .aspectRatio(style == .shelf ? 3.0 / 2.0 : 16.0 / 10.0, contentMode: .fit)
                 .overlay { cover }
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                 .accessibilityHidden(true)
             Text(verbatim: title)
                 .font(.headline)

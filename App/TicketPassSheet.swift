@@ -259,7 +259,7 @@ enum CYPassCardPick {
         }
         .frame(maxWidth: .infinity)
         .background(Color(uiColor: .secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
         .opacity(state.isRetired ? 0.74 : 1)
         .cyBrightnessBoost(ticket.status == .ready)
         .privacySensitive()

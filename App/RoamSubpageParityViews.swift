@@ -492,7 +492,7 @@ struct RoamPOIMissingView: View {
                 .accessibilityIdentifier("roamSub.w208.stamp.note")
         }
         .padding(12)
-        .background(.background.secondary, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .background(.background.secondary, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
         .scaleEffect(noteGrabbed ? 0.88 : 1)
         .rotationEffect(.degrees(noteTilt))
         .offset(noteDrag)
@@ -535,7 +535,7 @@ struct RoamPOIMissingView: View {
     }
     /// MP `sgnote__shot`: the shot as a square, else a dashed square with the camera glyph.
     @ViewBuilder private var photoSquare: some View {
-        let shape = RoundedRectangle(cornerRadius: 8, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous)
         if let raw = draft?.pictureURL, let url = URL(string: raw), url.scheme == "https" {
             AsyncImage(url: url) { image in image.resizable().scaledToFill() } placeholder: { ProgressView() }
                 .frame(width: 64, height: 64).clipShape(shape)
@@ -670,7 +670,7 @@ struct RoamPOIMissingView: View {
                 }
             }
             // N-r11-4: the decorative barcode strip is gone (`RoamStampSlip.bars` stays for the slip model).
-        }.padding().background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
+        }.padding().background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: CYRadius.card))
             .accessibilityElement(children: .contain).accessibilityIdentifier("roamSub.w208.stamp.slip")
     }
 }
@@ -717,7 +717,7 @@ struct RoamStampSlipPhotoView: View {
             }
         }
         .frame(maxWidth: .infinity, minHeight: 100, maxHeight: 220)
-        .clipShape(RoundedRectangle(cornerRadius: 6))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner))
         .accessibilityLabel(Text("roam.experience.stampImage"))
         .accessibilityIdentifier("roamSub.w208.stamp.photo")
     }

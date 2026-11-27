@@ -564,6 +564,8 @@ public enum CYRadius {
     public static let hero: CGFloat = Theme.Radius.hero
     /// `8pt` thumbnails inside a card (concentric: card radius minus the inset; native restyle r1).
     public static let inner: CGFloat = Theme.Radius.sm
+    /// `18pt` Messages-style bubbles: chat / comment bubbles, in-chat cards, the message composer field.
+    public static let bubble: CGFloat = 18
     /// `24pt` bottom sheets & modal dialogs.
     public static let sheet: CGFloat = 24
     /// Full capsule pills & primary CTAs (`Theme.Radius.pill`, `--cy-radius-pill`; prefer `Capsule()`).

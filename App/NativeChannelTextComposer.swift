@@ -79,8 +79,8 @@ import SwiftUI
                         }
                         .frame(minHeight: 44)
                         // Messages-style field: system background with a hairline separator outline.
-                        .background(Color(uiColor: .systemBackground), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-                        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).strokeBorder(Color(uiColor: .separator)))
+                        .background(Color(uiColor: .systemBackground), in: RoundedRectangle(cornerRadius: CYRadius.bubble, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: CYRadius.bubble, style: .continuous).strokeBorder(Color(uiColor: .separator)))
                     }
                 } else {
                     if let pending = coordinator.pendingText {

@@ -22,7 +22,8 @@ struct D2Fixture: View {
         case .search: SearchMapFixtureHostView()
         case .searchResults:
             NavigationStack {
-                GlobalSearchView(reader: SearchMapFixtureReader(scenario: .content), recommendedKeywords: GlobalSearchRecommendedKeywords.china) { _ in Color.clear }
+                GlobalSearchView(reader: SearchMapFixtureReader(scenario: .content), recommendedKeywords: GlobalSearchRecommendedKeywords.china,
+                                 initialQuery: GlobalSearchQuery(keyword: "Lantern")) { _ in Color.clear }
             }
         case .searchOffline:
             NavigationStack {

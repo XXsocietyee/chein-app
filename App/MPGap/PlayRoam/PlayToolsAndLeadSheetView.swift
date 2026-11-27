@@ -418,7 +418,7 @@ struct PlayJournalStoryView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 200)
-                    .clipShape(.rect(cornerRadius: 12))
+                    .clipShape(.rect(cornerRadius: CYRadius.card))
                     .accessibilityHidden(true)
                 }
                 Text(verbatim: row.story ?? "")

@@ -61,7 +61,7 @@ import QuestifyCore
                 E1CoverArt(seed: route.name, symbol: "point.topleft.down.to.point.bottomright.curvepath",
                            imageURL: route.previewImage, symbolPoint: nil)
                     .frame(width: coverSide, height: coverSide)
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                     .accessibilityHidden(true)
             }
         }
@@ -114,7 +114,7 @@ import QuestifyCore
                                 E1CoverArt(seed: detail.route.name, symbol: "point.topleft.down.to.point.bottomright.curvepath",
                                            imageURL: detail.route.previewImage)
                             }
-                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                             .listRowInsets(EdgeInsets())
                             .accessibilityHidden(true)
                     }

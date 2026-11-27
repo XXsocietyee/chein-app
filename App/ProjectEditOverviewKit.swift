@@ -45,7 +45,8 @@ struct ProjectEditOverviewBar: View {
     }
 }
 
-/// `主题详情` row: cover thumbnail, the topic name, and one status line (还有 N 项未填, or 已填完).
+/// `主题详情` entry (MP fabu wxml:126-133): title 主题详情 and one summary line (还有 N 项未填 in red, or 已填完),
+/// with the cover thumbnail as the native touch. The name is edited above it on page 1, as on the MP.
 struct ProjectEditTopicCard: View {
     let name: String
     let cover: String
@@ -61,23 +62,16 @@ struct ProjectEditTopicCard: View {
                     .clipped()
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 3) {
-                    Group {
-                        if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            OpsR3Text.text("editor.topic.untitled")
-                        } else {
-                            Text(verbatim: name)
-                        }
-                    }
-                    .font(.headline)
-                    .foregroundStyle(.primary)
-                    .lineLimit(2)
+                    Text("主题详情")
+                        .font(.headline)
+                        .foregroundStyle(.primary)
                     if missing > 0 {
-                        Label { Text("editor.topic.missing \(missing)", tableName: OpsR3Text.table) }
+                        Label { Text("mpPublish.topicDetail.missing \(missing)") }
                             icon: { Image(systemName: "exclamationmark.circle.fill") }
                             .font(.subheadline)
                             .foregroundStyle(.red)
                     } else {
-                        OpsR3Text.text("editor.topic.complete").font(.subheadline).foregroundStyle(.secondary)
+                        Text("mpPublish.topicDetail.complete").font(.subheadline).foregroundStyle(.secondary)
                     }
                 }
                 Spacer(minLength: 0)
@@ -93,11 +87,40 @@ struct ProjectEditTopicCard: View {
         .accessibilityIdentifier("projectEdit.topicCard")
     }
 
-    /// The topic-detail fields this card counts: name, description, cover, categories, start and end.
+    /// MP `TOPIC_DETAIL_ISSUE_KEYS` (fabu index.js:180): the card counts only what the sheet edits —
+    /// subtitle (主题描述), description (剧情详情), imgUrl (竖版封面) and categoryIds (主题类别).
     static func missingCount(_ draft: ProjectEditDraft) -> Int {
         let blank: (String) -> Bool = { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-        return [blank(draft.name), blank(draft.description), blank(draft.imgUrl), draft.categoryIDs.isEmpty,
-                blank(draft.startDate), blank(draft.endDate)].filter { $0 }.count
+        return [blank(draft.subtitle), blank(draft.description), blank(draft.imgUrl), draft.categoryIDs.isEmpty].filter { $0 }.count
+    }
+}
+
+/// Opens the 主题详情 sheet; `anchor` scrolls it to a field when a 发布前检查 row points inside the sheet.
+struct ProjectEditTopicDetailRequest: Identifiable {
+    let id = UUID()
+    let anchor: String?
+    /// Issue anchors whose fields live in the sheet (the name stays on page 1).
+    static let anchors: Set<String> = ["project-issue-anchor-description", "project-issue-anchor-cover",
+                                       "project-issue-anchor-categories", "project-issue-anchor-topicRewards",
+                                       "project-issue-anchor-completionRules", "project-issue-anchor-clubLead"]
+}
+
+/// Presents the 主题详情 sheet, and opens it when the root issue list targets one of its fields.
+struct ProjectEditTopicDetailHost<Sheet: View>: ViewModifier {
+    @Binding var request: ProjectEditTopicDetailRequest?
+    let rootRequestID: UUID?
+    let rootAnchor: String?
+    let sheet: (String?) -> Sheet
+
+    func body(content: Content) -> some View {
+        content
+            .onChange(of: rootRequestID) { _, _ in
+                guard let rootAnchor, ProjectEditTopicDetailRequest.anchors.contains(rootAnchor) else { return }
+                request = ProjectEditTopicDetailRequest(anchor: rootAnchor)
+            }
+            .cySheet(item: $request) { value in
+                sheet(value.anchor)
+            }
     }
 }
 

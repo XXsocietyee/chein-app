@@ -495,7 +495,7 @@ struct DiscoveryTopicTemplatePreview: View {
                             Button { nodeGallery = NodeGallerySelection(snapshot: .init(sources: mosaic, selectedIndex: index)) } label: {
                                 DiscoveryArtwork(source: source, height: 120)
                                     .frame(width: 160, height: 120)
-                                    .clipShape(.rect(cornerRadius: 10))
+                                    .clipShape(.rect(cornerRadius: CYRadius.inner))
                             }
                             .buttonStyle(.plain)
                             .accessibilityLabel(Text("media.destination.openImage"))

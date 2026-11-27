@@ -151,13 +151,21 @@ public struct IMRouteProjectionReadState: Equatable {
 /// Untrusted card payload is only projected into a typed local destination. No generic
 /// URL opening, arbitrary router dispatch, or synthetic business mutation. The only click
 /// is the official in-app broadcast id, and only when the card itself carries `bcId`.
-public enum IMCardDestination: Equatable { case topic(Int), review(MessagingCardResult), unsupported }
+/// mp-nav r3: `activity` / `squarePost` are the MP `system-card-target.js` pages (`pages/activity/detail/index`,
+/// `pages/square/detail/index`); `topic` also takes the MP `pages/topic/index/index?id=` form.
+public enum IMCardDestination: Equatable { case topic(Int), activity(Int), squarePost(Int), review(MessagingCardResult), unsupported }
 public struct IMCardAction: Equatable {
     public let label: String
     public let isReject: Bool
     public let destination: IMCardDestination
     public static func actions(for message: MessagingMessage) -> [Self] {
-        guard message.isPayloadVisible, let card = message.card else { return [] }
+        guard message.isPayloadVisible else { return [] }
+        // MP `activityNoticeUrl`: a system text notice (CLUB_CAMPAIGN / ACTIVITY_CANCELLED) opens its activity.
+        if message.card == nil, let senderID = message.senderID, let type = message.type,
+           case .activity(let id)? = IMSystemCardTarget.activityNoticeOpen(senderID: String(senderID), messageType: String(type), extraJSON: message.extraJSON) {
+            return [Self(label: "im.full.viewActivity", isReject: false, destination: .activity(id))]
+        }
+        guard let card = message.card else { return [] }
         if message.senderID == 0, let result = card.result, !result.isEmpty {
             return [Self(label: "im.full.reviewResult", isReject: false, destination: .review(result))]
         }
@@ -172,7 +180,7 @@ public struct IMCardAction: Equatable {
         let rows = buttons.isEmpty ? [["text": "im.full.details", "action": json["action"] ?? ""]] : buttons
         return rows.compactMap { row in
             guard let text = row["text"] as? String, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
-            return Self(label: text, isReject: row["type"] as? String == "reject", destination: destination(row["action"] as? String))
+            return Self(label: text, isReject: row["type"] as? String == "reject", destination: destination(row["action"] as? String, system: message.senderID == 0))
         }
     }
     /// Buttons this version can open. A card that is only an official broadcast id keeps one tap.
@@ -184,7 +192,14 @@ public struct IMCardAction: Equatable {
         if let first = parsed.first { return [first] }
         return [Self(label: "im.full.details", isReject: false, destination: .unsupported)]
     }
-    private static func destination(_ action: String?) -> IMCardDestination {
+    /// MP `genericActionInfo` opens its page paths only on system (`senderId == 0`) cards.
+    private static func destination(_ action: String?, system: Bool) -> IMCardDestination {
+        switch system ? IMSystemCardTarget.openURL(action) : nil {
+        case .topic(let id)?: return .topic(id)
+        case .activity(let id)?: return .activity(id)
+        case .squarePost(let id)?: return .squarePost(id)
+        case .blockedCouponWallet?, nil: break
+        }
         guard let action, action.hasPrefix("/topic/"), !action.contains("?"), !action.contains("#"), !action.contains("%") else { return .unsupported }
         let tail = String(action.dropFirst(7))
         guard !tail.isEmpty, tail.allSatisfy(\.isNumber), let id = Int(tail), id > 0 else { return .unsupported }
