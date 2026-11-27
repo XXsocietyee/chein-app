@@ -535,7 +535,8 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
         .cyPushedChrome(domain: .player)
         // E2E-20261113b N3: the List did not inset for the pinned action, so the last section ("More info", which holds
         // the play row) ended under it. Reserve the pinned action's height below the content.
-        .contentMargins(.bottom, registrationEnabled ? 112 : 0, for: .scrollContent)
+        // +36 for the going stack (design pass explore P6) above the pill.
+        .contentMargins(.bottom, registrationEnabled ? 148 : 0, for: .scrollContent)
         .safeAreaInset(edge:.bottom,spacing:0) {
             // This view exists only for .allowed details. Preserve the caller's
             // existing gate; the unchanged registration sheet owns further checks.
@@ -719,6 +720,8 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("activity.pinned.summary")
             }
+            // Design pass explore P6: who is going sits next to the one action it affects (MP registrationCount + roster).
+            if !detail.isCancelled { ExploreGoingStack(people: detail.people) }
             if let access = hostCancelAccess, !detail.isCancelled,
                ActivityHostCancelRules.isHost(hostMemberID: detail.hostMemberID, accountID: access.accountID) {
                 // R7-PC-C1-4 (r1 PC-C-1-5): MP host footer is 取消活动并退款, not 立即报名.

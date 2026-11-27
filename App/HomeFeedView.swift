@@ -252,7 +252,7 @@ import UIKit
                             .listRowInsets(EdgeInsets())
                     }
                 } else if model.loading {
-                    ProgressView().frame(maxWidth: .infinity, minHeight: 88)
+                    ProgressView("homeFeed.loading").frame(maxWidth: .infinity, minHeight: 88)
                 }
                 // Mini-program `正在更新…` line while a loaded rail refreshes.
                 if model.loading, let items, !items.isEmpty, !failed, section != .recommended {
@@ -383,7 +383,12 @@ import UIKit
                         }
                         // R7-PC-A1-5: MP 附近活动 `进行中` badge, as a tinted label under the card.
                         if section == .nearby, item.isLive(at: Date(), sourceTimeZone: sourceTimeZone) { HomeFeedLiveChip() }
-                        if section == .upcoming, let countdown = upcomingCountdown(item) {
+                        if section == .upcoming, let start = HomeFeedDate.parse(item.startDate, sourceTimeZone: sourceTimeZone),
+                           start > Date(), start.timeIntervalSinceNow < 3_600 {
+                            // Design pass explore P2: inside the last hour the MP 还剩N小时 becomes a ticking 距开始 mm:ss.
+                            ExploreStartsInLine(start: start, end: nil, style: .meta)
+                                .accessibilityIdentifier("homeFeed.upcoming.live.\(item.accessibilityKey)")
+                        } else if section == .upcoming, let countdown = upcomingCountdown(item) {
                             Text(verbatim: countdown)
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
@@ -837,16 +842,18 @@ struct HomeTodayCard: View {
         var imageURL: URL?
         var action: (() -> Void)?
         var id: String
+        /// Design pass explore P1/P2: the ticket / club event start, so the card can lead with the live time-to-start.
+        var start: Date? = nil
     }
 
     private var content: Content {
         switch choice {
         case .ticket(let c):
             return Content(eyebrow: copy("Today · Your ticket", "今天 · 你的门票"), title: c.title, meta: meta(c),
-                           pill: copy("Show ticket", "出示门票"), symbol: "ticket", imageURL: c.imageURL, action: onTicket, id: "ticket")
+                           pill: copy("Show ticket", "出示门票"), symbol: "ticket", imageURL: c.imageURL, action: onTicket, id: "ticket", start: c.start)
         case .clubEvent(let c):
             return Content(eyebrow: copy("Today · Club event", "今天 · 俱乐部活动"), title: c.title, meta: meta(c),
-                           pill: copy("See event", "查看活动"), symbol: "person.3", imageURL: c.imageURL, action: onClubEvent, id: "clubEvent")
+                           pill: copy("See event", "查看活动"), symbol: "person.3", imageURL: c.imageURL, action: onClubEvent, id: "clubEvent", start: c.start)
         case .roam:
             return Content(eyebrow: copy("Today", "今天"), title: copy("Start a roam", "开始一次漫游"),
                            meta: copy("Walk somewhere new and light up the map.", "走去一个新地方，点亮地图"),
@@ -883,6 +890,8 @@ struct HomeTodayCard: View {
                 .lineLimit(3)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
+            // Design pass explore P1/P2: within a day of the start the card's one number is the ticking time-to-start.
+            ExploreStartsInLine(start: c.start, end: nil, tint: CYColor.textPrimary, style: .cardTitle)
             if let meta = c.meta {
                 Text(verbatim: meta).font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
             }

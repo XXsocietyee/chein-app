@@ -329428,6 +329428,38 @@
           }
         }
       }
+    },
+    "explore.endsIn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ends in"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还剩"
+          }
+        }
+      }
+    },
+    "explore.going": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "going"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "人已报名"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
