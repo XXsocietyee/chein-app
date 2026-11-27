@@ -133,17 +133,6 @@ struct ClubEmptyState: View {
 // Presentation only: every view takes plain values / closures; no reads, writes or authority live here.
 // Motion is spring-based and gated on Reduce Motion; haptics use sensoryFeedback.
 
-/// Press feedback: a small spring scale, disabled under Reduce Motion. Only the DEBUG design fixtures use it now;
-/// shipped social views use the system button styles (native-a r3).
-struct E3PressStyle: ButtonStyle {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.96 : 1)
-            .animation(reduceMotion ? nil : .spring(response: 0.25, dampingFraction: 0.7), value: configuration.isPressed)
-    }
-}
-
 struct E3Avatar: View {
     let seed: String
     var systemImage = "person.fill"

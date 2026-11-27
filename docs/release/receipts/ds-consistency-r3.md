@@ -21,6 +21,12 @@ nothing deployed. No Swift compiler in this environment: edits are type-simple a
 | button style | a page-level `struct …: ButtonStyle` outside `App/DesignSystem`, or `.buttonStyle(.questifyPrimary)` | `.borderedProminent` / `.bordered` / `.borderless` or the CY styles |
 | popup scrim | `Color.black.opacity(0.2…0.8).ignoresSafeArea(` outside `App/DesignSystem` (MP popup copied as a dimmed overlay) | `.sheet` + `.presentationDetents` |
 | raw colour | `Color(red:` / `UIColor(red:` / `Color(hex:` / `"#RRGGBB"` / `0xRRGGBB` outside `App/DesignSystem`, `App/Theme` | semantic system colours / CY palette |
+| list style (continue) | `.listStyle(…)` other than `.insetGrouped` — 190 sibling list pages use `.insetGrouped`, so `.plain` / `.grouped` / `.inset` / `.sidebar` is a mix | `.listStyle(.insetGrouped)` |
+| custom sheet (continue) | hand-made MP popup / half-screen outside `App/DesignSystem`: `.accessibilityAddTraits(.isModal)`, a `CYColor.bgOverlay` / `Color.black.opacity` scrim with `.ignoresSafeArea().onTapGesture`, a drawn grabber `Capsule()…frame(width: 3x–4x, height: 4–6)` | `.sheet` + `.presentationDetents` + `.presentationDragIndicator` |
+| custom tabs (continue) | hand-made tab / segment row: `ForEach` over tabs / segments whose items are `Button`s compared with the selection; `CYNightTabBar(` / `CYDomainTabBar(` outside `QuestifyApp.swift` | `Picker` + `.cyAdaptiveSegmented()`, `CYTabs`, system `TabView` |
+
+The checker now also fails on a **stale allowed entry** (an allowed kind with no hit left in its file), so the allowed
+list can only shrink as chrome is fixed; `--update` drops stale entries.
 
 Tab roots checked (`TAB_ROOTS`): `HomeFeedView` (首页), `DiscoveryTemplateBrowserView` (发布), `ClubHomeView` (俱乐部),
 `AccountView` (我的, signed in), `WelcomeView` (我的, signed out). 漫游 is the full-screen map home (allowed chrome).
@@ -51,6 +57,24 @@ into `AccountView.swift` fails with both kinds at that line.
 | — (legacy type tokens) | `PlayComponents`, `PlaySharedPlanLifecycleView`, `PlayTaskOutcomeSection`, `CityAcquisitionPresentationStyle` (2) | — | `.font(Theme.Font.body)` → shared `.cyText(.body)` (one type system). |
 | — (design kit) | `CYChromeBars` (back glyphs → `.body`/`.title3`), `CYBusinessComponents` (fallback cover `.largeTitle`, step node glyphs `.caption`, stepper `.footnote`), `CYSheetModal` (close `.footnote`), `CYGoHold` (`.title3`), `CYCelebrationViews` (name `.system(.largeTitle, design:weight:)`, empty glyph `.largeTitle`), `CYPassVerified` (`.title`) | — | Fixed-point glyph/text sizes → Dynamic Type text styles (11 sites). |
 
+## Continue run (2026-11-27, after merging combined-r7 007558f9f)
+
+Ratchet: allowed hits that were not game / map chrome were fixed, stale allowed entries removed
+(`SquareBrowserView` pushed large, `RoamFinishReportView` hidden nav — no hit left on the merged tree).
+
+| MP page | Native view | MP sections | Change (owner rule 2) |
+|---|---|---|---|
+| 城市 notice card (首页 / 漫游 territory notice) | `App/CityKit/CityTerritoryNoticeCard.swift:42` | unchanged | Page-level `CityNoticePressStyle` deleted; the card uses the shared `QuestifyCardButtonStyle` like every other tappable card (one press feedback). |
+| — (DEBUG design fixtures) | `App/ClubComponents.swift` → `App/DesignFixtures/E3Fixtures.swift` | — | `E3PressStyle` moved into the DEBUG-only fixtures file that is its only user; shipped code has no page-level button style left. |
+| `pages/playkit/components/playkit-accusation` `ac-cf` confirm / `ac-cl` clue popups | `App/PlayKitQuestoViews.swift` `PlayKitCenteredPanel`, `confirmPanel`, `cluePanel` | unchanged: confirm (initial · 你确定是 X 吗 · identity · final note · unavailable note · 确认 / 再想想), clue (label · image · name · text · 收起) | Dimmed `bgOverlay` scrim + floating card (`.isModal`) → native `.sheet` with `.medium` / `.large` detents and the system grabber; swipe down does what 再想想 / 收起 does (closes, no write; the MP mask itself is inert, the explicit buttons stay). |
+| 收集册 `album-head` (勋章 / 邮票 / 藏品) | `App/CollectionAlbumViews.swift` `CollectionAlbumHead` | unchanged: same three segments in MP order, segments without a destination still hidden | Hand-drawn capsule chip row with a matched-geometry pill → system segmented `Picker` (`.cyAdaptiveSegmented()`: menu at accessibility sizes), selection haptic, ids kept. |
+| — | `App/MPParityKit.swift` `MPChipTabs` | — | Unused hand-made chip tab bar deleted (0 call sites), so no page can pick it up again. |
+
+New allowed (with reasons): 漫游 City board place sheet / nearby drawer (Maps-style persistent sheets over the live
+map), 首页 shelf feed `.grouped` (edge-to-edge App Store-style rails), channel chat transcript `.plain`, 漫游 browser
+map-mode results panel `.plain`, two unreferenced internal command hubs, merchant root mode switch (merchant out of
+scope).
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
@@ -58,8 +82,9 @@ into `AccountView.swift` fails with both kinds at that line.
 - Full-screen maps / game HUD: `CityRoamRootView`, `NativeFreeExploreMapView`, `RoamLiveSessionView`,
   `RoamFinishReportView`, `ProjectEditOverviewKit` 地图 page; full-screen photo viewer in `SocialPublicProfileView`.
 - `NativeStoryWalkingAuthorView` guarded exit (story-flow). `SquareBrowserView` large title: 广场 is a sheet root.
-- Press feedback only (no button look): `CityNoticePressStyle`, `QuestifyCardButtonStyle`; `E3PressStyle` (fixtures only);
+- Press feedback only (no button look): `QuestifyCardButtonStyle` (the shared card press);
   `PlayHUDCircleButtonStyle` (game HUD); `QuestifyPrimaryButtonStyle` definition (merchant call site only).
+- Lists / sheets / tabs: see "Continue run" above.
 - Data/art colours: dice faces, fog layer, map legend manifest, server `#RRGGBB` preview, camera filters, map route,
   `QuestifyPalette` (the palette definition).
 
