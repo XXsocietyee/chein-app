@@ -59,6 +59,8 @@ Sweep `docs/sweeps/latest` build 1300a48db (18:54Z) en sheets: `mp-mine/sheet-en
 |---|---|---|---|---|
 | 21 | Club enrollment roster → `ClubEnrollmentView.swift:497` (`en-d4-enroll`) | "My club · 1 groups" | `groups` added to the r1 plural nouns; `u9cde.clubEnroll.subLineMine` plural, `u9cde.clubEnroll.subLine %@ %lld` substitution | Done |
 | 22 | Plural tools (`tools/add_i18n_r1_plurals.py`, `add_i18n_r2_substitutions.py`) | r1 counted keys named in receipts/briefs (`docs/**/*.md`) as contract pins and **demoted** existing plurals back to "1 runs/1 teams/1 comments" (5 keys, incl. this lane's run-2 `mp.rank.unattributed`) whenever a receipt mentioned the key; the one-shot `add_u9_cde_localizations.py` seeder also pinned its keys | r1 skips `docs/**/*.md` (same rule r2 already had); seeder listed in `GENERATORS` for both tools. Result: 7 more count strings now plural on player screens: `club.ops.clubLimit.count`, `cooprelation.venue.capacity` ("Up to 1 person"), `d7.checkin.streak.value` ("1 day"), `g6.promo.remain.days`, `orientScore.pendingReview`, `roam.passport.play.routes.count`, `club.settings.topicCount`; fragments `fix-r3-member-b`, `fix-r3-play-roam-a`, `fix-r9-club-a` updated. All call sites interpolate (no `String(format:)`) | Done |
+| 23 | MP 票夹 ticket wallet / pass → `TicketWalletView.swift` `TicketWalletRow`, `E1TicketCard.swift:86`, `TicketPassSheet.swift:299`, `RoamEnrolledChaptersView.swift:199` (`en-e4-tickets`) | Participation date raw "2030-04-20" in English | `LocaleDisplay.civil(date, locale:)` → "Apr 20, 2030"; Chinese keeps the MP text (same helper as `TicketPassPresentView`) | Done |
+| 24 | Club channel chat (`en-d4-channel-chat`) → `Core/ChannelDiscordMessaging.swift` `formatDivider(.date)`; channel message search day headers → `NativeChannelMessageSearchView.swift` | Divider + sender time read "11-07 09:00" (MP `MM-dd HH:mm` slice; reads as a range in English); search headers raw "2026-11-07" | English → "Nov 7, 09:00" (locale short month symbols); Chinese unchanged `11-07 09:00` (test added in `ChannelDiscordMessagingTests.testPlaceholdersAndTierTitlesFollowLocale`). Search headers → `LocaleDisplay.civil` | Done |
 
 ## Not done
 
@@ -68,7 +70,7 @@ Sweep `docs/sweeps/latest` build 1300a48db (18:54Z) en sheets: `mp-mine/sheet-en
 
 
 ## Next pages (no row yet)
-Ticket wallet row date `2030-04-20` raw in English (`en-e4-tickets`); club channel chat `11-07 09:00` MP slice in English (`en-d4-channel-chat`); Topic route stop address (1 line at AX sizes); ticket/order currency formats in English (wallet ledger done, row 20); Club home checked (tabs already adaptive, `ClubDetailTabBar.swift`).
+Topic route stop address (1 line at AX sizes); ticket/order currency formats in English (wallet ledger done, row 20); Club home checked (tabs already adaptive, `ClubDetailTabBar.swift`).
 
 ## For other lanes
 - mp-journey / mp-nav: City root entry reads "CITY ownership and original receipts" (`cityAcquire.entry`, all-caps CITY also in zh) — confirm CITY is the intended product name.
