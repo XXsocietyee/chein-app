@@ -67,7 +67,7 @@ public struct ClubGapApplyCertImagesSection: View {
         Section {
             ForEach(Array(draft.uploadedURLs.enumerated()), id: \.offset) { index, urlString in
                 HStack {
-                    Text(verbatim: "凭证图片 \(index + 1)")
+                    Text("凭证图片 \(index + 1)")
                     Spacer()
                     if draft.failedIndices.contains(index) {
                         Button("重试") { onRetryIndex(index) }
@@ -85,7 +85,7 @@ public struct ClubGapApplyCertImagesSection: View {
                         Image(systemName: "trash")
                     }
                     .buttonStyle(.borderless)
-                    .accessibilityLabel(Text(verbatim: "删除凭证图片 \(index + 1)"))
+                    .accessibilityLabel(Text("删除凭证图片 \(index + 1)"))
                 }
             }
             if draft.remainingCapacity > 0 {

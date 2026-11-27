@@ -63,14 +63,14 @@ import SwiftUI
     var body: some View {
         Section("原 RPG 被动观察与难度") {
             if editor == nil {
-                Button { open() } label: { Text(verbatim: "读取本主题原被动与技能配置") }.disabled(!available)
+                Button { open() } label: { Text("读取本主题原被动与技能配置") }.disabled(!available)
             } else if let draft = editor, let editorID = capture?.id {
                 let editRevision = bufferRevision
                 Group {
                     if !current { NativeAuthorNotice(text: Text("项目或会话已变化，请关闭重开，不能写回旧副本。"), tone: .attention) }
                     Toggle("显式启用原检定", isOn: Binding(get: { editor?.checksEnabled ?? false }, set: { value in mutate(editorID, revision: editRevision) { $0.checkEnabled(value) } }))
                     Toggle("显式启用原被动观察", isOn: Binding(get: { editor?.enabled ?? false }, set: { value in mutate(editorID, revision: editRevision) { $0.enabled(value) } }))
-                    Text("当前原基础值：\(draft.base.map(String.init) ?? "未配置")。优势+5、劣势−5沿原引擎，不在此另定公式。")
+                    Text("当前原基础值：\(draft.base.map(String.init) ?? appLocalized("未配置", locale: .current))。优势+5、劣势−5沿原引擎，不在此另定公式。")
                     Button("明确采用正式基础值10") { mutate(editorID, revision: editRevision) { $0.useFormalBase() } }
                     Text("真实 OBS 技能与属性绑定（仅回读，不创建）：")
                     ForEach(Array(draft.skills.enumerated()),id: \.offset) { _, row in
@@ -82,14 +82,14 @@ import SwiftUI
                     }
                     Button("明确填入正式 DC 10／13／16") { mutate(editorID, revision: editRevision) { $0.useFormalDCs() } }
                     ForEach(draft.issues,id: \.self) { NativeAuthorNotice(text: Text($0), tone: .attention) }
-                    Button { preview(editorID, revision: editRevision) } label: { Text(verbatim: "预览本主题被动规则修改") }
+                    Button { preview(editorID, revision: editRevision) } label: { Text("预览本主题被动规则修改") }
                     if let review {
                         Text(review.value.text ?? "").font(.caption.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                         Button { apply(review) } label: { Text(verbatim: saveUnconfirmed ? "重试保存原完整项目草稿" : "确认保存原完整项目草稿").fontWeight(.semibold) }
                     }
                     Text("使用原项目保存／同请求恢复／发布后冻结。不会给既有局补开始、到达或线索；TEAM、非当前节点、过目不忘规则仍不因此开放。")
                 }.disabled(!current)
-                Button { close(editorID) } label: { Text(verbatim: "关闭被动编辑副本") }
+                Button { close(editorID) } label: { Text("关闭被动编辑副本") }
             }
             if let message { NativeAuthorNotice(text: Text(message)) }
         }

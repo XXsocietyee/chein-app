@@ -405,9 +405,14 @@ public struct CYRouteNodeRow: View {
 
 // MARK: - 3. Task Status (all 6 required states with text, icon, action, and recovery)
 
+/// i18n r1: default CTA follows the system language (PlayExperienceView passes its own localized title).
+public enum CYTaskStatusCopy {
+    public static var defaultCTATitle: String { appLocalized("cyTask.cta.checkIn", locale: Locale.current) }
+}
+
 public enum CYTaskStatusState {
     case locked(requirement: String, prereqTitle: String? = nil, onOpenPrereq: (() -> Void)? = nil)
-    case available(methodLabel: String, ctaTitle: String = "开始打卡", onStart: () -> Void)
+    case available(methodLabel: String, ctaTitle: String = CYTaskStatusCopy.defaultCTATitle, onStart: () -> Void)
     case submitting(requestId: String)
     case completed(receiptNo: String, completedAt: String, onViewReceipt: (() -> Void)? = nil)
     case retryableFailure(
@@ -430,6 +435,7 @@ public struct CYTaskStatusCard: View {
     private let state: CYTaskStatusState
 
     @Environment(\.cyPalette) private var palette
+    @Environment(\.locale) private var locale
 
     public init(title: String, state: CYTaskStatusState) {
         self.title = title
@@ -462,7 +468,7 @@ public struct CYTaskStatusCard: View {
                 iconName: "lock.fill",
                 iconColor: palette.textDisabled,
                 detailForeground: palette.textTertiary,
-                badgeTitle: "未解锁",
+                badgeTitle: "cyTask.badge.locked",
                 badgeTone: .neutral,
                 badgeIcon: "lock"
             )
@@ -471,7 +477,7 @@ public struct CYTaskStatusCard: View {
                 iconName: "location.circle.fill",
                 iconColor: palette.textPrimary,
                 detailForeground: palette.textSecondary,
-                badgeTitle: "可打卡",
+                badgeTitle: "cyTask.badge.available",
                 badgeTone: .info,
                 badgeIcon: "sparkles"
             )
@@ -480,7 +486,7 @@ public struct CYTaskStatusCard: View {
                 iconName: "arrow.triangle.2.circlepath.circle.fill",
                 iconColor: palette.info,
                 detailForeground: palette.textSecondary,
-                badgeTitle: "提交中",
+                badgeTitle: "cyTask.badge.submitting",
                 badgeTone: .info,
                 badgeIcon: "clock"
             )
@@ -489,7 +495,7 @@ public struct CYTaskStatusCard: View {
                 iconName: "checkmark.seal.fill",
                 iconColor: palette.success,
                 detailForeground: palette.textSecondary,
-                badgeTitle: "已完成",
+                badgeTitle: "cyTask.badge.completed",
                 badgeTone: .success,
                 badgeIcon: "checkmark"
             )
@@ -498,7 +504,7 @@ public struct CYTaskStatusCard: View {
                 iconName: "exclamationmark.triangle.fill",
                 iconColor: palette.danger,
                 detailForeground: palette.danger,
-                badgeTitle: "失败可重试",
+                badgeTitle: "cyTask.badge.retryable",
                 badgeTone: .danger,
                 badgeIcon: "arrow.clockwise"
             )
@@ -507,7 +513,7 @@ public struct CYTaskStatusCard: View {
                 iconName: "icloud.and.arrow.up.fill",
                 iconColor: palette.warning,
                 detailForeground: palette.warning,
-                badgeTitle: "待同步",
+                badgeTitle: "cyTask.badge.offline",
                 badgeTone: .warning,
                 badgeIcon: "wifi.slash"
             )
@@ -527,7 +533,7 @@ public struct CYTaskStatusCard: View {
                 .foregroundStyle(palette.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            CYStatusChip(verbatim: tokens.badgeTitle, tone: tokens.badgeTone, systemImage: tokens.badgeIcon)
+            CYStatusChip(verbatim: appLocalized(String.LocalizationValue(tokens.badgeTitle), locale: locale), tone: tokens.badgeTone, systemImage: tokens.badgeIcon)
         }
     }
 
@@ -540,22 +546,22 @@ public struct CYTaskStatusCard: View {
                 .cyText(.meta)
                 .foregroundStyle(tokens.detailForeground)
         case .available(let methodLabel, _, _):
-            Text(verbatim: "核验方式：\(methodLabel)")
+            Text("cyTask.method \(methodLabel)")
                 .cyText(.meta)
                 .foregroundStyle(tokens.detailForeground)
         case .submitting(let requestId):
             HStack(spacing: CYSpacing.sm) {
                 CYButtonSpinner(tint: palette.info)
-                Text(verbatim: "正在上传凭证并防重锁定 · 请求号 \(requestId)")
+                Text("cyTask.submitting \(requestId)")
                     .cyText(.meta, monospacedDigit: true)
                     .foregroundStyle(tokens.detailForeground)
             }
         case .completed(let receiptNo, let completedAt, _):
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text(verbatim: "核验通过 · \(completedAt)")
+                Text("cyTask.completed \(completedAt)")
                     .cyText(.meta, monospacedDigit: true)
                     .foregroundStyle(tokens.detailForeground)
-                Text(verbatim: "回执编号 \(receiptNo)")
+                Text("cyTask.receiptNo \(receiptNo)")
                     .cyText(.caption, monospacedDigit: true)
                     .foregroundStyle(palette.textTertiary)
             }
@@ -564,16 +570,16 @@ public struct CYTaskStatusCard: View {
                 Text(verbatim: detail)
                     .cyText(.meta)
                     .foregroundStyle(tokens.detailForeground)
-                Text(verbatim: "保留幂等号 \(requestId)，请先查询原回执或安全重试。")
+                Text("cyTask.retryHint \(requestId)")
                     .cyText(.caption, monospacedDigit: true)
                     .foregroundStyle(palette.textTertiary)
             }
         case .offlineAwaitingSync(let draftId, let savedAt, _, _):
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text(verbatim: "网络离线，答案未丢失（保存于 \(savedAt)），切勿显示为已完成。")
+                Text("cyTask.offline \(savedAt)")
                     .cyText(.meta)
                     .foregroundStyle(tokens.detailForeground)
-                Text(verbatim: "本地草稿 \(draftId)")
+                Text("cyTask.draftId \(draftId)")
                     .cyText(.caption, monospacedDigit: true)
                     .foregroundStyle(palette.textTertiary)
             }
@@ -597,38 +603,38 @@ public struct CYTaskStatusCard: View {
             .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, size: .md))
         case .submitting:
             Button(action: {}) {
-                Text(verbatim: "提交中")
+                Text("cyTask.badge.submitting")
             }
             .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, size: .md, isLoading: true))
             .disabled(true)
         case .completed(_, _, let onViewReceipt):
             if let onViewReceipt {
                 Button(action: onViewReceipt) {
-                    Text(verbatim: "查看回执")
+                    Text("cyTask.viewReceipt")
                 }
                 .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true, size: .sm))
             }
         case .retryableFailure(_, _, let onQueryOriginalReceipt, let onRetry):
             HStack(spacing: CYSpacing.md) {
                 Button(action: onQueryOriginalReceipt) {
-                    Text(verbatim: "查询原回执")
+                    Text("cyTask.queryReceipt")
                 }
                 .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true, size: .sm))
 
                 Button(action: onRetry) {
-                    Text(verbatim: "重试")
+                    Text("cyTask.retry")
                 }
                 .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, size: .sm))
             }
         case .offlineAwaitingSync(_, _, let onSyncNow, let onViewDraft):
             HStack(spacing: CYSpacing.md) {
                 Button(action: onViewDraft) {
-                    Text(verbatim: "查看本地草稿")
+                    Text("cyTask.viewDraft")
                 }
                 .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true, size: .sm))
 
                 Button(action: onSyncNow) {
-                    Text(verbatim: "立即同步")
+                    Text("cyTask.syncNow")
                 }
                 .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, size: .sm))
             }
@@ -702,7 +708,7 @@ public struct CYStoryCluePanel: View {
                         .foregroundStyle(palette.textPrimary)
                     HStack(spacing: CYSpacing.md) {
                         Button(action: { pendingCostTier = nil }) {
-                            Text(verbatim: "取消")
+                            Text("取消")
                         }
                         .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true, size: .sm))
 
@@ -1156,7 +1162,9 @@ public struct CYPublishValidationIssue: Identifiable, Hashable {
 
 /// 3-step publishing status bar with persistent save badge, error-step routing, and single review gate.
 public struct CYPublishStatusBar: View {
-    public static let defaultStepTitles = ["基本信息", "活动内容", "票务与合作"]
+    public static var defaultStepTitles: [String] {
+        ["cyPublish.step.basics", "cyPublish.step.content", "cyPublish.step.tickets"].map { appLocalized(String.LocalizationValue($0), locale: Locale.current) }
+    }
 
     private let stepTitles: [String]
     private let currentStep: Int
@@ -1170,6 +1178,7 @@ public struct CYPublishStatusBar: View {
 
     @Environment(\.cyPalette) private var palette
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.locale) private var locale
 
     public init(
         stepTitles: [String] = CYPublishStatusBar.defaultStepTitles,
@@ -1192,7 +1201,7 @@ public struct CYPublishStatusBar: View {
     }
 
     private var publishTitle: some View {
-        Text(verbatim: "发布状态")
+        Text("cyPublish.status")
             .cyText(.sectionTitle)
             .foregroundStyle(palette.textPrimary)
             .cyWrapText()
@@ -1268,7 +1277,7 @@ public struct CYPublishStatusBar: View {
                                 Image(systemName: "exclamationmark.circle.fill")
                                     .font(CYTypography.micro)
                                     .foregroundStyle(palette.danger)
-                                Text(verbatim: "第 \(issue.stepIndex + 1) 步：\(issue.message)")
+                                Text("cyPublish.issue \(issue.stepIndex + 1) \(issue.message)")
                                     .cyText(.micro)
                                     .foregroundStyle(palette.danger)
                                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -1288,7 +1297,7 @@ public struct CYPublishStatusBar: View {
 
             if showsSubmitButton {
                 Button(action: onSubmitReview) {
-                    Text(verbatim: "提交审核")
+                    Text("cyPublish.submitReview")
                 }
                 .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, size: .md, isLoading: isSubmittingReview, isPill: true))
                 .disabled(!canSubmitReview)
@@ -1301,11 +1310,11 @@ public struct CYPublishStatusBar: View {
     private var saveBadge: some View {
         switch saveState {
         case .savedDraft(let updatedAt):
-            CYStatusChip(verbatim: "草稿已保存 \(updatedAt)", tone: .success, systemImage: "checkmark.circle")
+            CYStatusChip(verbatim: String(format: appLocalized("cyPublish.saved", locale: locale), updatedAt), tone: .success, systemImage: "checkmark.circle")
         case .unsavedChanges:
-            CYStatusChip(verbatim: "有未保存修改", tone: .warning, systemImage: "pencil.circle")
+            CYStatusChip(verbatim: appLocalized("cyPublish.unsaved", locale: locale), tone: .warning, systemImage: "pencil.circle")
         case .saveFailed:
-            CYStatusChip(verbatim: "保存失败", tone: .danger, systemImage: "exclamationmark.triangle")
+            CYStatusChip(verbatim: appLocalized("cyPublish.saveFailed", locale: locale), tone: .danger, systemImage: "exclamationmark.triangle")
         }
     }
 }

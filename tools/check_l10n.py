@@ -26,6 +26,28 @@ BASELINE = ROOT / 'tools/l10n_cjk_literal_baseline.json'
 CATALOG_DIRS = ['Resources', 'LiveActivityWidget']
 CJK = re.compile(r'[　-〿㐀-䶿一-鿿豈-﫿＀-￯]')
 LITERAL = re.compile(r'"((?:[^"\\\n]|\\.)*)"')
+FORMAT = re.compile(r'%(?:\d+\$)?(?:@|lld|ld|d|lf|f|llu|lu|u)')
+LATIN = re.compile(r'[A-Za-z]{2}')
+
+
+def normalize_key(text):
+    """Catalog key with its format specifiers collapsed, so `Text("个 \\(n)")` matches `个 %lld`."""
+    return FORMAT.sub('\x00', text)
+
+
+def normalize_literal(text):
+    out, i = [], 0
+    while i < len(text):
+        if text.startswith('\\(', i):
+            depth, i = 1, i + 2
+            while i < len(text) and depth:
+                depth += {'(': 1, ')': -1}.get(text[i], 0)
+                i += 1
+            out.append('\x00')
+        else:
+            out.append(text[i])
+            i += 1
+    return ''.join(out)
 
 
 def catalogs():
@@ -72,6 +94,7 @@ def check_catalogs():
                 errors.append(f'{rel}: CJK in en value for {key!r}: {bad[0][:80]!r}')
             else:
                 localized_keys.add(key)
+                localized_keys.add(normalize_key(key))
     return errors, localized_keys
 
 
@@ -105,7 +128,12 @@ def literal_counts(localized_keys):
                 comment = line.find('//')
                 if comment != -1 and comment < m.start() and line[:comment].count('"') % 2 == 0:
                     continue
-                if text in localized_keys:
+                if text in localized_keys or normalize_literal(text) in localized_keys:
+                    continue
+                # Inline bilingual pair such as W8Text.t("中文", "English") or c("English", "中文").
+                after = re.match(r'\s*,\s*"((?:[^"\\\n]|\\.)*)"', line[m.end():])
+                before = re.search(r'"((?:[^"\\\n]|\\.)*)"\s*,\s*$', line[:m.start()])
+                if any(x and LATIN.search(x.group(1)) and not CJK.search(x.group(1)) for x in (after, before)):
                     continue
                 n += 1
         if n:
