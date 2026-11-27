@@ -96,6 +96,8 @@ import QuestifyCore
     @State private var sessionDetent: PresentationDetent = .fraction(0.3)
     /// ROAM-r11-3: the place marker the player tapped.
     @State private var selectedPlaceID: Int?
+    /// MP BL-02 (`utils/roam-idle.js`): display-only stationary detector; never touches time, distance or reveal.
+    @State private var idle = RoamLiveIdleDetector()
     /// ROAM-r11-1: the official event carried in from 去漫游 (MP onLoad `eventId` / `missionCode`).
     @ObservedObject private var officialHandoff = RoamOfficialEventHandoff.shared
     @Environment(\.roamOfficialArrival) private var officialArrival
@@ -499,8 +501,11 @@ import QuestifyCore
         .onDisappear { nearbyExpanded = true; browse.parentHidden(); owner.pause() }
         .onDisappear { ActiveSessionStore.shared.setRoamScreenVisible(false) }
         .onChange(of: owner.phase) { _, phase in
-            if phase != .active { nearbyExpanded = true }
+            if phase != .active { nearbyExpanded = true; idle.reset() }
             browse.retireIfStale(owner: owner, reader: currentBrowseReader)
+        }
+        .onChange(of: owner.lastFix) { _, fix in
+            if owner.phase == .active, let fix { idle.update(fix.coordinate, at: fix.measuredAt) } else { idle.reset() }
         }
         .onChange(of: scenePhase) { _, value in
             if value != .active { browse.retire() }
@@ -598,14 +603,18 @@ import QuestifyCore
                     .accessibilityIdentifier("roam.live.phase")
                 Spacer(minLength: 8)
                 // PL-14: a labelled status, never a symbol alone. New ground bounces the symbol (P-040).
-                Label {
-                    Text(phaseText)
-                } icon: {
-                    Image(systemName: roamPhase.statusSymbol)
-                        .symbolEffect(.bounce, value: revealTick)
-                        .accessibilityHidden(true)
+                // MP BL-02 maptip: 原地停留中 while walking (not paused) and under 3 m for 60 s; status only, no action.
+                TimelineView(.animation(minimumInterval: 5, paused: !active)) { context in
+                    let still = active && idle.isIdle(at: context.date)
+                    Label {
+                        Text(still ? "roam.live.idle" : phaseText)
+                    } icon: {
+                        Image(systemName: still ? "mappin" : roamPhase.statusSymbol)
+                            .symbolEffect(.bounce, value: revealTick)
+                            .accessibilityHidden(true)
+                    }
+                    .accessibilityIdentifier("roam.live.statusTag")
                 }
-                .accessibilityIdentifier("roam.live.statusTag")
             }
             .textCase(nil)
         }
@@ -1497,5 +1506,30 @@ enum RoamLivePlaceLevel {
         case 4: return .red
         default: return .blue
         }
+    }
+}
+
+/// Port of MP `utils/roam-idle.js` (BL-02): movement under 3 m for 60 s reads as 原地停留中. Display only.
+struct RoamLiveIdleDetector: Equatable {
+    static let radiusMeters: Double = 3
+    static let holdSeconds: TimeInterval = 60
+    private(set) var anchor: RoamCoordinate?
+    private(set) var since: Date?
+    mutating func update(_ point: RoamCoordinate, at now: Date) {
+        if let anchor, let since, now >= since,
+           RoamExperienceMath.distanceMeters(anchor, point) < Self.radiusMeters {
+            return
+        }
+        anchor = point
+        since = now
+    }
+    mutating func reset() {
+        anchor = nil
+        since = nil
+    }
+    /// The device may stop sending fixes while standing still, so the hold is measured against the clock.
+    func isIdle(at now: Date) -> Bool {
+        guard anchor != nil, let since else { return false }
+        return now.timeIntervalSince(since) >= Self.holdSeconds
     }
 }

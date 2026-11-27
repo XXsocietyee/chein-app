@@ -27,6 +27,9 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     var authorSquare: (any SquareReading)? = nil
     /// MP `talent/list?tab=feed` (A8-04): opens on 帖文 once; nil keeps 俱乐部.
     var initialTopTab: ClubTabPresentation.TopTab? = nil
+    /// mp-nav r3: a link / share card to MP `talent/list?tab=feed` while this tab root is already mounted (MP onLoad
+    /// index.js:290). Applied once, then cleared; ignored when the 帖文 feed is unavailable.
+    var requestedTopTab: Binding<ClubTabPresentation.TopTab?>? = nil
     @State private var appliedInitialTopTab = false
     @State private var locality = MerchantClubDiscoveryState()
     /// Card or inline Join pill tapped; both open the gated detail, which still owns the membership action.
@@ -150,6 +153,11 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         .onChange(of: requestedClubID?.wrappedValue, initial: true) { _, id in
             guard let id else { return }
             openedClubID = id; requestedClubID?.wrappedValue = nil
+        }
+        .onChange(of: requestedTopTab?.wrappedValue, initial: true) { _, tab in
+            guard let tab else { return }
+            if community != nil { topTab = tab }
+            requestedTopTab?.wrappedValue = nil
         }
         // mp-club r3 (MP talent/list wxml:19-20, owner 2026-10-29): the page is titled 发现 on both top tabs; the tab bar
         // item stays 俱乐部 (components/tabBar).

@@ -5,7 +5,9 @@ Only player/club keys (never merchant.*) whose English value has exactly one for
 integer (`%lld`, `%ld`, `%d`, `%1$lld`), followed directly by a known plural noun are converted.
 English becomes an Xcode plural variation (`one` / `other`); Chinese keeps its single stringUnit
 (Chinese has no grammatical plural). Keys referenced literally by tools/ or Tests/ are skipped so
-pinned contract checks keep reading a stringUnit. Idempotent.
+pinned contract checks keep reading a stringUnit. en-layout r3: a key spelled only in a docs/port/strings
+fragment that round-trips byte for byte (same rule as add_i18n_r2_substitutions.py) is converted too, and
+that fragment's English entry is updated so a later fragment merge does not revert it. Idempotent.
 
 Usage: python3 -B tools/add_i18n_r1_plurals.py [--check]
   --check  exit 1 when a convertible key is still a plain stringUnit (ratchet for new count strings).
@@ -38,6 +40,20 @@ SINGULAR = {
 }
 # Keys where the matched word is a verb ("the invite for seat %lld stops working"), not a counted noun.
 VERB_KEYS = {'mp.seats.cancel.message %lld'}
+# Keys whose call site runs `String(format:)` on the resolved value; they stay plain stringUnits.
+FORMAT_KEYS = {'club.settings.customerCount %lld'}
+FRAGMENTS = 'docs/port/strings/'
+
+
+def stable_fragment(name):
+    """A docs/port/strings JSON that json.dumps(indent=2) reproduces byte for byte can be rewritten without churn."""
+    if not (name.startswith(FRAGMENTS) and name.endswith('.json')):
+        return False
+    try:
+        text = (ROOT / name).read_text(encoding='utf-8')
+        return json.dumps(json.loads(text), indent=2, ensure_ascii=False) + '\n' == text
+    except (UnicodeDecodeError, OSError, ValueError):
+        return False
 # Families a contract check reads by prefix (Tests/ContractChecks/test_activity_registration_parity_w2_06.py).
 PINNED_PREFIXES = ('activityParity.', 'registrationParity.')
 ARG = re.compile(r'%(?:\d+\$)?(?:lld|ld|li|d|i|@|f|\.\d+f|u|llu|lu)')
@@ -50,6 +66,8 @@ def pinned_keys():
     blob = []
     for name in files:
         if name.endswith(('.py', '.json', '.swift', '.md', '.txt', '.xcstrings')) and name != 'tools/add_i18n_r1_plurals.py':
+            if name == 'tools/add_i18n_r2_substitutions.py' or stable_fragment(name):
+                continue
             try:
                 blob.append((ROOT / name).read_text(encoding='utf-8'))
             except (UnicodeDecodeError, OSError):
@@ -64,7 +82,7 @@ def pinned_keys():
 
 
 def convertible(key, entry, pinned):
-    if key.startswith('merchant') or key in pinned or key in VERB_KEYS:
+    if key.startswith('merchant') or key in pinned or key in VERB_KEYS or key in FORMAT_KEYS:
         return None
     en = entry.get('localizations', {}).get('en', {})
     unit = en.get('stringUnit')
@@ -116,7 +134,22 @@ def main():
         return
     if changed or not check:
         CATALOG.write_text(json.dumps(catalog, indent=2, ensure_ascii=False) + '\n')
-    print(json.dumps({'status': 'PLURALIZED', 'converted': len(changed)}))
+    touched = []
+    files = subprocess.run(['git', 'ls-files', '--', FRAGMENTS], cwd=ROOT, capture_output=True, text=True).stdout.split()
+    for name in files:
+        if not changed or not stable_fragment(name):
+            continue
+        data = json.loads((ROOT / name).read_text())
+        strings = data.get('strings') if isinstance(data.get('strings'), dict) else data
+        edited = False
+        for key in changed:
+            if isinstance(strings.get(key), dict) and 'en' in strings[key].get('localizations', {}):
+                strings[key]['localizations']['en'] = catalog['strings'][key]['localizations']['en']
+                edited = True
+        if edited:
+            (ROOT / name).write_text(json.dumps(data, indent=2, ensure_ascii=False) + '\n')
+            touched.append(name)
+    print(json.dumps({'status': 'PLURALIZED', 'converted': len(changed), 'fragments': touched}))
 
 
 if __name__ == '__main__':

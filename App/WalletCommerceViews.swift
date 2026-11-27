@@ -533,7 +533,7 @@ extension EnvironmentValues {
                 Text(points ? "u9cde.points.used" : "wallet.outflow").tag("expense")
             }.cyAdaptiveSegmented()
             }
-            if points { NavigationLink("wallet.tasks") { WalletPointsTasksView(reader: reader) } }
+            // MP points-history has no 积分任务 row; 如何获取积分 lives on 我的 → 成就 (MemberAchievementMetricsSection).
             if model.pager.hasLoadedPage && model.pager.loadedScope == reader.scope {
                 if filtered.isEmpty && !model.pager.isLoading && !model.pager.failed {
                     if income || points {
@@ -579,7 +579,11 @@ extension EnvironmentValues {
                                 deniedKey: income ? "wallet.income.denied" : nil) { Task { await model.load(reader, kind: kind) } }
             }
             if model.pager.isLoading {
-                if income { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("wallet.loading")) }
+                // MP points-history first load: `cy-skeleton type="list" count="3"`.
+                if points && !model.pager.hasLoadedPage {
+                    ForEach(0..<3, id: \.self) { _ in CYSkeleton(variant: .row) }
+                }
+                else if income { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("wallet.loading")) }
                 else { ProgressView().frame(maxWidth: .infinity) }
             }
             else if hasLocalMore && model.pager.hasLoadedPage && reader.isConfigured && reader.scope != nil {
