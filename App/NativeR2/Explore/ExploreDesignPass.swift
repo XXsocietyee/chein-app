@@ -43,8 +43,7 @@ struct ExploreStartsInLine: View {
 
     var body: some View {
         TimelineView(.explicit(wakeDates)) { context in
-            // An explicit schedule can hand back a past entry date (the start) after the event ended; the
-            // inner countdown reads the real clock, so the line would say "In progress · Ends in Ended".
+            // An explicit schedule whose dates are all past hands back a past `context.date`; never treat that as now.
             line(now: max(context.date, Date()))
         }
     }

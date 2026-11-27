@@ -6,7 +6,9 @@ import SwiftUI
     var onStartRoam:(()->Void)? = nil
     @State private var router = AppRouter()
     /// R8-PC-A1-1 MP-first: the 首页 city is a local label only (MP `onManualCityChange`), never the global roam centre.
-    @State private var homeCityLabel: String?
+    /// mp-home r3: kept on the device like MP `homeCity.saveLastCity` / `readLastCity`, so the pick survives relaunch.
+    @AppStorage("homeIndex.manualCity") private var homeCityStored: String = ""
+    private var homeCityLabel: String? { homeCityStored.isEmpty ? nil : homeCityStored }
     /// One hero namespace for the Explore stack: feed cards are zoom sources, the pushed detail is the destination.
     @Namespace private var hero
     @State private var activeContinuationScope:PlaySessionScope?=nil
@@ -316,7 +318,7 @@ import SwiftUI
     /// It does not move `session.roamArea` (search map / roam centre). 全国 keeps the current label.
     private func selectHomeCity(_ city: String?, nationwide: Bool) {
         guard !nationwide, let city, !city.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-        homeCityLabel = city
+        homeCityStored = city
     }
     private func handleActionBanner(_ banner: HomeIndexParityPresentation.ActionBanner) {
         switch banner.id {
