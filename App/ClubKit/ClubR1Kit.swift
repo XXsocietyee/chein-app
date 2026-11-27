@@ -62,6 +62,8 @@ struct ClubR1Row<Trailing: View>: View {
     var subtitle: String?
     var initial: String?
     var systemImage: String?
+    /// a11y-dt r3: the initial grows with Dynamic Type instead of clipping in a fixed 32 pt circle.
+    @ScaledMetric(relativeTo: .headline) private var initialSide: CGFloat = 32
     @ViewBuilder var trailing: () -> Trailing
 
     var body: some View {
@@ -77,7 +79,7 @@ struct ClubR1Row<Trailing: View>: View {
                 if let initial {
                     Text(verbatim: String(initial.prefix(1)))
                         .font(.headline)
-                        .frame(width: 32, height: 32)
+                        .frame(width: initialSide, height: initialSide)
                         .background(.fill.tertiary, in: Circle())
                         .accessibilityHidden(true)
                 } else if let systemImage {

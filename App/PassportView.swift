@@ -220,7 +220,10 @@ private struct PassportRollingCount: View {
     /// Contacts-style action buttons (bordered, symbol over label).
     private var actions: some View {
         // design-r2-play P12: one row of equal-height capsules; the tallest label sets the height for all.
-        HStack(alignment: .top, spacing: 8) {
+        // a11y-dt r3: at AX sizes three or four capsules side by side break 票夹 / Wallet into one glyph per line,
+        // so the same buttons stack full width, in the same order.
+        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: 8)) : AnyLayout(HStackLayout(alignment: .top, spacing: 8))
+        return layout {
             if showsTicketsAction {
                 action("ticketWallet.title", "ticket", id: "passport.action.tickets", perform: onOpenTickets)
             }

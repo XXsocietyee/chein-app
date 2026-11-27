@@ -75,6 +75,66 @@ map), 首页 shelf feed `.grouped` (edge-to-edge App Store-style rails), channel
 map-mode results panel `.plain`, two unreferenced internal command hubs, merchant root mode switch (merchant out of
 scope).
 
+## Continue run 2 (2026-11-27, after merging combined-r7)
+
+Receipt had no Not done rows. TASKS:
+
+### Build-break guards in `tools/check_design_consistency.py`
+App/ + Core/ compile into one Swift module, so these two kinds scan **every** `App/**` and `Core/**` Swift file
+(merchant and fixtures included) and fail like any other new violation (baseline 0, nothing baselined):
+
+| Kind | What it catches | Today's incident it would have stopped |
+|---|---|---|
+| duplicate type | the same top-level `struct` / `class` / `enum` / `protocol` / `actor` / `typealias` name in two places. `private` / `fileprivate` top-level types only clash inside their own file; declarations in different branches of one `#if … #else` are not a clash (an `#if DEBUG` copy next to an unconditional one is). | f17bc6663: a second `PlayRouteNotice` (Core/PlayExperienceContracts.swift vs Core/PlayCommandRefusal.swift) |
+| undeclared state | in a SwiftUI `View` struct (its body + every `extension Name` in the module): a `$name` binding or an assignment `name = …` / `self.name = …` / `name += …` whose name is never declared (`var` / `let` incl. `let a = x, b = y` lists, `inout` params, enum cases, `{ $row in` bindings, `[x = y] in` capture lists, module globals). String literals are blanked first. | 73c6432b1: `governanceMemberCount = $0` with no `@State private var governanceMemberCount` |
+
+Self-test: reverting f17bc6663 (rename back to `PlayRouteNotice`) fails with both files and lines; deleting the
+`governanceMemberCount` declaration fails at `App/ClubGovernanceViews.swift:1596`; a `private struct HomeFeedView` in
+another file and an `#if DEBUG struct Bar / #else struct Bar` pair pass. Merged tree: 0 hits for both kinds. Runtime
+~12 s (fast paths for lines without quotes / slashes).
+
+### New kind `font design` + fixes
+`design: .rounded` / `.serif` or `.fontDesign(.rounded/.serif)` outside App/DesignSystem + App/Theme (a per-page
+numeral face). `.monospaced` code editors (condition author, preference JSON) are fine.
+
+| MP page | Native view | MP sections | Change (owner rule 2) |
+|---|---|---|---|
+| playkit games (dice / chance total, walk steps, silent timer, timed clock, compass, sensor value) | `App/NativeR2/Games/ChanceKits.swift:106, 240`, `NativeGameSortKits.swift:284, 290, 395`, `NativeGameTimedKit.swift:158`, `NativeGameSensorKit.swift:189, 224` | unchanged | Five ad-hoc variants of `.system(.largeTitle, design: .rounded).weight(.bold / .semibold)` → the one stat numeral token `.cyText(.dataXL)` (largeTitle, bold, rounded, monospaced digits). |
+| motion metrics (run HUD value) | `App/NativeR2/Motion/MotionR2Metrics.swift:76` | unchanged | `.heavy` rounded largeTitle → `.cyText(.dataXL)`. |
+| challenge value row | `App/NativeR2/Games/NativeGameTimedKit.swift:270` | unchanged | rounded `.title` → `.cyText(.pageTitle, weight: .semibold, monospacedDigit: true)`. |
+| 城市 game panel stat tiles | `App/CityGamePanel.swift:203` | unchanged | rounded `.title3` → `.cyText(.sectionTitle, weight: .bold, monospacedDigit: true)` (matches `CYRecordStatGrid` / roam stats). |
+
+Allowed (reasons in baseline): crossword grid letters (`PlayKitQuestoViews` puzzle face), coin sparkle glyph
+(`CityTokens` procedural art).
+
+### Not done (next run)
+| Item | Why not now |
+|---|---|
+| `App/RoamOfficialTasksView.swift:131` 官方任务 keyword field is a `.roundedBorder` `TextField` in the first List section → should be `.searchable(text: $keyword, prompt:)` on the List (brief: custom search fields → `.searchable`). | `Tests/AppUITests/RoamOfficialTasksFlowTests.swift:37` drives it as `app.textFields["roam.tasks.search"]` and the test file is hash-pinned in `tools/current_ci_manifest.json`; change together with the test + manifest review. |
+| 14 other player `.textFieldStyle(.roundedBorder)` fields inside List / Form rows (PlayKit forms, roam stamp / subpage notes, nearby team lat/lng, journey, channel composer) — native Form rows use the plain field. | Needs a per-screen look at whether each sits in a List row or on a card; not a safe text rewrite. |
+
+## Continue run 3 (2026-11-27, after merging combined-r7 into 1a8f38d59)
+
+Not done rows from run 2:
+
+| MP page | Native view | MP sections | Change (owner rule 2) / status |
+|---|---|---|---|
+| `subpackageRoam/components/scene-roam-task-list` (官方任务: `task-search` → `task-tabs` → `task-summary` → stale/refreshing → list / `cy-empty`) | `App/RoamOfficialTasksView.swift` | all present, MP order (search first, always visible, then 进行中/即将/我的 segmented, summary, states, list) | Done. Hand-made `.roundedBorder` keyword `TextField` in the first List row → system `.searchable(text:placement: .navigationBarDrawer(displayMode: .always), prompt:)` on the List (same keyword binding, same filtering, cleared on owner change). UI test `RoamOfficialTasksFlowTests.testSourceKeywordHasRealNoResultsState` retargeted from `app.textFields["roam.tasks.search"]` to `app.searchFields.firstMatch`; its sha256 row in `tools/current_ci_manifest.json` updated (only that row; `current_ci.py check` already fails on the base for other lanes' unaudited test edits). Simulator run still needed. |
+| 14 player `.textFieldStyle(.roundedBorder)` fields | `PlayKitPersonalForms` (2), `PlayKitNewGameForms`, `PlayKitDecisionProgressViews`, `PlayKitLegacyViews`, `PlayKitTimedChallengeView`, `JourneyReportViews`, `RoamSubpageParityViews`, `RoamStampViews`, `NearbyTeamViews` (DEBUG lat/lng), `CommunityTrustPlayerViews`, `ClubChannelMessagingView` composer, `AccountDeregistrationImpactSection`, `StoryRuleEditorView` (story-flow, out) | unchanged | Closed, no change: each sits on a card / VStack / ScrollView, not in a List or Form row, and `.roundedBorder` is exactly what the design-system field `CYField` draws — consistent already. |
+
+Next scan (hand-made search fields → `.searchable` / one filter-row pattern):
+
+| MP page | Native view | MP sections | Change |
+|---|---|---|---|
+| `pages/coop/invite` target filter | `App/CooperationContextualViews.swift:461` | unchanged (kind segmented → filter → loading / retry / empty + 刷新合作对象 → targets) | Bare `TextField` in a Form row → the same filter row the friend picker uses (`Label` with the `magnifyingglass` symbol, `.submitLabel(.search)`, no autocorrect/caps); `.searchable` not used because the Form is a row inside a host navigation container (same reason as `NativeFriendPickerView`). |
+| 漫游 browser map-mode search | `App/RoamBrowserView.swift:350` | — | Kept: Maps-style pinned field inside the persistent results sheet; list mode already uses system `.searchable` (`RoamBrowserView.swift:720`). |
+| — (design kit) | `App/DesignSystem/CYField.swift` `CYFormSearchRow` | — | New shared row for a search filter that is one row of a Form / List section (`.searchable` belongs to a whole page): `Label` with `magnifyingglass` + system `TextField`, `.submitLabel(.search)`, no autocorrect / caps, optional `onSubmit`, identifier on the field. |
+| `pages/coop/invite`, friend picker (d7), activity template picker (`ActivityTemplateSelection`) | `CooperationContextualViews.swift`, `NativeFriendPickerView.swift:26`, `ActivityTemplateSelectionView.swift:111` | unchanged (fields, order, identifiers `context.coop.search` / `activityTemplate.search` kept; activity template still reads on submit) | Three hand-built Form search rows in two layouts (`Label` vs `HStack`, different keyboard options) → one `CYFormSearchRow`. |
+
+New checker kind **custom search**: `Image(systemName: "magnifyingglass")` with a `TextField(` within 3 lines, outside
+App/DesignSystem → use `.searchable` or `CYFormSearchRow`. Baseline 0; allowed: `RoamBrowserView` map-mode sheet field
+(reason in the baseline). Self-test: the pre-fix `ActivityTemplateSelectionView.swift` fails at line 113.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
@@ -100,3 +160,12 @@ scope).
   list style / custom sheet / custom tabs 0), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
   Self-test: the pre-fix `PlayKitQuestoViews` (scrim + `.isModal`), `CollectionAlbumViews` and `MPParityKit` (chip tab
   rows) and `CityTerritoryNoticeCard` (page button style) each fail the checker at the replaced lines.
+- Continue run 2 (00867f18f, merged combined-r7): `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint`
+  PASS (0 new), `check_design_consistency` PASS (0 debt, 63 allowed; duplicate type 0, undeclared state 0, font design
+  0), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+- Continue run 3 (e0bd7724b, merged combined-r7): `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint`
+  PASS (0 new), `check_design_consistency` PASS (0 debt, 63 allowed), `contract_ratchet --check` 52 failing, baseline
+  52, **new 0**.
+- Continue run 3, batch 2 (d8d04c09e): `generate_project` PASS, `check_scaffold` PASS (includes design consistency:
+  0 debt, 64 allowed, custom search 0), `check_a11y_lint` PASS (0 new), `contract_ratchet --check` 52 failing,
+  baseline 52, **new 0**.

@@ -64,9 +64,13 @@ class PlayGameplayModeSeparationContracts(unittest.TestCase):
         # Port plan C1/C2 (P2): story lock, offline archive, and visit steps added 21 playFree keys
         # to the original 27. Each still needs en and zh-Hans.
         # mp-journey r3: +16 for the MP fx-pass meta lines, 探索节点, the tile chapter label and the fx-hero sections (本店权益, 本站游戏, 小瘾说).
-        self.assertEqual(len(keys),64)
+        # mp-journey r3: +2 for the MP 终章结局信 sheet (你的城市故事 title, 第 N 步 · name).
+        self.assertEqual(len(keys),66)
         for key in keys:
-            for language in ['en','zh-Hans']:self.assertTrue(strings[key]['localizations'][language]['stringUnit']['value'])
+            # en-layout r3: English count strings carry plural variations ("1 shop" / "2 shops"); read the `other` form.
+            for language in ['en','zh-Hans']:
+                loc=strings[key]['localizations'][language]
+                self.assertTrue((loc.get('stringUnit') or loc['variations']['plural']['other']['stringUnit'])['value'])
         tests=self.read('Tests/AppUITests/PlayExperienceFlowTests.swift')
         for name in ['testMode2ShowsSeparateVerificationStep','testChineseFreePackKeepsStoreChoiceAfterBackAndRefresh',
                      'testOrdinaryReadFallbackUsesFreeStoreCardsAndNoOrientationAnswerForm']:self.assertIn(name,tests)

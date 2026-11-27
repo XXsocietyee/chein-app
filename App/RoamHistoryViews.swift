@@ -300,7 +300,8 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 RoamExperienceNotice(offline: reader.isOfflineExample)
-                if let error = currentError { RoamExperienceIssue(error: error, retry: load) }
+                // mp-states r3 (MP scene-roam-session wxml:5): 这次漫游无法打开 · 重试.
+                if let error = currentError { RoamExperienceIssue(error: error, retry: load, failureTitle: "roam.session.openFailed") }
                 else if let record = currentRecord {
                     // Mini-program scene-roam-session: date · time under 本次漫游, the 本次路线 replay card,
                     // the 总距离 / 时长 / 探店 / 探索度 rows, then 解锁奖励 and 点亮地点, each with its own empty line.
@@ -357,11 +358,17 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                         Text("roam.experience.recordedPlacesEmpty").foregroundStyle(CYColor.textSecondary)
                     }
                     ForEach(Array(record.pois.enumerated()), id: \.offset) { _, place in
+                        // MP rw__row: icon by cat (shop / park / landmark), name, then the 点亮 category line.
                         HStack(spacing: CYSpacing.md) {
-                            Image(systemName: place.cat == "merchant" ? "storefront" : "mappin").font(.title3).foregroundStyle(.secondary)
+                            Image(systemName: place.cat == "merchant" ? "storefront" : (place.cat == "park" ? "leaf" : "mappin"))
+                                .font(.title3).foregroundStyle(.secondary)
                                 .frame(width: 32).accessibilityHidden(true)
-                            RoamTitle(place.name)
+                            VStack(alignment: .leading, spacing: 2) {
+                                RoamTitle(place.name)
+                                Text("roamSub.w208.share.lit").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                            }
                         }
+                        .accessibilityElement(children: .combine)
                     }
                     Button { showShare = true } label: {
                         Label("roam.share.title", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)

@@ -81,7 +81,6 @@ import QuestifyCore
     @State private var confirmFinish = false
     @State private var showingLocationPriming = false
     @State private var locationPrimingAllowed = false
-    @State private var showRules = false
     /// ROAM-2: pages/roam `openCheckinView` after a confirmed visit → 城市贴纸 / 今日城市签.
     @State private var checkin: RoamCheckinTarget?
     @State private var revealTick = 0
@@ -97,6 +96,8 @@ import QuestifyCore
     @State private var sessionDetent: PresentationDetent = .fraction(0.3)
     /// ROAM-r11-3: the place marker the player tapped.
     @State private var selectedPlaceID: Int?
+    /// MP BL-02 (`utils/roam-idle.js`): display-only stationary detector; never touches time, distance or reveal.
+    @State private var idle = RoamLiveIdleDetector()
     /// ROAM-r11-1: the official event carried in from 去漫游 (MP onLoad `eventId` / `missionCode`).
     @ObservedObject private var officialHandoff = RoamOfficialEventHandoff.shared
     @Environment(\.roamOfficialArrival) private var officialArrival
@@ -129,12 +130,9 @@ import QuestifyCore
                     reloadTrigger: fogMap?.area.label ?? ""
                 )
             }
+            // MP pbar 更多 (roam-more): one entry for 附近正在走的人 / 玩法说明 / 设置; the rules are a row inside it.
             ToolbarItem(placement: .topBarTrailing) {
-                Button { showRules = true } label: { Label("roam.live.rules", systemImage: "info.circle") }
-                    .accessibilityIdentifier("roam.live.rules")
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button { showTools = true } label: { Label("roamTools.title", systemImage: "slider.horizontal.3") }
+                Button { showTools = true } label: { Label("roamTools.more.title", systemImage: "ellipsis.circle") }
                     .accessibilityIdentifier("roam.live.tools")
             }
         }
@@ -203,9 +201,6 @@ import QuestifyCore
                 "足迹和探店都会保存,结算后可领足迹卡。本次漫游立即结算,结束后不能继续这一次漫游。",
                 "Your footprints and shop visits are saved. After settlement you can collect the footprint card. This roam settles now and can't be continued.",
                 locale: locale))
-        }
-        .sheet(isPresented: $showRules) {
-            NavigationStack { RoamLiveRulesView() }.cySheet()
         }
         .sheet(item: $checkin) { target in Group { RoamCheckinSheet(target: target) }.cySheet(detents: [.large]) }
         .background {
@@ -500,12 +495,17 @@ import QuestifyCore
             }
         }
         .onAppear {
+            ActiveSessionStore.shared.setRoamScreenVisible(true)
             purposeAccepted = storedPurposeAccepted; owner.setForeground(scenePhase == .active); owner.prepare(); model.captureFinishAddress(); browse.appear()
         }
         .onDisappear { nearbyExpanded = true; browse.parentHidden(); owner.pause() }
+        .onDisappear { ActiveSessionStore.shared.setRoamScreenVisible(false) }
         .onChange(of: owner.phase) { _, phase in
-            if phase != .active { nearbyExpanded = true }
+            if phase != .active { nearbyExpanded = true; idle.reset() }
             browse.retireIfStale(owner: owner, reader: currentBrowseReader)
+        }
+        .onChange(of: owner.lastFix) { _, fix in
+            if owner.phase == .active, let fix { idle.update(fix.coordinate, at: fix.measuredAt) } else { idle.reset() }
         }
         .onChange(of: scenePhase) { _, value in
             if value != .active { browse.retire() }
@@ -603,14 +603,18 @@ import QuestifyCore
                     .accessibilityIdentifier("roam.live.phase")
                 Spacer(minLength: 8)
                 // PL-14: a labelled status, never a symbol alone. New ground bounces the symbol (P-040).
-                Label {
-                    Text(phaseText)
-                } icon: {
-                    Image(systemName: roamPhase.statusSymbol)
-                        .symbolEffect(.bounce, value: revealTick)
-                        .accessibilityHidden(true)
+                // MP BL-02 maptip: 原地停留中 while walking (not paused) and under 3 m for 60 s; status only, no action.
+                TimelineView(.animation(minimumInterval: 5, paused: !active)) { context in
+                    let still = active && idle.isIdle(at: context.date)
+                    Label {
+                        Text(still ? "roam.live.idle" : phaseText)
+                    } icon: {
+                        Image(systemName: still ? "mappin" : roamPhase.statusSymbol)
+                            .symbolEffect(.bounce, value: revealTick)
+                            .accessibilityHidden(true)
+                    }
+                    .accessibilityIdentifier("roam.live.statusTag")
                 }
-                .accessibilityIdentifier("roam.live.statusTag")
             }
             .textCase(nil)
         }
@@ -840,25 +844,6 @@ import QuestifyCore
         return "roam.live.operationError"
     }
 }
-@MainActor private struct RoamLiveRulesView: View {
-    @Environment(\.dismiss) private var dismiss
-    var body: some View {
-        List {
-            Section("roam.live.ruleExploreTitle") { Text("roam.live.ruleExplore") }
-            Section("roam.live.ruleArrivalTitle") { Text("roam.live.ruleArrival") }
-            Section("roam.live.ruleFinishTitle") { Text("roam.live.ruleFinish") }
-            Section("roam.live.rulePrivacyTitle") { Text("roam.live.presencePrivacy"); Text("roam.live.leaveHint") }
-        }
-        .navigationTitle(Text("roam.live.rules")).navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button { dismiss() } label: { Label("action.close", systemImage: "xmark") }
-                    .labelStyle(.iconOnly)
-            }
-        }
-    }
-}
-
 /// A display-only projection of the current controller's accepted in-memory samples.
 /// Saved tile totals and timestamps do not establish this local-area estimate.
 struct RoamLiveCoveragePresentation: Equatable {
@@ -1521,5 +1506,30 @@ enum RoamLivePlaceLevel {
         case 4: return .red
         default: return .blue
         }
+    }
+}
+
+/// Port of MP `utils/roam-idle.js` (BL-02): movement under 3 m for 60 s reads as 原地停留中. Display only.
+struct RoamLiveIdleDetector: Equatable {
+    static let radiusMeters: Double = 3
+    static let holdSeconds: TimeInterval = 60
+    private(set) var anchor: RoamCoordinate?
+    private(set) var since: Date?
+    mutating func update(_ point: RoamCoordinate, at now: Date) {
+        if let anchor, let since, now >= since,
+           RoamExperienceMath.distanceMeters(anchor, point) < Self.radiusMeters {
+            return
+        }
+        anchor = point
+        since = now
+    }
+    mutating func reset() {
+        anchor = nil
+        since = nil
+    }
+    /// The device may stop sending fixes while standing still, so the hold is measured against the clock.
+    func isIdle(at now: Date) -> Bool {
+        guard anchor != nil, let since else { return false }
+        return now.timeIntervalSince(since) >= Self.holdSeconds
     }
 }

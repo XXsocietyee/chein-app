@@ -125,21 +125,25 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
     }
     @ViewBuilder private func defaultIssueView(_ issue: ClubLoadIssue) -> some View {
         let symbol = issue.needsSignIn ? "person.crop.circle.badge.exclamationmark" : "exclamationmark.triangle"
-        let actionTitle: LocalizedStringKey? = issue.needsSignIn ? (onSignIn == nil ? nil : "club.signIn") : (issue.canRetry ? "action.retry" : nil)
+        // mp-states r3 (MP club/detail wxml:291,305): the members page reads 成员列表加载失败 · 重新加载, and a non-member
+        // sees 加入俱乐部后可查看成员 with no button.
+        let membersGate = isMembersPage && issue.titleKey == "club.membersUnavailable"
+        let retryTitle: LocalizedStringKey = isMembersPage ? "club.members.reload" : "action.retry"
+        let actionTitle: LocalizedStringKey? = issue.needsSignIn ? (onSignIn == nil ? nil : "club.signIn") : (issue.canRetry && !membersGate ? retryTitle : nil)
         let actionID = issue.needsSignIn ? accessibilityPrefix + ".signIn" : accessibilityPrefix + ".retry"
         let action: (() -> Void)? = actionTitle == nil ? nil : {
             if issue.needsSignIn { onSignIn?() }
             else { Task { await reload() } }
         }
         let signInPage = usesClubPageStates && issue.needsSignIn
-        let titleKey = usesClubTabStates ? clubTabTitleKey(issue) : (signInPage ? "club.detail.signIn" : issue.titleKey)
+        let titleKey = usesClubTabStates ? clubTabTitleKey(issue) : (isMembersPage ? membersTitleKey(issue) : (signInPage ? "club.detail.signIn" : issue.titleKey))
         ContentUnavailableView {
             Label {
                 Text(LocalizedStringKey(titleKey))
                     .accessibilityIdentifier(accessibilityPrefix + ".error")
             } icon: { Image(systemName: symbol) }
         } description: {
-            if !signInPage && !(usesClubTabStates && issue.needsSignIn) {
+            if !signInPage && !(usesClubTabStates && issue.needsSignIn) && !membersGate {
                 if let message = issue.message { Text(verbatim: message) }
                 else { Text(LocalizedStringKey(issue.hintKey)) }
             }
@@ -150,6 +154,12 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
                     .accessibilityIdentifier(actionID)
             }
         }
+    }
+    private var isMembersPage: Bool { accessibilityPrefix == "club.members" }
+    private func membersTitleKey(_ issue: ClubLoadIssue) -> String {
+        if issue.titleKey == "club.membersUnavailable" { return "club.members.joinToView" }
+        if issue.titleKey == "club.loadFailed" { return "club.members.loadFailed" }
+        return issue.titleKey
     }
     private func clubTabTitleKey(_ issue: ClubLoadIssue) -> String {
         if issue.needsSignIn { return "club.tab.state.signIn" }

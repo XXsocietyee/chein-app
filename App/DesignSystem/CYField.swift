@@ -199,3 +199,26 @@ public struct CYField: View {
         )
     }
 }
+
+/// One search-filter pattern for a filter that is a single row inside a Form / List section (`.searchable` belongs to
+/// a whole navigation page): the system text field led by the `magnifyingglass` symbol, search return key, no
+/// autocorrect or auto-capitalisation. Whole pages use `.searchable` instead.
+struct CYFormSearchRow: View {
+    let prompt: Text
+    @Binding var text: String
+    var identifier: String = "cy.formSearch"
+    var onSubmit: () -> Void = {}
+
+    var body: some View {
+        Label {
+            TextField(text: $text) { prompt }
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .submitLabel(.search)
+                .onSubmit(onSubmit)
+                .accessibilityIdentifier(identifier)
+        } icon: {
+            Image(systemName: "magnifyingglass").foregroundStyle(.secondary).accessibilityHidden(true)
+        }
+    }
+}

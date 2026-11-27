@@ -155,7 +155,7 @@ import SwiftUI
                     NativeGameCountdownClock(start: countdownClock, seconds: seconds)
                 } else {
                     Text(verbatim: clockLabel)
-                        .font(.system(.largeTitle, design: .rounded).weight(.semibold))
+                        .cyText(.dataXL)
                         .monospacedDigit()
                         .lineLimit(1)
                         .minimumScaleFactor(0.5)
@@ -267,7 +267,7 @@ import SwiftUI
                 Image(systemName: outcome == true ? "checkmark.circle.fill" : outcome == false ? "arrow.triangle.2.circlepath.circle.fill" : "stopwatch.fill")
             }
             .foregroundStyle(outcome == true ? Color.green : outcome == false ? Color.orange : Color.secondary)
-            Text(verbatim: value).font(.system(.title, design: .rounded).weight(.semibold)).monospacedDigit()
+            Text(verbatim: value).cyText(.pageTitle, weight: .semibold, monospacedDigit: true)
             if let target {
                 LabeledContent { Text(verbatim: target).monospacedDigit() } label: { Text("playkit.challenge.target") }
             }
