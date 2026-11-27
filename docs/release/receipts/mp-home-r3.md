@@ -108,4 +108,6 @@ MP content order under the title is unchanged: banner → greeting / 玩家 · c
 `App/HomeFeedFixtureSupport.swift` `HomeFeedFixtureHostView`: no continuation card (`fx-continue` removed), no Today seeding (`--design-today` plumbing and `HomeTodayFixtures.activityEvent` removed; `ticket` / `clubEvent` stay for the Today-card previews and wave fixtures), and the reader no longer serves synthetic `/banner` items to the hero fixture. `Tests/AppUITests/MotionTourTests.swift` tour 1 launches `d2-home` without `--design-today`.
 
 ## Not done / follow-ups
+- 成为俱乐部 (MP `navigateTo('/pages/club/apply/index')`) still opens as a sheet: it is a self-contained application task (HIG modal), with 关闭; the 和朋友报名活动 page now pushes. Revisit if the coordinator wants every MP page pushed.
+- Re-scan after the queue (r3 continue): home hero / rails / stream / consent card / activity list / activity detail / topic detail have no `.font(.system(size:))`, `.tracking`/`.kerning`, custom fonts or transparent-bar chrome; 编辑精选 footnote, per-rail 正在更新…, stream failed/empty/loading-more/no-more and 长期开放 all present.
 - Needs a simulator pass: 4:3 banner card height under the large title on small phones (first rails should stay near the fold).
