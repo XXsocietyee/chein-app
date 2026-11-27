@@ -6,7 +6,6 @@ struct LoginView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
     @Environment(\.colorScheme) private var colorScheme
-    @Environment(\.locale) private var locale
     @State private var username = ""
     @State private var password = ""
     @State private var consentGranted = UsageConsentEnvironment.policy.granted

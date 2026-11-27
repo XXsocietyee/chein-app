@@ -235,3 +235,18 @@ Gates (this pass): generate_project no change, check_scaffold PASS, a11y lint 0 
 ### For other lanes
 - mp-roam / a11y-dt: `E5bMomentFixture`, `E5bJoinFixture`, `A11yRoamAX5Fixture` still force `.preferredColorScheme(.dark)`.
 - Core fixture owners: `Core/TicketWalletSyntheticFixtures.swift` ticket names ("Sample exploration ticket") are English in zh-Hans; shared with Core tests, so not changed here.
+
+## Continue 9 (hourly re-arm, sweep 20:25 UTC build a250afd77)
+
+Merged `origin/ui/combined-r7` (clean). The 20:25 sweep includes Continue 7 but was built before Continue 8 (77c732c08), so the ··· layout, the debug lines and the zh ledger reasons are still the pre-fix state there. Screens checked: `docs/sweeps/latest/mp-mine/zh-Hans-e4-tickets.jpg`, `zh-Hans-e4-wallet-balance.jpg`.
+
+| Screenshot | MP / brief | Native file | Fixed now |
+|---|---|---|---|
+| `zh-Hans-e4-wallet-balance.jpg`: hero "128.50 CNY", rows "+58.00 CNY" / "128.50 CNY" | 20:25: amounts in zh as ¥, not "CNY"; MP profile wxml:226 shows ¥ | `App/WalletCommerceViews.swift` `WalletLedgerView` hero + `ledgerRow`; `App/WalletNumberLocalization.swift` | **Fixed.** New `WalletFormatting.symbolMoney(_:currency:)` puts the one-glyph symbol before the number (+¥58.00, ¥128.50) and keeps the sign first. The ledger hero shows ¥ in the leading symbol slot (same as `WalletEarningsHero`), rows and after-balance use it. Currencies without a one-glyph symbol and unknown currencies keep the old code suffix / unknown label. The shared `WalletFormatting.amount` is unchanged (pinned by `WalletNumberLocalizationTests`), so other wallet screens still read "… CNY"; see "For other lanes". |
+| `zh-Hans-e4-tickets.jpg`: thumbnail is an empty grey box with a dot | 20:25: cover, or a `ticket` SF Symbol on `bgSurfaceSubtle` | `App/TicketWalletView.swift` `TicketWalletRow.coverIllustration` | **Fixed.** With no cover (and while / if the cover fails to load) the slot shows `ticket` in `.secondary` on `CYColor.bgSurfaceSubtle`, same size and corner radius. |
+| `zh-Hans-e4-tickets.jpg`: "Sample exploration ticket" in the Chinese UI | 19:50 / 20:25: fixture data follows the UI language | `App/TicketWalletFixtureSupport.swift` | **Fixed.** The fixture reader maps the five Core synthetic names to zh (示例探索票 …) when launched in Chinese. Core JSON is unchanged, so the English UI tests that read "Sample exploration ticket" keep passing. |
+
+### For other lanes
+- ds-consistency / i18n: `WalletFormatting.amount` still renders "1,234.50 CNY" on the other wallet screens (earnings detail, withdrawal records, cart/checkout). Moving it to `symbolMoney` needs the `WalletNumberLocalizationTests` pins updated together.
+
+Gates (this pass): generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, typography lint PASS, contract ratchet 52 failing / baseline 52 / **new 0** (the ledger detects an unknown delta by `row.changeBalance == nil`; `row.signedText(` stays out of the views per `test_wallet_number_localization`).

@@ -23,6 +23,8 @@ import SwiftUI
     @State private var cloudReport: SquareCloudReportRoute?
     @State private var profileMember: SquareCloudProfileRoute?
     var onClose: (() -> Void)? = nil
+    /// mp-nav r3: false when the page is pushed onto a tab stack (a link landed on 首页), so it never nests a second stack.
+    var embedsNavigationStack = true
     @Environment(\.squareReportContext) private var reportContext
     @State private var query = SquareQuery()
     @State private var keyword = ""
@@ -37,7 +39,7 @@ import SwiftUI
     @State private var phase: CYPhase<Void, Error> = .idle
     private var loading: Bool { phase.isLoading }
     private var issue: Error? { phase.failure }
-    @State private var path: [Int] = []
+    @State private var openedPost: Int?
     /// Source `canUseCommunity(false)`: owner-bound flags; anything but a literal true keeps the community closed.
     @State private var communityGate: SquareCommunityFeatures?
     @State private var gateScope: UUID?
@@ -47,7 +49,7 @@ import SwiftUI
     private struct Key: Hashable { let scope: UUID; let configured: Bool; let query: SquareQuery }
     private var key: Key { Key(scope: reader.scope, configured: reader.isConfigured, query: query) }
     var body: some View {
-        NavigationStack(path: $path) {
+        SquareBrowserStack(embedded: embedsNavigationStack) {
             List {
                 // 我的草稿 and 举报进度 are demoted into the toolbar menu; governance keeps its own entry.
                 if let context = governanceContext(postID: nil) { SquareGovernanceEntryView(context: context) }
@@ -87,7 +89,7 @@ import SwiftUI
                     ForEach(pagination.items) { post in
                         UGCBlockedFilterContainer(memberID: post.memberID, authorName: post.nickname) {
                             VStack(alignment: .leading, spacing: 0) {
-                                NavigationLink(value: post.id) { SquareXcxPostCard(post: post, mediaScope: reader.scope, showsMedia: false) }
+                                NavigationLink { postDetail(post.id) } label: { SquareXcxPostCard(post: post, mediaScope: reader.scope, showsMedia: false) }
                                     .accessibilityIdentifier("square.row.\(post.id)")
                                     .contextMenu {
                                         if actions?.identity.accountID != post.memberID, post.memberID > 0 {
@@ -116,7 +118,7 @@ import SwiftUI
             }
             .appNavigationTitle("square.xcx.navTitle")
             .navigationBarTitleDisplayMode(.inline)
-            .navigationDestination(for: Int.self) { id in SquareDetailView(id: id, contentGeneration: .communityV1, reader: reader, accountReader: accountReader, actions: actions, governanceContext: governanceContext(postID: id), workspace: workspace) }
+            .navigationDestination(item: $openedPost) { id in postDetail(id) }
             .navigationDestination(item: $profileMember) { member in
                 if let accountReader { SocialPublicProfileView(memberID: member.id, reader: accountReader, squareReader: reader, actions: actions) }
             }
@@ -169,7 +171,7 @@ import SwiftUI
             .searchable(text: $keyword, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "square.search")
             .onSubmit(of: .search) { query.keyword = keyword.isEmpty ? nil : keyword }
             .onChange(of: keyword) { _, value in if value.isEmpty { query.keyword = nil } }
-            .onChange(of: reader.scope) { _, _ in path = []; generation += 1; pagination = SquareFeedPagination(); loadedKey = nil; dismissCloudSheets() }
+            .onChange(of: reader.scope) { _, _ in openedPost = nil; generation += 1; pagination = SquareFeedPagination(); loadedKey = nil; dismissCloudSheets() }
             .task(id: key) { await loadGate(); await load(reset: true) }
             .refreshable { await load(reset: true) }
             .onDisappear { generation += 1; settleLoading() }
@@ -177,10 +179,13 @@ import SwiftUI
         }
         .cyDomainScreen(.player)
     }
+    private func postDetail(_ id: Int) -> some View {
+        SquareDetailView(id: id, contentGeneration: .communityV1, reader: reader, accountReader: accountReader, actions: actions, governanceContext: governanceContext(postID: id), workspace: workspace)
+    }
     private func governanceContext(postID: Int?) -> SquareGovernanceContext? {
         guard let governance, let governanceAccess else { return nil }
         return .init(coordinator: governance, access: governanceAccess(postID), communityPostRead: reader.isConfigured,
-            openPost: { id in guard reader.isConfigured, id > 0 else { return }; path.append(id) },
+            openPost: { id in guard reader.isConfigured, id > 0 else { return }; openedPost = id },
             openDrafts: { if workspace != nil { showsWorkspace = true } }, signIn: { onSignIn?() })
     }
     @ViewBuilder private func squareState(_ error: Error, retry: (() -> Void)?) -> some View {
@@ -361,4 +366,13 @@ private struct SquareCloudReportRoute: Identifiable {
 
 private struct SquareCloudProfileRoute: Identifiable, Hashable {
     let id: Int
+}
+
+/// Own stack when presented as a sheet; none when pushed onto a tab's stack (no nested NavigationStack).
+private struct SquareBrowserStack<Content: View>: View {
+    let embedded: Bool
+    @ViewBuilder var content: Content
+    var body: some View {
+        if embedded { NavigationStack { content } } else { content }
+    }
 }
