@@ -9,6 +9,8 @@ import SwiftUI
     let clubID: Int?
     let identity: ClubReadIdentity?
     let access: any ClubGovernanceAccess
+    /// Reports the loaded member count (nil while loading or after a failed read) so the page can show MP 暂无可治理成员.
+    var onLoaded: ((Int?) -> Void)? = nil
     let ban: (ClubOpsGovernanceMember, Int) -> AnyView
     let transfer: (ClubOpsGovernanceMember) -> AnyView
     let fallback: AnyView
@@ -72,7 +74,7 @@ import SwiftUI
         let authorization: UUID?
     }
     private func load() async {
-        roster = nil; failed = false
+        roster = nil; failed = false; onLoaded?(nil)
         guard let clubID, clubID > 0, identity?.isSignedIn == true, identity == access.identity, access.isConfigured else {
             failed = true; return
         }
@@ -85,6 +87,7 @@ import SwiftUI
             guard snapshot.operation == .members, snapshot.scope == scope else { failed = true; return }
             let members = try ClubOpsGovernanceMembers(snapshot: snapshot)
             roster = members
+            onLoaded?(members.members.count)
             canBan = snapshot.permissions?.canGovernMembers == true
             // CLB-G16: a `memberId` link preselects that member (MP governance js onLoad).
             if let focusMemberID, members.members.contains(where: { $0.id == focusMemberID }) { selectedID = focusMemberID }

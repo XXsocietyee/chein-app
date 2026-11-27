@@ -262,6 +262,20 @@ import SwiftUI
                         .accessibilityIdentifier("club.player.apply.retrySubmit")
                     }
                 }
+            } else if let failure, route.operation == .sendNotification, review == nil, receipt == nil {
+                // MP notify wxml:59-62: a failed 预览受众 is inline 受众预览失败 + the reason + 重试.
+                Section {
+                    Label { Text("club.notify.previewFailed") } icon: { Image(systemName: "exclamationmark.circle") }
+                        .font(.headline).foregroundStyle(.red)
+                        .accessibilityIdentifier("club.gov.formError")
+                    if let message = failure.message { Text(verbatim: message).foregroundStyle(.secondary) }
+                    else { Text(LocalizedStringKey(failure.localizationKey)).foregroundStyle(.secondary) }
+                    if !locked {
+                        Button("action.retry") { Task { await prepare() } }
+                            .disabled(busy || identity == nil || !notificationAudienceReady)
+                            .accessibilityIdentifier("club.notify.previewRetry")
+                    }
+                }
             } else if let failure { Section { Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.gov.formError"); if let message = failure.message { Text(verbatim: message) } } }
             if busy, route.operation == .issueGroupCode, groupCode == nil {
                 // CLB-r8-group-code-01 (fix-r8-club): MP sheet state loading shows a 生成中 placeholder in the code slot.

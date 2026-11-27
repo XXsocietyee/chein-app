@@ -4,6 +4,7 @@ import SwiftUI
 /// read re-checks access/me and owns its own writes, review/confirm and return reads.
 @MainActor struct ClubOpsEventView: View {
     @Environment(\.locale) private var locale
+    @Environment(\.dismiss) private var dismiss
     let scope: ClubGovernanceScope
     let identity: ClubReadIdentity?
     let access: any ClubGovernanceAccess
@@ -91,6 +92,11 @@ import SwiftUI
             }
         } description: {
             Text("clubOpsEvent.denied.body", tableName: "ClubOpsEvent")
+        } actions: {
+            // MP event-ops wxml:15-16: 当前身份不能运营活动 + 返回.
+            Button("action.back") { dismiss() }
+                .buttonStyle(.bordered)
+                .accessibilityIdentifier("clubOpsEvent.denied.back")
         }
         .accessibilityIdentifier("clubOpsEvent.denied")
     }
