@@ -25,8 +25,10 @@ extension EnvironmentValues {
         let presentation = appearance.permit
         return List {
                 if model.ownerIsCurrent {
-                    // Source coupon-qr head card: coupon name over its usage note.
-                    if model.couponName != nil || model.couponDescription != nil {
+                    // Source coupon-qr head card (index.wxml:82-89): name over its usage note, on the used / expired /
+                    // revoked results only. While the code is live the MP voucher carries no description.
+                    if model.phase == .used || model.phase == .expired || model.phase == .invalid || model.phase == .unavailable,
+                       model.couponName != nil || model.couponDescription != nil {
                         Section {
                             VStack(alignment: .leading, spacing: 4) {
                                 if let name = model.couponName { Text(verbatim: name).font(.headline) }
@@ -49,8 +51,6 @@ extension EnvironmentValues {
                         MemberMissingLinkState(identifier: "couponCode.missing")
                     } else { content(presentation: presentation, appearance: appearance) }
                     if model.pollDelayed { Text("couponCode.pollDelayed").font(.footnote).foregroundStyle(.secondary) }
-                } footer: {
-                    Text("couponCode.authority")
                 }
         }
             .listStyle(.insetGrouped)
@@ -134,7 +134,6 @@ extension EnvironmentValues {
                 }
                 .font(.footnote).foregroundStyle(.secondary)
                 .accessibilityIdentifier("couponCode.remaining")
-                Text("couponCode.presentToMerchant").font(.subheadline).foregroundStyle(.secondary)
                 retryButton("couponCode.refresh", identifier: "couponCode.refresh", presentation: presentation, appearance: appearance)
             }
         case .loading:
