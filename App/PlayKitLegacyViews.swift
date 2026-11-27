@@ -96,7 +96,7 @@ extension PlayKitScreen {
                 HStack(spacing: CYSpacing.sm) {
                     ForEach(Array(suggestions.enumerated()), id: \.offset) { _, suggestion in
                         Button { text = PlayKitInputContract.limitText(suggestion, toUTF16: maxLength); dirty = true } label: {
-                            Text(verbatim: "「" + suggestion + "」").cyText(.label)
+                            Text(verbatim: appQuoted(suggestion, locale: .current)).cyText(.label)
                         }
                         .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
                         .disabled(!enabled)

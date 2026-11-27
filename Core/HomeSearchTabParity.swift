@@ -127,7 +127,7 @@ public enum HomeIndexParityPresentation {
     }
 
     public static func continuationSectionTitle(locale: Locale = Locale(identifier: "zh-Hans")) -> String {
-        isEnglish(locale) ? "Continue Game / Continue Exploration" : "继续游戏 / 继续探索"
+        isEnglish(locale) ? "Continue" : "继续游戏 / 继续探索"
     }
 
     public static let fixedActionBanners: [ActionBanner] = [
@@ -156,8 +156,8 @@ public enum HomeIndexParityPresentation {
         public func badgeTitle(locale: Locale) -> String {
             if HomeIndexParityPresentation.isEnglish(locale) {
                 switch self {
-                case .continueGame: return "Continue Game"
-                case .continueExploration: return "Continue Exploration"
+                case .continueGame: return "Game"
+                case .continueExploration: return "Exploration"
                 }
             }
             switch self {

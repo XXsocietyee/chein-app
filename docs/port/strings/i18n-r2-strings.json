@@ -1,0 +1,2640 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "sharedPlan.section.status": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voting status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "表决状态"
+          }
+        }
+      }
+    },
+    "sharedPlan.round %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Round %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %lld 轮"
+          }
+        }
+      }
+    },
+    "sharedPlan.captain.yes": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're the captain, so you sign for your team."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你是队长，由你代表本队签署。"
+          }
+        }
+      }
+    },
+    "sharedPlan.captain.no": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the captain can act. You can follow along here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅当前队长可操作，你可以在这里查看进度。"
+          }
+        }
+      }
+    },
+    "sharedPlan.readOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signing is closed right now. You can still see the current status."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现在不能签署，仍可查看当前状态。"
+          }
+        }
+      }
+    },
+    "sharedPlan.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading the shared plans…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载共同方案…"
+          }
+        }
+      }
+    },
+    "sharedPlan.refresh": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新"
+          }
+        }
+      }
+    },
+    "sharedPlan.checkResult": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认方案操作结果"
+          }
+        }
+      }
+    },
+    "sharedPlan.writesOff": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan actions aren't open yet. View only for now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "操作信息尚未更新，当前只读"
+          }
+        }
+      }
+    },
+    "sharedPlan.section.pending": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for the result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待结果确认"
+          }
+        }
+      }
+    },
+    "sharedPlan.pending.note": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The result isn't confirmed yet. Even if you leave or restart, the app checks this same action and never sends it twice."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果待确认。离开或重启后仍会核对这一次操作，不会重复提交。"
+          }
+        }
+      }
+    },
+    "sharedPlan.section.receipt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "操作结果"
+          }
+        }
+      }
+    },
+    "sharedPlan.outcome.applied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已完成"
+          }
+        }
+      }
+    },
+    "sharedPlan.outcome.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Didn't go through"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未成功"
+          }
+        }
+      }
+    },
+    "sharedPlan.result.execute": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "执行结果"
+          }
+        }
+      }
+    },
+    "sharedPlan.receipt.note": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A pledge, a pick or locked materials don't mean the plan has run yet. The latest status is below."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "投入意向、选定或锁定物资都不代表方案已执行，以下方最新状态为准。"
+          }
+        }
+      }
+    },
+    "sharedPlan.section.materials": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team materials"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本队物资"
+          }
+        }
+      }
+    },
+    "sharedPlan.material %@ %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available %1$@ · Locked %2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可用 %1$@ · 锁定 %2$@"
+          }
+        }
+      }
+    },
+    "sharedPlan.materials.note": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locked materials (trade or plan locks) stay in your backpack and still count toward its weight."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "锁定的物资（交易锁或方案锁）仍在背包里，照常计入负重"
+          }
+        }
+      }
+    },
+    "sharedPlan.section.plans": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shared plans"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "共同方案"
+          }
+        }
+      }
+    },
+    "sharedPlan.selected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected, not run yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已选定，尚未执行"
+          }
+        }
+      }
+    },
+    "sharedPlan.needs %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Needs: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需求：%@"
+          }
+        }
+      }
+    },
+    "sharedPlan.conditions.met": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requirements met"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前置条件已满足"
+          }
+        }
+      }
+    },
+    "sharedPlan.conditions.unmet": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requirements not met yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前置条件未满足"
+          }
+        }
+      }
+    },
+    "sharedPlan.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No shared plans yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无共同方案。"
+          }
+        }
+      }
+    },
+    "sharedPlan.ownIntent %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your team's pledge (only your team sees it): %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本队私有意向：%@"
+          }
+        }
+      }
+    },
+    "sharedPlan.intent.locked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your captain has locked in the pledge."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本队当前队长已确认托管"
+          }
+        }
+      }
+    },
+    "sharedPlan.intent.signed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your captain signed the pledge; it isn't locked in yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本队当前队长已签署意向，尚未托管"
+          }
+        }
+      }
+    },
+    "sharedPlan.intent.none": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your team hasn't pledged anything yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本队尚未投入"
+          }
+        }
+      }
+    },
+    "sharedPlan.intent.captainChanged": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The captain changed, so the old signature no longer counts. The current captain needs to sign again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队长已变更，旧意向签名失效，请由当前队长重新签署"
+          }
+        }
+      }
+    },
+    "sharedPlan.confirmedTeam %@ %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locked in · Team %1$@: %2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已确认托管 · 队伍 %1$@：%2$@"
+          }
+        }
+      }
+    },
+    "sharedPlan.pledgeAmount %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, your team's amount"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@，本队投入数量"
+          }
+        }
+      }
+    },
+    "sharedPlan.needCount %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Needs %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需求 %lld"
+          }
+        }
+      }
+    },
+    "sharedPlan.intent.note": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a whole number from 0 to 999 for each. All zeros clears your team's pledge; it doesn't withdraw the plan."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每项填 0–999 的整数；全部填 0 会清空本队投入，不会撤回整个方案。"
+          }
+        }
+      }
+    },
+    "sharedPlan.openTask": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the task"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进入操作任务"
+          }
+        }
+      }
+    },
+    "sharedPlan.openTask.note": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Materials are used only after the task passes. The confirmed record decides the result."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "操作通过后才会消耗已确认物资，结果以确认的操作记录为准。"
+          }
+        }
+      }
+    },
+    "sharedPlan.section.vote": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your team's vote"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本队表决"
+          }
+        }
+      }
+    },
+    "sharedPlan.ownVote %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your team's first choice: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本队首选：%@"
+          }
+        }
+      }
+    },
+    "sharedPlan.ownAcceptance %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your team accepts: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本队接受：%@"
+          }
+        }
+      }
+    },
+    "sharedPlan.signature.current": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signed by the current captain"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前队长已签署"
+          }
+        }
+      }
+    },
+    "sharedPlan.signature.stale": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The captain changed; needs a new signature"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队长已变更，须重新签署"
+          }
+        }
+      }
+    },
+    "sharedPlan.consensus %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consensus vote: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "共识票：%@"
+          }
+        }
+      }
+    },
+    "sharedPlan.consensus.note": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whether it counts depends on the current stage."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "是否生效以当前阶段为准。"
+          }
+        }
+      }
+    },
+    "sharedPlan.rejectedAll": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your captain signed to reject all remaining plans."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本队队长已签署拒绝全部剩余方案。"
+          }
+        }
+      }
+    },
+    "sharedPlan.rejectRound": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose no plan this round"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本轮不选任何方案"
+          }
+        }
+      }
+    },
+    "sharedPlan.acceptNone": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "None"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不接受任何方案"
+          }
+        }
+      }
+    },
+    "sharedPlan.accept.note": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick as many as you like, or none. Submitting is signed again by the current captain."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可选择多个，也可不接受任何方案；提交会由当前队长重新签署。"
+          }
+        }
+      }
+    },
+    "sharedPlan.section.result": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最新结果"
+          }
+        }
+      }
+    },
+    "sharedPlan.result.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果"
+          }
+        }
+      }
+    },
+    "sharedPlan.result.terminal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This ending is confirmed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本场结局已确认"
+          }
+        }
+      }
+    },
+    "sharedPlan.result.continue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shared task done. The story continues."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "共同操作完成，继续剧情"
+          }
+        }
+      }
+    },
+    "sharedPlan.review.note": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When you confirm, the app checks the captain and the plan again. If anything changed, you'll need to confirm again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认时会再次核对队长和方案状态；如有变化，需要重新确认。"
+          }
+        }
+      }
+    },
+    "sharedPlan.confirmAction %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认：%@"
+          }
+        }
+      }
+    },
+    "sharedPlan.review.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认操作"
+          }
+        }
+      }
+    },
+    "sharedPlan.review.plan": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次方案"
+          }
+        }
+      }
+    },
+    "sharedPlan.review.acceptNone": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're accepting no plans this time."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次不接受任何方案"
+          }
+        }
+      }
+    },
+    "sharedPlan.review.accept %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accepting: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次接受：%@"
+          }
+        }
+      }
+    },
+    "sharedPlan.review.clearIntent": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This clears your team's pledge."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次清空本队投入。"
+          }
+        }
+      }
+    },
+    "sharedPlan.notUpdated": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not updated yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "信息尚未更新"
+          }
+        }
+      }
+    },
+    "sharedPlan.phase.FUNDING": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discuss & pledge"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "讨论与投入"
+          }
+        }
+      }
+    },
+    "sharedPlan.phase.VOTING": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First-choice vote"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首选表决"
+          }
+        }
+      }
+    },
+    "sharedPlan.phase.TIED": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tied, waiting for a revote"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待重投"
+          }
+        }
+      }
+    },
+    "sharedPlan.phase.ACCEPTANCE": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accept round"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接受方案轮"
+          }
+        }
+      }
+    },
+    "sharedPlan.phase.CONSENSUS": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consensus vote"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "共识表决"
+          }
+        }
+      }
+    },
+    "sharedPlan.phase.SELECTED": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan selected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "方案已选定"
+          }
+        }
+      }
+    },
+    "sharedPlan.phase.EXECUTED": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan carried out"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "操作已执行"
+          }
+        }
+      }
+    },
+    "sharedPlan.phase.FALLBACK": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wrapping up with the default ending"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "默认结局收尾"
+          }
+        }
+      }
+    },
+    "sharedPlan.policy.MAJORITY": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Majority wins"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "多数通过"
+          }
+        }
+      }
+    },
+    "sharedPlan.policy.UNANIMOUS": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Everyone must agree"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全体同意"
+          }
+        }
+      }
+    },
+    "sharedPlan.policy.MAJORITY_ACCEPTANCE": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Majority wins · accept round if stuck"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "多数通过 · 接受轮恢复"
+          }
+        }
+      }
+    },
+    "sharedPlan.task.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Task not available"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "操作任务暂不可用"
+          }
+        }
+      }
+    },
+    "sharedPlan.task.unavailable.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This task needs a started plan and your team's access. An expired task can't be submitted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要已开始的方案和本队的玩法权限；已过期的任务不能提交。"
+          }
+        }
+      }
+    },
+    "sharedPlan.task.back": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to plans"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回共同方案"
+          }
+        }
+      }
+    },
+    "提出此方案": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Propose this plan"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提出此方案"
+          }
+        }
+      }
+    },
+    "签署本队投入意向": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign your team's pledge"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "签署本队投入意向"
+          }
+        }
+      }
+    },
+    "撤回本队提案": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdraw your team's proposal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤回本队提案"
+          }
+        }
+      }
+    },
+    "改案并重新签署": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change plan and sign again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "改案并重新签署"
+          }
+        }
+      }
+    },
+    "拒绝全部剩余方案": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reject all remaining plans"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拒绝全部剩余方案"
+          }
+        }
+      }
+    },
+    "开启首选表决": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start the first-choice vote"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开启首选表决"
+          }
+        }
+      }
+    },
+    "开启下一轮": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start the next round"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开启下一轮"
+          }
+        }
+      }
+    },
+    "签署本队首选票": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign your team's first choice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "签署本队首选票"
+          }
+        }
+      }
+    },
+    "签署接受清单": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign accepted plans"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "签署接受清单"
+          }
+        }
+      }
+    },
+    "签署共识票": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign the consensus vote"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "签署共识票"
+          }
+        }
+      }
+    },
+    "确认并锁定本队物资": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm and lock your team's materials"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认并锁定本队物资"
+          }
+        }
+      }
+    },
+    "开始原操作任务": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start the task"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始操作任务"
+          }
+        }
+      }
+    },
+    "取消本队原操作": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel your team's task"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消本队操作"
+          }
+        }
+      }
+    },
+    "执行已选方案": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carry out the selected plan"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "执行已选方案"
+          }
+        }
+      }
+    },
+    "意向由当前队长签署，但不锁定或消耗物资。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current captain signs the pledge. No materials are locked or used yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "意向由当前队长签署，不会锁定或消耗物资。"
+          }
+        }
+      }
+    },
+    "仅锁定本队原意向中的物资；托管不是执行完成。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locks only the materials in your team's pledge. Locking in doesn't carry out the plan."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只锁定本队意向里的物资；托管不等于方案已执行。"
+          }
+        }
+      }
+    },
+    "释放方案锁、本轮投票与签名；不会释放独立交易锁。所有队伍须重新核对。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changing the plan releases plan-locked materials and this round's votes and signatures. Trade-locked materials stay locked. Every team needs to check again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "改案只释放方案锁定的物资和本轮投票、签名；交易锁定的物资不会释放。所有队伍需要重新确认。"
+          }
+        }
+      }
+    },
+    "会影响当前方案、票轮或签名；仅代表本队当前队长。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This affects the current plans, round and signatures, on behalf of your team's current captain."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这次操作会影响当前方案、票轮与签名，仅代表本队当前队长。"
+          }
+        }
+      }
+    },
+    "仅原系统确认各队签名、准确托管、真实操作 PASS 与费用后结算。选定不等于已执行。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The plan runs only after every team's signature, locked materials, the task pass and costs are confirmed. Selected doesn't mean carried out."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "各队签名、托管物资、操作任务通过和费用都确认后才会结算。选定不等于已执行。"
+          }
+        }
+      }
+    },
+    "开始只是原操作实例建立，仍须进入真实题组；不会由界面制造 PASS。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starting opens the task. You still need to complete it to pass."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始只是开启操作任务，仍需完成任务才算通过。"
+          }
+        }
+      }
+    },
+    "取消当前本队方案操作及其对应证明；不会执行方案或推断退款。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancels your team's task and its proof. The plan isn't carried out and nothing is refunded automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消本队当前的方案操作及其证明；不会执行方案，也不会自动退款。"
+          }
+        }
+      }
+    },
+    "按当前原票轮、版本和队长签署；结果以本次原回执为准。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signed by the current captain for this round. The confirmed result decides."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "由当前队长按本轮签署，结果以确认的操作记录为准。"
+          }
+        }
+      }
+    },
+    "本局另有原操作待确认，请回原入口核对；这里不会替它清锁。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Another action in this game is still waiting for its result. Check it where you started it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本局还有一个操作在等待结果，请回到发起的地方确认。"
+          }
+        }
+      }
+    },
+    "已核对原回执；原请求日志保留，未开放后续写入。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Result checked. New actions aren't open yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已确认操作结果，暂未开放新的操作。"
+          }
+        }
+      }
+    },
+    "原请求明确失败，未换 ID 重做。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That action didn't go through. Nothing was resent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这次操作未成功，没有重复提交。"
+          }
+        }
+      }
+    },
+    "已取得本次执行原回执并回读当前公共结果；终态以原结果 terminal 为准。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan carried out. The latest result is below."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "方案已执行，最新结果见下方。"
+          }
+        }
+      }
+    },
+    "本次原请求已回执并回读。提出、意向、投票、选定及托管均不等于已执行。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done. Proposing, pledging, voting, selecting and locking in don't carry out the plan yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "操作已完成。提出、意向、投票、选定和托管都不等于方案已执行。"
+          }
+        }
+      }
+    },
+    "原请求结果或回读仍待确认；已保留原 ID、完整命令与安全锁，只读原回执，绝不自动重发。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The result isn't confirmed yet. The app keeps checking this same action and never sends it twice."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果待确认，请刷新后再试。不会自动重复提交。"
+          }
+        }
+      }
+    },
+    "本局另有原操作待确认，请回原入口恢复；这里不清除其它操作的锁。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Another action in this game is still waiting for its result. Finish it where you started it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本局还有一个操作在等待结果，请回到发起的地方处理。"
+          }
+        }
+      }
+    },
+    "原安全日志未能确认，不能提交新方案动作。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save this action safely on your device, so it wasn't sent. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法在本机安全记录这次操作，未提交，请重试。"
+          }
+        }
+      }
+    },
+    "本队、队长、版本、权限或票轮已变化／尚未确认。请刷新后重新核对；未据此认定操作成功。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your team, captain or round changed. Refresh and check again; the action wasn't counted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状态已变化，请刷新后重新确认；本次操作未生效。"
+          }
+        }
+      }
+    },
+    "templateAdoption.shelfNotice %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ will appear on the template shelf, where others can copy it as a starting draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@会出现在主题模板货架上，其他人可以复制它作为草稿起点。"
+          }
+        }
+      }
+    },
+    "templateAdoption.shelfNotice.untitled": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This topic will appear on the template shelf, where others can copy it as a starting draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "「这个主题」会出现在主题模板货架上，其他人可以复制它作为草稿起点。"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.unsupportedTerms": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This app version can't read these license terms, so you can't get or buy this here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前版本无法识别这份授权条款，暂不能领取或购买。"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.cancelOrder.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel this unpaid order? This doesn't request a refund or remove any license you already have."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消这笔未付款订单？不会申请退款，也不会撤销已获得的许可。"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.cancelOrder.confirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel order"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消订单"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.licenseAccount %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "License goes to account %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "获得许可的账号：%@"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.licenseScope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The license belongs to this account. The install and venue limits below are separate; they don't grant business, venue or publishing rights."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "许可归当前账号所有。下面的可安装对象和场地范围是单独的限制，不代表已获得经营、场地同意或发布权限。"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.release.section": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchased version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已购版本"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.release.licenseState %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "License status: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "许可状态：%@"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.release.stateChanged": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The license status just changed. Refresh the license."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "许可状态刚刚有变化，请刷新许可。"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.release.duration %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use period: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用期限：%@"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.release.id %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchased version: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已购版本：%@"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.release.status %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version status: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "版本状态：%@"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.release.mismatch": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This version record doesn't match your purchase or is missing. Another version can't stand in for it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前版本记录与购买时不一致或缺失，不能用其他版本代替。"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.release.note": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The license and the version's availability are tracked separately. An active license doesn't mean it can run; install, run, content and region are each checked."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "许可和版本可用性分开记录。许可有效不代表可以运行；安装、运行、内容和地区仍会分别检查。"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.release.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The version record can't be read right now. License details are still shown."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时读不到版本记录，许可详情仍可查看。"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.release.footnote": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A refund, an expired session or an expired install hold doesn't void the whole license by itself, and nothing here extends the version or use period."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退款、会话到期或安装预留到期都不会自动作废全部许可；这里也不会延长版本或使用期限。"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.reversal.section": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refunds & chargebacks"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退款 / 拒付记录"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.reversal.licenseState %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current license status: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前许可状态：%@"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.reversal.capability %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chargeback lookup: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拒付查询：%@"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.reversal.capabilityNote": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This only says whether a lookup is possible; it doesn't prove there's no chargeback. Nothing is looked up from here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这一项只说明能否查询，不代表没有拒付；这里不会发起查询。"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.reversal.refunded %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refunded: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已确认退款：%@"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.reversal.chargedBack %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Charged back: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已确认拒付：%@"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.reversal.query %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lookup record: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查询记录：%@"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.reversal.queryAt %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Looked up at: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查询时间：%@"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.reversal.noQuery": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This record hasn't been looked up yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条记录还没有查询过。"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.reversal.amount %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Amount: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "处理金额：%@"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.reversal.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No refunds or chargebacks yet. This doesn't mean a refund request was approved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无退款或拒付记录。这不代表退款申请已获批准。"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.reversal.note": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This only shows records. In progress, unknown or not yet read doesn't mean refunded. No refund is started from here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里只显示记录。处理中、未知或尚未读到结果都不等于退款成功；这里不会发起退款。"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.reversal.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refund status can't be read right now; that doesn't mean there's no refund. License details are still shown."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时读不到退款状态，不代表没有退款。许可详情仍可查看。"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.noComposition": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These terms include no combination rights: no translation, adaptation, remix, embedded redistribution, or use by other parties or venues. Installing still needs the license and current permission checks."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "条款没有提供组合授权：不包括翻译、改编、Remix、嵌入分发或其他主体和场地的使用；安装仍需许可和当前权限检查。"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.composition.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combination rights"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "组合授权范围"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.composition.profile %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contract: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合同：%@"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.composition.grantHash %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grant hash: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "授权摘要：%@"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.composition.authors %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reusable authors: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可复用作者：%@"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.composition.subjects %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install targets: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可安装对象：%@"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.composition.venues %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Businesses / venues: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "经营主体 / 门店：%@"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.composition.regions %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regions: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地区：%@"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.composition.pois %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licensed places: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明确许可的地点：%@"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.composition.noPois": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No places are licensed explicitly. A business ID doesn't license any place."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有明确许可的地点；经营主体 ID 不等于任意地点许可。"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.permission.commercial.allowed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Commercial use: allowed within the contract"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商业使用：合同范围内允许"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.permission.commercial.denied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Commercial use: not allowed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商业使用：不允许"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.permission.translation.allowed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Translation: allowed within the contract"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "翻译：合同范围内允许"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.permission.translation.denied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Translation: not allowed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "翻译：不允许"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.permission.adaptation.allowed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adaptation: allowed within the contract"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "改编：合同范围内允许"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.permission.adaptation.denied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adaptation: not allowed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "改编：不允许"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.permission.remix.allowed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remix: allowed within the contract"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remix：合同范围内允许"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.permission.remix.denied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remix: not allowed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remix：不允许"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.permission.embedded.allowed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Embedding in approved combinations: allowed within the contract"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在已批准组合中嵌入分发：合同范围内允许"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.permission.embedded.denied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Embedding in approved combinations: not allowed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在已批准组合中嵌入分发：不允许"
+          }
+        }
+      }
+    },
+    "workshopCommerce.r2.composition.note": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is only the contract scope frozen at purchase. It doesn't include reselling or downloading the original assets, future major versions, extra installs or venue consent. Anything not listed isn't granted; revocations and safety checks still apply."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以上只是购买时冻结的合同范围，不包括原始素材转售或下载、未来大版本、额外安装次数或场地同意。未列出的不授权；撤权和安全检查仍会进行。"
+          }
+        }
+      }
+    }
+  }
+}

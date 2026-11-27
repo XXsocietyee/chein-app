@@ -686,7 +686,7 @@ extension PlayKitScreen {
             }
             ForEach(Array(suspect.testimony.enumerated()), id: \.offset) { _, line in
                 Label {
-                    Text(verbatim: "「" + line + "」").fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: appQuoted(line, locale: locale)).fixedSize(horizontal: false, vertical: true)
                 } icon: {
                     Image(systemName: "quote.opening")
                 }
@@ -694,7 +694,7 @@ extension PlayKitScreen {
             }
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(Text(verbatim: suspect.identity.isEmpty ? suspect.name : suspect.name + "，" + suspect.identity))
+        .accessibilityLabel(Text(verbatim: suspect.identity.isEmpty ? suspect.name : appJoinedPair(suspect.name, suspect.identity, locale: locale)))
         .accessibilityValue(Text("playkit.accusation.position \(current + 1) \(projection.suspects.count)"))
     }
 

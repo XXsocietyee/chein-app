@@ -196,7 +196,7 @@ struct CityShieldSheet: View {
     var body: some View {
         let copy = CityCopy(locale: locale)
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            CitySheetTitle(title: copy("给 ", "Shield ") + copy.title(place) + copy(" 开护盾", ""), onClose: onClose)
+            CitySheetTitle(title: copy("给 \(copy.title(place)) 开护盾", "Shield \(copy.title(place))"), onClose: onClose)
             if let until {
                 CityBanner(text: copy("护盾已开，保护到 ", "Shield on, protected until ") + copy.clock(until), symbol: "shield.fill", tone: .ok)
             } else {
@@ -354,8 +354,7 @@ struct CityClaimedMoment: View {
         let copy = CityCopy(locale: locale)
         CityMomentView(
             headline: copy("圈下了", "Claimed"),
-            line: copy("\(copy.title(place))现在是你的。每个到访的人都会给你留下 \(place.rentPerVisit ?? 0) 积分。",
-                       "\(copy.title(place)) is yours. Every visitor leaves you \(place.rentPerVisit ?? 0) points."),
+            line: copy("\(copy.title(place))现在是你的。每个到访的人都会给你留下 \(place.rentPerVisit ?? 0) 积分。", "\(copy.title(place)) is yours. Every visitor leaves you \(place.rentPerVisit ?? 0) points."),
             chips: [copy("−\(price) 积分", "−\(price) pts"), copy("保护到 ", "Protected to ") + copy.clock(Date().addingTimeInterval(TimeInterval(protectionHours * 3600)))],
             primary: copy("去看看我的地盘", "See my places"), secondary: copy("好", "Done"),
             onPrimary: onMine, onSecondary: onDone,
@@ -574,8 +573,7 @@ struct CityUpgradedMoment: View {
     var body: some View {
         let copy = CityCopy(locale: locale)
         CityMomentView(headline: copy("升到 ", "Now ") + copy.level(place.level),
-                       line: copy("每次到访的租金从 \(CityMonopolyFormat.multiplier(CityMonopolyRules.levelMultiplier(fromLevel))) 提到 \(CityMonopolyFormat.multiplier(CityMonopolyRules.levelMultiplier(place.level)))。",
-                                  "Rent per visit goes from \(CityMonopolyFormat.multiplier(CityMonopolyRules.levelMultiplier(fromLevel))) to \(CityMonopolyFormat.multiplier(CityMonopolyRules.levelMultiplier(place.level)))."),
+                       line: copy("每次到访的租金从 \(CityMonopolyFormat.multiplier(CityMonopolyRules.levelMultiplier(fromLevel))) 提到 \(CityMonopolyFormat.multiplier(CityMonopolyRules.levelMultiplier(place.level)))。", "Rent per visit goes from \(CityMonopolyFormat.multiplier(CityMonopolyRules.levelMultiplier(fromLevel))) to \(CityMonopolyFormat.multiplier(CityMonopolyRules.levelMultiplier(place.level)))."),
                        primary: copy("好", "Done"), onPrimary: onDone) { beat in
             CityDeedCard(place: place, size: .full).padding(.horizontal, CYSpacing.lg).opacity(beat >= .stage ? 1 : 0)
         }

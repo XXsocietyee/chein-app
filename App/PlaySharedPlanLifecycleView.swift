@@ -11,46 +11,47 @@ import SwiftUI
     @State private var shownOperation: PlaySharedPlanOperationTicket?
     private let rowActions: [PlaySharedPlanAction] = [.propose, .withdraw, .vote, .consensus, .confirm, .start, .cancel, .execute]
     private let globalActions: [PlaySharedPlanAction] = [.openVote, .nextVote, .change, .rejectAll]
+    @Environment(\.locale) private var locale
     var body: some View {
         Form {
-            Section("当前原场次与表决") {
+            Section("sharedPlan.section.status") {
                 if let p = model.projection {
-                    Text("活动 \(p.team.activityID) · 场次 \(p.team.sessionID) · 本队 \(p.team.teamID)")
-                    Text("版本 \(p.team.revision) · 权限代次 \(p.team.authorityEpoch) · 原票轮 \(p.round)").cyText(.meta)
-                    Text(p.team.captain ? "当前真实队长" : "当前队员只读，不能替队长签署")
-                    Text("\(policy(p.policy)) · \(phase(p.phase))")
-                    if !p.team.writable { Text("当前原状态不允许新签署；可读取当前状态和本人原回执。").cyText(.meta) }
-                } else { Text("尚未确认当前本队与原方案。") }
+                    Text("sharedPlan.round \(p.round)").cyText(.meta)
+                    Text(p.team.captain ? "sharedPlan.captain.yes" : "sharedPlan.captain.no")
+                    Text(policyKey(p.policy)) + Text(verbatim: " · ") + Text(phaseKey(p.phase))
+                    if !p.team.writable { Text("sharedPlan.readOnly").cyText(.meta) }
+                } else { Text("sharedPlan.loading") }
                 if model.busy { ProgressView() }
-                if let message = model.message { Text(message).accessibilityIdentifier("sharedPlan.message") }
-                Button(model.pending == nil ? "刷新当前原状态" : "核对同一原请求回执") { reset(); Task { await model.load() } }
+                if let message = model.message { Text(LocalizedStringKey(message)).accessibilityIdentifier("sharedPlan.message") }
+                Button(model.pending == nil ? "sharedPlan.refresh" : "sharedPlan.checkResult") { reset(); Task { await model.load() } }
                     .disabled(model.busy || !model.isCurrent).accessibilityIdentifier("sharedPlan.refresh")
-                if !model.writesEnabled { Text("原 PLAYER 写能力／command 端点未批准或已撤销，当前只读。").cyText(.meta) }
+                if !model.writesEnabled { Text("sharedPlan.writesOff").cyText(.meta) }
             }
             if let command = model.pending {
-                Section("待确认原命令") {
-                    Text(command.action.title); Text(command.requestID).font(.caption.monospaced())
-                    Text("原本队 \(command.identity.teamID) · 原版本 \(command.revision) · 原权限代次 \(command.authorityEpoch) · 原票轮 \(command.identity.round)").cyText(.meta)
-                    Text("UNKNOWN 不是失败。离页、重启后仍核对同一请求；不换 ID、不重发，也不把当前选定或库存当作原请求成功。")
+                Section("sharedPlan.section.pending") {
+                    Text(LocalizedStringKey(command.action.title))
+                    Text("sharedPlan.round \(command.identity.round)").cyText(.meta)
+                    Text("sharedPlan.pending.note")
                 }
             }
             if let receipt = model.receipt {
-                Section("本次原回执") {
-                    Text("\(receipt.action.title) · \(receipt.outcome) · 回执 \(receipt.receiptID)")
-                    Text(receipt.requestID).font(.caption.monospaced())
+                Section("sharedPlan.section.receipt") {
+                    Text(LocalizedStringKey(receipt.action.title)) + Text(verbatim: " · ") + Text(outcomeKey(receipt.outcome))
                     if let reason = receipt.reason { Text(reason) }
-                    if receipt.outcome == "APPLIED", receipt.action == .execute { result(receipt.result["result"], label: "本次原执行结果") }
-                    else { Text("本次动作的回执与下方最新状态分开；意向、选定或锁定不代表执行完成。").cyText(.meta) }
+                    if receipt.outcome == "APPLIED", receipt.action == .execute { result(receipt.result["result"], label: "sharedPlan.result.execute") }
+                    else { Text("sharedPlan.receipt.note").cyText(.meta) }
                 }
             }
             if let p = model.projection {
-                Section("本队物资与原锁定") {
+                Section("sharedPlan.section.materials") {
                     ForEach(p.team.items) { item in
-                        LabeledContent(item.name, value: "可用 \(item.available.map(String.init) ?? "未发布") · 锁定 \(item.locked.map(String.init) ?? "未发布")")
+                        LabeledContent {
+                            Text("sharedPlan.material \(item.available.map(String.init) ?? "—") \(item.locked.map(String.init) ?? "—")")
+                        } label: { Text(item.name) }
                     }
-                    Text("锁定仍计入背包负重；方案锁与交易锁不混用。不展示他队私有意向或臆造库存。").cyText(.meta)
+                    Text("sharedPlan.materials.note").cyText(.meta)
                 }
-                Section("当前共同方案") {
+                Section("sharedPlan.section.plans") {
                     ForEach(p.rows) { row in
                         Button {
                             model.invalidateReview(); selectedEnding = row.endingKey
@@ -58,79 +59,75 @@ import SwiftUI
                         } label: {
                             VStack(alignment: .leading, spacing: Theme.Space.s2) {
                                 Text(row.title).cyText(.cardTitle)
-                                if row.selected { Label("已选定，尚须核对执行状态", systemImage: "checkmark.seal").cyText(.bodyCompact) }
+                                if row.selected { Label("sharedPlan.selected", systemImage: "checkmark.seal").cyText(.bodyCompact) }
                                 Text(row.summary).font(.subheadline).foregroundStyle(.secondary)
-                                Text("需求：" + amounts(row.cost, p)).cyText(.bodyCompact)
-                                Text(row.conditionsMet ? "原公共前置已满足" : "原公共前置尚未满足").cyText(.bodyCompact).foregroundStyle(.secondary)
+                                Text("sharedPlan.needs \(amounts(row.cost, p))").cyText(.bodyCompact)
+                                Text(row.conditionsMet ? "sharedPlan.conditions.met" : "sharedPlan.conditions.unmet").cyText(.bodyCompact).foregroundStyle(.secondary)
                             }.modifier(SharedPlanSelectionMark(selected: selectedEnding == row.endingKey))
                         }.disabled(model.busy || model.pending != nil).accessibilityIdentifier("sharedPlan.row.\(row.endingKey)")
                     }
-                    if p.rows.isEmpty { Text("当前原视图没有共同方案。") }
+                    if p.rows.isEmpty { Text("sharedPlan.empty") }
                 }
                 if let row = p.rows.first(where: { $0.endingKey == selectedEnding }) {
                     Section(row.title) {
-                        if let proposal = row.proposalKey {
-                            let versionText = row.version.map(String.init) ?? "—"
-                            Text(verbatim: "原提案 \(proposal) · 版本 \(versionText)").cyText(.meta)
-                        }
-                        Text("本队私有意向：" + amounts(row.ownIntent, p))
-                        Text(row.ownConfirmed ? "本队当前队长已确认托管" : row.signatureCurrent ? "本队当前队长已签署意向，尚未托管" : row.ownIntent.isEmpty ? "尚无本队投入意向" : "队长已变更，旧意向签名无效，须改案后重新签署")
-                        ForEach(row.confirmed.keys.sorted(), id: \.self) { team in Text("原公开托管 · 队伍 \(team)：" + amounts(row.confirmed[team] ?? [], p)).cyText(.meta) }
-                        if let reason = row.reason { Text("原状态：\(reason)").cyText(.meta) }
+                        Text("sharedPlan.ownIntent \(amounts(row.ownIntent, p))")
+                        Text(intentStatusKey(row))
+                        ForEach(row.confirmed.keys.sorted(), id: \.self) { team in Text("sharedPlan.confirmedTeam \(team) \(amounts(row.confirmed[team] ?? [], p))").cyText(.meta) }
+                        if let reason = row.reason { Text(reason).cyText(.meta) }
                         if p.allows(.intent, row: row) {
                             ForEach(row.cost, id: \.itemID) { cost in
                                 LabeledContent {
                                     TextField("0–999", text: Binding(
                                         get: { quantities[cost.itemID] ?? "0" }, set: { quantities[cost.itemID] = $0; model.invalidateReview() }))
                                         .keyboardType(.numberPad).multilineTextAlignment(.trailing)
-                                        .accessibilityLabel(Text(name(cost.itemID, p) + "，本队投入数量"))
+                                        .accessibilityLabel(Text("sharedPlan.pledgeAmount \(name(cost.itemID, p))"))
                                         .disabled(!model.canInteract || !model.writesEnabled)
                                 } label: {
                                     VStack(alignment: .leading, spacing: Theme.Space.s1) {
                                         Text(name(cost.itemID, p))
-                                        Text("需求 \(cost.quantity)").cyText(.bodyCompact).foregroundStyle(.secondary)
+                                        Text("sharedPlan.needCount \(cost.quantity)").cyText(.bodyCompact).foregroundStyle(.secondary)
                                     }
                                 }
                             }
-                            Button(PlaySharedPlanAction.intent.title) { prepare(.intent, row: row) }.disabled(!enabled(.intent, p, row))
-                            Text("0–999 整数；全零表示清空本队意向，不等于撤回整个提案。").cyText(.meta)
+                            Button(LocalizedStringKey(PlaySharedPlanAction.intent.title)) { prepare(.intent, row: row) }.disabled(!enabled(.intent, p, row))
+                            Text("sharedPlan.intent.note").cyText(.meta)
                         }
                         ForEach(rowActions) { action in
                             if p.allows(action, row: row) {
-                                Button(action.title) { prepare(action, row: row) }.disabled(!enabled(action, p, row))
+                                Button(LocalizedStringKey(action.title)) { prepare(action, row: row) }.disabled(!enabled(action, p, row))
                                     .accessibilityIdentifier("sharedPlan.action.\(action.rawValue)")
                             }
                         }
-                        if row.started, let node = row.operationNodeID {
-                            Button("进入原操作题组 · 节点 \(node)") { Task { await model.prepareOperation(endingKey: row.endingKey) } }
+                        if row.started, row.operationNodeID != nil {
+                            Button("sharedPlan.openTask") { Task { await model.prepareOperation(endingKey: row.endingKey) } }
                                 .disabled(!model.canInteract || !model.writesEnabled || !p.team.writable).accessibilityIdentifier("sharedPlan.operation")
-                            Text("使用已开始的真实 PLAN 实例及原高级玩法；题组 PASS、费用和结算仍由原 writer 决定。").cyText(.meta)
+                            Text("sharedPlan.openTask.note").cyText(.meta)
                         }
                     }
                 }
-                Section("本队签名与当前票轮") {
-                    if p.ownVote != .null { Text("本队首选：" + planName(p.ownVote["planKey"].text ?? "", p)); Text(signature(p.ownVote)) }
+                Section("sharedPlan.section.vote") {
+                    if p.ownVote != .null { Text("sharedPlan.ownVote \(planName(p.ownVote["planKey"].text ?? "", p))"); Text(signatureKey(p.ownVote)) }
                     if p.ownAcceptance != .null {
-                        Text("本队接受：" + acceptanceText(p))
-                        Text(signature(p.ownAcceptance))
+                        Text("sharedPlan.ownAcceptance \(acceptanceText(p))")
+                        Text(signatureKey(p.ownAcceptance))
                     }
-                    if let vote = p.consensus[String(p.team.teamID)].text { Text("原公开共识票：" + planName(vote, p)); Text("当前签名效力与是否选定仍以原阶段及可用动作为准。").cyText(.meta) }
-                    if p.ownRejectedAll { Text("本队当前队长已签署拒绝全部当前范围内方案。") }
+                    if let vote = p.consensus[String(p.team.teamID)].text { Text("sharedPlan.consensus \(planName(vote, p))"); Text("sharedPlan.consensus.note").cyText(.meta) }
+                    if p.ownRejectedAll { Text("sharedPlan.rejectedAll") }
                     ForEach(globalActions) { action in
-                        if p.allows(action) { Button(action.title) { prepare(action) }.disabled(!enabled(action, p)) }
+                        if p.allows(action) { Button(LocalizedStringKey(action.title)) { prepare(action) }.disabled(!enabled(action, p)) }
                     }
-                    if p.allows(.vote) { Button("本轮不选任何方案（REJECT）") { prepare(.vote) }.disabled(!enabled(.vote, p)) }
+                    if p.allows(.vote) { Button("sharedPlan.rejectRound") { prepare(.vote) }.disabled(!enabled(.vote, p)) }
                     if p.allows(.accept) {
-                        Text("可选择多个，也可不接受任何方案；提交时由当前队长重新签署。")
+                        Text("sharedPlan.accept.note")
                         ForEach(p.rows.filter { $0.proposalKey != nil }) { row in
                             Toggle(row.title, isOn: Binding(get: { acceptance.contains(row.proposalKey!) }, set: { value in
                                 if value { acceptance.insert(row.proposalKey!) } else { acceptance.remove(row.proposalKey!) }; acceptanceDirty = true; model.invalidateReview()
                             })).tint(.green).disabled(!enabled(.accept, p, row))
                         }
-                        Button("核对并签署接受清单") { prepare(.accept) }.disabled(!enabled(.accept, p))
+                        Button(LocalizedStringKey(PlaySharedPlanAction.accept.title)) { prepare(.accept) }.disabled(!enabled(.accept, p))
                     }
                 }
-                if p.result != .null { Section("最新原公共结果") { result(p.result, label: "原结果") } }
+                if p.result != .null { Section("sharedPlan.section.result") { result(p.result, label: "sharedPlan.result.title") } }
             }
         }.cyGroupedSurface()
         .modifier(SharedPlanFormAppearance())
@@ -147,20 +144,18 @@ import SwiftUI
         .cySheet(item: $offered, onDismiss: { model.invalidateReview() }) { review in
             NavigationStack {
                 Form {
-                    Section(review.command.action.title) {
-                        Text(review.title); Text(review.command.action.consequence)
-                        Text("本队 \(review.command.identity.teamID) · 票轮 \(review.command.identity.round) · 版本 \(review.command.revision)")
+                    Section(LocalizedStringKey(review.command.action.title)) {
+                        Text(LocalizedStringKey(review.title)); Text(LocalizedStringKey(review.command.action.consequence))
+                        Text("sharedPlan.round \(review.command.identity.round)").cyText(.meta)
                         reviewChoices(review)
-                        DisclosureGroup("原请求字段详情") {
-                            Text(json(review.command.payload)).font(.footnote.monospaced()).textSelection(.enabled)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                        Text("确认前再次读取原队长、权限、版本与状态；变化则本次确认失效。")
+                        Text("sharedPlan.review.note")
                     }
-                    Button("确认：" + review.command.action.title, role: [.withdraw, .change, .rejectAll, .cancel].contains(review.command.action) ? .destructive : nil) {
+                    Button(role: [.withdraw, .change, .rejectAll, .cancel].contains(review.command.action) ? .destructive : nil) {
                         Task { await model.commit(review); offered = nil }
+                    } label: {
+                        Text("sharedPlan.confirmAction \(actionTitle(review.command.action))")
                     }.buttonStyle(.borderedProminent).disabled(!model.canInteract || !model.writesEnabled || model.review != review)
-                }.cyGroupedSurface().modifier(SharedPlanFormAppearance()).cyPageTitle("核对原动作").interactiveDismissDisabled(model.busy)
+                }.cyGroupedSurface().modifier(SharedPlanFormAppearance()).cyPageTitle("sharedPlan.review.title").interactiveDismissDisabled(model.busy)
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("取消") { offered = nil } } }
             }
             .cyDomainSheet(detents: [.half, .full])
@@ -181,14 +176,15 @@ import SwiftUI
     @ViewBuilder private func reviewChoices(_ review: PlaySharedPlanReview) -> some View {
         let payload = review.command.payload
         if let key = payload["proposalKey"].text {
-            LabeledContent("本次方案", value: planName(key, review.source)).fixedSize(horizontal: false, vertical: true)
+            LabeledContent("sharedPlan.review.plan", value: planName(key, review.source)).fixedSize(horizontal: false, vertical: true)
         }
         if let choices = payload["proposalKeys"].array {
-            Text(choices.isEmpty ? "本次不接受任何方案" : "本次接受：" + choices.compactMap(\.text).map { planName($0, review.source) }.joined(separator: "、"))
-                .fixedSize(horizontal: false, vertical: true)
+            let names = choices.compactMap(\.text).map { planName($0, review.source) }
+            if names.isEmpty { Text("sharedPlan.review.acceptNone") }
+            else { Text("sharedPlan.review.accept \(ListFormatter.localizedString(byJoining: names))").fixedSize(horizontal: false, vertical: true) }
         }
         if let amounts = payload["amounts"].array {
-            if amounts.isEmpty { Text("本次清空本队投入意向。") }
+            if amounts.isEmpty { Text("sharedPlan.review.clearIntent") }
             ForEach(Array(amounts.enumerated()), id: \.offset) { _, row in
                 if let item = row["itemId"].text, let quantity = row["quantity"].integer {
                     LabeledContent(name(item, review.source), value: "×\(quantity)").monospacedDigit()
@@ -196,21 +192,39 @@ import SwiftUI
             }
         }
     }
+    private func actionTitle(_ action: PlaySharedPlanAction) -> String { appLocalized(String.LocalizationValue(action.title), locale: locale) }
     private func name(_ id: String, _ p: PlaySharedPlanProjection) -> String { p.team.items.first { $0.id == id }?.name ?? id }
-    private func amounts(_ values: [PlaySharedPlanAmount], _ p: PlaySharedPlanProjection) -> String { values.isEmpty ? "无" : values.map { "\(name($0.itemID, p)) × \($0.quantity)" }.joined(separator: "、") }
-    private func planName(_ key: String, _ p: PlaySharedPlanProjection) -> String { key == "REJECT" ? "本轮不选任何方案" : p.rows.first { $0.proposalKey == key }?.title ?? key }
+    private func amounts(_ values: [PlaySharedPlanAmount], _ p: PlaySharedPlanProjection) -> String {
+        values.isEmpty ? "—" : ListFormatter.localizedString(byJoining: values.map { "\(name($0.itemID, p)) × \($0.quantity)" })
+    }
+    private func planName(_ key: String, _ p: PlaySharedPlanProjection) -> String {
+        key == "REJECT" ? appLocalized("sharedPlan.rejectRound", locale: locale) : p.rows.first { $0.proposalKey == key }?.title ?? key
+    }
     private func acceptanceText(_ p: PlaySharedPlanProjection) -> String {
         let keys = (p.ownAcceptance["planKeys"].array ?? []).compactMap(\.text)
-        return keys.isEmpty ? "不接受任何方案" : keys.map { planName($0, p) }.joined(separator: "、")
+        return keys.isEmpty ? appLocalized("sharedPlan.acceptNone", locale: locale) : ListFormatter.localizedString(byJoining: keys.map { planName($0, p) })
     }
-    private func signature(_ value: PlayWireValue) -> String { value["ownSignatureCurrent"].bool == true ? "当前队长已签署" : "队长已变更，须重新签署" }
-    private func phase(_ value: String) -> String { ["FUNDING": "讨论与投入", "VOTING": "首选表决", "TIED": "等待重投", "ACCEPTANCE": "接受方案轮", "CONSENSUS": "共识表决", "SELECTED": "方案已选定", "EXECUTED": "操作已执行", "FALLBACK": "默认结局收尾"][value] ?? value }
-    private func policy(_ value: String) -> String { ["MAJORITY": "多数通过", "UNANIMOUS": "全体同意", "MAJORITY_ACCEPTANCE": "多数通过 · 接受轮恢复"][value] ?? "原策略未确认" }
-    @ViewBuilder private func result(_ value: PlayWireValue, label: String) -> some View {
-        Text(value["title"].text ?? label); Text(value["summary"].text ?? "")
-        Text(value["terminal"].bool == true ? "本场原结局已确认" : "原共同操作已完成，继续剧情")
+    private func intentStatusKey(_ row: PlaySharedPlanRow) -> LocalizedStringKey {
+        if row.ownConfirmed { return "sharedPlan.intent.locked" }
+        if row.signatureCurrent { return "sharedPlan.intent.signed" }
+        if row.ownIntent.isEmpty { return "sharedPlan.intent.none" }
+        return "sharedPlan.intent.captainChanged"
     }
-    private func json(_ value: PlayWireValue) -> String { let encoder = JSONEncoder(); encoder.outputFormatting = [.prettyPrinted, .sortedKeys]; return (try? encoder.encode(value)).flatMap { String(data: $0, encoding: .utf8) } ?? "原内容不可读取" }
+    private func outcomeKey(_ value: String) -> LocalizedStringKey { value == "APPLIED" ? "sharedPlan.outcome.applied" : "sharedPlan.outcome.failed" }
+    private func signatureKey(_ value: PlayWireValue) -> LocalizedStringKey { value["ownSignatureCurrent"].bool == true ? "sharedPlan.signature.current" : "sharedPlan.signature.stale" }
+    private func phaseKey(_ value: String) -> LocalizedStringKey {
+        let known: Set<String> = ["FUNDING", "VOTING", "TIED", "ACCEPTANCE", "CONSENSUS", "SELECTED", "EXECUTED", "FALLBACK"]
+        return known.contains(value) ? LocalizedStringKey("sharedPlan.phase." + value) : "sharedPlan.notUpdated"
+    }
+    private func policyKey(_ value: String) -> LocalizedStringKey {
+        let known: Set<String> = ["MAJORITY", "UNANIMOUS", "MAJORITY_ACCEPTANCE"]
+        return known.contains(value) ? LocalizedStringKey("sharedPlan.policy." + value) : "sharedPlan.notUpdated"
+    }
+    @ViewBuilder private func result(_ value: PlayWireValue, label: LocalizedStringKey) -> some View {
+        if let title = value["title"].text { Text(title) } else { Text(label) }
+        Text(value["summary"].text ?? "")
+        Text(value["terminal"].bool == true ? "sharedPlan.result.terminal" : "sharedPlan.result.continue")
+    }
 }
 @MainActor private struct PlaySharedPlanOperationSurface: View {
     let model: PlaySharedPlanLifecycle
@@ -222,8 +236,8 @@ import SwiftUI
         NavigationStack {
             Group {
                 if model.operationIsCurrent(ticket), let destination { destination }
-                else { ContentUnavailableView("当前原方案题组不可用", systemImage: "lock", description: Text("需当前真实操作实例、节点与既有高级玩法权限；过期实例不能提交。")) }
-            }.toolbar { ToolbarItem(placement: .cancellationAction) { Button("返回并回读原方案") { dismiss() } } }
+                else { ContentUnavailableView("sharedPlan.task.unavailable", systemImage: "lock", description: Text("sharedPlan.task.unavailable.detail")) }
+            }.toolbar { ToolbarItem(placement: .cancellationAction) { Button("sharedPlan.task.back") { dismiss() } } }
         }.task {
             do { try await model.validateOperation(ticket); guard !Task.isCancelled else { return }; destination = makeDestination(model, ticket) }
             catch { destination = nil }

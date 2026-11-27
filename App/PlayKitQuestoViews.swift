@@ -515,7 +515,7 @@ typealias PlayKitAccusationWrite = (String) -> Void
                     .opacity(flipping ? 0 : 1)
                     .onTapGesture(perform: flipNext)
                     .accessibilityElement(children: .combine)
-                    .accessibilityLabel(Text(verbatim: suspect.identity.isEmpty ? suspect.name : suspect.name + "，" + suspect.identity))
+                    .accessibilityLabel(Text(verbatim: suspect.identity.isEmpty ? suspect.name : appJoinedPair(suspect.name, suspect.identity, locale: locale)))
                     .accessibilityValue(Text("playkit.accusation.position \(current + 1) \(projection.suspects.count)"))
                     .accessibilityAddTraits(projection.suspects.count > 1 ? .isButton : [])
             }
@@ -562,7 +562,7 @@ typealias PlayKitAccusationWrite = (String) -> Void
                     Text(verbatim: suspect.identity).cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 }
                 ForEach(Array(suspect.testimony.enumerated()), id: \.offset) { _, line in
-                    Text(verbatim: "「" + line + "」").cyText(.body).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: appQuoted(line, locale: locale)).cyText(.body).foregroundStyle(CYColor.textSecondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(CYSpacing.md)
                         .background(CYColor.bgRaised)

@@ -43,6 +43,8 @@ struct HomeHeroHeaderSectionView: View {
                                     Text(LocalizedStringKey(isMerchantViewer ? "account.role.merchant" : "homeFeed.player"))
                                 } icon: {
                                     if isMerchantViewer { Image(systemName: "storefront.fill") }
+                                    // en sweep 11-27: the MP's tick badge (✓ 玩家) read as a checkbox next to "Player"; English shows a person badge.
+                                    else if locale.language.languageCode?.identifier != "zh" { Image(systemName: "person.crop.circle.badge.checkmark").accessibilityHidden(true) }
                                     else { MPAsset.FeatureIcon.iconMember.resizable().scaledToFit().frame(width: 16, height: 16).accessibilityHidden(true) }
                                 }
                                     .foregroundStyle(.tint)

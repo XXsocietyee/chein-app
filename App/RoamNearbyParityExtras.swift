@@ -258,7 +258,7 @@ struct RoamPlaceExtrasSection: View {
                             copiedNotice = c.t("已复制原文链接", "Source link copied")
                         } label: {
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                Text(verbatim: "「\(quote.text)」").cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary).lineLimit(4)
+                                Text(verbatim: appQuoted(quote.text, locale: locale)).cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary).lineLimit(4)
                                 Text(verbatim: "\(quote.sourceLabel) · " + c.t("复制原文链接", "Copy source link")).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                             }
                             .frame(width: quoteCardWidth, alignment: .leading)
