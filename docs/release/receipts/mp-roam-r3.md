@@ -79,6 +79,20 @@ New strings: `roam.placeNote.sources`, `roam.placeNote.source %lld`, `roam.place
 
 Gates (after these commits): generate_project OK · check_scaffold PASS (20527 keys) · a11y lint 0 new · contract_ratchet 52 / baseline 52, **new 0**.
 
+## Round 3 continue (3) — remaining MP roam components + 附近活动 states
+
+Base re-merged with `origin/ui/combined-r7` (clean).
+
+| MP page / component | Native view | Differences | Status |
+|---|---|---|---|
+| `subpackageRoam/components/roam-city-strip` (pages/roam/index.wxml:144) | `App/RoamCityGuide.swift` `RoamCityGuideStrip.resolve` | Renders nothing; emits `stripFor(nearestCity ≤ 60 km || defaultCity())` + `inCity`. Native resolves the same way (first catalog city as default; tab label `<城市> · N 处推荐` only when `inCity`). | No change needed. |
+| `pages/roam/index` entry-peek empty / loading | `NativeR2/MapHome/RoamMapHomeSheet.swift` `nearbyRows` | MP empty = `附近暂无活动` + `打开地图寻找附近活动`, the tap opens `subpackageRoam/nearby`; native said 拖动地图或扩大范围看看 with no action. MP skeleton aria 正在读取附近活动; native skeleton read 正在加载. | **Fixed:** `ContentUnavailableView` 附近暂无活动 with a `.bordered` 打开地图寻找附近活动 action → `.nearbyTeams` push (MP nearby page); skeleton rows carry `roam.w208.entry.loading`. New key `roam.mapHome.nearby.empty.openMap`. |
+| `subpackageRoam/components/cy/proto-cam` (roam :612, citystamp :15, nearby :258) | `RoamStampCameraView` / `NativeStampCaptureView` (system camera) | MP card: ✕ · 全屏 · 翻转 · 快门, `正在打开相机` / error text. The system camera gives close, flip and shutter in their standard places and is full screen; permission-denied state already offers 去设置 + 返回. | No change (native optimization: system camera instead of a custom panel). |
+
+Gates: generate_project OK · check_scaffold PASS (20587 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+
+Every `subpackageRoam/*` and `pages/roam/*` wxml now has a row in this receipt.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no

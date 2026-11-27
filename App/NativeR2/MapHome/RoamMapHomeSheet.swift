@@ -331,9 +331,11 @@ import QuestifyCore
         if !pins.isEmpty {
             ForEach(pins) { pin in RoamMapHomePinRow(pin: pin) }
         } else if isLoading {
+            // MP entry-peek skeleton, aria 正在读取附近活动.
             ForEach(0..<4, id: \.self) { _ in
                 Label("nativeR2.mapHome.loading", systemImage: "mappin")
                     .redacted(reason: .placeholder)
+                    .accessibilityLabel(Text("roam.w208.entry.loading"))
             }
         } else if entryState == .login, model.places.isEmpty {
             ContentUnavailableView {
@@ -354,8 +356,16 @@ import QuestifyCore
                     .accessibilityIdentifier("roam.home.peek.refresh")
             }
         } else if area != nil {
-            ContentUnavailableView("nativeR2.mapHome.nearby.empty", systemImage: "mappin.slash",
-                                   description: Text("nativeR2.mapHome.nearby.empty.detail"))
+            // MP entry-peek__state: 附近暂无活动 · 打开地图寻找附近活动, the tap opens subpackageRoam/nearby.
+            ContentUnavailableView {
+                Label("nativeR2.mapHome.nearby.empty", systemImage: "mappin.slash")
+            } actions: {
+                if dependencies.nearbyTeamsDestination != nil {
+                    Button("roam.mapHome.nearby.empty.openMap") { model.push(.nearbyTeams) }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("roam.mapHome.nearby.openMap")
+                }
+            }
         }
     }
 

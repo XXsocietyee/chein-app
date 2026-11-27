@@ -230078,6 +230078,23 @@
         }
       }
     },
+    "roam.mapHome.nearby.empty.openMap": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the map to find activities nearby"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开地图寻找附近活动"
+          }
+        }
+      }
+    },
     "roam.medalShare.brand": {
       "extractionState": "manual",
       "localizations": {
