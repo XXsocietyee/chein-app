@@ -11,7 +11,7 @@ The 21 MP pages were compared section by section, top to bottom, against their n
 | `python3 tools/generate_project.py` | OK |
 | `python3 tools/check_scaffold.py` | PASS (no FAIL lines; typography lint PASS) |
 | `python3 -B tools/check_a11y_lint.py` | PASS: 0 new |
-| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (after merging combined-r7 again in pass 5), **new 0**, fixed 0 |
+| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 6, after merging combined-r7 again), **new 0**, fixed 0 |
 | `python3 tools/check_design_consistency.py` | PASS |
 
 There is no Swift compiler in this environment. Edits are kept type-simple and reuse existing keys, components and patterns.
@@ -28,6 +28,7 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/detail · 概览 | `ClubDetailView` overview | The facts grid 主理人 / 俱乐部类型 / 所在城市 under the intro, before 俱乐部勋章, was missing. | **Fixed.** New `ClubOverviewFacts`: 3 cells, value then small label, with a `ViewThatFits` fallback to `LabeledContent` rows (P12). Unknown values read 待补充 |
 | club/detail · 帖文 | `ClubCommunityFeedView` (club mode) | MP order is pinned notice → 发帖 pill → posts/empty (wxml:97-158), with the pill above the empty state. Native used a toolbar compose button and put the empty state before the pinned notice. | **Fixed.** Inline composer row (「有什么新鲜好玩的分享吗？」, same gate, same id `club.community.compose`); the empty state now comes after the pill |
 | club/detail · 帖文 loading | same | MP: `loading-label` 正在加载帖文. Native showed a bare spinner (P10). | **Fixed.** `ProgressView { Text("club.community.loading") }` |
+| club/detail · 帖文 公告 (`components/club-pinned-notice`, `utils/club-pinned-notice.js`) | `ClubCommunityFeedView` (club mode) | MP: section 「公告 · 新人先看」 listing the newest ≤2 pinned 公告 (type 2), each a one-line summary with an unread dot (read ids kept on this device per club, last 50), 「（无文字内容）」 when empty, VoiceOver 「未读公告：…」. Native showed only the first pinned 公告 under a 「公告」 label, no unread state, 「—」 when empty. | **Fixed (pass 6).** `ClubPinnedNoticeReads` (same storage key `cy_club_notice_read_<clubId>`, newest-first, max 2, keep 50; catalogued in `docs/ops-safety/client-data-catalog.json`); a `Section` headed 公告 · 新人先看 with one row per notice (tint dot when unread, `.quaternary` when read, chevron, 44 pt), opening marks it read |
 | club/detail · 活动 | `ClubPublicActivityListView` / `ClubActivityListContent` | Matches: cards, 已报名/节点/路线 stats, 发布 +, empty + 发布主题, 出示团码, 邀约承接. | Matches |
 | club/detail · tabs / default | `Core/ClubDetailTabs.swift` | Matches: 帖文 / 活动 / 概览 (+管理), default 概览. | Matches |
 | club/detail · join | `ClubActionPanel` | MP: a floating 加入 capsule only on 概览 (wxml:1028-1036), with 退出 in the meta row on every tab. Native: a 成员身份 section under the header on every tab. | **Partly fixed (pass 4).** Non-members see the 加入 / 申请加入 / 审核中 section on 概览 only; members keep 退出 on every tab. The floating capsule itself (P17 sticky bottom action) is **not done** (panel lifecycle, contract pins) |
@@ -109,6 +110,10 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 | `club.notify.previewFailed` | Audience preview failed | 受众预览失败 |
 | `club.gov.casesAppeal` | Ban appeal | 封禁申诉 |
 | `club.notify.deliveryStatus` | Delivery status | 投递状态 |
+| `club.community.pinnedNoticesTitle` | Notices · Start here | 公告 · 新人先看 |
+| `club.community.noticeNoText` | (No text) | （无文字内容） |
+| `club.community.noticeUnreadA11y %@` | Unread notice: %@ | 未读公告：%@ |
+| `club.community.noticeA11y %@` | Notice: %@ | 公告：%@ |
 
 ## Contract test pins updated (with reason)
 
@@ -134,4 +139,5 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 12. Pass 4: merge combined-r7; club detail 加入 section on 概览 only.
 13. Pass 4 (parallel run): notify receipt section titled 投递状态; 发现 message bell flagged.
 14. Pass 5: merge combined-r7 (xcstrings: both sides' keys, 22 added); notify 投递状态 section with 刷新 in its header.
+15. Pass 6: merge combined-r7 (xcstrings: both sides' keys, 28 added); club 帖文 公告 · 新人先看 (≤2 pinned notices with unread dots).
 8. Pass 2: shared club thumbnail, customer-detail edit heading, create check-failed 返回上一页, enroll order, check-in rail refund note.
