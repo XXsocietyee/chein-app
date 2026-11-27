@@ -623,6 +623,7 @@ struct SessionRootView: View {
         // r8 A2-03b: 发消息 opens the chat in place from every SocialPublicProfileView host (square, club, activity…).
         .environment(\.socialConversationDestination, session.socialConversationDestination)
         .environment(\.analyticsEventClient, session.analyticsEventClient)
+        .environment(\.roamSquareShare, session.roamSquareShare)
         .environment(\.verificationCodeFactory, { session.makeVerificationCodeCoordinator(target: $0) })
         .environment(\.cityNodeReceiptFactory, { session.makeCityNodeReceiptReader() })
         .environment(\.withdrawalSupportReader, session.withdrawalSupportReader)

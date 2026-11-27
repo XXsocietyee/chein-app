@@ -2,7 +2,8 @@ import SwiftUI
 import UIKit
 
 /// Share card composer for a saved walk. The user can save the rendered card to Photos or choose a
-/// system-sheet recipient. No app upload, public-feed post, private URL or tracking token is generated here.
+/// system-sheet recipient. ROAM-r11-9: with 公开 and community write open, 发到广场 posts the same card
+/// through `RoamSquareSharePoster` (MP pages/roam/index.js:5136-5233); no private URL or tracking token here.
 /// Privacy: the neighbourhood name and the clipped route sketch are both opt-in toggles (default off);
 /// a missing value is an em dash, never a zero. Preview and export are the same `CYShareCard` view.
 /// Flow state lives in `CYShareComposerMachine`; the rendered-receipt fields below are privacy gates, not flow flags.
@@ -14,6 +15,7 @@ import UIKit
     @Environment(\.locale) private var locale
     @Environment(\.openURL) private var openURL
     @Environment(\.analyticsEventClient) private var analytics
+    @Environment(\.roamSquareShare) private var squareShare
     @QuestifyReduceMotion private var reduceMotion
     @StateObject private var photoSave: RoamSharePhotoSaveModel
     @StateObject private var presentation: RoamSharePresentationLifetime
@@ -34,6 +36,12 @@ import UIKit
     @State private var toast: LocalizedStringKey?
     /// Channel code waiting for the photo-save outcome (`album` / `moments` / `xhs`).
     @State private var pendingShareCode: String?
+    /// ROAM-r11-9 发到广场 state (MP `share.communityWrite`, `share.squarePostUnknown`).
+    @State private var squareWritable = false
+    @State private var squareComposing = false
+    @State private var squareText = ""
+    @State private var squarePosting = false
+    @State private var squareUnknown = false
     init(record: RoamHistoryRecord, reader: any RoamExperienceReading, photoSaveModel: RoamSharePhotoSaveModel? = nil) {
         let model = photoSaveModel ?? RoamSharePhotoSaveModel()
         _photoSave = StateObject(wrappedValue: model)
@@ -66,6 +74,8 @@ import UIKit
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { presentation.retire(); invalidateImage(); dismiss() }.accessibilityIdentifier("roam.share.done") } }
             .background(RoamShareNativeLifetime(presentation: presentation).frame(width: 0, height: 0))
             .onAppear { presentation.appear() }
+            .modifier(RoamShareSquareCompose(isPresented: $squareComposing, text: $squareText, onPublish: publishToSquare))
+            .task(id: record.ts) { await refreshSquareGate() } // community gate read only; no photo permission here
             .onChange(of: record) { _, _ in includeRoute = false; includePlace = false; channelPolicy.reset(); invalidateImage() }
             .onChange(of: RoamHistoryLiveOwner(reader: reader)) { _, _ in includeRoute = false; includePlace = false; channelPolicy.reset(); invalidateImage() }
             .onChange(of: includeRoute) { _, _ in invalidateImage() }
@@ -176,6 +186,11 @@ import UIKit
                             previewLabel: "roam.share.previewLabel", identifier: "roam.share.preview")
             photoSaveControls(image)
             if !allowedAlbumDestinations.isEmpty { albumGuideControls(image) }
+            if squareWritable, shareVisibility == .public {
+                CYPillButton(LocalizedStringKey(squareUnknown ? "roam.share.square.pending" : "roam.share.square"), style: .secondary, systemImage: "square.text.square") { beginSquare() }
+                    .disabled(isBusy || squarePosting)
+                    .accessibilityIdentifier("roam.share.square")
+            }
             if channelPolicy.permits(.systemShare) {
                 CYPillButton("roam.share.system", style: .secondary, systemImage: "square.and.arrow.up") { beginSystemShare(image) }
                     .disabled(isBusy || systemShare != nil || photoSave.state.phase == .sourceChanged)
@@ -315,6 +330,51 @@ import UIKit
                 .accessibilityHint(Text("roam.share.openPhotoSettings"))
         }
     }
+    // MARK: 发到广场 (ROAM-r11-9, MP pages/roam/index.js:5136-5233)
+
+    private func refreshSquareGate() async {
+        guard let squareShare else { squareWritable = false; return }
+        squareWritable = await squareShare.canWrite()
+        if let id = record.serverSessionID { squareUnknown = squareShare.isUnknown(sessionID: id) }
+    }
+    private func beginSquare() {
+        guard shareVisibility == .public, squareShare != nil else { toast = "roam.share.square.visibilityBlocked"; return }
+        guard record.serverSessionID != nil else { toast = "roam.share.square.noSession"; return }
+        guard !squareUnknown else { toast = "roam.share.square.unknown"; return }
+        let trimmed = caption.trimmingCharacters(in: .whitespacesAndNewlines)
+        squareText = trimmed.isEmpty ? squareCopy : trimmed
+        squareComposing = true
+    }
+    /// MP `_shareCopy()` (index.js): date, shops, km, explore % and the #城瘾CityFog tag; a missing value reads 0.
+    private var squareCopy: String {
+        let date = record.recordedAt.map { $0.formatted(.dateTime.month().day().locale(locale)) } ?? ""
+        return String(format: appLocalized("roam.share.square.copy", locale: locale), date,
+                      record.shops ?? 0, String(format: "%.1f", record.distance ?? 0), record.explorePct ?? 0)
+    }
+    private func publishToSquare() {
+        let text = squareText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { toast = "roam.share.square.empty"; return }
+        guard let squareShare, let sessionID = record.serverSessionID, shareVisibility == .public, !squarePosting else { return }
+        guard let image = machine.image, preparedSelection != nil, sourceIsCurrent, let png = image.pngData() else {
+            invalidateImage(); guideSourceChanged = true; return
+        }
+        squarePosting = true
+        beginShare(raw: "广场", code: "square")
+        Task { @MainActor in
+            let outcome = await squareShare.post(png: png, contents: text, sessionID: sessionID)
+            squarePosting = false
+            squareUnknown = squareShare.isUnknown(sessionID: sessionID)
+            switch outcome {
+            case .published: toast = "roam.share.square.published"; finishShare(ok: true)
+            case .submitted: toast = "roam.share.square.submitted"; finishShare(ok: true)
+            case .unknown: toast = "roam.share.square.unknown"; finishShare(ok: false)
+            case .rejected: toast = "roam.share.square.failed"; finishShare(ok: false)
+            case .closed: toast = "roam.share.square.closed"; finishShare(ok: false)
+            case .busy: toast = "roam.share.square.busy"
+            }
+        }
+    }
+
     private func beginShare(raw: String, code: String) {
         pendingShareCode = code
         MiniProgramAnalytics.track(analytics, "roam_share_channel", bizType: "roam",
@@ -408,5 +468,32 @@ enum RoamShareVisibility: String, CaseIterable, Identifiable {
         case .momentsGuide: return self != .private
         case .xiaohongshuGuide: return self == .public
         }
+    }
+}
+
+/// ROAM-r11-9: MP `cyModal` 发到广场 (editable, placeholder 说点什么…, confirm 发布), as a system alert.
+private struct RoamShareSquareCompose: ViewModifier {
+    @Binding var isPresented: Bool
+    @Binding var text: String
+    let onPublish: () -> Void
+    func body(content: Content) -> some View {
+        content.alert("roam.share.square.title", isPresented: $isPresented) {
+            TextField("roam.share.square.placeholder", text: $text)
+                .accessibilityIdentifier("roam.share.square.text")
+            Button("roam.share.square.publish") { onPublish() }
+            Button("action.cancel", role: .cancel) {}
+        }
+    }
+}
+
+private struct RoamSquareShareKey: EnvironmentKey {
+    static let defaultValue: RoamSquareSharePoster? = nil
+}
+
+extension EnvironmentValues {
+    /// ROAM-r11-9: nil keeps 发到广场 hidden (fixtures, signed out).
+    var roamSquareShare: RoamSquareSharePoster? {
+        get { self[RoamSquareShareKey.self] }
+        set { self[RoamSquareShareKey.self] = newValue }
     }
 }
