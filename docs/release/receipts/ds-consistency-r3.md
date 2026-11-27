@@ -113,6 +113,22 @@ Allowed (reasons in baseline): crossword grid letters (`PlayKitQuestoViews` puzz
 | `App/RoamOfficialTasksView.swift:131` 官方任务 keyword field is a `.roundedBorder` `TextField` in the first List section → should be `.searchable(text: $keyword, prompt:)` on the List (brief: custom search fields → `.searchable`). | `Tests/AppUITests/RoamOfficialTasksFlowTests.swift:37` drives it as `app.textFields["roam.tasks.search"]` and the test file is hash-pinned in `tools/current_ci_manifest.json`; change together with the test + manifest review. |
 | 14 other player `.textFieldStyle(.roundedBorder)` fields inside List / Form rows (PlayKit forms, roam stamp / subpage notes, nearby team lat/lng, journey, channel composer) — native Form rows use the plain field. | Needs a per-screen look at whether each sits in a List row or on a card; not a safe text rewrite. |
 
+## Continue run 3 (2026-11-27, after merging combined-r7 into 1a8f38d59)
+
+Not done rows from run 2:
+
+| MP page | Native view | MP sections | Change (owner rule 2) / status |
+|---|---|---|---|
+| `subpackageRoam/components/scene-roam-task-list` (官方任务: `task-search` → `task-tabs` → `task-summary` → stale/refreshing → list / `cy-empty`) | `App/RoamOfficialTasksView.swift` | all present, MP order (search first, always visible, then 进行中/即将/我的 segmented, summary, states, list) | Done. Hand-made `.roundedBorder` keyword `TextField` in the first List row → system `.searchable(text:placement: .navigationBarDrawer(displayMode: .always), prompt:)` on the List (same keyword binding, same filtering, cleared on owner change). UI test `RoamOfficialTasksFlowTests.testSourceKeywordHasRealNoResultsState` retargeted from `app.textFields["roam.tasks.search"]` to `app.searchFields.firstMatch`; its sha256 row in `tools/current_ci_manifest.json` updated (only that row; `current_ci.py check` already fails on the base for other lanes' unaudited test edits). Simulator run still needed. |
+| 14 player `.textFieldStyle(.roundedBorder)` fields | `PlayKitPersonalForms` (2), `PlayKitNewGameForms`, `PlayKitDecisionProgressViews`, `PlayKitLegacyViews`, `PlayKitTimedChallengeView`, `JourneyReportViews`, `RoamSubpageParityViews`, `RoamStampViews`, `NearbyTeamViews` (DEBUG lat/lng), `CommunityTrustPlayerViews`, `ClubChannelMessagingView` composer, `AccountDeregistrationImpactSection`, `StoryRuleEditorView` (story-flow, out) | unchanged | Closed, no change: each sits on a card / VStack / ScrollView, not in a List or Form row, and `.roundedBorder` is exactly what the design-system field `CYField` draws — consistent already. |
+
+Next scan (hand-made search fields → `.searchable` / one filter-row pattern):
+
+| MP page | Native view | MP sections | Change |
+|---|---|---|---|
+| `pages/coop/invite` target filter | `App/CooperationContextualViews.swift:461` | unchanged (kind segmented → filter → loading / retry / empty + 刷新合作对象 → targets) | Bare `TextField` in a Form row → the same filter row the friend picker uses (`Label` with the `magnifyingglass` symbol, `.submitLabel(.search)`, no autocorrect/caps); `.searchable` not used because the Form is a row inside a host navigation container (same reason as `NativeFriendPickerView`). |
+| 漫游 browser map-mode search | `App/RoamBrowserView.swift:350` | — | Kept: Maps-style pinned field inside the persistent results sheet; list mode already uses system `.searchable` (`RoamBrowserView.swift:720`). |
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
