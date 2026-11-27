@@ -119,7 +119,7 @@ enum E1Money {
     static func yuan(text: String?, locale: Locale) -> String? {
         guard let text = text?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return nil }
         guard LocaleDisplay.isChinese(locale) else {
-            let body = text.hasPrefix("¥") || text.hasPrefix("￥") ? String(text.dropFirst()) : text
+            let body = text.hasPrefix("¥") || text.hasPrefix("\u{FFE5}") ? String(text.dropFirst()) : text
             return LocaleDisplay.money(text: body, locale: locale) == body ? text : LocaleDisplay.money(text: body, locale: locale)
         }
         return text.hasPrefix("¥") ? text : "¥" + text

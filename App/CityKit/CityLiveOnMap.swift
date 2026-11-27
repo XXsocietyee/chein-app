@@ -176,7 +176,7 @@ struct CityLiveMapControls: View {
             divider
             reading(RoamLiveCoveragePresentation(controller: owner).percentage.map { "\($0)%" } ?? "—", label: copy("地盘", "Turf"))
             divider
-            reading(distance, label: copy("公里", usesMiles ? "mi" : "km"))
+            reading(distance, label: usesMiles ? copy("英里", "mi") : copy("公里", "km"))
         }
         .padding(.vertical, CYSpacing.sm)
         .background {
