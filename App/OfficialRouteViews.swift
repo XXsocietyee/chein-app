@@ -16,8 +16,9 @@ import SwiftUI
         Group {
             switch state {
             case .loading:
-                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .accessibilityLabel(Text("officialRoute.loading"))
+                // MP cy-skeleton feed-card ×3; P10 says what is happening in words, never a bare spinner.
+                ProgressView { Text("officialRoute.list.loading") }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .failed:
                 // MP cy-error: 线路加载失败 + 重试 (no second line).
                 ContentUnavailableView {
@@ -84,8 +85,8 @@ import SwiftUI
         Group {
             switch state {
             case .loading:
-                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .accessibilityLabel(Text("officialRoute.loading"))
+                ProgressView { Text("officialRoute.detail.loading") }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             case .failed:
                 ContentUnavailableView {
                     Label("officialRoute.detail.error", systemImage: "exclamationmark.triangle")

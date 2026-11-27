@@ -668,7 +668,7 @@ extension RoamGoalState {
             if let detail = model.detail { detailSection(detail) }
             if creating { form }
             Section {
-                if model.isBusy && model.rows.isEmpty { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("roam.private.loading")) }  // N-TOOLS (r10)
+                if model.isBusy && model.rows.isEmpty { ProgressView { Text("roam.private.loading") }.frame(maxWidth: .infinity) }  // N-TOOLS (r10)
                 ForEach(model.rows) { row in
                     Button { page.read { await model.open(row.id) } } label: {
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {

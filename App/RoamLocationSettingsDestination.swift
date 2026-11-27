@@ -107,7 +107,7 @@ import UIKit
             }
             Section("roam.locationSettings.status") {
                 switch model.state.phase {
-                case .idle, .loading: ProgressView("roam.loading").accessibilityIdentifier("roam.locationSettings.loading")
+                case .idle, .loading: ProgressView { Text("roam.locationSettings.loading") }.accessibilityIdentifier("roam.locationSettings.loading")
                 case .failed:
                     Text("roam.locationSettings.readFailed").accessibilityIdentifier("roam.locationSettings.readFailed")
                     Button("roam.locationSettings.retry") { model.refresh() }.accessibilityIdentifier("roam.locationSettings.retry")

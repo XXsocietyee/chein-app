@@ -133,7 +133,7 @@ import SwiftUI
         }
 
         if model.isLoading {
-            ProgressView("roam.loading")
+            ProgressView { Text("roam.stamps.loading") }
                 .accessibilityIdentifier("roam.receivedStamp.loading")
         }
 

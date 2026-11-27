@@ -104,7 +104,12 @@ import QuestifyCore
     @Bindable var model: RoamMapHomeModel
     let dependencies: RoamMapHomeDependencies
     @State private var location: RoamLocationSettingsSnapshot?
+    /// MP `unfinishedRoam` / `recoveryError`: the same local journal read the roam browser's 走起 tab uses.
+    @State private var recoveryEntry = RoamHomeRecoveryEntry()
+    @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
+    private var recoveryBanner: RoamHomeRecoveryBanner? { recoveryEntry.banner(reader: dependencies.experienceReader) }
+    private var hasLiveDestination: Bool { dependencies.liveDestination != nil }
 
     private var area: RoamSearchArea? { dependencies.entryReader?.searchArea ?? dependencies.roamReader.searchArea }
     private var entryState: RoamEntryPeekState? { dependencies.entryReader.map { model.entry.visibleState(reader: $0) } }
@@ -128,7 +133,12 @@ import QuestifyCore
             if isSearching {
                 searchSections
             } else {
-                if area == nil { areaSection }
+                // MP pages/roam/index order: location permission (需要定位才能开始漫游 · 去设置) and the
+                // 上次漫游需要确认 card sit above the intro tickets; then the tickets; then 附近活动.
+                if area == nil {
+                    if locationDenied { locationSection } else { areaSection }
+                }
+                recoverySection
                 roamSection
                 nearbySection
                 moreSection
@@ -152,6 +162,17 @@ import QuestifyCore
             ToolbarItem(placement: .topBarTrailing) { mapMenu }
         }
         .task { location = try? await dependencies.locationSettings?.readStatus() }
+        .onAppear {
+            recoveryEntry.appear(reader: dependencies.experienceReader, foreground: scenePhase == .active, hasDestination: hasLiveDestination)
+        }
+        .onDisappear { recoveryEntry.disappear() }
+        .onChange(of: scenePhase) { _, phase in
+            recoveryEntry.setForeground(phase == .active, reader: dependencies.experienceReader, hasDestination: hasLiveDestination)
+        }
+        // Closing the live cover can finish or leave a walk: re-read so 继续漫游 / 走起 is current.
+        .onChange(of: model.showsLive) { _, showing in
+            if !showing { recoveryEntry.reload(reader: dependencies.experienceReader, hasDestination: hasLiveDestination) }
+        }
         .accessibilityIdentifier("roam.mapHome.sheet")
     }
 
@@ -173,15 +194,56 @@ import QuestifyCore
         }
     }
 
+    /// MP `cy-state-shell kind="no-permission"`: 需要定位才能开始漫游 + 去设置, at the top of the page.
+    @ViewBuilder private var locationSection: some View {
+        Section {
+            ContentUnavailableView {
+                Label("nativeR2.mapHome.location.denied", systemImage: "location.slash")
+            } actions: {
+                if let settings = dependencies.locationSettings {
+                    Button("nativeR2.mapHome.location.openSettings") { Task { _ = await settings.openAppSettings() } }
+                        .buttonStyle(.bordered)
+                }
+                if let onChooseArea = dependencies.onChooseArea {
+                    Button("roam.area.title", action: onChooseArea)
+                        .accessibilityIdentifier("roam.mapHome.area")
+                }
+            }
+        }
+    }
+
+    /// MP `cy-error` 上次漫游需要确认 · 确认漫游记录 (`recoverRoam`), above the tickets.
+    @ViewBuilder private var recoverySection: some View {
+        if recoveryBanner == .needsCheck, let reader = dependencies.experienceReader {
+            Section {
+                Label(LocalizedStringKey(RoamHomeRecoveryBanner.needsCheck.titleKey), systemImage: "exclamationmark.circle")
+                    .accessibilityIdentifier(RoamHomeRecoveryBanner.needsCheck.accessibilityID)
+                NavigationLink { RoamRecoveryView(reader: reader) } label: { Text("roam.w208.recovery.check") }
+                    .accessibilityIdentifier("roam.home.recovery.check")
+            }
+        }
+    }
+
     @ViewBuilder private var roamSection: some View {
         Section {
             if dependencies.liveDestination != nil {
+                // MP ticket NO.01: 继续漫游 when a walk is unfinished, else 走起 with 走到哪，雾散到哪 under it.
+                let resumes = recoveryBanner == .recovered
                 LabeledContent {
                     Button("nativeR2.mapHome.start.action") { model.showsLive = true }
                         .buttonStyle(.borderedProminent)
                         .accessibilityIdentifier("roam.go")
                 } label: {
-                    Label("nativeR2.mapHome.start", systemImage: "figure.walk")
+                    Label {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(LocalizedStringKey(resumes ? "roam.w208.recovery.continue" : "nativeR2.mapHome.start"))
+                            if !resumes {
+                                Text("roam.w208.intro.start.sub").font(.footnote).foregroundStyle(.secondary)
+                            }
+                        }
+                    } icon: {
+                        Image(systemName: "figure.walk")
+                    }
                 }
             }
             Button {
@@ -202,8 +264,16 @@ import QuestifyCore
                 .accessibilityIdentifier("roam.home.intro.map")
             }
             if dependencies.myTeamsDestination != nil {
+                // MP ticket NO.03: 我的队伍 with its sub line.
                 Button { model.showsMyTeams = true } label: {
-                    Label("nativeR2.mapHome.myTeams", systemImage: "person.crop.circle.badge.checkmark")
+                    Label {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("nativeR2.mapHome.myTeams")
+                            Text("roam.w208.intro.teams.sub").font(.footnote).foregroundStyle(.secondary)
+                        }
+                    } icon: {
+                        Image(systemName: "person.crop.circle.badge.checkmark")
+                    }
                 }
                 .accessibilityIdentifier("roam.mapHome.myTeams")
             }
@@ -220,15 +290,6 @@ import QuestifyCore
                 ForEach(0..<4, id: \.self) { _ in
                     Label("nativeR2.mapHome.loading", systemImage: "mappin")
                         .redacted(reason: .placeholder)
-                }
-            } else if locationDenied && area == nil {
-                ContentUnavailableView {
-                    Label("nativeR2.mapHome.location.denied", systemImage: "location.slash")
-                } actions: {
-                    if let settings = dependencies.locationSettings {
-                        Button("nativeR2.mapHome.location.openSettings") { Task { _ = await settings.openAppSettings() } }
-                            .buttonStyle(.bordered)
-                    }
                 }
             } else if entryState == .login, model.places.isEmpty {
                 ContentUnavailableView {
