@@ -231804,6 +231804,23 @@
         }
       }
     },
+    "roam.share.card.footprints": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Places reached"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "处到达"
+          }
+        }
+      }
+    },
     "roam.share.includePlace": {
       "extractionState": "manual",
       "localizations": {
