@@ -299,6 +299,7 @@ struct SessionRootView: View {
     @ViewBuilder private var homeTab: some View {
                     SessionHomeFeedView(onSignIn:{ requestSignIn() },onStartRoam:{ selectedTab = .roam })
                         .environment(\.cyTabBarVisibility, homeTabBarVisibility)
+                        .modifier(activeSessionBar)
     }
 
     /// 漫游 tab root. Native r2 (`NativeR2Flags.mapHome`, default on): the Apple-Maps-style map home, with the
@@ -313,10 +314,12 @@ struct SessionRootView: View {
                         .environment(\.inGameChannelHost, session.inGameChannelHost)
                         .themeDomain(.player)
                         .environment(\.cyTabBarVisibility, roamTabBarVisibility)
+                        .modifier(activeSessionBar)
         } else {
                     SessionCityRoamRoot(liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost).environment(\.roamOfficialArrival, RoamOfficialArrivalDeps(reader: session.officialEventReader, actions: session.officialActionCoordinator)).environment(\.roamRunnerActions, session.roamRunnerActions).environment(\.roamPresenceVisibility, { [weak presenceOwner = session] in await presenceOwner?.setRoamPresenceVisibility(sessionID: $0, visible: $1) }).environment(\.roamClearLocal, { [weak clearOwner = session] in clearOwner?.clearRoamLocalHistory() ?? false }).environment(\.roamDiscoverDestinations, session.roamDiscoverDestinations)) },
                                         passportDestination: { AnyView(roamBrowser) }, onChooseArea: { showsAreaPicker = true })
                         .environment(\.cyTabBarVisibility, roamTabBarVisibility)
+                        .modifier(activeSessionBar)
         }
     }
 
@@ -399,12 +402,14 @@ struct SessionRootView: View {
                     NavigationStack { PublishTabRootView() }
                         .id(session.sessionRevision)
                         .environment(\.cyTabBarVisibility, publishTabBarVisibility)
+                        .modifier(activeSessionBar)
     }
 
     @ViewBuilder private var clubTab: some View {
                     NavigationStack { ClubHomeView(reader:session,onSignIn:{ requestSignIn() },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, publicRoster:session.clubPublicRosterReader, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }, requestedClubID: $deepLinkClubID, authorSquare: session.squareReader).modifier(SessionMessagingToolbarEntry(session: session)) }
                         .id(session.sessionRevision)
                         .environment(\.cyTabBarVisibility, clubTabBarVisibility)
+                        .modifier(activeSessionBar)
     }
 
     @ViewBuilder private var mineTab: some View {
@@ -413,6 +418,7 @@ struct SessionRootView: View {
                         else { WelcomeView() }
                     }
                         .environment(\.cyTabBarVisibility, mineTabBarVisibility)
+                        .modifier(activeSessionBar)
     }
 
     /// L1 P-004: present sign-in in place (no tab switch). Already signed in: run the action now.
@@ -438,6 +444,11 @@ struct SessionRootView: View {
             AccessibilityNotification.Announcement(appLocalized("nativeR2.shell.signedIn", locale: Locale.current)).post()
         }
         resume?()
+    }
+
+    /// P21: the running roam / city run / game as a mini bar above the tab bar on every tab; it expands into the HUD.
+    private var activeSessionBar: ActiveSessionMiniBarHost {
+        ActiveSessionMiniBarHost(isTabBarHidden: isTabBarHidden, roamHUD: { roamLiveDestination })
     }
 
     /// Native r2: the system tab bar (`TabView` + `Tab`, SF Symbols, system tint). No custom bar, pill or haptic.

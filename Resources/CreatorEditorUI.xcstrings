@@ -273,18 +273,18 @@
         }
       }
     },
-    "creatorEditor.playSetup": {
+    "creatorEditor.prep": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Play window and prep"
+            "value": "Before you start"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "游玩时段与准备"
+            "value": "开局前准备"
           }
         }
       }
@@ -300,7 +300,151 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "添加准备事项"
+            "value": "添加准备项"
+          }
+        }
+      }
+    },
+    "creatorEditor.prep.addAction": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加"
+          }
+        }
+      }
+    },
+    "creatorEditor.prep.footer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Up to 6 items, 20 characters each. Players tick each one before they start."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多 6 项，每项不超过 20 字。玩家开局前会逐项确认。"
+          }
+        }
+      }
+    },
+    "creatorEditor.prep.suggestion.1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phone fully charged"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手机电量充足"
+          }
+        }
+      }
+    },
+    "creatorEditor.prep.suggestion.2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bring a flashlight"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "带手电筒"
+          }
+        }
+      }
+    },
+    "creatorEditor.prep.suggestion.3": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wear a hat"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "戴帽子"
+          }
+        }
+      }
+    },
+    "creatorEditor.prep.suggestion.4": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wear trainers"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "穿运动鞋"
+          }
+        }
+      }
+    },
+    "creatorEditor.prep.suggestion.5": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bring water"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "带水"
+          }
+        }
+      }
+    },
+    "creatorEditor.prep.suggestion.6": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agree a meeting point with your group"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "和同伴约好集合地点"
+          }
+        }
+      }
+    },
+    "creatorEditor.prep.suggestions": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suggestions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "建议"
           }
         }
       }
@@ -684,7 +828,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "游玩时段"
+            "value": "可玩时段"
           }
         }
       }

@@ -57,7 +57,17 @@ struct TopicSessionSelectionView: View {
                         if activities.count > 1 { Text("topic.sessionSelection.dates") }
                     }
                 }
-                if !detail.tickets.isEmpty {
+                if detail.tickets.isEmpty, case .ready = resolution {
+                    // MP session-picker.wxml:30 cy-empty 暂无可买票种 · sub 放票后可购买 / 换个日期试试.
+                    Section("topic.sessionSelection.tickets") {
+                        ContentUnavailableView {
+                            Label("topic.sessionSelection.ticketsEmpty", systemImage: "ticket")
+                        } description: {
+                            Text(isSingleDay ? "topic.sessionSelection.ticketsEmpty.singleDay" : "topic.sessionSelection.ticketsEmpty.otherDay")
+                        }
+                        .accessibilityIdentifier("topic.sessionSelection.ticketsEmpty")
+                    }
+                } else if !detail.tickets.isEmpty {
                     Section("topic.sessionSelection.tickets") {
                         Text("topic.sessionSelection.ticketDependency")
                             .font(.subheadline)

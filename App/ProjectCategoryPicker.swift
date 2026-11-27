@@ -156,10 +156,21 @@ extension EnvironmentValues {
                 if current {
                     switch controller.state {
                     case .idle, .loading: ProgressView { Text("projectCategoryPicker.loading", tableName: "ProjectCategoryPicker") }
-                    case .empty: Label { Text("projectCategoryPicker.empty", tableName: "ProjectCategoryPicker") } icon: { Image(systemName: "tag") }.foregroundStyle(.secondary)
+                    case .empty:
+                        // MP components/cy/category-sheet/index.wxml:14 cy-empty 暂无分类 (no sub).
+                        ContentUnavailableView {
+                            Label { Text("projectCategoryPicker.emptyTitle", tableName: "ProjectCategoryPicker") } icon: { Image(systemName: "tag") }
+                        }
                     case .failed:
-                        Label { Text("projectCategoryPicker.failed", tableName: "ProjectCategoryPicker") } icon: { Image(systemName: "exclamationmark.triangle") }
-                        Button("action.retry") { Task { await controller.load(original) } }
+                        // MP category-sheet:15 cy-inline-error kind network · 重试.
+                        ContentUnavailableView {
+                            Label { Text("projectCategoryPicker.failedTitle", tableName: "ProjectCategoryPicker") } icon: { Image(systemName: "exclamationmark.triangle") }
+                        } description: {
+                            Text("projectCategoryPicker.failed", tableName: "ProjectCategoryPicker")
+                        } actions: {
+                            Button("action.retry") { Task { await controller.load(original) } }
+                                .buttonStyle(.bordered)
+                        }
                     case .unavailable: Text("projectCategoryPicker.unavailable", tableName: "ProjectCategoryPicker")
                     case .loaded: EmptyView()
                     }
