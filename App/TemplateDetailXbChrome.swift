@@ -34,7 +34,7 @@ struct TemplateXbHead<Cover: View>: View {
                 title.font(.title2.bold())
                     .lineLimit(2).accessibilityAddTraits(.isHeader)
                 if let publisher {
-                    publisher.font(.body).foregroundStyle(.secondary).lineLimit(1)
+                    publisher.font(.body).foregroundStyle(.secondary).lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
                         .accessibilityIdentifier("template.xb.publisher")
                 }
                 if official {

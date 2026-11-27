@@ -339,6 +339,7 @@ struct ClubCommunityFeedView: View {
     @State private var sourceDestination: ClubCommunityFeedSource?
     @State private var toastMessage: LocalizedStringKey?
     @Environment(\.clubCustomerTopics) private var topics
+    @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.clubPostPlayHost) private var discussionHost
     /// CLB-detail-31: scroll to this post once it is in the loaded feed (one time per appearance).
     private let focusPostID: Int?
@@ -561,7 +562,7 @@ struct ClubCommunityFeedView: View {
                 Group {
                     if summary.isEmpty { Text("club.community.noticeNoText") } else { Text(verbatim: summary) }
                 }
-                .lineLimit(1)
+                .lineLimit(typeSize.isAccessibilitySize ? 2 : 1)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
                     .foregroundStyle(.tertiary).accessibilityHidden(true)

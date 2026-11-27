@@ -73,7 +73,7 @@ struct ChapterStoryLineView: View {
                 }
             }
             .frame(width: margin, alignment: .leading)
-            Text(verbatim: text).font(italic ? .body.italic() : .body).lineSpacing(8).textSelection(.enabled)
+            Text(verbatim: text).italic(italic).cyText(.body).textSelection(.enabled)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .accessibilityElement(children: .combine)

@@ -295,7 +295,7 @@ enum CYPassCardPick {
                 // PLY-21-5: MP 票夹 cards carry no status (index.wxml:57-58 「卡上不写状态」).
                 title.foregroundStyle(.primary).padding(.bottom, 4)
                 Group {
-                    Label { Text(verbatim: nonEmpty(ticket.participateDate)) } icon: { Image(systemName: "calendar") }
+                    Label { Text(verbatim: LocaleDisplay.civil(nonEmpty(ticket.participateDate), locale: locale)) } icon: { Image(systemName: "calendar") }
                     Label { Text(verbatim: nonEmpty(ticket.addressName)).lineLimit(2) } icon: { Image(systemName: "mappin.and.ellipse") }
                     // PLY-21-5: MP signup walletCard (index.js:777,784) appends ` · 已核销 x/y 家` and ` · N 大 M 小同享`.
                     if let progress = ticket.exploreProgress {

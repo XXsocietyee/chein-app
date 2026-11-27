@@ -186,6 +186,7 @@ struct RoamEnrolledChapterRow: View {
     let ticket: TicketWalletTicket
     var showsActionNotice = false
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.locale) private var locale
     var body: some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
             if !typeSize.isAccessibilitySize {
@@ -196,7 +197,7 @@ struct RoamEnrolledChapterRow: View {
                 TicketWalletTitle(title: ticket.title).cyText(.cardTitle)
                 TicketWalletStatusBadge(status: ticket.status)
                 if let date = ticket.participateDate, !date.isEmpty {
-                    Label(date, systemImage: "calendar").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                    Label(LocaleDisplay.civil(date, locale: locale), systemImage: "calendar").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 }
                 if showsActionNotice {
                     Label(LocalizedStringKey("ticketWallet.action." + ticket.action.rawValue), systemImage: "info.circle")

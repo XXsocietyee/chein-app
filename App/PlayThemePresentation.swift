@@ -98,7 +98,7 @@ enum PlayThemeIntro {
                     .accessibilityAddTraits(.isHeader)
                     .offset(y: shown || reduceMotion ? 0 : 18).opacity(shown ? 1 : 0)
                 if !line.isEmpty {
-                    Text(verbatim: line).cyText(.body).lineSpacing(6)
+                    Text(verbatim: line).cyText(.body)
                         .foregroundStyle(colors.mute.swiftUIColor)
                         .offset(y: shown || reduceMotion ? 0 : 18).opacity(shown ? 1 : 0)
                 }
