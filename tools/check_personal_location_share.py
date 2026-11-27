@@ -62,7 +62,7 @@ class SourceChecks(unittest.TestCase):
         app = self.read('App/QuestifyApp.swift').split('struct SessionRootView')[1]
         self.assertIn('.environment(\\.personalLocationShareHost, session.personalLocationShareHost)', app)
         self.assertIn('session.personalLocationShareHost.sceneChanged(phase)', app)
-        self.assertIn('PersonalLocationShareEntry(recipientId: nil)', self.read('App/AccountView.swift'))
+        self.assertIn('PersonalLocationShareEntry(recipientId: nil)', self.read('App/SettingsView.swift'))
         self.assertIn('PersonalLocationShareEntry(recipientId: Int64(memberID))', self.read('App/SocialPublicProfileView.swift'))
         session = self.read('App/AppSession.swift')
         self.assertGreaterEqual(session.count('invalidatePersonalLocationShare()'), 4)
@@ -290,7 +290,7 @@ def syntax():
     # Scope to this group in both sparse delivery trees and the full integration tree.
     files = sorted(ROOT.glob('Core/PersonalLocationShare*.swift')) + sorted(ROOT.glob('App/PersonalLocationShare*.swift'))
     files += [ROOT / path for path in (
-        'App/AccountView.swift', 'App/AppSession.swift', 'App/QuestifyApp.swift',
+        'App/SettingsView.swift', 'App/AppSession.swift', 'App/QuestifyApp.swift',
         'App/SocialPublicProfileView.swift', 'Tests/CoreTests/PersonalLocationShareTests.swift',
         'Tests/AppUnitTests/PersonalLocationShareNormalEntryTests.swift')]
     assert all(path.is_file() for path in files), 'A required personal-sharing source file is missing'
