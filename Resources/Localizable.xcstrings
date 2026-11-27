@@ -41381,13 +41381,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cooperation in progress, terms frozen"
+            "value": "Cooperation in progress, terms locked"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "合作进行中，条款已冻结"
+            "value": "合作进行中，条款已锁定"
           }
         }
       }
@@ -43939,13 +43939,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No contactable merchants nearby"
+            "value": "No merchants nearby"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "附近暂无可联系商家"
+            "value": "附近暂无商家"
           }
         }
       }
@@ -43971,13 +43971,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nearby merchants did not load"
+            "value": "Nearby merchants didn't load"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "附近商家没加载出来"
+            "value": "附近商家加载失败"
           }
         }
       }
@@ -48517,13 +48517,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nearby search isn't available right now."
+            "value": "Nearby merchants aren't available right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "附近商家查询暂不可用"
+            "value": "附近商家暂不可用"
           }
         }
       }
@@ -296027,13 +296027,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign in to see nearby merchants"
+            "value": "Sign in to view"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "登录后查看附近商家"
+            "value": "登录后查看"
           }
         }
       }
@@ -307435,13 +307435,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invite merchants"
+            "value": "Find a merchant partner"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "邀请商家"
+            "value": "找商家承接"
           }
         }
       }

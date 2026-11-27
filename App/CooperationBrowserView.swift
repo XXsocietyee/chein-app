@@ -56,14 +56,7 @@ import SwiftUI
                         CYListRow("cooperation.pool.title", trailing: .none) { CYRowIcon(systemImage: "rectangle.stack") }
                     }
                     .accessibilityIdentifier("cooperation.pool.open")
-                    if let peerReader, listPage.showsNewInvite {
-                        // flows-g2 108: programmatic push so a sent invite can pop back here on 我发出的 (MP redirectTo ?tab=sent).
-                        Button { composingInvite = true } label: {
-                            CYListRow("cooperation.list.newInvite", trailing: .chevron) { CYRowIcon(systemImage: "plus.circle") }
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier("cooperation.list.newInvite")
-                    }
+                    // MP coop/list wxml:178,262: 去发起邀请 is only the empty state's action (no standing row).
                 }
                 topicFilterSection(snapshot)
                     .onAppear { seedInitialTopic(snapshot) }

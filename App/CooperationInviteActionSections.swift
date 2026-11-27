@@ -15,11 +15,11 @@ import SwiftUI
             switch view.footer {
             case .legacy: Text("cooperation.detail.footer.legacy").foregroundStyle(.secondary)
             case .decide:
-                // Mini bottom bar: 接受合作 is the single solid action, 拒绝 the quiet one. A station topic (MC7-30-6)
-                // goes through the same handle editor, which shows the frozen station (named in 合作条款 above) and
-                // sends `supplyStationId` with the accept.
-                handle(.accept, label: "cooperation.detail.accept", emphasis: true)
+                // Mini bottom bar (wxml:174-177): 拒绝 first, then 接受合作 as the single solid action. A station topic
+                // (MC7-30-6) goes through the same handle editor, which shows the frozen station (named in 合作条款 above)
+                // and sends `supplyStationId` with the accept.
                 handle(.reject, label: "cooperation.detail.reject")
+                handle(.accept, label: "cooperation.detail.accept", emphasis: true)
                 Text("cooperation.detail.reply.hint").cyText(.meta).foregroundStyle(CYColor.textTertiary)
             case .withdraw:
                 handle(.cancel, label: "cooperation.detail.withdraw")

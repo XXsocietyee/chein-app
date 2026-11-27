@@ -19,6 +19,7 @@ import UIKit
     var peerReader: (any CoopFlowReading)? = nil
     @Environment(\.cooperationProjectDestination) private var topicDestination
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     @StateObject private var phoneCopy: CooperationPhoneCopyOwner
     @State private var openedTopic: Int?
     @State private var topicReturn: UInt64 = 0
@@ -46,8 +47,15 @@ import UIKit
         HStack(spacing: CYSpacing.xs) {
             Text(LocalizedStringKey(key.direction == .received ? "cooperation.detail.from" : "cooperation.detail.to"))
             if let name = row.partner?.name, !name.isEmpty { Text(verbatim: name) } else { Text("cooperation.detail.counterparty") }
+            // MP invite-detail wxml:52: 来自 X · {timeText}; the creation time lives on this line, not in a field.
+            if let time = partnerTime(row.createTime) { Text(verbatim: "· " + time) }
         }.font(.subheadline).foregroundStyle(.secondary).accessibilityElement(children: .combine)
             .accessibilityIdentifier("cooperation.detail.partner")
+    }
+    private func partnerTime(_ value: CooperationSourceTime?) -> String? {
+        guard let value else { return nil }
+        if case .text(let text) = value { return text.isEmpty ? nil : text }
+        return value.date.map { $0.formatted(.dateTime.month().day().hour().minute().locale(locale)) }
     }
     var body: some View {
         CooperationReadScreen(reader: reader, resource: "invite.\(key.direction.rawValue).\(key.id).return.\(topicReturn)", operation: {
@@ -99,10 +107,8 @@ import UIKit
                     LabeledContent { Text(verbatim: party) } label: { Text(LocalizedStringKey(key.direction == .received ? "cooperation.detail.receivingClub" : "cooperation.detail.sendingClub")) }
                         .accessibilityIdentifier("cooperation.detail.viewerParty")
                 }
-                CooperationField(key: "cooperation.inviteID", value: "#\(row.id)")
+                // MP has no 邀约编号 / 创建时间 / 招募截止时间 rows: the time is on the partner line, validity in the countdown.
                 CoopInviteReadReceiptRow(peerReader: peerReader, inviteID: row.id, direction: key.direction)
-                CooperationTimeField(key: "cooperation.created", value: row.createTime)
-                CooperationTimeField(key: "cooperation.expires", value: row.expireTime)
             }
             if let peerReader, let peer = CoopPeerMember(direction: key.direction, fromType: row.fromType, fromID: row.fromId, toType: row.toType, toID: row.toId) {
                 Section { NavigationLink("context.coop.peerCredit") { CoopPeerCreditView(reader: peerReader, peer: peer) } }
