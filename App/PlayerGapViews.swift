@@ -177,7 +177,7 @@ struct TeamInviteQRSection: View {
                 case nil:
                     EmptyView()
                 }
-                if loading, view == nil { ProgressView().frame(maxWidth: .infinity) }
+                if loading, view == nil { ProgressView { Text("cy.state.loading") }.frame(maxWidth: .infinity) }
                 if !loadsOnAppear || view == nil || failed {
                     Button("playerGap.teamQR.load") { load() }
                     .disabled(loading)

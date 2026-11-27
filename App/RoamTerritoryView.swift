@@ -171,7 +171,7 @@ import SwiftUI
         } label: {
             Text(verbatim: copy("领地", "Territory"))
         }
-        .pickerStyle(.segmented)
+        .cyAdaptiveSegmented()
         .onChange(of: selectedTab) { _, _ in Task { await reloadAll() } }
         .accessibilityIdentifier("roamTerritory.tabs")
     }

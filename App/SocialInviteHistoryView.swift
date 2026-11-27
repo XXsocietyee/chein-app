@@ -30,7 +30,7 @@ import SwiftUI
             if reader.isOfflineExample { Label("social.offline", systemImage: "wifi.slash").foregroundStyle(.secondary) }
             if reader.identity.accountID == nil { ProfileInviteHistoryIssueView(error: APIError.unauthorized) }
             else if !reader.isConfigured { SocialIssueView(error: APIError.notConfigured) }
-            else if !model.matches(reader) { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("social.loading")) }
+            else if !model.matches(reader) { ProgressView { Text("social.loading") }.frame(maxWidth: .infinity) }
             else if model.accessDenied, let error = model.error {
                 ProfileInviteHistoryIssueView(error: error)
             }
@@ -68,7 +68,7 @@ import SwiftUI
                     }
                 }
                 if !model.loading && model.pagination.members.isEmpty && model.error == nil { ProfileInviteHistoryEmptyView() }
-                if model.loading { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("social.loading")) }
+                if model.loading { ProgressView { Text("social.loading") }.frame(maxWidth: .infinity) }
                 if let error = model.error, !model.pagination.members.isEmpty {
                     // MP myinvite: the failure copy stays where 加载更多 sits; the button below is that same entry.
                     ProfileInviteHistoryIssueView(error: error)
