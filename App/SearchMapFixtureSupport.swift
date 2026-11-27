@@ -1,6 +1,16 @@
 #if DEBUG
 import SwiftUI
 
+/// Fixture 推荐搜索 words follow the UI language (coordinator 19:50: no Chinese data in the English UI).
+/// Chinese keeps the MP China-market list; English shows the same terms in English. The real app still
+/// takes `GlobalSearchRecommendedKeywords.keywords(for: market)`.
+enum SearchMapFixtureKeywords {
+    static let english = ["Cycling", "City", "The Bund", "Bookstores", "Art museums", "Photography", "Suzhou Creek", "Markets"]
+    static var list: [String] {
+        Locale.preferredLanguages.first?.hasPrefix("zh") == true ? GlobalSearchRecommendedKeywords.china : english
+    }
+}
+
 @MainActor final class SearchMapFixtureReader: SearchMapReading {
     enum Scenario: String { case content, empty, partial, guest, failure, retry, unauthorized, unconfigured, delayed, categoryDelayed, cityFallback, pagination, pageFailure, pageDelayed, filteredPage }
     let scenario: Scenario
@@ -200,7 +210,7 @@ import SwiftUI
                 } else if entry == "route" {
                     SearchRoutePreviewView(origin: syntheticArea.coordinate, destination: RoamCoordinate(latitude: 1.004, longitude: 1.006)!, name: "Synthetic stop", scope: reader.scope, offline: true)
                 } else {
-                    GlobalSearchView(reader: reader, recommendedKeywords: GlobalSearchRecommendedKeywords.china, destination: detail)
+                    GlobalSearchView(reader: reader, recommendedKeywords: SearchMapFixtureKeywords.list, destination: detail)
                 }
             }
             .environment(\.walkingNavigationFactory, walking.factory)
