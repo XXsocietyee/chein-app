@@ -88,7 +88,7 @@ import SwiftUI
                 .accessibilityIdentifier("social.incompleteLink")
             }
             else {
-                SocialReadScreen(reader: reader, requestKey: profileReadRequestKey, load: {
+                SocialReadScreen(reader: reader, requestKey: profileReadRequestKey, failureTitle: "profile.public.loadFailed", load: {
                     // A scoped parent may retire before SwiftUI unmounts this screen.
                     // Do not start a replacement-account read for that old route.
                     guard isCurrent() else { throw CancellationError() }

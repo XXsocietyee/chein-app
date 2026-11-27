@@ -352,8 +352,16 @@ import QuestifyCore
                     .accessibilityIdentifier("roam.home.peek.refresh")
             }
         } else if area != nil {
-            ContentUnavailableView("nativeR2.mapHome.nearby.empty", systemImage: "mappin.slash",
-                                   description: Text("nativeR2.mapHome.nearby.empty.detail"))
+            // MP entry-peek__state: 附近暂无活动 · 打开地图寻找附近活动, the tap opens subpackageRoam/nearby.
+            ContentUnavailableView {
+                Label("roam.w208.entry.empty", systemImage: "mappin.slash")
+            } actions: {
+                if dependencies.nearbyTeamsDestination != nil {
+                    Button("roam.w208.entry.emptyHint") { model.push(.nearbyTeams) }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("roam.mapHome.nearby.openMap")
+                }
+            }
         }
     }
 

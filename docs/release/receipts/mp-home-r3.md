@@ -39,6 +39,7 @@ MP order: `sec-hero` (action-banner swiper, logo, greeting, 玩家 · 城市, av
 |---|---|
 | Card meta order was city → countdown → participants; MP `oe-meta` = time · city · N 人参与. | **Fixed** (`App/OfficialEventComponents.swift`). |
 | Search → chip tabs → summary row → list; 我发布的 / 邀约 links in the toolbar (no WeChat capsule). | Matches (toolbar placement is the prior documented native choice). |
+| 首页 opened the list as a sheet (with 关闭); MP `navigateTo('/pages/activity/list/index')` is a page. | **Fixed (r3 continue, OWNER RULE 2)** — `App/SessionHomeFeedView.swift`: `.navigationDestination(isPresented: $showsOfficialEvents)` pushes it onto the 首页 stack (inline title, system back, no 关闭), same as the reviewed-page route; banner and 更多玩法 entry both push. `.id(officialEventReader.scope)` and the scope reset kept. |
 | MP shows 邀约 only when not loading/failed; native always shows it. | Not changed (low impact). |
 
 ### `pages/activity/detail` → `scene-play-activity-detail` → `App/ActivityDetailView.swift`
@@ -107,4 +108,6 @@ MP content order under the title is unchanged: banner → greeting / 玩家 · c
 `App/HomeFeedFixtureSupport.swift` `HomeFeedFixtureHostView`: no continuation card (`fx-continue` removed), no Today seeding (`--design-today` plumbing and `HomeTodayFixtures.activityEvent` removed; `ticket` / `clubEvent` stay for the Today-card previews and wave fixtures), and the reader no longer serves synthetic `/banner` items to the hero fixture. `Tests/AppUITests/MotionTourTests.swift` tour 1 launches `d2-home` without `--design-today`.
 
 ## Not done / follow-ups
+- 成为俱乐部 (MP `navigateTo('/pages/club/apply/index')`) still opens as a sheet: it is a self-contained application task (HIG modal), with 关闭; the 和朋友报名活动 page now pushes. Revisit if the coordinator wants every MP page pushed.
+- Re-scan after the queue (r3 continue): home hero / rails / stream / consent card / activity list / activity detail / topic detail have no `.font(.system(size:))`, `.tracking`/`.kerning`, custom fonts or transparent-bar chrome; 编辑精选 footnote, per-rail 正在更新…, stream failed/empty/loading-more/no-more and 长期开放 all present.
 - Needs a simulator pass: 4:3 banner card height under the large title on small phones (first rails should stay near the fold).

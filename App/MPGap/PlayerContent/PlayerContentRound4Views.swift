@@ -345,6 +345,20 @@ public struct TopicPostPurchaseRevealView: View {
 
     public var body: some View {
         VStack(spacing: CYSpacing.lg) {
+            // MP pass-reveal pr__head: 通行证已到账 with the duration line under it, above the card.
+            VStack(spacing: CYSpacing.xs) {
+                Text("topicReveal.arrived")
+                    .cyText(.sectionTitle)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
+                if let line = model.durationLine, !line.isEmpty {
+                    Text(line)
+                        .cyText(.meta)
+                        .foregroundStyle(CYColor.textSecondary)
+                }
+            }
+            .multilineTextAlignment(.center)
+
             if let cover = model.coverURL, !cover.isEmpty {
                 CYCachedAsyncImage(cover, role: .cover)
                     .frame(height: 180)
@@ -358,13 +372,24 @@ public struct TopicPostPurchaseRevealView: View {
                 Text(model.topicName)
                     .cyText(.pageTitle)
                     .foregroundStyle(CYColor.textPrimary)
-                Text("\(model.untilText) · \(model.daysText)")
-                    .cyText(.bodyCompact, monospacedDigit: true)
-                    .foregroundStyle(CYColor.textSecondary)
-                if let line = model.durationLine, !line.isEmpty {
-                    Text(line)
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
+            }
+            // MP pr__row: 可玩至 · 剩余 N 天 as labelled cells.
+            HStack(alignment: .top, spacing: CYSpacing.lg) {
+                VStack(spacing: 2) {
+                    Text("topicReveal.until").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: model.untilText.isEmpty ? "—" : model.untilText)
+                        .cyText(.bodyCompact, monospacedDigit: true)
+                        .foregroundStyle(CYColor.textPrimary)
+                }
+                .accessibilityElement(children: .combine)
+                if !model.daysText.isEmpty {
+                    VStack(spacing: 2) {
+                        Text("topicReveal.remaining").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        Text("topicReveal.days \(model.daysText)")
+                            .cyText(.bodyCompact, monospacedDigit: true)
+                            .foregroundStyle(CYColor.textPrimary)
+                    }
+                    .accessibilityElement(children: .combine)
                 }
             }
 

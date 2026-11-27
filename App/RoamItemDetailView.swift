@@ -285,7 +285,7 @@ struct RoamItemDetailView: View {
         let renderedScope = eventScope
         let renderedSnapshot = merchantReadSnapshot
         return Section("roam.merchant") {
-            Text("roam.merchantFailed").foregroundStyle(.secondary)
+            Label("roam.merchantFailed", systemImage: "exclamationmark.triangle").foregroundStyle(.secondary)
             if merchantRetry.isLoading {
                 ProgressView { Text("roam.merchant.loading") }.accessibilityIdentifier("roam.merchant.retry.loading")
             }

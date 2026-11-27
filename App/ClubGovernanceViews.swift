@@ -196,6 +196,8 @@ struct ClubGovernanceReadView: View {
     /// CLB-topic-story-01: `pages/club/topic-story/index` opens the story directly. The topic overview stays the
     /// host that owns the read; once it has loaded, the story is pushed one time.
     var opensStoryOnLoad = false
+    /// mp-club r3: members the 对成员执行 card loaded (nil until loaded); 0 with no ban records = MP 暂无可治理成员.
+    @State private var governanceMemberCount: Int? = nil
     @State private var storyAutoOpen = false
     /// CLB-r10-apply-01: 切换到商家端 (MP reLaunch) presents the merchant home as a new root.
     @State private var merchantRelaunch = false
@@ -797,7 +799,7 @@ struct ClubGovernanceReadView: View {
             ClubOpsEventView(scope: target, identity: identity, access: access, coordinator: coordinator)
         }
         // Round 4 copy: MP customer-detail bar title is 客户 (wxml:8); the member action sheet keeps 客户详情.
-        .cyPageTitle(String.LocalizationValue(stringLiteral: operation == .customer ? "clubR3b.customer.title" : "club.gov." + operation.rawValue))
+        .cyPageTitle(String.LocalizationValue(stringLiteral: pageTitleKey))
         .cyHaptic(.impactMedium, trigger: editor?.id) { _, opened in opened != nil }
         // CLB-r7-D-02 (fix-r3-club-b): MP customers onShow re-reads the list, so a tag/remark saved on the
         // customer page shows when the owner comes back.
@@ -1581,9 +1583,18 @@ struct ClubGovernanceReadView: View {
             ClubRoleAssignmentRecoverySection(recovery: coordinator.roleAssignment, context: readContext, access: access) { Task { await load() } }
             // CLB-roles-05: the MP roles page has no 可委派角色 list; the role choice lives in the assign picker.
         } else if operation == .bans, let bans = try? ClubOpsBanList(snapshot: snapshot) {
-            ClubOpsBanSection(list: bans, scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope), document: snapshot.value) { row in AnyView(edit(.unban, seed: row.unbanSeed ?? [:], role: .inlineLink)) }
+            if bans.rows.isEmpty, governanceMemberCount == 0 {
+                // MP governance wxml:18 (state === 'empty'): nobody to govern and no records is one full-page 暂无可治理成员.
+                ContentUnavailableView {
+                    Label { ClubOpsGovernanceCopy.text("clubOpsGov.members.empty") } icon: { Image(systemName: "person.2") }
+                }
+                .accessibilityIdentifier("clubOpsGov.empty")
+            } else {
+                ClubOpsBanSection(list: bans, scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope), document: snapshot.value) { row in AnyView(edit(.unban, seed: row.unbanSeed ?? [:], role: .inlineLink)) }
+            }
             // CLB-governance-01 (MP governance wxml:61-122): records, then the 对成员执行 card on the same page.
             ClubOpsMemberActionCard(clubID: scope.clubID, identity: identity, access: access,
+                onLoaded: { governanceMemberCount = $0 },
                 ban: { member, days in
                     var seed = member.seed
                     seed["banDays"] = .string(String(days))
@@ -1791,6 +1802,10 @@ struct ClubGovernanceReadView: View {
             if let reason = value["rejectReason"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !reason.isEmpty {
                 Section("club.topic.rejectReason") { Text(verbatim: reason).foregroundStyle(.red) }
             }
+            // MP topic-detail wxml:92 (C-11, Figma D9): once the director has ended the topic the page is a review;
+            // the in-progress blocks (核销 / 主题 / 接下来) are not drawn.
+            let directorReview = directorActive && topicDisplay.state == .ended
+            if !directorReview {
             if ClubTopicDetailPort.showsVerify(topicDisplay, canViewVerify: stats["canViewVerify"].bool) {
                 ClubTopicVerifySummarySection(metrics: ClubTopicDetailPort.verifyMetrics(
                     pending: stats["pendingVerifyCount"].int, verifiedByMe: stats["verifiedByMeCount"].int, headcount: stats["sessionHeadcount"].int),
@@ -1855,6 +1870,7 @@ struct ClubGovernanceReadView: View {
             } header: { Text("club.topic.upcoming") } footer: {
                 // CLB-r11-topic-detail-02 (MP topic-detail/index.js:419, wxml:316): paidSessionsBlocked → paymentNotice.
                 if stats["paidSessionsBlocked"] == .bool(true) { Text("club.topic.paidSessionsBlocked") }
+            }
             }
             }
             ClubTerminalSessionEntry(snapshot: snapshot, context: terminalContext, snapshotGeneration: terminalGeneration,
@@ -2161,6 +2177,14 @@ struct ClubGovernanceReadView: View {
     }
     /// MP `_directorActivityId` (topic-detail js:587-592): the page was opened on one session and the director runs it.
     private var directorActive: Bool { directorModel != nil }
+    /// Inline bar title. MP governance js:224: `mode=appeal` titles the page 封禁申诉 (was an in-content headline).
+    private var pageTitleKey: String {
+        if operation == .customer { return "clubR3b.customer.title" }
+        if operation == .cases, let snapshot, let cases = try? ClubOpsCaseList(snapshot: snapshot), cases.appealMode {
+            return "club.gov.casesAppeal"
+        }
+        return "club.gov." + operation.rawValue
+    }
     /// MP `onPrepareSession` / `onStartSession` / `onFinishSession` (director.js:1431-1438): one command at the
     /// projection's revision; the projection refuses what the server does not offer (当前不能结束活动).
     private func sendDirector(_ action: PlayDirectorAction) {
@@ -2498,10 +2522,20 @@ struct ClubGovernanceEventView: View {
         }
         .cySheet(item: $answerSheetTarget) { target in
             PlayCloseSheetHost(
-                title: [appLocalized("club.story.answerTitle", locale: locale), answerSheetName].compactMap { $0 }.joined(separator: " · "),
+                title: appLocalized("club.story.answerTitle", locale: locale),
                 detents: [.half, .full],
                 onClose: { answerSheetTarget = nil }
             ) {
+                // MP topic-story wxml:117 (CU-C-152): the sheet title is just 答案; the play name is a wrapping sub line.
+                if let name = answerSheetName, !name.isEmpty {
+                    Text(verbatim: name)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, CYSpacing.lg)
+                        .accessibilityIdentifier("club.story.answer.nodeName")
+                }
                 if current(target) {
                     ClubGovernanceReadView(operation: .nodeAnswer, scope: target.scope, identity: identity, access: access, coordinator: coordinator)
                         .id(target.id)
@@ -2513,10 +2547,19 @@ struct ClubGovernanceEventView: View {
         }
         .cySheet(item: $hostAnswerTarget) { target in
             PlayCloseSheetHost(
-                title: [appLocalized("club.story.answerTitle", locale: locale), target.name].compactMap { $0 }.joined(separator: " · "),
+                title: appLocalized("club.story.answerTitle", locale: locale),
                 detents: [.half, .full],
                 onClose: { hostAnswerTarget = nil }
             ) {
+                if let name = target.name, !name.isEmpty {
+                    Text(verbatim: name)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, CYSpacing.lg)
+                        .accessibilityIdentifier("club.story.answer.nodeName")
+                }
                 ClubStoryHostAnswerSheetContent(topicID: target.topicID, nodeID: target.nodeID, context: hostAnswer)
                     .id(target.id)
             }
@@ -2614,7 +2657,7 @@ struct ClubGovernanceEventView: View {
                                     storyToastMessage = appLocalized("club.story.sourceUnavailable", locale: locale)
                                     return
                                 }
-                                answerSheetName = play.nodeName ?? play.title
+                                answerSheetName = play.title ?? play.nodeName
                                 answerSheetTarget = target
                             }
                             .accessibilityIdentifier("club.story.answer.\(play.id)")

@@ -25,9 +25,20 @@ and `#Preview { ... }` blocks; comments are ignored) and counts, per file:
                   dimmed overlay (use `.sheet` + `.presentationDetents`)
   raw colour      `Color(red:` / `UIColor(red:` / `Color(hex:` / `"#RRGGBB"` / `0xRRGGBB` outside App/DesignSystem
                   and App/Theme  -> semantic system colours or the CY palette
+  list style      `.listStyle(...)` other than `.insetGrouped` (190 sibling pages use `.insetGrouped`; a `.plain` /
+                  `.grouped` / `.inset` / `.sidebar` page next to them is a list-style mix)
+  custom sheet    an MP popup / half-screen built by hand instead of `.sheet` + `.presentationDetents`, outside
+                  App/DesignSystem: `.accessibilityAddTraits(.isModal)` (hand-made modal), a dimmed
+                  `CYColor.bgOverlay` / `Color.black.opacity(…)` scrim with `.ignoresSafeArea()` + `.onTapGesture`,
+                  or a drawn sheet grabber `Capsule()…frame(width: 3x–4x, height: 4–6)`
+  custom tabs     a hand-made tab bar / segment row outside App/DesignSystem: `ForEach` over tabs / segments whose
+                  rows are `Button`s compared against the selection (use `Picker` + `.cyAdaptiveSegmented()` or
+                  `CYTabs`), or the design-kit bottom bars `CYNightTabBar(` / `CYDomainTabBar(` used in place of the
+                  system `TabView` (App/QuestifyApp.swift)
 
 Baseline: tools/design_consistency_baseline.json
-  "allowed":  {file: {kind: reason}}  intentional chrome (game HUDs, full-screen maps, procedural art), never fails
+  "allowed":  {file: {kind: reason}}  intentional chrome (game HUDs, full-screen maps, procedural art), never fails;
+                                      an allowed kind with no hit left in its file is reported as stale and fails
   "baseline": {file: {kind: count}}   debt on this tree; a count above it fails, so new violations fail
 
   python3 tools/check_design_consistency.py            # check (exit 1 on a new violation)
@@ -54,8 +65,11 @@ CUSTOM_BACK = 'custom back'
 TITLE_MODE = 'title mode'
 BUTTON_STYLE = 'button style'
 POPUP_SCRIM = 'popup scrim'
+LIST_STYLE = 'list style'
+CUSTOM_SHEET = 'custom sheet'
+CUSTOM_TABS = 'custom tabs'
 KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, CUSTOM_BACK, BUTTON_STYLE, POPUP_SCRIM,
-         RAW_COLOUR)
+         RAW_COLOUR, LIST_STYLE, CUSTOM_SHEET, CUSTOM_TABS)
 
 # The five player tab roots (Core/RootTab.swift, QuestifyApp root TabView) and the files that own their title.
 # 漫游 is the full-screen map home: its chrome is allowed in the baseline instead.
@@ -102,6 +116,21 @@ BUTTON_STYLE_PATTERNS = (
 )
 # A hand-made dimmed full-screen scrim = an MP popup copied as an overlay. MP popups are `.sheet` with detents.
 POPUP_SCRIM_PATTERN = re.compile(r'Color\.black\.opacity\(\s*0?\.[2-8]\d*\s*\)\s*\.ignoresSafeArea\(')
+# One list pattern: the app's list pages are `.insetGrouped` (the iOS Settings look); anything else is a mix.
+LIST_STYLE_PATTERN = re.compile(r'\.listStyle\s*\(\s*(?!\.insetGrouped\b|InsetGroupedListStyle\s*\()([^)]*\)?)')
+# Hand-made MP popups / half-screens instead of `.sheet` + detents.
+CUSTOM_SHEET_PATTERNS = (
+    re.compile(r'\.accessibilityAddTraits\s*\(\s*(?:\[[^\]]*)?\.isModal\b'),
+    re.compile(r'(?:CYColor\.bgOverlay|Color\.black\.opacity\([^)]*\))\s*\.ignoresSafeArea\([^)]*\)\s*\.onTapGesture\b'),
+    re.compile(r'\bCapsule\(\)[^\n]*\.frame\(\s*width:\s*[34]\d(?:\.\d+)?\s*,\s*height:\s*[4-6](?:\.\d+)?\s*\)'),
+)
+# Hand-made tab bars: a ForEach over tabs / segments whose items are Buttons tested against the selection.
+TABS_FOREACH = re.compile(r'\bForEach\s*\([^\n]*\b(?:tabs|segments|\w*(?:Tab|Segment)\w*\.allCases)\b')
+TABS_BUTTON = re.compile(r'\bButton\b')
+TABS_SELECTED = re.compile(r'==\s*(?:self\.)?(?:selection|selected\w*|active|current|state\.selected\w*)\b|'
+                           r'\b(?:isSelected|on)\s*=\s*\w+(?:\.\w+)?\s*==')
+DS_TAB_BAR = re.compile(r'(?<![\w.])(?:CYNightTabBar|CYDomainTabBar)\s*\(')
+APP_ROOT = 'App/QuestifyApp.swift'
 COLOUR_PATTERNS = (
     re.compile(r'(?<![\w.])(?:UI)?Color\s*\(\s*red\s*:'),
     re.compile(r'(?<![\w.])(?:UI)?Color\s*\(\s*hex\s*:'),
@@ -213,6 +242,19 @@ def scan_file(rel, text):
             hits.append((number, POPUP_SCRIM, code.strip()))
         if not colour_exempt and any(p.search(code) for p in COLOUR_PATTERNS):
             hits.append((number, RAW_COLOUR, code.strip()))
+        if not design_system and LIST_STYLE_PATTERN.search(code):
+            hits.append((number, LIST_STYLE, code.strip()))
+        if not design_system and any(p.search(code) for p in CUSTOM_SHEET_PATTERNS):
+            hits.append((number, CUSTOM_SHEET, code.strip()))
+        if not design_system and rel != APP_ROOT and DS_TAB_BAR.search(code):
+            hits.append((number, CUSTOM_TABS, code.strip()))
+    if not design_system:
+        for index, (number, code) in enumerate(lines):
+            if not TABS_FOREACH.search(code):
+                continue
+            window = ' '.join(c for _, c in lines[index:index + 8])
+            if TABS_BUTTON.search(window) and TABS_SELECTED.search(window):
+                hits.append((number, CUSTOM_TABS, code.strip()))
     if not design_system and rel not in TITLE_MODE_EXEMPT and not any(ANY_MODE_PATTERN.search(c) for _, c in lines):
         for number, code in lines:
             if TITLE_PATTERN.search(code):
@@ -288,6 +330,13 @@ def main():
                 lines = [f'{rel}:{num}: {code[:160]}' for num, k, code in kept if k == kind]
                 failures.append((rel, kind, n, limit, lines))
 
+    stale = []
+    for rel, kinds in sorted(allowed.items()):
+        present = {kind for _, kind, _ in found.get(rel, [])}
+        for kind in kinds:
+            if kind not in present:
+                stale.append(f'{rel}: {kind}')
+
     below = 0
     for rel, kinds in baseline.items():
         for kind, limit in kinds.items():
@@ -306,6 +355,11 @@ def main():
                     row[kind] = value
             if row:
                 new[rel] = row
+        for row in stale:
+            rel, kind = row.split(': ', 1)
+            allowed.get(rel, {}).pop(kind, None)
+            if rel in allowed and not allowed[rel]:
+                del allowed[rel]
         data['baseline'] = new
         BASELINE.write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + '\n', encoding='utf-8')
         print(f'updated {BASELINE.relative_to(ROOT)}: {sum(sum(r.values()) for r in new.values())} baselined hits')
@@ -315,6 +369,11 @@ def main():
 
     summary = ', '.join(f'{k} {totals[k]}' for k in KINDS)
     allowed_summary = sum(allowed_totals.values())
+    if stale and not failures:
+        print('FAIL design consistency: stale "allowed" entries (no hit left; remove them from the baseline):')
+        for row in stale:
+            print(f'  {row}')
+        return 1
     if failures:
         print('FAIL design consistency: new violations of the one design system (owner rule 2):')
         for rel, kind, n, limit, lines in failures:
