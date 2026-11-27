@@ -453,6 +453,8 @@ import QuestifyCore
         }
         .listStyle(.insetGrouped)
         // Identify the list only; the inset actions keep their own accessible identities.
+        // As on the hub (73a06a74f), iOS 27 exposes this screen-level identifier only on an accessibility container.
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("roam.live.session")
     }
     /// First GO only: one inline card instead of a toggle the player must find first. Agreeing records the consent and

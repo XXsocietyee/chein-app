@@ -142,7 +142,15 @@ final class StoryWalkingFogAndWorkshopUpgradeViewTests: XCTestCase {
             candidate: breakingCandidate,
             coverage: .covered
         )
-        let breakingPresentation = WorkshopModUpgradePresentation(term: term, preview: breakingPreview)
+        // f9ca1f424 (reviewed 3fb0705 snapshot) replaced the hard-coded Chinese copy from 57af9d446 with
+        // WorkshopUpgradeCopy(locale:), defaulting to Locale.current. Pin zh-Hans like the Core
+        // WorkshopModUpgradePresentationTests so the "固定保持原版本" check does not depend on the
+        // simulator's AppleLocale (en_US yields the English notice; docs/parity/gap-wave-compare.md).
+        let breakingPresentation = WorkshopModUpgradePresentation(
+            term: term,
+            preview: breakingPreview,
+            locale: Locale(identifier: "zh-Hans")
+        )
 
         var capturedDraft: WorkshopUpgradeDraftRequest?
         let breakingSheet = WorkshopModUpgradeSheetView(presentation: breakingPresentation) { draft in

@@ -38,7 +38,14 @@ public struct ProjectEditCredentials: Equatable {
     public var supportsRequestReadback: Bool { allows(ProjectEditRequestContract.readPath) }
     public var supportsPostProcessingResume: Bool { allows(ProjectEditRequestContract.resumePostProcessingPath) }
     public var supportsRequestRetry: Bool { allows(ProjectEditRequestContract.submitPath) }
-    public var authority: ProjectEditServiceAuthority { supportsRequestRetry ? .approved : .readOnly }
+    /// C-F17 MP-first (owner 2026-11-25): `submit` sends the original topic route when the edit-request
+    /// envelope is not granted (China production). A granted original writer is therefore submit authority
+    /// too; `submit` still re-checks the exact path selected for each payload.
+    private var supportsOriginalRoute: Bool {
+        let paths: [String] = [ProjectEditStoryContract.createPath, ProjectEditStoryContract.updatePath, "api/topic/create", "api/topic/update"]
+        return paths.contains { allows($0) }
+    }
+    public var authority: ProjectEditServiceAuthority { supportsRequestRetry || supportsOriginalRoute ? .approved : .readOnly }
 
     public init(configuration: APIConfiguration, transport: any HTTPTransport, owner: ProjectEditOwner,
                 approval: OperationEndpointApproval? = nil, store: ProjectEditLocalStore? = nil,

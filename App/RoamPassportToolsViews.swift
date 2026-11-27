@@ -545,6 +545,8 @@ struct RoamAnniversaryReadIntent {
     private var model: RoamMonthlyRecapCoordinator { lifetime.model }
     private var readerID: ObjectIdentifier? { reader.map { ObjectIdentifier($0) } }
     @State private var pickedWeek: Int?
+    /// The detail whose route link was activated through the hosted accessibility path (same push as tapping it).
+    @State private var openedRouteDetail: UUID?
     init(reader: (any RoamPassportToolsReading)?, routeDestination: ((String) -> AnyView)?) {
         self.reader = reader; self.routeDestination = routeDestination
         _lifetime = StateObject(wrappedValue: Lifetime(reader: reader))
@@ -745,7 +747,9 @@ struct RoamAnniversaryReadIntent {
         .privacySensitive()
         .background(LifetimeAttachment(lifetime: lifetime).frame(width: 0, height: 0))
         .cySheet(item: detailBinding(model.presentation)) { presentation in Group {
-            RoamMonthlyRecapDetailView(model: model, presentation: presentation, routeDestination: routeDestination)
+            RoamMonthlyRecapDetailView(model: model, presentation: presentation, routeDestination: routeDestination,
+                routeOpened: Binding(get: { openedRouteDetail == presentation.id },
+                                     set: { openedRouteDetail = $0 ? presentation.id : nil }))
         }.cySheet(detents: [.large]) }
         .onAppear { lifetime.appear(reader, foreground: scenePhase == .active) }
         .onChange(of: scenePhase) { _, phase in
@@ -794,7 +798,11 @@ struct RoamAnniversaryReadIntent {
         }
         if let presentation = model.presentation, model.isCurrent(presentation),
            presentation.topicID != nil, routeDestination != nil {
-            items.append(RoamHostedAccessibilityItem(identifier: "roam.tools.recap.detail.openRoute"))
+            // Without an action this probe shadowed the detail's real route link and could never activate it.
+            items.append(RoamHostedAccessibilityItem(identifier: "roam.tools.recap.detail.openRoute", action: {
+                guard scenePhase == .active, model.isCurrent(presentation) else { return }
+                openedRouteDetail = presentation.id
+            }))
         }
         return items
     }

@@ -180,14 +180,7 @@ import UIKit
     }
 
     private func mount(_ rig: NearbyEntryRig) -> UIWindow {
-        let host = UIHostingController(rootView: RoamBrowserView(reader: rig.map,
-            onChooseArea: { rig.chooseArea() }, eventDestination: { _ in
-                rig.legacyOpens += 1; return AnyView(Text("Legacy business destination"))
-            }, nearbyEventDestination: { value in
-                rig.opened.append(value); return AnyView(Text("Original read-only detail").accessibilityIdentifier("nearby.original.readOnly"))
-            }, entryReader: rig.reader, entryTeams: { area in
-                rig.teamAreas.append(area); return rig.teamsFail ? nil : []
-            }).environment(\.locale, Locale(identifier: "en_US")).environment(\.scenePhase, .active))
+        let host = UIHostingController(rootView: NearbyEntryHarness(rig: rig))
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 430, height: 1100))
         window.rootViewController = host; window.makeKeyAndVisible()
         host.loadViewIfNeeded(); host.view.layoutIfNeeded(); return window
@@ -240,7 +233,26 @@ import UIKit
     }
 }
 
-@MainActor private final class NearbyEntryRig {
+/// The real browser host. `ManualMapAreaSelection` is not observable: in the app, choosing an area goes through the
+/// host's area picker state (`showsAreaPicker`, QuestifyApp), whose change re-renders the browser. The rig mirrors that
+/// host re-render with `areaRevision`; without it the peek's `.task(id: readKey)` never sees the new centre.
+@MainActor private struct NearbyEntryHarness: View {
+    @ObservedObject var rig: NearbyEntryRig
+    var body: some View {
+        let _ = rig.areaRevision
+        RoamBrowserView(reader: rig.map,
+            onChooseArea: { rig.chooseArea() }, eventDestination: { _ in
+                rig.legacyOpens += 1; return AnyView(Text("Legacy business destination"))
+            }, nearbyEventDestination: { value in
+                rig.opened.append(value); return AnyView(Text("Original read-only detail").accessibilityIdentifier("nearby.original.readOnly"))
+            }, entryReader: rig.reader, entryTeams: { area in
+                rig.teamAreas.append(area); return rig.teamsFail ? nil : []
+            }).environment(\.locale, Locale(identifier: "en_US")).environment(\.scenePhase, .active)
+    }
+}
+
+@MainActor private final class NearbyEntryRig: ObservableObject {
+    @Published private(set) var areaRevision = 0
     let reader: RoamEntryNearbyReader
     let access: RoamEntryNearbyReadAccess
     let map: RoamSessionReader
@@ -263,7 +275,7 @@ import UIKit
         map = .init(service: nil, currentSession: { nil }, searchArea: { nil })
         if selectArea { selection.select(area) }
     }
-    func chooseArea() { areaChoices += 1; selection.select(area) }
+    func chooseArea() { areaChoices += 1; selection.select(area); areaRevision += 1 }
 }
 @MainActor private final class NearbyEntryWire: HTTPTransport {
     var requests: [URLRequest] = [], fields: [[String: String]] = []

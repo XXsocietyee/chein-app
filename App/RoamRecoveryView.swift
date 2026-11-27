@@ -60,6 +60,8 @@ import Observation
             .onChange(of: presentation.readScope) { _, _ in presentation.reset() }
             .onChange(of: reader.identity) { _, _ in presentation.reset() }
             .onDisappear { presentation.setVisible(false) }
+            // Same as the hub (73a06a74f): iOS 27 only exposes a screen-level identifier on an accessibility container.
+            .accessibilityElement(children: .contain)
             .accessibilityIdentifier("roam.experience.recovery")
         .cyDomainScreen(.player)
     }

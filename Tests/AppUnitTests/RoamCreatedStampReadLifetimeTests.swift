@@ -250,13 +250,27 @@ import UIKit
         return try JSONDecoder().decode(RoamAlbumPage.self, from: JSONSerialization.data(withJSONObject: ["list": rows, "total": total ?? ids.count, "pageNum": number, "pageSize": 20]))
     }
     func album(page: Int, pageSize: Int) async throws -> RoamAlbumPage {
-        XCTAssertEqual(pageSize, 20); requests.append(page)
+        // The created-stamp lookup still reads 20 per page (Core/RoamCreatedStampLookup.swift:38). Since c42cf4d09
+        // (SALBUM-6, MP stamp-album index.js pageSize: 50) the pushed album reads StampAlbumIndexPageModel.sourcePageSize,
+        // and its pager rejects a page whose pageSize differs, so the same stored rows are echoed at the requested size.
+        let allowedSizes: [Int] = [20, StampAlbumIndexPageModel.sourcePageSize]
+        XCTAssertTrue(allowedSizes.contains(pageSize), "Unexpected album page size \(pageSize)"); requests.append(page)
         if let failure { throw failure }
         if hold {
             let index = requests.count
             return try await withCheckedThrowingContinuation { pending[index] = $0 }
         }
-        return try XCTUnwrap(pages[page])
+        return try resized(try XCTUnwrap(pages[page]), pageSize: pageSize)
+    }
+    private func resized(_ value: RoamAlbumPage, pageSize: Int) throws -> RoamAlbumPage {
+        guard value.pageSize != pageSize else { return value }
+        let rows: [[String: Any]] = value.list.map { stamp -> [String: Any] in
+            var row: [String: Any] = ["id": stamp.id, "picUrl": stamp.picUrl, "checkState": stamp.checkState]
+            if let caption = stamp.caption { row["caption"] = caption }
+            return row
+        }
+        let body: [String: Any] = ["list": rows, "total": value.total, "pageNum": value.pageNum, "pageSize": pageSize]
+        return try JSONDecoder().decode(RoamAlbumPage.self, from: JSONSerialization.data(withJSONObject: body))
     }
     func release(_ index: Int, page: RoamAlbumPage) {
         let continuation = pending.removeValue(forKey: index)

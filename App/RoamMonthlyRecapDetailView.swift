@@ -7,6 +7,8 @@ import SwiftUI
     let model: RoamMonthlyRecapCoordinator
     let presentation: RoamMonthlyRecapPresentation
     var routeDestination: ((String) -> AnyView)? = nil
+    /// Same push as the route NavigationLink, for its hosted accessibility action (owned by the recap list).
+    var routeOpened: Binding<Bool> = .constant(false)
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
@@ -30,12 +32,19 @@ import SwiftUI
                                 if scenePhase == .active && model.isCurrent(presentation) { routeDestination(topicID) }
                                 else { unavailable }
                             } label: { Label("roam.tools.anniversary.openRoute", systemImage: "map") }
-                                .background { RoamHostedAccessibilityAnchor(identifier: "roam.tools.recap.detail.openRoute") }
+                                .background {
+                                    // The anchor had no action, so a hosted activation of this id was a silent no-op.
+                                    RoamHostedAccessibilityAnchor(identifier: "roam.tools.recap.detail.openRoute", action: {
+                                        guard scenePhase == .active, model.isCurrent(presentation) else { return }
+                                        routeOpened.wrappedValue = true
+                                    })
+                                }
                                 .accessibilityIdentifier("roam.tools.recap.detail.openRoute")
                         }
                     }.cyGroupedSurface()
                 } else { unavailable }
             }
+            .navigationDestination(isPresented: routeOpened) { routeTarget }
             .cyText(.body)   // TRECAP-3 residue
             .tint(Theme.Color.accent(in: domain))
             .scrollContentBackground(.hidden)
@@ -58,6 +67,11 @@ import SwiftUI
         String(localized: LocalizedStringResource(
             String.LocalizationValue(stringLiteral: "roam.tools.recap.detail." + key),
             table: "RoamMonthlyRecap", locale: locale))
+    }
+    @ViewBuilder private var routeTarget: some View {
+        if let topicID = presentation.topicID, let routeDestination, scenePhase == .active, model.isCurrent(presentation) {
+            routeDestination(topicID)
+        } else { unavailable }
     }
     private var unavailable: some View {
         CYEmptyState(systemImage: "exclamationmark.circle", "topic.unavailable")
