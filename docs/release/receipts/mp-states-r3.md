@@ -79,6 +79,7 @@ match is a queue item (133 at the start). Tab roots first, then their pushed pag
 | `CYLoadingStateView(...).accessibilityLabel(Text(key))` sites (18: nearby, team, session nearby, IM, roam …) | page loading words | visible 加载中… while VoiceOver read a different page key | `CYLoadingStateView(label:)` — the page key is the visible label and the spoken one |
 | `CYSkeleton(...).accessibilityLabel(Text(key))` sites (48: roam hub, cooperation, play kits, mod installation, roam share …) | page loading words | visible 加载中… while VoiceOver read the page key | `CYSkeleton(label:)` — the page key is shown and spoken |
 | Skeleton + separate words pairs (growth leaderboard, poster scan, NPC log delete) | MP cy-skeleton with loading-label | `CYSkeleton` stacked over its own footnote (now would read twice) | one `ProgressView { <the same words> }` |
+| 城市大富翁 empties (`CityEmptyLine`, 5 sites: home rail, board, root, property sheet) | MP cy-empty | custom raised card (icon + secondary text on `bgRaised`) | `ContentUnavailableView` (symbol + the same sentence as the description) |
 
 ## Gates
 
