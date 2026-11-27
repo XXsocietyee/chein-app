@@ -540,8 +540,9 @@ private struct RoamStampImage: View {
                 RoamExperienceNotice(offline: offline)
                 Section {
                     if offline {
-                        Image(systemName: "building.2.crop.circle").font(.largeTitle).imageScale(.large)
-                            .foregroundStyle(Color.accentColor)
+                        // Sweep 22:20 (P24): the same bundled MP photo as the album tile.
+                        NativeStampAlbumTile.offlineArt(for: stamp.id, fill: false)
+                            .clipShape(.rect(cornerRadius: CYRadius.card))
                             .frame(maxWidth: .infinity, minHeight: 140)
                             .accessibilityLabel(Text("roam.experience.sampleArt"))
                     } else if allowsRemoteImages && (readOnlyScope?.allowsRemoteImages ?? true) {
