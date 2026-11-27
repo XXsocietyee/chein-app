@@ -690,7 +690,7 @@ struct PassKeyFrames: View {
         .onDisappear { timeline?.cancel() }
     }
 
-    /// MP `.ky` ground (reveal/index.wxss #0A0908; the night ink token is the in-system match): the key frames are baked on near-black, so the stage keeps it in both
+    /// MP `.ky` ground (reveal/index.wxss; near-black; the night ink token is the in-system match): the key frames are baked on near-black, so the stage keeps it in both
     /// appearances (MP `theme-dark`); a light page behind the frames would show a dark box.
     private static let stageGround = CYNight.ink0
 
