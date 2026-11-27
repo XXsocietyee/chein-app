@@ -239,7 +239,8 @@ import QuestifyCore
                     if let revision = receipt.contentRevisionNo { LabeledContent { Text(verbatim: "#" + revision) } label: { Text("creatorEditor.publish.revision", tableName: "CreatorEditorUI") } }
                 }
             } else if model.busy {
-                ProgressView()
+                ProgressView { Text("cy.state.loading") }
+                    .frame(maxWidth: .infinity)
             }
         } header: { Text("creatorEditor.draft", tableName: "CreatorEditorUI") }
     }
