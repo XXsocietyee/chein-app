@@ -144,8 +144,17 @@ Test: Tests/CoreTests/IMExpandedTests.swift `testSystemCardMiniProgramPagesOpen`
 | pages/addressinfo/addressinfo → ParticipantFormView | the screen wrapped the pushed form in its own `NavigationStack` | `Group` instead; the form's 取消 / 保存 stay | fixed |
 | pages/deregister/index and pages/shezhi/shezhi?scene=settings-deregister → AccountComplianceSheet | pushed page showed a `compliance.close` cancellation button next to system back | `showsCloseButton: false` (like pages/shezhi/marketing) | fixed |
 | pages/member/index/index, pages/roam/index reaching MPReviewedPageScreen (tab roots) | rendered a second AccountView / RoamBrowserView with its own stack | `MPTabHandoff` → `rootTabSwitch(.mine / .roam)` like pages/index/index (MP switchTab); hosts without the tab switch keep the old screen | fixed |
-| pages/shezhi/shezhi (plain) → SettingsView; subpackageRoam/poi-detail → RoamItemDetailView | own `NavigationStack` + 完成 / 关闭 `dismiss()` on the landed push | not changed: SettingsView's route owners retire on disappear (see Open); RoamItemDetailView needs an embed flag through RoamPOIDetailHost — next run | open |
+| subpackageRoam/poi-detail/index → RoamPOIDetailHost → RoamItemDetailView | own `NavigationStack` + 关闭 on the landed push | `embedsNavigationStack` (default true: the map place sheet keeps its stack and 关闭); RoamPOIDetailHost passes false, so the push has system back only | fixed |
+| pages/shezhi/shezhi (plain) → SettingsView | own `NavigationStack` + 完成 on the landed push | not changed: SettingsView's route owners retire on disappear and its profile routes use `navigationDestination(for:)` on the inner stack (see Open) | open |
 | `login-player`, `d2-inbox` tiles | still show 微信登录 / "Fixture conversation N": sweep build a250afd77 predates 81a815048 / 9723767a1 (not yet in `ui/combined-r7`) | — | OK (pending merge) |
+
+## Re-scan 11-27 21:0x (20:55 sweep row, mp-nav en)
+
+| MP page / edge → native | finding | change | status |
+|---|---|---|---|
+| pages/login → App/LoginView.swift (`login-player` en, sweep bb76e327c) | dead row "This isn't switched on yet." (`auth.notConfigured`, shown when no API base URL) under the sign-in buttons | row removed (P27: a gated channel renders nothing); the phone page itself still reports the unconfigured error when tapped. `region.usLoginPending` kept: it is the US regional notice, not a dead channel (RegionalEntryFlowTests) | fixed |
+| same screen, channel order | Sign in with Apple sat above phone sign-in and demoted the phone button to `.bordered` | phone sign-in first and always the one `.borderedProminent` action (no password form); Apple's `SignInWithAppleButton` under it only when `appleConfigurationVerified` (gated → nothing); WeChat row after, only when offered | fixed |
+| backend contract 20:40 `/api/compliance/usage-records` (Core/UsageConsentRead.swift:38) → App/SettingsView.swift 设置 list | the only caller is the app-only 同意记录 / usage-evidence row (`UsageConsentReadSettingsEntry`); MP pages/shezhi/shezhi.wxml:14-35 has no such row and the backend does not serve the path, so the page could only show its error | row removed from 设置 (MP list order unchanged); no screen reaches the path any more. Agreement state stays on `/api/compliance/consents/latest` (registration, deregistration, checkout). Core reader + its unit tests left in place (unreachable) so no pin moves; route-capability entry left for debt-r3/coordinator to retire | fixed |
 
 ## Route coverage
 
