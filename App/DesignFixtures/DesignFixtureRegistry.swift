@@ -230,7 +230,7 @@ enum E4Fixtures {
         case "e4-participants": return wrap(ParticipantFixtureHostView())
         case "e4-self-projects": return wrap(ProfileSelfProjectsFixtureHost(scenario: "content"))
         case "e4-self-growth": return wrap(ProfileSelfGrowthFixtureHost(scenario: "content"))
-        case "e4-self-medals": return wrap(ProfileSelfMedalsFixtureHost(scenario: "content"))
+        case "e4-self-medals": return wrap(ProfileSelfMedalsFixtureHost(scenario: "content", showsTestControls: false))
         case "e4-template-mine": return wrap(TemplateAuthoringFixtureHostView())
         case "e4-wallet-income": return wrap(WalletCommerceFixtureHost(designPage: "income"))
         case "e4-wallet-points": return wrap(WalletCommerceFixtureHost(designPage: "points"))
@@ -775,7 +775,8 @@ private actor T5OrderCenterTransport: HTTPTransport {
         if failed {
             return (Data(#"{"code":404,"msg":"订单不存在"}"#.utf8), 404)
         }
-        let json = #"{"code":200,"msg":"ok","data":{"kind":"COMMERCE","id":"42","orderNo":"CY20260001","title":"杭州老城畅玩卡","statusText":"已支付","amountText":"168.00","createdAtText":"2026-11-14 10:00"}}"#
+        // mp-mine r3 (19:36 sweep): server-shaped fixture text follows the launch language.
+        let json = #"{"code":200,"msg":"ok","data":{"kind":"COMMERCE","id":"42","orderNo":"CY20260001","title":"\#(iaFixtureText("Hangzhou Old Town play pass", "杭州老城畅玩卡"))","statusText":"\#(iaFixtureText("Paid", "已支付"))","amountText":"168.00","createdAtText":"2026-11-14 10:00"}}"#
         return (Data(json.utf8), 200)
     }
 }
