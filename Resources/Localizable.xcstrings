@@ -341706,6 +341706,23 @@
           }
         }
       }
+    },
+    "roamSub.w208.stamp.retake": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retake"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重拍"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
