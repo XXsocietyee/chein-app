@@ -121,6 +121,7 @@ struct PassportBadge: Identifiable, Equatable {
                 let page = try await album.album(page: 1, pageSize: PassportStampGrid.slots)
                 guard !Task.isCancelled else { return }
                 stampCount = page.total
+                QuestWidgetBoardPublisher.stamps(page.total)
                 thumbnails = page.list.filter(\.isVisible).map(PassportStampThumbnail.init(stamp:))
                 stampPhase = .ready
                 return
@@ -139,6 +140,7 @@ struct PassportBadge: Identifiable, Equatable {
         do {
             let records = try reader.history()
             stampCount = try RoamPassportHome(records: records).stamps
+            QuestWidgetBoardPublisher.stamps(stampCount)
             stampPhase = .ready
         } catch is CancellationError {
             return

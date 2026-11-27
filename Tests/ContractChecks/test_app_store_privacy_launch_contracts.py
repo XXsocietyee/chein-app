@@ -48,7 +48,7 @@ class AppStorePrivacyLaunchContracts(unittest.TestCase):
         apis = {item['NSPrivacyAccessedAPIType']: item['NSPrivacyAccessedAPITypeReasons']
                 for item in manifest['NSPrivacyAccessedAPITypes']}
         self.assertEqual(apis, {
-            'NSPrivacyAccessedAPICategoryUserDefaults': ['CA92.1'],
+            'NSPrivacyAccessedAPICategoryUserDefaults': ['CA92.1', '1C8F.1'],
             'NSPrivacyAccessedAPICategoryFileTimestamp': ['C617.1', '3B52.1'],
             'NSPrivacyAccessedAPICategorySystemBootTime': ['35F9.1'],
         })

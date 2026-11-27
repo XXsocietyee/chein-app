@@ -345,6 +345,7 @@ import SwiftUI
             let snapshot = try await reader.ticketWallet()
             guard !Task.isCancelled else { return }
             todayTicket = HomeTodayCandidate.nextTicket(from: snapshot.tickets, now: Date())
+            QuestWidgetBoardPublisher.nextTicket(todayTicket)
         } catch is CancellationError { return } catch { todayTicket = nil }
     }
     private func reloadContinuationCards() async {

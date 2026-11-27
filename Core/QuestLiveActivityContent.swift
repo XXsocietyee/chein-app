@@ -131,9 +131,9 @@ public struct QuestNextStopSnapshot: Codable, Hashable, Sendable {
     }
 }
 
-/// App Group storage shared by the app and the widget extension. Dormant until both targets carry the
-/// `group.<app bundle id>` App Group entitlement: without it there is no shared container, reads return nil
-/// and writes are skipped, so the widget shows its passport / roam entry only.
+/// App Group storage shared by the app and the widget extension. Both targets carry the
+/// `group.com.chengyinhub.chengyinApp` App Group entitlement (components r1, C2); without a provisioned container
+/// reads return nil and writes are skipped, so the widget shows its passport / roam entry only.
 public enum QuestWidgetStore {
     public static let nextStopKind = "QuestNextStopWidget"
     static let snapshotKey = "questWidget.nextStop"
@@ -146,10 +146,17 @@ public enum QuestWidgetStore {
         return id.isEmpty ? nil : "group." + id
     }
 
+    /// The App Group in `Config/Questify.entitlements` and `Config/QuestifyLiveActivity.entitlements`.
+    public static let appGroup = "group.com.chengyinhub.chengyinApp"
+
+    /// The entitled group first (Debug builds use a placeholder bundle id), then the bundle-derived one.
     static func sharedDefaults() -> UserDefaults? {
-        guard let group = appGroupIdentifier(bundleIdentifier: Bundle.main.bundleIdentifier),
-              FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group) != nil else { return nil }
-        return UserDefaults(suiteName: group)
+        let candidates: [String?] = [appGroup, appGroupIdentifier(bundleIdentifier: Bundle.main.bundleIdentifier)]
+        for group in candidates.compactMap({ $0 })
+        where FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group) != nil {
+            return UserDefaults(suiteName: group)
+        }
+        return nil
     }
 
     /// The stored snapshot while it is younger than `QuestNextStopSnapshot.lifetime`.

@@ -15684,6 +15684,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "BE0D611936384AA93E9AE75F";
 		};
+		"BAAC25D26D7668119DA0E345" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/QuestWidgetBoardPublisher.swift";
+			"sourceTree" = "<group>";
+		};
+		"AD5550E594D33975A1A81EFF" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "BAAC25D26D7668119DA0E345";
+		};
 		"44FF6526D3EDDFF8AA848DB9" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -35434,6 +35444,26 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "663E7E002CE3C42C4C7F5BFA";
 		};
+		"8F48DC8A2C9B2F5E8A03D808" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/QuestWidgetBoard.swift";
+			"sourceTree" = "<group>";
+		};
+		"7714D14A260F28213AB5B663" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "8F48DC8A2C9B2F5E8A03D808";
+		};
+		"8728A36A2784C5535682EAB8" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/QuestWidgetControlIntent.swift";
+			"sourceTree" = "<group>";
+		};
+		"2DD0444A05EA5F35ECB39FBD" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "8728A36A2784C5535682EAB8";
+		};
 		"F917F3BA5AB032B4E681D068" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -44281,6 +44311,7 @@
 				"EB6C2AB0E225E43EFDD202D9",
 				"500C646E7399E2CD937954E8",
 				"BE0D611936384AA93E9AE75F",
+				"BAAC25D26D7668119DA0E345",
 				"44FF6526D3EDDFF8AA848DB9",
 				"4ADD2A35809AACF3F412FADE",
 				"CC6FDBF8441B499279121AB9",
@@ -46256,6 +46287,8 @@
 				"8DF458D8E9C4EF1BB4404054",
 				"5EF1789058C2B51119086395",
 				"663E7E002CE3C42C4C7F5BFA",
+				"8F48DC8A2C9B2F5E8A03D808",
+				"8728A36A2784C5535682EAB8",
 				"F917F3BA5AB032B4E681D068",
 				"58959F9022125E892868F086",
 				"29586EB8285170E9A143ABC5",
@@ -46984,6 +47017,8 @@
 				"2DE2C287CCE985622F66EC30",
 				"0A3E27B8CA818264D75C8D81",
 				"CC88D95D0636B7861B729139",
+				"FEEFCC27C3C5238529068915",
+				"84EF768936D7FDD1853D9017",
 				"365F73A970B565579A7AD1D5",
 				"FEB51C522DB0B5900B078EBC",
 				"933AD57564F3676A9676415D",
@@ -49732,6 +49767,7 @@
 				"E9E52DB5D157D1C0B67EC108",
 				"B7F9A4B3994F26DCEEFFA019",
 				"1EDACA2004C250D72F8451D5",
+				"AD5550E594D33975A1A81EFF",
 				"D5A32CFBA3E396C0AED0C327",
 				"5DBB3F82CC036FDFA4619A5F",
 				"B921FE403541AE72A1D57BC3",
@@ -51707,6 +51743,8 @@
 				"736B5FF36BA7A88954391AFE",
 				"DB4E47649D9AEAD98A31279D",
 				"9BD80C8FC1670C81FBCEAD14",
+				"7714D14A260F28213AB5B663",
+				"2DD0444A05EA5F35ECB39FBD",
 				"D58ADDC34F4143D38C7BF471",
 				"E9E0987FDDA1C5FCFCEFD01E",
 				"C6458A461B868E9A3319BC74",
@@ -52511,6 +52549,26 @@
 			);
 			"runOnlyForDeploymentPostprocessing" = 0;
 		};
+		"FEEFCC27C3C5238529068915" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "LiveActivityWidget/QuestBoardWidgets.swift";
+			"sourceTree" = "<group>";
+		};
+		"79C8EA36BAC3B8D06E85C097" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "FEEFCC27C3C5238529068915";
+		};
+		"84EF768936D7FDD1853D9017" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "LiveActivityWidget/QuestControlWidgets.swift";
+			"sourceTree" = "<group>";
+		};
+		"D7E3A592FA77608697354F48" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "84EF768936D7FDD1853D9017";
+		};
 		"365F73A970B565579A7AD1D5" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -52576,6 +52634,7 @@
 				"SKIP_INSTALL" = "YES";
 				"LD_RUNPATH_SEARCH_PATHS" = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
 				"SWIFT_OPTIMIZATION_LEVEL" = "-Onone";
+				"CODE_SIGN_ENTITLEMENTS" = "Config/QuestifyLiveActivity.entitlements";
 				"SWIFT_ACTIVE_COMPILATION_CONDITIONS" = "DEBUG $(inherited)";
 			};
 		};
@@ -52597,6 +52656,7 @@
 				"SKIP_INSTALL" = "YES";
 				"LD_RUNPATH_SEARCH_PATHS" = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
 				"SWIFT_OPTIMIZATION_LEVEL" = "-O";
+				"CODE_SIGN_ENTITLEMENTS" = "Config/QuestifyLiveActivity.entitlements";
 			};
 		};
 		"31AA0DC52ECD09F03B031F58" = {
@@ -52613,6 +52673,10 @@
 			"buildActionMask" = 2147483647;
 			"files" = (
 				"DB4E47649D9AEAD98A31279D",
+				"7714D14A260F28213AB5B663",
+				"2DD0444A05EA5F35ECB39FBD",
+				"79C8EA36BAC3B8D06E85C097",
+				"D7E3A592FA77608697354F48",
 				"49F85B27D9500C7E5C7B71DA",
 				"2FCB788F4335268BC74809ED",
 				"E8CE74022D92C78D95FE726F",

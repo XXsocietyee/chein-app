@@ -7,6 +7,7 @@ struct QuestifyApp: App {
     init() {
         MPNotificationTapRouter.shared.attach()
         QuestLiveActivityCenter.shared.endOrphanedActivities()
+        QuestWidgetBoardPublisher.installControlRoute()
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--uitesting-reset-language") {
             UserDefaults.standard.set(AppLanguage.system.rawValue,forKey:"preferences.language")
@@ -529,8 +530,9 @@ struct SessionRootView: View {
         .onChange(of: presentation.hasBlockingSheet) { _, _ in replayDeepLink() }
         .onChange(of: presentation.consentActive) { _, _ in replayDeepLink() }
         .onChange(of: browsingAsGuest) { _, _ in replayDeepLink() }
-        .onChange(of: session.account?.id) { _, accountID in
+        .onChange(of: session.account?.id) { previous, accountID in
             replayDeepLink()
+            QuestWidgetBoardPublisher.accountChanged(from: previous, to: accountID)
             merchantRootCoordinator.handleSessionChange(accountID: accountID, isSignedIn: session.isSignedIn, isConfigured: session.isConfigured, revision: session.sessionRevision)
         }
         .onChange(of: session.sessionRevision) { _, revision in
@@ -600,6 +602,7 @@ struct SessionRootView: View {
         .environment(\.personalLocationShareHost, session.personalLocationShareHost)
         .onChange(of: personalShareScenePhase, initial: true) { _, phase in
             session.personalLocationShareHost.sceneChanged(phase)
+            if phase == .active { QuestWidgetBoardPublisher.openParkedControlRoute() }
         }
         .environment(\.nativeAttributeAuthorProjectFactory, session.nativeAttributeAuthorProjectFactory)
         .environment(\.projectCategoryReader, session)

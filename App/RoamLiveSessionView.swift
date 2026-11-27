@@ -523,6 +523,7 @@ import QuestifyCore
         if id == nil {
             finishReport = nil
         } else {
+            QuestWidgetBoardPublisher.roamHistory((try? model.finishedHistory.history()) ?? [])
             if var report = RoamFinishReport(controller: owner, history: model.finishedHistory) {
                 report.currentAddress = model.finishAddress.text(chinese: AppLanguage.interfaceIsChinese(locale))
                 finishReport = report
