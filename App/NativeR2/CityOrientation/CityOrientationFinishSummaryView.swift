@@ -13,6 +13,9 @@ import MapKit
     let shareText: String
     let walkedMeters: Double
     var reportDestination: AnyView? = nil
+    /// mp-journey r3: MP finsheet 本局成绩 (`finish-journal-entry`, chapter finish of a mode 1 run with an orient session),
+    /// right before 本局战报. Nil hides the row.
+    var scoreDestination: AnyView? = nil
     /// The MP badge collection for the first medal earned here (P8: "see the collection"); nil hides the link.
     var collectionDestination: AnyView? = nil
     let onClose: () -> Void
@@ -147,6 +150,14 @@ import MapKit
                     }
                 }
                 rankingSection
+                if let scoreDestination {
+                    Section {
+                        NavigationLink { scoreDestination } label: {
+                            Label("playx.finish.sessionScore", systemImage: "list.number")
+                        }
+                        .accessibilityIdentifier("playx.finish.sessionScore")
+                    }
+                }
                 if let reportDestination {
                     Section {
                         NavigationLink { reportDestination } label: {
