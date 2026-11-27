@@ -19,6 +19,7 @@ Whole-tree scans done first (player files; Merchant / Fixture / Diagnostics / *S
 |---|---|---|---|---|
 | `pages/index/index` (Home tab root) | `HomeFeedView.swift`, `HomeSearchTabParityViews.swift` (hero) | ✓ (mp-home owns order) | Verified: rails switch to full-width rows at AX sizes, banner autoplay stops for Reduce Motion + VoiceOver, page dots hidden, avatar/city 44 pt, greeting header trait. No change needed. | Done |
 | `pages/roam/index` (Roam map home) | `NativeR2/MapHome/RoamMapHomePanel.swift` | ✓ (mp-roam owns order) | Verified: panel handle is adjustable for VoiceOver (peek/medium/large value), peek height scaled for Dynamic Type and capped at 40 %. No change needed. | Done |
+| `pages/member/index` (Me tab root, passport block) | `PassportView.swift` (`actions`) | ✓ (mp-mine owns order) | 票夹 / 钱包 / 消息 capsule row → `AnyLayout` VStack at AX sizes (same buttons, same order), so labels no longer break one glyph per line; stamp grid / badge rail already adapt (verified) | Done |
 | City ordered run (`subpackageJourney` city route list) | `CityOrderedMapView.swift` | ✓ | Stop number circle 28 pt → `@ScaledMetric(relativeTo: .footnote)` | Done |
 | `pages/activity` official route detail | `E1OfficialRouteParts.swift` | ✓ | Route node number circle 28 pt → `@ScaledMetric(relativeTo: .body)` | Done |
 | Growth leaderboard (`subpackageMember` rank) | `GrowthLeaderboardView.swift` (podium) | ✓ | Podium place badge 28 pt → `@ScaledMetric(relativeTo: .caption)` | Done |
@@ -34,7 +35,7 @@ Whole-tree scans done first (player files; Merchant / Fixture / Diagnostics / *S
 ## Not done (next run starts here)
 - `CityOrientationRunView.swift:190` teammate initial on the map annotation (28 pt, `.caption.bold()`): Map annotation;
   decide whether to scale or cap. 
-- Next pages without a row: Publish tab root (`PublishTabRootView`), Club home (`ClubHomeView`), Me (`PassportView`)
+- Next pages without a row: Publish tab root (`PublishTabRootView`), Club home (`ClubHomeView`)
   full AX5 / VoiceOver order pass; `.lineLimit(1)` audit on tab-root rows (P12 + AX5).
 
 ## For other lanes
