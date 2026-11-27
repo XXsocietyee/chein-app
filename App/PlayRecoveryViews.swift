@@ -86,10 +86,7 @@ private func recoveryText(_ key: String) -> String { String(localized: String.Lo
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             switch state {
             case .checking:
-                HStack(spacing: CYSpacing.sm) {
-                    ProgressView()
-                    Text("submit.checking", tableName: table).cyText(.body)
-                }
+                ProgressView { Text("submit.checking", tableName: table) }
             case .pending:
                 CYStatusChip(verbatim: recoveryText("submit.pending.chip"), tone: .warning, systemImage: "clock")
                 Text("submit.pending.body", tableName: table).cyText(.caption).foregroundStyle(CYColor.textSecondary)
@@ -350,9 +347,11 @@ enum PlayOfflinePackEnvironment {
         Group {
             if let model { PlayOfflinePackView(model: model) }
             else if attempted {
-                Text("pack.unavailable", tableName: table).cyText(.body).foregroundStyle(CYColor.textSecondary)
-                    .padding().accessibilityIdentifier("playRecovery.pack.unavailable")
-            } else { ProgressView() }
+                ContentUnavailableView {
+                    Label { Text("pack.unavailable", tableName: table) } icon: { Image(systemName: "arrow.down.circle") }
+                }
+                .accessibilityIdentifier("playRecovery.pack.unavailable")
+            } else { ProgressView { Text("cy.state.loading") } }
         }
         .task { if model == nil { model = make(); attempted = true } }
     }
