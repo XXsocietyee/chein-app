@@ -1291,7 +1291,8 @@ extension EnvironmentValues {
     @State private var codeOn = false
     @State private var statusReady = false
     @State private var working = false
-    @State private var titleKey = "platformCode.title"
+    /// MP `codeTitle`: empty until a status or result says something (the nav title already reads 兑换码).
+    @State private var titleKey = ""
     @State private var claimed = false
     @State private var topicID: Int?
     @State private var openingLibrary = false
@@ -1299,10 +1300,24 @@ extension EnvironmentValues {
 
     var body: some View {
         Form {
+            // MP gf-hero: gift icon (check once claimed), dimmed on an error, with `codeTitle` under it when there is one.
             Section {
-                Text(LocalizedStringKey(titleKey))
-                    .font(.headline)
-                    .accessibilityIdentifier("platformCode.title")
+                VStack(spacing: CYSpacing.sm) {
+                    Image(systemName: claimed ? "checkmark.circle.fill" : "gift.fill")
+                        .font(.largeTitle)
+                        .foregroundStyle(codeError ? Color.secondary : (claimed ? Color.green : Color.accentColor))
+                        .contentTransition(.symbolEffect(.replace))
+                        .accessibilityHidden(true)
+                    if !titleKey.isEmpty {
+                        Text(LocalizedStringKey(titleKey))
+                            .font(.headline)
+                            .multilineTextAlignment(.center)
+                            .accessibilityAddTraits(.updatesFrequently)
+                            .accessibilityIdentifier("platformCode.title")
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, CYSpacing.sm)
             }
             if statusReady, codeOn, !claimed {
                 Section {
@@ -1312,6 +1327,8 @@ extension EnvironmentValues {
                         .submitLabel(.done)
                         .onChange(of: code) { _, value in
                             if value.count > 64 { code = String(value.prefix(64)) }
+                            // MP onCodeInput clears codeTitle / codeErr while typing.
+                            if !working { titleKey = "" }
                         }
                         .accessibilityIdentifier("platformCode.input")
                 }
@@ -1352,6 +1369,10 @@ extension EnvironmentValues {
         .navigationDestination(isPresented: $openingTopic) {
             if let topicID { SessionTopicDetailView(id: topicID, session: session) }
         }
+    }
+
+    private var codeError: Bool {
+        !titleKey.isEmpty && titleKey != "platformCode.success" && titleKey != "platformCode.replayed"
     }
 
     private func loadStatus() async {
