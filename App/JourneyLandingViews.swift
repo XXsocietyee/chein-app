@@ -314,7 +314,7 @@ struct JourneyLandingView: View {
             }
         }
         // N-JOURNEY-1 (r10) / N-r11-3: the system grouped page (MP subpackageJourney/pages/landing).
-        .background(Color(uiColor: .systemGroupedBackground))
+        .background(CYColor.bgPage)
         .navigationBarTitleDisplayMode(.inline)
     }
 

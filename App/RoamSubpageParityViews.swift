@@ -143,7 +143,7 @@ struct RoamRunCardParityMeta: View {
             .padding(.vertical, 12)
             .frame(maxWidth: .infinity, minHeight: 64)
             // N-r11-4: system grouped surface instead of night glass.
-            .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
     }
 }
 

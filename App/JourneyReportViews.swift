@@ -357,7 +357,7 @@ struct JourneyRankBoardView: View {
                     .accessibilityIdentifier("rankBoard.unverified")
             }
         }
-        .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
     }
 }
 
@@ -495,7 +495,7 @@ struct JourneyReportView: View {
                 ready(report)
             }
         }
-        .background(Color(uiColor: .systemGroupedBackground)) // N-r11-3
+        .background(CYColor.bgPage) // N-r11-3
         .navigationTitle(Text(title))
         .navigationBarTitleDisplayMode(.inline)
         .cySheet(isPresented: $rankShown) {

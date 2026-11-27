@@ -103,7 +103,7 @@ struct RoamCityGuideCards: View {
                         }
                         .frame(width: 240, alignment: .leading)
                         .padding(10)
-                        .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(Text(verbatim: item.name))
