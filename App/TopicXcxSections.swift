@@ -256,6 +256,8 @@ struct TopicXcxLineup: View {
 /// primary on the right. 查看场次 is a quiet text action under the price; share and favourite live in the navigation bar.
 struct TopicXcxActionBar: View {
     @Environment(\.locale) private var locale
+    /// en-layout r3: at accessibility sizes the price stacks above the primary button (English CTA + price overflow one row).
+    @Environment(\.dynamicTypeSize) private var typeSize
     let topic: TopicDetail
     var openSessions: () -> Void
     var openSelfPlay: () -> Void
@@ -325,9 +327,11 @@ struct TopicXcxActionBar: View {
     private var barContent: some View {
             VStack(spacing: 6) {
                 if topic.merchantClosed && !topic.isSignUp { Text("topicXcx.merchantClosed").font(.subheadline).foregroundStyle(.orange) }
-                HStack(alignment: .center, spacing: CYSpacing.md) {
+                (typeSize.isAccessibilitySize
+                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
+                    : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.md))) {
                     priceColumn
-                    Spacer(minLength: CYSpacing.sm)
+                    if !typeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
                     switch TopicXcxFacts.action(topic, preferSession: preferSession) {
                     case .ticketWallet:
                         if let openTickets {

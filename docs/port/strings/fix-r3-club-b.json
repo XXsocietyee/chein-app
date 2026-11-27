@@ -635,9 +635,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Send to %lld people"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Send to %lld person"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Send to %lld people"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
