@@ -39,7 +39,7 @@ import SwiftUI
                     Text("journey.record.askImpact")
                     Button("journey.confirm") { Task { await model.confirm(review) } }.disabled(model.busy)
                         .accessibilityIdentifier("journey.record.confirm")
-                }.cyGroupedSurface().navigationTitle("journey.record.questions")
+                }.cyGroupedSurface().navigationTitle("journey.record.questions").navigationBarTitleDisplayMode(.inline)
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("journey.cancel") { model.cancelReview() }.disabled(model.busy) } }
             }.interactiveDismissDisabled(model.busy)
         }

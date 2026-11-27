@@ -207,6 +207,7 @@ import SwiftUI
         }
         .nativeAuthorSurface()
         .navigationTitle(Text(verbatim: copy.text("zeroHP.copy.030")))
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) { Button(copy.text("zeroHP.copy.031")) { guard editor.editToken == token else { return }; editor.retire(); dismiss() }.accessibilityIdentifier("zeroHPAuthor.cancel") }
             ToolbarItem(placement: .confirmationAction) { Button(copy.text("zeroHP.copy.032")) { Task { if await editor.finish(token) { dismiss() } } }.disabled(!editor.canFinish).accessibilityIdentifier("zeroHPAuthor.done").accessibilityHint(Text(copy.completionHint(readOnly: editor.staged?.readOnly == true))) }

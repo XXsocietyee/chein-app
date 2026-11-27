@@ -29,7 +29,7 @@ import SwiftUI
                         .id("\(row.id)-\(row.visitCheck.rawValue)-\(row.visitRadius ?? 0)")
                 }
             }
-        }.navigationTitle("feVisitConfig.title").accessibilityIdentifier("feVisitConfig.list")
+        }.navigationTitle("feVisitConfig.title").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("feVisitConfig.list")
             .task { if model.phase == .idle { await model.load() } }
             .refreshable { await model.load() }
     }

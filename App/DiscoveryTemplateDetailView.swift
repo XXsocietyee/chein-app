@@ -446,6 +446,7 @@ struct DiscoveryTopicTemplatePreview: View {
             }
         }
         .appNavigationTitle("discovery.topicPreview")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if let item = detail.value {
                 ToolbarItem(placement: .topBarTrailing) {

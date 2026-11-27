@@ -152,7 +152,7 @@ import SwiftUI
                     Section("advancedBoard.title") { PlayAdvancedLeaderboardView(model: model, surfaceID: teamSurfaceID) }
                 }
             }
-        }.cyGroupedSurface().privacySensitive().navigationTitle("playx.advanced").accessibilityIdentifier("playx.advanced.view")
+        }.cyGroupedSurface().privacySensitive().navigationTitle("playx.advanced").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("playx.advanced.view")
         .onAppear { teamSurfaceVisible = true; model.beginTeamSurface(id: teamSurfaceID) }
         .task(id: model.state?.version) { await model.loadAdvancedLeaderboard(surfaceID: teamSurfaceID) }
         .onDisappear { teamSurfaceVisible = false; model.endTeamSurface(id: teamSurfaceID); model.closeAdvancedPanel() }

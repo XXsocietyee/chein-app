@@ -27,6 +27,7 @@ import SwiftUI
                 .listStyle(.insetGrouped)
                 .nativeChannelScreen()
                 .navigationTitle(Text("privacy", tableName: "NativeChannelProgress"))
+                .navigationBarTitleDisplayMode(.inline)
             }
         }
         .onAppear { isVisible = true; reopen() }
@@ -158,6 +159,7 @@ import SwiftUI
         }
         .nativeChannelScreen()
         .navigationTitle(Text("privacy", tableName: "NativeChannelProgress"))
+        .navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
         .onAppear { confirmation.enter(); actions.activate() }
         .task {

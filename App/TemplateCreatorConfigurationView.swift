@@ -41,7 +41,7 @@ import Combine
                     }
                 }
             }
-        }.formStyle(.grouped).navigationTitle(LocalizedStringKey(family.labelKey)).disabled(!model.canEdit)
+        }.formStyle(.grouped).navigationTitle(LocalizedStringKey(family.labelKey)).navigationBarTitleDisplayMode(.inline).disabled(!model.canEdit)
             .accessibilityIdentifier("creator.form." + family.rawValue)
     }
 }

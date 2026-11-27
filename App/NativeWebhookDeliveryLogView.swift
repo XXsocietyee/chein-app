@@ -74,6 +74,7 @@ import SwiftUI
         }
         .nativeChannelFlowPage()
         .navigationTitle(nativeWebhookLocalized("d7.webhook.deliveries.title"))
+        .navigationBarTitleDisplayMode(.inline)
         .task { await read() }
         .onChange(of: filter) { _, _ in Task { await read() } }
         .onChange(of: includePayload) { _, _ in Task { await read() } }

@@ -81,6 +81,7 @@ import SwiftUI
         }
         .nativeChannelScreen()
         .navigationTitle(Text("d7.checkin.title"))
+        .navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
         .task(id: available) { if available { await flow.activate(current: current) } else { stop() } }
         .onChange(of: current()) { _, valid in if !valid { stop() } }
@@ -233,6 +234,7 @@ import SwiftUI
         .nativeChannelScreen()
         .listStyle(.insetGrouped)
         .navigationTitle(Text("d7.checkinRank.title"))
+        .navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
         .task(id: available) { if available { active = true; await load(10) } else { stop() } }
         .onChange(of: current()) { _, valid in if !valid { stop() } }

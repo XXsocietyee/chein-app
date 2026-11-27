@@ -69,6 +69,7 @@ import SwiftUI
         }
         .nativeChannelScreen()
         .navigationTitle(Text("d7.chain.title"))
+        .navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
         .task(id: available) {
             if available { await flow.activate(current: current) }

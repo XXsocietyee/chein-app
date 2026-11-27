@@ -202,6 +202,7 @@ import SwiftUI
         }
         .listStyle(.insetGrouped)
         .navigationTitle(Text("friend.title", tableName: "NativeFriend"))
+        .navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("friend.home")
         .task { await flow.load() }
         .refreshable { await flow.load() }

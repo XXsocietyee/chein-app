@@ -706,7 +706,7 @@ private extension IMOutgoingPayload {
     init(owner: IMExpandedCoordinator,current:@escaping ()->Bool) { _model=StateObject(wrappedValue:IMExpandedViewModel(owner));self.current=current }
     private var available: Bool { phase == .active && current() && model.owner.isCurrent }
     var body: some View {
-        Form { locationSections }.imFlowForm().navigationTitle(Text("d7.imLocation.title")).privacySensitive()
+        Form { locationSections }.imFlowForm().navigationTitle(Text("d7.imLocation.title")).navigationBarTitleDisplayMode(.inline).privacySensitive()
          .toolbar { ToolbarItem(placement:.cancellationAction) { Button("action.close") { dismiss() } } }
          .onChange(of:latitude) { _,_ in if pickedMapSignature != latitude+"|"+longitude { confirmedDatum=false;pickedMapSignature=nil } }
          .onChange(of:longitude) { _,_ in if pickedMapSignature != latitude+"|"+longitude { confirmedDatum=false;pickedMapSignature=nil } }
@@ -816,7 +816,7 @@ private extension IMOutgoingPayload {
     private var available:Bool { phase == .active && current() && model.owner.isCurrent }
     private var canShare:Bool { model.owner.writer.canReadRouteShareSource && model.owner.writer.canSendRoute }
     var body:some View {
-        Form { routeSections }.imFlowForm().navigationTitle(Text("d7.imRoute.title")).privacySensitive()
+        Form { routeSections }.imFlowForm().navigationTitle(Text("d7.imRoute.title")).navigationBarTitleDisplayMode(.inline).privacySensitive()
         .toolbar { ToolbarItem(placement:.cancellationAction) { Button("action.close") { dismiss() } } }
         .cySheet(isPresented:$picking) {
             if available { NavigationStack { ContextualTopicPicker(reader:reader) { row in
@@ -930,7 +930,7 @@ private extension IMOutgoingPayload {
     }
     var body:some View {
         NavigationStack {
-            Form { mapSections }.imFlowForm().navigationTitle(Text("d7.imMap.title")).privacySensitive()
+            Form { mapSections }.imFlowForm().navigationTitle(Text("d7.imMap.title")).navigationBarTitleDisplayMode(.inline).privacySensitive()
             .toolbar { ToolbarItem(placement:.cancellationAction) { Button("action.cancel") { dismiss() } } }
             .onDisappear { retire() }
             .onChange(of:available) { _,valid in if !valid { retire() } }

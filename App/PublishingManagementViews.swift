@@ -104,7 +104,7 @@ import SwiftUI
             }
             if !message.isEmpty { Section { Text(message).font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("publishModes.management.message") } }
         }
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(Text("publishModes.projects"))
         .task {
             if !appliedInitialType, let initialType, Self.typeFilters.contains(initialType) {

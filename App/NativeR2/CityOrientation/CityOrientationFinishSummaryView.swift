@@ -155,6 +155,7 @@ import MapKit
                 }
             }
             .navigationTitle(Text(LocalizedStringKey(titleKey)))
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     ShareLink(item: shareText) { Label("nativeR2.city.finish.share", systemImage: "square.and.arrow.up") }

@@ -71,6 +71,7 @@ import SwiftUI
         }
         .nativeChannelFlowPage()
         .navigationTitle(nativeWebhookLocalized("d7.webhook.title"))
+        .navigationBarTitleDisplayMode(.inline)
         .refreshable { await model.coordinator?.load() }
         .accessibilityIdentifier("webhook.resources")
     }
