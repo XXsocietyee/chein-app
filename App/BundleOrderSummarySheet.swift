@@ -28,7 +28,7 @@ import SwiftUI
                         HStack(spacing: CYSpacing.sm) {
                             if paying {
                                 ProgressView()
-                                Text(verbatim: copy.t("处理中", "processing"))
+                                Text(verbatim: copy.t("处理中…", "Processing…"))
                             } else {
                                 Text(verbatim: copy.t("确认支付", "Pay"))
                                 if let priceText { Text(verbatim: priceText).monospacedDigit() }

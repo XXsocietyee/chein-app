@@ -71,7 +71,7 @@ struct JourneySeatTransferSheet: View {
                 }
                 Section {
                     Button(action: confirm) {
-                        HStack { Spacer(); if busy { ProgressView() } else { Text("mp.seats.transfer.confirm") }; Spacer() }
+                        HStack { Spacer(); CYBusyLabel(busy: busy) { Text("mp.seats.transfer.confirm") }; Spacer() }
                             .frame(minHeight: 44)
                     }
                     .buttonStyle(.borderedProminent)
