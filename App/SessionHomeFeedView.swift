@@ -56,15 +56,6 @@ import SwiftUI
             .themeDomain(.topicEditor)
         }.cySheet(detents: [.large])
         }
-        .cySheet(isPresented:$showsOfficialEvents) {
-            NavigationStack {
-            OfficialEventsBrowserView(reader:session.officialEventReader,actions:session.officialActionCoordinator,onClose:{ showsOfficialEvents=false },onLogin:{
-                showsOfficialEvents=false
-                onSignIn?()
-            },topicLinks:OfficialTopicLinks(reader:session.topicReader,destination:{ AnyView(SessionTopicDetailView(id:$0,session:session)) }))
-            }.id(session.officialEventReader.scope)
-            .cyPlayerSheetGlass()
-        }
         .cySheet(isPresented:$showsSquare) { SessionSquareBrowserView(session: session, onClose: { showsSquare = false }, onSignIn: { showsSquare = false; onSignIn?() }).id(session.squareReader.scope).cyPlayerSheetGlass() }
         .cySheet(isPresented:$showsCreate) {
             NavigationStack {
@@ -175,6 +166,15 @@ import SwiftUI
                         }
                     }
                     .cyPushedChrome()
+                }
+                // OWNER RULE 2: MP `navigateTo('/pages/activity/list/index')` is a page, so 和朋友报名活动 pushes the
+                // activity list onto the 首页 stack (inline title, system back) instead of a sheet.
+                .navigationDestination(isPresented:$showsOfficialEvents) {
+                    OfficialEventsBrowserView(reader:session.officialEventReader,actions:session.officialActionCoordinator,onLogin:{
+                        showsOfficialEvents=false
+                        onSignIn?()
+                    },topicLinks:OfficialTopicLinks(reader:session.topicReader,destination:{ AnyView(SessionTopicDetailView(id:$0,session:session)) }))
+                    .id(session.officialEventReader.scope)
                 }
                 .navigationDestination(item:$activeContinuationScope) { scope in
                     continuationDestination(scope)

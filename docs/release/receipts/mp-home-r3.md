@@ -39,6 +39,7 @@ MP order: `sec-hero` (action-banner swiper, logo, greeting, 玩家 · 城市, av
 |---|---|
 | Card meta order was city → countdown → participants; MP `oe-meta` = time · city · N 人参与. | **Fixed** (`App/OfficialEventComponents.swift`). |
 | Search → chip tabs → summary row → list; 我发布的 / 邀约 links in the toolbar (no WeChat capsule). | Matches (toolbar placement is the prior documented native choice). |
+| 首页 opened the list as a sheet (with 关闭); MP `navigateTo('/pages/activity/list/index')` is a page. | **Fixed (r3 continue, OWNER RULE 2)** — `App/SessionHomeFeedView.swift`: `.navigationDestination(isPresented: $showsOfficialEvents)` pushes it onto the 首页 stack (inline title, system back, no 关闭), same as the reviewed-page route; banner and 更多玩法 entry both push. `.id(officialEventReader.scope)` and the scope reset kept. |
 | MP shows 邀约 only when not loading/failed; native always shows it. | Not changed (low impact). |
 
 ### `pages/activity/detail` → `scene-play-activity-detail` → `App/ActivityDetailView.swift`
