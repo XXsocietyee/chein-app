@@ -324,7 +324,6 @@ struct OnboardingCopy: View {
             Text(step.eyebrowKey)
                 .font(.footnote.weight(zh ? .medium : .semibold))
                 .textCase(.uppercase)
-                .tracking(zh ? 1 : 0.6)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(step.titleKey)

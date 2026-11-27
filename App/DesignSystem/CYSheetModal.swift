@@ -380,7 +380,7 @@ public struct CYModal: View {
                 Spacer(minLength: CYSpacing.sm)
                 Button(action: onCancel) {
                     Image(systemName: "xmark")
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.footnote.weight(.semibold))
                         .foregroundStyle(palette.textSecondary)
                         .frame(width: 28, height: 28)
                         .background(Circle().fill(palette.bgSurfaceSubtle))

@@ -58,8 +58,7 @@ extension View {
         modifier(CYPushedChromeModifier(domain: domain))
     }
 
-    /// Full-bleed hero pushed chrome: hides the root tab bar, keeps navigation bar transparent,
-    /// and overlays the 32pt glass-pill back button ONLY over the hero edge.
+    /// Hero pushed chrome: since ds-consistency r3 the same as `cyPushedChrome` (system back, standard bar).
     func cyHeroPushedChrome(domain: ThemeDomain? = nil, backAccessibilityIdentifier: String? = nil, onBack: (() -> Void)? = nil) -> some View {
         modifier(CYHeroPushedChromeModifier(domain: domain, backAccessibilityIdentifier: backAccessibilityIdentifier, onBack: onBack))
     }
@@ -330,35 +329,11 @@ private struct CYHeroPushedChromeModifier: ViewModifier {
     let domain: ThemeDomain?
     let backAccessibilityIdentifier: String?
     let onBack: (() -> Void)?
-    @Environment(\.dismiss) private var dismiss
 
-    // verify-r1 1.3 / N-10 (HIG Layout, safe areas): the back control lives in the navigation bar. It used to be a
-    // screen overlay under the bar, so it stayed put while the page scrolled and covered headings ("戊员身份"). In the bar
-    // it is transparent over the hero at the top edge and the bar settles into the page colour (scroll-edge effect) once
-    // the hero has scrolled away. The identifier and custom action are kept for tests and guarded exits.
+    // ds-consistency r3 (owner rule 2): one back control in the app, the system one. A guarded exit uses
+    // `.interactiveDismissDisabled` / a confirmation on the page, not a hand-made chevron. No call site passes `onBack`.
     func body(content: Content) -> some View {
         content.cyPushedChrome(domain: domain)
-            .navigationBarBackButtonHidden(true)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) { heroBack }
-            }
-    }
-
-    @ViewBuilder private var heroBack: some View {
-        let button = Button {
-            if let onBack { onBack() } else { dismiss() }
-        } label: {
-            Image(systemName: "chevron.backward")
-                .font(.body.weight(.semibold))
-                .frame(minWidth: Theme.MiniProgramChrome.minHit, minHeight: Theme.MiniProgramChrome.minHit)
-                .contentShape(Rectangle())
-        }
-        .accessibilityLabel(Text("action.back"))
-        if let backAccessibilityIdentifier {
-            button.accessibilityIdentifier(backAccessibilityIdentifier)
-        } else {
-            button
-        }
     }
 }
 

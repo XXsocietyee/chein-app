@@ -216,7 +216,7 @@ struct RoamPlaceExtrasSection: View {
     private func gameCard(_ game: RoamPlaceGame) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             HStack {
-                Text(verbatim: c.t("地点玩法", "Place play")).cyText(.caption).tracking(0.6).foregroundStyle(CYNight.lantern)
+                Text(verbatim: c.t("地点玩法", "Place play")).cyText(.caption).foregroundStyle(CYNight.lantern)
                 Spacer()
                 if game.completed { CYStatusChip(verbatim: c.t("已完成", "Completed"), tone: .success, systemImage: "checkmark") }
             }
