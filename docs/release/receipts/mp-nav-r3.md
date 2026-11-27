@@ -56,7 +56,7 @@ Audited, unchanged (allowed by the rule): hidden nav bar only in live roam / fre
 
 ## Route coverage
 
-All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScreen cases or `MPParityDestination`), except dev/util pages with no player control: `pages/playkit/index/index`, `pages/publishkit/index/index` (kit galleries), `pages/crop/index` (MP image crop; native uses the system photo editor), `subpackageP3/pages/badge-3d/index` (native badge wall detail).
+All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScreen cases or `MPParityDestination`), except four pages that are parsed (`Core/MiniProgramPageLink.swift`) but have no native screen case: `pages/playkit/index/index`, `pages/publishkit/index/index` (MP kit galleries), `pages/crop/index` (MP image-crop utility) and `subpackageP3/pages/badge-3d/index` (MP 3D badge viewer). No native player control links to them; left for the coordinator to confirm they stay unrouted.
 
 ## Pins updated
 
