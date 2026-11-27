@@ -112,7 +112,7 @@ import QuestifyCore
     private var entryState: RoamEntryPeekState? { dependencies.entryReader.map { model.entry.visibleState(reader: $0) } }
     private var pins: [RoamMapHomePin] {
         let rows = model.listPins(from: model.allPins(reader: dependencies.entryReader, center: area?.coordinate))
-        // MP 附近活动 strip lists the entry read's activities and places; teams show only after 找队伍 narrows to them.
+        // MP 附近活动 strip lists the entry read's activities and places; teams live on the nearby page (ticket NO.02).
         guard model.category == .all else { return rows }
         return rows.filter { $0.category == .activities || $0.category == .places }
     }
@@ -246,21 +246,24 @@ import QuestifyCore
                     }
                 }
             }
-            Button {
-                model.category = .teams
-                showsCityTab = false
-                model.detent = .medium
-            } label: {
-                LabeledContent {
-                    if !model.teams.isEmpty { Text(model.teams.count, format: .number) }
-                } label: {
-                    Label("nativeR2.mapHome.findTeams", systemImage: "person.2")
-                }
-            }
-            .accessibilityIdentifier("roam.home.intro.teams")
             if dependencies.nearbyTeamsDestination != nil {
+                // MP ticket NO.02 (`openNearbyMap`): 打开地图 · 寻找组队 → subpackageRoam/nearby, with the live line
+                // 附近 N 支队伍在组队 (`introTeamsLive`) only from a team read that returned rows. The native-only
+                // 找队伍 filter row is gone: MP has three tickets, and the nearby page is where teams are found.
                 Button { model.push(.nearbyTeams) } label: {
-                    Label("nativeR2.mapHome.teamsMap", systemImage: "map")
+                    Label {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("roam.w208.intro.map")
+                            Text("roam.w208.intro.map.sub").font(.footnote).foregroundStyle(.secondary)
+                            if !model.teams.isEmpty {
+                                Text("roam.w208.intro.live \(model.teams.count)")
+                                    .font(.footnote).monospacedDigit().foregroundStyle(.secondary)
+                                    .accessibilityIdentifier("roam.home.intro.live")
+                            }
+                        }
+                    } icon: {
+                        Image(systemName: "map")
+                    }
                 }
                 .accessibilityIdentifier("roam.home.intro.map")
             }
@@ -294,11 +297,6 @@ import QuestifyCore
                         .font(.footnote).foregroundStyle(.secondary)
                 }
             } else {
-                if model.category != .all {
-                    // The 找队伍 ticket narrows the map to teams; one tap returns to the MP 附近活动 list.
-                    Button("nativeR2.mapHome.category.all") { model.category = .all }
-                        .accessibilityIdentifier("roam.mapHome.nearby.showAll")
-                }
                 nearbyRows
             }
         } header: {
