@@ -5,6 +5,7 @@ struct LoginView: View {
     @EnvironmentObject private var session: AppSession
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.locale) private var locale
     @State private var username = ""
     @State private var password = ""
     @State private var consentGranted = UsageConsentEnvironment.policy.granted
@@ -267,7 +268,7 @@ struct LoginView: View {
         .foregroundStyle(.primary)
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(verbatim: "城瘾"))
+        .accessibilityLabel(Text(verbatim: AppLanguage.interfaceIsChinese(locale) ? "城瘾" : "Chein"))
     }
 
     private func submit() {

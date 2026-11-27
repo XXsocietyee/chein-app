@@ -163,7 +163,7 @@ struct OBWordmarkBloom: View {
 
     var body: some View {
         let heavy = !OBType.isChinese(locale)
-        let word = Text(verbatim: "城瘾").font(.system(size: fontSize, weight: heavy ? .heavy : .semibold, design: .rounded))
+        let word = Text(verbatim: heavy ? "Chein" : "城瘾").font(.system(size: fontSize, weight: heavy ? .heavy : .semibold, design: .rounded))
         let blurCopies = !reduceMotion && !reduceTransparency && CYLightBudget.shadersAllowed
         ZStack {
             Circle().fill(CYNight.glow(radius: fontSize)).frame(width: fontSize * 3.6, height: fontSize * 3.6)

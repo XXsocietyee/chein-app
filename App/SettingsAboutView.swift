@@ -168,8 +168,8 @@ import UIKit
     }
 
     private var appName: some View {
-        // B-AB-04: MP about/index.wxml:24 shows the product name 城瘾 only.
-        Text(verbatim: "城瘾")
+        // B-AB-04: MP about/index.wxml:24 shows the product name 城瘾 only; the English brand is Chein.
+        Text(verbatim: AppLanguage.interfaceIsChinese(locale) ? "城瘾" : "Chein")
             .font(.title2.bold())
             .foregroundStyle(.primary)
             .multilineTextAlignment(.center)
