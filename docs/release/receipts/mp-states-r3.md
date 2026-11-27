@@ -33,6 +33,7 @@ match is a queue item (133 at the start). Tab roots first, then their pushed pag
 | 广场帖子详情 (`SquareDetailView` → `SquareIssueView`, 3 sites) | `pages/square/detail` cy-error 加载失败 / 评论加载失败 · 重试 (titles already MP) | leading `Label` + caption + plain `Button` | `ContentUnavailableView`, server sentence as the description, `.bordered` 重试 |
 | 主题/路线 reads (`TopicIssueView`, 9 sites) | topic pages cy-error · 重试 | `Label` + bordered button VStack | `ContentUnavailableView` + `.bordered` 重试 |
 | 票夹 / ticket detail / enrolled chapters (`TicketWalletIssueView`, 7 sites) | ticket wallet cy-empty no-permission / cy-error · 重试 | `Label` + button VStack | `ContentUnavailableView` + `.bordered` 重试 |
+| 附近 (`NearbyTeamsView` → `NearbyLoadIssueCard`, list + 我的) | `subpackageRoam/nearby/index.wxml:62` cy-error 附近信息获取失败 / 当前内容无法查看 · 重试 (login → 去登录) | elevated custom card + `CYPillButton`; titles 附近信息没能读到 / 当前账号无法查看附近信息 | `ContentUnavailableView`, MP titles (Couldn’t get nearby information / This content can’t be viewed), `.borderedProminent` 去登录 or `.bordered` 重试 |
 
 ## Gates
 

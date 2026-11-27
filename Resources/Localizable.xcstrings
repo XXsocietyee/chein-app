@@ -148559,13 +148559,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This account can't view nearby information"
+            "value": "This content can’t be viewed"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前账号无法查看附近信息"
+            "value": "当前内容无法查看"
           }
         }
       }
@@ -148576,13 +148576,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't load nearby information"
+            "value": "Couldn’t get nearby information"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "附近信息没能读到"
+            "value": "附近信息获取失败"
           }
         }
       }
