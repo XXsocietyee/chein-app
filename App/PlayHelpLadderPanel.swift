@@ -67,13 +67,15 @@ import SwiftUI
                         .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.bgRaised))
                     }
                     if let teamPool, teamPool.isVisible { TeamPoolHintSection(model: teamPool) }
-                    if model.showsSkip { skipRow }
                     CYScreenOfflineWriteBanner(
                         routes: ["/api/play/help/use", "/api/play/help/skip"],
                         session: offlineWriteSession.session
                     )
+                    // mp-journey r3: MP play-help.wxml order — notice, 分数明细, 跳过 (F01: last of the help rows), 这一站有问题.
                     if let notice = model.notice { noticeText(notice) }
                     receiptGroup
+                    if model.showsSkip { skipRow }
+                    if PlayStageAnalyticsGate.enabled { issueRow }
                 }
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("playHelp.panel")
@@ -271,6 +273,14 @@ import SwiftUI
             }
         }
         .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.bgRaised))
+    }
+
+    /// MP CG-09-P2-6 这一站有问题: the last group of the hint dialog; picks one category and records it.
+    private var issueRow: some View {
+        PlayKitIssueReportMenu(nodeID: analyticsNodeID ?? model.identity.nodeID, kit: analyticsKit)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
+            .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.bgRaised))
     }
 
     private func tap(_ row: PlayHelpRow) {
