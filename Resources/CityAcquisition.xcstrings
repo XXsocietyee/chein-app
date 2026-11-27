@@ -7,13 +7,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "CITY 经营权与原回执"
+            "value": "城市点位经营权与原回执"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "CITY ownership and original receipts"
+            "value": "City point ownership and original receipts"
           }
         }
       }
@@ -143,13 +143,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "CITY 首次经营权"
+            "value": "城市点位首次经营权"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "CITY first ownership acquisition"
+            "value": "First city point ownership"
           }
         }
       }
@@ -245,13 +245,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "真实 CITY 点位"
+            "value": "真实城市点位"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Actual CITY point"
+            "value": "Actual city point"
           }
         }
       }

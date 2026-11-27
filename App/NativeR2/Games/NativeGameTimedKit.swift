@@ -26,6 +26,8 @@ import SwiftUI
     @State private var expired = false
     /// Countdown kit: wall-clock start of the acknowledged run, for the self-updating clock (display only).
     @State private var countdownStart: Date?
+    /// Stopwatch kit: MP `round` (第 N 局), counted per acknowledged start.
+    @State private var stopwatchRound = 0
     @FocusState private var typingFocused: Bool
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
@@ -118,6 +120,11 @@ import SwiftUI
                     } label: { Text("playkit.attemptLimit") }
                 }
             }
+        } header: {
+            if kind == .stopwatch {
+                // MP playkit-stopwatch intro `sw__eyebrow`: server `kicker`, default 精准停表.
+                Text(verbatim: stopwatchEyebrow).accessibilityIdentifier("nativeGames.stopwatch.eyebrow")
+            }
         } footer: {
             if kind == .stopwatch || kind == .reaction {
                 // Mini-program footnote: a device reading for fun; backgrounding interrupts the local clock.
@@ -161,6 +168,20 @@ import SwiftUI
                         .frame(maxWidth: .infinity)
                         .accessibilityIdentifier("nativeGames.countdown.kicker")
                 }
+                if kind == .stopwatch, timing.phase != .idle {
+                    // MP `sw__chip` 第 N 局 while running; `sw__miss` 没停准 once a stop missed the window.
+                    Group {
+                        if stopwatchOutcome == false {
+                            Label { Text("playkit.stopwatch.missed") } icon: { Image(systemName: "xmark.circle.fill") }
+                                .foregroundStyle(.orange)
+                        } else {
+                            Text("playkit.stopwatch.round \(max(1, stopwatchRound))").foregroundStyle(.secondary)
+                        }
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .frame(maxWidth: .infinity)
+                    .accessibilityIdentifier("nativeGames.stopwatch.round")
+                }
                 if let countdownClock {
                     // Components r1: the countdown counts down by itself and the ring empties (MP playkit-countdown).
                     NativeGameCountdownClock(start: countdownClock, seconds: seconds)
@@ -175,6 +196,15 @@ import SwiftUI
                 }
                 if kind == .typeIn, seconds > 0 {
                     ProgressView(value: clockProgress).accessibilityHidden(true)
+                }
+                if kind == .stopwatch, timing.phase == .running {
+                    // MP `sw__cap`: 1 秒后数字会藏起来, then 凭感觉 once the numbers are hidden.
+                    Text(LocalizedStringKey(elapsed >= 1000 ? "playkit.stopwatch.capHidden" : "playkit.stopwatch.capOn"))
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("nativeGames.stopwatch.cap")
                 }
                 if let countdownDoneText {
                     // MP `oc__done`: the merchant's line, shown once the countdown reached zero.
@@ -375,6 +405,10 @@ import SwiftUI
         let text = segment["kicker"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         return text.isEmpty ? ChannelCopy.text("倒计时", "Countdown", locale: locale) : text
     }
+    private var stopwatchEyebrow: String {
+        let text = segment["kicker"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return text.isEmpty ? appLocalized("playkit.stopwatch.eyebrow", locale: locale) : text
+    }
     private var countdownDoneText: String? {
         guard kind == .countdown, timing.phase == .measured else { return nil }
         let text = segment["doneText"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
@@ -416,6 +450,7 @@ import SwiftUI
             else {
                 input = ""; elapsed = 0; timing.beginAfterAcknowledgement(now: ProcessInfo.processInfo.systemUptime); typingFocused = kind == .typeIn
                 countdownStart = kind == .countdown ? Date() : nil
+                if kind == .stopwatch { stopwatchRound += 1 }
             }
             ticker = UUID()
         }
