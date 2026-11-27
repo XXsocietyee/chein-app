@@ -458,14 +458,7 @@ import SwiftUI
                 }
                 .cyAdaptiveSegmented()
                 .disabled(model.busy)
-                // Same filter row as the friend picker: system field with the search symbol inside the host Form.
-                Label {
-                    TextField("context.coop.search", text: $search)
-                        .textInputAutocapitalization(.never).autocorrectionDisabled().submitLabel(.search)
-                        .accessibilityIdentifier("context.coop.search")
-                } icon: {
-                    Image(systemName: "magnifyingglass").foregroundStyle(.secondary).accessibilityHidden(true)
-                }
+                CYFormSearchRow(prompt: Text("context.coop.search"), text: $search, identifier: "context.coop.search")
                 if model.busy { CYSkeleton().accessibilityLabel(Text("cooperation.loading")) }
                 if model.targetsFailed { CYPillButton("action.retry", style: .secondary) { Task { await model.retryTargets(permit) } }.disabled(model.targetsBusy) }
                 if !model.busy, !model.targetsFailed, filtered.isEmpty {

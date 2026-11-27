@@ -107,7 +107,8 @@
       "raw colour": "brand tint token definition (light/dark), the palette itself"
     },
     "App/RoamBrowserView.swift": {
-      "list style": "map mode only: results list in the panel over the full-screen map (map chrome); list mode stays the standard list"
+      "list style": "map mode only: results list in the panel over the full-screen map (map chrome); list mode stays the standard list",
+      "custom search": "漫游 browser map mode: Maps-style search field pinned inside the persistent results sheet over the live map; list mode uses system .searchable (RoamBrowserView searchable modifier)"
     },
     "App/RoamLiveSessionView.swift": {
       "hidden nav": "live roam game HUD over a full-screen map"

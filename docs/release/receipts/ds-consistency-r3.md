@@ -128,6 +128,12 @@ Next scan (hand-made search fields → `.searchable` / one filter-row pattern):
 |---|---|---|---|
 | `pages/coop/invite` target filter | `App/CooperationContextualViews.swift:461` | unchanged (kind segmented → filter → loading / retry / empty + 刷新合作对象 → targets) | Bare `TextField` in a Form row → the same filter row the friend picker uses (`Label` with the `magnifyingglass` symbol, `.submitLabel(.search)`, no autocorrect/caps); `.searchable` not used because the Form is a row inside a host navigation container (same reason as `NativeFriendPickerView`). |
 | 漫游 browser map-mode search | `App/RoamBrowserView.swift:350` | — | Kept: Maps-style pinned field inside the persistent results sheet; list mode already uses system `.searchable` (`RoamBrowserView.swift:720`). |
+| — (design kit) | `App/DesignSystem/CYField.swift` `CYFormSearchRow` | — | New shared row for a search filter that is one row of a Form / List section (`.searchable` belongs to a whole page): `Label` with `magnifyingglass` + system `TextField`, `.submitLabel(.search)`, no autocorrect / caps, optional `onSubmit`, identifier on the field. |
+| `pages/coop/invite`, friend picker (d7), activity template picker (`ActivityTemplateSelection`) | `CooperationContextualViews.swift`, `NativeFriendPickerView.swift:26`, `ActivityTemplateSelectionView.swift:111` | unchanged (fields, order, identifiers `context.coop.search` / `activityTemplate.search` kept; activity template still reads on submit) | Three hand-built Form search rows in two layouts (`Label` vs `HStack`, different keyboard options) → one `CYFormSearchRow`. |
+
+New checker kind **custom search**: `Image(systemName: "magnifyingglass")` with a `TextField(` within 3 lines, outside
+App/DesignSystem → use `.searchable` or `CYFormSearchRow`. Baseline 0; allowed: `RoamBrowserView` map-mode sheet field
+(reason in the baseline). Self-test: the pre-fix `ActivityTemplateSelectionView.swift` fails at line 113.
 
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
