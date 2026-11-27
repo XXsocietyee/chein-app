@@ -12,7 +12,8 @@
 | `tools/generate_project.py` | no project change |
 | `tools/check_scaffold.py` | PASS |
 | `tools/check_a11y_lint.py` | PASS, 0 new |
-| `tools/contract_ratchet.py --check` | 104 failing, baseline 104, **new 0**, fixed 0 |
+| `tools/contract_ratchet.py --check` | 52 failing, baseline 52 (after the combined-r7 merge), **new 0**, fixed 0 |
+| `tools/check_design_consistency.py` | PASS (raw font 0, tracking 0) |
 
 One contract pin needed care. `test_w2_04_orders` requires the literal `ProfileOrderSourceDetailSections(order: order)`, so the new section slots are passed through `.mpSlots(...)` and that call text is unchanged. The test was not edited.
 
@@ -107,6 +108,12 @@ Gates: generate_project (no change), check_scaffold PASS, a11y lint 0 new, desig
 |---|---|---|
 | 我的订单 → 我的项目 → 视频悬赏 → 我的资产 → 通行证与礼品 | 我的发票, 我的参与/已完成 and the host-tip/redeem/landing section sat between 订单 and 我的资产 | **Fixed.** `MPParityAccountLinks(part:)` splits into `.bounty` (promo / 视频悬赏, before 我的资产) and `.extras` (app-only rows, after it). The app-only rows (我的参与, creator rows on the legacy host, extras) now follow the MP sections. |
 | 我的发票 is a 设置 row (MP `shezhi.js:221` → `invoice/index`) | Duplicated on 我的 | **Fixed.** Removed from 我的; Settings keeps `SettingsInvoiceEntry`. |
+
+### Re-scan of 关于 (continue 2)
+
+| MP `cy/profile` 关于 (wxml:498-560) | Native before | Fixed? |
+|---|---|---|
+| 个人介绍 → 兴趣标签 → (探索作品) → 加入时间 → 探索与更多 (我的优惠券, 邀请好友) → 当前权益 | The 公开主页/关注列表/编辑资料 section and the local cover sat before 探索与更多, and 邀请好友 came after 当前权益 | **Fixed.** Order is now `MemberAboutSection` → `AccountCollectionAccountLinks` (优惠券…) → 邀请好友 / 邀请人 → `MemberBenefitsSection` → app-only rows (公开主页, 关注列表, 编辑资料, cover, messages/clubs/player code, private home, sign-out). |
 
 ## Not done / next
 

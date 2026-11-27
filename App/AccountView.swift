@@ -281,9 +281,30 @@ import SwiftUI
         }
     }
 
-    /// MP 关于: profile and editing, then 探索与更多 (优惠券, 邀请), 当前权益, and the account rows MP keeps in 设置.
+    /// MP 关于: 个人介绍 / 兴趣标签 / 加入时间 → 探索与更多 (优惠券, 邀请好友) → 当前权益, then the app-only rows.
     @ViewBuilder private var aboutTabSections: some View {
         MemberAboutSection(snapshot: aboutSnapshot, onEdit: { showsEditProfile = true })
+        AccountCollectionAccountLinks(reader:session.accountCollectionReader,onOpenTopic:{
+            guard let selected = session.profileFavoritesReader.selectTopic($0, renderedScope: session.profileFavoritesReader.scope) else { return }
+            _ = savedTopicOwner.open(selected, scope: session.profileFavoritesReader.scope)
+        },rewards:session.nonCashRewardReader,pledge:session.makeRewardPledgeEntry(),onOpenPost:{
+            guard let selected = session.profileFavoritesReader.selectPost($0, renderedScope: session.profileFavoritesReader.scope) else { return }
+            _ = savedPostOwner.open(selected, scope: session.profileFavoritesReader.scope)
+        }, favoriteRemoval: session.makeProfileFavoriteRemovalController(scope: session.profileFavoritesReader.scope), couponReader: session.profileOwnedCouponReader, favoritesReader: session.profileFavoritesReader, rewardMerchant: session.readOnlyPublicMerchantHomeContext, communityGate: session.squareReader)
+            .environment(\.topicUnlikeController, session.makeTopicUnlikeController())
+            .id(session.accountCollectionReader.scope)
+        // MP 探索与更多: 我的优惠券 (above) then 邀请好友, before 当前权益.
+        Section {
+            NavigationLink { SocialInviteHistoryView(reader: session.profileInviteHistoryReader, squareReader: session.squareReader, actions: session.socialActionCoordinator).id(session.profileInviteHistoryReader.identity).cyPushedChrome()
+                    .environment(\.socialConversationDestination, session.socialConversationDestination) } label: {
+                Label("social.invites.title", systemImage: "person.2.badge.plus")
+            }.accessibilityIdentifier("account.inviteHistory")
+            NavigationLink { SessionDoorInviterView(session: session).cyPushedChrome() } label: {
+                Label("door.inviter.title", systemImage: "person.badge.plus")
+            }.accessibilityIdentifier("door.inviter.entry")
+        }
+        MemberBenefitsSection(reader: session.memberHomeReader, earningsDestination: { AnyView(SessionWalletCommerceView().id(session.walletCommerceScope)) })
+        // App-only rows after the MP 关于 sections.
         Section {
             NavigationLink { publicProfileDestination } label: {
                 Label("social.profile", systemImage: "person.crop.rectangle")
@@ -294,16 +315,6 @@ import SwiftUI
             }.accessibilityIdentifier("account.editProfile")
         }
         ProfileLocalCoverSection(owner: localCoverOwner, reader: session.socialAccountReader)
-        AccountCollectionAccountLinks(reader:session.accountCollectionReader,onOpenTopic:{
-            guard let selected = session.profileFavoritesReader.selectTopic($0, renderedScope: session.profileFavoritesReader.scope) else { return }
-            _ = savedTopicOwner.open(selected, scope: session.profileFavoritesReader.scope)
-        },rewards:session.nonCashRewardReader,pledge:session.makeRewardPledgeEntry(),onOpenPost:{
-            guard let selected = session.profileFavoritesReader.selectPost($0, renderedScope: session.profileFavoritesReader.scope) else { return }
-            _ = savedPostOwner.open(selected, scope: session.profileFavoritesReader.scope)
-        }, favoriteRemoval: session.makeProfileFavoriteRemovalController(scope: session.profileFavoritesReader.scope), couponReader: session.profileOwnedCouponReader, favoritesReader: session.profileFavoritesReader, rewardMerchant: session.readOnlyPublicMerchantHomeContext, communityGate: session.squareReader)
-            .environment(\.topicUnlikeController, session.makeTopicUnlikeController())
-            .id(session.accountCollectionReader.scope)
-        MemberBenefitsSection(reader: session.memberHomeReader, earningsDestination: { AnyView(SessionWalletCommerceView().id(session.walletCommerceScope)) })
         Section {
             if !showsPassportOverview { // Passport has the Messages circle action instead
                 NavigationLink { SessionMessagingHome(session: session).cyPushedChrome() } label: {
@@ -320,13 +331,6 @@ import SwiftUI
             }.accessibilityIdentifier("account.clubs")
             }
             if session.account?.effectiveRole == "club" { PayoutAccountLinks(audience: .club) }
-            NavigationLink { SocialInviteHistoryView(reader: session.profileInviteHistoryReader, squareReader: session.squareReader, actions: session.socialActionCoordinator).id(session.profileInviteHistoryReader.identity).cyPushedChrome()
-                    .environment(\.socialConversationDestination, session.socialConversationDestination) } label: {
-                Label("social.invites.title", systemImage: "person.2.badge.plus")
-            }.accessibilityIdentifier("account.inviteHistory")
-            NavigationLink { SessionDoorInviterView(session: session).cyPushedChrome() } label: {
-                Label("door.inviter.title", systemImage: "person.badge.plus")
-            }.accessibilityIdentifier("door.inviter.entry")
             if session.playerGapService != nil {
                 NavigationLink { Form { Section { PlayerCodeAndJoinSection() } }.navigationTitle(Text("playerGap.playerCode.title")).navigationBarTitleDisplayMode(.inline).cyPushedChrome() } label: {
                     Label("playerGap.playerCode.title", systemImage: "qrcode")
