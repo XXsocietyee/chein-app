@@ -1,5 +1,6 @@
 """Source-shape guards only; no Swift compilation or runtime evidence."""
 import json
+import re
 from pathlib import Path
 import unittest
 ROOT = Path(__file__).resolve().parents[2]
@@ -32,7 +33,12 @@ class RegistrationWaitlistCompositionTests(unittest.TestCase):
         source = self.read('Core/RegistrationProduction.swift')
         create = source.split('public func create(')[1].split('public func creationLock')[0]
         self.assertLess(create.index('try journal.write(pending)'), create.index('registration.create(intent'))
-        self.assertNotIn('journal.clear', create)
+        # R11-PC-C-2 (MP pages/activity/baoming/baoming.js:1492-1498, utils/checkout/checkout-workflow.js:42-50):
+        # only a definite quote-conflict 409 refusal clears its own record so the sheet can re-quote.
+        self.assertEqual(create.count('journal.clear(pending)'), create.count('where Self.isQuoteConflict('))
+        self.assertEqual(create.count('where Self.isQuoteConflict('), 2)
+        unguarded = re.sub(r'catch let failure as \w+ where Self\.isQuoteConflict\(.*?throw failure', '', create, flags=re.S)
+        self.assertNotIn('journal.clear', unguarded)
         for guard in ('hasFreshQuote(intent)', 'public func readRetainedStatus', 'RegistrationPendingFailure.waitlistUnknown'): self.assertIn(guard, source)
     def test_explicit_legal_notice_version_and_replay_guard(self):
         source = self.read('Core/RegistrationProduction.swift')

@@ -6205,7 +6205,7 @@ final class AppSession: ObservableObject {
                   deployment: configuration.baseURL, accountID: account.id, namespace: storageScope.service) else { return nil }
         return try? RoamExperienceSession(scope: scope, epoch: gate.currentStamp, token: token)
     }
-    private lazy var roamHistoryStore = RoamHistoryStore(storage: RoamHistoryKeychainStorage(), currentScope: { [weak self] in
+    lazy var roamHistoryStore = RoamHistoryStore(storage: RoamHistoryKeychainStorage(), currentScope: { [weak self] in
         self?.currentRoamExperienceSession?.identity.scope
     })
     lazy var roamExperienceReader = RoamExperienceSessionReader(service: roamExperienceService, store: roamHistoryStore,

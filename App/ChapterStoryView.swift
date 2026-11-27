@@ -37,6 +37,8 @@ import UIKit
     @State private var castCard: ChapterStoryCastCard?
     /// Reading rhythm (mini-program reading-motion.js): fade, then settle. Tap shows the rest at once.
     @State private var revealSettled = false
+    /// VIDEO-r11-1: the chapter film shown once when the chapter opens.
+    @State private var chapterVideo: ChapterVideoItem?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private let readingStore = ChapterReadingPositionStore()
     private var readingKey: String? {
@@ -113,6 +115,15 @@ import UIKit
     private var thoughtReadTaskKey: ThoughtReadTaskKey {
         .init(identity: model.identity, chapterID: chapterID, nodeID: nodeID,
               revision: thoughtReadRevision, active: scenePhase == .active)
+    }
+    /// MP `openChapterFull` → `playChapterVideo` when no chapter gate is up (pages/play/index.js:4062).
+    private func presentChapterVideoIfNeeded() {
+        guard chapterVideo == nil, visible, model.hasCurrentMediaSnapshot,
+              let row = model.snapshot?.result.chapters.first(where: { $0.id == chapterID }),
+              let item = ChapterVideoItem.make(chapterID: chapterID, video: row.videoURL, poster: row.videoPosterURL,
+                                               approvedHosts: approvedArtworkHosts),
+              ChapterVideoSeen.claim(item.id) else { return }
+        chapterVideo = item
     }
     var body: some View {
         ScrollViewReader { reader in
@@ -304,7 +315,14 @@ import UIKit
             }
         }
         .toolbar(showGate ? .hidden : .automatic, for: .navigationBar)
-        .onAppear { audioMounted = true; if !gateSeen && visible && chapter != nil { gateSeen = true; showGate = !NativeR2Flags.storyFlow } }
+        .onAppear {
+            audioMounted = true; if !gateSeen && visible && chapter != nil { gateSeen = true; showGate = !NativeR2Flags.storyFlow }
+            if !showGate { presentChapterVideoIfNeeded() }
+        }
+        .onChange(of: showGate) { _, shown in if !shown { presentChapterVideoIfNeeded() } }
+        .fullScreenCover(item: $chapterVideo) { item in
+            ChapterVideoCover(item: item, onClose: { chapterVideo = nil })
+        }
         .task(id: segments.map(\.id).joined(separator: "\u{1e}")) {
             guard !reduceMotion, !segments.isEmpty else { revealSettled = true; return }
             revealSettled = false

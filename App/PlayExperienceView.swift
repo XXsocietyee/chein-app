@@ -3,6 +3,12 @@ import MapKit
 
 /// Integration entry for migrated runtime. Factories are scope-specific, optional, and
 /// never create provider/network permissions as a side effect of opening the screen.
+/// PLAY-r11-1: restart key for the theme music task.
+struct PlayThemeMusicKey: Equatable {
+    let url: String?
+    let enabled: Bool
+}
+
 @MainActor struct PlayExperienceView: View {
     @Bindable var model: PlayExperienceCoordinator
     var deviceModel: ((Int) -> PlayDeviceCaptureCoordinator)? = nil
@@ -66,6 +72,7 @@ import MapKit
     /// PLAY-6a: MP 游玩工具 preferences sheet (pages/play/index.wxml 游玩工具).
     @State private var showPlayTools = false
     @AppStorage(PlatformBGMPreference.storageKey) private var playBGMOn = PlatformBGMPreference.defaultValue
+    @StateObject private var musicLifetime = PlayBackgroundMusicLifetime()
     @AppStorage(PlatformNarrationAutoplayPreference.storageKey) private var playNarrationOn = PlatformNarrationAutoplayPreference.defaultValue
     @AppStorage(PlayReducedMotionPreference.storageKey) private var playReducedMotion = false
     @State private var titleCardTopic: Int?
@@ -244,6 +251,11 @@ import MapKit
             presentTitleCardIfNeeded(topicID)
         }
         .onChange(of: model.chapterStories.count) { _, _ in presentTitleCardIfNeeded(model.snapshot?.result.topicID) }
+        // PLAY-r11-1: theme music loops under the run and follows 背景音乐 (MP _startThemeBgm / toggleThemeBgm).
+        .task(id: PlayThemeMusicKey(url: model.snapshot?.result.topicAudioURL, enabled: playBGMOn)) {
+            PlayBackgroundMusic.shared.startTheme(rawURL: model.snapshot?.result.topicAudioURL, enabled: playBGMOn,
+                                                  approvedHosts: approvedArtworkHosts, owner: musicLifetime.id)
+        }
         .task(id: model.snapshot?.result.teamID ?? model.snapshot?.result.topicID) {
             if let next = teamPoolModel?(0) {
                 next.onPoolUpdated = { _ in }
