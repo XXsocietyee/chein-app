@@ -412,11 +412,15 @@ enum CoreGapPageFixtures {
 // MARK: T5 fixtures (DEBUG only, strictly offline synthetic data)
 
 enum T5PageFixtures {
+    /// Fixture data follows the UI language (coordinator 19:15: no Chinese data in the English UI).
+    private static func tt(_ en: String, _ zh: String) -> String {
+        Locale.preferredLanguages.first?.hasPrefix("zh") == true ? zh : en
+    }
     private static let samplePass = PassProductCard(
         id: "t5-pass-1",
-        name: "杭州老城三游通票",
+        name: tt("Hangzhou Old Town 3-Walk Pass", "杭州老城三游通票"),
         kind: .cityBundle,
-        city: "杭州",
+        city: tt("Hangzhou", "杭州"),
         validity: .daysAfterPurchase(30),
         seats: 2,
         cashPriceText: "¥168.00",
@@ -425,7 +429,7 @@ enum T5PageFixtures {
         giftAllowed: true,
         giftOnly: false,
         isExtraSeat: false,
-        faceText: "杭城通"
+        faceText: tt("HZ", "杭城通")
     )
 
     @MainActor static func make(_ name: String) -> AnyView? {
@@ -446,9 +450,9 @@ enum T5PageFixtures {
                     samplePass,
                     PassProductCard(
                         id: "t5-pass-2",
-                        name: "西湖周末限时畅玩卡",
+                        name: tt("West Lake Weekend Pass", "西湖周末限时畅玩卡"),
                         kind: .timedPass,
-                        city: "杭州",
+                        city: tt("Hangzhou", "杭州"),
                         validity: .daysFromFirstPlay(7),
                         seats: nil,
                         cashPriceText: "¥88.00",
@@ -457,7 +461,7 @@ enum T5PageFixtures {
                         giftAllowed: false,
                         giftOnly: false,
                         isExtraSeat: false,
-                        faceText: "7日"
+                        faceText: tt("7 days", "7日")
                     )
                 ],
                 orders: [],
@@ -466,7 +470,7 @@ enum T5PageFixtures {
             )
             return wrapPlayer(NavigationStack {
                 PassMarketView(
-                    state: PassMarketState(content: .ready(content), pointBalance: 1280, member: .plans("¥19/mo"), refreshFailed: false),
+                    state: PassMarketState(content: .ready(content), pointBalance: 1280, member: .plans(tt("¥19/mo", "¥19/月")), refreshFailed: false),
                     initialTab: .shop,
                     onReload: { _ in },
                     onOpenProduct: { _ in },
@@ -480,7 +484,7 @@ enum T5PageFixtures {
             return wrapPlayer(NavigationStack {
                 PassMarketView(
                     state: PassMarketState(content: .ready(PassMarketContent(products: [samplePass], orders: [], giftsBought: [], giftsReceived: [])),
-                                           pointBalance: 1280, member: .plans("¥19/mo"), refreshFailed: false),
+                                           pointBalance: 1280, member: .plans(tt("¥19/mo", "¥19/月")), refreshFailed: false),
                     initialTab: .shop,
                     onReload: { _ in },
                     onOpenProduct: { _ in },
