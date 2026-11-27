@@ -7,46 +7,50 @@ import SwiftUI
     @Environment(\.cyPalette) private var palette
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var stage: NativeStepCoordinator?
+    /// MP `buildSteps`: today's server steps (never typed in), the merchant goal (locked), and the derived figures.
+    private var todaySteps: Int { max(0, segment["todaySteps"].integer ?? 0) }
+    private var goal: Int { max(0, segment["goal"].integer ?? 0) }
+    private var left: Int { max(0, goal - todaySteps) }
+    private var reached: Bool { goal > 0 && todaySteps > 0 && left == 0 }
+    private var percent: Int { goal > 0 ? min(100, Int((Double(todaySteps) / Double(goal) * 100).rounded())) : 0 }
+    /// MP `co2Of`: 0.00008 kg per step, two decimals; the stat only shows above zero.
+    private var co2: Double { Double(todaySteps) * 0.00008 }
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
-            // MP `playkit-steps` body: eyebrow → 走起来 · 刷新 · 落章 → today / goal 步 → co2 → remain → 刷新步数.
-            Label("playkit.steps.eyebrow", systemImage: "figure.walk")
+            // MP `playkit-walk` (node play `steps` → `walk`, playkit-view.js:74): heading 还差多少 / 走到了 →
+            // 还差 + remaining steps (步 / 到了) → bar + steps / goal · % → 目标 · 已走 · 少排 → read error / 已跳过 → CTA.
+            Label(LocalizedStringKey(reached ? "playkit.walk.heading.done" : "playkit.walk.heading.left"), systemImage: "figure.walk")
                 .font(.headline)
             .accessibilityElement(children: .combine)
             .accessibilityAddTraits(.isHeader)
             .accessibilityIdentifier("nativePlatform.steps.host")
-            Text("nativePlatform.steps.title").font(.footnote).foregroundStyle(.secondary)
-            ViewThatFits(in: .horizontal) {
-                HStack(spacing: CYSpacing.lg) { stepIcons }
-                VStack(alignment: .leading, spacing: CYSpacing.sm) { stepIcons }
-            }
-            .font(.subheadline)
-            .accessibilityElement(children: .combine)
-            if let goal = segment["goal"].integer, goal > 0 {
-                let today = max(0, segment["todaySteps"].integer ?? 0)
+            if goal > 0 {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    Text("playkit.walk.left").font(.subheadline).foregroundStyle(.secondary)
                     HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
-                        Text(today, format: .number).font(.largeTitle.bold()).monospacedDigit()
+                        Text(left, format: .number).font(.largeTitle.bold()).monospacedDigit()
                             .contentTransition(.numericText())
-                        Text("playkit.steps.goalSteps \(goal)").font(.subheadline).foregroundStyle(.secondary)
+                        Text(LocalizedStringKey(reached ? "playkit.walk.arrived" : "playkit.walk.unit")).font(.subheadline).foregroundStyle(.secondary)
                     }
-                    ProgressView(value: Double(min(today, goal)), total: Double(goal))
+                    ProgressView(value: Double(min(todaySteps, goal)), total: Double(goal))
+                    Text("playkit.walk.progress \(todaySteps.formatted()) \(goal.formatted()) \(percent)")
+                        .font(.footnote).monospacedDigit().foregroundStyle(.secondary)
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("playkit.steps.today")
-            }
-            ForEach(["co2Label", "remainLabel"], id: \.self) { key in
-                if let line = segment[key].text, !line.isEmpty {
-                    Text(verbatim: line).font(.footnote).foregroundStyle(.secondary)
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: CYSpacing.lg) { walkStats }
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) { walkStats }
                 }
             }
-            // MP `readError` (报过失败、还没同步到步数) and the skipped station line.
+            // MP `readError` (报过失败、还没同步到步数) unless skipped, then the skipped station line.
             if segment["skipped"].bool == true {
                 Text("playkit.sensor.skipped").font(.footnote).foregroundStyle(.secondary)
-            } else if (segment["failedReads"].integer ?? 0) > 0, (segment["todaySteps"].integer ?? 0) <= 0, segment["reached"].bool != true {
+            } else if (segment["failedReads"].integer ?? 0) > 0, todaySteps <= 0, segment["reached"].bool != true {
                 Label("playkit.steps.readError", systemImage: "exclamationmark.triangle")
                     .font(.footnote).foregroundStyle(.orange)
             }
+            Text("nativePlatform.steps.title").font(.footnote).foregroundStyle(.secondary)
             if let enrollment = runtime?.enrollment {
                 NavigationLink("nativeEnrollment.manage") { NativeEnrollmentView(model: enrollment, privacyURL: runtime?.acceptance.privacyNoticeURL) }
                     .accessibilityIdentifier("nativeEnrollment.open")
@@ -65,11 +69,20 @@ import SwiftUI
 }
 
 extension NativeStepsHostView {
-    /// MP `stepIcons('steps')`: 走起来 · 刷新 · 落章 (numbered, symbol + short label).
-    @ViewBuilder var stepIcons: some View {
-        Label("playkit.steps.icon.walk", systemImage: "1.circle.fill")
-        Label("playkit.steps.icon.refresh", systemImage: "2.circle.fill")
-        Label("playkit.steps.icon.stamp", systemImage: "3.circle.fill")
+    /// MP `wk__stats`: 目标 · 已走 · 少排 N kg (the last only above zero).
+    @ViewBuilder var walkStats: some View {
+        stat("playkit.walk.stat.goal", value: Text(goal, format: .number))
+        stat("playkit.walk.stat.walked", value: Text(todaySteps, format: .number))
+        if co2 > 0 {
+            stat("playkit.walk.stat.co2", value: Text("playkit.walk.co2 \(co2.formatted(.number.precision(.fractionLength(2))))"))
+        }
+    }
+    private func stat(_ title: LocalizedStringKey, value: Text) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title).font(.caption).foregroundStyle(.secondary)
+            value.font(.headline).monospacedDigit()
+        }
+        .accessibilityElement(children: .combine)
     }
 }
 

@@ -204,7 +204,9 @@ import SwiftUI
             }
         }
         if let order = model.order, let bundle = order.bundle {
-            // MP order: 订单号 · 支付 / 报名 line · refund hold (the order section always shows).
+            // MP order: 订单号 · 支付 / 报名 line · refund hold. mp-journey r3 (sweep 21:20): the section is only drawn when it
+            // has a row, so a bare 报名记录 header never stands over nothing.
+            if Self.orderSectionHasRows(order, paidAmountKnown: facts.paidAmountText != "—") {
             Section {
                 if let number = order.registrationNo {
                     Text(verbatim: number).font(.footnote).monospacedDigit().foregroundStyle(.secondary).textSelection(.enabled)
@@ -227,6 +229,7 @@ import SwiftUI
                 }
             } header: {
                 text("order")
+            }
             }
             // MKT-7-3: every unit with its MP status (`{chapter} · {statusText}`), chapter content, and 有效期至.
             if !bundle.units.isEmpty {
@@ -410,6 +413,12 @@ import SwiftUI
     }
     static func statusText(_ raw: String) -> Text { Text(verbatim: statusString(raw)) }
     /// MP `paymentText`: 0 待支付 · 1 支付中 · 2 已支付 · 3 支付失败 · 4 已退款, else 支付状态确认中.
+    static func orderSectionHasRows(_ order: FreeExploreLaunchOrder, paidAmountKnown: Bool) -> Bool {
+        if order.registrationNo != nil || paidAmountKnown { return true }
+        if order.paymentStatus != nil || order.registrationStatus != nil { return true }
+        if let hold = order.bundle?.refundHold, refundHoldTitle(hold.state) != nil { return true }
+        return false
+    }
     static func paymentText(_ status: Int?) -> String {
         guard let status, (0...4).contains(status) else { return appLocalized("freeBundle.payment.unknown", locale: Locale.current) }
         return String(localized: String.LocalizationValue("freeBundle.payment." + String(status)))

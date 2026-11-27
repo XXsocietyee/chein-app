@@ -834,7 +834,7 @@ private actor T5OrderCenterTransport: HTTPTransport {
                                           "stores": [["offerId": 29, "merchantName": mpJourneyFixtureText("Qinghefang sample teahouse", "清河坊示范茶馆"), "validEnd": "2026-12-31"]]]]])
         }
         func order(registrationID: FreeExploreLaunchID) async throws -> FreeExploreLaunchOrder {
-            try decode(["registrationId": 41, "bundle": [
+            try decode(["registrationId": 41, "registrationNo": "CY2026112700041", "paymentStatus": 2, "registrationStatus": 2, "bundle": [
                 "order": ["registrationId": 41, "holderMemberId": 7, "topicId": 88],
                 "units": [["id": 17, "registrationId": 41, "holderMemberId": 7, "chapterId": 3, "status": "AVAILABLE"]],
                 "reservations": []]])
