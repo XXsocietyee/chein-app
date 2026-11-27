@@ -63,7 +63,7 @@ struct RoamFinishReport: Equatable {
                 topBar
                 mapPanel.padding(.top, CYSpacing.sm).padding(.horizontal, -CYSpacing.lg)
                 head
-                Rectangle().fill(CYNight.glassEdgeTop).frame(height: 1).padding(.top, CYSpacing.md)
+                Divider().padding(.top, CYSpacing.md)
                     .accessibilityHidden(true)
                 bigNumber
                 grid.padding(.top, CYSpacing.xl)
@@ -84,7 +84,8 @@ struct RoamFinishReport: Equatable {
             .padding(.horizontal, CYSpacing.lg)
             .padding(.bottom, CYSpacing.xxl)
         }
-        .background(Color.black.ignoresSafeArea())
+        // native-r3-b: system background — the semantic text colours above were unreadable on forced black in light mode.
+        .background(.background)
         .toolbar(.hidden, for: .navigationBar)
         .cySheet(isPresented: $showShare) {
             Group { if let record = report.record { NavigationStack { RoamHistoryShareView(record: record, reader: history) } } }
@@ -223,7 +224,7 @@ struct RoamFinishReport: Equatable {
                                 .accessibilityHidden(true)
                         }
                         .padding(CYSpacing.md)
-                        .background(CYNight.ink1, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                        .background(.background.secondary, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
@@ -246,14 +247,14 @@ struct RoamFinishReport: Equatable {
     }
     private var mapPanel: some View {
         ZStack {
-            Rectangle().fill(CYNight.ink1)
+            Rectangle().fill(.background.secondary)
             if report.track.count > 1, let record = report.record {
                 RoamRouteSketchView(record: record).padding(CYSpacing.lg)
             } else {
                 Label("u10.roamFinish.noTrack", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
                     .cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary)
                     .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
-                    .overlay(Capsule().strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
+                    .overlay(Capsule().strokeBorder(.separator, lineWidth: 1))
                     .accessibilityIdentifier("roam.finishReport.noTrack")
             }
         }
@@ -266,8 +267,7 @@ struct RoamFinishReport: Equatable {
                     Label("u10.roamFinish.data", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
                         .cyText(.label).foregroundStyle(CYColor.textPrimary)
                         .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
-                        .background(CYNight.ink0, in: Capsule())
-                        .overlay(Capsule().strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
+                        .background(.regularMaterial, in: Capsule()) // native-r3-b: map control on a material, reads on any map style
                 }
                 .buttonStyle(.plain)
                 .padding(CYSpacing.lg)

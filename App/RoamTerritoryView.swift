@@ -162,30 +162,18 @@ import SwiftUI
         .task { await reloadAll() }
     }
 
+    /// native-r3-b: the MP three-tab switcher as a system segmented picker (was three pill buttons).
     private var tabBar: some View {
-        HStack(spacing: CYSpacing.sm) {
-            CYPillButton(verbatim: copy("附近格子", "Nearby"), style: selectedTab == .nearby ? .primary : .secondary, fullWidth: false) {
-                selectedTab = .nearby
-                Task { await reloadAll() }
-            }
-            .accessibilityLabel(Text(verbatim: copy("附近格子", "Nearby")))
-            .accessibilityAddTraits(selectedTab == .nearby ? .isSelected : [])
-            .accessibilityIdentifier("roamTerritory.tab.nearby")
-            CYPillButton(verbatim: copy("我的领地", "Mine"), style: selectedTab == .mine ? .primary : .secondary, fullWidth: false) {
-                selectedTab = .mine
-                Task { await reloadAll() }
-            }
-            .accessibilityLabel(Text(verbatim: copy("我的领地", "Mine")))
-            .accessibilityAddTraits(selectedTab == .mine ? .isSelected : [])
-            .accessibilityIdentifier("roamTerritory.tab.mine")
-            CYPillButton(verbatim: copy("赛季排行", "Leaderboard"), style: selectedTab == .leaderboard ? .primary : .secondary, fullWidth: false) {
-                selectedTab = .leaderboard
-                Task { await reloadAll() }
-            }
-            .accessibilityLabel(Text(verbatim: copy("赛季排行", "Leaderboard")))
-            .accessibilityAddTraits(selectedTab == .leaderboard ? .isSelected : [])
-            .accessibilityIdentifier("roamTerritory.tab.leaderboard")
+        Picker(selection: $selectedTab) {
+            Text(verbatim: copy("附近格子", "Nearby")).tag(Tab.nearby)
+            Text(verbatim: copy("我的领地", "Mine")).tag(Tab.mine)
+            Text(verbatim: copy("赛季排行", "Leaderboard")).tag(Tab.leaderboard)
+        } label: {
+            Text(verbatim: copy("领地", "Territory"))
         }
+        .pickerStyle(.segmented)
+        .onChange(of: selectedTab) { _, _ in Task { await reloadAll() } }
+        .accessibilityIdentifier("roamTerritory.tabs")
     }
 
     @ViewBuilder private var contentSection: some View {

@@ -78,7 +78,7 @@ struct RouteActionPageReadRequest {
                     Section { Text("playRoute.noCoordinates").accessibilityIdentifier("playRoute.noCoordinates") }
                 }
                 Section("playRoute.list") {
-                    if presentation.stops.isEmpty { Text("playRoute.empty").accessibilityIdentifier("playRoute.empty") }
+                    if presentation.stops.isEmpty { ContentUnavailableView("playRoute.empty", systemImage: "mappin.slash").accessibilityIdentifier("playRoute.empty") }
                     ForEach(presentation.stops) { stop in
                         if stop.canOpen {
                             Button { choose(stop.id, snapshot: snapshot, context: context) } label: { stopLabel(stop) }

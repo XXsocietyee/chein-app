@@ -253,7 +253,7 @@ import SwiftUI
             }
             if let summary = presentation.displayedSummary(model: model, current: sourceIsCurrent) {
                 if let edition = summary.edition { Section { Text(verbatim: edition) } }
-                if summary.isEmpty { Text("playx.os.empty") }
+                if summary.isEmpty { ContentUnavailableView("playx.os.empty", systemImage: "tag") }
                 Section("playx.os.tags") {
                     ForEach(summary.tags) { tag in
                         VStack(alignment: .leading) {

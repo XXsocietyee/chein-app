@@ -189,7 +189,7 @@ extension PlayKitScreen {
                                 .cyText(.caption).monospacedDigit()
                                 .padding(.horizontal, CYSpacing.xs)
                                 .padding(.vertical, 2)
-                                .background(Capsule().fill(CYNight.ink2.opacity(0.85)))
+                                .background(.regularMaterial, in: Capsule())
                                 .foregroundStyle(CYColor.textPrimary)
                                 .padding(CYSpacing.xs)
                         }

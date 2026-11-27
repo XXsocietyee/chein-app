@@ -102,7 +102,7 @@ import SwiftUI
     }
     @ViewBuilder private func notificationSection(_ snapshot: SquareGovernanceSnapshot) -> some View {
         Section("square.gov.notifications") {
-            if snapshot.notifications.isEmpty { Text("square.gov.emptyNotifications") }
+            if snapshot.notifications.isEmpty { ContentUnavailableView("square.gov.emptyNotifications", systemImage: "bell.slash") }
             ForEach(snapshot.notifications) { notice in
                 VStack(alignment: .leading, spacing: 8) {
                     Text(LocalizedStringKey(notificationKey(notice.action)))
@@ -121,7 +121,7 @@ import SwiftUI
     }
     @ViewBuilder private func enforcementSection(_ snapshot: SquareGovernanceSnapshot) -> some View {
         Section("square.gov.enforcements") {
-            if snapshot.enforcements.isEmpty { Text("square.gov.emptyEnforcements") }
+            if snapshot.enforcements.isEmpty { ContentUnavailableView("square.gov.emptyEnforcements", systemImage: "checkmark.shield") }
             ForEach(snapshot.enforcements) { record in
                 VStack(alignment: .leading) {
                     Text(record.type); Text(record.rule); Text(record.status)

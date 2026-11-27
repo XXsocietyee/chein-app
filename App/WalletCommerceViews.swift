@@ -265,9 +265,7 @@ enum WalletPayoutCapability {
         Section {
             if monthModel.pager.hasLoadedPage, monthModel.pager.loadedScope == reader.scope {
                 if monthRows.isEmpty {
-                    Text("wallet.monthIncome.empty")
-                        .font(.subheadline).foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity)
+                    ContentUnavailableView("wallet.monthIncome.empty", systemImage: "chart.line.uptrend.xyaxis")
                         .accessibilityIdentifier("wallet.month.empty")
                 } else {
                     VStack(spacing: 0) {
@@ -930,7 +928,7 @@ enum WalletIncomeSegment: Hashable {
             }.onChange(of: sort) { _, _ in scheduleLoad() }
             if model.loading { ProgressView().frame(maxWidth: .infinity) }
             else if let page = model.value, model.loadedScope == reader.scope {
-                if page.rows.isEmpty { Text("wallet.empty") }
+                if page.rows.isEmpty { ContentUnavailableView("wallet.empty", systemImage: "gift") }
                 ForEach(page.rows) { item in
                     NavigationLink { WalletProductView(reader: reader, productID: item.id) } label: {
                         VStack(alignment: .leading) {
@@ -1151,7 +1149,7 @@ enum WalletIncomeSegment: Hashable {
             else if let rows = model.value, model.loadedScope == reader.scope {
                 // OWN-D-01.a: earn rules, then eventType 14 as 「积分消耗」 (`mp:subpackageMember/components/cy/profile/index.wxml:658-686`).
                 let rules = WalletPointsRules(rows)
-                if rules.earn.isEmpty && rules.spend.isEmpty { Text("wallet.empty").accessibilityIdentifier("wallet.tasks.empty") }
+                if rules.earn.isEmpty && rules.spend.isEmpty { ContentUnavailableView("wallet.empty", systemImage: "list.bullet").accessibilityIdentifier("wallet.tasks.empty") }
                 ForEach(rules.earn) { item in
                     VStack(alignment: .leading, spacing: 6) {
                         Text(verbatim: item.title ?? appLocalized("wallet.entry", locale: locale))

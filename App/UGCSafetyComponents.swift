@@ -340,7 +340,7 @@ struct UGCReportSheet: View {
                                 .foregroundStyle(CYColor.textTertiary)
                         }
                         .padding(CYSpacing.md)
-                        .background(CYColor.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                        .background(.background.secondary, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(Text("ugc.safety.action.contactSupport", tableName: "UGCSafety"))
@@ -502,17 +502,16 @@ struct UGCReportSheet: View {
                 }
             }
             .padding(CYSpacing.md)
+            // native-r3-b: system secondary background; selection is the checkmark + a tint wash, no custom stroke.
             .background(
-                isSelected ? CYColor.brandSoft : CYColor.bgSurface,
+                isSelected ? AnyShapeStyle(Color.accentColor.opacity(0.12)) : AnyShapeStyle(.background.secondary),
                 in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)
             )
-            .overlay(
-                RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)
-                    .stroke(isSelected ? CYColor.brand : CYColor.borderSubtle, lineWidth: 1)
-            )
+            .contentShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text(verbatim: reason.label))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
         .accessibilityIdentifier("ugc.safety.reason.\(reason.code)")
     }
 

@@ -107,7 +107,7 @@ import SwiftUI
                             }
                         }
                         if flow.state == .ready && flow.actions.isEmpty && !flow.readingCurrent && !flow.currentReadFailed {
-                            Text("d7.channelModeration.historyEmpty").foregroundStyle(.secondary)
+                            ContentUnavailableView("d7.channelModeration.historyEmpty", systemImage: "clock.arrow.circlepath")
                         }
                         if flow.canReadMore { Button("d7.channelModeration.loadMore") { Task { await flow.loadMore() } } }
                     }

@@ -94,8 +94,8 @@ import UIKit
             controls
                 .padding(.horizontal, CYSpacing.pageHorizontal)
                 .padding(.vertical, CYSpacing.sm)
-                .background(CYColor.bgPage)
-                .overlay(alignment: .top) { Rectangle().fill(CYColor.borderSubtle).frame(height: 1).accessibilityHidden(true) }
+                .background(.bar) // native-r3-b: system bar material + hairline instead of page colour + drawn line
+                .overlay(alignment: .top) { Divider().accessibilityHidden(true) }
         }
         .background(CYColor.bgPage.ignoresSafeArea())
         .modifier(MiniCropNavigationTitle(enabled: showsNavigationTitle, count: images.count, index: index))

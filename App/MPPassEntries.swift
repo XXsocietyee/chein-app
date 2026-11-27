@@ -64,7 +64,7 @@ struct PassCheckoutPass: Identifiable, Equatable {
                         ForEach(card.covers.prefix(3), id: \.self) { cover in
                             Text(verbatim: cover).cyText(.caption).foregroundStyle(CYColor.textPrimary).lineLimit(1)
                                 .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
-                                .background(CYNight.ink2, in: Capsule())
+                                .background(.fill.tertiary, in: Capsule())
                         }
                     }
                 }
@@ -80,7 +80,7 @@ struct PassCheckoutPass: Identifiable, Equatable {
         .padding(CYSpacing.lg)
         .background {
             ZStack(alignment: .topTrailing) {
-                RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(CYNight.ink1)
+                RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(.background.secondary)
                 PassKeyEmblem(size: 96, lit: true).opacity(0.3).offset(x: 20, y: -16)
             }
             .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))

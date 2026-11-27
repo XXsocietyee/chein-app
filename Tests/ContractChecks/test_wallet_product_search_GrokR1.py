@@ -89,7 +89,7 @@ class WalletProductSearchGrokR1Tests(unittest.TestCase):
             "unavailable: model.unavailable) { scheduleLoad() }",
             'else if model.failed || !reader.isConfigured || reader.scope == nil',
             "NavigationLink { WalletProductView(reader: reader, productID: item.id) }",
-            'if page.rows.isEmpty { Text("wallet.empty") }',
+            'if page.rows.isEmpty { ContentUnavailableView("wallet.empty"',  # native-r3-b: empty state is ContentUnavailableView
         ]:
             self.assertIn(token, self.section)
         self.assertNotIn("trimmingCharacters", self.section)

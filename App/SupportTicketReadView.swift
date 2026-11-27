@@ -38,7 +38,7 @@ func supportTicketReadText(_ key: String) -> Text { Text(LocalizedStringKey(key)
                                 if !message.attachments.isEmpty { supportTicketReadText("attachmentsUnavailable").cyText(.meta) }
                             }
                         }
-                        if flow.loaded && flow.messages.isEmpty { supportTicketReadText("messagesEmpty") }
+                        if flow.loaded && flow.messages.isEmpty { ContentUnavailableView { Label { supportTicketReadText("messagesEmpty") } icon: { Image(systemName: "bubble.left.and.bubble.right") } } }
                         if flow.hasMoreMessages { CYPillButton("messagesMore", style: .secondary, tableName: "SupportTicketRead") { run(rendered) { await $0.reloadDetail($1, next: true) } }.disabled(flow.busy) }
                         CYPillButton("reloadDetail", style: .secondary, tableName: "SupportTicketRead") { run(rendered) { await $0.reloadDetail($1) } }.disabled(flow.busy)
                     } header: { supportTicketReadText("messages") }
@@ -71,7 +71,7 @@ func supportTicketReadText(_ key: String) -> Text { Text(LocalizedStringKey(key)
                             }.disabled(flow.busy || !flow.reader.allows(.detail))
                             .accessibilityIdentifier("support.read.row." + row.ticket_no)
                         }
-                        if flow.loaded && flow.tickets.isEmpty { supportTicketReadText("empty") }
+                        if flow.loaded && flow.tickets.isEmpty { ContentUnavailableView { Label { supportTicketReadText("empty") } icon: { Image(systemName: "tray") } } }
                         if flow.hasMoreTickets { CYPillButton("listMore", style: .secondary, tableName: "SupportTicketRead") { run(rendered) { await $0.loadHistory($1, next: true) } }.disabled(flow.busy) }
                     } header: { supportTicketReadText("list") }
                 }

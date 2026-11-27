@@ -146,8 +146,7 @@ struct CouponUsabilitySection: View {
                     .accessibilityLabel(Text("wp07.coupon.loading", tableName: "WP07Commerce"))
                     .accessibilityIdentifier("wp07.coupon.loading")
             case .empty:
-                Text("wp07.coupon.empty", tableName: "WP07Commerce")
-                    .foregroundStyle(CYColor.textSecondary)
+                ContentUnavailableView { Label { Text("wp07.coupon.empty", tableName: "WP07Commerce") } icon: { Image(systemName: "ticket") } }
                     .accessibilityIdentifier("wp07.coupon.empty")
             case .failed:
                 Text("wp07.coupon.error", tableName: "WP07Commerce")
@@ -158,8 +157,7 @@ struct CouponUsabilitySection: View {
                 .accessibilityIdentifier("wp07.coupon.retry")
             case .ready(let rows):
                 if rows.isEmpty {
-                    Text("wp07.coupon.empty", tableName: "WP07Commerce")
-                        .foregroundStyle(CYColor.textSecondary)
+                    ContentUnavailableView { Label { Text("wp07.coupon.empty", tableName: "WP07Commerce") } icon: { Image(systemName: "ticket") } }
                         .accessibilityIdentifier("wp07.coupon.empty")
                 } else {
                     ForEach(rows) { row in

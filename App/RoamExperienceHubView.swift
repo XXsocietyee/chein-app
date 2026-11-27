@@ -48,13 +48,9 @@ import SwiftUI
                     RoamExperienceNotice(offline: reader.isOfflineExample)
                 }
                 .padding(CYSpacing.lg).frame(maxWidth: .infinity, alignment: .leading)
-                .background {
-                    // Night hero: indigo ground falling to ink, no lantern (light is for discovery, not chrome).
-                    LinearGradient(colors: [CYNight.indigo, CYNight.ink1], startPoint: .topLeading, endPoint: .bottomTrailing)
-                }
+                // native-r3-b: system secondary background (light + dark) instead of the decorative indigo gradient + edge.
+                .background(.background.secondary, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
                 .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
-                .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).strokeBorder(LinearGradient(colors: [CYNight.glassEdgeTop, CYNight.glassEdgeBottom], startPoint: .top, endPoint: .bottom), lineWidth: 1))
                 .padding(.vertical, 4)
             }
             RoamPassportOverviewView(phase: passport.phase(reader: reader), retry: { passport.load(reader: reader) },

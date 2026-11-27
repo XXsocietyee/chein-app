@@ -45,7 +45,7 @@ class ProfileSelfMedalsSourceChecks(unittest.TestCase):
  def test_failures_have_explicit_read_retry(self):
   self.assertIn('profile.selfMedals.retry',self.view);self.assertIn('Button("action.retry") { Task { await load() } }',self.view)
  def test_refresh_and_empty_available(self):
-  self.assertIn('profile.selfMedals.refresh',self.view);self.assertIn('if medals.isEmpty { Text("profile.selfMedals.empty")',self.view)
+  self.assertIn('profile.selfMedals.refresh',self.view);self.assertIn('if medals.isEmpty { ContentUnavailableView("profile.selfMedals.empty"',self.view)  # native-r3-b: empty state is ContentUnavailableView
  def test_normal_account_injection_and_tab(self):
   self.assertIn('selfMedalsReader: session.profileReader',self.account)
   self.assertIn('case .achievements:',self.public)

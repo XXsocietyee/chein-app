@@ -76,7 +76,7 @@ import SwiftUI
             }
             Section {
                 if coordinator.originalRequestsAreVerifiedEmpty {
-                    Text(localized("personalLocationShare.emptyRequests"))
+                    ContentUnavailableView(localized("personalLocationShare.emptyRequests"), systemImage: "tray")
                         .accessibilityIdentifier("personalLocationShare.verifiedEmptyRequests")
                 }
                 ForEach(coordinator.pending) { record in
@@ -116,7 +116,7 @@ import SwiftUI
                 Button(localized("personalLocationShare.refreshManagement")) { Task { await coordinator.openManagement() } }
                     .disabled(coordinator.ownedReadState == .loading)
                 if coordinator.ownedReadState == .loaded && coordinator.ownedGrants.isEmpty {
-                    Text(localized("personalLocationShare.emptyGrants"))
+                    ContentUnavailableView(localized("personalLocationShare.emptyGrants"), systemImage: "location.slash")
                 }
                 ForEach(coordinator.ownedGrants) { grant in
                     VStack(alignment: .leading) {
@@ -140,7 +140,7 @@ import SwiftUI
                 currentReadStatus(coordinator.receivedReadState)
                 Button(localized("personalLocationShare.refreshReceived")) { Task { await coordinator.refreshReceived() } }
                     .disabled(coordinator.receivedReadState == .loading)
-                if coordinator.visibleLocations.isEmpty { Text(localized("personalLocationShare.emptyLocations")) }
+                if coordinator.visibleLocations.isEmpty { ContentUnavailableView(localized("personalLocationShare.emptyLocations"), systemImage: "location") }
                 ForEach(coordinator.visibleLocations) { item in
                     VStack(alignment: .leading) {
                         Text(localized("personalLocationShare.owner", String(item.grant.ownerId))).cyText(.cardTitle)

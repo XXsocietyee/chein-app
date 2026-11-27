@@ -201,7 +201,7 @@ import SwiftUI
                     .accessibilityIdentifier("shopNPC.discard")
             }
         }.padding(.horizontal, CYSpacing.lg).padding(.top, 10).padding(.bottom, 8)
-            .background(CYColor.bgPage.opacity(0.96).shadow(.drop(color: .black.opacity(0.4), radius: 8, y: -2)))
+            .background(.bar) // native-r3-b: system bar material instead of a page colour + custom drop shadow.
     }
     private var textReviewButton: some View {
         let empty = draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
