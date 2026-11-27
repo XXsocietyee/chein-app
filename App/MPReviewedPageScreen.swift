@@ -824,7 +824,7 @@ import SwiftUI
                                             actions: session.socialActionCoordinator, initialTab: query["tab"])
                         .environment(\.socialConversationDestination, session.socialConversationDestination) // A2-03 发消息
                 }
-            } else { unavailable }
+            } else { MPUserInfoMissingView() }
         case "subpackageRoam/history/index":
             if session.account == nil {
                 // r7 history #1: MP history/index.wxml cy-access-gate kind="login" — 登录后查看 + 登录, no list for guests.
@@ -1223,5 +1223,22 @@ private struct ClubFirstOwnedEntry<Reader: ClubReading & ObservableObject, Conte
                 resolved = .failed
             }
         }
+    }
+}
+
+/// mp-settings r3: MP pages/userinfo/userinfo.wxml:7-14 — without a user id the page keeps its 个人主页 title and shows
+/// cy-empty kind="missing-param" (链接已失效) with 返回.
+private struct MPUserInfoMissingView: View {
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        ContentUnavailableView {
+            Label("userinfo.missing.title", systemImage: "info.circle")
+        } actions: {
+            Button("userinfo.missing.back") { dismiss() }
+                .buttonStyle(.bordered)
+                .accessibilityIdentifier("userinfo.missing.back")
+        }
+        .accessibilityIdentifier("userinfo.missing")
+        .cyPageTitle("userinfo.title")
     }
 }

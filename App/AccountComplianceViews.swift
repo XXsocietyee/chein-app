@@ -143,11 +143,17 @@ import SwiftUI
     var showsNPCChatDataEntry = true
     /// r11 B-SZ-10: SettingsView shows 营销消息与优惠券 on its own, right after AI 对话记录 (MP shezhi.wxml:21-22).
     var showsMarketingEntry = true
+    /// mp-settings r3: Settings opens 漫游定位 from 隐私与定位 (MP privacy-sheet), so the MP-ordered page hides this row.
+    var showsRoamEntry = true
     @State private var selected: ComplianceDestination?
+    private var listedDestinations: [ComplianceDestination] {
+        ComplianceDestination.allCases.filter { $0 != .cancellation && (showsMarketingEntry || $0 != .marketing) && (showsRoamEntry || $0 != .roam) }
+    }
     @State private var npcChatData: NPCChatDataPresentation?
     var body: some View {
+        if !listedDestinations.isEmpty || showsNPCChatDataEntry {
         Section {
-            ForEach(ComplianceDestination.allCases.filter { $0 != .cancellation && (showsMarketingEntry || $0 != .marketing) }) { destination in
+            ForEach(listedDestinations) { destination in
                 if destination == .marketing {
                     NavigationLink {
                         AccountComplianceSheet(coordinator: makeCoordinator(), destination: destination,
@@ -176,6 +182,7 @@ import SwiftUI
                 .accessibilityIdentifier("npcData.open")
             }
         } header: { Text("compliance.title") } footer: { Text("settings.privacy.footer") }
+        }
         // Destructive row: its own section, red, with the consequence stated underneath.
         Section {
             Button(role: .destructive) { selected = .cancellation } label: {

@@ -390,7 +390,11 @@ struct CityFavoriteNodesSection: View {
         if service != nil {
             Section("playerGap.cityFavorites.title") {
                 if let nodes {
-                    if nodes.isEmpty { Text("playerGap.cityFavorites.empty").cyText(.body).foregroundStyle(CYColor.textTertiary) }
+                    // mp-settings r3: MP mylike.wxml 据点 — cy-empty 暂无收藏的据点 (system empty view), list, then 已加载全部据点.
+                    if nodes.isEmpty {
+                        ContentUnavailableView("playerGap.cityFavorites.empty", systemImage: "mappin.slash")
+                            .accessibilityIdentifier("playerGap.cityFavorites.empty")
+                    }
                     ForEach(nodes) { node in
                         // r8 A4-01 (MP mylike.wxml:43 bindtap goNode → subpackageRoam/poi-detail?poiId=): the row opens the place.
                         NavigationLink {
@@ -414,6 +418,11 @@ struct CityFavoriteNodesSection: View {
                                 Button("playerGap.cityFavorites.remove", systemImage: "star.slash", role: .destructive) { pendingRemoval = node }
                                     .disabled(removing != nil)
                             }
+                    }
+                    if !nodes.isEmpty {
+                        Text("playerGap.cityFavorites.end").font(.footnote).foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity)
+                            .accessibilityIdentifier("playerGap.cityFavorites.end")
                     }
                 } else if failed {
                     // Missing state: say what failed, then 重试 (44 pt), not a bare button.

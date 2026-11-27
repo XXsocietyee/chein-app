@@ -40,12 +40,6 @@ import UIKit
                 marketRow
             } header: { Text("settingsNative.about.appSection") } footer: { AIGCFilingNumberText() }
             .labelStyle(SettingsTileLabelStyle())
-            // B-AB-01 (hand-off MC-43): 我的二维码 shows only once a real player code exists; no permanent error voucher.
-            if model.playerCode.imageURL != nil {
-                Section {
-                    playerCodeVoucher
-                } header: { Text("settingsNative.about.playerCode") }
-            }
             Section {
                 ForEach([SettingsLegalType.userAgreement, .privacyPolicy]) { type in
                     NavigationLink {
@@ -97,6 +91,13 @@ import UIKit
                 .labelStyle(SettingsTileLabelStyle())
             }
             SettingsAttributionsSection(copyText: copyText)
+            // B-AB-01 (hand-off MC-43): 我的二维码 shows only once a real player code exists; no permanent error voucher.
+            // mp-settings r3: app-only, so it follows the MP about sections (hero → links → 联系我们 → 素材署名).
+            if model.playerCode.imageURL != nil {
+                Section {
+                    playerCodeVoucher
+                } header: { Text("settingsNative.about.playerCode") }
+            }
         }
         .cyDomainPageBackground()
         .cyPageTitle("settingsNative.about.title")

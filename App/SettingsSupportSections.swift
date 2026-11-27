@@ -11,6 +11,11 @@ import UIKit
     private(set) var showsMarketingEntry = true
     /// r11 B-SZ-10: SettingsView places 营销消息与优惠券 itself (MP shezhi.wxml:21-22).
     func hidingMarketingEntry() -> Self { var copy = self; copy.showsMarketingEntry = false; return copy }
+    private(set) var followsMPShezhiOrder = false
+    /// mp-settings r3: MP pages/shezhi/shezhi.wxml:31-35 shows 用户服务协议 → 账号注销 → 关于 only. 隐私保护指引 lives in
+    /// 隐私与定位 and 关于; 漫游定位 lives inside 隐私与定位 (privacy-sheet); 注销须知 lives inside 账号注销.
+    func followingMPShezhiOrder() -> Self { var copy = self; copy.followsMPShezhiOrder = true; return copy }
+    private var legalTypes: [SettingsLegalType] { followsMPShezhiOrder ? [.userAgreement] : SettingsLegalType.allCases }
     let soundStore: any SettingsSoundStoring
     let legalReader: any SettingsLegalReading
     let appInformation: SettingsAppInformation
@@ -28,7 +33,7 @@ import UIKit
     }
     var body: some View {
         Section("settingsNative.legal.title") {
-            ForEach(SettingsLegalType.allCases) { type in
+            ForEach(legalTypes) { type in
                 NavigationLink {
                     SettingsLegalDocumentView(type: type, market: market, reader: legalReader)
                 } label: {
@@ -42,7 +47,7 @@ import UIKit
         }
         if let complianceCoordinator {
             AccountComplianceSettingsSection(makeCoordinator: { complianceCoordinator }, market: market, legalReader: legalReader, showsNPCChatDataEntry: showsNPCChatDataEntry,
-                showsMarketingEntry: showsMarketingEntry)
+                showsMarketingEntry: showsMarketingEntry, showsRoamEntry: !followsMPShezhiOrder)
         } else {
         Section("settingsNative.privacy.title") {
             ForEach(SettingsUnavailableFeature.allCases) { feature in

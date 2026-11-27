@@ -648,6 +648,22 @@ struct ProfileEditView: View {
                 ContentUnavailableView("profile.edit.unavailable", systemImage: "network.slash")
                     .listRowBackground(Color.clear)
             } else {
+                if model.coordinator.snapshot == nil {
+                    // mp-settings r3: MP gerenziliao.wxml:8-13 — first read shows 正在读取个人资料; a failed first read shows
+                    // 资料暂时不可用 · 请稍后重新加载 with 重新加载 (the reload button below).
+                    if model.busy {
+                        Label { Text("profile.edit.loadingFirst") } icon: { ProgressView() }
+                            .foregroundStyle(.secondary)
+                            .accessibilityAddTraits(.updatesFrequently)
+                            .accessibilityIdentifier("profile.edit.loadingFirst")
+                    } else if model.coordinator.messageKey != nil {
+                        ContentUnavailableView {
+                            Label("profile.edit.loadUnavailable", systemImage: "person.crop.circle.badge.exclamationmark")
+                        } description: { Text("profile.edit.loadUnavailableHint") }
+                        .listRowBackground(Color.clear)
+                        .accessibilityIdentifier("profile.edit.loadUnavailable")
+                    }
+                }
                 if model.coordinator.snapshot != nil {
                     // Mini-program pages/gerenziliao order: avatar, nickname, phone, city signature, works, contact QR, route preferences.
                     ProfileCurrentAvatarView(model: model, reader: savedMedia?.avatar)
