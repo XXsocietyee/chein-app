@@ -345832,6 +345832,40 @@
           }
         }
       }
+    },
+    "mpr3.coop.invite.topicsForbidden": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your current identity can't read topics"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前身份不能读取主题"
+          }
+        }
+      }
+    },
+    "mpr3.coop.invite.targetsForbidden": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your current identity can't view partners"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前身份不能查看合作对象"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

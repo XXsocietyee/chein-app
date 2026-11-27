@@ -13,6 +13,9 @@ import SwiftUI
     @Published private(set) var selected: Set<String> = []
     @Published private(set) var topicsFailed = false
     @Published private(set) var targetsFailed = false
+    /// MP `topicsState/targetsState === 'permission'`: the failure was a refusal (当前身份不能…), not a load error.
+    @Published private(set) var topicsRefused = false
+    @Published private(set) var targetsRefused = false
     @Published private(set) var topicsBusy = false
     @Published private(set) var targetsBusy = false
     @Published private(set) var hasMore = true
@@ -58,7 +61,7 @@ import SwiftUI
     private func invalidateRuns() { generation = UUID(); topicRun = nil; targetRun = nil; topicsBusy = false; targetsBusy = false }
     private func reset() {
         invalidateRuns(); session = reader.session; topics = []; candidates = []; memberCounts = [:]; topicID = nil; selected = []
-        topicsReady = false; targetsReady = false; topicsFailed = false; targetsFailed = false; page = 1; failedPage = nil; hasMore = true
+        topicsReady = false; targetsReady = false; topicsFailed = false; targetsFailed = false; topicsRefused = false; targetsRefused = false; page = 1; failedPage = nil; hasMore = true
     }
     func changeKind(_ value: CoopFlowTargetKind, permit old: Permit) -> Permit? {
         guard accepts(old), !busy, value != kind else { return nil }
@@ -121,7 +124,7 @@ import SwiftUI
             topicsReady = true; failedPage = nil; hasMore = rows.count == 20; page = requested + 1
         } catch {
             guard accepts(value), topicRun == run else { return }
-            topicsFailed = true; failedPage = requested
+            topicsFailed = true; failedPage = requested; topicsRefused = refuses(error)
             if refuses(error) { topics = []; topicID = nil; topicsReady = false; hasMore = true; page = 1; failedPage = 1 }
         }
     }
@@ -145,7 +148,7 @@ import SwiftUI
             if let preset = presetTargetID, let target = parsed.first(where: { $0.recipient.id == preset }) { selected = [target.id] }
         } catch {
             guard accepts(value), targetRun == run else { return }
-            targetsFailed = true
+            targetsFailed = true; targetsRefused = refuses(error)
             if refuses(error) { candidates = []; memberCounts = [:]; selected = []; targetsReady = false }
         }
     }
@@ -393,7 +396,7 @@ import SwiftUI
                 // MP wxml:31-34, 43: 正在刷新主题… while a loaded list re-reads; 主题加载失败 + 重试 on failure.
                 if model.topicsBusy, !model.topics.isEmpty { Text("mpr3.coop.invite.topicsRefreshing").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
                 if model.topicsFailed {
-                    CYInlineError("mpr3.coop.invite.topicsFailed", retryTitle: "action.retry") { Task { await model.retryTopics(permit) } }
+                    CYInlineError(model.topicsRefused ? "mpr3.coop.invite.topicsForbidden" : "mpr3.coop.invite.topicsFailed", retryTitle: "action.retry") { Task { await model.retryTopics(permit) } }
                         .disabled(model.topicsBusy)
                 }
                 if let locked = model.lockedTopic {
@@ -450,7 +453,7 @@ import SwiftUI
                 if model.busy { CYSkeleton().accessibilityLabel(Text("cooperation.loading")) }
                 if model.targetsFailed {
                     // MP wxml:79-81: 合作对象加载失败 + 重试.
-                    CYInlineError("mpr3.coop.invite.targetsFailed", retryTitle: "action.retry") { Task { await model.retryTargets(permit) } }
+                    CYInlineError(model.targetsRefused ? "mpr3.coop.invite.targetsForbidden" : "mpr3.coop.invite.targetsFailed", retryTitle: "action.retry") { Task { await model.retryTargets(permit) } }
                         .disabled(model.targetsBusy)
                 }
                 if !model.busy, !model.targetsFailed, model.lockedTarget == nil {
@@ -471,7 +474,7 @@ import SwiftUI
                 if model.busy { CYSkeleton().accessibilityLabel(Text("cooperation.loading")) }
                 if model.targetsFailed {
                     // MP wxml:79-81: 合作对象加载失败 + 重试.
-                    CYInlineError("mpr3.coop.invite.targetsFailed", retryTitle: "action.retry") { Task { await model.retryTargets(permit) } }
+                    CYInlineError(model.targetsRefused ? "mpr3.coop.invite.targetsForbidden" : "mpr3.coop.invite.targetsFailed", retryTitle: "action.retry") { Task { await model.retryTargets(permit) } }
                         .disabled(model.targetsBusy)
                 }
                 if !model.busy, !model.targetsFailed, filtered.isEmpty {
