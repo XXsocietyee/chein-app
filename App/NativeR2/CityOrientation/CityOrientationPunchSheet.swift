@@ -47,6 +47,11 @@ import SwiftUI
         let task = PlayNodeTask.resolve(mode: snapshot.result.mode, node: node)
         return task == .scan || task == .merchantScan
     }
+    private var nextNode: PlayNode? {
+        guard let id = nextNodeID else { return nil }
+        return model.snapshot?.visibleNodes.first { $0.id == id }
+    }
+    private var nextDistance: Double? { location.distance(toLatitude: nextNode?.latitude, longitude: nextNode?.longitude) }
     private var nextNodeID: Int? {
         guard let snapshot = model.snapshot, let next = PlayTaskSummaryPresentation(snapshot: snapshot).currentNodeID,
               next != nodeID else { return nil }
@@ -156,10 +161,10 @@ import SwiftUI
         let offer = arrival?.offer(for: nodeID)
         Section {
             if done {
-                Label("nativeR2.city.punch.done", systemImage: "checkmark.seal.fill")
-                    .foregroundStyle(.green)
-                    .nativeR2BounceOnAppear()
-                    .accessibilityIdentifier("nativeR2.city.punch.done")
+                // comp-r1 C6 arrival confirmation (MP index.wxml:1104-1110 这一关你已通关 → 前往下一站).
+                CityOrientationArrivalCard(doneCount: snapshot.visibleNodes.filter { snapshot.isDone($0) }.count,
+                                           total: snapshot.visibleNodes.count,
+                                           nextName: nextNode?.name, nextMeters: nextDistance)
             } else {
                 LabeledContent("nativeR2.city.punch.distance") {
                     Text(verbatim: CityOrientationFormat.distance(distance)).monospacedDigit()
@@ -291,7 +296,7 @@ import SwiftUI
             if done {
                 if let next = nextNodeID {
                     Button { onNext(next) } label: {
-                        Label("nativeR2.city.punch.next", systemImage: "arrow.right").frame(maxWidth: .infinity)
+                        Label("nativeR2.city.punch.goNext", systemImage: "arrow.right").frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
                     .accessibilityIdentifier("nativeR2.city.punch.next")
