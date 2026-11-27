@@ -329438,6 +329438,23 @@
         }
       }
     },
+    "roam.discover.exploreDayFallback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See free exploration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "看看自由探索"
+          }
+        }
+      }
+    },
     "roam.discover.exploreDayHint %lld": {
       "extractionState": "manual",
       "localizations": {
