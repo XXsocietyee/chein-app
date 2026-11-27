@@ -7,6 +7,7 @@ struct QuestifyApp: App {
     init() {
         MPNotificationTapRouter.shared.attach()
         QuestLiveActivityCenter.shared.endOrphanedActivities()
+        QuestPlanActivityCenter.shared.start()
         QuestWidgetBoardPublisher.installControlRoute()
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--uitesting-reset-language") {
@@ -141,7 +142,7 @@ struct QuestifyApp: App {
                 } else if let module=ModuleFixture.selected {
                     ModuleFixtureRootView(module:module)
                 } else if let session=sessionContainer.session {
-                    SessionRootView(session:session)
+                    SessionRootView(session:session).questPlanTokenRegistration(session)
                         .safeAreaInset(edge: .bottom) {
                             if let fixture = sessionContainer.couponRuntime {
                                 CouponRuntimeEvidence(fixture: fixture, session: session)
@@ -153,7 +154,7 @@ struct QuestifyApp: App {
                 }
                 #else
                 if let session=sessionContainer.session {
-                    SessionRootView(session:session)
+                    SessionRootView(session:session).questPlanTokenRegistration(session)
                 }
                 #endif
             }

@@ -94,6 +94,7 @@ extension EnvironmentValues {
                 .listStyle(.insetGrouped)
                 .refreshable { if !flow.busy { await flow.refresh() } }
                 .id(ObjectIdentifier(flow)).task { await flow.activate() }
+                .onChange(of: flow.offers) { _, offers in QuestPlanActivityCenter.shared.teamInvites(offers) } // R-island
             } else {
                 ContentUnavailableView {
                     Label("d7.teamInvite.unavailable", systemImage: "person.3")

@@ -136,6 +136,9 @@ import SwiftUI
             }
         }
         .task(id: reportHost) { await loadCalendar() }
+        .onChange(of: accepted) { _, snapshot in // R-island: today's event nudges once
+            if let snapshot { QuestPlanActivityCenter.shared.clubEvents(clubID: clubID, clubName: reportClub?.name, events: snapshot.events) }
+        }
         .onChange(of: reportHost) { _, host in
             if reportPresentation.bind(host, active: scenePhase == .active) { governance.coordinator.cancelReview() }
             destination = nil; selectedDay = nil; model.invalidate()

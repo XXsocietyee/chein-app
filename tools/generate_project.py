@@ -25,7 +25,7 @@ if design_fixture_names:
 unit_source_paths = sorted([*ROOT.glob('Tests/AppUnitTests/**/*.swift'), *release_test_fixture_sources])
 # Live Activity widget extension (roam walk / play session). It compiles its own folder plus the one shared,
 # Foundation/ActivityKit-only Core file that declares the ActivityAttributes; that file stays in the app too.
-live_activity_shared_sources = [ROOT/'Core/QuestLiveActivityContent.swift', ROOT/'Core/QuestLiveActivityIntents.swift', ROOT/'Core/QuestWidgetBoard.swift', ROOT/'Core/QuestWidgetControlIntent.swift']
+live_activity_shared_sources = [ROOT/'Core/QuestLiveActivityContent.swift', ROOT/'Core/QuestLiveActivityIntents.swift', ROOT/'Core/QuestWidgetBoard.swift', ROOT/'Core/QuestWidgetControlIntent.swift', ROOT/'Core/QuestPlanActivityContent.swift']
 live_activity_sources = sorted([*ROOT.glob('LiveActivityWidget/*.swift'), *(p for p in live_activity_shared_sources if p.is_file())])
 live_activity_resources = sorted(ROOT.glob('LiveActivityWidget/*.xcstrings'))
 
