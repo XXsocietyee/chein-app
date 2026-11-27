@@ -203,7 +203,7 @@ extension View {
         return safeAreaInset(edge: .bottom, spacing: 0) {
             CYFooterBar {
                 content
-                    .buttonStyle(.questifyPrimary)
+                    .buttonStyle(.borderedProminent)
                     .controlSize(.large)
                     .frame(maxWidth: .infinity)
             }

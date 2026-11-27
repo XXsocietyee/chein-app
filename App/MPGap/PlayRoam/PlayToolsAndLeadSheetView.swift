@@ -35,6 +35,12 @@ public struct PlayToolsAndLeadSheetView: View {
     public var teamLead: PlayLeadProgress? = nil
     /// mp-journey r3: MP 游玩工具 旅程手记 (`buildJournal`). Nil hides the row.
     public var journalRows: [PlayJournalRow]? = nil
+    /// mp-journey r3: MP mode-2 我的权益 (`merchantCount` 家 · 已核销 `merchantDoneCount` 家). Nil hides the row.
+    public var rights: PlayToolsRights? = nil
+    public var onRights: () -> Void = {}
+    /// mp-journey r3: MP mode 2 lists only 自动记录足迹, after 旅程手记, with its own copy. Non-nil switches to that row
+    /// (true = perk-only topic: 走过的路会记下来). Needs `locationOn`.
+    public var freeTrackPerkOnly: Bool? = nil
 
     public init(
         lead: PlayLeadToolsState = PlayLeadToolsState(),
@@ -61,8 +67,14 @@ public struct PlayToolsAndLeadSheetView: View {
         locationOn: Bool? = nil,
         onLocationRow: @escaping () -> Void = {},
         teamLead: PlayLeadProgress? = nil,
-        journalRows: [PlayJournalRow]? = nil
+        journalRows: [PlayJournalRow]? = nil,
+        rights: PlayToolsRights? = nil,
+        onRights: @escaping () -> Void = {},
+        freeTrackPerkOnly: Bool? = nil
     ) {
+        self.freeTrackPerkOnly = freeTrackPerkOnly
+        self.rights = rights
+        self.onRights = onRights
         self.teamLead = teamLead
         self.journalRows = journalRows
         self.locationOn = locationOn
@@ -113,7 +125,7 @@ public struct PlayToolsAndLeadSheetView: View {
                     }
                 }
                 teamPositionSection
-                if let locationOn {
+                if let locationOn, freeTrackPerkOnly == nil {
                     // mp-journey r3 (MP pages/play/index.wxml 游玩工具, city orientation): 自动记录足迹, 到点提醒.
                     // Both follow the location permission; an off row reads dimmed and asks for location on tap.
                     Section {
@@ -127,8 +139,18 @@ public struct PlayToolsAndLeadSheetView: View {
                 }
                 // mp-journey r3: MP 游玩工具 lists 入场码 then 旅程手记 after 本局读数 / 扫码到达 / 切换章节 / 队伍位置,
                 // just above the preferences.
-                if showsContentRows || journalRows != nil {
+                if showsContentRows || journalRows != nil || rights != nil {
                     Section {
+                        if let rights {
+                            Button(action: onRights) {
+                                LabeledContent {
+                                    Text("playTools.rights.value \(rights.total) \(rights.redeemed)").monospacedDigit()
+                                } label: {
+                                    Label("playTools.rights", systemImage: "gift")
+                                }
+                            }
+                            .accessibilityIdentifier("playTools.rights")
+                        }
                         if showsContentRows {
                             Button("playTools.entryCode", action: onOpenEntryCode)
                                 .accessibilityIdentifier("playTools.entryCode")
@@ -141,6 +163,13 @@ public struct PlayToolsAndLeadSheetView: View {
                             }
                             .accessibilityIdentifier("playTools.journal")
                         }
+                    }
+                }
+                if let locationOn, let perkOnly = freeTrackPerkOnly {
+                    Section {
+                        locationRow("playTools.loc.track", on: locationOn,
+                                    detail: locationOn ? (perkOnly ? "playTools.loc.free.on.perk" : "playTools.loc.free.on") : "playTools.loc.free.off",
+                                    symbol: "point.topleft.down.to.point.bottomright.curvepath", identifier: "playTools.loc.track")
                     }
                 }
                 // MP pages/play/index.wxml 游玩工具 sheet: 背景音乐 / 到站自动播放 / 减少动态效果.
@@ -195,11 +224,12 @@ public struct PlayToolsAndLeadSheetView: View {
                                     Image(systemName: member.arrived ? "checkmark.circle.fill" : "circle")
                                         .foregroundStyle(member.arrived ? Color.green : Color.secondary)
                                 }
-                                .accessibilityValue(Text(member.arrived ? "playTools.team.arrived" : "playTools.team.notArrived"))
+                                .accessibilityValue(Text(LocalizedStringKey(member.arrived ? "playTools.team.arrived" : "playTools.team.notArrived")))
                             }
                         }
                     }
                     .navigationTitle(Text("playTools.team"))
+                    .navigationBarTitleDisplayMode(.inline)
                 } label: {
                     LabeledContent("playTools.team") {
                         Text(verbatim: "\(teamLead.arrived ?? 0)/\(teamLead.members.count)").monospacedDigit()
@@ -248,6 +278,7 @@ public struct PlayToolsAndLeadSheetView: View {
                         .accessibilityIdentifier("playTools.evidence.\(card.id)")
                     }
                     .navigationTitle(Text("playTools.evidence"))
+                    .navigationBarTitleDisplayMode(.inline)
                 } label: {
                     LabeledContent("playTools.evidence") { Text(verbatim: "\(evidenceCards.count)").monospacedDigit() }
                 }
@@ -303,6 +334,7 @@ struct PlayJournalListView: View {
             }
         }
         .navigationTitle(Text("playTools.journal"))
+        .navigationBarTitleDisplayMode(.inline)
     }
 
     private func rowLabel(_ row: PlayJournalRow) -> some View {
@@ -368,5 +400,15 @@ struct PlayJournalStoryView: View {
         }
         .navigationTitle(Text(verbatim: row.title))
         .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+/// mp-journey r3: the 我的权益 counts for the free-exploration 游玩工具 row.
+public struct PlayToolsRights: Equatable {
+    public let total: Int
+    public let redeemed: Int
+    public init(total: Int, redeemed: Int) {
+        self.total = total
+        self.redeemed = redeemed
     }
 }

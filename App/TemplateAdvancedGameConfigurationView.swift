@@ -77,7 +77,7 @@ import SwiftUI
                     ForEach(Array(Set(model.draft.advanced.issues)).sorted(), id: \.self) { Label(LocalizedStringKey($0), systemImage: "exclamationmark.circle").foregroundStyle(.red) }
                 }
             }
-        }.formStyle(.grouped).navigationTitle(LocalizedStringKey(game.labelKey)).disabled(!model.canEdit)
+        }.formStyle(.grouped).navigationTitle(LocalizedStringKey(game.labelKey)).navigationBarTitleDisplayMode(.inline).disabled(!model.canEdit)
     }
     private func field(_ section: String, _ key: String) -> some View {
         TemplateAuthoringField(key, text: .init(get: { model.draft.advanced.text(section, key) }, set: { model.draft.advanced.set(section, key, .string($0)) }))

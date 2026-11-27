@@ -56,15 +56,6 @@ import SwiftUI
             .themeDomain(.topicEditor)
         }.cySheet(detents: [.large])
         }
-        .cySheet(isPresented:$showsOfficialEvents) {
-            NavigationStack {
-            OfficialEventsBrowserView(reader:session.officialEventReader,actions:session.officialActionCoordinator,onClose:{ showsOfficialEvents=false },onLogin:{
-                showsOfficialEvents=false
-                onSignIn?()
-            },topicLinks:OfficialTopicLinks(reader:session.topicReader,destination:{ AnyView(SessionTopicDetailView(id:$0,session:session)) }))
-            }.id(session.officialEventReader.scope)
-            .cyPlayerSheetGlass()
-        }
         .cySheet(isPresented:$showsSquare) { SessionSquareBrowserView(session: session, onClose: { showsSquare = false }, onSignIn: { showsSquare = false; onSignIn?() }).id(session.squareReader.scope).cyPlayerSheetGlass() }
         .cySheet(isPresented:$showsCreate) {
             NavigationStack {
@@ -180,24 +171,28 @@ import SwiftUI
                     continuationDestination(scope)
                         .cyPushedChrome()
                 }
+                // mp-nav r3: MP banners navigateTo /pages/activity/list/index and /pages/club/apply/index (full pages): push.
+                .navigationDestination(isPresented:$showsOfficialEvents) {
+                    OfficialEventsBrowserView(reader:session.officialEventReader,actions:session.officialActionCoordinator,onLogin:{
+                        showsOfficialEvents=false
+                        onSignIn?()
+                    },topicLinks:OfficialTopicLinks(reader:session.topicReader,destination:{ AnyView(SessionTopicDetailView(id:$0,session:session)) }))
+                        .id(session.officialEventReader.scope)
+                        .cyPushedChrome()
+                }
+                .navigationDestination(isPresented:$showsClubApplication) {
+                    clubApplicationPage
+                }
+                // mp-nav r3: MP pages/searchmap/index is a page (map search, not play): push it with an inline title.
+                .navigationDestination(isPresented:$showsSearchMap) {
+                    SessionLinkedSearchView(initialQuery: mapQuery, startsOnMap: true, onSignIn: { showsSearchMap = false; onSignIn?() })
+                        .environmentObject(session)
+                        .cyPushedChrome()
+                }
         }
         .onChange(of:activeContinuationScope) { _,next in if next == nil { Task { await reloadContinuationCards() } } }
         .onChange(of:router.homePath) { _,next in if next.isEmpty { Task { await reloadContinuationCards() } } }
-        .cySheet(isPresented:$showsClubApplication) { clubApplicationSheet.cyPlayerSheetGlass() }
         .cySheet(isPresented:$showsMerchantApplication) { merchantApplicationSheet.themeDomain(.merchant).cySheet(detents: [.large]) }
-        .cySheet(isPresented: $showsSearchMap) {
-            NavigationStack {
-                SessionLinkedSearchView(initialQuery: mapQuery, startsOnMap: true, onSignIn: { showsSearchMap = false; onSignIn?() })
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("action.close") { showsSearchMap = false }
-                                .accessibilityIdentifier("homeFeed.searchMap.close")
-                        }
-                    }
-            }
-            .environmentObject(session)
-            .cyPlayerSheetGlass()
-        }
         .cySheet(isPresented: $showsMiniGames) {
             NavigationStack {
                 ScrollView { ExternalGameLibrarySection(store: ExternalGameStore()).padding(.horizontal, CYSpacing.pageHorizontal) }
@@ -227,17 +222,11 @@ import SwiftUI
     }
     /// R7-PC-A1-2 (r1 PC-A-1-5): MP `/pages/club/apply/index` — the club host application, the same screen the
     /// deep link opens, not the club browser.
-    private var clubApplicationSheet: some View {
-        NavigationStack {
-            MPReviewedPageScreen(page: "pages/club/apply/index", query: [:])
-                .environmentObject(session)
-                .toolbar {
-                    ToolbarItem(placement:.cancellationAction) {
-                        Button("action.close") { showsClubApplication = false }
-                            .accessibilityIdentifier("clubApplication.close")
-                    }
-                }
-        }.id(session.sessionRevision)
+    private var clubApplicationPage: some View {
+        MPReviewedPageScreen(page: "pages/club/apply/index", query: [:])
+            .environmentObject(session)
+            .id(session.sessionRevision)
+            .cyPushedChrome()
     }
     private var merchantApplicationSheet: some View {
         NavigationStack {

@@ -169,7 +169,7 @@ STRINGS = {
     'cooperation.detail.deposit.pay': ('Pay deposit', '去缴纳保证金'),
     'cooperation.detail.footer.legacy': ('Older merchant-node invitations can only be viewed', '历史商家节点邀约仅供查看'),
     'cooperation.detail.footer.ongoing': ('Cooperation in progress', '合作进行中'),
-    'cooperation.detail.footer.ongoingFrozen': ('Cooperation in progress, terms frozen', '合作进行中，条款已冻结'),
+    'cooperation.detail.footer.ongoingFrozen': ('Cooperation in progress, terms locked', '合作进行中，条款已锁定'),
     'cooperation.detail.footer.inactive': ('This invitation is no longer active; no actions are available', '这条邀约已失效，没有可执行的操作'),
     'cooperation.party.merchant': ('Merchant', '商家'),
     'cooperation.party.club': ('Club', '俱乐部'),
@@ -229,9 +229,9 @@ STRINGS = {
     'cooperation.invite.openToHost': ('Open to hosting', '开放承接'),
     # pages/coop/nearby
     'cooperation.nearby.title': ('Nearby merchants', '附近商家'),
-    'cooperation.nearby.empty': ('No contactable merchants nearby', '附近暂无可联系商家'),
+    'cooperation.nearby.empty': ('No merchants nearby', '附近暂无商家'),
     'cooperation.nearby.empty.detail': ('No merchants were found for your current location; refreshing locates you again and searches once more', '按当前定位没找到商家，刷新会重新定位再找一遍'),
-    'cooperation.nearby.failed': ('Nearby merchants did not load', '附近商家没加载出来'),
+    'cooperation.nearby.failed': ("Nearby merchants didn't load", '附近商家加载失败'),
     'cooperation.nearby.failed.detail': ('Service temporarily unavailable. Try again later.', '服务暂时不可用，请稍后重试'),
     'cooperation.nearby.call': ('Call', '电话联系'),
 }

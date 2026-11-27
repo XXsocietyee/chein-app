@@ -137,11 +137,20 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
     @State private var scope: RoamStampAlbumReadOnlyScope?
     @State private var mounted = false
     @State private var didAttach = false
-    init(reader: RoamReceivedStampReader, owner: RoamAlbumReadOwner? = nil) {
-        self.reader = reader; self.owner = owner ?? .init(reader: reader, scope: nil)
+    /// mp-roam r3: true when mounted as the album's inline 收到的 tab (MP `cy-tabs`); the album keeps its own title.
+    let inline: Bool
+    init(reader: RoamReceivedStampReader, owner: RoamAlbumReadOwner? = nil, inline: Bool = false) {
+        self.reader = reader; self.owner = owner ?? .init(reader: reader, scope: nil); self.inline = inline
     }
     private var isCurrent: Bool { owner == RoamAlbumReadOwner(reader: reader, scope: nil) }
     var body: some View {
+        if inline {
+            page
+        } else {
+            page.navigationTitle(receivedStampText("title")).navigationBarTitleDisplayMode(.inline)
+        }
+    }
+    private var page: some View {
         Group {
             if !isCurrent { receivedStampText("changed") }
             else if reader.identity == nil { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.signInRequired") }
@@ -166,7 +175,6 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
                 } else { CYSkeleton().accessibilityLabel(Text("roam.loading")) }
             } else { Color.clear }
         }
-        .navigationTitle(receivedStampText("title")).navigationBarTitleDisplayMode(.inline)
         .onAppear { mounted = true; if !didAttach { attach() } }
         .onDisappear { mounted = false }
         .onChange(of: scenePhase) { _, phase in

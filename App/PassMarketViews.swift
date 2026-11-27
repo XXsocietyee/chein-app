@@ -107,6 +107,8 @@ struct PassGiftRow: Identifiable, Equatable {
     let status: PassGiftStatus
     let claimDeadlineText: String?
     let timeText: String?
+    /// mp-mine r3: MP giftRow `name` (catalog product name). Nil keeps the state as the row title.
+    var name: String? = nil
 
     func stateText(bought: Bool) -> Text {
         switch status {
@@ -378,11 +380,16 @@ struct PassMarketView: View {
         }
     }
 
-    /// `market/passes` 通行证订单 group: name + sub, status (and refund progress), amount. Tap opens the order.
+    /// `market/passes` 通行证订单 group: name + sub, status (and refund progress), amount, then `time` under it. Tap opens the order.
     private func passOrders(_ rows: [PlatformPassSubscriptionOrder]) -> some View {
         ForEach(rows) { row in
             let line = LabeledContent {
-                Text(verbatim: row.amount.isEmpty ? MPText.unknown : LocaleDisplay.yuanAmounts(in: MPParityBindings.moneyText(row.amount), locale: locale)).monospacedDigit()
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(verbatim: row.amount.isEmpty ? MPText.unknown : LocaleDisplay.yuanAmounts(in: MPParityBindings.moneyText(row.amount), locale: locale)).monospacedDigit()
+                    if !row.time.isEmpty {
+                        Text(verbatim: row.time).font(.subheadline).foregroundStyle(.secondary).monospacedDigit()
+                    }
+                }
             } label: {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(verbatim: row.name)
@@ -443,8 +450,14 @@ struct PassMarketView: View {
         LabeledContent {
             if let time = row.timeText { Text(verbatim: time).monospacedDigit() }
         } label: {
+            // MP gift row: title = name || state; the state moves to the sub line when a name is known.
             VStack(alignment: .leading, spacing: 2) {
-                row.stateText(bought: bought)
+                if let name = row.name {
+                    Text(verbatim: name)
+                    row.stateText(bought: bought).font(.subheadline).foregroundStyle(.secondary)
+                } else {
+                    row.stateText(bought: bought)
+                }
                 if let deadline = row.claimDeadlineText {
                     Text("mp.pass.gift.deadline \(deadline)").font(.subheadline).foregroundStyle(.secondary)
                 }
@@ -717,9 +730,7 @@ struct PassDetailView: View {
                     }
                 } header: { Text("mp.pass.detail.checkout") }
             }
-            Section {
-                PassActivatePanel(topicID: state.activateTopicID)
-            }
+            // mp-mine r3: MP market/pass has no 首次使用时激活 block (wxml:10-48), so none is drawn here.
         }
         .listStyle(.insetGrouped)
         .safeAreaInset(edge: .bottom) { bar }

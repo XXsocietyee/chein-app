@@ -112,8 +112,10 @@ struct PlayThemeMusicKey: Equatable {
     /// Split from body so the type checker handles the modifier chain in parts.
     private var navigationLayer: some View {
         Group {
-            if model.gameplayMode == .freeExploration || (model.snapshot == nil && presentedMode == .freeExploration) {
-                if NativeR2Flags.freeExplore {
+            if model.gameplayMode != .freeExploration, let blocked = PlayEmptyKind.blocking(model.snapshot?.availability) {
+                PlayEmptyStateCard(kind: blocked, topicID: model.snapshot?.result.topicID)
+            } else if model.gameplayMode == .freeExploration || (model.snapshot == nil && presentedMode == .freeExploration) {
+                if NativeR2Flags.freeExplore && NativeR2Flags.freeExploreMapHome {
                     NativeFreeExploreMapView(model: model, storeDestination: { AnyView(freeStoreDestination($0)) },
                                              rewardCollectionDestination: rewardCollectionDestination,
                                              castConfig: castModel?.config, castEnding: model.castPayload,
@@ -137,11 +139,14 @@ struct PlayThemeMusicKey: Equatable {
                     }
                 } else {
                     VStack(spacing: CYSpacing.md) {
-                        if model.available {
+                        if model.available, let pass = PlayEmptyKind.failure(model.issue) {
+                            PlayEmptyStateCard(kind: pass, topicID: { if case .topic(let id) = model.scope { return id }; return nil }())
+                        } else if model.available {
                             CYEmptyState(systemImage: "exclamationmark.triangle", "playx.error.title", actionTitle: "playx.refresh") {
                                 if model.phase != .submitting { Task { await model.load() } }
                             }
                             if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
+                            PlayBackToDetailButton()
                         } else {
                             CYEmptyState(systemImage: "gamecontroller", "playx.disabled.title")
                             Text("playx.disabled").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
@@ -255,6 +260,7 @@ struct PlayThemeMusicKey: Equatable {
     var body: some View {
         presentationLayer
         .modifier(PlayNightHintOverlay(receipt: model.reward))
+        .modifier(PlayFlyScoreOverlay(receipt: model.reward))
         .onChange(of: model.snapshot?.result.topicID) { _, topicID in
             chapterFilter = nil
             presentTitleCardIfNeeded(topicID)
@@ -469,7 +475,7 @@ struct PlayThemeMusicKey: Equatable {
                             )
                         )
                         Button("referenceTask.open") { selectedNode = id }
-                            .buttonStyle(.questifyPrimary)
+                            .buttonStyle(.borderedProminent)
                             .accessibilityIdentifier("referenceTask.open")
                     }
                     .listRowBackground(Color.clear)
@@ -1264,6 +1270,11 @@ struct PlayThemeMusicKey: Equatable {
     private func nodeList(context: PlayInteractionContext?) -> some View {
         List {
             PlayTaskOutcomeSection(model: model, nodeID: nodeID, openNode: openNode)
+            // mp-journey r3 (MP p03 `gp2__right`, P-11): after this screen's own accepted answer, the author's
+            // feedback (or 对了) and the stop's 碎片, read before moving on.
+            if justSubmitted, nodeDone, let node {
+                PlayTaskRightSection(passText: node.passText, fragment: node.fragmentText)
+            }
             // Also shown at the top: the answer row can sit under the keyboard.
             if let refusal { Section { PlayReviewRefusalRow(refusal: refusal, identifier: "playx.review.refusal") } }
             if let state = model.submitRecovery, state.nodeID == nodeID {
@@ -1304,7 +1315,7 @@ struct PlayThemeMusicKey: Equatable {
                             Button(CoreLoopCopy(locale: locale).t("前往盲盒任务", "Open Mystery Task")) {
                                 openNode(dispatched.nodeID)
                             }
-                            .buttonStyle(.questifyPrimary)
+                            .buttonStyle(.borderedProminent)
                             .accessibilityIdentifier("playx.random.openDispatched")
                         }
                     }
@@ -1361,6 +1372,7 @@ struct PlayThemeMusicKey: Equatable {
         nodeList(context: context)
             .privacySensitive()
             .navigationTitle("playx.task.title")
+            .navigationBarTitleDisplayMode(.inline)
             .onChange(of: outcomeState) { old, new in
                 // Only this screen's own submission produces a verdict; a later read never replays one.
                 guard old == .submitting else { return }
@@ -1907,6 +1919,7 @@ struct PlayExperienceIssueView: View {
     @State private var review = false
     @State private var actionContext: PlayInteractionContext?
     @Environment(\.playerGapService) private var gapService
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var body: some View {
         let context = model.interactionContext
         Section("playx.lead.title") {
@@ -1920,6 +1933,12 @@ struct PlayExperienceIssueView: View {
                 let gathering = lead.exists && lead.status == 1
                 if gathering {
                     VStack(spacing: CYSpacing.xs) {
+                        // MP P-13 `lg-wait`: three dots breathing in turn while the team gathers; still under Reduce Motion.
+                        Image(systemName: "ellipsis")
+                            .font(.title2)
+                            .foregroundStyle(.secondary)
+                            .symbolEffect(.variableColor.iterative, options: .repeating, isActive: !reduceMotion)
+                            .accessibilityHidden(true)
                         Text("playx.lead.gathering").font(.subheadline).foregroundStyle(.secondary)
                         (Text(verbatim: "\(lead.arrived ?? 0)").font(.largeTitle.weight(.bold))
                             + Text(verbatim: "/\(lead.members.count)").font(.title3).foregroundStyle(.secondary))
@@ -2191,5 +2210,69 @@ private struct PlayNightHintOverlay: ViewModifier {
                     withAnimation(reduceMotion ? nil : .easeOut(duration: 0.25)) { shown = false }
                 }
             }
+    }
+}
+
+/// mp-journey r3: MP `.flyscore` — `+N 探索值` rises once at the completion moment and is gone after the celebrate beat.
+/// Never blocks; VoiceOver hears it once; Reduce Motion shows it in place.
+private struct PlayFlyScoreOverlay: ViewModifier {
+    let receipt: PlayWireValue?
+    @State private var points: Int?
+    @State private var token = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        content
+            .overlay {
+                if let points {
+                    Text("playx.flyScore \(points)")
+                        .font(.title3.weight(.semibold))
+                        .monospacedDigit()
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(.regularMaterial, in: .capsule)
+                        .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
+                        .allowsHitTesting(false)
+                        .accessibilityIdentifier("playx.flyScore")
+                }
+            }
+            .onChange(of: receipt) { _, value in
+                guard let gained = PlayFlyScore.points(value) else { return }
+                token += 1
+                let current = token
+                withAnimation(reduceMotion ? nil : .spring(duration: 0.35)) { points = gained }
+                AccessibilityNotification.Announcement(appLocalized("playx.flyScore \(gained)", locale: .current)).post()
+                Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(PlayFlyScore.displaySeconds))
+                    guard current == token else { return }
+                    withAnimation(reduceMotion ? nil : .easeOut(duration: 0.25)) { points = nil }
+                }
+            }
+    }
+}
+
+/// mp-journey r3: MP task page (p03) 答对 block — a check with the author's pass text (or 对了), then 碎片.
+private struct PlayTaskRightSection: View {
+    let passText: String?
+    let fragment: String?
+
+    var body: some View {
+        Section {
+            Label {
+                if let passText, !passText.isEmpty { Text(verbatim: passText) } else { Text("playx.right.default") }
+            } icon: {
+                Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+            }
+            .font(.headline)
+            if let fragment, !fragment.isEmpty {
+                LabeledContent {
+                    Text(verbatim: fragment).multilineTextAlignment(.trailing)
+                } label: {
+                    Text("playx.right.fragment")
+                }
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("playx.right")
     }
 }

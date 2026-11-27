@@ -99,6 +99,8 @@ public enum TeamReadFailureKind: Equatable, Sendable {
     public private(set) var rejectionCode: String?
     /// Why the last read failed, for source copy only (网络没连上 vs 403 vs data). Never an authorization.
     public private(set) var readFailure: TeamReadFailureKind?
+    /// MP team/join `TEAM_INFO_REFUSED`: the server answered and refused the read (not 401/403). Copy only.
+    public private(set) var readRefused = false
     public private(set) var loading = false
     public private(set) var writeState: WriteState = .idle
     public private(set) var completedTeamID: Int?
@@ -138,6 +140,7 @@ public enum TeamReadFailureKind: Equatable, Sendable {
     }
     private func readError(_ error: Error, session: TeamSession) {
         readFailure = TeamReadFailureKind(error)
+        if case .rejected(let code)? = error as? TeamFailure { readRefused = code != 401 && code != 403 } else { readRefused = false }
         if error as? TeamFailure == .unauthorized {
             completedTeamsRead = false
             teams = []; detail = nil; creation = nil; review = nil; messageKey = "team.signIn"; onUnauthorized(session)
@@ -169,7 +172,7 @@ public enum TeamReadFailureKind: Equatable, Sendable {
         synchronizeSession(); guard !Task.isCancelled, !busy else { return }
         guard let lookup = lookup.normalized else { detail = nil; messageKey = "team.invalidLink"; return }
         guard let session = capturedSession else { messageKey = "team.signIn"; return }
-        generation &+= 1; let stamp = generation; loading = true; review = nil; messageKey = nil; readFailure = nil
+        generation &+= 1; let stamp = generation; loading = true; review = nil; messageKey = nil; readFailure = nil; readRefused = false
         // Keep the write's reason beside the refreshed page; a different target drops it below.
         // The host uses a separate coordinator for each detail route. Never retain another target.
         if activeLookup != lookup { detail = nil; pending = nil; writeState = .idle; completedJoinID = nil; retiredMembershipTeamID = nil; confirmedJoinMode = nil; rejectionCode = nil }; activeLookup = lookup

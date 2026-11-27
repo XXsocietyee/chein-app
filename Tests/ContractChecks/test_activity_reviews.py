@@ -18,9 +18,13 @@ class ActivityReviewChecks(unittest.TestCase):
         self.assertEqual(view.count('ActivityReviewsSection(reviews: detail.reviews)'), 2)
         city = view.split('private func cityEventDetail(', 1)[1].split('private func cityEventCTA(', 1)[0]
         self.assertEqual(city.count('ActivityReviewsSection(reviews: detail.reviews)'), 1)
-        # In the city list the reviews ride in `more()`, which is mounted after the tickets section.
+        # mp-home r3 continue: the city list mounts the reviews right after 票种 (MP order), people before 票种.
         city_list = (ROOT / 'App/NativeR2/CityOrientation/CityOrientationEventDetailList.swift').read_text()
-        self.assertLess(city_list.index('Section("nativeR2.city.event.tickets")'), city_list.index('more()'))
+        self.assertIn('reviews: AnyView(ActivityReviewsSection(reviews: detail.reviews))', city)
+        self.assertLess(city_list.index('if let people { people }'), city_list.index('Section("nativeR2.city.event.tickets")'))
+        self.assertLess(city_list.index('Section("nativeR2.city.event.tickets")'), city_list.index('if let reviews { reviews }'))
+        self.assertLess(city_list.index('if let reviews { reviews }'), city_list.index('more()'))
+        self.assertNotIn('Map(initialPosition', city_list)
         self.assertLess(city.index('ActivityReviewsSection('), city.index('moreInfoSections(detail)'))
         view = view.replace(city, '')
         # U9-B: as in the mini-program, reviews follow the tickets on the first fold, before the "More info" toggle.

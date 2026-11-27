@@ -14,6 +14,7 @@ import SwiftUI
     @Environment(\.squareDeletion) private var deletion
     @Environment(\.squareShareLink) private var shareLink
     @Environment(\.squareAuthorFollowState) private var followState
+    @Environment(\.squareViewerAvatar) private var viewerAvatar
     @Environment(\.analyticsEventClient) private var analytics
     @Environment(\.ugcSafetyContext) private var ugcSafety
     @Environment(\.locale) private var locale
@@ -42,6 +43,10 @@ import SwiftUI
     @State private var legacyDeleting = false
     @State private var legacyDeleted = false
     @State private var legacyDeleteFailed = false
+    /// MP A-04 `deleteComment` on a legacy comment: danger confirm (club.comment.delete), then `/api/comment/delete`.
+    @State private var legacyCommentTarget: SquareComment?
+    @State private var legacyCommentDeleting = false
+    @State private var legacyCommentDeleteFailed = false
     @QuestifyReduceMotion private var reduceMotion
     private struct Key: Hashable { let id: Int; let generation: SquareContentGeneration; let scope: UUID; let configured: Bool }
     private var key: Key { Key(id: id, generation: contentGeneration, scope: reader.scope, configured: reader.isConfigured) }
@@ -73,20 +78,27 @@ import SwiftUI
                             SquarePostContent(post: post, showImages: false, mediaScope: reader.scope, showsCounts: actions?.identity.accountID == nil,
                                               avatarMenuItems: avatarMenuItems(post), onAvatarPick: { pickAvatarItem($0, post: post) },
                                               onFollow: inlineFollow(post)).accessibilityIdentifier("square.detailPost")
-                            if post.isTopicTemplate || post.referenceTitle != nil {
+                            let cardFacts = SquarePostCardFacts(post)
+                            if cardFacts.isCompletionShare {
+                                // MP cy-completion-share-card replaces the play card and the photo strip (index.wxml:57-92).
+                                SquareDetailCompletionCard(post: post, cover: cardFacts.playCover, showsTitleRow: !post.strava.showsActivity, scope: reader.scope)
+                                SquareRelatedTopicLink(post: post, source: .init(id: id, generation: contentGeneration), squareReader: reader) { relatedTopic = $0 }
+                            } else if post.isTopicTemplate || post.referenceTitle != nil {
                                 // C-S1: MP feed-play-card on the detail page (看看模板 / 试玩).
                                 SquareDetailPlayCard(post: post, source: .init(id: id, generation: contentGeneration), reader: reader) { relatedTopic = $0 }
                             } else {
                                 SquareRelatedTopicLink(post: post, source: .init(id: id, generation: contentGeneration), squareReader: reader) { relatedTopic = $0 }
                             }
-                            if !post.images.isEmpty {
+                            if !cardFacts.isCompletionShare && !post.images.isEmpty {
                                 NativeMediaGalleryEntry(sources: post.images, scope: reader.scope, titleKey: "media.destination.squareImages")
                             }
                             if let routeImage = post.routeImage {
                                 NativeMediaGalleryEntry(sources: [routeImage], scope: reader.scope, titleKey: "media.destination.squareImages")
                             }
                             if !post.videos.isEmpty { SquarePostVideoList(videos: post.videos) }
-                            SquareDetailMedalPill(gold: post.medalGold, silver: post.medalSilver, bronze: post.medalBronze)
+                            if !SquarePostCardFacts(post).isCompletionShare || post.strava.showsActivity {
+                                SquareDetailMedalPill(gold: post.medalGold, silver: post.medalSilver, bronze: post.medalBronze)
+                            }
                             // Mini `components/route-map`: live route only with a provider; the post's own snapshot is already in the gallery.
                             if let topicID = post.topicID, topicID > 0 { CYSquareRouteMapCard(topicID: topicID) }
                             if let actions, actions.identity.accountID != nil {
@@ -117,6 +129,11 @@ import SwiftUI
                 // Detail failure never renders orphan comments without their post context.
                 if let post, !(ugcSafety?.isBlocked(memberID: post.memberID, authorName: post.nickname) ?? false) {
                     Section("square.comments") {
+                        if legacyCommentDeleteFailed {
+                            // MP toast 删除失败，请重试 stays visible in the thread it belongs to.
+                            Label("square.xcx.delete.failed", systemImage: "exclamationmark.triangle").foregroundStyle(.red)
+                                .accessibilityIdentifier("square.delete.legacyCommentFailed")
+                        }
                         if let commentIssue {
                             // Round 4 copy (MP square/detail wxml): the comment section failure reads 评论加载失败 / 重试.
                             SquareIssueView(error: commentIssue, retry: { Task { await loadComments(operation: generation, captured: key) } },
@@ -162,16 +179,21 @@ import SwiftUI
             if let post, let actions, actions.identity.accountID != nil, loadedKey == key {
                 // Source sticky bar "留下你的评论"; opens the existing reviewed comment editor.
                 // r10 N-25: system bar material + divider instead of the custom CYFooterBar (square/detail/index.wxml).
+                // MP david_npl: the viewer's avatar sits left of the comment field (default avatar when none is known).
                 VStack(spacing: 0) {
                     Divider()
-                    Button { editor = .init(purpose: .comment, target: .post(post.id), text: "") } label: {
-                        Label("square.xcx.commentPlaceholder", systemImage: "text.bubble")
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                    HStack(spacing: 12) {
+                        SquareAuthorAvatar(source: commentBarAvatar(actions), size: 32)
+                            .accessibilityHidden(true)
+                        Button { editor = .init(purpose: .comment, target: .post(post.id), text: "") } label: {
+                            Label("square.xcx.commentPlaceholder", systemImage: "text.bubble")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.large)
+                        .disabled(!post.viewerCanComment)
+                        .accessibilityIdentifier("square.commentBar")
                     }
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
-                    .disabled(!post.viewerCanComment)
-                    .accessibilityIdentifier("square.commentBar")
                     .padding(.horizontal)
                     .padding(.vertical, 8)
                 }
@@ -236,7 +258,16 @@ import SwiftUI
             // A confirmed comment deletion refreshes the thread; a deleted post leaves no stale body on screen.
             if case .done(let target)? = phase { if case .post = target { post = nil; comments = SquareCommentPagination() } else { Task { await reload() } } }
         }
-        .onChange(of: key) { _, _ in deletion?.retire(); legacyDeleteConfirm = false }
+        .onChange(of: key) { _, _ in deletion?.retire(); legacyDeleteConfirm = false; legacyCommentTarget = nil; legacyCommentDeleteFailed = false }
+        .confirmationDialog(Text("square.xcx.delete.commentTitle"), isPresented: Binding(get: { legacyCommentTarget != nil }, set: { if !$0 { legacyCommentTarget = nil } }), titleVisibility: .visible, presenting: legacyCommentTarget) { comment in
+            Button("square.xcx.delete.commentConfirm", role: .destructive) {
+                let commentID = comment.id
+                legacyCommentTarget = nil
+                Task { await deleteLegacyComment(commentID) }
+            }
+        } message: { _ in
+            Text("square.xcx.delete.commentIrreversible")
+        }
         .confirmationDialog(Text("square.xcx.delete.postConfirm"), isPresented: $legacyDeleteConfirm, titleVisibility: .visible) {
             Button("square.xcx.delete.postConfirm", role: .destructive) {
                 if let postID = post?.id { Task { await deleteLegacyPost(postID) } }
@@ -496,6 +527,14 @@ import SwiftUI
                             .accessibilityLabel(Text("square.xcx.delete.commentConfirm"))
                             .accessibilityIdentifier("square.delete.commentEntry.\(comment.id)")
                     }
+                    if comment.generation == .legacySquare, let actions, let viewer = actions.identity.accountID, comment.memberID == viewer {
+                        Button(role: .destructive) { legacyCommentTarget = comment } label: { Text("square.xcx.delete.comment").font(.caption) }
+                            .buttonStyle(.borderless)
+                            .disabled(legacyCommentDeleting)
+                            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget).contentShape(Rectangle())
+                            .accessibilityLabel(Text("square.xcx.delete.commentConfirm"))
+                            .accessibilityIdentifier("square.delete.legacyCommentEntry.\(comment.id)")
+                    }
                     Spacer(minLength: 0)
                     if let actions, actions.identity.accountID != nil,
                        SquareAuthorSafety.showsBlockEntry(authorMemberID: comment.memberID, viewerMemberID: actions.identity.accountID) {
@@ -578,6 +617,23 @@ import SwiftUI
             legacyDeleted = true
         } catch is CancellationError {
         } catch { if captured == key { legacyDeleteFailed = true } }
+    }
+    private func commentBarAvatar(_ actions: SocialActionCoordinator) -> String? {
+        guard let viewerAvatar, viewerAvatar.memberID == actions.identity.accountID, !viewerAvatar.avatar.isEmpty else { return nil }
+        return viewerAvatar.avatar
+    }
+    /// MP index.js:918-966: after `/api/comment/delete` succeeds the thread re-reads (count and list stay server truth).
+    private func deleteLegacyComment(_ commentID: Int) async {
+        guard !legacyCommentDeleting, commentID > 0 else { return }
+        legacyCommentDeleting = true; legacyCommentDeleteFailed = false
+        defer { legacyCommentDeleting = false }
+        let captured = key
+        do {
+            try await reader.deleteOwnLegacyComment(commentID: commentID)
+            guard captured == key else { return }
+            await reload()
+        } catch is CancellationError {
+        } catch { if captured == key { legacyCommentDeleteFailed = true } }
     }
     private func loadDetail(operation: Int, captured: Key) async {
         defer { if operation == generation { detailLoading = false } }
@@ -779,6 +835,48 @@ struct SquareDetailIssueView: View {
                         .accessibilityIdentifier("square.detail.back")
                 }
             }
+        }
+    }
+}
+
+/// MP components/cy/completion-share-card (square/detail/index.wxml:57-75) on the detail page.
+/// Title row (walk, title or 本次漫游, medals) and 路线节点 when no activity stats block already shows them,
+/// then the result image (roam results are a tall image: fit, not fill). Stats and kudos come from the activity block.
+struct SquareDetailCompletionCard: View {
+    let post: SquarePost
+    let cover: String?
+    let showsTitleRow: Bool
+    let scope: UUID
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            if showsTitleRow {
+                HStack(spacing: 10) {
+                    Image(systemName: "figure.walk").foregroundStyle(.secondary).accessibilityHidden(true)
+                    titleText.font(.headline)
+                    Spacer(minLength: 0)
+                    SquareDetailMedalPill(gold: post.medalGold, silver: post.medalSilver, bronze: post.medalBronze)
+                }
+                if post.dataType != 3 && post.nodeTotal > 0 {
+                    LabeledContent {
+                        Text(verbatim: String(post.nodeTotal)).monospacedDigit()
+                    } label: {
+                        Text("mpr3.square.detail.routeStops")
+                    }
+                    .accessibilityIdentifier("square.detail.completion.nodes")
+                }
+            }
+            if let cover {
+                NativeMediaGalleryEntry(sources: [cover], scope: scope, titleKey: "media.destination.squareImages")
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("square.detail.completionCard")
+    }
+    @ViewBuilder private var titleText: some View {
+        if let title = post.referenceTitle?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty {
+            Text(verbatim: title)
+        } else {
+            Text("square.xcx.completionFallback")
         }
     }
 }

@@ -146,7 +146,8 @@ class ClubOpsCustomerWiring(unittest.TestCase):
         for token in ["ClubOpsCustomerDetailPresentation(value: value, memberID: scope.memberID)",
                       "customerTopicRoute(record.source)", "selectCustomerTopic(target)",
                       # fix-r11 club-a CLB-customer-detail-04 (MP customer-detail/index.wxml:83-118): inline editor, no sheet.
-                      "detail.canEdit ? customerInlineEditor(value)"]:
+                      # mp-club r3 pass 2 (MP wxml:82-99): the editor owns the section, so it receives the read-only rows.
+                      "detail.canEdit ? { rows in customerInlineEditor(value, rows: rows) }"]:
             self.assertIn(token, branch)
         views = read("App/ClubOpsCustomerViews.swift")
         self.assertIn('accessibilityIdentifier("club.gov.customer.topic.\\(action.id)")', views)

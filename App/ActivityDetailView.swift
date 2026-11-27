@@ -392,13 +392,13 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                 .accessibilityIdentifier("activity.requiredClub.unavailable")
         }
     }
-    /// First fold: hero, action tiles, info card, cancellation, meta, map, about, people, tickets, reviews, one "More info" row.
-    /// Meta (分类 / 集合点 / 已报名) follows the cancellation notice and precedes 关于这场活动.
+    /// First fold in MP order: hero, cancellation, meta (分类 / 集合点 / 已报名 / 主题路线), about, people, plays, tickets,
+    /// reviews; then the native channel row and one "More info" row.
     /// Everything else (plays, journeys) sits behind the disclosure; host cancel stays its own section.
     private func detailContent(_ detail:ActivityDetail) -> some View {
         List {
             Section {
-                // E1ActivityHero / E1ActivityInfoCard draw their own surface (E1ActivityDetailParts.swift); no cell behind them.
+                // E1ActivityHero draws its own surface (E1ActivityDetailParts.swift); no cell behind them.
                 E1ActivityHero(summary:detail.summary)
                     .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
             }
@@ -415,49 +415,18 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                     .accessibilityIdentifier("activity.detail.cancelled")
                 }
             }
-            Section {
-                E1ActivityInfoCard(detail:detail)
-                    .questifyCardListRow()
-                    .id(E1ActivityAnchor.overview.rawValue)
-            }
-            Section {
-                ActivityActionRows(onDirections: directionsAction(detail),
-                                   onReview: canReview(detail) ? { showsReview = true } : nil)
-                if primaryAction != .signUp, !detail.isCancelled {
-                    InGameChannelRowButton(
-                        scope: .activity(id: id),
-                        titleKey: "ingame.channel.activity",
-                        subtitleKey: "ingame.channel.activitySubtitle",
-                        accessibilityID: "ingame.channel.activity.entry",
-                        reloadTrigger: primaryAction
-                    )
-                }
-            }
-            // MP scene-play-activity-detail activity-meta: 分类 / 集合点 / 已报名
-            // follow the cancellation notice and precede 关于这场活动.
-            ActivityDetailMetaSection(facts: ActivityDetailHeaderFacts(detail: detail))
-            // mp-home r3: MP 主题路线 is the last fact row (index.wxml:37), so it follows the facts directly.
+            // mp-home r3 continue (OWNER RULE: MP order wins): MP scene-play-activity-detail index.wxml:29-38 —
+            // activity-meta (分类 / 集合点 / 已报名 / 主题路线) comes right after the hero and the cancelled notice. The
+            // native info card, the directions / review rows and the static map were extras the MP page lacks: 集合点
+            // opens Maps (MP `openLocation`), 写评价 lives with the reviews.
+            ActivityDetailMetaSection(facts: ActivityDetailHeaderFacts(detail: detail), onOpenLocation: directionsAction(detail))
+                .id(E1ActivityAnchor.overview.rawValue)
+            // MP 主题路线 is the last fact row (index.wxml:37), so it follows the facts directly.
             if let topicID = detail.summary.linkedTopicID, let topicDestination {
                 Section {
                     NavigationLink { topicDestination(topicID) } label: {
                         Label("activity.viewTopic", systemImage: "map")
                     }.accessibilityIdentifier("activity.openTopic")
-                }
-            }
-            if detail.summary.hasValidCoordinates,
-               let latitude=detail.summary.latitude, let longitude=detail.summary.longitude {
-                Section("activity.location") {
-                    let coordinate=CLLocationCoordinate2D(latitude:latitude,longitude:longitude)
-                    // Static map: an interactive map inside a List traps VoiceOver focus.
-                    Map(initialPosition:.region(CYMapRegion.region(center:coordinate,span:0.01)),interactionModes:[]) {
-                        Marker(detail.summary.name,coordinate:coordinate)
-                    }.frame(height:220)
-                        .mapStyle(.standard(elevation:.flat,emphasis:.muted))
-                        .accessibilityElement(children:.ignore)
-                        .accessibilityLabel(Text("activity.location"))
-                        .accessibilityValue(Text(verbatim:ActivityLocationAccessibility.value(name:detail.summary.name,addressName:detail.summary.addressName,address:detail.summary.address)))
-                        .accessibilityAddTraits(.isImage)
-                        .listRowInsets(EdgeInsets())
                 }
             }
             // R7-PC-C1-7, MP scene-play-activity-detail index.wxml:41-44: 关于这场活动 sits in the first fold, above the people.
@@ -504,6 +473,18 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                         .accessibilityIdentifier("activity.detail.readOnly")
                 } icon: { Image(systemName:"star").accessibilityHidden(true) }
                 .fixedSize(horizontal:false,vertical:true)
+            }
+            // Native extra (no MP section): the in-game channel for joined players, after the MP sections.
+            if primaryAction != .signUp, !detail.isCancelled {
+                Section {
+                    InGameChannelRowButton(
+                        scope: .activity(id: id),
+                        titleKey: "ingame.channel.activity",
+                        subtitleKey: "ingame.channel.activitySubtitle",
+                        accessibilityID: "ingame.channel.activity.entry",
+                        reloadTrigger: primaryAction
+                    )
+                }
             }
             Section {
                 Button {
@@ -561,19 +542,14 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
             onDirections: directionsAction(detail),
             onReview: canReview(detail) ? { showsReview = true } : nil,
             topicDestination: detail.summary.linkedTopicID.flatMap { topicID in topicDestination.map { AnyView($0(topicID)) } },
+            people: AnyView(cityEventPeople(detail)),
+            reviews: AnyView(ActivityReviewsSection(reviews: detail.reviews)),
             channel: (primaryAction != .signUp && !detail.isCancelled)
                 ? AnyView(InGameChannelRowButton(scope: .activity(id: id), titleKey: "ingame.channel.activity",
                                                  subtitleKey: "ingame.channel.activitySubtitle",
                                                  accessibilityID: "ingame.channel.activity.entry", reloadTrigger: primaryAction))
                 : nil
         ) {
-            ActivityPeopleSection(people: detail.people, onOpenProfile: profileAction(detail),
-                                  organizerShopName: detail.organizerShopName, organizerShopLogo: detail.organizerShopLogo)
-            // mp-home r3: 关联玩法模板 follows the people (MP order); it left moreInfoSections.
-            if gateScope != nil, detail.summary.id == id {
-                ActivityAssociatedPlaysSection(plays: detail.associatedPlays)
-            }
-            ActivityReviewsSection(reviews: detail.reviews)
             moreInfoSections(detail)
             if let hostCancelAccess {
                 ActivityHostCancelSection(detail: detail, access: hostCancelAccess) {
@@ -589,6 +565,14 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                 }
                 .presentationDetents([.medium, .large])
             }
+        }
+    }
+    /// mp-home r3 continue: MP 主理人 / N 人已报名 / 关联玩法模板, mounted by the city list between 关于 and 票种.
+    @ViewBuilder private func cityEventPeople(_ detail: ActivityDetail) -> some View {
+        ActivityPeopleSection(people: detail.people, onOpenProfile: profileAction(detail),
+                              organizerShopName: detail.organizerShopName, organizerShopLogo: detail.organizerShopLogo)
+        if gateScope != nil, detail.summary.id == id {
+            ActivityAssociatedPlaysSection(plays: detail.associatedPlays)
         }
     }
     /// `registrationAction` rules, in the same order: host cancel, blocked sign-up, sign-up (guest sign-in first),
@@ -830,6 +814,8 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
 /// Source detail meta rows. Unknown values stay an em dash, never zero. System text styles only.
 @MainActor private struct ActivityDetailMetaSection: View {
     let facts: ActivityDetailHeaderFacts
+    /// MP `openLocation`: the 集合点 row opens Maps when the activity has coordinates.
+    var onOpenLocation: (() -> Void)? = nil
     var body: some View {
         Section {
             LabeledContent("activityParity.header.category") {
@@ -837,15 +823,14 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
             }
             .font(.body)
             .accessibilityIdentifier("activity.detail.category")
-            LabeledContent("activityParity.header.meetingPoint") {
-                switch facts.meetingPoint {
-                case .named(let place): Text(verbatim: place)
-                case .mapOnly: Text("activityParity.header.meetingPointOnMap")
-                case .unconfirmed: Text(verbatim: "—")
-                }
+            if let onOpenLocation {
+                Button(action: onOpenLocation) { meetingPointRow.foregroundStyle(.primary) }
+                    .accessibilityHint(Text("activity.meetingPoint.openMaps"))
+                    .accessibilityIdentifier("activity.detail.meetingPoint")
+            } else {
+                meetingPointRow
+                    .accessibilityIdentifier("activity.detail.meetingPoint")
             }
-            .font(.body)
-            .accessibilityIdentifier("activity.detail.meetingPoint")
             LabeledContent("activityParity.header.registered") {
                 if let count = facts.registrationCount { Text("activityParity.header.registeredCount \(count)") }
                 else { Text(verbatim: "—") }
@@ -853,6 +838,17 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
             .font(.body)
             .accessibilityIdentifier("activity.detail.registeredCount")
         }
+    }
+
+    private var meetingPointRow: some View {
+        LabeledContent("activityParity.header.meetingPoint") {
+            switch facts.meetingPoint {
+            case .named(let place): Text(verbatim: place)
+            case .mapOnly: Text("activityParity.header.meetingPointOnMap")
+            case .unconfirmed: Text(verbatim: "—")
+            }
+        }
+        .font(.body)
     }
 }
 
@@ -865,29 +861,6 @@ enum ActivityLocationAccessibility {
             if !text.isEmpty, !parts.contains(text) { parts.append(text) }
         }
         return parts.joined(separator: ", ")
-    }
-}
-
-/// Secondary actions under the poster: directions and review, each only when available. Sign up lives in the pinned
-/// button and Share in the top bar, so neither repeats here. Plain List rows.
-private struct ActivityActionRows: View {
-    let onDirections: (() -> Void)?
-    let onReview: (() -> Void)?
-    @Environment(\.locale) private var locale
-
-    var body: some View {
-        if let onDirections {
-            Button(action: onDirections) {
-                Label { Text(verbatim: CYKitCopy(locale: locale)("Directions", "路线")) } icon: { Image(systemName: "arrow.triangle.turn.up.right.circle") }
-            }
-            .accessibilityIdentifier("activity.tile.directions")
-        }
-        if let onReview {
-            Button(action: onReview) {
-                Label("context.review.title", systemImage: "square.and.pencil")
-            }
-            .accessibilityIdentifier("activity.tile.review")
-        }
     }
 }
 

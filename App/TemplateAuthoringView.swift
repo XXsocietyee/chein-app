@@ -371,7 +371,15 @@ extension EnvironmentValues {
                 Section {
                     Text("projectNodeCreate.draftOnly", tableName: "ProjectNodeTemplateCreation")
                     if let saved = model.coordinator.savedDraft {
-                        Text(verbatim: "#" + String(saved.memberTemplateID.rawValue))
+                        // MP publishkit creation-success (fabu node play): eyebrow 节点玩法已保存, then the play's title
+                        // (fallback 新玩法), then 返回路线编辑; staying on the page is 继续编辑玩法.
+                        Label { Text("projectNodeCreate.saved", tableName: "ProjectNodeTemplateCreation") } icon: { Image(systemName: "checkmark.circle.fill") }
+                            .foregroundStyle(.green)
+                        if model.draft.title.isEmpty {
+                            Text("projectNodeCreate.untitled", tableName: "ProjectNodeTemplateCreation").font(.headline)
+                        } else {
+                            Text(verbatim: model.draft.title).font(.headline)
+                        }
                         Button { onSavedDraft(saved) } label: { Text("projectNodeCreate.return", tableName: "ProjectNodeTemplateCreation") }
                             .disabled(!canReturnSavedDraft(saved)).accessibilityIdentifier("projectNodeCreate.return")
                     } else if model.coordinator.locked {

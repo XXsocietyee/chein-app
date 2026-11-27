@@ -572,6 +572,20 @@ public enum PlayNightWarning {
     }
 }
 
+/// mp-journey r3: MP 飞分 `+N 探索值` at the completion moment (pages/play/index.js `_onCompleted`): `xp`, else `score`,
+/// only when positive and not a repeat completion (`firstTime == false`).
+public enum PlayFlyScore {
+    /// MP `RM.CAPS.waitMs` (the celebrate motion, originally 1100 ms).
+    public static let displaySeconds: Double = 1.1
+    public static func points(_ receipt: PlayWireValue?) -> Int? {
+        guard let receipt else { return nil }
+        if receipt["firstTime"].bool == false { return nil }
+        let value = receipt["xp"].tolerantInteger ?? receipt["score"].tolerantInteger
+        guard let value, value > 0 else { return nil }
+        return value
+    }
+}
+
 /// Reward drop receipt attached to completion responses (`reward["drop"]`).
 public struct PlayRewardDrop: Equatable, Sendable {
     public let dropType: Int

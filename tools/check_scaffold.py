@@ -280,6 +280,8 @@ if subprocess.run([sys.executable,'-B',str(ROOT/'tools/check_privacy_manifest.py
     raise SystemExit('Privacy manifest check failed')
 if subprocess.run([sys.executable,'-B',str(ROOT/'tools/check_design_lint.py')]).returncode!=0:
     raise SystemExit('Design lint failed')
+if subprocess.run([sys.executable,'-B',str(ROOT/'tools/check_design_consistency.py')]).returncode!=0:
+    raise SystemExit('Design consistency (one design system) failed')
 if subprocess.run([sys.executable,'-B',str(ROOT/'tools/check_a11y.py')]).returncode!=0:
     raise SystemExit('Accessibility lint failed')
 if subprocess.run([sys.executable,'-B',str(ROOT/'tools/check_log_redaction.py')]).returncode!=0:

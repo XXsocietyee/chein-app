@@ -48,9 +48,16 @@ struct WelcomeView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if onBrowse == nil { signedOutMine } else { welcomeContent }
+                // Owner rule 2: signed out, this is still the 我的 tab root, so it keeps the large top-left title 我的.
+                if onBrowse == nil {
+                    signedOutMine.cyRootHeader(.mine)
+                } else {
+                    welcomeContent.navigationBarTitleDisplayMode(.inline)
+                }
             }
-            .navigationBarTitleDisplayMode(.inline)
+            // mp-nav r3 (OWNER RULE 2): signed out, this is the 我的 tab root, so it carries the large 我的 title like the
+            // signed-in root. The launch welcome (guest browse) is not a tab root and keeps an untitled inline bar.
+            .modifier(WelcomeRootTitle(isTabRoot: onBrowse == nil))
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) { moreMenu }
             }
@@ -305,3 +312,15 @@ private struct WelcomeFeatureRow: View {
         .environment(\.dynamicTypeSize, .accessibility3)
 }
 #Preview("Dark") { WelcomeView(onBrowse: {}).environmentObject(AppSession()).preferredColorScheme(.dark) }
+
+/// The signed-out 我的 tab root takes the shared large root title; the launch welcome keeps an inline bar.
+private struct WelcomeRootTitle: ViewModifier {
+    let isTabRoot: Bool
+    func body(content: Content) -> some View {
+        if isTabRoot {
+            content.cyRootHeader(.mine)
+        } else {
+            content.navigationBarTitleDisplayMode(.inline)
+        }
+    }
+}

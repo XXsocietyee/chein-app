@@ -241,6 +241,10 @@ enum RoamMapHomeRoute: Hashable {
     case event(RoamEventDestination)
     case officialRoutes
     case officialRoute(String)
+    /// mp-nav r3: MP navigateTo subpackageRoam/nearby, subpackageRoam/my-teams and the team page are pages: pushed in the panel.
+    case nearbyTeams
+    case myTeams
+    case team(NearbyTeamID)
 }
 
 /// The nearby-team page for one team, opened as a sheet over the map.
@@ -288,15 +292,12 @@ enum RoamMapHomeLoadPhase: Equatable { case idle, loading, loaded, failed }
     var showsLive = false
     var showsCityBoard = false
     var showsPassport = false
-    var showsMyTeams = false
-    var showsNearbyTeams = false
-    var teamSheet: RoamMapHomeTeamSheet?
     /// A full-screen cover hides the map.
     var coversMap: Bool { showsLive || showsCityBoard }
 
-    /// The panel's peek height (search field only) at the default text size, in points. P-035: the panel scales it
-    /// with Dynamic Type (`@ScaledMetric` in `RoamMapHomeView`); `peek` is only the detent's identity.
-    nonisolated static let peekHeight: CGFloat = 120
+    /// The panel's peek height (large 漫游 root title + search field) at the default text size, in points. P-035: the
+    /// panel scales it with Dynamic Type (`@ScaledMetric` in `RoamMapHomeView`); `peek` is only the detent's identity.
+    nonisolated static let peekHeight: CGFloat = 172
     static let peek = PresentationDetent.height(peekHeight)
     /// The panel's detents, smallest first (the Apple Maps set).
     static let detents: [PresentationDetent] = [peek, .medium, .large]

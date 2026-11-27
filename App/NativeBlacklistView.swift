@@ -130,6 +130,7 @@ import SwiftUI
         }
         .listStyle(.insetGrouped)
         .navigationTitle(text("blacklist.title"))
+        .navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
         .accessibilityIdentifier("blacklist.home")
         .onAppear { visible = true; if scenePhase == .active { visit = UUID(); performPresented { await flow.load() } } }

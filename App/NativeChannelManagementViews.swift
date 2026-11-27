@@ -183,6 +183,7 @@ private func ncmLoading() -> some View {
         }
         .nativeChannelFlowPage()
         .navigationTitle(ncmText("directory"))
+        .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(item: selection.binding) { id in
             let visit = selection.route(for: id, parentCurrent: parentRouteIsActive)
             let owner = model
@@ -444,6 +445,7 @@ private func ncmLoading() -> some View {
         }
         .nativeChannelFlowPage()
         .navigationTitle(detailTitle)
+        .navigationBarTitleDisplayMode(.inline)
         .task(id: channelID) { await model.loadDetail(channelID) }
         .cySheet(isPresented: progressVisit) {
             Group {
@@ -573,6 +575,7 @@ private func ncmLoading() -> some View {
         }
         .nativeChannelFlowPage()
         .navigationTitle(ncmText(channel == nil ? "create" : "settings"))
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button { dismiss() } label: { ncmText("close") } } }
         .cySheet(isPresented: $reviews) {
             NavigationStack { NativeChannelManagementReviewView(model: model) }
@@ -669,6 +672,7 @@ private func ncmLoading() -> some View {
         .formStyle(.grouped)
         .nativeChannelFlowPage()
         .navigationTitle(ncmText("review"))
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button { model.cancelPreparation(); dismiss() } label: { ncmText("cancel") } } }
         .interactiveDismissDisabled(model.busy)
         .onDisappear { if !model.busy { model.cancelPreparation() } }

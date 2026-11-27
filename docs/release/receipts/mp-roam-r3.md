@@ -56,9 +56,34 @@ updated en of `roamSub.w208.history.loading`.
 - `Tests/AppUnitTests/RoamNearbyEventsRestoredDetailTests.swift` — the removed peek refresh → MP team 重试 row.
 - `Tests/AppUITests/RoamOfficialTasksFlowTests.swift` — segmented MP tabs, no 已结束.
 
+## Round 3 continue (2) — MP roam components
+
+| MP component (where MP mounts it) | Native view | Differences | Status |
+|---|---|---|---|
+| `roam-place-card` (pages/roam/index.wxml:615, pin tap) | `NativeR2/MapHome/RoamMapHomePlaceCard.swift` | MP order hero photo + name → address → rating · distance → 导航 / 分享. Native put the action row before the photo and had no 分享. | **Fixed:** photo section moved right after the title, before the action row; `ShareLink` 分享 for server POIs (`PublicContentShareLink.poi`, MP `shareKind` poi). Rating cell not added: the card reads nothing itself (rating would need a second `/api/city/nodes/{id}` read; it stays on 据点详情). |
+| `roam-place-note` (wxml:50 entry place, :407 pace card) | new `NativeR2/MapHome/RoamMapHomePlaceNote.swift` (`RoamPlaceNote`, `RoamPlaceNoteRows`, `RoamCityGuideSources`) | Native showed neither the catalog 推荐理由 nor 资料来源, and printed the `roam:seed:v1:` import tag as a visible tag. | **Fixed:** seed tag → catalog reason (italic quote, selectable) → visible tags (seed hidden) → `DisclosureGroup` 资料来源 with 来源 N rows that copy the link (MP `copyEntrySource`). Sources generated from `subpackageRoam/data/roam-city-catalog.js` (33 places). |
+| `roam-photo` (passport tiles / plays) | `RoamHomeTabsView.swift:613` | Already mapped (MP 3D icons for 历史 / 印章 / 目标, symbol fallback). | No change. |
+| `route-thumb` (scene-roam-history run card) | `RoamRouteThumbView.swift` | Already mapped (real basemap with coordinates, sketch otherwise); no type/tracking violations. | No change. |
+| `share-card` (pages/roam/index.wxml:1059) | — | MP roam mounts it but never sets `shareCard.show = true` (only the close handler writes it); roam sharing is the C2 share sheet (`RoamHistoryShareView`). | No change (nothing to show). |
+| `slide-confirm` | — | Only MP use is `pages/play` 勋章颁发 Woo! (play flow, not the roam tab). Native one-off confirms use `CYGoHoldPill` / `confirmationDialog`. | Not in roam scope; noted for the play lane. |
+| `map-weather` (wxml:251) | — | Decoration only (`aria-hidden`, no gesture, nothing shown on failure/clear/reduced motion); needs a new `/api/map/weather` read. | Not ported (no content; new endpoint would need review). |
+| `roam-atmos-entry` (wxml:1076) | — | First-entry video transition, decoration only, skipped on slow net / reduced motion. | Not ported (no content). |
+| `team-recovery-panel` (my-teams wxml:16, nearby:271) | `NearbyTeamViews.swift` `notice` | MP panel sits under the title, above `.mt-stats` and the segment; native notice (unknown-outcome chip + read messages) sat under the segment. Per-command 查询结果 / 原请求重试 / 终止未执行请求 rows exist on the team page (`TeamHomeView` C-D12); the list page has no persisted command store to list. | **Fixed position:** notice moved above stats and segment. Per-row list not added (needs a persisted team-command store; `TeamCommandWriter` keeps ids in memory per page). |
+| citystamp drag note → mailbox | `RoamSubpageParityViews.swift` `RoamCityStampFlowView` | Not ported. | **Fixed:** the note (header + field) is one card with `DragGesture` (tilt ±6°, scale .88 while held); finger over the mailbox (MP `_overBox`: ±34 pt sides, 24 pt above) lifts the box and switches the hint to 松手，投进去; dropping there sends, else it springs back (no animation under Reduce Motion). MP `sghint` line added; 投进信箱 button kept for accessibility. |
+| stamp album 收到的 | `NativeR2/FreeExplore/NativeStampAlbumView.swift` + `RoamReceivedStampMetadataDestination(inline:)` | Was a pushed page from a row. | **Fixed:** segmented `Picker` 我的 / 收到的 at the top (MP `cy-tabs`); 收到的 mounts the same received destination inline (reads only once chosen; same scope lifetime and privacy), title stays 集邮册. Legacy (flag off) path untouched. |
+| P3 stamp camera after 存入集邮册 | `NativeStampCaptureView.swift`, `RoamStampCameraView.swift` | MP P3: 存入集邮册 → 已入册 → album. Native also showed a 投一张换一张 exchange section on the album camera. Caption was already citystamp-only (SCAM-2). | **Fixed:** exchange section only when `showsCaption` (citystamp route). |
+| Re-scan: design system (OWNER RULE 2) | `RoamFinishReportView.swift`, `RoamNearbyParityExtras.swift` | Finish report hid the nav bar and drew its own share / 完成 bar in the content; nearby place-play eyebrow used `.tracking(0.6)`. | **Fixed:** share = `topBarTrailing`, 完成 = `confirmationAction`, inline nav bar, system back kept (typography lint); `.tracking` removed. |
+
+New strings: `roam.placeNote.sources`, `roam.placeNote.source %lld`, `roam.placeNote.copyHint`, `roam.placeNote.copied`,
+`roamSub.w208.stamp.releaseHint`, `roam.album.tabs`, `roam.album.tab.mine`, `roam.album.tab.received` (en + zh-Hans, also in `docs/port/strings/mp-r3-roam.json`).
+
+Gates (after these commits): generate_project OK · check_scaffold PASS (20527 keys) · a11y lint 0 new · contract_ratchet 52 / baseline 52, **new 0**.
+
 ## Not done / next
 
-- citystamp drag-the-note-into-the-mailbox gesture (button send works; interaction only).
-- Stamp album 收到的 as an inline tab (kept as a push: separate reader and scope lifetime).
-- MP roam components not mapped one-to-one this round (`roam-place-card`, `roam-place-note`, `roam-photo`, `map-weather`, `roam-atmos-entry`, `share-card`, `slide-confirm`, `route-thumb`, `team-recovery-panel`): covered inside the pages above, not audited separately.
+- citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no
+  `RoamStampExchangeCoordinator` (never instantiated), so the citystamp camera (`showsCaption: true`) keeps its caption + exchange. Needs an
+  upload-only camera mode returning the picture URL and session wiring for the coordinator — left for a compiled pass.
+- team-recovery per-command rows on my-teams / nearby (needs a persisted team-command store).
+- place card rating cell (second read).
 - No Swift build ran here; integrator compiles.

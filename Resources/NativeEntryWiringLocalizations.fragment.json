@@ -22,13 +22,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Nearby search isn't available right now."
+          "value": "Nearby merchants aren't available right now"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "附近商家查询暂不可用"
+          "value": "附近商家暂不可用"
         }
       }
     }

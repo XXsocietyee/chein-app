@@ -33,11 +33,36 @@ import SwiftUI
     @State private var code = ""
     @State private var route: TeamInvitationPresentation?
     @State private var invalid = false
+    /// MP PG-014 `_backToCodeEntry`: a code the server cannot resolve comes back to this field with the reason.
+    @State private var lookupReason: LocalizedStringKey?
+    @State private var looking = false
     private static let maxCodeLength = 40
     private func open() {
-        guard let value = try? TeamInvitationRoute(code: code) else { invalid = true; return }
-        invalid = false
+        guard !looking else { return }
+        guard let value = try? TeamInvitationRoute(code: code) else { invalid = true; lookupReason = nil; return }
+        invalid = false; lookupReason = nil
+        Task { await lookUp(value) }
+    }
+    private func lookUp(_ value: TeamInvitationRoute) async {
+        let coordinator = makeCoordinator()
+        // Signed out or unconfigured: the invitation page owns those states (sign-in action, unconfigured copy).
+        guard coordinator.authenticated, coordinator.configured else { proceed(value); return }
+        looking = true
+        await coordinator.loadDetail(.invitation(value.code))
+        looking = false
+        guard value.code == (try? TeamInvitationRoute(code: code))?.code else { return }
+        if coordinator.detail != nil || coordinator.messageKey == "team.signIn" { proceed(value); return }
+        lookupReason = Self.reason(coordinator)
+    }
+    private func proceed(_ value: TeamInvitationRoute) {
         if let onOpen { onOpen(value) } else { route = TeamInvitationPresentation(route: value) }
+    }
+    /// MP team/join index.js:154 and :168 reasons, in the same precedence.
+    private static func reason(_ coordinator: TeamCoordinator) -> LocalizedStringKey {
+        if coordinator.readFailure == .network { return "mpr3.team.joinCodeNetwork" }
+        if coordinator.readFailure == .forbidden { return "mpr3.team.joinCodeForbidden" }
+        if coordinator.readRefused { return "team.invite.unavailable" }
+        return "team.page.inviteUnavailable"
     }
     var body: some View {
         Form {
@@ -49,7 +74,7 @@ import SwiftUI
                         .textInputAutocapitalization(.never).autocorrectionDisabled()
                         .onChange(of: code) { _, value in
                             if value.count > Self.maxCodeLength { code = String(value.prefix(Self.maxCodeLength)) }
-                            invalid = false
+                            invalid = false; lookupReason = nil
                         }
                         .submitLabel(.next).onSubmit(open)
                         .accessibilityIdentifier("nativeNav.team.code")
@@ -59,12 +84,22 @@ import SwiftUI
                     Label("mpr3.team.joinCodeInvalid", systemImage: "exclamationmark.circle")
                         .foregroundStyle(.red)
                         .accessibilityIdentifier("nativeNav.team.codeError")
+                } else if let lookupReason {
+                    Label(lookupReason, systemImage: "exclamationmark.circle")
+                        .foregroundStyle(.red)
+                        .accessibilityIdentifier("nativeNav.team.codeLookupError")
                 }
             }
             Section {
-                Button(action: open) { Text("nativeNav.team.next").frame(maxWidth: .infinity) }
+                Button(action: open) {
+                    // P10: while the code is looked up the button says so.
+                    Group {
+                        if looking { ProgressView { Text("mpr3.team.joinCodeLooking") } } else { Text("nativeNav.team.next") }
+                    }
+                    .frame(maxWidth: .infinity)
+                }
                     .buttonStyle(.borderedProminent).controlSize(.large)
-                    .disabled(code.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .disabled(looking || code.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     .accessibilityIdentifier("nativeNav.team.next")
             }
             .listRowInsets(EdgeInsets())

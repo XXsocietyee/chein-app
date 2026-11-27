@@ -56,6 +56,7 @@ import SwiftUI
         }
         .nativeChannelFlowPage()
         .navigationTitle(nativeWebhookLocalized("d7.webhook.inbound.title"))
+        .navigationBarTitleDisplayMode(.inline)
         .task { await read() }
         .onChange(of: filter) { _, _ in Task { await read() } }
         .refreshable { await read() }

@@ -177,6 +177,9 @@ public struct SquareService {
         return try await CreativeSquareAuthorDeleteClient(configuration: configuration, transport: transport)
             .deleteOwnAndReread(command, viewerMemberID: viewerMemberID, token: token)
     }
+    public func deleteOwnLegacyComment(commentID: Int, token: String) async throws {
+        try await CreativeSquareAuthorDeleteClient(configuration: configuration, transport: transport).deleteOwnComment(commentID: commentID, token: token)
+    }
     public func mine(_ list: SquareMineList, cursor: SquareCursor? = nil, pageSize: Int = 20, token: String) async throws -> SquareFeedPage {
         guard AuthRequestBuilder.isValidToken(token), (1...50).contains(pageSize) else { throw APIError.invalidRequest }
         var query = [URLQueryItem(name: "limit", value: String(pageSize))]

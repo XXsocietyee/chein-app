@@ -480,7 +480,7 @@ struct CYBadgeUnlockCover: View {
     static func span(_ e: Double, _ from: Double, _ to: Double) -> Double { min(max((e - from) / (to - from), 0), 1) }
 
     private var isZh: Bool { locale.identifier.hasPrefix("zh") }
-    private var nameFont: Font { .system(size: 34, weight: isZh ? .semibold : .heavy, design: isZh ? .default : .rounded) }
+    private var nameFont: Font { .system(.largeTitle, design: isZh ? .default : .rounded, weight: isZh ? .semibold : .heavy) }
 
     var body: some View {
         let copy = CYCelebrationCopy(locale: locale)
@@ -550,7 +550,6 @@ struct CYBadgeUnlockCover: View {
             Text(verbatim: copy.badgeEyebrow)
                 .cyText(.label)
                 .textCase(.uppercase)
-                .tracking(isZh ? 1 : 0.6)
                 .foregroundStyle(CYNight.lantern)
             Text(verbatim: CYUnknown.text(payload.name))
                 .font(nameFont)
@@ -673,7 +672,7 @@ struct CYRoamRouteCard: View {
             if payload.route.isEmpty {
                 VStack(spacing: CYSpacing.sm) {
                     Image(systemName: "cloud.fog.fill")
-                        .font(.system(size: 44, weight: .regular))
+                        .font(.largeTitle)
                         .foregroundStyle(palette.textTertiary)
                         .accessibilityHidden(true)
                     Text(verbatim: "\(CYUnknown.count(payload.tiles)) \(copy.tilesLit)")

@@ -60,7 +60,6 @@ struct RoamFinishReport: Equatable {
         // accessibility sizes), the MP stamp strip, medals with both exits (share, collection), the route story.
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                topBar
                 mapPanel.padding(.top, CYSpacing.sm).padding(.horizontal, -CYSpacing.lg)
                 head
                 Divider().padding(.top, CYSpacing.md)
@@ -86,7 +85,13 @@ struct RoamFinishReport: Equatable {
         }
         // native-r3-b: system background — the semantic text colours above were unreadable on forced black in light mode.
         .background(.background)
-        .toolbar(.hidden, for: .navigationBar)
+        // OWNER RULE 2: share and 完成 live in the standard nav bar (inline, system back kept), not an in-content bar.
+        .toolbar(.visible, for: .navigationBar)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) { shareButton }
+            ToolbarItem(placement: .confirmationAction) { doneButton }
+        }
         .cySheet(isPresented: $showShare) {
             Group { if let record = report.record { NavigationStack { RoamHistoryShareView(record: record, reader: history) } } }
                 .cySheet(detents: [.large])
@@ -109,27 +114,18 @@ struct RoamFinishReport: Equatable {
     }
 
     /// P16 top bar: share (secondary, icon) and the one Done. Identifiers kept: the MP close is now Done.
-    private var topBar: some View {
-        HStack(spacing: CYSpacing.md) {
-            Spacer(minLength: 0)
-            Button { showShare = true } label: {
-                Label("u10.roamFinish.share", systemImage: "square.and.arrow.up").labelStyle(.iconOnly)
-                    .font(.title3.weight(.medium)).foregroundStyle(CYColor.textPrimary)
-                    .frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .disabled(report.record == nil)
-            .accessibilityLabel(Text("u10.roamFinish.shareLabel"))
-            .accessibilityIdentifier("roam.finishReport.share")
-            Button { dismiss() } label: {
-                Text("action.done").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
-                    .padding(.horizontal, CYSpacing.md).frame(minHeight: 44).contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
+    private var shareButton: some View {
+        Button { showShare = true } label: {
+            Label("u10.roamFinish.share", systemImage: "square.and.arrow.up")
+        }
+        .disabled(report.record == nil)
+        .accessibilityLabel(Text("u10.roamFinish.shareLabel"))
+        .accessibilityIdentifier("roam.finishReport.share")
+    }
+    private var doneButton: some View {
+        Button("action.done") { dismiss() }
             .accessibilityHint(Text("u10.roamFinish.close"))
             .accessibilityIdentifier("roam.finishReport.close")
-        }
-        .padding(.top, CYSpacing.sm)
     }
     private var head: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {

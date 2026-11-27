@@ -41,7 +41,7 @@ final class MotionTourTests: XCTestCase {
     /// d2-home: rail cards (feed card → activity / topic zoom). mp-home r3: 首页 follows the MP section order
     /// (hero, 编辑精选, 附近活动, 即将上线, stream); the Today card is no longer on it, so the tour starts at the rails.
     func testTour1TodayAndRailCardsZoom() {
-        launch(fixture: "d2-home", extra: ["--design-today", "activity"])
+        launch(fixture: "d2-home")
         let nearby = app.buttons["homeFeed.nearby.activity.7"]
         XCTAssertTrue(nearby.waitForExistence(timeout: 30), app.debugDescription)
         pause(1.0)

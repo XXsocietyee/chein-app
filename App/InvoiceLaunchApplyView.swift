@@ -129,7 +129,7 @@ struct InvoiceLaunchApplyGroup: Identifiable {
                     }
                     // Source 开票金额: 已选订单 N 笔 + 总计 (FIN-13-1).
                     Section {
-                        LabeledContent { Text(verbatim: "\(selected.count)").monospacedDigit() } label: { invoiceText("selectedCount") }
+                        LabeledContent { Text("selectedCountValue \(selected.count)", tableName: "InvoiceLaunchUI").monospacedDigit() } label: { invoiceText("selectedCount") }
                         LabeledContent {
                             Text(verbatim: totalText).monospacedDigit()
                         } label: { invoiceText("total") }
@@ -151,12 +151,8 @@ struct InvoiceLaunchApplyGroup: Identifiable {
                             // A refused apply keeps the page and the selection (FIN-13-2).
                             InvoiceLaunchWriteNoticeView(notice: notice, onReselect: reselect)
                         }
+                        // MP bmbottom: the inline notice and 提交申请 only; 总计 stays in 开票金额 above.
                         HStack(spacing: 12) {
-                            VStack(alignment: .leading, spacing: 0) {
-                                invoiceText("total").font(.footnote).foregroundStyle(.secondary)
-                                Text(verbatim: totalText).font(.headline).monospacedDigit().foregroundStyle(.primary)
-                            }
-                            .accessibilityElement(children: .combine)
                             Button {
                                 guard let titleID, canSubmit else { return }
                                 let intent = InvoiceLaunchApplyIntent(titleID: titleID, selected: selected,

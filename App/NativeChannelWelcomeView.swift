@@ -76,6 +76,7 @@ import SwiftUI
         }
         .refreshable { await flow.refresh() }
         .navigationTitle(titleText)
+        .navigationBarTitleDisplayMode(.inline)
         .nativeChannelFlowPage()
         .privacySensitive()
         .task { await flow.activate() }

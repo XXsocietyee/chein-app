@@ -25,11 +25,11 @@ import SwiftUI
                                 .font(.footnote).foregroundStyle(.secondary)
                             invoiceText("write.cancel.unknown").font(.headline)
                         } else {
-                            Label { Text(verbatim: invoiceString(row.status.labelKey)) } icon: { Image(systemName: row.status.chipSymbol).foregroundStyle(row.status.chipTint) }
+                            // MP invoice-detail state-notice tag: the issuing group reads 开具中 (list chips keep 处理中).
+                            Label { Text(verbatim: invoiceString(row.status.playerState == .issuing ? "detailTag.issuing" : row.status.labelKey)) } icon: { Image(systemName: row.status.chipSymbol).foregroundStyle(row.status.chipTint) }
                                 .font(.footnote).foregroundStyle(.secondary)
                             invoiceText(row.status.noticeKey).font(.headline)
                         }
-                        Text(verbatim: invoiceLaunchDisplayedAmount(row.totalAmount, locale: locale)).font(.largeTitle.weight(.semibold)).monospacedDigit()
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityElement(children: .combine)
@@ -40,7 +40,10 @@ import SwiftUI
                 }
                 Section {
                     LabeledContent { Text(verbatim: row.titleName) } label: { invoiceText("titleName") }
-                    LabeledContent { invoiceText(row.titleType) } label: { invoiceText("titleType") }
+                    // MP: 抬头类型 hides when empty; anything but COMPANY reads 个人.
+                    if !row.titleType.isEmpty {
+                        LabeledContent { invoiceText(row.titleType == "COMPANY" ? "COMPANY" : "PERSONAL") } label: { invoiceText("titleType") }
+                    }
                     if let tax = row.taxNoMasked, !tax.isEmpty {
                         LabeledContent { Text(verbatim: tax) } label: { invoiceText("taxNo") }
                     }

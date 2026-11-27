@@ -5,7 +5,7 @@ struct CityAcquisitionPageStyle: ViewModifier {
     @Environment(\.themeDomain) private var domain
     func body(content: Content) -> some View {
         content
-            .font(Theme.Font.body)
+            .cyText(.body)
             .foregroundStyle(Theme.Color.textPrimary(in: domain))
             .tint(Theme.Color.accent(in: domain))
             .scrollContentBackground(.hidden)
@@ -20,7 +20,7 @@ struct CityAcquisitionMetadataRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s1) {
             label.cyText(.label).foregroundStyle(.secondary)
-            Text(verbatim: value).font(Theme.Font.body).monospacedDigit()
+            Text(verbatim: value).cyText(.body, monospacedDigit: true)
                 .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

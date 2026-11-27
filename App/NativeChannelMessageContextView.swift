@@ -69,6 +69,7 @@ struct NativeChannelContextSelection: Identifiable {let id:NativeChannelMessageI
             if model.loading { stateRow { loading } }
         }
         .navigationTitle(Text("d7.channelContext.title"))
+        .navigationBarTitleDisplayMode(.inline)
         .nativeChannelScreen()
         .privacySensitive()
         .refreshable { open(); await readTask?.value }

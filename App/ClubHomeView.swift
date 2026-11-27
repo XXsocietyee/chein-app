@@ -307,16 +307,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                 ClubTabTagLine(club: club, section: section, topicCount: topicCount)
             }
         } icon: {
-            ZStack {
-                Image(systemName: "person.3.fill").foregroundStyle(.secondary)
-                if let imageURL {
-                    PlayerFeedRemoteImage(url: imageURL, maxPixel: 168, placeholder: { Color.clear }, failure: { Color.clear })
-                }
-            }
-            .frame(width: 48, height: 48)
-            .background(.fill.tertiary)
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-            .accessibilityHidden(true)
+            ClubRowThumbnail(url: imageURL)
         }
     }
     /// Join / Apply for nearby clubs runs the inline join; a "your clubs" row's pill opens the detail, as the card did.

@@ -153,7 +153,7 @@ struct CYGoPuck: View {
         TimelineView(.animation(minimumInterval: 1.0 / 20.0, paused: reduceMotion)) { timeline in
             let phase = reduceMotion ? 0 : sin(timeline.date.timeIntervalSinceReferenceDate * 2 * .pi / 2.2)
             Image(systemName: "figure.walk")
-                .font(.system(size: 20, weight: .heavy))
+                .font(.title3.weight(.heavy))
                 .foregroundStyle(.black)
                 .frame(width: 44, height: 44)
                 .background(Color.white, in: Circle())

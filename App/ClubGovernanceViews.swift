@@ -1281,9 +1281,9 @@ struct ClubGovernanceReadView: View {
         Task { await load() }
     }
     /// CLB-customer-detail-04 (MP customer-detail/index.wxml:83-118): the tags and remark edit in place.
-    private func customerInlineEditor(_ value: ClubGovernanceValue) -> AnyView {
+    private func customerInlineEditor(_ value: ClubGovernanceValue, rows: AnyView) -> AnyView {
         AnyView(ClubCustomerInlineEditor(value: value, scope: scope, identity: identity, coordinator: coordinator,
-                                         onSaved: { rereadCustomerAfterEditor() }))
+                                         display: rows, onSaved: { rereadCustomerAfterEditor() }))
     }
     @MainActor private func rereadCustomerAfterEditor() {
         guard operation == .customer, scenePhase == .active, snapshot != nil, snapshotContext == readContext,
@@ -1938,7 +1938,7 @@ struct ClubGovernanceReadView: View {
             if let detail = customerPage.detail ?? (try? ClubOpsCustomerDetailPresentation(value: value, memberID: scope.memberID)) {
                 ClubOpsCustomerDetailContent(detail: detail, page: customerPage, topicAction: { record in
                     customerTopicRoute(record.source).map { target in (id: target.topicID, open: { selectCustomerTopic(target) }) }
-                }, editButton: detail.canEdit ? customerInlineEditor(value) : nil)
+                }, editSection: detail.canEdit ? { rows in customerInlineEditor(value, rows: rows) } : nil)
             } else if !customerPage.hidden, let metrics = customerPage.metrics {
                 Section {
                     ClubOpsCustomerMetricTile(value: metrics.arrived, label: "clubOps.customer.arrived")

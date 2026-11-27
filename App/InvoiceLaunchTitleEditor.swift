@@ -72,12 +72,9 @@ import SwiftUI
                             .accessibilityIdentifier("invoice.title.taxHint")
                     }
                 }
+                // MP invoice-title-edit ends the form at 设为默认: no masked-tax line and no 必填 footer.
                 Toggle(isOn: $isDefault) { invoiceText("setDefault") }
-                if case .ready(let form) = screen {
-                    Text(verbatim: form.taxNoMaskedText).font(.footnote).foregroundStyle(.secondary)
-                        .accessibilityIdentifier("invoice.title.taxMask")
-                }
-            } footer: { invoiceText("requiredHint") }
+            }
             .disabled(!model.allows(.saveTitle) || saveLocked)
             if invalid { Label { invoiceText("notSaved") } icon: { Image(systemName: "exclamationmark.circle") }.foregroundStyle(.red) }
             // A server refusal keeps the form and says why: 发票抬头未保存 · reason (FIN-15-3).

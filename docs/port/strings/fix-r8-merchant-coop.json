@@ -92,13 +92,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invite merchants"
+            "value": "Find a merchant partner"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "邀请商家"
+            "value": "找商家承接"
           }
         }
       }

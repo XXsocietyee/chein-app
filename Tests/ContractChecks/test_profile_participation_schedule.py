@@ -15,7 +15,7 @@ class ProfileParticipationScheduleSourceTests(unittest.TestCase):
  def test_09_range_calendar(self):self.assertIn('formatter.calendar = Calendar(identifier: .gregorian)',C);self.assertIn('formatter.dateFormat = "yyyy.MM.dd"',C)
  def test_10_range_when_not_near(self):self.assertIn('return .init(range: range, reminderDays: nil)',C)
  def test_11_no_elapsed_day_rounding(self):self.assertNotIn('86400',C);self.assertNotIn('ceil(',C);self.assertNotIn('TimeZone.current',C)
- def test_12_actual_detail_mount(self):self.assertIn('ProfileParticipationScheduleSection(start: detail.record.order.ownerStartDate,\n                    end: detail.record.order.ownerEndDate)',V)
+ def test_12_actual_detail_mount(self):self.assertNotIn('ProfileParticipationScheduleSection(',V)  # mp-mine r3: MP participation detail has no 参与日程 block
  def test_13_local_timer(self):self.assertIn('TimelineView(.periodic(from: Date(), by: 1))',A);self.assertIn('schedule.presentation(now: clock.date)',A)
  def test_14_unknown_no_shell(self):self.assertIn('if let range = presentation.range {',A)
  def test_15_no_color_only_warning(self):self.assertIn('Label("profile.participationSchedule.soon", systemImage:',A);self.assertIn('LabeledContent("profile.participationSchedule.days")',A)

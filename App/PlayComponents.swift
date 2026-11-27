@@ -7,7 +7,7 @@ struct G01JourneyFormStyle: ViewModifier {
     @Environment(\.themeDomain) private var domain
     func body(content: Content) -> some View {
         content
-            .font(Theme.Font.body)
+            .cyText(.body)
             .tint(Theme.Color.accent(in: domain))
             .scrollContentBackground(.hidden)
             .background(Theme.Color.bgPage(in: domain))
@@ -35,7 +35,7 @@ struct G01JourneyNotice: View {
 struct G01JourneyActionStyle: ViewModifier {
     var primary = false
     @ViewBuilder func body(content: Content) -> some View {
-        if primary { content.buttonStyle(.questifyPrimary).controlSize(.large) }
+        if primary { content.buttonStyle(.borderedProminent).controlSize(.large) }
         else { content.buttonStyle(.bordered).controlSize(.large) }
     }
 }

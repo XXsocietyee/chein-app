@@ -159,7 +159,7 @@ public struct CYNavBar<Trailing: View>: View {
         let tokens = navTokens
         if let badgeFill = tokens.backBadgeFill {
             Image(systemName: "chevron.left")
-                .accessibilityHidden(true).font(.system(size: 16, weight: .semibold))
+                .accessibilityHidden(true).font(.body.weight(.semibold))
                 .foregroundStyle(tokens.backForeground)
                 .frame(width: 32, height: 32)
                 .background(Circle().fill(badgeFill))
@@ -167,7 +167,7 @@ public struct CYNavBar<Trailing: View>: View {
                 .contentShape(Rectangle())
         } else {
             Image(systemName: "chevron.left")
-                .accessibilityHidden(true).font(.system(size: 18, weight: .semibold))
+                .accessibilityHidden(true).font(.title3.weight(.semibold))
                 .foregroundStyle(tokens.backForeground)
                 .frame(width: CYSpacing.minTouchTarget, height: CYSpacing.minTouchTarget)
                 .contentShape(Rectangle())
