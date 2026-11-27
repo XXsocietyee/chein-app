@@ -151,7 +151,7 @@ Sweep `docs/sweeps/latest/mp-roam` (build 070117595) was taken under load (coord
 
 New strings (en + zh-Hans, also `docs/port/strings/mp-r3-roam.json`): `roam.w208.entry.momentsTitle`, `roam.w208.entry.moments %lld`, `roam.w208.entry.noMoments`.
 
-Gates: generate_project OK · check_scaffold PASS (20692 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet GATE_RESULT.
+Gates: generate_project OK · check_scaffold PASS (20692 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 
 ## Not done / next
 
