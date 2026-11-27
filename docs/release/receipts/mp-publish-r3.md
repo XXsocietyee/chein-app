@@ -82,6 +82,7 @@ Scope: `pages/template/index`, the tabBar publish sheet, `pages/publish/*`, `pag
 - `Tests/CoreTests/EditorKitModelTests.swift`: `EditorOutlineSection.allCases` now expects the MP page order.
 
 ## Gates (last run on the branch head)
+- **Continue pass 5 (编辑角色):** merged `ui/combined-r7` (clean); contract ratchet 52 / baseline 52 / **new 0** (the first run caught one `String(localized:)` literal for `test_cb50_error_catalog`, now a `Text`); design consistency PASS; a11y lint 0 new; generate_project and check_scaffold pass (design lint: the MP lavender role colour shows as system pink, since purple is not allowed).
 - **Continue pass 4 (location to-dos):** merged `ui/combined-r7` (Localizable.xcstrings: union of both sides' keys); contract ratchet 52 / baseline 52 / **new 0**; design consistency PASS; a11y lint 0 new; generate_project and check_scaffold pass.
 - **Continue pass 3:** merged `ui/combined-r7` (fast-forward), contract ratchet 52 / baseline 52 / **new 0**; design consistency PASS; a11y lint 0 new; generate_project and check_scaffold pass; the 13 template-creator contract files run OK (123 tests).
 - **Project generation:** `python3 tools/generate_project.py` exits 0.
