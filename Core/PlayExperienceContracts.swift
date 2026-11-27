@@ -232,6 +232,95 @@ public enum PlayRunKeepsakes {
         }
     }
 }
+/// mp-journey r3: one 旅程手记 row (MP pages/play/index.js `buildJournal`, `.jkv` key · title · first line).
+public struct PlayJournalRow: Equatable, Identifiable {
+    public enum Key: Equatable {
+        /// City run, finished station: 第 N 站 (title = station name, shown as 已抵达).
+        case station(Int)
+        /// Free exploration, finished place in the player's own order: 我的第 K 步.
+        case step(Int)
+        /// The next place to go: 此刻.
+        case now
+        /// City run, a station after the next one: 前路未知 (no detail entry).
+        case ahead
+        /// Free exploration, not visited yet: 未到 (name only).
+        case notYet
+    }
+    public let id: Int
+    public let key: Key
+    public let title: String
+    /// First paragraph, at most 40 characters (MP `kvS`). Nil when the MP writes none.
+    public let excerpt: String?
+    /// True for a station further ahead: the MP shows a scrambled line instead of the text.
+    public let redacted: Bool
+    /// Chapter title before the first row of each chapter, only on multi-chapter routes.
+    public let chapterHead: String?
+    /// Full story for the detail page (MP `openStory`); nil for rows without a detail entry.
+    public let story: String?
+    public let coverURL: String?
+    public var opensStory: Bool { key != .ahead && key != .notYet }
+}
+
+public enum PlayJournal {
+    /// MP `buildJournal` for a linear route: city runs in station order, free exploration finished-first.
+    public static func rows(in snapshot: PlaySnapshot) -> [PlayJournalRow] {
+        let cityRun = snapshot.result.mode == 1
+        let visible = snapshot.visibleNodes
+        let ordered: [PlayNode]
+        if cityRun {
+            ordered = visible.enumerated().sorted { lhs, rhs in
+                (lhs.element.sortID ?? Int.max, lhs.offset) < (rhs.element.sortID ?? Int.max, rhs.offset)
+            }.map { $0.element }
+        } else {
+            ordered = visible.filter { snapshot.isDone($0) } + visible.filter { !snapshot.isDone($0) }
+        }
+        let focusIndex = ordered.firstIndex { !snapshot.isDone($0) }
+        let chapterIDs = ordered.compactMap { $0.chapterID }
+        let multiChapter = chapterIDs.count == ordered.count && Set(chapterIDs).count > 1
+        var chapterNames: [Int: String] = [:]
+        for chapter in snapshot.result.chapters { chapterNames[chapter.id] = chapter.name ?? "" }
+        var previousChapter: Int? = nil
+        var rows: [PlayJournalRow] = []
+        for (index, node) in ordered.enumerated() {
+            let done = snapshot.isDone(node)
+            let paragraph = firstParagraph(node.description)
+            let key: PlayJournalRow.Key
+            var excerpt: String? = paragraph
+            var redacted = false
+            if done {
+                key = cityRun ? .station(index + 1) : .step(index + 1)
+            } else if index == focusIndex {
+                key = .now
+            } else if cityRun {
+                key = .ahead
+                let gap = index - (focusIndex ?? index) - 1
+                if gap > 0 { excerpt = nil; redacted = true }
+            } else {
+                key = .notYet
+                excerpt = nil
+            }
+            var head: String? = nil
+            if multiChapter, let chapterID = node.chapterID, chapterID != previousChapter {
+                head = chapterNames[chapterID] ?? ""
+                previousChapter = chapterID
+            }
+            let opens = key != .ahead && key != .notYet
+            let cover = node.imgHidden == true ? nil : PlayStationImageResolver.first(node.imageURL)
+            rows.append(PlayJournalRow(id: node.id, key: key, title: node.name ?? "", excerpt: excerpt, redacted: redacted,
+                                       chapterHead: head, story: opens ? (node.description ?? "") : nil,
+                                       coverURL: opens ? cover : nil))
+        }
+        return rows
+    }
+
+    static func firstParagraph(_ text: String?) -> String? {
+        guard let text else { return nil }
+        let first = text.split(separator: "\n", omittingEmptySubsequences: false).first.map(String.init) ?? ""
+        let trimmed = first.trimmingCharacters(in: .whitespaces)
+        return trimmed.isEmpty ? nil : String(trimmed.prefix(40))
+    }
+}
+
 public enum PlayNodeTask: String, CaseIterable {
     case answer, photo, scan, arrive, preference, sensor, merchantScan, merchantPhoto, merchantVerify, unsupported
     public static func resolve(mode: Int?, node: PlayNode) -> Self {
@@ -468,6 +557,18 @@ public struct PlayRandomDispatchedTask: Equatable, Decodable, Sendable {
 
     fileprivate static func isEnglish(_ locale: Locale) -> Bool {
         locale.identifier.lowercased().hasPrefix("en")
+    }
+}
+
+/// mp-journey r3: M2 夜间提示. A self-play completion between 22:00 and 06:00 comes back with `nightWarning: true`
+/// (MP pages/play/index.js `_flashNightHint`); the player shows one non-blocking line that fades on its own.
+public enum PlayNightWarning {
+    /// MP shows the line for 4.6 s.
+    public static let displaySeconds: Double = 4.6
+    /// Only a literal true (or 1) turns it on; a missing or malformed field never does.
+    public static func isOn(_ receipt: PlayWireValue?) -> Bool {
+        guard let receipt else { return false }
+        return receipt["nightWarning"].bool == true || receipt["nightWarning"].integer == 1
     }
 }
 

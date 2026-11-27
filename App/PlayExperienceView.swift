@@ -254,6 +254,7 @@ struct PlayThemeMusicKey: Equatable {
     }
     var body: some View {
         presentationLayer
+        .modifier(PlayNightHintOverlay(receipt: model.reward))
         .onChange(of: model.snapshot?.result.topicID) { _, topicID in
             chapterFilter = nil
             presentTitleCardIfNeeded(topicID)
@@ -731,7 +732,9 @@ struct PlayThemeMusicKey: Equatable {
             showsContentRows: false,
             evidenceCards: model.snapshot.map(PlayRunKeepsakes.passTextEvidence(in:)) ?? [],
             locationOn: Self.locationAuthorized,
-            onLocationRow: Self.openLocationSettings
+            onLocationRow: Self.openLocationSettings,
+            teamLead: model.lead,
+            journalRows: model.snapshot.map(PlayJournal.rows(in:))
         )
     }
     /// mp-journey r3: MP `gpsOk` for the 游玩工具 location rows (when-in-use or always).
@@ -2149,5 +2152,44 @@ private struct PlaySystemConfirm: ViewModifier {
         } message: {
             Text(verbatim: message)
         }
+    }
+}
+
+/// mp-journey r3: MP `.nighthint` 夜深了，注意安全 — one quiet capsule at the result moment, never blocking, gone after
+/// 4.6 s. VoiceOver hears it once.
+private struct PlayNightHintOverlay: ViewModifier {
+    let receipt: PlayWireValue?
+    @State private var shown = false
+    @State private var token = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        content
+            .overlay(alignment: .top) {
+                if shown {
+                    Text("playx.nightHint")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(.regularMaterial, in: .capsule)
+                        .padding(.top, 12)
+                        .transition(.opacity)
+                        .allowsHitTesting(false)
+                        .accessibilityIdentifier("playx.nightHint")
+                }
+            }
+            .onChange(of: receipt) { _, value in
+                guard PlayNightWarning.isOn(value) else { return }
+                token += 1
+                let current = token
+                withAnimation(reduceMotion ? nil : .easeOut(duration: 0.25)) { shown = true }
+                AccessibilityNotification.Announcement(appLocalized("playx.nightHint", locale: .current)).post()
+                Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(PlayNightWarning.displaySeconds))
+                    guard current == token else { return }
+                    withAnimation(reduceMotion ? nil : .easeOut(duration: 0.25)) { shown = false }
+                }
+            }
     }
 }
