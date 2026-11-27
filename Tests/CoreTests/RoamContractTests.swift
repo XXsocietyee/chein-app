@@ -85,7 +85,8 @@ final class RoamContractTests: XCTestCase {
     func testExploreDayRequiresIdentityAndNamePreservesUnknownDistance() throws {
         let event = try decode(RoamExploreDay.self, #"{"activityId":"4","title":" Day "}"#)
         XCTAssertTrue(event.isDisplayable); XCTAssertEqual(event.title, "Day"); XCTAssertNil(event.distanceM)
-        XCTAssertFalse(try decode(RoamExploreDay.self, #"{"activityId":4,"title":" "}"#).isDisplayable)
+        // MP wxml:985 shows an untitled candidate as 看看自由探索, so only the activity id gates it.
+        XCTAssertTrue(try decode(RoamExploreDay.self, #"{"activityId":4,"title":" "}"#).isDisplayable)
         XCTAssertFalse(try decode(RoamExploreDay.self, #"{"activityId":0,"title":"Day"}"#).isDisplayable)
         XCTAssertFalse(try decode(RoamExploreDay.self, #"{"activityId":4.5,"title":"Day"}"#).isDisplayable)
     }

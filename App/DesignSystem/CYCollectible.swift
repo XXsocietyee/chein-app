@@ -195,7 +195,7 @@ struct CYCountRing: View {
 
     var body: some View {
         ZStack {
-            Circle().stroke(CYColor.bgRaised, lineWidth: 6)
+            Circle().stroke(.quaternary, lineWidth: 6) // track visible on grouped backgrounds (a11y-dt r3)
             Circle().trim(from: 0, to: shown || reduceMotion ? fraction : 0)
                 .stroke(AngularGradient(colors: [Color(red: 1.0, green: 0.84, blue: 0.40), Color(red: 0.95, green: 0.60, blue: 0.20)], center: .center),
                         style: StrokeStyle(lineWidth: 6, lineCap: .round))

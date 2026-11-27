@@ -761,15 +761,14 @@ struct ClubCommunityPostTile: View {
                 tileActions {
                     Button { Task { await model.prepare(.toggleLike, clubID: clubID, post: post) } } label: {
                         // C5 social: rolling count + heart swap/bounce on the viewer's like (MP cy-post-card 赞 · n).
-                        CYSocialCountLabel(count: post.likeCount, symbol: "heart", active: post.liked, activeSymbol: "heart.fill",
-                                           emptyTitle: "club.community.like")
+                        actionCount(post.likeCount, symbol: "heart", active: post.liked, activeSymbol: "heart.fill")
                     }
                         .accessibilityLabel(Text("club.community.like"))
                         .accessibilityValue(post.likeCount > 0 ? Text(verbatim: String(post.likeCount)) : Text(verbatim: ""))
                         .disabled(!identity.isSignedIn || model.busy || model.context.coordinator?.permitsInjectedWrites != true)
                     Button(action: openComments) {
                         if commentsExpanded { Label("club.discussion.collapse", systemImage: "bubble") }
-                        else { CYSocialCountLabel(count: post.commentCount, symbol: "bubble", emptyTitle: "club.community.comments") }
+                        else { actionCount(post.commentCount, symbol: "bubble") }
                     }
                         .accessibilityLabel(Text(LocalizedStringKey(commentsExpanded ? "club.discussion.collapse" : "club.community.comments")))
                         .accessibilityValue(!commentsExpanded && post.commentCount > 0 ? Text(verbatim: String(post.commentCount)) : Text(verbatim: ""))
@@ -778,6 +777,8 @@ struct ClubCommunityPostTile: View {
                     // CLB-detail-03: MP show-repost / show-share on club posts (repost through the reviewed write path).
                     Button { Task { await model.prepare(.repost(!post.reposted), clubID: clubID, post: post) } } label: {
                         Label(post.reposted ? "club.community.unrepost" : "club.community.repost", systemImage: "arrow.2.squarepath")
+                            .labelStyle(.iconOnly)
+                            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                     }
                     .disabled(!identity.isSignedIn || model.busy || model.context.coordinator?.permitsInjectedWrites != true)
                     .accessibilityIdentifier("club.community.repost.\(post.id)")
@@ -787,9 +788,11 @@ struct ClubCommunityPostTile: View {
                             if let url = ClubShareURL.url(link) {
                                 ShareLink(item: url, message: Text(verbatim: ClubPostShareText.text(post: post, locale: locale))) {
                                     Label("club.community.share", systemImage: "square.and.arrow.up")
+                                        .labelStyle(.iconOnly)
+                                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                                 }
                             } else {
-                                ShareLink(item: link.path) { Label("club.community.share", systemImage: "square.and.arrow.up") }
+                                ShareLink(item: link.path) { Label("club.community.share", systemImage: "square.and.arrow.up").labelStyle(.iconOnly).frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget) }
                             }
                         }
                         .accessibilityIdentifier("club.community.share.\(post.id)")
@@ -803,7 +806,7 @@ struct ClubCommunityPostTile: View {
                         Button("club.community.report") { Task { await model.prepare(.report, clubID: clubID, post: post) } }
                             .accessibilityLabel(Text("club.community.report"))
                     }
-                } label: { Label("club.community.actions", systemImage: "ellipsis") }
+                } label: { Label("club.community.actions", systemImage: "ellipsis").labelStyle(.iconOnly) }
                     .frame(minHeight: CYSpacing.minTouchTarget)
                     .disabled(!identity.isSignedIn || model.busy || model.context.coordinator?.permitsInjectedWrites != true)
             }
@@ -856,6 +859,18 @@ struct ClubCommunityPostTile: View {
                 HStack(spacing: CYSpacing.md, content: content)
                     .labelStyle(.iconOnly)
             }
+        }
+    }
+    /// MP cy-post-card action bar: icon with the count beside it, the icon alone at 0 (`{{post.likeCount || ''}}`).
+    /// The button keeps its spoken name through `accessibilityLabel`.
+    @ViewBuilder private func actionCount(_ count: Int, symbol: String, active: Bool = false, activeSymbol: String? = nil) -> some View {
+        if count > 0 {
+            CYSocialCountLabel(count: count, symbol: symbol, active: active, activeSymbol: activeSymbol)
+                .frame(minHeight: CYSpacing.minTouchTarget)
+        } else {
+            CYSocialCountLabel(count: count, symbol: symbol, active: active, activeSymbol: activeSymbol)
+                .labelStyle(.iconOnly)
+                .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
         }
     }
     /// The action's count when there is one (MP shows the number beside the icon), else its name.

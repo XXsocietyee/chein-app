@@ -288,7 +288,14 @@ extension PlayKitScreen {
         case .trueFalse, .imageGuess: return nativeKitSubmitC
         case .predict:
             if let mine = raw["myOptionKey"].text, !mine.isEmpty { return nil }
-            return nativeSubmit("SUBMIT_PREDICT", ["optionKey": .string(selected.first ?? "")], valid: !selected.isEmpty)
+            if raw["skipped"].bool == true { return nil }
+            // MP: a closed round the player never picked in offers only 不选，继续 (SKIP_CLOSED_PREDICT).
+            if raw["closed"].bool == true {
+                return nativeSubmit("SKIP_CLOSED_PREDICT", [:], valid: true, title: Text("playkit.predict.skip"),
+                                    identifier: "playkit.predict.skip")
+            }
+            return nativeSubmit("SUBMIT_PREDICT", ["optionKey": .string(selected.first ?? "")], valid: !selected.isEmpty,
+                                title: Text("playkit.predict.commit"))
         case .estimate: return nativeEstimateSubmit
         case .pricePair:
             guard !projection.complete else { return nil }

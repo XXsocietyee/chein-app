@@ -205,6 +205,13 @@ Most tiles are the launch logo (coordinator 17:40: taken under load, ignore). Re
 | d4-badges (`zh-Hans-d4-badges.jpg`) | `ProfileFixtureReader.profileBadges` | Fixture city medal / Fixture achievement / Fixture identity / Synthetic unlock condition in Chinese. | **Fixed.** Names and conditions follow the UI language (same pattern as mp-roam's stamp album fixture); English unchanged for `RoamBadgeWallFlowTests` |
 | club/detail (`zh-Hans-d4-detail.jpg`) | `ClubDetailView` | Header → tab bar gap still visible. | Build bb76e327c predates pass 13 (`3de78d3c3`); re-check after the next combined merge |
 
+## Pass 15: sweep 21:09 UTC (build 405948d58, `docs/sweeps/latest/mp-club/sheet-zh-Hans.jpg`, `sheet-en.jpg`)
+| Screen (shot) | Native view | Seen / difference | Fixed? |
+|---|---|---|---|
+| club/detail 帖文 (`zh-Hans-d4-tab-posts.jpg`, `en-d4-tab-posts.jpg`) | `ClubCommunityViews.swift` post tile action bar | The like button shows its name 「点赞或取消点赞」 and wraps to three lines; in English the row truncates to "Like / Com / Re / Shar". MP `components/cy/post-card/index.wxml:120-148`: the action row is icon-only 赞 / 评论 / 转发 / 分享 with the count beside the icon and nothing at 0 (`{{post.likeCount \|\| ''}}`); the spoken name sits in `aria-label`. | **Fixed.** New `actionCount` helper: icon + count when > 0, icon only at 0 (`.labelStyle(.iconOnly)`); 转发 / 分享 / ··· are icon-only labels. Spoken names stay (`accessibilityLabel` on like/comments, the Label title on the others); every control is ≥ 44 pt. The 收起评论 state keeps its text |
+| club/detail (`zh-Hans-d4-detail.jpg`) | `ClubDetailView` | Header → tab-bar gap is gone (pass 13 landed). | ✓ re-checked |
+| d4-badges, d4-enroll (`zh-Hans-d4-badges.jpg`, `zh-Hans-d4-enroll.jpg`) | fixtures | Fixture names still English in Chinese. | Build 405948d58 predates pass 14 (`67a8a927c`); re-check after the next combined merge |
+
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.
 - ~~en-layout / fixtures: `D4Fixtures.swift:108-109` channel categories~~ fixed in pass 12.
