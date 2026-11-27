@@ -1,10 +1,13 @@
 import SwiftUI
 
-/// Hero greeting, city badge, and 3 fixed action banners (`成为俱乐部`, `成为商家`, `和朋友报名活动`) for Home (`pages/index/index`).
+/// Home hero (`pages/index/index` `sec-hero`) in MP order: the action-banner swiper at the top edge of the page (avatar
+/// floating over it, page dots at the image bottom), then the greeting row (name, then `玩家 · 城市`; guests keep the city).
 @MainActor
 struct HomeHeroHeaderSectionView: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.locale) private var locale
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
     var nickname: String? = nil
     var selectedCity: String? = nil
     var isNationwide: Bool = false
@@ -15,6 +18,9 @@ struct HomeHeroHeaderSectionView: View {
     @Environment(\.externalGameSession) private var externalGameSession
     @Environment(\.homeMoreMenuContent) private var moreMenuContent
     @Environment(\.rootTabSwitch) private var rootTabSwitch
+    @State private var currentBannerID: String?
+    /// MP `heroBannerH`: 480 at launch (then 60% of the viewport). Fixed here so the first rails still show on screen.
+    private let bannerHeight: CGFloat = 480
     /// The fixed banners, plus Mini games for a signed-in session where the external-games switch is open.
     private var actionBanners: [HomeIndexParityPresentation.ActionBanner] {
         guard let externalGameSession, ExternalGameSessionRead.externalGamesOpen(baseURL: externalGameSession.baseURL)
@@ -26,114 +32,23 @@ struct HomeHeroHeaderSectionView: View {
         onSelectCity != nil || isNationwide || !(selectedCity?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
     }
 
+    private var hasNickname: Bool {
+        nickname?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+    }
+
     var body: some View {
         Section {
-            VStack(alignment: .leading, spacing: 14) {
-                // P-021: search is the system field in the 首页 bar (`.searchable`), not a capsule drawn here.
-                // Mini-program `v3-hero-greet-row`: name on its own line, then `玩家 · 城市`, avatar trailing.
-                HStack(alignment: .top, spacing: 12) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        // PL-11 / PL-54: the 首页 large title is the header; the greeting is its one-line subtitle.
-                        CYRootSubtitle(verbatim: HomeIndexParityPresentation.greetingText(nickname: nickname, locale: locale))
-                            .accessibilityIdentifier("homeIndex.hero.greeting")
-                        (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2)) : AnyLayout(HStackLayout(spacing: 6))) {
-                            if nickname?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
-                                // MP asset (pages/index/index.wxml:46): the player badge is `index-figma/icon-member.png`.
-                                Label {
-                                    Text(LocalizedStringKey(isMerchantViewer ? "account.role.merchant" : "homeFeed.player"))
-                                } icon: {
-                                    if isMerchantViewer { Image(systemName: "storefront.fill") }
-                                    // en sweep 11-27: the MP's tick badge (✓ 玩家) read as a checkbox next to "Player"; English shows a person badge.
-                                    else if locale.language.languageCode?.identifier != "zh" { Image(systemName: "person.crop.circle.badge.checkmark").accessibilityHidden(true) }
-                                    else { MPAsset.FeatureIcon.iconMember.resizable().scaledToFit().frame(width: 16, height: 16).accessibilityHidden(true) }
-                                }
-                                    .foregroundStyle(.tint)
-                            }
-                            if hasCity {
-                                if let onSelectCity {
-                                    Menu {
-                                        Button {
-                                            onSelectCity(nil, true)
-                                        } label: {
-                                            Text(verbatim: CoreLoopCopy(locale: locale).tr(HomeIndexParityPresentation.citySelectorLabel(selectedCity: nil, isNationwide: true, locale: locale)))
-                                        }
-                                        ForEach(HomeCitySwitchState.defaultSupportedCities, id: \.self) { city in
-                                            Button {
-                                                onSelectCity(city, false)
-                                            } label: {
-                                                Text(verbatim: CoreLoopCopy(locale: locale).tr(city))
-                                            }
-                                        }
-                                    } label: {
-                                        Label {
-                                            Text(verbatim: CoreLoopCopy(locale: locale).tr(HomeIndexParityPresentation.citySelectorLabel(selectedCity: selectedCity, isNationwide: isNationwide, locale: locale)))
-                                        } icon: {
-                                            Image(systemName: "location.fill")
-                                        }
-                                        .foregroundStyle(.secondary)
-                                        .frame(minHeight: CYSpacing.minTouchTarget)
-                                    }
-                                    .accessibilityIdentifier("homeIndex.hero.city")
-                                } else {
-                                    Label {
-                                        Text(verbatim: CoreLoopCopy(locale: locale).tr(HomeIndexParityPresentation.citySelectorLabel(selectedCity: selectedCity, isNationwide: isNationwide, locale: locale)))
-                                    } icon: {
-                                        Image(systemName: "location.fill")
-                                    }
-                                    .foregroundStyle(.secondary)
-                                    .accessibilityIdentifier("homeIndex.hero.city")
-                                }
-                            }
-                        }
-                        .font(.subheadline)
-                    }
-                    Spacer(minLength: 0)
-                    // PC-A-1-4: MP `goUser` — the avatar opens 我的 (a control, not decoration).
-                    if rootTabSwitch.isAvailable {
-                        Button { rootTabSwitch(.mine) } label: { HomeHeroAvatar(source: avatarSource) }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel(Text(LocalizedStringKey(RootTab.mine.titleKey)))
-                            .accessibilityAddTraits(.isButton)
-                            .accessibilityIdentifier("homeIndex.hero.avatar")
-                    } else {
-                        HomeHeroAvatar(source: avatarSource)
-                    }
-                }
-                // mp-home r3: MP `sec-hero` is a swiper of the fixed action banners (和朋友报名活动 / 成为俱乐部 / 成为商家),
-                // each a poster with its title. Native: a system paging shelf of the same posters, one tap opens the route.
-                ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHStack(alignment: .top, spacing: 12) {
-                        ForEach(actionBanners) { banner in
-                            Button {
-                                onSelectBanner?(banner)
-                            } label: {
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Color.clear
-                                        .aspectRatio(16.0 / 9.0, contentMode: .fit)
-                                        .overlay { HomeActionBannerPoster(id: banner.id) }
-                                        .background(.fill.tertiary)
-                                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                                        .accessibilityHidden(true)
-                                    Text(verbatim: banner.title(locale: locale))
-                                        .font(.headline)
-                                        .foregroundStyle(.primary)
-                                        .multilineTextAlignment(.leading)
-                                        .fixedSize(horizontal: false, vertical: true)
-                                }
-                                .contentShape(Rectangle())
-                            }
-                            .buttonStyle(.plain)
-                            .containerRelativeFrame(.horizontal)
-                            .accessibilityLabel(Text(verbatim: banner.title(locale: locale)))
-                            .accessibilityIdentifier("homeIndex.actionBanner.\(banner.id)")
-                        }
-                    }
-                    .scrollTargetLayout()
-                }
-                .scrollTargetBehavior(.paging)
-                .accessibilityIdentifier("homeIndex.actionBanner.carousel")
+            VStack(alignment: .leading, spacing: 0) {
+                // 1. MP `v3-hero-banner`: Banner 顶到页面顶部，头像浮层，白点在图最底部.
+                heroBanner
+                    .zIndex(1) // the floating avatar's lower half stays above the greeting row
+                // 2. MP `v3-hero-greet-row`: name on its own line, then `玩家 · 城市` (P-01); trailing room for the avatar.
+                greetingRow
+                    .padding(.leading, 16)
+                    .padding(.trailing, 88)
+                    .padding(.top, 12)
                 // verify-r1 2.5 / N-12 (owner Q9): the header's former ⋯ items (templates, project editor) stay in one
-                // quiet menu row under the banners, so the 首页 bar keeps only 消息 and map.
+                // quiet menu row under the greeting, so the 首页 bar keeps only 消息 and map.
                 if let moreMenuContent {
                     Menu {
                         moreMenuContent
@@ -147,16 +62,184 @@ struct HomeHeroHeaderSectionView: View {
                         .foregroundStyle(.secondary)
                         .frame(minHeight: CYSpacing.minTouchTarget)
                     }
+                    .padding(.horizontal, 16)
                     .accessibilityIdentifier("homeIndex.actionBanner.menu")
                 }
             }
-            .padding(.vertical, 4)
+            .padding(.bottom, 4)
+            .listRowInsets(EdgeInsets())
             .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
         }
+    }
+
+    /// mp-home r3: MP `sec-hero` swiper of the fixed action banners (和朋友报名活动 / 成为俱乐部 / 成为商家): full width,
+    /// black stage, poster centred, title above the dots. Native: a paging scroll view; one tap opens the route.
+    private var heroBanner: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            LazyHStack(spacing: 0) {
+                ForEach(actionBanners) { banner in
+                    Button {
+                        onSelectBanner?(banner)
+                    } label: {
+                        HomeActionBannerSlide(id: banner.id, title: banner.title(locale: locale))
+                    }
+                    .buttonStyle(.plain)
+                    .containerRelativeFrame(.horizontal)
+                    .id(banner.id)
+                    .accessibilityLabel(Text(verbatim: banner.title(locale: locale)))
+                    .accessibilityAddTraits(.isButton)
+                    .accessibilityIdentifier("homeIndex.actionBanner.\(banner.id)")
+                }
+            }
+            .scrollTargetLayout()
+        }
+        .scrollTargetBehavior(.paging)
+        .scrollPosition(id: $currentBannerID)
+        .frame(height: bannerHeight)
+        .background(Color.black)
+        .overlay(alignment: .bottom) {
+            if actionBanners.count > 1 { bannerDots }
+        }
+        .overlay(alignment: .bottomTrailing) {
+            avatar
+                .padding(.trailing, 16)
+                .offset(y: 28)
+        }
+        .accessibilityIdentifier("homeIndex.actionBanner.carousel")
+        .onAppear { if currentBannerID == nil { currentBannerID = actionBanners.first?.id } }
+        // MP `autoplay="{{!reducedMotion}}" interval="5500"`; also paused while VoiceOver reads the page.
+        .task(id: actionBanners.count) {
+            guard !reduceMotion, !voiceOverEnabled, actionBanners.count > 1 else { return }
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(5500))
+                if Task.isCancelled { break }
+                withAnimation(.easeInOut(duration: 0.45)) { currentBannerID = nextBannerID() }
+            }
+        }
+    }
+
+    private func nextBannerID() -> String? {
+        let ids = actionBanners.map(\.id)
+        guard !ids.isEmpty else { return nil }
+        let index = ids.firstIndex(of: currentBannerID ?? "") ?? 0
+        return ids[(index + 1) % ids.count]
+    }
+
+    private func isCurrentBanner(_ id: String) -> Bool {
+        (currentBannerID ?? actionBanners.first?.id) == id
+    }
+
+    /// MP `v3-hero-dots`: white dots at the image bottom; the current one is a short bar.
+    private var bannerDots: some View {
+        HStack(spacing: 6) {
+            ForEach(actionBanners) { banner in
+                Capsule()
+                    .fill(isCurrentBanner(banner.id) ? Color.white : Color.white.opacity(0.4))
+                    .frame(width: isCurrentBanner(banner.id) ? 16 : 6, height: 6)
+            }
+        }
+        .padding(.bottom, 32)
+        .accessibilityHidden(true)
+    }
+
+    /// PC-A-1-4: MP `goUser` — the avatar floats over the banner and opens 我的 (a control, not decoration).
+    @ViewBuilder private var avatar: some View {
+        if rootTabSwitch.isAvailable {
+            Button { rootTabSwitch(.mine) } label: { HomeHeroAvatar(source: avatarSource) }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text(LocalizedStringKey(RootTab.mine.titleKey)))
+                .accessibilityAddTraits(.isButton)
+                .accessibilityIdentifier("homeIndex.hero.avatar")
+        } else {
+            HomeHeroAvatar(source: avatarSource)
+        }
+    }
+
+    private var greetingRow: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            // MP `v3-hero-hi` (display size, bold): the greeting line.
+            Text(verbatim: HomeIndexParityPresentation.greetingText(nickname: nickname, locale: locale))
+                .font(.title2.weight(.bold))
+                .foregroundStyle(.primary)
+                .lineLimit(typeSize.isAccessibilitySize ? nil : 1)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier("homeIndex.hero.greeting")
+            (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2)) : AnyLayout(HStackLayout(spacing: 6))) {
+                if hasNickname {
+                    // MP asset (pages/index/index.wxml:46): the player badge is `index-figma/icon-member.png`.
+                    Label {
+                        Text(LocalizedStringKey(isMerchantViewer ? "account.role.merchant" : "homeFeed.player"))
+                    } icon: {
+                        if isMerchantViewer { Image(systemName: "storefront.fill") }
+                        // en sweep 11-27: the MP's tick badge (✓ 玩家) read as a checkbox next to "Player"; English shows a person badge.
+                        else if locale.language.languageCode?.identifier != "zh" { Image(systemName: "person.crop.circle.badge.checkmark").accessibilityHidden(true) }
+                        else { MPAsset.FeatureIcon.iconMember.resizable().scaledToFit().frame(width: 16, height: 16).accessibilityHidden(true) }
+                    }
+                        .foregroundStyle(.tint)
+                }
+                // Round5 #8: guests (no nickname) still see and switch the city on this row.
+                if hasCity { cityControl }
+            }
+            .font(.subheadline)
+        }
+    }
+
+    @ViewBuilder private var cityControl: some View {
+        if let onSelectCity {
+            Menu {
+                Button {
+                    onSelectCity(nil, true)
+                } label: {
+                    Text(verbatim: cityText(HomeIndexParityPresentation.citySelectorLabel(selectedCity: nil, isNationwide: true, locale: locale)))
+                }
+                ForEach(HomeCitySwitchState.defaultSupportedCities, id: \.self) { city in
+                    Button {
+                        onSelectCity(city, false)
+                    } label: {
+                        Text(verbatim: cityText(city))
+                    }
+                }
+            } label: {
+                Label {
+                    Text(verbatim: cityText(HomeIndexParityPresentation.citySelectorLabel(selectedCity: selectedCity, isNationwide: isNationwide, locale: locale)))
+                } icon: {
+                    Image(systemName: "location.fill")
+                }
+                .foregroundStyle(.secondary)
+                .frame(minHeight: CYSpacing.minTouchTarget)
+            }
+            .accessibilityIdentifier("homeIndex.hero.city")
+        } else {
+            Label {
+                Text(verbatim: cityText(HomeIndexParityPresentation.citySelectorLabel(selectedCity: selectedCity, isNationwide: isNationwide, locale: locale)))
+            } icon: {
+                Image(systemName: "location.fill")
+            }
+            .foregroundStyle(.secondary)
+            .accessibilityIdentifier("homeIndex.hero.city")
+        }
+    }
+
+    /// City names in the interface language: the read (or a roam area label) may carry either spelling, so the Chinese UI
+    /// shows 上海 for "Shanghai" and English shows Shanghai for 上海.
+    private func cityText(_ name: String) -> String {
+        let copy = CoreLoopCopy(locale: locale)
+        guard copy.isChinese else { return copy.tr(name) }
+        return HomeHeroCityNames.chinese[name.trimmingCharacters(in: .whitespacesAndNewlines)] ?? name
     }
 }
 
-/// Round account avatar for the Home hero. Decorative: the greeting already names the viewer.
+/// English → Chinese names for the 首页 city row (the reverse of `CoreLoopCopy`'s city entries).
+enum HomeHeroCityNames {
+    static let chinese: [String: String] = [
+        "Shanghai": "上海", "Beijing": "北京", "Hangzhou": "杭州",
+        "Shenzhen": "深圳", "Guangzhou": "广州", "Chengdu": "成都",
+        "Nationwide": "全国", "Select City": "选择城市",
+    ]
+}
+
+/// Round account avatar floating over the Home banner (MP `v3-avatar`: pill, strong border).
 private struct HomeHeroAvatar: View {
     let source: String?
     var body: some View {
@@ -169,8 +252,9 @@ private struct HomeHeroAvatar: View {
                 fallback
             }
         }
-        .frame(width: 48, height: 48)
+        .frame(width: 56, height: 56)
         .clipShape(Circle())
+        .overlay { Circle().strokeBorder(Color(.systemBackground), lineWidth: 2) }
         .accessibilityHidden(true)
     }
     /// MP asset (pages/index/index.wxml:38): a missing avatar is `/images/d_profile.png`.
@@ -179,15 +263,53 @@ private struct HomeHeroAvatar: View {
     }
 }
 
+/// One MP `v3-hero-action` slide: black stage, poster centred (`aspectFit`, 68% wide, from 23% down), the scrim for the
+/// floating bar and dots, and the title above the dots.
+private struct HomeActionBannerSlide: View {
+    let id: String
+    let title: String
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            Color.black
+            HomeActionBannerPoster(id: id)
+                .containerRelativeFrame(.horizontal) { width, _ in width * 0.68 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .padding(.top, 110)
+                .accessibilityHidden(true)
+            // MP `v3-hero-fade--action`: dark at the top for the bar, clear in the middle, black at the bottom edge.
+            LinearGradient(
+                stops: [
+                    .init(color: .black.opacity(0.58), location: 0),
+                    .init(color: .black.opacity(0.04), location: 0.32),
+                    .init(color: .clear, location: 0.58),
+                    .init(color: .black.opacity(0.55), location: 0.82),
+                    .init(color: .black, location: 1),
+                ],
+                startPoint: .top, endPoint: .bottom
+            )
+            .accessibilityHidden(true)
+            Text(verbatim: title)
+                .font(.title3.weight(.bold))
+                .foregroundStyle(.white)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 64)
+        }
+        .clipped()
+        .contentShape(Rectangle())
+    }
+}
+
 /// Poster for a home action banner (`home-action-banner.js` `poster`). Other banners keep the arrow glyph.
 private struct HomeActionBannerPoster: View {
     let id: String
     var body: some View {
         switch id {
-        case "activity_list": MPAsset.BannerCover.homeBannerFriends.resizable().scaledToFill()
-        case "club_apply": MPAsset.BannerCover.homeBannerClub.resizable().scaledToFill()
-        case "merchant_apply": MPAsset.BannerCover.homeBannerMerchant.resizable().scaledToFill()
-        default: Image(systemName: "arrow.up.right").accessibilityHidden(true)
+        case "activity_list": MPAsset.BannerCover.homeBannerFriends.resizable().scaledToFit()
+        case "club_apply": MPAsset.BannerCover.homeBannerClub.resizable().scaledToFit()
+        case "merchant_apply": MPAsset.BannerCover.homeBannerMerchant.resizable().scaledToFit()
+        default: Image(systemName: "arrow.up.right").font(.largeTitle).foregroundStyle(.white).accessibilityHidden(true)
         }
     }
 }

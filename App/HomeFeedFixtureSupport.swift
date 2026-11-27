@@ -64,7 +64,7 @@ import SwiftUI
     var body: some View {
         NavigationStack(path: $path) {
             HomeFeedView(reader: reader, unavailableMessageKey: unavailableKey, viewerNickname: hero ? "Mia" : nil,
-                         selectedCity: hero ? "Shanghai" : nil,
+                         selectedCity: hero ? "上海" : nil,
                          showsHeroBanners: hero,
                          continuationCards: hero ? [.init(id: "fx-continue", kind: .continueExploration, destination: .topic(7), title: "Old Town: ten hidden spots", subtitle: "Stop 4 of 10 · 18 min in")] : [],
                          onActionBanner: hero ? { _ in } : nil,
