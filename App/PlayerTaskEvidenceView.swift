@@ -31,7 +31,7 @@ import UIKit
                 if sameTarget, let offered = reviewOwner.review {
                     PlayerTaskEvidenceReviewCard(owner: reviewOwner, offered: offered) { clear(); dismiss() }.id(offered.id)
                 }
-                if reviewOwner.working { CYSkeleton().accessibilityLabel(Text("playerEvidence.working")) }
+                if reviewOwner.working { CYSkeleton(label: "playerEvidence.working") }
             }.cyGroupedSurface().navigationTitle(target.kind == .scan ? "playerEvidence.scan.title" : "playerEvidence.photo.title").navigationBarTitleDisplayMode(.inline)
                 .scrollDismissesKeyboard(.interactively)
                 .toolbar {
@@ -86,7 +86,7 @@ import UIKit
                     .accessibilityLabel("playerEvidence.photo.preview")
                 CYPillButton("playerEvidence.photo.upload") { reviewOwner.prepareUpload(outputID: outputID, offered: opening) }.listRowBackground(Color.clear).disabled(!valid || device?.canUpload != true)
             }
-            if device?.busy == true { CYSkeleton().accessibilityLabel(Text("playerEvidence.working")) }
+            if device?.busy == true { CYSkeleton(label: "playerEvidence.working") }
             if valid, device?.reviewedPhoto(expectedOutputID: outputID) != nil {
                 CYStatusChip("playerEvidence.photo.uploaded", tone: .success, systemImage: "checkmark.circle")
                 CYPillButton("playx.review") { reviewOwner.prepareUploadedPhoto(outputID: outputID, offered: opening) }.listRowBackground(Color.clear).disabled(!valid)

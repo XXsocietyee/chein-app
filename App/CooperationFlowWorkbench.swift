@@ -109,14 +109,14 @@ struct CoopFlowSafetyNotice: View {
                     .accessibilityIdentifier("coopflow.withdrawal.support")
             }
             if reader.session == nil { Text("cooperation.login") }
-            else if loadedSession != reader.session { CYSkeleton(variant: .row).accessibilityLabel(Text("cooperation.loading")) }
+            else if loadedSession != reader.session { CYSkeleton(variant: .row, label: "cooperation.loading") }
             else if let issue {
                 Text(issue).accessibilityIdentifier("coopflow.issue")
                 CYPillButton("cooperation.refresh", style: .secondary, fullWidth: false) { refresh = UUID() }
             } else if let value {
                 content(value)
                 Section { CoopFlowSafetyNotice() }
-            } else { CYSkeleton(variant: .row).accessibilityLabel(Text("cooperation.loading")) }
+            } else { CYSkeleton(variant: .row, label: "cooperation.loading") }
         }
         .cyGroupedSurface()
         .navigationTitle(LocalizedStringKey(title)).navigationBarTitleDisplayMode(.inline)
@@ -331,7 +331,7 @@ struct CoopFlowFields: View {
                 CoopFlowFields(value: row.record, keys: ["topicName", "topicId", "payeeType", "totalSales", "verifiedSales", "platformAmount", "merchantTotal", "merchantPaid", "shareMode", "shareRate", "fixedFee", "verifiedHeads", "createTime", "settleTime", "payableTime", "payoutTime", "merchantPayableTime", "merchantPayoutTime", "updateTime"])
                 Section { CoopFlowSafetyNotice() }
             } else if failed { Text("coopflow.read.failed") }
-            else { CYSkeleton(variant: .detail).accessibilityLabel(Text("cooperation.loading")) }
+            else { CYSkeleton(variant: .detail, label: "cooperation.loading") }
         }.navigationTitle("coopflow.settlement.detail").navigationBarTitleDisplayMode(.inline)
             .task(id: "\(reader.session?.accountID ?? 0):\(reader.session?.epoch ?? 0)") {
                 row = nil; scope = nil; failed = false
@@ -352,7 +352,10 @@ struct CoopInviteCardLabel: View {
     let direction: CooperationDirection?
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
-    @ScaledMetric(relativeTo: .body) private var thumb: CGFloat = 56
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @ScaledMetric(relativeTo: .body) private var scaledThumb: CGFloat = 56
+    /// a11y-dt: cover capped at 96 pt so the topic keeps the row width at AX5.
+    private var thumb: CGFloat { min(scaledThumb, 96) }
 
     private var title: String {
         row["topicName"].text ?? row["name"].text ?? row["clubName"].text ?? row["merchantName"].text
@@ -362,6 +365,11 @@ struct CoopInviteCardLabel: View {
     private var statusKey: String? {
         guard let status = row["status"].integer, (0...5).contains(status) else { return nil }
         return "cooperation.invite.status.\(status)"
+    }
+
+    /// a11y-dt: partner · status on one line; stacked (no separator) at accessibility sizes.
+    private var metaLayout: AnyLayout {
+        typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2)) : AnyLayout(HStackLayout(spacing: 4))
     }
 
     var body: some View {
@@ -376,9 +384,9 @@ struct CoopInviteCardLabel: View {
                     .foregroundStyle(palette.textPrimary)
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
-                HStack(spacing: 4) {
-                    if let partner, partner != title { Text(verbatim: partner).lineLimit(1) }
-                    if partner != nil, partner != title, statusKey != nil { Text(verbatim: "·").accessibilityHidden(true) }
+                metaLayout {
+                    if let partner, partner != title { Text(verbatim: partner).lineLimit(typeSize.isAccessibilitySize ? 2 : 1) }
+                    if partner != nil, partner != title, statusKey != nil, !typeSize.isAccessibilitySize { Text(verbatim: "·").accessibilityHidden(true) }
                     if let statusKey { Text(LocalizedStringKey(statusKey)) }
                 }
                 .font(.footnote)

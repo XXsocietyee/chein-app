@@ -382,13 +382,13 @@ import SwiftUI
                     coordinator: coordinator, formID: route.id)
             }
             if let groupCode {
-                // CLB-r10-nat-group-code-01 (MP group-code wxml:38-39): the session name is the Section header.
+                // mp-club r3 pass 8 (MP group-code wxml:38-39 → club-game-code-sheet wxml:9-24): 活动核验团码, the code,
+                // then the session name under it and 保存到相册; no name above the card.
                 Section {
                     ClubGroupCodePresentation(value: groupCode,
                         current: identity == access.identity && scenePhase == .active,
-                        onReissue: busy || locked ? nil : { Task { await reissueGroupCode() } })
-                } header: {
-                    if let name = ClubRoleActivityLabel.entry(sessionLabel) { Text(verbatim: name) }
+                        onReissue: busy || locked ? nil : { Task { await reissueGroupCode() } },
+                        sessionName: ClubRoleActivityLabel.entry(sessionLabel))
                 }
             }
             if let receipt {
@@ -492,7 +492,8 @@ import SwiftUI
         .cySheet(isPresented: Binding(get: { consequenceReview != nil }, set: { if !$0 { consequenceReview = nil } })) {
             if let kind = ClubGovernanceConsequence(route.operation) {
                 kind.sheet(locale: locale, name: route.operation == .revokeRole ? route.seed["roleName"]?.string
-                                                 : (route.operation == .ban ? route.seed["targetNickname"]?.string : nil)) {
+                                                 : (route.operation == .ban ? route.seed["targetNickname"]?.string
+                                                    : (route.operation == .endTopic ? route.seed["topicName"]?.string : nil))) {
                     guard let pending = consequenceReview, pending.id == review?.id else { consequenceReview = nil; return }
                     consequenceReview = nil; consequenceAccepted = pending.id; Task { await confirm(pending) }
                 }

@@ -13,6 +13,8 @@ struct RoamDiscoverDestinations {
     let exploreDay: @MainActor () async -> RoamExploreDay?
     /// MP `openScene('play-activity-detail', {id})`.
     let activity: @MainActor (Int) -> AnyView
+    /// MP 主题半屏 查看详情 → `pages/topic/index/index?id=`; nil hides the row.
+    var topic: (@MainActor (Int) -> AnyView)? = nil
 }
 
 private struct RoamDiscoverDestinationsKey: EnvironmentKey {
@@ -94,6 +96,10 @@ extension AppSession {
             activity: { [weak self] id in
                 guard let self else { return AnyView(EmptyView()) }
                 return AnyView(MPReviewedPageScreen(page: "pages/activity/detail/index", query: ["id": String(id)]).environmentObject(self))
+            },
+            topic: { [weak self] id in
+                guard let self else { return AnyView(EmptyView()) }
+                return AnyView(MPReviewedPageScreen(page: "pages/topic/index/index", query: ["id": String(id)]).environmentObject(self))
             })
     }
 }

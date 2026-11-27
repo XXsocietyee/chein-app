@@ -56,7 +56,10 @@ struct CoopInviteCountdownText: View {
 /// cover or logo yet (Core request), so the MP defaults show: `default-cover.png` with the `citylink.svg` brand mark,
 /// the pin before the address and the chevron at the end.
 struct NearbyMerchantCardChrome<Content: View>: View {
-    @ScaledMetric(relativeTo: .body) private var side: CGFloat = 56
+    @ScaledMetric(relativeTo: .body) private var scaledSide: CGFloat = 56
+    @ScaledMetric(relativeTo: .body) private var chevronSide: CGFloat = 14
+    /// a11y-dt: artwork grows with Dynamic Type but stops at 96 pt so the venue text keeps the row at AX5.
+    private var side: CGFloat { min(scaledSide, 96) }
     @ViewBuilder let content: () -> Content
     var body: some View {
         HStack(alignment: .center, spacing: CYSpacing.md) {
@@ -72,7 +75,7 @@ struct NearbyMerchantCardChrome<Content: View>: View {
             }
             content().frame(maxWidth: .infinity, alignment: .leading)
             MPAsset.FeatureIcon.chevron.resizable().scaledToFit()
-                .frame(width: 14, height: 14)
+                .frame(width: chevronSide, height: chevronSide)
                 .accessibilityHidden(true)
         }
     }
@@ -80,10 +83,11 @@ struct NearbyMerchantCardChrome<Content: View>: View {
 
 struct NearbyMerchantAddressLine: View {
     let address: String
+    @ScaledMetric(relativeTo: .footnote) private var pinSide: CGFloat = 12
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xxs) {
             MPAsset.FeatureIcon.pin.resizable().scaledToFit()
-                .frame(width: 12, height: 12)
+                .frame(width: pinSide, height: pinSide)
                 .accessibilityHidden(true)
             Text(verbatim: address).cyText(.meta).foregroundStyle(CYColor.textSecondary)
         }

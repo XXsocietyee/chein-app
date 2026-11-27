@@ -588,7 +588,7 @@ struct CoopFlowReviewEditor: View {
                 CYPillButton("cooperation.retry", style: .secondary, fullWidth: false) { Task { await model.load(permit: permit) } }
                     .accessibilityIdentifier("coopflow.perks.retry")
             } else if reader.session == nil { Text("cooperation.login") }
-            else { CYSkeleton(variant: .row).accessibilityLabel(Text("cooperation.loading")) }
+            else { CYSkeleton(variant: .row, label: "cooperation.loading") }
             CoopFlowSafetyNotice()
         }.navigationTitle("coopflow.attach").navigationBarTitleDisplayMode(.inline)
             .navigationDestination(item: model.previewBinding()) { preview in

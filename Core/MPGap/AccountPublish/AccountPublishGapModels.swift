@@ -26,12 +26,39 @@ public struct TopicCastMemberDraft: Identifiable, Equatable, Sendable {
     public var name: String
     public var roleTitle: String
     public var voiceID: String?
+    /// MP `cast[].color`: one of the six contract colour literals (story-cast.js COLORS), nil = not chosen yet.
+    public var colorHex: String?
+    /// MP `cast[].clues` (你知道的): at most 6, each 1–40 characters, unlocked at the start or at a saved chapter.
+    public var clues: [TopicCastClueDraft]
+    /// MP `cast[].endingLines` (结局台词) by trust band; empty lines are left out on save.
+    public var endingLow: String
+    public var endingMid: String
+    public var endingHigh: String
 
-    public init(id: String, name: String, roleTitle: String, voiceID: String? = nil) {
+    public init(id: String, name: String, roleTitle: String, voiceID: String? = nil, colorHex: String? = nil,
+                clues: [TopicCastClueDraft] = [], endingLow: String = "", endingMid: String = "", endingHigh: String = "") {
         self.id = id
         self.name = name
         self.roleTitle = roleTitle
         self.voiceID = voiceID
+        self.colorHex = colorHex
+        self.clues = clues
+        self.endingLow = endingLow
+        self.endingMid = endingMid
+        self.endingHigh = endingHigh
+    }
+}
+
+/// One MP cast clue: text + the chapter it unlocks at (`nil` = 开局就有). `chapterID` keeps the server value as sent.
+public struct TopicCastClueDraft: Identifiable, Equatable, Sendable {
+    public let id: UUID
+    public var text: String
+    public var chapterID: ProjectEditJSON?
+
+    public init(id: UUID = UUID(), text: String, chapterID: ProjectEditJSON? = nil) {
+        self.id = id
+        self.text = text
+        self.chapterID = chapterID
     }
 }
 

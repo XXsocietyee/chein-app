@@ -1417,5 +1417,22 @@
         }
       }
     }
+  },
+  "playTools.sessionScore": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Run time · Current score"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本局用时 · 当前得分"
+        }
+      }
+    }
   }
 }

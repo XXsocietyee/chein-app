@@ -108,7 +108,9 @@ public struct RoamRouteNode: Decodable, Equatable, Identifiable {
     public let nodeId: Int?
     public let address: String?
     public let distance: Double?
-    enum CodingKeys: String, CodingKey { case id, addressName, latitude, longitude, topicId, nodeId, address, distance }
+    /// MP `productType` of the attached topic: 1 城市定向 / 2 自由探索. Missing or malformed stays nil.
+    public let productType: Int?
+    enum CodingKeys: String, CodingKey { case id, addressName, latitude, longitude, topicId, nodeId, address, distance, productType }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decodeIfPresent(Int.self, forKey: .id) ?? 0
@@ -118,6 +120,13 @@ public struct RoamRouteNode: Decodable, Equatable, Identifiable {
         nodeId = try c.decodeIfPresent(Int.self, forKey: .nodeId)
         address = try c.roamText(.address)
         distance = try c.decodeIfPresent(Double.self, forKey: .distance)
+        if let value = try? c.decode(Int.self, forKey: .productType) {
+            productType = value
+        } else if let raw = try? c.decode(String.self, forKey: .productType), let value = Int(raw.trimmingCharacters(in: .whitespaces)) {
+            productType = value
+        } else {
+            productType = nil
+        }
     }
 }
 
