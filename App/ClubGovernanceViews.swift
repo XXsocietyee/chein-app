@@ -1581,9 +1581,18 @@ struct ClubGovernanceReadView: View {
             ClubRoleAssignmentRecoverySection(recovery: coordinator.roleAssignment, context: readContext, access: access) { Task { await load() } }
             // CLB-roles-05: the MP roles page has no 可委派角色 list; the role choice lives in the assign picker.
         } else if operation == .bans, let bans = try? ClubOpsBanList(snapshot: snapshot) {
-            ClubOpsBanSection(list: bans, scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope), document: snapshot.value) { row in AnyView(edit(.unban, seed: row.unbanSeed ?? [:], role: .inlineLink)) }
+            if bans.rows.isEmpty, governanceMemberCount == 0 {
+                // MP governance wxml:18 (state === 'empty'): nobody to govern and no records is one full-page 暂无可治理成员.
+                ContentUnavailableView {
+                    Label { ClubOpsGovernanceCopy.text("clubOpsGov.members.empty") } icon: { Image(systemName: "person.2") }
+                }
+                .accessibilityIdentifier("clubOpsGov.empty")
+            } else {
+                ClubOpsBanSection(list: bans, scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope), document: snapshot.value) { row in AnyView(edit(.unban, seed: row.unbanSeed ?? [:], role: .inlineLink)) }
+            }
             // CLB-governance-01 (MP governance wxml:61-122): records, then the 对成员执行 card on the same page.
             ClubOpsMemberActionCard(clubID: scope.clubID, identity: identity, access: access,
+                onLoaded: { governanceMemberCount = $0 },
                 ban: { member, days in
                     var seed = member.seed
                     seed["banDays"] = .string(String(days))
@@ -1791,6 +1800,10 @@ struct ClubGovernanceReadView: View {
             if let reason = value["rejectReason"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !reason.isEmpty {
                 Section("club.topic.rejectReason") { Text(verbatim: reason).foregroundStyle(.red) }
             }
+            // MP topic-detail wxml:92 (C-11, Figma D9): once the director has ended the topic the page is a review;
+            // the in-progress blocks (核销 / 主题 / 接下来) are not drawn.
+            let directorReview = directorActive && topicDisplay.state == .ended
+            if !directorReview {
             if ClubTopicDetailPort.showsVerify(topicDisplay, canViewVerify: stats["canViewVerify"].bool) {
                 ClubTopicVerifySummarySection(metrics: ClubTopicDetailPort.verifyMetrics(
                     pending: stats["pendingVerifyCount"].int, verifiedByMe: stats["verifiedByMeCount"].int, headcount: stats["sessionHeadcount"].int),
@@ -1855,6 +1868,7 @@ struct ClubGovernanceReadView: View {
             } header: { Text("club.topic.upcoming") } footer: {
                 // CLB-r11-topic-detail-02 (MP topic-detail/index.js:419, wxml:316): paidSessionsBlocked → paymentNotice.
                 if stats["paidSessionsBlocked"] == .bool(true) { Text("club.topic.paidSessionsBlocked") }
+            }
             }
             }
             ClubTerminalSessionEntry(snapshot: snapshot, context: terminalContext, snapshotGeneration: terminalGeneration,

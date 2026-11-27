@@ -33,7 +33,8 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/topic-detail | `ClubGovernanceViews.swift` topicOverview | 未通过原因 must come before 核销 + 台账 (wxml:86 vs 96). | **Fixed** |
 | club/topic-detail | same | 接下来 only when there are sessions (wxml:134); native showed a 还没有场次 placeholder. | **Fixed.** The section is hidden unless there are sessions or 管理场次 is allowed |
 | club/topic-detail · 更多 | same | MP order (wxml:430-470): 剧情与玩法 → 结束活动 → 核销记录 → 场次管理 → 退出与暂停规则. Native was missing 剧情与玩法 and 核销记录, had 结束活动 last, and had stats/settings/enrollment first. | **Fixed.** MP order; stats/settings/enrollment follow as a second group |
-| club/topic-detail | same | Hide 核销/主题/接下来 when the director is active and the topic ended (wxml:94); per-session 团码/run-control/集合时间 rows (MP has one director row); inline settings block in 更多; rules as a footbar half-sheet. | **Not done.** large / behaviour moves |
+| club/topic-detail | same | Hide 核销/主题/接下来 when the director is active and the topic ended (wxml:92, C-11 review state). | **Fixed (pass 3).** `directorReview` wraps those three blocks |
+| club/topic-detail | same | Per-session 团码/run-control/集合时间 rows (MP has one director row); inline settings block in 更多; rules as a footbar half-sheet. | **Not done.** large / behaviour moves |
 | club/topic-story | `ClubGovernanceStoryView`, `ClubStoryViews.swift` | Missing-param 链接已失效 + 返回 (wxml:13). | Already present (`MPReviewedPageScreen` `club.story.missingTopic`, CLB-r9-topic-story-01) |
 | club/topic-story | `ClubStoryViews.swift` `ClubStoryGameplayCard` | Extra orange "no answer" chip on play rows (MP: an unanswerable play just has no 查看答案 button). | **Fixed (pass 3).** Chip removed |
 | club/topic-story | `ClubGovernanceViews.swift` answer sheets | Sheet title was 「答案 · node」; MP (wxml:117, CU-C-152) titles it 答案 and shows the play title as a wrapping sub line. | **Fixed (pass 3).** Title = 答案; play title (MP `data-title`) as a `.subheadline` secondary line, both the club and host answer sheets |
@@ -65,7 +66,8 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/notify | `ClubGovernanceCommandForm` (sendNotification) | 当前身份不能发通知 | Already present (`ClubOpsNotifyDeniedText`, a `ContentUnavailableView`) |
 | club/notify | `ClubGovernanceCommandForm.swift` | A failed 预览受众 is inline 受众预览失败 + reason + 重试 (wxml:59-62); native showed the generic form error. | **Fixed (pass 3).** Dedicated section before any review, 重试 re-runs the preview (`club.notify.previewFailed`) |
 | club/notify | same | 投递状态 section with 刷新 in the header; extra review fact rows. | **Not done** (send-button wording is a deliberate CLB-notify-01 choice) |
-| club/governance | `ClubOpsBanSection` | Full-page 暂无可治理成员 (js:403: no members and no bans). The member list is read inside `ClubOpsMemberActionCard`, so the page cannot tell yet; extra appeal-mode headline. | Not done (needs the member read lifted) |
+| club/governance | `ClubGovernanceViews.swift` (.bans), `ClubOpsMemberActionCard.swift` | Full-page 暂无可治理成员 (wxml:18, js:403: no members and no bans). | **Fixed (pass 3).** The card reports its member count (`onLoaded`); no bans + 0 members shows a `ContentUnavailableView` instead of the records section |
+| club/governance | same | Extra appeal-mode headline. | Not done (small) |
 | club/customers | `ClubOpsCustomerViews.swift` | The count line sits as the list section header after the filter (native pattern; the count follows the filter); the filtered-empty CTA 查看全部客户 is a borderless button under the empty state, not inside it. | **Kept** (the CTA's fences are pinned in place by `test_club_customer_clear_filters`; moving it needs the clear closure threaded into the list view) |
 | club/customer-detail | `ClubOpsCustomerViews.swift`, `ClubCustomerInlineEditor.swift` | In edit mode the editor replaces the card, the heading reads 编辑标签与备注 and 取消 sits in the heading (wxml:82-99). | **Fixed (pass 2).** The editor owns the 标签与备注 section; 取消 moved from a row into the header (VoiceOver: 取消编辑标签与备注) |
 | club/payout-receiver | `ClubPayoutReceiverView.swift` | Binding needs a WeChat code (`PayoutReceiverBridge.payoutOpen`). | Blocked (WeChat/backend), not a view gap |
@@ -119,4 +121,5 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 6. 创建俱乐部 no-permission / limit: 返回上一页.
 7. 角色与权限 empty state 暂无成员.
 9. Pass 3: topic-story answer sheet title + no-answer chip, event-ops denied 返回, notify 受众预览失败 + 重试.
+10. Pass 3: governance 暂无可治理成员 full-page empty state; topic-detail director-ended review hides 核销/主题/接下来.
 8. Pass 2: shared club thumbnail, customer-detail edit heading, create check-failed 返回上一页, enroll order, check-in rail refund note.
