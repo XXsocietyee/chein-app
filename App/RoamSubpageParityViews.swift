@@ -393,7 +393,8 @@ struct RoamPOIMissingView: View {
     }
 }
 
-/// `subpackageRoam/citystamp` write step. The photo comes from the existing stamp camera; posting
+/// `subpackageRoam/citystamp` cam → write step (MP order: the camera opens first, the shot sits in the note
+/// header). The photo comes from the existing stamp camera; posting
 /// and exchanging run only through RoamStampExchangeCoordinator, which stays dormant until its
 /// executor is approved. A receipt (live or DEBUG fixture) moves to the print slip.
 @MainActor struct RoamCityStampFlowView: View {
@@ -407,6 +408,9 @@ struct RoamPOIMissingView: View {
     @State private var receipt: RoamStampExchangeReceipt?
     @State private var working = false
     @State private var failed = false
+    /// MP `step === 'cam'`: the page opens on the camera; the write step follows the shot (or close).
+    @State private var showsCamera = false
+    @State private var cameraOffered = false
     private let openedAt = Date()
     private var placeText: Text { place.map { Text(verbatim: $0) } ?? Text("roamSub.w208.stamp.defaultPlace") }
     private var canSend: Bool { exchange != nil && draft != nil && !working }
@@ -422,24 +426,30 @@ struct RoamPOIMissingView: View {
             }.padding()
         }.navigationTitle(Text(LocalizedStringKey(RoamStampSlip.titleKey(kind: kind))))
             .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(isPresented: $showsCamera) { cameraView }
+            .onAppear(perform: openCameraFirst)
             .accessibilityIdentifier("roamSub.w208.stamp.flow")
         .cyDomainScreen(.player)
     }
     private var writeStep: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack {
-                Text("roamSub.w208.stamp.noteHeader").cyText(.cardTitle).accessibilityAddTraits(.isHeader)
-                Spacer()
-                Text(verbatim: "\(note.count)/\(RoamStampSlip.captionLimit)").cyText(.meta, monospacedDigit: true)
-                    .accessibilityIdentifier("roamSub.w208.stamp.counter")
+            // MP `sgnote__h`: title + counter on the left, the square photo on the right (tap = 拍一张 / 重拍).
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("roamSub.w208.stamp.noteHeader").cyText(.cardTitle).accessibilityAddTraits(.isHeader)
+                    Text(verbatim: "\(note.count)/\(RoamStampSlip.captionLimit)").cyText(.meta, monospacedDigit: true)
+                        .accessibilityIdentifier("roamSub.w208.stamp.counter")
+                }
+                Spacer(minLength: 0)
+                Button { showsCamera = true } label: { photoSquare }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text(LocalizedStringKey(draft == nil ? "roamSub.w208.stamp.takePhoto" : "roamSub.w208.stamp.retake")))
+                    .accessibilityIdentifier("roamSub.w208.stamp.takePhoto")
             }
             TextField("roamSub.w208.stamp.placeholder", text: $note, axis: .vertical)
                 .lineLimit(2...4).textFieldStyle(.roundedBorder)
                 .onChange(of: note) { _, value in if value.count > RoamStampSlip.captionLimit { note = String(value.prefix(RoamStampSlip.captionLimit)) } }
                 .accessibilityIdentifier("roamSub.w208.stamp.note")
-            NavigationLink { if let cameraDestination { cameraDestination() } else { RoamStampCameraView() } } label: {
-                Label("roamSub.w208.stamp.takePhoto", systemImage: "camera")
-            }.frame(minHeight: 44).accessibilityIdentifier("roamSub.w208.stamp.takePhoto")
             // MP citystamp send step: the mailbox photo (`subpackageRoam/citystamp/mailbox.png`) above 投进信箱.
             MPAsset.Other.mailbox.resizable().scaledToFit().frame(maxWidth: 200)
                 .frame(maxWidth: .infinity).accessibilityHidden(true)
@@ -454,6 +464,29 @@ struct RoamPOIMissingView: View {
                     .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("roamSub.w208.stamp.dormant")
             }
         }
+    }
+    @ViewBuilder private var cameraView: some View {
+        if let cameraDestination { cameraDestination() } else { RoamStampCameraView() }
+    }
+    /// MP `sgnote__shot`: the shot as a square, else a dashed square with the camera glyph.
+    @ViewBuilder private var photoSquare: some View {
+        let shape = RoundedRectangle(cornerRadius: 8, style: .continuous)
+        if let raw = draft?.pictureURL, let url = URL(string: raw), url.scheme == "https" {
+            AsyncImage(url: url) { image in image.resizable().scaledToFill() } placeholder: { ProgressView() }
+                .frame(width: 64, height: 64).clipShape(shape)
+                .accessibilityHidden(true)
+        } else {
+            Image(systemName: "camera").font(.title2).foregroundStyle(.secondary)
+                .frame(width: 64, height: 64)
+                .overlay(shape.strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [4, 3])).foregroundStyle(.secondary))
+                .accessibilityHidden(true)
+        }
+    }
+    /// MP opens on `cam` once; live routes only (fixtures and tests have no camera destination).
+    private func openCameraFirst() {
+        guard !cameraOffered, cameraDestination != nil, draft == nil, receipt == nil, fixtureReceipt == nil else { return }
+        cameraOffered = true
+        showsCamera = true
     }
     private func send() async {
         if let fixtureReceipt { receipt = fixtureReceipt; return }

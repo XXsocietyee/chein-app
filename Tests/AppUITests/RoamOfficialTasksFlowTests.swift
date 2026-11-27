@@ -14,8 +14,9 @@ final class RoamOfficialTasksFlowTests: XCTestCase {
     }
     private func element(_ id: String, _ app: XCUIApplication) -> XCUIElement { app.descendants(matching: .any).matching(identifier: id).firstMatch }
     private func select(_ title: String, _ app: XCUIApplication) {
-        let filter = element("roam.tasks.filter", app); XCTAssertTrue(revealFixtureElement(filter, in: app)); filter.tap()
-        app.buttons.matching(identifier: title).firstMatch.tap()
+        // mp-roam r3: MP task-tabs are one segmented row (进行中 / 即将 / 我的), not a menu.
+        let filter = element("roam.tasks.filter", app); XCTAssertTrue(revealFixtureElement(filter, in: app))
+        filter.buttons[title].firstMatch.tap()
     }
     func testOrdinaryRoamEntryOfficialDetailBackAndAllFourBuckets() {
         let app = app(), first = app.buttons["roam.tasks.event.71"]
@@ -26,8 +27,7 @@ final class RoamOfficialTasksFlowTests: XCTestCase {
         app.navigationBars.buttons.element(boundBy: 0).tap()
         XCTAssertTrue(first.waitForExistence(timeout: 5))
         select("Upcoming", app); XCTAssertTrue(app.buttons["roam.tasks.event.72"].waitForExistence(timeout: 5))
-        select("Ended", app); XCTAssertTrue(app.buttons["roam.tasks.event.73"].waitForExistence(timeout: 5))
-        select("Joined", app); XCTAssertTrue(app.staticTexts["Synthetic joined event"].waitForExistence(timeout: 5))
+        select("Mine", app); XCTAssertTrue(app.staticTexts["Synthetic joined event"].waitForExistence(timeout: 5))
         app.navigationBars.buttons.element(boundBy: 0).tap()
         XCTAssertTrue(app.buttons["roam.tasks.open"].waitForExistence(timeout: 5))
         XCTAssertEqual(app.alerts.count, 0)
@@ -50,13 +50,13 @@ final class RoamOfficialTasksFlowTests: XCTestCase {
         let app = app("empty")
         XCTAssertTrue(element("roam.tasks.empty", app).waitForExistence(timeout: 10))
         XCTAssertFalse(element("roam.tasks.error", app).exists)
-        select("Joined", app)
+        select("Mine", app)
         XCTAssertTrue(app.staticTexts["No joined official events"].waitForExistence(timeout: 5))
     }
     func testSignOutRetiresTasksAndPrivateParticipation() {
         let app = app(roam: "sessionChange")
         XCTAssertTrue(app.buttons["roam.tasks.event.71"].waitForExistence(timeout: 10))
-        select("Joined", app); XCTAssertTrue(app.staticTexts["Synthetic joined event"].waitForExistence(timeout: 5))
+        select("Mine", app); XCTAssertTrue(app.staticTexts["Synthetic joined event"].waitForExistence(timeout: 5))
         app.buttons["roam.experience.fixture.signOut"].tap()
         XCTAssertFalse(app.staticTexts["Synthetic joined event"].exists)
         XCTAssertFalse(app.buttons["roam.tasks.event.71"].exists)
