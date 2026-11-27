@@ -215,7 +215,7 @@ struct OfficialEventCard: View {
                 QuestifyImageEntityMetadata(label: "official.city", value: city, systemImage: "mappin")
             }
             // Source card meta: countdown · city · "N 人参与", then "全城已点亮 N%".
-            if let countdown = event.countdown(now: Date()) { OfficialCountdownText(value: countdown) }
+            if let countdown = event.countdown(now: Date()) { OfficialCountdownText(value: countdown, target: event.countdownTarget) }
             // Source: "{{participants != null ? n + ' 人' : '—'}}参与"; a missing count is an em dash, never 0.
             if let participants = event.participants { Text("official.card.participants \(participants)") }
             else { Text("official.card.participantsUnknown") }
@@ -260,12 +260,31 @@ struct OfficialFlowActions: ViewModifier {
 }
 struct OfficialCountdownText: View {
     let value: OfficialEventCountdown
+    /// The start (status 1) or end (status 2/3) instant. Under an hour the source's "N 分钟" becomes a live
+    /// mm:ss clock (components r1 `CYCountdown`); longer spans keep the source's rounded units.
+    var target: Date? = nil
     var body: some View {
         switch value {
+        case .startsIn(.minutes(let n)) where target != nil:
+            liveLabel("official.countdown.start", minutes: n, ended: "official.countdown.startingSoon")
+        case .endsIn(.minutes(let n)) where target != nil:
+            liveLabel("official.countdown.end", minutes: n, ended: "official.countdown.endingSoon")
         case .startsIn(let span): Label { prefix("official.countdown.start", span) } icon: { Image(systemName: "clock").accessibilityHidden(true) }
         case .endsIn(let span): Label { prefix("official.countdown.end", span) } icon: { Image(systemName: "clock").accessibilityHidden(true) }
         case .startingSoon: Label("official.countdown.startingSoon", systemImage: "clock")
         case .endingSoon: Label("official.countdown.endingSoon", systemImage: "clock")
+        }
+    }
+    @ViewBuilder private func liveLabel(_ key: LocalizedStringKey, minutes: Int, ended: LocalizedStringKey) -> some View {
+        if let target {
+            Label {
+                HStack(spacing: 4) {
+                    Text(key)
+                    CYCountdown(until: target, style: nil, tint: nil, endedKey: ended)
+                }
+            } icon: { Image(systemName: "clock").accessibilityHidden(true) }
+        } else {
+            Label { prefix(key, .minutes(minutes)) } icon: { Image(systemName: "clock").accessibilityHidden(true) }
         }
     }
     private func prefix(_ key: LocalizedStringKey, _ span: OfficialCountdownSpan) -> Text {
@@ -275,6 +294,14 @@ struct OfficialCountdownText: View {
         case .minutes(let n): return Text(key) + Text(verbatim: " ") + Text("official.countdown.minutes \(n)")
         case .unknown: return Text("official.notAnnounced")
         }
+    }
+}
+extension OfficialEvent {
+    /// The instant `countdown(now:)` counts to: start while status 1, end while status 2/3 (numeric times only).
+    var countdownTarget: Date? {
+        if status == 1 { return activityStart?.displayDate }
+        if status == 2 || status == 3 { return activityEnd?.displayDate }
+        return nil
     }
 }
 struct OfficialEventTimeValue: View {

@@ -169,7 +169,7 @@ enum OfficialDetailID {
                     Text("official.detailParity.organizer").font(.subheadline).foregroundStyle(.secondary)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier(OfficialDetailID.organizer)
                 Section("official.facts") {
-                    OfficialDetailFactsStrip(facts: presentation.facts).accessibilityIdentifier(OfficialDetailID.facts)
+                    OfficialDetailFactsStrip(facts: presentation.facts, countdownTarget: event.countdownTarget).accessibilityIdentifier(OfficialDetailID.facts)
                     // R7-PC-C4-3: MP official-detail has no 价格 row (index.wxml:155-156), so no 暂无价格信息 placeholder either.
                 }
                 Section {
@@ -362,6 +362,7 @@ struct OfficialTopicLinks {
 /// Apple control; `LabeledContent` is the closest).
 struct OfficialDetailFactsStrip: View {
     let facts: [OfficialDetailFact]
+    var countdownTarget: Date? = nil
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             ForEach(facts) { fact in
@@ -388,7 +389,7 @@ struct OfficialDetailFactsStrip: View {
     @ViewBuilder private func sub(_ sub: OfficialDetailFactSub) -> some View {
         switch sub {
         case .key(let key): Text(LocalizedStringKey(key))
-        case .countdown(let countdown): OfficialCountdownText(value: countdown)
+        case .countdown(let countdown): OfficialCountdownText(value: countdown, target: countdownTarget)
         }
     }
 }

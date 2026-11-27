@@ -35,10 +35,14 @@ import SwiftUI
                 if let done = presentation.redeemed, let total = presentation.total {
                     // Mini-program 已核销环: one ring that fills as stores are redeemed.
                     HStack(spacing: 14) {
-                        Gauge(value: Double(done), in: 0...Double(max(total, 1))) { EmptyView() } currentValueLabel: {
-                            Text(verbatim: "\(done)/\(total)").monospacedDigit()
+                        // Components r1: the shared `CYRing` (Reduce Motion aware fill animation).
+                        CYRing(progress: CYRingMath.fraction(done, of: total), tint: CYColor.textPrimary, diameter: 52, lineWidth: 5) {
+                            Text(verbatim: "\(done)/\(total)")
+                                .cyText(.micro, monospacedDigit: true)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.5)
+                                .contentTransition(.numericText(value: Double(done)))
                         }
-                        .gaugeStyle(.accessoryCircularCapacity).tint(CYColor.textPrimary)
                         .accessibilityHidden(true)
                         Text("playFree.redeemed.count \(done) \(total)").monospacedDigit()
                             .cyText(.label).foregroundStyle(CYColor.textPrimary)
