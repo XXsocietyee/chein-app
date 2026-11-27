@@ -165,22 +165,27 @@ private struct DiscoveryHomeBannerCard: View {
     let banner: DiscoveryBanner
     let index: Int
     let onOpen: ((DiscoveryBanner.Destination) -> Void)?
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         let trimmed = banner.contents?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        // a11y-dt r3: at AX sizes a 260 pt tile with two lines cut the caption to two or three words → wider tile
+        // (the rail still scrolls) and up to four lines.
+        let large = dynamicTypeSize.isAccessibilitySize
         let tile = VStack(alignment: .leading, spacing: 6) {
             DiscoveryArtwork(source: banner.picUrl, height: 160)
             (trimmed.isEmpty ? Text("discovery.openBanner \(index + 1)") : Text(verbatim: trimmed))
                 .font(.subheadline)
                 .foregroundStyle(.primary)
-                .lineLimit(2)
+                .lineLimit(large ? 4 : 2)
         }
-        .frame(width: 260)
+        .frame(width: large ? 300 : 260)
         .accessibilityElement(children: .combine)
         if let destination = banner.destination, let onOpen {
             Button { onOpen(destination) } label: { tile }
                 .buttonStyle(.plain)
-                .accessibilityLabel(Text("discovery.openBanner \(index + 1)"))
+                // a11y-dt r3: VoiceOver reads the highlight's own caption; the numbered label only when it has none.
+                .accessibilityLabel(trimmed.isEmpty ? Text("discovery.openBanner \(index + 1)") : Text(verbatim: trimmed))
         } else {
             tile
         }

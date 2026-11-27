@@ -279,6 +279,17 @@ New strings (en + zh-Hans, also `docs/port/strings/mp-r3-roam.json`): `roam.offi
 
 Gates: generate_project OK · check_scaffold PASS (20893 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 
+## Round 3 continue (19) — sweep 22:20 (build 8fa84e4d3): one map style + stamp album art
+
+Base re-merged with `origin/ui/combined-r7` (xcstrings: both sides' keys kept, base order). Screens read: `docs/sweeps/latest/mp-roam/sheet-en.jpg` (d2-roam, d6-roam, e2-stamp-album, e5b-stamp).
+
+| MP page / screenshot | Native view | Differences | Status |
+|---|---|---|---|
+| `pages/roam/index` map · `mp-roam/en-d2-roam.jpg` vs `en-d6-roam.jpg` | `App/RoamBrowserView.swift` offline map (`results`) | d2-roam drew the always-dark `CYMapStreetGrid`, d6-roam the appearance-following `CYMapPlaceholder`: two map styles for one tab (OWNER RULE 2). Live maps already use `.standard` (follows the system). | **Fixed:** the offline example uses `CYMapPlaceholder()` too, so both states follow the system appearance. |
+| `subpackageRoam/components/cy/scene-roam-stamp-album` `stkcell__img` (`picUrl`, aspectFill) · `mp-roam/en-e2-stamp-album.jpg` | `App/NativeR2/FreeExplore/NativeStampAlbumView.swift` `NativeStampAlbumTile` + `App/RoamStampViews.swift` stamp detail | Offline example tiles were grey discs with a generic glyph (P24); the detail showed a large SF Symbol. MP cells are the stamp photo. | **Fixed:** offline example shows bundled MP city photos (`MPAsset.BannerCover.event` / `.cityCamera`, by stamp id) cropped to the circle; the detail shows the same photo (labelled 示例插图). Real stamps unchanged (remote `picUrl`). No new strings. |
+
+Gates: generate_project OK · check_scaffold PASS (20911 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no
