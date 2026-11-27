@@ -11,8 +11,8 @@
   },
   {
     "key": "orderLifecycle.loading",
-    "en": "Loading order",
-    "zh-Hans": "正在加载订单"
+    "en": "Loading order details",
+    "zh-Hans": "订单详情加载中"
   },
   {
     "key": "orderLifecycle.refresh",
