@@ -580,6 +580,7 @@ extension SquareXcxPostCard {
                     if feed?.onActions != nil {
                         Button { feed?.onActions?(post) } label: {
                             Image(systemName: "ellipsis.circle")
+                                .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget).contentShape(Rectangle())
                         }
                         .buttonStyle(.borderless)
                         .accessibilityLabel(Text(verbatim: locale.pick("帖文操作", "Post actions")))

@@ -21,21 +21,19 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             List {
+                // MP play-help order: 本局剩余免费 N 次 · layer rows · notice · 分数明细 · 跳过，继续剧情 · 这一站有问题.
                 if !model.rows.isEmpty {
                     Section {
                         ForEach(model.rows) { row in layerRow(row) }
                     } header: {
-                        Text("nativeGames.hint.layers")
-                    } footer: {
-                        freeLeftFooter
+                        freeLeftFooter.textCase(nil)
                     }
                 } else {
-                    Section { EmptyView() } footer: { freeLeftFooter }
+                    Section { EmptyView() } header: { freeLeftFooter.textCase(nil) }
                 }
                 if let teamPool, teamPool.isVisible {
                     Section { TeamPoolHintSection(model: teamPool) }
                 }
-                if model.showsSkip { skipSection }
                 if let notice = model.notice {
                     Section {
                         Label { noticeText(notice) } icon: { Image(systemName: "exclamationmark.triangle") }
@@ -44,6 +42,10 @@ import SwiftUI
                     }
                 }
                 receiptSection
+                if model.showsSkip { skipSection }
+                if PlayStageAnalyticsGate.enabled {
+                    Section { PlayKitIssueReportMenu(nodeID: analyticsNodeID, kit: analyticsKit) }
+                }
             }
             .listStyle(.insetGrouped)
             .navigationTitle(Text("hint.sheet.title", tableName: "DesignR1"))

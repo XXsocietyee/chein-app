@@ -19,8 +19,12 @@ struct ClubDetailTabBar: View {
             }
             .sensoryFeedback(.selection, trigger: selection)
             .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: CYSpacing.lg, bottom: CYSpacing.xs, trailing: CYSpacing.lg))
             .accessibilityIdentifier("club.detail.tabs")
         }
+        // MP club-view-tabs sit directly under the header card (detail wxml:96-110): compact spacing, not the 24 pt
+        // section gap plus the clear row's padding (sweep d4-detail showed ~60 pt of empty space).
+        .listSectionSpacing(.compact)
     }
     /// Each segment keeps `club.detail.tab.<key>` on its label; a segmented Picker exposes the segments as buttons
     /// with the `isSelected` trait, which is what the UI tests tap and read.

@@ -710,5 +710,9 @@
   "projectEdit.fabu.chapters": {
     "en": "Chapters",
     "zh-Hans": "章节"
+  },
+  "projectEdit.validation.childAge": {
+    "en": "Enter the child age range in 0–17, with the youngest not above the oldest.",
+    "zh-Hans": "儿童年龄段需在 0–17 岁之间，且起始不大于结束。"
   }
 }
