@@ -224,7 +224,7 @@ public struct PlayToolsAndLeadSheetView: View {
                                     Image(systemName: member.arrived ? "checkmark.circle.fill" : "circle")
                                         .foregroundStyle(member.arrived ? Color.green : Color.secondary)
                                 }
-                                .accessibilityValue(Text(member.arrived ? "playTools.team.arrived" : "playTools.team.notArrived"))
+                                .accessibilityValue(Text(LocalizedStringKey(member.arrived ? "playTools.team.arrived" : "playTools.team.notArrived")))
                             }
                         }
                     }
