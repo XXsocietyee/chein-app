@@ -666,7 +666,7 @@ struct JourneySeatsView: View {
                     if !content.invited.isEmpty {
                         GroupBox { VStack(alignment: .leading, spacing: CYSpacing.sm) { ForEach(content.invited) { row in
                             HStack(spacing: CYSpacing.md) {
-                                Text(verbatim: String(row.no)).cyText(.cardTitle).monospacedDigit().frame(width: 28)
+                                Text(verbatim: String(row.no)).cyText(.cardTitle).monospacedDigit().frame(minWidth: 28)
                                 VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                                     // JSEAT-r8-1 (MP `item.who || item.label`, then label as the sub line).
                                     if let who = row.who {
@@ -699,7 +699,7 @@ struct JourneySeatsView: View {
                     if onTransfer != nil && !content.transferable.isEmpty {
                         GroupBox { VStack(alignment: .leading, spacing: CYSpacing.sm) { ForEach(content.transferable.map(JourneyTransferSeat.init)) { seat in
                             HStack(spacing: CYSpacing.md) {
-                                Text(verbatim: String(seat.no)).cyText(.cardTitle).monospacedDigit().frame(width: 28)
+                                Text(verbatim: String(seat.no)).cyText(.cardTitle).monospacedDigit().frame(minWidth: 28)
                                 Text("mp.seats.transferable").cyText(.bodyMedium)
                                 Spacer()
                                 Button("mp.seats.transfer.open") { transferSeat = seat }
