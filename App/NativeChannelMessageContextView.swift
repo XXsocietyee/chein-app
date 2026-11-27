@@ -73,7 +73,7 @@ struct NativeChannelContextSelection: Identifiable {let id:NativeChannelMessageI
         .nativeChannelScreen()
         .privacySensitive()
         .refreshable { open(); await readTask?.value }
-        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { dismiss() } } }
+        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { dismiss() } } }
         // The enclosing sheet continues its current-source reads while a preview is pushed.
         // Only this view's explicit read task ends here; sheet departure retires the model.
         .onDisappear{readTask?.cancel();readTask=nil}

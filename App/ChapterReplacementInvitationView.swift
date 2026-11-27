@@ -266,12 +266,9 @@ struct ChapterReplacementInvitationView: View {
                     .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
             }
         case .sending:
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                CYSkeleton().accessibilityHidden(true)
-                ProgressView()
-                    .frame(minHeight: CYSpacing.minTouchTarget)
-                    .accessibilityIdentifier("chapterReplacement.sending")
-            }
+            CYSkeleton()
+                .frame(minHeight: CYSpacing.minTouchTarget)
+                .accessibilityIdentifier("chapterReplacement.sending")
         case .unknown(let plan):
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 Text("chapterReplacement.section.unknown")

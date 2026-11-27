@@ -85,6 +85,7 @@ import SwiftUI
                             .disabled(locateOriginal == nil)
                             .accessibilityIdentifier("ncm47.search.\(row.id.rawValue)")
                             .accessibilityLabel(Text(verbatim: shown(row.content)))
+                            .accessibilityHint(locateOriginal == nil ? Text(verbatim: "") : Text("a11y.locateHint", tableName: "NativeChannelMessage"))
                         }
                     } header: {
                         Text(verbatim: group.0)
@@ -132,7 +133,7 @@ import SwiftUI
         .onChange(of: model.isCurrent) { _, value in if !value { retireRead() } }
         .navigationTitle(Text("search.title", tableName: "NativeChannelMessage"))
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { dismiss() } } }
+        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { dismiss() } } }
         .onDisappear { retireRead() }
         .privacySensitive()
     }

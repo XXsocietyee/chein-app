@@ -229,7 +229,7 @@ struct NPCChatDataPresentation: Identifiable {
             .cyHeroScreen()
             .searchable(text: $query, prompt: "npcData.search")
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("action.done") { model.disappear(); query = ""; dismiss() } }
+                ToolbarItem(placement: .confirmationAction) { Button("action.done") { model.disappear(); query = ""; dismiss() } }
                 ToolbarItem(placement: .primaryAction) { NPCChatDataExportButton(data: coordinator.data) }
             }
             .cySheet(isPresented: Binding(
