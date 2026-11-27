@@ -450,7 +450,11 @@ struct CYMapScaffold<Map: View, Controls: View, Floating: View, Panel: View>: Vi
                         }
                     Spacer(minLength: 0)
                 }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                // VoiceOver order (a11y-dt r3): top controls → floating actions (GO first inside) → panel → map pins.
+                // Without containers the pins interleave with the floating buttons by position.
+                .accessibilityElement(children: .contain).accessibilitySortPriority(3)
                 floating.padding(.bottom, panelHeight + CYSpacing.lg)
+                    .accessibilityElement(children: .contain).accessibilitySortPriority(2)
                     .opacity(peek != nil && !isPeeking ? 0 : 1)
                     .allowsHitTesting(!(peek != nil && !isPeeking))
                     .accessibilityHidden(peek != nil && !isPeeking)
@@ -473,6 +477,7 @@ struct CYMapScaffold<Map: View, Controls: View, Floating: View, Panel: View>: Vi
                     }
                     .clipped()
                 }
+                .accessibilityElement(children: .contain).accessibilitySortPriority(1)
                 .padding(.bottom, tabBarClearance)
                 .frame(height: panelHeight + tabBarClearance, alignment: .top)
                 .background(alignment: .top) {
