@@ -271,7 +271,7 @@ import SwiftUI
     @ViewBuilder private var state: some View {
         switch phase {
         case .loading, .ready:
-            ProgressView()
+            ProgressView { Text("cy.state.loading") }
         case .signedOut:
             ContentUnavailableView {
                 Label {
