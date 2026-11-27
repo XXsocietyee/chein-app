@@ -20,6 +20,9 @@ import Foundation
     public private(set) var error: Error?
     public private(set) var presenceError = false
     public private(set) var presenceEnabled = false
+    /// ROAM-r11-7: the shop this walk just found for the first time; the screen clears it after showing the card.
+    public private(set) var firstShopDiscovery: RoamPlace?
+    public func consumeFirstShopDiscovery() { firstShopDiscovery = nil; changed() }
     public private(set) var foreground = true
     public private(set) var busy = false
     public var onChange: (() -> Void)?
@@ -234,6 +237,13 @@ import Foundation
     }
     /// Active walk whose location provider holds background updates.
     public var continuesInBackground: Bool { phase == .active && location?.continuesInBackground == true }
+    /// ROAM-r11-5: the server confirmed a mid-session 附近的人位置分享 change; the next fix reports (or stops reporting) presence.
+    public func setPresenceSharing(_ visible: Bool) {
+        guard phase == .active || phase == .paused else { return }
+        presenceEnabled = visible && presenceAvailable
+        lastPresence = nil
+        changed()
+    }
     public func resume(purposeAccepted: Bool, presenceAccepted: Bool = false) async {
         guard phase == .paused, record?.finishRequested == false else { return }
         guard purposeAccepted else { error = RoamLiveFailure.consentRequired; changed(); return }
@@ -399,6 +409,8 @@ import Foundation
                 let receipt = try await service!.shopVisit(sessionID: id, sourceType: 1, sourceID: place.id, fix: fix)
                 try check(token); guard receipt.recorded else { throw RoamLiveFailure.unresolvedVisit }
                 draft.confirmedShops.append(action)
+                // ROAM-r11-7: a shop found for the first time raises the 首次发现 card (MP pages/roam/index.js:4643-4652).
+                if place.found != true { firstShopDiscovery = place }
             } else {
                 let receipt = try await service!.discover(sessionID: id, poiID: place.id, fix: fix)
                 try check(token); guard receipt.poiId == place.id else { throw APIError.malformedResponse }

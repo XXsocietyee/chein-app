@@ -134,6 +134,8 @@ public final class RegistrationUIFlow {
         hasCurrentSession && coordinator.selection == expectedSelection ? coordinator.quoteState : .idle
     }
     public var creationState: RegistrationCreationState { hasCurrentSession ? coordinator.creationState : .idle }
+    /// R11-PC-C-2: MP quote-view.js CONFLICT_TEXT — 优惠已变化或与本单不一致… or 价格已更新，请重新确认.
+    public var createConflictMessage: String? { hasCurrentSession ? coordinator.createConflictMessage : nil }
     public var readbackState: RegistrationReadbackState { hasCurrentSession ? coordinator.readbackState : .idle }
     public var canReadStatus: Bool {
         guard hasCurrentSession, !isReadingStatus else { return false }
@@ -318,7 +320,14 @@ public final class RegistrationUIFlow {
         confirmation = nil; isSubmitting = true; changed()
         _ = await coordinator.confirm(review.draft.details(waitlistOffer: review.selection.waitlistOffer))
         guard matches(stamp, identity) else { return }
-        isSubmitting = false; changed()
+        isSubmitting = false
+        // R11-PC-C-2: MP baoming.js:1492-1498 — after a quote-conflict 409 the coordinator has re-quoted.
+        // Stamp the new quote and re-read the durable lock (cleared for this refusal) so confirm reopens.
+        if coordinator.createConflictMessage != nil {
+            if case .received = coordinator.quoteState { quoteReceivedAt = now() } else { quoteReceivedAt = nil }
+            refreshCreationLock()
+        }
+        changed()
     }
     public func readKnownStatus() async {
         guard canReadStatus else { return }

@@ -43,6 +43,22 @@ public struct RoamPresenceVisibilityService {
         } catch { return nil }
     }
 
+    /// ROAM-r11-5: mid-session 附近的人位置分享 (MP utils/roam-presence-privacy.js:24-31 `setSharing`). Turning on needs a
+    /// live session id and the explicit consent; the change echo must equal the requested value or the result is nil.
+    public func setPresence(token: String?, sessionID: Int?, visible: Bool, consentAccepted: Bool) async -> Bool? {
+        guard let token, AuthRequestBuilder.isValidToken(token) else { return nil }
+        guard var request = try? RoamPresenceVisibilityContract.changeRequest(baseURL: configuration.baseURL, sessionID: sessionID,
+                                                                              visible: visible, consentAccepted: consentAccepted) else { return nil }
+        request.setValue(token, forHTTPHeaderField: "Authorization")
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.timeoutInterval = 10
+        do {
+            let (data, status) = try await transport.send(request)
+            guard (200..<300).contains(status), let echo = RoamPresenceVisibilityContract.decode(data), echo == visible else { return nil }
+            return echo
+        } catch { return nil }
+    }
+
     /// Sends `POST /api/roam/presence-visibility` with `visible=false` and validates `data == false`.
     public func disablePresence(token: String?) async -> RoamPresenceDisableOutcome {
         guard let token, AuthRequestBuilder.isValidToken(token) else { return .unavailable }

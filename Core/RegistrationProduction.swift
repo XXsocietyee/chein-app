@@ -199,11 +199,27 @@ public enum RegistrationDurableCreation: Equatable { case none, pending(registra
         var pending = OperationPendingRecord(ownerKey: ownerKey, targetKey: target)
         try journal.write(pending)
         lastQuote = nil
-        let result = try await registration.create(intent, token: token)
+        let result: RegistrationCreateResult
+        do { result = try await registration.create(intent, token: token) }
+        catch let failure as RegistrationResponseFailure where Self.isQuoteConflict(code: failure.code, message: failure.message) {
+            // R11-PC-C-2: MP baoming.js:1492-1498 — a quote/promotion 409 is a definite refusal; no order exists
+            // for this request id. Clear only this record so the sheet can re-quote and confirm again.
+            try fence(session, scope: scope, path: path); try journal.clear(pending)
+            throw failure
+        } catch let failure as RegistrationHTTPFailure where Self.isQuoteConflict(code: failure.response?.code ?? failure.statusCode, message: failure.response?.message) {
+            try fence(session, scope: scope, path: path); try journal.clear(pending)
+            throw failure
+        }
         try fence(session, scope: scope, path: path)
         pending.acknowledgedSteps = result.registrationID; try journal.write(pending)
         // Keep the lock even on a valid response. It is not evidence of completed payment.
         return result
+    }
+    /// MP utils/checkout/checkout-workflow.js:42-50: only the non-terminal create 409 re-quotes.
+    static func isQuoteConflict(code: Int?, message: String?) -> Bool {
+        guard code == 409 else { return false }
+        if case .refreshQuoteAndReconfirm = CheckoutOrderRebuildRule.classifyCreateFailure(code: code, message: message) { return true }
+        return false
     }
     public func creationLock(_ scope: RegistrationWaitlistScope) throws -> RegistrationDurableCreation {
         _ = try check(scope, path: "api/registration/create")
