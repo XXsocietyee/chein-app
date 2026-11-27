@@ -601,6 +601,7 @@ struct MemberMerchantNPCChatSheet<Content: View>: View {
                         .font(.title2)
                         .symbolRenderingMode(.hierarchical)
                         .foregroundStyle(.secondary)
+                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget).contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(Text("action.close"))
