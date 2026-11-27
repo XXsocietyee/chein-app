@@ -85,6 +85,8 @@ extension EnvironmentValues {
     @State private var celebration = 0
     /// What the result sheet shows; rolls from 0 to `score` when the sheet appears.
     @State private var shownScore = 0
+    /// design-r2-play P16: when this result was read, for the record's date line.
+    @State private var recordedAt = Date()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.locale) private var locale
 
@@ -275,6 +277,13 @@ extension EnvironmentValues {
             .navigationTitle(Text("nativeGames.result.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                // P16: share sits in the top bar next to the one Done.
+                if verdict == .passed {
+                    ToolbarItem(placement: .topBarLeading) {
+                        ShareLink(item: shareText) { Label("nativeR2.city.finish.share", systemImage: "square.and.arrow.up") }
+                            .accessibilityIdentifier("nativeGames.result.share")
+                    }
+                }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("nativeGames.done") { resultPresented = false }
                         .accessibilityIdentifier("nativeGames.result.done")
@@ -286,12 +295,24 @@ extension EnvironmentValues {
         .accessibilityIdentifier("nativeGames.result.sheet")
     }
 
-    /// Big verdict symbol (bounces on a pass) and the server score rolling up from zero (G-007 / G-009).
+    /// design-r2-play P16: the result is a named record. Badge, verdict eyebrow, the game's title, a date line
+    /// (MP result-sheet `meta`), the server score rolling up (G-009), then what it took as a label-over-value grid.
     private func resultHeader(_ verdict: PlayGameOutcome) -> some View {
         Section {
             VStack(spacing: 8) {
                 // Components r1: badge springs in with one ripple on a pass (MP result-sheet); still under Reduce Motion.
                 NativeGameRewardBadge(systemImage: Self.symbol(for: verdict), passed: verdict == .passed, trigger: celebration)
+                if let eyebrow = Self.verdictKey(verdict) {
+                    Text(eyebrow).font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+                }
+                title
+                    .font(.title2.bold())
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityAddTraits(.isHeader)
+                Text(recordedAt, format: .dateTime.month(.abbreviated).day().hour().minute())
+                    .font(.subheadline).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("nativeGames.result.date")
                 if let score {
                     Text(verbatim: shownScore.formatted(.number.locale(locale)))
                         .font(.largeTitle.bold())
@@ -301,8 +322,8 @@ extension EnvironmentValues {
                         .accessibilityIdentifier("nativeGames.result.score")
                 }
                 if !resultStats.isEmpty {
-                    NativeGameHUD(model: resultStats)
-                        .fixedSize(horizontal: false, vertical: true)
+                    CYRecordStatGrid(stats: Self.recordStats(resultStats))
+                        .padding(.top, 4)
                         .accessibilityIdentifier("nativeGames.result.stats")
                 }
             }
@@ -312,8 +333,38 @@ extension EnvironmentValues {
         .listRowBackground(Color.clear)
     }
 
+    /// MP verdict heads: 闯关成功 / 再想想 / 已记录; no eyebrow while the server has not decided.
+    static func verdictKey(_ verdict: PlayGameOutcome) -> LocalizedStringKey? {
+        switch verdict {
+        case .passed: return "nativeGames.passed.island"
+        case .notPassed: return "designR2Play.games.verdict.notPassed"
+        case .recorded: return "designR2Play.games.verdict.recorded"
+        case .noVerdict: return nil
+        }
+    }
+
+    /// The same server values the live HUD showed, as record cells (tries, attempts, hints).
+    static func recordStats(_ model: NativeGameHUDModel) -> [CYRecordStat] {
+        var cells: [CYRecordStat] = []
+        if let cap = model.triesCap, let left = model.triesLeft {
+            cells.append(CYRecordStat(id: "nativeGames.result.tries", label: "designR2Play.games.stat.triesUsed", value: "\(max(0, cap - left))/\(cap)"))
+        } else if let attempts = model.attempts {
+            cells.append(CYRecordStat(id: "nativeGames.result.attempts", label: "playkit.attempts", value: "\(attempts)"))
+        }
+        if let total = model.hintsTotal, let used = model.hintsUsed {
+            cells.append(CYRecordStat(id: "nativeGames.result.hints", label: "nativeGames.hud.hints", value: "\(used)/\(total)"))
+        }
+        return cells
+    }
+
+    private var shareText: String {
+        if let score { return appLocalized("designR2Play.games.share.score \(score)", locale: locale) }
+        return appLocalized("designR2Play.games.share.passed", locale: locale)
+    }
+
     /// Runs once the sheet is on screen so the bounce and the numeric roll are visible (Reduce Motion: set instantly).
     private func rollScore() {
+        recordedAt = Date()
         if reduceMotion { shownScore = score ?? 0; return }
         shownScore = 0
         Task { @MainActor in
