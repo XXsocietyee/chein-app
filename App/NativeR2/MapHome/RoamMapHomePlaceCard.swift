@@ -41,13 +41,7 @@ import QuestifyCore
                     .foregroundStyle(.secondary)
                 }
             }
-            Section {
-                actionRow
-            } footer: {
-                directionsFooter
-            }
-            .listRowInsets(EdgeInsets())
-            .listRowBackground(Color.clear)
+            // MP roam-place-card: the photo hero comes first, then the facts and the 导航 / 分享 row.
             if let url = pin.imageURL {
                 Section {
                     AsyncImage(url: url) { phase in
@@ -66,6 +60,13 @@ import QuestifyCore
                     .accessibilityLabel(Text("nativeR2.mapHome.card.photo"))
                 }
             }
+            Section {
+                actionRow
+            } footer: {
+                directionsFooter
+            }
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
             kindSections
             Section("nativeR2.mapHome.card.section.details") {
                 if let address = pin.address {
@@ -157,6 +158,11 @@ import QuestifyCore
         return place.readStatus.pendingRedemption == .yes || place.readStatus.discovered == .yes || place.type == 1
     }
 
+    private var shareURL: URL? {
+        guard case .place(let place) = pin.payload, place.type == 1, place.id > 0 else { return nil }
+        return PublicContentShareLink.poi(id: place.id)
+    }
+
     private var canNavigate: Bool {
         dependencies.makeExternalMaps != nil && mapDestination.hasCoordinates
     }
@@ -191,6 +197,12 @@ import QuestifyCore
                 .buttonStyle(.bordered)
                 .accessibilityIdentifier("roam.mapHome.card.detail")
             }
+            if let url = shareURL {
+                // MP roam-place-card 分享 (open-type share, `shareKind` poi): only server POIs carry a public link.
+                ShareLink(item: url) { actionLabel("mp.common.share", systemImage: "square.and.arrow.up") }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("roam.mapHome.card.share")
+            }
         }
         .controlSize(.large)
     }
@@ -220,11 +232,15 @@ import QuestifyCore
         switch pin.payload {
         case .place(let place):
             let about = (place.merchantDescriptionText ?? place.description)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-            if !about.isEmpty || !place.tags.isEmpty {
+            let tags = RoamPlaceNote.visibleTags(place.tags)
+            let note = RoamPlaceNote.lookup(tags: place.tags)
+            if !about.isEmpty || !tags.isEmpty || note != nil {
+                // MP entry place sheet order (pages/roam/index.wxml:53-63): body → 推荐理由 quote → tags → 资料来源.
                 Section("nativeR2.mapHome.card.section.about") {
                     if !about.isEmpty { Text(verbatim: about) }
-                    if !place.tags.isEmpty {
-                        Text(verbatim: place.tags.joined(separator: " · ")).foregroundStyle(.secondary)
+                    if let note { RoamPlaceNoteRows(note: note) }
+                    if !tags.isEmpty {
+                        Text(verbatim: tags.joined(separator: " · ")).foregroundStyle(.secondary)
                     }
                 }
             }
