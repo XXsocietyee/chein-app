@@ -90,7 +90,7 @@ struct ProjectStoryTextHostIdentity: Hashable {
         let completion = controller.completion
         TextField("projectEdit.story", text: controller.binding(lifetime), axis: .vertical)
             .textFieldStyle(.plain).cyText(.body).foregroundStyle(.primary)
-            .lineSpacing(5).multilineTextAlignment(.leading)
+            .multilineTextAlignment(.leading)
             .lineLimit(3...12).focused($focused)
             .accessibilityIdentifier("projectEdit.block." + controller.blockID)
             .disabled(!controller.canEdit)
