@@ -182,3 +182,6 @@ pre-fix `CityPlayerView.swift` fails at line 95.
 - Continue run 3, batch 2 (d8d04c09e): `generate_project` PASS, `check_scaffold` PASS (includes design consistency:
   0 debt, 64 allowed, custom search 0), `check_a11y_lint` PASS (0 new), `contract_ratchet --check` 52 failing,
   baseline 52, **new 0**.
+- Continue run 4 (8576daddc, merged combined-r7 f043090ce): `generate_project` PASS, `check_scaffold` PASS (includes design
+  consistency: 0 debt, 64 allowed, text on art 0), `check_a11y_lint` PASS (0 new), `contract_ratchet --check` 52 failing,
+  baseline 52, **new 0**.
