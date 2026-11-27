@@ -44,6 +44,17 @@ final class PlayJournalTests: XCTestCase {
         XCTAssertNil(PlayFlyScore.points(nil))
     }
 
+    func testCouponToastFollowsTheCompletedNodeCoupon() throws {
+        func wire(_ text: String) throws -> PlayWireValue { try JSONDecoder().decode(PlayWireValue.self, from: Data(text.utf8)) }
+        let city = try snapshot(mode: 1, nodes: #"[{"nodeId":1,"couponId":"55","done":true},{"nodeId":2,"done":false}]"#)
+        XCTAssertEqual(city.result.nodes.first?.couponID, 55)
+        XCTAssertTrue(PlayCouponToast.shows(receipt: try wire(#"{"nodeId":1,"completed":true}"#), snapshot: city))
+        XCTAssertFalse(PlayCouponToast.shows(receipt: try wire(#"{"nodeId":2,"completed":true}"#), snapshot: city))
+        XCTAssertFalse(PlayCouponToast.shows(receipt: nil, snapshot: city))
+        let shopDay = try snapshot(mode: 2, nodes: #"[{"nodeId":1,"couponId":55}]"#)
+        XCTAssertFalse(PlayCouponToast.shows(receipt: try wire(#"{"nodeId":1}"#), snapshot: shopDay))
+    }
+
     func testRouteNoticeAndTimeLineFollowTheMPBanner() throws {
         func result(_ text: String) throws -> PlayNodesResult {
             try JSONDecoder().decode(PlayNodesResult.self, from: Data(text.utf8))

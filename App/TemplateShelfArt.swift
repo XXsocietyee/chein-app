@@ -178,7 +178,8 @@ struct TemplateShelfArtThumb: View {
     @ScaledMetric(relativeTo: .body) private var side: CGFloat = 72
     var body: some View {
         art.resizable().scaledToFill()
-            .frame(width: side, height: side)
+            // a11y-dt r3: capped like list artwork in Music, so the title keeps the row width at AX sizes.
+            .frame(width: min(side, 96), height: min(side, 96))
             .clipShape(.rect(cornerRadius: 8, style: .continuous)) // image crop only
             .accessibilityHidden(true)
     }

@@ -18,7 +18,7 @@ struct D2Fixture: View {
     @ViewBuilder private var host: some View {
         switch screen {
         case .home: HomeFeedFixtureHostView(forceHero: true)
-        case .homeOffline: HomeFeedFixtureHostView(scenario: "empty", unavailableMessageKey: "auth.notConfigured")
+        case .homeOffline: HomeFeedFixtureHostView(scenario: "offline")
         case .search: SearchMapFixtureHostView()
         case .searchResults:
             NavigationStack {
@@ -50,14 +50,15 @@ struct D2Fixture: View {
 /// design-r2-play: the signed-in 我的 header. A bare `AppSession()` is signed out, which painted the signed-out line and
 /// dash counters under the name "Mia"; the fixture readers are signed in, so name, counters and 积分 are real values.
 /// mp-mine r3 (14:13 visual check): the same MP structure as `AccountView` — identity card → 好友/关注/粉丝 →
-/// [开始探索][票夹][···] → tabs 项目 · 成就 · 关于 (帖文 needs the community bundle). `-d2MeTab achievements|about` opens a tab.
+/// [开始探索][票夹][···] → tabs 项目 · 帖文 · 成就 · 关于 (the fixture is community-readable, as the MP normally is).
+/// `-d2MeTab posts|achievements|about` opens a tab.
 @MainActor struct D2MeFixture: View {
     @State private var member = MemberHomeFixtureReader(scenario: "ready")
     @State private var growth = GrowthCenterFixtureReader(scenario: .content)
     @State private var tab: AccountMineTab = AccountMineTab(rawValue: UserDefaults.standard.string(forKey: "d2MeTab") ?? "") ?? .mine
     @Environment(\.locale) private var locale
     private let account = try! JSONDecoder().decode(Account.self, from: Data(#"{"id":81,"nickname":"Mia","role":"player","levelId":2}"#.utf8))
-    private let tabs: [AccountMineTab] = [.mine, .achievements, .about]
+    private let tabs: [AccountMineTab] = AccountMineTab.allCases
     var body: some View {
         NavigationStack {
             Form {
@@ -75,7 +76,15 @@ struct D2Fixture: View {
                         .accessibilityIdentifier("account.mine.tabs")
                 }
                 switch tab {
-                case .mine, .posts:
+                case .posts:
+                    // MP cy-profile TAB · 推文: `cy-empty title="还没有帖文"` when the member has no posts.
+                    Section {
+                        ContentUnavailableView {
+                            Label { Text("club.tab.feed.empty") } icon: { Image(systemName: "text.bubble") }
+                        }
+                        .accessibilityIdentifier("account.mine.posts.empty")
+                    }
+                case .mine:
                     Section("wallet.assets") {
                         LabeledContent {
                             Text(verbatim: MemberBalanceDisplay.text("0", locale: locale)).monospacedDigit()

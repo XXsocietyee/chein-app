@@ -12,6 +12,8 @@ import SwiftUI
     @Published private(set) var loading = false
     @Published private(set) var loadingPage = false
     @Published private(set) var pageFailed = false
+    /// mp-states r3: the last first-page failure was the device being offline (MP cy-empty kind `offline`).
+    @Published private(set) var pageOffline = false
 
     var streamReadiness: HomeFeedSurfaceState {
         HomeFeedSurfaceState.slot(failed: pageFailed, loaded: pageLoaded, loading: loading || loadingPage, isEmpty: pagination.items.isEmpty)
@@ -207,6 +209,15 @@ import SwiftUI
             let result = try await reader.page(query: requestedQuery, number: pagination.nextPage)
             guard valid(ticket, reader), pageTicket == pageGeneration else { return }
             try pagination.accept(result); pageLoaded = true
-        } catch { if valid(ticket, reader), pageTicket == pageGeneration { pageFailed = true } }
+        } catch {
+            if valid(ticket, reader), pageTicket == pageGeneration {
+                pageFailed = true
+                pageOffline = HomeFeedModel.isOffline(error)
+            }
+        }
+    }
+    static func isOffline(_ error: Error) -> Bool {
+        guard let code = (error as? URLError)?.code else { return false }
+        return code == .notConnectedToInternet || code == .networkConnectionLost || code == .dataNotAllowed
     }
 }

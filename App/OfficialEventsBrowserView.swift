@@ -12,6 +12,8 @@ import SwiftUI
     @State private var keyword = ""
     @State private var publisherScope: UUID?
     @State private var canPublish = false
+    /// MP list/index.wxml:27 `wx:if="{{!loading && !curError}}"`: 邀约 shows only once the list has loaded.
+    @State private var listLoaded = false
     private var query: OfficialEventBrowseQuery { .sourceList(bucket: bucket, keyword: keyword) }
     private var privateList: Bool { query.isPrivate }
     /// Round 4 copy (MP activity/list/index.wxml:32-33): the 我的 tab says 登录后查看我的活动 / 当前身份不能查看这些活动.
@@ -50,6 +52,8 @@ import SwiftUI
                                    issueLabel: mineIssueLabelIfPrivate,
                                    load: { if privateList { return try await reader.myEvents() }; return try await reader.events(city: nil) }) { rows in
                     eventList(rows)
+                        .onAppear { listLoaded = true }
+                        .onDisappear { listLoaded = false }
                 }
             }
             .modifier(OfficialEventsSearchModifier(enabled: bucket.isSearchable, keyword: $keyword))
@@ -83,9 +87,11 @@ import SwiftUI
                     Text("official.publishedLink")
                 }.frame(minHeight: 44).accessibilityIdentifier("official.publishedLink")
             }
-            NavigationLink { OfficialInboxView(reader: reader, actions: actions, publisher: canPublish && publisherScope == reader.scope, onLogin: onLogin) } label: {
-                Text("official.inboxLink")
-            }.frame(minHeight: 44).accessibilityIdentifier("official.inboxLink")
+            if listLoaded {
+                NavigationLink { OfficialInboxView(reader: reader, actions: actions, publisher: canPublish && publisherScope == reader.scope, onLogin: onLogin) } label: {
+                    Text("official.inboxLink")
+                }.frame(minHeight: 44).accessibilityIdentifier("official.inboxLink")
+            }
     }
     private func eventList(_ rows: [OfficialEvent]) -> some View {
         // pages/activity/list/index: the page model owns summary count, empty, and publish-link facts.

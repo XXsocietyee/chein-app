@@ -1383,5 +1383,39 @@
         }
       }
     }
+  },
+  "playx.coupon.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Added to your coupon wallet"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已放入卡券包"
+        }
+      }
+    }
+  },
+  "playx.coupon.detail": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Show it in store · Tap to view"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "到店出示核销 · 点击查看"
+        }
+      }
+    }
   }
 }

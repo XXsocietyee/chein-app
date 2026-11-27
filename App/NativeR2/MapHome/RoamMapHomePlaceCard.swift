@@ -14,6 +14,9 @@ import QuestifyCore
     let dependencies: RoamMapHomeDependencies
     @State private var externalMaps: PlatformExternalMaps?
     @State private var confirmingDirections = false
+    /// MP roam-place-card rating cell: `/api/city/nodes/{id}` averageRating / ratingCount; a failed read shows 「—」.
+    @State private var rating: String?
+    @State private var ratingFailed = false
 
     private struct CardAction {
         let titleKey: LocalizedStringKey
@@ -31,6 +34,18 @@ import QuestifyCore
                         .font(.title2.bold())
                         .accessibilityAddTraits(.isHeader)
                     HStack(spacing: 4) {
+                        // MP rpc__row: rating first, then distance.
+                        if rating != nil || ratingFailed {
+                            Label {
+                                Text(verbatim: rating ?? "—").monospacedDigit()
+                            } icon: {
+                                Image(systemName: "star.fill").foregroundStyle(.yellow)
+                            }
+                            .labelStyle(.titleAndIcon)
+                            .accessibilityLabel(Text("nativeR2.mapHome.card.rating \(rating ?? "—")"))
+                            .accessibilityIdentifier("roam.mapHome.card.rating")
+                            Text(verbatim: "·")
+                        }
                         Text(pin.kindKey)
                         if let meters = pin.distanceMeters {
                             Text(verbatim: "·")
@@ -42,7 +57,14 @@ import QuestifyCore
                 }
             }
             // MP roam-place-card: the photo hero comes first, then the facts and the 导航 / 分享 row.
-            if let url = pin.imageURL {
+            if case .activity(let card) = pin.payload {
+                // MP entry-sheet activity summary: the cover, or the shared route illustration when it has none.
+                Section {
+                    RoamEntryCover(source: card.activity.coverURL)
+                        .frame(height: 160)
+                        .listRowInsets(EdgeInsets())
+                }
+            } else if let url = pin.imageURL {
                 Section {
                     AsyncImage(url: url) { phase in
                         if let image = phase.image {
@@ -100,6 +122,22 @@ import QuestifyCore
             Button("nativeR2.mapHome.card.copyAddress") { externalMaps?.copySelectedAddress() }
         }
         .accessibilityIdentifier("roam.detail")
+        .task(id: pin.id) { await loadRating() }
+    }
+
+    /// MP `_loadRating`: only server POIs (shareKind poi) are read; the card stays usable whatever happens.
+    private func loadRating() async {
+        rating = nil
+        ratingFailed = false
+        guard case .place(let place) = pin.payload, place.type == 1, place.id > 0 else { return }
+        do {
+            let detail = try await dependencies.roamReader.roamNodeDetail(id: place.id)
+            guard !Task.isCancelled else { return }
+            rating = detail.ratingText
+        } catch {
+            guard !Task.isCancelled else { return }
+            ratingFailed = true
+        }
     }
 
     // MARK: Action row (Maps: one prominent action, then bordered ones)
@@ -131,9 +169,10 @@ import QuestifyCore
                 model.push(.placeDetail(pin.id))
             }
         case .activity(let card):
-            guard let target = card.destination, dependencies.eventDestination != nil else { return nil }
-            return CardAction(titleKey: LocalizedStringKey(card.primaryKey ?? "roam.w208.entry.viewDetail"),
-                              systemImage: card.primaryKey == "roam.w208.entry.register" ? "ticket" : "info.circle",
+            // MP entry sheet: no primary while registered and open; 发起组队 follows the teams instead.
+            guard let target = card.destination, let key = card.primaryKey, dependencies.eventDestination != nil else { return nil }
+            return CardAction(titleKey: LocalizedStringKey(key),
+                              systemImage: key == "roam.w208.entry.register" ? "ticket" : "info.circle",
                               identifier: "roam.mapHome.card.event") {
                 model.push(.event(target))
             }
@@ -254,26 +293,30 @@ import QuestifyCore
                 if let end = card.activity.endDate, !end.isEmpty {
                     LabeledContent("nativeR2.mapHome.card.end") { Text(verbatim: end) }
                 }
-                if card.participantCount > 0 {
-                    LabeledContent("nativeR2.mapHome.card.participants") { Text(card.participantCount, format: .number) }
+            }
+            // MP entry-sheet order after the primary: N 人参加 → 一起参加 · N 队正在招募 → 发起组队 → 现场动态.
+            if card.participantCount > 0 {
+                Section {
+                    Label { Text("roam.w208.entry.participants \(card.participantCount)") } icon: { Image(systemName: "person.3") }
+                        .accessibilityIdentifier("roam.mapHome.card.participants")
                 }
             }
             if !card.teams.isEmpty {
-                Section("nativeR2.mapHome.card.section.teams") {
-                    ForEach(card.teams) { team in
-                        Button {
-                            model.push(.team(team.teamID))
-                        } label: {
-                            LabeledContent {
-                                Text(verbatim: String(team.joinedCount) + "/" + String(team.maxMembers))
-                            } label: {
-                                Label { Text(verbatim: team.title) } icon: { Image(systemName: "person.2") }
-                            }
-                        }
-                        .disabled(dependencies.nearbyTeamDestination == nil)
-                    }
+                Section {
+                    ForEach(card.teams) { team in activityTeamRow(team, card: card) }
+                } header: {
+                    Text("roam.w208.entry.teams \(card.teams.count)")
                 }
             }
+            if card.registered && !card.ended, let target = card.destination, dependencies.eventDestination != nil {
+                Section {
+                    Button { model.push(.event(target)) } label: {
+                        Label("roam.w208.entry.createTeam", systemImage: "person.badge.plus")
+                    }
+                    .accessibilityIdentifier("roam.mapHome.card.createTeam")
+                }
+            }
+            activityMoments(card)
         case .team(let team):
             Section("nativeR2.mapHome.card.section.team") {
                 if !team.activityName.isEmpty {
@@ -315,6 +358,62 @@ import QuestifyCore
                     LabeledContent("nativeR2.mapHome.card.end") { Text(verbatim: end) }
                 }
             }
+        }
+    }
+
+    /// MP entry-team row: title, members · 队长审核, then 申请加入 (registered) or 报名后申请. A team the viewer
+    /// may apply to opens the team page; otherwise the row goes to the activity (MP 去报名).
+    @ViewBuilder private func activityTeamRow(_ team: RoamEntryActivityCard.Team, card: RoamEntryActivityCard) -> some View {
+        let label = VStack(alignment: .leading, spacing: 4) {
+            if team.title.isEmpty { Text("roam.w208.entry.teamUntitled").font(.headline) } else { Text(verbatim: team.title).font(.headline) }
+            Text("roam.w208.entry.teamMembers \(team.joinedCount) \(team.maxMembers)").font(.subheadline).foregroundStyle(.secondary)
+            Text(LocalizedStringKey(card.registered ? "roam.w208.entry.apply" : "roam.w208.entry.applyAfterRegister"))
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(card.registered ? Color.accentColor : Color.secondary)
+        }
+        if team.canApply, dependencies.nearbyTeamDestination != nil {
+            Button { model.push(.team(team.teamID)) } label: { label }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("roam.mapHome.card.team.\(team.teamID.rawValue)")
+        } else if let target = card.destination, dependencies.eventDestination != nil {
+            Button { model.push(.event(target)) } label: { label }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("roam.mapHome.card.team.\(team.teamID.rawValue)")
+        } else {
+            label.accessibilityElement(children: .combine)
+                .accessibilityIdentifier("roam.mapHome.card.team.\(team.teamID.rawValue)")
+        }
+    }
+
+    /// MP 现场动态: up to three post photos with the count in the header, else 还没有现场动态.
+    @ViewBuilder private func activityMoments(_ card: RoamEntryActivityCard) -> some View {
+        let urls = Array(card.liveMomentFeedState.momentURLs.prefix(3)).compactMap { URL(string: $0) }
+        Section {
+            if urls.isEmpty {
+                Text("roam.w208.entry.noMoments")
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("roam.mapHome.card.moments.empty")
+            } else {
+                HStack(spacing: 8) {
+                    ForEach(urls, id: \.self) { url in
+                        AsyncImage(url: url) { phase in
+                            if let image = phase.image {
+                                image.resizable().scaledToFill()
+                            } else {
+                                Rectangle().fill(.quaternary)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .aspectRatio(1, contentMode: .fit)
+                        .clipShape(.rect(cornerRadius: 8))
+                        .accessibilityHidden(true)
+                    }
+                }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text("roam.w208.entry.moments \(urls.count)"))
+            }
+        } header: {
+            if urls.isEmpty { Text("roam.w208.entry.momentsTitle") } else { Text("roam.w208.entry.moments \(urls.count)") }
         }
     }
 }
