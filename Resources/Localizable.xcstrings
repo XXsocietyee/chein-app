@@ -284773,13 +284773,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Uses the current server check and the original version; no roll or pass result is generated on the device."
+            "value": "The server rolls and decides the result for this version; nothing is rolled on your phone."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "使用当前服务器检定和原版本，不在设备上生成骰点或通过结果。"
+            "value": "由服务器按当前版本检定，不在手机上生成骰点或结果。"
           }
         }
       }
@@ -285640,13 +285640,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original start result is not yet confirmed. The original log is kept; nothing is restarted and no session is guessed."
+            "value": "We haven't confirmed that the start went through. Your record is kept; nothing restarts and no session is guessed."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原启动结果尚未确认。保留原日志，不会重新启动或猜测场次。"
+            "value": "开始结果尚未确认。记录已保留，不会重新开始，也不会猜测场次。"
           }
         }
       }
@@ -285895,13 +285895,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original server roll"
+            "value": "Server roll"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原服务器骰点"
+            "value": "服务器骰点"
           }
         }
       }
@@ -285997,13 +285997,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original check"
+            "value": "Check"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原检定"
+            "value": "检定"
           }
         }
       }
@@ -286082,13 +286082,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original settlement cost is not yet met"
+            "value": "The cost to settle isn't met yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原结算费用尚未满足"
+            "value": "结算所需费用尚未满足"
           }
         }
       }
@@ -286354,13 +286354,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original identity or receipt contract is not confirmed, so the check cannot be submitted."
+            "value": "We're still confirming who you are and your permission, so the check can't be sent yet."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原身份或回执合同尚未确认，不能提交检定。"
+            "value": "身份或参与权限尚未确认，暂时不能提交检定。"
           }
         }
       }
@@ -286456,13 +286456,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original question set"
+            "value": "Question set"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原题组"
+            "value": "题组"
           }
         }
       }
@@ -286473,13 +286473,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original question set unavailable"
+            "value": "Question set unavailable"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原题组暂不可用"
+            "value": "题组暂不可用"
           }
         }
       }
@@ -286660,13 +286660,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only the current plan's real node and session are used. If the start response is lost, the original record is kept and nothing is redone automatically."
+            "value": "Uses this plan's own stop and session. If the start reply gets lost, your record is kept and nothing is redone automatically."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "只使用当前方案的真实节点与场次。启动响应丢失时会保留原记录，不自动重做。"
+            "value": "只使用当前方案的节点与场次。开始的回应丢失时会保留记录，不会自动重做。"
           }
         }
       }
@@ -286762,13 +286762,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only the saved original request and original ID are replayed; no new check is created."
+            "value": "Only the saved request is sent again with the same number; no new check is created."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "只重放已保存的原请求与原编号，不创建新的检定。"
+            "value": "只重发已保存的请求和编号，不会创建新的检定。"
           }
         }
       }
@@ -287306,13 +287306,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The real session is kept; the original identity and receipt contract are not yet confirmed."
+            "value": "Your session is kept; we're still confirming who you are and your permission to play."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已保留真实场次，原始身份与回执合同尚未确认。"
+            "value": "已保留场次，正在确认你的身份和参与权限。"
           }
         }
       }
@@ -287527,13 +287527,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start original question set"
+            "value": "Start question set"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "开始原题组"
+            "value": "开始题组"
           }
         }
       }
@@ -287544,13 +287544,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start the current original question set?"
+            "value": "Start this question set?"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "开始当前原题组？"
+            "value": "开始当前题组？"
           }
         }
       }
@@ -287561,13 +287561,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start the original advanced question set for the current plan"
+            "value": "Start this plan's advanced question set"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "开始当前方案的原高级题组"
+            "value": "开始当前方案的高级题组"
           }
         }
       }
@@ -289193,13 +289193,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review original record"
+            "value": "Check my record"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核对原记录"
+            "value": "核对记录"
           }
         }
       }
@@ -289414,13 +289414,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This node has another original request awaiting confirmation; return to the original entry to recover."
+            "value": "Another request at this stop is still being confirmed. Go back to where you started it to pick it up."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此节点另有原请求待确认，请返回原入口恢复。"
+            "value": "这个节点还有一个请求待确认，请回到发起的入口继续。"
           }
         }
       }
@@ -289924,13 +289924,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm original check action"
+            "value": "Confirm check"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "确认原检定动作"
+            "value": "确认检定"
           }
         }
       }
@@ -289941,13 +289941,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm retry of original request"
+            "value": "Confirm retry"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "确认原请求重试"
+            "value": "确认重试"
           }
         }
       }
@@ -290247,13 +290247,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waiting for the original receipt contract and write-permission approval"
+            "value": "Waiting for permission to take part"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "等待原始回执合同与写权限批准"
+            "value": "等待参与权限确认"
           }
         }
       }
@@ -291301,13 +291301,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retry the same original request"
+            "value": "Retry the same request"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重试同一原请求"
+            "value": "重试同一请求"
           }
         }
       }
@@ -291318,13 +291318,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retry the same original request?"
+            "value": "Retry the same request?"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重试同一原请求？"
+            "value": "重试同一请求？"
           }
         }
       }
@@ -291437,13 +291437,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Requires a real plan ticket, read approval and safe-recovery storage."
+            "value": "This needs a valid plan ticket, permission to read it and safe storage to resume from."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "需要真实方案票据、读取批准及安全恢复存储。"
+            "value": "需要有效的方案票据、读取权限和可恢复的本机存储。"
           }
         }
       }

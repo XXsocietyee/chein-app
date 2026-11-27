@@ -4522,6 +4522,380 @@
           }
         }
       }
+    },
+    "原题组暂不可用": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Question set unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "题组暂不可用"
+          }
+        }
+      }
+    },
+    "需要真实方案票据、读取批准及安全恢复存储。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This needs a valid plan ticket, permission to read it and safe storage to resume from."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要有效的方案票据、读取权限和可恢复的本机存储。"
+          }
+        }
+      }
+    },
+    "等待原始回执合同与写权限批准": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for permission to take part"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待参与权限确认"
+          }
+        }
+      }
+    },
+    "原启动结果尚未确认。保留原日志，不会重新启动或猜测场次。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We haven't confirmed that the start went through. Your record is kept; nothing restarts and no session is guessed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始结果尚未确认。记录已保留，不会重新开始，也不会猜测场次。"
+          }
+        }
+      }
+    },
+    "此节点另有原请求待确认，请返回原入口恢复。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Another request at this stop is still being confirmed. Go back to where you started it to pick it up."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个节点还有一个请求待确认，请回到发起的入口继续。"
+          }
+        }
+      }
+    },
+    "已保留真实场次，原始身份与回执合同尚未确认。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your session is kept; we're still confirming who you are and your permission to play."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保留场次，正在确认你的身份和参与权限。"
+          }
+        }
+      }
+    },
+    "开始当前方案的原高级题组": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start this plan's advanced question set"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始当前方案的高级题组"
+          }
+        }
+      }
+    },
+    "开始原题组": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start question set"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始题组"
+          }
+        }
+      }
+    },
+    "核对原记录": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check my record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核对记录"
+          }
+        }
+      }
+    },
+    "原题组": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Question set"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "题组"
+          }
+        }
+      }
+    },
+    "开始当前原题组？": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start this question set?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始当前题组？"
+          }
+        }
+      }
+    },
+    "只使用当前方案的真实节点与场次。启动响应丢失时会保留原记录，不自动重做。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uses this plan's own stop and session. If the start reply gets lost, your record is kept and nothing is redone automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只使用当前方案的节点与场次。开始的回应丢失时会保留记录，不会自动重做。"
+          }
+        }
+      }
+    },
+    "原检定": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检定"
+          }
+        }
+      }
+    },
+    "原服务器骰点": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server roll"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器骰点"
+          }
+        }
+      }
+    },
+    "原身份或回执合同尚未确认，不能提交检定。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We're still confirming who you are and your permission, so the check can't be sent yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "身份或参与权限尚未确认，暂时不能提交检定。"
+          }
+        }
+      }
+    },
+    "重试同一原请求": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry the same request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试同一请求"
+          }
+        }
+      }
+    },
+    "原结算费用尚未满足": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The cost to settle isn't met yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结算所需费用尚未满足"
+          }
+        }
+      }
+    },
+    "确认原检定动作": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm check"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认检定"
+          }
+        }
+      }
+    },
+    "使用当前服务器检定和原版本，不在设备上生成骰点或通过结果。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server rolls and decides the result for this version; nothing is rolled on your phone."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "由服务器按当前版本检定，不在手机上生成骰点或结果。"
+          }
+        }
+      }
+    },
+    "重试同一原请求？": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry the same request?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试同一请求？"
+          }
+        }
+      }
+    },
+    "只重放已保存的原请求与原编号，不创建新的检定。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the saved request is sent again with the same number; no new check is created."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只重发已保存的请求和编号，不会创建新的检定。"
+          }
+        }
+      }
+    },
+    "确认原请求重试": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm retry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认重试"
+          }
+        }
+      }
     }
   }
 }
