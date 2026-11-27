@@ -331,10 +331,8 @@ import QuestifyCore
         if !pins.isEmpty {
             ForEach(pins) { pin in RoamMapHomePinRow(pin: pin) }
         } else if isLoading {
-            ForEach(0..<4, id: \.self) { _ in
-                Label("nativeR2.mapHome.loading", systemImage: "mappin")
-                    .redacted(reason: .placeholder)
-            }
+            ProgressView { Text("nativeR2.mapHome.loading") }
+                .frame(maxWidth: .infinity)
         } else if entryState == .login, model.places.isEmpty {
             ContentUnavailableView {
                 Label("nativeR2.mapHome.signIn.title", systemImage: "person.crop.circle")
