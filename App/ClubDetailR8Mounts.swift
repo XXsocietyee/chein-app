@@ -174,8 +174,10 @@ import SwiftUI
     func loadMemberAvatars<Reader: ClubReading>(key: String, clubID: Int, reader: Reader) async {
         guard avatarsKey != key else { return }
         avatarsKey = key; memberAvatars = []; memberTotal = 0
-        guard let directory = try? await reader.clubMembers(id: clubID, isCurrent: { [weak self] in self?.avatarsKey == key }),
-              avatarsKey == key, !Task.isCancelled else { return }
+        let read = try? await reader.clubMembers(id: clubID, isCurrent: { [weak self] in self?.avatarsKey == key })
+        // design-r2-social: a tab switch cancels the mount task; release the key so the next tab loads the strip.
+        if Task.isCancelled { if avatarsKey == key { avatarsKey = nil }; return }
+        guard let directory = read, avatarsKey == key else { return }
         memberAvatars = directory.members.prefix(4).map {
             .init(id: String($0.memberId), name: $0.nickname ?? "", url: ClubCloud14HTTPS.url($0.avatar),
                   memberID: $0.memberId, roleKey: $0.isOwner ? "club.strip.owner" : ($0.role == 1 ? "club.strip.admin" : nil))
