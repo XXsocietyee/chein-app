@@ -6,6 +6,7 @@ struct PlayPlayerTeamStatusView: View {
     let state: PlayPlayerTeamState
     /// R-island: the run's team id; when set, member changes feed the shared team-status Live Activity.
     var planScope: String? = nil
+    func islandTeamStatus(_ scope: String) -> Self { var copy = self; copy.planScope = scope; return copy }
     var body: some View {
         Group {
             switch state {

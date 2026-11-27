@@ -784,6 +784,7 @@ struct PlayThemeMusicKey: Equatable {
                             onHint: { openCityHint(id) })
                     }
                     if let snapshot = model.snapshot, let route = PlayRouteMapPresentation(snapshot: snapshot) {
+                        CityOrientationStepChecklistSection(route: route) { cityPunchNode = CityOrientationPunchTarget(id: $0) } // R-steps
                         CityOrientationLegsSection(route: route, onOpen: { cityPunchNode = CityOrientationPunchTarget(id: $0) })
                     } else if let snapshot = model.snapshot {
                         stationsSection(snapshot)

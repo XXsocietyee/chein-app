@@ -315,6 +315,11 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
         // tickets (collaborators, ticket options, add ticket, publisher identity).
         // Input errors sit in red under the field they refer to.
         Form {
+            Section { // R-steps
+                ActivityPublishStepChecklist(step: wizardStep, draft: draft) { target in
+                    wizardStep = ActivityPublishingWizard.clamp(target); wizardBlock = nil
+                }
+            }
             Section {
                 ActivityPublishingWizardChrome(
                     step: wizardStep,

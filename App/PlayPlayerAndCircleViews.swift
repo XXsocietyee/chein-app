@@ -42,7 +42,8 @@ import SwiftUI
                     if projection.roleConfirmed { CYStatusChip("playx.player.role.confirmed", tone: .success, systemImage: "checkmark.seal") }
                     else { CYPillButton("playx.player.role.confirm") { actionReview.prepare(.role, ticket: ticket) }.listRowBackground(Color.clear).disabled(!canAct) }
                 }
-                PlayPlayerTeamStatusView(state: teamReadback?.state ?? .unconfirmed, planScope: String(projection.teamID))
+                PlayPlayerTeamStatusView(state: teamReadback?.state ?? .unconfirmed)
+                    .islandTeamStatus(String(projection.teamID))
                 PlayPlayerLeaderboardView(state: leaderboardReadback?.state ?? .hidden)
                 ForEach(projection.nodes) { node in
                     Section {

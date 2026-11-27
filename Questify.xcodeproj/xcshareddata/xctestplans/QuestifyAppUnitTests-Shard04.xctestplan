@@ -497,6 +497,7 @@
         "PushNotificationAndLiveActivitySectionViewTests",
         "QuestLiveActivityComponentsTests",
         "QuestLiveActivityMappingTests",
+        "QuestPlanActivityAndChecklistTests",
         "QuestifyProgressiveBlurArtworkTests",
         "QuickPublishingJourneyOwnerTests",
         "R4PlayFlowTests",

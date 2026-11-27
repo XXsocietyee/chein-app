@@ -35,6 +35,7 @@ enum RoamPreflightRule: String, CaseIterable, Identifiable {
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("roam.preflightRules.availability")
             }
+            RoamFirstRoamChecklist() // R-steps
             ForEach(RoamPreflightRule.allCases) { rule in
                 Section {
                     ForEach(rule.bodyKeys, id: \.self) { key in
