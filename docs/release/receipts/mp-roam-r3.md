@@ -165,6 +165,16 @@ New strings (en + zh-Hans, also `docs/port/strings/mp-r3-roam.json`): `roam.live
 
 Gates: generate_project OK · check_scaffold PASS (20724 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 
+## Round 3 continue (9) — 附近正在走的人 = 原型 f-multi (pages/roam/index.wxml:309–328, index.js `openNearestRunner` / `openMultiView` 645–656)
+
+| MP page / scene | Native view | Differences | Status |
+|---|---|---|---|
+| `pages/roam/index` 更多 → 附近正在走的人 → f-multi card: kicker 附近正在走的人 → `这片街区有 N 个人在点亮` (N counts the walker) → rows 你 (own 地盘 %, first) then each runner (avatar · name · pct); not sharing → settings; nobody → toast | `App/MPGap/PlayRoam/RoamSessionToolsSheetView.swift` `runnersList` (pushed from the 更多 sheet), fed by `RoamLiveSessionView` | Native listed runners only: no `这片街区有 N 个人在点亮` line and no 你 row with the walker's own 地盘 %. | **Fixed:** section header `roamTools.runners.lighting %lld` (runners + you), then a 你 row (`person.fill` tile, `地盘 N%` reusing `roamTools.runners.explore %lld`, clamped 0…99 like the MP) from `RoamLiveSessionController.explorationPercent` via new optional `ownExplorePercent` (nil in fixtures hides it); runner rows unchanged (still open the f-other runner page). Not-sharing and empty states unchanged (native text / `ContentUnavailableView` instead of MP toast). |
+
+New strings: `roamTools.runners.lighting %lld` (Lighting up this block: N / 这片街区有 N 个人在点亮), `roamTools.runners.you`.
+
+Gates: generate_project OK · check_scaffold PASS (20726 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no

@@ -163,7 +163,7 @@ import QuestifyCore
             if let discoverDestinations { RoamFirstDiscoverySheet(place: place, destinations: discoverDestinations) }
         }
         .sheet(isPresented: $showTools) {
-            RoamSessionToolsSheetView(runners: runners, presenceEnabled: owner.presenceEnabled,
+            RoamSessionToolsSheetView(runners: runners, presenceEnabled: owner.presenceEnabled, ownExplorePercent: owner.explorationPercent,
                                       fogOn: fogOnBinding, mapKind: mapKindBinding, reduceMotion: reducedMotionBinding,
                                       onSetPresence: presenceSwitch, onClearLocal: roamClearLocal)
         }

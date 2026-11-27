@@ -347035,6 +347035,40 @@
           }
         }
       }
+    },
+    "roamTools.runners.lighting %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lighting up this block: %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这片街区有 %lld 个人在点亮"
+          }
+        }
+      }
+    },
+    "roamTools.runners.you": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
