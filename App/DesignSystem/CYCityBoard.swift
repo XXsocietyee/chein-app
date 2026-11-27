@@ -76,9 +76,9 @@ struct CYCityDie: View {
             if let face, (1...6).contains(face) {
                 pipGrid(face).transition(.opacity)
             } else if let face {
-                Text(verbatim: String(face)).cyText(.dataXL).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: String(face)).cyText(.dataXL).lineLimit(1).minimumScaleFactor(0.4).foregroundStyle(CYColor.textPrimary)
             } else {
-                Text(verbatim: "—").cyText(.dataXL).foregroundStyle(CYColor.textTertiary)
+                Text(verbatim: "—").cyText(.dataXL).lineLimit(1).minimumScaleFactor(0.4).foregroundStyle(CYColor.textTertiary)
             }
         }
         .frame(width: 56, height: 56)

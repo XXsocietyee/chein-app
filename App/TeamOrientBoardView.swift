@@ -188,7 +188,7 @@ extension EnvironmentValues {
                     Text(verbatim: "#\(row.rank)")
                         .cyText(.bodyMedium)
                         .monospacedDigit()
-                        .frame(width: 32, alignment: .leading)
+                        .frame(minWidth: 32, alignment: .leading)
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 6) {
                             Text(verbatim: row.teamName.isEmpty ? "#\(row.teamID)" : row.teamName)

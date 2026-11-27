@@ -31,8 +31,21 @@ enum E1ActivityWhen {
 
 /// Poster hero for the activity detail in MP `activity-hero` order: cover with bottom shade, status chip, bold title,
 /// then the live time-to-start and the MP date line (活动时间 · start – end).
+/// mp-home r3 (21:20 sweep): design fixtures run offline, so they hand the hero a bundled MP cover instead of a URL.
+/// Production never sets it; a missing cover there stays the MP plain surface.
+private struct E1ActivityHeroFixtureCoverKey: EnvironmentKey {
+    static let defaultValue: Image? = nil
+}
+extension EnvironmentValues {
+    var e1ActivityHeroFixtureCover: Image? {
+        get { self[E1ActivityHeroFixtureCoverKey.self] }
+        set { self[E1ActivityHeroFixtureCoverKey.self] = newValue }
+    }
+}
+
 struct E1ActivityHero: View {
     let summary: ActivitySummary
+    @Environment(\.e1ActivityHeroFixtureCover) private var fixtureCover
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.timeZone) private var timeZone
     @Environment(\.locale) private var locale
@@ -46,6 +59,8 @@ struct E1ActivityHero: View {
                 // mp-home r3 (MP index.wxml:13-14 `activity-hero__fallback`): no photo = the plain subtle surface, not generated art.
                 if let cover = QuestifyCardArtwork.safeURL(summary.imageURL) {
                     E1CoverArt(seed: summary.name, symbol: "photo", imageURL: cover.absoluteString, debugLabel: false, symbolPoint: nil)
+                } else if let fixtureCover {
+                    fixtureCover.resizable().scaledToFill().accessibilityHidden(true)
                 } else {
                     palette.bgSurfaceSubtle
                 }
