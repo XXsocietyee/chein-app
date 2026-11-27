@@ -5,6 +5,9 @@ import SwiftUI
 /// the enclosing ProfileReadScreen owns the read; nothing here sends a request.
 struct ProfileOrderSourceDetailSections: View {
     let order: ProfileOrder
+    /// i18n r2: China-time `yyyy-MM-dd HH:mm` reads `Nov 27, 2026, 3:05 PM` in English (same wall clock).
+    @Environment(\.locale) private var locale
+    private func civil(_ text: String?) -> String? { text.map { LocaleDisplay.civil($0, locale: locale) } }
     var body: some View {
         Section("orderLifecycle.timeline.title") {
             ForEach(order.sourceTimeline()) { step in
@@ -15,7 +18,7 @@ struct ProfileOrderSourceDetailSections: View {
             Section(LocalizedStringKey(order.isSourceFreeOrder ? "profile.orderParity.section.registrationInfo" : "profile.orderParity.section.paymentInfo")) {
                 if let time = order.sourcePaymentTimeText {
                     LabeledContent(LocalizedStringKey(order.isSourceFreeOrder ? "profile.orderParity.registrationTime" : "profile.orders.paymentTime")) {
-                        Text(verbatim: time).monospacedDigit()
+                        Text(verbatim: LocaleDisplay.civil(time, locale: locale)).monospacedDigit()
                     }
                 }
                 if let key = order.sourcePaymentTypeLabelKey {
@@ -36,13 +39,13 @@ struct ProfileOrderSourceDetailSections: View {
             Section("profile.orderParity.section.registrant") {
                 ProfileOptionalRow(key: "profile.participants.name", value: order.realName)
                 ProfileOptionalRow(key: "profile.orderParity.mobile", value: order.phone)
-                ProfileOptionalRow(key: "profile.orderParity.registrationDate", value: order.sourceParticipateDateText)
+                ProfileOptionalRow(key: "profile.orderParity.registrationDate", value: civil(order.sourceParticipateDateText))
             }
         }
         if order.sourceVerificationTimeText != nil || order.sourceExpiresAtText != nil {
             Section("profile.orderParity.section.voucher") {
-                ProfileOptionalRow(key: "profile.orderParity.verifiedAt", value: order.sourceVerificationTimeText)
-                ProfileOptionalRow(key: "profile.orderParity.entitlementExpires", value: order.sourceExpiresAtText)
+                ProfileOptionalRow(key: "profile.orderParity.verifiedAt", value: civil(order.sourceVerificationTimeText))
+                ProfileOptionalRow(key: "profile.orderParity.entitlementExpires", value: civil(order.sourceExpiresAtText))
             }
         }
         if let party = ProfileOrderSettlementCopy.party(order.party) {
@@ -181,6 +184,7 @@ struct ProfileOrderConsentSection: View {
 
 private struct ProfileOrderTimelineStepRow: View {
     let step: ProfileOrderTimelineStep
+    @Environment(\.locale) private var locale
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
             Image(systemName: step.state == .done ? "checkmark.circle.fill" : "circle.dotted")
@@ -189,7 +193,7 @@ private struct ProfileOrderTimelineStepRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 if let label = step.label { Text(verbatim: label) }
                 else if let key = step.labelKey { Text(LocalizedStringKey(key)) }
-                if let time = step.time { Text(verbatim: time).cyText(.meta).foregroundStyle(CYColor.textSecondary).monospacedDigit() }
+                if let time = step.time { Text(verbatim: LocaleDisplay.civil(time, locale: locale)).cyText(.meta).foregroundStyle(CYColor.textSecondary).monospacedDigit() }
                 else if let key = step.timeKey { Text(LocalizedStringKey(key)).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             }
         }

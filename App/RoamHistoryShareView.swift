@@ -348,8 +348,10 @@ import UIKit
     /// MP `_shareCopy()` (index.js): date, shops, km, explore % and the #城瘾CityFog tag; a missing value reads 0.
     private var squareCopy: String {
         let date = record.recordedAt.map { $0.formatted(.dateTime.month().day().locale(locale)) } ?? ""
-        return String(format: appLocalized("roam.share.square.copy", locale: locale), date,
-                      record.shops ?? 0, String(format: "%.1f", record.distance ?? 0), record.explorePct ?? 0)
+        let km = record.distance ?? 0
+        let distance = LocaleDisplay.distanceArgument(meters: km * 1000, zhText: String(format: "%.1fkm", km), locale: locale)
+        return String(format: appLocalized("roam.share.square.copyDistance", locale: locale), date,
+                      record.shops ?? 0, distance, record.explorePct ?? 0)
     }
     private func publishToSquare() {
         let text = squareText.trimmingCharacters(in: .whitespacesAndNewlines)

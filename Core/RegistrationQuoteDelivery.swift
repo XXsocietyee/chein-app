@@ -56,7 +56,7 @@ public struct RegistrationQuoteDelivery: Decodable, Equatable {
             if let people = peopleText(zh: zh) { rows.append(.init(id: "people", label: t("人数", "People"), value: people)) }
             if needAudit { rows.append(.init(id: "audit", label: t("报名审核", "Review"), value: t("需主办方审核", "Host review required"))) }
         }
-        if let window = windowText(zh: zh) { rows.append(.init(id: "window", label: t("服务时间", "Service time"), value: window)) }
+        if let window = windowText(locale: locale) { rows.append(.init(id: "window", label: t("服务时间", "Service time"), value: window)) }
         if beneficiaryKind == "PAYER_SELF" {
             rows.append(.init(id: "beneficiary", label: t("使用人", "User"), value: t("付款人本人", "The payer")))
         }
@@ -89,6 +89,20 @@ public struct RegistrationQuoteDelivery: Decodable, Equatable {
         case let (start?, end?): return f.string(from: start) + " – " + f.string(from: end)
         case let (start?, nil): return f.string(from: start) + (zh ? " 起" : " onward")
         case let (nil, end?): return (zh ? "至 " : "Until ") + f.string(from: end)
+        default: return nil
+        }
+    }
+
+    /// i18n r2: `windowText` for the reader's locale. Chinese is byte-identical (`yyyy.MM.dd HH:mm`);
+    /// other languages read `Nov 27, 2026, 3:05 PM – Nov 28, 2026, 6:00 PM` in China time.
+    func windowText(locale: Locale) -> String? {
+        if LocaleDisplay.isChinese(locale) { return windowText(zh: true) }
+        let zone = TimeZone(identifier: "Asia/Shanghai")
+        func f(_ date: Date) -> String { LocaleDisplay.dayTime(date, locale: locale, timeZone: zone) }
+        switch (serviceStartAt, serviceEndAt) {
+        case let (start?, end?): return f(start) + " – " + f(end)
+        case let (start?, nil): return f(start) + " onward"
+        case let (nil, end?): return "Until " + f(end)
         default: return nil
         }
     }

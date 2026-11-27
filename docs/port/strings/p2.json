@@ -790,7 +790,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld of %lld chapters unlocked"
+            "value": "%1$lld of %#@chapter@ unlocked"
+          },
+          "substitutions": {
+            "chapter": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg chapter"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg chapters"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {

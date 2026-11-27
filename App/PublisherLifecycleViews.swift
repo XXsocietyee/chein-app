@@ -103,7 +103,7 @@ import SwiftUI
             if let preview, resultSession == client.session {
                 Section(text("publisherPricing.costFloor")) {
                     // Floor reads TopicPricingXcx money text: two decimals, em dash when unknown, literal 0 stays 0.00.
-                    Text(verbatim: "¥" + TopicPricingXcx.moneyText(decimal: preview.minimum)).font(.largeTitle.bold()).monospacedDigit()
+                    Text(verbatim: LocaleDisplay.money(text: TopicPricingXcx.moneyText(decimal: preview.minimum), locale: locale)).font(.largeTitle.bold()).monospacedDigit()
                         .contentTransition(.numericText()).accessibilityIdentifier("publisher.floor")
                     Text("publisherPricing.floorIncludes").font(.footnote).foregroundStyle(.secondary)
                     Text("publisherPricing.marginNote").font(.footnote).foregroundStyle(.secondary)
@@ -120,10 +120,10 @@ import SwiftUI
                     Slider(value: Binding(get: { Double(price) ?? Double(floorValue) }, set: { price = String(Int($0.rounded())) }),
                            in: Double(floorValue)...Double(max(maximum, floorValue + 1)), step: 1)
                         .accessibilityLabel(Text(text("publisherPricing.finalPrice")))
-                        .accessibilityValue(Text(verbatim: "¥" + (Int(price).map(String.init) ?? String(floorValue))))
+                        .accessibilityValue(Text(verbatim: LocaleDisplay.yuanAmounts(in: "¥" + (Int(price).map(String.init) ?? String(floorValue)), locale: locale)))
                     HStack {
-                        Text(verbatim: text("publisherPricing.floorShort") + " ¥" + TopicPricingXcx.moneyText(decimal: preview.minimum))
-                        Spacer(); Text(verbatim: "¥\(maximum)")
+                        Text(verbatim: text("publisherPricing.floorShort") + " " + LocaleDisplay.money(text: TopicPricingXcx.moneyText(decimal: preview.minimum), locale: locale))
+                        Spacer(); Text(verbatim: LocaleDisplay.yuanAmounts(in: "¥\(maximum)", locale: locale))
                     }.font(.footnote).foregroundStyle(.secondary)
                     if let reference = preview.reference, let count = preview.sampleSize, count > 0 {
                         let area = preview.referenceLabel ?? text("publisherPricing.local")
@@ -332,7 +332,7 @@ import SwiftUI
         let rows = await service.fetchTopicPricingSettlementPending(topicID: topicID).data?.array ?? []
         let pending = rows.filter { $0["topicId"].tolerantInteger == topicID }.map { row -> String in
             let name = row["activityName"].text ?? "场次"
-            let amount = row["money"].double.map { " ¥" + String(format: "%.2f", $0) } ?? ""
+            let amount = row["money"].double.map { " " + LocaleDisplay.money(text: String(format: "%.2f", $0), locale: locale) } ?? ""
             let reason = row["reason"].text.map { $0.isEmpty ? "" : "\n" + $0 } ?? ""
             return name + amount + reason
         }
@@ -474,7 +474,7 @@ import SwiftUI
                         LabeledContent(text("publisherPricing.settlement"), value: terms.mode == 1 ? text("publisherPricing.revenueShare") : terms.mode == 2 ? text("publisherPricing.fixed") : text("publisherPricing.referral"))
                         // Unknown share / fee is a bare em dash (never "—%" or "¥—"); a literal 0 stays "0".
                         if terms.mode == 1 { LabeledContent(text("publisherPricing.share"), value: partnerMoney(terms.shareRate, prefix: "", suffix: "%")) }
-                        if terms.mode == 2 { LabeledContent(text("publisherPricing.fixedFee"), value: partnerMoney(terms.fixedFee, prefix: "¥", suffix: text("publisherPricing.perPerson"))) }
+                        if terms.mode == 2 { LabeledContent(text("publisherPricing.fixedFee"), value: LocaleDisplay.yuanAmounts(in: partnerMoney(terms.fixedFee, prefix: "¥", suffix: text("publisherPricing.perPerson")), locale: locale)) }
                         LabeledContent(text("publisherPricing.locked"), value: text("publisherPricing.whenSalesOpen"))
                         Text(terms.mode == 1 ? text("publisherPricing.termsFreezeWhenSalesOpenSettlement")
                              : terms.mode == 2 ? text("publisherPricing.termsFreezeWhenSalesOpenSettlement44")

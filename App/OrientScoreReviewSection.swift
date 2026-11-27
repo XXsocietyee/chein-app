@@ -43,6 +43,7 @@ struct OrientScoreReviewSheetTarget: Identifiable, Equatable {
     @StateObject private var selection: OrientScoreReviewEntrySelection
     private let entries: [OrientScoreTimelineRow]
     @Environment(\.offlineWriteSession) private var offlineWriteSession
+    @Environment(\.locale) private var locale
     private let canDispute: Bool
     private let disputeDeadline: String?
     @State private var sheet: OrientScoreReviewSheetTarget?
@@ -97,7 +98,7 @@ struct OrientScoreReviewSheetTarget: Identifiable, Equatable {
                 .disabled(busy)
                 .accessibilityIdentifier("orientScore.review.missing")
                 if let disputeDeadline, !disputeDeadline.isEmpty {
-                    Text("orientScore.disputeDeadline \(disputeDeadline)")
+                    Text("orientScore.disputeDeadline \(LocaleDisplay.civil(disputeDeadline, locale: locale))")
                         .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("orientScore.review.deadline")

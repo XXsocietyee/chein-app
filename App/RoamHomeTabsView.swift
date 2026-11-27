@@ -248,13 +248,14 @@ struct RoamHomeTabPicker: View {
 }
 
 struct RoamEntryCardView: View {
+    @Environment(\.locale) private var locale
     let card: RoamEntryActivityCard
     var body: some View {
         // N-r11-4: a plain Label row with the MP placeholder art (`.entry-card__cover` fallback) instead of the shelf card.
         Label {
             VStack(alignment: .leading, spacing: 2) {
                 title.font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
-                (Text(LocalizedStringKey(card.tagKey)) + Text(verbatim: " · ") + RoamEntryMetaLine(card: card).text)
+                (Text(LocalizedStringKey(card.tagKey)) + Text(verbatim: " · ") + RoamEntryMetaLine(card: card, locale: locale).text)
                     .font(.caption).foregroundStyle(.secondary).lineLimit(2)
             }
         } icon: {
@@ -272,6 +273,9 @@ struct RoamEntryCardView: View {
 /// `activityView.meta`: 已结束 · 距你 X km · N 支队伍招募, falling back to the address, then 查看活动详情.
 struct RoamEntryMetaLine: View {
     let card: RoamEntryActivityCard
+    /// i18n r2: set when `text` is read outside a view body (the environment is not installed there).
+    var locale: Locale? = nil
+    @Environment(\.locale) private var environmentLocale
     var body: some View { text }
     var text: Text {
         let parts = metaParts
@@ -285,7 +289,9 @@ struct RoamEntryMetaLine: View {
         var parts: [Text] = []
         if card.ended { parts.append(Text("roam.w208.entry.ended")) }
         if let km = card.distanceKilometers {
-            parts.append(Text("roam.w208.entry.distance \(km.formatted(.number.precision(.fractionLength(1))))"))
+            // i18n r2: the unit travels with the number (`距你 1.2 km` zh unchanged, `0.7 mi away` en-US).
+            let zhText = km.formatted(.number.precision(.fractionLength(1))) + " km"
+            parts.append(Text("roam.w208.entry.away \(LocaleDisplay.distanceArgument(meters: km * 1000, zhText: zhText, locale: locale ?? environmentLocale))"))
         }
         if !card.ended && card.recruitingCount > 0 { parts.append(Text("roam.w208.entry.recruiting \(card.recruitingCount)")) }
         return parts

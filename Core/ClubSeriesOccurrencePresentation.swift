@@ -78,6 +78,11 @@ public enum ClubOccurrenceClock {
         formatter.dateFormat = "yyyy-MM-dd HH:mm"
         let text = formatter.string(from: date); return text.isEmpty ? nil : text
     }
+    /// i18n r2: `display` for the reader's locale. Chinese is byte-identical; other languages read
+    /// `Nov 27, 2026, 3:05 PM`, still on the +08:00 wall clock (no zone shift).
+    public static func display(_ value: ClubGovernanceValue, locale: Locale) -> String? {
+        display(value).map { LocaleDisplay.civil($0, locale: locale) }
+    }
     /// The same parse as `display`, for callers that format the instant themselves.
     public static func instant(_ value: ClubGovernanceValue) -> Date? { date(value) }
     private static func date(_ value: ClubGovernanceValue) -> Date? {

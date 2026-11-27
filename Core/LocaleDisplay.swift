@@ -71,6 +71,23 @@ public enum LocaleDisplay {
         return formatter.currencySymbol ?? code
     }
 
+    /// i18n r2: re-labels each `¥<amount>` inside text a Core/MP formatter already built (`首发价 ¥9.9`,
+    /// `Fixed fee · ¥30 per check-in`, `¥1.20（6%）`). Chinese is returned unchanged; other languages get
+    /// the CNY amount through `money(text:)` (`CN¥9.90`). A `¥` right after a letter (`CN¥`) is left alone,
+    /// so already-formatted text is never re-labelled twice.
+    public static func yuanAmounts(in text: String, locale: Locale) -> String {
+        guard !isChinese(locale), text.contains("¥") else { return text }
+        guard let expression = try? NSRegularExpression(pattern: "(?<![A-Za-z])¥\\s?([0-9]+(?:\\.[0-9]+)?)") else { return text }
+        let source = text as NSString
+        let output = NSMutableString(string: text)
+        let matches = expression.matches(in: text, range: NSRange(location: 0, length: source.length))
+        for match in matches.reversed() {
+            let digits = source.substring(with: match.range(at: 1))
+            output.replaceCharacters(in: match.range, with: money(text: digits, currencyCode: "CNY", locale: locale))
+        }
+        return output as String
+    }
+
     static func normalizedCurrency(_ code: String?) -> String {
         let value = (code ?? "").trimmingCharacters(in: .whitespaces).uppercased()
         if value.isEmpty || value == "RMB" { return defaultCurrencyCode }
@@ -188,6 +205,14 @@ public enum LocaleDisplay {
         let number = FloatingPointFormatStyle<Double>(locale: locale).precision(.fractionLength(0...1))
         let style = Measurement<UnitLength>.FormatStyle(width: .abbreviated, locale: locale, usage: .road, numberFormatStyle: number)
         return style.format(Measurement(value: meters, unit: UnitLength.meters))
+    }
+
+    /// i18n r2: argument for a catalog value that no longer spells its unit (`距你 %@` / `%@ away`).
+    /// Chinese gets `zhText`, exactly the number and unit the old key printed, so the CN look is
+    /// byte-identical; other languages get `distance(meters:)` (`0.7 mi`, `500 ft`, `1.2 km`).
+    public static func distanceArgument(meters: Double, zhText: String, locale: Locale) -> String {
+        if isChinese(locale) { return zhText }
+        return distance(meters: meters, locale: locale) ?? zhText
     }
 
     /// True where road distances read in miles (US English). Chinese always reads kilometres.

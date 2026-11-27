@@ -8,7 +8,7 @@ Counts, per App/ file (merchant, fixtures and galleries excluded):
   joinzh    joined(separator: "、") lists                                      -> LocaleDisplay.list
   measure   UnitLength `.measurement(width:)` without `usage:`                  -> add `usage: .road`
 Counts may only go down. `--update` rewrites the baseline after a reduction.
-Also runs the plural ratchet (tools/add_i18n_r1_plurals.py --check).
+Also runs the plural ratchets (tools/add_i18n_r1_plurals.py --check, tools/add_i18n_r2_substitutions.py --check).
 
 Usage: python3 -B tools/check_locale_format.py [--update]
 """
@@ -69,14 +69,20 @@ def main():
                 regressions.append('%s %s %d > %d' % (rel, name, value, allowed))
     plural = subprocess.run([sys.executable, '-B', str(ROOT / 'tools/add_i18n_r1_plurals.py'), '--check'],
                             capture_output=True, text=True)
-    if regressions or plural.returncode:
+    # i18n r2: multi-argument count strings must carry English plural substitutions too.
+    substitutions = subprocess.run([sys.executable, '-B', str(ROOT / 'tools/add_i18n_r2_substitutions.py'), '--check'],
+                                   capture_output=True, text=True)
+    if regressions or plural.returncode or substitutions.returncode:
         for line in regressions:
             print('FAIL locale format: ' + line + ' (use LocaleDisplay; see Core/LocaleDisplay.swift)')
         if plural.returncode:
             print(plural.stdout.strip())
+        if substitutions.returncode:
+            print((substitutions.stdout + substitutions.stderr).strip())
         sys.exit(1)
     now, before = totals(counts), totals(baseline)
-    print('PASS locale format: %s (baseline %s); %s' % (json.dumps(now, sort_keys=True), json.dumps(before, sort_keys=True), plural.stdout.strip()))
+    print('PASS locale format: %s (baseline %s); %s; %s' % (json.dumps(now, sort_keys=True), json.dumps(before, sort_keys=True),
+                                                         plural.stdout.strip(), substitutions.stdout.strip()))
 
 
 if __name__ == '__main__':

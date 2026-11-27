@@ -107,7 +107,7 @@ import QuestifyCore
                 if let session,
                    ReviewedAreaSwitch.moneyPayments(apiHost: session.baseURL.host),
                    !ReleaseMoneyWriteSwitch.blocks(ExternalGameReviewPaths.orders) {
-                    Button(W8Text.t("TEST 解锁购买 (¥\(String(format: "%.2f", Double(cfg.priceFen) / 100.0)))", "TEST Purchase (¥\(String(format: "%.2f", Double(cfg.priceFen) / 100.0)))")) {
+                    Button(W8Text.t("TEST 解锁购买 (\(externalGameMoney(cfg.priceFen)))", "TEST Purchase (\(externalGameMoney(cfg.priceFen)))")) {
                         Task { _ = await model.purchaseGame(gameID: row.gameID, session: session) }
                     }
                     .cyText(.label)
@@ -159,7 +159,7 @@ import QuestifyCore
         switch cfg.pricingMode {
         case "PAID":
             priceText = moneyOn
-                ? W8Text.t("测试价 ", "Test price ") + String(format: "¥%.2f", Double(cfg.priceFen) / 100.0)
+                ? W8Text.t("测试价 ", "Test price ") + externalGameMoney(cfg.priceFen)
                 : W8Text.t("付费（测试）", "Paid (test)")
         case "TRAFFIC_ONLY": priceText = W8Text.t("游玩奖励积分", "Play rewards in points")
         default: priceText = W8Text.t("免费", "Free")
@@ -425,11 +425,11 @@ import QuestifyCore
                 if let summary = model.creatorSummary {
                     Section(W8Text.t("创作者收益概览", "Creator Summary")) {
                         LabeledContent(W8Text.t("付费订单数", "Paid Orders"), value: "\(summary.paidOrders)")
-                        LabeledContent(W8Text.t("净销售分成（测试）", "Sales net (test)"), value: moneyOn ? String(format: "¥%.2f", Double(summary.creatorSalesNetFen) / 100.0) : EditorUnknown.dash)
+                        LabeledContent(W8Text.t("净销售分成（测试）", "Sales net (test)"), value: moneyOn ? externalGameMoney(summary.creatorSalesNetFen) : EditorUnknown.dash)
                         LabeledContent(W8Text.t("有效流量游玩", "Valid Traffic Plays"), value: "\(summary.trafficValidPlays)")
                         LabeledContent(W8Text.t("已结算流量积分", "Traffic Points"), value: "\(summary.trafficSettledPoints)")
                         if summary.payoutGateOpen {
-                            LabeledContent(W8Text.t("流量现金（测试）", "Traffic cash (test)"), value: moneyOn ? String(format: "¥%.2f", Double(summary.trafficSettledFen) / 100.0) : EditorUnknown.dash)
+                            LabeledContent(W8Text.t("流量现金（测试）", "Traffic cash (test)"), value: moneyOn ? externalGameMoney(summary.trafficSettledFen) : EditorUnknown.dash)
                         }
                     }
                 }
@@ -554,4 +554,12 @@ import QuestifyCore
             }
         }
     }
+}
+
+/// i18n r2: creator test prices through the shared money formatter. Chinese stays `¥12.30`;
+/// English reads `CN¥12.30` (the game is priced in CNY). Follows `W8Text`'s language like the copy around it.
+fileprivate func externalGameMoney(_ fen: Int64) -> String {
+    let chinese = Locale(identifier: "zh-Hans")
+    let english = LocaleDisplay.isChinese(Locale.current) ? Locale(identifier: "en_US") : Locale.current
+    return LocaleDisplay.money(fen: Int(fen), locale: W8Text.isChinese ? chinese : english)
 }

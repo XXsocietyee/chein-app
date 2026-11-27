@@ -551,7 +551,8 @@ struct TopicXcxRouteSection: View {
         if stops > 0 { parts.append(appLocalized("topicXcx.routeNote.stops \(stops)", locale: locale)) }
         if let km = topic.totalMileage, km > 0 {
             let value = km.formatted(.number.precision(.fractionLength(0...1)))
-            parts.append(appLocalized("topicXcx.routeNote.walk \(value)", locale: locale))
+            let walk = LocaleDisplay.distanceArgument(meters: km * 1000, zhText: value + " 公里", locale: locale)
+            parts.append(appLocalized("topicXcx.routeNote.walkDistance \(walk)", locale: locale))
         }
         let gifts = TopicXcxFacts.giftStopCount(topic)
         if gifts > 0 { parts.append(appLocalized("topicXcx.routeNote.gifts \(gifts)", locale: locale)) }

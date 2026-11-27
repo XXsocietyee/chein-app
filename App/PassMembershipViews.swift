@@ -86,6 +86,7 @@ enum PassMembershipPhase: Equatable {
 }
 
 struct PassMembershipView: View {
+    @Environment(\.locale) private var locale
     let phase: PassMembershipPhase
     let onRetry: () -> Void
     let onSelectPlan: (String) -> Void
@@ -267,7 +268,7 @@ struct PassMembershipView: View {
             Button { onSelectPlan(plan.code) } label: {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(verbatim: plan.priceText).font(.title3.bold()).monospacedDigit()
+                        Text(verbatim: LocaleDisplay.yuanAmounts(in: plan.priceText, locale: locale)).font(.title3.bold()).monospacedDigit()
                         plan.lineText.font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     }
                     Spacer(minLength: 8)

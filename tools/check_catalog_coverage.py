@@ -115,7 +115,13 @@ def catalog_gaps(tables):
                     if not isinstance(wrapped, dict):
                         continue
                     values = [value for _, value in string_units(wrapped) if isinstance(value, str)]
-                    if 'variations' in wrapped:
+                    if isinstance(wrapped.get('substitutions'), dict) and isinstance(wrapped.get('stringUnit'), dict):
+                        # i18n r2: `%#@name@` stands for one argument; its substitution names the specifier.
+                        specs = specifier_list(wrapped['stringUnit'].get('value'))
+                        specs += ['%' + str(item.get('formatSpecifier', '')) for item in wrapped['substitutions'].values()]
+                        if sorted(key_specs) != sorted(specs):
+                            mismatches.append((table, key, 'format-identifier', lang))
+                    elif 'variations' in wrapped:
                         # i18n r1: each plural form is a complete format string with the key's specifiers.
                         if any(sorted(key_specs) != sorted(specifier_list(value)) for value in values):
                             mismatches.append((table, key, 'format-identifier', lang))

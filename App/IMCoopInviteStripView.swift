@@ -143,7 +143,7 @@ import SwiftUI
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
             if let line = card.message ?? card.termsLine(chinese: chinese) {
-                Text(verbatim: line)
+                Text(verbatim: LocaleDisplay.yuanAmounts(in: line, locale: locale))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .lineLimit(2)

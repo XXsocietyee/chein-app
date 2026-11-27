@@ -24,9 +24,6 @@
     "App/E1CommerceComponents.swift": {
       "yuan": 4
     },
-    "App/ExternalGameReviewScreens.swift": {
-      "yuan": 3
-    },
     "App/GrowthCenterView.swift": {
       "unit": 1
     },
@@ -61,7 +58,7 @@
       "yuan": 1
     },
     "App/PublisherLifecycleViews.swift": {
-      "yuan": 4
+      "yuan": 3
     },
     "App/PublishingModesViews.swift": {
       "joinzh": 1,
@@ -88,6 +85,6 @@
     "measure": 1,
     "pattern": 6,
     "unit": 13,
-    "yuan": 19
+    "yuan": 15
   }
 }
