@@ -38,6 +38,18 @@ Sweep `docs/sweeps/latest` (build 070117595) was taken under build load (coordin
 | 13 | `subpackageRoam` roam-place-card (photo → facts → 导航/分享 row; activity time section) → `NativeR2/MapHome/RoamMapHomePlaceCard.swift` | Activity / search-activity start and end showed raw server text "2026-12-01 10:00:00" in English; the action row (primary · Navigate · View details · Share, caption labels) is one `HStack` that cannot fit four English captions at accessibility sizes | Dates → `LocaleDisplay.civil` (English "Dec 1, 2026 at 10:00 AM"; Chinese keeps the MP text unchanged). Action row → `AnyLayout`: `HStackLayout` as before, `VStackLayout` at accessibility sizes, same buttons and order | Done |
 | 14 | Raw server timestamps on player screens: topic reviews (`TopicReviewsContent.swift`), activity reviews (`ActivityReviewsSection.swift`), ticket pass present date (`TicketPassPresentView.swift`), order row fallback date (`ProfileOrdersView.swift` `ProfileOrderRow`), wallet ledger timestamp + withdrawal time (`WalletCommerceViews.swift`), club post time (`ClubPostDiscussion.swift`) | English showed "2026-10-01 14:30:00" as the server sent it | `LocaleDisplay.civil(_, locale:)` (same helper as Growth / badges / club editions): English "Oct 1, 2026 at 2:30 PM"; Chinese and unparsable/relative text unchanged (MP parity). Pins `test_topic_reviews.py` / `test_activity_reviews.py` updated to the new token (reason inline) | Done |
 
+### Run 4 (2026-11-27, hourly)
+
+Sweep `docs/sweeps/latest` en sheets (build 070117595): `mp-mine/sheet-en.jpg` (`en-t5-order-center`), `mp-journey/sheet-en.jpg` (`en-t5-free-explore`), `mp-home/sheet-en.jpg` (`en-rep3-activity-detail`).
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 15 | `subpackageMember/orderinfo` order-center-entry → `OrderCenterEntryView.swift` | `en-t5-order-center`: Created read the raw server text "2026-11-14 10:00" | `LocaleDisplay.civil(created, locale:)` → "Nov 14, 2026 at 10:00 AM"; Chinese unchanged. Status "已支付" and title are server text in the CN-market fixture (doc comment: status shown as sent); not changed | Done |
+| 16 | Me 帖文 tab club posts (MP `MM-dd HH:mm` slice) → `AccountPublishR8Mounts.swift` `OwnProfileClubPostsSection` | English showed the MP slice "10-21 10:00" (reads as a range / day-month) | English: `LocaleDisplay.civil(post.createTime)`; Chinese keeps the MP slice (pinned by `AccountPublishMPContractTests`) | Done |
+| 17 | `pages/activity/*` detail hero live line → `NativeR2/Explore/ExploreDesignPass.swift` `ExploreStartsInLine` | `en-rep3-activity-detail`: "In progress · Ends in Ended" on an event that ended Nov 21. The explicit `TimelineView` hands back a past entry date, so the line thought the event was running while the inner countdown (real clock) said Ended | The line compares against `max(context.date, Date())`; an ended event shows no live line (as designed). Shared component (Home / Explore cards too) | Done |
+| 18 | `pages/play/free-explore` → `FreeExploreBundleLaunchView.swift:60` | `en-t5-free-explore`: "1 chapters ready to book" | English singular "1 chapter ready to book" | Done |
+| 19 | City deed card (City tab) → `CityKit/CityDeedCard.swift:446` | "1 points per visit" | English singular form | Done |
+
 ## Not done
 
 | Item | Why |
@@ -49,6 +61,7 @@ Sweep `docs/sweeps/latest` (build 070117595) was taken under build load (coordin
 Topic route stop address (1 line at AX sizes); ticket/order currency formats in English; Club home checked (tabs already adaptive, `ClubDetailTabBar.swift`).
 
 ## For other lanes
+- mp-journey / mp-nav: City root entry reads "CITY ownership and original receipts" (`cityAcquire.entry`, all-caps CITY also in zh) — confirm CITY is the intended product name.
 - `Tests/ContractChecks/check_wallet_earnings_overview.py` fails (2) on `ui/combined-r7` before any en-layout change (debt-r3).
 
 ## Gates

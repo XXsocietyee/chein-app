@@ -627,6 +627,7 @@ struct TemplateIntroFloatingCover: ViewModifier {
 /// nothing, as on the MP (the community list owns the empty / error state).
 @MainActor struct OwnProfileClubPostsSection: View {
     @State private var posts: [AccountPublishMPContract.ClubFeedPost] = []
+    @Environment(\.locale) private var locale
 
     var body: some View {
         Section {
@@ -652,7 +653,7 @@ struct TemplateIntroFloatingCover: ViewModifier {
                     .font(.subheadline).foregroundStyle(.secondary)
                 Spacer()
                 if !post.formattedCreateTime.isEmpty {
-                    Text(verbatim: post.formattedCreateTime).font(.subheadline).foregroundStyle(.tertiary)
+                    Text(verbatim: LocaleDisplay.isChinese(locale) ? post.formattedCreateTime : LocaleDisplay.civil(post.createTime, locale: locale)).font(.subheadline).foregroundStyle(.tertiary)
                 }
             }
             if !post.content.isEmpty {
