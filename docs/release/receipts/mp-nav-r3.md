@@ -148,6 +148,13 @@ Test: Tests/CoreTests/IMExpandedTests.swift `testSystemCardMiniProgramPagesOpen`
 | pages/shezhi/shezhi (plain) → SettingsView | own `NavigationStack` + 完成 on the landed push | not changed: SettingsView's route owners retire on disappear and its profile routes use `navigationDestination(for:)` on the inner stack (see Open) | open |
 | `login-player`, `d2-inbox` tiles | still show 微信登录 / "Fixture conversation N": sweep build a250afd77 predates 81a815048 / 9723767a1 (not yet in `ui/combined-r7`) | — | OK (pending merge) |
 
+## Re-scan 11-27 21:0x (20:55 sweep row, mp-nav en)
+
+| MP page / edge → native | finding | change | status |
+|---|---|---|---|
+| pages/login → App/LoginView.swift (`login-player` en, sweep bb76e327c) | dead row "This isn't switched on yet." (`auth.notConfigured`, shown when no API base URL) under the sign-in buttons | row removed (P27: a gated channel renders nothing); the phone page itself still reports the unconfigured error when tapped. `region.usLoginPending` kept: it is the US regional notice, not a dead channel (RegionalEntryFlowTests) | fixed |
+| same screen, channel order | Sign in with Apple sat above phone sign-in and demoted the phone button to `.bordered` | phone sign-in first and always the one `.borderedProminent` action (no password form); Apple's `SignInWithAppleButton` under it only when `appleConfigurationVerified` (gated → nothing); WeChat row after, only when offered | fixed |
+
 ## Route coverage
 
 All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScreen cases or `MPParityDestination`), except four pages that are parsed (`Core/MiniProgramPageLink.swift`) but have no native screen case: `pages/playkit/index/index`, `pages/publishkit/index/index` (MP kit galleries), `pages/crop/index` (MP image-crop utility) and `subpackageP3/pages/badge-3d/index` (MP 3D badge viewer). No native player control links to them; left for the coordinator to confirm they stay unrouted.
