@@ -17,9 +17,20 @@ public struct OrientScoreLeaderboardSheetView: View {
         self.onClose = onClose
     }
 
+    // NAT-R11-2: plain navigation bar with a system close button (MP orient-score/index.wxml cy-sheet).
     public var body: some View {
-        VStack(spacing: 0) {
-            CYSheetHeader(title: Text("orientScore.board.title"), style: .player, onClose: onClose)
+        NavigationStack {
+            boardContent
+                .navigationTitle(Text("orientScore.board.title"))
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose) }
+                }
+        }
+        .presentationDetents([.medium, .large])
+    }
+
+    @ViewBuilder private var boardContent: some View {
             if rows.isEmpty {
                 ContentUnavailableView("orientScore.board.empty", systemImage: "list.number")
             } else {
@@ -37,8 +48,6 @@ public struct OrientScoreLeaderboardSheetView: View {
                 }
                 .listStyle(.insetGrouped)
             }
-        }
-        .presentationDetents([.medium, .large])
     }
 
     private func rowView(_ row: OrientScoreLeaderboardItem) -> some View {
@@ -83,9 +92,20 @@ public struct OrientScoreAppealSheetView: View {
         self.onClose = onClose
     }
 
+    // NAT-R11-2: plain navigation bar with a system close button (MP orient-score/index.wxml cy-sheet).
     public var body: some View {
-        VStack(spacing: 0) {
-            CYSheetHeader(title: kind == .appeal ? Text("orientScore.review.appeal") : Text("orientScore.review.dispute"), style: .player, onClose: onClose)
+        NavigationStack {
+            appealForm
+                .navigationTitle(kind == .appeal ? Text("orientScore.review.appeal") : Text("orientScore.review.dispute"))
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose) }
+                }
+        }
+        .presentationDetents([.medium, .large])
+    }
+
+    private var appealForm: some View {
             Form {
                 if entryID != nil {
                     Section {
@@ -129,13 +149,11 @@ public struct OrientScoreAppealSheetView: View {
                         let parsedNode = entryID == nil ? Int(nodeIDText.trimmingCharacters(in: .whitespacesAndNewlines)) : nil
                         onSubmit(parsedNode, reason.trimmingCharacters(in: .whitespacesAndNewlines))
                     }
-                    .buttonStyle(.cyPrimary)
+                    .buttonStyle(.borderedProminent)
                     .frame(maxWidth: .infinity)
                     .disabled(isBusy || !OrientAppealValidator.isValid(kind: kind, entryID: entryID, nodeIDText: nodeIDText, reason: reason))
                 }
             }
-        }
-        .presentationDetents([.medium, .large])
     }
 }
 

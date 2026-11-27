@@ -6736,7 +6736,7 @@ final class AppSession: ObservableObject {
                 })
         })
     }
-    private var currentOwnedOrderSession: OwnedOrderReadSession? {
+    var currentOwnedOrderSession: OwnedOrderReadSession? {
         guard let context = currentRuntimeDependencyContext,
               let approval = composition.ownedOrderReadApproval(context), approval.matches(context) else { return nil }
         return .init(context: context, viewerRevision: compositionViewerRevision, approvalRevision: approval.revision)
