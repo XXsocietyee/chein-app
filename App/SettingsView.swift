@@ -2,6 +2,9 @@ import SwiftUI
 
 struct SettingsView: View {
     var onOpenGuideDestination: ((SocialGuideDestination) -> Void)? = nil
+    /// mp-nav r3: true when the page is pushed onto a host stack (a pages/shezhi/shezhi link landing on 首页):
+    /// no second stack, no 完成 (system back), and the profile row pushes by view, since the host path is `[AppRoute]`.
+    var isPushed: Bool = false
     @EnvironmentObject private var session: AppSession
     @StateObject private var profileOwner = ProfileSettingsProfileOwner()
     @State private var favoritesOwner = ProfileSettingsFavoritesOwner()
@@ -54,9 +57,18 @@ struct SettingsView: View {
             if showsAccountCard, let info = accountInfo {
                 if let route = profileOwner.route(.current(session)) {
                     // MP shezhi.wxml:14: the merchant row (品牌中心) carries icon_lc_store; players keep the initial avatar.
-                    NavigationLink(value: route) { SettingsAccountCard(nickname: info.nickname, level: info.level, tappable: true,
-                                                                       brandMark: route.access.target == .brand) }
+                    if !isPushed {
+                        NavigationLink(value: route) { SettingsAccountCard(nickname: info.nickname, level: info.level, tappable: true,
+                                                                           brandMark: route.access.target == .brand) }
+                            .accessibilityIdentifier("settingsNative.openProfile")
+                    } else {
+                        NavigationLink {
+                            ProfileSettingsProfileSessionDestination(session: session, route: route, owner: profileOwner)
+                        } label: {
+                            SettingsAccountCard(nickname: info.nickname, level: info.level, tappable: true, brandMark: route.access.target == .brand)
+                        }
                         .accessibilityIdentifier("settingsNative.openProfile")
+                    }
                 } else {
                     SettingsAccountCard(nickname: info.nickname, level: info.level, tappable: false)
                 }
@@ -191,7 +203,7 @@ struct SettingsView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        SettingsPageStack(embedded: !isPushed) {
             Group {
             if !query.trimmingCharacters(in: .whitespaces).isEmpty {
                 SettingsSearchResults(query: query, session: session, language: language)
@@ -304,8 +316,10 @@ struct SettingsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .cyHideTabBar()
             .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("action.done") { dismiss() }
+                if !isPushed {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("action.done") { dismiss() }
+                    }
                 }
             }
         }
@@ -317,11 +331,23 @@ struct SettingsView: View {
 #endif
         }
         .onChange(of: session.account?.id) { _, _ in Task { await refreshAccountProfile() } }
-        .onDisappear { profileOwner.retire() }
+        .onDisappear {
+            // Pushed: onDisappear also fires when a row pushes on top; the owner leaves with the page when it is popped.
+            if !isPushed { profileOwner.retire() }
+        }
         .themeDomain(.player)
         .modifier(ProfileSettingsFavoritesLifecycle(session: session, owner: favoritesOwner))
         // Explicitly update sheets as well as the app root when preference changes.
         .modifier(AppLanguageEnvironment(stored: storedLanguage))
+    }
+}
+
+/// Settings in a sheet owns its stack; pushed onto a host stack it does not (no nested bar).
+private struct SettingsPageStack<Content: View>: View {
+    let embedded: Bool
+    @ViewBuilder var content: Content
+    var body: some View {
+        if embedded { NavigationStack { content } } else { content }
     }
 }
 

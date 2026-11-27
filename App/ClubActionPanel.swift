@@ -56,6 +56,8 @@ struct ClubActionPanel: View {
         Group {
         if placement == .pageEnd {
             pageEndSection
+        } else if placement == .floating {
+            floatingBar
         } else if ownerHasNothingToDo(state) {
             // Club/Header (skill-r2 `204:24899`): the creator's role is a tag in the header, so the
             // 成员身份 group would only repeat 创建者不能退出自己的俱乐部. Nothing to act on, nothing drawn.
@@ -96,7 +98,7 @@ struct ClubActionPanel: View {
                         }
                         // A settled join or apply keeps the chip. Do not offer that action again.
                         if rewardAction != action {
-                            confirmationPresenter(membershipButton(action, state: state))
+                            membershipRow(action, state: state)
                         }
                     } else {
                         Text(LocalizedStringKey(availabilityKey)).foregroundStyle(.secondary)
@@ -200,7 +202,9 @@ struct ClubActionPanel: View {
         // A Settings-style row action: 退出 reads in the system red (destructive role); 加入 / 申请 in the tint.
         // The 处理中 progress row below shows the in-flight state.
         if action == .leave {
-            if !leavesAtPageEnd { button }
+            if !leavesAtPageEnd && placement != .floating { button }
+        } else if placement == .floating {
+            button.buttonStyle(.borderedProminent).buttonBorderShape(.capsule).controlSize(.large)
         } else {
             button
         }
@@ -248,6 +252,102 @@ struct ClubActionPanel: View {
         guard case .owner = availability, state == .idle, rewardAction == nil, !isWorking, issueKey == nil,
               coordinator.identity == identity, identity.isSignedIn, coordinator.isConfigured else { return false }
         return true
+    }
+    /// MP detail wxml:1028-1036 (owner 2026-10-22): a non-member sees one 加入 / 申请加入 capsule at the bottom right of
+    /// 概览, or the greyed 等待主理人审核; guests sign in first (js:2531). P17: the sticky primary action. Status, the
+    /// 申请留言 field (the MP asks it in the join modal, js:2537-2548) and errors sit in one material card above it.
+    @ViewBuilder private var floatingBar: some View {
+        let state = coordinator.state(clubID: club.id)
+        let signedIn = coordinator.identity == identity && identity.isSignedIn
+        VStack(alignment: .trailing, spacing: CYSpacing.sm) {
+            if !signedIn {
+                if let onSignIn, !club.isJoined, !club.isOwner {
+                    Button(action: onSignIn) {
+                        Label(LocalizedStringKey(actionKey(club.needsApproval ? .apply : .join)), systemImage: "person.badge.plus")
+                    }
+                    .buttonStyle(.borderedProminent).buttonBorderShape(.capsule).controlSize(.large)
+                    .accessibilityIdentifier("club.action.signIn")
+                }
+            } else {
+                if floatingShowsCard(state) {
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        CYScreenOfflineWriteBanner(
+                            routes: ["/api/club/join", "/api/club/quit"],
+                            session: offlineWriteSession.session
+                        )
+                        stateContent(state)
+                        if !coordinator.isConfigured {
+                            Text("club.action.unavailable").foregroundStyle(.secondary)
+                        }
+                        if let reward = rewardAction, reward != .leave {
+                            Label(LocalizedStringKey(reward == .apply ? "club.membership.pending" : "club.membership.joined"),
+                                  systemImage: reward == .apply ? "clock" : "checkmark.circle.fill")
+                                .foregroundStyle(reward == .apply ? Color.orange : Color.green)
+                        }
+                        if showsApplyMessage() {
+                            TextField(text: $joinMessage, axis: .vertical) {
+                                Text("club.admission.messageLabel", tableName: "ClubApplicationMessage")
+                            }
+                                .lineLimit(1...3)
+                                .disabled(isWorking || state.preventsNewAction)
+                                .accessibilityIdentifier("club.application.message")
+                            Text("club.application.messageHelp").font(.footnote).foregroundStyle(.secondary)
+                            if !ClubApplicationMessage.isValid(joinMessage, for: .apply) {
+                                Group {
+                                    if ClubApplicationMessage.isMissingRequiredMessage(joinMessage) {
+                                        Text("club.admission.messageRequired", tableName: "ClubApplicationMessage")
+                                    } else {
+                                        Text("club.application.messageTooLong")
+                                    }
+                                }
+                                .font(.footnote).foregroundStyle(.secondary)
+                                .accessibilityIdentifier("club.application.messageTooLong")
+                            }
+                        }
+                        if isWorking { ProgressView("club.action.working").accessibilityIdentifier("club.action.loading") }
+                        if let issueKey { Text(LocalizedStringKey(issueKey)).foregroundStyle(.secondary).accessibilityIdentifier("club.action.error") }
+                        if !rewardPlaying, floatingGatedText {
+                            Text(LocalizedStringKey(availabilityKey)).foregroundStyle(.secondary)
+                                .accessibilityIdentifier("club.action.gated")
+                        }
+                    }
+                    .padding(CYSpacing.md)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.regularMaterial, in: .rect(cornerRadius: CYRadius.lg))
+                }
+                if !rewardPlaying, coordinator.isConfigured, case .available(let action) = availability,
+                   action != .leave, rewardAction != action {
+                    membershipRow(action, state: state)
+                } else if !rewardPlaying, availability == .pending {
+                    // MP join-btn--pending: the greyed, disabled 等待主理人审核 capsule.
+                    Button {} label: { Text(LocalizedStringKey(availabilityKey)) }
+                        .buttonStyle(.borderedProminent).buttonBorderShape(.capsule).controlSize(.large)
+                        .disabled(true)
+                        .accessibilityIdentifier("club.action.gated")
+                }
+            }
+        }
+        .padding(.horizontal, CYSpacing.lg)
+        .padding(.bottom, CYSpacing.sm)
+        .onChange(of: identity) { _, _ in reset() }
+        .onChange(of: club.id) { old, _ in reset(clubID: old) }
+        .onDisappear { reset() }
+    }
+    /// The merchant / unknown-status line; pending is the disabled capsule, and a member or the owner has nothing here.
+    private var floatingGatedText: Bool {
+        switch availability {
+        case .merchant, .unsupportedStatus: return true
+        case .owner, .available, .pending: return false
+        }
+    }
+    private func floatingShowsCard(_ state: ClubActionState) -> Bool {
+        if state != .idle || !coordinator.isConfigured || isWorking || issueKey != nil { return true }
+        if let reward = rewardAction, reward != .leave { return true }
+        return showsApplyMessage() || (!rewardPlaying && floatingGatedText)
+    }
+    /// Header and floating placements share the one membership row and its one confirmation presenter.
+    @ViewBuilder private func membershipRow(_ action: ClubAction, state: ClubActionState) -> some View {
+        confirmationPresenter(membershipButton(action, state: state))
     }
     private var availabilityKey: String {
         switch availability {
@@ -359,7 +459,7 @@ struct ClubActionPanel: View {
     }
 }
 
-enum ClubActionPlacement { case header, pageEnd }
+enum ClubActionPlacement { case header, pageEnd, floating }
 
 /// Consequence rows of the quit-club confirmation (mini-program `pages/club/detail` quit dialog).
 enum ClubLeaveConsequences {

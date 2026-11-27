@@ -16,8 +16,8 @@
     "zh-Hans": "重试"
   },
   "creatorContent.loading": {
-    "en": "Loading",
-    "zh-Hans": "正在加载"
+    "en": "Loading…",
+    "zh-Hans": "正在加载…"
   },
   "creatorContent.empty": {
     "en": "No published content",

@@ -26,10 +26,37 @@ import SwiftUI
         self.id = id; _model = StateObject(wrappedValue: OrderLifecycleScreenModel(coordinator: coordinator))
     }
     private var coordinator: OrderLifecycleCoordinator { model.coordinator }
+    @Environment(\.profileReadSignIn) private var signIn
+    /// A first read that failed with nothing on screen: the MP shows one cy-empty with the reason and 重试.
+    private func showsLoadFailureState(_ issue: OrderLifecycleCoordinatorIssue) -> Bool {
+        guard coordinator.detail?.id != id, !coordinator.isLoading else { return false }
+        switch issue {
+        case .network, .failure, .malformed, .unavailable: return true
+        default: return false
+        }
+    }
+    private var signedOutState: some View {
+        var layout = CYStateLayout(kind: .generic, title: Text("orderLifecycle.unavailableTitle"))
+        layout.detail = Text("orderLifecycle.issue.login")
+        if let signIn {
+            layout.primary = (title: LocalizedStringKey("auth.signIn"), action: signIn)
+            layout.primaryStyle = .primary
+        }
+        return layout.accessibilityIdentifier("orderLifecycle.signIn")
+    }
+    private func loadFailureState(_ issue: OrderLifecycleCoordinatorIssue) -> some View {
+        let title: Text
+        if let message = coordinator.serverMessage, !message.isEmpty { title = Text(verbatim: message) }
+        else { title = Text(LocalizedStringKey("orderLifecycle.issue." + issue.rawValue)) }
+        var layout = CYStateLayout(kind: issue == .network ? .offline : .failure, title: title)
+        layout.primary = (title: LocalizedStringKey("orderLifecycle.retry"), action: { Task { await model.load(id: id) } })
+        layout.primaryIdentifier = "orderLifecycle.retry"
+        return layout.accessibilityIdentifier("orderLifecycle.issue")
+    }
     var body: some View {
         List {
             if coordinator.isOfflineExample { Text("orderLifecycle.offline").font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("orderLifecycle.offline") }
-            if let issue = coordinator.issue {
+            if let issue = coordinator.issue, coordinator.accountID != nil, !showsLoadFailureState(issue) {
                 Section {
                     Label {
                         if let serverMessage = coordinator.serverMessage, !serverMessage.isEmpty { Text(verbatim: serverMessage) }
@@ -44,12 +71,17 @@ import SwiftUI
                     if let row = RequestReferenceRow(pathFragment: "/api/registration/") { row }
                 }
             }
-            if coordinator.accountID == nil { Text("orderLifecycle.issue.login") }
-            else if coordinator.isLoading {
+            if coordinator.accountID == nil {
+                // mp-states r3 (MP scene-member-order-detail wxml:12-13): 订单暂不可查看 · why · 登录.
+                signedOutState.listRowBackground(Color.clear)
+            } else if coordinator.isLoading {
                 ProgressView { Text("orderLifecycle.loading") }.frame(maxWidth: .infinity)
             }
             else if let detail = coordinator.detail, detail.id == id {
                 acceptedDetail(detail)
+            } else if let issue = coordinator.issue, showsLoadFailureState(issue) {
+                // mp-states r3 (MP scene-member-order-detail wxml:11): cy-empty title = load error · 重试 inside.
+                loadFailureState(issue).listRowBackground(Color.clear)
             } else if coordinator.issue == nil {
                 // No accepted detail and no issue: unknown, never an empty order or a zero amount.
                 Text(verbatim: OrderInfoPageModel.unknownMark).font(.title3).foregroundStyle(.tertiary)
