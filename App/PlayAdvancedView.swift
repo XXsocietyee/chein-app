@@ -33,7 +33,8 @@ import SwiftUI
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.offlineWriteSession) private var offlineWriteSession
-    @AppStorage(PlatformBGMPreference.storageKey) private var stationBGMOn = PlatformBGMPreference.defaultValue
+    /// Read once per station open; the 背景音乐 toggle lives on the play page, which owns the stored preference.
+    private var stationBGMOn: Bool { PlatformBGMPreference.isEnabled(in: .standard) }
     @ViewBuilder var body: some View {
         Group {
             if !model.hasCurrentReadLifetime { Text("playMode.recoveryBlocked") }
