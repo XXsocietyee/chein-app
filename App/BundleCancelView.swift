@@ -118,13 +118,8 @@ import SwiftUI
 
     private func loading(_ label: String) -> some View {
         Section {
-            HStack(spacing: CYSpacing.sm) {
-                ProgressView()
-                Text(verbatim: label)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .accessibilityElement(children: .combine)
+            ProgressView { Text(verbatim: label) }
+                .frame(maxWidth: .infinity)
         }
     }
 }

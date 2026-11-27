@@ -9,7 +9,7 @@ import SwiftUI
         List {
             switch model.state {
             case .idle, .loading where model.items.isEmpty:
-                ProgressView()
+                ProgressView { Text("cy.state.loading") }
                     .frame(maxWidth: .infinity)
                     .listRowBackground(Color.clear)
             case .unavailable:

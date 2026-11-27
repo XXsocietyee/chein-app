@@ -48,7 +48,10 @@ import Observation
     private let social: ProfileSelfMedalsFixturePublicReader
     private let reader: ProfileSelfMedalsFixtureReader
     private let memberID: Int
-    init(scenario:String="content") {
+    /// The design sweep (`e4-self-medals`) shows the player screen only; UI tests keep the read counter and retire control.
+    private let showsTestControls: Bool
+    init(scenario:String="content", showsTestControls:Bool=true) {
+        self.showsTestControls=showsTestControls
         let social=ProfileSelfMedalsFixturePublicReader(),reader=ProfileSelfMedalsFixtureReader(scenario)
         if scenario == "guest" { social.identity = .init(accountID:nil,epoch:1);reader.identity=nil }
         self.social=social;self.reader=reader;memberID=scenario == "other" ? 92 : 81
@@ -57,6 +60,7 @@ import Observation
         NavigationStack {
             SocialPublicProfileView(memberID:memberID,reader:social,squareReader:social,selfMedalsReader:reader)
                 .safeAreaInset(edge:.bottom) {
+                    if showsTestControls {
                     VStack {
                         Text(verbatim:"Medal reads: \(reader.reads)").accessibilityIdentifier("profile.selfMedalsFixture.reads")
                         Button("Retire synthetic account") {
@@ -64,6 +68,7 @@ import Observation
                             reader.identity = .init(accountID:82,epoch:2)
                         }.accessibilityIdentifier("profile.selfMedalsFixture.retire")
                     }.cyText(.meta)
+                    }
                 }
         }
     }

@@ -59,7 +59,7 @@ struct ChannelRedeemSheet: View {
                 }
             }
         case .loading:
-            ProgressView()
+            ProgressView { Text("cy.state.loading") }
                 .frame(maxWidth: .infinity)
                 .accessibilityIdentifier("channelRedeem.loading")
         case .unavailable:
