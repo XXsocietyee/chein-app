@@ -66,7 +66,7 @@ APIs (`MeshGradient`, `.symbolEffect(.wiggle)`) are behind `#available(iOS 18, *
 
 ## Gates
 `python3 tools/generate_project.py` run for the 6 new files. `check_scaffold.py` PASS structural checks;
-`check_a11y_lint.py` PASS (0 new); `contract_ratchet.py --check`: see the commit message.
+`check_a11y_lint.py` PASS (0 new); `contract_ratchet.py --check`: 104 failing, baseline 105, **new 0** (1 unrelated now-passing: `test_profile_read_failure_remote_admission`, left for the coordinator's `--update`). Typography, design and raw-colour lints clean (no fixed font sizes, no purple, no `Color(...)` in the new files).
 
 ## Compile risks to look at first
 - `MotionR2PermissionSheetHost`: `.sheet(isPresented:)` presented from the root of a fresh `UIHostingController`
