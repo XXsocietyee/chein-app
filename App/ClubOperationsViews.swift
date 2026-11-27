@@ -16,6 +16,8 @@ struct ClubDissolvedReturn {
     let leave: @MainActor () -> Void
     /// mp-club r3 pass 10 (MP utils/danger-actions.js `club.dissolve` title 解散「name」？): the club name for the confirm.
     var clubName: String? = nil
+    /// mp-club r3 pass 17 (MP danger-actions `club.dissolve.alt`): 改为转让主理人 inside the dissolve confirm opens 成员治理.
+    var transferInstead: (() -> Void)? = nil
 }
 private struct ClubDissolvedReturnKey: EnvironmentKey {
     static let defaultValue: ClubDissolvedReturn? = nil
@@ -108,6 +110,7 @@ struct ClubOperationsWorkspaceView: View {
     @StateObject private var createStepBar = ClubCreateStepBar()
     @Environment(\.scenePhase) private var scenePhase
     @State private var snapshot: ClubOperationsSnapshot?
+    @State private var transferInsteadShown = false
     @State private var draft = ClubOperationsDraft()
     @State private var baseline = ClubOperationsDraft()
     @State private var state: ClubOperationsState = .idle
@@ -520,18 +523,17 @@ struct ClubOperationsWorkspaceView: View {
                     ClubGovernanceReadView(operation: .dissolutionBlockers, scope: .init(clubID: profile.club.id), identity: identity,
                         access: governance.access, coordinator: governance.coordinator)
                         .environment(\.clubProfileDraftFlow, profileDraft)
-                        .environment(\.clubDissolvedReturn, ClubDissolvedReturn(leave: { dismiss() }, clubName: profile.club.name))
+                        .environment(\.clubDissolvedReturn, ClubDissolvedReturn(leave: { dismiss() }, clubName: profile.club.name,
+                            transferInstead: { transferInsteadShown = true }))
+                        // mp-club r3 pass 17 (MP scene-club-edit 危险操作 + danger-actions `club.dissolve.alt`, edit js:35-39
+                        // goGovernance): 改为转让主理人 is the dissolve confirm's lighter alternative, not a permanent row here.
+                        .navigationDestination(isPresented: $transferInsteadShown) {
+                            ClubGovernanceReadView(operation: .bans, scope: .init(clubID: profile.club.id), identity: identity,
+                                access: governance.access, coordinator: governance.coordinator)
+                        }
                 } label: { Label("club.ops.dissolve", systemImage: "trash").foregroundStyle(.red) }
                     .disabled(loading || state.locksForm)
                     .accessibilityIdentifier("club.ops.dissolve")
-                // CLB-G19 (r9, MP edit js:35-39 goGovernance; scene-club-edit wxml:206 alt): 改为转让主理人 next to 解散
-                // opens the governance manage page (pages/club/governance/index?clubId=…), where the transfer lives.
-                NavigationLink {
-                    ClubGovernanceReadView(operation: .bans, scope: .init(clubID: profile.club.id), identity: identity,
-                        access: governance.access, coordinator: governance.coordinator)
-                } label: { Label("改为转让主理人", systemImage: "person.crop.circle.badge.checkmark") }
-                    .disabled(loading || state.locksForm)
-                    .accessibilityIdentifier("club.ops.transferInstead")
             } header: {
                 // CLB-edit-02 (parity r2): MP 危险操作 section with its consequence beside the button.
                 Text("club.ops.danger")
