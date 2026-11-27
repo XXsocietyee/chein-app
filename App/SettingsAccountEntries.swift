@@ -17,9 +17,20 @@ import SwiftUI
     var body: some View {
         if let profile, SettingsIdentityApplications.isOffered(toRole: profile.role, isClubLeader: profile.isClubLeader) {
             Section {
+                // One row pattern in Settings (OWNER RULE 2, 18:15 sweep): icon + title + chevron in the primary colour,
+                // as the 成为商家 link below and the search-result button rows in SettingsView, not tinted button text.
                 Button {
                     openClubHost(isClubLeader: profile.isClubLeader)
-                } label: { Label { Text("settings.becomeClubHost") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconFlagBlue) } }
+                } label: {
+                    HStack {
+                        Label { Text("settings.becomeClubHost") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconFlagBlue) }
+                        Spacer(minLength: 0)
+                        if loadingClubs { ProgressView() }
+                        else { Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary) }
+                    }
+                    .contentShape(Rectangle())
+                }
+                    .foregroundStyle(.primary)
                     .disabled(loadingClubs)
                     .accessibilityIdentifier("settings.becomeClubHost")
                 if PlayerLaunch.merchantCenterEnabled { // Lane G: 成为商家 (merchant onboarding) is hidden in Release
