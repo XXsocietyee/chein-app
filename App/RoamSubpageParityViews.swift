@@ -459,7 +459,7 @@ struct RoamPOIMissingView: View {
             Button {
                 Task { await send() }
             } label: { Text(LocalizedStringKey(working ? "roamSub.w208.stamp.sending" : "roamSub.w208.stamp.send")).frame(maxWidth: .infinity, minHeight: 44) }
-                .buttonStyle(.questifyPrimary).disabled(!canSend && fixtureReceipt == nil)
+                .buttonStyle(.borderedProminent).disabled(!canSend && fixtureReceipt == nil)
                 .accessibilityIdentifier("roamSub.w208.stamp.send")
             if failed { Text("roamSub.w208.stamp.retry").cyText(.bodyCompact).foregroundStyle(.red).accessibilityIdentifier("roamSub.w208.stamp.failed") }
             if exchange == nil && fixtureReceipt == nil && !RoamExperienceCapabilities.stampExchange {
