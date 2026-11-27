@@ -92,9 +92,7 @@ import SwiftUI
             .cyAdaptiveSegmented()
             .accessibilityIdentifier("club.calendar.mode")
             if model.loading {
-                ProgressView()
-                    .frame(maxWidth: .infinity)
-                    .accessibilityIdentifier("club.calendar.loading")
+                CYLoadingState(messageIdentifier: "club.calendar.loading")
             }
             if let failure = model.failure {
                 Label { Text(LocalizedStringKey(failure.localizationKey)) } icon: { Image(systemName: "exclamationmark.triangle") }

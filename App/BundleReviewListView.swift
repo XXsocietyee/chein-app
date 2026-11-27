@@ -8,8 +8,7 @@ import SwiftUI
         List {
             switch model.state {
             case .idle, .loading where model.items.isEmpty:
-                ProgressView()
-                    .frame(maxWidth: .infinity)
+                CYLoadingState()
                     .listRowBackground(Color.clear)
             case .unavailable:
                 ContentUnavailableView {

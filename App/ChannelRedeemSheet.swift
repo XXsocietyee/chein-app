@@ -59,9 +59,7 @@ struct ChannelRedeemSheet: View {
                 }
             }
         case .loading:
-            ProgressView()
-                .frame(maxWidth: .infinity)
-                .accessibilityIdentifier("channelRedeem.loading")
+            CYLoadingState(messageIdentifier: "channelRedeem.loading")
         case .unavailable:
             Text("channelRedeem.unavailable").accessibilityIdentifier("channelRedeem.unavailable")
         case .expired:
