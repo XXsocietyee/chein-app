@@ -146,7 +146,8 @@ private struct MessagingConversationListView: View {
             MessagingHistoryView(conversationID: id, reader: reader, sender: senderForConversation?(id), mediaReader: mediaReader, expanded: expanded,
                 onConversationMutationAccepted: conversationInvalidation(for: id))
         }
-        .cySheet(isPresented: $showsSquare) {
+        // mp-nav r3: MP im/list onEmptyCta leaves the inbox for a feed page (switchTab, not a popup): push it with system back.
+        .navigationDestination(isPresented: $showsSquare) {
             if let squareDestination { squareDestination { showsSquare = false } }
         }
         .cySheet(item: $rowAction) { presentation in
