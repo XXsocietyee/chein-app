@@ -253,6 +253,8 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
     let showsCloseButton: Bool
     @Environment(\.dismiss) private var dismiss
     @State private var agreement = false
+    /// a11y-dt r3: the initial grows with Dynamic Type instead of clipping in a fixed 36 pt tile.
+    @ScaledMetric(relativeTo: .body) private var merchantMarkSide: CGFloat = 36
     @State private var document: SettingsLegalDocument?
     @State private var code = ""
     @State private var cancelReview = false
@@ -713,7 +715,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
     @ViewBuilder private func merchantMark(_ row: ComplianceMarketingConsent) -> some View {
         let initial = Text(verbatim: String((row.merchantName ?? "?").prefix(1)))
             .font(.body.weight(.bold)).foregroundStyle(.white)
-            .frame(width: 36, height: 36)
+            .frame(width: merchantMarkSide, height: merchantMarkSide)
             .background(SettingsTint.orange, in: .rect(cornerRadius: 8))
             .accessibilityHidden(true)
         // Only a safe (https) logo URL is fetched; "" or anything else keeps the initial tile.
@@ -726,7 +728,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     initial
                 }
             }
-            .frame(width: 36, height: 36)
+            .frame(width: merchantMarkSide, height: merchantMarkSide)
             .clipShape(.rect(cornerRadius: 8))
             .accessibilityHidden(true)
         } else {

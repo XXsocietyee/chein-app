@@ -321,7 +321,9 @@ struct PlayCloseResultSheet: View {
     }
 }
 
-/// Official attendance & contact surface (`pages/activity/components/event-attendance/index.js`).
+/// Official attendance & contact surface (`pages/activity/components/event-attendance/index.wxml`).
+/// Player (MP `wx:else`): 集合与联系 (meeting row → 导航, host row → 拨打; 集合信息加载失败 + 重试) → 到场签到 with
+/// its chip (已签到 · HH:mm / 出示我的签到码 / 签到码结果未确认 · 刷新) → sheet 我的签到码 (QR, 号码布, 更换签到码).
 @MainActor struct OfficialAttendanceSectionView: View {
     @Environment(\.locale) private var locale
     @Environment(\.openURL) private var openURL
@@ -333,123 +335,306 @@ struct PlayCloseResultSheet: View {
 
     @State private var snapshot: OfficialAttendanceSnapshot?
     @State private var contact: OfficialPlayContact?
+    @State private var loaded = false
     @State private var showingCodeSheet = false
+    @State private var showingMyCode = false
     @State private var showingRotateConfirm = false
     @State private var showingDialConfirm = false
+    @State private var claimUnknown = false
     @State private var inputCredential = ""
     @State private var busy = false
     @State private var toastMessage: String?
 
+    private var player: OfficialAttendancePlayerView? {
+        guard let snapshot else { return nil }
+        return OfficialAttendancePlayerView(snapshot: snapshot, contact: contact)
+    }
+    private var loadFailed: Bool { loaded && snapshot == nil && popupCloseActions.loadAttendance != nil }
+
     var body: some View {
-        if snapshot != nil || contact != nil || organizer {
+        Group {
+            if organizer {
+                organizerSection
+            } else if !loaded {
+                // P10: say what is happening while the first read runs (also keeps the load task attached).
+                Section {
+                    Label { Text(verbatim: PlayCloseCopy.text("正在读取集合与签到信息…", "Loading meeting and check-in info…", locale)) } icon: { ProgressView() }
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("attendance.player.loading")
+                }
+            } else {
+                meetSection
+                checkinSection
+            }
+        }
+        .task(id: eventID) { await load() }
+        .cySheet(isPresented: $showingCodeSheet) { organizerCodeSheet }
+        .sheet(isPresented: $showingMyCode) { myCodeSheet }
+        .cyModalOverlay(isPresented: showingRotateConfirm) {
+            PlayAttendanceRotateModal(
+                busy: busy,
+                onCancel: { showingRotateConfirm = false },
+                onConfirm: { rotateCode() }
+            )
+        }
+        .cyModalOverlay(isPresented: showingDialConfirm) {
+            PlayAttendanceDialModal(
+                hostName: dialName,
+                onCancel: { showingDialConfirm = false },
+                onConfirm: {
+                    showingDialConfirm = false
+                    if let rawPhone = contact?.phone, !rawPhone.isEmpty,
+                       let telURL = URL(string: "tel:\(rawPhone)") {
+                        openURL(telURL)
+                    } else {
+                        toastMessage = PlayCloseCopy.text("拨号未完成，请重试", "The call did not start. Try again.", locale)
+                    }
+                }
+            )
+        }
+        .cyToast(verbatimMessage: $toastMessage)
+    }
+
+    private var dialName: String {
+        let name = contact?.name.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return name.isEmpty ? PlayCloseCopy.text("主办", "the organizer", locale) : name
+    }
+
+    // MARK: Player — 集合与联系
+
+    @ViewBuilder private var meetSection: some View {
+        if loadFailed {
             Section {
-                if let snapshot {
-                    if !snapshot.meetingName.isEmpty {
-                        LabeledContent(PlayCloseCopy.text("集合点", "Meeting point", locale), value: snapshot.meetingName)
+                CYInlineError(verbatim: PlayCloseCopy.text("集合信息加载失败", "Meeting info did not load", locale),
+                              retryTitle: "action.retry") { Task { await load() } }
+                    .accessibilityIdentifier("attendance.player.error")
+            } header: {
+                Text(verbatim: PlayCloseCopy.text("集合与联系", "Meeting & contact", locale))
+            }
+        } else if let player, !player.meetName.isEmpty || !player.phone.isEmpty {
+            Section {
+                if !player.meetName.isEmpty {
+                    Button { navigate() } label: {
+                        LabeledContent {
+                            if player.canNavigate { Text(verbatim: PlayCloseCopy.text("导航", "Directions", locale)) }
+                        } label: {
+                            Label { Text(verbatim: meetLine(player)) } icon: { Image(systemName: "mappin.and.ellipse") }
+                        }
                     }
-                    if !snapshot.credential.isEmpty {
-                        LabeledContent(PlayCloseCopy.text("签到码", "Check-in code", locale), value: snapshot.credential)
-                    }
-                    if !snapshot.checkedAtText.isEmpty {
-                        LabeledContent(PlayCloseCopy.text("已签到", "Checked in", locale), value: snapshot.checkedAtText)
-                    }
+                    .disabled(!player.canNavigate)
+                    .accessibilityIdentifier("attendance.player.meet")
                 }
-                if organizer {
-                    Button {
-                        showingCodeSheet = true
-                    } label: {
-                        Text(verbatim: PlayCloseCopy.text("签到码设置与核验", "Check-in code & verification", locale))
-                    }
-                    .accessibilityIdentifier("attendance.organizer.open")
-                } else {
-                    Button {
-                        showingCodeSheet = true
-                    } label: {
-                        Text(verbatim: PlayCloseCopy.text("现场签到", "Event check-in", locale))
-                    }
-                    .accessibilityIdentifier("attendance.player.open")
-                }
-                if let contact, !contact.phone.isEmpty {
-                    Button {
-                        showingDialConfirm = true
-                    } label: {
-                        Text(verbatim: PlayCloseCopy.text("联系主办", "Call organizer", locale))
+                if !player.phone.isEmpty {
+                    Button { showingDialConfirm = true } label: {
+                        LabeledContent {
+                            Text(verbatim: PlayCloseCopy.text("拨打", "Call", locale))
+                        } label: {
+                            Label { Text(verbatim: hostLine(player)) } icon: { Image(systemName: "phone") }
+                        }
                     }
                     .accessibilityIdentifier("attendance.contact.dial")
                 }
             } header: {
-                Text(verbatim: PlayCloseCopy.text("现场签到与联系", "On-site Check-in & Contact", locale))
+                Text(verbatim: PlayCloseCopy.text("集合与联系", "Meeting & contact", locale))
             }
-            .task(id: eventID) {
-                if let loadAttendance = popupCloseActions.loadAttendance {
-                    snapshot = await loadAttendance(eventID, organizer)
-                }
-                if activityID > 0, let loadContact = popupCloseActions.loadOfficialContact {
-                    contact = await loadContact(activityID)
-                }
-            }
-            .cySheet(isPresented: $showingCodeSheet) {
-                PlayCloseSheetHost(
-                    title: PlayCloseCopy.text(organizer ? "现场签到管理" : "输入签到码", organizer ? "Attendance Management" : "Enter Check-in Code", locale),
-                    detents: [.half],
-                    onClose: { showingCodeSheet = false }
-                ) {
-                    VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        if let code = snapshot?.credential, !code.isEmpty {
-                            Text(verbatim: PlayCloseCopy.text("当前签到码：\(code)", "Current code: \(code)", locale))
-                                .cyText(.cardTitle)
-                                .foregroundStyle(CYColor.textPrimary)
-                        }
-                        if organizer {
-                            Button {
-                                showingCodeSheet = false
-                                showingRotateConfirm = true
-                            } label: {
-                                Text(verbatim: PlayCloseCopy.text("更换签到码", "Rotate check-in code", locale))
-                            }
-                            .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
-                            .accessibilityIdentifier("attendance.rotate.trigger")
-                        }
-                        CYField(
-                            label: PlayCloseCopy.text("签到码", "Check-in code", locale),
-                            placeholder: PlayCloseCopy.text("输入签到码", "Enter code", locale),
-                            text: $inputCredential
-                        )
-                        Button {
-                            submitVerifyOrClaim()
+        }
+    }
+
+    private func meetLine(_ player: OfficialAttendancePlayerView) -> String {
+        if let month = player.meetMonth, let day = player.meetDay {
+            return PlayCloseCopy.text("\(month)月\(day)日 \(player.meetTime) · \(player.meetName)集合",
+                                      "Meet at \(player.meetName) · \(month)/\(day) \(player.meetTime)", locale)
+        }
+        return PlayCloseCopy.text("\(player.meetName)集合", "Meet at \(player.meetName)", locale)
+    }
+
+    private func hostLine(_ player: OfficialAttendancePlayerView) -> String {
+        if player.hostName.isEmpty { return PlayCloseCopy.text("联系主办", "Contact the organizer", locale) }
+        return PlayCloseCopy.text("联系主办 · \(player.hostName)", "Contact the organizer · \(player.hostName)", locale)
+    }
+
+    private func navigate() {
+        guard let snapshot, let lat = snapshot.latitude, let lng = snapshot.longitude else { return }
+        var parts = URLComponents()
+        parts.scheme = "maps"
+        parts.host = ""
+        parts.queryItems = [URLQueryItem(name: "ll", value: "\(lat),\(lng)"),
+                            URLQueryItem(name: "q", value: snapshot.meetingName.isEmpty ? snapshot.meetingAddress : snapshot.meetingName)]
+        if let url = parts.url { openURL(url) }
+    }
+
+    // MARK: Player — 到场签到
+
+    @ViewBuilder private var checkinSection: some View {
+        if let checkin = player?.checkin {
+            Section {
+                if checkin.done {
+                    LabeledContent {
+                        Text(verbatim: PlayCloseCopy.text("已记录", "Recorded", locale))
+                    } label: {
+                        Label { Text(verbatim: PlayCloseCopy.text("已签到 · \(checkin.doneAt)", "Checked in · \(checkin.doneAt)", locale)) } icon: { Image(systemName: "checkmark.circle.fill") }
+                    }
+                    .accessibilityIdentifier("attendance.player.done")
+                } else if checkin.show {
+                    Button { showMyCode() } label: {
+                        LabeledContent {
+                            Text(verbatim: PlayCloseCopy.text("出示", "Show", locale))
                         } label: {
-                            Text(verbatim: PlayCloseCopy.text(organizer ? "核验签到码" : "确认签到", organizer ? "Verify code" : "Check in", locale))
+                            Label { Text(verbatim: PlayCloseCopy.text("出示我的签到码", "Show my check-in code", locale)) } icon: { Image(systemName: "qrcode") }
                         }
-                        .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, isLoading: busy))
-                        .disabled(busy || inputCredential.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     }
-                    .padding(CYSpacing.pageHorizontal)
-                    .padding(.bottom, CYSpacing.lg)
+                    .accessibilityIdentifier("attendance.player.open")
+                }
+                if claimUnknown {
+                    Button { Task { await load() } } label: {
+                        Text(verbatim: PlayCloseCopy.text("签到码结果未确认 · 刷新", "Check-in code not confirmed · Refresh", locale))
+                    }
+                    .accessibilityIdentifier("attendance.player.unknown")
+                }
+            } header: {
+                HStack {
+                    Text(verbatim: PlayCloseCopy.text("到场签到", "Check-in", locale))
+                    Spacer()
+                    CYStatusChip(verbatim: chipText(checkin.chip), tone: checkin.ok ? .success : .neutral)
                 }
             }
-            .cyModalOverlay(isPresented: showingRotateConfirm) {
-                PlayAttendanceRotateModal(
-                    busy: busy,
-                    onCancel: { showingRotateConfirm = false },
-                    onConfirm: { rotateCode() }
-                )
-            }
-            .cyModalOverlay(isPresented: showingDialConfirm) {
-                PlayAttendanceDialModal(
-                    hostName: contact?.name.isEmpty == false ? (contact?.name ?? "") : PlayCloseCopy.text("主办方", "Organizer", locale),
-                    onCancel: { showingDialConfirm = false },
-                    onConfirm: {
-                        showingDialConfirm = false
-                        if let rawPhone = contact?.phone, !rawPhone.isEmpty,
-                           let telURL = URL(string: "tel:\(rawPhone)") {
-                            openURL(telURL)
-                        } else {
-                            toastMessage = PlayCloseCopy.text("主办电话不可用", "Organizer phone unavailable", locale)
-                        }
+        }
+    }
+
+    private func chipText(_ chip: OfficialAttendancePlayerView.CheckinChip) -> String {
+        switch chip {
+        case .done: return PlayCloseCopy.text("已签到", "Checked in", locale)
+        case .closed: return PlayCloseCopy.text("已截止", "Closed", locale)
+        case .opensAt(let time): return PlayCloseCopy.text("\(time) 开放", "Opens \(time)", locale)
+        case .open: return PlayCloseCopy.text("可签到", "Open", locale)
+        }
+    }
+
+    private func showMyCode() {
+        showingMyCode = true
+        if snapshot?.credential.isEmpty != false, !busy { claimCode() }
+    }
+
+    /// MP `cy-sheet` 我的签到码: QR (or 正在加载… / 加载失败 · 轻点重试), 号码布, 更换签到码 before check-in.
+    private var myCodeSheet: some View {
+        NavigationStack {
+            VStack(spacing: CYSpacing.lg) {
+                if let qr = snapshot?.qrImage, let url = URL(string: qr), qr.hasPrefix("https://") {
+                    AsyncImage(url: url) { image in image.resizable().interpolation(.none).scaledToFit() } placeholder: { ProgressView() }
+                        .frame(maxWidth: 240, maxHeight: 240)
+                        .accessibilityLabel(Text(verbatim: PlayCloseCopy.text("我的签到码", "My check-in code", locale)))
+                } else if busy || !loaded {
+                    ProgressView { Text(verbatim: PlayCloseCopy.text("正在加载…", "Loading…", locale)) }
+                } else {
+                    Button { claimCode() } label: {
+                        Text(verbatim: PlayCloseCopy.text("加载失败 · 轻点重试", "Didn't load · Tap to retry", locale))
                     }
-                )
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("attendance.code.retry")
+                }
+                if let bib = snapshot?.bib, !bib.isEmpty {
+                    Text(verbatim: PlayCloseCopy.text("号码布 \(bib)", "Bib \(bib)", locale))
+                        .font(.title3.monospacedDigit())
+                }
+                if let snapshot, !snapshot.credential.isEmpty, snapshot.checkedAtText.isEmpty {
+                    Button { showingMyCode = false; showingRotateConfirm = true } label: {
+                        Text(verbatim: PlayCloseCopy.text("更换签到码", "Change check-in code", locale))
+                    }
+                    .buttonStyle(.borderless)
+                    .disabled(busy)
+                    .accessibilityIdentifier("attendance.rotate.trigger")
+                }
             }
-            .cyToast(verbatimMessage: $toastMessage)
+            .padding(CYSpacing.pageHorizontal)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .navigationTitle(Text(verbatim: PlayCloseCopy.text("我的签到码", "My check-in code", locale)))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button { showingMyCode = false } label: { Image(systemName: "xmark") }
+                        .accessibilityLabel(Text(verbatim: PlayCloseCopy.close(locale)))
+                        .accessibilityIdentifier("attendance.code.close")
+                }
+            }
+        }
+        .presentationDetents([.medium])
+        .accessibilityIdentifier("attendance.code.sheet")
+    }
+
+    // MARK: Organizer (unchanged entry: code settings and verification)
+
+    private var organizerSection: some View {
+        Section {
+            if let snapshot {
+                if !snapshot.meetingName.isEmpty {
+                    LabeledContent(PlayCloseCopy.text("集合点", "Meeting point", locale), value: snapshot.meetingName)
+                }
+            }
+            Button {
+                showingCodeSheet = true
+            } label: {
+                Text(verbatim: PlayCloseCopy.text("签到码设置与核验", "Check-in code & verification", locale))
+            }
+            .accessibilityIdentifier("attendance.organizer.open")
+        } header: {
+            Text(verbatim: PlayCloseCopy.text("赛事联络与到场签到", "Event contact & check-in", locale))
+        }
+    }
+
+    private var organizerCodeSheet: some View {
+        PlayCloseSheetHost(
+            title: PlayCloseCopy.text("现场签到管理", "Attendance Management", locale),
+            detents: [.half],
+            onClose: { showingCodeSheet = false }
+        ) {
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                Button {
+                    showingCodeSheet = false
+                    showingRotateConfirm = true
+                } label: {
+                    Text(verbatim: PlayCloseCopy.text("更换签到码", "Rotate check-in code", locale))
+                }
+                .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
+                CYField(
+                    label: PlayCloseCopy.text("签到码", "Check-in code", locale),
+                    placeholder: PlayCloseCopy.text("完整签到码（不是号码布）", "Full check-in code (not the bib)", locale),
+                    text: $inputCredential
+                )
+                Button {
+                    submitVerify()
+                } label: {
+                    Text(verbatim: PlayCloseCopy.text("核验到场签到", "Verify check-in", locale))
+                }
+                .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, isLoading: busy))
+                .disabled(busy || inputCredential.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+            .padding(CYSpacing.pageHorizontal)
+            .padding(.bottom, CYSpacing.lg)
+        }
+    }
+
+    // MARK: Reads and commands
+
+    private func load() async {
+        if let loadAttendance = popupCloseActions.loadAttendance {
+            snapshot = await loadAttendance(eventID, organizer)
+        }
+        if !organizer, activityID > 0, let loadContact = popupCloseActions.loadOfficialContact {
+            contact = await loadContact(activityID)
+        }
+        if snapshot != nil { claimUnknown = false }
+        loaded = true
+    }
+
+    /// MP `attendance-claim` with no fields: the server issues this player's code.
+    private func claimCode() {
+        guard let sendCommand = popupCloseActions.sendAttendanceCommand else { return }
+        busy = true
+        Task {
+            let receipt = await sendCommand(eventID, .attendanceClaim, [:])
+            if receipt == nil { claimUnknown = true }
+            await load()
+            busy = false
         }
     }
 
@@ -474,21 +659,18 @@ struct PlayCloseResultSheet: View {
         }
     }
 
-    private func submitVerifyOrClaim() {
+    private func submitVerify() {
         let code = inputCredential.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !code.isEmpty, let sendCommand = popupCloseActions.sendAttendanceCommand else { return }
         busy = true
         Task {
             defer { busy = false }
-            let action: OfficialAttendanceAction = organizer ? .attendanceVerify : .attendanceClaim
-            let receipt = await sendCommand(eventID, action, ["credential": code])
+            let receipt = await sendCommand(eventID, .attendanceVerify, ["credential": code])
             if receipt?.state == .applied {
                 showingCodeSheet = false
                 inputCredential = ""
-                toastMessage = PlayCloseCopy.text(organizer ? "核验成功" : "签到成功", organizer ? "Verified" : "Checked in", locale)
-                if let loadAttendance = popupCloseActions.loadAttendance {
-                    snapshot = await loadAttendance(eventID, organizer)
-                }
+                toastMessage = PlayCloseCopy.text("核验成功", "Verified", locale)
+                await load()
             } else {
                 toastMessage = PlayCloseCopy.text(receipt?.message.isEmpty == false ? (receipt?.message ?? "") : "操作未成功",
                                                   "Action failed", locale)

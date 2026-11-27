@@ -102,6 +102,10 @@ Base re-merged with `origin/ui/combined-r7` (clean).
 | `pages/roam/index` roam-more (更多 drawer, owner P-31) | `App/MPGap/PlayRoam/RoamSessionToolsSheetView.swift` (opened from `RoamLiveSessionView` toolbar) | MP drawer = three rows 附近正在走的人 / 玩法说明 / 设置. Native showed one flat form (runners, presence, map, clear) titled 更多工具, and 玩法说明 was a second toolbar button with its own sheet. | **Fixed:** sheet root is a `List` with the three MP rows (`NavigationLink` pushes: runners list with a count, 怎么玩, 设置), title 更多; the live toolbar has one `ellipsis.circle` 更多 button (top-right, `roam.live.tools`); the separate rules button + sheet are gone (the rules are the 玩法说明 row, id `roam.live.rules` kept on it). Runners empty = `ContentUnavailableView`. |
 | `pages/roam/index` roam-settings (设置) | `RoamSessionToolsSheetView.settingsForm` | MP rows in order 迷雾 → 地图样式 → 减少动态效果 → 附近的人位置分享 → 位置权限 / 后台持续定位 / 到点提醒 (开/关, tap opens system setting) → 清空本机缓存. Native: presence above map rows, no 位置权限 / 后台持续定位 / 到点提醒 rows (location row was never wired), clear-confirm copy differed from MP. | **Fixed:** MP order; three `LabeledContent` value rows read `CLLocationManager.authorizationStatus` (re-read on foreground) and open Settings; clear confirm uses the MP copy (迷雾、足迹、漫游记录、找回记录、分享链接失效) with 清空 / 先不清. |
 | `pages/roam/index` roam-rules (怎么玩, 原型 howtoScreen) | new `RoamLiveHowToView` (same file) | MP: title 怎么玩, lede 走近就点亮，别的都不用管, three rows (走近店铺 55 米 / 点亮过的地方能拍照 / 别人点亮的地盘贴他自己的颜色, each with its sub line), footnote 关掉定位就不记录…. Native showed four different sections (自由探索 / 主动确认到点 / 结束与记录 / 定位由你控制). | **Fixed:** MP copy and order in one inset section (lede, three `Label` rows with tinted SF Symbols, footer = MP mini). 55 m = MP `REVEAL_M` = the reveal grid radius in `RoamLiveSessionController`. The presence privacy line still shows in the live sheet when presence is available and in the preflight rules (unchanged). |
+| `pages/roam/index` roam-runner (原型 otherSheet, wxml:803) | `App/MPGap/PlayRoam/RoamRunnerDetailView.swift` | MP order: head (avatar ring · nickname · 正在附近漫游 · since) → g3 地盘 % / 探店 / 在走 → TA 点亮的店 photo strip → 打个招呼 / 看 TA 的漫游. Native: a `LabeledContent` 昵称 / 已走 list plus a loose 地盘 line; no head, no 探店, no shop photos (all already in `RoamNearbyRunner`). | **Fixed:** head row (initial/avatar circle, `.headline` name, `正在附近漫游 · since`), three stat cells only when present (`.title3` monospaced value, `.caption` label), horizontal 88 pt shop photos with the shop name as a11y label, then the existing actions. New keys `roamTools.runner.nearby`, `roamTools.runner.nearbySince %@`, `roamTools.runner.stat.territory/shops/walking`, `roamTools.runner.shops`. |
+| `subpackageRoam/components/cy/scene-roam-session` 点亮地点 rows | `App/RoamHistoryViews.swift` `RoamHistoryDetailView` | MP `rw__row`: icon by `cat` (shop / park / landmark) + name + `catLabel || 点亮` line. Native: name only, park drawn as a pin. | **Fixed:** `leaf` for park, `点亮` caption under the name (existing key `roamSub.w208.share.lit`; local records carry no catLabel, so MP shows 点亮 too), row combined for VoiceOver. |
+| `pages/roam/index` 打卡之后 (原型 f-checkin, wxml:649) | `RoamCheckinSheet` + `RoamCheckinStampRows` | name title, sub line, 城市贴纸 / 今日城市签 rows. | No change needed. |
+| `pages/roam/index` 主题半屏 (原型 f-topic / f-city, wxml:618) | — (live map pins open the 附近 list) | MP: a pin with `topicId` reads `/api/topic/info-to-user` and shows tag 自由探索/城市定向 · title · desc · 场次 / 走法 / 距你 · 查看详情 → `pages/topic/index/index`. Native `RoamPlace` does not decode `topicId`/`productType`. | Not done (Core decode + topic read; compiled pass). |
 
 New strings (en + zh-Hans, also `docs/port/strings/mp-r3-roam.json`): `roamTools.more.title`, `roamTools.more.howto`, `roamTools.more.settings`,
 `roamTools.location.permission`, `roamTools.location.background`, `roamTools.location.arrival`, `roamTools.value.on`, `roamTools.value.off`,
@@ -109,7 +113,20 @@ New strings (en + zh-Hans, also `docs/port/strings/mp-r3-roam.json`): `roamTools
 `roam.howto.photoDetail`, `roam.howto.colors`, `roam.howto.colorsDetail`, `roam.howto.mini`; updated `roamTools.clearCache.confirmMessage` (MP copy).
 No motion added. No tests pin the removed rules sheet or the old tools layout.
 
-Gates: generate_project OK · check_scaffold PASS (20638 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+Gates: generate_project OK · check_scaffold PASS (20644 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+
+## Round 3 continue (5) — live map maptip stack (pages/roam/index.wxml:465–490)
+
+Base re-merged with `origin/ui/combined-r7` (xcstrings: both sides' keys kept; `playerGap.trail.share` from base, `roamTools.clearCache.confirmMessage` ours).
+
+| MP page / scene | Native view | Differences | Status |
+|---|---|---|---|
+| `pages/roam/index` maptip BL-02 `原地停留中` (`utils/roam-idle.js`) | `App/RoamLiveSessionView.swift` HUD header status tag | MP shows a status-only tip while walking (not paused) when the player moved < 3 m for 60 s; never changes time, distance or reveal. Native had no stationary state. | **Fixed:** `RoamLiveIdleDetector` (same 3 m / 60 s rule, fed by `owner.lastFix`, reset when the phase leaves `.active`); the HUD status tag reads 原地停留中 with a `mappin` symbol instead of 漫游中 while idle. The hold is measured against the clock (a `TimelineView` every 5 s, paused unless walking) because iOS may stop sending fixes while standing still. Same identifier `roam.live.statusTag`. |
+| maptip 地图没加载出来 · 重试 / 据点 recovery / BL-03 sync offline | `RoamLiveSessionView` (`roam.live.recoveryHint`, `CYStatusOfflineBanner`) | Recovery confirm and the sync-offline banner already mirrored. Map-load watchdog: MapKit draws its own tiles, no black-frame state to explain. | No change. |
+
+New string: `roam.live.idle` (Staying in place / 原地停留中), also in `docs/port/strings/mp-r3-roam.json`. No motion added (symbol swap only).
+
+Gates: generate_project OK · check_scaffold PASS (20668 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 
 ## Not done / next
 

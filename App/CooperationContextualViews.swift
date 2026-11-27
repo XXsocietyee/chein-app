@@ -467,7 +467,7 @@ import SwiftUI
                 }
                 .cyAdaptiveSegmented()
                 .disabled(model.busy)
-                TextField("context.coop.search", text: $search).accessibilityIdentifier("context.coop.search")
+                CYFormSearchRow(prompt: Text("context.coop.search"), text: $search, identifier: "context.coop.search")
                 if model.busy { CYSkeleton().accessibilityLabel(Text("cooperation.loading")) }
                 if model.targetsFailed {
                     // MP wxml:79-81: 合作对象加载失败 + 重试.

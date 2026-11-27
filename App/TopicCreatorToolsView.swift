@@ -247,6 +247,12 @@ import QuestifyCore
     /// MP `start-prep` suggestions (theme-d20.js `PREP_SUGGESTIONS`); the first three not yet on the list are offered.
     private static let prepSuggestionKeys = (1...6).map { "creatorEditor.prep.suggestion." + String($0) }
     private static let prepMaxLength = 20
+    /// MP end option `次日 02:00` reads "02:00 next day" in English; other ends are plain times.
+    private static func windowEndLabel(_ end: String) -> Text {
+        let time = end.replacingOccurrences(of: "^次日\\s*", with: "", options: .regularExpression)
+        if time == end { return Text(verbatim: end) }
+        return Text("creatorEditor.window.nextDay \(time)", tableName: "CreatorEditorUI")
+    }
     private var prepSuggestions: [String] {
         let have = Set(model.setup.prepItems)
         let all = Self.prepSuggestionKeys.map { String(localized: String.LocalizationValue($0), table: "CreatorEditorUI") }
@@ -273,7 +279,7 @@ import QuestifyCore
                     ForEach(TopicPlayWindow.starts, id: \.self) { Text(verbatim: $0).tag($0) }
                 } label: { Text("creatorEditor.window.start", tableName: "CreatorEditorUI") }
                 Picker(selection: Binding(get: { model.setup.window.end ?? TopicPlayWindow.ends[0] }, set: { model.setup.window.end = $0 })) {
-                    ForEach(TopicPlayWindow.ends, id: \.self) { Text(verbatim: $0).tag($0) }
+                    ForEach(TopicPlayWindow.ends, id: \.self) { end in Self.windowEndLabel(end).tag(end) }
                 } label: { Text("creatorEditor.window.end", tableName: "CreatorEditorUI") }
             }
         }
