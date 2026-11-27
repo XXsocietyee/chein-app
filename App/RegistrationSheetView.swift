@@ -726,7 +726,7 @@ struct RegistrationSheetView: View {
                     focusedField = nil
                     showingParticipantSheet = true
                 } label: {
-                    Text(verbatim: PlayCloseCopy.text("选择参与人信息", "Select participant sheet", locale))
+                    Text(verbatim: PlayCloseCopy.text("选择参与人信息", "Choose participant details", locale))
                         .cyText(.caption, weight: .semibold)
                         .foregroundStyle(CYColor.brandStrong)
                 }
@@ -825,7 +825,7 @@ struct RegistrationSheetView: View {
                     focusedField = nil
                     showingTicketSheet = true
                 } label: {
-                    Text(verbatim: PlayCloseCopy.text("选择票种", "Choose ticket sheet", locale))
+                    Text(verbatim: PlayCloseCopy.text("选择票种", "Choose a ticket", locale))
                         .cyText(.caption, weight: .semibold)
                         .foregroundStyle(CYColor.brandStrong)
                 }
