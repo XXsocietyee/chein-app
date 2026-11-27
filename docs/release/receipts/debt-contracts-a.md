@@ -45,3 +45,20 @@ Most of these rows were self-hashing provenance chains: they rebuilt a historica
 ## Notes
 
 - `python3 -B tools/current_ci.py check` already fails on the base ("Current source or test inventory changed without manifest audit"). It is not part of this lane's gate, and its manifest was not refreshed here.
+
+---
+
+## Run 2 — 2026-11-27 (base `origin/ui/combined-r7` @ a0de1bd16)
+
+The run-1 work above was merged into combined-r7, and lane B also trimmed the baseline, so it now has 117 rows. Scope this run: the first half, rows 1–59 in file order. Rows 1–3 and 5–52 are merchant/coop-only and were skipped (`test_c07_fulfillment_projections` = MerchantSupplyDryRun; `test_chapter_replacement_invitation` calls `api/merchant/chapter-application/*`; everything else is `test_merchant_*`). Row 4 (`test_ci138_version_row_source…mount_are_accepted`) has not changed since run 1 and still needs the mount-vs-retire product call. That left 7 rows to work, all in profile modules, and all 7 are byte-pin or provenance chains. None of them checks current behavior.
+
+### (c) Obsolete byte-pin methods deleted
+
+- `test_profile_avatar.AvatarContracts.test_four_shared_file_inverses_restore_exact_frozen19`: inverse-patched four shared files back to the "frozen19" SHA. That broke as soon as `App/ProfileEditView.swift` moved on. All 20 behavior tests in the module remain: upload/no-HTTP-fallback, fences, journal, wire fields, picker grants and locale. The module is now fully green.
+- `test_profile_avatar.AvatarContracts.test_twenty_eight_protected_paths_are_unchanged`: whole-file SHA of 28 unrelated paths (AppSession, AppCompositionRoot, …).
+- `test_profile_read_failure_remote_admission.ClubDirectoryCombinedAdmission` ×4 (`test_complete_club_creator_and_frozen_permission_chains`, `test_raw_club_gate_does_not_use_historical_inverse`, `test_fresh_import_helper_and_contract_runner_repin_is_rejected`, `test_creator_history_direct_script_entry_resolves_club_helper`): these rebuilt the historical readiness contract through `club_authenticate_current`, which hashes `.github/workflows/native-ios.yml`, or relied on the frozen run138 feature-batch inventory, which rejects `App/ProjectEditView.swift`. The club permission behavior is still covered by `test_club_customer_directory_remote_admission…test_no_change_to_write_selector_or_non_directory_reads`, which run 1 rewrote.
+- `test_profile_read_failure_remote_admission.CompileRepairCombinedAdmission.test_exact_new_layer_preserves_all_three_complete_contract_floors`: a five-layer inverse chain checked against pinned contract SHAs.
+
+The other rows of `test_profile_read_failure_remote_admission` that are still in the baseline (rows 53+ after this trim) belong to the second half and lane B. I ran the whole module before and after the deletions: 52 tests with 31 failures before, 47 tests with 26 failures after. No method that passed before fails now.
+
+### Gate (run 2)
