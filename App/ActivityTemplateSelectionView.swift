@@ -109,13 +109,8 @@ import UIKit
         let stamp = owner.actionID
         Section {
             // A search field inside a Form section (`.searchable` belongs to a whole navigation page, not one section).
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass").foregroundStyle(.secondary).accessibilityHidden(true)
-                TextField(text: owner.keywordBinding()) { Text("search", tableName: "ActivityTemplateSelection") }
-                    .submitLabel(.search)
-                    .autocorrectionDisabled()
-                    .onSubmit { owner.requestRead(expected: stamp) }.accessibilityIdentifier("activityTemplate.search")
-            }
+            CYFormSearchRow(prompt: Text("search", tableName: "ActivityTemplateSelection"), text: owner.keywordBinding(),
+                            identifier: "activityTemplate.search", onSubmit: { owner.requestRead(expected: stamp) })
             Button { owner.requestRead(expected: stamp) } label: {
                 Label { Text("search", tableName: "ActivityTemplateSelection") } icon: { Image(systemName: "magnifyingglass") }
             }

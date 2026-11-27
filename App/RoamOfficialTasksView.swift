@@ -128,8 +128,6 @@ import SwiftUI
         List {
             if viewModel.isVisible {
             Section {
-                TextField("official.search", text: $keyword).textFieldStyle(.roundedBorder)
-                    .accessibilityIdentifier("roam.tasks.search")
                 // MP scene-roam-task-list `task-tabs`: 进行中 / 即将 / 我的 (no 已结束 tab), shown as one segmented row.
                 Picker("official.filter", selection: $bucket) {
                     ForEach(Self.tabs) { value in Text(LocalizedStringKey(value.tabTitleKey)).tag(value) }
@@ -178,6 +176,8 @@ import SwiftUI
             }
             } else { ProgressView("official.loading").accessibilityIdentifier("roam.tasks.loading") }
         }.cyGroupedSurface().navigationTitle("roam.tasks.title").navigationBarTitleDisplayMode(.inline)
+            // MP `task-search` keyword box, always visible above the tabs: the system search field.
+            .searchable(text: $keyword, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("official.search"))
             .onAppear { viewModel.appear(foreground: scenePhase == .active) }
             .onDisappear { viewModel.disappear(preservingSnapshot: target != nil) }
             .onChange(of: scenePhase) { _, phase in

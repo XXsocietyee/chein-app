@@ -1135,6 +1135,8 @@ private struct PassOrderRefusedWrites: View {
     @State private var confirmCancel = false
     @State private var refunding = false
     @State private var reason = ""
+    /// MP pass-order `onRefundSubmit`: an empty reason keeps 提交申请 tappable and answers 请填写退款原因.
+    @State private var reasonMissing = false
     /// R8-MEM-5-1: MP `cy-inline-error` notice. A refused write says so instead of doing nothing.
     @State private var refusedNotice = false
 
@@ -1181,22 +1183,29 @@ private struct PassOrderRefusedWrites: View {
                             .lineLimit(3...6)
                             .onChange(of: reason) { _, newValue in
                                 if newValue.count > 200 { reason = String(newValue.prefix(200)) }
+                                if reasonMissing, !newValue.isEmpty { reasonMissing = false }
                             }
                     } header: {
                         Text("mp.passOrder.refundApply.reason")
                     } footer: {
-                        Text(verbatim: "\(reason.count)/200").monospacedDigit()
+                        VStack(alignment: .leading, spacing: 4) {
+                            if reasonMissing {
+                                Label { Text("mp.passOrder.refundApply.placeholder") } icon: { Image(systemName: "exclamationmark.circle") }
+                                    .foregroundStyle(.red)
+                                    .accessibilityIdentifier("passOrder.refund.reasonMissing")
+                            }
+                            Text(verbatim: "\(reason.count)/200").monospacedDigit()
+                        }
                     }
                     Section {
                         Button(role: .destructive) {
                             let trimmed = reason.trimmingCharacters(in: .whitespacesAndNewlines)
-                            guard !trimmed.isEmpty else { return }
+                            guard !trimmed.isEmpty else { reasonMissing = true; return }
                             refunding = false
                             refuse(.refund, reason: trimmed)
                         } label: {
                             Text("mp.passOrder.refundApply.submit")
                         }
-                        .disabled(reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                         .accessibilityIdentifier("passOrder.refund.submit")
                     }
                 }
@@ -1282,7 +1291,8 @@ extension EnvironmentValues {
     @State private var codeOn = false
     @State private var statusReady = false
     @State private var working = false
-    @State private var titleKey = "platformCode.title"
+    /// MP `codeTitle`: empty until a status or result says something (the nav title already reads 兑换码).
+    @State private var titleKey = ""
     @State private var claimed = false
     @State private var topicID: Int?
     @State private var openingLibrary = false
@@ -1290,10 +1300,24 @@ extension EnvironmentValues {
 
     var body: some View {
         Form {
+            // MP gf-hero: gift icon (check once claimed), dimmed on an error, with `codeTitle` under it when there is one.
             Section {
-                Text(LocalizedStringKey(titleKey))
-                    .font(.headline)
-                    .accessibilityIdentifier("platformCode.title")
+                VStack(spacing: CYSpacing.sm) {
+                    Image(systemName: claimed ? "checkmark.circle.fill" : "gift.fill")
+                        .font(.largeTitle)
+                        .foregroundStyle(codeError ? Color.secondary : (claimed ? Color.green : Color.accentColor))
+                        .contentTransition(.symbolEffect(.replace))
+                        .accessibilityHidden(true)
+                    if !titleKey.isEmpty {
+                        Text(LocalizedStringKey(titleKey))
+                            .font(.headline)
+                            .multilineTextAlignment(.center)
+                            .accessibilityAddTraits(.updatesFrequently)
+                            .accessibilityIdentifier("platformCode.title")
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, CYSpacing.sm)
             }
             if statusReady, codeOn, !claimed {
                 Section {
@@ -1303,6 +1327,8 @@ extension EnvironmentValues {
                         .submitLabel(.done)
                         .onChange(of: code) { _, value in
                             if value.count > 64 { code = String(value.prefix(64)) }
+                            // MP onCodeInput clears codeTitle / codeErr while typing.
+                            if !working { titleKey = "" }
                         }
                         .accessibilityIdentifier("platformCode.input")
                 }
@@ -1343,6 +1369,10 @@ extension EnvironmentValues {
         .navigationDestination(isPresented: $openingTopic) {
             if let topicID { SessionTopicDetailView(id: topicID, session: session) }
         }
+    }
+
+    private var codeError: Bool {
+        !titleKey.isEmpty && titleKey != "platformCode.success" && titleKey != "platformCode.replayed"
     }
 
     private func loadStatus() async {

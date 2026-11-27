@@ -309,16 +309,20 @@ func invoiceTitleLine(_ title: InvoiceLaunchTitle) -> String {
                 // and after a miss 暂未查到这次申请 · 请稍后再查，或联系客服 · 再查一次 (FIN-11-4, FIN-11-6).
                 // R7-MEM-14-1: an unconfirmed title save reads 上次保存结果未确认 · 确认前请勿修改抬头 (MP invoice-titles).
                 let savingTitle = model.overview?.pending?.kind == .saveTitle
-                let key = model.recheckMissed ? "notFound" : (savingTitle ? "titleSave.unknown" : "unknown")
+                // MP invoice-titles: a missed title recheck reads 暂未查到这次保存 and keeps 确认前请勿修改抬头 · 查询结果.
+                let key = savingTitle
+                    ? (model.recheckMissed ? "titleSave.notFound" : "titleSave.unknown")
+                    : (model.recheckMissed ? "notFound" : "unknown")
+                let subKey = savingTitle ? "titleSave.unknown.sub" : key + ".sub"
                 VStack(alignment: .leading, spacing: 4) {
                     Label { invoiceText(key) } icon: { Image(systemName: "clock.badge.questionmark").foregroundStyle(.orange) }
                         .font(.body)
-                    invoiceText(key + ".sub")
+                    invoiceText(subKey)
                         .font(.subheadline).foregroundStyle(.secondary)
                 }
                 .accessibilityElement(children: .combine).accessibilityIdentifier("invoice.pending")
                 Button { Task { await model.refresh(manual: true) } } label: {
-                    Text(model.recheckMissed ? "recheck" : "checkResult", tableName: "InvoiceLaunchUI")
+                    Text(model.recheckMissed && !savingTitle ? "recheck" : "checkResult", tableName: "InvoiceLaunchUI")
                 }
                     .disabled(model.busy).accessibilityIdentifier("invoice.recover")
             }

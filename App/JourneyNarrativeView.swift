@@ -1,6 +1,8 @@
 import SwiftUI
 
 @MainActor struct JourneyNarrativeView: View {
+    /// a11y-dt r3: the found-count ring grows with Dynamic Type (capped so the n / total column keeps room beside it).
+    @ScaledMetric(relativeTo: .title) private var progressRing: CGFloat = 88
     @Bindable var model: JourneyNarrativeCoordinator
     var imageReader: (any RetainedPublicImageReading)? = nil
     var makeAudio: (@MainActor () -> PlatformAudioPlayback)? = nil
@@ -104,7 +106,8 @@ import SwiftUI
         HStack(spacing: CYSpacing.lg) {
             CYProgressRing(progress: total > 0 ? Double(found) / Double(total) : nil, lineWidth: 9) {
                 Text(verbatim: "\(found)").cyText(.dataXL).foregroundStyle(CYColor.textPrimary)
-            }.frame(width: 88, height: 88)
+                    .minimumScaleFactor(0.5).lineLimit(1).padding(.horizontal, CYSpacing.xs)
+            }.frame(width: min(progressRing, 132), height: min(progressRing, 132))
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: "\(found) / \(total)").cyText(.data2XL).foregroundStyle(CYColor.textPrimary)
                     .minimumScaleFactor(0.6).lineLimit(1)
