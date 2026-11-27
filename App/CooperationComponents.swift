@@ -118,7 +118,17 @@ struct CooperationIssueView: View {
     @Environment(\.merchantOpenSignIn) private var openSignIn
     @Environment(\.rootTabSwitch) private var rootTabSwitch
     @Environment(\.cooperationMissingInvite) private var missingInvite
+    @Environment(\.cooperationListIssues) private var listIssues
     @Environment(\.dismiss) private var dismiss
+    /// MP coop/list wxml:46-47: the invitation list says 当前身份不能查看协作邀请 / 协作邀请加载失败, not the directory copy.
+    private var titleKey: String {
+        guard listIssues else { return issue.key }
+        switch issue {
+        case .forbidden: return "mpr3.coop.list.forbidden"
+        case .failure, .server, .malformed: return "mpr3.coop.list.failed"
+        default: return issue.key
+        }
+    }
     private var signIn: (() -> Void)? {
         guard issue == .login else { return nil }
         if let openSignIn { return openSignIn }
@@ -138,7 +148,7 @@ struct CooperationIssueView: View {
     }
     private var standard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label(LocalizedStringKey(issue.key), systemImage: issue == .login ? "lock" : symbol)
+            Label(LocalizedStringKey(titleKey), systemImage: issue == .login ? "lock" : symbol)
                 .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("cooperation.issue")
             if let signIn {
                 Button(action: signIn) { Text("merchantCoop.coop.signIn").frame(minHeight: CYSpacing.minTouchTarget) }
@@ -236,7 +246,13 @@ struct CooperationCandidateLink: View {
 
 /// MC7-32-1: set on invite-detail so a missing invite reads 这条邀约不在当前列表里了 instead of the generic issue.
 private struct CooperationMissingInviteKey: EnvironmentKey { static let defaultValue = false }
+/// Set on coop/list so whole-page issues use the MP list copy.
+private struct CooperationListIssuesKey: EnvironmentKey { static let defaultValue = false }
 extension EnvironmentValues {
+    var cooperationListIssues: Bool {
+        get { self[CooperationListIssuesKey.self] }
+        set { self[CooperationListIssuesKey.self] = newValue }
+    }
     var cooperationMissingInvite: Bool {
         get { self[CooperationMissingInviteKey.self] }
         set { self[CooperationMissingInviteKey.self] = newValue }

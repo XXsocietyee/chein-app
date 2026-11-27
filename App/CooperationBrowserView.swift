@@ -103,6 +103,7 @@ import SwiftUI
                     .background(CYColor.bgPage)
             }
             .cyHeroScreen()
+            .environment(\.cooperationListIssues, true)
             .cyDomainScreen(.merchant)
             .onChange(of: reader.scope) { _, _ in topicFilter = nil }
             .onChange(of: ObjectIdentifier(reader)) { _, _ in topicFilter = nil }

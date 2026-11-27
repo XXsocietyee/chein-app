@@ -323,6 +323,40 @@
           }
         }
       }
+    },
+    "mpr3.coop.list.forbidden": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your current identity cannot view cooperation invitations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前身份不能查看协作邀请"
+          }
+        }
+      }
+    },
+    "mpr3.coop.list.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cooperation invitations could not be loaded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "协作邀请加载失败"
+          }
+        }
+      }
     }
   }
 }
