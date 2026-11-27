@@ -312,12 +312,13 @@ struct CityDeedCard: View {
     private var mini: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(verbatim: copy.district(place) ?? copy("城市", "City"))
-                .cyText(.caption, weight: .semibold).foregroundStyle(bandText).lineLimit(1)
+                .cyText(.caption, weight: .semibold).foregroundStyle(bandText).lineLimit(typeSize.isAccessibilitySize ? 2 : 1)
                 .padding(.horizontal, 8).frame(maxWidth: .infinity, minHeight: 22, alignment: .leading)
                 .background(bandColor)
             CityDeedPhoto(url: place.photoURL, place: place, cover: .thumb).frame(height: 58).clipped()
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: copy.title(place)).cyText(.label, weight: .semibold).foregroundStyle(palette.textPrimary).lineLimit(1)
+                Text(verbatim: copy.title(place)).cyText(.label, weight: .semibold).foregroundStyle(palette.textPrimary)
+                    .lineLimit(typeSize.isAccessibilitySize ? 2 : 1)
                 HStack(spacing: 4) {
                     CityCoin()
                     Text(verbatim: place.rentPerVisit.map { "+\($0) / " + copy("次", "visit") } ?? "—")

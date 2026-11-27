@@ -93,8 +93,26 @@ Merged `origin/ui/combined-r7` (clean). Sweep index still 18:06 (build 070117595
 | `pages/topic/index` 附近组队 card | `TopicTeamsCard.swift` | ✓ | Team name and meeting place 1 → 2 lines at AX sizes | Done |
 | Journey report / roam live stats / play lead bar | `JourneyReportViews.swift`, `RoamLiveSessionView.swift`, `MPGap/PlayRoam/PlayLeadBar.swift` | ✓ | Audit: `lineLimit(1)` hits are numbers with `minimumScaleFactor` (score, stop count, live values) or a short role tag beside a spacer; Reduce Motion already gates numeric transitions. No change | Done |
 
+## Run 6 (2026-11-27, hourly)
+
+Merged `origin/ui/combined-r7` (clean). Sweep index still 18:06 (build 070117595); a11y sheets unchanged.
+`.lineLimit(1)` audit continued (receipt Not done list, then single-hit files A–I).
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| City deed board (roam city) mini deed | `CityKit/CityDeedCard.swift` (`mini`) | ✓ (mp-roam owns order) | 160 pt AX card: district band and place title 1 → 2 lines at AX sizes instead of truncating; compact/large photo title keeps 1 line + scale (fixed-height photo), sheet header already `ViewThatFits` | Done |
+| People pile / invite card | `NativeR2/Social/CYPeopleComponents.swift` | ✓ | Audit: "+N" is a number with min 44-ish capsule; "Later" is short; buttons `ViewThatFits` HStack → VStack. No change | Done |
+| Step checklists (first roam, ticket wallet, club create, publish wizard, city) | `NativeR2/Components/CYStepChecklist.swift` (`doneRow`) | ✓ | Done-step row: title + summary side by side, 1 line each → at AX sizes `AnyLayout` VStack, title 3 lines, summary 2; thumbnail 28 pt → `@ScaledMetric(.body)` capped 44. Header ring numbers already scale 0.5 | Done |
+| Story reader | `NativeR2/Story/NR2StoryReaderParts.swift` | — | Story-flow is on hold (brief), skipped | Skipped |
+| `pages/club/*` rows (`ClubR1Row`) | `ClubKit/ClubR1Kit.swift` | ✓ (mp-club owns order) | Row subtitle 1 → 2 lines at AX sizes | Done |
+| Club home pinned notices | `ClubCommunityViews.swift` (`ClubCommunityFeedView` notice row) | ✓ | Notice summary 1 → 2 lines at AX sizes | Done |
+| Club detail inline leaderboard | `ClubDetailR8Mounts.swift` (`ClubInlineLeaderboardRows`) | ✓ | Nickname 1 → 2 lines at AX sizes (meta line already wraps) | Done |
+| In-game channel entry (`pages/play` chat row) | `InGameChannelEntryViews.swift` (`InGameChannelRowButton`) | ✓ (mp-journey owns order) | Last-message preview 1 → 2 lines at AX sizes (Messages pattern) | Done |
+| Single-hit files A–G (`ActivityPublishingWizardView`, `BundleShelfView`, `CastViews`, `CityArrivalEvidenceView`, `CityGamePanel`, `CityDiceKit`, `CityLiveOnMap`, `ClubEnrollmentView`, `ClubOperationsViews`, `ClubPostImagePicker`, `E1CommerceComponents`, `FreeExplorationViews`, `GlobalSearchView`, `GrowthLeaderboardView`) | — | ✓ | Audit: hits are prices / codes / counts with `minimumScaleFactor`, monograms in scaled circles, short button labels, or the search capsule that must stay one line (16:37 sweep fix). No change | Done |
+
 ## Not done (next run starts here)
-- Continue `.lineLimit(1)` audit: `CityKit/CityDeedCard.swift`, `NativeR2/Social/CYPeopleComponents.swift`, `NativeR2/Story/NR2StoryReaderParts.swift`, `NativeR2/Components/CYStepChecklist.swift`, then the single-hit files.
+- Continue single-hit `.lineLimit(1)` audit from `App/MPGap/Club/ClubGapManageExtensions.swift` onward (alphabetical list:
+  `grep -rln "lineLimit(1)" App` minus Merchant/Fixture/Diagnostics/SectionView/Story), then `App/DesignSystem/*` hits.
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch
