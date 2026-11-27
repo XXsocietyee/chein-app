@@ -35,6 +35,9 @@ public struct PlayToolsAndLeadSheetView: View {
     public var teamLead: PlayLeadProgress? = nil
     /// mp-journey r3: MP 游玩工具 旅程手记 (`buildJournal`). Nil hides the row.
     public var journalRows: [PlayJournalRow]? = nil
+    /// mp-journey r3: MP mode-2 我的权益 (`merchantCount` 家 · 已核销 `merchantDoneCount` 家). Nil hides the row.
+    public var rights: PlayToolsRights? = nil
+    public var onRights: () -> Void = {}
 
     public init(
         lead: PlayLeadToolsState = PlayLeadToolsState(),
@@ -61,8 +64,12 @@ public struct PlayToolsAndLeadSheetView: View {
         locationOn: Bool? = nil,
         onLocationRow: @escaping () -> Void = {},
         teamLead: PlayLeadProgress? = nil,
-        journalRows: [PlayJournalRow]? = nil
+        journalRows: [PlayJournalRow]? = nil,
+        rights: PlayToolsRights? = nil,
+        onRights: @escaping () -> Void = {}
     ) {
+        self.rights = rights
+        self.onRights = onRights
         self.teamLead = teamLead
         self.journalRows = journalRows
         self.locationOn = locationOn
@@ -127,8 +134,18 @@ public struct PlayToolsAndLeadSheetView: View {
                 }
                 // mp-journey r3: MP 游玩工具 lists 入场码 then 旅程手记 after 本局读数 / 扫码到达 / 切换章节 / 队伍位置,
                 // just above the preferences.
-                if showsContentRows || journalRows != nil {
+                if showsContentRows || journalRows != nil || rights != nil {
                     Section {
+                        if let rights {
+                            Button(action: onRights) {
+                                LabeledContent {
+                                    Text("playTools.rights.value \(rights.total) \(rights.redeemed)").monospacedDigit()
+                                } label: {
+                                    Label("playTools.rights", systemImage: "gift")
+                                }
+                            }
+                            .accessibilityIdentifier("playTools.rights")
+                        }
                         if showsContentRows {
                             Button("playTools.entryCode", action: onOpenEntryCode)
                                 .accessibilityIdentifier("playTools.entryCode")
@@ -368,5 +385,15 @@ struct PlayJournalStoryView: View {
         }
         .navigationTitle(Text(verbatim: row.title))
         .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+/// mp-journey r3: the 我的权益 counts for the free-exploration 游玩工具 row.
+public struct PlayToolsRights: Equatable {
+    public let total: Int
+    public let redeemed: Int
+    public init(total: Int, redeemed: Int) {
+        self.total = total
+        self.redeemed = redeemed
     }
 }

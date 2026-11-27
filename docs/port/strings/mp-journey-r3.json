@@ -712,5 +712,39 @@
         }
       }
     }
+  },
+  "playTools.rights": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "My perks"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "我的权益"
+        }
+      }
+    }
+  },
+  "playTools.rights.value %lld %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%1$lld shops · %2$lld redeemed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%1$lld 家 · 已核销 %2$lld 家"
+        }
+      }
+    }
   }
 }

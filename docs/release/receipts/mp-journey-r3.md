@@ -46,7 +46,7 @@ files; `mp/r3-mine` only gated 查看报名凭证 in `PlayerJourneyViews` (not o
 - Free-explore tiles: MP station photo per tile (image chain + host policy) and the chapter label on the tile; the
   hero's 3D card face and the chapter story stream (`fx-story`, story-flow theme).
 - 集合屏 member avatars (no avatar in `PlayLeadProgress`), `lead.freeEntry` not decoded.
-- 游玩工具 mode-2 rows 我的权益 (n 家 · 已核销 m 家) and its 自动记录足迹 line (perk-only copy).
+- 游玩工具 mode-2 自动记录足迹 row (perk-only copy 走过的路会记下来). 我的权益 (n 家 · 已核销 m 家, closes onto the grid) is done.
 
 ## Gates
 
@@ -56,7 +56,7 @@ files; `mp/r3-mine` only gated 查看报名凭证 in `PlayerJourneyViews` (not o
 - `python3 -B tools/contract_ratchet.py --check` — 52 failing, baseline 52, **new 0**, fixed 0 (after merging `ui/combined-r7`; repinned `test_play_gameplay_mode_separation` playFree key count 48 → 62 and the pass id, and catalogued the free host preferences in `docs/ops-safety/client-data-catalog.json`)
 
 New strings (en + zh-Hans) in `Resources/Localizable.xcstrings` and `docs/port/strings/mp-journey-r3.json`:
-`playTools.journal*` (7), `playTools.team*` (4), `playx.nightHint`, `playFree.nodes.header`, `playFree.selfPlayBanner %@`, `playFree.meta.*` (2), `playFree.hero.*` (10), `playx.right.default|fragment`;
+`playTools.journal*` (7), `playTools.team*` (4), `playx.nightHint`, `playFree.nodes.header`, `playFree.selfPlayBanner %@`, `playFree.meta.*` (2), `playFree.hero.*` (10), `playx.right.default|fragment`, `playTools.rights`, `playTools.rights.value %lld %lld`;
 `playTools.loc.*` (8), `playx.lead.gathering|checkedIn|waitLeader`, `playx.finish.banner.lit %lld|claim`, `playBadge.savedLine`.
 Reused keys: `u10.template.stopNo`, `nativeR2.city.metric.distance`, `creator.family.timeWindow`,
 `mp.report.notScored`, `action.done`, `mp.settle.toRank`, `playTools.entryCode`, `playerGap.lead.arrived`.

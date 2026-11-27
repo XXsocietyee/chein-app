@@ -89,6 +89,11 @@ import SwiftUI
 }
 extension FreeExplorationExperienceView {
     /// `utils/motion-preference.js`: the same stored preference the city run's 游玩工具 writes.
+    /// MP 我的权益: shops on this pass and how many are redeemed.
+    fileprivate var freeRights: PlayToolsRights? {
+        guard let snapshot = model.snapshot, let presentation = FreeExplorationPresentation(snapshot: snapshot) else { return nil }
+        return PlayToolsRights(total: presentation.stores.count, redeemed: presentation.redeemed ?? 0)
+    }
     fileprivate var freeReducedMotionBinding: Binding<Bool> {
         Binding(get: { _ = playReducedMotion; return PlayReducedMotionPreference.isEnabled(in: .standard) },
                 set: { on in PlayReducedMotionPreference.set(on, in: .standard); playReducedMotion = on })
@@ -282,7 +287,13 @@ struct FreeExplorationStoreName: View {
                 reduceMotionOverride: freeReducedMotionBinding,
                 onClose: { showPlayTools = false },
                 showsContentRows: false,
-                journalRows: model.snapshot.map(PlayJournal.rows(in:))
+                journalRows: model.snapshot.map(PlayJournal.rows(in:)),
+                rights: freeRights,
+                onRights: {
+                    // MP openRightsFromTools (mode 2): the perks are the cards, so the sheet closes onto the grid.
+                    showPlayTools = false
+                    packOpen = true
+                }
             )
         }
         .cySheet(isPresented: $showChapterPicker) {
