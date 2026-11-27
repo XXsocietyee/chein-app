@@ -19,11 +19,20 @@ import SwiftUI
     @EnvironmentObject private var session: AppSession
     let roamReader: any RoamExperienceReading
     var body: some View {
-        if ObjectIdentifier(roamReader) == ObjectIdentifier(session.roamExperienceReader) {
+        if ObjectIdentifier(roamReader) == ObjectIdentifier(session.roamExperienceReader) || isFinishedWalkOfSession {
             RoamBadgeWallOwnedView(roam: roamReader, profile: session.profileReader,
                 media: session.makeObjectCardImageLoader(),
                 currentOwner: .init(roam: roamReader, profile: session.profileReader))
         } else { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.badgeWall.changed") }
+    }
+    /// design-r2-roam (P8/P16): the finish report holds the just-finished walk's local-history reader
+    /// (`RoamFinishedHistoryReader`). It may open the badge wall when it still speaks for the session's own roam
+    /// account (same scope and epoch). `RoamBadgeWallReader` then re-checks the account against the profile reader
+    /// on every read, exactly as for the session reader.
+    private var isFinishedWalkOfSession: Bool {
+        guard roamReader is RoamFinishedHistoryReader,
+              let finished = roamReader.identity, let current = session.roamExperienceReader.identity else { return false }
+        return finished.scope.storageKey == current.scope.storageKey && finished.epoch == current.epoch
     }
 }
 @MainActor private struct RoamBadgeWallOwnedView: View {

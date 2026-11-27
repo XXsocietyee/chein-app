@@ -51,16 +51,23 @@ struct RoamFinishReport: Equatable {
     /// Design pass roam (P2/P7): the hero number rolls up from 0 once when the report appears.
     @State private var revealed = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.analyticsEventClient) private var analytics
 
     var body: some View {
+        // design-r2-roam (P16 a finished activity is a named record): share + Done on top, the route first, then the
+        // MP title (zone · 自由漫游), date · place, the MP hero (处到达) and its six cells in a 3-column grid (2 at
+        // accessibility sizes), the MP stamp strip, medals with both exits (share, collection), the route story.
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
+                topBar
+                mapPanel.padding(.top, CYSpacing.sm).padding(.horizontal, -CYSpacing.lg)
                 head
                 Rectangle().fill(CYNight.glassEdgeTop).frame(height: 1).padding(.top, CYSpacing.md)
                     .accessibilityHidden(true)
                 bigNumber
                 grid.padding(.top, CYSpacing.xl)
+                RoamFinishStampStrip(photos: report.record?.photos ?? [])
                 medalsStrip
                 if let story = report.story {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
@@ -72,7 +79,6 @@ struct RoamFinishReport: Equatable {
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("roam.finishReport.story")
                 }
-                mapPanel.padding(.top, CYSpacing.xl).padding(.horizontal, -CYSpacing.lg)
                 actions.padding(.top, CYSpacing.xl)
             }
             .padding(.horizontal, CYSpacing.lg)
@@ -101,25 +107,48 @@ struct RoamFinishReport: Equatable {
         .cyDomainScreen(.player)
     }
 
+    /// P16 top bar: share (secondary, icon) and the one Done. Identifiers kept: the MP close is now Done.
+    private var topBar: some View {
+        HStack(spacing: CYSpacing.md) {
+            Spacer(minLength: 0)
+            Button { showShare = true } label: {
+                Label("u10.roamFinish.share", systemImage: "square.and.arrow.up").labelStyle(.iconOnly)
+                    .font(.title3.weight(.medium)).foregroundStyle(CYColor.textPrimary)
+                    .frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(report.record == nil)
+            .accessibilityLabel(Text("u10.roamFinish.shareLabel"))
+            .accessibilityIdentifier("roam.finishReport.share")
+            Button { dismiss() } label: {
+                Text("action.done").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                    .padding(.horizontal, CYSpacing.md).frame(minHeight: 44).contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint(Text("u10.roamFinish.close"))
+            .accessibilityIdentifier("roam.finishReport.close")
+        }
+        .padding(.top, CYSpacing.sm)
+    }
     private var head: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            dateLine.cyText(.bodyCompact).foregroundStyle(CYColor.textTertiary)
-            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
-                titleText
-                    .cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityAddTraits(.isHeader)
-                Spacer(minLength: 0)
-                Button { dismiss() } label: {
-                    Image(systemName: "xmark").font(.title3.weight(.medium)).foregroundStyle(CYColor.textPrimary)
-                        .frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
+            titleText
+                .cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+            // P16 date · place line. Place is the settle chip address when the live session passed one.
+            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
+                dateLine
+                if let address = report.currentAddress {
+                    Text(verbatim: "·").accessibilityHidden(true)
+                    Text(verbatim: address).lineLimit(2)
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel(Text("u10.roamFinish.close"))
-                .accessibilityIdentifier("roam.finishReport.close")
             }
+            .cyText(.bodyCompact).foregroundStyle(CYColor.textTertiary)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("roam.finishReport.dateLine")
         }
-        .padding(.top, CYSpacing.md)
+        .padding(.top, CYSpacing.lg)
     }
     private var titleText: Text {
         if let zone = report.zone { return Text("u10.roamFinish.title \(zone)") }
@@ -158,7 +187,7 @@ struct RoamFinishReport: Equatable {
     private var grid: some View {
         // MP settle__grid: six cells, 公里 · 用时 · 探索度 · 邮票 · 探索值 · 勋章 (pages/roam/index.wxml:903-910).
         // Three columns, two rows; values shrink before they truncate (P12).
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: CYSpacing.sm, alignment: .topLeading), count: 3),
+        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: CYSpacing.sm, alignment: .topLeading), count: dynamicTypeSize.isAccessibilitySize ? 2 : 3),
                   alignment: .leading, spacing: CYSpacing.lg) {
             // i18n r1 locale: miles in the US, km in CN.
             cell(report.record?.distance.map { LocaleDisplay.roadNumber(kilometers: $0, locale: locale).formatted(.number.precision(.fractionLength(1)).locale(locale)) },
@@ -228,16 +257,7 @@ struct RoamFinishReport: Equatable {
                     .accessibilityIdentifier("roam.finishReport.noTrack")
             }
         }
-        .frame(minHeight: 300)
-        .overlay(alignment: .topLeading) {
-            if let address = report.currentAddress {
-                Text(verbatim: address).cyText(.label).foregroundStyle(CYColor.textPrimary)
-                    .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.sm)
-                    .background(CYNight.ink0, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
-                    .padding(CYSpacing.lg)
-            }
-        }
+        .frame(minHeight: 260)
         .overlay(alignment: .bottomTrailing) {
             if history.identity != nil {
                 NavigationLink {
@@ -255,16 +275,23 @@ struct RoamFinishReport: Equatable {
             }
         }
     }
+    /// Exits under the record: 漫游记录 (MP settle minor action) and, when medals were earned, the badge wall
+    /// (P8: a kept medal has a share and a collection exit). Share lives in the top bar (P16).
     private var actions: some View {
-        VStack(spacing: CYSpacing.lg) {
-            CYPillButton("u10.roamFinish.share") { showShare = true }
-                .disabled(report.record == nil)
-                .accessibilityLabel(Text("u10.roamFinish.shareLabel"))
-                .accessibilityIdentifier("roam.finishReport.share")
+        VStack(spacing: CYSpacing.sm) {
             if history.identity != nil {
+                if report.medals > 0 {
+                    NavigationLink { RoamBadgeWallDestination(roamReader: history).cyPushedChrome() } label: {
+                        Label("design.roam.medals.collection", systemImage: "square.grid.2x2")
+                            .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                            .frame(maxWidth: .infinity, minHeight: 44)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("roam.finishReport.collection")
+                }
                 NavigationLink { RoamHistoryView(reader: history) } label: {
                     Text("u10.roamFinish.history").cyText(.bodyMedium).foregroundStyle(CYColor.textSecondary)
-                        .frame(minHeight: 44)
+                        .frame(maxWidth: .infinity, minHeight: 44)
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("roam.finishedHistory.history.open")
