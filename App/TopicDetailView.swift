@@ -351,6 +351,32 @@ struct TopicDetailView: View {
             }
             // verify-r1 3.1 (`169:6954`): the hero block reads as one page header, not as list rows with dividers.
             .listRowSeparator(.hidden)
+            // mp-home r3: MP puts 移交给俱乐部承接 right under the hero and 转为正式主题 in the Beta block above the stats,
+            // so the owner rows come before the 详情 content, not in the middle of it.
+            // PC-B-1-1: MP index.wxml:126,138 shows these rows only when `info.isOwner == 1` (graduate also needs Beta).
+            let ownerGraduates = value.isOwner && value.betaFlag == 1 && popupCloseActions.graduateBetaTopic != nil
+            let ownerTransfers = value.isOwner && popupCloseActions.loadTransferClubs != nil && popupCloseActions.transferTopicToClub != nil
+            // R7-PC-B1-3 (r1 PC-B-1-1): MP asks for name / phone inside the checkout layer only, never as a standing row.
+            if ownerGraduates || ownerTransfers {
+                Section(PlayCloseCopy.text("主题运维与快捷资料", "Topic Actions & Profile", locale)) {
+                    if ownerGraduates {
+                        Button {
+                            showingGraduateBetaConfirm = true
+                        } label: {
+                            Text(verbatim: PlayCloseCopy.text("转为正式主题", "Graduate from Beta", locale))
+                        }
+                        .accessibilityIdentifier("topic.graduateBeta.open")
+                    }
+                    if ownerTransfers {
+                        Button {
+                            loadClubsForTransfer()
+                        } label: {
+                            Text(verbatim: PlayCloseCopy.text("移交给俱乐部承接", "Transfer to club", locale))
+                        }
+                        .accessibilityIdentifier("topic.transferClub.open")
+                    }
+                }
+            }
             // 详情 tab (mini-program `det3`): title and one-line subtitle (MP owner 10-29 V-22b: no venue card), then the audio guide.
             Section {
                 // Coordinator review: an unknown or zero stop count is not a fact worth a row.
@@ -457,30 +483,6 @@ struct TopicDetailView: View {
                 }
             }
             if let publisherDestination { publisherDestination(value) }
-            // PC-B-1-1: MP index.wxml:126,138 shows these rows only when `info.isOwner == 1` (graduate also needs Beta).
-            let ownerGraduates = value.isOwner && value.betaFlag == 1 && popupCloseActions.graduateBetaTopic != nil
-            let ownerTransfers = value.isOwner && popupCloseActions.loadTransferClubs != nil && popupCloseActions.transferTopicToClub != nil
-            // R7-PC-B1-3 (r1 PC-B-1-1): MP asks for name / phone inside the checkout layer only, never as a standing row.
-            if ownerGraduates || ownerTransfers {
-                Section(PlayCloseCopy.text("主题运维与快捷资料", "Topic Actions & Profile", locale)) {
-                    if ownerGraduates {
-                        Button {
-                            showingGraduateBetaConfirm = true
-                        } label: {
-                            Text(verbatim: PlayCloseCopy.text("转为正式主题", "Graduate from Beta", locale))
-                        }
-                        .accessibilityIdentifier("topic.graduateBeta.open")
-                    }
-                    if ownerTransfers {
-                        Button {
-                            loadClubsForTransfer()
-                        } label: {
-                            Text(verbatim: PlayCloseCopy.text("移交给俱乐部承接", "Transfer to club", locale))
-                        }
-                        .accessibilityIdentifier("topic.transferClub.open")
-                    }
-                }
-            }
             let lineup = TopicXcxFacts.lineup(value)
             if !lineup.isEmpty { Section("topicXcx.section.lineup") { TopicXcxLineup(members: lineup, publicMerchant: publicMerchant) } }
             // RTEAMS-1: 组队 card under the brands (hidden unless this topic has teams near its first stop).
