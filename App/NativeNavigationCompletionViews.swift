@@ -41,29 +41,35 @@ import SwiftUI
     }
     var body: some View {
         Form {
-            // MP team/join `?entry=code` (C-J1): 加入码 field (≤ 40), then 下一步 to the invitation page.
+            // MP team/join `?entry=code` (C-J1, wxml:24-30): the 加入码 field (≤ 40) with its error under it,
+            // then 下一步 as the page's one primary button, which opens the invitation page.
             Section {
                 LabeledContent {
                     TextField("nativeNav.team.codePlaceholder", text: $code)
                         .textInputAutocapitalization(.never).autocorrectionDisabled()
-                        .onChange(of: code) { _, value in if value.count > Self.maxCodeLength { code = String(value.prefix(Self.maxCodeLength)) } }
+                        .onChange(of: code) { _, value in
+                            if value.count > Self.maxCodeLength { code = String(value.prefix(Self.maxCodeLength)) }
+                            invalid = false
+                        }
                         .submitLabel(.next).onSubmit(open)
                         .accessibilityIdentifier("nativeNav.team.code")
                 } label: { Text("nativeNav.team.code") }
             } footer: {
-                VStack(alignment: .leading) {
-                    if invalid { Text("nativeNav.invalid").foregroundStyle(.red) }
-                    Text("nativeNav.team.notice")
+                if invalid {
+                    Label("mpr3.team.joinCodeInvalid", systemImage: "exclamationmark.circle")
+                        .foregroundStyle(.red)
+                        .accessibilityIdentifier("nativeNav.team.codeError")
                 }
             }
+            Section {
+                Button(action: open) { Text("nativeNav.team.next").frame(maxWidth: .infinity) }
+                    .buttonStyle(.borderedProminent).controlSize(.large)
+                    .disabled(code.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .accessibilityIdentifier("nativeNav.team.next")
+            }
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
         }
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("nativeNav.team.next", action: open)
-                        .disabled(code.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                        .accessibilityIdentifier("nativeNav.team.next")
-                }
-            }
             .cyPageTitle("team.invitation")
             .navigationDestination(item: $route) { item in
                 TeamInvitationDestination(route: item.route, makeCoordinator: makeCoordinator, onLogin: onLogin)

@@ -1,0 +1,5 @@
+{"sourceLanguage":"en","strings":{
+"mpr3.team.captainTeam %@":{"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"%@'s team"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"%@的队伍"}}}},
+"mpr3.team.acceptJoin":{"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"Accept invite and join"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"接受邀请并加入"}}}},
+"mpr3.team.joinCodeInvalid":{"extractionState":"manual","localizations":{"en":{"stringUnit":{"state":"translated","value":"That join code isn't right. Check it and try again."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"加入码不对，检查一下再输"}}}}
+}}

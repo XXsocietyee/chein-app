@@ -6,21 +6,27 @@ struct TeamPageHeader: View {
     let detail: TeamDetail
     let kind: TeamPageKind
     var confirmedJoinMode: TeamJoinMode? = nil
-    @Environment(\.locale) private var locale
-    @Environment(\.dynamicTypeSize) private var typeSize
-    private var chinese: Bool { locale.language.languageCode?.identifier == "zh" }
+    /// MP team/detail `teamTitleOf`: an unnamed team is called after its captain (「X的队伍」), then the generic name.
+    /// MP team/join shows `team.title || '一起出发的玩家队伍'` only.
+    private var captainName: String? {
+        guard kind == .detail else { return nil }
+        let name = detail.members.first(where: { $0.isCaptain })?.name.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return name.isEmpty ? nil : name
+    }
     @ViewBuilder private var teamTitle: some View {
         let title = detail.team.title.trimmingCharacters(in: .whitespacesAndNewlines)
-        if title.isEmpty { Text("team.untitled").font(.title2.bold()).accessibilityAddTraits(.isHeader) }
-        else { Text(verbatim: title).font(.title2.bold()).accessibilityAddTraits(.isHeader).fixedSize(horizontal: false, vertical: true) }
+        Group {
+            if !title.isEmpty { Text(verbatim: title) }
+            else if let captainName { Text("mpr3.team.captainTeam \(captainName)") }
+            else { Text("team.untitled") }
+        }
+        .font(.title2.bold()).accessibilityAddTraits(.isHeader).fixedSize(horizontal: false, vertical: true)
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if kind == .invitation {
-                // Mini join page `.team-head`: title, explainer, then the meta facts.
+                // MP join `.tj-head`: the title alone; seats, facts and the deadline follow in the `.tj-card` section.
                 teamTitle
-                Text("team.page.inviteExplainer").foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                    .accessibilityIdentifier("teamPage.inviteExplainer")
             } else {
                 // Mini `.team-status(.live)`: a live symbol while recruiting, plain status otherwise.
                 let live = TeamPagePresentation.statusIsLive(detail.team.status)
@@ -34,38 +40,51 @@ struct TeamPageHeader: View {
                 .font(.subheadline)
                 .accessibilityIdentifier("teamPage.status")
                 teamTitle
-                HStack(spacing: 4) {
+                // MP detail wxml:26 `.team-sub`: 公开招募 / 仅邀请, hidden for the captain of a recruiting team
+                // (the 公开招募 switch below says it instead).
+                if !(detail.leader == true && detail.team.status == .recruiting) {
                     Text(LocalizedStringKey(TeamPagePresentation.modeKey(confirmedJoinMode ?? detail.team.joinMode)))
-                    Text(verbatim: "·").accessibilityHidden(true)
-                    Text("team.page.noEffectOnActivity")
-                }.font(.subheadline).foregroundStyle(.secondary).accessibilityElement(children: .combine)
-                    .accessibilityIdentifier("teamPage.subtitle")
-            }
-            // Mini `.team-meta`: two equal columns, value over caption key (members / start or method).
-            let metaLayout = typeSize.isAccessibilitySize
-                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
-                : AnyLayout(HStackLayout(alignment: .top, spacing: 20))
-            metaLayout {
-                VStack(alignment: .leading, spacing: 2) {
-                    // pages/team/join: a missing joined count or capacity is an em dash; a literal 0 stays "0 / max".
-                    Text(verbatim: TeamPagePresentation.memberCountText(detail.team))
-                        .font(.headline).monospacedDigit()
-                        .contentTransition(.numericText())
-                    Text("team.members.count").font(.caption).foregroundStyle(.secondary)
-                }.frame(maxWidth: .infinity, alignment: .leading).accessibilityElement(children: .combine)
-                VStack(alignment: .leading, spacing: 2) {
-                    Group {
-                        if kind == .invitation { Text("team.page.inviteOnlyMethod") }
-                        else if let start = TeamPagePresentation.startText(detail.team.expireTime, chinese: chinese) { Text(verbatim: start) }
-                        else { Text("team.page.startPending") }
-                    }.font(.headline)
-                    Text(kind == .invitation ? "team.mode.title" : "team.sessionStart").font(.caption).foregroundStyle(.secondary)
-                }.frame(maxWidth: .infinity, alignment: .leading).accessibilityElement(children: .combine).accessibilityIdentifier("teamPage.meta")
-            }.padding(.top, 4)
-            if kind == .invitation {
-                Text("team.join.consequence").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                        .font(.subheadline).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("teamPage.subtitle")
+                }
+                // Mini `.team-meta`: two equal columns, value over caption key (members / session start).
+                TeamPageFacts(detail: detail, kind: .detail).padding(.top, 4)
             }
         }.frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// MP `.team-meta` (detail: 当前成员 / 场次开始) and `.tj-facts` (join: 当前成员 / 加入方式), value over caption.
+/// Side by side; stacked at accessibility text sizes so long English never truncates.
+struct TeamPageFacts: View {
+    let detail: TeamDetail
+    let kind: TeamPageKind
+    @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
+    private var chinese: Bool { locale.language.languageCode?.identifier == "zh" }
+    var body: some View {
+        let metaLayout = typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
+            : AnyLayout(HStackLayout(alignment: .top, spacing: 20))
+        metaLayout {
+            VStack(alignment: .leading, spacing: 2) {
+                // A missing joined count or capacity is an em dash; a literal 0 stays "0 / max".
+                Text(verbatim: TeamPagePresentation.memberCountText(detail.team))
+                    .font(.headline).monospacedDigit()
+                    .contentTransition(.numericText())
+                Text("team.members.count").font(.caption).foregroundStyle(.secondary)
+            }.frame(maxWidth: .infinity, alignment: .leading).accessibilityElement(children: .combine)
+            VStack(alignment: .leading, spacing: 2) {
+                Group {
+                    // MP join wxml:46 `team.joinMode == 2 ? '公开招募' : '仅邀请'`.
+                    if kind == .invitation { Text(LocalizedStringKey(TeamPagePresentation.modeKey(detail.team.joinMode))) }
+                    else if let start = TeamPagePresentation.startText(detail.team.expireTime, chinese: chinese) { Text(verbatim: start) }
+                    else { Text("team.page.startPending") }
+                }.font(.headline)
+                Text(kind == .invitation ? "team.mode.title" : "team.sessionStart").font(.caption).foregroundStyle(.secondary)
+            }.frame(maxWidth: .infinity, alignment: .leading).accessibilityElement(children: .combine)
+                .accessibilityIdentifier(kind == .invitation ? "teamJoin.facts" : "teamPage.meta")
+        }
     }
 }
 

@@ -37,6 +37,11 @@ import SwiftUI
     @State private var commentsLoading = false
     @State private var generation = 0
     @State private var loadedKey: Key?
+    /// MP post-actions 删除 for a legacy square post (index.js:775-805 `/api/creativesquare/delete`, danger confirm first).
+    @State private var legacyDeleteConfirm = false
+    @State private var legacyDeleting = false
+    @State private var legacyDeleted = false
+    @State private var legacyDeleteFailed = false
     @QuestifyReduceMotion private var reduceMotion
     private struct Key: Hashable { let id: Int; let generation: SquareContentGeneration; let scope: UUID; let configured: Bool }
     private var key: Key { Key(id: id, generation: contentGeneration, scope: reader.scope, configured: reader.isConfigured) }
@@ -46,9 +51,15 @@ import SwiftUI
             if let deletion { SquareDeletionStatusView(coordinator: deletion) { Task { await verifyDeletion() } } }
             if reader.isOfflineExample { Text("square.offlineExample").font(.caption).foregroundStyle(.secondary) }
             if !reader.isConfigured { SquareIssueView(error: APIError.notConfigured) }
-            else if loadedKey != key { ProgressView().frame(maxWidth: .infinity) }
+            else if loadedKey != key { ProgressView { Text("mpr3.square.detail.loading") }.frame(maxWidth: .infinity) }
             else {
-                if detailLoading { ProgressView().frame(maxWidth: .infinity) }
+                // P10: the loading state says what loads (MP shows the detail skeleton here).
+                if detailLoading { ProgressView { Text("mpr3.square.detail.loading") }.frame(maxWidth: .infinity) }
+                if legacyDeleted {
+                    // MP deleteDone 回执: the post is gone and the page falls to 这条帖文暂不可用 with a way back.
+                    Label("square.xcx.delete.postDone", systemImage: "checkmark.circle").foregroundStyle(.secondary)
+                        .accessibilityIdentifier("square.delete.postDone")
+                }
                 if let detailIssue {
                     // C-S3 (MP square/detail index.wxml:12-27): the cause decides the title; a way back is always there.
                     if post == nil {
@@ -58,16 +69,23 @@ import SwiftUI
                 if let post {
                     UGCBlockedFilterContainer(memberID: post.memberID, authorName: post.nickname) {
                         Section {
-                            SquarePostContent(post: post, mediaScope: reader.scope, showsCounts: actions?.identity.accountID == nil,
+                            // MP post-body order: text, then the play card, then the photo strip (index.wxml:56-99).
+                            SquarePostContent(post: post, showImages: false, mediaScope: reader.scope, showsCounts: actions?.identity.accountID == nil,
                                               avatarMenuItems: avatarMenuItems(post), onAvatarPick: { pickAvatarItem($0, post: post) },
                                               onFollow: inlineFollow(post)).accessibilityIdentifier("square.detailPost")
-                            if !post.videos.isEmpty { SquarePostVideoList(videos: post.videos) }
                             if post.isTopicTemplate || post.referenceTitle != nil {
                                 // C-S1: MP feed-play-card on the detail page (看看模板 / 试玩).
                                 SquareDetailPlayCard(post: post, source: .init(id: id, generation: contentGeneration), reader: reader) { relatedTopic = $0 }
                             } else {
                                 SquareRelatedTopicLink(post: post, source: .init(id: id, generation: contentGeneration), squareReader: reader) { relatedTopic = $0 }
                             }
+                            if !post.images.isEmpty {
+                                NativeMediaGalleryEntry(sources: post.images, scope: reader.scope, titleKey: "media.destination.squareImages")
+                            }
+                            if let routeImage = post.routeImage {
+                                NativeMediaGalleryEntry(sources: [routeImage], scope: reader.scope, titleKey: "media.destination.squareImages")
+                            }
+                            if !post.videos.isEmpty { SquarePostVideoList(videos: post.videos) }
                             SquareDetailMedalPill(gold: post.medalGold, silver: post.medalSilver, bronze: post.medalBronze)
                             // Mini `components/route-map`: live route only with a provider; the post's own snapshot is already in the gallery.
                             if let topicID = post.topicID, topicID > 0 { CYSquareRouteMapCard(topicID: topicID) }
@@ -77,8 +95,11 @@ import SwiftUI
                             if post.memberID == 0 {
                                 Text(verbatim: "—").foregroundStyle(.secondary)
                                     .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("square.author.unknown")
-                            } else if let viewer = actions?.identity.accountID, viewer == post.memberID {
-                                CreativeSquareAuthorDeleteSection(signedIn: reader.isSignedIn, highlightedPostID: post.id, load: { try await reader.ownCreativeSquareIDs() }, remove: { try await reader.deleteOwnCreativeSquare(postID: $0) })
+                            }
+                            // The MP detail has no 我的广场 list: the author deletes this post from the ⋯ menu (post-actions 删除).
+                            if legacyDeleteFailed {
+                                Label("square.xcx.delete.failed", systemImage: "exclamationmark.triangle").foregroundStyle(.red)
+                                    .accessibilityIdentifier("square.delete.postFailed")
                             }
                             // Round 4 flow (MP square/detail goUserInfoClcik): the author's page opens from the avatar menu
                             // (访问个人主页); the MP has no separate 查看作者主页 row.
@@ -106,7 +127,11 @@ import SwiftUI
                                 commentRow(comment).accessibilityIdentifier("square.comment.\(comment.id)")
                             }
                         }
-                        if commentsLoading { ProgressView().frame(maxWidth: .infinity) }
+                        if commentsLoading {
+                            // MP 正在加载更多评论… under the list; the first page says what loads too (P10).
+                            ProgressView { Text(comments.items.isEmpty ? LocalizedStringKey("club.discussion.loading") : LocalizedStringKey("mpr3.square.detail.loadingMoreComments")) }
+                                .frame(maxWidth: .infinity)
+                        }
                         else if comments.items.isEmpty && commentIssue == nil {
                             Text(LocalizedStringKey(SquareDetailPageModel.emptyCommentsTitleKey))
                                 .foregroundStyle(.secondary)
@@ -211,7 +236,14 @@ import SwiftUI
             // A confirmed comment deletion refreshes the thread; a deleted post leaves no stale body on screen.
             if case .done(let target)? = phase { if case .post = target { post = nil; comments = SquareCommentPagination() } else { Task { await reload() } } }
         }
-        .onChange(of: key) { _, _ in deletion?.retire() }
+        .onChange(of: key) { _, _ in deletion?.retire(); legacyDeleteConfirm = false }
+        .confirmationDialog(Text("square.xcx.delete.postConfirm"), isPresented: $legacyDeleteConfirm, titleVisibility: .visible) {
+            Button("square.xcx.delete.postConfirm", role: .destructive) {
+                if let postID = post?.id { Task { await deleteLegacyPost(postID) } }
+            }
+        } message: {
+            Text("square.xcx.delete.postIrreversible")
+        }
         .task(id: key) { await reload() }
         .refreshable { await reload() }
         .onDisappear { generation += 1; detailLoading = false; commentsLoading = false }
@@ -353,6 +385,11 @@ import SwiftUI
                 if let target = SquareDeletionTarget(post: post), deletion?.isAllowed(target) == true {
                     Button("square.xcx.delete.post", systemImage: "trash", role: .destructive) { deletion?.prepare(target) }
                         .accessibilityIdentifier("square.delete.postEntry")
+                } else if post.generation == .legacySquare, reader.isSignedIn {
+                    // MP post-actions 删除 on a legacy post: confirm, then `/api/creativesquare/delete`.
+                    Button("square.xcx.delete.post", systemImage: "trash", role: .destructive) { legacyDeleteConfirm = true }
+                        .disabled(legacyDeleting)
+                        .accessibilityIdentifier("square.delete.legacyPostEntry")
                 }
             }
             if post.generation != .unknown {
@@ -450,23 +487,24 @@ import SwiftUI
                             .accessibilityLabel(Text("square.report"))
                             .accessibilityIdentifier("squareReport.commentEntry.\(comment.id)")
                     }
+                    // MP A-04 (index.wxml:162-164): the author's own comment shows 删除 inline, right after 举报.
+                    if let actions, actions.identity.accountID != nil, comment.memberID == actions.identity.accountID, let post,
+                       let target = SquareDeletionTarget(post: post, comment: comment), deletion?.isAllowed(target) == true {
+                        Button(role: .destructive) { deletion?.prepare(target) } label: { Text("square.xcx.delete.comment").font(.caption) }
+                            .buttonStyle(.borderless)
+                            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget).contentShape(Rectangle())
+                            .accessibilityLabel(Text("square.xcx.delete.commentConfirm"))
+                            .accessibilityIdentifier("square.delete.commentEntry.\(comment.id)")
+                    }
                     Spacer(minLength: 0)
                     if let actions, actions.identity.accountID != nil,
-                       SquareAuthorSafety.showsBlockEntry(authorMemberID: comment.memberID, viewerMemberID: actions.identity.accountID)
-                        || (comment.memberID == actions.identity.accountID && post.flatMap { SquareDeletionTarget(post: $0, comment: comment) }.map { deletion?.isAllowed($0) == true } == true) {
-                        // ⋯ only when it holds something (block / delete); like and 回复 are inline (C-S4).
+                       SquareAuthorSafety.showsBlockEntry(authorMemberID: comment.memberID, viewerMemberID: actions.identity.accountID) {
+                        // ⋯ holds only 屏蔽 (App Store UGC safety); like, 回复, 举报 and 删除 are inline as in the MP.
                         Menu {
-                            if SquareAuthorSafety.showsBlockEntry(authorMemberID: comment.memberID, viewerMemberID: actions.identity.accountID) {
-                                Button("square.block", systemImage: "hand.raised") {
-                                    blockTarget = .init(memberID: comment.memberID, authorName: comment.nickname)
-                                }
-                                    .accessibilityIdentifier("square.block.commentEntry.\(comment.id)")
+                            Button("square.block", systemImage: "hand.raised") {
+                                blockTarget = .init(memberID: comment.memberID, authorName: comment.nickname)
                             }
-                            if comment.memberID == actions.identity.accountID, let post,
-                               let target = SquareDeletionTarget(post: post, comment: comment), deletion?.isAllowed(target) == true {
-                                Button("square.xcx.delete.comment", systemImage: "trash", role: .destructive) { deletion?.prepare(target) }
-                                    .accessibilityIdentifier("square.delete.commentEntry.\(comment.id)")
-                            }
+                                .accessibilityIdentifier("square.block.commentEntry.\(comment.id)")
                         } label: {
                             Label("social.actions", systemImage: "ellipsis").labelStyle(.iconOnly).frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                         }
@@ -513,6 +551,7 @@ import SwiftUI
         generation += 1
         let operation = generation, captured = key
         post = nil; comments = SquareCommentPagination(); detailIssue = nil; commentIssue = nil
+        legacyDeleted = false; legacyDeleteFailed = false
         detailLoading = false; commentsLoading = false; loadedKey = captured
         guard reader.isConfigured else { return }
         detailLoading = true
@@ -520,6 +559,25 @@ import SwiftUI
         async let detailTask: Void = loadDetail(operation: operation, captured: captured)
         async let commentTask: Void = loadComments(operation: operation, captured: captured)
         _ = await (detailTask, commentTask)
+    }
+    /// MP deleteSquarePost: soft delete with ownership checked server side; on success the detail falls to its
+    /// unavailable state (这条帖文暂不可用 · 返回上一页). The re-read list must no longer hold the post.
+    private func deleteLegacyPost(_ postID: Int) async {
+        guard !legacyDeleting, postID > 0 else { return }
+        legacyDeleting = true; legacyDeleteFailed = false
+        defer { legacyDeleting = false }
+        let captured = key
+        do {
+            let remaining = try await reader.deleteOwnCreativeSquare(postID: postID)
+            guard captured == key else { return }
+            guard !remaining.contains(postID) else { legacyDeleteFailed = true; return }
+            generation += 1
+            post = nil; comments = SquareCommentPagination(); commentIssue = nil
+            detailLoading = false; commentsLoading = false
+            detailIssue = SquareReadFailure.unavailable
+            legacyDeleted = true
+        } catch is CancellationError {
+        } catch { if captured == key { legacyDeleteFailed = true } }
     }
     private func loadDetail(operation: Int, captured: Key) async {
         defer { if operation == generation { detailLoading = false } }
@@ -662,11 +720,14 @@ struct SquareDetailIssueView: View {
     let error: Error
     let retry: () -> Void
     let back: () -> Void
-    private enum Kind { case closed, notFound, unavailable, failed }
+    private enum Kind { case closed, gone, notFound, unavailable, failed }
+    /// MP index.js:25 `GONE_POST_MSG`: a removed / under-review / missing post is an expired link (链接已失效 · 返回), not a load failure.
+    static let gonePrefixes = ["内容不存在", "已删除", "审核中", "数据不存在", "参数不合规", "帖文不存在"]
     private var kind: Kind {
         switch error as? SquareReadFailure {
         case .communityRequired: return .closed
         case .unavailable: return .unavailable
+        case .server(_, let message?) where Self.gonePrefixes.contains(where: { message.hasPrefix($0) }): return .gone
         case .server(let code, _) where code == 404: return .notFound
         default: return .failed
         }
@@ -674,6 +735,7 @@ struct SquareDetailIssueView: View {
     private var titleKey: LocalizedStringKey {
         switch kind {
         case .closed: return "square.detail.closed"
+        case .gone: return "mp.common.linkExpired"
         case .notFound: return "square.detail.notFound"
         case .unavailable: return "square.detail.unavailable"
         case .failed: return "square.detail.failed"
@@ -694,15 +756,28 @@ struct SquareDetailIssueView: View {
                     }
                 }
             } description: {
-                if kind == .failed, let failure = error as? SquareReadFailure, case let .server(_, message) = failure, let message, !message.isEmpty {
-                    Text(verbatim: message).textSelection(.enabled)
+                // MP index.js:1040-1086 `detailError`: the server message, else 服务暂时无法提供这条动态; a dropped request reads
+                // 网络异常，请检查连接后重试 so the person knows what to do.
+                if kind == .failed {
+                    if let failure = error as? SquareReadFailure, case let .server(_, message) = failure {
+                        if let message, !message.isEmpty { Text(verbatim: message).textSelection(.enabled) }
+                        else { Text("mpr3.square.detail.serviceError") }
+                    } else {
+                        Text("mpr3.square.detail.networkError")
+                    }
                 }
             } actions: {
                 if kind == .failed {
                     Button("square.retry", action: retry).buttonStyle(.borderedProminent).accessibilityIdentifier("square.retry")
                 }
-                Button("square.detail.back", action: back).buttonStyle(.bordered)
-                    .accessibilityIdentifier("square.detail.back")
+                // MP gone state's CTA is 返回; every other shell says 返回上一页.
+                if kind == .gone {
+                    Button(LocalizedStringKey("common.back"), action: back).buttonStyle(.borderedProminent)
+                        .accessibilityIdentifier("square.detail.back")
+                } else {
+                    Button("square.detail.back", action: back).buttonStyle(.bordered)
+                        .accessibilityIdentifier("square.detail.back")
+                }
             }
         }
     }

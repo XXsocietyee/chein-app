@@ -1,11 +1,15 @@
 import SwiftUI
 
-/// U06-01 seat facts (mini `.tm-seats` chips): 持有效票 / 票已失效 / 待审申请 / 还可加入 plus the
-/// invitation deadline. Every value is the server's; an unknown row is omitted, never drawn as 0.
+/// U06-01 seat facts (mini `.tm-chips`): 持有效票 / 票已失效 / 待审申请 plus the invitation deadline.
+/// MP team-seats.js `seatChips` drops 还可加入 (the open seats already show it); the join page `.tj-card` shows
+/// only the deadline (`.tj-invite`). Every value is the server's; an unknown row is omitted, never drawn as 0.
 struct TeamSeatFactsCard: View {
     let detail: TeamDetail
+    var invitation = false
     @Environment(\.locale) private var locale
-    private var rows: [TeamSeatPresentation.Row] { TeamSeatPresentation.rows(detail.seats) }
+    private var rows: [TeamSeatPresentation.Row] {
+        invitation ? [] : TeamSeatPresentation.rows(detail.seats).filter { $0.kind != .available }
+    }
     private var invite: TeamSeatPresentation.InviteLine? { TeamSeatPresentation.inviteLine(detail.invite) }
     var body: some View {
         if !rows.isEmpty || invite != nil {
@@ -41,38 +45,6 @@ struct TeamSeatFactsCard: View {
                 Label { Text("team.invite.expires \(text)") } icon: { Image(systemName: "clock") }
                     .font(.subheadline).foregroundStyle(.secondary)
                     .accessibilityIdentifier("teamSeats.invite")
-            }
-        }
-    }
-}
-
-/// U06-01/U06-03: the viewer's own relationship, kept apart from story roles and host permissions.
-/// On an invitation page this is the server's join hint; the join button stays and the write decides.
-struct TeamViewerRelationshipLine: View {
-    let detail: TeamDetail
-    let invitation: Bool
-    var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            if !invitation, let duty = TeamSeatPresentation.dutyKey(detail.viewer, detail: detail) {
-                Label(LocalizedStringKey(duty), systemImage: duty == "team.viewer.captain" ? "crown" : "person")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(duty == "team.viewer.captain" ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
-                    .accessibilityIdentifier("teamViewer.duty")
-                Text("team.viewer.dutyScope")
-                    .font(.subheadline).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            if invitation, let status = TeamSeatPresentation.applicationKey(detail.viewer) {
-                Text(LocalizedStringKey(status))
-                    .font(.subheadline).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityIdentifier("teamViewer.application")
-            }
-            if invitation, detail.joined != true, let hint = TeamSeatPresentation.blockerKey(detail.viewer, entry: .join) {
-                Label(LocalizedStringKey(hint), systemImage: "exclamationmark.circle")
-                    .font(.subheadline).foregroundStyle(.orange)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityIdentifier("teamViewer.joinHint")
             }
         }
     }
@@ -142,7 +114,7 @@ private struct FlowSeats: Layout {
 
 /// Round 4 image parity (MP team/detail wxml:38-46, U06-01 `tm-seat-strip`): on the team page each member is a seat
 /// showing `memberAvatar || /images/d_profile.png`, the captain's seat carries 队长, and open seats are dashed circles.
-/// Core decodes no member avatar yet, so every seat shows the MP default `d_profile`. Open seats use the same server
+/// A seat shows the member's https avatar (as `TeamMemberRow`), else the MP default `d_profile`. Open seats use the same server
 /// facts as `TeamJoinSeatRow` (`seats.available`, else max − joined); unknown counts draw no open seat.
 struct TeamDetailSeatStrip: View {
     let detail: TeamDetail
@@ -155,17 +127,29 @@ struct TeamDetailSeatStrip: View {
         return min(max(maxMembers - count, 0), 12)
     }
 
+    private func avatarURL(_ member: TeamMember) -> URL? {
+        guard let raw = member.memberAvatar?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty,
+              let url = URL(string: raw), url.scheme == "https" else { return nil }
+        return url
+    }
+
     var body: some View {
         if !members.isEmpty || open > 0 {
             FlowSeats(spacing: CYSpacing.sm) {
                 ForEach(Array(members.enumerated()), id: \.offset) { _, member in
                     VStack(spacing: CYSpacing.xs) {
-                        MPAsset.AvatarDefault.dProfile
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: seat, height: seat)
-                            .clipShape(Circle())
-                            .accessibilityHidden(true)
+                        Group {
+                            if let url = avatarURL(member) {
+                                AsyncImage(url: url) { image in image.resizable().scaledToFill() } placeholder: {
+                                    MPAsset.AvatarDefault.dProfile.resizable().scaledToFill()
+                                }
+                            } else {
+                                MPAsset.AvatarDefault.dProfile.resizable().scaledToFill()
+                            }
+                        }
+                        .frame(width: seat, height: seat)
+                        .clipShape(Circle())
+                        .accessibilityHidden(true)
                         if member.isCaptain {
                             Text("fixr3.team.seat.captain").font(.caption.weight(.semibold)).foregroundStyle(.tint)
                         }
