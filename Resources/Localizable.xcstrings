@@ -183635,13 +183635,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stop and speak"
+            "value": "Give up and speak"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "停止计时并说话"
+            "value": "认输说话"
           }
         }
       }
@@ -351183,6 +351183,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "继续"
+          }
+        }
+      }
+    },
+    "playkit.silent.eyebrow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Silent ordering · staff-witnessed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沉默点单 · 店员见证制"
+          }
+        }
+      }
+    },
+    "playkit.silent.performing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Performed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已表演"
+          }
+        }
+      }
+    },
+    "playkit.silent.generating": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generating the witness code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "见证码生成中"
           }
         }
       }

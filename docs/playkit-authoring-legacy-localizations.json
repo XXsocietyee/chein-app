@@ -364,8 +364,8 @@
     "zh-Hans": "开始本地计时"
   },
   "playkitLegacy.silent.giveUp": {
-    "en": "Stop and speak",
-    "zh-Hans": "停止计时并说话"
+    "en": "Give up and speak",
+    "zh-Hans": "认输说话"
   },
   "playkitLegacy.music.arrived": {
     "en": "Arrived",

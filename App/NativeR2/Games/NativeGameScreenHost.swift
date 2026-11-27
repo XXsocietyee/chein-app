@@ -160,13 +160,16 @@ extension PlayKitScreen {
             if let eyebrow = raw["eyebrow"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !eyebrow.isEmpty, eyebrow != projection.title {
                 Text(verbatim: eyebrow).font(.footnote).foregroundStyle(.secondary)
                     .accessibilityIdentifier("playkit.eyebrow." + kind.rawValue)
+            } else if let fallback = nativeDefaultEyebrow {
+                Text(fallback).font(.footnote).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("playkit.eyebrow." + kind.rawValue)
             }
             if !projection.title.isEmpty {
                 Text(verbatim: projection.title).font(.title2.bold())
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
             }
-            ForEach(["lead", "prompt", "hint", "sub"], id: \.self) { key in
+            ForEach(nativeHeaderTextKeys, id: \.self) { key in
                 if let value = raw[key].text, !value.isEmpty {
                     Text(verbatim: value).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 }
@@ -176,6 +179,25 @@ extension PlayKitScreen {
                     approvedHosts: approvedArtworkHosts, nodeID: model.state?.nodeID, kit: kind.rawValue)
             }
             PlayKitIssueReportMenu(nodeID: model.state?.nodeID, kit: kind.rawValue)
+        }
+    }
+
+    /// MP default eyebrow (`properties.eyebrow.value`) for kits whose eyebrow leads the page when the server sends none.
+    var nativeDefaultEyebrow: LocalizedStringKey? {
+        switch kind {
+        case .musicCorner: return "playkit.music.eyebrow"
+        case .silentOrder: return "playkit.silent.eyebrow"
+        default: return nil
+        }
+    }
+
+    /// Server lines under the title. A kit that draws one of them further down in MP order leaves it out here
+    /// (compass `hint` under the how-to line, quiet-hold `sub` under the figure, music-corner `hint` under the player).
+    var nativeHeaderTextKeys: [String] {
+        switch kind {
+        case .compass, .musicCorner: return ["lead", "prompt", "sub"]
+        case .quietHold: return ["lead", "prompt", "hint"]
+        default: return ["lead", "prompt", "hint", "sub"]
         }
     }
 

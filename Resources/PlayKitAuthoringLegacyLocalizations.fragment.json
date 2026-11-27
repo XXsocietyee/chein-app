@@ -1555,13 +1555,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stop and speak"
+            "value": "Give up and speak"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "停止计时并说话"
+            "value": "认输说话"
           }
         }
       }
