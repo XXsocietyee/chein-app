@@ -69,7 +69,7 @@ Strings (fragment `docs/port/strings/design-pass-explore.json`, merged): `explor
 
 - `check_scaffold.py`: PASS (5231 Swift files, bilingual keys incl. 2 new).
 - `check_a11y_lint.py`: PASS, 0 new. `check_typography_lint.py`: PASS.
-- `contract_ratchet.py --check`: see result below.
+- `contract_ratchet.py --check`: **104 failing, baseline 104, new 0, fixed 0** (exit 0).
 - Targeted contract tests for every touched file (59 files, 418 tests): only pre-existing failures in
   `test_merchant_discovery_redemption_contracts` (same 5 errors on the untouched base) remain.
 
