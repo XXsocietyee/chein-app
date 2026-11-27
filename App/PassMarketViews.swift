@@ -730,9 +730,7 @@ struct PassDetailView: View {
                     }
                 } header: { Text("mp.pass.detail.checkout") }
             }
-            Section {
-                PassActivatePanel(topicID: state.activateTopicID)
-            }
+            // mp-mine r3: MP market/pass has no 首次使用时激活 block (wxml:10-48), so none is drawn here.
         }
         .listStyle(.insetGrouped)
         .safeAreaInset(edge: .bottom) { bar }
