@@ -16,7 +16,8 @@ class TicketWalletPlayEntryContracts(unittest.TestCase):
 
     def test_provider_is_opt_in_and_only_injected_into_account_wallet_sheet(self):
         self.assertIn('static let defaultValue: TicketWalletPlayProvider? = nil', self.detail)
-        line = next(line for line in self.account.splitlines() if '.cySheet(isPresented:$showsTickets)' in line)
+        # mp-nav r3: MP market/passes is a page, so the account wallet is a push (navigationDestination), not a sheet.
+        line = next(line for line in self.account.splitlines() if '.navigationDestination(isPresented:$showsTickets)' in line)
         self.assertIn('.environment(\\.ticketWalletPlayProvider, ticketPlayProvider)', line)
         self.assertIn('TicketWalletPlayProvider(reader: session.ticketWalletReader, revision: session.sessionRevision', self.account)
         self.assertIn('currentRevision: { session.sessionRevision }', self.account)
