@@ -230,14 +230,14 @@ import SwiftUI
                                     CooperationInviteCardDetails(view: CooperationInvitePresentation(invite: row, direction: direction))
                                 }
                             }
-                            // One compact meta line (topic · created) instead of two tall inset rows.
+                            // One compact meta line (created time). MP cards never show the raw topic number.
                             let created: String? = row.createTime.flatMap { time -> String? in
                                 switch time {
                                 case .text(let text): return text
                                 case .milliseconds: return time.date?.formatted(.dateTime.year().month().day().hour().minute().locale(locale))
                                 }
                             }
-                            let meta = [row.topicId.map { "#\($0)" }, created].compactMap { $0 }.joined(separator: " · ")
+                            let meta = created ?? ""
                             if !meta.isEmpty {
                                 Text(verbatim: meta)
                                     .cyText(.meta)
