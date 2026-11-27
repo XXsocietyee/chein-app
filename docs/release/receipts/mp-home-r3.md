@@ -107,7 +107,34 @@ MP content order under the title is unchanged: banner → greeting / 玩家 · c
 
 `App/HomeFeedFixtureSupport.swift` `HomeFeedFixtureHostView`: no continuation card (`fx-continue` removed), no Today seeding (`--design-today` plumbing and `HomeTodayFixtures.activityEvent` removed; `ticket` / `clubEvent` stay for the Today-card previews and wave fixtures), and the reader no longer serves synthetic `/banner` items to the hero fixture. `Tests/AppUITests/MotionTourTests.swift` tour 1 launches `d2-home` without `--design-today`.
 
+## Round 3 continue (2) — 15:09 coordinator note, P21 mini bar, re-scan
+
+Merged `origin/ui/combined-r7` (clean). Gates on `7946bc762`+: `generate_project.py` OK · `check_scaffold.py` PASS · `check_a11y_lint.py` PASS (0 new) · `check_design_consistency.py` PASS · `contract_ratchet.py --check` 52 failing / baseline 52 / **new 0**. No compiler: Swift mirrors existing patterns (`if #available(iOS 18, *), flag` as in `MotionR2Rewards`).
+
+| MP page → native | Difference | Status |
+|---|---|---|
+| `pages/index/index.wxml:44` `v3-hero-mem` → `App/HomeSearchTabParityViews.swift` greeting row | Coordinator 15:09: a checkbox glyph next to 玩家. MP = a filled `--cy-color-rare` member badge + 玩家 (secondary text); role badges elsewhere are `subpackageMember/components/roleBadge` (玩家 / CLUB / 商家 / 官方 word chips). | **Fixed** — the design-system role/status label `CYStatusChip("homeFeed.player", tone: .rare, systemImage: "person.fill")` (indigo = rare; merchant viewer: `account.role.merchant`, `.info`, `storefront.fill`), id `homeIndex.hero.role`. The 16 pt MP bitmap and the en-only `person.crop.circle.badge.checkmark` are gone; the row (role + city) is one `.footnote` size. |
+| `pages/activity/list/index` push (`App/SessionHomeFeedView.swift`) | The merge left two `navigationDestination(isPresented: $showsOfficialEvents)` (mine + mp-nav's). | **Fixed** — kept mp-nav's (with `.cyPushedChrome()`); one destination per binding. |
+| 成为俱乐部 (`/pages/club/apply/index`) | Previous Not-done row (sheet). | **Done by mp-nav r3** — now `navigationDestination(isPresented: $showsClubApplication)` push. Row closed. |
+
+### P21 — running activity mini bar (all tabs)
+
+Files: new `App/ActiveSessionMiniBar.swift`; `App/QuestLiveActivityCenter.swift` (feeds the store from `show` / `redecoratePlay` / `end`, `toggleRun(kind:pause:)` = the Live Activity button path, `setPlayContext` / `clearPlayContext` mark the play screen on/off screen); `App/RoamLiveSessionView.swift` (extra `.onAppear` / `.onDisappear` lines mark the roam screen visible; pinned lines untouched); `App/QuestifyApp.swift` (`.modifier(activeSessionBar)` on each of the five tab roots, both iOS 18 `Tab` and iOS 17 `tabItem` paths).
+
+- **State:** `ActiveSessionStore` (`@Observable`, MainActor) holds the roam / play entries exactly as last published to the Live Activity (P5: bar, HUD, island and Lock Screen are one object). Recorded before the ActivityKit authorization check, so the bar works with Live Activities off. Story audio and event countdowns are not runs and stay out.
+- **Bar** (`safeAreaInset(.bottom)` above the system tab bar, material card, `CYRadius.card`): tinted icon tile (walk / flag), title (session title, else 漫游中 / 游戏进行中), one live value — `Text(timerInterval:)` while running (ticks by itself, P2), `已暂停 · mm:ss` when paused, else next-stop distance — and one control: pause / resume (`playx.run.pause` / `.resume`, 44 pt). Hidden when the tab bar is hidden or the run's own screen is up.
+- **Expanded HUD** (`fullScreenCover`): roam → its own `RoamLiveSessionView` with the shared `makeRoamLiveSessionController()` (`roamLiveDestination`), games / city run → `ActiveSessionPlayHUD`: title, clock as hero (P1), the existing `PlayHUDNextStopCard` (下一站 · distance · 线索), one `.borderedProminent` pause/resume (P3). 收起 (chevron.down) top-leading.
+- **Motion spec:** tap on the bar → the bar zooms into the full-screen HUD (`matchedTransitionSource(id: "activeSession.miniBar")` on the bar + `.navigationTransition(.zoom(sourceID:in:))` on the cover; the bar keeps identity as the zoom source) → tab bar, tab content and its large title stay fixed underneath → system zoom timing; bar in/out `.smooth` opacity, no custom curves → swipe down (system interactive zoom dismiss; plus a downward drag on the play HUD for iOS 17) or 收起 zooms back into the bar → **Reduce Motion:** no zoom, the cover is presented without animation and its content crossfades in (0.2 s opacity); bar appears without animation.
+- Strings (en + zh-Hans, `docs/port/strings/mp-home-r3.json` + catalog): `activeSession.roam.title` 漫游中 / Roaming, `activeSession.play.title` 游戏进行中 / Game in progress, `activeSession.expand.hint` 展开实时面板 / Opens the live view, `activeSession.collapse` 收起 / Collapse.
+- Known limit: leaving `RoamLiveSessionView` pauses the walk (`owner.pause()` in its pinned `onDisappear`, roam lane's behaviour), so a roam usually shows in the bar as 已暂停 with 继续; collapsing the roam HUD pauses it the same way. Game screens that never call `setPlayContext` and keep the tab bar visible would show the bar under them — none found in the scan (`PlayExperienceView` hides the tab bar).
+
+### Re-scan of 首页-reachable pages (continue 2)
+- `HomeFeedView`, `HomeSearchTabParityViews`, `SessionHomeFeedView`, `OfficialEvents*`, `ActivityDetailView`, `E1ActivityDetailParts`, `TopicDetailView`: no `.font(.system(size:))`, `.tracking`/`.kerning`, `Color(red:)` or transparent-bar chrome; the only `LinearGradient` is the activity hero's legibility scrim over the cover photo (functional, kept). `.cyText` uses are the shared CY wrapper.
+- MP 首页 order under the large title re-checked: banner → greeting / 玩家 · city → location card → 编辑精选 → (我的地盘 owner rail) → 附近活动 → 即将上线 → feed — unchanged.
+
 ## Not done / follow-ups
-- 成为俱乐部 (MP `navigateTo('/pages/club/apply/index')`) still opens as a sheet: it is a self-contained application task (HIG modal), with 关闭; the 和朋友报名活动 page now pushes. Revisit if the coordinator wants every MP page pushed.
+- ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
+- 活动列表 邀约 link: MP hides it while loading / failed; native always shows it (the load state lives inside `OfficialReadScreen`; low impact, not changed).
+- Needs a simulator pass: P21 bar height over each tab's last row, zoom source/destination match on iOS 18 and 26, Reduce Motion crossfade, the roam HUD's persistent sheet inside the cover.
 - Re-scan after the queue (r3 continue): home hero / rails / stream / consent card / activity list / activity detail / topic detail have no `.font(.system(size:))`, `.tracking`/`.kerning`, custom fonts or transparent-bar chrome; 编辑精选 footnote, per-rail 正在更新…, stream failed/empty/loading-more/no-more and 长期开放 all present.
 - Needs a simulator pass: 4:3 banner card height under the large title on small phones (first rails should stay near the fold).
