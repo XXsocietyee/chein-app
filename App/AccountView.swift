@@ -228,8 +228,16 @@ import SwiftUI
     }
 
     /// MP 帖文: the member's own posts (and bookmarks), shown only when the community bundle is readable.
+    /// MP `TAB · 推文` order: composer (self, canCompose) → error / 还没有帖文 → own posts → own club posts.
     @ViewBuilder private var postsTabSections: some View {
-        SquareMineAccountLinks() // 我的帖文 / 我的收藏; hidden without the G4 capability bundle
+        let actions = session.socialActionCoordinator
+        if actions.identity.accountID == account.id {
+            OwnProfileComposerHost(actions: actions, offline: session.socialAccountReader.isOfflineExample)
+        }
+        ProfileAuthorPostsSection(memberID: account.id, accountReader: session.socialAccountReader,
+                                  squareReader: session.squareReader, actions: actions)
+        OwnProfileClubPostsSection()
+        SquareMineAccountLinks() // 我的帖文 / 我的收藏 full lists; hidden without the G4 capability bundle
     }
 
     /// The member's own public profile (关于 row and the ··· menu).

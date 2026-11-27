@@ -29,6 +29,7 @@ import SwiftUI
                     }
                     .disabled(locateOriginal == nil)
                     .accessibilityLabel(Text(verbatim: shown(pin.summary)))
+                    .accessibilityHint(locateOriginal == nil ? Text(verbatim: "") : Text("a11y.locateHint", tableName: "NativeChannelMessage"))
                     .accessibilityIdentifier("ncm47.pin.\(pin.id.rawValue)")
                     .swipeActions {
                         if coordinator.client.allows(.mutate(.unpin)) {

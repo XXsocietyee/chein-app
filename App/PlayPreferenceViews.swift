@@ -244,7 +244,7 @@ import SwiftUI
             Section {
                 Text("playx.os.private").cyText(.meta).accessibilityIdentifier("playx.os.private")
                 PlayRuntimePhaseText(phase: model.phase)
-                if presentation.loading { CYSkeleton().accessibilityLabel(Text("playx.loading")) }
+                if presentation.loading { CYSkeleton(label: "playx.loading") }
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
                 CYPillButton("playx.refresh", style: .secondary) {
                     Task { await presentation.load(model: model, current: sourceIsCurrent) }

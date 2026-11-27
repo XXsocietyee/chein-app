@@ -81,6 +81,7 @@ struct SquarePostContent: View {
     var onAvatarPick: ((String) -> Void)? = nil
     /// MP square/detail `.gz` 关注 at the end of the post head (C-S8). Nil hides it; only the detail page passes it.
     var onFollow: (() -> Void)? = nil
+    @ScaledMetric(relativeTo: .headline) private var verifiedSize: CGFloat = 12
     private static let disclosures: Set<String> = ["SPONSORED", "GIFTED", "MERCHANT_OWNER", "MERCHANT_EMPLOYEE"]
     /// Mini-program `post-head`: avatar, name, time; then the text, media and the post's own facts.
     var body: some View {
@@ -108,7 +109,7 @@ struct SquarePostContent: View {
                         else { Text("square.unknownAuthor").font(.headline) }
                         if post.verified {
                             // MP: components/cy/post-card/index.wxml:25 (icon_rz.png, .post-card__verified 24rpx)
-                            MPAsset.FeatureIcon.iconRz.resizable().scaledToFit().frame(width: 12, height: 12)
+                            MPAsset.FeatureIcon.iconRz.resizable().scaledToFit().frame(width: verifiedSize, height: verifiedSize)
                                 .accessibilityLabel(Text("square.verified"))
                         }
                     }

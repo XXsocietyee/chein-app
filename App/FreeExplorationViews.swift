@@ -243,7 +243,7 @@ struct FreeExplorationStoreName: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                if model.phase == .loading { CYSkeleton().accessibilityLabel(Text("playx.loading")) }
+                if model.phase == .loading { CYSkeleton(label: "playx.loading") }
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
                 if model.snapshot == nil, model.storyArchive != nil { FreeExplorationArchiveCards(model: model) }
                 if !model.available { CYEmptyState(systemImage: "nosign", "playx.disabled") }

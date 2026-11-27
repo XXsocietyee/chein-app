@@ -28,7 +28,7 @@ import SwiftUI
             }
             switch phase {
             case .loading:
-                CYSkeleton().accessibilityLabel(Text("orientLobby.loading"))
+                CYSkeleton(label: "orientLobby.loading")
             case .signedOut:
                 CYEmptyState(systemImage: "person.crop.circle", "orientLobby.signIn")
                     .accessibilityIdentifier("orientLobby.signIn")

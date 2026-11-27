@@ -747,8 +747,20 @@ struct PlayThemeMusicKey: Equatable {
             onLocationRow: Self.openLocationSettings,
             teamLead: model.lead,
             journalRows: model.snapshot.map(PlayJournal.rows(in:)),
-            boardDestination: model.snapshot == nil ? nil : { [model] in AnyView(PlayCompanionBoardView(model: model)) }
+            boardDestination: model.snapshot == nil ? nil : { [model] in AnyView(PlayCompanionBoardView(model: model)) },
+            scoreDestination: orientScoreDestination
         )
+    }
+    /// mp-journey r3: MP `_orientSessionId` (mode 1 and `routeState.sessionId`) opens 本局成绩; natively that is the
+    /// member orient-score page at this session.
+    private var orientScoreDestination: (() -> AnyView)? {
+        guard let result = model.snapshot?.result, result.mode == 1,
+              let sessionID = result.routeState?.sessionID, sessionID > 0,
+              let topicID = result.topicID, topicID > 0 else { return nil }
+        var query = ["topicId": String(topicID), "sessionId": String(sessionID)]
+        if case .activity(let activityID) = model.scope { query["activityId"] = String(activityID) }
+        let route = MPParityRoute.screen(page: "subpackageMember/orient-score/index", query: query)
+        return { AnyView(MPParityDestination(route: route)) }
     }
     /// mp-journey r3: MP `gpsOk` for the 游玩工具 location rows (when-in-use or always).
     private static var locationAuthorized: Bool {

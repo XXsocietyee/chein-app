@@ -7,7 +7,7 @@ extension PlayKitScreen {
                 isCurrent: { model.isCurrent && model.objectCardReceipt == receipt })
                 .id("\(receipt.sessionID):\(receipt.nodeID):\(receipt.version):\(receipt.card.id)")
         } else if model.phase == "submitting" {
-            CYSkeleton().accessibilityLabel(Text("playCard.processing")).accessibilityIdentifier("playCard.processing")
+            CYSkeleton(label: "playCard.processing").accessibilityIdentifier("playCard.processing")
         } else if raw["passed"].bool == true || raw["flagged"].bool == true {
             // Completion and minting are different server facts. A refresh or a
             // failed mint may have no card; do not manufacture a successful reveal.

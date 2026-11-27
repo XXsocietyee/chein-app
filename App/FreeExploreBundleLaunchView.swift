@@ -57,7 +57,7 @@ import SwiftUI
         return List {
             if let units = model.order?.bundle?.units.filter({ $0.status == "AVAILABLE" }).count, units > 0 {
                 Section {
-                    Label { Text(verbatim: ChannelCopy.text("\(units) 个章节可预约", "\(units) chapters ready to book", locale: locale)) } icon: { Image(systemName: "ticket.fill") }
+                    Label { Text(verbatim: ChannelCopy.text("\(units) 个章节可预约", units == 1 ? "1 chapter ready to book" : "\(units) chapters ready to book", locale: locale)) } icon: { Image(systemName: "ticket.fill") }
                 }
             }
             switch screen {

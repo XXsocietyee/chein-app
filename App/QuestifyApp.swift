@@ -24,7 +24,12 @@ struct QuestifyApp: App {
             Group {
                 #if DEBUG
                 if let designFixture = AppStoreScreenshotHarness.mountedFixtureID(arguments: ProcessInfo.processInfo.arguments) ?? fixtureArgument("--design-fixture") {
-                    DesignFixtureRegistry.make(designFixture)
+                    // Shared views inside fixtures (wallet, club me pages) read `@EnvironmentObject AppSession`.
+                    if let session = sessionContainer.session {
+                        DesignFixtureRegistry.make(designFixture).environmentObject(session)
+                    } else {
+                        DesignFixtureRegistry.make(designFixture)
+                    }
                 } else if ProcessInfo.processInfo.arguments.contains("--owner-draft-fixture") {
                     OwnerDraftFixtureHost(mode: fixtureArgument("--owner-draft-fixture") ?? "ready")
                 } else if ProcessInfo.processInfo.arguments.contains("--ops-safety-fixture") {
@@ -211,12 +216,9 @@ final class AppSessionContainer: ObservableObject {
         let designIndex = arguments.firstIndex(of: "--design-fixture")
         let designFixture = composition == nil && designIndex.map { arguments.indices.contains($0 + 1) && !arguments[$0 + 1].hasPrefix("--") } == true
         isDesignFixture = designFixture
-        if designFixture {
-            integratedAcceptance = nil
-            couponRuntime = nil
-            session = nil
-            return
-        }
+        // Coordinator 18:30: the session is still built for design fixtures. Fixtures such as d4-badges, d4-stamps and
+        // e4-tickets read `@EnvironmentObject AppSession`; skipping it trapped them at launch ("No ObservableObject of
+        // type AppSession"). The slow first frame in the 16:53/17:3x sweeps was machine load, not the session.
         let fixture = composition == nil ? IntegratedNativeAcceptanceFixture.selected(arguments: arguments) : nil
         integratedAcceptance = fixture
         let coupon = composition == nil ? CouponRuntimeFixture.selected(arguments) : nil

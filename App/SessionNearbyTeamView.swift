@@ -33,7 +33,7 @@ import SwiftUI
                     .environment(\.teamOrientBoardAccess, session.teamOrientBoardAccess)
                     .id(session.teamViewIdentity)
                     .environment(\.teamOrientBoardAccess, session.teamOrientBoardAccess)
-            } else { CYLoadingStateView(rows: 1).accessibilityLabel(Text("team.loading")) }
+            } else { CYLoadingStateView(rows: 1, label: "team.loading") }
         }
             .task(id: session.teamViewIdentity) {
                 guard !Task.isCancelled else { return }

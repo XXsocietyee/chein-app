@@ -39,6 +39,7 @@ import SwiftUI
 /// moderation remain sibling controls so opening discussion cannot steal their taps.
 @MainActor struct ClubPostDiscussionBody: View {
     let post: ClubCommunityPost
+    @Environment(\.locale) private var locale
     let expanded: Bool
     let open: (() -> Void)?
     var body: some View {
@@ -58,7 +59,7 @@ import SwiftUI
             if post.pinned { Label("club.community.pinned", systemImage: "pin") }
             if !post.content.isEmpty { Text(verbatim: post.content).textSelection(.enabled) }
             else { Text("club.discussion.openPost").cyText(.body) }
-            if !post.createTime.isEmpty { Text(verbatim: post.createTime).cyText(.meta).foregroundStyle(.secondary) }
+            if !post.createTime.isEmpty { Text(verbatim: LocaleDisplay.civil(post.createTime, locale: locale)).cyText(.meta).foregroundStyle(.secondary) }
         }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
     }
 }

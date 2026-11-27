@@ -7,7 +7,7 @@
     {"key": "roam.experience.albumEmptyHint", "en": "Take a photo with the stamp camera to start your album.", "zh-Hans": "用集邮相机拍一张，开始你的集邮册。"},
     {"key": "stampAlbum.total %lld", "en": "Stamps: %lld", "zh-Hans": "%lld 枚"},
     {"key": "stampAlbum.unknown", "en": "—", "zh-Hans": "—"},
-    {"key": "stampAlbum.denied", "en": "This account cannot view this album. Go back and open it again.", "zh-Hans": "当前账号无法查看，请返回后重新进入"},
+    {"key": "stampAlbum.denied", "en": "This identity can’t view it", "zh-Hans": "当前身份不能查看"},
     {"key": "stampAlbum.openCamera", "en": "Open stamp camera", "zh-Hans": "打开集邮相机"},
     {"key": "stampAlbum.continuationRetry", "en": "This page didn't load · tap to retry", "zh-Hans": "这一页没读到 · 点此重试"},
     {"key": "stampAlbum.loadingNext", "en": "Loading the next page…", "zh-Hans": "正在读取下一页"},

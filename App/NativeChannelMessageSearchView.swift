@@ -85,6 +85,7 @@ import SwiftUI
                             .disabled(locateOriginal == nil)
                             .accessibilityIdentifier("ncm47.search.\(row.id.rawValue)")
                             .accessibilityLabel(Text(verbatim: shown(row.content)))
+                            .accessibilityHint(locateOriginal == nil ? Text(verbatim: "") : Text("a11y.locateHint", tableName: "NativeChannelMessage"))
                         }
                     } header: {
                         Text(verbatim: group.0)

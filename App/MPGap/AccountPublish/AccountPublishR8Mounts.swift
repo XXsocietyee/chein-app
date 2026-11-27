@@ -101,7 +101,7 @@ private struct TeamApplicantsEnvelope: Decodable {
 /// MP `formData.castConfig` in its interface shape: `{enabled, playerName, playerIdentity, identities, cast:[member]}`.
 /// The app keeps that object in `ProjectEditDraft.preserved["castConfig"]`. `ProjectEditContract` posts it as the
 /// JSON string `serializeCastConfig` sends, and loads the topic or edit-detail value back into the same key.
-/// Member fields the app does not edit (avatar, colour, clues, ending lines) are kept as they were.
+/// Member fields the app does not edit (avatar, a recorded voice) are kept as they were.
 /// One MP player identity (`castConfig.identities[]`: key · title · sub).
 public struct ProjectEditCastIdentity: Identifiable, Equatable {
     public let id: String
@@ -150,8 +150,18 @@ enum ProjectEditCastConfig {
         rawMembers(preserved).map { m in
             let voice = m["voice"]?.object
             let preset = voice?["mode"]?.text == "preset" ? voice?["preset"]?.text : nil
+            let lines = m["endingLines"]?.object ?? [:]
+            let clues: [TopicCastClueDraft] = (m["clues"]?.array ?? []).compactMap(\.object).map { clue in
+                let chapter = clue["chapterId"]
+                let unlock: ProjectEditJSON? = (chapter == nil || chapter == .null || chapter == .string("")) ? nil : chapter
+                return TopicCastClueDraft(text: clue["text"]?.text ?? "", chapterID: unlock)
+            }
+            let color = m["color"]?.text
             return TopicCastMemberDraft(id: m["id"]?.text ?? UUID().uuidString, name: m["name"]?.text ?? "",
-                                        roleTitle: m["identity"]?.text ?? "", voiceID: preset)
+                                        roleTitle: m["identity"]?.text ?? "", voiceID: preset,
+                                        colorHex: colors.contains(color ?? "") ? color : nil, clues: clues,
+                                        endingLow: lines["low"]?.text ?? "", endingMid: lines["mid"]?.text ?? "",
+                                        endingHigh: lines["high"]?.text ?? "")
         }
     }
 
@@ -174,7 +184,9 @@ enum ProjectEditCastConfig {
             row["name"] = .string(String(member.name.prefix(nameMax)))
             row["identity"] = .string(String(member.roleTitle.prefix(identityMax)))
             if row["avatarUrl"] == nil { row["avatarUrl"] = .string("") }
-            if row["color"]?.text == nil {
+            if let chosen = member.colorHex, colors.contains(chosen) {
+                row["color"] = .string(chosen)
+            } else if row["color"]?.text == nil {
                 row["color"] = .string(colors.first { !used.contains($0) } ?? colors[index % colors.count])
             }
             if let color = row["color"]?.text { used.append(color) }
@@ -183,10 +195,16 @@ enum ProjectEditCastConfig {
             } else if row["voice"]?.object?["mode"]?.text != "record" {
                 row["voice"] = .object(["mode": .string("none")])
             }
-            if row["clues"] == nil { row["clues"] = .array([]) }
-            if row["endingLines"] == nil {
-                row["endingLines"] = .object(["low": .string(""), "mid": .string(""), "high": .string("")])
-            }
+            // MP story-cast.js serialize: clues trimmed (≤6, ≤40), ending lines trimmed (≤60).
+            row["clues"] = .array(member.clues.prefix(maxClues).map { clue in
+                .object(["text": .string(String(clue.text.trimmingCharacters(in: .whitespacesAndNewlines).prefix(clueMax))),
+                         "chapterId": clue.chapterID ?? .null])
+            })
+            row["endingLines"] = .object([
+                "low": .string(String(member.endingLow.trimmingCharacters(in: .whitespacesAndNewlines).prefix(endingLineMax))),
+                "mid": .string(String(member.endingMid.trimmingCharacters(in: .whitespacesAndNewlines).prefix(endingLineMax))),
+                "high": .string(String(member.endingHigh.trimmingCharacters(in: .whitespacesAndNewlines).prefix(endingLineMax)))
+            ])
             return .object(row)
         }
         object["cast"] = .array(rows)
@@ -195,6 +213,24 @@ enum ProjectEditCastConfig {
 
     /// MP story-cast.js: at most 4 player identities, title 1–8 characters, line up to 24.
     static let maxIdentities = 4
+    /// MP story-cast.js MAX_CLUES / CLUE_MAX / ENDING_LINE_MAX.
+    static let maxClues = 6
+    static let clueMax = 40
+    static let endingLineMax = 60
+
+    /// MP `clueChapterOptions`: 开局就有 (nil) + saved ordinary chapters (no opening / ending), numbered among ordinary chapters.
+    static func clueChapters(_ chapters: [ProjectEditChapter]) -> [(value: ProjectEditJSON, number: Int, name: String)] {
+        var out: [(value: ProjectEditJSON, number: Int, name: String)] = []
+        var n = 0
+        for chapter in chapters {
+            if chapter.preserved["opening"] == .bool(true) { continue }
+            if chapter.preserved["ending"]?.object != nil { continue }
+            n += 1
+            guard let id = chapter.preserved["id"], id != .null, id != .string("") else { continue }
+            out.append((value: id, number: n, name: chapter.name.trimmingCharacters(in: .whitespacesAndNewlines)))
+        }
+        return out
+    }
     static let identityTitleMax = 8
     static let identitySubMax = 24
 
@@ -249,6 +285,7 @@ enum ProjectEditCastConfig {
 @MainActor struct ProjectEditCastHost: View {
     @Binding var preserved: [String: ProjectEditJSON]
     let readOnly: Bool
+    var chapters: [ProjectEditChapter] = []
     @State private var editing = false
     @State private var sheetMembers: [TopicCastMemberDraft] = []
     @State private var sheetPlayer = ProjectEditCastPlayer(playerName: true, playerIdentity: false, identities: [])
@@ -271,7 +308,7 @@ enum ProjectEditCastConfig {
             ProjectEditCastConfig.setMembers(sheetMembers, in: &preserved)
             ProjectEditCastConfig.setPlayer(sheetPlayer, in: &preserved)
         }) {
-            ProjectEditGapCastEditorSheet(members: $sheetMembers, player: $sheetPlayer, onPreviewVoice: nil)
+            ProjectEditGapCastEditorSheet(members: $sheetMembers, player: $sheetPlayer, chapters: chapters, onPreviewVoice: nil)
                 .cySheet(detents: [.large])
         }
     }
@@ -627,6 +664,7 @@ struct TemplateIntroFloatingCover: ViewModifier {
 /// nothing, as on the MP (the community list owns the empty / error state).
 @MainActor struct OwnProfileClubPostsSection: View {
     @State private var posts: [AccountPublishMPContract.ClubFeedPost] = []
+    @Environment(\.locale) private var locale
 
     var body: some View {
         Section {
@@ -652,7 +690,7 @@ struct TemplateIntroFloatingCover: ViewModifier {
                     .font(.subheadline).foregroundStyle(.secondary)
                 Spacer()
                 if !post.formattedCreateTime.isEmpty {
-                    Text(verbatim: post.formattedCreateTime).font(.subheadline).foregroundStyle(.tertiary)
+                    Text(verbatim: LocaleDisplay.isChinese(locale) ? post.formattedCreateTime : LocaleDisplay.civil(post.createTime, locale: locale)).font(.subheadline).foregroundStyle(.tertiary)
                 }
             }
             if !post.content.isEmpty {

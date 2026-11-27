@@ -443,7 +443,7 @@ struct CityDeedCard: View {
         var parts = [copy.title(place)]
         if let district = copy.district(place) { parts.append(district) }
         if !unlit, place.ownership != .open { parts.append(copy.level(place.level)) }
-        if let rent = place.rentPerVisit, !unlit { parts.append(copy("每次到访 \(rent) 积分", "\(rent) points per visit")) }
+        if let rent = place.rentPerVisit, !unlit { parts.append(copy("每次到访 \(rent) 积分", rent == 1 ? "1 point per visit" : "\(rent) points per visit")) }
         switch place.ownership {
         case .mine: parts.append(copy("你持有", "yours"))
         case .other: parts.append(copy("\(place.holderName ?? "玩家") 持有", "held by \(place.holderName ?? "a player")"))

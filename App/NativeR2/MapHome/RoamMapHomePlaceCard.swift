@@ -17,6 +17,8 @@ import QuestifyCore
     /// MP roam-place-card rating cell: `/api/city/nodes/{id}` averageRating / ratingCount; a failed read shows 「—」.
     @State private var rating: String?
     @State private var ratingFailed = false
+    @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     private struct CardAction {
         let titleKey: LocalizedStringKey
@@ -211,7 +213,10 @@ import QuestifyCore
     }
 
     private var actionRow: some View {
-        HStack(spacing: 8) {
+        // en-layout r3: four English captions do not fit side by side at accessibility sizes; stack them (same order).
+        (typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(spacing: 8))
+            : AnyLayout(HStackLayout(spacing: 8))) {
             if let primary = primaryAction {
                 Button(action: primary.run) { actionLabel(primary.titleKey, systemImage: primary.systemImage) }
                     .buttonStyle(.borderedProminent)
@@ -288,10 +293,10 @@ import QuestifyCore
         case .activity(let card):
             Section("nativeR2.mapHome.card.section.time") {
                 if let start = card.activity.startDate, !start.isEmpty {
-                    LabeledContent("nativeR2.mapHome.card.start") { Text(verbatim: start) }
+                    LabeledContent("nativeR2.mapHome.card.start") { Text(verbatim: LocaleDisplay.civil(start, locale: locale)) }
                 }
                 if let end = card.activity.endDate, !end.isEmpty {
-                    LabeledContent("nativeR2.mapHome.card.end") { Text(verbatim: end) }
+                    LabeledContent("nativeR2.mapHome.card.end") { Text(verbatim: LocaleDisplay.civil(end, locale: locale)) }
                 }
             }
             // MP entry-sheet order after the primary: N 人参加 → 一起参加 · N 队正在招募 → 发起组队 → 现场动态.
@@ -352,10 +357,10 @@ import QuestifyCore
         case .searchActivity(let activity):
             Section("nativeR2.mapHome.card.section.time") {
                 if let start = activity.startDate, !start.isEmpty {
-                    LabeledContent("nativeR2.mapHome.card.start") { Text(verbatim: start) }
+                    LabeledContent("nativeR2.mapHome.card.start") { Text(verbatim: LocaleDisplay.civil(start, locale: locale)) }
                 }
                 if let end = activity.endDate, !end.isEmpty {
-                    LabeledContent("nativeR2.mapHome.card.end") { Text(verbatim: end) }
+                    LabeledContent("nativeR2.mapHome.card.end") { Text(verbatim: LocaleDisplay.civil(end, locale: locale)) }
                 }
             }
         }

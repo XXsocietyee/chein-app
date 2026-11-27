@@ -93,7 +93,7 @@ struct RouteActionPageReadRequest {
             } else {
                 Section {
                     Text("playRoute.unavailable").accessibilityIdentifier("playRoute.unavailable")
-                    if model.phase == .loading { CYLoadingStateView(rows: 2).accessibilityLabel(Text("playx.loading")) }
+                    if model.phase == .loading { CYLoadingStateView(rows: 2, label: "playx.loading") }
                 }
             }
             if actionRead != nil {

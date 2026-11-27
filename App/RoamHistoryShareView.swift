@@ -316,7 +316,7 @@ import UIKit
         }.disabled(photoSave.inFlight || phase == .saved || phase == .sourceChanged)
             .accessibilityIdentifier("roam.share.savePhotos")
         if photoSave.inFlight {
-            CYSkeleton().accessibilityLabel(Text("roam.share.savingPhotos")).accessibilityIdentifier("roam.share.savingPhotos")
+            CYSkeleton(label: "roam.share.savingPhotos").accessibilityIdentifier("roam.share.savingPhotos")
         } else if let key = saveStatusKey {
             Text(LocalizedStringKey(key)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("roam.share.photoSaveStatus")

@@ -172,7 +172,7 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
                             }
                             .accessibilityIdentifier("roam.receivedMetadata.reopen")
                     }.padding()
-                } else { CYSkeleton().accessibilityLabel(Text("roam.loading")) }
+                } else { CYSkeleton(label: "roam.loading") }
             } else { Color.clear }
         }
         .onAppear { mounted = true; if !didAttach { attach() } }
@@ -244,7 +244,7 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
                     }
                     .accessibilityIdentifier("roam.receivedMetadata.record")
                 }
-                if presentation.loading { CYSkeleton().accessibilityLabel(Text("roam.loading")) }
+                if presentation.loading { CYSkeleton(label: "roam.loading") }
                 if pager.loaded && pager.hasMore && !presentation.loading {
                     Button("roam.experience.loadMore", action: more)
                         .background { RoamReceivedStampAccessibilityAnchor(id: "roam.receivedMetadata.more", action: more) }
