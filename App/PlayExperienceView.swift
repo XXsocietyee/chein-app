@@ -864,7 +864,14 @@ struct PlayThemeMusicKey: Equatable {
             model: model, titleKey: key, subtitle: [topic, earned].compactMap { $0 }.joined(separator: " · "),
             medals: medals, shareText: appLocalized("medalScreen.shareText \(topic ?? title)", locale: locale),
             walkedMeters: cityLocation.walkedMeters, reportDestination: cityReportDestination,
+            collectionDestination: cityCollectionDestination,
             onClose: { finishScreen = false })
+    }
+    /// Design pass roam (P8): the badge collection for the first badge this run awarded, through the same
+    /// `rewardCollectionDestination` the reward rows use.
+    private var cityCollectionDestination: AnyView? {
+        guard let reward = model.reward, let target = PlayRewardBadgeTarget.targets(in: reward).first else { return nil }
+        return rewardCollectionDestination?(target)
     }
     private var cityReportDestination: AnyView? {
         guard mpParity.journeyReport != nil, let snapshot = model.snapshot else { return nil }

@@ -305,6 +305,10 @@ extension EnvironmentValues {
 
     private var controls: some View {
         HStack(spacing: 8) {
+            // Design pass roam (P6): the other teams on this route sit next to the map controls.
+            if !teammates.isEmpty {
+                CityOrientationTeamStack(teams: teammates)
+            }
             Spacer(minLength: 0)
             // MP pages/roam/index.wxml:150: the only location control is 开启定位, shown while location is off.
             if location.access == .denied {
@@ -465,16 +469,62 @@ extension EnvironmentValues {
     /// Nil shows read-only rows (finish summary).
     var onOpen: ((Int) -> Void)? = nil
     @Environment(\.locale) private var locale
+    /// Design pass roam (P4): the live run folds punched stops into 已完成 (n); the past stays one tap away.
+    @State private var showsDone = false
+
+    private var doneStops: [PlayRouteMapPresentation.Stop] { route.stops.filter { $0.state == .completed } }
+    private var openStops: [PlayRouteMapPresentation.Stop] { route.stops.filter { $0.state != .completed } }
+
     var body: some View {
-        Section("nativeR2.city.legs") {
-            ForEach(route.stops) { stop in
-                if let onOpen {
-                    Button { onOpen(stop.id) } label: { row(stop).foregroundStyle(.primary) }
-                        .accessibilityIdentifier("playx.node.\(stop.id)")
-                } else {
-                    row(stop).accessibilityIdentifier("nativeR2.city.leg.\(stop.id)")
+        Section {
+            if onOpen != nil {
+                ForEach(openStops) { stop in stopRow(stop) }
+                if !doneStops.isEmpty {
+                    DisclosureGroup(isExpanded: $showsDone) {
+                        ForEach(doneStops) { stop in stopRow(stop) }
+                    } label: {
+                        Label {
+                            Text("design.roam.doneSection \(doneStops.count)")
+                        } icon: {
+                            Image(systemName: "checkmark.circle.fill").foregroundStyle(Color.green)
+                        }
+                    }
+                    .accessibilityIdentifier("nativeR2.city.legs.done")
                 }
+            } else {
+                ForEach(route.stops) { stop in stopRow(stop) }
             }
+        } header: {
+            header
+        }
+    }
+
+    /// Steps header: 打卡点 · N / M with a small progress ring ("2 of 5", R-steps).
+    private var header: some View {
+        HStack(spacing: CYSpacing.sm) {
+            Text("nativeR2.city.legs")
+            Spacer(minLength: CYSpacing.sm)
+            if !route.stops.isEmpty {
+                Text("design.roam.stepsProgress \(doneStops.count) \(route.stops.count)")
+                    .monospacedDigit()
+                    .contentTransition(.numericText(value: Double(doneStops.count)))
+                CYRing(progress: Double(doneStops.count) / Double(route.stops.count),
+                       label: "design.roam.stepsRing", tint: Color.green, diameter: 18, lineWidth: 3) {
+                    EmptyView()
+                }
+                .accessibilityHidden(true)
+            }
+        }
+        .textCase(nil)
+        .accessibilityElement(children: .combine)
+    }
+
+    @ViewBuilder private func stopRow(_ stop: PlayRouteMapPresentation.Stop) -> some View {
+        if let onOpen {
+            Button { onOpen(stop.id) } label: { row(stop).foregroundStyle(.primary) }
+                .accessibilityIdentifier("playx.node.\(stop.id)")
+        } else {
+            row(stop).accessibilityIdentifier("nativeR2.city.leg.\(stop.id)")
         }
     }
     private func row(_ stop: PlayRouteMapPresentation.Stop) -> some View {
@@ -512,5 +562,38 @@ struct CityOrientationTeammatesSection: View {
             if teams.isEmpty { Text("nativeR2.city.teammates.none") }
         }
         .accessibilityIdentifier("nativeR2.city.teammates")
+    }
+}
+
+/// Design pass roam (P6 other people are present): up to three team initials in their trail colours and
+/// "N 队在路上". One VoiceOver element. Reads the same `TeamTrailSection` poll as the map; sends nothing.
+struct CityOrientationTeamStack: View {
+    let teams: [TeamTrailTeam]
+    var body: some View {
+        HStack(spacing: CYSpacing.xs) {
+            HStack(spacing: -8) {
+                ForEach(teams.prefix(3)) { team in
+                    Text(verbatim: initial(team))
+                        .font(.caption.bold())
+                        .foregroundStyle(.white)
+                        .frame(width: 24, height: 24)
+                        .background(Circle().fill(NativeR2RoutePath.teamColor(team.colorIndex)))
+                        .overlay(Circle().stroke(.background, lineWidth: 2))
+                }
+            }
+            .accessibilityHidden(true)
+            Text("design.roam.teamsOnRoute \(teams.count)")
+                .font(.footnote.weight(.semibold))
+                .lineLimit(1)
+        }
+        .padding(.horizontal, CYSpacing.sm)
+        .padding(.vertical, 6)
+        .background(.regularMaterial, in: Capsule())
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("nativeR2.city.teamStack")
+    }
+    private func initial(_ team: TeamTrailTeam) -> String {
+        if !team.initial.isEmpty { return team.initial }
+        return team.name.trimmingCharacters(in: .whitespaces).first.map(String.init) ?? "·"
     }
 }

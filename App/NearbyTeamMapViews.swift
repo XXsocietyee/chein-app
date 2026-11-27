@@ -133,7 +133,12 @@ struct NearbyTeamListRow: View {
                     }
                 }
                 Spacer(minLength: 8)
-                Text(verbatim: "\(team.joinedCount)/\(team.maxMembers)").cyText(.numericBody).foregroundStyle(CYColor.textSecondary)
+                // Design pass roam (P6): who is already in sits beside the count (same faces as 招募中 rows); the count rolls (P2).
+                VStack(alignment: .trailing, spacing: 4) {
+                    NearbyTeamFaces(count: NearbyTeamPresentation.faceCount(real: team.memberAvatars.count, members: team.joinedCount))
+                    Text(verbatim: "\(team.joinedCount)/\(team.maxMembers)").cyText(.numericBody).foregroundStyle(CYColor.textSecondary)
+                        .contentTransition(.numericText(value: Double(team.joinedCount)))
+                }
                 Image(systemName: expanded ? "chevron.up" : "chevron.down").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
             }.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
         }.buttonStyle(.plain).frame(minHeight: 44).accessibilityIdentifier("nearby.w208.row.\(team.id.rawValue)")

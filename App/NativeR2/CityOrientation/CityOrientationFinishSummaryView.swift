@@ -13,6 +13,8 @@ import MapKit
     let shareText: String
     let walkedMeters: Double
     var reportDestination: AnyView? = nil
+    /// The MP badge collection for the first medal earned here (P8: "see the collection"); nil hides the link.
+    var collectionDestination: AnyView? = nil
     let onClose: () -> Void
     @State private var loadingBoard = false
     /// P-059: the route draws itself on the thumbnail and the metrics roll up from zero once, on appear.
@@ -91,17 +93,15 @@ import MapKit
                 }
                 if let route { CityOrientationLegsSection(route: route) }
                 if !medals.isEmpty {
+                    // Design pass roam (P8 rewards are objects you keep): each medal is a tile with its name and the
+                    // fact behind it, a share exit on the row, and one link to the whole collection below.
                     Section("nativeR2.city.finish.medals") {
-                        ForEach(medals) { medal in
-                            Label {
-                                Text(verbatim: medal.name)
-                            } icon: {
-                                if let art = medal.mpDefault, !art.isSprite {
-                                    art.image.resizable().scaledToFit().frame(width: 28, height: 28)
-                                } else {
-                                    Image(systemName: medal.systemImage)
-                                }
+                        ForEach(medals) { medal in medalRow(medal) }
+                        if let collectionDestination {
+                            NavigationLink { collectionDestination } label: {
+                                Label("design.roam.medals.collection", systemImage: "square.grid.2x2")
                             }
+                            .accessibilityIdentifier("nativeR2.city.finish.collection")
                         }
                     }
                 }
@@ -130,6 +130,38 @@ import MapKit
         .accessibilityIdentifier("medalScreen")
         .motionR2EdgeGlowOnAppear()
         .task { await reveal() }
+    }
+
+    private func medalRow(_ medal: CYMedalItem) -> some View {
+        HStack(spacing: CYSpacing.md) {
+            Group {
+                if let art = medal.mpDefault, !art.isSprite {
+                    art.image.resizable().scaledToFit()
+                } else {
+                    Image(systemName: medal.systemImage)
+                        .font(.title2)
+                        .foregroundStyle(.tint)
+                        .symbolEffect(.bounce, value: revealed && !reduceMotion)
+                }
+            }
+            .frame(width: 44, height: 44)
+            .background(Circle().fill(.tint.opacity(0.12)))
+            .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: medal.name).font(.headline)
+                if let subtitle = medal.subtitle, !subtitle.isEmpty {
+                    Text(verbatim: subtitle).font(.subheadline).foregroundStyle(.secondary)
+                }
+            }
+            Spacer(minLength: CYSpacing.sm)
+            ShareLink(item: medal.name + " · " + shareText) {
+                Label("nativeR2.city.finish.share", systemImage: "square.and.arrow.up")
+            }
+            .labelStyle(.iconOnly)
+            .buttonStyle(.borderless)
+            .accessibilityIdentifier("nativeR2.city.finish.medal.share.\(medal.id)")
+        }
+        .padding(.vertical, 2)
     }
 
     /// Reduce Motion (or the motion flag off): final values and the whole route at once.
