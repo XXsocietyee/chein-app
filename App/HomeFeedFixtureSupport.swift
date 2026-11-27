@@ -20,7 +20,7 @@ import SwiftUI
     }
     func categories() async throws -> [DiscoveryCategory] {
         if scenario == "offline" { throw URLError(.notConnectedToInternet) }
-        try JSONDecoder().decode([DiscoveryCategory].self, from: Data(#"[{"id":2,"categoryName":"Sample category"}]"#.utf8))
+        return try JSONDecoder().decode([DiscoveryCategory].self, from: Data(#"[{"id":2,"categoryName":"Sample category"}]"#.utf8))
     }
     func section(_ section: HomeFeedSection) async throws -> [HomeFeedItem] {
         if scenario == "empty" { return [] }
