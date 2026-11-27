@@ -434,8 +434,8 @@ enum T5PageFixtures {
 
     @MainActor static func make(_ name: String) -> AnyView? {
         switch name {
-        case "t5-baoming": return wrapPlayer(RegistrationFixtureHostView(scenario: .standard))
-        case "t5-baoming-error": return wrapPlayer(RegistrationFixtureHostView(scenario: .quoteError))
+        case "t5-baoming": return wrapPlayer(RegistrationFixtureHostView(scenario: .standard, hidesFixtureNotice: true))
+        case "t5-baoming-error": return wrapPlayer(RegistrationFixtureHostView(scenario: .quoteError, hidesFixtureNotice: true))
         case "t5-pricing": return wrapMerchant(T5PublisherPricingFixtureHost(failed: false))
         case "t5-pricing-error": return wrapMerchant(T5PublisherPricingFixtureHost(failed: true))
         case "t5-partner": return wrapMerchant(T5PublisherPartnerFixtureHost(failed: false))

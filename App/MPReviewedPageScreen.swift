@@ -712,7 +712,8 @@ import SwiftUI
             } else {
                 // Settings reads the unread badge owner (NativeChannelNotificationSettingsEntry); the link sheet sits
                 // outside the root's badge lifecycle, so it carries its own (no push binding, reads only).
-                SettingsView().environmentObject(session)
+                // mp-nav r3: a landed push, so no own stack / 完成 (system back), like the square and coop pages.
+                SettingsView(isPushed: true).environmentObject(session)
                     .modifier(NativeOriginalUnreadBadgeLifecycle(session: session))
             }
         case "pages/shezhi/marketing/index":
@@ -1196,7 +1197,9 @@ private struct ClubSingleOwnedEntry<Reader: ClubReading & ObservableObject, Sing
                         .accessibilityIdentifier("club.workbench.backToClub")
                 }
                 .accessibilityIdentifier("club.workbench.enterFailed")
-            case nil: ProgressView()
+            case nil:
+                ProgressView { Text("cy.state.loading") }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .task(id: attempt) {
@@ -1238,7 +1241,9 @@ private struct ClubFirstOwnedEntry<Reader: ClubReading & ObservableObject, Conte
                         .buttonStyle(.bordered)
                 }
                 .accessibilityIdentifier("club.enroll.ownedFailed")
-            case nil: ProgressView()
+            case nil:
+                ProgressView { Text("cy.state.loading") }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .task(id: attempt) {

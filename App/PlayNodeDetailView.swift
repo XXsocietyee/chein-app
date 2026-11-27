@@ -156,7 +156,7 @@ struct PlayNodeDetailView: View {
                         if let extGameIssue {
                             Text(verbatim: extGameIssue).cyText(.meta).foregroundStyle(.red)
                         }
-                        Button(isLaunchingExtGame ? W8Text.t("正在准备小游戏...", "Loading game...") : W8Text.t("启动外部小游戏", "Launch External Game")) {
+                        Button(isLaunchingExtGame ? W8Text.t("正在准备小游戏…", "Loading game…") : W8Text.t("启动外部小游戏", "Launch External Game")) {
                             Task { await launchBoundExternalGame(ext.gameID) }
                         }
                         .disabled(isLaunchingExtGame || externalGameSession == nil)

@@ -536,16 +536,12 @@ struct HomeFeedShelfCard: View {
             .map { appLocalized("activity.pinned.price \($0)", locale: locale) } ?? "—"
         let line = railMeta ?? [QuestifyCardText.metaLine(date: date, place: item.place), price].compactMap { $0 }.joined(separator: " · ")
         // P-019: the App Store shelf lockup — cover, then title and one meta line in system type, no scrim or shadow.
-        let card = HomeFeedShelfLockup(title: item.name, meta: line, imageURL: QuestifyCardArtwork.safeURL(item.imageURL),
-                                       fallback: fallback.image, style: style)
-        if showsFeaturedFacts, HomeFeedFeaturedFacts.hasAny(item) {
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                card
-                HomeFeedFeaturedFacts(item: item)
-            }
-        } else {
-            card
-        }
+        // mp-home r3 (continue 11): MP `v3-reco-card` reads club → tag row (Beta 试玩 · category · status) → title →
+        // metaLine, so the 编辑精选 facts sit between the cover and the title, not after the meta line.
+        let facts: AnyView? = showsFeaturedFacts && HomeFeedFeaturedFacts.hasAny(item)
+            ? AnyView(HomeFeedFeaturedFacts(item: item)) : nil
+        HomeFeedShelfLockup(title: item.name, meta: line, imageURL: QuestifyCardArtwork.safeURL(item.imageURL),
+                            fallback: fallback.image, style: style, facts: facts)
     }
 }
 
@@ -557,6 +553,8 @@ struct HomeFeedShelfLockup: View {
     let imageURL: URL?
     let fallback: Image
     let style: CYImageCard.Style
+    /// MP 编辑精选 club + tag row, drawn above the title (nil on the other rails).
+    var facts: AnyView? = nil
     @ScaledMetric(relativeTo: .body) private var shelfWidth: CGFloat = 260
 
     var body: some View {
@@ -566,6 +564,7 @@ struct HomeFeedShelfLockup: View {
                 .overlay { cover }
                 .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                 .accessibilityHidden(true)
+            if let facts { facts }
             Text(verbatim: title)
                 .font(.headline)
                 .foregroundStyle(.primary)

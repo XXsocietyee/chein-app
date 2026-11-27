@@ -145,7 +145,7 @@ Test: Tests/CoreTests/IMExpandedTests.swift `testSystemCardMiniProgramPagesOpen`
 | pages/deregister/index and pages/shezhi/shezhi?scene=settings-deregister → AccountComplianceSheet | pushed page showed a `compliance.close` cancellation button next to system back | `showsCloseButton: false` (like pages/shezhi/marketing) | fixed |
 | pages/member/index/index, pages/roam/index reaching MPReviewedPageScreen (tab roots) | rendered a second AccountView / RoamBrowserView with its own stack | `MPTabHandoff` → `rootTabSwitch(.mine / .roam)` like pages/index/index (MP switchTab); hosts without the tab switch keep the old screen | fixed |
 | subpackageRoam/poi-detail/index → RoamPOIDetailHost → RoamItemDetailView | own `NavigationStack` + 关闭 on the landed push | `embedsNavigationStack` (default true: the map place sheet keeps its stack and 关闭); RoamPOIDetailHost passes false, so the push has system back only | fixed |
-| pages/shezhi/shezhi (plain) → SettingsView | own `NavigationStack` + 完成 on the landed push | not changed: SettingsView's route owners retire on disappear and its profile routes use `navigationDestination(for:)` on the inner stack (see Open) | open |
+| pages/shezhi/shezhi (plain) → SettingsView | own `NavigationStack` + 完成 on the landed push | done in the 22:xx re-scan below | fixed (22:xx) |
 | `login-player`, `d2-inbox` tiles | still show 微信登录 / "Fixture conversation N": sweep build a250afd77 predates 81a815048 / 9723767a1 (not yet in `ui/combined-r7`) | — | OK (pending merge) |
 
 ## Re-scan 11-27 21:0x (20:55 sweep row, mp-nav en)
@@ -157,12 +157,34 @@ Test: Tests/CoreTests/IMExpandedTests.swift `testSystemCardMiniProgramPagesOpen`
 | backend contract 20:40 `/api/compliance/usage-records` (Core/UsageConsentRead.swift:38) → App/SettingsView.swift 设置 list | the only caller is the app-only 同意记录 / usage-evidence row (`UsageConsentReadSettingsEntry`); MP pages/shezhi/shezhi.wxml:14-35 has no such row and the backend does not serve the path, so the page could only show its error | row removed from 设置 (MP list order unchanged); no screen reaches the path any more. Agreement state stays on `/api/compliance/consents/latest` (registration, deregistration, checkout). Core reader + its unit tests left in place (unreachable) so no pin moves; route-capability entry left for debt-r3/coordinator to retire | fixed |
 | subpackageA/pages/infomation/infomation (城瘾玩法, landed from a link) → App/MPReviewedPageScreen.swift → SocialPlayGuideView | mode cards 去看看 (MP switchTab 首页 / 漫游) and 去发布广场 / 更多玩法 (switchTab 发布) only cleared the entry and selected the tab: on the 首页 push the page stayed on the stack, and 去看看 → 首页 did nothing visible | both use `leaveForTab` (clear entry, pop the page, select the tab), like the session-share 去漫游 exit; content unchanged | fixed |
 
+## Re-scan 11-27 21:3x (sweep build 405948d58, mp-nav sheets; 首页 menu edges)
+
+Sweep sheets (en / zh-Hans): inbox inline title, ia-tabs large titles, onboarding and welcome OK; `login-player` still shows "This isn't switched on yet." because 405948d58 predates 062af9e5f/b68bb8279 (pending integration merge). Landed-page audit: every MPReviewedPageScreen view with a `NavigationStack` uses it only inside its own sheets, except SettingsView (Open).
+
+| MP page / edge → native | finding | change | status |
+|---|---|---|---|
+| 首页 更多玩法 → 动态 = MP pages/square/list/index (navigateTo) → App/SessionHomeFeedView.swift | a `.cySheet` with its own stack and 关闭 | `navigationDestination(isPresented: $showsSquare)` push, `embedsNavigationStack: false`, `onClose: nil` (system back), pushed chrome; 登录 still closes it and opens sign-in | fixed |
+| 首页 更多玩法 → 浏览模板 = MP pages/template/index (tabBar page, switchTab) | a second copy of the 发布 tab root inside a sheet | selects the 发布 tab (`rootTabSwitch(.publish)`); the sheet stays only as the fallback for hosts without a tab switch (pin test_home_composition unchanged) | fixed |
+| 首页 今日票 → MP subpackageMember/signup/index (票夹, navigateTo) | sheet + 关闭 | push of `SessionTicketWalletHost(isPushed: true)` like 我的 → 票夹 | fixed |
+| 首页 小游戏 banner (app-only page, `native/mini-games`) → App/SessionHomeFeedView.swift | the only 首页 banner still opening a sheet + 关闭 (activity list / club apply banners push) | `navigationDestination(isPresented: $showsMiniGames)` push, inline title, system back | fixed |
+| 我的 合作 row → CooperationBrowserView sheet (App/AccountView.swift:163) | sheet + 关闭 although MP pages/coop/list is a navigateTo page | merchant-gated (`PlayerLaunch.merchantCenterEnabled`, hidden in Release): merchant out of scope | n/a |
+| pages/activity/detail → 票夹 (MP navigateTo subpackageMember/signup) → App/ActivityDetailView.swift:312 | `.cySheet` + 关闭 instead of a push | not changed: the footer pill is the zoom source of this sheet (continuity r1, `tileOpenedSheet`) and test_activity_design_structure pins the trigger; see For other lanes | open |
+| club detail 成员 / 贡献榜 → ClubPublicRosterView member profile sheet (App/ClubPublicRosterView.swift:76) | MP pages/userinfo is a navigateTo page | both hosts pass `profile: nil` (ClubDetailView.swift:291/334), so the sheet is unreachable; no change | n/a |
+| 票夹 empty state + 去探索主题 (MP signup/index.js:701 switchTab 首页) in a pushed wallet → App/SessionTicketWalletHost.swift | on 首页 the tab was already selected, so the pushed wallet stayed open (dead tap) | a pushed host pops (`dismiss`) before selecting 首页, like MP switchTab closing the page | fixed |
+
+## Re-scan 11-27 22:xx (sweep build 405948d58 unchanged; Open rows)
+
+| MP page / edge → native | finding | change | status |
+|---|---|---|---|
+| pages/shezhi/shezhi (plain link, landed as a push on 首页) → App/SettingsView.swift via App/MPReviewedPageScreen.swift | nested `NavigationStack` (double bar) + 完成 next to system back; the 个人资料 card pushed `ProfileSettingsProfileRoute` by value, which the host's typed `[AppRoute]` path cannot push (dead tap) | `SettingsView(isPushed: true)`: no own stack, no 完成, the 个人资料 card is a view-destination link to the new shared `ProfileSettingsProfileSessionDestination` (App/ProfileSettingsProfileRoute.swift); `profileOwner.retire()` only in the sheet form (pushed, onDisappear also fires when a row pushes on top, and the owner leaves with the page). 我的 → 设置 sheet unchanged. MP shezhi list order unchanged | fixed |
+
 ## Route coverage
 
 All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScreen cases or `MPParityDestination`), except four pages that are parsed (`Core/MiniProgramPageLink.swift`) but have no native screen case: `pages/playkit/index/index`, `pages/publishkit/index/index` (MP kit galleries), `pages/crop/index` (MP image-crop utility) and `subpackageP3/pages/badge-3d/index` (MP 3D badge viewer). No native player control links to them; left for the coordinator to confirm they stay unrouted.
 
 ## Pins updated
 
+- Tests/ContractChecks/test_i03_notification_blacklist_closeout.py:53 — expects the guarded `if !isPushed { profileOwner.retire() }` (sheet still retires; a pushed Settings leaves the owner with the popped page).
 - Tests/ContractChecks/test_ticket_wallet_play_entry.py:19 — looks for the wallet `navigationDestination` line instead of the old `.cySheet` (wallet is now a push).
 
 ## Coordinator sweep rows (16:37 / 16:53)
@@ -173,10 +195,12 @@ All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScre
 
 ## Open (carried)
 
-- 我的 → 设置 stays a `.large` sheet (AccountView.swift:146, WelcomeView.swift:66): MP navigateTo = push, but SettingsView owns its own NavigationStack, a 完成 dismiss, the guide hand-off and `profileOwner.retire()` on disappear; converting needs those lifetimes moved first. Needs the coordinator / a compiled run.
+- 我的 → 设置 stays a `.large` sheet (AccountView.swift:150, WelcomeView.swift:66): MP navigateTo = push. SettingsView can now render pushed (`isPushed: true`, used by the landed link); converting 我的 still needs the guide hand-off (`SettingsGuideHandoff`, runs after sheet dismissal) moved to a pop. Needs a compiled run.
 - 漫游护照与工具 hub sheet (owner Q9) and topic 编辑 editor sheet — kept, see the edge table.
 
 ## For other lanes
+
+- mp-home / motion: activity detail → 票夹 (ActivityDetailView.swift:312) is still a sheet with 关闭; MP navigateTo = push (OWNER RULE 2). The footer-pill zoom can stay on a push (`navigationTransition(.zoom)`), so the owner of continuity r1 should convert it.
 
 - mp-states / coordinator: the 消息 inbox preview is always "打开会话查看消息" (`MessagingPreview`, App/MessagingComponents.swift:300; `MessagingConversation` drops `lastMsgText` because recalled text may survive in it). MP `fmtPreview` shows the last message text / [图片] / [系统卡片]. Showing it needs a recall-safe server field first; left as is (privacy decision).
 

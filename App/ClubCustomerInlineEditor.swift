@@ -47,7 +47,7 @@ import SwiftUI
             .disabled(saving)
         if let failure { failureRows(failure) }
         Button { Task { await save() } } label: {
-            if saving { ProgressView() } else { Text("clubR3b.customer.save") }
+            CYBusyLabel(busy: saving) { Text("clubR3b.customer.save") }
         }
         .disabled(saving || locked)
         .accessibilityIdentifier("club.gov.customer.save")

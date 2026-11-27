@@ -9728,13 +9728,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading"
+            "value": "Loading…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在加载"
+            "value": "正在加载…"
           }
         }
       }
@@ -56926,13 +56926,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading"
+            "value": "Loading…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在加载"
+            "value": "正在加载…"
           }
         }
       }
@@ -87445,7 +87445,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading public map layers..."
+            "value": "Loading public map layers…"
           }
         },
         "zh-Hans": {
@@ -139820,7 +139820,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This level: No. %lld"
+            "value": "Ranked #%lld on this level"
           }
         },
         "zh-Hans": {
@@ -139939,13 +139939,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Submitting"
+            "value": "Submitting…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在提交"
+            "value": "正在提交…"
           }
         }
       }
@@ -146705,13 +146705,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Working"
+            "value": "Working…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在处理"
+            "value": "正在处理…"
           }
         }
       }
@@ -150999,13 +150999,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading"
+            "value": "Loading…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "加载中"
+            "value": "加载中…"
           }
         }
       }
@@ -157970,13 +157970,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Working"
+            "value": "Working…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "处理中"
+            "value": "处理中…"
           }
         }
       }
@@ -159685,13 +159685,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading order"
+            "value": "Loading order details"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在加载订单"
+            "value": "订单详情加载中"
           }
         }
       }
@@ -163857,13 +163857,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Processing"
+            "value": "Processing…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "处理中"
+            "value": "处理中…"
           }
         }
       }
@@ -170633,13 +170633,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sending"
+            "value": "Sending…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "提交中"
+            "value": "提交中…"
           }
         }
       }
@@ -181042,13 +181042,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scratched open — confirming result..."
+            "value": "Scratched open — confirming result…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已刮开，正在确认结果..."
+            "value": "已刮开，正在确认结果…"
           }
         }
       }
@@ -184761,7 +184761,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recording..."
+            "value": "Recording…"
           }
         },
         "zh-Hans": {
@@ -184777,13 +184777,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Uploading..."
+            "value": "Uploading…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "上传中"
+            "value": "上传中…"
           }
         }
       }
@@ -189814,13 +189814,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Submitting"
+            "value": "Submitting…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在提交"
+            "value": "正在提交…"
           }
         }
       }
@@ -190572,7 +190572,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在上传"
+            "value": "正在上传…"
           }
         }
       }
@@ -198032,7 +198032,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "处理中"
+            "value": "提交中…"
           }
         }
       }
@@ -218362,13 +218362,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Checking"
+            "value": "Checking…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在检查"
+            "value": "正在检查…"
           }
         }
       }
@@ -282509,13 +282509,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading"
+            "value": "Loading…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "加载中"
+            "value": "加载中…"
           }
         }
       }
@@ -306899,13 +306899,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Write your review..."
+            "value": "Write your review…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请输入您的评价内容..."
+            "value": "请输入您的评价内容…"
           }
         }
       }
@@ -310153,13 +310153,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Generating"
+            "value": "Generating…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "生成中"
+            "value": "生成中…"
           }
         }
       }
@@ -316245,13 +316245,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading"
+            "value": "Loading…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在加载"
+            "value": "正在加载…"
           }
         }
       }
@@ -329434,6 +329434,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "赚探索值"
+          }
+        }
+      }
+    },
+    "roam.discover.exploreDayFallback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See free exploration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "看看自由探索"
           }
         }
       }
@@ -349501,9 +349518,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fastest of %lld rounds"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Fastest of %lld round"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Fastest of %lld rounds"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -350308,6 +350337,40 @@
         }
       }
     },
+    "nearby.w208.recruit.noAreaTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a roam area to see nearby teams"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要定位才能看附近的队伍"
+          }
+        }
+      }
+    },
+    "nearby.w208.mine.failedTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load your teams"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍没能读到"
+          }
+        }
+      }
+    },
     "playkit.steps.readError": {
       "extractionState": "manual",
       "localizations": {
@@ -350729,6 +350792,91 @@
           "stringUnit": {
             "state": "translated",
             "value": "你猜 %1$@ · 实际 %2$@ · 差 %3$@"
+          }
+        }
+      }
+    },
+    "roam.official.pausedReason %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Event paused: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动暂停：%@"
+          }
+        }
+      }
+    },
+    "roam.official.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading the event…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取活动…"
+          }
+        }
+      }
+    },
+    "playx.board.loadingLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading the companions board…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载同行者榜…"
+          }
+        }
+      }
+    },
+    "orderLifecycle.unavailableTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This order can’t be viewed right now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订单暂不可查看"
+          }
+        }
+      }
+    },
+    "orderLifecycle.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试"
           }
         }
       }

@@ -368,20 +368,20 @@ private struct SquareCloudProfileRoute: Identifiable, Hashable {
     let id: Int
 }
 
-/// Own stack when presented as a sheet; none when pushed onto a tab's stack (no nested NavigationStack).
-private struct SquareBrowserStack<Content: View>: View {
-    let embedded: Bool
-    @ViewBuilder var content: Content
-    var body: some View {
-        if embedded { NavigationStack { content } } else { content }
-    }
-}
-
 /// Design fixtures (`d2-square`) render as a screenshot of the real page: the 示例内容 note is hidden there while
 /// `isOfflineExample` still keeps every write offline.
 @MainActor protocol SquareOfflineNoteHiding { var hidesOfflineExampleNote: Bool { get } }
 extension SquareReading {
     var showsOfflineExampleNote: Bool {
         isOfflineExample && (self as? any SquareOfflineNoteHiding)?.hidesOfflineExampleNote != true
+    }
+}
+
+/// Own stack when presented as a sheet; none when pushed onto a tab's stack (no nested NavigationStack).
+private struct SquareBrowserStack<Content: View>: View {
+    let embedded: Bool
+    @ViewBuilder var content: Content
+    var body: some View {
+        if embedded { NavigationStack { content } } else { content }
     }
 }

@@ -162,7 +162,6 @@ import QuestifyCore
     @State private var newKeyKind = "clue"
     @State private var renaming: TopicStateKeyRow?
     @State private var renameText = ""
-    @State private var newPrep = ""
     @State private var termsChapter: Int64?
     @State private var termsMode = TopicChapterSupplyTerms.Mode.perk
     @State private var termsMax = 0
@@ -245,98 +244,10 @@ import QuestifyCore
         } header: { Text("creatorEditor.draft", tableName: "CreatorEditorUI") }
     }
 
-    /// MP `start-prep` suggestions (theme-d20.js `PREP_SUGGESTIONS`); the first three not yet on the list are offered.
-    private static let prepSuggestionKeys = (1...6).map { "creatorEditor.prep.suggestion." + String($0) }
-    private static let prepMaxLength = 20
-    /// MP end option `次日 02:00` reads "02:00 next day" in English; other ends are plain times.
-    private static func windowEndLabel(_ end: String) -> Text {
-        let time = end.replacingOccurrences(of: "^次日\\s*", with: "", options: .regularExpression)
-        if time == end { return Text(verbatim: end) }
-        return Text("creatorEditor.window.nextDay \(time)", tableName: "CreatorEditorUI")
-    }
-    /// MP choice-sheet options (theme-d20.js `WINDOWS`): glyph per mode, hours under 只在白天 / 只在夜间.
-    private static func windowHours(_ mode: TopicPlayWindow.Mode) -> String? {
-        switch mode {
-        case .day: return "06:00–20:00"
-        case .night: return "20:00–06:00"
-        case .any, .custom: return nil
-        }
-    }
-    private static func windowGlyph(_ mode: TopicPlayWindow.Mode) -> String {
-        switch mode {
-        case .any: return "infinity"
-        case .day: return "sun.max"
-        case .night: return "moon.stars"
-        case .custom: return "clock"
-        }
-    }
-    private var prepSuggestions: [String] {
-        let have = Set(model.setup.prepItems)
-        let all = Self.prepSuggestionKeys.map { String(localized: String.LocalizationValue($0), table: "CreatorEditorUI") }
-        return Array(all.filter { !have.contains($0) }.prefix(3))
-    }
-    private var canAddPrep: Bool { model.setup.prepItems.count < TopicPlaySetup.maximumPrepItems }
-
-    private func addPrep(_ text: String) -> Bool {
-        let item = String(text.trimmingCharacters(in: .whitespacesAndNewlines).prefix(Self.prepMaxLength))
-        guard !item.isEmpty, canAddPrep, !model.setup.prepItems.contains(item) else { return false }
-        model.setup.prepItems.append(item)
-        return true
-    }
-
+    /// MP 可玩时段 (choice-sheet) and 开局前准备 (start-prep); the fields are shared with the editor's 主题详情 sheet rows.
     @ViewBuilder private var playSetupSection: some View {
-        Section {
-            Picker(selection: $model.setup.window.mode) {
-                ForEach(TopicPlayWindow.Mode.allCases, id: \.self) { mode in
-                    Label {
-                        Text(LocalizedStringKey("creatorEditor.window." + mode.rawValue), tableName: "CreatorEditorUI")
-                        if let hours = Self.windowHours(mode) { Text(verbatim: hours) }
-                    } icon: { Image(systemName: Self.windowGlyph(mode)) }
-                    .tag(mode)
-                }
-            } label: { Text("creatorEditor.window", tableName: "CreatorEditorUI") }
-            if model.setup.window.mode == .custom {
-                Picker(selection: Binding(get: { model.setup.window.start ?? TopicPlayWindow.starts[0] }, set: { model.setup.window.start = $0 })) {
-                    ForEach(TopicPlayWindow.starts, id: \.self) { Text(verbatim: $0).tag($0) }
-                } label: { Text("creatorEditor.window.start", tableName: "CreatorEditorUI") }
-                Picker(selection: Binding(get: { model.setup.window.end ?? TopicPlayWindow.ends[0] }, set: { model.setup.window.end = $0 })) {
-                    ForEach(TopicPlayWindow.ends, id: \.self) { end in Self.windowEndLabel(end).tag(end) }
-                } label: { Text("creatorEditor.window.end", tableName: "CreatorEditorUI") }
-            }
-        }
-        Section {
-            ForEach(Array(model.setup.prepItems.enumerated()), id: \.offset) { _, item in Text(verbatim: item) }
-                .onDelete { model.setup.prepItems.remove(atOffsets: $0) }
-                .onMove { model.setup.prepItems.move(fromOffsets: $0, toOffset: $1) }
-            if canAddPrep {
-                HStack {
-                    TextField(text: Binding(get: { newPrep }, set: { newPrep = String($0.prefix(Self.prepMaxLength)) })) { Text("creatorEditor.prep.add", tableName: "CreatorEditorUI") }
-                        .submitLabel(.done)
-                        .onSubmit { if addPrep(newPrep) { newPrep = "" } }
-                    Button {
-                        if addPrep(newPrep) { newPrep = "" }
-                    } label: { Text("creatorEditor.prep.addAction", tableName: "CreatorEditorUI") }
-                        .buttonStyle(.borderless)
-                        .disabled(newPrep.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                }
-            }
-        } header: {
-            HStack {
-                Text("creatorEditor.prep", tableName: "CreatorEditorUI")
-                Spacer()
-                if !model.setup.prepItems.isEmpty { EditButton().font(.footnote) }
-            }
-        } footer: {
-            Text("creatorEditor.prep.footer", tableName: "CreatorEditorUI")
-        }
-        .accessibilityIdentifier("creatorEditor.prep")
-        if canAddPrep && !prepSuggestions.isEmpty {
-            Section {
-                ForEach(prepSuggestions, id: \.self) { item in
-                    Button { _ = addPrep(item) } label: { Label { Text(verbatim: item) } icon: { Image(systemName: "plus.circle.fill") } }
-                }
-            } header: { Text("creatorEditor.prep.suggestions", tableName: "CreatorEditorUI") }
-        }
+        TopicPlayWindowFields(tools: model)
+        TopicPrepFields(tools: model)
         Section {
             Button { Task { await model.savePlaySetup() } } label: { Text("creatorEditor.save", tableName: "CreatorEditorUI") }
                 .accessibilityIdentifier("creatorEditor.playSetup.save")

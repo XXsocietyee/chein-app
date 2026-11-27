@@ -213,6 +213,23 @@ Merged `origin/ui/combined-r7` first (clean). Build a250afd77 predates `66c41fe9
 | `pages/index/index` `onAddressTap`, `onHeroBannerTap` | Re-checked: feed 地点 opens Maps (`HomeFeedView.swift:939-987`); banners → 活动列表 / 成为俱乐部 / (成为商家 merchant, gated). | No change needed. |
 | `d2-search` 示例内容 / Example content line under 筛选 | Honest offline-example marker (`reader.isOfflineExample`), false for the live reader. | Kept (not shown in production). |
 
+## Round 3 continue (10) — 21:20 coordinator sweep (build 405948d58), home zh-Hans
+
+| MP page → native view | Difference (screenshot) | Fixed / not |
+|---|---|---|
+| `pages/search2/result/index.wxml:31-32, 67-69` → `App/SearchMapComponents.swift` `SearchMapCard`, `GlobalTemplateResultRow` | `d2-search-results`: large grey boxes with a small kind glyph (fixture runs offline, so no cover URL ever loads). | **Fixed (P18)** — a topic / activity result is a cover card only when a safe cover URL exists (and not offline); otherwise it is a text row (kind label · title · area), no image frame. Club / merchant rows and template results drop the thumbnail the same way (templates keep the MP interaction art when `TemplateShelfArt` has one). |
+| `scene-play-activity-detail/index.wxml:13-14` hero → `App/E1ActivityDetailParts.swift` `E1ActivityHero`; fixture `App/DesignFixtures/E1Fixtures.swift` | `rep3-activity-detail`: hero is an empty grey surface. | **Fixed (fixture only)** — new environment value `e1ActivityHeroFixtureCover`; `rep3-activity-detail` / `e1-activity-detail` pass the bundled MP cover `MPAsset.BannerCover.feNight` (`pages/templatedetail/art/covers/topic/fe-night.jpg`, fits Lantern Market). Production: URL cover, else the MP plain surface (unchanged). |
+
+## Round 3 continue (11) — hourly re-scan (sweep still build 405948d58, already covered in continue 10)
+
+Merged `origin/ui/combined-r7` first (clean). All MP pages reachable from `pages/index/index` (activity list, activity detail, topic detail, search2 index/result, club apply via mp-nav) already have rows; scan-entry targets (`pages/team/join`, `pages/userinfo/userinfo`, `pages/activity/official-detail`) are deep links → mp-nav / mp-activity.
+
+| MP page → native view | Difference | Fixed / not |
+|---|---|---|
+| `pages/index/index.wxml:103-121` `v3-reco-card` → `App/HomeFeedView.swift` `HomeFeedShelfCard` / `HomeFeedShelfLockup` (`zh-Hans-d2-home.jpg`: 「Beta 试玩」 under the date) | MP card order is club (`v3-reco-club`) → tag row (Beta 试玩 · first category · status) → title → `metaLine`. Native drew cover → title → meta → club → tags. | **Fixed** — `HomeFeedShelfLockup(facts:)` draws `HomeFeedFeaturedFacts` between the cover and the title (编辑精选 only; other rails pass nil). Same footnote style, no new strings. |
+| `v3-reco-meta` 「编辑精选 · 参加条件以详情为准」 per card | Native shows it once as the rail subtitle (polish-d-r1, so it never sits under the tab bar). | Kept — same copy, once per rail instead of on every card. |
+| `pages/search2/index` `search-actions` → `GlobalSearchView.mapSection` | MP has only 在地图上找; native adds a 「更多查找方式」 menu (nearby / public layers / shops when not gated). | Kept — one menu row keeps native-only map entries reachable; noted for the coordinator. |
+
 ## Not done / follow-ups
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
 - ~~活动列表 邀约 link hidden while loading / failed~~ — closed in continue 3.
@@ -227,3 +244,5 @@ Merged `origin/ui/combined-r7` first (clean). Build a250afd77 predates `66c41fe9
 - Needs a simulator pass (continue 7): `rep3-activity-detail` with no footer bar and the plain hero; `d2-search-results` kind-icon covers; zh fixtures on `d2-home` / `wave-today-club`.
 - Needs a simulator pass (continue 8): `d2-home-offline` with the hero above the offline state; `d2-search-results` zh rows; `d2-search` without the test capsules.
 - Needs a simulator pass (continue 9): `rep3-activity-detail` and `d2-search(-results)` without fixture/synthetic names.
+- Needs a simulator pass (continue 10): `d2-search-results` text rows without image frames; `rep3-activity-detail` hero with the fe-night cover.
+- Needs a simulator pass (continue 11): 编辑精选 card with club / Beta 试玩 row above the title.
