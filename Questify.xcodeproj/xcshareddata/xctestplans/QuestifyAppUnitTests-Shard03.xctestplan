@@ -488,6 +488,7 @@
         "PushNotificationAndLiveActivitySectionViewTests",
         "QuestLiveActivityComponentsTests",
         "QuestLiveActivityMappingTests",
+        "QuestPlanActivityAndChecklistTests",
         "R3PlayerMotionTests",
         "ReceivedStampsAndPassportToolsSectionViewTests",
         "ReferenceChatTaskAppTests",

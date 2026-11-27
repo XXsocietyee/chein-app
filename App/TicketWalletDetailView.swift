@@ -66,6 +66,11 @@ import SwiftUI
                         }
                     }
                 }
+                if allowsOwnerActions(ticket) { // R-steps
+                    TicketCheckInStepChecklist(ticket: ticket,
+                                               canPresent: ticket.status == .ready && ticket.clearedFlag != true && !ticket.isWalletLocked,
+                                               onPresent: { presenting = true })
+                }
                 if allowsOwnerActions(ticket), let makeTeamCoordinator {
                     TicketWalletTeamEntrySection(ticket: ticket, requestedID: id, reader: reader, makeCoordinator: makeTeamCoordinator)
                 }

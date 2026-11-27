@@ -10,6 +10,8 @@ struct CYChecklistStep: Identifiable, Equatable {
     var detail: String? = nil
     /// Done: an SF Symbol "thumbnail" on the trailing side when there is no summary.
     var thumbnailSymbol: String? = nil
+    /// False hides 开始 on this step (nothing to start from here, e.g. staff verify a ticket).
+    var startable: Bool = true
 }
 
 /// Pure counts behind the header ("2 of 5 complete", ring fraction).
@@ -117,7 +119,7 @@ struct CYStepChecklist<Result: View>: View {
                 }
             }
             Spacer(minLength: CYSpacing.sm)
-            if let onStart, step.state != .locked {
+            if let onStart, step.state != .locked, step.startable {
                 if isCurrent {
                     Button(startTitle) { onStart(step.id) }
                         .buttonStyle(.borderedProminent)
