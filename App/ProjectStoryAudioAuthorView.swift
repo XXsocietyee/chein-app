@@ -126,7 +126,7 @@ import SwiftUI
                 if flow.state == .localSaveFailed { Text(text("projectStoryAudio.localFailed", "Local saving did not complete. The received reference is retained. Retry applying it locally; no upload will be sent.")) }
                 if flow.state == .failed { Text(text("projectStoryAudio.failed", "The local receipt could not be verified. Existing audio references are retained.")) }
                 if flow.state == .unauthorized { Text(text("projectStoryAudio.unauthorized", "Sign in again before uploading another audio file. The unresolved attempt is retained.")) }
-                if flow.state == .uploading { ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("projectStoryAudio.uploading") }
+                if flow.state == .uploading { CYLoadingState(messageIdentifier: "projectStoryAudio.uploading") }
             }
             .navigationTitle(text("projectStoryAudio.title", "Story audio")).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) {

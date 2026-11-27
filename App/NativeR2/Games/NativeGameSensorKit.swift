@@ -105,7 +105,7 @@ import SwiftUI
     @ViewBuilder private var liveSection: some View {
         Section {
             if stage.phase == .authorizing {
-                ProgressView().frame(maxWidth: .infinity)
+                CYLoadingState()
             } else if stage.phase == .calibrating {
                 ProgressView {
                     Text(LocalizedStringKey(kind == .ballShake ? "playkit.ball.calibration" : "playkit.audio.calibration"))
