@@ -126,6 +126,14 @@ Test: Tests/CoreTests/IMExpandedTests.swift `testSystemCardMiniProgramPagesOpen`
 | City local notification 稍后 / Later action (App/CityKit/CityNotifications.swift) → `MPNotificationTapRouter` | the background 稍后 action (and a custom dismiss) still routed the `page`, so the next foreground jumped to 漫游 although the player chose "later" | `MPNotificationTapRouter.nonOpeningActions` (laterAction + `UNNotificationDismissActionIdentifier`) skip routing; default tap and 开护盾 still land on 漫游 | fixed |
 | `login-player` sweep still shows the logo twice | the fix (b9a93003c) is on `mp/r3-nav` but not yet in `ui/combined-r7` (sweep build 1300a48db) | — waits for the integration merge | OK (pending merge) |
 
+## Re-scan 11-27 20:xx (19:15 sweep row, mp-nav zh)
+
+| MP page / edge → native | finding | change | status |
+|---|---|---|---|
+| pages/login (MP 微信一键登录 is the WeChat runtime's own; app login) → App/LoginView.swift + App/WeChatAppAuthSection.swift (`login-player` zh-Hans) | a disabled 微信登录 row plus 微信登录暂不可用 / 这项功能还没开通 shown to every CN player while the SDK is not wired (dead control, OWNER RULE 2) | `WeChatAppAuthCoordinator.isOffered` (gate open + SDK adapter + exchange service, Core/WeChatAppAuth.swift); the section renders only when offered (or mid-authorization). Apple / 手机号 entries unchanged. UI test `WeChatAppAuthFlowTests` now asserts the row is absent offline | fixed |
+| same screen, `这项功能还没开通` / "This isn't switched on yet." row (LoginView.swift:146) | shown only when `session.isConfigured` is false (no API base URL: design fixtures / unconfigured dev builds); a Release build always has a backend, so players never see it | kept as the dev/fixture notice | OK (verified) |
+| subpackageB/pages/im/list/index → `d2-inbox` fixture (App/MessagingFixtureSupport.swift, sheet-zh-Hans) | conversation names read "Fixture conversation N" in the Chinese UI (19:50: fixture data follows the UI language) | names are 示例会话 N / Sample conversation N by UI language | fixed |
+
 ## Route coverage
 
 All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScreen cases or `MPParityDestination`), except four pages that are parsed (`Core/MiniProgramPageLink.swift`) but have no native screen case: `pages/playkit/index/index`, `pages/publishkit/index/index` (MP kit galleries), `pages/crop/index` (MP image-crop utility) and `subpackageP3/pages/badge-3d/index` (MP 3D badge viewer). No native player control links to them; left for the coordinator to confirm they stay unrouted.

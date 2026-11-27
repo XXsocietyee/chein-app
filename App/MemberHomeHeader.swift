@@ -138,40 +138,66 @@ import SwiftUI
 
     private var snapshot: MemberIdentitySnapshot? { if case .ready(let value) = phase { return value }; return nil }
 
-    /// MP `pc-actions`: two equal primary buttons and the ··· menu. One-line labels; the row stacks
-    /// when it does not fit (English "Start exploring" at 375 pt) and at accessibility sizes.
+    /// MP `pc-actions`: two equal primary buttons and the ··· menu. One-line labels; when the row does not
+    /// fit (English "Start exploring" at 375 pt, accessibility sizes) 开始探索 takes its own full-width line
+    /// and [票夹][···] share the next one, so the ··· never sits alone under the buttons.
     private func actionRow(_ onOpenTickets: @escaping () -> Void) -> some View {
         Group {
             if typeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: 8) { actionButtons(onOpenTickets, fixedLabels: false) }
+                stackedActions(onOpenTickets)
             } else {
                 // The row's labels are fixed to their one-line width, so ViewThatFits sees the real need and
                 // stacks instead of truncating ("Star…", "Tick…" in the 18:15 en sweep).
                 ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 8) { actionButtons(onOpenTickets, fixedLabels: true) }
-                    VStack(alignment: .leading, spacing: 8) { actionButtons(onOpenTickets, fixedLabels: false) }
+                    HStack(spacing: 8) {
+                        startExploreButton(fixedLabel: true)
+                        ticketsButton(onOpenTickets, fixedLabel: true)
+                        moreButton
+                    }
+                    stackedActions(onOpenTickets)
                 }
             }
         }
         .frame(maxWidth: .infinity)
     }
+    private func stackedActions(_ onOpenTickets: @escaping () -> Void) -> some View {
+        VStack(spacing: 8) {
+            startExploreButton(fixedLabel: false)
+            HStack(spacing: 8) {
+                ticketsButton(onOpenTickets, fixedLabel: false)
+                moreButton
+            }
+        }
+    }
+    /// MP `pc-primary` 开始探索 is a text-only button (no icon), unlike 票夹.
     @ViewBuilder
-    private func actionButtons(_ onOpenTickets: @escaping () -> Void, fixedLabels: Bool) -> some View {
+    private func startExploreButton(fixedLabel: Bool) -> some View {
         if let onStartExplore {
             Button(action: onStartExplore) {
-                Label { Text("member.card.startExplore").lineLimit(1).fixedSize(horizontal: fixedLabels, vertical: false) } icon: { Image(systemName: "safari") }
+                Text("member.card.startExplore")
+                    .lineLimit(fixedLabel ? 1 : 2)
+                    .fixedSize(horizontal: fixedLabel, vertical: false)
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent).controlSize(.large)
             .accessibilityIdentifier("member.card.startExplore")
         }
+    }
+    private func ticketsButton(_ onOpenTickets: @escaping () -> Void, fixedLabel: Bool) -> some View {
         Button(action: onOpenTickets) {
-            Label { Text("member.card.tickets", tableName: "MemberProfile").lineLimit(1).fixedSize(horizontal: fixedLabels, vertical: false) } icon: { Image(systemName: "ticket") }
+            Label {
+                Text("member.card.tickets", tableName: "MemberProfile")
+                    .lineLimit(fixedLabel ? 1 : 2)
+                    .fixedSize(horizontal: fixedLabel, vertical: false)
+            } icon: { Image(systemName: "ticket") }
                 .frame(maxWidth: .infinity)
         }
         .buttonStyle(.borderedProminent).controlSize(.large)
         .pageTemplateControl(label: Text("member.card.tickets", tableName: "MemberProfile"), traits: .isButton)
         .accessibilityIdentifier("member.card.tickets")
+    }
+    @ViewBuilder
+    private var moreButton: some View {
         if let moreMenu {
             Menu {
                 moreMenu

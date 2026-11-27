@@ -76,10 +76,8 @@ struct IAPassportFixture: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section {
-                    Text(verbatim: "Synthetic fixture: identity card goes here (MemberIdentityCardSection)")
-                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                }
+                // mp-mine r3 (19:36 sweep): no developer placeholder line on a player screen; the identity card
+                // is shown by d2-me, this fixture hosts only the passport overview.
                 Section { PassportOverviewContent(stampCount: count, badges: badges, badgeTotal: badgeTotal) }
                     .listRowBackground(CYColor.bgSurface)
             }
