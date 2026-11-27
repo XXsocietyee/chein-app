@@ -16,9 +16,8 @@ LEDGER = ROOT / "Core/MiniProgramPageByPage99DecisionLedgerContract.swift"
 # Comment failures are in the catalog too (fixr3.square.commentsFailed / moreCommentsFailed),
 # matching pages/square/detail/index.wxml:124 and :172.
 MISSING_COPY = [
-    "服务暂时无法提供这条动态",
-    "网络异常，请检查连接后重试",
-    "正在加载更多评论…",
+    # mp-activity r3: 服务暂时无法提供这条动态 / 网络异常，请检查连接后重试 / 正在加载更多评论… are now catalog keys
+    # (mpr3.square.detail.serviceError / networkError / loadingMoreComments, MP index.js:1040-1086, index.wxml:171).
     "回复评论",
     "转发帖文",
     # "收藏帖文" now exists: fix-parity C-S2 (square detail favourite label, square.bookmark.add).
