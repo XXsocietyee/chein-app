@@ -49,7 +49,7 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/join-requests | `MPReviewedPageScreen.swift` | A link without `clubId` should show the missing-param state with 返回 (wxml:12). | **Fixed.** `MemberMissingLinkState` |
 | club/join-requests | same | Native rows push a detail page and 通过/拒绝 go through a review sheet; the MP does both in one tap. | **Not done.** large |
 | club/roles | `ClubOpsGovernanceSections.swift` | The owner row is name + 主理人 only; there is no footer line (wxml:23-45). | **Fixed** |
-| club/roles | same | No members → full-page 暂无成员. | Not done (small) |
+| club/roles | same | No members → full-page 暂无成员 (wxml:19, js:364). | **Fixed.** `ContentUnavailableView` when there are no delegable members and no assignments |
 | club/settlement | `ClubGovernanceViews.swift` settlement | The direct ledger is for the owner only (`summary.isOwner`, wxml:9). | **Fixed** |
 | club/settlement | same | MP order puts the 已入账 card after the funds stages. The native funds section also carries the withdraw button that the MP shows under the card, so moving the card would split card and button (and `test_club_ops_customer` pins card-before-funds). | **Kept** (reason given) |
 | club/event-ops | `ClubOpsEventView.swift` | With no topics and no series, the MP hides 重复方式 (wxml:178). | **Fixed** |
@@ -94,3 +94,4 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 4. Roles, event-ops and join-requests MP states.
 5. This receipt.
 6. 创建俱乐部 no-permission / limit: 返回上一页.
+7. 角色与权限 empty state 暂无成员.

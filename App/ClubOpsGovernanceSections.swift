@@ -293,7 +293,20 @@ struct ClubOpsRoleSection: View {
         guard let day = row.expiresMonthDay else { return summary }
         return summary + Text("clubOpsGov.roles.until \(day)", tableName: "ClubOpsGovernance")
     }
+    /// mp-club r3 (MP roles wxml:19, js:364): with no member to delegate to and nothing delegated, the page is 暂无成员.
     @ViewBuilder private func content(_ roster: ClubOpsRoleRoster) -> some View {
+        if roster.delegableMemberCount == 0 && roster.assignments.isEmpty {
+            Section {
+                ContentUnavailableView {
+                    Label { Text("club.gov.roles.noMembers") } icon: { Image(systemName: "person.3") }
+                }
+                .accessibilityIdentifier("clubOpsGov.roles.empty")
+            }
+        } else {
+            rosterContent(roster)
+        }
+    }
+    @ViewBuilder private func rosterContent(_ roster: ClubOpsRoleRoster) -> some View {
         Section {
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: 4) {
