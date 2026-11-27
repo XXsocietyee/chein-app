@@ -5219,6 +5219,159 @@
           }
         }
       }
+    },
+    "须已有原 schema2 规则；不覆盖缺失、旧版或未识别配置。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This needs the project's existing rules (schema 2). Missing, older or unrecognized settings are never overwritten."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要项目现有的规则（schema 2）；不会覆盖缺失、旧版或无法识别的配置。"
+          }
+        }
+      }
+    },
+    "请按原合同明确配置；未写回。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fill in every setting explicitly. Nothing was written back."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请逐项明确配置；未写回。"
+          }
+        }
+      }
+    },
+    "配置未变，保留原字节；没有新增保存或发布。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing changed, so your draft stays as it was. Nothing new was saved or published."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置未变，草稿保持原样；没有新的保存或发布。"
+          }
+        }
+      }
+    },
+    "原完整本地草稿保存未确认；编辑和预览保留，可重试本地保存。尚未保存服务器或发布。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We couldn't confirm the local save. Your edits and preview are kept, so you can retry. Nothing has been saved to the server or published yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地草稿保存未确认；编辑和预览仍保留，可以重试本地保存。尚未保存到服务器或发布。"
+          }
+        }
+      }
+    },
+    "原保存器已保存完整本地草稿，尚未保存服务器或发布。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your full draft is saved on this device. It hasn't been saved to the server or published yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完整草稿已保存在本机，尚未保存到服务器或发布。"
+          }
+        }
+      }
+    },
+    "原项目或配置已变化，未覆盖。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The project or its settings changed, so nothing was overwritten."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "项目或配置已变化，没有覆盖。"
+          }
+        }
+      }
+    },
+    "原套组配置无法读取，请返回检查草稿": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't read the set settings. Go back and check your draft."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "套组配置无法读取，请返回检查草稿"
+          }
+        }
+      }
+    },
+    "草稿暂未保存，请重试": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The draft isn't saved yet. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿暂未保存，请重试"
+          }
+        }
+      }
+    },
+    "请填写名称，并为每组选择有效且不重复的点位": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a name and pick a valid, different spot for each group"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写名称，并为每组选择有效且不重复的点位"
+          }
+        }
+      }
     }
   }
 }
