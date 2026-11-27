@@ -33,6 +33,7 @@ files; `mp/r3-mine` only gated 查看报名凭证 in `PlayerJourneyViews` (not o
 | `pages/play/index` (P1 集合屏) | `PlayLeadSection` | wait dots · 队伍集合中 · N/M · 已到集合点 · avatars · 我到了 / 已签到 · 开始行程 / 等队长开始行程… | **added** the P-13 waiting dots (`ellipsis` variable-colour, still under Reduce Motion). Avatars not shown: `PlayLeadProgress` has no avatar field yet (members stay as named rows) | `symbolEffect(.variableColor.iterative)` |
 | `pages/play/index` (任务页 p03) | `PlayExperienceView` node page + `PlayTaskRightSection` | title · audio · question (scan / text / options / preference / photo) · 答错 feedback · 答对 block (反馈 or 对了 · 碎片) · net error · hints · reveal · 当前最高 N 解谜分 · 提示 / 揭示 · CTA | **added** the 答对 block after this screen's own accepted answer (`passText` or 对了, then 碎片 `fragmentText`); the rest was already present (hint ladder, `playx.hints.capLine`, reveal, recovery rows) | `Section` + `Label`, combined VoiceOver element |
 | `subpackageJourney/pages/settle` (谢谢) | `JourneySettleView` `thanksCard` | 评价已提交: centred pop · star · 谢谢 · 去分享 | **fixed** (MP wins over xrefs-1 B.0): the auto-advance after the hold is gone; a dimmed centred card with the star, 谢谢 and 去分享 (→ share step) shows when the rating lands, and again on a second 提交 of a rated run (MP `submitRate`); stepping clears it | `.regularMaterial` card, `.borderedProminent` `.large`, `.isModal`, symbol bounce |
+| `pages/play/index` (游玩工具, mode 2) | `PlayToolsAndLeadSheetView` from `FreeExplorationExperienceView` | 我的权益 (n 家 · 已核销 m 家) · 入场码 · 旅程手记 · 自动记录足迹 (free copy, perk-only copy) · 背景音乐 / 旁白 / 动态效果 | **added** 我的权益 (closes onto the card grid, MP `openRightsFromTools` mode 2), 旅程手记 and the single 自动记录足迹 row after it with the MP free-explore copy; 入场码 has no registration id on this host yet | same Form rows as the city sheet |
 | `pages/playkit/index` | — | MP placeholder page (`wx.reLaunch` home; no entry points) | nothing to build | — |
 
 ## Not done (next pass)
@@ -46,7 +47,6 @@ files; `mp/r3-mine` only gated 查看报名凭证 in `PlayerJourneyViews` (not o
 - Free-explore tiles: MP station photo per tile (image chain + host policy); the chapter label (第 N 章 · title) is done; the
   hero's 3D card face and the chapter story stream (`fx-story`, story-flow theme).
 - 集合屏 member avatars (no avatar in `PlayLeadProgress`), `lead.freeEntry` not decoded.
-- 游玩工具 mode-2 自动记录足迹 row (perk-only copy 走过的路会记下来). 我的权益 (n 家 · 已核销 m 家, closes onto the grid) is done.
 
 ## Gates
 
@@ -56,7 +56,7 @@ files; `mp/r3-mine` only gated 查看报名凭证 in `PlayerJourneyViews` (not o
 - `python3 -B tools/contract_ratchet.py --check` — 52 failing, baseline 52, **new 0**, fixed 0 (after merging `ui/combined-r7`; repinned `test_play_gameplay_mode_separation` playFree key count 48 → 64 and the pass id, and catalogued the free host preferences in `docs/ops-safety/client-data-catalog.json`)
 
 New strings (en + zh-Hans) in `Resources/Localizable.xcstrings` and `docs/port/strings/mp-journey-r3.json`:
-`playTools.journal*` (7), `playTools.team*` (4), `playx.nightHint`, `playFree.nodes.header`, `playFree.selfPlayBanner %@`, `playFree.meta.*` (2), `playFree.hero.*` (10), `playFree.tile.chapter %lld %@|chapterNo %lld`, `playx.right.default|fragment`, `playTools.rights`, `playTools.rights.value %lld %lld`;
+`playTools.journal*` (7), `playTools.team*` (4), `playx.nightHint`, `playFree.nodes.header`, `playFree.selfPlayBanner %@`, `playFree.meta.*` (2), `playFree.hero.*` (10), `playFree.tile.chapter %lld %@|chapterNo %lld`, `playx.right.default|fragment`, `playTools.rights`, `playTools.rights.value %lld %lld`, `playTools.loc.free.*` (3);
 `playTools.loc.*` (8), `playx.lead.gathering|checkedIn|waitLeader`, `playx.finish.banner.lit %lld|claim`, `playBadge.savedLine`.
 Reused keys: `u10.template.stopNo`, `nativeR2.city.metric.distance`, `creator.family.timeWindow`,
 `mp.report.notScored`, `action.done`, `mp.settle.toRank`, `playTools.entryCode`, `playerGap.lead.arrived`.

@@ -1,4 +1,6 @@
+import CoreLocation
 import SwiftUI
+import UIKit
 
 /// Mode-2 pass/card-pack/store choice. Only these two free-exploration hosts reuse
 /// this surface; city orientation retains its own route/task interface.
@@ -93,6 +95,16 @@ import SwiftUI
 }
 extension FreeExplorationExperienceView {
     /// `utils/motion-preference.js`: the same stored preference the city run's 游玩工具 writes.
+    /// MP `gpsOk` (when-in-use or always) for the 自动记录足迹 row.
+    fileprivate static var freeLocationAuthorized: Bool {
+        let status = CLLocationManager().authorizationStatus
+        return status == .authorizedWhenInUse || status == .authorizedAlways
+    }
+    /// MP `onLocationRowTap` with location off: this app's location setting.
+    fileprivate static func openFreeLocationSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        UIApplication.shared.open(url)
+    }
     /// MP 我的权益: shops on this pass and how many are redeemed.
     fileprivate var freeRights: PlayToolsRights? {
         guard let snapshot = model.snapshot, let presentation = FreeExplorationPresentation(snapshot: snapshot) else { return nil }
@@ -303,13 +315,16 @@ struct FreeExplorationStoreName: View {
                 reduceMotionOverride: freeReducedMotionBinding,
                 onClose: { showPlayTools = false },
                 showsContentRows: false,
+                locationOn: Self.freeLocationAuthorized,
+                onLocationRow: Self.openFreeLocationSettings,
                 journalRows: model.snapshot.map(PlayJournal.rows(in:)),
                 rights: freeRights,
                 onRights: {
                     // MP openRightsFromTools (mode 2): the perks are the cards, so the sheet closes onto the grid.
                     showPlayTools = false
                     packOpen = true
-                }
+                },
+                freeTrackPerkOnly: model.snapshot.map { FreeExplorationStoryFacts(snapshot: $0).isPerkOnly } ?? false
             )
         }
         .cySheet(isPresented: $showChapterPicker) {
