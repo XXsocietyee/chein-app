@@ -189,7 +189,7 @@ import QuestifyCore
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(attribute.label)
-        .accessibilityValue("\(attribute.value) / \(attribute.max)" + (levelText.isEmpty ? "" : ", \(levelText)"))
+        .accessibilityValue(Text("a11y.value.ofTotal \(attribute.value) \(attribute.max)") + Text(verbatim: levelText.isEmpty ? "" : ", \(levelText)"))
         .accessibilityHint(Text(verbatim: levelText.isEmpty ? "—" : levelText))
     }
 }
