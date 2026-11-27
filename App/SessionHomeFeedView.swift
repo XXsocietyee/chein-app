@@ -33,6 +33,7 @@ import SwiftUI
     @State private var landingRoute: MPParityRoute?
     @Environment(RootPresentationCoordinator.self) private var presentation: RootPresentationCoordinator?
     @Environment(\.locale) private var locale
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
     @StateObject private var cityConsent = HomeCityLocationConsentModel()
     var body:some View {
         navigationRoot
@@ -42,10 +43,6 @@ import SwiftUI
         .task(id:session.homeFeedReader.scope) { await cityConsent.refresh(session) }
         .task(id:session.sessionRevision) { await cityConsent.refresh(session) }
         .cyToast(message: $cityConsent.toast)
-        .cySheet(isPresented:$showsTodayTickets) {
-            SessionTicketWalletHost(onClose:{ showsTodayTickets=false }).environmentObject(session)
-                .cyPlayerSheetGlass()
-        }
         .onChange(of:session.homeFeedReader.scope) { _,_ in resetForHomeScopeChange() }
         .onChange(of:session.officialEventReader.scope) { _,_ in showsOfficialEvents=false }
         .onChange(of:session.sessionRevision) { _,_ in resetForSessionRevisionChange() }
@@ -61,7 +58,6 @@ import SwiftUI
             .themeDomain(.topicEditor)
         }.cySheet(detents: [.large])
         }
-        .cySheet(isPresented:$showsSquare) { SessionSquareBrowserView(session: session, onClose: { showsSquare = false }, onSignIn: { showsSquare = false; onSignIn?() }).id(session.squareReader.scope).cyPlayerSheetGlass() }
         .cySheet(isPresented:$showsCreate) {
             NavigationStack {
                 DiscoveryTemplateBrowserView(reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) }, authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext,
@@ -104,7 +100,8 @@ import SwiftUI
                 .accessibilityIdentifier("homeFeed.openOfficialEvents")
             // Templates stay reachable for guests: browse-only, so the capability is the discovery read (`isConfigured`).
             if session.isConfigured {
-                Button("discovery.browseTemplates",systemImage:"square.stack.3d.up") { showsTemplates=true }
+                // mp-nav r3: templates are the MP 发布 tab (pages/template/index, switchTab); the sheet copy is only for hosts without a tab switch.
+                Button("discovery.browseTemplates",systemImage:"square.stack.3d.up") { if rootTabSwitch.isAvailable { rootTabSwitch(.publish) } else { showsTemplates=true } }
                     .accessibilityIdentifier("homeFeed.openTemplates")
             }
             Button("projectEdit.title", systemImage:"square.and.pencil") { showsProjectEditor=true }
@@ -210,6 +207,17 @@ import SwiftUI
                 }
                 .navigationDestination(item: $landingRoute) { route in
                     MPParityDestination(route: route)
+                        .cyPushedChrome()
+                }
+                // mp-nav r3: 动态 is MP pages/square/list/index (navigateTo): a push with system back, no 关闭, no nested stack.
+                .navigationDestination(isPresented:$showsSquare) {
+                    SessionSquareBrowserView(session: session, onClose: nil, onSignIn: { showsSquare = false; onSignIn?() }, embedsNavigationStack: false)
+                        .id(session.squareReader.scope)
+                        .cyPushedChrome()
+                }
+                // mp-nav r3: today's ticket opens the MP 票夹 page (subpackageMember/signup/index, navigateTo): a push like 我的 → 票夹.
+                .navigationDestination(isPresented:$showsTodayTickets) {
+                    SessionTicketWalletHost(isPushed: true).environmentObject(session)
                         .cyPushedChrome()
                 }
                 // mp-nav r3: MP pages/searchmap/index is a page (map search, not play): push it with an inline title.
