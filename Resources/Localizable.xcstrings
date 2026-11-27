@@ -132593,6 +132593,23 @@
         }
       }
     },
+    "messaging.list.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load messages"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载失败"
+          }
+        }
+      }
+    },
     "messaging.loadFailed": {
       "extractionState": "manual",
       "localizations": {

@@ -74,7 +74,7 @@ private struct MessagingConversationListView: View {
     @State private var safety: IMSafetyPresentation?
     @State private var displayLimit = 30
     var body: some View {
-        MessagingReadScreen(reader: reader, accessibilityPrefix: "messaging.list", model: listModel, load: {
+        MessagingReadScreen(reader: reader, accessibilityPrefix: "messaging.list", failureTitleKey: "messaging.list.loadFailed", model: listModel, load: {
             try await reader.messagingConversations()
         }) { conversations in
             let summary = IMInboxSummary(conversations: conversations)
