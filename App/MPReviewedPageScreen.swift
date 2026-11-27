@@ -967,7 +967,7 @@ import SwiftUI
                         // r7 residual P2: the reviewed roam host hands 登录 to its team pages too (RNEAR-5).
                         nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView(onSignIn: openSignIn).environmentObject(session)) },
                         stampDestination: { AnyView(SessionRoamStampCameraView().environmentObject(session)) },
-                        liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost).environment(\.roamOfficialArrival, RoamOfficialArrivalDeps(reader: session.officialEventReader, actions: session.officialActionCoordinator)).environment(\.roamRunnerActions, session.roamRunnerActions)) },
+                        liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost).environment(\.roamOfficialArrival, RoamOfficialArrivalDeps(reader: session.officialEventReader, actions: session.officialActionCoordinator)).environment(\.roamRunnerActions, session.roamRunnerActions).environment(\.roamPresenceVisibility, { [weak presenceOwner = session] in await presenceOwner?.setRoamPresenceVisibility(sessionID: $0, visible: $1) })) },
                         posterDestination: { AnyView(SessionRoamPosterView(node: $0).environmentObject(session)) },
                         eventDestination: { target in
                             switch target {

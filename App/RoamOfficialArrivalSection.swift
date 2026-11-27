@@ -30,7 +30,16 @@ private struct RoamOfficialArrivalDepsKey: EnvironmentKey {
     static let defaultValue: RoamOfficialArrivalDeps? = nil
 }
 
+/// ROAM-r11-5: `POST /api/roam/presence-visibility` for (sessionId, visible); nil result = not confirmed.
+private struct RoamPresenceVisibilityKey: EnvironmentKey {
+    static let defaultValue: (@MainActor (Int?, Bool) async -> Bool?)? = nil
+}
+
 extension EnvironmentValues {
+    var roamPresenceVisibility: (@MainActor (Int?, Bool) async -> Bool?)? {
+        get { self[RoamPresenceVisibilityKey.self] }
+        set { self[RoamPresenceVisibilityKey.self] = newValue }
+    }
     var roamOfficialArrival: RoamOfficialArrivalDeps? {
         get { self[RoamOfficialArrivalDepsKey.self] }
         set { self[RoamOfficialArrivalDepsKey.self] = newValue }

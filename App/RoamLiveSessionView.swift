@@ -100,6 +100,7 @@ import QuestifyCore
     /// ROAM-r11-1: the official event carried in from 去漫游 (MP onLoad `eventId` / `missionCode`).
     @ObservedObject private var officialHandoff = RoamOfficialEventHandoff.shared
     @Environment(\.roamOfficialArrival) private var officialArrival
+    @Environment(\.roamPresenceVisibility) private var roamPresenceVisibility
     init(controller: RoamLiveSessionController, offlineExample: Bool = false, localHistoryReader: (any RoamExperienceReading)? = nil, albumMetadataReader: RoamAlbumMetadataReader? = nil, browsePresentation: RoamPausedBrowsePresentation? = nil) {
         self.offlineExample = offlineExample; self.localHistoryReader = localHistoryReader; self.albumMetadataReader = albumMetadataReader
         _browse = StateObject(wrappedValue: browsePresentation ?? RoamPausedBrowsePresentation())
@@ -157,7 +158,8 @@ import QuestifyCore
         .interactiveDismissDisabled()
         .sheet(isPresented: $showTools) {
             RoamSessionToolsSheetView(runners: runners, presenceEnabled: owner.presenceEnabled,
-                                      fogOn: fogOnBinding, mapKind: mapKindBinding, reduceMotion: reducedMotionBinding)
+                                      fogOn: fogOnBinding, mapKind: mapKindBinding, reduceMotion: reducedMotionBinding,
+                                      onSetPresence: presenceSwitch)
         }
         .sheet(isPresented: $showingLocationPriming, onDismiss: {
             guard locationPrimingAllowed else { return }
@@ -278,6 +280,18 @@ import QuestifyCore
                     if sessionDetent == .fraction(0.3) { sessionDetent = .medium }
                 }
                 .accessibilityIdentifier("roam.live.map")
+        }
+    }
+    /// ROAM-r11-5: the server-confirmed presence change also switches this walk's presence reports.
+    private var presenceSwitch: (@MainActor (Bool) async -> Bool?)? {
+        guard let roamPresenceVisibility, [.active, .paused].contains(owner.phase), owner.presenceAvailable else { return nil }
+        return { visible in
+            let saved = await roamPresenceVisibility(owner.record?.sessionID, visible)
+            if let saved {
+                owner.setPresenceSharing(saved)
+                if !saved { runners = [] }
+            }
+            return saved
         }
     }
     /// ROAM-r11-1: MP 官方活动 · 到达验证 overlay, shown only in an event context.

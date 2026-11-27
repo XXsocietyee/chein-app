@@ -15,6 +15,12 @@ struct RoamSessionToolsSheetView: View {
     @Binding var mapKind: FreeMapKind
     @Binding var reduceMotion: Bool
     var onOpenLocationSettings: (() -> Void)? = nil
+    /// ROAM-r11-5: mid-session 附近的人位置分享 (MP pages/roam/index.js:5593-5616). Returns the server-confirmed value,
+    /// nil when it did not change. Nil hides the switch (fixtures, signed out).
+    var onSetPresence: (@MainActor (Bool) async -> Bool?)? = nil
+    @State private var presenceSubmitting = false
+    @State private var presenceConsentShown = false
+    @State private var presenceFailed = false
     @Environment(\.dismiss) private var dismiss
     @Environment(\.roamRunnerActions) private var runnerActions
 
@@ -38,6 +44,9 @@ struct RoamSessionToolsSheetView: View {
                     }
                 } header: {
                     Text("roamTools.runners.section")
+                }
+                if let onSetPresence {
+                    presenceSection(onSetPresence)
                 }
 
                 Section("roamTools.map.section") {
@@ -69,6 +78,35 @@ struct RoamSessionToolsSheetView: View {
         }
         .presentationDetents([.medium, .large])
         .accessibilityIdentifier("roamTools.sheet")
+    }
+
+    private func presenceSection(_ apply: @escaping @MainActor (Bool) async -> Bool?) -> some View {
+        Section {
+            Toggle(isOn: Binding(get: { presenceEnabled }, set: { on in
+                if on { presenceConsentShown = true } else { Task { await submit(false, apply) } }
+            })) {
+                Text(presenceSubmitting ? LocalizedStringKey("roamTools.presence.updating") : LocalizedStringKey("roamTools.presence.title"))
+            }
+            .disabled(presenceSubmitting)
+            .accessibilityIdentifier("roamTools.presence")
+            if presenceFailed {
+                Text("roamTools.presence.failed").font(.footnote).foregroundStyle(.red)
+            }
+        }
+        .confirmationDialog("roamTools.presence.consentTitle", isPresented: $presenceConsentShown, titleVisibility: .visible) {
+            Button("roamTools.presence.agree") { Task { await submit(true, apply) } }
+            Button("roamTools.presence.notNow", role: .cancel) {}
+        } message: {
+            Text("roamTools.presence.disclosure")
+        }
+    }
+
+    private func submit(_ visible: Bool, _ apply: @MainActor (Bool) async -> Bool?) async {
+        guard !presenceSubmitting else { return }
+        presenceSubmitting = true; presenceFailed = false
+        let saved = await apply(visible)
+        presenceSubmitting = false
+        presenceFailed = saved == nil
     }
 
     /// MP f-multi card row: initial / avatar, nickname, walking time and own 地盘 %.

@@ -234,6 +234,13 @@ import Foundation
     }
     /// Active walk whose location provider holds background updates.
     public var continuesInBackground: Bool { phase == .active && location?.continuesInBackground == true }
+    /// ROAM-r11-5: the server confirmed a mid-session 附近的人位置分享 change; the next fix reports (or stops reporting) presence.
+    public func setPresenceSharing(_ visible: Bool) {
+        guard phase == .active || phase == .paused else { return }
+        presenceEnabled = visible && presenceAvailable
+        lastPresence = nil
+        changed()
+    }
     public func resume(purposeAccepted: Bool, presenceAccepted: Bool = false) async {
         guard phase == .paused, record?.finishRequested == false else { return }
         guard purposeAccepted else { error = RoamLiveFailure.consentRequired; changed(); return }

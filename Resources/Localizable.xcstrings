@@ -327793,6 +327793,125 @@
           }
         }
       }
+    },
+    "roamTools.presence.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share location with nearby players"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "附近的人位置分享"
+          }
+        }
+      }
+    },
+    "roamTools.presence.updating": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updating location sharing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在更新位置分享"
+          }
+        }
+      }
+    },
+    "roamTools.presence.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location sharing didn't change. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置分享没改成，请重试"
+          }
+        }
+      }
+    },
+    "roamTools.presence.consentTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Separate consent for location sharing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "单独同意位置分享"
+          }
+        }
+      }
+    },
+    "roamTools.presence.agree": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agree and turn on"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同意并开启"
+          }
+        }
+      }
+    },
+    "roamTools.presence.notNow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不开启"
+          }
+        }
+      }
+    },
+    "roamTools.presence.disclosure": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When on, roamers within 3 km who also share can see your approximate block location (about 1 km), nickname, avatar and this walk, and can open your profile or message you. Off by default; turning it off stops showing you to others at once and doesn't affect your own location, check-ins or track."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开启后，附近 3 公里内同样开启分享的漫游用户可看到你的街区模糊位置（约 1 公里精度）、昵称、头像和本次漫游信息，并可查看主页或发私信。默认关闭；关闭后立即停止对他人展示，不影响自己的定位、打卡和轨迹。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
