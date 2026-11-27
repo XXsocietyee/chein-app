@@ -5,6 +5,8 @@ struct ProfileParticipantsView: View {
     let reader: any ProfileReading
     let coordinator: ParticipantMutationCoordinator?
     @State private var showsCreate = false
+    /// a11y-dt r3: the initial grows with Dynamic Type instead of clipping in a fixed 40 pt circle.
+    @ScaledMetric(relativeTo: .headline) private var initialSide: CGFloat = 40
     @State private var refreshID = UUID()
     @State private var snapshotIdentity: ProfileReadIdentity?
     @State private var editing: ParticipantRowTarget?
@@ -72,7 +74,7 @@ struct ProfileParticipantsView: View {
                         let rowLabel = HStack(spacing: 12) {
                             Text(verbatim: String(name.prefix(1)).uppercased())
                                 .font(.headline).foregroundStyle(.secondary)
-                                .frame(width: 40, height: 40)
+                                .frame(width: initialSide, height: initialSide)
                                 .background(.quaternary, in: Circle())
                                 .overlay { if name.isEmpty { Image(systemName: "person.fill").foregroundStyle(.secondary) } }
                                 .accessibilityHidden(true)

@@ -136,12 +136,10 @@ struct ClubManagedProjectPermissions: Equatable {
     @ViewBuilder private var content: some View {
         switch model.projectsState {
         case .idle, .loading:
-            // MP `cy-skeleton type="list" count="2"`.
-            ForEach(0..<2, id: \.self) { _ in
-                Label("club.projects.placeholder", systemImage: "photo")
-                    .redacted(reason: .placeholder)
-            }
-            .accessibilityIdentifier("club.projects.loading")
+            // MP `cy-skeleton type="list" count="2"` → mp-states r3: the one loading pattern, a labelled ProgressView.
+            ProgressView { Text("club.projects.placeholder") }
+                .frame(maxWidth: .infinity)
+                .accessibilityIdentifier("club.projects.loading")
         case .failed:
             ContentUnavailableView {
                 Label("club.projects.loadFailed", systemImage: "exclamationmark.triangle")

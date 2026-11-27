@@ -114,11 +114,34 @@ import UIKit
             Button { owner.requestRead(expected: stamp) } label: {
                 Label { Text("search", tableName: "ActivityTemplateSelection") } icon: { Image(systemName: "magnifyingglass") }
             }
-            PublishingStatusRow(title: Text(LocalizedStringKey("status." + owner.status.rawValue), tableName: "ActivityTemplateSelection"),
-                symbol: owner.status == .empty ? "tray" : owner.status == .failed ? "exclamationmark.triangle" : "info.circle",
-                isError: owner.status == .failed)
+            // mp-states r3 (MP publish/activity wxml:237-238): loading in words, 模板加载失败 · reason · 重试, and
+            // 还没有可用模板 as the one state pattern (ContentUnavailableView); other phases keep the status line.
+            switch owner.status {
+            case .loading:
+                ProgressView { Text(LocalizedStringKey("status.loading"), tableName: "ActivityTemplateSelection") }
+                    .frame(maxWidth: .infinity)
+                    .accessibilityIdentifier("activityTemplate.status")
+            case .failed:
+                ContentUnavailableView {
+                    Label { Text("state.failed", tableName: "ActivityTemplateSelection") } icon: { Image(systemName: "exclamationmark.triangle") }
+                } description: {
+                    Text(LocalizedStringKey("status.failed"), tableName: "ActivityTemplateSelection")
+                } actions: {
+                    Button { owner.requestRead(expected: stamp) } label: { Text("action.retry") }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("activityTemplate.retry")
+                }
                 .accessibilityIdentifier("activityTemplate.status")
-            if owner.status == .loading { ProgressView().frame(maxWidth: .infinity) }
+            case .empty:
+                ContentUnavailableView {
+                    Label { Text("state.empty", tableName: "ActivityTemplateSelection") } icon: { Image(systemName: "tray") }
+                }
+                .accessibilityIdentifier("activityTemplate.status")
+            default:
+                PublishingStatusRow(title: Text(LocalizedStringKey("status." + owner.status.rawValue), tableName: "ActivityTemplateSelection"),
+                    symbol: "info.circle", isError: false)
+                    .accessibilityIdentifier("activityTemplate.status")
+            }
             ForEach(owner.rows) { row in
                 let isSelected = owner.selected == row
                 Button { owner.select(row, expected: stamp) } label: {
