@@ -1096,7 +1096,7 @@ public struct ExternalGameBridgeResult: Codable, Equatable, Sendable {
             allowedDomains: allowedDomains,
             sha256: sha256,
             signature: "",
-            author: "Questify Workshop",
+            author: "Chein Workshop",
             summary: "在背包沙盒内运行的轻量解谜互动"
         )
         let sig = sign?(ExternalGameValidator.canonicalSigningPayload(for: unsigned)) ?? String(repeating: "0", count: 128)
@@ -1110,7 +1110,7 @@ public struct ExternalGameBridgeResult: Codable, Equatable, Sendable {
             allowedDomains: allowedDomains,
             sha256: sha256,
             signature: sig,
-            author: "Questify Workshop",
+            author: "Chein Workshop",
             summary: "在背包沙盒内运行的轻量解谜互动"
         )
         return ExternalGamePackageArchive(manifest: signed, files: files)

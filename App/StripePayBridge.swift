@@ -3,6 +3,8 @@ import SwiftUI
 /// US launch r1 (lane app-pay). Session glue for the Stripe / Apple Pay channel of a USD order.
 /// Behind the same switches as the China pay step: `ReviewedAreaSwitch.moneyPayments` and
 /// `ReleaseMoneyWriteSwitch.paymentEnabled`, plus the US market. The China flow never reaches this type.
+/// One-app (owner 2026-11-27): "US market" is the per-user market (`RegionalLaunchConfiguration.storefrontMarket`),
+/// not the deployment's market, which is China for both markets on the one shared backend.
 struct StripePayContext {
     let market: RegionalMarket?
     let createIntent: @MainActor (StripeIntentRequest) async -> Result<StripeIntent, StripePayFailure>
@@ -15,9 +17,9 @@ struct StripePayContext {
 @MainActor enum StripePayBridge {
     static func context(_ session: AppSession) -> StripePayContext? {
         guard RegistrationPayBridge.paymentsOpen(session),
-              session.regionalConfiguration?.market == .unitedStates else { return nil }
+              RegionalLaunchConfiguration.storefrontMarket == .unitedStates else { return nil }
         return StripePayContext(
-            market: session.regionalConfiguration?.market,
+            market: RegionalLaunchConfiguration.storefrontMarket,
             createIntent: { body in
                 await perform(session) { configuration, transport, token in
                     await StripePayService.createIntent(body, configuration: configuration, transport: transport, token: token)
@@ -45,7 +47,7 @@ struct StripePayContext {
     private static func perform<Value>(_ session: AppSession,
                                        _ call: (APIConfiguration, any HTTPTransport, String) async -> Result<Value, StripePayFailure>)
         async -> Result<Value, StripePayFailure> {
-        guard RegistrationPayBridge.paymentsOpen(session), session.regionalConfiguration?.market == .unitedStates,
+        guard RegistrationPayBridge.paymentsOpen(session), RegionalLaunchConfiguration.storefrontMarket == .unitedStates,
               let configuration = session.regionalConfiguration?.apiConfiguration else { return .failure(.closed) }
         guard let token = session.token, AuthRequestBuilder.isValidToken(token) else { return .failure(.signedOut) }
         let stamp = session.sessionRevision

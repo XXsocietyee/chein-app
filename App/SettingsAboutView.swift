@@ -244,7 +244,7 @@ private struct SettingsFactRow: View {
         SettingsAboutView(
             market: .china,
             appInformation: SettingsAppInformation(info: [
-                "CFBundleDisplayName": "Questify",
+                "CFBundleDisplayName": "Chein",
                 "CFBundleShortVersionString": "0.1.0",
                 "CFBundleVersion": "1"
             ]),

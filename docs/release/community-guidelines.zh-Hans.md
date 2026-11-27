@@ -1,12 +1,12 @@
 # 社区规范
 
-Questify **0.1.0 (1)**。简体中文。英文文本是 [`community-guidelines.md`](community-guidelines.md)。怎么答复对方写在 [`support-playbook.zh-Hans.md`](support-playbook.zh-Hans.md) 和 [`support-playbook.md`](support-playbook.md)。
+城瘾（Chein）**0.1.0 (1)**。简体中文。英文文本是 [`community-guidelines.md`](community-guidelines.md)。怎么答复对方写在 [`support-playbook.zh-Hans.md`](support-playbook.zh-Hans.md) 和 [`support-playbook.md`](support-playbook.md)。
 
 这些说明告诉客服可以怎样描述社区行为。它们不是用户协议，不是隐私政策，也不是 App Store 提交材料。它们不改版本。营销版本保持 `0.1.0`，构建号保持 `1`。
 
 对照 `origin/rc/20261108` 的 `88e981b3308558939e405606cd731b4b29fc9499`（2026-11-09，太平洋时间）写成。
 
-屏幕上的显示名是 Questify。本仓库的中文材料也使用「城瘾」。
+屏幕上的显示名：中文系统为「城瘾」，英文系统为 Chein（负责人 2026-11-27 决定：英文品牌名为 Chein，中文仍为城瘾）。
 
 ## 用户生成内容政策
 
@@ -24,7 +24,7 @@ Questify **0.1.0 (1)**。简体中文。英文文本是 [`community-guidelines.m
 
 ## 适用于谁
 
-在 Questify 里探索、发帖、评论、发消息、参加俱乐部和活动的人。商家和俱乐部组织者在这些空间里发内容时，同样适用。
+在城瘾里探索、发帖、评论、发消息、参加俱乐部和活动的人。商家和俱乐部组织者在这些空间里发内容时，同样适用。
 
 ## 操作说明
 

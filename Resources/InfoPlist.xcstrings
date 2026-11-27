@@ -81,6 +81,42 @@
           }
         }
       }
+    },
+    "CFBundleDisplayName": {
+      "comment": "Home-screen app name. Owner 2026-11-27: the English brand is Chein; Chinese stays 城瘾.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chein"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城瘾"
+          }
+        }
+      }
+    },
+    "CFBundleName": {
+      "comment": "Home-screen app name. Owner 2026-11-27: the English brand is Chein; Chinese stays 城瘾.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chein"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城瘾"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

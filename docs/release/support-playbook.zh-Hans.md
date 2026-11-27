@@ -1,12 +1,12 @@
 # 客服手册
 
-Questify **0.1.0 (1)**。简体中文。英文文本是 [`support-playbook.md`](support-playbook.md)。社区规范是 [`community-guidelines.zh-Hans.md`](community-guidelines.zh-Hans.md) 与 [`community-guidelines.md`](community-guidelines.md)。
+城瘾（Chein）**0.1.0 (1)**。简体中文。英文文本是 [`support-playbook.md`](support-playbook.md)。社区规范是 [`community-guidelines.zh-Hans.md`](community-guidelines.zh-Hans.md) 与 [`community-guidelines.md`](community-guidelines.md)。
 
 这是答复用户的内部口径，不是商店文案，不是隐私政策，也不是备案材料。它不改版本。营销版本保持 `0.1.0`，构建号保持 `1`（`Config/Base.xcconfig`）。这里不部署任何东西。
 
 对照 `origin/rc/20261108` 的 `88e981b3308558939e405606cd731b4b29fc9499`（2026-11-09，太平洋时间）写成。
 
-屏幕上的显示名是 Questify。本仓库的中文材料也使用「城瘾」。对方用哪个名字，就用哪个回答。不要给 App 改名。
+屏幕上的显示名：中文系统为「城瘾」，英文系统为 Chein（负责人 2026-11-27 决定：英文品牌名为 Chein，中文仍为城瘾）。对方用哪个名字，就用哪个回答。不要给 App 改名。
 
 ## 占位
 
@@ -126,7 +126,7 @@ Questify **0.1.0 (1)**。简体中文。英文文本是 [`support-playbook.md`](
 
 写短。不要加地址。
 
-- 「这是 Questify 0.1.0 (1)。」
+- 「这是城瘾 0.1.0 (1)。」
 - 「此版本不提供密码登录。」
 - 「此版本不提供银行卡提现。这个页面不确认转账，也不确认到账时间。」
 - 「此版本不提供虚拟商品。」

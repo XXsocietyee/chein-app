@@ -134,7 +134,7 @@ import SwiftUI
         case .failure(let failure): phase = .notice(message(failure)); return
         }
         phase = .inSheet
-        let outcome = await authorizer.present(intent: intent, label: c.t("澄音", "Chengyin")) { payment in
+        let outcome = await authorizer.present(intent: intent, label: c.t("城瘾", "Chein")) { payment in
             guard let request = try? StripeApplePayConfirmRequest(
                 intent: body, paymentIntentID: intent.paymentIntentID, paymentData: payment.token.paymentData,
                 instrumentName: payment.token.paymentMethod.displayName,

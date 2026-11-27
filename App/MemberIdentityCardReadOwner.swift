@@ -19,6 +19,8 @@ import Observation
     func accepts(_ value: Run, scope: UUID) -> Bool { mounted && active && run == value && value.scope == scope }
     func publish(_ snapshot: MemberIdentitySnapshot, run value: Run, scope: UUID) {
         guard accepts(value, scope: scope) else { return }
+        // One-app: an account region returned by `/api/user/info` decides the user market first.
+        UserMarketMemory.recordAccountRegion(snapshot.accountRegion)
         lifetime.retireAll()
         observation = .init(snapshot: snapshot, scope: scope, readRevision: value.revision, requestStarted: value.started)
     }

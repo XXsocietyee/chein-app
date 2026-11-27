@@ -135,7 +135,7 @@ la_configs=[]
 for name in ['Debug','Release']:
     settings={'PRODUCT_NAME':'$(TARGET_NAME)','PRODUCT_BUNDLE_IDENTIFIER':'$(inherited).LiveActivity','SUPPORTED_PLATFORMS':'iphoneos iphonesimulator',
               'SWIFT_EMIT_LOC_STRINGS':'YES','INFOPLIST_FILE':'LiveActivityWidget/Info.plist','GENERATE_INFOPLIST_FILE':'YES',
-              'INFOPLIST_KEY_CFBundleDisplayName':'Questify','INFOPLIST_KEY_UIApplicationSceneManifest_Generation':'NO',
+              'INFOPLIST_KEY_CFBundleDisplayName':'Chein','INFOPLIST_KEY_UIApplicationSceneManifest_Generation':'NO',
               'ASSETCATALOG_COMPILER_APPICON_NAME':'','APPLICATION_EXTENSION_API_ONLY':'YES','SKIP_INSTALL':'YES',
               'LD_RUNPATH_SEARCH_PATHS':'$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks',
               'SWIFT_OPTIMIZATION_LEVEL':'-Onone' if name=='Debug' else '-O',

@@ -330,7 +330,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last %lld days, Chengyin brought you"
+            "value": "Last %lld days, Chein brought you"
           }
         },
         "zh-Hans": {
@@ -347,7 +347,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@, Chengyin brought you"
+            "value": "%@, Chein brought you"
           }
         },
         "zh-Hans": {
@@ -857,7 +857,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chengyin Hub - Merchant"
+            "value": "Chein - Merchant"
           }
         },
         "zh-Hans": {

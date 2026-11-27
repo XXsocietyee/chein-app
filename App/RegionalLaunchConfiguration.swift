@@ -227,11 +227,19 @@ enum RegionalLaunchConfiguration {
             baseURL:Bundle.main.object(forInfoDictionaryKey:"QuestifyAPIBaseURL") as? String,
             approvedBaseURLs:approved,verifiedCapabilities:[])
     }
-    /// US launch r1: the storefront the build ships to (Info.plist `QuestifyMarket`). It drives presentation only:
-    /// phone country default, merchant center visibility and the market label. Backend gates keep reading the
-    /// deployment's market, which is China for both storefronts on the shared production backend.
-    static var storefrontMarket:RegionalMarket? { market }
+    /// US launch r1, one-app (owner 2026-11-27): one App Store binary serves both markets, so this is the
+    /// per-user market decided at runtime (`UserMarketMemory`: account region → sign-in phone country code →
+    /// device region → the build's `QuestifyMarket` as the fallback). It drives presentation and the pay
+    /// channel only: phone country default, the market label, Apple Pay / Stripe (US) vs WeChat Pay / Alipay
+    /// (CN). Backend gates keep reading the deployment's market, China, on the one shared production backend.
+    static var storefrontMarket:RegionalMarket? {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--uitesting-market") { return market }
+        #endif
+        return UserMarketMemory.resolve(buildDefault:market)
+    }
     static func language(_ stored:String?)->AppLanguage {
-        market?.language(storedValue:stored) ?? stored.map(AppLanguage.init(storedValue:)) ?? .system
+        // One-app: no stored choice follows the phone (zh* → zh-Hans, else English); an explicit choice wins.
+        market?.language(storedValue:stored) ?? stored.map(AppLanguage.init(storedValue:)) ?? AppLanguage.deviceDefault()
     }
 }

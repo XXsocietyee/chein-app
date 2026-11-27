@@ -50,13 +50,13 @@
   {
     "key": "scan.fail.notChein.title",
     "table": "Localizable",
-    "en": "Not a chein code",
+    "en": "Not a Chein code",
     "zh-Hans": "不是城瘾二维码"
   },
   {
     "key": "scan.fail.notChein.body",
     "table": "Localizable",
-    "en": "Point at the venue's chein QR.",
+    "en": "Point at the venue's Chein QR.",
     "zh-Hans": "请对准场地的城瘾二维码。"
   },
   {

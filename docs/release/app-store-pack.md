@@ -1,4 +1,4 @@
-# App Store pack: Questify 1.0 (player app)
+# App Store pack: Chein 1.0 (player app)
 
 Draft for the first TestFlight / App Store submission. Not submitted, not signed, not uploaded. Docs and config only. The owner approves every field before it goes into App Store Connect.
 
@@ -16,10 +16,10 @@ Limits: name 30, subtitle 30, promotional text 170, description 4000, keywords 1
 
 | Locale | Value |
 |---|---|
-| en-US | Questify |
+| en-US | Chein |
 | zh-Hans | 城瘾 |
 
-Owner confirms the zh-Hans store name against the unlocalized build display name `Questify` (`INFOPLIST_KEY_CFBundleDisplayName`).
+Owner decision 2026-11-27: the English brand is **Chein**; Chinese stays 城瘾. One App Store app (`com.chengyinhub.chengyinApp`) serves China and the US. The home-screen name is localized in `Resources/InfoPlist.xcstrings` (`CFBundleDisplayName`: en Chein, zh-Hans 城瘾); the unlocalized fallback `INFOPLIST_KEY_CFBundleDisplayName` is `Chein`.
 
 ### Subtitle
 
@@ -47,7 +47,7 @@ zh-Hans:
 en-US:
 
 ```text
-Questify turns your city into a map you light up by walking it.
+Chein turns your city into a map you light up by walking it.
 
 Hold Go and walk. Every tile you pass lights up. Stop at a place and get a stamp, so you were here and it shows. Finish a walk and see the numbers: distance, tiles, stamps. Collect badges along the way.
 
@@ -55,11 +55,11 @@ Your passport keeps all of it in one place. Your first stamp is waiting.
 
 Explore activities, routes and topics from people nearby. Join a club, follow its channels, and show up. Hold a ticket for an activity and open it at the door. You're in. Have fun.
 
-Location is used only while the app is open and only when you choose it. Questify never tracks you in the background and never shares your location unless you start sharing with someone you pick.
+Location is used only while the app is open and only when you choose it. Chein never tracks you in the background and never shares your location unless you start sharing with someone you pick.
 
 Not ready to sign in? Look around first. Sign in with Apple or your phone number when you want to keep your passport.
 
-Questify is for walking, not for racing. Mind the road, the weather and other people.
+Chein is for walking, not for racing. Mind the road, the weather and other people.
 
 Requires iOS 17. Works in English and 简体中文.
 ```
@@ -193,7 +193,7 @@ Vendored `Vendor/GLTFKit2/GLTFKit2/PrivacyInfo.xcprivacy` ships its own manifest
 Paste-ready. The owner appends demo credentials in the dedicated App Store Connect fields, not here.
 
 ```text
-Questify is a walking game for iPhone. Hold Go, walk, and tiles light up on the map; stops give stamps and badges; a passport keeps them. Clubs and tickets are included.
+Chein is a walking game for iPhone. Hold Go, walk, and tiles light up on the map; stops give stamps and badges; a passport keeps them. Clubs and tickets are included.
 
 Sign in. You can look around without an account ("Look around first" on the welcome screen). To keep a passport, sign in with Apple or with a mainland China phone number and an SMS code. Sign in with Apple is offered on the sign-in sheet. The SMS code goes to the phone number you enter. Password sign-in is not compiled into this build. If you need a signed-in account to review, use the demo account in the App Review Information fields: [OWNER-TO-PROVIDE].
 

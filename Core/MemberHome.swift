@@ -67,10 +67,14 @@ public struct MemberIdentitySnapshot: Decodable, Equatable {
     public let introduction: String
     public let interests: [String]
     public let casePictures: [String]
+    /// One-app (owner 2026-11-27): the account's stored region (`region` or `countryCode`), when the backend
+    /// returns one. Nil today; it is the first input of `UserMarketResolver`.
+    public let accountRegion: String?
 
     enum CodingKeys: String, CodingKey {
         case id, nickname, nickName, avatar, role, levelId, city, friendNum, followNum, fansNum
         case topicNum, activityNum, likeNum, balance, createTime, introduction, sysCategoryList, casePics
+        case region, countryCode
     }
     private struct Category: Decodable { let categoryName: String? }
 
@@ -97,6 +101,7 @@ public struct MemberIdentitySnapshot: Decodable, Equatable {
             .filter { !$0.isEmpty } ?? []
         casePictures = (Self.text(c, .casePics) ?? "").split(separator: ";")
             .map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+        accountRegion = Self.text(c, .region) ?? Self.text(c, .countryCode)
     }
 
     /// Source `formatJoinDate`: first ten characters with `-` replaced by `.`.

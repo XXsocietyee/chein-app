@@ -12,8 +12,12 @@ final class LanguageSwitcherTests: XCTestCase {
     func testStoredChoiceResolvesThroughTheLaunchConfigurationAndLeavesMarketDefaultsAlone() {
         XCTAssertEqual(RegionalLaunchConfiguration.language("en"), RegionalLaunchConfiguration.market?.language(storedValue: "en") ?? .english)
         XCTAssertEqual(RegionalLaunchConfiguration.language("zh-Hans"), .simplifiedChinese)
-        XCTAssertEqual(RegionalMarket.china.language(storedValue: nil), .simplifiedChinese)
-        XCTAssertEqual(RegionalMarket.unitedStates.language(storedValue: nil), .english)
+        // One-app (owner 2026-11-27): no stored choice follows the phone, whatever the market.
+        XCTAssertEqual(RegionalMarket.china.language(storedValue: nil, preferredLanguages: ["zh-Hans-CN"]), .simplifiedChinese)
+        XCTAssertEqual(RegionalMarket.china.language(storedValue: nil, preferredLanguages: ["en-US"]), .english)
+        XCTAssertEqual(RegionalMarket.unitedStates.language(storedValue: nil, preferredLanguages: ["en-US"]), .english)
+        XCTAssertEqual(RegionalMarket.unitedStates.language(storedValue: nil, preferredLanguages: ["zh-Hant-TW"]), .simplifiedChinese)
+        XCTAssertEqual(RegionalLaunchConfiguration.language(nil), AppLanguage.deviceDefault())
     }
 
     func testEnvironmentModifierPublishesTheActiveLanguage() {
