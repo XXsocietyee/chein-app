@@ -636,6 +636,18 @@ public enum PlayFlyScore {
     }
 }
 
+/// mp-journey r3: MP `coupontoast` — 已放入卡券包 · 到店出示核销 · 点击查看, 5 s, when the node just completed carries a
+/// coupon (`couponId` > 0). Mode 2 (shop day) never does (MP maps its `couponId` to 0).
+public enum PlayCouponToast {
+    public static let displaySeconds: Double = 5
+    public static func shows(receipt: PlayWireValue?, snapshot: PlaySnapshot?) -> Bool {
+        guard let receipt, let snapshot, snapshot.result.mode != 2,
+              let nodeID = receipt["nodeId"].tolerantInteger,
+              let node = snapshot.result.nodes.first(where: { $0.id == nodeID }) else { return false }
+        return (node.couponID ?? 0) > 0
+    }
+}
+
 /// Reward drop receipt attached to completion responses (`reward["drop"]`).
 public struct PlayRewardDrop: Equatable, Sendable {
     public let dropType: Int
