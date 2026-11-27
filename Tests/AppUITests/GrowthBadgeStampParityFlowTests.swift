@@ -55,7 +55,8 @@ final class GrowthBadgeStampParityFlowTests: XCTestCase {
         if !open.isHittable { app.swipeUp() }
         XCTAssertTrue(open.waitForExistence(timeout: 5)); open.tap()
         XCTAssertTrue(app.descendants(matching: .any)["roam.experience.album.empty"].firstMatch.waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["Stamps: 0"].exists, app.debugDescription)
+        // mp-roam r3: the native album header is the MP `album-sub` line (共 N 枚 / "N stamps in total"); the legacy album keeps "Stamps: N".
+        XCTAssertTrue(app.staticTexts["0 stamps in total"].exists || app.staticTexts["Stamps: 0"].exists, app.debugDescription)
         XCTAssertTrue(app.buttons["roam.experience.album.openCamera"].exists, app.debugDescription)
     }
 }

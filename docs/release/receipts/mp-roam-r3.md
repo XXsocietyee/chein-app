@@ -230,6 +230,18 @@ Base re-merged with `origin/ui/combined-r7` (xcstrings conflict at the file end:
 
 Gates: generate_project OK · check_scaffold PASS (20848 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 
+## Round 3 continue (15) — sweep 20:11 (build a250afd77): stamp album header
+
+Base re-merged with `origin/ui/combined-r7` (clean). The d6-roam tile in this sweep still shows the old large title + GO circle: build a250afd77 predates continue (14) (`0e4192951` not yet in `ui/combined-r7`), so nothing to redo.
+
+| MP page / scene | Native view | Differences | Status |
+|---|---|---|---|
+| Sweep 20:11 `*-e2-stamp-album.jpg` vs `scene-roam-stamp-album` `album-sub` (`共 N 枚`, alone under the tabs) | `App/NativeR2/FreeExplore/NativeStampAlbumView.swift` header | Native repeated the nav title as a row label: 集邮册 … 3 枚 / Stamp album … Stamps: 3, under an inline title that already says 集邮册. | **Fixed:** the header is the MP line only, `roam.album.sub %lld` 共 N 枚 / "N stamp(s) in total" (en plural), `.subheadline` secondary, same id `roam.experience.album.total`. UI pin `GrowthBadgeStampParityFlowTests` accepts the new text (legacy album keeps `stampAlbum.total`). |
+| Continue (11) Not done: `e2-stamp-album` quits after launch | — | Fixed by the coordinator in `1300a48db` (palette `.accentColor` recursion); the 20:11 shot opens the album. | **Resolved** (not by this lane). |
+| Sweep 20:11 tile count 2 vs 共 3 枚 | `RoamExperienceSyntheticFixtures.album` | Fixture row 903 is `checkState 2` (moderation-hidden); native hides it on purpose while the server total says 3. MP shows every row the server returns (the server filters). | Not changed: safety rule pinned by tests; noted. |
+
+Gates: generate_project OK · check_scaffold PASS (20849 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no

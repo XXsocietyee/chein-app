@@ -144,12 +144,29 @@ small 3/6 ring because the build predates run 7's ring fix (not yet in combined-
 | `pages/index/index` (Home: banner vs greeting row) | `HomeFeedView.swift`, `HomeSearchTabParityViews.swift` | ✓ (mp-home owns order) | Audit: banner, greeting and feed sit in one scroll in MP order with no floating overlay, so VoiceOver follows the visual order; banner art hidden, title read. No change | Done |
 | Chapter flip gate (`pages/play` chapter transition) | `DesignSystem/CYChapterFlip.swift` | ✓ (mp-journey owns order) | Contrast audit of white-opacity text on the ink0 → indigo #1B1E4A ground (worst case, bottom): "tap to continue" 0.5 → 4.9:1, chapter meta 0.6 → 6.5:1, subtitle 0.72 → 8.7:1 (all ≥ 4.5:1). Only other low-opacity text hit is the DEBUG ART fixture label. No change | Done |
 
+## Run 9 (2026-11-27, hourly)
+
+Merged `origin/ui/combined-r7` (clean). Sweep 20:11 (build a250afd77) a11y sheets read: still predate runs 7–8 (ring 3/6 small at AX5,
+roam OK), so the re-read stays open. 44 pt pass on icon-only `.plain` / `.borderless` buttons (scripted: Button label = SF Symbol only,
+no ≥ 44 frame): 16 hits, 8 real (glyph-sized hit area); the rest are full rows with `contentShape` or already use `editorHitTarget` / 78 pt tiles.
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `subpackageMember` member-area popup (chat / export sheet header) | `MemberAreaPopupSurfaces.swift` | ✓ (mp-mine owns order) | Close ⓧ glyph (`.title2`, ~28 pt) → 44 × 44 hit area, same glyph | Done |
+| `pages/roam/*` official arrival overlay header | `RoamOfficialArrivalSection.swift` | ✓ (mp-roam owns order) | Close ⓧ → 44 × 44 hit area | Done |
+| `pages/roam/*` nearby place sources | `RoamNearbyParityExtras.swift` | ✓ | Copy-source-link glyph → 44 × 44 hit area | Done |
+| `pages/square/*` cloud feed card + composer | `SquareCloudFeedViews.swift`, `SquareCloudComposerView.swift` | ✓ (mp-activity owns order) | Post actions ⋯ and composer chip clear ⓧ → 44 × 44 hit area | Done |
+| Club channel voice message (`pages/club/*` channel) | `NativeChannelInlineMediaViews.swift` | ✓ (mp-club owns order) | Play/stop glyph (`.largeTitle`) → min 44 × 44 so it never drops under at small sizes | Done |
+| `pages/club/*` apply (proof images) | `MPGap/Club/ClubGapRound4Views.swift` | ✓ | Delete-proof trash glyph → 44 × 44 hit area | Done |
+| `pages/publishkit` hint ladder editor | `TemplateHintLadderFields.swift` | ✓ (mp-publish owns order) | Remove-layer ⊖ glyph → 44 × 44 hit area | Done |
+
 ## Not done (next run starts here)
 - Re-read the a11y sheets once combined-r7 carries runs 7–8 (ring size at AX5, roam VoiceOver order).
 - Contrast pass continued: `Text` with palette `.opacity(` foregrounds split over several lines (multi-line modifiers; the one-line grep is done).
-- 44 pt target pass on `.buttonStyle(.plain)` icon-only controls outside `RoamMapGlassControl`.
+- 44 pt pass continued: icon-only buttons with *no* button style inside `List` rows / toolbars-free `HStack`s (default style, same glyph-sized hit area).
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch
   overlay with the logo watermark at capture time (same symptom as the 16:53 `d2-home` note) — it must never dim a
   tab root. Also the `a11y-passport-ax5` fixture opens the badge wall, not the passport.
+- i18n-r3: `MPGap/Club/ClubGapRound4Views.swift` accessibility label `"删除凭证图片 \(index + 1)"` is a Chinese literal key (no en).

@@ -109,6 +109,9 @@
     "App/ProfileBadgesView.swift": {
       "raw radius": "holo sheen on the round 96 pt medal: radius = half the medal size, so the sheen stays a circle"
     },
+    "App/ProjectEditChapterRulesSection.swift": {
+      "silent spinner": "story-flow chapter rule editor placeholder (story-flow theme on hold this round)"
+    },
     "App/ProjectEditOverviewKit.swift": {
       "hidden nav": "full-bleed 地图 page: transparent bar over the map, system back and inline title kept"
     },

@@ -22,6 +22,7 @@ extension EnvironmentValues {
     let imageReader: any RetainedPublicImageReading
     var openClub: (() -> Void)? = nil
     @ScaledMetric(relativeTo: .headline) private var avatarSide: CGFloat = 48
+    @Environment(\.locale) private var locale
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             HStack(alignment: .top, spacing: CYSpacing.md) {
@@ -36,7 +37,7 @@ extension EnvironmentValues {
                     // controls retain their independently addressable IDs.
                     .accessibilityIdentifier("club.feed.post.\(post.id)")
                     if let time = post.createTime {
-                        Text(verbatim: time)
+                        Text(verbatim: LocaleDisplay.civil(time, locale: locale))
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                             .accessibilityIdentifier("club.feed.time.\(post.id)")

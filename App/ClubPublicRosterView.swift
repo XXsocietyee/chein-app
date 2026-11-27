@@ -135,7 +135,7 @@ import SwiftUI
         ForEach(current.members) { member in
             memberLink(id: member.memberId, nickname: member.nickname, avatar: member.avatar) {
                 if let level = member.levelId, level > 0 { Text("club.memberLevel \(level)") }
-                if let time = member.joinTime, !time.isEmpty { Text("club.memberJoined \(time)").fixedSize(horizontal: false, vertical: true) }
+                if let time = member.joinTime, !time.isEmpty { Text("club.memberJoined \(LocaleDisplay.civil(time, locale: locale))").fixedSize(horizontal: false, vertical: true) }
             }
         }
         // Mini `foldLeaderboard`: top 3, a hidden-count gap, then the tail (viewer id is not in the snapshot).
