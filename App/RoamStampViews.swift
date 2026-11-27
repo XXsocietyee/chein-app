@@ -184,7 +184,8 @@ struct RoamAlbumReadOwner: Hashable {
                     switch StampAlbumErrorPresentation.resolve(error: error, hasStamps: !pager.stamps.isEmpty) {
                     case .denied: StampAlbumDeniedNotice()
                     case .retryContinuation: EmptyView() // rendered after the stamps, below
-                    case .signIn, .retryWholePage: RoamExperienceIssue(error: error, retry: read)
+                    // mp-states r3 (MP stamp-album wxml:29): 集邮册无法打开 · 重新载入.
+                    case .signIn, .retryWholePage: RoamExperienceIssue(error: error, retry: read, failureTitle: "stampAlbum.openFailed", retryTitle: "stampAlbum.reload")
                     }
                 }
                 if page.phase == .unknown && pager.stamps.isEmpty && pager.error == nil {
