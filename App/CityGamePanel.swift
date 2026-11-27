@@ -200,7 +200,7 @@ struct CityGamePanel: View {
     /// Number tile: tabular figure, muted label; unknown shows an em dash, never 0.
     private func statTile(_ label: LocalizedStringKey, value: String?) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(verbatim: value ?? "—").font(.system(.title3, design: .rounded).weight(.bold)).monospacedDigit()
+            Text(verbatim: value ?? "—").cyText(.sectionTitle, weight: .bold, monospacedDigit: true)
                 .foregroundStyle(CYColor.textPrimary).minimumScaleFactor(0.7).lineLimit(1)
             Text(label, tableName: "CityGame").cyText(.caption).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
         }

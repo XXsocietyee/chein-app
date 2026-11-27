@@ -35,6 +35,21 @@ and `#Preview { ... }` blocks; comments are ignored) and counts, per file:
                   rows are `Button`s compared against the selection (use `Picker` + `.cyAdaptiveSegmented()` or
                   `CYTabs`), or the design-kit bottom bars `CYNightTabBar(` / `CYDomainTabBar(` used in place of the
                   system `TabView` (App/QuestifyApp.swift)
+  font design     `design: .rounded` / `.serif` or `.fontDesign(.rounded / .serif)` outside App/DesignSystem and
+                  App/Theme: a per-page numeral / heading face (stat numbers use `.cyText(.dataXL)`, the one rounded
+                  data style; `.monospaced` code editors are fine)
+
+Build-break guards (module-wide: App/ and Core/ compile into ONE module, so every file is scanned, merchant and
+fixtures included; there is no Swift compiler in the lanes' cloud sessions):
+  duplicate type   the same top-level `struct` / `class` / `enum` / `protocol` / `actor` / `typealias` name declared
+                   in two files of App/ + Core/ (two lanes each added a `PlayRouteNotice`). `private` / `fileprivate`
+                   top-level types only clash inside their own file; declarations in different branches of the same
+                   `#if … #else` are not a clash.
+  undeclared state inside a SwiftUI `View` struct (its body plus every `extension Name` in the module): a `$name`
+                   binding or an assignment `name = …` / `self.name = …` / `name += …` whose name is never declared
+                   (`var` / `let` / `inout` / enum `case`) in that type, its extensions or the module's globals
+                   (a lane used `governanceMemberCount = $0` without `@State private var governanceMemberCount`).
+                   Heuristic text scan: string literals are blanked first.
 
 Baseline: tools/design_consistency_baseline.json
   "allowed":  {file: {kind: reason}}  intentional chrome (game HUDs, full-screen maps, procedural art), never fails;
@@ -68,8 +83,12 @@ POPUP_SCRIM = 'popup scrim'
 LIST_STYLE = 'list style'
 CUSTOM_SHEET = 'custom sheet'
 CUSTOM_TABS = 'custom tabs'
+FONT_DESIGN = 'font design'
+DUPLICATE_TYPE = 'duplicate type'
+UNDECLARED_STATE = 'undeclared state'
 KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, CUSTOM_BACK, BUTTON_STYLE, POPUP_SCRIM,
-         RAW_COLOUR, LIST_STYLE, CUSTOM_SHEET, CUSTOM_TABS)
+         RAW_COLOUR, LIST_STYLE, CUSTOM_SHEET, CUSTOM_TABS, FONT_DESIGN,
+         DUPLICATE_TYPE, UNDECLARED_STATE)
 
 # The five player tab roots (Core/RootTab.swift, QuestifyApp root TabView) and the files that own their title.
 # 漫游 is the full-screen map home: its chrome is allowed in the baseline instead.
@@ -131,6 +150,7 @@ TABS_SELECTED = re.compile(r'==\s*(?:self\.)?(?:selection|selected\w*|active|cur
                            r'\b(?:isSelected|on)\s*=\s*\w+(?:\.\w+)?\s*==')
 DS_TAB_BAR = re.compile(r'(?<![\w.])(?:CYNightTabBar|CYDomainTabBar)\s*\(')
 APP_ROOT = 'App/QuestifyApp.swift'
+FONT_DESIGN_PATTERN = re.compile(r'\bdesign\s*:\s*\.(?:rounded|serif)\b|\.fontDesign\s*\(\s*\.(?:rounded|serif)\b')
 COLOUR_PATTERNS = (
     re.compile(r'(?<![\w.])(?:UI)?Color\s*\(\s*red\s*:'),
     re.compile(r'(?<![\w.])(?:UI)?Color\s*\(\s*hex\s*:'),
@@ -149,6 +169,8 @@ def player_files():
 
 def strip_comments(line, state):
     """Drops `//` and `/* */` comments outside string literals. `state` carries an open block comment."""
+    if not state['block'] and '/' not in line:
+        return line
     out = []
     i = 0
     in_string = False
@@ -246,6 +268,8 @@ def scan_file(rel, text):
             hits.append((number, LIST_STYLE, code.strip()))
         if not design_system and any(p.search(code) for p in CUSTOM_SHEET_PATTERNS):
             hits.append((number, CUSTOM_SHEET, code.strip()))
+        if not font_scale and not design_system and FONT_DESIGN_PATTERN.search(code):
+            hits.append((number, FONT_DESIGN, code.strip()))
         if not design_system and rel != APP_ROOT and DS_TAB_BAR.search(code):
             hits.append((number, CUSTOM_TABS, code.strip()))
     if not design_system:
@@ -266,12 +290,197 @@ def scan_file(rel, text):
     return hits
 
 
+TYPE_DECL = re.compile(r'^\s*(?:@[\w.]+(?:\([^)]*\))?\s+)*((?:(?:public|internal|private|fileprivate|open|final|'
+                       r'indirect|nonisolated|package)\s+)*)(struct|class|enum|protocol|actor|typealias|extension)\s+'
+                       r'([A-Za-z_][\w.]*)([^{]*)')
+DECL_NAMES = re.compile(r'\b(?:var|let)\s+([A-Za-z_]\w*)')
+DECL_TUPLES = re.compile(r'\b(?:var|let)\s*\(([^)]*)\)')
+DECL_LINE = re.compile(r'\b(?:let|var)\b')
+DECL_LIST = re.compile(r',\s*([A-Za-z_]\w*)\s*[:=]')
+CLOSURE_BINDINGS = re.compile(r'\$([A-Za-z_]\w*)\s*(?=,[^{}]*\bin\b|\bin\b)')
+CAPTURE_LIST = re.compile(r'\[\s*((?:(?:weak|unowned)\s+)?[A-Za-z_]\w*\s*=[^\[\]]*)\]\s*(?:\([^)]*\)\s*)?(?:async\s+)?in\b')
+CAPTURE_NAMES = re.compile(r'(?:^|,)\s*(?:(?:weak|unowned)\s+)?([A-Za-z_]\w*)\s*=')
+INOUT_NAMES = re.compile(r'\b([A-Za-z_]\w*)\s*:\s*inout\b')
+CASE_NAMES = re.compile(r'^\s*(?:indirect\s+)?case\s+([^:=(]+?)\s*(?:=|\(|$)')
+BINDING_USE = re.compile(r'(?<![\w$.\\])\$([a-z_]\w*)')
+ASSIGN_USE = re.compile(r'(?:(?<![\w$.\\])|\bself\.)([a-z_]\w*)\s*(?:[-+*/]?=)(?!=)')
+NOT_ASSIGNABLE = {'_', 'self', 'super', 'try', 'await', 'return', 'in', 'let', 'var', 'case', 'where', 'if', 'guard',
+                  'else', 'some', 'any', 'inout', 'static', 'lazy', 'weak', 'private', 'fileprivate', 'public'}
+
+
+def blank_strings(code, state):
+    """Replaces string-literal contents with spaces (keeps the quotes); `state['multi']` tracks a `\"\"\"` block."""
+    if not state.get('multi') and '"' not in code:
+        return code
+    out = []
+    i = 0
+    in_string = False
+    while i < len(code):
+        if state.get('multi'):
+            end = code.find('\"\"\"', i)
+            if end < 0:
+                out.append(' ' * (len(code) - i))
+                return ''.join(out)
+            state['multi'] = False
+            out.append(' ' * (end - i) + '\"\"\"')
+            i = end + 3
+            continue
+        if not in_string and code.startswith('\"\"\"', i):
+            state['multi'] = True
+            out.append('\"\"\"')
+            i += 3
+            continue
+        ch = code[i]
+        if in_string:
+            if ch == '\\\\' and i + 1 < len(code):
+                out.append('  ')
+                i += 2
+                continue
+            if ch == '"':
+                in_string = False
+                out.append(ch)
+            else:
+                out.append(' ')
+            i += 1
+            continue
+        if ch == '"':
+            in_string = True
+        out.append(ch)
+        i += 1
+    return ''.join(out)
+
+
+def module_files():
+    for top in ('App', 'Core'):
+        for path in sorted((ROOT / top).rglob('*.swift')):
+            yield path.relative_to(ROOT).as_posix(), path
+
+
+def parse_module():
+    """Top-level declarations and their bodies for every App/ + Core/ file (one Swift module)."""
+    decls = []   # (name, kind, access, file, line, if-stack, inheritance)
+    bodies = {}  # type name -> [(file, [(line, code)])]
+    globals_declared = set()
+    for rel, path in module_files():
+        text = path.read_text(encoding='utf-8', errors='replace')
+        sstate = {}
+        depth = 0
+        if_stack = []
+        if_counter = 0
+        current = None
+        for number, code in code_lines(text):
+            code = blank_strings(code, sstate)
+            stripped = code.strip()
+            if stripped.startswith('#if'):
+                if_counter += 1
+                if_stack.append([f'{rel}#{if_counter}', 0])
+            elif stripped.startswith('#elseif') or stripped.startswith('#else'):
+                if if_stack:
+                    if_stack[-1][1] += 1
+            elif stripped.startswith('#endif'):
+                if if_stack:
+                    if_stack.pop()
+            if depth == 0 and current is None:
+                m = TYPE_DECL.match(code)
+                if m:
+                    access, kind, name, rest = m.group(1), m.group(2), m.group(3), m.group(4)
+                    if kind != 'extension':
+                        decls.append((name, kind, access, rel, number, tuple(tuple(x) for x in if_stack), rest))
+                    if '{' in code and kind in ('struct', 'class', 'enum', 'actor', 'extension'):
+                        current = (name.split('.')[-1] if kind == 'extension' else name, [])
+                elif not stripped.startswith('func') and depth == 0:
+                    globals_declared.update(DECL_NAMES.findall(code))
+            if current is not None:
+                current[1].append((number, code))
+            depth += code.count('{') - code.count('}')
+            if current is not None and depth <= 0:
+                bodies.setdefault(current[0], []).append((rel, current[1]))
+                current = None
+                depth = 0
+    return decls, bodies, globals_declared
+
+
+def exclusive(a, b):
+    """True when two `#if` stacks put the declarations in different branches of the same `#if` group."""
+    branches = dict(a)
+    return any(key in branches and branches[key] != branch for key, branch in b)
+
+
+def duplicate_type_hits(decls):
+    by_name = {}
+    for d in decls:
+        if d[1] == 'typealias' and '.' in d[0]:
+            continue
+        by_name.setdefault(d[0], []).append(d)
+    hits = {}
+    for name, rows in by_name.items():
+        if len(rows) < 2:
+            continue
+        for row in rows:
+            clashes = []
+            for other in rows:
+                if other is row or exclusive(row[5], other[5]):
+                    continue
+                private_row = 'private' in row[2]
+                private_other = 'private' in other[2]
+                if (private_row or private_other) and row[3] != other[3]:
+                    continue
+                clashes.append(f'{other[3]}:{other[4]}')
+            if clashes:
+                hits.setdefault(row[3], []).append(
+                    (row[4], DUPLICATE_TYPE, f'{row[1]} {name} also declared at ' + ', '.join(clashes[:3])))
+    return hits
+
+
+def undeclared_state_hits(decls, bodies, globals_declared):
+    views = {d[0] for d in decls if d[1] == 'struct' and re.search(r'\bView\b', d[6] or '')}
+    hits = {}
+    for name in sorted(views):
+        parts = bodies.get(name, [])
+        declared = set(globals_declared)
+        for _, lines in parts:
+            for _, code in lines:
+                declared.update(DECL_NAMES.findall(code))
+                declared.update(INOUT_NAMES.findall(code))
+                declared.update(CLOSURE_BINDINGS.findall(code))
+                for group in CAPTURE_LIST.findall(code):
+                    declared.update(CAPTURE_NAMES.findall(group))
+                if DECL_LINE.search(code):
+                    declared.update(DECL_LIST.findall(code))
+                for group in DECL_TUPLES.findall(code):
+                    declared.update(re.findall(r'[A-Za-z_]\w*', group))
+                m = CASE_NAMES.match(code)
+                if m:
+                    declared.update(re.findall(r'(?<![.\w])([a-z_]\w*)', m.group(1)))
+        for rel, lines in parts:
+            for number, code in lines:
+                used = set(BINDING_USE.findall(code))
+                used.update(n for n in ASSIGN_USE.findall(code) if n not in NOT_ASSIGNABLE)
+                for n in sorted(used):
+                    if n in declared or (n.startswith('_') and n[1:] in declared):
+                        continue
+                    hits.setdefault(rel, []).append(
+                        (number, UNDECLARED_STATE, f'{name}: `{n}` used but never declared: {code.strip()}'))
+    return hits
+
+
+def module_hits():
+    decls, bodies, globals_declared = parse_module()
+    out = {}
+    for source in (duplicate_type_hits(decls), undeclared_state_hits(decls, bodies, globals_declared)):
+        for rel, rows in source.items():
+            out.setdefault(rel, []).extend(rows)
+    return out
+
+
 def scan():
     result = {}
     for rel, path in player_files():
         hits = scan_file(rel, path.read_text(encoding='utf-8', errors='replace'))
         if hits:
             result[rel] = hits
+    for rel, hits in module_hits().items():
+        result.setdefault(rel, []).extend(hits)
     missing = [r for r in TAB_ROOTS if not (ROOT / r).exists()]
     for rel in missing:
         result[rel] = [(0, ROOT_TITLE, 'tab root file is missing: update TAB_ROOTS')]
