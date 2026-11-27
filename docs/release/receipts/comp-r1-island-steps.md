@@ -1,13 +1,15 @@
 # Receipt — components r1, lane C7 island+steps (`comp/r1-island-steps`)
 
 Brief: `origin/design/handoff-r2:docs/briefs/components-r1.md`, section "Added 11-27" (R-island, R-steps).
-Base: `origin/ui/combined-r7` (already contains `origin/comp/r1-live` and `origin/comp/r1-kit`; both merges were no-ops).
+Base: `origin/ui/combined-r7` (already contains `origin/comp/r1-live` and `origin/comp/r1-kit`; both merges were no-ops). Re-merged
+`origin/ui/combined-r7` @ `77c566c6c` before pushing; the `Localizable.xcstrings` conflict was resolved per handover §3b
+(theirs, plus a union with this lane's fragment).
 Apple components only (ActivityKit, App Intents, SF Symbols, system fonts, `Text(timerInterval:countsDown:)`,
 `ProgressView`, `symbolEffect(.bounce)`, `.contentTransition(.numericText())`). No story-flow theme work.
 **Nothing here was compiled**: there is no Xcode in the cloud, so the coordinator's `build_sim` is the first compile.
 
 Gates (run before each push): `check_scaffold.py` PASS (structural, 19818 bilingual keys), `check_a11y_lint.py` PASS
-(0 new), `contract_ratchet.py --check` (new 0), `check_appsession_ratchet.py` PASS (AppSession.swift not touched).
+(0 new), `contract_ratchet.py --check` (104 failing = baseline, new 0), `check_appsession_ratchet.py` PASS (AppSession.swift not touched).
 
 ## R-island: shared invite / plan Live Activity
 
@@ -69,7 +71,8 @@ A **separate** `ActivityAttributes` type, so push-to-start can name it and the e
     (`Lena` + the existing `playerTeam.status.*` copy, e.g. "Lena 已完成"). With no change it shows "n/m 人已完成", plus a
     progress bar.
     - Fed from `App/PlayPlayerTeamStatusView.swift` (`onChange(of: state, initial: true)`); scope is the run's
-      `teamID` (`App/PlayPlayerAndCircleViews.swift:45`).
+      `teamID`, passed with `.islandTeamStatus(_:)` at `App/PlayPlayerAndCircleViews.swift:46`. The mount line that
+      the contract test checks is unchanged.
     - The PLAYER projection has no per-member stop. "reached stop 3" therefore needs the server push (the `note`
       field); locally the card names the status.
 
@@ -147,12 +150,14 @@ checklist math.
 
 ## Coordinator / owner actions
 
-1. **Push Notifications capability.** `Config/Questify.entitlements` now carries `aps-environment = development`
-   (export rewrites it to production).
-   - Enable **Push Notifications** on App ID `com.chengyinhub.chengyinApp`.
-   - Regenerate the two App Store profiles; this is the same step as C2's App Group.
-   - If the capability is not ready by the build, drop that one key. The plan card then runs local-only: the
-     `pushType: nil` fallback works, and push-to-start tokens never arrive.
+1. **Push Notifications capability (required for sharing).** `aps-environment` is **not** in
+   `Config/Questify.entitlements`: the contract suite pins that file to Sign in with Apple (+ App Group)
+   (`test_sign_in_with_apple_flow`, `test_universal_link_associated_domains`), and adding the key failed 4 contracts.
+   - To turn on sharing: enable **Push Notifications** on App ID `com.chengyinhub.chengyinApp`, add
+     `aps-environment`, update those two contracts, and regenerate the two App Store profiles (same step as C2's
+     App Group).
+   - Until then the card is **local-only**: `pushType: .token` is refused, the `pushType: nil` fallback starts it,
+     and push-to-start tokens never arrive. Everything else in this lane works without it.
 2. **Backend.** Implement `POST /api/live-activity/token` and the push-to-start / update sender per the contract
    above, using APNs token auth (.p8) with the `liveactivity` push type.
 3. **First compile.** Watch `CYStepChecklist`'s generic init and `extension … where Result == EmptyView`, the
