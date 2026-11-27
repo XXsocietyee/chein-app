@@ -151,13 +151,18 @@ private struct UsageConsentLaunchGate: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .overlay(alignment: .bottom) {
+            // A bottom inset, not an overlay: an overlay sat on top of the welcome screen's "Browse as a guest"
+            // button (11-27 English screenshot). Localized (was hard-coded Chinese).
+            .safeAreaInset(edge: .bottom, spacing: 0) {
                 if !signedIn && policy.granted {
-                    Text(verbatim: UsageConsentOfflineRecord.signedOutCopy)
+                    Text("usageConsent.offline.signedOut")
                         .cyText(.meta)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                         .padding(.horizontal, CYSpacing.md)
+                        .padding(.vertical, CYSpacing.xs)
+                        .frame(maxWidth: .infinity)
                         .allowsHitTesting(false)
                         .accessibilityIdentifier("usageConsent.offline.signedOut")
                 }

@@ -331687,6 +331687,23 @@
           }
         }
       }
+    },
+    "usageConsent.offline.signedOut": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agreed. Your consent will be recorded when you're back online."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已同意，联网后会自动补记同意记录"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
