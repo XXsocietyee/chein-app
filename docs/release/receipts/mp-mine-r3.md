@@ -159,3 +159,5 @@ Merged `origin/ui/combined-r7` (clean, 93 commits).
 | 16:53 `e5b-badge-wall` zh: English badge names / conditions, raw `2026-10-01` | 收集册 → 徽章墙 (`badge-wall`) | `App/DesignFixtures/E5bFixtures.swift`, `App/ObjectBadgeViews.swift` `meta` | **Fixed.** Fixture names and unlock conditions follow the UI language. The obtained date reads 2026年10月1日 in zh (`Date.FormatStyle(date: .long)`, fixed UTC civil day, no literal CJK); other locales keep `LocaleDisplay.civil` (Oct 1, 2026). |
 
 The real 我的 帖文 tab content (`SquareMineAccountLinks`: 我的帖文 / 我的收藏 rows) is still links rather than the MP inline post feed with the composer; that needs the author-posts reader mounted on Passport (`ProfileAuthorPostsSection` + `OwnProfileComposerHost`, as the public profile does). **Not done** — next run.
+
+Gates (continue 4, commit 403e13b0c): generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, check_l10n adds no CJK literal in my files, contract ratchet 52/52 **new 0** (a run overlapping a second ratchet showed 14–21 spurious catalog failures; the solo rerun and plain combined-r7 are both 52/0).
