@@ -69,11 +69,14 @@ Strings (fragment `docs/port/strings/design-pass-explore.json`, merged): `explor
 
 - `check_scaffold.py`: PASS (5231 Swift files, bilingual keys incl. 2 new).
 - `check_a11y_lint.py`: PASS, 0 new. `check_typography_lint.py`: PASS.
-- `contract_ratchet.py --check`: **104 failing, baseline 104, new 0, fixed 0** (exit 0).
+- `contract_ratchet.py --check`: **104 failing, baseline 104, new 0, fixed 0** (exit 0), before and after merging `origin/ui/combined-r7` @ `77c566c6c`.
+- `check_l10n.py` (new from i18n r1): 1 FAIL in `App/E1CommerceComponents.swift` (3 CJK literals vs baseline 2). Pre-existing: the file is identical to `origin/ui/combined-r7`; not this lane's.
 - Targeted contract tests for every touched file (59 files, 418 tests): only pre-existing failures in
   `test_merchant_discovery_redemption_contracts` (same 5 errors on the untouched base) remain.
 
 ## For the coordinator
+
+- Follow-up: i18n r1 added `CYAdaptiveLabelValueRow` / `CYAdaptiveButtonRow` (`App/DesignSystem/CYLanguageProofLayout.swift`); the next pass can move the activity stats row onto them (P12).
 
 - `build_sim`. Riskiest spots: `ExploreStartsInLine.fitting` (a `CYCountdown` passed as a value into a `ViewThatFits`), the `Text + Text` lead, `@MainActor` `MemberIdentityCardSection.remoteAvatarURL` called from `ExploreGoingStack`.
 - No capabilities, profiles or backend changes.
