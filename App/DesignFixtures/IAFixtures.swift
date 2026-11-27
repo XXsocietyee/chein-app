@@ -4,20 +4,23 @@ import SwiftUI
 /// Four-tab IA fixtures (W1-1 / W1-4 / W3-6). Synthetic and clearly labelled; never shipped in Release.
 /// Names: ia-tabs, ia-explore-create, ia-passport, ia-passport-unknown, ia-passport-ax5, ia-deeplinks.
 
-/// The real player bar chrome over four placeholder roots: Explore, Roam, Clubs, Passport (no Publish).
+/// The real player bar chrome over the tab roots, each with the standard large top-left title (OWNER RULE 2); no debug copy.
 struct IATabsFixture: View {
     @State private var selection: RootTab = .home
     var body: some View {
         TabView(selection: $selection) {
             ForEach(RootTab.playerTabs, id: \.self) { tab in
                 NavigationStack {
-                    VStack(spacing: CYSpacing.md) {
-                        Image(systemName: tab.playerSystemImage).accessibilityHidden(true).font(.largeTitle)
-                        Text(LocalizedStringKey(tab.playerTitleKey)).cyText(.pageTitle)
-                        Text(verbatim: "Synthetic fixture").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    ScrollView {
+                        Image(systemName: tab.playerSystemImage)
+                            .font(.largeTitle)
+                            .foregroundStyle(.tertiary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, CYSpacing.xl)
+                            .accessibilityHidden(true)
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .cyDomainPageBackground()
+                    .cyRootHeader(tab)
                 }
                 .tabItem { CYDomainTabLabel(tab: tab, selected: selection, domain: .player) }
                 .tag(tab)

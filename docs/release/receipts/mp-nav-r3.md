@@ -134,6 +134,13 @@ Test: Tests/CoreTests/IMExpandedTests.swift `testSystemCardMiniProgramPagesOpen`
 | same screen, `这项功能还没开通` / "This isn't switched on yet." row (LoginView.swift:146) | shown only when `session.isConfigured` is false (no API base URL: design fixtures / unconfigured dev builds); a Release build always has a backend, so players never see it | kept as the dev/fixture notice | OK (verified) |
 | subpackageB/pages/im/list/index → `d2-inbox` fixture (App/MessagingFixtureSupport.swift, sheet-zh-Hans) | conversation names read "Fixture conversation N" in the Chinese UI (19:50: fixture data follows the UI language) | names are 示例会话 N / Sample conversation N by UI language | fixed |
 
+## Re-scan 11-27 20:3x (sweep build a250afd77, mp-nav sheets)
+
+| MP page / edge → native | finding | change | status |
+|---|---|---|---|
+| app.json tabBar roots → `ia-tabs` fixture (App/DesignFixtures/IAFixtures.swift, sheet-zh-Hans / sheet-en tile 2) | tab roots showed a centred 首页 / Home plus the debug line "Synthetic fixture" and no large title, so the sweep did not show the real root chrome | each fixture root uses `cyRootHeader(tab)` (large top-left title, OWNER RULE 2) over an empty scroll view with a tertiary tab symbol; debug copy removed | fixed |
+| `login-player`, `d2-inbox` tiles | still show 微信登录 / "Fixture conversation N": sweep build a250afd77 predates 81a815048 / 9723767a1 (not yet in `ui/combined-r7`) | — | OK (pending merge) |
+
 ## Route coverage
 
 All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScreen cases or `MPParityDestination`), except four pages that are parsed (`Core/MiniProgramPageLink.swift`) but have no native screen case: `pages/playkit/index/index`, `pages/publishkit/index/index` (MP kit galleries), `pages/crop/index` (MP image-crop utility) and `subpackageP3/pages/badge-3d/index` (MP 3D badge viewer). No native player control links to them; left for the coordinator to confirm they stay unrouted.
