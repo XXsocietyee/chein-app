@@ -510,6 +510,40 @@
           }
         }
       }
+    },
+    "nearbyMerchant.locationDenied.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can't show nearby merchants"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前无法查看附近商家"
+          }
+        }
+      }
+    },
+    "nearbyMerchant.locationDenied.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location access is needed to find nearby merchants."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要定位权限才能找附近商家"
+          }
+        }
+      }
     }
   }
 }

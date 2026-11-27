@@ -149413,13 +149413,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Allow location in Settings to find merchants near you, then search again."
+            "value": "Location access is needed to find nearby merchants."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "到“设置”里允许定位，就能找到附近商家。然后再搜一次。"
+            "value": "需要定位权限才能找附近商家"
           }
         }
       }
@@ -149430,13 +149430,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Location is off"
+            "value": "Can't show nearby merchants"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "定位未开启"
+            "value": "当前无法查看附近商家"
           }
         }
       }
