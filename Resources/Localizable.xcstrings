@@ -344460,6 +344460,40 @@
           }
         }
       }
+    },
+    "im.chat.denied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This conversation can’t be opened"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个会话无法打开"
+          }
+        }
+      }
+    },
+    "im.chat.backToList": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to messages"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回消息列表"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

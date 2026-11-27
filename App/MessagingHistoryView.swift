@@ -916,17 +916,30 @@ private struct ChatHistoryUnknown: View {
 }
 
 /// Issue copy stays on the existing keys. Retry is secondary so a closed chat has one primary.
+/// mp-states r3 (MP im/chat wxml:39-42): a closed or refused chat reads 这个组局已结束 / 这个会话无法打开 with
+/// 返回消息列表 and no sub line; a missing link gets 返回; a failed read keeps 消息加载失败 · reason · 重试.
 private struct ChatHistoryStatus: View {
     let issue: MessagingLoadIssue
     let identifier: String
     let retry: () -> Void
+    @Environment(\.dismiss) private var dismiss
+    private var titleKey: String {
+        issue.titleKey == "messaging.accessDenied" ? "im.chat.denied" : issue.titleKey
+    }
+    private var backKey: String? {
+        switch issue.titleKey {
+        case "messaging.closed", "messaging.accessDenied": return "im.chat.backToList"
+        case "messaging.missing": return "action.back"
+        default: return nil
+        }
+    }
     var body: some View {
         ContentUnavailableView {
-            Label(LocalizedStringKey(issue.titleKey), systemImage: issue.canRetry ? "exclamationmark.triangle" : "lock")
+            Label(LocalizedStringKey(titleKey), systemImage: issue.canRetry ? "exclamationmark.triangle" : "lock")
         } description: {
             if let message = issue.message {
                 Text(verbatim: message)
-            } else {
+            } else if backKey == nil {
                 Text(LocalizedStringKey(issue.detailKey))
             }
         } actions: {
@@ -935,6 +948,11 @@ private struct ChatHistoryStatus: View {
                     .buttonStyle(.bordered)
                     .controlSize(.large)
                     .accessibilityIdentifier(identifier + ".retry")
+            } else if let backKey {
+                Button(LocalizedStringKey(backKey)) { dismiss() }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                    .accessibilityIdentifier(identifier + ".back")
             }
         }
         .accessibilityElement(children: .contain)
