@@ -81,6 +81,11 @@ struct MessagingHistoryView: View {
     @State private var sessionPage: IMChatSessionPage?
     @State private var pageBlockedByMe: Bool?
     @State private var safety: IMSafetyPresentation?
+    /// design-r2-social P13: a card answer tapped in the transcript opens its page from here.
+    @State private var cardRoute: MessagingCardRoute?
+    /// Session-local quiet lines: the MP button the viewer picked, and the option they voted for (from the poll read).
+    @State private var cardChoices: [Int: String] = [:]
+    @State private var pollVotes: [Int: String] = [:]
     @Environment(\.dismiss) private var dismissHistory
     @Environment(\.ugcSafetyContext) private var ugcSafety
     /// Continuity (r1 item 9): carries the sent text from the composer into its bubble. Presentation only.
@@ -223,6 +228,11 @@ struct MessagingHistoryView: View {
         .navigationDestination(isPresented: $showingAttachControls) {
             if let owner = expanded?.coordinator(conversationID) { conversationControls(owner, lease: lease) }
         }
+        .navigationDestination(item: $cardRoute) { route in cardRouteDestination(route) }
+        .onChange(of: cardRoute) { old, new in
+            if new == nil, case .poll(let messageID) = old { readPollVote(messageID) }
+        }
+        .onChange(of: loadedIdentity) { _, _ in cardRoute = nil; cardChoices = [:]; pollVotes = [:] }
         .privacySensitive()
         .appNavigationTitle("messaging.history.title")
         .navigationBarTitleDisplayMode(.inline)
@@ -364,17 +374,34 @@ struct MessagingHistoryView: View {
                                 IMChatDividerLabel(divider: divider).font(.caption).foregroundStyle(.secondary)
                                     .frame(maxWidth: .infinity).accessibilityIdentifier("im.chat.divider.\(message.id)")
                             }
+                            let answersInline = expanded != nil && MessagingInlineCardAnswers.hasAnswers(message)
                             NavigationLink {
                                 MessagingMessageDetailView(message: message, conversation: conversation,
                                     reader: reader, identity: loadedIdentity, mediaReader: mediaReader, expanded: expanded,
                                     currentMessage: { history.messages.first { $0.id == message.id } })
                             } label: {
-                                MessagingBubble(message: message, conversation: conversation, accountID: accountID, position: positions[message.id] ?? .single)
+                                MessagingBubble(message: message, conversation: conversation, accountID: accountID, position: positions[message.id] ?? .single,
+                                                answersInline: answersInline)
                                     .environment(\.imRecipientPreview, recipientPreviewInput)
                                     .imSendFlight(message.id, in: sendFlight.namespace)
                             }
                             .buttonStyle(.plain)
                             .accessibilityIdentifier("messaging.message.\(message.id)")
+                            // design-r2-social P13: the card's answers sit in the transcript, outside the row link,
+                            // as the MP chat draws `genericButtons` inside the card.
+                            let isOwnRow = message.senderID == accountID && accountID > 0
+                            let isNoticeRow = (conversation?.kind == .system || message.senderID == 0) && !isOwnRow
+                            if answersInline {
+                                MessagingInlineCardAnswers(message: message, isOwn: isOwnRow, isNotice: isNoticeRow,
+                                                           chosenLabel: cardChoices[message.id]) { action in
+                                    answerCard(action, messageID: message.id)
+                                }
+                            } else if expanded?.pollCoordinator != nil, message.isPayloadVisible, message.type == 4, message.pollReference != nil {
+                                MessagingInlinePollAnswer(message: message, isOwn: isOwnRow, isNotice: isNoticeRow,
+                                                          votedOption: pollVotes[message.id]) {
+                                    cardRoute = .poll(messageID: message.id)
+                                }
+                            }
                         }
                         .padding(.top, [.middle, .last].contains(positions[message.id] ?? .single) ? -CYSpacing.xs - 1 : 0)
                         .id(message.id)
@@ -528,6 +555,56 @@ struct MessagingHistoryView: View {
         }
         return ChatDisplay.unknown
     }
+    /// design-r2-social P13: the same checks and destinations as the detail page's `IMCardActionsView` handler.
+    private func answerCard(_ action: IMCardAction, messageID: Int) {
+        guard currentHistoryReady, let message = history.messages.first(where: { $0.id == messageID }),
+              message.isPayloadVisible, IMCardAction.displayed(for: message).contains(action) else { return }
+        if let id = message.card?.broadcastID {
+            let sender = reader as? MessagingSessionReader
+            Task { await sender?.reportBroadcastClick(id: id) }
+        }
+        switch action.destination {
+        case .topic(let id):
+            if let label = MessagingInlineCardAnswers.choiceLabel(action, in: message) { cardChoices[messageID] = label }
+            cardRoute = .topic(id)
+        case .review:
+            cardRoute = .detail(messageID: messageID)
+        case .unsupported:
+            break
+        }
+    }
+    /// After the poll page closes, read the viewer's vote from the poll the coordinator already holds (no request).
+    private func readPollVote(_ messageID: Int) {
+        guard currentHistoryReady, let message = history.messages.first(where: { $0.id == messageID }),
+              message.isPayloadVisible, let reference = message.pollReference,
+              let owner = expanded?.pollCoordinator?(message.conversationID, reference),
+              let poll = owner.visiblePoll, let mine = poll.myOptionId,
+              let option = poll.options.first(where: { $0.id == mine }) else { return }
+        pollVotes[messageID] = option.content
+    }
+    @ViewBuilder private func cardRouteDestination(_ route: MessagingCardRoute) -> some View {
+        switch route {
+        case .topic(let id):
+            if currentHistoryReady, let expanded { TopicDetailView(id: id, reader: expanded.topicReader) }
+        case .detail(let messageID):
+            if let message = history.messages.first(where: { $0.id == messageID }) {
+                MessagingMessageDetailView(message: message, conversation: conversation,
+                    reader: reader, identity: loadedIdentity, mediaReader: mediaReader, expanded: expanded,
+                    currentMessage: { history.messages.first { $0.id == messageID } })
+            }
+        case .poll(let messageID):
+            if currentHistoryReady, let message = history.messages.first(where: { $0.id == messageID }),
+               message.isPayloadVisible, let reference = message.pollReference,
+               let owner = expanded?.pollCoordinator?(message.conversationID, reference) {
+                GroupPollView(owner: owner, current: {
+                    reader.identity == loadedIdentity && history.messages.first(where: { $0.id == messageID }) == message
+                        && owner.reference == reference && owner.scope.conversationID == message.conversationID
+                })
+            } else {
+                GroupPollUnavailableView()
+            }
+        }
+    }
     private func rowTitle(_ message: MessagingMessage, accountID: Int) -> LocalizedStringKey {
         if !message.isPayloadVisible {
             return message.status == .recalled ? "messaging.message.recalled" : "messaging.message.withheld"
@@ -548,6 +625,8 @@ private struct MessagingBubble: View {
     let conversation: MessagingConversation?
     let accountID: Int
     var position: ChatGroupPosition = .single
+    /// design-r2-social: when the answers sit under the card, the bubble drops its 「点开即可回应」 hint.
+    var answersInline = false
     @Environment(\.imRecipientPreview) private var recipientPreview
     @ScaledMetric(relativeTo: .caption) private var avatarSize: CGFloat = 28
     private var isOwn: Bool { message.senderID == accountID && accountID > 0 }
@@ -568,7 +647,7 @@ private struct MessagingBubble: View {
                     let stamp = ChatDisplay.stamp(message.createdAt)
                     Text(verbatim: stamp).font(.caption).foregroundStyle(.secondary)
                 }
-                MessagingMessageContent(message: message, inTranscript: true).foregroundStyle(.primary)
+                MessagingMessageContent(message: message, inTranscript: !answersInline).foregroundStyle(.primary)
                     .fixedSize(horizontal: false, vertical: true)
                 IMRecipientPreviewRow(message: message, input: recipientPreview)
             }
@@ -600,7 +679,7 @@ private struct MessagingBubble: View {
                 }
             } content: {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    MessagingMessageContent(message: message, inTranscript: true)
+                    MessagingMessageContent(message: message, inTranscript: !answersInline)
                     IMRecipientPreviewRow(message: message, input: recipientPreview)
                 }
             }

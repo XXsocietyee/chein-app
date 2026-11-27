@@ -41,7 +41,7 @@ import SwiftUI
         }
     }
 }
-/// Join moment: the club medal lands with a spring and light confetti, success haptic, then the three first
+/// Join moment: the club symbol lands with a spring and one bounce (no confetti in native r2), success haptic, then the three first
 /// steps as one quiet card and a single primary action (events). "Got it" is the quiet secondary.
 @MainActor struct ClubMemberWelcomeSheet: View {
     let value: ClubMemberWelcome
@@ -49,15 +49,21 @@ import SwiftUI
     let goEvents: () -> Void
     @State private var arrived = false
     @Environment(\.locale) private var locale
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var body: some View {
         NavigationStack {
             List {
                 Section {
                     VStack(spacing: 12) {
+                        // design-r2-social P7 (MP `maybeWelcome`, the first entry after joining): the club symbol
+                        // springs in and bounces once. Reduce Motion shows it in place, with the same haptic.
                         Image(systemName: "person.3.fill")
                             .font(.largeTitle)
                             .imageScale(.large)
                             .foregroundStyle(.tint)
+                            .symbolEffect(.bounce, value: arrived && !reduceMotion)
+                            .scaleEffect(arrived || reduceMotion ? 1 : 0.6)
+                            .opacity(arrived || reduceMotion ? 1 : 0)
                             .accessibilityHidden(true)
                         // CLB-detail-29 (parity r2): MP 欢迎加入「name」 as one title.
                         Group {
@@ -120,7 +126,10 @@ import SwiftUI
                 .padding(.vertical, 12)
                 .background(.bar)
             }
-            .onAppear { arrived = true }
+            .onAppear {
+                if reduceMotion { arrived = true }
+                else { withAnimation(.spring(response: 0.5, dampingFraction: 0.62)) { arrived = true } }
+            }
             .navigationBarTitleDisplayMode(.inline)
             // CLB-detail-29: two exits are enough (去看活动 / 知道了, plus the drag); no toolbar 关闭.
         }

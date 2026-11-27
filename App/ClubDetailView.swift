@@ -638,8 +638,12 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
         if tab == .manage, club.isOwner, let session = reader as? AppSession {
             await r8Mounts.loadCoopPool(key: key, reader: session.cooperationReader, locale: locale)
         }
+        // design-r2-social (P6): MP `loadMembers` runs once at detail load for any tab, so the header face pile
+        // shows on every tab. The key ignores the tab; switching tabs never reloads or clears the strip.
+        if club.canSeeMembers {
+            await r8Mounts.loadMemberAvatars(key: r8Key(club, tab: .overview), clubID: club.id, reader: reader)
+        }
         if tab == .overview, club.canSeeMembers {
-            await r8Mounts.loadMemberAvatars(key: key, clubID: club.id, reader: reader)
             if let governance = management?.governance { await loadInlineLeaderboard(club: club, governance: governance) }
         }
     }
