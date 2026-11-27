@@ -291,3 +291,12 @@ Merged `origin/ui/combined-r7` (clean). No new sweep since Continue 11, so no ne
 | `components/cy/scene-member-withdraw-history` (+ `tixianjilu` shell) | `App/WithdrawalHistoryView.swift` | Amount: L09-023 `moneyText` = −¥ with the site amount format, ¥0 for zero, never a bare "-12.00"; first load `cy-skeleton type="list" count="4"` | **Fixed.** Rows and the detail sheet use `WithdrawalAmountDisplay` (`.currency(code: "CNY")` in the UI locale: −¥12.30 zh, -CN¥12.30 en; ¥0.00 for zero; "—" when unknown). The skeleton shows four rows. `WithdrawalParityFlowTests` now checks "12.30" + "¥" instead of the bare "-12.30" (pin followed the MP format). Title, empty (还没有发起提现), login / denied / failed copy, statuses, load-more + 更多提现记录加载失败 · 重试 already matched. The day-grouped sections stay (layout, no new content). |
 
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+## Continue 13 (half-hourly re-arm, sweep still 22:11 UTC build 8fa84e4d3)
+
+Merged `origin/ui/combined-r7` (clean). No mp-mine rows in the 22:20 sweep or the contract-cleanup table; this pass continues the member components without a row.
+
+| MP page | Native view | MP says | Fixed now |
+|---|---|---|---|
+| `components/cy/scene-member-order-history` | `App/ProfileOrdersView.swift`, `App/ProfileOrderFilterSection.swift` | Filter tabs on top (9 MP options in MP order) → skeleton → 订单加载失败 / 登录后查看订单 / 当前身份不能查看订单 → 还没有城市路线订单 + 去发现城市路线 → 当前筛选暂无订单 → cards (mode tag + state / name / time / place, 实付款 / 待付款 line, 取消订单 · 立即支付 / 取消并退款 · 查看详情 / 查看退款详情 / 查看处理进度, 已下架) | — (matches; the chip row is the system filter `Picker(.menu)` per G-053, same nine options in MP order) |
+| `components/cy/scene-qr-coupon` | `App/CouponCodeView.swift` | Live code: `cy-qr-voucher` title = coupon name, desc 出示给商家扫码核销, then the code, 二维码 Ns 后自动刷新, 刷新二维码 | **Fixed.** The ready state shows the coupon name (when read) and 出示给商家扫码核销 / "Show this to the merchant to scan and redeem" above the code (existing key `couponCode.presentToMerchant`, id `couponCode.voucherHead`). Not-started, not-mine, used / expired / revoked results already matched. Kept: native 核销状态暂未更新 footnote for the MP poll inline error. |
