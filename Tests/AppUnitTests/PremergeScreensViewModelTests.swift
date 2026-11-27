@@ -119,8 +119,10 @@ final class PremergeScreensViewModelTests: XCTestCase {
         XCTAssertNotNil(session.account)
 
         transport.handlers["/native/api/roam/presence-visibility"] = (Data(#"{"code":200,"data":false}"#.utf8), 200)
+        // debt/appunit-b: expectation updated per 02c68098f (`ClubService.owned` decodes the MP `/api/club/my` shape
+        // `data.owned`, as mp-source pages/shezhi/shezhi.js:123 reads it; a bare `data` array is malformed).
         transport.handlers["/native/api/club/my"] = (
-            Data(#"{"code":200,"data":[{"id":12,"name":"杭州城南探索社"}]}"#.utf8),
+            Data(#"{"code":200,"data":{"owned":[{"id":12,"name":"杭州城南探索社"}]}}"#.utf8),
             200
         )
 

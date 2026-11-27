@@ -6,7 +6,9 @@ import XCTest
 /// Synthetic, in-memory registration boundary. No endpoint, credential or payment exists here.
 @MainActor
 private final class EvidenceCacheService: RegistrationCoordinatingService {
-    var quoteJSON = #"{"payAmount":12.5,"pointsUsable":true,"quoteSign":"parity-fixture-sign"}"#
+    // debt/appunit-b: expectation updated per 02c68098f (RegistrationCoordinator.confirm now refuses any non-zero
+    // payAmount with .paymentRequired, so a 12.5 quote never dispatched create; the unknown-outcome fixture needs a free quote)
+    var quoteJSON = #"{"payAmount":0,"pointsUsable":true,"quoteSign":"parity-fixture-sign"}"#
     var createError: Error?
     private(set) var quotes: [RegistrationQuoteRequest] = []
     private(set) var creates: [RegistrationCreateIntent] = []

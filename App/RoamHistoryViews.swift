@@ -49,7 +49,7 @@ import SwiftUI
                                      actionTitle: "roamSub.w208.history.emptyCTA", actionIdentifier: "roam.history.startFirst",
                                      actionStyle: .primary,
                                      action: { if liveDestination != nil { startFirstWalk = true } else { dismissHistory() } })
-                            .navigationDestination(isPresented: $startFirstWalk) { liveDestination?() }
+                            // The 出发第一次漫游 destination is declared on the List below, never inside this lazy row.
                             .accessibilityElement(children: .contain)
                             .accessibilityIdentifier("roam.experience.history.empty")
                     }
@@ -123,10 +123,15 @@ import SwiftUI
                     liveDestination()
                 }
             }
+            // A navigationDestination inside a lazy List row is re-registered whenever that row re-renders (e.g. the
+            // appear/disappear presentationID change), which pops pushes made from sibling rows such as the 那年今日 tool.
+            .navigationDestination(isPresented: $startFirstWalk) { liveDestination?() }
             .modifier(RoamPassportHistoryNavigation(localReader: reader))
             .background {
                 if error == nil, loaded, !records.isEmpty {
                     RoamHostedAccessibilityAnchor(identifier: "roam.experience.history.record")
+                } else if error == nil, loaded, localWalk.noticeKeys(reader: reader) == nil {
+                    RoamHostedAccessibilityAnchor(identifier: "roam.experience.history.empty")
                 }
             }
             // A screen-level identifier is only exposed when the screen is an accessibility container (iOS 27 SwiftUI drops

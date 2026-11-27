@@ -136,8 +136,16 @@ import XCTest
     }
     func testOriginalLoginGateTransitionStopsOldAudioEvenWhenLoginFails() async throws {
         let f = try host(), s = await f.boot(); try f.listGrant(s); _ = try f.grant(s); let model = f.model(s); model.appear(foreground: true); await model.open()?.value
-        await s.login(username: "synthetic", password: "synthetic") // Stub returns no login token; no real HTTP.
-        XCTAssertNil(model.presentation); XCTAssertGreaterThan(f.devices[0].stops, 0)
+        // debt/appunit-b: expectation updated per 02c68098f/7623036a3 (password login is disabled: `.usernamePassword` is never
+        // implemented, so AppSession has no AuthService and `login(username:password:)` refuses before any login gate transition).
+        await s.login(username: "synthetic", password: "synthetic")
+        XCTAssertEqual(s.errorKey, "auth.notConfigured"); XCTAssertTrue(f.login.requests.isEmpty); XCTAssertEqual(s.account?.id, 7)
+        XCTAssertEqual(f.vault.token, "synthetic-audio-preview"); XCTAssertNotNil(model.presentation); XCTAssertEqual(f.devices[0].stops, 0)
+        // The surviving route to a new login gate from a signed-in session is sign-out, then SMS login. It stops the old
+        // audio synchronously and the failed SMS login (stub returns no login token; no real HTTP) cannot restore it.
+        await s.logout(); XCTAssertNil(model.presentation); XCTAssertGreaterThan(f.devices[0].stops, 0)
+        await s.authChannels.loginWithPhone(phone: "10000000000", code: "123456")
+        XCTAssertNil(s.account); XCTAssertNil(s.token); XCTAssertNil(model.presentation); XCTAssertEqual(f.devices.count, 1)
     }
     func testQueuedOpenCancelledBeforeAdmissionDoesNotRead() async throws {
         let f = try host(), s = await f.boot(); try f.listGrant(s); _ = try f.grant(s); let model = f.model(s); model.appear(foreground: true)
