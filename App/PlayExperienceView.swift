@@ -265,6 +265,7 @@ struct PlayThemeMusicKey: Equatable {
         // One page-level host (the lead section used to own the poll, so it only ran while that row was on screen).
         .task(id: model.interactionContext) { await model.probeLead(context: model.interactionContext) }
         .modifier(PlayLeadProgressPollingModifier(model: model, context: model.interactionContext))
+        .modifier(ActiveSessionPlayHostMarker())
         .onChange(of: model.snapshot?.result.topicID) { _, topicID in
             chapterFilter = nil
             presentTitleCardIfNeeded(topicID)
@@ -744,7 +745,8 @@ struct PlayThemeMusicKey: Equatable {
             locationOn: Self.locationAuthorized,
             onLocationRow: Self.openLocationSettings,
             teamLead: model.lead,
-            journalRows: model.snapshot.map(PlayJournal.rows(in:))
+            journalRows: model.snapshot.map(PlayJournal.rows(in:)),
+            boardDestination: model.snapshot == nil ? nil : { [model] in AnyView(PlayCompanionBoardView(model: model)) }
         )
     }
     /// mp-journey r3: MP `gpsOk` for the 游玩工具 location rows (when-in-use or always).

@@ -281,13 +281,13 @@ extension PlayKitScreen {
                     if let goal {
                         Text("playkit.walk.remainingLabel").font(.subheadline).foregroundStyle(.secondary)
                         Text(verbatim: max(0, goal - steps).formatted())
-                            .font(.system(.largeTitle, design: .rounded).weight(.bold)).monospacedDigit()
+                            .cyText(.dataXL)
                             .contentTransition(.numericText(countsDown: true))
                             .accessibilityIdentifier("playkit.walk.remaining")
                         Text("playkit.walk.stepsUnit").font(.subheadline).foregroundStyle(.secondary)
                     } else {
                         Text(verbatim: steps.formatted())
-                            .font(.system(.largeTitle, design: .rounded).weight(.bold)).monospacedDigit()
+                            .cyText(.dataXL)
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -392,7 +392,7 @@ extension PlayKitScreen {
                 let seconds = elapsed + (startedAt.map { Int(max(0, ProcessInfo.processInfo.systemUptime - $0)) } ?? 0)
                 VStack(spacing: 4) {
                     Text(verbatim: String(format: "%02d:%02d", seconds / 60, seconds % 60))
-                        .font(.system(.largeTitle, design: .rounded).weight(.semibold)).monospacedDigit()
+                        .cyText(.dataXL)
                         .contentTransition(.numericText())
                     Text("nativeGames.silent.elapsed").font(.subheadline).foregroundStyle(.secondary)
                 }

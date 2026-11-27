@@ -93,12 +93,31 @@ Gates: generate_project OK · check_scaffold PASS (20586 keys) · a11y lint 0 ne
 
 Every `subpackageRoam/*` and `pages/roam/*` wxml now has a row in this receipt.
 
+## Round 3 continue (4) — live-roam 更多 / 设置 / 怎么玩 (pages/roam/index.wxml:674–802)
+
+Base re-merged with `origin/ui/combined-r7` (clean).
+
+| MP page / scene | Native view | Differences | Status |
+|---|---|---|---|
+| `pages/roam/index` roam-more (更多 drawer, owner P-31) | `App/MPGap/PlayRoam/RoamSessionToolsSheetView.swift` (opened from `RoamLiveSessionView` toolbar) | MP drawer = three rows 附近正在走的人 / 玩法说明 / 设置. Native showed one flat form (runners, presence, map, clear) titled 更多工具, and 玩法说明 was a second toolbar button with its own sheet. | **Fixed:** sheet root is a `List` with the three MP rows (`NavigationLink` pushes: runners list with a count, 怎么玩, 设置), title 更多; the live toolbar has one `ellipsis.circle` 更多 button (top-right, `roam.live.tools`); the separate rules button + sheet are gone (the rules are the 玩法说明 row, id `roam.live.rules` kept on it). Runners empty = `ContentUnavailableView`. |
+| `pages/roam/index` roam-settings (设置) | `RoamSessionToolsSheetView.settingsForm` | MP rows in order 迷雾 → 地图样式 → 减少动态效果 → 附近的人位置分享 → 位置权限 / 后台持续定位 / 到点提醒 (开/关, tap opens system setting) → 清空本机缓存. Native: presence above map rows, no 位置权限 / 后台持续定位 / 到点提醒 rows (location row was never wired), clear-confirm copy differed from MP. | **Fixed:** MP order; three `LabeledContent` value rows read `CLLocationManager.authorizationStatus` (re-read on foreground) and open Settings; clear confirm uses the MP copy (迷雾、足迹、漫游记录、找回记录、分享链接失效) with 清空 / 先不清. |
+| `pages/roam/index` roam-rules (怎么玩, 原型 howtoScreen) | new `RoamLiveHowToView` (same file) | MP: title 怎么玩, lede 走近就点亮，别的都不用管, three rows (走近店铺 55 米 / 点亮过的地方能拍照 / 别人点亮的地盘贴他自己的颜色, each with its sub line), footnote 关掉定位就不记录…. Native showed four different sections (自由探索 / 主动确认到点 / 结束与记录 / 定位由你控制). | **Fixed:** MP copy and order in one inset section (lede, three `Label` rows with tinted SF Symbols, footer = MP mini). 55 m = MP `REVEAL_M` = the reveal grid radius in `RoamLiveSessionController`. The presence privacy line still shows in the live sheet when presence is available and in the preflight rules (unchanged). |
+
+New strings (en + zh-Hans, also `docs/port/strings/mp-r3-roam.json`): `roamTools.more.title`, `roamTools.more.howto`, `roamTools.more.settings`,
+`roamTools.location.permission`, `roamTools.location.background`, `roamTools.location.arrival`, `roamTools.value.on`, `roamTools.value.off`,
+`roamTools.clearCache.keep`, `roam.howto.title`, `roam.howto.lede`, `roam.howto.reveal %lld`, `roam.howto.revealDetail`, `roam.howto.photo`,
+`roam.howto.photoDetail`, `roam.howto.colors`, `roam.howto.colorsDetail`, `roam.howto.mini`; updated `roamTools.clearCache.confirmMessage` (MP copy).
+No motion added. No tests pin the removed rules sheet or the old tools layout.
+
+Gates: generate_project OK · check_scaffold PASS (20638 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no
   `RoamStampExchangeCoordinator` (never instantiated), so the citystamp camera (`showsCaption: true`) keeps its caption + exchange. Needs an
   upload-only camera mode returning the picture URL and session wiring for the coordinator — left for a compiled pass.
 - team-recovery per-command rows on my-teams / nearby (needs a persisted team-command store).
-- place card rating cell (second read).
+- place card rating cell: MP reads `averageRating` / `ratingCount` from `/api/city/nodes/{id}`; the native node model does not decode either field yet (Core change + reader on the card) — compiled pass.
+- P21 mini bar for a running roam: the live session is a full-screen cover owning its own controller (`makeRoamLiveSessionController()` per presentation); a cross-tab bar needs the controller lifted to the session and a root-tab accessory (nav lane) — compiled pass.
 - Entry peek `.login` state (map home + legacy peek): MP 11-14 reads public nearby content as a guest and maps 401 to the cy-error retry, never a sign-in prompt. Native shows sign-in when `!isSignedIn && !allowsPublicEntry` (Core `RoamNearbyEventsEntryState`) and on 401; changing it touches Core tests and `RoamHomeTabsFlowTests` (`roam.home.peek.login`) — left for a compiled pass.
 - No Swift build ran here; integrator compiles.
