@@ -113,12 +113,12 @@ final class ActivityFixtureReader: ActivityReading {
             }
             // mp-home r3 (19:50 sweep): fixture data follows the UI language.
             let zh = Locale.preferredLanguages.first?.hasPrefix("zh") == true
-            let place = zh ? "灯笼广场（示例）" : "Lantern Square (fixture)"
-            let about = zh ? "沿着老集市小巷慢慢走，一路听故事。离线示例文案。" : "A slow, story-led walk through the old market lanes. Offline fixture copy."
+            let place = zh ? "灯笼广场" : "Lantern Square"
+            let about = zh ? "沿着老集市小巷慢慢走，一路听故事。" : "A slow, story-led walk through the old market lanes."
             let walk = zh ? "漫步" : "Walk", food = zh ? "美食" : "Food"
             let standard = zh ? "标准票" : "Standard ticket", early = zh ? "早鸟票" : "Early bird"
             let includes = zh ? "含向导、路线手册和一次试吃。" : "Guide, route booklet and one tasting."
-            let title = zh ? "灯笼集市探索（示例）" : "Lantern Market Quest (fixture)"
+            let title = zh ? "灯笼集市探索" : "Lantern Market Quest"
             let base = "\"startDate\":\"2026-11-21 14:00:00\",\"endDate\":\"2026-11-21 17:30:00\",\"addressName\":\"\(place)\",\"description\":\"\(about)\",\"minAmout\":58,\"registrationCount\":24,\"sysCategoryList\":[{\"categoryName\":\"\(walk)\"},{\"categoryName\":\"\(food)\"}],\"omsTicketList\":[{\"id\":501,\"name\":\"\(standard)\",\"price\":58,\"remainingInventory\":18,\"description\":\"\(includes)\"},{\"id\":502,\"name\":\"\(early)\",\"price\":42,\"remainingInventory\":0}]"
             let data = Data("{\"id\":101,\"name\":\"\(title)\",\(base)\(fields)}".utf8)
             return .allowed(try JSONDecoder().decode(ActivityDetail.self, from: data))
