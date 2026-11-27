@@ -29,31 +29,30 @@ import SwiftUI
                     // the invite title is plain text, not a tappable-looking row.
                     Section {
                     VStack(alignment: .leading, spacing: 6) {
-                        Label { Text(LocalizedStringKey(row.sourceStatusKey)) } icon: { Image(systemName: "envelope").foregroundStyle(row.isPaused ? Color.orange : Color.secondary) }
-                            .font(.subheadline).foregroundStyle(.secondary)
-                        Group {
-                            if row.title.isEmpty { Text("official.inviteUntitled") } else { Text(verbatim: row.title) }
-                        }
-                        .font(.headline)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .accessibilityAddTraits(.isHeader)
-                        if let title = row.eventTitle, !title.isEmpty { Text(verbatim: title) }
-                        // Source meta line: "(city ‖ 全国) · role".
-                        (cityText(row) + Text(verbatim: " · ") + roleText(row)).font(.footnote).foregroundStyle(.secondary)
-                        Text(LocalizedStringKey(row.scopeKey)).font(.caption).foregroundStyle(.secondary)
-                        if let note = row.roleNoteTuple {
-                            Text(verbatim: c.t(note.zh, note.en)).font(.caption).foregroundStyle(.secondary)
-                        }
-                        // capacityFact keeps a literal 0; a missing or non-integer capacity is an em dash.
-                        Group {
-                            switch row.capacityFact {
-                            case .known(let cap): Text(verbatim: appLocalized("official.inbox.capacity \(cap)", locale: locale))
-                            case .unknown: Text("official.inbox.capacityUnknown")
+                        // MP oi-head: event title + "city · role" on the left, the status word on the right.
+                        ViewThatFits(in: .horizontal) {
+                            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                                inviteHead(row)
+                                Spacer(minLength: 8)
+                                inviteStatus(row)
                             }
-                        }.font(.caption).foregroundStyle(.secondary)
+                            VStack(alignment: .leading, spacing: 6) {
+                                inviteHead(row)
+                                inviteStatus(row)
+                            }
+                        }
+                        // MP oi-role-note: "role：note", only for a known role.
+                        if let note = row.roleNoteTuple {
+                            (roleText(row) + Text(verbatim: c.t("：", ": ")) + Text(verbatim: c.t(note.zh, note.en)))
+                                .font(.caption).foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        // MP oi-scope: scope, service window, then capacity only when it is a positive number.
+                        Text(LocalizedStringKey(row.scopeKey)).font(.caption).foregroundStyle(.secondary)
                         if let facts = row.windowFacts { OfficialPrivateFactsText.window(facts.window).font(.caption) }
-                        if let summary = row.responsibilitySummary, !summary.isEmpty, summary != row.title {
-                            Text(verbatim: summary).font(.footnote)
+                        if let cap = row.capacity {
+                            Text(verbatim: appLocalized("official.inbox.capacity \(cap)", locale: locale))
+                                .font(.caption).foregroundStyle(.secondary)
                         }
                         if row.isPaused {
                             Text(verbatim: c.t("本场活动已暂停，恢复前以主办通知为准。",
@@ -61,7 +60,9 @@ import SwiftUI
                                 .font(.caption).foregroundStyle(.orange)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
-                        if let status = row.status, row.statusKey == "official.status.unknown" { Text(verbatim: status.isEmpty ? "—" : status).font(.caption) }
+                        if let summary = row.responsibilitySummary, !summary.isEmpty {
+                            Text(verbatim: summary).font(.footnote)
+                        }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityElement(children: .combine).accessibilityIdentifier("official.invite.\(row.id)")
@@ -74,6 +75,29 @@ import SwiftUI
             .accessibilityIdentifier("official.inbox.content")
             }
         }.appNavigationTitle("official.inbox.title").navigationBarTitleDisplayMode(.inline)
+    }
+    /// MP oi-event + oi-meta: the event title (未命名官方活动 when blank) and "(city ‖ 全国) · role".
+    @ViewBuilder private func inviteHead(_ row: OfficialPartyInvite) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Group {
+                if let title = row.eventTitle, !title.isEmpty { Text(verbatim: title) }
+                else { Text("official.privateParity.published.untitledEvent") }
+            }
+            .font(.headline)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityAddTraits(.isHeader)
+            // MP cityRole: the role is appended only when it is a known role.
+            Group {
+                if row.roleKey != nil { cityText(row) + Text(verbatim: " · ") + roleText(row) }
+                else { cityText(row) }
+            }.font(.footnote).foregroundStyle(.secondary)
+        }
+    }
+    /// MP oi-status: 待你确认 / 已接受 / 履约中 / 状态待确认.
+    private func inviteStatus(_ row: OfficialPartyInvite) -> some View {
+        Text(LocalizedStringKey(row.sourceStatusKey))
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(row.status == "INVITED" ? Color.accentColor : Color.secondary)
     }
     private func cityText(_ row: OfficialPartyInvite) -> Text {
         // A null city is a nationwide event in the source, not a missing value.
@@ -106,7 +130,17 @@ import SwiftUI
                         // Source official-mine row: title + publisher-view status badge, then city.
                         NavigationLink { OfficialEventDetailView(id: event.id, reader: reader, actions: actions, onLogin: onLogin) } label: { publishedEventRow(event) }
                             .accessibilityIdentifier("official.published.event.\(event.id)")
-                        OfficialOrganizerEntryRow(eventID: event.id, access: actions?.organizer)
+                        // MP om-organizer: every v2 row offers 主办控制台 · 发布 / 暂停 / 恢复; the console's own
+                        // publish-check decides whether this account may manage it.
+                        if event.isV2, let access = actions?.organizer, access.enabled {
+                            NavigationLink {
+                                OfficialOrganizerConsoleView(eventID: event.id, access: access)
+                            } label: {
+                                Label("activityR3.official.mine.organizerEntry", systemImage: "slider.horizontal.3")
+                                    .frame(minHeight: 44)
+                            }
+                            .accessibilityIdentifier("official.published.organizer.\(event.id)")
+                        }
                     }
                 } header: { Text("official.published.eventsHeader \(events.count)") }
                 Section {
@@ -116,18 +150,19 @@ import SwiftUI
                             if broadcast.id > 0 {
                                 // R7-PC-C6-3 (MP official-mine/index.wxml:25-29): tapping the card reads its 复盘 in place.
                                 OfficialBroadcastInlineStatsRow(id: broadcast.id, reader: reader) {
+                                    // MP om-card: title + status badge, "mode · 发给 audience · city", then the reach line.
                                     VStack(alignment: .leading, spacing: 6) {
-                                        if let facts = broadcast.facts {
-                                            Label { Text(OfficialPrivateFactsText.broadcastStatusKey(facts.status)) } icon: { Image(systemName: "megaphone") }
-                                                .font(.subheadline).foregroundStyle(.secondary)
+                                        titleWithStatus {
+                                            if broadcast.title.isEmpty { Text("activityR3.official.mine.untitledBroadcast") }
+                                            else { Text(verbatim: broadcast.title) }
+                                        } status: {
+                                            Text(OfficialPrivateFactsText.broadcastStatusKey(broadcast.facts?.status ?? .unknown))
                                         }
-                                        if broadcast.title.isEmpty { Text("official.untitled").font(.headline).fixedSize(horizontal: false, vertical: true) }
-                                        else { Text(verbatim: broadcast.title).font(.headline).fixedSize(horizontal: false, vertical: true) }
                                         if let facts = broadcast.facts {
                                             OfficialPrivateFactsText.broadcastLine(facts).font(.footnote).foregroundStyle(.secondary)
                                         }
-                                        if let content = broadcast.content { Text(verbatim: content).font(.footnote).lineLimit(3).fixedSize(horizontal: false, vertical: true) }
                                         if let reach = broadcast.reach { Text("official.published.reach \(reach)").font(.caption).foregroundStyle(.secondary).monospacedDigit() }
+                                        else { Text("official.published.reachUnknown").font(.caption).foregroundStyle(.secondary) }
                                     }
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                 }.accessibilityIdentifier("official.broadcast.\(broadcast.id)")
@@ -141,12 +176,13 @@ import SwiftUI
     }
     private func publishedEventRow(_ event: OfficialEvent) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            OfficialEventStatusLabel(status: event.status, key: OfficialPublishedPresentation.ownerStatusKey(event.status))
-                .accessibilityIdentifier("official.published.eventStatus.\(event.id)")
-            if let title = OfficialPublishedPresentation.nonBlank(event.title) {
-                Text(verbatim: title).font(.headline).foregroundStyle(.primary).fixedSize(horizontal: false, vertical: true)
-            } else {
-                Text("official.privateParity.published.untitledEvent").font(.headline).fixedSize(horizontal: false, vertical: true)
+            // MP om-row: title with the publisher-view status badge beside it.
+            titleWithStatus {
+                if let title = OfficialPublishedPresentation.nonBlank(event.title) { Text(verbatim: title).foregroundStyle(.primary) }
+                else { Text("official.privateParity.published.untitledEvent") }
+            } status: {
+                OfficialEventStatusLabel(status: event.status, key: OfficialPublishedPresentation.ownerStatusKey(event.status))
+                    .accessibilityIdentifier("official.published.eventStatus.\(event.id)")
             }
             // Source sub line: city, then " · category" only when the server sent one.
             let city = OfficialPublishedPresentation.nonBlank(event.city).map { Text(verbatim: $0) } ?? Text(verbatim: "—")
@@ -157,6 +193,24 @@ import SwiftUI
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .fixedSize(horizontal: false, vertical: true)
+    }
+    /// MP om-row: a headline title and its status badge on one row; stacked when a long title or English copy
+    /// doesn't fit.
+    private func titleWithStatus<Title: View, Status: View>(@ViewBuilder _ title: () -> Title,
+                                                            @ViewBuilder status: () -> Status) -> some View {
+        let titleView = title().font(.headline).fixedSize(horizontal: false, vertical: true)
+        let statusView = status().font(.subheadline).foregroundStyle(.secondary)
+        return ViewThatFits(in: .horizontal) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                titleView
+                Spacer(minLength: 8)
+                statusView
+            }
+            VStack(alignment: .leading, spacing: 4) {
+                titleView
+                statusView
+            }
+        }
     }
     /// Mini-program `cy-empty` with a title only.
     private func emptyRow(_ title: LocalizedStringKey, _ detail: LocalizedStringKey? = nil) -> some View {

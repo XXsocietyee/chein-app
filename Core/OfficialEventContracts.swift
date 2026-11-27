@@ -120,6 +120,9 @@ public struct OfficialEvent: Decodable, Equatable, Identifiable {
     /// MP official-detail js:482-483 / wxml:180-182: `safetyNotice{title,version}`. When a title is present, signup
     /// waits for an explicit 我已阅读并同意《title》 (never pre-checked). Absent = no consent step, as in the MP.
     public let safetyNoticeTitle: String?
+    /// MP official-detail participationInvalid: `e.participation.state`; v2 and any state other than ACTIVE.
+    public let participationState: String?
+    public var participationInvalid: Bool { isV2 && participationState != nil && participationState != "ACTIVE" }
     /// `e.leaderboard` when `enabled === true`. Nil hides the board.
     public let leaderboard: OfficialEventLeaderboard?
     public var isCompleteRecord: Bool { id > 0 && !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
@@ -159,8 +162,10 @@ public struct OfficialEvent: Decodable, Equatable, Identifiable {
         let notice = try? c.decode(OfficialSafetyNotice.self, forKey: OfficialKey("safetyNotice"))
         safetyNoticeTitle = notice?.title.flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 }
         leaderboard = (try? c.decode(OfficialEventLeaderboardBox.self, forKey: OfficialKey("leaderboard")))?.value
+        participationState = (try? c.decode(OfficialParticipationBox.self, forKey: OfficialKey("participation")))?.state
     }
     private struct OfficialSafetyNotice: Decodable { let title: String? }
+    private struct OfficialParticipationBox: Decodable { let state: String? }
     private var rewardMap: [String: Any] {
         guard let data = rewardJSON?.data(using: .utf8), let value = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return [:] }
         return value

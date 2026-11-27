@@ -44,8 +44,9 @@ enum OfficialPrivateFactsText {
     static func broadcastStatusKey(_ status: OfficialPublishedBroadcastFacts.Status) -> LocalizedStringKey {
         switch status {
         case .draft: return "official.w206.broadcast.status.draft"
-        case .pending: return "official.w206.broadcast.status.pending"
-        case .sent: return "official.w206.broadcast.status.sent"
+        // MP official-mine BC_ST: 1 待处理／部分待核, 2 投递处理结束（非已读）.
+        case .pending: return "activityR3.official.mine.broadcastPending"
+        case .sent: return "activityR3.official.mine.broadcastDelivered"
         case .withdrawn: return "official.w206.broadcast.status.withdrawn"
         case .unknown: return "official.w206.broadcast.status.unknown"
         }

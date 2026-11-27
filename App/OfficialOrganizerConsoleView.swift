@@ -153,16 +153,16 @@ struct OfficialOrganizerConsoleView: View {
         Group {
             switch model.phase {
             case .loading:
-                ProgressView()
+                // MP cy-state-shell kind="loading" title="正在确认主办身份": say what is loading.
+                ProgressView { Text("activityR3.official.organizer.loading") }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .accessibilityLabel(Text(c.t("正在读取主办权限…", "Checking organizer access…")))
                     .accessibilityIdentifier("official.organizer.loading")
             case .denied(let reason):
                 // R7-PC-C7-2 (MP official-organizer/index.wxml:26 primary="返回").
                 ContentUnavailableView {
-                    Label { Text(verbatim: c.t("无权管理这场活动", "You can't manage this event")) } icon: { Image(systemName: "lock") }
+                    Label { Text("activityR3.official.organizer.deniedTitle") } icon: { Image(systemName: "lock") }
                 } description: {
-                    Text(verbatim: reason.map(c.tr) ?? c.t("当前账号不是这场活动的主办方", "This account is not a host of this event"))
+                    if let reason { Text(verbatim: c.tr(reason)) } else { Text("activityR3.official.organizer.deniedDefault") }
                 } actions: {
                     Button { dismissConsole() } label: { Text("action.back") }
                         .buttonStyle(.bordered)
@@ -170,9 +170,9 @@ struct OfficialOrganizerConsoleView: View {
                     .accessibilityIdentifier("official.organizer.denied")
             case .error:
                 ContentUnavailableView {
-                    Label { Text(verbatim: c.t("没有读到主办状态", "Couldn't load organizer status")) } icon: { Image(systemName: "exclamationmark.triangle") }
+                    Label { Text("activityR3.official.organizer.errorTitle") } icon: { Image(systemName: "exclamationmark.triangle") }
                 } description: {
-                    Text(verbatim: c.t("检查网络后再试一次", "Check your connection and try again."))
+                    Text("activityR3.official.organizer.errorDetail")
                 } actions: {
                     Button { Task { await model.load() } } label: { Text(verbatim: c.t("重试", "Retry")) }
                         .buttonStyle(.bordered)
@@ -200,6 +200,8 @@ struct OfficialOrganizerConsoleView: View {
 
     private var content: some View {
         List {
+            // MP order: the command-recovery card sits at the top of the page, above the head card.
+            if model.hasPendingIntent { recoverySection }
             // PC-C-7-3: say why controls are locked while the platform record is re-read (MP oo-sync line).
             if model.refreshing {
                 Label("official.organizer.refreshing", systemImage: "arrow.triangle.2.circlepath")
@@ -209,7 +211,6 @@ struct OfficialOrganizerConsoleView: View {
             headerSection
             snapshotSection
             if let o = model.outcome { outcomeSection(o) }
-            if model.hasPendingIntent { recoverySection }
             publishSection
             // PC-C-7-2: only the form that applies (MP wx:if view.paused): paused → resume, running → pause.
             if model.state?.control == .paused { resumeSection } else { pauseSection }
@@ -221,13 +222,21 @@ struct OfficialOrganizerConsoleView: View {
     private var headerSection: some View {
         Section {
             VStack(alignment: .leading, spacing: 4) {
-                Text(verbatim: model.state?.title.isEmpty == false ? model.state!.title : c.t("未命名官方活动", "Untitled official event"))
-                    .font(.headline)
-                HStack(spacing: 8) {
-                    Text(LocalizedStringKey(OfficialPublishedPresentation.ownerStatusKey(model.state?.status)))
-                    Text(verbatim: "·")
-                    Text(verbatim: controlText)
-                }.font(.subheadline).foregroundStyle(.secondary)
+                // MP oo-head: title with the control badge on one row (stacked when it doesn't fit), then 生命周期.
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        headerTitle
+                        Spacer(minLength: 8)
+                        controlBadge
+                    }
+                    VStack(alignment: .leading, spacing: 4) {
+                        headerTitle
+                        controlBadge
+                    }
+                }
+                (Text("activityR3.official.organizer.lifecycle")
+                    + Text(LocalizedStringKey(OfficialPublishedPresentation.ownerStatusKey(model.state?.status))))
+                    .font(.subheadline).foregroundStyle(.secondary)
                 // R7-PC-C7-2 (MP index.wxml:38-39): 暂停原因 while paused; 最近恢复说明 while running.
                 if model.state?.control == .paused {
                     if let r = model.state?.pausedReason, !r.isEmpty {
@@ -241,24 +250,31 @@ struct OfficialOrganizerConsoleView: View {
             .accessibilityIdentifier("official.organizer.header")
         }
     }
-    /// Page-model facts: blocker and risk counts, plus the empty / unknown notice.
-    private var snapshotSection: some View {
+    private var headerTitle: some View {
+        Text(verbatim: model.state?.title.isEmpty == false ? model.state!.title : c.t("未命名官方活动", "Untitled official event"))
+            .font(.headline)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+    /// MP cy-badge: warning tone while paused, neutral otherwise.
+    private var controlBadge: some View {
+        Text(verbatim: controlText)
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(model.state?.control == .paused ? Color.orange : Color.secondary)
+    }
+    /// Page-model empty / unknown notice. R3: the blocker/risk count line is gone (the MP lists them in 发布活动).
+    @ViewBuilder private var snapshotSection: some View {
         let snapshot = model.snapshot
-        return Section {
-            Text("official.organizer.counts \(snapshot.blockerCountText) \(snapshot.riskCountText)")
-                .font(.footnote).monospacedDigit().foregroundStyle(.secondary)
-                .accessibilityIdentifier("official.organizer.counts")
-            switch snapshot.state {
-            case .empty:
+        if snapshot.state == .empty {
+            Section {
                 Label("official.organizer.emptyNotice", systemImage: "tray")
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier(snapshot.accessibilityIdentifier ?? "")
-            case .unknown:
+            }
+        } else if snapshot.state == .unknown {
+            Section {
                 Label("official.organizer.unknownNotice", systemImage: "questionmark.circle")
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier(snapshot.accessibilityIdentifier ?? "")
-            default:
-                EmptyView()
             }
         }
     }
@@ -308,17 +324,23 @@ struct OfficialOrganizerConsoleView: View {
 
     private var publishSection: some View {
         Section {
+            // MP oo-card: intro, then the check result (passed, or 未通过 + blockers), then 风险 lines.
+            Text("activityR3.official.organizer.publishIntro").font(.subheadline).foregroundStyle(.secondary)
             if !model.check.known {
-                Label(c.t("发布检查没读到，请下拉刷新", "Publish check wasn't loaded. Pull to refresh."), systemImage: "questionmark.circle")
+                Label("activityR3.official.organizer.checkUnknown", systemImage: "questionmark.circle")
                     .foregroundStyle(.secondary)
+            } else if model.check.pass {
+                Label(c.t("发布检查已通过", "Publish check passed"), systemImage: "checkmark.seal").foregroundStyle(.green)
+            } else {
+                Text("activityR3.official.organizer.checkFailed").font(.subheadline)
             }
             ForEach(Array(model.check.blockers.enumerated()), id: \.offset) { _, text in
                 Label(text, systemImage: "xmark.circle").foregroundStyle(.red)
             }
             ForEach(Array(model.check.risks.enumerated()), id: \.offset) { _, text in
-                Label(text, systemImage: "exclamationmark.triangle").foregroundStyle(.orange)
+                Label { Text("activityR3.official.organizer.risk \(text)") } icon: { Image(systemName: "exclamationmark.triangle") }
+                    .foregroundStyle(.orange)
             }
-            if model.check.pass { Label(c.t("发布检查已通过", "Publish check passed"), systemImage: "checkmark.seal").foregroundStyle(.green) }
             hintText(.schedule)
             actionButton(.schedule)
         } header: { Text(c.t("发布活动", "Publish event")) }
@@ -330,7 +352,7 @@ struct OfficialOrganizerConsoleView: View {
             formErrorText(.pause)
             hintText(.pause)
             actionButton(.pause)
-        } header: { Text(c.t("暂停活动", "Pause event")) }
+        } header: { Text("activityR3.official.organizer.pauseResumeHeader") }
     }
     private var resumeSection: some View {
         Section {
@@ -343,7 +365,7 @@ struct OfficialOrganizerConsoleView: View {
             formErrorText(.resume)
             hintText(.resume)
             actionButton(.resume)
-        } header: { Text(c.t("恢复活动", "Resume event")) }
+        } header: { Text("activityR3.official.organizer.pauseResumeHeader") }
     }
 
     private func pauseField(_ field: String) -> some View {
@@ -396,8 +418,14 @@ struct OfficialOrganizerConsoleView: View {
     }
     @ViewBuilder private func formErrorText(_ action: OfficialOrganizerAction) -> some View {
         if let (a, e) = model.formError, a == action {
-            Text(formErrorCopy(e)).font(.footnote).foregroundStyle(.red)
-                .accessibilityIdentifier("official.organizer.formError")
+            // MP cy-inline-error title="还不能提交" + the rule that failed.
+            VStack(alignment: .leading, spacing: 2) {
+                Text("activityR3.official.organizer.formErrorTitle").font(.footnote.weight(.semibold))
+                Text(formErrorCopy(e)).font(.footnote)
+            }
+            .foregroundStyle(.red)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("official.organizer.formError")
         }
     }
 
@@ -501,11 +529,28 @@ struct OfficialOrganizerConsoleView: View {
 struct OfficialOrganizerEntryRow: View {
     let eventID: Int
     let access: (any OfficialOrganizerAccess)?
+    /// MP official-detail: the entry is its own 主办控制台 section with an explanation and an 打开主办控制台 action.
+    var detailSection = false
     @State private var allowed = false
     @Environment(\.locale) private var locale
     var body: some View {
         Group {
-            if allowed, let access {
+            if allowed, let access, detailSection {
+                Section {
+                    Text("activityR3.official.detail.organizerEntry.copy")
+                        .font(.subheadline).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    NavigationLink {
+                        OfficialOrganizerConsoleView(eventID: eventID, access: access)
+                    } label: {
+                        Label("activityR3.official.detail.organizerEntry.open", systemImage: "slider.horizontal.3")
+                            .frame(minHeight: 44)
+                    }
+                    .accessibilityIdentifier("official.organizer.entry.\(eventID)")
+                } header: {
+                    Text("official.organizer.title")
+                }
+            } else if allowed, let access {
                 NavigationLink {
                     OfficialOrganizerConsoleView(eventID: eventID, access: access)
                 } label: {

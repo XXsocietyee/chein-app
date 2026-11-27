@@ -1,0 +1,532 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "activityR3.official.detail.collective.tipAbsent": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No collective reward is configured"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未配置集体奖励"
+          }
+        }
+      }
+    },
+    "activityR3.official.detail.cta.offline": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Event taken offline"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动已下线"
+          }
+        }
+      }
+    },
+    "activityR3.official.detail.cta.settling": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Awaiting settlement"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动待结算"
+          }
+        }
+      }
+    },
+    "activityR3.official.detail.mission.eventPoint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Event node arrival"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动节点到达"
+          }
+        }
+      }
+    },
+    "activityR3.official.detail.mission.eventPointAction": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walk to the event's designated node and your arrival is confirmed automatically"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "走到活动指定节点，系统会自动确认到达"
+          }
+        }
+      }
+    },
+    "activityR3.official.detail.mission.roamPoi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roam node arrival"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "漫游节点到达"
+          }
+        }
+      }
+    },
+    "activityR3.official.detail.organizerEntry.copy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You co-host this event. Use the console to publish, pause, or resume it (only this event's active organizer can submit)."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你参与主办这场活动，可以在控制台里发布、暂停或恢复活动（只有本场有效主办能提交）。"
+          }
+        }
+      }
+    },
+    "activityR3.official.detail.organizerEntry.open": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open organizer console"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开主办控制台"
+          }
+        }
+      }
+    },
+    "activityR3.official.detail.participationInvalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Participation no longer valid"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参与资格已失效"
+          }
+        }
+      }
+    },
+    "activityR3.official.detail.reward.badge": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settlement-exclusive badge"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结算限定徽章"
+          }
+        }
+      }
+    },
+    "activityR3.official.detail.reward.collective": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collective goal coupon (issued once the city goal is met and you complete every task)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "集体达标券（全城达标且本人完成全部任务后发放）"
+          }
+        }
+      }
+    },
+    "activityR3.official.detail.reward.collectiveOff": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collective goal coupon (the organizer hasn't enabled the city goal; once enabled, it's issued when the goal is met and you complete every task)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "集体达标券（主办方未开启全城达标，开启后达标且本人完成全部任务才发放）"
+          }
+        }
+      }
+    },
+    "activityR3.official.detail.reward.coupon": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settlement-exclusive coupon"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结算专属券"
+          }
+        }
+      }
+    },
+    "activityR3.official.detail.reward.xp %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ growth points"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 成长值"
+          }
+        }
+      }
+    },
+    "activityR3.official.detail.tasks.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No tasks yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无任务"
+          }
+        }
+      }
+    },
+    "activityR3.official.mine.broadcastDelivered": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delivery finished (not read receipts)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "投递处理结束（非已读）"
+          }
+        }
+      }
+    },
+    "activityR3.official.mine.broadcastPending": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Processing / partly under review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待处理／部分待核"
+          }
+        }
+      }
+    },
+    "activityR3.official.mine.organizerEntry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Organizer console · Publish / Pause / Resume"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主办控制台 · 发布 / 暂停 / 恢复"
+          }
+        }
+      }
+    },
+    "activityR3.official.mine.untitledBroadcast": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Untitled official notice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未命名官方通知"
+          }
+        }
+      }
+    },
+    "activityR3.official.organizer.checkFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The publish check didn't pass. Fix these first:"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发布检查未通过，需先处理："
+          }
+        }
+      }
+    },
+    "activityR3.official.organizer.checkUnknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The publish check result wasn't loaded. Pull to refresh and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发布检查结果没读到，下拉刷新后再试。"
+          }
+        }
+      }
+    },
+    "activityR3.official.organizer.deniedDefault": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This account can't manage this event"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前身份不能管理这场活动"
+          }
+        }
+      }
+    },
+    "activityR3.official.organizer.deniedTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only this event's organizer can use the console"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只有本场主办方可以使用控制台"
+          }
+        }
+      }
+    },
+    "activityR3.official.organizer.errorDetail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No network connection. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网络没连上，请重试"
+          }
+        }
+      }
+    },
+    "activityR3.official.organizer.errorTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Console didn't load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "控制台加载失败"
+          }
+        }
+      }
+    },
+    "activityR3.official.organizer.formErrorTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can't submit yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还不能提交"
+          }
+        }
+      }
+    },
+    "activityR3.official.organizer.lifecycle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lifecycle: "
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生命周期："
+          }
+        }
+      }
+    },
+    "activityR3.official.organizer.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirming organizer access…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在确认主办身份"
+          }
+        }
+      }
+    },
+    "activityR3.official.organizer.pauseResumeHeader": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause and resume"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停与恢复"
+          }
+        }
+      }
+    },
+    "activityR3.official.organizer.publishIntro": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visible for registration once it passes the publish check."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通过发布检查后对报名可见。"
+          }
+        }
+      }
+    },
+    "activityR3.official.organizer.risk %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Risk: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "风险：%@"
+          }
+        }
+      }
+    }
+  }
+}

@@ -26,11 +26,13 @@ class OfficialDetailParityChecks(unittest.TestCase):
         view = read("App/OfficialEventDetailView.swift")
         self.assertIn("let presentation = OfficialEventDetailPresentation(event: event, now: Date())", view)
         # 04c1d84f1: rewards + collective moved into a @ViewBuilder helper (type-check split); the body calls it
-        # between tasks and the reward footnote, and the helper keeps rewards before collective.
+        # after tasks, and the helper keeps rewards before collective.
         order = ["OfficialEventCard(event: event)", "OfficialDetailID.organizer", 'Section("official.facts")',
                  "OfficialDetailID.overview", "presentation.cards", "presentation.storyDetail",
                  '"official.detailParity.tasks.heading"', "rewardsAndCollective(event: event, presentation: presentation)\n",
-                 "OfficialDetailID.rewardFootnote", "presentation.cta.key"]
+                 "safetyNotice(event: event)\n", "detailSection: true", "presentation.cta.key"]
+        # R3: the reward footnote is gone (the MP has none); 主办控制台 follows 安全须知 as in the MP.
+        self.assertNotIn("OfficialDetailID.rewardFootnote)", view)
         self.assertEqual(view.count("rewardsAndCollective(event: event, presentation: presentation)\n"), 1)
         positions = [view.index(marker) for marker in order]
         self.assertEqual(positions, sorted(positions))
@@ -96,7 +98,8 @@ class OfficialDetailParityChecks(unittest.TestCase):
             for literal in re.findall(r'"(official\.detailParity\.[^"\n]*)"', path.read_text()):
                 key = re.sub(r"\\\((count|number|index)\)", "%lld", literal)
                 used.add(re.sub(r"\\\([A-Za-z.]+\)", "%@", key))
-        self.assertGreater(len(used), 60)
+        # R3 (mp-activity): MP-copy fixes moved some rows to activityR3.official.detail.* keys (lane fragment).
+        self.assertGreater(len(used), 50)
         self.assertFalse(used - known, sorted(used - known))
         fragment = pathlib.Path(FRAGMENT)
         if fragment.is_file():
