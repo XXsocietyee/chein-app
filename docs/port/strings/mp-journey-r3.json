@@ -2590,5 +2590,107 @@
         }
       }
     }
+  },
+  "playkit.estimate.detail.exact %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Exactly %@"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正好 %@"
+        }
+      }
+    }
+  },
+  "playkit.estimate.detail.pair %@ %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "You guessed %1$@ · Actual %2$@"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "你猜 %1$@ · 实际 %2$@"
+        }
+      }
+    }
+  },
+  "playkit.estimate.detail.diff %@ %@ %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "You guessed %1$@ · Actual %2$@ · Off by %3$@"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "你猜 %1$@ · 实际 %2$@ · 差 %3$@"
+        }
+      }
+    }
+  },
+  "playkit.estimate.result.hit": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Got it"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "猜中了"
+        }
+      }
+    }
+  },
+  "playkit.estimate.result.close": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "So close"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "差一点"
+        }
+      }
+    }
+  },
+  "playkit.estimate.result.miss": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Quite a way off"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "差得有点远"
+        }
+      }
+    }
   }
 }

@@ -177826,13 +177826,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Estimate result: close"
+            "value": "So close"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "估数结果：接近"
+            "value": "差一点"
           }
         }
       }
@@ -177843,13 +177843,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Estimate result: on target"
+            "value": "Got it"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "估数结果：命中"
+            "value": "猜中了"
           }
         }
       }
@@ -177860,13 +177860,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Estimate result: outside the target range"
+            "value": "Quite a way off"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "估数结果：偏离目标范围"
+            "value": "差得有点远"
           }
         }
       }
@@ -350678,6 +350678,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "看看留下了什么"
+          }
+        }
+      }
+    },
+    "playkit.estimate.detail.exact %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exactly %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正好 %@"
+          }
+        }
+      }
+    },
+    "playkit.estimate.detail.pair %@ %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You guessed %1$@ · Actual %2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你猜 %1$@ · 实际 %2$@"
+          }
+        }
+      }
+    },
+    "playkit.estimate.detail.diff %@ %@ %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You guessed %1$@ · Actual %2$@ · Off by %3$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你猜 %1$@ · 实际 %2$@ · 差 %3$@"
           }
         }
       }
