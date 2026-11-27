@@ -340,6 +340,7 @@ struct ClubCommunityFeedView: View {
     @State private var toastMessage: LocalizedStringKey?
     @Environment(\.clubCustomerTopics) private var topics
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.locale) private var locale
     @Environment(\.clubPostPlayHost) private var discussionHost
     /// CLB-detail-31: scroll to this post once it is in the loaded feed (one time per appearance).
     private let focusPostID: Int?
@@ -634,7 +635,7 @@ struct ClubCommunityFeedView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 if !item.repostTime.isEmpty {
-                    Text(verbatim: item.repostTime)
+                    Text(verbatim: LocaleDisplay.civil(item.repostTime, locale: locale))
                         .font(.footnote)
                         .foregroundStyle(.tertiary)
                         .monospacedDigit()

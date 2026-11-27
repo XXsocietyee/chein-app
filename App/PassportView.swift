@@ -236,8 +236,11 @@ private struct PassportRollingCount: View {
 
     /// `short` is the one-line fallback ("Earnings") when the full title would wrap; VoiceOver always hears the full title.
     private func action(_ title: LocalizedStringKey, short: LocalizedStringKey? = nil, _ symbol: String, id: String, perform: @escaping () -> Void) -> some View {
-        Button(action: perform) {
-            VStack(spacing: 4) {
+        // a11y-dt r3 (22:11 sweep, a11y-passport-ax5): when the capsules stack at AX sizes, the symbol leads the label
+        // on one line (list-row reading order) instead of adding a second tall line to every button.
+        let content = typeSize.isAccessibilitySize ? AnyLayout(HStackLayout(spacing: 8)) : AnyLayout(VStackLayout(spacing: 4))
+        return Button(action: perform) {
+            content {
                 Image(systemName: symbol)
                     .font(.title3)
                     .accessibilityHidden(true)

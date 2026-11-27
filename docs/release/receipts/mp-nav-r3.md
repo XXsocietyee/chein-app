@@ -178,6 +178,15 @@ Sweep sheets (en / zh-Hans): inbox inline title, ia-tabs large titles, onboardin
 |---|---|---|---|
 | pages/shezhi/shezhi (plain link, landed as a push on 首页) → App/SettingsView.swift via App/MPReviewedPageScreen.swift | nested `NavigationStack` (double bar) + 完成 next to system back; the 个人资料 card pushed `ProfileSettingsProfileRoute` by value, which the host's typed `[AppRoute]` path cannot push (dead tap) | `SettingsView(isPushed: true)`: no own stack, no 完成, the 个人资料 card is a view-destination link to the new shared `ProfileSettingsProfileSessionDestination` (App/ProfileSettingsProfileRoute.swift); `profileOwner.retire()` only in the sheet form (pushed, onDisappear also fires when a row pushes on top, and the owner leaves with the page). 我的 → 设置 sheet unchanged. MP shezhi list order unchanged | fixed |
 
+## Re-scan 11-27 22:3x (sweep build 8fa84e4d3; mp-nav sheets clean)
+
+Sweep sheets (en / zh-Hans): `login-player` now one mark, phone sign-in only, no gated row ✓; `onboarding-1` reads Chein in en ✓; `d2-inbox` inline 消息 (pushed) ✓; `ia-tabs` large 首页 ✓; `welcome` ✓. No new coordinator row for mp-nav after 20:55. Siri / Shortcuts (`QuestAppIntents.swift`), Control Center (`QuestControlRouteIntent` handler + parked `takePendingRoute`) all route through `MPNotificationTapRouter` → home landing: OK.
+
+| MP page / edge → native | finding | change | status |
+|---|---|---|---|
+| subpackageB/pages/im/list `onEmptyCta` (收件箱 empty → feed, `wx.switchTab` talent/list + markDiscoverFeed) → App/MessagingHomeView.swift `messaging.list.emptySquare` | opened 动态 as a `.cySheet` with its own stack and 关闭 (popup for a page edge) | `navigationDestination(isPresented: $showsSquare)` push; session host passes `SessionSquareBrowserView(onClose: nil, embedsNavigationStack: false)` + pushed chrome (App/SessionMessagingEntry.swift:33), like 首页 ⋯ 动态. The native 俱乐部 tab has no 全站帖文 feed segment (ClubHomeView A8-03), so 动态 stays the destination. UI test fixture close still pops | fixed |
+| pages/square/detail feed-play-card 试玩 (`goPlay` → navigateTo pages/play/index?activityId= / topicId= by `dataType`) → App/SquareDetailView.swift `SquareDetailPlayCard` | native 试玩 opens the related topic detail (play starts from there), one step more than MP; `SquareRelatedTopicDestination` deliberately injects no play/purchase provider | not changed: going straight to `SessionPlayRuntimeView` needs the session play gating in the square host (needs a compiled run); flagged for mp-activity (square owner) / coordinator | open |
+
 ## Route coverage
 
 All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScreen cases or `MPParityDestination`), except four pages that are parsed (`Core/MiniProgramPageLink.swift`) but have no native screen case: `pages/playkit/index/index`, `pages/publishkit/index/index` (MP kit galleries), `pages/crop/index` (MP image-crop utility) and `subpackageP3/pages/badge-3d/index` (MP 3D badge viewer). No native player control links to them; left for the coordinator to confirm they stay unrouted.

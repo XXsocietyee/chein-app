@@ -219,25 +219,15 @@ extension PlayKitScreen {
 
     // MARK: estimate
 
+    // MP `playkit-estimate`: question (shell title) → reel → result (猜中了 / 差一点 / 差得有点远 · 你猜 · 实际 · 差 ·
+    // author reveal) → 就这个数 (hidden once locked). The MP shows no range line; the bounds stay in the wheel.
     @ViewBuilder var nativeEstimate: some View {
-        // Read only the current accepted node projection, with no cached tier.
-        if model.isCurrent, !["stale", "disabled"].contains(model.phase), let resultKey = projection.estimateResultKey {
-            Section {
-                Text(LocalizedStringKey(resultKey)).font(.headline)
-                    .accessibilityIdentifier("playkit.estimate.result")
-            }
-        }
         // The completed projection does not return the player's guess; no picker is shown as if it were.
         if !projection.complete {
             if let wheel = PlayKitEstimateWheel(segment: raw) {
                 let unit = raw["unit"].text ?? ""
                 let index = nativeEstimateIndex(wheel)
                 Section {
-                    LabeledContent {
-                        Text(verbatim: PlayGameNumber.text(wheel.minimum, unit: unit) + " – " + PlayGameNumber.text(wheel.maximum, unit: unit))
-                    } label: {
-                        Text("playkit.estimate.range")
-                    }
                     Picker("playkit.estimate.value", selection: nativeEstimateBinding(wheel)) {
                         ForEach(wheel.ticks.indices, id: \.self) { tick in
                             Text(verbatim: PlayGameNumber.text(wheel.ticks[tick], unit: unit)).tag(tick)
@@ -258,6 +248,36 @@ extension PlayKitScreen {
                 Section { Text("playkit.configurationInvalid") }
             }
         }
+        // Read only the current accepted node projection, with no cached tier.
+        if model.isCurrent, !["stale", "disabled"].contains(model.phase), let resultKey = projection.estimateResultKey {
+            Section {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(LocalizedStringKey(resultKey)).font(.headline)
+                        .accessibilityIdentifier("playkit.estimate.result")
+                    if let detail = nativeEstimateDetail {
+                        detail.font(.subheadline).foregroundStyle(.secondary).monospacedDigit()
+                    }
+                    if let reveal = projection.estimateReadback?.reveal {
+                        Text(verbatim: reveal).font(.body)
+                    }
+                }
+                .accessibilityElement(children: .combine)
+            }
+        }
+    }
+
+    /// MP `resultLine` detail: 正好 {answer} on an exact hit, else 你猜 {guess} · 实际 {answer} · 差 {diff}.
+    var nativeEstimateDetail: Text? {
+        guard let readback = projection.estimateReadback, let guess = readback.guess, let answer = readback.answer,
+              guess.isFinite, answer.isFinite else { return nil }
+        let unit = raw["unit"].text
+        let answerText = PlayGameNumber.text(answer, unit: unit)
+        if readback.exact { return Text("playkit.estimate.detail.exact \(answerText)") }
+        let guessText = PlayGameNumber.text(guess, unit: unit)
+        guard let difference = readback.difference, difference > 0 else {
+            return Text("playkit.estimate.detail.pair \(guessText) \(answerText)")
+        }
+        return Text("playkit.estimate.detail.diff \(guessText) \(answerText) \(PlayGameNumber.text(difference, unit: unit))")
     }
 
     func nativeEstimateIndex(_ wheel: PlayKitEstimateWheel) -> Int {
@@ -273,7 +293,8 @@ extension PlayKitScreen {
     }
 
     var nativeEstimateSubmit: NativeGameSubmit? {
-        guard !projection.complete, let wheel = PlayKitEstimateWheel(segment: raw) else { return nil }
+        // MP: 就这个数 is hidden once the server tier is back (locked); a server reopen brings it back.
+        guard !projection.complete, projection.estimateResultKey == nil, let wheel = PlayKitEstimateWheel(segment: raw) else { return nil }
         let value = wheel.value(at: nativeEstimateIndex(wheel))
         return nativeSubmit("SUBMIT_ESTIMATE", ["value": .number(value ?? 0)], valid: value != nil,
                             identifier: "playkit.submit.estimate")

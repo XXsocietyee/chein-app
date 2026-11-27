@@ -247,6 +247,7 @@ enum SearchMapFixtureKeywords {
 /// pinned English values the UI tests read.
 enum SearchMapFixtureLanguage {
     static var isChinese: Bool { Locale.preferredLanguages.first?.hasPrefix("zh") == true }
+    /// mp-home r3 (continue 12, 22:11 sweep zh-Hans-d2-search-results): zh design fixture uses the same real names.
     /// mp-home r3 (continue 9, 20:45 sweep d2-search / d2-search-results en): the design fixture shows real-looking
     /// names instead of "Synthetic …"; UI-test runs (no `--design-fixture`) keep the pinned English values.
     static var isDesignFixture: Bool { ProcessInfo.processInfo.arguments.contains("--design-fixture") }
@@ -258,6 +259,14 @@ enum SearchMapFixtureLanguage {
             case .activity: return "Lantern Market Tour"
             case .club: return "Old Town Walkers"
             case .merchant: return "Lantern Tea House"
+            }
+        }
+        if isDesignFixture {
+            switch kind {
+            case .topic: return "灯笼夜行"
+            case .activity: return "灯笼集市探索"
+            case .club: return "老城漫步者"
+            case .merchant: return "灯笼茶馆"
             }
         }
         switch kind {
