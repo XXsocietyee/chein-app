@@ -60,8 +60,8 @@ final class OfficialEventDetailPresentationTests: XCTestCase {
         let value = try event(#","contractVersion":2,"missions":[{"missionCode":"a","missionType":"EVENT_POINT_ARRIVAL","canVerifyArrival":true},{"missionCode":"b","title":"  ","missionType":"THEME_VERIFIED_FINISH","binding":{"bindingType":"THEME","sourceRefId":"0501"}},{"missionCode":"c","missionType":"ROAM_POI_ARRIVAL","binding":{"bindingType":"THEME","sourceRefId":0}},{"missionCode":"d","missionType":"ROAM_SESSION_AREA","binding":{"sourceRefId":"5x"}},{"missionCode":"e","title":"Synthetic named","description":"Synthetic rule","missionType":"FUTURE","binding":{"sourceRefId":9223372036854775807}},{"missionCode":"f","missionType":"THEME_VERIFIED_FINISH","complete":true}]"#)
         let rows = OfficialEventDetailPresentation(event: value, now: Date()).missions
         XCTAssertEqual(rows.map(\.index), [0, 1, 2, 3, 4, 5])
-        XCTAssertEqual(rows[0].title, .key("official.detailParity.mission.eventPoint"))
-        XCTAssertEqual(rows[0].description, .key("official.detailParity.mission.eventPointAction"))
+        XCTAssertEqual(rows[0].title, .key("activityR3.official.detail.mission.eventPoint"))
+        XCTAssertEqual(rows[0].description, .key("activityR3.official.detail.mission.eventPointAction"))
         XCTAssertEqual(rows[1].title, .key("official.detailParity.mission.theme"))
         XCTAssertEqual(rows[1].description, .key("official.detailParity.mission.themeAction"))
         XCTAssertEqual(rows[2].description, .key("official.detailParity.mission.unsupportedAction"))
@@ -79,7 +79,11 @@ final class OfficialEventDetailPresentationTests: XCTestCase {
     }
     func testCallToActionMirrorsSourceOrder() throws {
         let cases: [(String, OfficialDetailCTA)] = [
-            (#","status":9,"paused":true,"signed":true"#, .ended),
+            (#","status":9,"paused":true,"signed":true"#, .offline),
+            (#","status":5,"paused":true,"signed":true"#, .ended),
+            (#","status":4,"paused":true,"signed":true"#, .settling),
+            (#","status":3,"signed":true,"contractVersion":2,"participation":{"state":"CANCELLED"}"#, .participationInvalid),
+            (#","status":3,"signed":true,"participation":{"state":"CANCELLED"}"#, .explore),
             (#","status":3,"paused":true"#, .paused),
             (#","status":3,"signed":true,"contractVersion":2,"missions":[{"missionType":"THEME_VERIFIED_FINISH","canVerifyArrival":true}]"#, .roamArrival),
             (#","status":3,"signed":true,"contractVersion":2,"missions":[{"missionType":"THEME_VERIFIED_FINISH"}]"#, .themeSync),
@@ -91,7 +95,7 @@ final class OfficialEventDetailPresentationTests: XCTestCase {
             (#","status":1,"signed":true"#, .signedWaiting),
             (#","status":2,"signed":true"#, .signed),
             (#","status":2"#, .signup), (#","status":3,"signed":false"#, .signup),
-            (#","status":1"#, .registrationSoon), (#","status":4"#, .unavailable), ("", .unavailable),
+            (#","status":1"#, .registrationSoon), (#","status":4"#, .settling), (#","status":0"#, .unavailable), ("", .unavailable),
         ]
         for (fields, expected) in cases { XCTAssertEqual(try event(fields).detailCTA, expected, fields) }
         XCTAssertTrue(OfficialDetailCTA.signup.isSourceAction); XCTAssertFalse(OfficialDetailCTA.waitTasks.isSourceAction)
@@ -101,10 +105,10 @@ final class OfficialEventDetailPresentationTests: XCTestCase {
         let value = try event(",\"status\":3,\"participants\":12,\"signed\":true,\"contractVersion\":2,\"activityStart\":\(start),\"activityEnd\":1893643200000,\"missions\":[{\"complete\":true},{}]")
         let facts = OfficialEventDetailPresentation(event: value, now: Date(timeIntervalSince1970: start / 1000), displayTimeZone: TimeZone(identifier: "Asia/Shanghai")!).facts
         XCTAssertEqual(facts.map(\.id), ["participants", "progress", "duration", "dates", "scope", "tasks"])
-        XCTAssertEqual(facts[0].value, .verbatim("12")); XCTAssertEqual(facts[0].sub, .key("official.detailParity.fact.participantsSub"))
+        XCTAssertEqual(facts[0].value, .verbatim("12")); XCTAssertEqual(facts[0].sub, .hidden)
         XCTAssertEqual(facts[1].value, .verbatim("1/2")); XCTAssertEqual(facts[1].sub, .key("official.detailParity.fact.progressTasks"))
         XCTAssertEqual(facts[2].value, .days(3))
-        XCTAssertEqual(facts[3].value, .verbatim("1.1\u{2013}1.3")); XCTAssertEqual(facts[3].sub, .key("official.detailParity.fact.datesSub"))
+        XCTAssertEqual(facts[3].value, .verbatim("1.1\u{2013}1.3")); XCTAssertEqual(facts[3].sub, .hidden)
         XCTAssertEqual(facts[4].value, .key("official.detailParity.fact.nationwide"))
         XCTAssertEqual(facts[4].sub, .countdown(.endsIn(.days(2))))
         XCTAssertEqual(facts[5].value, .verbatim("2"))
@@ -124,7 +128,7 @@ final class OfficialEventDetailPresentationTests: XCTestCase {
                                                                .key("official.detailParity.card.defaultDescription"), .key("official.detailParity.card.defaultDescription")])
         XCTAssertTrue(presentation.missions.isEmpty); XCTAssertNil(presentation.eligibilityKey)
         let signed = OfficialEventDetailPresentation(event: try event(#","signed":true,"myProgress":3"#), now: Date()).facts
-        XCTAssertEqual(signed[1].value, .verbatim("3")); XCTAssertEqual(signed[1].sub, .key("official.detailParity.fact.progressCompleted"))
+        XCTAssertEqual(signed[1].value, .verbatim("3")); XCTAssertEqual(signed[1].sub, .hidden)
     }
     func testMissingCountsStayDashAndLiteralZeroStaysZero() throws {
         let zero = OfficialEventDetailPresentation(event: try event(#","participants":0,"signed":true,"myProgress":0"#), now: Date()).facts
@@ -152,7 +156,7 @@ final class OfficialEventDetailPresentationTests: XCTestCase {
         let storyOnly = OfficialEventDetailPresentation(event: try event(#","story":"Story","contractVersion":2,"pausedReason":" Synthetic reason ""#), now: Date())
         XCTAssertEqual(storyOnly.intro, "Story"); XCTAssertNil(storyOnly.storyDetail)
         XCTAssertEqual(storyOnly.eligibilityKey, "official.detailParity.notEligible"); XCTAssertEqual(storyOnly.pausedReason, "Synthetic reason")
-        XCTAssertEqual(storyOnly.collectiveTipKey, "official.detailParity.collective.tipAbsent")
+        XCTAssertEqual(storyOnly.collectiveTipKey, "activityR3.official.detail.collective.tipAbsent")
         let collective = try decode(OfficialCollectiveProgress.self, #"{"enabled":true,"current":3,"threshold":10,"pct":0}"#)
         XCTAssertEqual(collective.detailPercentText, "0%"); XCTAssertEqual(collective.detailCountText, "3 / 10")
         let unknown = try decode(OfficialCollectiveProgress.self, #"{"enabled":true}"#)

@@ -28,6 +28,11 @@ enum OfficialDetailID {
         guard let percent else { return "—" }
         return "\(percent)%"
     }
+    /// MP _collectiveRewardText: enabled and a positive threshold.
+    private static func collectiveGoalEnabled(_ collective: OfficialCollectiveProgress?) -> Bool {
+        guard let collective, collective.enabled, let threshold = collective.threshold else { return false }
+        return threshold > 0
+    }
     private static func collectiveCount(_ current: Int?, _ threshold: Int?) -> String {
         let lit: String = current.map { String($0) } ?? "—"
         let goal: String = threshold.map { String($0) } ?? "—"
@@ -89,12 +94,18 @@ enum OfficialDetailID {
         // R7-PC-C4-3 (MP official-detail/index.wxml:155-156): no configured reward, no section.
         if !event.rewards.isEmpty {
         Section("official.detailParity.rewards.heading") {
+            // MP _rewards: settlement badge / coupon / growth points, then the collective coupon with its conditions.
             ForEach(Array(event.rewards.enumerated()), id: \.offset) { _, reward in
                 switch reward {
-                case .badge: Label("official.reward.badge", systemImage: "seal")
-                case .coupon: Label("official.reward.coupon", systemImage: "ticket")
-                case .experience(let amount): LabeledContent("official.reward.experience", value: amount)
-                case .collectiveCoupon: Label("official.reward.collective", systemImage: "person.3")
+                case .badge: Label("activityR3.official.detail.reward.badge", systemImage: "seal")
+                case .coupon: Label("activityR3.official.detail.reward.coupon", systemImage: "ticket")
+                case .experience(let amount): Label("activityR3.official.detail.reward.xp \(amount)", systemImage: "sparkles")
+                case .collectiveCoupon:
+                    if Self.collectiveGoalEnabled(event.collective) {
+                        Label("activityR3.official.detail.reward.collective", systemImage: "person.3")
+                    } else {
+                        Label("activityR3.official.detail.reward.collectiveOff", systemImage: "person.3")
+                    }
                 }
             }
         }.accessibilityIdentifier(OfficialDetailID.rewards)
@@ -160,7 +171,6 @@ enum OfficialDetailID {
                         .accessibilityIdentifier(OfficialDetailID.unknown)
                 }
                 OfficialEventCard(event: event).questifyCardListRow()
-                OfficialOrganizerEntryRow(eventID: event.id, access: actions?.organizer)
                 HStack(spacing: 8) {
                     Text(LocalizedStringKey(presentation.categoryKey)).font(.subheadline).foregroundStyle(.secondary)
                     // MP official-detail/index.wxml:31: the 城瘾官方 organizer logo.
@@ -176,7 +186,20 @@ enum OfficialDetailID {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(verbatim: event.title).font(.title2.bold()).accessibilityAddTraits(.isHeader)
                         if let intro = presentation.intro { Text(verbatim: intro).foregroundStyle(.secondary).textSelection(.enabled) }
+                        // MP od-location: the event city with a map pin.
+                        if let city = event.city, !city.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            Label { Text(verbatim: city) } icon: { Image(systemName: "mappin.and.ellipse") }
+                                .font(.subheadline)
+                        }
                     }.fixedSize(horizontal: false, vertical: true).accessibilityIdentifier(OfficialDetailID.overview)
+                }
+                // MP cy-event-attendance sits right after the overview and only for v2 events.
+                if event.isV2 && reader.isAuthenticated {
+                    OfficialAttendanceSectionView(
+                        eventID: id,
+                        activityID: OfficialDetailTopicLinks.ctaTopic(event, cta: presentation.cta) ?? id,
+                        organizer: false
+                    )
                 }
                 if !presentation.cards.isEmpty {
                     Section("official.detailParity.cardsHeading") {
@@ -198,16 +221,20 @@ enum OfficialDetailID {
                 if event.isV2 {
                     Section {
                         if event.signed != true {
-                            Text("official.detailParity.tasks.signupNote").font(.subheadline).foregroundStyle(.secondary)
+                            Text("roam.official.signupFirst").font(.subheadline).foregroundStyle(.secondary)
                         }
                         if event.paused {
                             if let reason = presentation.pausedReason { Text("official.detailParity.tasks.paused \(reason)").foregroundStyle(.red) }
                             else { Text("official.detailParity.tasks.pausedDefault").foregroundStyle(.red) }
                         }
-                        if presentation.missions.isEmpty { ContentUnavailableView("official.detailParity.tasks.empty", systemImage: "checklist") }
+                        if presentation.missions.isEmpty { ContentUnavailableView("activityR3.official.detail.tasks.empty", systemImage: "checklist") }
                         if topicNameFailed {
-                            Text("official.w206.detail.topicName.failed").font(.subheadline).foregroundStyle(.secondary)
-                                .accessibilityIdentifier(OfficialDetailID.topicNameError)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("official.w206.detail.topicName.failed").font(.subheadline)
+                                Text("official.w206.detail.topicName.stillOpen").font(.footnote).foregroundStyle(.secondary)
+                            }
+                            .accessibilityElement(children: .combine)
+                            .accessibilityIdentifier(OfficialDetailID.topicNameError)
                         }
                         ForEach(presentation.missions, id: \.index) { mission in
                             let topicID = mission.binding?.themeTopicID
@@ -236,16 +263,10 @@ enum OfficialDetailID {
                     OfficialEventLeaderboardRead(board: board)
                 }
                 rewardsAndCollective(event: event, presentation: presentation)
-                if !event.rewards.isEmpty {
-                    Section {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("official.detailParity.rewardFootnote.issue")
-                            Text("official.detailParity.rewardFootnote.settlement")
-                        }.font(.subheadline).foregroundStyle(.secondary)
-                            .accessibilityElement(children: .combine).accessibilityIdentifier(OfficialDetailID.rewardFootnote)
-                    }
-                }
+                // R3: no reward footnote: the MP shows none (each reward line already states its condition).
                 safetyNotice(event: event)
+                // MP order: 主办控制台 follows 安全须知 (official-detail/index.wxml od-organizer-entry).
+                OfficialOrganizerEntryRow(eventID: event.id, access: actions?.organizer, detailSection: true)
                 Section("official.participation") {
                     Text(LocalizedStringKey(reader.isAuthenticated ? event.participationKey : event.statusKey)).accessibilityIdentifier("official.participationState")
                     if event.paused, let reason = event.pausedReason, !reason.isEmpty { Text(verbatim: reason) }
@@ -270,11 +291,6 @@ enum OfficialDetailID {
                         // infer settlement from its acknowledgement/unknown result.
                         readback = UUID()
                     })
-                    OfficialAttendanceSectionView(
-                        eventID: id,
-                        activityID: OfficialDetailTopicLinks.ctaTopic(event, cta: presentation.cta) ?? id,
-                        organizer: false
-                    )
                 }
                 if reader.isOfflineExample { Section { OfficialReadOnlyNotice(offline: true) } }
             }.listStyle(.insetGrouped).themeDomain(.player)
@@ -390,6 +406,7 @@ struct OfficialDetailFactsStrip: View {
         switch sub {
         case .key(let key): Text(LocalizedStringKey(key))
         case .countdown(let countdown): OfficialCountdownText(value: countdown, target: countdownTarget)
+        case .hidden: EmptyView()
         }
     }
 }
@@ -424,12 +441,19 @@ struct OfficialDetailMissionRow: View {
     let mission: OfficialDetailMission
     var topicName: String? = nil
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            OfficialDetailTextView(value: mission.title).font(.headline)
-            if let topicName { Text("official.w206.detail.boundTopic \(topicName)").font(.subheadline) }
-            OfficialDetailTextView(value: mission.description).font(.subheadline).foregroundStyle(.secondary)
-            Label { Text(LocalizedStringKey(mission.action.key)) } icon: { Image(systemName: symbol).foregroundStyle(mission.action == .verified ? Color.green : Color.secondary) }
-                .font(.subheadline)
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
+            // MP od-task-index: the 1-based number, or a check once verified.
+            Group {
+                if mission.action == .verified { Image(systemName: "checkmark").foregroundStyle(Color.green) }
+                else { Text(verbatim: String(mission.index + 1)).monospacedDigit().foregroundStyle(.secondary) }
+            }.font(.headline).accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 8) {
+                OfficialDetailTextView(value: mission.title).font(.headline)
+                if let topicName { Text("official.w206.detail.boundTopic \(topicName)").font(.subheadline) }
+                OfficialDetailTextView(value: mission.description).font(.subheadline).foregroundStyle(.secondary)
+                Label { Text(LocalizedStringKey(mission.action.key)) } icon: { Image(systemName: symbol).foregroundStyle(mission.action == .verified ? Color.green : Color.secondary) }
+                    .font(.subheadline)
+            }
         }.accessibilityElement(children: .combine)
     }
     private var symbol: String {

@@ -14,8 +14,9 @@ public enum OfficialDetailText: Equatable {
 public enum OfficialDetailFactValue: Equatable {
     case verbatim(String), key(String), days(Int), hours(Int)
 }
+/// `hidden`: the MP fact has no sub line (only my-progress v2 and scope carry one).
 public enum OfficialDetailFactSub: Equatable {
-    case key(String), countdown(OfficialEventCountdown)
+    case key(String), countdown(OfficialEventCountdown), hidden
 }
 public struct OfficialDetailFact: Equatable, Identifiable {
     public let id: String
@@ -60,9 +61,9 @@ public struct OfficialDetailMission: Equatable {
     private static func meta(_ type: String?) -> (label: String, action: String, supported: Bool)? {
         switch type {
         case "ROAM_POI_ARRIVAL":
-            return ("official.detailParity.mission.roamPoi", "official.detailParity.mission.unsupportedAction", false)
+            return ("activityR3.official.detail.mission.roamPoi", "official.detailParity.mission.unsupportedAction", false)
         case "EVENT_POINT_ARRIVAL":
-            return ("official.detailParity.mission.eventPoint", "official.detailParity.mission.eventPointAction", true)
+            return ("activityR3.official.detail.mission.eventPoint", "activityR3.official.detail.mission.eventPointAction", true)
         case "THEME_VERIFIED_FINISH":
             return ("official.detailParity.mission.theme", "official.detailParity.mission.themeAction", true)
         case "ROAM_SESSION_AREA":
@@ -98,12 +99,15 @@ public struct OfficialDetailCard: Equatable {
 }
 /// Source `_cta` text; the iOS label never navigates. Signup stays with OfficialParticipationActions.
 public enum OfficialDetailCTA: Equatable {
-    case ended, paused, roamArrival, themeSync, unsupportedTasks, waitTasks, roamLight, explore
+    case offline, ended, settling, paused, participationInvalid, roamArrival, themeSync, unsupportedTasks, waitTasks, roamLight, explore
     case signedWaiting, signed, signup, registrationSoon, unavailable
     public var key: String {
         switch self {
+        case .offline: return "activityR3.official.detail.cta.offline"
         case .ended: return "official.detailParity.cta.ended"
+        case .settling: return "activityR3.official.detail.cta.settling"
         case .paused: return "official.detailParity.cta.paused"
+        case .participationInvalid: return "activityR3.official.detail.participationInvalid"
         case .roamArrival: return "official.detailParity.cta.roamArrival"
         case .themeSync: return "official.detailParity.cta.themeSync"
         case .unsupportedTasks: return "official.detailParity.cta.unsupportedTasks"
@@ -150,8 +154,11 @@ public extension OfficialEvent {
         }
     }
     var detailCTA: OfficialDetailCTA {
+        if status == 9 { return .offline }
         if let status, status >= 5 { return .ended }
+        if status == 4 { return .settling }
         if paused { return .paused }
+        if participationInvalid { return .participationInvalid }
         if signed == true {
             if status == 3 && isV2 {
                 if missions.contains(where: { $0.canVerifyArrival == true }) { return .roamArrival }
@@ -198,14 +205,15 @@ public struct OfficialEventDetailPresentation: Equatable {
         intro = present(event.subtitle) ?? present(event.story)
         storyDetail = present(event.subtitle) == nil ? nil : present(event.story)
         eligibilityKey = event.isV2
-            ? (event.eligible == true ? "official.detailParity.eligible" : "official.detailParity.notEligible") : nil
+            ? (event.participationInvalid ? "activityR3.official.detail.participationInvalid"
+                : event.eligible == true ? "official.detailParity.eligible" : "official.detailParity.notEligible") : nil
         pausedReason = present(event.pausedReason)?.trimmingCharacters(in: .whitespacesAndNewlines)
         cta = event.detailCTA
         collectiveTipKey = event.hasCollectiveReward
-            ? "official.detailParity.collective.tipConfigured" : "official.detailParity.collective.tipAbsent"
+            ? "official.detailParity.collective.tipConfigured" : "activityR3.official.detail.collective.tipAbsent"
         var facts = [OfficialDetailFact(id: "participants", labelKey: "official.detailParity.fact.participants",
                                         value: .verbatim(Self.countText(event.participants)),
-                                        sub: .key("official.detailParity.fact.participantsSub"))]
+                                        sub: .hidden)]
         if event.signed == true {
             facts.append(event.isV2
                 ? OfficialDetailFact(id: "progress", labelKey: "official.detailParity.fact.progress",
@@ -213,14 +221,14 @@ public struct OfficialEventDetailPresentation: Equatable {
                                      sub: .key("official.detailParity.fact.progressTasks"))
                 : OfficialDetailFact(id: "progress", labelKey: "official.detailParity.fact.progress",
                                      value: .verbatim(Self.countText(event.myProgress)),
-                                     sub: .key("official.detailParity.fact.progressCompleted")))
+                                     sub: .hidden))
         }
         facts.append(OfficialDetailFact(id: "duration", labelKey: "official.detailParity.fact.duration",
                                         value: Self.duration(start: event.activityStart, end: event.activityEnd),
-                                        sub: .key("official.detailParity.fact.durationSub")))
+                                        sub: .hidden))
         facts.append(OfficialDetailFact(id: "dates", labelKey: "official.detailParity.fact.dates",
                                         value: Self.dateRange(start: event.activityStart, end: event.activityEnd, displayTimeZone: displayTimeZone),
-                                        sub: .key("official.detailParity.fact.datesSub")))
+                                        sub: .hidden))
         let countdown: OfficialDetailFactSub
         switch event.countdown(now: now) {
         case .startsIn(let span)?: countdown = .countdown(.startsIn(span))
@@ -233,7 +241,7 @@ public struct OfficialEventDetailPresentation: Equatable {
         let taskTotal = event.isV2 ? missions.count : cards.count
         if taskTotal > 0 {
             facts.append(OfficialDetailFact(id: "tasks", labelKey: "official.detailParity.fact.tasks",
-                                            value: .verbatim(String(taskTotal)), sub: .key("official.detailParity.fact.tasksSub")))
+                                            value: .verbatim(String(taskTotal)), sub: .hidden))
         }
         self.facts = facts
     }
