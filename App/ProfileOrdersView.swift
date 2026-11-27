@@ -543,9 +543,11 @@ struct ProfileOrderDetailView: View {
                     }
                     ProfileOptionalRow(key: "profile.orders.manualRefund", value: order.manualRefundCaseStatus)
                 }
+                // mp-mine r3: team, merchant-message consent and invoice sit where the MP order detail puts them.
                 ProfileOrderSourceDetailSections(order: order)
-                ProfileOrderTeamSeatClubSection(order: order)
-                ProfileOrderConsentSection(order: order)
+                    .mpSlots(beforeTimeline: AnyView(ProfileOrderTeamSeatClubSection(order: order)),
+                             beforePaymentInfo: AnyView(ProfileOrderConsentSection(order: order)),
+                             beforeRegistrant: AnyView(ProfileOrderInvoiceSection(order: order)))
                 if order.settlementView.show {
                     Section("profile.order.settlement") {
                         if !order.settlementView.stage.isEmpty {
@@ -558,7 +560,6 @@ struct ProfileOrderDetailView: View {
                     }
                     .accessibilityIdentifier("profile.order.settlement")
                 }
-                ProfileOrderInvoiceSection(order: order)
                 // FIN-16-1 / FIN-17-1: the MP's only self-service money exit. The lifecycle screen (fresh read +
                 // reviewed confirm sheet) opens when a reviewed writer is mounted for this reader; payment stays gated
                 // inside it. Without a writer the support section says where to go instead of staying silent.

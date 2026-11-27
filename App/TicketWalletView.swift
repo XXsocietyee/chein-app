@@ -63,6 +63,13 @@ import SwiftUI
                                 Text(LocalizedStringKey(snapshot.partialFailure == nil ? "ticketWallet.empty" : "ticketWallet.partialEmpty"))
                                     .accessibilityIdentifier("ticketWallet.empty")
                             } icon: { Image(systemName: "ticket") }
+                        } actions: {
+                            // mp-mine r3: MP signup empty shell has one primary 去探索 (goExplore → 首页).
+                            if let onExplore, snapshot.partialFailure == nil {
+                                Button(action: onExplore) { Text("ticketWallet.emptyExplore") }
+                                    .buttonStyle(.borderedProminent)
+                                    .accessibilityIdentifier("ticketWallet.empty.explore")
+                            }
                         }
                     }
                     // R9-MEM-NIT-1: the MP signup wallet has no filter (signup/index.wxml), so every ticket shows.

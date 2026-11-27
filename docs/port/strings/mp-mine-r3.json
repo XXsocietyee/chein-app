@@ -32,6 +32,22 @@
           }
         }
       }
+    },
+    "ticketWallet.emptyExplore": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explore"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去探索"
+          }
+        }
+      }
     }
   }
 }

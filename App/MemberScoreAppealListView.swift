@@ -42,10 +42,17 @@ private struct MemberScorePlayLayer: Hashable, Identifiable {
         let rendered = readIntent()
         List {
             if let flow, flow.isCurrent {
-                if let reputation = flow.reputation, flow.loaded, flow.failure == nil {
+                // mp-mine r3: MP appeal-mine keeps 账号信誉 above every list state (loading, error, empty) with an arrow.
+                if let reputation = flow.reputation {
                     Button { showsReputation = true } label: {
-                        MemberScoreReputationRow(reputation: reputation)
+                        HStack {
+                            MemberScoreReputationRow(reputation: reputation)
+                            Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
+                                .foregroundStyle(.tertiary).accessibilityHidden(true)
+                        }
+                        .contentShape(Rectangle())
                     }
+                    .buttonStyle(.plain)
                     .accessibilityIdentifier("score.mine.reputation")
                 }
                 if flow.failure != nil {
