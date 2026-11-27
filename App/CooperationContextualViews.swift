@@ -450,7 +450,7 @@ import SwiftUI
               if let lockedTargetTitle {
                 // MC8-31-4: 已选定，发送前不可更换.
                 CoopInviteLockedRow(title: lockedTargetTitle, detail: "merchantCoop.invite.lockedTargetHint", identifier: "cooperation.invite.lockedTarget")
-                if model.busy { CYSkeleton().accessibilityLabel(Text("cooperation.loading")) }
+                if model.busy { CYSkeleton(label: "cooperation.loading") }
                 if model.targetsFailed {
                     // MP wxml:79-81: 合作对象加载失败 + 重试.
                     CYInlineError(model.targetsRefused ? "mpr3.coop.invite.targetsForbidden" : "mpr3.coop.invite.targetsFailed", retryTitle: "action.retry") { Task { await model.retryTargets(permit) } }
@@ -471,7 +471,7 @@ import SwiftUI
                 .cyAdaptiveSegmented()
                 .disabled(model.busy)
                 CYFormSearchRow(prompt: Text("context.coop.search"), text: $search, identifier: "context.coop.search")
-                if model.busy { CYSkeleton().accessibilityLabel(Text("cooperation.loading")) }
+                if model.busy { CYSkeleton(label: "cooperation.loading") }
                 if model.targetsFailed {
                     // MP wxml:79-81: 合作对象加载失败 + 重试.
                     CYInlineError(model.targetsRefused ? "mpr3.coop.invite.targetsForbidden" : "mpr3.coop.invite.targetsFailed", retryTitle: "action.retry") { Task { await model.retryTargets(permit) } }
@@ -583,7 +583,7 @@ import SwiftUI
     @State private var generation = 0
     var body: some View {
         List {
-            if busy { CYSkeleton(variant: .row).accessibilityLabel(Text("cooperation.loading")) }
+            if busy { CYSkeleton(variant: .row, label: "cooperation.loading") }
             Section("coopflow.credit") {
                 if creditFailed { Text("coopflow.read.failed"); Button("action.retry") { Task { await load() } } }
                 else if let credit {

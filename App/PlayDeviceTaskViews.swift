@@ -24,7 +24,7 @@ import SwiftUI
                 CYPillButton("playx.device.capture", style: .secondary) { Task { await model.capture(kind, photoFilter: photoFilter, interaction: interaction) } }
                     .listRowBackground(Color.clear)
                     .disabled(model.busy || !model.supports(kind) || unsupportedPhotoSubtype).accessibilityIdentifier("playx.device.capture")
-                if model.busy { CYSkeleton().accessibilityLabel(Text("playx.loading")) }
+                if model.busy { CYSkeleton(label: "playx.loading") }
                 if let output = model.output {
                     switch output {
                     case .scan(let code):

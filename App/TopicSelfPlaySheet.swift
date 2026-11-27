@@ -140,7 +140,7 @@ private enum TopicRevealDestination: Hashable, Identifiable { case wallet, play;
                 }
             }
             .navigationTitle("contextSelfPlay.checkoutTitle").navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { model.flow.leave(); dismiss() } } }
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { model.flow.leave(); dismiss() } } }
             .task { await model.flow.open() }
             .onDisappear { model.flow.leave() }
             .cySheet(item: Binding(get: { model.flow.review }, set: { if $0 == nil { model.flow.cancelReview() } })) { review in Group {
@@ -190,7 +190,7 @@ private enum TopicRevealDestination: Hashable, Identifiable { case wallet, play;
                 Text("contextSelfPlay.validity")
                 Text("contextSelfPlay.unavailable")
             }.navigationTitle("contextSelfPlay.title").navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { dismiss() } } }
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { dismiss() } } }
         }
     }
 }

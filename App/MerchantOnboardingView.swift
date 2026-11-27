@@ -49,7 +49,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
                 // MC7-02-1 (apply/index.wxml:52): 登录后申请商家入驻 + 登录.
                 MerchantSignInState(title: "merchant.apply.signInTitle", identifier: "merchant.onboarding.signIn")
             } else if model.identity != model.coordinator.identity {
-                CYSkeleton().accessibilityLabel(Text("merchant.onboarding.checking"))
+                CYSkeleton(label: "merchant.onboarding.checking")
             } else {
                 content
             }
@@ -291,7 +291,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             }
             if model.isBusy {
                 Section {
-                    CYSkeleton().accessibilityLabel(Text("merchant.onboarding.working"))
+                    CYSkeleton(label: "merchant.onboarding.working")
                 }
             }
         }
@@ -508,7 +508,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
         Section("merchant.onboarding.identity.title") {
             switch model.coordinator.identityGate {
             case .registered: CYStatusChip("merchant.onboarding.identity.registered", tone: .success, systemImage: "checkmark")
-            case .checking: CYSkeleton().accessibilityLabel(Text("merchant.onboarding.identity.checking"))
+            case .checking: CYSkeleton(label: "merchant.onboarding.identity.checking")
             case .required:
                 // Parity apply P0: not a blocker any more; the identity entered in step 4 is registered on submit.
                 Text("merchant.onboarding.identity.registerOnSubmit").accessibilityIdentifier("merchant.onboarding.identityGate")
@@ -564,7 +564,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             }
         case .notSent: Section { Text("merchant.onboarding.notSent"); resubmitButton }
         case .checking, .submitting:
-            Section { CYSkeleton().accessibilityLabel(Text("merchant.onboarding.working")) }
+            Section { CYSkeleton(label: "merchant.onboarding.working") }
         default: EmptyView()
         }
     }

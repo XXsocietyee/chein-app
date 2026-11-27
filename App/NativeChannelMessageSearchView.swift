@@ -133,7 +133,7 @@ import SwiftUI
         .onChange(of: model.isCurrent) { _, value in if !value { retireRead() } }
         .navigationTitle(Text("search.title", tableName: "NativeChannelMessage"))
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { dismiss() } } }
+        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { dismiss() } } }
         .onDisappear { retireRead() }
         .privacySensitive()
     }

@@ -46,7 +46,9 @@ class TopicReviewChecks(unittest.TestCase):
         for token in ['if !reviews.hasConfirmedNoReviews', 'if let average = reviews.averageRating',
                       'if let count = reviews.commentCount', 'if reviews.preview.isEmpty',
                       'Text("topic.reviews.previewUnavailable")', 'Text("topic.reviews.empty")',
-                      'Text(verbatim: contents)', 'Text(verbatim: name)', 'Text(verbatim: date)',
+                      'Text(verbatim: contents)', 'Text(verbatim: name)',
+                      # en-layout r3: the server date is re-rendered for English (Chinese and unparsable text unchanged).
+                      'Text(verbatim: LocaleDisplay.civil(date, locale: locale))',
                       'ForEach(Array(reviews.preview.enumerated()), id: \\.offset)',
                       '.textSelection(.enabled)', '.fixedSize(horizontal: false, vertical: true)']:
             self.assertIn(token, view)

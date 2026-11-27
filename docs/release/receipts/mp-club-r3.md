@@ -11,7 +11,7 @@ The 21 MP pages were compared section by section, top to bottom, against their n
 | `python3 tools/generate_project.py` | OK |
 | `python3 tools/check_scaffold.py` | PASS (no FAIL lines; typography lint PASS) |
 | `python3 -B tools/check_a11y_lint.py` | PASS: 0 new |
-| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 7, after merging combined-r7 again), **new 0**, fixed 0 |
+| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 8, after merging combined-r7 again), **new 0**, fixed 0 |
 | `python3 tools/check_design_consistency.py` | PASS |
 
 There is no Swift compiler in this environment. Edits are kept type-simple and reuse existing keys, components and patterns.
@@ -38,7 +38,7 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/topic-detail · 更多 | same | MP order (wxml:430-470): 剧情与玩法 → 结束活动 → 核销记录 → 场次管理 → 退出与暂停规则. Native was missing 剧情与玩法 and 核销记录, had 结束活动 last, and had stats/settings/enrollment first. | **Fixed.** MP order; stats/settings/enrollment follow as a second group |
 | club/topic-detail | same | Hide 核销/主题/接下来 when the director is active and the topic ended (wxml:92, C-11 review state). | **Fixed (pass 3).** `directorReview` wraps those three blocks |
 | club/topic-detail | same | Per-session 团码/run-control/集合时间 rows (MP has one director row); inline settings block in 更多; rules as a footbar half-sheet. | **Not done.** large / behaviour moves |
-| club/topic-detail · 结束主题 (`components/cy/club-topic-end-confirm`) | `ClubGovernanceConsequence.endTopic` sheet | MP body 「停止售卖并把未核销的票原价退回。只是想让它不再露出的话，下架就够了。」, confirm 结束并退款, cancel 再想想. Native lines said 「未开始的场次全部取消…」/「已付款的报名自动退款，个别订单转人工处理」 and the confirm read 结束主题. | **Fixed (pass 6).** OpsR3 lines = the MP's two sentences (refund, then the 下架 alternative; symbols `arrow.uturn.backward.circle` / `eye.slash`), confirm 结束并退款 / End and refund. Manual-order counts still show in the result row. The 「主题名」 first line is **not done** (the shared sheet's caller does not pass the topic name) |
+| club/topic-detail · 结束主题 (`components/cy/club-topic-end-confirm`) | `ClubGovernanceConsequence.endTopic` sheet | MP body 「停止售卖并把未核销的票原价退回。只是想让它不再露出的话，下架就够了。」, confirm 结束并退款, cancel 再想想. Native lines said 「未开始的场次全部取消…」/「已付款的报名自动退款，个别订单转人工处理」 and the confirm read 结束主题. | **Fixed (pass 6).** OpsR3 lines = the MP's two sentences (refund, then the 下架 alternative; symbols `arrow.uturn.backward.circle` / `eye.slash`), confirm 结束并退款 / End and refund. Manual-order counts still show in the result row. The 「主题名」 first line: **fixed (pass 8)**: the 更多 entry seeds `topicName` from the topic-setting read (MP `setting.topicName`, wxml:648); the form passes it to `ClubGovernanceConsequence.endTopic.sheet`, which shows it as the sheet's object line above the consequences (title stays 结束主题, CU-C-154). The draft keeps only the `cancellationEpoch` anchor, so the request body is unchanged |
 | club/topic-story | `ClubGovernanceStoryView`, `ClubStoryViews.swift` | Missing-param 链接已失效 + 返回 (wxml:13). | Already present (`MPReviewedPageScreen` `club.story.missingTopic`, CLB-r9-topic-story-01) |
 | club/topic-story | `ClubStoryViews.swift` `ClubStoryGameplayCard` | Extra orange "no answer" chip on play rows (MP: an unanswerable play just has no 查看答案 button). | **Fixed (pass 3).** Chip removed |
 | club/topic-story | `ClubGovernanceViews.swift` answer sheets | Sheet title was 「答案 · node」; MP (wxml:117, CU-C-152) titles it 答案 and shows the play title as a wrapping sub line. | **Fixed (pass 3).** Title = 答案; play title (MP `data-title`) as a `.subheadline` secondary line, both the club and host answer sheets |
@@ -57,6 +57,8 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/checkin-detail | `ClubCheckinRailView` via `ClubGovernanceViews` | The server `errorText` should be the missing title / denied sub-line (wxml:13-16); native dropped it on the loaded path. | **Fixed.** `reason: failure?.message` |
 | club/checkin-detail | same | Extra 已退款 note on the rail (MP: the rail is just unlit; the header status says 已退款). | **Fixed (pass 2).** Visible line removed; the sentence is now the rail's VoiceOver hint |
 | club/group-code | `ClubGovernanceCommandForm` (issueGroupCode) | The no-permission exit should be 进入俱乐部管理 (goManage → detail tab=manage); native just dismissed. | **Fixed.** Reuses `ClubGroupCodeMissingLinkView.manageDestination` |
+| club/group-code → `components/club-game-code-sheet` | `ClubGovernanceCommandForm` (issueGroupCode), `ClubGroupCodePresentation.swift` | MP sheet order: title 活动核验团码 → code card → 主题/场次名 under the code → 保存到相册 (wxml:9-24, group-code wxml:38-39). Native put the session name in the Section header above the card and never passed `sessionName`, so it read name → title → code. | **Fixed (pass 8).** The form passes `sessionName` (`ClubRoleActivityLabel.entry`) and drops the header; the presentation shows it under the code, before the expiry timer and 保存到相册. Error state (CU-C-148 one-line error + 重试) and the save path were already present (sweep: no group-code fixture in `docs/sweeps/latest/mp-club`) |
+| club/detail · `components/cy/timeline`, club/settlement · `components/cy/fe-reference-range`, topic-detail · `components/club-director-*` (10 sheets) | management / director surfaces | Owner-stage timeline, settlement date range + 导出, and the live-run director sheets (ready, recap, chapter, team, role, incident, broadcast, end confirm). | **Not done.** Checked for scope: all are owner/director tools under the large topic-detail director row above; queued after the floating 加入 capsule |
 | club/join-requests | `ClubManagementView.swift` | Loading should read 正在加载入会申请 (wxml:11); the empty state is the title only (wxml:20). | **Fixed** (`club.joinRequests.loading`) |
 | club/join-requests | `MPReviewedPageScreen.swift` | A link without `clubId` should show the missing-param state with 返回 (wxml:12). | **Fixed.** `MemberMissingLinkState` |
 | club/join-requests | same | Native rows push a detail page and 通过/拒绝 go through a review sheet; the MP does both in one tap. | **Not done.** large |
@@ -78,6 +80,8 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/customer-detail | `ClubOpsCustomerViews.swift`, `ClubCustomerInlineEditor.swift` | In edit mode the editor replaces the card, the heading reads 编辑标签与备注 and 取消 sits in the heading (wxml:82-99). | **Fixed (pass 2).** The editor owns the 标签与备注 section; 取消 moved from a row into the header (VoiceOver: 取消编辑标签与备注) |
 | club/payout-receiver | `ClubPayoutReceiverView.swift` | Binding needs a WeChat code (`PayoutReceiverBridge.payoutOpen`). | Blocked (WeChat/backend), not a view gap |
 | club/edit | `ClubOperationsViews.swift` | 改为转让主理人 is only inside the dissolve confirm in the MP (scene-club-edit `cy-danger-confirm` alt, utils/danger-actions.js `club.dissolve.alt`); native shows a permanent row. | Not done (pass 5 re-checked: the native confirm is `ClubGovernanceConsequence.sheet` inside the command form, reached through the blockers page; adding the alt there needs a new callback through that shared sheet, too risky without a compiler) |
+| club/edit · 解散 confirm (`utils/danger-actions.js` `club.dissolve`) | `ClubGovernanceConsequence` (dissolve) | MP lists three consequences: 全部成员会被移出俱乐部，同时失去群聊入口 / 俱乐部名下的活动与会员权益一并下架；已报名的不会自动取消，也不会自动退款 / 此操作不可撤销. Native had two lines, and the first said upcoming events close, which reads as if sign-ups were cancelled (the MP says they are **not** cancelled or refunded automatically). | **Fixed (pass 8).** OpsR3 `r3club.consequence.dissolve.line1-3` = the MP's three sentences (en + zh-Hans), symbols `person.2.slash` / `calendar.badge.minus` / `exclamationmark.triangle`. Title 解散「name」？ **not done** (the blockers page does not carry the club name into the form) |
+| club/detail · 退出 confirm (`utils/danger-actions.js` `club.quit`) | `ClubActionPanel` confirmation dialog | MP: 退出「name」？, 重新进来时… line, three consequences, confirm 退出俱乐部. | Matches (pass 8 check): system confirmation dialog with 退出「name」？, the rejoin line and `ClubLeaveConsequences` (the MP's three sentences). The MP alt 只关掉群聊提醒 is not offered (no per-club mute in the native panel); flagged |
 | club/workbench | `MPReviewedPageScreen.swift` redirect | MP error state 没能进入俱乐部管理 + 重试进入 + 返回俱乐部. | Already present (CLB-workbench-03, CLB-r11-workbench-01) |
 
 ## Pass 2: OWNER RULE 2 (navigation + one design system)
@@ -110,6 +114,9 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 | `clubR11.customer.cancelEditA11y` | Cancel editing tags and remark | 取消编辑标签与备注 |
 | `club.notify.previewFailed` | Audience preview failed | 受众预览失败 |
 | `club.gov.casesAppeal` | Ban appeal | 封禁申诉 |
+| `r3club.consequence.dissolve.line1` (OpsR3, value changed) | Every member is removed from the club and loses the group chat. | 全部成员会被移出俱乐部，同时失去群聊入口 |
+| `r3club.consequence.dissolve.line2` (OpsR3, value changed) | The club’s events and member perks are taken down. Existing sign-ups aren’t cancelled or refunded automatically. | 俱乐部名下的活动与会员权益一并下架；已报名的不会自动取消，也不会自动退款 |
+| `r3club.consequence.dissolve.line3` (OpsR3, new) | This can’t be undone. A dissolved club can’t be restored. | 此操作不可撤销，解散后无法恢复这个俱乐部 |
 | `club.notify.deliveryStatus` | Delivery status | 投递状态 |
 | `club.community.pinnedNoticesTitle` | Notices · Start here | 公告 · 新人先看 |
 | `club.community.noticeNoText` | (No text) | （无文字内容） |
@@ -143,6 +150,7 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 16. Pass 6: 结束主题 confirm in MP copy (结束并退款, 下架就够了).
 15. Pass 6: merge combined-r7 (xcstrings: both sides' keys, 28 added); club 帖文 公告 · 新人先看 (≤2 pinned notices with unread dots).
 17. Pass 7: merge combined-r7 (xcstrings: both sides' keys, 16 added); notify review = preview card only (MP wxml:55-64).
+18. Pass 8: merge combined-r7 (xcstrings: combined is a superset; 35 keys take its newer values); 出示团码 card in MP order (code → session name → 保存到相册); 结束主题 confirm names the topic; 解散 confirm in the MP's three consequences.
 8. Pass 2: shared club thumbnail, customer-detail edit heading, create check-failed 返回上一页, enroll order, check-in rail refund note.
 
 ## Sweep check (pass 7, build 070117595, `docs/sweeps/latest/mp-club/sheet-zh-Hans.jpg`)
