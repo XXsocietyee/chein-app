@@ -33,6 +33,10 @@ public enum HomeFeedItem: Equatable, Identifiable {
     public var productType: Int? {
         switch self { case .activity(let a): return a.productType; case .topic(let t): return t.productType }
     }
+    /// MP 附近活动 distance (metres). Topics carry none.
+    public var distanceMeters: Double? { if case .activity(let a) = self { return a.distanceMeters }; return nil }
+    /// MP 编辑精选 「N 人已报名」 count. Activities carry none on these lists.
+    public var signupCount: Int? { if case .topic(let t) = self { return t.signupCount }; return nil }
     public var clubLabel: String? {
         switch self { case .activity(let a): return a.clubLabel; case .topic(let t): return t.clubLabel }
     }
@@ -40,11 +44,13 @@ public enum HomeFeedItem: Equatable, Identifiable {
         switch self { case .activity(let a): return a.statusLabel; case .topic(let t): return t.statusLabel }
     }
     /// Category names already on the topic-list row (at most the two feed tags). Blank names are dropped.
+    /// MP 编辑精选 shows only the first category (`item.tags[0]`, pages/index/index.wxml:113).
     public var featuredCategoryTags: [String] {
-        feedTags.compactMap { raw in
+        let tags = feedTags.compactMap { raw -> String? in
             let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
             return trimmed.isEmpty ? nil : trimmed
         }
+        return Array(tags.prefix(1))
     }
     /// Server status text from the same row. A missing or blank label stays nil.
     public var featuredStatusText: String? {

@@ -25,10 +25,12 @@ public struct ActivitySummary: Decodable, Equatable, Identifiable {
     /// Server text only. The home hero leaves this blank when the payload omits it.
     public let statusLabel: String?
     public let likeState: ActivityLikeState
+    /// MP index.js:1077 `distance` (metres) on the 附近活动 list; nil when the payload omits it or it is not positive.
+    public let distanceMeters: Double?
     enum CodingKeys: String, CodingKey {
         case id, name, description, imgUrl, addressName, address, minAmout
         case startDate, endDate, latitude, longitude, productType, topicId, isLiked, sysCategoryList
-        case clubName, merchantName, statusLabel
+        case clubName, merchantName, statusLabel, distance
     }
     public init(from decoder: Decoder) throws {
         let c=try decoder.container(keyedBy:CodingKeys.self)
@@ -63,6 +65,7 @@ public struct ActivitySummary: Decodable, Equatable, Identifiable {
         merchantName = Self.present(try? c.decode(String.self, forKey: .merchantName))
         statusLabel = Self.present(try? c.decode(String.self, forKey: .statusLabel))
         likeState=ActivityLikeState(rawValue:integer(.isLiked) ?? 0) ?? .none
+        distanceMeters=number(.distance).flatMap { $0.isFinite && $0 > 0 ? $0 : nil }
     }
     /// The mini detail action accepts positive JavaScript-safe integer topic IDs only.
     /// Missing or malformed linkage must not navigate to a guessed destination.

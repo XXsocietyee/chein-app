@@ -57,6 +57,8 @@ public struct TopicSummary: Decodable, Equatable, Identifiable {
     /// Present only when the payload sends a non-empty label. The home page does not invent one.
     public let statusLabel: String?
     public let productType: Int?
+    /// MP index.js:803 `signupCount || enrollCount || joinCount || signUpCount` (编辑精选 「N 人已报名」). Nil when absent or zero.
+    public let signupCount: Int?
     public var favoriteCategoryText: String? {
         categoryNames.isEmpty ? nil : categoryNames.joined(separator: " · ")
     }
@@ -92,6 +94,8 @@ public struct TopicSummary: Decodable, Equatable, Identifiable {
         merchantName = Self.present(c.text("merchantName"))
         statusLabel = Self.present(c.text("statusLabel"))
         productType = c.int("productType")
+        signupCount = [c.int("signupCount"), c.int("enrollCount"), c.int("joinCount"), c.int("signUpCount")]
+            .compactMap { $0 }.first { $0 > 0 }
     }
     public var clubLabel: String? { clubName ?? merchantName ?? categoryNames.first }
     private static func present(_ raw: String?) -> String? {

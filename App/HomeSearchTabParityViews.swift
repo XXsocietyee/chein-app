@@ -99,34 +99,56 @@ struct HomeHeroHeaderSectionView: View {
                         HomeHeroAvatar(source: avatarSource)
                     }
                 }
-                // The three fixed action banners are demoted into one quiet menu row; every banner stays reachable.
-                Menu {
-                    ForEach(actionBanners) { banner in
-                        Button {
-                            onSelectBanner?(banner)
-                        } label: {
-                            // MP assets (utils/index/home-action-banner.js:21-35): each action banner's poster.
-                            Label { Text(verbatim: banner.title(locale: locale)) } icon: { HomeActionBannerPoster(id: banner.id) }
+                // mp-home r3: MP `sec-hero` is a swiper of the fixed action banners (和朋友报名活动 / 成为俱乐部 / 成为商家),
+                // each a poster with its title. Native: a system paging shelf of the same posters, one tap opens the route.
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHStack(alignment: .top, spacing: 12) {
+                        ForEach(actionBanners) { banner in
+                            Button {
+                                onSelectBanner?(banner)
+                            } label: {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Color.clear
+                                        .aspectRatio(16.0 / 9.0, contentMode: .fit)
+                                        .overlay { HomeActionBannerPoster(id: banner.id) }
+                                        .background(.fill.tertiary)
+                                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                        .accessibilityHidden(true)
+                                    Text(verbatim: banner.title(locale: locale))
+                                        .font(.headline)
+                                        .foregroundStyle(.primary)
+                                        .multilineTextAlignment(.leading)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .containerRelativeFrame(.horizontal)
+                            .accessibilityLabel(Text(verbatim: banner.title(locale: locale)))
+                            .accessibilityIdentifier("homeIndex.actionBanner.\(banner.id)")
                         }
-                        .accessibilityIdentifier("homeIndex.actionBanner.\(banner.id)")
                     }
-                    // verify-r1 2.5 / N-12 (owner Q9): the header's former ⋯ items live here, so the 首页 bar keeps
-                    // only 消息 and search.
-                    if let moreMenuContent {
-                        Divider()
-                        moreMenuContent
-                    }
-                } label: {
-                    HStack(spacing: 6) {
-                        Text(LocalizedStringResource("homeFeed.moreWaysToPlay", defaultValue: "More ways to play"))
-                            .cyWrapText()
-                        Image(systemName: "chevron.down").font(.caption.weight(.bold))
-                    }
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .scrollTargetLayout()
                 }
-                .accessibilityIdentifier("homeIndex.actionBanner.menu")
+                .scrollTargetBehavior(.paging)
+                .accessibilityIdentifier("homeIndex.actionBanner.carousel")
+                // verify-r1 2.5 / N-12 (owner Q9): the header's former ⋯ items (templates, project editor) stay in one
+                // quiet menu row under the banners, so the 首页 bar keeps only 消息 and map.
+                if let moreMenuContent {
+                    Menu {
+                        moreMenuContent
+                    } label: {
+                        HStack(spacing: 6) {
+                            Text(LocalizedStringResource("homeFeed.moreWaysToPlay", defaultValue: "More ways to play"))
+                                .cyWrapText()
+                            Image(systemName: "chevron.down").font(.caption.weight(.bold))
+                        }
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                    }
+                    .accessibilityIdentifier("homeIndex.actionBanner.menu")
+                }
             }
             .padding(.vertical, 4)
             .listRowBackground(Color.clear)

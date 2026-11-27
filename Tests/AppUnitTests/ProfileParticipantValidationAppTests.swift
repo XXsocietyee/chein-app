@@ -111,7 +111,7 @@ import SwiftUI
         }
         _ = hero.body
         hero.onSelectBanner?(HomeIndexParityPresentation.fixedActionBanners[0])
-        XCTAssertEqual(selectedBanner?.id, "club_apply")
+        XCTAssertEqual(selectedBanner?.id, "activity_list")
 
         var openedDestination: HomeFeedDestination?
         var selectedCard: HomeIndexParityPresentation.ContinuationCard?

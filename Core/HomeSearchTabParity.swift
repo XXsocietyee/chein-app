@@ -130,10 +130,11 @@ public enum HomeIndexParityPresentation {
         isEnglish(locale) ? "Continue" : "继续游戏 / 继续探索"
     }
 
+    /// MP utils/index/home-action-banner.js (1121 N1): 和朋友报名活动 first, then 成为俱乐部 and 成为商家 at the end.
     public static let fixedActionBanners: [ActionBanner] = [
+        ActionBanner(id: "activity_list", title: "和朋友报名活动", routePath: "pages/activity/list"),
         ActionBanner(id: "club_apply", title: "成为俱乐部", routePath: "pages/club/apply"),
-        ActionBanner(id: "merchant_apply", title: "成为商家", routePath: "pages/merchant/apply"),
-        ActionBanner(id: "activity_list", title: "和朋友报名活动", routePath: "pages/activity/list")
+        ActionBanner(id: "merchant_apply", title: "成为商家", routePath: "pages/merchant/apply")
     ]
 
     /// Lane G: the fixed banners the player build shows. `成为商家` (merchant onboarding) is hidden in Release.

@@ -24,7 +24,7 @@ final class HomeSearchTabParityTests: XCTestCase {
         XCTAssertEqual(HomeIndexParityPresentation.fixedActionBanners.count, 3)
         XCTAssertEqual(
             HomeIndexParityPresentation.fixedActionBanners.map(\.routePath),
-            ["pages/club/apply", "pages/merchant/apply", "pages/activity/list"]
+            ["pages/activity/list", "pages/club/apply", "pages/merchant/apply"]
         )
         XCTAssertEqual(HomeIndexParityPresentation.recommendedTopicsTitle, "推荐主题")
         XCTAssertEqual(HomeIndexParityPresentation.nearbyActivitiesTitle, "附近活动")

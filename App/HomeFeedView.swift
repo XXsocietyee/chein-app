@@ -71,7 +71,8 @@ import UIKit
                 // P-019: a system List of sections and shelves (App Store / Music browse), not a scroll view of cards.
                 // Reading order is the List order; each section owns its title, so VoiceOver's rotor lists them.
                 List {
-                    // P-020: header, then 继续游玩 first — what the player was doing comes before discovery.
+                    // mp-home r3: MP pages/index/index.wxml order — hero (greeting + action banners), the city
+                    // location card, 编辑精选, 附近活动, 即将上线, then the 主题 / 活动 stream. Nothing else sits between.
                     if hasHeroHeader {
                         HomeHeroHeaderSectionView(
                             nickname: viewerNickname,
@@ -88,25 +89,6 @@ import UIKit
                             // R7-PC-A1-2: a host that routes banners opens the activity list; without one, show the 活动 stream.
                             if let onActionBanner { onActionBanner(banner) } else if banner.id == "activity_list" { kind = .activities }
                         }
-                    }
-                    if !continuationCards.isEmpty {
-                        PlayContinuationBannerView(
-                            cards: continuationCards,
-                            readAvailability: continuationReadAvailability,
-                            onSelectCard: { card in
-                                guard model.canOpen(reader) else { return }
-                                if let onContinuation {
-                                    onContinuation(card)
-                                } else {
-                                    onDestination(card.destination)
-                                }
-                            },
-                            onOpen: { destination in
-                                if model.canOpen(reader) { onDestination(destination) }
-                            },
-                            onRetry: onRetryContinuation
-                        )
-                        .homeFeedShelfRows()
                     }
                     Section {
                         if let consent = cityLocationConsent {
@@ -129,17 +111,8 @@ import UIKit
                         Section { cityRail }.homeFeedShelfRows(insets: EdgeInsets())
                     }
                     feedSection(.nearby)
-                    if !feedDown, model.bannerFailed || !model.banners.isEmpty {
-                        Section { bannerSection }.homeFeedShelfRows()
-                    }
                     feedSection(.upcoming)
                     if !feedDown { streamSection }
-                    Section {
-                        todayCard
-                        // Mini-program store card (city pass entry): one feed card, never a paywall.
-                        MPPassExploreCard()
-                    }
-                    .homeFeedShelfRows()
                 }
                 .listStyle(.grouped)
                 .scrollContentBackground(.hidden)
@@ -159,64 +132,6 @@ import UIKit
         .task(id: binding) { await model.resume(reader: reader, query: query, available: unavailableMessageKey == nil, expectedBinding: binding) }
         .onDisappear { model.suspend() }
         .cyDomainScreen(.player)
-    }
-    @ViewBuilder private var bannerSection: some View {
-        let permit = model.permit(reader)
-        if model.bannerFailed { retry(Text("homeFeed.bannersError"), id: "banners") { model.schedule(.banners, reader: reader, permit: permit) } }
-        if !model.banners.isEmpty {
-            // Mirrors the mini-program hero swiper: full-width covers, paged horizontally (system paging scroll view).
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(alignment: .top, spacing: CYSpacing.md) {
-                    ForEach(model.banners) { banner in
-                        bannerSlide(banner).containerRelativeFrame(.horizontal)
-                    }
-                }
-                .scrollTargetLayout()
-            }
-            .scrollTargetBehavior(.paging)
-        }
-    }
-    /// One swiper slide: the cover, then the optional caption underneath in system type.
-    @ViewBuilder private func bannerSlide(_ banner: DiscoveryBanner) -> some View {
-        let caption = banner.contents.flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 }
-        let slide = VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Color.clear
-                .aspectRatio(16.0 / 9.0, contentMode: .fit)
-                .overlay {
-                    if let url = QuestifyCardArtwork.safeURL(banner.picUrl) {
-                        AsyncImage(url: url) { phase in
-                            if let image = phase.image { image.resizable().scaledToFill() } else { Rectangle().fill(.fill.secondary) }
-                        }
-                    } else {
-                        MPAsset.BannerCover.recoHero.resizable().scaledToFill()
-                    }
-                }
-                .clipped()
-            if let caption {
-                Text(verbatim: caption).font(.headline).foregroundStyle(.primary).lineLimit(2)
-            }
-        }
-        if let destination = banner.destination {
-            Button {
-                guard model.canOpen(reader) else { return }
-                switch destination { case .activity(let id): onDestination(.activity(id)); case .topic(let id): onDestination(.topic(id)) }
-            } label: { slide }
-                .buttonStyle(.plain)
-                .accessibilityLabel(Text("homeFeed.openFeatured"))
-        } else {
-            slide.accessibilityHidden(true)
-        }
-    }
-    /// One focal point on the first fold: ticket within 24 h > club event today > start a roam.
-    @ViewBuilder private var todayCard: some View {
-        let choice = HomeTodayChoice.resolve(ticket: todayTicket, clubEvent: todayClubEvent, now: Date(), calendar: .current)
-        // A club event that is a real activity opens the activity detail: the card is the hero source and zooms into it.
-        let activityID = choice.activityID
-        HomeTodayCard(choice: choice,
-                      onTicket: onOpenTodayTicket,
-                      onClubEvent: activityID.map { id -> () -> Void in { if model.canOpen(reader) { onDestination(.activity(id)) } } } ?? onOpenTodayClubEvent,
-                      onStartRoam: onStartRoam)
-            .cyHeroSourceInherited(HomeFeedDestination.activity(activityID ?? 0), isEnabled: activityID != nil)
     }
     /// Items that already own a hero source higher on the screen (Today card, then each earlier rail), so a namespace
     /// never holds two sources for one destination id.
@@ -314,7 +229,7 @@ import UIKit
             }
             if model.pageFailed { retry(Text(LocalizedStringKey("mpfresh.home.streamFailed." + (kind == .topics ? "topics" : "activities") + (model.pagination.items.isEmpty ? ".first" : ".more")), tableName: "MpFresh"), id: "page") { model.schedule(.page, reader: reader, permit: permit) } }
             if model.loadingPage {
-                ProgressView("homeFeed.loading")
+                ProgressView(model.pagination.items.isEmpty ? LocalizedStringKey("homeFeed.loading") : LocalizedStringKey("homeFeed.loadingMore"))
                     .frame(maxWidth: .infinity)
             }
             else if !model.pageFailed && model.pagination.items.isEmpty {
@@ -333,10 +248,11 @@ import UIKit
             if model.pagination.hasMore && !model.loadingPage && !model.pageFailed {
                 // R7-PC-A1-6 (r1 PC-A-1-11): MP pages on reach-bottom. The sentinel row loads the next page when it
                 // scrolls into view; a failed page keeps its retry row above.
-                ProgressView()
+                // MP `loading-more`: 正在加载更多 in words, not a bare spinner (P10).
+                ProgressView("homeFeed.loadingMore")
                     .frame(maxWidth: .infinity, minHeight: 44)
                     .onAppear { model.schedule(.page, reader: reader, permit: permit) }
-                    .accessibilityLabel(Text("homeFeed.loading"))
+                    .accessibilityLabel(Text("homeFeed.loadingMore"))
                     .accessibilityIdentifier("homeFeed.loadMore")
             } else if !model.pagination.hasMore && !model.loadingPage && !model.pageFailed && !model.pagination.items.isEmpty {
                 Text(verbatim: HomeIndexParityPresentation.noMoreFooterCopy(locale: locale))
@@ -363,24 +279,15 @@ import UIKit
     /// Horizontal shelf over the already-loaded section items. Open goes through the same guarded destination as the
     /// nearby cards. 即将上线 keeps the source countdown (还剩N天 / 还剩N小时 / 已开始) under each card.
     private func carouselRail(_ items: [HomeFeedItem], section: HomeFeedSection) -> some View {
-        // 编辑精选 / 即将上线 cap at 12 (MP swiper); 附近活动 shows every nearby item.
-        let capped = section == .nearby ? items : Array(items.prefix(12))
+        // MP _buildRecoHero: 编辑精选 shows at most 5 cards; 附近活动 / 即将上线 show the rows the list returned (4).
+        let capped = section == .recommended ? Array(items.prefix(5)) : items
         return ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(alignment: .top, spacing: CYSpacing.md) {
                 ForEach(capped) { item in
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         row(item, section: section.rawValue, style: .shelf)
-                        // R7-PC-A1-3: MP index.wxml:107-120 — club label, first category and status on 编辑精选.
-                        if section == .recommended {
-                            let caption = Self.recoCaption(item)
-                            if !caption.isEmpty {
-                                Text(verbatim: caption)
-                                    .font(.footnote)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(1)
-                                    .accessibilityIdentifier("homeFeed.reco.caption.\(item.accessibilityKey)")
-                            }
-                        }
+                        // R7-PC-A1-3: MP index.wxml:107-120 club / Beta / category / status are the card's featured facts
+                        // (`HomeFeedFeaturedFacts`); mp-home r3 drops the second caption line that repeated them.
                         // R7-PC-A1-5: MP 附近活动 `进行中` badge, as a tinted label under the card.
                         if section == .nearby, item.isLive(at: Date(), sourceTimeZone: sourceTimeZone) { HomeFeedLiveChip() }
                         if section == .upcoming, let start = HomeFeedDate.parse(item.startDate, sourceTimeZone: sourceTimeZone),
@@ -388,8 +295,11 @@ import UIKit
                             // Design pass explore P2: inside the last hour the MP 还剩N小时 becomes a ticking 距开始 mm:ss.
                             ExploreStartsInLine(start: start, end: nil, style: .meta)
                                 .accessibilityIdentifier("homeFeed.upcoming.live.\(item.accessibilityKey)")
-                        } else if section == .upcoming, let countdown = upcomingCountdown(item) {
-                            Text(verbatim: countdown)
+                        } else if section == .upcoming {
+                            // MP `item.rating || item.remainingTime || '即将开始'`: no start date reads 即将开始.
+                            Group {
+                                if let countdown = upcomingCountdown(item) { Text(verbatim: countdown) } else { Text("homeFeed.startingSoon") }
+                            }
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                                 .accessibilityIdentifier("homeFeed.upcoming.countdown.\(item.accessibilityKey)")
@@ -405,6 +315,34 @@ import UIKit
         .accessibilityElement(children: .contain)
         .accessibilityLabel(section == .recommended ? Text("carousel.editorsPicks") : (section == .nearby ? Text("homeFeed.nearbyActivities") : Text("carousel.upcoming")))
         .accessibilityIdentifier("homeFeed.carousel.\(section.rawValue)")
+    }
+    /// mp-home r3 — each rail's MP meta line (pages/index/index.wxml + index.js):
+    /// 编辑精选 `metaLine` = 「N 人已报名」 · time, else the place; 附近活动 = time (the 进行中 chip replaces it) · distance;
+    /// 即将上线 = `addressName || formattedDateTime`. MP rails show no price. Stream rows keep their own card.
+    private func railMeta(_ item: HomeFeedItem, section: String) -> String? {
+        let date = QuestifyCardText.date(item.startDate, sourceTimeZone: sourceTimeZone, locale: locale, displayTimeZone: timeZone)
+        let place = item.place?.trimmingCharacters(in: .whitespacesAndNewlines)
+        switch section {
+        case HomeFeedSection.recommended.rawValue:
+            var parts: [String] = []
+            if let count = item.signupCount { parts.append(appLocalized("activity.pinned.going \(count)", locale: locale)) }
+            if let date { parts.append(date) }
+            if parts.isEmpty, let place, !place.isEmpty { return place }
+            return parts.joined(separator: " · ")
+        case HomeFeedSection.nearby.rawValue:
+            var parts: [String] = []
+            if !item.isLive(at: Date(), sourceTimeZone: sourceTimeZone), let date { parts.append(date) }
+            if let meters = item.distanceMeters {
+                let distance = Measurement(value: meters, unit: UnitLength.meters)
+                parts.append(distance.formatted(.measurement(width: .abbreviated, usage: .road).locale(locale)))
+            }
+            return parts.joined(separator: " · ")
+        case HomeFeedSection.upcoming.rawValue:
+            if let place, !place.isEmpty { return place }
+            return date ?? ""
+        default:
+            return nil
+        }
     }
     /// Source 即将上线 countdown (hengyin 07608d68a, j1 F23): 还剩N天 / 还剩N小时 / 已开始. Unknown start shows nothing.
     private func upcomingCountdown(_ item: HomeFeedItem) -> String? {
@@ -433,7 +371,8 @@ import UIKit
         Button { if model.canOpen(reader) { onDestination(item.id) } } label: {
             Group {
                 if let style {
-                    HomeFeedShelfCard(item: item, sourceTimeZone: sourceTimeZone, style: style, fallback: Self.fallbackCover(section), showsFeaturedFacts: section == HomeFeedSection.recommended.rawValue)
+                    HomeFeedShelfCard(item: item, sourceTimeZone: sourceTimeZone, style: style, fallback: Self.fallbackCover(section),
+                                      showsFeaturedFacts: section == HomeFeedSection.recommended.rawValue, railMeta: railMeta(item, section: section))
                 } else {
                     HomeFeedCard(item: item, sourceTimeZone: sourceTimeZone, showsPlace: placeURL == nil)
                 }
@@ -443,7 +382,7 @@ import UIKit
             .cyHeroSourceInherited(item.id, isEnabled: heroNamespace != nil && !heroOwned(by: section == "stream" ? nil : section).contains(item.id))
         }
             .buttonStyle(.plain)
-            .pageTemplateGroupedCard(label: feedCardLabel(item, includeFeaturedFacts: section == HomeFeedSection.recommended.rawValue), traits: .isButton)
+            .pageTemplateGroupedCard(label: cardLabel(item, section: section, isRail: style != nil), traits: .isButton)
             .modifier(HomeFeedOpenPlaceInMaps(url: HomeFeedMapsLink.url(for: item.place), openURL: openURL))
             .accessibilityIdentifier("homeFeed.\(section).\(item.accessibilityKey)")
             if let placeURL, let place = item.place {
@@ -451,6 +390,20 @@ import UIKit
                     .accessibilityIdentifier("homeFeed.\(section).\(item.accessibilityKey).place")
             }
         }
+    }
+    /// Rails speak what they show (name, then the rail's MP meta line); stream cards speak price, time and place.
+    private func cardLabel(_ item: HomeFeedItem, section: String, isRail: Bool) -> Text {
+        let featured = section == HomeFeedSection.recommended.rawValue
+        guard isRail, let meta = railMeta(item, section: section) else { return feedCardLabel(item, includeFeaturedFacts: featured) }
+        var label = Text(verbatim: item.name)
+        if !meta.isEmpty { label = label + Text(verbatim: ", " + meta) }
+        if featured {
+            if item.isBeta { label = label + Text(verbatim: ", ") + Text("topic.source.betaBadge") }
+            for tag in item.featuredCategoryTags { label = label + Text(verbatim: ", ") + Text(verbatim: tag) }
+            if let status = item.featuredStatusText { label = label + Text(verbatim: ", ") + Text(verbatim: status) }
+            if let club = item.featuredClubText { label = label + Text(verbatim: ", ") + Text(verbatim: club) }
+        }
+        return label
     }
     /// One label for the grouped feed card: name, then the price, time, and place lines already on the card.
     /// 编辑精选 also speaks Beta 试玩, the category tags, the status and the club when the list row has them.
@@ -550,6 +503,8 @@ struct HomeFeedShelfCard: View {
     var fallback: CYCarouselFallback = .homeRouteCityPlaceholder
     /// 编辑精选 only. Nearby and upcoming leave this off.
     var showsFeaturedFacts: Bool = false
+    /// mp-home r3: the rail's own MP meta line (`HomeFeedView.railMeta`). Nil keeps date · place · price.
+    var railMeta: String? = nil
     @Environment(\.locale) private var locale
     @Environment(\.timeZone) private var timeZone
     var body: some View {
@@ -557,7 +512,7 @@ struct HomeFeedShelfCard: View {
         // Currency + 起/From come from the shared price key; unknown price shows an em dash, never 0.
         let price = HomeFeedMoney.display(item.amount, currencyCode: item.currencyCode, locale: locale)
             .map { appLocalized("activity.pinned.price \($0)", locale: locale) } ?? "—"
-        let line = [QuestifyCardText.metaLine(date: date, place: item.place), price].compactMap { $0 }.joined(separator: " · ")
+        let line = railMeta ?? [QuestifyCardText.metaLine(date: date, place: item.place), price].compactMap { $0 }.joined(separator: " · ")
         // P-019: the App Store shelf lockup — cover, then title and one meta line in system type, no scrim or shadow.
         let card = HomeFeedShelfLockup(title: item.name, meta: line, imageURL: QuestifyCardArtwork.safeURL(item.imageURL),
                                        fallback: fallback.image, style: style)
@@ -684,17 +639,24 @@ struct HomeFeedCard: View {
     private var typeSymbol: String {
         switch item { case .activity: return "figure.walk"; case .topic: return "map" }
     }
-    private var eyebrow: LocalizedStringKey {
-        switch item { case .activity: return "homeFeed.activities"; case .topic: return "homeFeed.topics" }
+    /// MP utils/index/feed-card.js `feedTypeLabel`: productType 1 → 城市定向, 2 → 自由探索, otherwise no eyebrow.
+    private var eyebrow: LocalizedStringKey? {
+        switch item.productType {
+        case 1: return "homeFeed.type.orienteering"
+        case 2: return "homeFeed.type.freeExplore"
+        default: return nil
+        }
     }
     /// Mini-program `v2-fcard` + `v2-status`: cover and title, then 价格 / 时间 / 地点.
     /// A missing price or place is an em dash. A missing time is the source fallback 长期开放.
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            // R7-PC-A1-4: MP `feedTypeLabel` eyebrow above the card.
-            Text(eyebrow)
-                .font(.footnote)
-                .foregroundStyle(.secondary)
+            // R7-PC-A1-4: MP `feedTypeLabel` eyebrow above the card (only when the row has a play type).
+            if let eyebrow {
+                Text(eyebrow)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
             QuestifyImageEntityCard(imageSource: safeImageSource, title: item.name, fallbackSymbol: typeSymbol,
                                     minimumHeight: dynamicTypeSize.isAccessibilitySize ? 300 : 260) {
                 EmptyView()

@@ -38,15 +38,12 @@ final class MotionTourTests: XCTestCase {
         }
     }
 
-    /// d2-home: Today card action, then rail cards (feed card → activity / topic zoom).
+    /// d2-home: rail cards (feed card → activity / topic zoom). mp-home r3: 首页 follows the MP section order
+    /// (hero, 编辑精选, 附近活动, 即将上线, stream); the Today card is no longer on it, so the tour starts at the rails.
     func testTour1TodayAndRailCardsZoom() {
         launch(fixture: "d2-home", extra: ["--design-today", "activity"])
-        let today = app.otherElements["homeFeed.today.clubEvent"]
-        XCTAssertTrue(today.waitForExistence(timeout: 30), app.debugDescription)
-        pause(1.0)
-        tap(app.buttons["homeFeed.today.action"])
-        pause(1.5)
-        goBack()
+        let nearby = app.buttons["homeFeed.nearby.activity.7"]
+        XCTAssertTrue(nearby.waitForExistence(timeout: 30), app.debugDescription)
         pause(1.0)
         // Present in the d2-home AX tree: the nearby shelf card, then the carousel card (both open activity 7).
         tap(app.buttons["homeFeed.nearby.activity.7"])

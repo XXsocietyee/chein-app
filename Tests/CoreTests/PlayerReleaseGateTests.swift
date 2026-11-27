@@ -144,7 +144,7 @@ final class PlayerReleaseGateTests: XCTestCase {
         let all = HomeIndexParityPresentation.fixedActionBanners.map(\.id)
         XCTAssertTrue(all.contains("merchant_apply"))
         let release = HomeIndexParityPresentation.fixedActionBanners.filter { !PlayerLaunch.isHidden(page: $0.routePath, enabled: false) }
-        XCTAssertEqual(release.map(\.id), ["club_apply", "activity_list"])
+        XCTAssertEqual(release.map(\.id), ["activity_list", "club_apply"])
         // DEBUG keeps every banner.
         XCTAssertEqual(HomeIndexParityPresentation.playerActionBanners.map(\.id), all)
     }
