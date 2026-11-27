@@ -19,9 +19,9 @@ class ClubMemberPageContracts(unittest.TestCase):
 
     def test_enroll_copy_matches_mini_program(self):
         view = read('App/ClubEnrollmentView.swift')
-        for key in ['club.enroll.escrow', 'club.enroll.emptyTeams']:
-            self.assertIn(f'"{key}"', view)
-        self.assertEqual(zh(self.catalog, 'club.enroll.escrow'), '报名费由平台担保托管')
+        # mp-club r3: the escrow note is gone; MP enroll wxml:17 has only the 俱乐部名 · N 个团 sub line.
+        self.assertNotIn('"club.enroll.escrow"', view)
+        self.assertIn('"club.enroll.emptyTeams"', view)
         self.assertEqual(zh(self.catalog, 'club.enroll.emptyTeams'), '还没有城市定向团')
         self.assertEqual(zh(self.catalog, 'club.enroll.checkin.done'), '已核销')
 

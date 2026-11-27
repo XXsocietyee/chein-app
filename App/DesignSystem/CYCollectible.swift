@@ -187,8 +187,11 @@ struct CYCountRing: View {
     var total: Int
     var size: CGFloat = 56
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var shown = false
     private var fraction: CGFloat { total > 0 ? CGFloat(min(value, total)) / CGFloat(total) : 0 }
+    /// At accessibility sizes the ring grows with the title beside it (1.6x, a11y-dt r3) so "3/6" stays readable.
+    private var ringSize: CGFloat { dynamicTypeSize.isAccessibilitySize ? size * 1.6 : size }
 
     var body: some View {
         ZStack {
@@ -198,10 +201,10 @@ struct CYCountRing: View {
                         style: StrokeStyle(lineWidth: 6, lineCap: .round))
                 .rotationEffect(.degrees(-90))
             Text(verbatim: total > 0 ? "\(value)/\(total)" : "—")
-                .font(.system(size: size * 0.26, weight: .bold, design: .rounded)).monospacedDigit()
+                .font(.system(size: ringSize * 0.26, weight: .bold, design: .rounded)).monospacedDigit()
                 .foregroundStyle(CYColor.textPrimary).minimumScaleFactor(0.6)
         }
-        .frame(width: size, height: size)
+        .frame(width: ringSize, height: ringSize)
         .onAppear { withAnimation(reduceMotion ? nil : .easeOut(duration: 0.9)) { shown = true } }
         .accessibilityHidden(true)
     }

@@ -193,11 +193,7 @@ import SwiftUI
                             Text(LocalizedStringKey(Self.clientTypeTitleKey(for: item.key.type)))
                                 .cyText(.meta)
                                 .foregroundStyle(.secondary)
-                            Text(LocalizedStringKey(Self.markerStateTitleKey(for: item.state)))
-                                .cyText(.caption)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(.secondary.opacity(0.14), in: Capsule())
+                            CYStatusChip(LocalizedStringKey(Self.markerStateTitleKey(for: item.state)))
                         }
                     }
                     Spacer()

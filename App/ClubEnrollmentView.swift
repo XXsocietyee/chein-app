@@ -88,14 +88,9 @@ extension EnvironmentValues {
         List {
             // mp-club r3 (MP enroll wxml:17-20): the sub line comes first, then 正在更新报名名册…, then the stale error.
             if host == liveHost, scenePhase == .active, reader.isCurrentAccess, identity == reader.identity, identity == access.identity, reader.hasLoaded {
-                // Mini-program sub line: 「俱乐部名 · N 个团」 (俱乐部名 falls back to 我的俱乐部), then the escrow note.
+                // Mini-program sub line: 「俱乐部名 · N 个团」 (俱乐部名 falls back to 我的俱乐部); MP enroll wxml:17 has no escrow note.
                 Section {
                     subLine.accessibilityIdentifier("club.enroll.headerLine")
-                    Label("club.enroll.escrow", systemImage: "lock.shield")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .accessibilityIdentifier("club.enroll.escrow")
                 }
             }
             if reader.loading, reader.hasLoaded {
@@ -161,6 +156,8 @@ extension EnvironmentValues {
                         Button { Task { if canRead { await reader.toggle(topicID: team.id) } } } label: {
                             teamHeader(team)
                         }
+                        // Sweep 1300a48db d4-enroll: the row read as tint-blue text; titles stay primary, meta secondary.
+                        .tint(.primary)
                         .disabled(reader.loading)
                         .accessibilityValue(Text(reader.expanded.contains(team.id) ? "club.enroll.expanded" : "club.enroll.collapsed"))
                         .accessibilityIdentifier("club.enroll.team.\(team.id)")
@@ -357,7 +354,8 @@ extension EnvironmentValues {
             if roster.tickets.isEmpty {
                 Text("club.enroll.emptyTickets").font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
-            ForEach(roster.tickets) { ticket in
+            // MP enroll js:421-422 (hideEmpty): once any ticket has signups, tickets with none are not listed.
+            ForEach(visibleTickets(roster.tickets)) { ticket in
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     // Mini-program ticket row: name left, 「已报名 / 上限」 as one right-aligned fraction.
                     ViewThatFits(in: .horizontal) {
@@ -379,6 +377,10 @@ extension EnvironmentValues {
                 .padding(.vertical, CYSpacing.xs)
             }
         }
+    }
+    private func visibleTickets(_ tickets: [ClubEnrollmentTicket]) -> [ClubEnrollmentTicket] {
+        let anySignup = tickets.contains { !$0.registrants.isEmpty }
+        return anySignup ? tickets.filter { !$0.registrants.isEmpty } : tickets
     }
     private func ticketTitle(_ ticket: ClubEnrollmentTicket) -> some View {
         title(ticket.name, fallback: "club.enroll.unnamedTicket")

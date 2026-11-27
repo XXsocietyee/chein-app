@@ -96,8 +96,7 @@ private struct RoamPassportTileLabel: View {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     Text(title)
-                    Text("roam.private.new").cyText(.caption, weight: .bold).padding(.horizontal, 6).padding(.vertical, 1)
-                        .background(Color.accentColor.opacity(0.15), in: Capsule())
+                    CYStatusChip("roam.private.new", tone: .info).singleLine()
                 }
                 Text(subtitle).cyText(.meta).foregroundStyle(.secondary)
             }
