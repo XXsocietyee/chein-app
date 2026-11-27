@@ -259,18 +259,28 @@ private struct ChanceSymbolSize {
                 ContentUnavailableView("playkit.unavailable", systemImage: "rectangle.stack")
                     .accessibilityIdentifier("playkit.random.empty")
             }
+            // MP `dk__card`: every drawn card is tagged 这一关 (title + body); the newest one is the current task.
             ForEach(Array(cards.enumerated()), id: \.offset) { index, card in
                 VStack(alignment: .leading, spacing: 4) {
-                    if index == cards.count - 1 {
-                        Label("playkit.random.thisRound", systemImage: "sparkles").font(.footnote).foregroundStyle(.tint)
-                    }
+                    Label("playkit.random.thisRound", systemImage: index == cards.count - 1 ? "sparkles" : "checkmark.circle")
+                        .font(.footnote)
+                        .foregroundStyle(index == cards.count - 1 ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
                     if let label = card["label"].text { Text(verbatim: label).font(.headline) }
                     if let content = card["content"].text { Text(verbatim: content).font(.body).foregroundStyle(.secondary) }
                 }
                 .accessibilityElement(children: .combine)
             }
+            // MP: the rest of the deck stays face down (「?」 · 还没翻开); the server never sends what is inside.
             if count > cards.count {
-                LabeledContent("playkit.random.remaining") { Text(verbatim: String(count - cards.count)).monospacedDigit() }
+                ForEach(cards.count..<count, id: \.self) { _ in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Label("playkit.random.faceDown", systemImage: "rectangle.portrait")
+                            .font(.footnote).foregroundStyle(.secondary)
+                        Text(verbatim: "?").font(.headline).foregroundStyle(.secondary)
+                    }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text("playkit.random.faceDown"))
+                }
             }
         } header: {
             if let name = raw["deckName"].text { Text(verbatim: name) }
