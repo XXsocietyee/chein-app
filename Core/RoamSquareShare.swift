@@ -60,8 +60,9 @@ public enum RoamSquareShareOutcome: Equatable, Sendable {
     private var inFlight = false
 
     public init(service: SquareWorkspaceService, identity: @escaping @MainActor () -> Identity?,
-                communityWrite: @escaping @MainActor () async -> Bool, intents: RoamSquareShareIntents = .init()) {
-        self.service = service; self.identity = identity; self.communityWrite = communityWrite; self.intents = intents
+                communityWrite: @escaping @MainActor () async -> Bool, intents: RoamSquareShareIntents? = nil) {
+        // Default built here: a `@MainActor` init can't run in a default-argument (caller, nonisolated) context.
+        self.service = service; self.identity = identity; self.communityWrite = communityWrite; self.intents = intents ?? RoamSquareShareIntents()
     }
 
     /// MP `share.communityWrite` (`app.canUseCommunity(true)`): the 发到广场 entry shows only when true.
