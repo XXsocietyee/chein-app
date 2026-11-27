@@ -54,7 +54,7 @@ def tracked_texts():
                            cwd=ROOT, capture_output=True, text=True).stdout.split()
     pinned_blob, fragment_files = [], []
     for name in files:
-        if name in SELF or not name.endswith(('.py', '.json', '.swift', '.txt', '.xcstrings', '.md')):
+        if name in SELF or name in r1.GENERATORS or not name.endswith(('.py', '.json', '.swift', '.txt', '.xcstrings', '.md')):
             continue
         if name.startswith(FRAGMENTS) and name.endswith('.json') and stable(name):
             fragment_files.append(name)
