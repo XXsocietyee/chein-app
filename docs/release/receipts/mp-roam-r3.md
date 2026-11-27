@@ -242,6 +242,18 @@ Base re-merged with `origin/ui/combined-r7` (clean). The d6-roam tile in this sw
 
 Gates: generate_project OK · check_scaffold PASS (20849 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 
+## Round 3 continue (16) — sweep 20:45 (build bb76e327c): d6-roam vs d2-roam
+
+Base: `origin/mp/r3-roam` (already contains `origin/ui/combined-r7`). Build bb76e327c has continue (14) but not (15); the e2-stamp-album tile still shows the old 集邮册 … 3 枚 header, (15) fixes it.
+
+| MP page / scene | Native view | Differences | Status |
+|---|---|---|---|
+| Sweep 20:45 `*-d6-roam.jpg` vs `*-d2-roam.jpg` (`pages/roam/index` entry map) | `DesignFixtures/D6Fixtures.swift` `D6MapFixture(.roam)` | d6 forced `.preferredColorScheme(.dark)` (dark bar + dark circles) while d2 renders in the system scheme with light material circles; d6 also drew a tagline 走到哪，雾散到哪。 above the floating row — the MP entry map has no such line (only a file comment), and the shipping root (d2) does not show it. | **Fixed:** the roam kind follows the system scheme (no forced dark, no black page fill; play / search / live mocks unchanged — other lanes); tagline removed, so d6 = d2 = MP: inline 漫游 on `.bar` → map → 规则 · 走起 · 附近. |
+| Sweep 20:45 `en-d2-roam.jpg` collapsed panel | `CYMapScaffold` panel (`cyMapPanelColor = .black`) + `RoamBrowserView.peekLine` | Black panel under a light material peek line in light mode. Shared map scaffold (also play, teams, live) — not a roam-only change. | **For other lanes (ds-consistency):** consider a scheme-following panel fill in `App/DesignSystem/CYMapChrome.swift`; not changed here. |
+| Sweep 20:45 `*-e5b-stamp.jpg` | `CYCelebrationMoment(kind: .stamp)` | Dark full-screen celebration; copy localized in both languages (灯笼门 / Lantern Gate). | No change: the moment is a full-screen overlay by design. |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no
