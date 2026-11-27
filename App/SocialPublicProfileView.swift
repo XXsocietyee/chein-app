@@ -141,14 +141,14 @@ import SwiftUI
                             ProfileIdentityShareSection(profile: profile, reader: reader, isCurrent: isCurrent, owner: identityShareOwner)
                                 .id(ProfileIdentityShareViewIdentity(profile: profile, reader: reader))
                         }
-                        if actions == nil || actions?.identity.accountID == profile.id {
-                            // Self / read-only viewers keep the relationship line; for other members it lives on the 关注 button (A2-03).
+                        if actions == nil || actions?.identity.accountID == profile.id,
+                           reader.identity.accountID != profile.id, let followed = profile.isFollowed {
+                            // Read-only viewers keep the relationship line; for other members it lives on the 关注 button (A2-03).
+                            // The MP has no relationship line on one's own page, and an unknown relation is not shown as
+                            // "? —" data (18:15 sweep): the row appears only for another member with a known answer.
                             LabeledContent("social.followStatus") {
-                                switch profile.isFollowed {
-                                case true: Label("social.following", systemImage: "checkmark").foregroundStyle(.secondary)
-                                case false: Text("social.notFollowing").foregroundStyle(.secondary)
-                                case nil: Label("social.relationshipUnknown", systemImage: "questionmark").foregroundStyle(.secondary)
-                                }
+                                if followed { Label("social.following", systemImage: "checkmark").foregroundStyle(.secondary) }
+                                else { Text("social.notFollowing").foregroundStyle(.secondary) }
                             }
                         }
                         if let actions, actions.identity.accountID != profile.id {
@@ -187,12 +187,16 @@ import SwiftUI
                         }
                     }
                     // Mini-program cy-profile counters: 好友 / 关注 / 粉丝, em dash when the server omitted one.
+                    // MP `pc-stats` hides on one's own page at 0/0/0 (1121 N5); with all three unknown the row is not
+                    // shown as "— — —" data either (18:15 sweep).
+                    if showsCounters(profile) {
                     Section {
                         HStack(spacing: 0) {
                             profileCounter(profile.friends, id: "friends") { Text("member.card.friends", tableName: "MemberProfile") }
                             profileCounter(profile.following, id: "following") { Text("member.card.following", tableName: "MemberProfile") }
                             profileCounter(profile.followers, id: "followers") { Text("member.card.fans", tableName: "MemberProfile") }
                         }
+                    }
                     }
                     // Mini-program cy/profile tab order: 我的 (orders, projects), 帖文, 成就, 关于.
                     // A2-04 / X5 asked for MP underline tabs (2026-07-31); the owner native-iOS ruling (2026-11-24) supersedes it.
@@ -371,6 +375,14 @@ import SwiftUI
         }
         .frame(maxWidth: .infinity)
     }
+    /// Hidden while all three counters are unknown, and on one's own page while all three are a known 0 (MP 1121 N5).
+    private func showsCounters(_ profile: SocialPublicProfile) -> Bool {
+        let values = [profile.friends, profile.following, profile.followers]
+        if values.allSatisfy({ $0 == nil }) { return false }
+        let isSelf = reader.identity.accountID == profile.id
+        return !(isSelf && values.allSatisfy({ $0 == 0 }))
+    }
+
     private func profileCounter(_ value: Int?, id: String, label: () -> Text) -> some View {
         VStack(spacing: 2) {
             // A2-09: MP pc-stat-n is 18 bold (pages/userinfo/userinfo.wxss). r11 N-30: system `.headline`, not a CY text style.
