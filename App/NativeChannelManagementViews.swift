@@ -42,10 +42,8 @@ private func ncmChevron() -> some View {
 }
 
 private func ncmLoading() -> some View {
-    ProgressView()
+    ProgressView { Text("cy.state.loading") }
         .frame(maxWidth: .infinity)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("cy.state.loading"))
 }
 
 /// Optional destinations reuse the host's existing message consumer and original 8's Webhook UI.

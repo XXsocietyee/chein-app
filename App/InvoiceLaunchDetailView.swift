@@ -19,10 +19,8 @@ import SwiftUI
             // MP invoice-detail `cy-skeleton type="form-section" count="2"` while the detail loads
             // (the shared state section already shows its spinner when the overview is missing too).
             if model.detail?.id != applicationID, model.issue == nil, !(model.busy && model.overview == nil) {
-                ForEach(0..<2, id: \.self) { _ in
-                    Section { CYSkeleton(variant: .formSection) }
-                }
-                .accessibilityIdentifier("invoice.detail.skeleton")
+                Section { CYSkeleton(variant: .formSection) }
+                    .accessibilityIdentifier("invoice.detail.skeleton")
             }
             if let row = model.detail, row.id == applicationID {
                 Section {

@@ -64,9 +64,7 @@ import SwiftUI
 
 private struct NativeChannelProgressHistoryLoading: View {
     var body: some View {
-        ProgressView()
+        ProgressView { Text("cy.state.loading") }
             .frame(maxWidth: .infinity)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text("cy.state.loading"))
     }
 }

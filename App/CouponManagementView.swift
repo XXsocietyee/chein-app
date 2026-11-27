@@ -472,9 +472,8 @@ private struct CouponInfoSettingsStateSection: View {
         if let key = page.stateKey {
             Section {
                 if case .loading = page.phase {
-                    ProgressView()
+                    ProgressView { Text(LocalizedStringKey(key)) }
                         .frame(maxWidth: .infinity)
-                        .accessibilityLabel(Text(LocalizedStringKey(key)))
                 } else {
                     Text(LocalizedStringKey(key))
                         .font(.footnote)
