@@ -15,7 +15,7 @@ extension AppSession {
 extension AppSession {
     /// ROAM-r11-6: wipe this device's settled roam history for the signed-in player. False = storage refused.
     func clearRoamLocalHistory() -> Bool {
-        (try? roamHistoryStoreForClear.clearAll()) != nil
+        (try? roamHistoryStore.clearAll()) != nil
     }
 }
 
