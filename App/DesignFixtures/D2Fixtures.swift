@@ -29,8 +29,8 @@ struct D2Fixture: View {
             NavigationStack {
                 GlobalSearchView(reader: SearchMapFixtureReader(scenario: .unconfigured), recommendedKeywords: GlobalSearchRecommendedKeywords.china) { _ in Color.clear }
             }
-        case .square: SquareFixtureHostView()
-        case .squareEmpty: SquareFixtureHostView(scenario: .empty)
+        case .square: SquareFixtureHostView(designLocalized: true)
+        case .squareEmpty: SquareFixtureHostView(scenario: .empty, designLocalized: true)
         case .play: PlayExperienceFixtureHostView()
         case .city: CityGameFixtureHost()
         case .npc: ShopNPCFixtureView(enabled: true)
