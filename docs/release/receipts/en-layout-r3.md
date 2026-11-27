@@ -81,6 +81,14 @@ Merged `origin/ui/combined-r7` (conflicts: `LoginView.swift` took the single-mar
 | 35 | Wallet ledger row → `WalletCommerceViews.swift:706` (`en-e4-wallet-balance`) | Checked: "Weekend city walk share" wraps to 2 lines next to "+58.00 CNY" | The title wraps and the amount stays whole (stacked layout at AX sizes); correct list behaviour. No change | Checked |
 | 36 | Club enrollment roster topic row (`en-d4-enroll`) | Checked: "Date to be set · 8 registered" | Fits on one line at 375 pt in the sweep. No change | Checked |
 
+### Run 7 (2026-11-27, hourly)
+
+Merged `origin/ui/combined-r7` (conflict `LoginView.swift`: kept the "Chein" VoiceOver label and restored the `locale` environment the upstream side dropped). Sweep build a250afd77 (20:11Z) en sheets: rows 21 ("My club · 1 group", `en-d4-enroll`) and 24 ("Nov 7, 09:00", `en-d4-channel-chat`) confirmed; rows 30/31 (search chips, order center) not in that build yet (branch not integrated).
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 37 | Remaining raw server timestamps on player screens: bundle reviews (`BundleReviewListView.swift`), club feed post (`ClubGovernanceFeedPostView.swift`), club roster "Joined …" (`ClubPublicRosterView.swift`), club join requests "Requested …" (`ClubManagementView.swift`, 2 rows), coupon used time (`CouponCodeView.swift`), free-explore story archive "Visited …" (`FreeExplorationViews.swift`, `NativeR2/FreeExplore/NativeFreeExploreMapView.swift`) | English showed "2026-10-02 12:00:00" as the server sent it | `LocaleDisplay.civil(_, locale:)` (same helper as rows 14/23): English "Oct 2, 2026 at 12:00 PM"; Chinese and unparsable text unchanged (MP parity). Text only, no layout/order change | Done |
+
 ## Not done
 
 | Item | Why |
@@ -89,7 +97,7 @@ Merged `origin/ui/combined-r7` (conflicts: `LoginView.swift` took the single-mar
 
 
 ## Next pages (no row yet)
-Re-check the run 5/6 rows (21, 23, 24, 30, 31) in the next sweep once this branch is integrated; then publish (`pages/template/*`) and roam English sheets.
+Re-check rows 23, 30, 31, 37 in the next sweep once this branch is integrated; then publish (`pages/template/*`) and roam English sheets.
 
 ## For other lanes
 - mp-activity: Square fixture post text "A synthetic city walk / 一次示例城市漫步" (`Core/SquareSyntheticFixtures.swift`, shared with Core tests) shows Chinese in English (`en-d2-square`).
