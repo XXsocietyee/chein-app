@@ -47,6 +47,9 @@ and `#Preview { ... }` blocks; comments are ignored) and counts, per file:
   raw segmented   `.pickerStyle(.segmented)` outside App/DesignSystem: 85 sibling pickers use `.cyAdaptiveSegmented()`
                   (segmented while every title fits, the system menu for long English titles / accessibility sizes),
                   so a bare segmented picker truncates where its siblings do not
+  leading action  a `ShareLink(` / replay action inside a `.topBarLeading` / `.navigationBarLeading` toolbar item
+                  outside App/DesignSystem: the leading slot is Back / Cancel / Close only; share, save and replay
+                  sit trailing (`.primaryAction`) next to the one Done (P16)
 
 Build-break guards (module-wide: App/ and Core/ compile into ONE module, so every file is scanned, merchant and
 fixtures included; there is no Swift compiler in the lanes' cloud sessions):
@@ -97,11 +100,14 @@ CUSTOM_SEARCH = 'custom search'
 TEXT_ON_ART = 'text on art'
 RAW_SEGMENTED = 'raw segmented'
 RAW_SEGMENTED_PATTERN = re.compile(r'\.pickerStyle\(\s*\.segmented\s*\)')
+LEADING_ACTION = 'leading action'
+LEADING_PLACEMENT = re.compile(r'placement:\s*\.(?:topBarLeading|navigationBarLeading)\b')
+LEADING_ACTION_CONTENT = re.compile(r'\bShareLink\(|"arrow\.counterclockwise"|"square\.and\.arrow\.up"')
 DUPLICATE_TYPE = 'duplicate type'
 UNDECLARED_STATE = 'undeclared state'
 KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, CUSTOM_BACK, BUTTON_STYLE, POPUP_SCRIM,
          RAW_COLOUR, LIST_STYLE, CUSTOM_SHEET, CUSTOM_TABS, FONT_DESIGN, CUSTOM_SEARCH, TEXT_ON_ART, RAW_SEGMENTED,
-         DUPLICATE_TYPE, UNDECLARED_STATE)
+         LEADING_ACTION, DUPLICATE_TYPE, UNDECLARED_STATE)
 
 # The five player tab roots (Core/RootTab.swift, QuestifyApp root TabView) and the files that own their title.
 # 漫游 is the full-screen map home: its chrome is allowed in the baseline instead.
@@ -291,6 +297,12 @@ def scan_file(rel, text):
         if not design_system and rel != APP_ROOT and DS_TAB_BAR.search(code):
             hits.append((number, CUSTOM_TABS, code.strip()))
     if not design_system:
+        for index, (number, code) in enumerate(lines):
+            if not LEADING_PLACEMENT.search(code):
+                continue
+            window = ' '.join(c for _, c in lines[index:index + 3])
+            if LEADING_ACTION_CONTENT.search(window):
+                hits.append((number, LEADING_ACTION, code.strip()))
         for index, (number, code) in enumerate(lines):
             if not TABS_FOREACH.search(code):
                 continue
