@@ -344307,6 +344307,57 @@
           }
         }
       }
+    },
+    "playx.routeNotice.withdrawn": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The route was changed — this run can't continue for now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "路线配置已调整，当前行程暂不可继续"
+          }
+        }
+      }
+    },
+    "playx.routeNotice.ended": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This route has ended"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次路线已结束"
+          }
+        }
+      }
+    },
+    "playx.routeNotice.fallback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original place is unavailable — switched to the backup route"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原地点暂不可用，已切换到备用路线"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
