@@ -168,7 +168,20 @@ extension View {
         failed = false
         let next = SearchHistoryPolicy.adding(keyword, to: current)
         guard let namespace else { return next }
-        guard let data = try? JSONEncoder().encode(next) else { failed = true; return next }
+        write(next, namespace: namespace)
+        return next
+    }
+    /// P18: one recent search removed by swipe or its trailing delete button; an emptied list deletes the item.
+    func remove(_ keyword: String, namespace: String?, current: [String]) -> [String] {
+        failed = false
+        let next = current.filter { !$0.utf8.elementsEqual(keyword.utf8) }
+        guard let namespace else { return next }
+        if next.isEmpty { return clear(namespace: namespace) ? next : current }
+        write(next, namespace: namespace)
+        return next
+    }
+    private func write(_ next: [String], namespace: String) {
+        guard let data = try? JSONEncoder().encode(next) else { failed = true; return }
         let base = query(namespace)
         let status = SecItemUpdate(base as CFDictionary, [kSecValueData as String: data] as CFDictionary)
         if status == errSecItemNotFound {
@@ -176,7 +189,6 @@ extension View {
             item[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
             failed = SecItemAdd(item as CFDictionary, nil) != errSecSuccess
         } else { failed = status != errSecSuccess }
-        return next
     }
     func clear(namespace: String?) -> Bool {
         failed = false
@@ -184,5 +196,37 @@ extension View {
         let status = SecItemDelete(query(namespace) as CFDictionary)
         failed = status != errSecSuccess && status != errSecItemNotFound
         return !failed
+    }
+}
+
+/// MP `utils/category-icon.js` (UI-13): the backend icon column is one shared placeholder, so the glyph comes from
+/// the category name. Same keyword rules in the same order; unknown names fall back to the neutral shop glyph.
+enum SearchCategorySymbol {
+    private static let rules: [(String, String)] = [
+        ("运动|健身|体育", "figure.run"),
+        ("徒步|骑行|跑步|户外", "point.topleft.down.to.point.bottomright.curvepath"),
+        ("摄影|相机", "camera"),
+        ("科技|数码|电子|设备", "desktopcomputer"),
+        ("美食|餐饮|烹饪|餐厅|食堂", "fork.knife"),
+        ("咖啡|烘焙|甜品", "cup.and.saucer"),
+        ("娱乐|演艺|演出|电影|音乐|游戏|达人|竞猜", "play.circle"),
+        ("衣物|洗护|服装|服饰|鞋包|穿搭", "tshirt"),
+        ("家政|维修|家居|清洁|整理|搬家", "wrench.and.screwdriver"),
+        ("出行|交通", "car"),
+        ("旅行|旅游|路线|漫游", "point.topleft.down.to.point.bottomright.curvepath"),
+        ("生活|美学|美妆|时尚|艺术", "paintpalette"),
+        ("探索|城市|地图|街区", "map"),
+        ("文化|叙事|故事|历史|读书", "book"),
+        ("亲子|协作|团队|组队|社交|交友|俱乐部", "person.2"),
+        ("解谜|谜题|推理|机关", "lock"),
+        ("夜游|夜生活|夜", "star"),
+    ]
+    static func name(for categoryName: String) -> String {
+        let text = categoryName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return "storefront" }
+        for (pattern, symbol) in rules where text.range(of: pattern, options: .regularExpression) != nil {
+            return symbol
+        }
+        return "storefront"
     }
 }

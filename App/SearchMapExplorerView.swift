@@ -133,7 +133,8 @@ import SwiftUI
                             .accessibilityIdentifier("searchMap.areaRequired")
                     }
                 }
-                else if loading { ProgressView().frame(maxWidth: .infinity).accessibilityLabel(Text("searchMap.loading")).accessibilityIdentifier("searchMap.loading") }
+                // P10: words, not a bare spinner — the nearby read says it is looking around you.
+                else if loading { ProgressView(mode == .nearby ? "search.r3.loading.nearby" : "search.r3.loading.map").frame(maxWidth: .infinity).accessibilityIdentifier("searchMap.loading") }
                 else if let issue { SearchMapIssue(key: issue) { startLoad() } }
                 if let result = visibleCityResults { cityContent(result) }
                 if let result = nearbyResults { nearbyContent(result) }
@@ -460,6 +461,7 @@ import SwiftUI
                 Button { openLayerCity(row, rendered: renderedContext) } label: {
                     QuestifyImageEntityCard(imageSource: reader.isOfflineExample ? nil : row.imageURL, title: row.name, subtitle: row.templateTitle ?? row.merchantName, fallbackTitle: "searchMap.untitled", fallbackSymbol: "mappin", minimumHeight: 230) {
                         Label("searchMap.cityNodes", systemImage: "mappin")
+                        if let distance = distanceText(to: row.coordinate) { Label { Text(verbatim: distance) } icon: { Image(systemName: "location") } }
                     }
                 }.buttonStyle(.plain).accessibilityIdentifier("searchMap.city.node.\(row.id)")
                 if row.coordinate != nil { selectPlace("city-\(row.id)", title: row.name) }
@@ -468,7 +470,7 @@ import SwiftUI
     }
     @ViewBuilder private var refreshControls: some View {
         if refresh.isLoading {
-            ProgressView().accessibilityLabel(Text("mapRefresh.loading")).accessibilityIdentifier("mapRefresh.loading")
+            ProgressView("mapRefresh.loading").accessibilityIdentifier("mapRefresh.loading")
             Text("mapRefresh.previousWhileLoading")
                 .font(.footnote).fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("mapRefresh.previousWhileLoading")
@@ -493,7 +495,7 @@ import SwiftUI
     }
     @ViewBuilder private var activityPaginationControls: some View {
         if pagination.isLoading {
-            ProgressView().accessibilityLabel(Text("mapPagination.loading")).accessibilityIdentifier("mapPagination.loading")
+            ProgressView("mapPagination.loading").accessibilityIdentifier("mapPagination.loading")
         } else if let failure = pagination.failure {
             VStack(alignment: .leading, spacing: 8) {
                 Label(LocalizedStringKey(failure == .unauthorized ? "searchMap.partialSignIn" : "mapPagination.failed"), systemImage: "exclamationmark.circle")
@@ -531,13 +533,26 @@ import SwiftUI
             } label: {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(verbatim: node.addressName).font(.headline).foregroundStyle(.primary)
-                    if let address = node.address { Text(verbatim: address).font(.subheadline).foregroundStyle(.secondary) }
+                    // P18 result row: name, then distance · area on one quiet line.
+                    if let line = nearbyFactLine(node) { Text(verbatim: line).font(.subheadline).foregroundStyle(.secondary) }
                     if node.coordinate == nil { Label("searchMap.noCoordinates", systemImage: "mappin.slash").font(.caption).foregroundStyle(.secondary) }
                 }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                     .contentShape(Rectangle())
             }.buttonStyle(.plain).accessibilityIdentifier("searchMap.nearby.node.\(node.id)")
             if node.coordinate != nil { selectPlace("nearby-\(node.id)", title: node.addressName) }
         }
+    }
+    /// "350 m · 黄浦区…": straight-line distance from the search center, then the node's address.
+    private func nearbyFactLine(_ node: RoamRouteNode) -> String? {
+        var parts: [String] = []
+        if let distance = distanceText(to: node.coordinate) { parts.append(distance) }
+        if let address = node.address, !address.isEmpty { parts.append(address) }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+    /// Straight-line distance from the search center in the locale's road unit (`350 m`, `0.2 mi`).
+    private func distanceText(to coordinate: RoamCoordinate?) -> String? {
+        guard let area, let coordinate else { return nil }
+        return LocaleDisplay.distance(meters: SearchRoutePreview.distance(area.coordinate, coordinate), locale: locale)
     }
     private func nearbyDetail(_ node: RoamRouteNode, area: RoamSearchArea) -> some View {
         List {

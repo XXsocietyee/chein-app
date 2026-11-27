@@ -109,9 +109,9 @@ import SwiftUI
             } else {
                 if loading {
                     Section {
-                        ProgressView()
+                        // P10: say what is happening, not a bare spinner.
+                        ProgressView("search.r3.loading.results")
                             .frame(maxWidth: .infinity)
-                            .accessibilityLabel(Text("searchMap.loading"))
                             .accessibilityIdentifier("searchMap.loading")
                     }
                 }
@@ -120,7 +120,8 @@ import SwiftUI
                     results(snapshot.results, retainedKinds: snapshot.retainedKinds)
                 } else if !loading && issue == nil { suggestions }
             }
-            mapSection
+            // P18: on the empty page the map entries lead (`nearbySection`); under results they stay last.
+            if !showsSuggestions { mapSection }
         }
         .listStyle(.insetGrouped)
         .globalSearchPageChrome(hostsField ? ownSearchSession : nil)
@@ -209,6 +210,10 @@ import SwiftUI
         .onChange(of: filter.keyword) { _, _ in emptySearchNotice = nil }
     }
     private var categoryOwner: SearchMapCategoryRecovery.Owner { .init(reader: reader) }
+    /// The empty search page (no results, not loading, no failure): suggestions instead of results.
+    private var showsSuggestions: Bool {
+        reader.isConfigured && !loading && issue == nil && retainedResults.snapshot(in: resultContext) == nil
+    }
     private func showsRow(_ row: GlobalSearchRow) -> Bool {
         if hidesMerchants && row.kind == .merchant { return false }
         if let kind = selectedKind { return row.kind == kind }
@@ -239,19 +244,42 @@ import SwiftUI
     }
     @ViewBuilder private var suggestions: some View {
         let context = categoryRecovery.context(for: categoryOwner)
+        // P18: Nearby first, before anything is typed (MP `search-actions__map` 在地图上找, lifted to the top).
+        nearbySection
         // Mini-program 搜索历史: recent keywords as system rows with 清空 on the header line (App Store "Recent" pattern).
+        // P18: each row also removes itself (trailing ✕ and swipe), so one wrong search never forces Clear all.
         if !history.isEmpty {
             Section {
                 ForEach(history, id: \.self) { keyword in
-                    Button { setKeyword(keyword); Task { await search() } } label: {
-                        Label { Text(verbatim: keyword).foregroundStyle(.primary) } icon: { Image(systemName: "clock.arrow.circlepath") }
+                    HStack(spacing: CYSpacing.sm) {
+                        Button { setKeyword(keyword); Task { await search() } } label: {
+                            Label { Text(verbatim: keyword).foregroundStyle(.primary) } icon: { Image(systemName: "clock.arrow.circlepath") }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.borderless)
+                        Button { removeHistory(keyword) } label: {
+                            Image(systemName: "xmark")
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                                .frame(minWidth: 44, minHeight: 44)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.borderless)
+                        .accessibilityLabel(Text("search.r3.history.remove.a11y \(keyword)"))
+                        .accessibilityIdentifier("searchMap.history.remove")
+                    }
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        Button(role: .destructive) { removeHistory(keyword) } label: {
+                            Label("search.r3.history.remove", systemImage: "trash")
+                        }
                     }
                 }
             } header: {
                 HStack {
-                    sectionTitle("searchMap.history")
+                    sectionTitle("search.r3.recent")
                     Spacer()
-                    Button("searchMap.clearHistory") { if historyStore.clear(namespace: historyNamespace) { history = [] }; historyFailure = historyStore.failed }
+                    Button("search.r3.history.clearAll") { if historyStore.clear(namespace: historyNamespace) { history = [] }; historyFailure = historyStore.failed }
                         .textCase(nil).buttonStyle(.borderless)
                         .accessibilityIdentifier("searchMap.clearHistory")
                         .accessibilityLabel(Text("searchMap.clearHistory.a11y"))
@@ -260,20 +288,26 @@ import SwiftUI
         }
         if !recommendedKeywords.isEmpty {
             Section {
-                ForEach(Array(recommendedKeywords.enumerated()), id: \.offset) { index, keyword in
-                    Button { setKeyword(keyword); Task { await search() } } label: {
-                        Label { Text(verbatim: keyword).foregroundStyle(.primary) } icon: { Image(systemName: "magnifyingglass") }
+                // MP `hot-keys .li` chips: one wrapping row of capsules (a column at accessibility sizes).
+                capsuleLayout {
+                    ForEach(Array(recommendedKeywords.enumerated()), id: \.offset) { index, keyword in
+                        Button { setKeyword(keyword); Task { await search() } } label: {
+                            Text(verbatim: keyword)
+                        }
+                        .buttonStyle(.bordered)
+                        .buttonBorderShape(.capsule)
+                        .disabled(!reader.isConfigured)
+                        .accessibilityIdentifier("searchMap.recommended.\(index)")
                     }
-                    .disabled(!reader.isConfigured)
-                    .accessibilityIdentifier("searchMap.recommended.\(index)")
                 }
+                .padding(.vertical, 4)
             } header: { sectionTitle("searchMap.recommended") }
         }
         // 类别 hides once the directory is known to be empty; loading and failure still show.
         if categoryLoading || categoryFailed || !categories.isEmpty {
             Section {
                 if categoryLoading {
-                    ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("globalSearch.category.loading")
+                    ProgressView("search.r3.loading.categories").frame(maxWidth: .infinity).accessibilityIdentifier("globalSearch.category.loading")
                 } else if categoryFailed {
                     SearchMapIssue(key: "searchMap.categoryFailed") {
                         guard !showsFilters, let context else { return }
@@ -282,19 +316,23 @@ import SwiftUI
                     .questifyCardListRow()
                 }
                 if !categories.isEmpty {
-                    // Category shortcuts as system bordered buttons in an adaptive grid (no cover art or scrim).
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 125))], spacing: CYSpacing.sm) {
+                    // P18: category shortcuts as system capsules in one wrapping row (no cover art or scrim).
+                    capsuleLayout {
                         ForEach(categories) { category in
                             Button {
                                 guard !showsFilters, let context, categoryRecovery.accepts(context) else { return }
                                 var next = filter; next.categoryID = category.id; applyFilter(next)
                             } label: {
-                                Text(verbatim: category.name)
-                                    .multilineTextAlignment(.center)
-                                    .frame(maxWidth: .infinity)
+                                // MP 类别 tiles carry an icon beside the name (utils/category-icon.js).
+                                Label {
+                                    Text(verbatim: category.name)
+                                } icon: {
+                                    Image(systemName: SearchCategorySymbol.name(for: category.name)).accessibilityHidden(true)
+                                }
                             }
                             .buttonStyle(.bordered)
-                            .controlSize(.large)
+                            .buttonBorderShape(.capsule)
+                            .accessibilityAddTraits(filter.categoryID == category.id ? .isSelected : [])
                             .accessibilityIdentifier("searchMap.category.\(category.id)")
                         }
                     }
@@ -320,29 +358,68 @@ import SwiftUI
             }
             .pageTemplateControl(label: Text("searchMap.citySearch"), traits: .isButton)
             .accessibilityIdentifier("searchMap.citySearch")
-            Menu {
-                Button { mapRoute = .nearby } label: { Label("searchMap.nearby", systemImage: "location") }
-                if publicLayers != nil {
-                    Button { mapRoute = .layers } label: { Label("searchMap.publicLayers", systemImage: "square.3.layers.3d") }
-                        .accessibilityIdentifier("mapPublic.entry")
-                }
-                if !hidesMerchants {
-                    Button { mapRoute = .shops } label: { Label("merchant.discover.title", systemImage: "storefront") }
-                        .accessibilityIdentifier("merchant.discover.entry")
-                }
-            } label: {
+            moreWaysMenu(includesNearby: true)
+        }
+    }
+    /// P18 "Nearby first": the empty page opens with the nearby map (with the reason it asks for location),
+    /// then the city map, then the remaining finders.
+    private var nearbySection: some View {
+        Section {
+            Button { mapRoute = .nearby } label: {
                 Label {
-                    Text(LocalizedStringResource("searchMap.moreWays", defaultValue: "More ways to find"))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("search.r3.nearby.row").foregroundStyle(.primary)
+                        Text("search.r3.nearby.reason").font(.footnote).foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 } icon: {
-                    Image(systemName: "ellipsis.circle")
+                    Image(systemName: "location.fill")
                 }
             }
-            .pageTemplateControl(
-                label: Text(LocalizedStringResource("searchMap.moreWays", defaultValue: "More ways to find")),
-                traits: .isButton
-            )
-            .accessibilityIdentifier("searchMap.more")
+            .accessibilityIdentifier("searchMap.nearbyFirst")
+            Button { mapRoute = .city } label: {
+                Label { Text("searchMap.citySearch").foregroundStyle(.primary) } icon: { Image(systemName: "map") }
+            }
+            .pageTemplateControl(label: Text("searchMap.citySearch"), traits: .isButton)
+            .accessibilityIdentifier("searchMap.citySearch")
+            moreWaysMenu(includesNearby: false)
+        } header: { sectionTitle("search.r3.nearby.header") }
+    }
+    private func moreWaysMenu(includesNearby: Bool) -> some View {
+        Menu {
+            if includesNearby {
+                Button { mapRoute = .nearby } label: { Label("searchMap.nearby", systemImage: "location") }
+            }
+            if publicLayers != nil {
+                Button { mapRoute = .layers } label: { Label("searchMap.publicLayers", systemImage: "square.3.layers.3d") }
+                    .accessibilityIdentifier("mapPublic.entry")
+            }
+            if !hidesMerchants {
+                Button { mapRoute = .shops } label: { Label("merchant.discover.title", systemImage: "storefront") }
+                    .accessibilityIdentifier("merchant.discover.entry")
+            }
+        } label: {
+            Label {
+                Text(LocalizedStringResource("searchMap.moreWays", defaultValue: "More ways to find"))
+            } icon: {
+                Image(systemName: "ellipsis.circle")
+            }
         }
+        .pageTemplateControl(
+            label: Text(LocalizedStringResource("searchMap.moreWays", defaultValue: "More ways to find")),
+            traits: .isButton
+        )
+        .accessibilityIdentifier("searchMap.more")
+    }
+    /// Wrapping capsule row; a plain column at accessibility sizes so no capsule is clipped (P12).
+    private var capsuleLayout: AnyLayout {
+        dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
+            : AnyLayout(TemplateChipFlow(spacing: CYSpacing.sm))
+    }
+    private func removeHistory(_ keyword: String) {
+        history = historyStore.remove(keyword, namespace: historyNamespace, current: history)
+        historyFailure = historyStore.failed
     }
     private func sectionTitle(_ key: LocalizedStringKey) -> some View {
         Text(key).accessibilityAddTraits(.isHeader)
