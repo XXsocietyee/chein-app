@@ -62,3 +62,11 @@ The run-1 work above was merged into combined-r7, and lane B also trimmed the ba
 The other rows of `test_profile_read_failure_remote_admission` that are still in the baseline (rows 53+ after this trim) belong to the second half and lane B. I ran the whole module before and after the deletions: 52 tests with 31 failures before, 47 tests with 26 failures after. No method that passed before fails now.
 
 ### Gate (run 2)
+
+| check | before | after |
+|---|---|---|
+| `python3 -B tools/contract_ratchet.py --check` | 117 failing, baseline 117 | **110 failing, baseline 110, new 0, fixed 0** |
+| `python3 tools/check_scaffold.py` | — | PASS |
+| `python3 -B tools/check_a11y_lint.py` | — | PASS (0 new) |
+
+No Swift app code changed this run.
