@@ -156,12 +156,12 @@ struct CityLiveMapControls: View {
                 Text(verbatim: title).lineLimit(1)
             }
             .cyText(.button)
-            .foregroundStyle(palette.actionPrimaryFg)
-            .frame(maxWidth: .infinity, minHeight: 52)
-            .background(palette.actionPrimaryBg, in: Capsule())
-            .contentShape(Capsule())
+            .frame(maxWidth: .infinity, minHeight: 44)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.borderedProminent)
+        .buttonBorderShape(.capsule)
+        .controlSize(.large)
+        .tint(palette.actionPrimaryBg)
         .accessibilityIdentifier(id)
     }
 

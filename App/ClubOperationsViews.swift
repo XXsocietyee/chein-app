@@ -464,16 +464,21 @@ struct ClubOperationsWorkspaceView: View {
             if target != .create, let profile = value.profile {
                 ClubEditFactsSection(clubID: profile.club.id, governanceAvailable: hostApplication != nil)
             }
-            // CLB-create-01: MP create step 3 carries a 16:9 cover and a 1:1 logo above the name.
-            if target != .create || ClubPlayerSurface.flatCreateForm || createStepBar.step == 3 {
+            // CLB-create-01: MP create step 3 carries a 16:9 cover and a 1:1 logo above the name. mp-club r3 pass 12
+            // (MP create wxml:57-97): in the stepped flow it sits under the step header, so the form places it.
+            let mediaEnabled = scenePhase == .active && !loading && !state.locksForm && !profileDraftBlocked && access.identity == identity
+            let steppedCreate = target == .create && !ClubPlayerSurface.flatCreateForm
+            if !steppedCreate {
                 ClubProfileMediaSection(draft: $draft, snapshot: value, identity: identity, service: access.profileMedia,
-                    flow: profileMedia, enabled: scenePhase == .active && !loading && !state.locksForm && !profileDraftBlocked && access.identity == identity)
+                    flow: profileMedia, enabled: mediaEnabled)
             }
             ClubOperationsProfileForm(draft: $draft, isCreate: target == .create, isOwner: value.profile?.club.isOwner == true, joinPolicySupported: value.profile?.club.joinPolicySupported == true,
                 choiceContext: profileChoiceContext, choiceIsCurrent: profileChoiceIsCurrent, choiceController: profileChoice,
                 checkClubName: { await access.checkClubName($0) }, submitCreate: { Task { await prepare(.create(draft), confirmsInline: !ClubPlayerSurface.flatCreateForm) } },
                 createNameTaken: createNameTakenMessage,
-                createBar: target == .create && !ClubPlayerSurface.flatCreateForm ? createStepBar : nil)
+                createBar: steppedCreate ? createStepBar : nil,
+                stepMedia: steppedCreate ? AnyView(ClubProfileMediaSection(draft: $draft, snapshot: value, identity: identity, service: access.profileMedia,
+                    flow: profileMedia, enabled: mediaEnabled)) : nil)
                 .disabled(loading || state.locksForm || profileDraftBlocked)
             if target == .create && ClubPlayerSurface.flatCreateForm {
                 Section {
@@ -1096,6 +1101,8 @@ private struct ClubOperationsProfileForm: View {
     var createNameTaken: String? = nil
     /// verify-r1 2.2: the stepped create flow publishes its 上一步 / 下一步 here; the page pins them in one bar.
     var createBar: ClubCreateStepBar? = nil
+    /// Stepped create only: the cover / logo section, shown on step 3 between the step header and the name (MP order).
+    var stepMedia: AnyView? = nil
     @Environment(\.locale) private var formLocale
     @QuestifyReduceMotion private var reduceMotion
     @State private var createStep = 0
@@ -1156,7 +1163,8 @@ private struct ClubOperationsProfileForm: View {
                     // A Section's own onAppear does not fire inside a List; the row's does.
                     .onAppear { publishCreateBar() }
             }
-            Section { ClubCreateStepChecklist(locale: formLocale) { setCreateStep($0) } } // R-steps
+            // mp-club r3 pass 12 (OWNER RULE, MP create wxml:34-37): the intro is the title and 开始创建 only; the
+            // step checklist was a reference-app addition, so it is gone. 开始创建 stays on the pinned step bar.
         } else {
             // verify-r1 2.2 / N-08: the step header is a system progress bar, the step eyebrow and the step title,
             // and on step 2 the 已选 n / 3 count at the trailing end.
@@ -1189,7 +1197,10 @@ private struct ClubOperationsProfileForm: View {
         }
         if createStep == 1 { createTypeSection }
         if createStep == 2 { createDirectionSection }
-        if createStep == 3 { createProfileSection }
+        if createStep == 3 {
+            if let stepMedia { stepMedia }
+            createProfileSection
+        }
         if createStep == 4 { createCitySection }
         Section {
             // verify-r1 2.2 / N-08: 下一步 is pinned at the bottom of the page (the page's `ClubCreateStepBar`), so it
