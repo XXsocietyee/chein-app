@@ -125,14 +125,15 @@ struct PlayThemeMusicKey: Equatable {
                 if NativeR2Flags.cityOrientation { cityOrientationNative } else { orientationContent.cyThemeLook(themeFacts?.look) }
             } else if model.snapshot == nil {
                 if model.phase == .loading {
-                    // design-r2-play P10: the first frame says what is happening, not a bare skeleton.
-                    VStack(alignment: .leading, spacing: CYSpacing.md) {
+                    // design-r2-play P10: the first frame says what is happening, not a bare skeleton. The words sit
+                    // beside the skeleton leaf, which keeps its own identifier.
+                    VStack(alignment: .leading, spacing: 0) {
                         Label("designR2Play.run.loading", systemImage: "hourglass")
                             .font(.headline).foregroundStyle(.secondary)
-                        CYSkeleton()
-                    }
-                    .padding(CYSpacing.lg).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                            .padding([.horizontal, .top], CYSpacing.lg)
+                        CYSkeleton().padding(CYSpacing.lg).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                         .accessibilityIdentifier("playMode.loading")
+                    }
                 } else {
                     VStack(spacing: CYSpacing.md) {
                         if model.available {
@@ -480,12 +481,9 @@ struct PlayThemeMusicKey: Equatable {
                 }
                 if !model.available { Text("playx.disabled").accessibilityIdentifier("playx.disabled") }
                 if model.phase == .loading {
-                    // design-r2-play P10: words before content.
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        Text("designR2Play.run.loading").foregroundStyle(.secondary)
-                        CYSkeleton()
-                    }
-                    .accessibilityIdentifier("playx.loading")
+                    // design-r2-play P10: words before content; the skeleton leaf keeps its identifier.
+                    Text("designR2Play.run.loading").foregroundStyle(.secondary)
+                    CYSkeleton().accessibilityIdentifier("playx.loading")
                 }
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
                 if PlayContentCompatibility.isUnsupportedRejection(model.issue) {
