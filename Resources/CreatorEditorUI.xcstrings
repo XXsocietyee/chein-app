@@ -897,6 +897,22 @@
         }
       }
     },
+    "creatorEditor.window.nextDay %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ next day"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次日 %@"
+          }
+        }
+      }
+    },
     "creatorEditor.window.night": {
       "localizations": {
         "en": {
