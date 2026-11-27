@@ -611,7 +611,14 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
         case "ELIGIBLE": Label { Text("compliance.status.eligible") } icon: { Image(systemName: "checkmark.circle.fill").foregroundStyle(.green) }
         case "BLOCKED": Label { Text("compliance.status.blocked") } icon: { Image(systemName: "xmark.octagon.fill").foregroundStyle(.red) }
         default:
-            Text(verbatim: DeregisterIndexPageModel.statusText(raw))
+            if DeregisterIndexPageModel.knownStatuses.contains(raw.trimmingCharacters(in: .whitespacesAndNewlines)) {
+                Text(verbatim: DeregisterIndexPageModel.statusText(raw))
+            } else {
+                // mp-settings r3: MP scene-settings-deregister fallback — 账号状态待确认 + 重试.
+                Label { Text("compliance.status.unconfirmed") } icon: { Image(systemName: "questionmark.circle").foregroundStyle(.secondary) }
+                Button("settingsNative.retry") { requestCancellationRead() }
+                    .accessibilityIdentifier("compliance.status.unconfirmed.retry")
+            }
         }
     }
     private var roam: some View {

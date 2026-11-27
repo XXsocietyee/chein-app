@@ -335997,6 +335997,23 @@
           }
         }
       }
+    },
+    "compliance.status.unconfirmed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account status not confirmed yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号状态待确认"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

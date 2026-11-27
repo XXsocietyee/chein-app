@@ -98,8 +98,9 @@ import SwiftUI
                     confirmation = session.signOutConfirmation(accountID: accountID)
                     confirms = confirmation != nil
                 } label: {
+                    // mp-settings r3: MP shezhi.wxml:39-47 — 退出账号 is reversible, so it is a neutral action (accent, not red);
+                    // red stays for 账号注销 only.
                     Label { Text("settings.signOut") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLogout) }
-                        .foregroundStyle(.red)
                 }
                     .disabled(working)
                     .accessibilityIdentifier("settings.signOut")
