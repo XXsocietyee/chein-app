@@ -35,10 +35,13 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/topic-detail · 更多 | same | MP order (wxml:430-470): 剧情与玩法 → 结束活动 → 核销记录 → 场次管理 → 退出与暂停规则. Native was missing 剧情与玩法 and 核销记录, had 结束活动 last, and had stats/settings/enrollment first. | **Fixed.** MP order; stats/settings/enrollment follow as a second group |
 | club/topic-detail | same | Hide 核销/主题/接下来 when the director is active and the topic ended (wxml:94); per-session 团码/run-control/集合时间 rows (MP has one director row); inline settings block in 更多; rules as a footbar half-sheet. | **Not done.** large / behaviour moves |
 | club/topic-story | `ClubGovernanceStoryView`, `ClubStoryViews.swift` | Missing-param 链接已失效 + 返回 (wxml:13). | Already present (`MPReviewedPageScreen` `club.story.missingTopic`, CLB-r9-topic-story-01) |
-| club/topic-story | same | "no answer" chip; templateUnavailable text; answer-sheet title joins the node name. | Not done (small) |
+| club/topic-story | `ClubStoryViews.swift` `ClubStoryGameplayCard` | Extra orange "no answer" chip on play rows (MP: an unanswerable play just has no 查看答案 button). | **Fixed (pass 3).** Chip removed |
+| club/topic-story | `ClubGovernanceViews.swift` answer sheets | Sheet title was 「答案 · node」; MP (wxml:117, CU-C-152) titles it 答案 and shows the play title as a wrapping sub line. | **Fixed (pass 3).** Title = 答案; play title (MP `data-title`) as a `.subheadline` secondary line, both the club and host answer sheets |
+| club/topic-story | same | No template id: MP shows a dead 看看模板; native says 模板暂不可用. | **Kept** (native explains instead of a dead button; UI test pins the text) |
 | club/badges | `ClubBadgeManagementView.swift` | Matches: list, 全部勋章 · N 枚, create, grant picker, states. | Matches |
 | club/apply | `ClubGovernanceCommandForm` (hostApply) | Submit must read 成为俱乐部主理人 / 提交中… (wxml:164-165); native read 提交申请. | **Fixed** (existing keys `settings.becomeClubHost`, `gap.club.coopPool.submitting`) |
-| club/apply | same | Extra 上一步 button; extra required-fields footer; 状态 row on the done card; done-state loading/error + 可建俱乐部 row. | **Not done** (the done state is large) |
+| club/apply | same | 上一步 button: the MP nav back steps back (js:212 `onBack` → `step - 1`); native is a sheet with 关闭 in the bar, so 上一步 carries that behaviour. | **Kept** (reason given) |
+| club/apply | same | Extra required-fields footer; 状态 row on the done card; done-state loading/error + 可建俱乐部 row. | **Not done** (the done state is large) |
 | club/create | `ClubOperationsViews.swift` | 返回上一页 was missing on the no-permission and limit states (wxml:23, 27). | **Fixed.** Secondary `Button("team.page.goBack") { dismiss() }` |
 | club/create | same | 创建资格未确认 needs primary 重新检查 + secondary 返回上一页 (wxml:16-18). | **Fixed (pass 2).** 重新检查 `.borderedProminent`, 返回上一页 `.bordered` |
 | club/create | same | Extra step checklist on the intro; media above the step header on step 3; extra 上一步. | **Not done.** Step 3 order is large |
@@ -56,11 +59,14 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/settlement | `ClubGovernanceViews.swift` settlement | The direct ledger is for the owner only (`summary.isOwner`, wxml:9). | **Fixed** |
 | club/settlement | same | MP order puts the 已入账 card after the funds stages. The native funds section also carries the withdraw button that the MP shows under the card, so moving the card would split card and button (and `test_club_ops_customer` pins card-before-funds). | **Kept** (reason given) |
 | club/event-ops | `ClubOpsEventView.swift` | With no topics and no series, the MP hides 重复方式 (wxml:178). | **Fixed** |
-| club/event-ops | same | Inline 日期清单 and 重复方式 forms instead of push rows; 返回 on no-permission; 本场名册 · N 人 as a section title. | **Not done.** large / small |
+| club/event-ops | same | 当前身份不能运营活动 needs 返回 (wxml:15-16). | **Fixed (pass 3).** `.bordered` 返回 (`action.back`) on the denied `ContentUnavailableView` |
+| club/event-ops | same | 本场名册 · N 人 as the roster title. | Already present (CLB-event-ops-02) |
+| club/event-ops | same | Inline 日期清单 and 重复方式 forms instead of push rows. | **Not done.** large |
 | club/notify | `ClubGovernanceCommandForm` (sendNotification) | 当前身份不能发通知 | Already present (`ClubOpsNotifyDeniedText`, a `ContentUnavailableView`) |
-| club/notify | same | Inline 受众预览失败 + 重试; 投递状态 section with 刷新 in the header; extra review fact rows. | **Not done** (send-button wording is a deliberate CLB-notify-01 choice) |
+| club/notify | `ClubGovernanceCommandForm.swift` | A failed 预览受众 is inline 受众预览失败 + reason + 重试 (wxml:59-62); native showed the generic form error. | **Fixed (pass 3).** Dedicated section before any review, 重试 re-runs the preview (`club.notify.previewFailed`) |
+| club/notify | same | 投递状态 section with 刷新 in the header; extra review fact rows. | **Not done** (send-button wording is a deliberate CLB-notify-01 choice) |
 | club/governance | `ClubOpsBanSection` | Full-page 暂无可治理成员 (js:403: no members and no bans). The member list is read inside `ClubOpsMemberActionCard`, so the page cannot tell yet; extra appeal-mode headline. | Not done (needs the member read lifted) |
-| club/customers | `ClubOpsCustomerViews.swift` | The count line sits as the list section header after the filter (native pattern; the count follows the filter); the filtered-empty CTA is outside the empty state. | **Kept** / not done |
+| club/customers | `ClubOpsCustomerViews.swift` | The count line sits as the list section header after the filter (native pattern; the count follows the filter); the filtered-empty CTA 查看全部客户 is a borderless button under the empty state, not inside it. | **Kept** (the CTA's fences are pinned in place by `test_club_customer_clear_filters`; moving it needs the clear closure threaded into the list view) |
 | club/customer-detail | `ClubOpsCustomerViews.swift`, `ClubCustomerInlineEditor.swift` | In edit mode the editor replaces the card, the heading reads 编辑标签与备注 and 取消 sits in the heading (wxml:82-99). | **Fixed (pass 2).** The editor owns the 标签与备注 section; 取消 moved from a row into the header (VoiceOver: 取消编辑标签与备注) |
 | club/payout-receiver | `ClubPayoutReceiverView.swift` | Binding needs a WeChat code (`PayoutReceiverBridge.payoutOpen`). | Blocked (WeChat/backend), not a view gap |
 | club/edit | `ClubOperationsViews.swift` | 改为转让主理人 is only inside the dissolve confirm in the MP (scene-club-edit `cy-danger-confirm` alt); native shows a permanent row. | Not done (needs the dissolve confirm reworked into one sheet) |
@@ -94,6 +100,7 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 | `club.enroll.retryUpdate` | Try updating again | 重试更新 |
 | `club.joinRequests.loading` | Loading join requests | 正在加载入会申请 |
 | `clubR11.customer.cancelEditA11y` | Cancel editing tags and remark | 取消编辑标签与备注 |
+| `club.notify.previewFailed` | Audience preview failed | 受众预览失败 |
 
 ## Contract test pins updated (with reason)
 
@@ -111,4 +118,5 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 5. This receipt.
 6. 创建俱乐部 no-permission / limit: 返回上一页.
 7. 角色与权限 empty state 暂无成员.
+9. Pass 3: topic-story answer sheet title + no-answer chip, event-ops denied 返回, notify 受众预览失败 + 重试.
 8. Pass 2: shared club thumbnail, customer-detail edit heading, create check-failed 返回上一页, enroll order, check-in rail refund note.

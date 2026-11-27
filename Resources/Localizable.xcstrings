@@ -344307,6 +344307,23 @@
           }
         }
       }
+    },
+    "club.notify.previewFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audience preview failed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "受众预览失败"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

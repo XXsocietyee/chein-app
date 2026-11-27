@@ -2498,10 +2498,20 @@ struct ClubGovernanceEventView: View {
         }
         .cySheet(item: $answerSheetTarget) { target in
             PlayCloseSheetHost(
-                title: [appLocalized("club.story.answerTitle", locale: locale), answerSheetName].compactMap { $0 }.joined(separator: " · "),
+                title: appLocalized("club.story.answerTitle", locale: locale),
                 detents: [.half, .full],
                 onClose: { answerSheetTarget = nil }
             ) {
+                // MP topic-story wxml:117 (CU-C-152): the sheet title is just 答案; the play name is a wrapping sub line.
+                if let name = answerSheetName, !name.isEmpty {
+                    Text(verbatim: name)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, CYSpacing.lg)
+                        .accessibilityIdentifier("club.story.answer.nodeName")
+                }
                 if current(target) {
                     ClubGovernanceReadView(operation: .nodeAnswer, scope: target.scope, identity: identity, access: access, coordinator: coordinator)
                         .id(target.id)
@@ -2513,10 +2523,19 @@ struct ClubGovernanceEventView: View {
         }
         .cySheet(item: $hostAnswerTarget) { target in
             PlayCloseSheetHost(
-                title: [appLocalized("club.story.answerTitle", locale: locale), target.name].compactMap { $0 }.joined(separator: " · "),
+                title: appLocalized("club.story.answerTitle", locale: locale),
                 detents: [.half, .full],
                 onClose: { hostAnswerTarget = nil }
             ) {
+                if let name = target.name, !name.isEmpty {
+                    Text(verbatim: name)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, CYSpacing.lg)
+                        .accessibilityIdentifier("club.story.answer.nodeName")
+                }
                 ClubStoryHostAnswerSheetContent(topicID: target.topicID, nodeID: target.nodeID, context: hostAnswer)
                     .id(target.id)
             }
@@ -2614,7 +2633,7 @@ struct ClubGovernanceEventView: View {
                                     storyToastMessage = appLocalized("club.story.sourceUnavailable", locale: locale)
                                     return
                                 }
-                                answerSheetName = play.nodeName ?? play.title
+                                answerSheetName = play.title ?? play.nodeName
                                 answerSheetTarget = target
                             }
                             .accessibilityIdentifier("club.story.answer.\(play.id)")
