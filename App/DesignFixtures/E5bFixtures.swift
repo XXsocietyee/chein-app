@@ -108,12 +108,18 @@ struct A11yRoamAX5Fixture: View {
     var body: some View {
         CYMapScaffold(detent: .compact, peek: AnyView(
             HStack(spacing: CYSpacing.sm) {
-                Text(verbatim: tt("Nearby activities", "附近活动")).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: tt("Nearby activities", "附近活动")).cyText(.bodyMedium).foregroundStyle(.primary)
                 Spacer(minLength: 0)
                 // a11y-dt r3 (22:11 sweep): a bare "—" read as a placeholder shown as data; the peek states the count (P29).
-                Text(verbatim: "2").cyText(.bodyMedium).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: "2").cyText(.bodyMedium, monospacedDigit: true).foregroundStyle(.primary)
                     .accessibilityLabel(Text(verbatim: tt("2 nearby", "附近 2 个")))
-            }.padding(.horizontal, CYSpacing.xl).frame(maxWidth: .infinity, minHeight: 44)
+                Image(systemName: "chevron.up").font(.footnote.weight(.semibold)).foregroundStyle(.secondary).accessibilityHidden(true)
+            }
+            // a11y-dt r3 (23:07 sweep): title was black text on the black panel in light mode and "2" grey on black;
+            // same material + semantic foregrounds as the real roam peek (RoamBrowserView.peekLine).
+            .padding(.horizontal, CYSpacing.lg).frame(maxWidth: .infinity, minHeight: 44)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+            .padding(.horizontal, CYSpacing.md)
         ), map: { CYMapPlaceholder() }, controls: {
             HStack(alignment: .center) {
                 Text(verbatim: tt("Roam", "漫游")).cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)

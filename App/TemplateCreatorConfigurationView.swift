@@ -141,7 +141,7 @@ import Combine
             } else {
             VStack(alignment: .leading) {
                 TextField(LocalizedStringKey(field.labelKey), text: text, axis: .vertical).textInputAutocapitalization(.never)
-                HStack { if required { Text("creator.required") }; Spacer(); Text(verbatim: "\(text.wrappedValue.utf16.count)/\(max)") }.font(.footnote).foregroundStyle(.secondary)
+                HStack { if required { Text("creator.required") }; Spacer(); Text(verbatim: "\(text.wrappedValue.utf16.count)/\(max)").accessibilityLabel(Text("a11y.value.characters \(Int(text.wrappedValue.utf16.count)) \(Int(max))")) }.font(.footnote).foregroundStyle(.secondary)
             }
             }
         case .number(let min, let max, let integer):

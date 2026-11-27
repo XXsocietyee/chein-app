@@ -132,7 +132,7 @@ public struct OrientScoreAppealSheetView: View {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         HStack {
                             Spacer()
-                            Text("\(reason.count)/\(OrientAppealValidator.maxReasonLength)")
+                            Text("\(reason.count)/\(OrientAppealValidator.maxReasonLength)").accessibilityLabel(Text("a11y.value.characters \(Int(reason.count)) \(Int(OrientAppealValidator.maxReasonLength))"))
                                 .cyText(.meta, monospacedDigit: true)
                                 .foregroundStyle(CYColor.textSecondary)
                         }
