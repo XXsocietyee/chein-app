@@ -814,5 +814,22 @@
         }
       }
     }
+  },
+  "roam.live.idle": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Staying in place"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "原地停留中"
+        }
+      }
+    }
   }
 }

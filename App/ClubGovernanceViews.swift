@@ -799,7 +799,7 @@ struct ClubGovernanceReadView: View {
             ClubOpsEventView(scope: target, identity: identity, access: access, coordinator: coordinator)
         }
         // Round 4 copy: MP customer-detail bar title is 客户 (wxml:8); the member action sheet keeps 客户详情.
-        .cyPageTitle(String.LocalizationValue(stringLiteral: operation == .customer ? "clubR3b.customer.title" : "club.gov." + operation.rawValue))
+        .cyPageTitle(String.LocalizationValue(stringLiteral: pageTitleKey))
         .cyHaptic(.impactMedium, trigger: editor?.id) { _, opened in opened != nil }
         // CLB-r7-D-02 (fix-r3-club-b): MP customers onShow re-reads the list, so a tag/remark saved on the
         // customer page shows when the owner comes back.
@@ -2177,6 +2177,14 @@ struct ClubGovernanceReadView: View {
     }
     /// MP `_directorActivityId` (topic-detail js:587-592): the page was opened on one session and the director runs it.
     private var directorActive: Bool { directorModel != nil }
+    /// Inline bar title. MP governance js:224: `mode=appeal` titles the page 封禁申诉 (was an in-content headline).
+    private var pageTitleKey: String {
+        if operation == .customer { return "clubR3b.customer.title" }
+        if operation == .cases, let snapshot, let cases = try? ClubOpsCaseList(snapshot: snapshot), cases.appealMode {
+            return "club.gov.casesAppeal"
+        }
+        return "club.gov." + operation.rawValue
+    }
     /// MP `onPrepareSession` / `onStartSession` / `onFinishSession` (director.js:1431-1438): one command at the
     /// projection's revision; the projection refuses what the server does not offer (当前不能结束活动).
     private func sendDirector(_ action: PlayDirectorAction) {

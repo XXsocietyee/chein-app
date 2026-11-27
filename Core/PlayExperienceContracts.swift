@@ -603,6 +603,25 @@ public enum PlayRunRouteNotice: String, Equatable {
     }
 }
 
+/// mp-journey r3: MP `pages/play/utils/play-puzzle-summary.js` for the finish grid 解谜分: the sum of the done stops'
+/// `puzzleScore` (each held to 0…100); `count` is how many done stops carried one (0 hides the cell).
+public struct PlayPuzzleSummary: Equatable {
+    public let score: Int
+    public let count: Int
+
+    public init(snapshot: PlaySnapshot) {
+        var score = 0
+        var count = 0
+        for node in snapshot.visibleNodes where snapshot.isDone(node) {
+            guard let value = node.puzzleScore else { continue }
+            score += min(max(value, 0), 100)
+            count += 1
+        }
+        self.score = score
+        self.count = count
+    }
+}
+
 /// mp-journey r3: MP 飞分 `+N 探索值` at the completion moment (pages/play/index.js `_onCompleted`): `xp`, else `score`,
 /// only when positive and not a repeat completion (`firstTime == false`).
 public enum PlayFlyScore {

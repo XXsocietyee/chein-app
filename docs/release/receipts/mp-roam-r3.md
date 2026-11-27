@@ -116,6 +116,19 @@ No motion added. No tests pin the removed rules sheet or the old tools layout.
 
 Gates: generate_project OK · check_scaffold PASS (20645 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 
+## Round 3 continue (5) — live map maptip stack (pages/roam/index.wxml:465–490)
+
+Base re-merged with `origin/ui/combined-r7` (xcstrings: both sides' keys kept; `playerGap.trail.share` from base, `roamTools.clearCache.confirmMessage` ours).
+
+| MP page / scene | Native view | Differences | Status |
+|---|---|---|---|
+| `pages/roam/index` maptip BL-02 `原地停留中` (`utils/roam-idle.js`) | `App/RoamLiveSessionView.swift` HUD header status tag | MP shows a status-only tip while walking (not paused) when the player moved < 3 m for 60 s; never changes time, distance or reveal. Native had no stationary state. | **Fixed:** `RoamLiveIdleDetector` (same 3 m / 60 s rule, fed by `owner.lastFix`, reset when the phase leaves `.active`); the HUD status tag reads 原地停留中 with a `mappin` symbol instead of 漫游中 while idle. The hold is measured against the clock (a `TimelineView` every 5 s, paused unless walking) because iOS may stop sending fixes while standing still. Same identifier `roam.live.statusTag`. |
+| maptip 地图没加载出来 · 重试 / 据点 recovery / BL-03 sync offline | `RoamLiveSessionView` (`roam.live.recoveryHint`, `CYStatusOfflineBanner`) | Recovery confirm and the sync-offline banner already mirrored. Map-load watchdog: MapKit draws its own tiles, no black-frame state to explain. | No change. |
+
+New string: `roam.live.idle` (Staying in place / 原地停留中), also in `docs/port/strings/mp-r3-roam.json`. No motion added (symbol swap only).
+
+Gates: generate_project OK · check_scaffold PASS (20668 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no
