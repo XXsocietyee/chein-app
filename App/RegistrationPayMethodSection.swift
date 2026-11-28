@@ -2,17 +2,20 @@ import SwiftUI
 
 /// Sweep 04:50 (mp-activity P1) / owner correction 11-28 04:45: a "Pay with" row under 费用明细.
 /// CN: WeChat Pay (default) / Alipay. US: Apple Pay (default when the device can pay) / Card (Stripe).
+/// Fix 11-28 P1-3: `market` is the order's pay market from the quote currency (`StripePayEligibility.payMarket`), not the
+/// storefront; `paymentChannels` narrows the US options to what the backend offers for this order.
 /// Official names as plain system rows (no logos). Free tickets show no row.
 struct RegistrationPayMethodSection: View {
     @Environment(\.locale) private var locale
     @Binding var selection: RegistrationPayMethod?
     let price: Decimal?
     let market: RegionalMarket?
+    var paymentChannels: [String]? = nil
     let applePayAvailable: Bool
     let enabled: Bool
 
     private var options: [RegistrationPayMethod] {
-        RegistrationPayMethod.options(market: market, applePayAvailable: applePayAvailable)
+        RegistrationPayMethod.options(market: market, applePayAvailable: applePayAvailable, paymentChannels: paymentChannels)
     }
 
     private var current: RegistrationPayMethod {
