@@ -202,8 +202,10 @@ import UIKit
 /// Example-content marker for offline samples only; live screens show nothing here.
 struct RoamExperienceNotice: View {
     let offline: Bool
+    /// mp-roam r3: design fixtures render the real page, so the 示例内容 note stays out of the sweep (UI tests still see it).
+    private var showsNotice: Bool { offline && !ProcessInfo.processInfo.arguments.contains("--design-fixture") }
     var body: some View {
-        if offline {
+        if showsNotice {
             Label("roam.experience.offline", systemImage: "testtube.2")
                 .cyText(.caption).foregroundStyle(CYColor.textSecondary)
                 .padding(.horizontal, 12).padding(.vertical, 6)

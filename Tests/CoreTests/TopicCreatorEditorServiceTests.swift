@@ -115,6 +115,18 @@ import FoundationNetworking
         await XCTAssertThrowsIssue(.invalid) { _ = try await editor.createNamedStateKey(topicID: 9, kind: "counter", label: "x") }
     }
 
+    func testDeleteStateKeySendsTheKeyInTheQuery() async throws {
+        let stub = Stub()
+        stub.answers = [try ok([:]), (try JSONSerialization.data(withJSONObject: ["code": 500, "msg": "仍被引用，引用位置：第 1 章"]), 200)]
+        let editor = service(stub)
+        try await editor.deleteStateKey(topicID: 9, key: "clue.door")
+        XCTAssertEqual(stub.requests[0].httpMethod, "DELETE")
+        XCTAssertEqual(path(stub.requests[0]), "/prod-api/api/topic/state-keys")
+        XCTAssertEqual(query(stub.requests[0]), ["topicId": "9", "key": "clue.door"])
+        await XCTAssertThrowsIssue(.rejected("仍被引用，引用位置：第 1 章")) { try await editor.deleteStateKey(topicID: 9, key: "clue.door") }
+        await XCTAssertThrowsIssue(.invalid) { try await editor.deleteStateKey(topicID: 9, key: "../pay") }
+    }
+
     func testPublishDraftCarriesVersionsAndRequestIdAndAnUnknownStaysUnknown() async throws {
         let stub = Stub()
         stub.answers = [try ok(["reviewState": "PENDING", "contentRevisionNo": 12])]

@@ -116,6 +116,7 @@ struct CityOrientationArrivalCard: View {
     let total: Int
     let nextName: String?
     let nextMeters: Double?
+    @Environment(\.locale) private var locale
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -139,7 +140,7 @@ struct CityOrientationArrivalCard: View {
                         .lineLimit(2)
                     if let nextMeters {
                         HStack(spacing: 6) {
-                            Text(verbatim: CityOrientationFormat.distance(nextMeters)).monospacedDigit()
+                            Text(verbatim: CityOrientationFormat.distance(nextMeters, locale: locale)).monospacedDigit()
                             CityOrientationETAText(meters: nextMeters)
                         }
                         .font(.footnote)

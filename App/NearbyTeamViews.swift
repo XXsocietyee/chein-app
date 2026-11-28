@@ -204,7 +204,7 @@ import SwiftUI
                 if model.running { CYLoadingStateView(rows: 1, label: "nearby.loading") }
                 if let issue = NearbyLoadIssue(messageKey: coordinator.messageKey), !model.running {
                     NearbyLoadIssueCard(issue: issue, onSignIn: onSignIn) { Task { await refresh() } }
-                } else if !model.running && coordinator.authenticated && coordinator.context != nil && coordinator.messageKey == nil && visibleTeams.isEmpty && (discoverySources == nil || nearbyCurrentReadSucceeded) {
+                } else if !model.running && coordinator.authenticated && coordinator.context != nil && coordinator.messageKey == nil && visibleTeams.isEmpty && (discoverySources == nil || nearbyCurrentReadSucceeded) && !discoveryEmptyShown {
                     CYEmptyState(systemImage: "person.3", "nearby.empty", detail: "nearby.w208.listEmpty")
                 }
                 }
@@ -223,9 +223,8 @@ import SwiftUI
                 ForEach(discoveryItems) { item in
                     NearbyMapDiscoveryRow(item: item) { openDiscovery(item, rendered: renderedDiscovery) }
                 }
-                if discoverySources != nil, discoveryFilter.layer != .team, discoveryItems.isEmpty,
-                   discovery.placesPhase == .loaded,
-                   discoveryFilter.layer == .shop || discovery.eventsPhase == .loaded {
+                if discoveryEmptyShown {
+                    // MP subpackageRoam/nearby wxml:71: one cy-empty 附近暂无节点, never a second team empty above it.
                     CYEmptyState(systemImage: "map", LocalizedStringKey("nearby.map.empty"), tableName: "NearbyMapDiscovery", messageIdentifier: "nearby.discovery.empty")
                 }
                 NearbyTeamCornerBar(radius: displayedRadius,
@@ -254,6 +253,10 @@ import SwiftUI
         return discovery.currentItems(sources: discoverySources, query: submittedContext)
     }
     private var discoveryItems: [RoamMapItem] { currentDiscoveryItems.filter(discoveryFilter.includes) }
+    private var discoveryEmptyShown: Bool {
+        guard discoverySources != nil, discoveryFilter.layer != .team, discoveryItems.isEmpty, discovery.placesPhase == .loaded else { return false }
+        return discoveryFilter.layer == .shop || discovery.eventsPhase == .loaded
+    }
     private var displayedRadius: Int { (discoverySources != nil ? submittedContext : coordinator.context)?.radius ?? radius }
     private var nearbyCurrentReadSucceeded: Bool {
         scenePhase == .active && !model.running && submittedContext?.valid == true &&

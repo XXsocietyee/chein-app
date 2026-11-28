@@ -36,6 +36,9 @@ enum DesignFixtureRegistry {
         case "d2-npc": return AnyView(D2Fixture(screen: .npc))
         case "d2-inbox": return AnyView(D2Fixture(screen: .inbox))
         case "d2-inbox-empty": return AnyView(D2Fixture(screen: .inboxEmpty))
+        case "d2-inbox-error": return AnyView(D2Fixture(screen: .inboxError))
+        case "d2-inbox-signed-out": return AnyView(D2Fixture(screen: .inboxSignedOut))
+        case "d2-inbox-loading": return AnyView(D2Fixture(screen: .inboxLoading))
         case "nearby-empty": return AnyView(NearbyTeamFixtureRoot(emptyMine: true).themeDomain(.player))
         case "d2-me": return AnyView(D2Fixture(screen: .me))
         case "d2-roam": return AnyView(D2Fixture(screen: .roam))
@@ -121,6 +124,10 @@ enum DesignFixtureRegistry {
         case "d6-play": return AnyView(D6MapFixture(kind: .play))
         case "d6-play-loading": return AnyView(D6MapFixture(kind: .playLoading))
         case "d6-roam": return AnyView(D6MapFixture(kind: .roam))
+        // mp-roam r3: 漫游记录 (subpackageRoam/history) content / empty / error states for the sweep.
+        case "r3-roam-history": return AnyView(NavigationStack { RoamHistoryView(reader: RoamExperienceFixtureReader(scenario: .content), toolsReader: RoamPassportToolsFixtureReader(scenario: .content)) })
+        case "r3-roam-history-empty": return AnyView(NavigationStack { RoamHistoryView(reader: RoamExperienceFixtureReader(scenario: .empty)) })
+        case "r3-roam-history-error": return AnyView(NavigationStack { RoamHistoryView(reader: RoamExperienceFixtureReader(scenario: .failure)) })
         case "d6-search": return AnyView(D6MapFixture(kind: .search))
         case "d6-live": return AnyView(D6MapFixture(kind: .live))
         // REAL RoamLiveSessionView on the synthetic RoamLiveFixture controller (offline example, no GPS/network).
