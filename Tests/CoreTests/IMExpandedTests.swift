@@ -95,23 +95,23 @@ final class IMExpandedTests: XCTestCase {
     }
     func testChannelReadSendsCursorAndKeepsTheSameRequest() async throws {
         let transport = IMExpandedFakeTransport(); let api = try service(transport)
-        let requestID = "ack-cursor-00000001"
+        let requestID = "0f8e6a52-3c1d-4b7e-9a51-2d4c6e8f0a13"
         let applied: [String: Any] = ["code": 200, "data": [
-            "request_id": requestID, "operation": "ACK", "scope_type": 1, "scope_id": "9",
-            "status": "APPLIED", "replayed": false, "must_refresh_state": false, "result_redacted": false
+            "source": "original-ordinary-im-read-receipt-v1", "owner_member_id": "7", "conversation_id": "9",
+            "request_id": requestID, "requested_read_to": "44", "outcome": "APPLIED"
         ]]
         transport.body = String(data: try JSONSerialization.data(withJSONObject: applied), encoding: .utf8)!
         let receipt = try await api.perform(.readCursor(conversationID: 9, lastMessageID: 44, requestID: requestID), token: "test")
         XCTAssertEqual(receipt, .read)
         let sent = String(data: transport.requests[0].httpBody!, encoding: .utf8)!
-        XCTAssertTrue(sent.contains("conversation_id"))
-        XCTAssertTrue(sent.contains("last_message_id"))
+        XCTAssertTrue(sent.contains("conversation_id=9"))
+        XCTAssertTrue(sent.contains("read_to=44"))
+        XCTAssertFalse(sent.contains("last_message_id"))
         XCTAssertTrue(sent.contains(requestID))
         XCTAssertEqual(transport.requests.count, 1)
         let pending: [String: Any] = ["code": 200, "data": [
-            "request_id": requestID, "operation": "ACK", "scope_type": 1, "scope_id": "9",
-            "status": "PENDING", "outcome": "UNKNOWN", "replayed": false, "must_refresh_state": false,
-            "resume_with_same_request": true, "result_redacted": false
+            "source": "original-ordinary-im-read-receipt-v1", "owner_member_id": "7", "conversation_id": "9",
+            "request_id": requestID, "requested_read_to": "44", "outcome": "PENDING"
         ]]
         transport.body = String(data: try JSONSerialization.data(withJSONObject: pending), encoding: .utf8)!
         do {
@@ -119,11 +119,22 @@ final class IMExpandedTests: XCTestCase {
             XCTFail()
         } catch { XCTAssertEqual(error as? IMCapabilityGap, .unknownOutcome) }
         XCTAssertEqual(transport.requests.count, 2)
-        transport.requests.removeAll()
+        let otherCursor: [String: Any] = ["code": 200, "data": [
+            "source": "original-ordinary-im-read-receipt-v1", "owner_member_id": "7", "conversation_id": "9",
+            "request_id": requestID, "requested_read_to": "45", "outcome": "APPLIED"
+        ]]
+        transport.body = String(data: try JSONSerialization.data(withJSONObject: otherCursor), encoding: .utf8)!
         do {
-            _ = try await api.perform(.readCursor(conversationID: 9, lastMessageID: 44, requestID: " short "), token: "test")
+            _ = try await api.perform(.readCursor(conversationID: 9, lastMessageID: 44, requestID: requestID), token: "test")
             XCTFail()
-        } catch {}
+        } catch { XCTAssertEqual(error as? APIError, .malformedResponse) }
+        transport.requests.removeAll()
+        for badID in [" short ", "ack-" + requestID, requestID.uppercased()] {
+            do {
+                _ = try await api.perform(.readCursor(conversationID: 9, lastMessageID: 44, requestID: badID), token: "test")
+                XCTFail()
+            } catch {}
+        }
         XCTAssertTrue(transport.requests.isEmpty)
     }
     func testProjectedRouteReceiptKeepsTopicAndClientMessage() async throws {

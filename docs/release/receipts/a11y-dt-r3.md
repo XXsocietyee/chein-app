@@ -307,11 +307,16 @@ Home tab root code read (`pages/index/index` → `HomeFeedView.swift`): rail car
 label (`pageTemplateGroupedCard(label:traits: .isButton)`, :386), each rail is a labelled container (:318), place row
 is a separate 44 pt link with an "Open in Maps" action, 即将上线 countdown is plain text under the card. No change needed.
 
+## Run 18 (2026-11-28, half-hourly)
+Merged `origin/ui/combined-r7` (f8574edab). Coordinator 00:50 sweep (build f8574edab, roam + a11y-dt zh-Hans) finding for this lane first.
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/roam/index` "附近活动" panel over the map (`zh-Hans-a11y-roam-ax5.jpg`, 00:50) + every `CYMapScaffold` / `CYRoamNearbySheet` map screen (nearby teams, play session map, density map) | `DesignSystem/CYMapChrome.swift` (`cyMapPanelColor`, grabber), `DesignSystem/CYRoamKit.swift`, `RoamBrowserView.swift` (map-mode list) | ✓ (mp-roam owns order) | Panel fill `Color.black` → system `.regularMaterial` (follows light / dark like the map, as `RoamMapHomePanel` already does with the system background); panel content already uses semantic colors, so it was dark text on black in light mode before. Grabber white 0.3–0.5 (invisible on a light sheet) → `.tertiary`; panel shadow 0.4 → 0.18 | Done (next sweep: `a11y-roam-ax5`) |
+| `subpackageRoam` 集章册 cover (stamp album, not-done ring row) | `RoamStampViews.swift` (`RoamStampAlbumCover`), `DesignSystem/CYAlbum.swift` (`CYAlbumProgressRing`), `CYCollectible.swift` (`CYCountRing`) | ✓ (mp-roam owns order) | Ring numerals sized from the ring (which grows 1.4x / 1.6x at AX sizes): fine. Album cover put the 123 pt AX ring beside a `.display` title in one HStack → `AnyLayout` VStack at AX sizes (ring above title, same order); ring VoiceOver-hidden because the sentence under the title is the same text (was read twice). Badge wall header already `ViewThatFits`, `CYCountRing` hidden with the heading carrying the count: no change | Done |
+
 ## Not done (next run starts here)
-- Ring numerals sized from geometry, not Dynamic Type: `DesignSystem/CYAlbum.swift:120,124`, `CYCollectible.swift:204`
-  (stamp / badge progress rings). Check they carry an `accessibilityLabel`/value and that the heading next to them scales
-  (AX5 sheet `a11y-badges-ax5` already shows ring + heading ✓; album ring not yet in a sweep).
-- Re-read the a11y sheets after the next sweep for the five run-17 labels (no visual change expected).
+- Re-read `a11y-roam-ax5` after the next sweep: panel should be light material in light mode (run 18); run-17 labels have no visual change.
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch
@@ -322,5 +327,4 @@ is a separate 44 pt link with an "Open in Maps" action, 即将上线 countdown i
   declared under `App/DesignFixtures` but missing from `DesignFixtureReleaseExclusionAudit.symbols` (ds-consistency / owning lanes).
 - i18n-r3: `ClubComponents.swift:357` video play glyph `.accessibilityLabel(Text(verbatim: "Play"))` is English-only.
 - i18n-r3: `MPGap/Club/ClubGapRound4Views.swift` accessibility label `"删除凭证图片 \(index + 1)"` is a Chinese literal key (no en).
-- ds-consistency: `cyMapPanelColor = Color.black` (`DesignSystem/CYMapChrome.swift:391`) keeps the roam map panel black in light mode
-  (seen in `en-a11y-roam-ax5.jpg`); contrast is fine with the material peek, but consider `.regularMaterial` / system background if the owner wants light-mode consistency.
+- mp-roam: `cyMapPanelColor` is now `.regularMaterial` (run 18, coordinator 00:50); re-check any map panel content you own that assumed a black panel (white text / white strokes).

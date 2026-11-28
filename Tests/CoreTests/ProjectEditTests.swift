@@ -830,6 +830,60 @@ final class ProjectEditThemeRulesTests: XCTestCase {
         XCTAssertEqual(ProjectEditThemeRules.votePolicy(in: voting), .majorityAcceptance)
     }
 
+    func testD20RulesFollowTheMiniProgramSheet() throws {
+        var draft = ProjectEditSyntheticFixtures.draft(product: .city)
+        let source: ProjectEditJSON = .object([
+            "checkEnabled": .bool(true),
+            "rpg": .object(["bargain": .object(["enabled": .bool(true)]), "clocks": .array([.object(["var": .string("counter.clock_a"), "label": .string("巡夜"), "kind": .string("danger"), "segments": .number(4)])])]),
+            "attributes": .array([
+                .object(["key": .string("counter.watch"), "label": .string("观察"), "min": .number(0), "max": .number(5), "initial": .number(2), "visible": .bool(false)]),
+                .object(["key": .string("counter.clock_a"), "label": .string("巡夜"), "min": .number(0), "max": .number(4), "initial": .number(0)]),
+                .object(["key": .string("sys.hp"), "label": .string("生命")]),
+            ]),
+        ])
+        draft.preserved["journeyRules"] = .string(String(data: try JSONEncoder().encode(source), encoding: .utf8) ?? "")
+        var model = ProjectEditD20Rules.model(in: draft)
+        XCTAssertTrue(model.checkEnabled)
+        XCTAssertEqual(model.preset, .std)
+        XCTAssertTrue(model.natAuto)
+        XCTAssertTrue(model.bargain)
+        XCTAssertEqual(model.attributes.map(\.key), ["counter.watch"])
+        XCTAssertEqual(model.clocks.first?.segments, 4)
+        XCTAssertEqual(try ProjectEditD20Rules.save(model, in: draft), draft)
+
+        model.preset = .hard
+        model.attributes[0] = ProjectEditD20Rules.clamp(model.attributes[0], .max, 1)
+        XCTAssertEqual(model.attributes[0].max, 1)
+        XCTAssertEqual(model.attributes[0].initial, 1)
+        model.attributes.append(ProjectEditD20Rules.newAttribute(label: "胆量", preset: ProjectEditD20Rules.attributePresets[1], in: model))
+        let saved = try ProjectEditD20Rules.save(model, in: draft)
+        let written = try rules(saved)
+        XCTAssertEqual(written["tiers"]?.object?["hard"]?.object?["dc"], .number(18))
+        let rows = try XCTUnwrap(written["attributes"]?.array)
+        XCTAssertEqual(Array(rows.compactMap { $0.object?["key"]?.text }.prefix(2)), ["counter.watch", model.attributes[1].key])
+        XCTAssertEqual(rows[0].object?["visible"], .bool(false))
+        XCTAssertEqual(rows[1].object?["max"], .number(10))
+        XCTAssertEqual(rows.count, 4)
+        XCTAssertEqual(written["stateEnabled"], .bool(true))
+        XCTAssertEqual(ProjectEditD20Rules.model(in: saved).preset, .hard)
+
+        let off = try rules(ProjectEditD20Rules.setCheckEnabled(false, in: draft))
+        XCTAssertEqual(off["checkEnabled"], .bool(false))
+        XCTAssertEqual(off["rpg"]?.object?["bargain"]?.object?["enabled"], .bool(false))
+        XCTAssertEqual(off["stateEnabled"], .bool(true))
+        XCTAssertNotNil(off["attributes"])
+
+        draft.preserved["journeyRules"] = .string("{broken")
+        XCTAssertThrowsError(try ProjectEditD20Rules.setCheckEnabled(true, in: draft))
+        draft.preserved["journeyRules"] = nil
+        XCTAssertEqual(try rules(ProjectEditD20Rules.setCheckEnabled(true, in: draft))["checkEnabled"], .bool(true))
+    }
+
+    private func rules(_ draft: ProjectEditDraft) throws -> [String: ProjectEditJSON] {
+        let text = try XCTUnwrap(draft.preserved["journeyRules"]?.text)
+        return try XCTUnwrap(try JSONDecoder().decode(ProjectEditJSON.self, from: Data(text.utf8)).object)
+    }
+
     private func draft(with theme: [String: ProjectEditJSON]) throws -> ProjectEditDraft {
         var draft = ProjectEditSyntheticFixtures.draft(product: .city)
         let data = try JSONEncoder().encode(ProjectEditJSON.object(theme))

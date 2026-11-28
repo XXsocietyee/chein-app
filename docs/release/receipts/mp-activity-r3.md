@@ -186,6 +186,14 @@ Merged `ui/combined-r7` (xcstrings conflict: HEAD side added no keys, kept their
 
 Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · registration contract suites OK.
 
+## Round 3 continue (2026-11-28, nineteenth session — sweep 00:37 build f8574edab)
+Merged `ui/combined-r7` (xcstrings conflict: HEAD side empty, kept theirs; JSON ok, 21016 keys). Sheets `en/zh-Hans` (`t5-baoming`, `t5-pass-market`, `d2-square`) re-read: the baoming cover now shows the MP cover (seventeenth fix ✓); this build predates the eighteenth-session fixes (demo consent copy, one-row price foot), which still look old in the shots.
+| MP page | Native view | MP sections (✓ present / added / reordered) | Optimizations |
+|---|---|---|---|
+| `pages/activity/baoming/baoming` 参与人信息 row (wxml:31-46, one tappable row → participant popup) and the ticket row (→ `openTicketSheet` popup) | `App/RegistrationSheetView.swift` `participantSection`, `ticketSection`, new `RegistrationChoiceRow` | screenshot `zh-Hans/en-t5-baoming`: each choice had two controls — an inline menu `Picker` (已保存的参与人 · 林佳 / 票种 · 标准票) plus a blue link under it (选择参与人信息 / 选择票种) opening the MP popup sheet with the same list. Now one row per choice as in the MP: title, current value, chevron → the existing `.sheet` (participant sheet keeps 管理参与人信息 / add; ticket sheet keeps the MP filter). Pinned ids `registration.form.participantPicker` / `ticketPicker` moved onto the row. The participant value reads 直接填写报名信息 / Enter contact details once the player types their own name (manual fields kept, see Not done) | one control per decision, MP popups as native sheets with detents, Dynamic Type text styles only |
+
+Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · registration/baoming contract suites (12 files) OK.
+
 ## Not done
 - Attendance (player): organizer 联系与签到配置 form (duty phones, window, public-confirm switch, scan, recovery 查询原结果 / 原请求重试 / 终止 / 确认归档) lives in `OfficialOrganizerConsoleView`, not in this section.
 - Square completion card: 探店 (`shopText`) has no backend field. Refused team reads have no server message in `TeamFailure`, so 邀请已失效 is the fixed fallback copy.

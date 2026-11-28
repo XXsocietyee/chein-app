@@ -441,10 +441,11 @@ extension PlayKitScreen {
 
     var body: some View {
         Group {
+            // MP `playkit-compare`: prompt (shell header) → both timelines in order → one feedback line → 就标这些 / 继续.
             if let question {
-                statusSection(question)
                 side(question.left, question: question)
                 side(question.right, question: question)
+                statusSection(question)
             } else {
                 Section { Text("playkit.compare.invalid") }
             }
@@ -461,40 +462,33 @@ extension PlayKitScreen {
         }
     }
 
+    /// MP `so__fb`: 全标对了 / 次数用完了，这次不扣生命 / 还没标对，再对照一遍 once judged; a changed question and a write
+    /// issue stay here too (native recovery).
     @ViewBuilder private func statusSection(_ question: PlayCompareQuestion) -> some View {
-        Section {
-            Text("playkit.compare.instructions").foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            if let remaining = question.remainingAttempts {
-                LabeledContent {
-                    Text(verbatim: String(remaining)).monospacedDigit().contentTransition(.numericText())
-                } label: { Text("playkit.compare.remaining") }
-            } else {
-                Text("playkit.compare.unlimited").foregroundStyle(.secondary)
-            }
-            LabeledContent {
-                Text(verbatim: String(question.attempts)).monospacedDigit().contentTransition(.numericText())
-            } label: { Text("playkit.compare.attempts") }
-            if question.attempts > 0 {
-                Label(question.lastCorrect ? LocalizedStringKey("playkit.compare.correct") : LocalizedStringKey("playkit.compare.incorrect"),
-                      systemImage: question.lastCorrect ? "checkmark.circle" : "xmark.circle")
-                    .foregroundStyle(question.lastCorrect ? Color.green : Color.red)
-                    .accessibilityIdentifier("playkit.compare.receipt")
-            }
-            if !question.finished {
-                LabeledContent {
-                    Text(verbatim: String(selection.marked.count)).monospacedDigit().contentTransition(.numericText())
-                } label: { Text("playkit.compare.marked") }
-            }
-            if let issue {
-                Label { PlayExperienceIssueView(issue: issue) } icon: { Image(systemName: "exclamationmark.triangle") }
-            }
-        } footer: {
-            if !question.finished && stale {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("playkit.compare.changed")
-                    Button("playkit.compare.reload") { confirmReload = true }
-                        .disabled(!enabled)
-                        .accessibilityIdentifier("playkit.compare.reload")
+        let judged = question.attempts > 0 || question.finished
+        let recover = !question.finished && stale
+        if judged || recover || issue != nil {
+            Section {
+                if judged {
+                    let ok = question.passed || question.lastCorrect
+                    Label(ok ? LocalizedStringKey("playkit.compare.correct")
+                              : (question.finished ? LocalizedStringKey("playkit.compare.outOfTries") : LocalizedStringKey("playkit.compare.incorrect")),
+                          systemImage: ok ? "checkmark.circle.fill" : "xmark.circle.fill")
+                        .font(.headline)
+                        .foregroundStyle(ok ? Color.green : Color.red)
+                        .accessibilityIdentifier("playkit.compare.receipt")
+                }
+                if let issue {
+                    Label { PlayExperienceIssueView(issue: issue) } icon: { Image(systemName: "exclamationmark.triangle") }
+                }
+            } footer: {
+                if recover {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("playkit.compare.changed")
+                        Button("playkit.compare.reload") { confirmReload = true }
+                            .disabled(!enabled)
+                            .accessibilityIdentifier("playkit.compare.reload")
+                    }
                 }
             }
         }
@@ -514,7 +508,11 @@ extension PlayKitScreen {
                             Text(verbatim: item.text).foregroundStyle(.primary).fixedSize(horizontal: false, vertical: true)
                         }
                         Spacer(minLength: 0)
-                        if on { Image(systemName: "checkmark").fontWeight(.semibold).foregroundStyle(.tint).accessibilityHidden(true) }
+                        if on {
+                            Image(systemName: "checkmark").fontWeight(.semibold)
+                                .foregroundStyle(question.passed ? AnyShapeStyle(Color.green) : AnyShapeStyle(.tint))
+                                .accessibilityHidden(true)
+                        }
                     }
                     .contentShape(Rectangle())
                 }
