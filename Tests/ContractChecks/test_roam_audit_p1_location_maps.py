@@ -56,6 +56,17 @@ class RoamAuditLocationMapsChecks(unittest.TestCase):
         self.assertIn('PersonalLocationShareOfferedLink(recipientId: nil', self.read('SettingsView.swift'))
         self.assertIn('PersonalLocationShareOfferedLink(recipientId: Int64(memberID)', self.read('SocialPublicProfileView.swift'))
 
+    def test_roam_reads_have_a_production_lease(self):
+        # Function audit P1-23: browser 活动 layer, received stamps, album metadata, tile memory, session facts.
+        root = self.read('AppCompositionRoot.swift')
+        leases = self.read('ReviewedPlayerWriteLeases.swift')
+        for name, gate in [('roamSessionFactReadAccess', 'roamSessionFact'), ('roamNearbyEventsReadAccess', 'roamNearbyEvents'),
+                           ('roamReceivedStampReadAccess', 'roamReceivedStamp'), ('roamAlbumMetadataReadAccess', 'roamAlbumMetadata'),
+                           ('roamTileMemoryReadAccess', 'roamTileMemory')]:
+            self.assertIn('self.%s = { [gates] context in %s(context) ?? (productionGatesEnabled ? gates.%s(context) : nil) }'
+                          % (name, name, gate), root)
+            self.assertIn('func %s(_ context: RuntimeDependencyContext)' % gate, leases)
+
 
 if __name__ == '__main__':
     unittest.main()
