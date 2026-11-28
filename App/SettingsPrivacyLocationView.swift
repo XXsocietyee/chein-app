@@ -67,7 +67,7 @@ import SwiftUI
             }
             Section {
                 NavigationLink {
-                    SettingsLegalDocumentView(type: .privacyPolicy, market: market, reader: legalReader)
+                    SettingsLegalDocumentView(type: .privacyPolicy, market: UserMarketMemory.legalDocumentMarket(deployment: market), reader: legalReader)
                 } label: { Text(LocalizedStringKey(SettingsLegalType.privacyPolicy.titleKey)) }
             }
             Section {

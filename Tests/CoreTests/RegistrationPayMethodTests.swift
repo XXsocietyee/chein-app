@@ -81,6 +81,19 @@ final class RegistrationPayMethodTests: XCTestCase {
                                                       quoteReceived: false, quotePayAmount: nil, paymentsOpen: true))
     }
 
+    /// A USD quote's button follows the channels the server listed. Apple Pay is not offered when the list is card only.
+    /// China still defaults to WeChat Pay. This does not turn the payment switch on.
+    func testStripeButtonFollowsTheQuoteChannels() {
+        XCTAssertEqual(RegistrationPayMethod.effective(selection: .applePay, market: .unitedStates, applePayAvailable: true,
+                                                       alipayOffered: false, paymentChannels: ["APP_STRIPE"]), .card)
+        XCTAssertEqual(RegistrationPayMethod.effective(selection: nil, market: .unitedStates, applePayAvailable: true,
+                                                       alipayOffered: false, paymentChannels: ["APPLE_PAY", "APP_STRIPE"]), .applePay)
+        XCTAssertEqual(RegistrationPayMethod.effective(selection: nil, market: .unitedStates, applePayAvailable: false,
+                                                       alipayOffered: false, paymentChannels: ["APPLE_PAY", "APP_STRIPE"]), .card)
+        XCTAssertEqual(RegistrationPayMethod.effective(selection: nil, market: .china, applePayAvailable: true,
+                                                       alipayOffered: false, paymentChannels: ["APP"]), .wechatPay)
+    }
+
     /// The payment switch stays off. The button does not pretend the player can pay.
     func testClosedPaymentSwitchDoesNotLabelTheButtonAsPay() {
         let amount = Decimal(string: "12.50")

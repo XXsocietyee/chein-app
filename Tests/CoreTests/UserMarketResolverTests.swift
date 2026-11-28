@@ -33,6 +33,19 @@ final class UserMarketResolverTests: XCTestCase {
         XCTAssertNil(UserMarketResolver.market(region: "HK"))
     }
 
+    func testPresentationMarketPrefersTheStorefrontAndTheUSLeadsWithApple() {
+        XCTAssertEqual(USLaunchPresentation.market(storefront: .unitedStates, deployment: .china), .unitedStates)
+        XCTAssertEqual(USLaunchPresentation.market(storefront: .china, deployment: .unitedStates), .china)
+        XCTAssertEqual(USLaunchPresentation.market(storefront: nil, deployment: .china), .china)
+        XCTAssertTrue(USLaunchPresentation.signInLeadsWithApple(storefront: .unitedStates, deployment: .china))
+        XCTAssertFalse(USLaunchPresentation.signInLeadsWithApple(storefront: .china, deployment: .china))
+        XCTAssertFalse(USLaunchPresentation.signInLeadsWithApple(storefront: nil, deployment: .china))
+        for type in SettingsLegalType.allCases {
+            XCTAssertEqual(SettingsSourceLegalCatalog.document(type: type, market: .unitedStates), .missing(.regionalTextNotProvided))
+        }
+        XCTAssertFalse(SettingsSourceLegalCatalog.userAgreement.isReleaseApproved)
+    }
+
     func testAccountRegionDecodesFromUserInfo() throws {
         let withRegion = try JSONDecoder().decode(MemberIdentitySnapshot.self, from: Data(#"{"nickname":"a","region":"US"}"#.utf8))
         XCTAssertEqual(withRegion.accountRegion, "US")

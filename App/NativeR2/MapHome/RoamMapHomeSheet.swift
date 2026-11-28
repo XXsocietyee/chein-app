@@ -338,6 +338,7 @@ import QuestifyCore
                 .accessibilityIdentifier("roam.mapHome.myTeams")
             }
         } header: {
+            // MP `introTabs[0]` 开始漫游: the tickets group is named after the MP tab, not the 漫游 title it sits under.
             Text("nativeR2.mapHome.section.roam")
         }
     }
