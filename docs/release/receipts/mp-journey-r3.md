@@ -188,6 +188,12 @@ files; `mp/r3-mine` only gated 查看报名凭证 in `PlayerJourneyViews` (not o
   `.preferredColorScheme(.dark)`, so `t5-settle`, `t5-free-explore`, `rep3-task-play` render dark while other fixtures in the
   same sweep render light (same issue the 18:15 sweep raised for mp-mine). Shared wrappers, not changed here.
 
+- coordinator: sweep 13:03 (`0446d1c4f`) `d2-city` / `e2-city` render with an empty navigation bar (no 官方城市 / Official city
+  inline title, no trailing channel button), though `CityPlayerView` sets `.appNavigationTitle("city.read.title")` inline inside
+  `CityGameFixtureHost`'s own `NavigationStack` and nothing hides the bar. Not reproducible without a simulator; please check
+  the next sweep (11-28 run). Same run: zh free-explore store date stays `2026-12-31` on purpose (`LocaleDisplay.civil` keeps the
+  MP text in Chinese; en is `Dec 31, 2026`).
+
 ## Gates
 
 - `python3 tools/generate_project.py` — ok
