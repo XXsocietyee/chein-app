@@ -744,7 +744,7 @@ struct RegistrationSheetView: View {
                     showingParticipantSheet = true
                 } label: {
                     RegistrationChoiceRow(title: "registration.form.savedParticipant", value: participantRowValue,
-                                          detail: selectedParticipantRow?.mobilePhone)
+                                          detail: selectedParticipantRow.map { Self.maskedPhone($0.mobilePhone) })
                 }
                 .disabled(!flow.canEdit)
                 .accessibilityIdentifier("registration.form.participantPicker")
@@ -783,6 +783,14 @@ struct RegistrationSheetView: View {
               let row = flow.participants.first(where: { $0.id == id }),
               row.fullName == flow.draft.realName, row.mobilePhone == flow.draft.phone else { return nil }
         return row
+    }
+    /// ADA 11-28 #5: the saved participant's phone reads 139****0000 on the sheet (the MP field, shown masked);
+    /// shapes the masker cannot read keep the server text.
+    private static func maskedPhone(_ phone: String) -> String {
+        if case .masked(let text) = ProfileBoundPhoneDisplay.masking(phone) {
+            return text
+        }
+        return phone
     }
     /// Saved participant name while the draft still holds it; 手动填写 once the player typed their own.
     private var participantRowValue: String {
