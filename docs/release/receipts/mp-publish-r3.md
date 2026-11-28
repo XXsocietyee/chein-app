@@ -145,7 +145,7 @@ H-06a, H-07, H-13a/b went to `fix/1128b-social` (brief 07:37 UTC) and are not to
 - `Tests/CoreTests/EditorKitModelTests.swift`: `EditorOutlineSection.allCases` now expects the MP page order.
 
 ## Gates (last run on the branch head)
-- **H-15 (stale cast clues at send time):** merged `ui/combined-r7` (clean); generate_project OK, check_scaffold OK, a11y lint 0 new, design consistency PASS, `test_project_edit_contracts` see below, contract ratchet see below. No Swift compiler here.
+- **H-15 (stale cast clues at send time):** merged `ui/combined-r7` (clean); generate_project OK, check_scaffold OK, a11y lint 0 new, design consistency PASS, `test_project_edit_contracts` OK (14 tests), contract ratchet 52 failing / baseline 52 / **new 0**. No Swift compiler here.
 - **P2-6c (content-draft row):** generate_project OK, check_scaffold OK, a11y lint 0 new, design consistency PASS, `test_owner_draft_browser` OK, contract ratchet 52 / 52 / **new 0**.
 - **P2-6e (inbox raw-ID entry removed):** generate_project OK, check_scaffold OK, a11y lint 0 new, design consistency PASS, `test_im_expanded_integration` OK, contract ratchet 52 / 52 / **new 0**.
 - **P1-28 follow-up + P2-6b (signed-out "+"):** merged `ui/combined-r7` (Localizable.xcstrings: union of both sides' keys); generate_project OK, check_scaffold OK, a11y lint 0 new, design consistency PASS, contract ratchet 52 / baseline 52 / **new 0**; both new contract files pass. No Swift compiler here.
