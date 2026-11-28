@@ -182,6 +182,9 @@ import MapKit
         }
         .accessibilityIdentifier("medalScreen")
         .motionR2EdgeGlowOnAppear()
+        // P30: the finish moment fires one success haptic when the record is revealed (also under Reduce Motion,
+        // where the reveal is instant).
+        .cyHaptic(.success, trigger: revealed) { old, new in !old && new }
         .task { await reveal() }
     }
 

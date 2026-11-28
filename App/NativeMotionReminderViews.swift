@@ -366,7 +366,7 @@ extension NativeStepsHostView {
             .font(.largeTitle.bold()).monospacedDigit()
     }
     private var afterLabel: some View {
-        Text("playkitLegacy.window.after").font(.footnote).foregroundStyle(.secondary)
+        Text("playkit.window.afterRemind").font(.footnote).foregroundStyle(.secondary)
     }
     private func refresh() async {
         guard let runtime, let stage, active else { return }

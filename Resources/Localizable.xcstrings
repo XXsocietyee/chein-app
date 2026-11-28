@@ -351262,6 +351262,23 @@
         }
       }
     },
+    "playkit.window.afterRemind": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "until it opens · I'll remind you"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "后开播 · 到点提醒我"
+          }
+        }
+      }
+    },
     "roam.official.pausedReason %@": {
       "extractionState": "manual",
       "localizations": {
