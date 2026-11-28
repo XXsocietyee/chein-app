@@ -782,6 +782,8 @@ struct SessionRootView: View {
     private func chain3_6<V: View>(_ v: V) -> some View {
         v
         .environment(\.merchantCoopCenterDestination, { session.merchantCoopCenterDestination(initialTab: $0, focusTopicID: $1) })
+        // mp-nav r3 (B lane): square/detail 试玩 = MP navigateTo pages/play/index?topicId= (index.js:186-193).
+        .environment(\.squarePlayDestination, { (topicID: Int) -> AnyView in AnyView(SessionPlayRuntimeView(session: session, destination: .journey(.topic(topicID)))) })
     }
 
     private func chain3_7<V: View>(_ v: V) -> some View {

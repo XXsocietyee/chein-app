@@ -11,6 +11,7 @@ import SwiftUI
     @Environment(\.squareReportContext) private var reportContext
     @Environment(\.dismiss) private var dismiss
     @Environment(\.squareRelatedTopic) private var relatedTopicContext
+    @Environment(\.squarePlayDestination) private var playDestination
     @Environment(\.squareDeletion) private var deletion
     @Environment(\.squareShareLink) private var shareLink
     @Environment(\.squareAuthorFollowState) private var followState
@@ -21,6 +22,7 @@ import SwiftUI
     private struct ShareRoute: Identifiable { let id = UUID(); let payload: CYSquareSharePayload; let url: URL }
     @State private var showsAuthorProfile = false
     @State private var relatedTopic: SquareRelatedTopicSelection?
+    @State private var playTopic: SquareRelatedTopicSelection?
     @State private var reportTarget: ReportRoute?
     private struct ReportRoute: Identifiable { let id = UUID(); let target: SquareReportTarget }
     @State private var showsWorkspaceEdit = false
@@ -90,7 +92,7 @@ import SwiftUI
                                 SquareRelatedTopicLink(post: post, source: .init(id: id, generation: contentGeneration), squareReader: reader) { relatedTopic = $0 }
                             } else if post.isTopicTemplate || post.referenceTitle != nil {
                                 // C-S1: MP feed-play-card on the detail page (看看模板 / 试玩).
-                                SquareDetailPlayCard(post: post, source: .init(id: id, generation: contentGeneration), reader: reader) { relatedTopic = $0 }
+                                SquareDetailPlayCard(post: post, source: .init(id: id, generation: contentGeneration), reader: reader) { openPlay($0) }
                             } else {
                                 SquareRelatedTopicLink(post: post, source: .init(id: id, generation: contentGeneration), squareReader: reader) { relatedTopic = $0 }
                             }
@@ -217,7 +219,9 @@ import SwiftUI
                 SquareRelatedTopicDestination(selection: selected, squareReader: reader, topicReader: context.reader)
             } else { SocialIssueView(error: SocialActionBlock.changed) }
         }
+        .modifier(SquarePlayPushModifier(selection: $playTopic, squareReader: reader))
         .onChange(of: key) { _, _ in relatedTopic = nil }
+        .onChange(of: key) { _, _ in playTopic = nil }
         .onChange(of: relatedTopicContext?.reader.scope) { _, _ in relatedTopic = nil }
         .cySheet(item: $editor, onDismiss: { applyFollowReceipt(); refreshAfterEditor() }) { item in Group {
             if let actions { NavigationStack { SocialActionEditorView(purpose: item.purpose, target: item.target, coordinator: actions, initialText: item.text, contentGeneration: contentGeneration, initialEnabled: item.enabled) }.id(actions.identity) }
@@ -399,6 +403,11 @@ import SwiftUI
     }
     /// C-S8 (MP square/detail wxml:44): inline 关注 when the viewer is known not to follow the author, the author is
     /// not the viewer, and the post has no play cover (the MP hides it then).
+    /// MP square/detail 试玩 (`goPlay`, index.js:186-193) opens the play page directly; without a session play page
+    /// (fixtures, other hosts) it keeps the related-topic push.
+    private func openPlay(_ selected: SquareRelatedTopicSelection) {
+        if playDestination != nil { playTopic = selected } else { relatedTopic = selected }
+    }
     private func inlineFollow(_ post: SquarePost) -> (() -> Void)? {
         guard let actions, let viewer = actions.identity.accountID, post.memberID > 0, post.memberID != viewer,
               !SquarePostCardFacts(post).hasPlayCover,
