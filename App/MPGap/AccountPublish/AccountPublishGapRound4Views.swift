@@ -348,7 +348,10 @@ public struct ProjectEditGapChapterExtrasSection: View {
                     Toggle("fixr9.ap.template.scanReply", isOn: scanReplyBinding)
                         .accessibilityIdentifier("templateAuthor.scanReply")
                     if scanReplyOn && scanKind == "TEXT" {
-                        TextField("templateAuthor.round4.scanReplyPrompt", text: scanReplyText, axis: .vertical)
+                        // MP temp/index.wxml:116: placeholder 例如 欢迎来到老城茶馆, aria-label 扫完回复的内容.
+                        TextField(text: scanReplyText, prompt: Text("templateAuthor.prompt.scanReply"), axis: .vertical) {
+                            Text("templateAuthor.round4.scanReplyPrompt")
+                        }
                             .lineLimit(2...6)
                             .accessibilityIdentifier("templateAuthor.scanReply.text")
                     }

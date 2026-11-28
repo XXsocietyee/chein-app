@@ -780,5 +780,39 @@
         }
       }
     }
+  },
+  "templateAuthor.prompt.scanReply": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "e.g. Welcome to the old town teahouse"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "例如 欢迎来到老城茶馆"
+        }
+      }
+    }
+  },
+  "templateAuthor.round4.scanReplyPrompt": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Reply text after scanning"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "扫完回复的内容"
+        }
+      }
+    }
   }
 }

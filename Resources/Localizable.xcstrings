@@ -312233,13 +312233,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enter the reply after scanning"
+            "value": "Reply text after scanning"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "输入扫完后的回复"
+            "value": "扫完回复的内容"
           }
         }
       }
@@ -364231,6 +364231,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "勋章名称，如 老城探秘者"
+          }
+        }
+      }
+    },
+    "templateAuthor.prompt.scanReply": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. Welcome to the old town teahouse"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "例如 欢迎来到老城茶馆"
           }
         }
       }
