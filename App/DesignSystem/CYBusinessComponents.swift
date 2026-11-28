@@ -1291,6 +1291,7 @@ public struct CYPublishStatusBar: View {
                                 Image(systemName: "exclamationmark.circle.fill")
                                     .font(CYTypography.micro)
                                     .foregroundStyle(palette.danger)
+                                    .accessibilityHidden(true)
                                 Text("cyPublish.issue \(issue.stepIndex + 1) \(issue.message)")
                                     .cyText(.micro)
                                     .foregroundStyle(palette.danger)
@@ -1298,8 +1299,9 @@ public struct CYPublishStatusBar: View {
                                 Image(systemName: "arrow.up.right")
                                     .font(CYTypography.micro)
                                     .foregroundStyle(palette.textTertiary)
+                                    .accessibilityHidden(true)
                             }
-                            .frame(minHeight: 32)
+                            .frame(minHeight: 44)
                             .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)

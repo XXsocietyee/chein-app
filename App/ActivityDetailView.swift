@@ -225,7 +225,8 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                             subjectTitle: detail.summary.name,
                             authorMemberID: detail.people.host?.memberID,
                             authorName: detail.people.host?.name
-                        )
+                        ),
+                        moreGlyph: true
                     )
                     .accessibilityIdentifier("activity.safety.menu")
                 }

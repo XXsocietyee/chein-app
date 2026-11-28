@@ -9,7 +9,7 @@
   {"key": "auth.login.subtitle", "en": "Pick up your stamps and trails where you left off.", "zh-Hans": "继续你的印章与路线。"},
   {"key": "settings.search.prompt", "en": "Search settings", "zh-Hans": "搜索设置"},
   {"key": "settings.search.results", "en": "Results", "zh-Hans": "搜索结果"},
-  {"key": "settings.account.subtitle %lld", "en": "Level %lld · City explorer", "zh-Hans": "Lv.%lld · 城市探索者"},
+  {"key": "settings.account.subtitle %lld", "en": "Lv.%lld · City explorer", "zh-Hans": "Lv.%lld · 城市探索者"},
   {"key": "settings.privacy.footer", "en": "Choose what we may use. You can change these at any time.", "zh-Hans": "选择我们可以使用的内容，随时可以更改。"},
   {"key": "settings.danger.footer", "en": "Closing your account is reviewed first. Nothing is deleted until you confirm.", "zh-Hans": "注销账号会先经过审核，你确认之前不会删除任何内容。"},
   {"key": "settingsNative.about.appSection", "en": "This app", "zh-Hans": "本应用"},

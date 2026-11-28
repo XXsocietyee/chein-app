@@ -53,6 +53,7 @@ public struct CYStatusOfflineBanner: View {
                 Image(systemName: "wifi.slash")
                     .font(CYTypography.bodyMedium)
                     .foregroundStyle(foregroundTone)
+                    .accessibilityHidden(true)
                 Text(LocalizedStringKey(messageKey))
                     .cyText(.meta, weight: .semibold)
                     .foregroundStyle(foregroundTone)

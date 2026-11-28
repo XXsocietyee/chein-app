@@ -35,6 +35,21 @@ import FoundationNetworking
             if case .door = NativeNavigationContract.parseInternal(raw) { XCTFail(raw) }
         }
     }
+    /// mp-nav r3: MP home QR scenes (pages/index/index.js:353-375, utils/game-door-entry.js) open their page, not 首页.
+    func testMiniProgramHomeQRScenesOpenTheirPage() {
+        XCTAssertEqual(NativeNavigationContract.parseInternal("/pages/index/index?scene=tp.12"), NativeNavigationContract.parseInternal("/pages/topic/index/index?id=12"))
+        XCTAssertEqual(NativeNavigationContract.homeScenePath("tp.012"), "/pages/topic/index/index?id=12")
+        XCTAssertEqual(NativeNavigationContract.homeScenePath("ac.34"), "/pages/activity/official-detail/index?id=34")
+        XCTAssertEqual(NativeNavigationContract.homeScenePath("sh.56"), "/pages/userinfo/userinfo?userId=56&tab=about")
+        XCTAssertEqual(NativeNavigationContract.homeScenePath("tm.ABC234"), "/pages/team/join/index?code=ABC234")
+        XCTAssertEqual(NativeNavigationContract.homeScenePath("th.AAECAwQFBgcICQoLDA0ODw"), "/pages/team/join/index?code=000102030405060708090a0b0c0d0e0f")
+        XCTAssertEqual(NativeNavigationContract.parseInternal("/pages/index/index?scene=tm.ABC234&inviter=9"), .teamInvitation(try! TeamInvitationRoute(code: "ABC234")))
+        if case .miniProgramPage = NativeNavigationContract.parseInternal("/pages/index/index?scene=ac.34") {} else { XCTFail("ac") }
+        for raw in ["tp.0", "tp.", "tp.1a", "xx.12", "tm.abc234", "tm.ABC23", "rc.1.2", hex] {
+            XCTAssertNil(NativeNavigationContract.homeScenePath(raw), raw)
+        }
+        XCTAssertEqual(NativeNavigationContract.parseInternal("/pages/index/index?scene=" + hex), .door(DoorIntent(scene: hex, inviter: nil)))
+    }
     func testTypedDestinationMatrix() throws {
         XCTAssertEqual(DoorScanResult(action: "play", topicID: 2, activityID: 3).destination, .activityPlay(activityID: 3, topicID: 2))
         XCTAssertEqual(DoorScanResult(action: "play", topicID: 2).destination, .topicSelfPlay(topicID: 2))
