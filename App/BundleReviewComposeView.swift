@@ -67,7 +67,7 @@ import SwiftUI
         } footer: {
             Text(verbatim: "\(content.count)/\(BundleReviewCommand.maxContentLength)")
                 .monospacedDigit()
-                .accessibilityLabel(Text(verbatim: "\(content.count)/\(BundleReviewCommand.maxContentLength)"))
+                .accessibilityLabel(Text(verbatim: W8Text.t("已输入 \(content.count) 字，最多 \(BundleReviewCommand.maxContentLength) 字", "\(content.count) of \(BundleReviewCommand.maxContentLength) characters")))
         }
         if case .rejected(let code) = model.state {
             Section {

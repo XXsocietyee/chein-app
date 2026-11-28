@@ -214,7 +214,7 @@ extension EnvironmentValues {
         ObjectCardArtwork(url: card.frame(at: frame), label: card.title, media: media,
             expectedScope: expectedScope, currentScope: { reader.scope })
             .frame(maxWidth: .infinity, minHeight: 240)
-            .accessibilityValue(card.hasRotationFrames ? "\(frame + 1) / \(card.frames.count)" : "")
+            .accessibilityValue(card.hasRotationFrames ? Text("carousel.position \(frame + 1) \(card.frames.count)") : Text(verbatim: ""))
             .accessibilityAdjustableAction { direction in
                 guard card.hasRotationFrames else { return }
                 switch direction { case .increment: move(1); case .decrement: move(-1); @unknown default: break }

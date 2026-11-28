@@ -1054,6 +1054,8 @@ import SwiftUI
         // MP topic-detail-sheet.wxml:111-142: the runtime-values card (生命值 · 幸运值 · 行动次数, 归零后) follows 伏笔.
         NativeRpgResourceAuthorEntry(model: model)
         NativeZeroHPAuthorEntry(model: model)
+        // MP topic-detail-sheet.wxml:144-185: 玩法规则 (允许再玩一次 · 同场路线).
+        ProjectEditThemeRulesSection(model: model)
         // MP topic-detail-sheet.wxml:213-214: 可玩时段 (no 归属俱乐部 only) → 开局前准备.
         ProjectEditPlaySetupRows(model: model)
         // MP topic-detail-sheet.wxml:215-262: 主题通关奖励 → 通关条件 → 发布到创意广场 → 归属俱乐部.
