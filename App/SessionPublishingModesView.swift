@@ -41,7 +41,8 @@ import SwiftUI
                     .toolbar {
                         PublisherLifecycleNavigationLink(session: session, resource: destination)
                         if let editor = session.activityEditingController(id: destination.value) {
-                            NavigationLink { ActivityEditingView(owner: editor, makeActivityCover: { session.makeActivityCoverService() }).id(session.publishingSession?.epoch) } label: {
+                            NavigationLink { ActivityEditingView(owner: editor, makeActivityCover: { session.makeActivityCoverService() }).id(session.publishingSession?.epoch)
+                                .background { ActivityEditSavedBroadcast(controller: editor, activityID: destination.value) } } label: {
                                 Text("entry", tableName: "ActivityEditing")
                             }.accessibilityIdentifier("activityEdit.entry")
                         }
