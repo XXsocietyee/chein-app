@@ -154,6 +154,15 @@ import QuestifyCore
         .listStyle(.insetGrouped)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            if let share = shareLink {
+                // MP official-route `onShareAppMessage` / `onShareTimeline`: title = route name, path `official-route?id=`.
+                ToolbarItem(placement: .topBarTrailing) {
+                    ShareLink(item: share.url, subject: Text(verbatim: share.title), preview: SharePreview(share.title)) {
+                        Label("mp.common.share", systemImage: "square.and.arrow.up")
+                    }
+                    .accessibilityIdentifier("officialRoute.detail.share")
+                }
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 Button { model.path.removeAll() } label: {
                     Label("action.close", systemImage: "xmark.circle.fill").symbolRenderingMode(.hierarchical)
@@ -162,6 +171,13 @@ import QuestifyCore
         }
         .task(id: routeID) { await load() }
         .accessibilityIdentifier("officialRoute.detail")
+    }
+
+    /// Only a loaded route with a canonical id has a public link (the MP shares the ready route's name).
+    private var shareLink: (url: URL, title: String)? {
+        guard case .ready(let detail) = state, let url = PublicContentShareLink.officialRoute(id: routeID) else { return nil }
+        let name = detail.route.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        return (url, name.isEmpty ? appLocalized("officialRoute.share.fallbackTitle", locale: locale) : name)
     }
 
     private func stopRow(_ pin: RoamMapHomePin) -> some View {

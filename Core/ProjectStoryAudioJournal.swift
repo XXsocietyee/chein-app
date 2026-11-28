@@ -33,6 +33,7 @@ import Foundation
     private var received: [String: [UUID: ProjectStoryUploadedAudio]] = [:]
     public let targetKind: ProjectStoryAudioTarget.Kind
     private var chapterJournal: ProjectStoryAudioJournal?
+    private var themeJournal: ProjectStoryAudioJournal?
     public init(storage: any ProjectEditDataStorage, targetKind: ProjectStoryAudioTarget.Kind = .storyBlock) {
         self.storage = storage; self.targetKind = targetKind
     }
@@ -43,8 +44,20 @@ import Foundation
         let value = ProjectStoryAudioJournal(storage: storage, targetKind: .chapterNarration)
         chapterJournal = value; return value
     }
+    /// 主题配乐 (MP `uploadThemeAudio`): its own envelope key, so chapter and block journals never see it.
+    public func themeMusicJournal() -> ProjectStoryAudioJournal {
+        if targetKind == .themeMusic { return self }
+        if let themeJournal { return themeJournal }
+        let value = ProjectStoryAudioJournal(storage: storage, targetKind: .themeMusic)
+        themeJournal = value; return value
+    }
     private func key(owner: String, draft: String) -> String {
-        let prefix = targetKind == .storyBlock ? "project-story-audio.v1." : "project-chapter-audio.v1."
+        let prefix: String
+        switch targetKind {
+        case .storyBlock: prefix = "project-story-audio.v1."
+        case .chapterNarration: prefix = "project-chapter-audio.v1."
+        case .themeMusic: prefix = "project-theme-audio.v1."
+        }
         return prefix + Data((owner + ":" + draft).utf8).base64EncodedString()
     }
     public func read(session: ProjectEditSession, identity: ProjectEditDraftIdentity) throws -> Snapshot {
@@ -59,7 +72,7 @@ import Foundation
         let entries = try value.entries.map { saved -> Entry in
             guard ids.insert(saved.attemptID).inserted, saved.target.ownerKey == value.ownerKey,
                   saved.target.draftBucket == value.draftBucket, ApprovedTopicReleasePreparation.validHash(saved.selectedDigest),
-                  ApprovedTopicReleasePreparation.validHash(saved.target.originalDraftHash), !saved.target.chapterID.isEmpty,
+                  ApprovedTopicReleasePreparation.validHash(saved.target.originalDraftHash),
                   saved.target.kind == targetKind, saved.target.hasValidDestination, saved.reference != nil || !saved.applied else { throw ProjectStoryAudioFailure.persistenceUnavailable }
             let receipt = try saved.reference.map { reference -> ProjectStoryUploadedAudio in
                 guard let filename = saved.filename, let rawFormat = saved.format,
