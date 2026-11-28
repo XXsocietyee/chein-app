@@ -126,6 +126,28 @@ struct D6MapFixture: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background { CYMapPlaceholder(fog: true).ignoresSafeArea() }
+        .cyMapSheet(isPresented: $sheet, detents: [.height(236), .medium]) { roamEmptyPeek }
+    }
+
+    /// MP P-26 (wxml 2026-10-27): the 附近活动 peek always shows; with nothing nearby it is the
+    /// `entry-peek__state` card 附近暂无活动 · 打开地图寻找附近活动 (same copy and action as the shipping map home).
+    /// d6-roam is now the empty-nearby state, so it no longer duplicates d2-roam (ADA 1128 P1).
+    private var roamEmptyPeek: some View {
+        List {
+            Section {
+                ContentUnavailableView {
+                    Label("roam.w208.entry.empty", systemImage: "mappin.slash")
+                } actions: {
+                    Button("roam.w208.entry.emptyHint", action: {})
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("roam.mapHome.nearby.openMap")
+                }
+            } header: {
+                Text("roam.w208.entry.title")
+            }
+        }
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
     }
 
     // MARK: Search map: back + search + locate, callouts, one pill primary

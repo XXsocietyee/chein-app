@@ -14,7 +14,12 @@ import SwiftUI
     /// R7-PC-D1-4: set when 我的项目's 模板 tab shows this shelf inline; the host's tab picker leads the list and the
     /// host keeps its own title and chrome.
     var embeddedHeader: AnyView? = nil
+    /// mp-states r3: MP myproject cy-empty 还没有模板 · cta 做一个玩法 (`createTemplate` → `pages/publish/template-intro`).
+    /// The argument is the shelf scope (`MERCHANT` or nil). Nil: the empty state shows no action.
+    var createTemplate: ((String?) -> AnyView)? = nil
     @Environment(\.locale) private var creatorLocale
+    @Environment(\.rootSignIn) private var rootSignIn
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
     @State private var selectedCreatorConsent: WorkshopCreatorConsentSelection?
     @State private var selectedMember: MemberPlayTemplateID?
     @State private var selectedConfiguration: MemberPlayTemplateID?
@@ -248,24 +253,28 @@ import SwiftUI
     }
     @ViewBuilder private var readStateCopy: some View {
         if readMessageKey == "templateAuthor.signIn" {
-            TemplateOwnShelfReadCopy(title: "templateOwnShelf.read.signIn", subtitle: "templateOwnShelf.read.signInHint", action: "templateOwnShelf.read.signInAction")
+            // MP cy-empty no-permission · 登录: the sign-in sheet opens over this page; no host → no dead button.
+            TemplateOwnShelfReadCopy(title: "templateOwnShelf.read.signIn", subtitle: "templateOwnShelf.read.signInHint", action: "templateOwnShelf.read.signInAction",
+                                     identifier: "templateOwnShelf.read.signIn", systemImage: "person.crop.circle.badge.questionmark", prominent: true,
+                                     perform: rootSignIn.signedOutAction(fallback: rootTabSwitch))
         } else if readMessageKey == "templateOwnShelf.read.denied" || !coordinator.canRead {
-            TemplateOwnShelfReadCopy(title: "templateOwnShelf.read.denied", subtitle: "templateOwnShelf.read.deniedHint", action: "templateOwnShelf.read.retry", identifier: "templateOwnShelf.read.retry") { Task { await refresh() } }
+            // MP myproject.wxml:110 cy-empty no-permission has no CTA; pull to refresh stays.
+            TemplateOwnShelfReadCopy(title: "templateOwnShelf.read.denied", subtitle: "templateOwnShelf.read.deniedHint", systemImage: "lock")
         } else if appliedKeyword == keyword, busy, rows.isEmpty, readMessageKey == nil {
             ProgressView { Text("templateOwnShelf.read.loading") }.frame(maxWidth: .infinity).accessibilityIdentifier("templateOwnShelf.read.loading")
         } else if appliedKeyword == keyword, readMessageKey == "templateAuthor.listUnavailable", rows.isEmpty {
-            TemplateOwnShelfReadCopy(title: "templateOwnShelf.read.failed", action: "templateOwnShelf.read.retry", identifier: "templateOwnShelf.read.retry") { Task { await refresh() } }
+            TemplateOwnShelfReadCopy(title: "templateOwnShelf.read.failed", action: "templateOwnShelf.read.retry", identifier: "templateOwnShelf.read.retry", systemImage: "exclamationmark.triangle") { Task { await refresh() } }
         } else if appliedKeyword == keyword, readMessageKey == "templateAuthor.listUnavailable" {
             Text("templateOwnShelf.read.failedKept").accessibilityIdentifier("templateOwnShelf.read.failedKept")
         } else if appliedKeyword == keyword, readMessageKey == "templateAuthor.shelf.empty" {
-            TemplateOwnShelfReadCopy(title: "templateOwnShelf.read.empty", subtitle: "templateOwnShelf.read.emptyHint")
+            TemplateOwnShelfEmptyState(destination: createTemplate.map { make in make(shelfOperationScope) })
         }
     }
     @ViewBuilder private var loadMoreCopy: some View {
         if busy {
             Text("templateOwnShelf.read.loadingMore").accessibilityIdentifier("templateOwnShelf.read.loadingMore")
         } else if readMessageKey == "templateAuthor.shelf.moreFailed" {
-            TemplateOwnShelfReadCopy(title: "templateOwnShelf.read.moreFailed", subtitle: "templateOwnShelf.read.moreFailedHint", action: "templateOwnShelf.read.retry", identifier: "templateAuthor.shelf.loadMore") { Task { await loadMore() } }
+            TemplateOwnShelfReadCopy(title: "templateOwnShelf.read.moreFailed", subtitle: "templateOwnShelf.read.moreFailedHint", action: "templateOwnShelf.read.retry", identifier: "templateAuthor.shelf.loadMore", systemImage: "exclamationmark.triangle", inline: true) { Task { await loadMore() } }
         } else {
             Button { Task { await loadMore() } } label: { Text("templateOwnShelf.read.loadMore") }
                 .disabled(busy)
@@ -332,25 +341,70 @@ import SwiftUI
 }
 
 /// Read-state wording for 我的节点玩法. The action closure is an existing read; login has none.
+/// mp-states r3: one shelf state pattern. Full-list states are a system `ContentUnavailableView` (MP cy-empty /
+/// cy-error: title, sub, one CTA); the load-more failure under the rows stays an inline row. An action without a
+/// handler renders nothing (no dead 登录 text).
 private struct TemplateOwnShelfReadCopy: View {
     let title: LocalizedStringKey
     var subtitle: LocalizedStringKey? = nil
     var action: LocalizedStringKey? = nil
     var identifier: String? = nil
+    let systemImage: String
+    var prominent: Bool = false
+    var inline: Bool = false
     var perform: (() -> Void)? = nil
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(title).font(.headline)
-            if let subtitle { Text(subtitle).font(.subheadline).foregroundStyle(.secondary) }
-            if let action {
-                if let perform {
-                    Button(action: perform) { Text(action) }
-                        .buttonStyle(.bordered)
-                        .accessibilityIdentifier(identifier ?? "templateOwnShelf.read.action")
-                }
-                else { Text(action).font(.footnote).foregroundStyle(.secondary) }
+        if inline {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Text(title).font(.headline)
+                if let subtitle { Text(subtitle).font(.subheadline).foregroundStyle(.secondary) }
+                actionButton
+            }
+        } else {
+            ContentUnavailableView {
+                Label { Text(title) } icon: { Image(systemName: systemImage) }
+            } description: {
+                if let subtitle { Text(subtitle) }
+            } actions: {
+                actionButton
+            }
+            .frame(maxWidth: .infinity)
+            .listRowBackground(Color.clear)
+        }
+    }
+    @ViewBuilder private var actionButton: some View {
+        if let action, let perform {
+            if prominent {
+                Button(action: perform) { Text(action) }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier(identifier ?? "templateOwnShelf.read.action")
+            } else {
+                Button(action: perform) { Text(action) }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier(identifier ?? "templateOwnShelf.read.action")
             }
         }
+    }
+}
+
+/// MP `subpackageA/pages/myproject/index.wxml:114` cy-empty 还没有模板 · cta 做一个玩法 → template intro.
+private struct TemplateOwnShelfEmptyState: View {
+    let destination: AnyView?
+    var body: some View {
+        ContentUnavailableView {
+            Label { Text("templateOwnShelf.read.empty") } icon: { Image(systemName: "square.stack.3d.up") }
+        } description: {
+            Text("templateOwnShelf.read.emptyHint")
+        } actions: {
+            if let destination {
+                NavigationLink { destination } label: { Text("templateOwnShelf.read.create") }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("templateOwnShelf.read.create")
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .listRowBackground(Color.clear)
+        .accessibilityIdentifier("templateOwnShelf.read.empty")
     }
 }
 

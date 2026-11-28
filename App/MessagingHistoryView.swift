@@ -574,7 +574,7 @@ struct MessagingHistoryView: View {
             .environment(\.imRecipientPreview, recipientPreviewInput)
             .imSendFlight(message.id, in: sendFlight.namespace)
         if !answersInline, expanded != nil, let topicID = MessagingCardTap.topicID(message) {
-            Button { openCardTopic(topicID) } label: { bubble }
+            Button { openCardTopic(topicID, signup: MessagingCardTap.isSignup(message)) } label: { bubble }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("messaging.message.\(message.id)")
         } else if !answersInline, let place = MessagingCardTap.mapItem(message) {
@@ -592,14 +592,19 @@ struct MessagingHistoryView: View {
             .accessibilityIdentifier("messaging.message.\(message.id)")
         }
     }
-    private func openCardTopic(_ id: Int) {
+    private func openCardTopic(_ id: Int, signup: Bool) {
         guard currentHistoryReady else { return }
-        cardRoute = .topic(id)
+        cardRoute = signup ? .signupTopic(id) : .topic(id)
     }
     @ViewBuilder private func cardRouteDestination(_ route: MessagingCardRoute) -> some View {
         switch route {
         case .topic(let id):
             if currentHistoryReady, let expanded { TopicDetailView(id: id, reader: expanded.topicReader) }
+        case .signupTopic(let id):
+            if currentHistoryReady, let expanded {
+                TopicDetailView(id: id, reader: expanded.topicReader,
+                                unavailableWallet: expanded.pageDestination?("subpackageMember/signup/index", id))
+            }
         case .activity(let id):
             if currentHistoryReady, let page = expanded?.pageDestination?("pages/activity/detail/index", id) { page }
         case .squarePost(let id):

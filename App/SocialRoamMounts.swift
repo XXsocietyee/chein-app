@@ -168,9 +168,14 @@ struct RoamMapWeather: ViewModifier {
 struct RoamLiveMapWeather: ViewModifier {
     let latitude: Double?
     let longitude: Double?
+    /// fix/1128c: the roam guide reads the same cell weather as the scene (no second request).
+    @Environment(\.aiGuideJournal) private var guideJournal
+    @StateObject private var model = SceneWeatherModel()
 
     func body(content: Content) -> some View {
-        content.modifier(OwnedMapSceneWeather(latitude: latitude, longitude: longitude))
+        content
+            .modifier(MapSceneWeather(latitude: latitude, longitude: longitude, model: model))
+            .onChange(of: model.mapReading, initial: true) { _, weather in guideJournal?.updateWeather(weather) }
     }
 }
 
