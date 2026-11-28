@@ -242514,13 +242514,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lv.%lld · City explorer"
+            "value": "Lv.%lld City explorer"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lv.%lld · 城市探索者"
+            "value": "Lv.%lld 城市探索者"
           }
         }
       }
