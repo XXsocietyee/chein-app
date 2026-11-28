@@ -64,8 +64,14 @@ class TicketWalletTeamContracts(unittest.TestCase):
  def test_readonly_roster_has_no_membership_or_financial_mutation(self):
   self.assertIn('TeamMemberRow(member: member, remove: nil)',self.ui)
   self.assertIn('Text("team.ticketSeparation")',self.ui)
-  for forbidden in ['TeamReviewSheet(', 'TeamInvitePreview(', 'TeamDetailView(', 'actionButton(', 'URLSession', 'api/', 'UserDefaults', 'Keychain', 'AsyncImage(', '.join(', '.leave(', '.disband(']:
+  for forbidden in ['TeamReviewSheet(', 'TeamInvitePreview(', 'actionButton(', 'URLSession', 'api/', 'UserDefaults', 'Keychain', 'AsyncImage(', '.join(', '.leave(', '.disband(']:
    self.assertNotIn(forbidden,self.ui)
+ def test_open_team_is_one_explicit_link_to_the_mp_team_detail(self):
+  # P0-8 / MP signup goMyTeam → pages/team/detail: the only team page reached from the ticket, with a fresh coordinator.
+  self.assertEqual(self.ui.count('TeamDetailView('),1)
+  self.assertIn('TeamDetailView(lookup: .id(detail.team.id), coordinator: openTeam(), makeCoordinator: openTeam, requiresMembership: true)',self.ui)
+  self.assertIn('openTeam: makeCoordinator).id(target.id)',self.ui)
+  self.assertNotIn('openTeam',self.model)
  def test_existing_detail_lifecycle_and_play_destination_remain_present(self):
   for value in ['model.accepts(presentation, currentOwner: key)', 'playReadOwner == playProvider.owner',
                 'playEntry.matches(target, ticket: ticket, requestedID: id, reader: reader, provider: playProvider)',
