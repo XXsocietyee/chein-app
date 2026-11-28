@@ -49,7 +49,8 @@ import UIKit
                         narrativeModel: { session.journeyNarrative(scope: scope, topicID: model.snapshot?.result.topicID, query: $0) },
                         narrativeImageReader: session.journeyNarrativeImageReader, shopNPCModel: { session.shopNPCNodeHost(scope: scope, nodeID: $0, runtime: model) },
                         invalidateShopNPC: session.invalidateShopNPCConversations,
-                        storeDayModel: { session.playStoreDay(scope: scope, nodeID: $0) },
+                        storeDayModel: { nodeID in session.playStoreDay(scope: scope, nodeID: nodeID, evidence: PlayStoreDayDeviceEvidence(makeDevice: {
+                            session.playDevice(scope: scope, nodeID: nodeID, lifetime: model.makeInteractionLifetime()) })) },
                         teamPoolModel: { session.teamPoolHint(topicID: model.snapshot?.result.topicID, nodeID: $0, runTeamID: model.snapshot?.result.teamID) },
                         mediaScope: session.platformConsumers.scope,
                         makeAudio: session.platformConsumers.audioFactory, makeExternalMaps: session.platformConsumers.mapsFactory,

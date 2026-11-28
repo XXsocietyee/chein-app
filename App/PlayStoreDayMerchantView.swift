@@ -320,13 +320,15 @@ import SwiftUI
         }
     }
     /// Coordinates come only from the server row; the existing external-map host is reused.
-    @ViewBuilder private func mapControl(_ node: PlayStoreDayNode, label: String, id: String) -> some View {
+    @ViewBuilder private func mapControl(_ node: PlayStoreDayNode, label: String, id: String, spoken: String? = nil) -> some View {
         if node.hasCoordinates, makeExternalMaps != nil {
             PlatformExternalMapHost(destination: .init(name: node.name ?? "", address: node.address, latitude: node.latitude, longitude: node.longitude),
-                                    scope: mediaScope, makeModel: makeExternalMaps).accessibilityIdentifier(id)
+                                    scope: mediaScope, makeModel: makeExternalMaps)
+                .accessibilityLabel(Text(verbatim: spoken ?? label)).accessibilityIdentifier(id)
         } else {
             Button { model.mapUnavailable() } label: { Label(label, systemImage: "mappin") }
-                .buttonStyle(.cySecondary(fullWidth: false)).accessibilityIdentifier(id)
+                .buttonStyle(.cySecondary(fullWidth: false))
+                .accessibilityLabel(Text(verbatim: spoken ?? label)).accessibilityIdentifier(id)
         }
     }
 
@@ -344,7 +346,9 @@ import SwiftUI
                 }.buttonStyle(.plain).disabled(model.receipt != .unknown).accessibilityIdentifier("storeDayPage.degraded")
             }
             HStack(spacing: CYSpacing.md) {
-                mapControl(node, label: L("playStoreDay.cta.address"), id: "storeDayPage.cta.address").fixedSize()
+                // fix-1128b #21 (J-11a): MP mp-cta__ghost shows 地址 and reads 导航去这里.
+                mapControl(node, label: L("playStoreDay.cta.address"), id: "storeDayPage.cta.address",
+                           spoken: L("playStoreDay.cta.navigateHere")).fixedSize()
                 primaryButton(node).frame(maxWidth: .infinity)
                 // MP 更多: 扫描门店码 / 拍摄到店凭证 fall back here once 我已到店 is the first step.
                 if !node.done {
@@ -355,8 +359,8 @@ import SwiftUI
                 }
             }
             .confirmationDialog(Text("playStoreDay.cta.more", tableName: "PlayStoreDay"), isPresented: $showingMore, titleVisibility: .hidden) {
-                Button(L("playStoreDay.more.scan")) { model.prepareScan() }
-                Button(L("playStoreDay.more.photo")) { model.preparePhoto() }
+                Button(L("playStoreDay.more.scan")) { Task { await model.captureAndPrepareScan() } }
+                Button(L("playStoreDay.more.photo")) { Task { await model.captureAndPreparePhoto() } }
                 Button(L("playStoreDay.cancel"), role: .cancel) {}
             }
             .alert(Text(verbatim: L("playStoreDay.arrive.purpose")), isPresented: $showingArrivePurpose) {
@@ -377,9 +381,9 @@ import SwiftUI
             case .confirmPending: primary(L("playStoreDay.cta.confirmPending"), disabled: false) { Task { await model.retryProofReadback() } }
             case .arrive: primary(L(model.busy ? "playStoreDay.cta.arriveBusy" : "playStoreDay.cta.arrive"), disabled: model.busy) { arriveHere() }
             case .relocate: primary(L(model.busy ? "playStoreDay.cta.arriveBusy" : "playStoreDay.cta.relocate"), disabled: model.busy) { arriveHere() }
-            case .scanUnlock: primary(L(model.busy ? "playStoreDay.cta.scanBusy" : "playStoreDay.cta.scanUnlock"), disabled: model.busy) { model.prepareScan() }
-            case .scan: primary(L(model.busy ? "playStoreDay.cta.scanBusy" : "playStoreDay.cta.scan"), disabled: model.busy) { model.prepareScan() }
-            case .photo: primary(L(model.busy ? "playStoreDay.cta.photoBusy" : "playStoreDay.cta.photo"), disabled: model.busy) { model.preparePhoto() }
+            case .scanUnlock: primary(L(model.busy ? "playStoreDay.cta.scanBusy" : "playStoreDay.cta.scanUnlock"), disabled: model.busy) { Task { await model.captureAndPrepareScan() } }
+            case .scan: primary(L(model.busy ? "playStoreDay.cta.scanBusy" : "playStoreDay.cta.scan"), disabled: model.busy) { Task { await model.captureAndPrepareScan() } }
+            case .photo: primary(L(model.busy ? "playStoreDay.cta.photoBusy" : "playStoreDay.cta.photo"), disabled: model.busy) { Task { await model.captureAndPreparePhoto() } }
             case .verify: primary(L(model.consentBusy ? "playStoreDay.cta.verifyBusy" : "playStoreDay.cta.verify"), disabled: model.consentBusy) { model.openVerifyCode() }
             case .redeemed: primary(L("playStoreDay.cta.redeemed"), disabled: true) {}
             }
@@ -485,7 +489,7 @@ import SwiftUI
                     if let rule = model.node?.rule { Text(verbatim: rule).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                 } header: { Text("playStoreDay.task.title", tableName: "PlayStoreDay") }
                 Section {
-                    Button { model.taskGoPhoto() } label: { Text(L(model.busy ? "playStoreDay.task.busy" : "playStoreDay.task.photo")).frame(maxWidth: .infinity) }
+                    Button { Task { await model.taskGoPhotoCapturing() } } label: { Text(L(model.busy ? "playStoreDay.task.busy" : "playStoreDay.task.photo")).frame(maxWidth: .infinity) }
                         .buttonStyle(.cyPrimary(fullWidth: true)).listRowBackground(Color.clear)
                         .disabled(model.busy).accessibilityIdentifier("storeDayPage.task.photo")
                     Button { model.closeTaskCard() } label: { Text("playStoreDay.task.later", tableName: "PlayStoreDay").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget) }

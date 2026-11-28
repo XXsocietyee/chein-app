@@ -166,6 +166,7 @@
         "EndToEndReleaseCandidateGateSectionViewTests",
         "EnvironmentBranchAndRewardLedgerViewTests",
         "FinalReleaseSignoffAndZeroGapCertificateViewTests",
+        "Fix1128bPlayReleaseCompositionTests",
         "FogOverlayLayerPixelTests",
         "FreeExploreBundleLaunchModelTests",
         "FreeExploreBundleReadHostTests",
