@@ -1279,7 +1279,9 @@ row). `CYAvatarView` labels `用户头像` / `%@的头像` are catalog keys with
 URL, club kit fixtures/cards) is a different object and stays.
 
 ### Not done (next run)
-- none.
+- ADA §3 Dates, second half (twin run 37 note): hand-built month-day rows `WalletPointsShortTime`
+  (`WalletCommerceViews.swift:1336`) and `WalletIncomeDayText` (`WalletEarningsParity.swift:4`) print `11/6 18:20` / `11/6`
+  in en instead of a localized form; route the en path through `LocaleDisplay.monthDayTime` (zh 11月6日 unchanged).
 
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,

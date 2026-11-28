@@ -66,7 +66,8 @@ class ProjectEditReviewAvailabilityContracts(unittest.TestCase):
             (view.replace(CAN_REVIEW, '    var canReview: Bool { canEdit }'), prepared),
             (view.replace(CAN_REVIEW, '    var canReview: Bool { coordinator.session != nil }'), prepared),
             (view.replace(CAN_REVIEW, CAN_REVIEW + '\n' + CAN_REVIEW), prepared),
-            (view.replace('.disabled(!model.canReview || aiPrecheck.isRunning)', '.disabled(!model.canEdit || aiPrecheck.isRunning)'), prepared),
+            # fix/1128c-ai-showcase: the review buttons read `.disabled(!model.canReview || aiPrecheck.isRunning)`.
+            (view.replace('.disabled(!model.canReview', '.disabled(!model.canEdit'), prepared),
             (view.replace(CAN_EDIT, CAN_EDIT.replace('ownsVisit && ', '')), prepared),
             (view, prepared.replace('let session = coordinator.session, ', '')),
             (view, prepared.replace('reviewLease.session == coordinator.session && ', '')),

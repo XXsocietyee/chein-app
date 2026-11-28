@@ -662,7 +662,8 @@ struct UGCSafetyMenuButton: View {
                 Image(systemName: "shield")
                     .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
-                    .frame(minWidth: CYSpacing.xl, minHeight: CYSpacing.xl)
+                    .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                    .contentShape(Rectangle())
             } else {
                 Label {
                     Text("ugc.safety.action.report", tableName: "UGCSafety")
