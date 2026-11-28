@@ -1307,6 +1307,21 @@ PASS (0 debt, 114 allowed), `contract_ratchet --check` 52 failing, baseline 52, 
   is `yyyy-MM-dd` / `M月d日`. Route through `LocaleDisplay.day` / `monthDay` and re-pin
   `Tests/CoreTests/RoamSubpageParityTests.swift:17` with a one-line reason (display only).
 
+## Continue run 39 (2026-11-28, merged combined-r7)
+
+Merge clean. No new coordinator row for this lane (latest: 13:15 sweep, K11–K16 to Cursor, B lanes for mp areas).
+Run 38 Not done row worked: **漫游 history run card date.** Checked first: the visible card date
+(`RoamRunCardDateText`, `RoamSubpageParityViews.swift:58`) is already `.dateTime.month().day().weekday()` in the
+locale; `RoamRunCardPresentation.dateShort` (MP `M/D/YY`) only fed the VoiceOver label, so VoiceOver read `10/19/25`
+in both languages while the card showed 10月19日 / Oct 19.
+
+| Page (MP → native) · level | Line | Before → after |
+|---|---|---|
+| `subpackageRoam/history` RunCard aria-label → `App/RoamHistoryViews.swift:109` · B | `App/RoamHistoryViews+Port.swift` `portRunCardAccessibilityLabel(locale:)` | spoken `10/19/25 West Lake, 2.5 km` → zh `10月19日 …` / en `Oct 19 …` via `LocaleDisplay.monthDay` (view `\.locale`) |
+
+`RoamRunCardPresentation.dateShort` stays as the pinned MP projection (`RoamSubpageParityTests:17`, no other caller),
+so no test re-pin was needed.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
