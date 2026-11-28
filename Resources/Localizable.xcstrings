@@ -170896,7 +170896,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Used %1$lld points · %2$lld left"
+            "value": "Used %#@points@ · %2$lld left"
+          },
+          "substitutions": {
+            "points": {
+              "argNum": 1,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg point"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg points"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {

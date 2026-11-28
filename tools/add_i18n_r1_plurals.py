@@ -79,6 +79,7 @@ UNPINNED = {
     'playHelp.points %lld',
     'playHelp.confirm.cost %lld',
     'playHelp.chargedOnly %lld',
+    'playHelp.charged %lld %lld',
     'u10.template.summary.games %lld',
     'u10.template.summary.stops %lld',
 }

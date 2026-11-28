@@ -115,7 +115,20 @@ def unit(value):
     return {'stringUnit': {'state': 'translated', 'value': value}}
 
 
+# Two-argument count: the first argument (points used) varies by plural through a substitution.
+EN_SUBSTITUTED = {
+    'playHelp.charged %lld %lld': {
+        'stringUnit': {'state': 'translated', 'value': 'Used %#@points@ · %2$lld left'},
+        'substitutions': {'points': {'argNum': 1, 'formatSpecifier': 'lld', 'variations': {'plural': {
+            'one': {'stringUnit': {'state': 'translated', 'value': '%arg point'}},
+            'other': {'stringUnit': {'state': 'translated', 'value': '%arg points'}}}}}},
+    },
+}
+
+
 def english(key, en):
+    if key in EN_SUBSTITUTED:
+        return EN_SUBSTITUTED[key]
     if key in EN_ONE:
         return {'variations': {'plural': {'one': unit(EN_ONE[key]), 'other': unit(en)}}}
     return unit(en)
