@@ -824,14 +824,20 @@ struct ClubCommunityPostTile: View {
             }
             tileActions {
                 if let openDetail {
-                    Button(action: openDetail) { Text("club.community.detail") }
-                        .frame(minHeight: CYSpacing.minTouchTarget)
+                    Button(action: openDetail) {
+                        Text("club.community.detail")
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .contentShape(Rectangle())
+                    }
                         .accessibilityIdentifier("club.community.detail.\(post.id)")
                 }
                 // CLB-detail-17: MP shows 历史 only for an edited post (version > 0).
                 if post.version > 0 {
-                    Button(action: openHistory) { Text("club.community.history") }
-                        .frame(minHeight: CYSpacing.minTouchTarget)
+                    Button(action: openHistory) {
+                        Text("club.community.history")
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .contentShape(Rectangle())
+                    }
                         .accessibilityIdentifier("club.community.history.\(post.id)")
                 }
                 if post.authorMemberID != identity.accountID {

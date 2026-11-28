@@ -722,9 +722,10 @@ are mp-states / mp-nav, none for this lane); no K50 `lane-layout` rows for this 
 | `pages/club/post-detail` 评论 list (comments page) | `ClubCommunityViews.swift:1383` (`ClubCommunityCommentsView`) | ✓ (post → comments → delete / report → input + 预览) | Subheadline borderless Delete / Report comment button was ~20 pt tall → 44 pt hit area (`minHeight` + `contentShape`), look unchanged. Detail page comment rows: name + body one VO element, safety menu separate ✓; body wraps at AX5 ✓ | Done |
 | `pages/club/post-detail` 编辑历史 (history) | `ClubCommunityViews.swift:1423` (`ClubCommunityHistoryView`) | ✓ (version → content → time → images) | Checked at AX sizes: `LabeledContent` version stacks, content + time wrap, spoken dash for empty values. No change needed | Done |
 | `pages/club` post action review sheet (确认) | `ClubCommunityViews.swift:1241` (`ClubCommunityReviewView`) | ✓ (action → quoted post / comment → warning → 确认) | Action title is a VoiceOver header; quoted target keeps 3 lines at default sizes and 8 at AX sizes so the words being deleted / reported stay readable | Done |
+| `pages/club` post card (cy-post-card) action rows | `ClubCommunityViews.swift:822` (`ClubCommunityPostTile`) | ✓ (赞 · 评论 · 转发 · 分享 · ⋯ → 详情 · 历史 · 安全) | "Detail" / "History" had `minHeight` outside a borderless button, so only the text line was tappable → frame + `contentShape` inside the label (44 pt). Action rows already stack at AX sizes ✓ | Done |
 
 ## Not done (next run starts here)
-- Next pages in the area without a row (Roam map panel is coordinator-settled, do not edit `CYMapChrome` / `RoamBrowserView`; shared `App/DesignSystem` Dynamic Type is Cursor K26): square post video player controls (`SquarePostVideoViews.swift` read path), club post tile action row at AX5 (`ClubCommunityPostTile`).
+- Next pages in the area without a row (Roam map panel is coordinator-settled, do not edit `CYMapChrome` / `RoamBrowserView`; shared `App/DesignSystem` Dynamic Type is Cursor K26): square post video player controls (`SquarePostVideoViews.swift` read path), club post image gallery + reference cover labels (`ClubPostImageGallery`, `ClubCommunityReferenceCover`).
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.
