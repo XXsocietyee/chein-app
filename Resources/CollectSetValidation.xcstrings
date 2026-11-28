@@ -23,13 +23,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "名称超过原规则的120个UTF-16单位；请缩短，内容不会自动截断。"
+            "value": "名称最多 120 个字符，请缩短；超出部分不会被自动截断。"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The name exceeds the original limit of 120 UTF-16 units. Shorten it; text is not truncated automatically."
+            "value": "Keep the name to 120 characters or fewer. Longer names aren’t cut off automatically."
           }
         }
       }

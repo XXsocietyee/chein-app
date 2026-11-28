@@ -44,7 +44,6 @@ struct CoopFinanceSummarySection: View {
 struct CoopOperationListPresentation: ViewModifier {
     func body(content: Content) -> some View {
         content.listStyle(.insetGrouped)
-            .listSectionSpacing(Theme.Space.s4)
             .environment(\.defaultMinListRowHeight, 52)
             .cyText(.body)
             .navigationBarTitleDisplayMode(.inline)
