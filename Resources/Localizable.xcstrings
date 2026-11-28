@@ -54667,7 +54667,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Image address"
+            "value": "Image link"
           }
         },
         "zh-Hans": {
@@ -54870,7 +54870,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recognition image address"
+            "value": "Recognition image link"
           }
         },
         "zh-Hans": {
@@ -55295,7 +55295,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Overlay image address"
+            "value": "Overlay image link"
           }
         },
         "zh-Hans": {
@@ -366540,7 +366540,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Image address (https or in-app path)"
+            "value": "Image link (https or in-app path)"
           }
         },
         "zh-Hans": {
@@ -366591,7 +366591,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scene image address"
+            "value": "Scene image link"
           }
         },
         "zh-Hans": {
@@ -366778,7 +366778,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Several answers allowed, separated by 、"
+            "value": "Several answers allowed, separated by commas"
           }
         },
         "zh-Hans": {
