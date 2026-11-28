@@ -56,7 +56,7 @@ import SwiftUI
                     .accessibilityIdentifier("profile.orderMap.opening")
             } else if let outcome = model.outcome {
                 Text(LocalizedStringKey(outcome == .opened ? "profile.orderMap.opened" : "profile.orderMap.failed"))
-                    .font(.footnote).foregroundStyle(outcome == .opened ? Color.green : Color.orange)
+                    .font(.footnote).foregroundStyle(outcome == .opened ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("profile.orderMap.result")
             }
         }

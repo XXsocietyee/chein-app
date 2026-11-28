@@ -201,7 +201,7 @@ public struct PublishTopicAndCommentModerationSectionView: View {
         HStack(spacing: 8) {
             Text(verbatim: snapshot.hasActiveUgcViolationBanner ? "UGC_VIOLATION_BLOCKED" : "UGC_1_2_READY")
                 .font(.caption.monospaced().weight(.bold))
-                .foregroundStyle(snapshot.hasActiveUgcViolationBanner ? Color.red : Color.green)
+                .foregroundStyle(snapshot.hasActiveUgcViolationBanner ? CYColor.dangerText : CYColor.successText)
                 .accessibilityIdentifier("publishTopicModeration.ugcBannerState")
 
             Text(verbatim: snapshot.ugcViolationBannerText)

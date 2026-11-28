@@ -251,7 +251,7 @@ import UIKit
                                     Text(LocalizedStringKey(row.status.localizationKey))
                                 } icon: {
                                     Image(systemName: row.status == .credited ? "checkmark.circle.fill" : "circle")
-                                        .foregroundStyle(row.status == .credited ? Color.green : Color.secondary)
+                                        .foregroundStyle(row.status == .credited ? CYColor.successText : Color.secondary)
                                 }
                                 if row.amountText == nil {
                                     Label {

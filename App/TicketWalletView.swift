@@ -489,7 +489,7 @@ private struct TicketWalletCardTag: View {
             Label {
                 Text(LocalizedStringKey(cleared ? "ticketWallet.tag.cleared" : "ticketWallet.tag.notCleared"))
             } icon: {
-                Image(systemName: cleared ? "checkmark.seal.fill" : "circle.dashed").foregroundStyle(cleared ? Color.green : Color.secondary)
+                Image(systemName: cleared ? "checkmark.seal.fill" : "circle.dashed").foregroundStyle(cleared ? CYColor.successText : Color.secondary)
             }
             .font(.footnote).foregroundStyle(.secondary)
             .accessibilityIdentifier("ticketWallet.topicCompleted.\(ticket.id)")

@@ -128,7 +128,7 @@ public struct IMAndSocialSafetyParitySectionView: View {
 
                 Text(verbatim: Self.overallStatusText(for: snapshot))
                     .cyText(.body)
-                    .foregroundStyle(snapshot.isAllCompliant ? .green : .red)
+                    .foregroundStyle(snapshot.isAllCompliant ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("imSocialSafetyAudit.overallStatus")
 
                 Text(verbatim: Self.memberProfileStatusText(for: snapshot))
@@ -206,7 +206,7 @@ private struct IMSocialSafetyPillarRowView: View {
                 Spacer()
                 Text(verbatim: row.isVerified ? "已核验" : "待修复")
                     .cyText(.meta)
-                    .foregroundStyle(row.isVerified ? .green : .red)
+                    .foregroundStyle(row.isVerified ? CYColor.successText : CYColor.dangerText)
             }
 
             Text(verbatim: row.summary)

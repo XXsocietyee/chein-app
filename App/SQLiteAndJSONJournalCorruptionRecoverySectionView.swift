@@ -170,7 +170,7 @@ public struct SQLiteAndJSONJournalCorruptionRecoverySectionView: View {
                         .accessibilityIdentifier("journalCorruptionRecovery.header.title")
                     Text(verbatim: snapshot.summaryHeadlineText)
                         .font(.subheadline)
-                        .foregroundStyle(snapshot.isAllHealthy ? .green : .orange)
+                        .foregroundStyle(snapshot.isAllHealthy ? CYColor.successText : CYColor.warningText)
                         .accessibilityIdentifier("journalCorruptionRecovery.header.summary")
                 }
                 Spacer()
@@ -211,7 +211,7 @@ public struct SQLiteAndJSONJournalCorruptionRecoverySectionView: View {
                     .accessibilityIdentifier("journalCorruptionRecovery.row.\(row.id).schema")
                 Text(verbatim: row.statusBadgeText)
                     .cyText(.caption, weight: .semibold)
-                    .foregroundStyle(row.isHealthy ? .green : .orange)
+                    .foregroundStyle(row.isHealthy ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("journalCorruptionRecovery.row.\(row.id).status")
             }
 

@@ -159,7 +159,7 @@ struct ActivityTicketCard: View {
                     Label { Text(verbatim: copy.t("已售罄", "Sold out")) } icon: { Image(systemName: "xmark.circle").foregroundStyle(CYColor.dangerText) }
                         .accessibilityIdentifier("activity.ticket.soldOut.\(ticket.id)")
                 } else if let left = ticket.remainingInventory {
-                    Label { Text(verbatim: copy.t("剩余 \(left)", "\(left) left")) } icon: { Image(systemName: "ticket").foregroundStyle(left <= 10 ? Color.orange : Color.green) }
+                    Label { Text(verbatim: copy.t("剩余 \(left)", "\(left) left")) } icon: { Image(systemName: "ticket").foregroundStyle(left <= 10 ? CYColor.warningText : CYColor.successText) }
                 } else {
                     Label { Text(verbatim: copy.t("余票待确认", "Availability unconfirmed")) } icon: { Image(systemName: "questionmark.circle") }
                         .accessibilityIdentifier("activity.ticket.inventoryUnknown.\(ticket.id)")

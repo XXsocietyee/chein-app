@@ -181,7 +181,7 @@ public struct NPCChatAndSceneAISafetySnapshot: Equatable, Sendable {
             ForEach(snapshot.rows) { row in
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: row.isEnforced ? "lock.shield.fill" : "exclamationmark.triangle.fill")
-                        .accessibilityHidden(true).foregroundStyle(row.isEnforced ? .green : .red)
+                        .accessibilityHidden(true).foregroundStyle(row.isEnforced ? CYColor.successText : CYColor.dangerText)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: row.title)
                             .cyText(.bodyMedium)
@@ -192,7 +192,7 @@ public struct NPCChatAndSceneAISafetySnapshot: Equatable, Sendable {
                     Spacer()
                     Text(verbatim: row.isEnforced ? bilingualCopy("已生效", "Enforced", locale: snapshot.locale) : bilingualCopy("未生效", "Not enforced", locale: snapshot.locale))
                         .cyText(.meta, weight: .semibold)
-                        .foregroundStyle(row.isEnforced ? .green : .red)
+                        .foregroundStyle(row.isEnforced ? CYColor.successText : CYColor.dangerText)
                 }
                 .accessibilityIdentifier("npcSceneAISafety.row." + row.guardID)
             }

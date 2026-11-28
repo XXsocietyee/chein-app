@@ -140,7 +140,7 @@ public struct ProductionTelemetryAndPrivacyRedactionSectionView: View {
 
                 Text(verbatim: Self.overallStatusText(for: snapshot))
                     .font(.subheadline)
-                    .foregroundStyle(snapshot.isAllRedacted ? .green : .red)
+                    .foregroundStyle(snapshot.isAllRedacted ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("telemetryPrivacyRedaction.overallStatus")
 
                 Text(verbatim: Self.tokenMaskingStatusText(for: snapshot))
@@ -218,7 +218,7 @@ private struct TelemetryRedactionPipelineRowView: View {
                 Spacer()
                 Text(verbatim: row.isRedacted ? "已脱敏" : "告警")
                     .cyText(.meta)
-                    .foregroundStyle(row.isRedacted ? .green : .red)
+                    .foregroundStyle(row.isRedacted ? CYColor.successText : CYColor.dangerText)
             }
 
             Text(verbatim: row.summary)

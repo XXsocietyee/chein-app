@@ -123,6 +123,10 @@ fixtures included; there is no Swift compiler in the lanes' cloud sessions):
                   (achievement trophies use `CYColor.medalGold`, stars `CYColor.ratingStar`)
   semantic hue    a raw `.green` / `.blue` foreground (glyph or text) outside App/DesignSystem and the effect surfaces:
                   saved / done / claimed uses `CYColor.successText`, upcoming / time / info uses `CYColor.infoText`
+                  (all hue kinds also read ternary branches: `.foregroundStyle(ok ? Color.green : .secondary)`)
+  accent hue      a raw `.purple` / `.pink` / `.yellow` / `.teal` / `.indigo` / `.mint` / `.cyan` / `.brown`
+                  foreground outside App/DesignSystem and the effect surfaces: a second accent next to the one
+                  brand voice (OWNER RULE 3). Use `CYColor.brand`, a semantic token, `ratingStar` or the medal tiers
   error text hue  styled text (a `.font(...)` on the same line or within 3 lines above) drawn in a raw `.red`
                   foreground, outside App/DesignSystem and the effect surfaces: inline error / failure / validation
                   copy uses `CYColor.dangerText` (destructive buttons keep `role: .destructive` / system red)
@@ -313,27 +317,35 @@ RATING_HUE = 'rating hue'
 # `CYColor.ratingStar` (a first-place / medal star uses `CYColor.medalGold`). Celebration art keeps its own colour
 # through an allowed entry with a reason.
 RATING_STAR = re.compile(r'systemName:\s*(?:[^)]*\?\s*)?"star\.fill"')
-RATING_RAW_HUE = re.compile(r'\.(?:foregroundStyle|foregroundColor|tint)\(\s*(?:Color)?\.(?:yellow|orange)\b')
+RATING_RAW_HUE = re.compile(r'\.(?:foregroundStyle|foregroundColor|tint)\(\s*(?:[^()]*?[?:]\s*)?(?:Color)?\.(?:yellow|orange)\b')
 STATUS_HUE = 'status hue'
 # One status hue (ADA audit §3 accent colours, ds-consistency run 47): a done / warning / failed glyph drew in the raw
 # system `.green` / `.orange` / `.red` on some pages and in `CYColor.successText` / `warningText` / `dangerText` on
 # others. A `checkmark…` / `exclamationmark…` / `xmark…` symbol with a raw green / orange / red foreground on the same
 # line uses the semantic token. Games, story, maps and other effect surfaces keep their own HUD colours.
 STATUS_GLYPH = re.compile(r'systemName:\s*"(?:checkmark|exclamationmark|xmark)[\w.]*"')
-STATUS_RAW_HUE = re.compile(r'\.(?:foregroundStyle|foregroundColor)\(\s*(?:Color)?\.(?:green|orange|red)\b')
+# A raw hue also counts inside a ternary branch (`.foregroundStyle(done ? Color.green : .secondary)`, run 50).
+FG_OPEN = r'\.(?:foregroundStyle|foregroundColor)\(\s*(?:[^()]*?[?:]\s*)?'
+STATUS_RAW_HUE = re.compile(FG_OPEN + r'(?:Color)?\.(?:green|orange|red)\b')
 ERROR_TEXT_HUE = 'error text hue'
 # One error-text hue (ADA audit §3 accent colours, ds-consistency run 48): inline save-failed / validation / upload
 # failure copy drew in raw system `.red` on 14 pages and in `CYColor.dangerText` everywhere else. A raw red foreground
 # on styled text (a `.font(` on the line or within 3 lines above) uses the semantic token.
-ERROR_TEXT_RAW_RED = re.compile(r'\.(?:foregroundStyle|foregroundColor)\(\s*(?:Color)?\.red\b')
+ERROR_TEXT_RAW_RED = re.compile(FG_OPEN + r'(?:Color)?\.red\b')
 WARNING_HUE = 'warning hue'
 # One warning hue (ADA audit §3 accent colours, ds-consistency run 48): pending / locked / offline / at-risk glyphs and
 # notes drew in raw system `.orange` on 28 pages and in `CYColor.warningText` everywhere else.
-WARNING_RAW_ORANGE = re.compile(r'\.(?:foregroundStyle|foregroundColor)\(\s*(?:Color)?\.orange\b')
+WARNING_RAW_ORANGE = re.compile(FG_OPEN + r'(?:Color)?\.orange\b')
 SEMANTIC_HUE = 'semantic hue'
 # One success / info hue (ds-consistency run 49): saved / claimed / redeemed copy drew in raw `.green` and ticket
 # upcoming / time tags in raw `.blue` on 6 pages, the semantic tokens everywhere else.
-SEMANTIC_RAW_HUE = re.compile(r'\.(?:foregroundStyle|foregroundColor)\(\s*(?:Color)?\.(?:green|blue)\b')
+SEMANTIC_RAW_HUE = re.compile(FG_OPEN + r'(?:Color)?\.(?:green|blue)\b')
+ACCENT_HUE = 'accent hue'
+# One brand voice (OWNER RULE 3: a single accent `CYColor.brand` plus semantic colours; ds-consistency run 50): a raw
+# system `.purple` / `.pink` / `.yellow` / `.teal` / `.indigo` / `.mint` / `.cyan` / `.brown` foreground on a clean page
+# is a second accent. Use `CYColor.brand`, a semantic token, `CYColor.ratingStar` or the medal tiers; art keeps its
+# colour through an allowed entry with a reason. Effect surfaces (games, story, maps, pay, celebrations) are exempt.
+ACCENT_RAW_HUE = re.compile(FG_OPEN + r'(?:Color)?\.(?:purple|pink|yellow|teal|indigo|mint|cyan|brown)\b')
 EFFECT_ON_CLEAN = 'effect on clean page'
 # OWNER RULE 3 (11-28): the 11-26 no-op effects are restored, but only for games, story flow, payment, maps and
 # celebration moments. Every other page stays clean (system components, no glow / foil / particles / glass).
@@ -371,7 +383,8 @@ KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, C
          LEADING_ACTION, DONE_LEADING, RAW_RADIUS, LINE_SPACING, STATUS_CAPSULE, SILENT_SPINNER, BUSY_SWAP, HAND_DIVIDER,
          ALL_CAPS, GRID_LINK, FIXED_SURFACE, DARK_BACKING, LOCALE_MONEY, REFRESH_NO_PULL, SECTION_SPACING, DUPLICATE_TYPE,
          UNDECLARED_STATE, UNTYPED_HAPTIC, HEADER_FONT, EFFECT_ON_CLEAN, RAW_COUNT,
-         MANUAL_PAGING, RATING_HUE, STATUS_HUE, ERROR_TEXT_HUE, WARNING_HUE, SEMANTIC_HUE)
+         MANUAL_PAGING, RATING_HUE, STATUS_HUE, ERROR_TEXT_HUE, WARNING_HUE, SEMANTIC_HUE,
+         ACCENT_HUE)
 
 # The five player tab roots (Core/RootTab.swift, QuestifyApp root TabView) and the files that own their title.
 # 漫游 is the full-screen map home: its chrome is allowed in the baseline instead.
@@ -767,6 +780,8 @@ def scan_file(rel, text):
                 hits.append((number, WARNING_HUE, code.strip()))
             if SEMANTIC_RAW_HUE.search(code) and not STATUS_HUE_LINE(code):
                 hits.append((number, SEMANTIC_HUE, code.strip()))
+            if ACCENT_RAW_HUE.search(code) and not RATING_RAW_HUE.search(code):
+                hits.append((number, ACCENT_HUE, code.strip()))
     if is_root:
         has_large = any(ROOT_HEADER_PATTERN.search(c) or LARGE_PATTERN.search(c) for _, c in lines)
         if not has_large:

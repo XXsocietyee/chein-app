@@ -71,7 +71,7 @@ private struct ClubActivityCard: View {
                 Text(LocalizedStringKey("club.activityList.status." + row.status.rawValue))
             } icon: {
                 Image(systemName: "circle.fill").imageScale(.small)
-                    .foregroundStyle(row.status == .live ? Color.green : (row.status == .ended ? Color.secondary : Color.blue))
+                    .foregroundStyle(row.status == .live ? CYColor.successText : (row.status == .ended ? Color.secondary : CYColor.infoText))
             }
             .font(.subheadline)
             .foregroundStyle(.secondary)

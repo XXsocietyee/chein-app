@@ -111,7 +111,7 @@ import SwiftUI
                     if let current = flow.current {
                         Label(localized(current.blocked ? "blacklist.currentBlocked" : "blacklist.currentUnblocked"),
                               systemImage: current.blocked ? "hand.raised" : "person")
-                            .foregroundStyle(current.blocked ? Color.orange : Color.green)
+                            .foregroundStyle(current.blocked ? CYColor.warningText : CYColor.successText)
                             .accessibilityIdentifier("blacklist.current")
                     } else {
                         text("blacklist.currentFailure")

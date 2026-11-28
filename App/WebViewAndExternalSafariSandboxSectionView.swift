@@ -131,7 +131,7 @@ public struct WebViewAndExternalSafariSandboxSectionView: View {
 
                 Text(verbatim: Self.overallStatusText(for: snapshot))
                     .font(.subheadline)
-                    .foregroundStyle(snapshot.isAllSafe ? .green : .red)
+                    .foregroundStyle(snapshot.isAllSafe ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("webViewSandbox.overallStatus")
 
                 Text(verbatim: Self.atsStatusText(for: snapshot))
@@ -199,7 +199,7 @@ private struct WebContainerPolicyRowView: View {
                 Spacer()
                 Text(verbatim: row.isContainerSafe ? "安全" : "告警")
                     .cyText(.meta)
-                    .foregroundStyle(row.isContainerSafe ? .green : .red)
+                    .foregroundStyle(row.isContainerSafe ? CYColor.successText : CYColor.dangerText)
             }
 
             Text(verbatim: row.summary)

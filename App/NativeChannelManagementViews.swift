@@ -475,7 +475,7 @@ private func ncmLoading() -> some View {
                 Text(verbatim: ncmString(key, locale: locale))
             } icon: {
                 Image(systemName: row.status == 1 ? "archivebox" : "checkmark.circle.fill")
-                    .foregroundStyle(row.status == 1 ? Color.orange : Color.green)
+                    .foregroundStyle(row.status == 1 ? CYColor.warningText : CYColor.successText)
             }
         } label: { ncmText("status") }
         .accessibilityElement(children: .combine)

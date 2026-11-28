@@ -451,7 +451,7 @@ struct OfficialDetailMissionRow: View {
                 OfficialDetailTextView(value: mission.title).font(.headline)
                 if let topicName { Text("official.w206.detail.boundTopic \(topicName)").font(.subheadline) }
                 OfficialDetailTextView(value: mission.description).font(.subheadline).foregroundStyle(.secondary)
-                Label { Text(LocalizedStringKey(mission.action.key)) } icon: { Image(systemName: symbol).foregroundStyle(mission.action == .verified ? Color.green : Color.secondary) }
+                Label { Text(LocalizedStringKey(mission.action.key)) } icon: { Image(systemName: symbol).foregroundStyle(mission.action == .verified ? CYColor.successText : Color.secondary) }
                     .font(.subheadline)
             }
         }.accessibilityElement(children: .combine)

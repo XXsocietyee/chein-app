@@ -125,7 +125,7 @@ public struct WeChatShareCardAndPosterExportSectionView: View {
 
                 Text(verbatim: Self.overallStatusText(for: snapshot))
                     .font(.subheadline)
-                    .foregroundStyle(snapshot.isAllCompliant ? .green : .red)
+                    .foregroundStyle(snapshot.isAllCompliant ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("shareCardPosterExport.overallStatus")
 
                 Text(verbatim: Self.statusSeparationText(for: snapshot))
@@ -193,7 +193,7 @@ private struct SharePosterSurfaceRowView: View {
                 Spacer()
                 Text(verbatim: row.isSurfaceCompliant ? "已对齐" : "告警")
                     .cyText(.meta)
-                    .foregroundStyle(row.isSurfaceCompliant ? .green : .red)
+                    .foregroundStyle(row.isSurfaceCompliant ? CYColor.successText : CYColor.dangerText)
             }
 
             Text(verbatim: row.summary)

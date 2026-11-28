@@ -174,13 +174,13 @@ public struct SocialGraphAndProfilePrivacySectionView: View {
                         .accessibilityIdentifier("socialProfileParity.header.title")
                     Text(verbatim: snapshot.summaryHeadlineText)
                         .cyText(.body)
-                        .foregroundStyle(snapshot.isAllReady ? .green : .orange)
+                        .foregroundStyle(snapshot.isAllReady ? CYColor.successText : CYColor.warningText)
                         .accessibilityIdentifier("socialProfileParity.header.summary")
                 }
                 Spacer()
                 Text(verbatim: snapshot.isAllReady ? "全部就绪" : "存在告警")
                     .cyText(.meta, weight: .semibold)
-                    .foregroundStyle(snapshot.isAllReady ? .green : .orange)
+                    .foregroundStyle(snapshot.isAllReady ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("socialProfileParity.header.badge")
             }
 
@@ -207,7 +207,7 @@ public struct SocialGraphAndProfilePrivacySectionView: View {
                     .accessibilityIdentifier("socialProfileParity.row.\(row.id).ref")
                 Text(verbatim: row.statusBadgeText)
                     .cyText(.caption, weight: .semibold)
-                    .foregroundStyle(row.isReady ? .green : .red)
+                    .foregroundStyle(row.isReady ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("socialProfileParity.row.\(row.id).status")
             }
 

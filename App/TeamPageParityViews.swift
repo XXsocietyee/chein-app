@@ -35,7 +35,7 @@ struct TeamPageHeader: View {
                 } icon: {
                     Image(systemName: live ? "dot.radiowaves.left.and.right" : "circle.fill")
                         .imageScale(live ? .medium : .small)
-                        .foregroundStyle(live ? Color.green : Color.secondary)
+                        .foregroundStyle(live ? CYColor.successText : Color.secondary)
                 }
                 .font(.subheadline)
                 .accessibilityIdentifier("teamPage.status")

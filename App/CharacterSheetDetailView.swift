@@ -62,7 +62,7 @@ import QuestifyCore
                 // Native r2: the state is secondary text (green while running), not a capsule.
                 Text(card.statusText)
                     .font(.subheadline)
-                    .foregroundStyle(card.running ? Color.green : Color.secondary)
+                    .foregroundStyle(card.running ? CYColor.successText : Color.secondary)
                     .accessibilityLabel(Text(verbatim: card.heading))
                     .accessibilityValue(Text(verbatim: card.statusText.isEmpty ? "—" : card.statusText))
                     .accessibilityHint(Text(verbatim: card.definitionNote(for: definitionSource)))
@@ -173,7 +173,7 @@ import QuestifyCore
                     ForEach(0..<attribute.max, id: \.self) { index in
                         Image(systemName: index < attribute.value ? "star.fill" : "star")
                             .font(.footnote)
-                            .foregroundStyle(index < attribute.value ? Color.yellow : Color.secondary)
+                            .foregroundStyle(index < attribute.value ? CYColor.ratingStar : Color.secondary)
                     }
                 }
                 .accessibilityHidden(true)

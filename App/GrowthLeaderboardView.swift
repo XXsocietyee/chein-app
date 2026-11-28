@@ -304,8 +304,8 @@ private struct GrowthLeaderboardPodiumView: View {
     }
     private func column(_ entry: GrowthLeaderboardEntry, place: Int) -> some View {
         // LEADER-6 (MP RING_BG): gold / pale gold / bronze rings for 1 · 2 · 3.
-        // N-GROWTH (r10): system colours instead of hand-mixed RGB (gold / silver / bronze).
-        let ring: Color = place == 1 ? .yellow : place == 2 ? .gray : .brown
+        // N-GROWTH (r10): no hand-mixed RGB. ds-consistency r3 run 50: the shared medal tiers (one podium hue).
+        let ring: Color = place == 1 ? CYColor.medalGold : place == 2 ? CYColor.medalSilver : CYColor.medalBronze
         let name = GrowthCenterFormatting.nonempty(entry.nickname)
         return VStack(spacing: CYSpacing.sm) {
             // LEADER-6: MP `gc-crown` star above the first place (decorative).

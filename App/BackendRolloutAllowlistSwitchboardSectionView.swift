@@ -186,7 +186,7 @@ public struct BackendRolloutAllowlistSwitchboardSectionView: View {
                         .accessibilityIdentifier("rolloutAllowlistSwitchboard.header.title")
                     Text(verbatim: snapshot.summaryHeadlineText)
                         .font(.subheadline)
-                        .foregroundStyle(snapshot.isAllSafe ? .green : .orange)
+                        .foregroundStyle(snapshot.isAllSafe ? CYColor.successText : CYColor.warningText)
                         .accessibilityIdentifier("rolloutAllowlistSwitchboard.header.summary")
                 }
                 Spacer()
@@ -223,7 +223,7 @@ public struct BackendRolloutAllowlistSwitchboardSectionView: View {
                 Spacer()
                 Text(verbatim: row.badgeText)
                     .cyText(.caption, weight: .semibold)
-                    .foregroundStyle(row.isSafe ? .green : .red)
+                    .foregroundStyle(row.isSafe ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("rolloutAllowlistSwitchboard.row.\(row.id).status")
             }
 

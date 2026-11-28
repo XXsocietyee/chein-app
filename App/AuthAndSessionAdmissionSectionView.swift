@@ -169,7 +169,7 @@ public struct AuthAndSessionAdmissionSectionView: View {
                 Spacer()
                 Text(verbatim: snapshot.allPillarsCompliant ? "PASS" : "BLOCKED")
                     .font(.caption.monospaced())
-                    .foregroundStyle(snapshot.allPillarsCompliant ? .green : .red)
+                    .foregroundStyle(snapshot.allPillarsCompliant ? CYColor.successText : CYColor.dangerText)
             }
             .accessibilityIdentifier("authAdmissionAudit.summary")
 

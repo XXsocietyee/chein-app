@@ -144,7 +144,7 @@ private struct ProfileBadgeStatus: View {
             Text(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked")
         } icon: {
             Image(systemName: badge.isLocked ? "lock.fill" : "checkmark.seal.fill")
-                .foregroundStyle(badge.isLocked ? Color.secondary : Color.green)
+                .foregroundStyle(badge.isLocked ? Color.secondary : CYColor.successText)
         }
         .font(.footnote)
         .foregroundStyle(.secondary)

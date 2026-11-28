@@ -140,7 +140,7 @@ public struct ScenePhaseLifecycleSnapshot: Sendable, Equatable {
             ForEach(snapshot.rows) { row in
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: row.isCompliant ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                        .accessibilityHidden(true).foregroundStyle(row.isCompliant ? .green : .red)
+                        .accessibilityHidden(true).foregroundStyle(row.isCompliant ? CYColor.successText : CYColor.dangerText)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: row.title)
                             .cyText(.bodyMedium)
@@ -151,7 +151,7 @@ public struct ScenePhaseLifecycleSnapshot: Sendable, Equatable {
                     Spacer()
                     Text(verbatim: row.isCompliant ? "就绪" : "告警")
                         .cyText(.meta, weight: .semibold)
-                        .foregroundStyle(row.isCompliant ? .green : .red)
+                        .foregroundStyle(row.isCompliant ? CYColor.successText : CYColor.dangerText)
                 }
                 .accessibilityIdentifier("scenePhaseLifecycle.row." + row.subsystemID)
             }

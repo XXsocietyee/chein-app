@@ -91,7 +91,7 @@ struct ClubActionPanel: View {
                     } icon: {
                         // Contrast (a11y-dt r3): only the glyph is tinted; orange/green text on the bar is about 2:1.
                         Image(systemName: reward == .apply ? "clock" : "checkmark.circle.fill")
-                            .foregroundStyle(reward == .apply ? Color.orange : Color.green)
+                            .foregroundStyle(reward == .apply ? CYColor.warningText : CYColor.successText)
                     }
                     .transition(.opacity)
                 }
@@ -301,7 +301,7 @@ struct ClubActionPanel: View {
                             } icon: {
                                 // Contrast (a11y-dt r3): only the glyph is tinted; orange/green text on the bar is about 2:1.
                                 Image(systemName: reward == .apply ? "clock" : "checkmark.circle.fill")
-                                    .foregroundStyle(reward == .apply ? Color.orange : Color.green)
+                                    .foregroundStyle(reward == .apply ? CYColor.warningText : CYColor.successText)
                             }
                         }
                         if isWorking { ProgressView("club.action.working").accessibilityIdentifier("club.action.loading") }

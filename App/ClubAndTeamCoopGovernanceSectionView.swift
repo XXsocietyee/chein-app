@@ -177,7 +177,7 @@ public struct ClubAndTeamCoopGovernanceSectionView: View {
                         .font(.headline)
                         .accessibilityIdentifier("clubTeamGovernance.header.title")
                     Text(verbatim: snapshot.headlineSummaryText)
-                        .foregroundStyle(snapshot.allPillarsHealthy ? .green : .orange)
+                        .foregroundStyle(snapshot.allPillarsHealthy ? CYColor.successText : CYColor.warningText)
                         .accessibilityIdentifier("clubTeamGovernance.header.summary")
                 }
                 Spacer()
@@ -185,7 +185,7 @@ public struct ClubAndTeamCoopGovernanceSectionView: View {
                     Text(verbatim: snapshot.allPillarsHealthy ? "治理就绪" : "需关注")
                 } icon: {
                     Image(systemName: snapshot.allPillarsHealthy ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                        .foregroundStyle(snapshot.allPillarsHealthy ? Color.green : Color.orange)
+                        .foregroundStyle(snapshot.allPillarsHealthy ? CYColor.successText : CYColor.warningText)
                 }
                     .font(.subheadline.weight(.semibold))
                     .accessibilityIdentifier("clubTeamGovernance.header.badge")
@@ -214,7 +214,7 @@ public struct ClubAndTeamCoopGovernanceSectionView: View {
                     .accessibilityIdentifier("clubTeamGovernance.row.\(row.id).ref")
                 Text(verbatim: row.statusBadgeText)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(row.isHealthy ? .green : .red)
+                    .foregroundStyle(row.isHealthy ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("clubTeamGovernance.row.\(row.id).status")
             }
 

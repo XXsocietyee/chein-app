@@ -210,7 +210,7 @@ public struct RoamAndExplorationParitySectionView: View {
     private var headerRow: some View {
         HStack(spacing: 8) {
             Image(systemName: "map.fill")
-                .accessibilityHidden(true).foregroundStyle(.teal)
+                .accessibilityHidden(true).foregroundStyle(CYColor.brand)
             Text(verbatim: "Roam & Exploration Parity Audit")
                 .cyText(.cardTitle)
                 .accessibilityIdentifier("roamExplorationAudit.header")
@@ -257,7 +257,7 @@ public struct RoamAndExplorationParitySectionView: View {
                 ? "Location Privacy: When-In-Use Foreground Only · Background Immediately Suspended"
                 : "Location Privacy Warning: Check When-In-Use / Background Suspension Policy")
                 .cyText(.caption, weight: .medium)
-                .foregroundStyle(snapshot.roamTabParity.enforcesWhenInUseLocationOnly ? .teal : .red)
+                .foregroundStyle(snapshot.roamTabParity.enforcesWhenInUseLocationOnly ? CYColor.successText : CYColor.dangerText)
                 .accessibilityIdentifier("roamExplorationAudit.locationPrivacy")
         }
     }
