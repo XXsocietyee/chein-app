@@ -6,7 +6,14 @@ import UIKit
 /// Real production view/navigation/sheet lifecycle with sealed protocol data, not a live account.
 @MainActor final class NativeFriendRequestReviewHostingTests: XCTestCase {
     override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
+    private final class IntentStorage: ProjectEditDataStorage {
+        var rows: [String: Data] = [:]
+        func read(_ key: String) throws -> Data? { rows[key] }
+        func write(_ data: Data, key: String) throws { rows[key] = data }
+        func remove(_ key: String) throws { rows.removeValue(forKey: key) }
+    }
     private final class Journal: OperationPendingListing {
+        let intents = IntentStorage()
         var rows: [OperationPendingRecord] = []
         func pending(ownerKey: String, targetKey: String) throws -> OperationPendingRecord? { rows.first { $0.ownerKey == ownerKey && $0.targetKey == targetKey } }
         func pendingRecords(ownerKey: String) throws -> [OperationPendingRecord] { rows.filter { $0.ownerKey == ownerKey } }
@@ -40,10 +47,12 @@ import UIKit
             writes.append(command)
             if held { await withCheckedContinuation { gate = $0 } }
             if command.action == .accept { accepted = true; version += 1 }
-            return try await answer(peerID: command.peerID, action: command.action, requestID: command.requestID)
+            return try await answer(peerID: command.peerID, action: command.action, requestID: command.requestID, payloadHash: command.originalIntentProof)
         }
         func receipt(peerID: Int64, action: NativeFriendAction, requestID: String) async throws -> NativeFriendReceipt {
-            lookups.append(requestID); return try await answer(peerID: peerID, action: action, requestID: requestID)
+            lookups.append(requestID)
+            let hash = writes.last { $0.requestID.caseInsensitiveCompare(requestID) == .orderedSame }?.originalIntentProof
+            return try await answer(peerID: peerID, action: action, requestID: requestID, payloadHash: hash)
         }
         func read(peerID: Int64) async throws -> NativeFriendMetadata {
             guard accepted else { throw NativeFriendFailure.rejected(404) }
@@ -59,9 +68,9 @@ import UIKit
         func remove(_ command: NativeFriendRemovalCommand) async throws -> NativeFriendRemovalReceipt { throw NativeFriendFailure.notSent }
         func receipt(_ command: NativeFriendRemovalCommand) async throws -> NativeFriendRemovalReceipt { throw NativeFriendFailure.unknown }
         func settle(_ command: NativeFriendRemovalCommand) async throws -> NativeFriendRemovalReceipt { throw NativeFriendFailure.notSent }
-        private func answer(peerID: Int64, action: NativeFriendAction, requestID: String) async throws -> NativeFriendReceipt {
+        private func answer(peerID: Int64, action: NativeFriendAction, requestID: String, payloadHash: String? = nil) async throws -> NativeFriendReceipt {
             .init(viewerID: viewerID, peerID: peerID, action: action, requestID: requestID,
-                outcome: unknown ? "UNKNOWN" : "APPLIED", relationship: try await relationship(peerID: peerID))
+                outcome: unknown ? "UNKNOWN" : "APPLIED", relationship: try await relationship(peerID: peerID), payloadHash: payloadHash)
         }
     }
     private final class Routes: ObservableObject {
@@ -85,6 +94,11 @@ import UIKit
             }.environment(\.scenePhase, routes.phase)
         }
     }
+    /// Production writes require the intent journal. Without it `canWrite` stays false and the review sheet never opens.
+    private func reviewedFlow(_ source: Source, _ journal: Journal) -> NativeFriendFlow {
+        NativeFriendFlow(service: source, journal: journal, ownerKey: "synthetic-owner",
+            intentJournal: NativeFriendIntentJournal(storage: journal.intents, ownerKey: "synthetic-owner"))
+    }
     private func wait(_ stage: String, file: StaticString = #filePath, line: UInt = #line, _ predicate: () -> Bool) async throws {
         // Sheet presentation and navigation pushes are delivered on run-loop turns. Task.sleep alone
         // does not return to that loop on the iOS 27 host, so a presented sheet stays invisible to the wait.
@@ -104,7 +118,7 @@ import UIKit
     }
     func testHostedExactReviewCancelAcceptExistingChatAndBackReread() async throws {
         let source = Source(), journal = Journal(), routes = Routes()
-        let flow = NativeFriendFlow(service: source, journal: journal, ownerKey: "synthetic-owner")
+        let flow = reviewedFlow(source, journal)
         let navigation = NativeFriendHomeNavigation(flow)
         let (scene, host) = try host(routes, navigation, source, journal); defer { scene.retire() }
         try await wait("normal list appeared") { flow.phase == .ready && flow.incoming.count == 1 }
@@ -130,7 +144,7 @@ import UIKit
     }
     func testHostedBackDuringWriteAndReopenRecoverOnlyOriginalReceipt() async throws {
         let source = Source(), journal = Journal(), routes = Routes()
-        let flow = NativeFriendFlow(service: source, journal: journal, ownerKey: "synthetic-owner")
+        let flow = reviewedFlow(source, journal)
         let navigation = NativeFriendHomeNavigation(flow)
         let (scene, host) = try host(routes, navigation, source, journal); defer { scene.retire() }
         try await wait("normal list appeared") { flow.phase == .ready }
@@ -154,7 +168,7 @@ import UIKit
     }
     func testHostedGrantWithdrawalDismissesReviewAndRejectsOldVersionAfterReturn() async throws {
         let source = Source(), journal = Journal(), routes = Routes()
-        let flow = NativeFriendFlow(service: source, journal: journal, ownerKey: "synthetic-owner")
+        let flow = reviewedFlow(source, journal)
         let navigation = NativeFriendHomeNavigation(flow)
         let (scene, host) = try host(routes, navigation, source, journal); defer { scene.retire() }
         try await wait("normal list appeared") { flow.phase == .ready }
@@ -172,7 +186,7 @@ import UIKit
     func testHostedExistingMetadataAndRemovalRoutesSurviveParentPurgeAndBack() async throws {
         for metadata in [true, false] {
             let source = Source(), journal = Journal(), routes = Routes(); source.accepted = true
-            let flow = NativeFriendFlow(service: source, journal: journal, ownerKey: "synthetic-owner")
+            let flow = reviewedFlow(source, journal)
             let navigation = NativeFriendHomeNavigation(flow)
             let (scene, _) = try host(routes, navigation, source, journal); defer { scene.retire() }
             try await wait("real friend row appeared") { flow.phase == .ready && flow.friends.count == 1 }
@@ -198,7 +212,7 @@ import UIKit
 
     func testHostedBackgroundCancelsUnsentReviewAndForegroundRereadsNewVersion() async throws {
         let source = Source(), journal = Journal(), routes = Routes()
-        let flow = NativeFriendFlow(service: source, journal: journal, ownerKey: "synthetic-owner")
+        let flow = reviewedFlow(source, journal)
         let navigation = NativeFriendHomeNavigation(flow)
         let (scene, host) = try host(routes, navigation, source, journal); defer { scene.retire() }
         try await wait("normal list appeared") { flow.phase == .ready }

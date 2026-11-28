@@ -175,7 +175,12 @@ import UIKit
         window.rootViewController = host; window.makeKeyAndVisible(); host.loadViewIfNeeded(); host.view.layoutIfNeeded()
     }
     private func waitFor(_ condition: () -> Bool) async throws {
-        for _ in 0..<150 { if condition() { return }; try await Task.sleep(nanoseconds: 20_000_000) }
+        // Pushes land on run-loop turns. Task.sleep does not return to that loop on the iOS 27 host.
+        for _ in 0..<150 {
+            if condition() { return }
+            RunLoop.main.run(until: Date().addingTimeInterval(0.002))
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
         XCTFail("Original anniversary navigation/read did not settle"); throw APIError.notConfigured
     }
     private func tap(_ id: String, in window: UIWindow) async throws {

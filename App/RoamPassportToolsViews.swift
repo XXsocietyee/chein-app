@@ -186,6 +186,7 @@ struct RoamAnniversaryReadIntent {
     @State private var pickerDate = Date()
     @State private var state = RoamAnniversaryListState()
     @State private var navigation = RoamAnniversaryNavigationState()
+    @State private var coverReturnQueued = false
     init(reader: (any RoamPassportToolsReading)?, routeDestination: ((String) -> AnyView)?,
          pageOwner: RoamPassportToolsPageOwner) {
         self.reader = reader; self.routeDestination = routeDestination; self.pageOwner = pageOwner
@@ -290,11 +291,16 @@ struct RoamAnniversaryReadIntent {
             }
         }
         .onAppear {
-            isVisible = true; visit = UUID()
+            isVisible = true
+            let coverAlreadyRefreshing = coverReturnQueued
+            coverReturnQueued = false
+            if !coverAlreadyRefreshing { visit = UUID() }
             navigation.bind(to: reader?.identity)
             state.bind(to: reader?.identity)
-            if state.page == nil, navigation.openedPresentation == nil { state.requestRefresh() }
-            enqueueRefreshIfNeeded()
+            if !coverAlreadyRefreshing {
+                if state.page == nil, navigation.openedPresentation == nil { state.requestRefresh() }
+                enqueueRefreshIfNeeded()
+            }
         }
         .onChange(of: pageOwner) { _, _ in
             navigation.invalidate()
@@ -350,6 +356,10 @@ struct RoamAnniversaryReadIntent {
         }
         .refreshable { await load(refresh) }
         .onDisappear { isVisible = false; visit = UUID(); state.suspend() }
+        .background {
+            RoamAnniversaryCoverReturn(onCover: noteCoveredByPush, onReturn: noteReturnedFromCover)
+                .frame(width: 0, height: 0)
+        }
         .background { RoamHostedAccessibilityGroup(items: anniversaryAccessibilityItems(more: more)) }
         .accessibilityIdentifier("roam.tools.anniversary")
     }
@@ -418,6 +428,16 @@ struct RoamAnniversaryReadIntent {
         guard let title = anniversaryField(title) else { return Text("roam.tools.anniversary.openRoute") }
         return Text("roam.tools.anniversary.openRoute.a11y \(title)")
     }
+    /// A push covers the list before SwiftUI `onDisappear`. Drop the in-flight read now so a held response cannot land.
+    private func noteCoveredByPush() { state.suspend() }
+    /// Non-animated return does not always re-fire `onAppear`. Restart only while the page is still empty.
+    private func noteReturnedFromCover() {
+        isVisible = true
+        guard state.page == nil, navigation.openedPresentation == nil, !state.needsRefresh, !state.isLoading else { return }
+        coverReturnQueued = true
+        state.requestRefresh()
+        enqueueRefreshIfNeeded()
+    }
     private func enqueue(_ offered: RoamAnniversaryReadIntent) {
         Task { await load(offered) }
     }
@@ -456,6 +476,55 @@ struct RoamAnniversaryReadIntent {
         } catch {
             guard pageOwner.matches(reader) else { return }
             state.fail(error, for: request, owner: reader.identity, isConfigured: reader.isConfigured)
+        }
+    }
+}
+
+/// UIKit sees the cover in `viewWillDisappear`, before SwiftUI `onDisappear` and before a held read can be accepted.
+@MainActor private struct RoamAnniversaryCoverReturn: UIViewControllerRepresentable {
+    let onCover: () -> Void
+    let onReturn: () -> Void
+    func makeUIViewController(context: Context) -> Controller { Controller(onCover: onCover, onReturn: onReturn) }
+    func updateUIViewController(_ controller: Controller, context: Context) {
+        controller.onCover = onCover; controller.onReturn = onReturn
+    }
+    @MainActor final class Controller: UIViewController {
+        var onCover: () -> Void
+        var onReturn: () -> Void
+        private var appeared = false
+        private var covered = false
+        init(onCover: @escaping () -> Void, onReturn: @escaping () -> Void) {
+            self.onCover = onCover; self.onReturn = onReturn; super.init(nibName: nil, bundle: nil)
+        }
+        required init?(coder: NSCoder) { return nil }
+        override func viewDidAppear(_ animated: Bool) {
+            super.viewDidAppear(animated)
+            let returning = covered && transitionCoordinator?.isCancelled != true
+            covered = false; appeared = true
+            if returning { onReturn() }
+        }
+        override func viewWillDisappear(_ animated: Bool) { super.viewWillDisappear(animated); noteCover() }
+        override func viewDidDisappear(_ animated: Bool) { super.viewDidDisappear(animated); noteCover() }
+        private func noteCover() {
+            guard appeared, transitionCoordinator?.isCancelled != true, coveredByPush, !covered else { return }
+            covered = true
+            onCover()
+        }
+        private var coveredByPush: Bool {
+            var current: UIViewController? = self
+            while let value = current {
+                if let navigation = value.navigationController {
+                    var node: UIViewController? = value
+                    while let item = node {
+                        if navigation.viewControllers.contains(where: { $0 === item }) {
+                            return navigation.topViewController !== item
+                        }
+                        node = item.parent
+                    }
+                }
+                current = value.parent
+            }
+            return false
         }
     }
 }
