@@ -12,7 +12,8 @@ public enum PlayToolsSessionStats: Equatable {
     /// MP `state: 'error'`: 暂时没有读到 · 重试.
     case failed
 
-    /// MP `scoreScreen`: the board counts only when it is for the same session; elapsed is the board's own `me.elapsedMs`.
+    /// MP `scoreScreen`: the board counts only when it is for the same session; elapsed is the board's own `me.elapsedMs`,
+    /// else the session's `startedAt` to `endedAt` (ended) or to now.
     /// `final` is ended (status 1 or 2) with no open dispute window; anything else is 暂列 (provisional).
     public static func project(score: OrientSessionScore, board: OrientSessionLeaderboard?, now: Date = Date()) -> PlayToolsSessionStats {
         let sameBoard = board.flatMap { $0.sessionID == score.sessionID ? $0 : nil }
@@ -24,7 +25,13 @@ public enum PlayToolsSessionStats: Equatable {
             return date > now
         }()
         let rank = me.flatMap { $0.rank > 0 ? $0.rank : nil }
-        return .ready(elapsed: me?.elapsedMs.map(clock(milliseconds:)), score: points(centi: score.totalCenti),
+        // MP `scoreScreen`: the board's `me.elapsedMs` first; else `startedAt → endedAt` (ended) or `startedAt → now`.
+        var elapsed = me?.elapsedMs.map(clock(milliseconds:))
+        if elapsed == nil, let started = score.startedAt {
+            let end: Date? = ended ? score.endedAt : now
+            if let end { elapsed = clock(milliseconds: Int((end.timeIntervalSince(started) * 1000).rounded())) }
+        }
+        return .ready(elapsed: elapsed, score: points(centi: score.totalCenti),
                       rank: rank, provisional: !(ended && !windowOpen))
     }
 

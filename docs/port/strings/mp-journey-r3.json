@@ -4569,5 +4569,22 @@
         }
       }
     }
+  },
+  "playx.finish.sessionRank.provisional %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Provisionally No. %lld"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂列第 %lld 名"
+        }
+      }
+    }
   }
 }

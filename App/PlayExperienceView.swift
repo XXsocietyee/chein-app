@@ -1045,9 +1045,23 @@ struct PlayThemeMusicKey: Equatable {
             model: model, titleKey: key, subtitle: [topic, earned].compactMap { $0 }.joined(separator: " · "),
             medals: medals, shareText: appLocalized("medalScreen.shareText \(topic ?? title)", locale: locale),
             walkedMeters: cityLocation.walkedMeters, reportDestination: cityReportDestination,
-            scoreDestination: (snapshot?.result.allDone ?? false) ? nil : orientScoreDestination?(),
+            scoreDestination: finishScoreReady(snapshot) ? orientScoreDestination?() : nil,
+            scoreRank: finishScoreRank,
             collectionDestination: cityCollectionDestination,
             onClose: { finishScreen = false })
+            // MP `index.js:9039`: the chapter finish (not all done) reads `loadSessionStats` for the 本局成绩 rank.
+            .task { if !(snapshot?.result.allDone ?? false) { await loadSessionStats() } }
+    }
+    /// MP `finish-journal-entry` 本局成绩: `!allDone && mode == 1 && sessStats.state === 'ok'`.
+    private func finishScoreReady(_ snapshot: PlaySnapshot?) -> Bool {
+        guard !(snapshot?.result.allDone ?? false), case .ready? = sessionStats else { return false }
+        return true
+    }
+    /// MP `fje-v`: `{{sessStats.provisional ? '暂列' : ''}}第 {{sessStats.rank}} 名`, only with a rank.
+    private var finishScoreRank: String? {
+        guard case .ready(_, _, let rank?, let provisional)? = sessionStats else { return nil }
+        if provisional { return appLocalized("playx.finish.sessionRank.provisional \(rank)", locale: locale) }
+        return appLocalized("playTools.boardRank \(rank)", locale: locale)
     }
     /// Design pass roam (P8): the badge collection for the first badge this run awarded, through the same
     /// `rewardCollectionDestination` the reward rows use.
