@@ -155,6 +155,10 @@ enum DesignFixtureRegistry {
         case "r3-roam-nearby": return RoamR3NearbyFixture.make(.content)
         case "r3-roam-nearby-empty": return RoamR3NearbyFixture.make(.empty)
         case "r3-roam-nearby-error": return RoamR3NearbyFixture.make(.failure)
+        case "r3-roam-my-teams": return RoamR3NearbyFixture.make(.mine)
+        case "r3-roam-my-teams-empty": return RoamR3NearbyFixture.make(.mineEmpty)
+        case "r3-roam-my-teams-error": return RoamR3NearbyFixture.make(.mineFailure)
+        case "r3-roam-my-teams-signedout": return RoamR3NearbyFixture.make(.mineSignedOut)
         case "d6-search": return AnyView(D6MapFixture(kind: .search))
         case "d6-live": return AnyView(D6MapFixture(kind: .live))
         // REAL RoamLiveSessionView on the synthetic RoamLiveFixture controller (offline example, no GPS/network).
