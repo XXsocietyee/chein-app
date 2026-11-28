@@ -60,6 +60,10 @@ import FoundationNetworking
         _ = try await mutation(.finish(sessionID: sessionID, poiIDs: poiIDs, distanceMeters: distanceMeters))
         // Even a success envelope is followed by GET /session; it is never a local reward receipt.
     }
+    /// Planning audit R-02f+: the finish also carries the walk's track for the passport history card (MP sendFinish).
+    public func finish(sessionID: Int, poiIDs: [Int], distanceMeters: Int, track: [RoamCoordinate]) async throws {
+        _ = try await mutation(.finish(sessionID: sessionID, poiIDs: poiIDs, distanceMeters: distanceMeters, track: track))
+    }
     private func validate(_ fix: RoamDeviceFix) throws {
         guard fix.datum == .gcj02, fix.accuracyMeters <= 80, (-2...30).contains(Date().timeIntervalSince(fix.measuredAt)) else { throw RoamLiveFailure.locationQuality }
     }

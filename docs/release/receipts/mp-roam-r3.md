@@ -544,8 +544,17 @@ Rebased onto `origin/mp/r3-roam` (twin run). No open coordinator finding for mp-
 
 Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
 
+## Round 3 continue (40) — planning audit R-02f+ (finish uploads the track)
+
+| Audit id | MP page → native | Difference | Fix | Level / fixture |
+|---|---|---|---|---|
+| **R-02f+** (planning audit "next after the 30") | `pages/roam/index.js` `sendFinish` (2026-10-31 P-7: `track` = `JSON.stringify([[lat,lng],…])`, every `ceil(n/600)`-th point + the last, `''` when ≤1 point; history card `utils/roam-passport-read.js` draws it) → `Core/RoamExperienceMutationContracts.swift` `.finish(…, track:)` + `finishTrack`, `Core/RoamLiveContracts.swift` `RoamLiveServing.finish(…, track:)` (default forwards to the old call, so fixtures / test doubles are unchanged), `Core/RoamLiveService.swift`, `Core/RoamLiveSessionController.swift` finish | The finish sent only `sessionId` / `poiIds` / `distanceM`, so iOS walks had no server track and the passport history card on another device / after reinstall had no route. | **Fixed:** the controller passes its in-memory accepted track (GCJ-02 fixes, same datum as the MP) to the finish; the request adds `track` in the MP JSON shape when ≥2 points remain after the MP thinning. The track stays in memory only (the durable `RoamLiveRecord` still keeps no fixes), so a finish replayed after recovery sends none, like an MP finish with an empty `_track`. Core test `RoamExperienceMutationTests.testFinishCarriesTheThinnedTrackLikeTheMP`; the exact-fields pin for a trackless finish is unchanged. No new strings. | A · live roam |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
+
 ## Not done / next
 
+- Planning audit R-02f+ (finish track): done (continue 40). R-04c nearby 活动/主题 layer = P1-23 lease (done continue 36/P1-23).
 - Function audit (mp-roam, not on a fix worker): P1-21 done (continue 38), P1-22 city-game region (owner value), P1-25 done (continue 39, shared backend),
   P2-7 rest (`/api/roam/checkin` from 点亮: the MP posts it when the player taps a *built-in* map POI (`bindpoitap`); native needs MapKit feature
   selection (`MapSelection<MapFeature>`, iOS 18) beside the existing pin selection plus a `.checkin` capability (`productionEnabled` false today) — compiled pass).
