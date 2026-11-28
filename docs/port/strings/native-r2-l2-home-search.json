@@ -5,9 +5,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld results"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld result"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld results"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {

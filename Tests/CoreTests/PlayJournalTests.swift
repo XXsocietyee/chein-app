@@ -26,6 +26,19 @@ final class PlayJournalTests: XCTestCase {
         XCTAssertNil(rows[2].excerpt)
     }
 
+    /// mp-journey-b r3: MP `orderedJourneyNodes` / `resolveNextRouteNode` for a BRANCH_GRAPH run — finished stations in
+    /// decision-log order as 我的第 K 步, then the recommended PLAYABLE station (此刻), then the rest; hidden stations stay out.
+    func testBranchRouteFollowsTheDecisionLogNotStationOrder() throws {
+        let nodes = #"[{"nodeId":1,"sortId":1,"name":"A"},{"nodeId":2,"sortId":2,"name":"B"},{"nodeId":3,"sortId":5,"name":"C"},{"nodeId":4,"sortId":3,"name":"D"},{"nodeId":5,"sortId":4,"name":"E"}]"#
+        let route = #"{"routeMode":"BRANCH_GRAPH","sessionId":31,"version":2,"status":"ACTIVE","recommendedNodeId":4,"nodeStates":{"1":"COMPLETED","2":"DISCOVERED_LOCKED","3":"COMPLETED","4":"PLAYABLE","5":"HIDDEN"},"decisionLog":[{"fromNodeId":1,"toNodeId":3},{"fromNodeId":3,"toNodeId":4}]}"#
+        let data = "{\"topicId\":9,\"mode\":1,\"playable\":true,\"registered\":true,\"nodes\":\(nodes),\"routeState\":\(route)}"
+        let wire = try JSONDecoder().decode(PlayWireValue.self, from: Data(data.utf8))
+        let rows = PlayJournal.rows(in: try PlaySnapshot(scope: .topic(9), result: wire.decoded()))
+        XCTAssertEqual(rows.map(\.id), [1, 3, 4, 2])
+        XCTAssertEqual(rows.map(\.key), [.step(1), .step(2), .now, .ahead])
+        XCTAssertFalse(rows[3].redacted)
+    }
+
     func testNightWarningOnlyForALiteralTrue() throws {
         func wire(_ text: String) throws -> PlayWireValue { try JSONDecoder().decode(PlayWireValue.self, from: Data(text.utf8)) }
         XCTAssertTrue(PlayNightWarning.isOn(try wire(#"{"nodeId":1,"nightWarning":true}"#)))

@@ -95,6 +95,10 @@
             "comment": "MP timeline share of an official route. Requires id."
           },
           {
+            "/": "/pages/activity/official-detail/index",
+            "comment": "MP share (official-detail index.js:651 onShareAppMessage). Requires id."
+          },
+          {
             "/": "/subpackageA/pages/infomationdetail/infomationdetail",
             "comment": "MP share (infomationdetail.js:161). Requires id."
           },

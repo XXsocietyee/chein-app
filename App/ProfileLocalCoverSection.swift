@@ -247,8 +247,8 @@ extension ProfileLocalCoverOwner {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             if hasError {
-                Text("profile.localCover.cropFailed")
-                    .foregroundStyle(CYColor.dangerText)
+                // mp-states r3: MP pages/crop/index.wxml:49-51 cy-inline-error 裁剪没有完成 · sub · 使用原图 (onUseOriginal).
+                CYInlineError("profile.localCover.cropFailed", retryTitle: "publishParity.crop.useOriginal") { useOriginal() }
                     .accessibilityIdentifier("profile.localCover.cropFailure")
             }
             if let image = UIImage(data: draft.source.jpeg) {
@@ -259,10 +259,25 @@ extension ProfileLocalCoverOwner {
                 .frame(minHeight: 360)
                 .accessibilityIdentifier("profile.localCover.crop")
             } else {
-                Text("profile.localCover.cropFailed")
-                Button("action.cancel", role: .cancel, action: cancel).accessibilityIdentifier("profile.localCover.cropCancel")
+                // mp-states r3: MP pages/crop/index.wxml:25-26 cy-error 图片没能打开; the picked data cannot be decoded,
+                // so the one way on is 取消 (choose another image).
+                ContentUnavailableView {
+                    Label("pages.crop.openFailed", systemImage: "photo.badge.exclamationmark")
+                } description: {
+                    Text("pages.crop.openFailed.reason")
+                } actions: {
+                    Button("action.cancel", action: cancel)
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("profile.localCover.cropCancel")
+                }
             }
         }
         .listRowInsets(EdgeInsets())
+    }
+
+    /// MP `onUseOriginal`: the centred, unzoomed 16:9 frame of the source.
+    private func useOriginal() {
+        guard isCurrent(), let rect = R9MiniCropRect.merchantRect(MiniCropView.Result.original, source: draft.source, aspect: .gallery) else { return }
+        confirm(draft.id, rect)
     }
 }

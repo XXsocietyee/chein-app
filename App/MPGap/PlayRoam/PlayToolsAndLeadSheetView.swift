@@ -59,7 +59,14 @@ public struct PlayToolsAndLeadSheetView: View {
     /// mp-journey-b r3: MP 游玩工具 联系主办 / 联系商家 (`wx:if="{{playContact}}"`, after the lead rows): dial only,
     /// the number stays off screen; tap asks 拨打「name」的电话？ first (`callPlayContact`). Nil hides the row.
     public var contact: PlayContact? = nil
+    /// mp-journey-b r3: MP 队伍位置 tap = `leadBroadcastFromTools` → 队长广播 prompt (对全队说一句…) → `POST
+    /// /api/club/lead/broadcast`; returns the server line (r.msg, else 已广播). Nil keeps the row as a value only.
+    public var onTeamBroadcast: ((String) async -> String)? = nil
     @State private var confirmCall = false
+    @State private var broadcastAsk = false
+    @State private var broadcastText = ""
+    @State private var broadcastBusy = false
+    @State private var broadcastNote: String?
     @Environment(\.openURL) private var openURL
     @Environment(\.locale) private var locale
 
@@ -99,9 +106,11 @@ public struct PlayToolsAndLeadSheetView: View {
         onRights: @escaping () -> Void = {},
         freeTrackPerkOnly: Bool? = nil,
         entryCodeRegistrationID: Int? = nil,
-        contact: PlayContact? = nil
+        contact: PlayContact? = nil,
+        onTeamBroadcast: ((String) async -> String)? = nil
     ) {
         self.contact = contact
+        self.onTeamBroadcast = onTeamBroadcast
         self.entryCodeRegistrationID = entryCodeRegistrationID
         self.freeTrackPerkOnly = freeTrackPerkOnly
         self.rights = rights
@@ -276,7 +285,6 @@ public struct PlayToolsAndLeadSheetView: View {
         .accessibilityIdentifier(identifier)
     }
 
-    /// MP 队伍位置: the arrived count on the right; the pushed page lists who has arrived (positions stay private).
     /// MP 同行者榜 `dv`: 第 N 名 once the score read has a rank.
     private var boardRank: Int? {
         if case .ready(_, _, let rank, _)? = sessionStats { return rank }
@@ -329,35 +337,58 @@ public struct PlayToolsAndLeadSheetView: View {
         }
     }
 
+    /// MP 队伍位置 (`lead.exists && !lead.freeEntry`): value `lead.arrived/lead.total`; the tap opens 队长广播
+    /// (`leadBroadcastFromTools`), a one-line prompt sent to the whole team, then the team progress is read again.
     @ViewBuilder private var teamPositionSection: some View {
-        if let teamLead, teamLead.exists {
+        if let teamLead, teamLead.exists, !teamLead.freeEntry {
+            let arrived = teamLead.arrived ?? 0
+            let total = teamLead.total ?? teamLead.members.count
             Section {
-                NavigationLink {
-                    List {
-                        if let broadcast = teamLead.broadcast, !broadcast.isEmpty {
-                            Section("playTools.team.broadcast") { Text(verbatim: broadcast) }
-                        }
-                        Section {
-                            ForEach(teamLead.members) { member in
-                                Label {
-                                    if let name = member.name, !name.isEmpty { Text(verbatim: name) } else { Text("playx.player.unnamed") }
-                                } icon: {
-                                    Image(systemName: member.arrived ? "checkmark.circle.fill" : "circle")
-                                        .foregroundStyle(member.arrived ? Color.green : Color.secondary)
-                                }
-                                .accessibilityValue(Text(LocalizedStringKey(member.arrived ? "playTools.team.arrived" : "playTools.team.notArrived")))
-                            }
-                        }
+                if onTeamBroadcast != nil {
+                    Button {
+                        broadcastText = ""
+                        broadcastAsk = true
+                    } label: {
+                        teamPositionLabel(arrived: arrived, total: total)
                     }
-                    .navigationTitle(Text("playTools.team"))
-                    .navigationBarTitleDisplayMode(.inline)
-                } label: {
-                    LabeledContent("playTools.team") {
-                        Text(verbatim: "\(teamLead.arrived ?? 0)/\(teamLead.members.count)").monospacedDigit().accessibilityLabel(Text("a11y.value.ofTotal \(Int(teamLead.arrived ?? 0)) \(Int(teamLead.members.count))"))
-                    }
+                    .disabled(broadcastBusy)
+                    .accessibilityIdentifier("playTools.team")
+                } else {
+                    teamPositionLabel(arrived: arrived, total: total)
+                        .accessibilityIdentifier("playTools.team")
                 }
-                .accessibilityIdentifier("playTools.team")
+                if let broadcast = teamLead.broadcast, !broadcast.isEmpty {
+                    LabeledContent("playTools.team.broadcast") { Text(verbatim: broadcast) }
+                }
+                if let broadcastNote {
+                    Text(verbatim: broadcastNote).font(.footnote).foregroundStyle(.secondary)
+                }
             }
+            .alert("playTools.team.broadcastTitle", isPresented: $broadcastAsk) {
+                TextField("playTools.team.broadcastPlaceholder", text: $broadcastText)
+                Button("playTools.team.broadcastSend") { sendTeamBroadcast() }
+                Button("playx.cancel", role: .cancel) {}
+            }
+        }
+    }
+
+    private func teamPositionLabel(arrived: Int, total: Int) -> some View {
+        LabeledContent {
+            Text(verbatim: "\(arrived)/\(total)").monospacedDigit()
+                .accessibilityLabel(Text("a11y.value.ofTotal \(Int(arrived)) \(Int(total))"))
+        } label: {
+            Label("playTools.team", systemImage: "person.3")
+        }
+    }
+
+    private func sendTeamBroadcast() {
+        let text = broadcastText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let onTeamBroadcast, !text.isEmpty, !broadcastBusy else { return }
+        broadcastBusy = true
+        Task {
+            let note = await onTeamBroadcast(text)
+            broadcastNote = note
+            broadcastBusy = false
         }
     }
 

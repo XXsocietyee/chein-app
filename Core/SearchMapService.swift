@@ -161,7 +161,7 @@ public struct SearchMapService {
         return try decode(ActivityListResponse.self, await form("api/activity/list", fields: fields, token: token)).rows
     }
     private func clubRows(_ query: GlobalSearchQuery, token: String?) async throws -> [ClubRecord] {
-        guard token != nil else { throw APIError.unauthorized }
+        // MP discover-search sends club/list for guests too; the backend route is @Anonymous (guest projection).
         let data = try await json("api/club/list", fields: nameCategoryFields(query), token: token)
         return try decode(SearchMapValue<[ClubRecord]>.self, data).data
     }

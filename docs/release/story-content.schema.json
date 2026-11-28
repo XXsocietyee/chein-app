@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "story-content.schema.json",
+  "title": "Owner story script",
+  "description": "Bundled NPC and guide script. The app reads Resources/Story/StoryGuide.json. Server-reviewed lines always win. See docs/release/story-content.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "revision", "strings", "guidePrompts"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "revision": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Free text the player never sees. Bump it on every edit so a build can be traced to its script."
+    },
+    "note": { "type": "string" },
+    "strings": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/text" },
+      "required": [
+        "npc.aiBadge",
+        "npc.fallbackGreeting",
+        "guide.roam.identity",
+        "guide.play.identity",
+        "guide.quiet",
+        "guide.footprint"
+      ],
+      "properties": {
+        "npc.aiBadge": { "$ref": "#/$defs/text" },
+        "npc.fallbackGreeting": { "$ref": "#/$defs/text" },
+        "guide.roam.identity": { "$ref": "#/$defs/text" },
+        "guide.play.identity": { "$ref": "#/$defs/text" },
+        "guide.quiet": { "$ref": "#/$defs/text" },
+        "guide.footprint": { "$ref": "#/$defs/text" }
+      }
+    },
+    "guidePrompts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/prompt" }
+    }
+  },
+  "$defs": {
+    "text": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["en", "zh-Hans"],
+      "properties": {
+        "en": { "type": "string", "minLength": 1 },
+        "zh-Hans": { "type": "string", "minLength": 1 }
+      }
+    },
+    "prompt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "surface", "weather", "text"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "surface": { "enum": ["roam", "play"] },
+        "weather": {
+          "enum": ["any", "clear", "cloudy", "rain", "snow", "wind", "hot", "cold", "night"]
+        },
+        "node": { "enum": ["shop"] },
+        "text": { "$ref": "#/$defs/text" }
+      }
+    }
+  }
+}

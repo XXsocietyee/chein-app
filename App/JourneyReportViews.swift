@@ -339,7 +339,7 @@ struct JourneyRankBoardView: View {
                     MPAvatar(url: entry.avatarURL, initial: String((entry.name ?? "").prefix(1)), size: 32)
                     (entry.name.map { Text(verbatim: $0) } ?? Text("mp.rank.player")).cyText(.bodyMedium).cyWrapText()
                     Spacer()
-                    Text(verbatim: entry.scoreText).cyText(.bodyMedium).monospacedDigit()
+                    Text(verbatim: entry.scoreText).cyText(.bodyMedium).monospacedDigit().accessibilityLabel(CYFractionSpeech.label(entry.scoreText))
                 }
                 .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
                 .background(entry.mine ? CYColor.selection.opacity(0.16) : .clear)
