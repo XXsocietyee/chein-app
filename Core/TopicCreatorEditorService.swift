@@ -106,6 +106,10 @@ public struct TopicStateKeyRow: Equatable {
     public let label: String
     /// The row exactly as read; a rename sends it back with only `label` replaced.
     public let raw: [String: PlayWireValue]
+    /// MP `normalizeKey`: the places a key is used in, when the list read carries them.
+    public var usedIn: [String] { (PlayWireValue.object(raw)["usedIn"].array ?? []).compactMap(\.text).filter { !$0.isEmpty } }
+    /// `clue` / `tag` / `counter` / `relation`, from the key name prefix.
+    public var kind: String { id.split(separator: ".", maxSplits: 1).first.map(String.init) ?? "" }
 }
 
 public struct TopicInviteChapter: Equatable {
@@ -245,6 +249,18 @@ public struct TopicChapterSupplyTerms: Equatable {
         var key = row.raw; key["label"] = .string(name)
         _ = try await write(.stateKey, method: "PUT", path: "api/topic/state-keys/" + encoded,
             json: ["topicId": .integer(topicID), "scope": scope.map(PlayWireValue.string) ?? .null, "key": .object(key)])
+    }
+
+    /// `topic-state-keys onConfirmDelete`: DELETE ?topicId&scope&key (the server reads query parameters only).
+    /// A key used elsewhere is refused with `…引用位置：A、B` (see `ProjectEditTopicKeys.usedIn(fromRefusal:)`).
+    public func deleteStateKey(topicID: Int64, key: String) async throws {
+        guard ChinaReviewedRouteCapability.isTopicStateKey(key) else { throw TopicCreatorEditorIssue.invalid }
+        var request = try request(TopicCreatorEditorRoute.stateKeys.rawValue, method: "DELETE")
+        var parts = request.url.flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: false) }
+        parts?.queryItems = topicQuery(topicID) + [URLQueryItem(name: "key", value: key)]
+        guard let url = parts?.url else { throw TopicCreatorEditorIssue.invalid }
+        request.url = url
+        _ = try await send(.stateKeys, request: request, write: true)
     }
 
     /// Server-draft publish: POST {id, scope, configVersion?, registryVersion?, publishRequestId?}.
