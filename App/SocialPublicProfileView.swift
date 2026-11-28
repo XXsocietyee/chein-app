@@ -24,6 +24,7 @@ import SwiftUI
     var initialTab: String? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
     private enum Tab: String, CaseIterable { case mine, posts, achievements, about }
     @State private var authorPosts = ProfileAuthorPostsRefreshController()
     @State private var authorPostTicket: ProfileAuthorPostTicket?
@@ -126,7 +127,11 @@ import SwiftUI
                             .clipped()
                             .listRowInsets(EdgeInsets())
                         // Mini-program cy-profile identity head: round avatar beside name and level.
-                        HStack(spacing: CYSpacing.lg) {
+                        // a11y-dt r3: at accessibility sizes the name goes under the avatar (Contacts card) instead of
+                        // squeezing a .title2 name into the width left beside a 64 pt avatar.
+                        let headLayout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
+                                                                      : AnyLayout(HStackLayout(spacing: CYSpacing.lg))
+                        headLayout {
                             ProfilePublicAvatar(source: profile.avatar, name: profile.nickname)
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                 if let name = profile.nickname { Text(verbatim: name).font(.title2.bold()).accessibilityAddTraits(.isHeader).fixedSize(horizontal: false, vertical: true) }
@@ -156,7 +161,10 @@ import SwiftUI
                         }
                         if let actions, actions.identity.accountID != profile.id {
                             // Mini-program other-player head: 关注 and 发消息 side by side as two pills.
-                            HStack(spacing: CYSpacing.sm) {
+                            // a11y-dt r3: stacked full width at accessibility sizes (same order), never truncated.
+                            let pillLayout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: CYSpacing.sm))
+                                                                          : AnyLayout(HStackLayout(spacing: CYSpacing.sm))
+                            pillLayout {
                                 // A2-03: MP 关注 toggles in place (处理中… → ✓ 已关注), no editor page.
                                 SocialProfileInlineFollowButton(memberID: profile.id, serverFollowed: profile.isFollowed, coordinator: actions) { title, image in
                                     profilePill(title, systemImage: image)

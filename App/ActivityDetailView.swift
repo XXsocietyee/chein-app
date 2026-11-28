@@ -278,6 +278,7 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
                 SocialPublicProfileView(memberID: selection.memberID, reader: peopleProfile.reader,
                                         squareReader: peopleProfile.squareReader, actions: peopleProfile.actions)
                     .id(selection)
+                    .cyPushedChrome(domain: .player)
             } else {
                 ContentUnavailableView("social.changed", systemImage: "person.crop.circle.badge.exclamationmark")
             }
@@ -300,6 +301,7 @@ private enum ActivityDetailLoadIssue: Equatable { case missing, other }
         }
         .navigationDestination(isPresented: $showsOwnOrders) {
             SubscribeMessageTapEntry(route: .playerOrderList)
+                .cyPushedChrome(domain: .player)
         }
         .navigationDestination(isPresented: $showsPlay) {
             // E2E-20261113b N3: a registered player's "Continue exploring" opens the play session for this activity.
