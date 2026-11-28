@@ -192,6 +192,16 @@ Merged `origin/ui/combined-r7` (clean, 907570051). Sweep 907570051 (01:10Z): loo
 | 69 | Login consent gate (`authEntry.gate.checkRequired`), play prep checklist | British "Tick the box to continue.", "Tick every prep item to start" | en → "Check the box to continue." (`tools/build_auth_entry_catalog.py` regenerated = same), "Check off every prep item to start" (catalog + `fix-r3-player-content-a.json`). Merchant "Tick every item on the checklist first" left (out of scope) | Done |
 | 70 | `pages/topic/detail` hero / 包含内容 / route foot → `TopicXcxSections.swift:114,719,786` (MP sections unchanged) | "1 chapters", "1 stops", "1 games" (no plural; "games" vs the settled term "play"); club host line "Riverside Club \| Host club"; cover hint "Scroll down for games…" | Plural variants for `topicXcx.include.chapters/stops/plays`, `topicXcx.moreMerchants`; en → "%lld plays", "Hosted by %@", "Scroll down for plays, sessions and sign-up" (catalog + `docs/parity/w2-07-localizations.json`; the four plural keys leave that source because `build_w2_07_localizations.py` writes flat strings only — catalog now owns them); zh unchanged | Done |
 
+### Run 18 (2026-11-28, hourly)
+
+Merged `origin/ui/combined-r7` (clean). No new en-layout coordinator finding (latest sweep 01:50Z is activity zh / roam en). Worked from code on `pages/topic/components/cy/session-picker` and `self-play-checkout`.
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 71 | `pages/topic/components/cy/session-picker` (日期 → 票种, MP order unchanged) → `TopicSessionSelectionView.swift` | Session and ticket Start / End rows showed the raw server text "2026-12-01 10:00:00" | `LocaleDisplay.civil(_, locale:)` on all four rows → "Dec 1, 2026 at 10:00 AM"; Chinese keeps the MP text. `ticketDependency` copy is pinned by `test_topic_session_selection.py` ("ticket-to-activity"); left | Done |
+| 72 | `pages/topic/components/cy/self-play-checkout` 通行证覆盖本主题 → `MPPassEntries.swift` (`mp.pass.checkout.covered`) | "Your pass covers this theme · this order is ¥0": 主题 is "topic" on every other player screen (204 vs 56 strings) and the clause reads as a translation | en → "Your pass covers this topic · ¥0 for this order"; zh unchanged. Other checkout strings (Breakdown / Single purchase / Total, `contextSelfPlay.*`) checked, fine | Done |
+| 73 | `pages/topic/components/cy/date-range-sheet` (开始/结束 · 清除/确定) → `SearchMapFilterSheet.swift` (`mapDatePicker.*`) | Checked: "Choose start date" / "Choose end date", "The start date must be on or before the end date.", Confirm; Day / Month / Year labels | English reads well; no change. The MP 共 N 天 / N 晚 summary badge is not in the native sheet → For other lanes (mp-home owns search/map filters) | Checked |
+
 ## Not done
 
 | Item | Why |
@@ -200,9 +210,10 @@ Merged `origin/ui/combined-r7` (clean, 907570051). Sweep 907570051 (01:10Z): loo
 
 
 ## Next pages (no row yet)
-Re-check rows 23, 37–41, 46, 56–57 in the next sweep. `pages/templatedetail/*` and `pages/publishkit/index` done from code (rows 59–60); `pages/publishkit/components/*` done (rows 61–62; reward-selector is coupon creation = merchant, out of scope); `pages/topic/catalog` is a redirect only (no content); pass-reveal done (row 65); topic detail includes/hero done (row 70); next: remaining `pages/topic/components/cy/*` (date-range-sheet, session-picker, self-play-checkout, theme-records). Catalog-wide: other British spellings remain ("licence", "centre" in creator/merchant tools; "cancelled" is accepted US usage) — fix when a player screen is touched. Catalog-wide: ~50 `publish*`/`projectEdit*` en values use straight apostrophes (not a layout problem; leave unless a screen is touched).
+Re-check rows 23, 37–41, 46, 56–57 in the next sweep. `pages/templatedetail/*` and `pages/publishkit/index` done from code (rows 59–60); `pages/publishkit/components/*` done (rows 61–62; reward-selector is coupon creation = merchant, out of scope); `pages/topic/catalog` is a redirect only (no content); pass-reveal done (row 65); topic detail includes/hero done (row 70); session-picker + self-play-checkout done (rows 71–72); next: remaining `pages/topic/components/cy/*` (theme-records; date-range-sheet checked row 73). Catalog-wide: other British spellings remain ("licence", "centre" in creator/merchant tools; "cancelled" is accepted US usage) — fix when a player screen is touched. Catalog-wide: ~50 `publish*`/`projectEdit*` en values use straight apostrophes (not a layout problem; leave unless a screen is touched).
 
 ## For other lanes
+- mp-home: map filter date sheet (`SearchMapFilterSheet.swift`) has no MP date-range-sheet summary badge (共 N 天 / N 晚 once both ends are picked).
 - mp-club: `en-d4-detail` (declined non-member) — the floating "Apply again" button sits over the "Message to the club" field and the contribution-board header; the bottom action needs its own inset (`safeAreaInset(edge: .bottom)`) so content scrolls clear of it.
 - mp-mine: balance ledger shows "¥" while the Me balance tile shows "CN¥" in English (row 44); public profile role line "— City explorer" shows a dash placeholder (`en-e4-member`).
 - mp-journey: `en-d2-play` nav shows debug "Switch synthetic account"; t5-free-explore "DEBUG fixture" banner still visible.

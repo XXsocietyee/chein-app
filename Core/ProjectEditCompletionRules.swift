@@ -78,6 +78,24 @@ public struct ProjectEditCompletionRules: Codable, Equatable {
         return nil
     }
 
+    /// Issue keys the MP shows inside the 宾果九宫格 editor (`bingoError`), not on the 通关条件 card.
+    public static let bingoIssueKeys: Set<String> = [
+        "projectEdit.completion.invalidCells", "projectEdit.completion.invalidLength",
+        "projectEdit.completion.invalidCoupon", "projectEdit.completion.rewardRequired"
+    ]
+    /// MP `bingoRows.some(row => label.trim() || feedbackText || couponId)`: a cell with any content.
+    public static func hasContent(_ cell: Cell) -> Bool {
+        !cell.label.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || !cell.feedbackText.isEmpty || (Int(cell.couponID.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0) > 0
+    }
+    public var configuredCellCount: Int { cells.filter { Self.hasContent($0) }.count }
+    /// MP has no bingo switch: the grid is on while any cell has content (fabu/index.js:6547, 7795).
+    public mutating func setCell(_ cell: Cell, at position: Int) {
+        guard !readOnly, cells.indices.contains(position) else { return }
+        cells[position] = cell
+        bingoEnabled = cells.contains { Self.hasContent($0) }
+    }
+
     public func validationIssue(totalNodes: Int) -> String? {
         if readOnly { return nil }
         if let issueKey { return issueKey }

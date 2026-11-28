@@ -1060,6 +1060,8 @@ struct JourneySettleView: View {
                 .labelStyle(.iconOnly)
                 .font(.largeTitle)
                 .foregroundStyle(Color.accentColor)
+                // P30: the seal bounces once with the success haptic; Reduce Motion keeps it still.
+                .symbolEffect(.bounce, value: reduceMotion ? false : sealSuccess)
                 .accessibilityHidden(true)
             if let result = report.result {
                 Text(result.label).font(.headline).foregroundStyle(Color.accentColor)

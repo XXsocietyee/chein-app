@@ -249,6 +249,15 @@ Merged `origin/ui/combined-r7` (907570051). No coordinator row for mp-nav after 
 
 Sections / order / content unchanged on every page; navigation only. Not compiled here.
 
+## Re-scan 11-28 02:xx (merged combined-r7 a32387e9b; sweep 01:50 has no mp-nav row → "Next round" list)
+
+Sweep sheets (en / zh-Hans) `d2-inbox`, `ia-tabs`, `login-player`, `onboarding-1`, `welcome`: clean. No open coordinator row for mp-nav, so this run takes "Next round" item 1/2 on the sign-in page (P27). The MP has no login page (WeChat popup), so the native first screen keeps its current sections in order: mark + title → consent (when declined) → phone sign-in → Apple (when approved) → WeChat (when offered) → legal footer.
+
+| page → native view | principle | change | fixture (before → after) | status |
+|---|---|---|---|---|
+| sign-in sheet → App/LoginView.swift | P27 left-aligned title, one brand mark | header was a centred 88 pt mark + centred title/subtitle; now one 56 pt mark and title/subtitle leading-aligned (`VStack(alignment: .leading)`), Dynamic Type `.title` / `.subheadline` unchanged | `login-player` centred card → leading header | fixed (not compiled here) |
+| same | motion / feedback | `.sensoryFeedback(.success)` when `session.account?.id` goes nil → non-nil (sign-in completes, just before the sheet dismisses); no animation added, so nothing for Reduce Motion | — | fixed |
+
 ## Route coverage
 
 All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScreen cases or `MPParityDestination`), except four pages that are parsed (`Core/MiniProgramPageLink.swift`) but have no native screen case: `pages/playkit/index/index`, `pages/publishkit/index/index` (MP kit galleries), `pages/crop/index` (MP image-crop utility) and `subpackageP3/pages/badge-3d/index` (MP 3D badge viewer). No native player control links to them; left for the coordinator to confirm they stay unrouted.

@@ -288,6 +288,7 @@ import UIKit
     let access: any ClubGovernanceAccess
     let sourceIsCurrent: () -> Bool
     @StateObject private var model = ClubSettlementDetailReadModel()
+    @Environment(\.locale) private var locale
     private var context: ClubSettlementDetailReadModel.Context { ClubSettlementDetailReadModel.context(target: target, identity: identity, access: access) }
     var body: some View {
         let expected = context
@@ -301,7 +302,7 @@ import UIKit
                     Text("club.settlementDetail.perspective")
                     Text(LocalizedStringKey(row.status.localizationKey))
                     LabeledContent(LocalizedStringKey(row.amountLabelKey)) {
-                        if let amount = row.amountText { Text(verbatim: amount) }
+                        if let amount = row.amountText { Text(verbatim: LocaleDisplay.yuanAmounts(in: amount, locale: locale)) }
                         else {
                             Text(verbatim: ClubOpsGovernanceCount.unknownDisplay)
                                 .accessibilityLabel(Text("club.settlementDetail.amountUnknown"))
@@ -309,9 +310,9 @@ import UIKit
                     }
                 }
                 Section("club.settlementDetail.breakdown") {
-                    LabeledContent("club.settlementDetail.original") { Text(verbatim: row.originalAmountText) }
-                    LabeledContent("club.settlementDetail.adjustment") { Text(verbatim: row.executedAdjustmentText) }
-                    LabeledContent("club.settlementDetail.net") { Text(verbatim: row.netAmountText) }
+                    LabeledContent("club.settlementDetail.original") { Text(verbatim: LocaleDisplay.yuanAmounts(in: row.originalAmountText, locale: locale)) }
+                    LabeledContent("club.settlementDetail.adjustment") { Text(verbatim: LocaleDisplay.yuanAmounts(in: row.executedAdjustmentText, locale: locale)) }
+                    LabeledContent("club.settlementDetail.net") { Text(verbatim: LocaleDisplay.yuanAmounts(in: row.netAmountText, locale: locale)) }
                 }
                 Section("club.settlementDetail.paymentState") {
                     LabeledContent("club.settlementDetail.arrival") { Text(verbatim: row.arrivedText) }

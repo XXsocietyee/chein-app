@@ -244,6 +244,7 @@ import SwiftUI
     let recordID: String
     /// True only when the screen query is `personal=1`.
     let personal: Bool
+    @Environment(\.locale) private var locale
     /// `MerchantSettlementDetailLink.recordKey`: `id` when the link named a club row id, else `topicId` (MP onLoad).
     var recordKey: String = "topicId"
     private enum Phase: Equatable { case loading, ready(CoopClubSettlementDetail), missing, failed(String?) }
@@ -283,7 +284,7 @@ import SwiftUI
                         Text(verbatim: detail.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                         Text("merchantCoop.settlement.clubPerspective").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         Text(verbatim: detail.amountLabel).cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                        Text(verbatim: detail.amountText).cyText(.display, monospacedDigit: true).foregroundStyle(CYColor.textPrimary)
+                        Text(verbatim: LocaleDisplay.yuanAmounts(in: detail.amountText, locale: locale)).cyText(.display, monospacedDigit: true).foregroundStyle(CYColor.textPrimary)
                         Text(verbatim: detail.statusText).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     }
                     .accessibilityElement(children: .combine)
@@ -307,7 +308,7 @@ import SwiftUI
 
     @ViewBuilder private func line(_ label: LocalizedStringKey, _ value: String) -> some View {
         if !value.isEmpty {
-            LabeledContent { Text(verbatim: value).monospacedDigit() } label: { Text(label) }
+            LabeledContent { Text(verbatim: LocaleDisplay.yuanAmounts(in: value, locale: locale)).monospacedDigit() } label: { Text(label) }
         }
     }
 

@@ -382,3 +382,24 @@ Merged `origin/ui/combined-r7` (clean, 48 commits). The 01:20 coordinator sweep 
 | same: the single 票夹 button has no glyph | MP `pc-ticket`: icon + 票夹 | `App/MemberHomeHeader.swift` (single-button branch, used when 开始探索 has no destination) | **Fixed.** That branch now calls the shared `ticketsButton(…, fixedLabel: false)`: same glyph, centring, key, id and a11y control as the paired button. |
 
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+## Continue 20 (hourly re-arm, sweep 01:40 UTC build a32387e9b)
+
+Merged `origin/ui/combined-r7` (clean). That build predates continue 19 (e4-member still shows the old card), so it is not re-checked here. No mp-mine rows in the 01:20 / 01:50 coordinator sweeps, so this run starts the "next round" list (P23–P31, motion, states). Screens checked: `docs/sweeps/latest/mp-mine/sheet-zh-Hans.jpg`, `sheet-en.jpg`.
+
+| Page / screenshot | Principle → MP | Native file | Fixed now |
+|---|---|---|---|
+| `*-e5b-badge-wall.jpg`: earned and locked badges mixed in one grid; header reads "3/6 · 已收集 3/6" (count twice) | P24 inside the MP badge-wall order: 已点亮 group, then 未解锁; locked = the badge's own shape desaturated **and dimmed** | `App/DesignFixtures/E5bFixtures.swift` `E5bBadgeWallFixture`, `App/ObjectBadgeViews.swift` `ObjectBadgeWallBadgeLabel` | **Fixed.** The fixture now draws the real wall's structure (`ObjectBadgeWallView`): ring + `CYCollectedLockedSummary` (已收集 3 · 未解锁 3), then 已点亮 / Unlocked and 未解锁 / Locked groups with the existing keys. Locked tile art keeps `.grayscale` and adds `.opacity(0.55)`; name and condition text keep full contrast. AX5 one-column layout unchanged. Before/after fixture: `e5b-badge-wall`, `a11y-badges-ax5`. |
+| `*-e4-wallet-balance.jpg` (余额流水) | P23: balance on top, segmented 全部/收入/支出, month groups, source · time · signed amount (+ green, − primary) | `App/WalletCommerceViews.swift` | — Already meets P23; no change. zh dates stay as the server sends them (continue 14). |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 53 failing / baseline 52 / new 1. The one new failure is `test_category_roam_registration…test_category_adapter_missing_duplicated_moved_or_assertion_drift_rejected`. It does not read any file this run touched (it bit-flips the category gate file), and run alone it passes (5 tests OK in 240 s), so this is a time-out under load, not a regression. `test_object_badge_wall_layout.py` pins (`.grayscale(badge.isLocked ? 1 : 0)`, no `.lineLimit(`) are kept.
+
+## Continue 21 (half-hourly re-arm, sweep 02:10 UTC build 41374363f)
+
+Merged `origin/ui/combined-r7` (clean, 57 files). That build predates continue 20, so the badge wall groups are not re-checked here. No mp-mine rows in the 02:05 / 02:20 coordinator notes. Every remaining Not done row is blocked: the byte pin on `CharacterCardReadbackView`, and the posts / projects refresh rows that UI tests drive. So this run works "Next round" item 2 (motion and feedback). Screens checked: `docs/sweeps/latest/mp-mine/sheet-zh-Hans.jpg`, `sheet-en.jpg`. The public profile (`e4-self-medals`) shows 帖文 / 成就 / 关于, with no 项目 tab. That matches the MP, because 项目 is self-only (wxml:154 `isSelf && activeTab === 'projects'`).
+
+| Page | Principle → MP | Native file | Fixed now |
+|---|---|---|---|
+| 我的 tabs 项目 / 帖文 / 成就 / 关于 (`d2-me`) and public profile tabs (`e4-self-medals`) | Next round 2: a selection change gets `.sensoryFeedback(.selection)`. MP `cy-tabs` bind:change. | `App/AccountView.swift`, `App/SocialPublicProfileView.swift`, `App/DesignFixtures/D2Fixtures.swift` | **Fixed.** `.sensoryFeedback(.selection, trigger:)` on each segmented tab picker. The haptic is system-provided, so it needs no Reduce Motion fallback. Order, keys and ids are unchanged. |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
