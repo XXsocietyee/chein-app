@@ -6,9 +6,9 @@ import Foundation
 @MainActor final class MPFirstPublishApprovalsTests: XCTestCase {
     private let base = "https://publish-1128.test"
 
-    private func deployment(market: RegionalMarket = .china, gates: Bool = true, writes: Bool = true) throws -> ReviewedAppDeployment {
-        try ReviewedAppDeployment(market: market, baseURL: base, approvedBaseURLs: [market: [base]],
-            verifiedCapabilities: market == .china ? [.domesticChinaPhone] : [],
+    private func deployment(gates: Bool = true, writes: Bool = true) throws -> ReviewedAppDeployment {
+        try ReviewedAppDeployment(market: .china, baseURL: base, approvedBaseURLs: [.china: [base]],
+            verifiedCapabilities: [.domesticChinaPhone],
             bundleIdentifier: "test.questify.publish1128", realm: "publish-1128",
             productionGatesEnabled: gates, playerWritesEnabled: writes)
     }

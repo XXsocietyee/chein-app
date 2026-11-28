@@ -28,7 +28,18 @@ editor media sources already require China. No pay, refund, payout or pricing ro
 
 `templateAuthor.draftSaved` (en + zh-Hans) added to Resources/Localizable.xcstrings. `templateAuthor.rejected` already existed.
 
-## Gates
+## Gates (final tree, 2026-11-28)
 
-See the commit log for the run; all five gates were run on the final tree:
-`generate_project.py`, `check_scaffold.py`, `contract_ratchet.py --check` (new 0), `check_design_consistency.py`, `check_a11y_lint.py`.
+| Gate | Result |
+|---|---|
+| `python3 tools/generate_project.py` | 906 app-unit classes in 4 shards (new MPFirstPublishApprovalsTests included) |
+| `python3 tools/check_scaffold.py` | PASS structural checks, 21276 bilingual keys |
+| `python3 tools/contract_ratchet.py --check` | 52 failing, baseline 52, **new 0** |
+| `python3 tools/check_design_consistency.py` | PASS |
+| `python3 tools/check_a11y_lint.py` | PASS, 0 new |
+
+`App/AppCompositionRoot.swift` stays at its 4175-line ratchet: the glue is `MPFirstPublishApprovals.fallback(...)` on the
+existing assignment lines. `Tests/ContractChecks/test_template_authoring_contracts.py` lists the new accessibility id
+`templateAuthor.rejectionReason` with the other identifiers (it is not a string key).
+
+Not done here: Swift build / XCTest run (no compiler), live backend calls. P1-28 (IM image) and P2-6 are outside this worker's list.
