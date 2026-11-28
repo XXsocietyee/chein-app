@@ -1375,6 +1375,9 @@ Left on purpose this run: `TopicBrowserView`, `ActivityBrowserView`, `NativeStam
 `TopicFlowTests:21,50,64`, `ActivityFlowTests:91`, `RoamExperienceFlowTests:63` tap the button and assert it then
 disappears; auto-loading changes that contract, so those need the tests updated together).
 
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency`
+PASS (0 debt besides 39 manual paging baselined, 114 allowed), `contract_ratchet --check` 46 failing, baseline 46, **new 0**.
+
 ### Not done (next run)
 - manual paging debt (39): convert the player list pages next — `RoamCreatedStampView:137`, `RoamReceivedStampSectionView:140`,
   `NonCashRewardViews:77`, `SocialRoamMounts:310`, `RoamPassportPrivateToolsViews:548,694`, `RoamPassportToolsViews:281`;
