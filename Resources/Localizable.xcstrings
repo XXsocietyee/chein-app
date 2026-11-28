@@ -276486,7 +276486,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Participating Merchants"
+            "value": "Participating shops"
           }
         },
         "zh-Hans": {
@@ -276503,7 +276503,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stop Progress"
+            "value": "Stop progress"
           }
         },
         "zh-Hans": {
@@ -276520,7 +276520,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nearby Teams"
+            "value": "Nearby teams"
           }
         },
         "zh-Hans": {
@@ -276537,7 +276537,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "View All Teams"
+            "value": "View all teams"
           }
         },
         "zh-Hans": {
@@ -300452,7 +300452,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Participating Merchants"
+            "value": "Participating shops"
           }
         },
         "zh-Hans": {
