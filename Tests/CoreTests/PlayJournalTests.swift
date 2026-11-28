@@ -88,6 +88,37 @@ final class PlayJournalTests: XCTestCase {
         XCTAssertEqual(summary.count, 2)
     }
 
+    /// MP `play-route-state.js` keeps attributes with a text label and a finite number value; 旅程手记 lists them first.
+    func testRouteAttributesKeepLabelledNumbersOnly() throws {
+        let route = #"{"routeMode":"LINEAR","attributes":[{"key":"courage","label":"勇气","value":3},{"label":"体力","value":2.5},{"label":"坏","value":"7"},{"value":1},"x"]}"#
+        let state = try JSONDecoder().decode(PlayRouteState.self, from: Data(route.utf8))
+        XCTAssertEqual(state.attributes.map(\.label), ["勇气", "体力"])
+        XCTAssertEqual(state.attributes.map(\.valueText), ["3", "2.5"])
+        let none = try JSONDecoder().decode(PlayRouteState.self, from: Data(#"{"routeMode":"LINEAR","attributes":"bad"}"#.utf8))
+        XCTAssertEqual(none.attributes, [])
+        XCTAssertEqual(PlayJournal.attributes(in: try snapshot(mode: 1, nodes: "[]")), [])
+    }
+
+    /// MP `orderedJourneyNodes` / `resolveNextRouteNode`: a branch route lists finished stops first (decision-log
+    /// order, labelled 我的第 K 步), then the recommended PLAYABLE stop as 此刻, then the rest; hidden stops stay out.
+    func testBranchRouteFollowsTheDecisionLogAndTheRecommendedStop() throws {
+        let nodes = #"[{"nodeId":1,"sortId":1,"name":"A"},{"nodeId":2,"sortId":2,"name":"B"},{"nodeId":3,"sortId":3,"name":"C"},{"nodeId":4,"sortId":4,"name":"D"},{"nodeId":5,"sortId":5,"name":"E"}]"#
+        let route = #"{"routeMode":"BRANCH_GRAPH","sessionId":501,"status":"ACTIVE","version":2,"recommendedNodeId":4,"nodeStates":{"1":"COMPLETED","2":"DISCOVERED_LOCKED","3":"COMPLETED","4":"PLAYABLE","5":"HIDDEN"},"decisionLog":[{"fromNodeId":3,"toNodeId":1},{"fromNodeId":1,"toNodeId":4}]}"#
+        let rows = PlayJournal.rows(in: try branchSnapshot(nodes: nodes, route: route))
+        XCTAssertEqual(rows.map(\.id), [3, 1, 4, 2])
+        XCTAssertEqual(rows.map(\.key), [.step(1), .step(2), .now, .ahead])
+        let noFocus = #"{"routeMode":"BRANCH_GRAPH","sessionId":501,"status":"ACTIVE","version":2,"recommendedNodeId":2,"nodeStates":{"1":"COMPLETED","2":"DISCOVERED_LOCKED"}}"#
+        let locked = PlayJournal.rows(in: try branchSnapshot(nodes: nodes, route: noFocus))
+        XCTAssertEqual(locked.map(\.key), [.step(1), .ahead])
+    }
+
+    private func branchSnapshot(nodes: String, route: String) throws -> PlaySnapshot {
+        let data = "{\"topicId\":9,\"mode\":1,\"playable\":true,\"registered\":true,\"nodes\":\(nodes),\"routeState\":\(route)}"
+        let wire = try JSONDecoder().decode(PlayWireValue.self, from: Data(data.utf8))
+        let authority = try JSONDecoder().decode(PlayRouteState.self, from: Data(route.utf8))
+        return try PlaySnapshot(scope: .topic(9), result: wire.decoded(), authority: authority)
+    }
+
     private func snapshot(mode: Int, nodes: String) throws -> PlaySnapshot {
         let data = "{\"topicId\":9,\"mode\":\(mode),\"playable\":true,\"registered\":true,\"nodes\":\(nodes),\"chapters\":[{\"chapterId\":8,\"name\":\"Chapter\"}]}"
         let wire = try JSONDecoder().decode(PlayWireValue.self, from: Data(data.utf8))
