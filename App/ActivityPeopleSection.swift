@@ -31,19 +31,22 @@ import SwiftUI
                 personRow(host, identifier: "activity.people.host")
             }
         }
-        if !people.participants.isEmpty || people.registrationCount != nil {
-            Section("activity.people.participants") {
-                LabeledContent("activity.people.total") {
-                    if let count = people.registrationCount {
-                        Text(verbatim: String(count)).accessibilityIdentifier("activity.people.count")
-                    }
-                    else { Text("activity.people.countUnknown") }
-                }.accessibilityIdentifier("activity.people.total")
+        // MP scene-play-activity-detail wxml:55-62: shown only with registrants, titled 「N 人已报名」;
+        // the count itself already sits in the 已报名 fact row, so no separate total row.
+        if !people.participants.isEmpty {
+            Section {
                 ForEach(Array(people.participants.enumerated()), id: \.offset) { index, person in
                     personRow(person, identifier: "activity.people.participant.\(index)")
                 }
+            } header: {
+                participantsTitle.accessibilityIdentifier("activity.people.total")
             }
         }
+    }
+
+    private var participantsTitle: Text {
+        if let count = people.registrationCount { return Text("activity.pinned.going \(count)") }
+        return Text("activity.people.participants")
     }
 
     @ViewBuilder private func personRow(_ person: ActivityPerson, identifier: String) -> some View {

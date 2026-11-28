@@ -17,7 +17,7 @@ class ActivityTopicAccessibleSummaries(unittest.TestCase):
         source=(ROOT/'App/ActivityPeopleSection.swift').read_text()
         self.assertIn('.accessibilityIdentifier("activity.people.total")',source)
         ui=(ROOT/'Tests/AppUITests/ActivityFlowTests.swift').read_text()
-        for text in ['app.staticTexts.matching(identifier: "activity.people.total")','XCTAssertEqual(total.count, 1','"Total registered, 12"',
+        for text in ['app.staticTexts.matching(identifier: "activity.people.total")','XCTAssertEqual(total.count, 1','"12 going"',  # mp-home r3: MP section title 「N 人已报名」 replaces the total row
                      'XCTAssertFalse(app.buttons["activity.people.participant.1"].exists)',
                      'XCTAssertFalse(app.buttons["activity.people.participant.2"].exists)',
                      'tap(app.buttons["activity.people.switchAccount"])',

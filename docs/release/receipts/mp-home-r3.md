@@ -260,6 +260,14 @@ Rebased on `origin/mp/r3-home`. No coordinator item for mp-home at 23:20. Sweep 
 |---|---|---|
 | `pages/index/index.wxml:103-121` 编辑精选 card → `d2-home` (`App/HomeFeedFixtureSupport.swift` `HomeFixtureLanguage`) | `zh-Hans-d2-home.jpg` / `en-d2-home.jpg`: card title 「示例街区路线」 / "Sample neighborhood route" reads as a placeholder. | **Fixed** — under `--design-fixture` only: topic 老城灯笼夜行 / Old Town Lantern Walk (area 老城 / Old Town), activity 滨江灯笼漫步 / Riverside Lantern Walk (西岸码头 / West Bund Pier). UI-test runs keep the synthetic names. |
 
+## Round 3 continue (15) — 23:37 sweep (build 793c3190b), mp-home sheets zh-Hans + en
+
+Merged `origin/ui/combined-r7` (clean). Coordinator 23:50: the mp-home 19:15 / 19:50 / 21:20 findings are fixed. Build 793c3190b predates `933ae767e` (continue 14 编辑精选 names), so the card still reads 示例街区路线 there; recheck next sweep.
+
+| MP page → native view | Difference (screenshot) | Fixed / not |
+|---|---|---|
+| `scene-play-activity-detail/index.wxml:55-62` `{{registrationCountText}} 人已报名` + avatars → `App/ActivityPeopleSection.swift` | `zh-Hans-rep3-activity-detail.jpg` / `en-…`: section 报名玩家预览 / "Participant preview" with a 报名总人数 24 row — the count repeats the 已报名 fact row right above, and the MP title is the count itself. MP also hides the section when there are no registrants. | **Fixed** — section only when `participants` is non-empty, header 「N 人已报名」 / "N going" (`activity.pinned.going %lld`; unknown count → 报名玩家预览), no total row; header keeps id `activity.people.total`. UI test `ActivityFlowTests` label → "12 going"; pin in `test_activity_topic_accessible_summaries.py` updated with a one-line reason. |
+
 ## Not done / follow-ups
 - 主题详情 评价: double write entry in the empty state (continue 13 row) — needs the UI test updated with a simulator.
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -279,3 +287,4 @@ Rebased on `origin/mp/r3-home`. No coordinator item for mp-home at 23:20. Sweep 
 - Needs a simulator pass (continue 11): 编辑精选 card with club / Beta 试玩 row above the title.
 - Needs a simulator pass (continue 12): zh `d2-search-results` row names.
 - Needs a simulator pass (continue 14): `d2-home` 编辑精选 card name.
+- Needs a simulator pass (continue 15): activity detail 「N 人已报名」 section header (and the `ActivityFlowTests` label "12 going").
