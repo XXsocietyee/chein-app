@@ -153,6 +153,11 @@ extension ReviewedProductionFormMutationRoute {
             // G4/G5 capability reads and the other play-grant reads (parity-a): GET with no body.
             return covers(relative, grant.play) && emptyBody
         }
+        if ReviewedProductionGateLeases.isBodilessPlayTagWrite(relative) {
+            // fix-1128b #19 (J-09e): tag confirm/revoke are bodiless POSTs (PlayExperienceService `postWithoutBody`);
+            // the server checks the tag owner. `correct` carries JSON and takes the generic POST rule below.
+            return method == "POST" && (request.httpBody?.isEmpty ?? true) && covers(relative, grant.play)
+        }
         if relative == "api/user/player-code" { return method == "POST" && covers(relative, grant.play) }
         // `share/revoke` and the personal `publish_precheck` are the mini-program's `data: {}` form posts: an empty body is that call.
         guard method == "POST", request.httpBody?.isEmpty == false || ["api/roam/share/revoke", "api/activity/publish_precheck"].contains(relative) else { return false }
@@ -729,6 +734,7 @@ enum ReviewedPlayerReadRoute {
         // C-F6 MP-first: the author's 到访方式 read/save (fabu/theme-fe-visit.js:40, :87). Not money.
         "api/topic/free-explore/visit-config"
     ]).union(capabilityReadPaths).union(playRuntimeReadPaths).union(wp07CommercePaths).union(wp08Paths).union(publisherLifecyclePaths)
+        .union(playFinishAndProfilePaths)
     /// MP-first (owner 2026-11-25, R7-PC-B4-1 / R7-PC-B1-2): pages/topic/pricing preview + confirm (a final-price save that moves
     /// the topic to PRICING for sale review, not a payment) and the publisher reads it needs. Cancel-with-refund stays off.
     static let publisherLifecyclePaths: Set<String> = [
@@ -826,8 +832,36 @@ enum ReviewedPlayerReadRoute {
         "api/marketing/product/activate",
         "api/coupon/usability"
     ]
+    /// fix-1128b: `.mediaUpload` (#5, play photo upload), `.preference` and `.tags` (#19, preference groups and tag
+    /// confirm/correct/revoke) join the release play grant. `.leader` and `.circle` stay with their own lanes.
     static let playCapabilities: Set<PlayExperienceCapability> = [
-        .reads, .classicCompletion, .hints, .advanced, .playerCommands, .runPersistence, .journeyOpening, .actionContextBinding
+        .reads, .classicCompletion, .hints, .advanced, .playerCommands, .runPersistence, .journeyOpening, .actionContextBinding,
+        .mediaUpload, .preference, .tags
+    ]
+    /// fix-1128b #19: `api/play/tag/{id}/confirm` and `/revoke`, the two bodiless tag writes.
+    static func isBodilessPlayTagWrite(_ relative: String) -> Bool {
+        let key = ChinaReviewedRouteCapability.normalized("/" + relative)
+        return key == "/api/play/tag/{}/confirm" || key == "/api/play/tag/{}/revoke"
+    }
+    /// fix-1128b #5: the device kinds a play node may ask for (MP vm 2 photo, vm 4 scan, GPS arrive, shake).
+    static let playDevices: Set<PlayDeviceKind> = [.photo, .scan, .location, .motion]
+    /// fix-1128b #22: bare hosts (what `PlayKitCameraAssets.approvedURL` compares) of the approved upload-result origins.
+    /// An origin with a non-443 port is dropped because kit artwork only loads from the default https port.
+    static func playArtworkHosts(apiBase: URL, extra: String? = Bundle.main.object(forInfoDictionaryKey: "CYStampImageOrigins") as? String) -> Set<String> {
+        let origins = RetainedImageOrigin.configured(apiBase: apiBase, extra: extra)
+        return Set(origins.compactMap { origin -> String? in
+            guard let url = URL(string: origin), url.port == nil || url.port == 443, let host = url.host, !host.isEmpty else { return nil }
+            return host.lowercased()
+        })
+    }
+    /// fix-1128b #16, #19, #21, #5: the finish ending/ranking reads, the templated preference/tag/人生 OS routes, the
+    /// in-store consent read/write, and the play photo upload. All non-money player routes the MP sends.
+    static let playFinishAndProfilePaths: Set<String> = [
+        "api/play/ending", "api/play/leaderboard",
+        "api/play/preference/{}", "api/play/preference/{}/submit",
+        "api/play/tag/{}/confirm", "api/play/tag/{}/correct", "api/play/tag/{}/revoke", "api/play/os/{}",
+        "api/compliance/consents", "api/compliance/consents/latest",
+        "api/common/uploadOSS"
     ]
     /// Handover 35, WP-06. Same paths as `ChinaReviewedRouteCapability.wp06PartialPagesOwnerGrant`.
     /// Address, invoice, roam, and passport calls stay on their dedicated transports: this set does not
@@ -1621,8 +1655,12 @@ enum ReviewedPlayerReadRoute {
               let endpoints = makeEndpoint(context, paths: Self.playPaths) else { return nil }
         let key = contextKey(context)
         if let existing = playConfigurationByContext[key] { return existing }
+        // fix-1128b #5 (J-06d/J-12b/J-11c): photo, scan, location and shake device kinds are on, so photo nodes, the filter
+        // camera and the in-store photo step can capture → uploadOSS → `api/play/photo`. #22 (J-07 #2/#6/#7): kit artwork
+        // loads from the same upload-result origins the avatar approval uses (API origin + `CYStampImageOrigins`).
         let configuration = RuntimeDependencyConfiguration(market: .china, endpoints: endpoints, play: Self.playCapabilities,
-            publisherReads: true, playReadApprovalID: UUID())
+            publisherReads: true, devices: Self.playDevices, artworkHosts: Self.playArtworkHosts(apiBase: context.baseURL),
+            playReadApprovalID: UUID())
         playConfigurationByContext[key] = configuration
         return configuration
     }

@@ -36,7 +36,9 @@ class MPFirstPlayerContentPins(unittest.TestCase):
         self.assertIn('paths.insert("api/topic/pricing/confirm")', core)
         self.assertNotIn('pricing: endpoints', core)
         self.assertNotIn('cancellationRefunds: endpoints', core)
-        self.assertIn('publisherReads: true, playReadApprovalID: UUID())', read('App/ReviewedPlayerWriteLeases.swift'))
+        # fix-1128b #5/#22: devices and artwork hosts now sit between publisherReads and the read approval id.
+        self.assertIn('publisherReads: true, devices: Self.playDevices, artworkHosts: Self.playArtworkHosts(apiBase: context.baseURL),', read('App/ReviewedPlayerWriteLeases.swift'))
+        self.assertIn('playReadApprovalID: UUID())', read('App/ReviewedPlayerWriteLeases.swift'))
 
     def test_topic_favorite_is_mounted(self):
         detail = read('App/TopicDetailView.swift')

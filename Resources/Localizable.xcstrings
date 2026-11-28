@@ -358023,6 +358023,23 @@
           }
         }
       }
+    },
+    "playx.leaderboard.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The ranking couldn't load. Your result is kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "榜单加载失败，本局成绩已保留"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

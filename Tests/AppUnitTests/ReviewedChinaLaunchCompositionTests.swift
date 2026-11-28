@@ -191,8 +191,10 @@ import XCTest
         XCTAssertEqual(grant.channelTextReceipt.operation, .receipt)
         XCTAssertNotNil(admitted.clubCommunityWriteService(baseURL: player.baseURL, transport: PlayerWriteRecorder()))
         XCTAssertNotNil(admitted.teamCommandWriter(context: player, transport: PlayerWriteRecorder()))
+        // fix-1128b #5/#19 (planning audit gaps J-06d, J-06f/J-09d/J-09e): photo upload, preference and tag writes join the grant.
         XCTAssertEqual(try XCTUnwrap(admitted.sessionDependencies(player).configuration).play, [
-            .reads, .classicCompletion, .hints, .advanced, .playerCommands, .runPersistence, .journeyOpening, .actionContextBinding
+            .reads, .classicCompletion, .hints, .advanced, .playerCommands, .runPersistence, .journeyOpening, .actionContextBinding,
+            .mediaUpload, .preference, .tags
         ])
         XCTAssertEqual(try XCTUnwrap(admitted.roamLiveApproval(player)).presence, false)
         let roleAssign = try XCTUnwrap(admitted.clubRoleAssignmentApproval(player))

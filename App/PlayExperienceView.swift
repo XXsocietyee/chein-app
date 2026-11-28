@@ -236,7 +236,10 @@ struct PlayThemeMusicKey: Equatable {
             // The first read only records what was already settled; a chapter finishing in this visit opens the sheet.
             guard let previous = settledChapters else { settledChapters = done; return }
             settledChapters = done
-            if let chapterID = done.subtracting(previous).sorted().first, narrativeModel?(.stage(chapterID: chapterID)) != nil {
+            // fix-1128b #20 (J-03/J-17): the stage-end sheet opens only when its read is switched on. Release keeps
+            // journey reads off (story-flow theme paused), so a chapter finish no longer opens a sheet that can only fail.
+            if let chapterID = done.subtracting(previous).sorted().first,
+               narrativeModel?(.stage(chapterID: chapterID))?.available == true {
                 stageSettlement = PlayStageSettlementTarget(chapterID: chapterID)
             }
         }
@@ -1347,7 +1350,7 @@ struct PlayThemeMusicKey: Equatable {
                         Text(verbatim: dispatched.displayName)
                             .cyText(.cardTitle)
                             .foregroundStyle(palette.textPrimary)
-                        if let rule = dispatched.ruleInstructions, !rule.isEmpty {
+                        if let rule = dispatched.playerRuleInstructions {
                             Text(verbatim: rule)
                                 .font(CYTypography.bodyCompact)
                                 .foregroundStyle(palette.textSecondary)
@@ -1661,7 +1664,7 @@ struct PlayThemeMusicKey: Equatable {
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            if let instructions = node.ruleInstructions {
+            if let instructions = node.playerRuleInstructions {
                 Text(verbatim: instructions)
                     .font(CYTypography.bodyCompact)
                     .foregroundStyle(palette.textPrimary)

@@ -14,3 +14,7 @@ QUESTIFY_APP_LINK_DOMAIN = www.chengyinhub.com
 // 1128 gap #11 (O-08, R10): the platform support WeChat id the 提现 popup shows and copies. Public business contact,
 // the same constant the MP ships (chengyinhub-xcx/utils/withdraw-cs.js:8 WITHDRAW_CS_WECHAT_ID). Owner may change it.
 QUESTIFY_WITHDRAW_SUPPORT_WECHAT_ID = 18018571626
+// fix-1128b #22: extra https origins (comma separated) that uploadOSS results and play kit artwork are served from,
+// e.g. the OSS bucket or CDN host. The API origin is always included. Empty keeps only the API origin. Write each URL
+// as https:/$()/host so the xcconfig does not read it as a comment. Read as Info.plist `CYStampImageOrigins`.
+QUESTIFY_IMAGE_ORIGINS =

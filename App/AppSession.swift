@@ -1391,12 +1391,12 @@ final class AppSession: ObservableObject {
         cityOriginalRecoveryHosts[key]=host
         return host
     }
-    // w2-19 source pages/play/merchant: store-day reads share the play read approval; every write gate stays off.
-    func playStoreDay(scope: PlaySessionScope, nodeID: Int, registrationID: Int = 0, justScanned: Bool = false) -> PlayStoreDayCoordinator? {
+    // w2-19 source pages/play/merchant: store-day reads share the play read approval. fix-1128b #21: proof/consent gates on.
+    func playStoreDay(scope: PlaySessionScope, nodeID: Int, registrationID: Int = 0, justScanned: Bool = false, evidence: (any PlayStoreDayEvidenceSource)? = nil) -> PlayStoreDayCoordinator? {
         let key = PlayReaderKey(accountID: account?.id, epoch: gate.currentStamp, role: account?.effectiveRole, viewerRevision: compositionViewerRevision, approval: currentPlayReadApprovalKey, scope: scope)
         guard scope.isValid, nodeID > 0, key.approval != nil, let regional = regionalConfiguration, let api = regional.apiConfiguration,
               let factory = playReadDependencyFactory, factory.accepted?.play.contains(.reads) == true else { return nil }
-        let service = PlayStoreDayService(configuration: api, transport: factory.transport, market: regional.market, gates: .disabled, readsEnabled: true,
+        let service = PlayStoreDayService(configuration: api, transport: factory.transport, market: regional.market, gates: .playStoreDay, readsEnabled: true,
             currentSession: { [weak self] in
                 guard let self, self.playStoreDayFence(key), let account = self.account, let token = self.token else { return nil }
                 return try? PlayStoreDaySession(accountID: account.id, epoch: self.gate.currentStamp, token: token)
@@ -1405,7 +1405,7 @@ final class AppSession: ObservableObject {
                 guard let self, self.playStoreDayFence(key) else { return }
                 self.expireIfMatching(error: APIError.unauthorized, stamp: snapshot.epoch, credential: self.token)
             })
-        return PlayStoreDayCoordinator(nodeID: nodeID, scope: scope, registrationID: registrationID, justScanned: justScanned, service: service)
+        return PlayStoreDayCoordinator(nodeID: nodeID, scope: scope, registrationID: registrationID, justScanned: justScanned, service: service, evidence: evidence)
     }
     /// Same viewer-revision and play-read-issuance ABA fence as the play readers above.
     private func playStoreDayFence(_ key: PlayReaderKey) -> Bool {
