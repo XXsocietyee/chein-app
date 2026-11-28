@@ -55,7 +55,7 @@ class CityPointSelectionContracts(unittest.TestCase):
                        'renderedSelection.point(in: reader.pointMapContext) != nil',
                        '.onChange(of: reader.pointMapContext) { _, _ in selection = nil }',
                        '.onDisappear { visible = false; rulesSheet?.flow.cancel(); selection = nil; reader.cancel() }',
-                       'Button { selection = nil; reader.cancel(); readRequest = UUID() } label: { Label("action.retry", systemImage: "arrow.clockwise") }']:
+                       '.refreshable { refresh() }', 'selection = nil; reader.cancel(); readRequest = UUID()']:
             self.assertIn(marker, self.view)
 
     def test_card_and_list_use_exact_title_own_flag_and_accessible_selected_shape(self):

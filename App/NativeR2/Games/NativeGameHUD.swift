@@ -124,6 +124,9 @@ struct NativeGameHUDModel: Equatable {
     let trigger: Int
     @State private var landed = false
     @State private var ripple = false
+    /// OWNER RULE 3 (games): a pass also throws one short burst of light around the badge. Off with Reduce Motion
+    /// (`animates`) and in Low Power (`CYBurst` / `CYLightBudget`); removed after it ends so its timeline stops.
+    @State private var bursting = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var animates: Bool { passed && NativeR2Flags.motion && !reduceMotion }
@@ -147,6 +150,12 @@ struct NativeGameHUDModel: Equatable {
                 .accessibilityHidden(true)
         }
         .frame(height: 96)
+        .overlay {
+            if bursting {
+                CYBurst(origin: .center, count: 36, duration: 1.15, style: .dust, reach: 80)
+                    .frame(width: 240, height: 180)
+            }
+        }
         .onChange(of: trigger) { _, _ in play() }
     }
 
@@ -155,6 +164,11 @@ struct NativeGameHUDModel: Equatable {
         landed = false; ripple = false
         withAnimation(.spring(response: 0.42, dampingFraction: 0.55)) { landed = true }
         withAnimation(.easeOut(duration: 0.9).delay(0.12)) { ripple = true }
+        bursting = true
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(1.3))
+            bursting = false
+        }
     }
 }
 

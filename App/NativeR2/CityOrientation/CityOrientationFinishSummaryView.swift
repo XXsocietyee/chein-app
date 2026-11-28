@@ -24,6 +24,9 @@ import MapKit
     /// P-059: the route draws itself on the thumbnail and the metrics roll up from zero once, on appear.
     @State private var draw = NativeR2DrawOn()
     @State private var revealed = false
+    /// OWNER RULE 3 (celebration, run finished): one confetti burst while the record reveals; never under Reduce Motion
+    /// (the reveal is instant there) and `CYBurst` itself draws nothing in Low Power (`CYLightBudget`).
+    @State private var burst = false
     /// design-r2-play P16: when the finish screen opened, for the record's "date · place" line.
     @State private var finishedAt = Date()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -183,6 +186,7 @@ import MapKit
         }
         .accessibilityIdentifier("medalScreen")
         .motionR2EdgeGlowOnAppear()
+        .overlay { if burst { CYBurst(origin: UnitPoint(x: 0.5, y: 0.22), count: 60, duration: 1.4, style: .confetti, reach: 220) } }
         // P30: the finish moment fires one success haptic when the record is revealed (also under Reduce Motion,
         // where the reveal is instant).
         .cyHaptic(.success, trigger: revealed, where: CYHapticTransition.turnedOn)
@@ -235,7 +239,10 @@ import MapKit
         guard !revealed else { return }
         guard NativeR2Flags.motion, !reduceMotion else { revealed = true; await draw.run(reduceMotion: true); return }
         withAnimation(.smooth(duration: 1.2)) { revealed = true }
+        burst = true
         await draw.run(reduceMotion: reduceMotion)
+        try? await Task.sleep(for: .seconds(1.6))
+        burst = false
     }
 
     /// The starting frame of a rolling value: every digit reads 0 ("00:12:40" → "00:00:00", "3/8" → "0/8" keeps the total).
