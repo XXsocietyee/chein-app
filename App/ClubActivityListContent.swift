@@ -132,7 +132,7 @@ private struct ClubActivityCard: View {
         guard let date = row.start else { return row.sourceStart.map { LocaleDisplay.civil(String($0.prefix(16)).replacingOccurrences(of: "T", with: " "), locale: locale) } }
         let formatter = DateFormatter(); formatter.locale = locale
         formatter.calendar = Calendar(identifier: .gregorian); formatter.timeZone = TimeZone(secondsFromGMT: 8 * 3600)
-        formatter.setLocalizedDateFormatFromTemplate(row.dateOnly ? "EEE MMMd" : "EEE MMMd HHmm")
+        formatter.setLocalizedDateFormatFromTemplate(row.dateOnly ? "EEE MMMd" : "EEE MMMd jmm")
         return formatter.string(from: date)
     }
 }

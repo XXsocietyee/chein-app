@@ -1199,7 +1199,7 @@ struct JourneySettleView: View {
                             localError = nil
                         }
                         .accessibilityIdentifier("journeySettle.review")
-                    Text(verbatim: "\(review.count) / \(Self.reviewMax)").cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: "\(review.count) / \(Self.reviewMax)").accessibilityLabel(Text("a11y.value.characters \(Int(review.count)) \(Int(Self.reviewMax))")).cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary)
                 }
                 if let localError { MPInlineError(text: Text(localError)) }
                 else if case .error(let message) = rate { MPInlineError(text: Text(verbatim: message)) }

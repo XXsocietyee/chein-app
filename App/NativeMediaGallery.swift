@@ -97,7 +97,7 @@ import UIKit
         }
     }
     private var position: some View {
-        Text("\(index + 1) / \(snapshot.sources.count)").monospacedDigit()
+        Text("\(index + 1) / \(snapshot.sources.count)").accessibilityLabel(Text("carousel.position \(Int(index + 1)) \(Int(snapshot.sources.count))")).monospacedDigit()
             .accessibilityIdentifier("media.gallery.position")
     }
     private var previousButton: some View {

@@ -36,16 +36,30 @@ struct MessagingLoadIssue {
 struct MessagingIssueView: View {
     let issue: MessagingLoadIssue
     let identifier: String
+    /// The page's own MP cy-error title for a retryable read failure (e.g. im/list 加载失败).
+    var failureTitleKey: String? = nil
     let retry: () -> Void
+    @Environment(\.rootSignIn) private var rootSignIn
+    init(issue: MessagingLoadIssue, identifier: String, failureTitleKey: String? = nil, retry: @escaping () -> Void) {
+        self.issue = issue; self.identifier = identifier; self.failureTitleKey = failureTitleKey; self.retry = retry
+    }
+    private var needsSignIn: Bool { issue.titleKey == "messaging.signInRequired" }
+    private var titleKey: String { issue.canRetry ? (failureTitleKey ?? issue.titleKey) : issue.titleKey }
     var body: some View {
         ContentUnavailableView {
-            Label { Text(LocalizedStringKey(issue.titleKey)).accessibilityIdentifier(identifier) }
+            Label { Text(LocalizedStringKey(titleKey)).accessibilityIdentifier(identifier) }
                 icon: { Image(systemName: issue.canRetry ? "exclamationmark.circle" : "lock") }
         } description: {
+            // MP im/list cy-empty no-permission: 登录后查看消息 carries no sub; the 登录 button says it.
             if let message = issue.message { Text(verbatim: message) }
-            else { Text(LocalizedStringKey(issue.detailKey)) }
+            else if !(needsSignIn && rootSignIn.isAvailable) { Text(LocalizedStringKey(issue.detailKey)) }
         } actions: {
-            if issue.canRetry {
+            if needsSignIn && rootSignIn.isAvailable {
+                Button("mp.common.signIn") { rootSignIn() }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .accessibilityIdentifier(identifier + ".signIn")
+            } else if issue.canRetry {
                 Button(action: retry) { Label("messaging.retry", systemImage: "arrow.clockwise") }
                     .buttonStyle(.bordered)
                     .controlSize(.large)
@@ -195,13 +209,14 @@ struct MessagingReadScreen<Value, Content: View>: View {
     let refreshRevision: UInt64
     let load: () async throws -> Value
     let content: (Value) -> Content
+    let failureTitleKey: String?
     @StateObject private var model: MessagingReadScreenModel<Value>
 
-    init(reader: any MessagingReading, accessibilityPrefix: String, refreshRevision: UInt64 = 0,
+    init(reader: any MessagingReading, accessibilityPrefix: String, refreshRevision: UInt64 = 0, failureTitleKey: String? = nil,
          model: MessagingReadScreenModel<Value>? = nil,
          load: @escaping () async throws -> Value, @ViewBuilder content: @escaping (Value) -> Content) {
         self.reader = reader; self.accessibilityPrefix = accessibilityPrefix
-        self.refreshRevision = refreshRevision
+        self.refreshRevision = refreshRevision; self.failureTitleKey = failureTitleKey
         _model = StateObject(wrappedValue: model ?? MessagingReadScreenModel<Value>())
         self.load = load; self.content = content
     }
@@ -249,7 +264,7 @@ struct MessagingReadScreen<Value, Content: View>: View {
             } else if model.isLoading {
                 Color.clear
             } else if let issue = model.issue {
-                MessagingIssueView(issue: issue, identifier: accessibilityPrefix + ".error") {
+                MessagingIssueView(issue: issue, identifier: accessibilityPrefix + ".error", failureTitleKey: failureTitleKey) {
                     queue(model.prepareRefresh(appearance: appearance, input: input))
                 }
             } else if let value = model.value, model.loadedInput == input {
