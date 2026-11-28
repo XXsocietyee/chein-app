@@ -147,6 +147,7 @@ import SwiftUI
                         Section { PlayExperienceIssueView(issue: issue) }
                     }
                     taskSection(snapshot: snapshot, node: node)
+                    if let card = model.aiScores[nodeID] { PlayAIScoreSection(card: card) }
                 }
                 .safeAreaInset(edge: .bottom, spacing: 0) { bottomActions }
             }

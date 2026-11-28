@@ -358261,6 +358261,40 @@
           }
         }
       }
+    },
+    "playx.aiScore.label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI reference score"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 参考分"
+          }
+        }
+      }
+    },
+    "playx.aiScore.note": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Final result is subject to the merchant's review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最终以商家审核为准"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
