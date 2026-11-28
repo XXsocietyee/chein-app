@@ -210,7 +210,7 @@ import SwiftUI
                                            nextName: nextNode?.name, nextMeters: nextDistance)
             } else {
                 LabeledContent("nativeR2.city.punch.distance") {
-                    Text(verbatim: CityOrientationFormat.distance(distance)).monospacedDigit()
+                    Text(verbatim: CityOrientationFormat.distance(distance, locale: locale)).monospacedDigit()
                 }
                 if let accuracy = location.fix?.accuracyMeters {
                     LabeledContent("nativeR2.city.punch.accuracy") {

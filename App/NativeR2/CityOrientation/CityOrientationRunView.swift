@@ -4,10 +4,11 @@ import UIKit
 
 /// Plain distance text for the run: "120 m", "1.2 km", or an em dash when unknown.
 enum CityOrientationFormat {
-    static func distance(_ meters: Double?) -> String {
+    /// P29: the distance in the in-app locale (米 / 公里 in Chinese, m / km or ft / mi in English by region); unknown is a dash.
+    static func distance(_ meters: Double?, locale: Locale = .current) -> String {
         guard let meters, meters.isFinite, meters >= 0 else { return "—" }
-        if meters < 1000 { return "\(Int(meters.rounded())) m" }
-        return String(format: "%.1f km", meters / 1000)
+        return Measurement(value: meters, unit: UnitLength.meters)
+            .formatted(.measurement(width: .abbreviated, usage: .road).locale(locale))
     }
 }
 
@@ -276,7 +277,7 @@ extension EnvironmentValues {
                         } else if location.access == .denied {
                             Text("nativeR2.city.banner.locationOff").font(.headline)
                         } else if let meters = currentDistance {
-                            Text(verbatim: CityOrientationFormat.distance(meters))
+                            Text(verbatim: CityOrientationFormat.distance(meters, locale: locale))
                                 .font(.title2.bold())
                                 .monospacedDigit()
                                 .nativeR2RollingNumber(meters)
@@ -364,6 +365,7 @@ extension EnvironmentValues {
     /// design-r2-play P1: metres to the current stop; before any walking the distance cell leads with it.
     var nextStopMeters: Double? = nil
     @ViewBuilder var trailing: () -> Trailing
+    @Environment(\.locale) private var locale
     /// Paused dims the stats only; the primary (Continue) keeps full strength (P3).
     private var statsOpacity: Double { model.clock.phase == .paused ? 0.6 : 1 }
     private var leadsWithNextStop: Bool { walkedMeters <= 0 && nextStopMeters != nil }
@@ -432,7 +434,7 @@ extension EnvironmentValues {
     }
     private var distanceCell: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(verbatim: CityOrientationFormat.distance(walkedMeters > 0 ? walkedMeters : (nextStopMeters ?? 0)))
+            Text(verbatim: CityOrientationFormat.distance(walkedMeters > 0 ? walkedMeters : (nextStopMeters ?? 0), locale: locale))
                 .font(.title2.bold().monospacedDigit())
                 .nativeR2RollingNumber(walkedMeters > 0 ? walkedMeters : (nextStopMeters ?? 0))
             Text(leadsWithNextStop ? "designR2Play.city.metric.toNext" : "nativeR2.city.metric.distance")
@@ -459,12 +461,13 @@ extension EnvironmentValues {
     let distance: Double?
     let onPunch: () -> Void
     let onHint: () -> Void
+    @Environment(\.locale) private var locale
     var body: some View {
         Section("nativeR2.city.next") {
             Button(action: onPunch) {
                 LabeledContent {
                     VStack(alignment: .trailing, spacing: 2) {
-                        Text(verbatim: CityOrientationFormat.distance(distance))
+                        Text(verbatim: CityOrientationFormat.distance(distance, locale: locale))
                             .monospacedDigit()
                             .contentTransition(.numericText(value: distance ?? 0))
                         CityOrientationETAText(meters: distance)
