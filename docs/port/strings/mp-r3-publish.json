@@ -5212,5 +5212,107 @@
         }
       }
     }
+  },
+  "mpPublish.values.hp": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "HP"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "生命值"
+        }
+      }
+    }
+  },
+  "mpPublish.values.luck": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Luck"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "幸运值"
+        }
+      }
+    }
+  },
+  "mpPublish.values.hp.maxInvalid": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Max HP must be a whole number from 1 to 20."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "生命值上限须为 1 至 20 的整数"
+        }
+      }
+    }
+  },
+  "mpPublish.values.luck.maxInvalid": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Max luck must be a whole number from 0 to 5."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "幸运值上限须为 0 至 5 的整数"
+        }
+      }
+    }
+  },
+  "mpPublish.values.stat.initialOver": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The chapter 1 starting value is above the max. Adjust the starting state."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "第一章开局值超过上限，请调整初始状态"
+        }
+      }
+    }
+  },
+  "mpPublish.values.stat.schemaTwo": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This topic uses the older resource rules. Edit them in the resource section below."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这个主题使用旧版资源规则，请在下方资源设置中修改"
+        }
+      }
+    }
   }
 }

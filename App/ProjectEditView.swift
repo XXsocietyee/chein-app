@@ -1053,10 +1053,13 @@ import SwiftUI
         }
         .disabled(!model.canEdit)
         // MP topic-detail-sheet.wxml:111-142: the runtime-values card (生命值 · 幸运值 · 行动次数, 归零后) follows 伏笔.
-        NativeRpgResourceAuthorEntry(model: model)
-        NativeZeroHPAuthorEntry(model: model)
-        // MP topic-detail-sheet.wxml:126-140: 行动次数 and 没有实际效果时也消耗 close the runtime-values card.
+        // MP topic-detail-sheet.wxml:115-140: 生命值 · 幸运值 · 行动次数 · 没有实际效果时也消耗 in one card;
+        // the older schema-2 resource editor stays only for topics whose journeyRules are schema 2.
         ProjectEditRuntimeValuesRows(model: model)
+        if !ProjectEditRuntimeStats.available(in: model.draft) {
+            NativeRpgResourceAuthorEntry(model: model)
+        }
+        NativeZeroHPAuthorEntry(model: model)
         // MP topic-detail-sheet.wxml:144-185: 玩法规则 (允许再玩一次 · 同场路线).
         ProjectEditThemeRulesSection(model: model)
         // MP topic-detail-sheet.wxml:213-214: 可玩时段 (no 归属俱乐部 only) → 开局前准备.
