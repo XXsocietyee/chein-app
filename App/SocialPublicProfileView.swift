@@ -149,6 +149,9 @@ import SwiftUI
                                 }
                             }
                         }
+                        // mp-mine r3 (17:10 sweep, e4-self-medals): the separator under the head started at the name, under no
+                        // row content; align it with the card's other separators (row leading edge).
+                        .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
                         if profile.id == memberID, reader.identity.accountID == memberID {
                             ProfileIdentityShareSection(profile: profile, reader: reader, isCurrent: isCurrent, owner: identityShareOwner)
                                 .id(ProfileIdentityShareViewIdentity(profile: profile, reader: reader))

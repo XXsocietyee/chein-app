@@ -160,7 +160,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Switch manual ledger"
+            "value": "Switch to manual ledger"
           }
         },
         "zh-Hans": {
@@ -653,7 +653,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Default ending wrap-up didn't go"
+            "value": "Default ending wrap-up didn't go through"
           }
         },
         "zh-Hans": {
@@ -687,7 +687,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Request failed"
+            "value": "Application failed"
           }
         },
         "zh-Hans": {
@@ -823,7 +823,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check failed"
+            "value": "Verification failed"
           }
         },
         "zh-Hans": {
@@ -1025,7 +1025,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This QR code isn't check code."
+            "value": "This QR code isn't a verification code."
           }
         },
         "zh-Hans": {
@@ -1041,7 +1041,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This dynamic code isn't supported."
+            "value": "This dynamic code isn't supported here."
           }
         },
         "zh-Hans": {

@@ -54,7 +54,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "System access, such as location, photo library, and alerts, are requested only when use corresponding feature. Declining permission doesn't affect basic browsing."
+            "value": "System permissions, such as location, photo library, and notifications, are requested only when you use the corresponding feature. Declining permission doesn't affect basic browsing."
           }
         },
         "zh-Hans": {
@@ -70,7 +70,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdraw consent request account"
+            "value": "Withdraw consent or request account deletion"
           }
         },
         "zh-Hans": {

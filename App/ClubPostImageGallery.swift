@@ -52,7 +52,7 @@ import UIKit
                         case .failure:
                             VStack {
                                 Label("media.destination.failed", systemImage: "photo.badge.exclamationmark")
-                                Button("action.retry") { retries[index, default: 0] += 1 }
+                                Button { retries[index, default: 0] += 1 } label: { Text("action.retry").frame(minHeight: 44).contentShape(Rectangle()) }
                                     .accessibilityIdentifier("club.postImages.retry.\(post.id).\(index)")
                             }
                         case .empty:
@@ -111,7 +111,7 @@ import UIKit
             } else if failed {
                 VStack {
                     Label("media.destination.failed", systemImage: "photo.badge.exclamationmark")
-                    Button("action.retry", action: retryLoad)
+                    Button(action: retryLoad) { Text("action.retry").frame(minHeight: 44).contentShape(Rectangle()) }
                         .accessibilityIdentifier("club.postImages.retry.\(postID).\(index)")
                 }
             } else {
@@ -137,6 +137,7 @@ import UIKit
     @ObservedObject var model: ClubCommunityViewModel
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.locale) private var locale
     @State private var index: Int
     @State private var retries: [Int: Int] = [:]
     init(selection: ClubPostImageSelection, initialImage: Image, post: ClubCommunityPost, model: ClubCommunityViewModel) {
@@ -165,7 +166,7 @@ import UIKit
                                             case .failure:
                                                 VStack {
                                                     Label("media.destination.failed", systemImage: "photo.badge.exclamationmark")
-                                                    Button("action.retry") { retries[position, default: 0] += 1 }
+                                                    Button { retries[position, default: 0] += 1 } label: { Text("action.retry").frame(minHeight: 44).contentShape(Rectangle()) }
                                                         .accessibilityIdentifier("club.postImages.previewRetry.\(position)")
                                                 }
                                             case .empty:
@@ -196,18 +197,32 @@ import UIKit
             }
         }
         .onChange(of: model.imageReadScope) { _, _ in dismiss() }
+        .onChange(of: index) { (_: Int, position: Int) in announcePosition(position) }
         .accessibilityAction(.escape) { dismiss() }
     }
     private var positionLabel: some View {
         Text("\(index + 1) / \(selection.sources.count)").accessibilityLabel(Text("carousel.position \(Int(index + 1)) \(Int(selection.sources.count))")).monospacedDigit().accessibilityIdentifier("club.postImages.position")
     }
     private var previous: some View {
-        Button("media.destination.previous") { index = selection.previous(index) }
-            .frame(minHeight: 44).disabled(index == 0).accessibilityIdentifier("club.postImages.previous")
+        Button { index = selection.previous(index) } label: { stepLabel("media.destination.previous") }
+            .disabled(index == 0).accessibilityIdentifier("club.postImages.previous")
     }
     private var next: some View {
-        Button("media.destination.next") { index = selection.next(index) }
-            .frame(minHeight: 44).disabled(index == selection.sources.count - 1).accessibilityIdentifier("club.postImages.next")
+        Button { index = selection.next(index) } label: { stepLabel("media.destination.next") }
+            .disabled(index == selection.sources.count - 1).accessibilityIdentifier("club.postImages.next")
+    }
+    /// The 44 pt frame sits inside the label so the whole area is the hit target; full width when stacked at AX sizes.
+    private func stepLabel(_ key: LocalizedStringKey) -> some View {
+        Text(key)
+            .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : nil, minHeight: 44)
+            .contentShape(Rectangle())
+    }
+    /// A swipe moves the page silently for VoiceOver; say the new position once.
+    private func announcePosition(_ position: Int) {
+        let total = selection.sources.count
+        AccessibilityNotification.Announcement(
+            ChannelCopy.text("第 \(position + 1) 张，共 \(total) 张", "Image \(position + 1) of \(total)", locale: locale)
+        ).post()
     }
 }
 

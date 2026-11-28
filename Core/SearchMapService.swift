@@ -221,7 +221,7 @@ public struct SearchMapService {
         let response = try await reads.join(key) {
             var request = try self.baseRequest(path, token: token)
             if !fields.isEmpty {
-                guard var parts = URLComponents(url: request.url!, resolvingAgainstBaseURL: false) else { throw APIError.invalidRequest }
+                guard let requestURL = request.url, var parts = URLComponents(url: requestURL, resolvingAgainstBaseURL: false) else { throw APIError.invalidRequest }
                 parts.queryItems = fields.keys.sorted().map { URLQueryItem(name: $0, value: fields[$0]) }
                 // Spring/Servlet query parsing treats raw + as space, unlike URLComponents.
                 parts.percentEncodedQuery = parts.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")

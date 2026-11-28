@@ -79,6 +79,7 @@ extension EnvironmentValues {
 
     var body: some View {
         map
+            .modifier(CityOrientationMapSkeleton())
             .safeAreaInset(edge: .top, spacing: 0) {
                 VStack(alignment: .trailing, spacing: 8) {
                     banner
@@ -660,5 +661,27 @@ struct CityOrientationTeamStack: View {
     private func initial(_ team: TeamTrailTeam) -> String {
         if !team.initial.isEmpty { return team.initial }
         return team.name.trimmingCharacters(in: .whitespaces).first.map(String.init) ?? "·"
+    }
+}
+
+/// mp-journey r3 (sweep 18:30, P42): MapKit paints a bare beige plane until its first tiles arrive. The run map keeps
+/// the cartographic skeleton over it for that moment, then fades it out (no fade with Reduce Motion), so stop 1 never
+/// opens on an empty panel. Decorative: hidden from VoiceOver and never takes a touch.
+private struct CityOrientationMapSkeleton: ViewModifier {
+    @State private var tilesShown = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        content
+            .overlay {
+                CYMapPlaceholder(fog: false)
+                    .opacity(tilesShown ? 0 : 1)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+            }
+            .task {
+                try? await Task.sleep(for: .milliseconds(1400))
+                withAnimation(reduceMotion ? nil : .easeOut(duration: 0.4)) { tilesShown = true }
+            }
     }
 }

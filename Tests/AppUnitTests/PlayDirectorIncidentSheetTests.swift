@@ -1,6 +1,5 @@
 import XCTest
 @testable import Questify
-@testable import QuestifyCore
 
 /// MP club-director-incident-sheet (director.js:478-552, 688-760) and chapter-sheet (director.js:839-851, 1370-1411).
 @MainActor final class PlayDirectorIncidentSheetTests: XCTestCase {

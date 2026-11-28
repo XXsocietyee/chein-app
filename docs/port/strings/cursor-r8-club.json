@@ -143,7 +143,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Add a credential if you've one"
+            "value": "Add a credential if you have one"
           }
         },
         "zh-Hans": {
@@ -347,7 +347,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enter what people"
+            "value": "Enter what people should call you"
           }
         },
         "zh-Hans": {
@@ -432,7 +432,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm result"
+            "value": "Confirm the result"
           }
         },
         "zh-Hans": {

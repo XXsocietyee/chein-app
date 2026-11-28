@@ -72,7 +72,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Booking pending."
+            "value": "The original reservation result is not yet known. A new reservation is locked until it is recovered."
           }
         },
         "zh-Hans": {
@@ -106,7 +106,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try"
+            "value": "Try again"
           }
         },
         "zh-Hans": {
@@ -154,7 +154,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign-up record"
+            "value": "Registration record"
           }
         },
         "zh-Hans": {
@@ -186,7 +186,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Available"
+            "value": "Available entitlement"
           }
         },
         "zh-Hans": {
@@ -235,7 +235,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm booking"
+            "value": "Confirm reservation"
           }
         },
         "zh-Hans": {
@@ -251,7 +251,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Record has no bundle ledger."
+            "value": "This record has no bundle ledger. It remains read-only."
           }
         },
         "zh-Hans": {
@@ -267,7 +267,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Booking requires separately reviewed authorization and a current eligible record."
+            "value": "Reservation requires separately reviewed authorization and a current eligible record."
           }
         },
         "zh-Hans": {
@@ -316,7 +316,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm booking"
+            "value": "Confirm reservation"
           }
         },
         "zh-Hans": {
@@ -466,7 +466,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refund original payment method"
+            "value": "Refund to the original payment method is confirmed"
           }
         },
         "zh-Hans": {
@@ -551,7 +551,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "After-sales"
+            "value": "After-sales records"
           }
         },
         "zh-Hans": {
@@ -602,7 +602,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancel booking"
+            "value": "Cancel reservation"
           }
         },
         "zh-Hans": {
@@ -636,7 +636,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Booking"
+            "value": "Reservation"
           }
         },
         "zh-Hans": {

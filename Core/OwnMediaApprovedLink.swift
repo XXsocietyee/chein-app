@@ -88,7 +88,7 @@ public enum OwnMediaApprovedLinkRoute {
     init(request: URLRequest, current: @escaping () -> Bool) { expected = request; self.current = current }
     public var isCurrent: Bool { !cancelled && !Task.isCancelled && current() }
     public func accepts(_ request: URLRequest) -> Bool {
-        request.url?.absoluteString.utf8.elementsEqual(expected.url!.absoluteString.utf8) == true
+        (request.url?.absoluteString == expected.url?.absoluteString && request.url != nil) == true
             && request.httpMethod == "GET" && request.httpBody == nil && request.httpBodyStream == nil
             && request.allHTTPHeaderFields == expected.allHTTPHeaderFields && !request.httpShouldHandleCookies
             && request.cachePolicy == .reloadIgnoringLocalCacheData && request.value(forHTTPHeaderField: "Cookie") == nil

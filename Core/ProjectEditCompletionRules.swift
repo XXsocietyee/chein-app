@@ -110,9 +110,10 @@ public struct ProjectEditCompletionRules: Codable, Equatable {
         guard source == original else { throw ProjectEditError.invalidDraft }
         if readOnly { return source }
         guard issueKey == nil else { throw ProjectEditError.invalidDraft }
+        guard mode != "AT_LEAST" || Int(requiredCount) != nil else { throw ProjectEditError.invalidDraft }
         var result = root
         result["nodeCompletion"] = mode == "AT_LEAST"
-            ? .object(["mode": .string(mode), "requiredCount": .number(Decimal(Int(requiredCount)!))])
+            ? .object(["mode": .string(mode), "requiredCount": .number(Decimal(Int(requiredCount) ?? 0))])
             : .object(["mode": .string("ALL")])
         if bingoEnabled {
             result["bingo"] = .object(["enabled": .bool(true), "cells": .array(cells.map { cell in

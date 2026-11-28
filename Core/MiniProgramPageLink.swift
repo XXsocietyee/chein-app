@@ -107,7 +107,7 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         pages["pages/play/poi-challenge/index"] = Rule(allowed: ["poiId", "photo"], required: [], ids: ["poiId"])
         pages["subpackageRoam/citystamp/index"] = Rule(allowed: ["kind", "place"], required: [], ids: [])
         pages["subpackageRoam/official-route/index"] = optionalID
-        pages["subpackageRoam/session/index"] = Rule(allowed: ["id", "shareToken", "sessionId", "ts"], required: [], ids: ["id"])
+        pages["subpackageRoam/session/index"] = Rule(allowed: ["id", "shareToken", "sessionId", "ts"], required: [], ids: ["id", "sessionId"])
         pages["subpackageRoam/my-teams/index"] = Rule(allowed: ["tab", "ownerType", "ownerId", "scope"], required: [], ids: ["ownerType", "ownerId"])
         // mp-nav r3: MP poi-detail onLoad reads `poiId` (index.js:27; share path utils/place-share.js); native links use
         // `id`. Exactly one of the two, checked in init (`chein://mp/…` and notification `page` paths reach this rule).
@@ -313,8 +313,15 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         if let values = Self.enumeratedValues[page] {
             for (key, value) in present { if let allowed = values[key], !allowed.contains(value) { return nil } }
         }
+        var accepted = present
+        if let token = accepted["shareToken"], !Self.opaqueShareToken(token) { return nil }
+        for key in ["photo", "avatar"] {
+            if let value = accepted[key], value.contains(":"), ObjectCardMediaPolicy.origin(value) == nil {
+                accepted.removeValue(forKey: key)
+            }
+        }
         self.page = page
-        self.query = present
+        self.query = accepted
     }
 
     /// Query items as a URL carries them: each name once, every item with a value.
@@ -346,6 +353,12 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         if let id = intake.topicID { query["tid"] = String(id) }
         page = "subpackageJourney/pages/landing/index"
         self.query = query
+    }
+
+    /// A share token may be the catalog placeholder or 32 hex. It may not be a path or a URL.
+    private static func opaqueShareToken(_ value: String) -> Bool {
+        value != "." && value != ".." && !value.contains("..") && !value.contains("/") && !value.contains("\\")
+            && !value.contains("%") && !value.lowercased().contains("://")
     }
 
     private static func positiveID(_ text: String) -> Int? {

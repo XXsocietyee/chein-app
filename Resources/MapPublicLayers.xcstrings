@@ -126,7 +126,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ready"
+            "value" : "Available"
           }
         },
         "zh-Hans" : {
@@ -245,7 +245,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Public map layers aren't available right."
+            "value" : "Public map layers aren't available right now."
           }
         },
         "zh-Hans" : {
@@ -568,7 +568,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Level"
+            "value" : "Difficulty"
           }
         },
         "zh-Hans" : {

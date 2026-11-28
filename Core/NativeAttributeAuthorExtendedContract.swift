@@ -148,8 +148,10 @@ struct NativeAttributeAuthorVersionedEnvelope {
         }
     }
     func verifyDefinitionWire() throws {
-        let definitions = try NativeAttributeAuthorWire.decode(definitions(at: ["data","definitions"])).array!
-        let keys = try NativeAttributeAuthorWire.decode(keys(at: ["data","keys"])).array!
+        guard let definitions = try NativeAttributeAuthorWire.decode(definitions(at: ["data","definitions"])).array,
+              let keys = try NativeAttributeAuthorWire.decode(keys(at: ["data","keys"])).array else {
+            throw NativeAttributeAuthorError.invalid("definition wire")
+        }
         let numbers = try NativeAttributeAuthorWire.numberSpellings(raw, beneath: [])
         func beneath(_ prefix: [String]) -> [[String]: String] {
             Dictionary(uniqueKeysWithValues: numbers.compactMap { key, value in
@@ -157,7 +159,9 @@ struct NativeAttributeAuthorVersionedEnvelope {
             })
         }
         for (definitionIndex, rawDefinition) in definitions.enumerated() {
-            let definition = rawDefinition.object!, key = definition["stateKey"]!.text!
+            guard let definition = rawDefinition.object, let key = definition["stateKey"]?.text else {
+                throw NativeAttributeAuthorError.invalid("definition wire")
+            }
             guard let keyIndex = keys.firstIndex(where: { $0.object?["stateKey"]?.text == key }), let wire = keys[keyIndex].object else {
                 throw NativeAttributeAuthorError.invalid("keys omitted a complete definition")
             }
@@ -229,7 +233,9 @@ extension NativeAttributeAuthorRequest {
         }
         var body = try NativeAttributeAuthorWire.encode(.object(["topicId": .number(Decimal(draft.binding.topicID)),
             "expectedConfigVersion": .number(Decimal(draft.binding.sourceConfigVersion)), "scope": .string(draft.binding.requestScope), "keys": .array(patches)]))
-        let originals = try NativeAttributeAuthorWire.decode(draft.rawSource).array!
+        guard let originals = try NativeAttributeAuthorWire.decode(draft.rawSource).array else {
+            throw NativeAttributeAuthorError.invalid("definition body")
+        }
         var fragments: [([String], Data)] = []
         for (rowIndex, row) in rows.enumerated() where row.existingKey != nil {
             guard patches[rowIndex].object?["rules"] != nil,

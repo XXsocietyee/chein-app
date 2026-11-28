@@ -23,7 +23,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original request"
+            "value": "Original request result"
           }
         },
         "zh-Hans": {
@@ -71,7 +71,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original result awaiting check"
+            "value": "Original result awaiting verification"
           }
         },
         "zh-Hans": {
@@ -167,7 +167,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Channel awaiting check"
+            "value": "Channel awaiting verification"
           }
         },
         "zh-Hans": {

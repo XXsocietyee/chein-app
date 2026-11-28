@@ -13,7 +13,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stats"
+            "value": "Attributes"
           }
         }
       }
@@ -591,7 +591,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Player"
+            "value": "Player presentation"
           }
         }
       }
@@ -659,7 +659,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Visible players"
+            "value": "Visible to players"
           }
         }
       }
@@ -931,7 +931,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rule"
+            "value": "Condition"
           }
         }
       }
@@ -948,7 +948,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Existing rules are retained. Editing is available when the condition editor is connected."
+            "value": "Existing conditions are retained. Editing is available when the condition editor is connected."
           }
         }
       }
@@ -999,7 +999,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This attribute is hidden players"
+            "value": "This attribute is hidden from players"
           }
         }
       }
@@ -1101,7 +1101,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "A save response received. Authoritative readback still required."
+            "value": "A save response was received. Authoritative readback is still required."
           }
         }
       }
@@ -1390,7 +1390,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Release"
+            "value": "Deployment"
           }
         }
       }
@@ -1492,7 +1492,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Persist across"
+            "value": "Persist across runs"
           }
         }
       }
@@ -1509,7 +1509,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Session"
+            "value": "Session Start"
           }
         }
       }
@@ -1611,7 +1611,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check Strong"
+            "value": "Check Strong Success"
           }
         }
       }
@@ -1628,7 +1628,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check"
+            "value": "Check Near Miss"
           }
         }
       }
@@ -2002,7 +2002,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Requires"
+            "value": "Requires attention"
           }
         }
       }

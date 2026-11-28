@@ -246,7 +246,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This version doesn't publish an effective start/end interval. Being readable doesn't establish permanent validity."
+            "value": "This version doesn't publish an effective start/end interval. Being readable now doesn't establish permanent validity."
           }
         },
         "zh-Hans": {
@@ -390,7 +390,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your personal confirmation is recorded, but the team isn't ready."
+            "value": "Your personal confirmation is recorded, but the team isn't currently ready."
           }
         },
         "zh-Hans": {
@@ -438,7 +438,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Protection and quest"
+            "value": "Protection and challenge"
           }
         },
         "zh-Hans": {
@@ -598,7 +598,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Payout disclosure"
+            "value": "Settlement disclosure"
           }
         },
         "zh-Hans": {
@@ -678,7 +678,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quest identifier"
+            "value": "Challenge identifier"
           }
         },
         "zh-Hans": {
@@ -694,7 +694,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Note"
+            "value": "Statement"
           }
         },
         "zh-Hans": {
@@ -1206,7 +1206,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Term expiry"
+            "value": "Term expiry policy"
           }
         },
         "zh-Hans": {
@@ -1350,7 +1350,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original"
+            "value": "Original session"
           }
         },
         "zh-Hans": {
@@ -1478,7 +1478,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Resume original"
+            "value": "Resume the original session"
           }
         },
         "zh-Hans": {
@@ -1622,7 +1622,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dice"
+            "value": "Dice roll"
           }
         },
         "zh-Hans": {
@@ -1734,7 +1734,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original task evidence must remain valid at check"
+            "value": "Original task evidence must remain valid at confirmation"
           }
         },
         "zh-Hans": {

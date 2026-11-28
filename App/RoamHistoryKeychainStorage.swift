@@ -10,11 +10,18 @@ import Security
     }
     func read(key: String) throws -> Data? {
         var request = query(key)
-        request[kSecReturnData as String] = true; request[kSecMatchLimit as String] = kSecMatchLimitOne
+        request[kSecReturnAttributes as String] = true
+        request[kSecReturnData as String] = true
+        request[kSecMatchLimit as String] = kSecMatchLimitOne
         var result: CFTypeRef?
         let status = SecItemCopyMatching(request as CFDictionary, &result)
         if status == errSecItemNotFound { return nil }
-        guard status == errSecSuccess, let data = result as? Data else { throw RoamExperienceFailure.historyUnreadable }
+        guard status == errSecSuccess, let item = result as? [String: Any],
+              let data = item[kSecValueData as String] as? Data,
+              KeychainItemProtection.isDeviceOnlyUnlocked(item) else {
+            SecItemDelete(query(key) as CFDictionary)
+            throw RoamExperienceFailure.historyUnreadable
+        }
         return data
     }
     func write(_ data: Data, key: String) throws {

@@ -76,7 +76,7 @@ public enum ProfileNicknameRules {
     fileprivate init(expected: URLRequest, current: @escaping () -> Bool) { self.expected=expected; self.current=current }
     public var isCurrent: Bool { !Task.isCancelled && current() }
     public func accepts(_ r: URLRequest) -> Bool {
-        r.url?.absoluteString.utf8.elementsEqual(expected.url!.absoluteString.utf8) == true && r.httpMethod == "POST"
+        (r.url?.absoluteString == expected.url?.absoluteString && r.url != nil) == true && r.httpMethod == "POST"
             && r.httpBody == expected.httpBody && r.httpBodyStream == nil && !r.httpShouldHandleCookies
             && r.allHTTPHeaderFields == expected.allHTTPHeaderFields
     }
@@ -177,7 +177,8 @@ public enum ProfileNicknameRules {
     public init() {}
     public func send(_ request: URLRequest, authorization: ProfileNicknameReadAuthorization) async throws -> (Data, Int) {
         guard authorization.accepts(request), authorization.isCurrent else { throw ProfileNicknameReadFailure.unavailable }
-        let exchange = ProfileNicknameExchange(endpoint: request.url!)
+        guard let releaseURL = request.url else { throw APIError.invalidConfiguration }
+        let exchange = ProfileNicknameExchange(endpoint: releaseURL)
         return try await withTaskCancellationHandler(operation: {
             try await withCheckedThrowingContinuation { continuation in
                 exchange.install(continuation)

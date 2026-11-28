@@ -223,7 +223,7 @@
     "audit.attach.item": {
       "extractionState": "manual",
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "File" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Attachment" } },
         "zh-Hans": { "stringUnit": { "state": "translated", "value": "附件" } }
       }
     },
@@ -537,7 +537,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The review record couldn't loaded."
+            "value": "The review record couldn't be loaded."
           }
         },
         "zh-Hans": {
@@ -741,7 +741,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read original appeal result"
+            "value": "Read the original appeal result"
           }
         },
         "zh-Hans": {
@@ -979,7 +979,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The reason can't be confirmed right"
+            "value": "The reason can't be confirmed right now"
           }
         },
         "zh-Hans": {
@@ -1132,7 +1132,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Run reference doesn't match."
+            "value": "The original run reference doesn't match."
           }
         },
         "zh-Hans": {
@@ -1149,7 +1149,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original run can't take new appeal; result can still."
+            "value": "The original run can't take a new appeal; the result can still be checked."
           }
         },
         "zh-Hans": {
@@ -1200,7 +1200,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Appeal record couldn't saved device, nothing can."
+            "value": "The appeal record couldn't be saved on this device, so nothing can be submitted."
           }
         },
         "zh-Hans": {
@@ -1251,7 +1251,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Appeal entry result isn't confirmed."
+            "value": "The appeal submission result isn't confirmed."
           }
         },
         "zh-Hans": {
@@ -1268,7 +1268,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "There's no next chapter to release in session."
+            "value": "There's no next chapter to release in this session."
           }
         },
         "zh-Hans": {
@@ -1370,7 +1370,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The chapter release result isn't confirmed. Tapping again only checks original request."
+            "value": "The chapter release result isn't confirmed. Tapping again only checks the original request."
           }
         },
         "zh-Hans": {
@@ -1557,7 +1557,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Release the selected next chapter for whole team?"
+            "value": "Release the selected next chapter for the whole team?"
           }
         },
         "zh-Hans": {
@@ -1591,7 +1591,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "End original request"
+            "value": "End the original request"
           }
         },
         "zh-Hans": {

@@ -36,7 +36,7 @@
     "怎么验证"
   ],
   "discovery.templateDetail.verificationMethod": [
-    "Check method",
+    "Verification method",
     "核验方式"
   ],
   "discovery.templateDetail.nodeQuestion": [
@@ -68,7 +68,7 @@
     "来自真实到店玩家"
   ],
   "discovery.templateDetail.notice.title": [
-    "This is a play template — you can’t host session directly",
+    "This is a play template — you can’t host a session from it directly",
     "这是玩法模板，不能直接开团"
   ],
   "discovery.templateDetail.notice.body": [
@@ -132,7 +132,7 @@
     "这是预览模板，保存后才能配置"
   ],
   "discovery.templateTab.refusal.previewNotUsable": [
-    "This is a preview template. Verify it with trial run before using.",
+    "This is a preview template. Verify it with a trial run before using it.",
     "这是预览模板，试走验证后才能用"
   ],
   "discovery.templateTab.refusal.staffBrowseOnly": [
@@ -160,7 +160,7 @@
     "出发后开局将记为已完成，确定出发吗？"
   ],
   "playx.opening.confirm": [
-    "Confirm set off",
+    "Confirm and set off",
     "确认出发"
   ],
   "playx.opening.cancel": [
@@ -188,7 +188,7 @@
     "路线状态没有加载出来。"
   ],
   "playx.opening.disabled": [
-    "Setting off from opening chapter isn’t available version.",
+    "Setting off from the opening chapter isn’t available in this version.",
     "当前版本暂未开放开局出发。"
   ],
   "playx.finishRoute.eyebrow": [
@@ -236,7 +236,7 @@
     "完成页（合成数据）"
   ],
   "playx.circleLink.title": [
-    "Exploration link incomplete",
+    "This exploration link is incomplete",
     "探索链接不完整"
   ],
   "playx.circleLink.subtitle": [
@@ -352,7 +352,7 @@
     "入场码要绑定你那张票，所以只有从票夹点进来才带得到。现在去票夹？"
   ],
   "playx.entryCode.missing.wallet": [
-    "Go ticket",
+    "Go to ticket wallet",
     "去票夹"
   ],
   "playx.entryCode.missing.later": [
@@ -432,7 +432,7 @@
     "线索"
   ],
   "playx.backpack.scope.public": [
-    "Public everyone",
+    "Public to everyone",
     "全场公开"
   ],
   "playx.backpack.scope.team": [
@@ -476,7 +476,7 @@
     "休息恢复"
   ],
   "playx.backpack.zeroPolicy.CHALLENGE": [
-    "Depletion quest",
+    "Depletion challenge",
     "归零挑战"
   ],
   "playx.backpack.zeroPolicy.STEPS": [

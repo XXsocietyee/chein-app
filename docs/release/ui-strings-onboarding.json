@@ -44,7 +44,7 @@
     "zh-Hans": "出发时按下 GO，走过的地方会在地图上亮起来。"
   },
   "onboarding.roam.prompt": {
-    "en": "Press hold GO",
+    "en": "Press and hold GO",
     "zh-Hans": "按住 GO"
   },
   "onboarding.roam.done": {

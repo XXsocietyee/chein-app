@@ -155,13 +155,18 @@ import UIKit
     }
 
     private func mount(_ rig: ResumeEntryRig) -> UIWindow {
-        let host = UIHostingController(rootView: ResumeEntryHarness(rig: rig))
         let window = hostedSceneWindow(frame: CGRect(x: 0, y: 0, width: 430, height: 1000))
-        window.rootViewController = host; window.makeKeyAndVisible(); host.loadViewIfNeeded(); host.view.layoutIfNeeded(); return window
+        _ = hostedMount(window, root: ResumeEntryHarness(rig: rig))
+        return window
     }
     private func close(_ window: UIWindow) { window.isHidden = true; window.rootViewController = nil }
     private func waitFor(_ condition: () -> Bool) async throws {
-        for _ in 0..<150 { if condition() { return }; try await Task.sleep(nanoseconds: 20_000_000) }
+        // The continue/check push is delivered on a run-loop turn. Task.sleep does not return to that loop on the iOS 27 host.
+        for _ in 0..<150 {
+            if condition() { return }
+            RunLoop.main.run(until: Date().addingTimeInterval(0.002))
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
         XCTFail("Original resume control did not settle"); throw APIError.notConfigured
     }
     private func tap(_ id: String, in window: UIWindow) async throws {

@@ -569,7 +569,8 @@ import UIKit
             isSignedIn: true, isConfigured: true, revision: 3)
         XCTAssertEqual(typed.accessCalls, 1)
         XCTAssertEqual(typedCoordinator.requestedMode, .merchant)
-        XCTAssertEqual(typedCoordinator.resolvedRoute(accountID: 88, isSignedIn: true, isConfigured: true, revision: 3), .merchantTabs(active))
+        // The grant is verified at the reader's session revision, not this older query, so the root stays the consumer tabs.
+        XCTAssertEqual(typedCoordinator.resolvedRoute(accountID: 88, isSignedIn: true, isConfigured: true, revision: 3), .consumerTabs)
 
         coordinator.switchToConsumerMode()
         XCTAssertEqual(coordinator.requestedMode, .consumer)

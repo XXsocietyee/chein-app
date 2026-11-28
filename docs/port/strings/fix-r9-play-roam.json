@@ -24,7 +24,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't read join"
+            "value": "Couldn't read join requests"
           }
         },
         "zh-Hans": {
@@ -92,7 +92,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lite"
+            "value": "White"
           }
         },
         "zh-Hans": {
@@ -109,7 +109,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dark"
+            "value": "Black"
           }
         },
         "zh-Hans": {

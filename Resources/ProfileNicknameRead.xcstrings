@@ -24,7 +24,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use at least 2 Unicode chars."
+            "value": "Use at least 2 Unicode characters."
           }
         },
         "zh-Hans": {
@@ -41,7 +41,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use no more than 24 Unicode chars."
+            "value": "Use no more than 24 Unicode characters."
           }
         },
         "zh-Hans": {
@@ -143,7 +143,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nickname doesn't meet rules."
+            "value": "This nickname doesn't meet the rules."
           }
         },
         "zh-Hans": {

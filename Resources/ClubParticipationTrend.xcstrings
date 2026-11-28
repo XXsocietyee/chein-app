@@ -86,7 +86,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Participation counts are unavailable."
+            "value": "Participation counts are currently unavailable."
           }
         },
         "zh-Hans": {
@@ -118,7 +118,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try"
+            "value": "Try again"
           }
         },
         "zh-Hans": {
@@ -150,7 +150,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "People"
+            "value": "Participants"
           }
         },
         "zh-Hans": {

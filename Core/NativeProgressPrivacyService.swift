@@ -44,7 +44,7 @@ import FoundationNetworking
     }
     private func send<T: Decodable>(path: String, method: String, body: Data? = nil, requestID: UUID? = nil) async throws -> T {
         guard isCurrent, !Task.isCancelled else { throw NativeFriendFailure.notSent }
-        var parts = URLComponents(url: context.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
+        guard var parts = URLComponents(url: context.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         if let requestID { parts.queryItems = [URLQueryItem(name: "request_id", value: requestID.uuidString)] }
         guard let url = parts.url else { throw NativeFriendFailure.notSent }
         var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 20)

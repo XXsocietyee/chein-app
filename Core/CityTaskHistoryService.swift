@@ -75,7 +75,8 @@ public struct CityTaskHistoryReceipt: Equatable {
             guard query.count == 1, bits.count == 3 || bits.count == 5, bits[0].isEmpty, bits[1] == "instance", Self.serverID(String(bits[2])) else { return nil }
             if bits.count == 5 { guard bits[3] == "request", CityReadRoute.validID(String(bits[4])) else { return nil } }
         }
-        var canonical = URLComponents(string: prefix + path)!; canonical.queryItems = query
+        guard var canonical = URLComponents(string: prefix + path) else { return nil }
+        canonical.queryItems = query
         guard canonical.url == url else { return nil }; regionID = region
     }
     static func serverID(_ id: String) -> Bool { id.range(of: "^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$", options: .regularExpression) != nil }
@@ -170,10 +171,11 @@ public struct CityTaskHistoryReceipt: Equatable {
         guard response.1 == 200, envelope.code == 200, let value = envelope.data else { throw CityTaskHistoryError.server(response.1, envelope.errorCode ?? "UNAVAILABLE") }; return value
     }
     private func execute(_ path: String, before: String? = nil) async throws -> (Data, Int) {
-        var parts = URLComponents(string: approval.context.baseURL.appendingPathComponent("api/city-game/task-history").absoluteString + path)!
+        guard var parts = URLComponents(string: approval.context.baseURL.appendingPathComponent("api/city-game/task-history").absoluteString + path) else { throw APIError.invalidConfiguration }
         parts.queryItems = [.init(name: "regionId", value: approval.regionID)]
         if let before { parts.queryItems?.append(.init(name: "beforeInstanceId", value: before)) }
-        var request = URLRequest(url: parts.url!); request.httpMethod = "GET"; request.httpShouldHandleCookies = false; request.cachePolicy = .reloadIgnoringLocalCacheData
+        guard let releaseURL = parts.url else { throw APIError.invalidConfiguration }
+        var request = URLRequest(url: releaseURL); request.httpMethod = "GET"; request.httpShouldHandleCookies = false; request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue(approval.context.session.token, forHTTPHeaderField: "Authorization"); request.setValue("application/json", forHTTPHeaderField: "Accept")
         let response = try await transport.send(request)
         if response.1 == 401 { throw APIError.unauthorized }

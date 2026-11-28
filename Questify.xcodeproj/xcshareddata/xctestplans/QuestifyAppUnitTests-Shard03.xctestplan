@@ -102,6 +102,7 @@
         "ClubMemberCountLocalizationTests",
         "ClubMerchantProfileDismissalLifetimeTests",
         "ClubMerchantProfileReadTests",
+        "ClubNextActivityTests",
         "ClubNotificationAudienceTests",
         "ClubOccurrenceCancellationReturnTests",
         "ClubOrdinaryAdmissionCompositionTests",

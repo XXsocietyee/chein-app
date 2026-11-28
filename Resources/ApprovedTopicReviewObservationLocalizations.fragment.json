@@ -22,7 +22,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This is the latest review status, which may differ from the status when you submitted. Passing review doesn't publish the topic on own."
+            "value": "This is the latest review status, which may differ from the status when you submitted. Passing review doesn't publish the topic automatically."
           }
         },
         "zh-Hans": {
@@ -54,7 +54,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Number"
+            "value": "Reference number"
           }
         },
         "zh-Hans": {

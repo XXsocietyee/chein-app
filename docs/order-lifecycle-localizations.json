@@ -131,7 +131,7 @@
   },
   {
     "key": "orderLifecycle.timeline.awaitingVerification",
-    "en": "Awaiting redeem",
+    "en": "Awaiting redemption",
     "zh-Hans": "等待核销"
   },
   {
@@ -146,7 +146,7 @@
   },
   {
     "key": "orderLifecycle.refund.title",
-    "en": "Refund info",
+    "en": "Refund information",
     "zh-Hans": "退款信息"
   },
   {
@@ -186,7 +186,7 @@
   },
   {
     "key": "orderLifecycle.review.title",
-    "en": "Review before",
+    "en": "Review before confirming",
     "zh-Hans": "确认前核对"
   },
   {
@@ -226,7 +226,7 @@
   },
   {
     "key": "orderLifecycle.attempt.cancellation",
-    "en": "Cancellation",
+    "en": "Cancellation status",
     "zh-Hans": "取消状态"
   },
   {
@@ -256,7 +256,7 @@
   },
   {
     "key": "orderLifecycle.pass.verification",
-    "en": "Redeem preview",
+    "en": "Redemption preview",
     "zh-Hans": "核销预览"
   },
   {
@@ -266,7 +266,7 @@
   },
   {
     "key": "orderLifecycle.pass.unpaid",
-    "en": "Payment is required before this ticket can used.",
+    "en": "Payment is required before this ticket can be used.",
     "zh-Hans": "票券须完成支付后使用。"
   },
   {
@@ -351,7 +351,7 @@
   },
   {
     "key": "orderLifecycle.state.manualRefund",
-    "en": "Manual",
+    "en": "Manual after-sales",
     "zh-Hans": "人工售后"
   },
   {
@@ -366,7 +366,7 @@
   },
   {
     "key": "orderLifecycle.state.pendingPayment",
-    "en": "Awaiting",
+    "en": "Awaiting payment",
     "zh-Hans": "待支付"
   },
   {
@@ -451,7 +451,7 @@
   },
   {
     "key": "orderLifecycle.explanation.pendingPayment",
-    "en": "Complete payment before using ticket.",
+    "en": "Complete payment before using the ticket.",
     "zh-Hans": "完成支付后可使用。"
   },
   {
@@ -476,12 +476,12 @@
   },
   {
     "key": "orderLifecycle.explanation.nonRefundable",
-    "en": "Self-service refund is unavailable order.",
+    "en": "Self-service refund is unavailable for this order.",
     "zh-Hans": "此订单不可自助退款。"
   },
   {
     "key": "orderLifecycle.explanation.ended",
-    "en": "Scheduled activity has.",
+    "en": "The scheduled activity has ended.",
     "zh-Hans": "活动已结束。"
   },
   {

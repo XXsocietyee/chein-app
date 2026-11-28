@@ -21,7 +21,7 @@ public enum OfficialPublicEventReadRoute {
         }
         let list = baseURL.appendingPathComponent("api/official/events")
         if parts.path == list.path {
-            var expected = URLComponents(url: list, resolvingAgainstBaseURL: false)!
+            guard var expected = URLComponents(url: list, resolvingAgainstBaseURL: false) else { return false }
             if let items = parts.queryItems {
                 guard items.count == 1, items[0].name == "city", items[0].value != nil else { return false }
                 expected.queryItems = items

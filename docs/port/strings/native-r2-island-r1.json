@@ -7,7 +7,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invite"
+            "value": "Invitation"
           }
         },
         "zh-Hans": {
@@ -228,7 +228,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "New alert"
+            "value": "New notification"
           }
         },
         "zh-Hans": {
@@ -432,7 +432,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You're at control point"
+            "value": "You're at the control point"
           }
         },
         "zh-Hans": {

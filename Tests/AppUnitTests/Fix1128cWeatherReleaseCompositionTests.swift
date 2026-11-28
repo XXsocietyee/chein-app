@@ -1,6 +1,5 @@
 import XCTest
 @testable import Questify
-@testable import QuestifyCore
 
 /// fix/1128c-ai-weather: the weather systems are ON in the shipped (Release) composition
 /// (`RegionalLaunchConfiguration.reviewedDeployment` → `shippedComposition`): both weather reads are admitted by the

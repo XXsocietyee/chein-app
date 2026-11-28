@@ -63,7 +63,7 @@
     },
     "playGap.home.longitude": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Lng" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Longitude" } },
         "zh-Hans": { "stringUnit": { "state": "translated", "value": "经度" } }
       }
     },
@@ -111,13 +111,13 @@
     },
     "playGap.product.cash": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Cash checkout isn't started from screen." } },
+        "en": { "stringUnit": { "state": "translated", "value": "Cash checkout isn't started from this screen." } },
         "zh-Hans": { "stringUnit": { "state": "translated", "value": "此页不发起现金结账。" } }
       }
     },
     "playGap.sms": {
       "localizations": {
-        "en": { "stringUnit": { "state": "translated", "value": "Check code" } },
+        "en": { "stringUnit": { "state": "translated", "value": "Verification code" } },
         "zh-Hans": { "stringUnit": { "state": "translated", "value": "验证码" } }
       }
     },

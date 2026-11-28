@@ -52,7 +52,7 @@ public struct NativeFriendProgressApproval: Equatable {
     public func friendProgressIndex() async throws -> NativeFriendProgressProjection {
         guard authority == captured, !Task.isCancelled else { throw NativeChannelProgressError.closed }
         generation &+= 1; let stamp = generation
-        var parts = URLComponents(url: context.baseURL.appendingPathComponent(NativeFriendProgressApproval.path), resolvingAgainstBaseURL: false)!
+        guard var parts = URLComponents(url: context.baseURL.appendingPathComponent(NativeFriendProgressApproval.path), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         parts.queryItems = [URLQueryItem(name: "peer_id", value: String(friend.peerID)), URLQueryItem(name: "expected_friend_version", value: String(friend.version))]
         guard let url = parts.url else { throw NativeChannelProgressError.invalid }
         var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 20)

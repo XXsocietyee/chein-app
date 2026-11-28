@@ -113,7 +113,8 @@ import CryptoKit
         guard canUpload(original), let snapshot else { return nil }
         do {
             let digest = SHA256.hash(data:original.image.jpeg).map { String(format:"%02x",$0) }.joined()
-            let saved = try journal.beginUpload(localDigest:digest,expected:snapshot,session:session), upload = saved.uploads.last!
+            let saved = try journal.beginUpload(localDigest:digest,expected:snapshot,session:session)
+            guard let upload = saved.uploads.last else { return nil }
             let claim = UploadClaim(uploadID:upload.id,image:original.image,snapshot:saved)
             self.snapshot = saved; localReview = nil; claimID = claim.id; state = .uploadUnconfirmed; return claim
         } catch { failed(error); return nil }

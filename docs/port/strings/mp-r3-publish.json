@@ -90,7 +90,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Live"
+          "value": "Interactive"
         }
       },
       "zh-Hans": {
@@ -311,7 +311,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Ticket"
+          "value": "Ticket types"
         }
       },
       "zh-Hans": {
@@ -396,7 +396,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Left"
+          "value": "Remaining"
         }
       },
       "zh-Hans": {
@@ -515,7 +515,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Players pick name"
+          "value": "Players pick a name"
         }
       },
       "zh-Hans": {
@@ -685,7 +685,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Lead singer, one who left three years ago"
+          "value": "Lead singer, the one who left three years ago"
         }
       },
       "zh-Hans": {
@@ -787,7 +787,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "She always carries her guitar her left"
+          "value": "She always carries her guitar on her left shoulder"
         }
       },
       "zh-Hans": {
@@ -1025,7 +1025,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Let's sing together again next."
+          "value": "Let's sing together again next time."
         }
       },
       "zh-Hans": {
@@ -1263,7 +1263,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Thin"
+          "value": "Sparse"
         }
       },
       "zh-Hans": {
@@ -1280,7 +1280,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Mid"
+          "value": "Medium"
         }
       },
       "zh-Hans": {
@@ -1297,7 +1297,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Full"
+          "value": "Dense"
         }
       },
       "zh-Hans": {
@@ -1348,7 +1348,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Mid"
+          "value": "Medium"
         }
       },
       "zh-Hans": {
@@ -1382,7 +1382,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Light"
+          "value": "Light color"
         }
       },
       "zh-Hans": {
@@ -1399,7 +1399,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Lite"
+          "value": "White"
         }
       },
       "zh-Hans": {
@@ -1484,7 +1484,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Rice"
+          "value": "Rice paper"
         }
       },
       "zh-Hans": {
@@ -1535,7 +1535,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Soft"
+          "value": "Light"
         }
       },
       "zh-Hans": {
@@ -1552,7 +1552,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Mid"
+          "value": "Medium"
         }
       },
       "zh-Hans": {
@@ -1569,7 +1569,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Bold"
+          "value": "Heavy"
         }
       },
       "zh-Hans": {
@@ -1671,7 +1671,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Fair"
+          "value": "Clear"
         }
       },
       "zh-Hans": {
@@ -1705,7 +1705,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Storm"
+          "value": "Thunderstorm"
         }
       },
       "zh-Hans": {
@@ -1892,7 +1892,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Yel cyan"
+          "value": "Yellow-cyan"
         }
       },
       "zh-Hans": {
@@ -1909,7 +1909,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Sky pink"
+          "value": "Cyan-pink"
         }
       },
       "zh-Hans": {
@@ -1977,7 +1977,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Mid"
+          "value": "Medium"
         }
       },
       "zh-Hans": {
@@ -2215,7 +2215,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Ink"
+          "value": "Ink bleed"
         }
       },
       "zh-Hans": {
@@ -2232,7 +2232,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Star"
+          "value": "Star gather"
         }
       },
       "zh-Hans": {
@@ -2249,7 +2249,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Breathing"
+          "value": "Breathing glow"
         }
       },
       "zh-Hans": {
@@ -2334,7 +2334,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Fog"
+          "value": "Fog clears"
         }
       },
       "zh-Hans": {
@@ -3014,7 +3014,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Without an upload, topic cover used."
+          "value": "Without an upload, the topic cover is used."
         }
       },
       "zh-Hans": {
@@ -3065,7 +3065,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Restore default result card"
+          "value": "Restore the default result card"
         }
       },
       "zh-Hans": {
@@ -3473,7 +3473,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Stats"
+          "value": "Attributes"
         }
       },
       "zh-Hans": {
@@ -3541,7 +3541,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Starting"
+          "value": "Starting value"
         }
       },
       "zh-Hans": {
@@ -3626,7 +3626,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "There's already an attribute name."
+          "value": "There's already an attribute with this name."
         }
       },
       "zh-Hans": {
@@ -3694,7 +3694,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Observe"
+          "value": "Perception"
         }
       },
       "zh-Hans": {
@@ -4306,7 +4306,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Keen eye"
+          "value": "Sharp-eyed"
         }
       },
       "zh-Hans": {
@@ -4862,7 +4862,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "There’s already a clue with name."
+          "value": "There’s already a clue with this name."
         }
       },
       "zh-Hans": {
@@ -4879,7 +4879,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "There’s already an item with name."
+          "value": "There’s already an item with this name."
         }
       },
       "zh-Hans": {
@@ -4896,7 +4896,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "There’s already a tag with name."
+          "value": "There’s already a tag with this name."
         }
       },
       "zh-Hans": {
@@ -5032,7 +5032,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Facility rule"
+          "value": "Facility condition"
         }
       },
       "zh-Hans": {
@@ -5457,7 +5457,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Visible players"
+          "value": "Visible to players"
         }
       },
       "zh-Hans": {
@@ -5644,7 +5644,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": " · Starting value out range"
+          "value": " · Starting value out of range"
         }
       },
       "zh-Hans": {
@@ -5746,7 +5746,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Value's ID isn't valid."
+          "value": "This value's ID isn't valid."
         }
       },
       "zh-Hans": {
@@ -6018,7 +6018,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Head out while wind"
+          "value": "Head out while the wind drops"
         }
       },
       "zh-Hans": {
@@ -6052,7 +6052,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Eleven"
+          "value": "Eleven seconds"
         }
       },
       "zh-Hans": {
@@ -6137,7 +6137,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Given when the stop completed"
+          "value": "Given when the stop is completed"
         }
       },
       "zh-Hans": {
@@ -6154,7 +6154,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Given when the theme cleared"
+          "value": "Given when the theme is cleared"
         }
       },
       "zh-Hans": {
@@ -6290,7 +6290,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Experience"
+          "value": "Experience passes"
         }
       },
       "zh-Hans": {
@@ -6375,7 +6375,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Try"
+          "value": "Try again"
         }
       },
       "zh-Hans": {

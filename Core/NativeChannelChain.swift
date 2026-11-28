@@ -194,7 +194,7 @@ private enum NativeChannelChainFailure: Error { case rejected(Int, String) }
     private func allows(_ method: String, _ path: String) -> Bool { isCurrent && permitsRoute(method, path) }
     private func request(method: String, path: String, query: [String: String] = [:], body: Data? = nil) throws -> URLRequest {
         guard allows(method, path) else { throw APIError.notConfigured }
-        var url = URLComponents(url: context.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
+        guard var url = URLComponents(url: context.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         if !query.isEmpty { url.queryItems = query.sorted(by: { $0.key < $1.key }).map { .init(name: $0.key, value: $0.value) } }
         guard let target = url.url else { throw APIError.invalidRequest }
         var request = URLRequest(url: target); request.httpMethod = method; request.httpShouldHandleCookies = false

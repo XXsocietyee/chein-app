@@ -246,7 +246,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Groups"
+            "value": "Categories"
           }
         },
         "zh-Hans": {
@@ -620,7 +620,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The matching columns must contain same number items"
+            "value": "The matching columns must contain the same number of items"
           }
         },
         "zh-Hans": {
@@ -824,7 +824,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Put"
+            "value": "Put in order"
           }
         },
         "zh-Hans": {
@@ -841,7 +841,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Match"
+            "value": "Match pairs"
           }
         },
         "zh-Hans": {
@@ -858,7 +858,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Classify"
+            "value": "Classify items"
           }
         },
         "zh-Hans": {
@@ -1011,7 +1011,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Blind"
+            "value": "Blind tasting"
           }
         },
         "zh-Hans": {
@@ -1028,7 +1028,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Name creation"
+            "value": "Name your creation"
           }
         },
         "zh-Hans": {
@@ -1674,7 +1674,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The creation you photographed"
+            "value": "The creation you just photographed"
           }
         },
         "zh-Hans": {

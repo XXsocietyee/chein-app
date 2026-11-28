@@ -119,7 +119,7 @@ public struct NativeFriendChannelInviteApproval: Equatable {
     private func exchange<T: Decodable>(_ suffix: String, fields: [String: String] = [:], body: Data? = nil) async throws -> T {
         guard isCurrent, !Task.isCancelled else { throw NativeFriendFailure.notSent }
         guard let route = NativeFriendChannelInviteApproval.endpoints[suffix] else { throw NativeFriendFailure.invalid }
-        var parts = URLComponents(url: context.baseURL.appendingPathComponent(route), resolvingAgainstBaseURL: false)!
+        guard var parts = URLComponents(url: context.baseURL.appendingPathComponent(route), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         if body == nil { parts.queryItems = fields.sorted { $0.key < $1.key }.map { .init(name: $0.key, value: $0.value) } }
         guard let url = parts.url else { throw NativeFriendFailure.invalid }
         var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 20)

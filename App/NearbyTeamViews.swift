@@ -515,7 +515,14 @@ import SwiftUI
                 EmptyView()
             case .failed(let key):
                 CYEmptyState(systemImage: "exclamationmark.triangle", LocalizedStringKey(key), messageIdentifier: "nearby.mine.owned.error",
-                             actionTitle: "action.retry", actionIdentifier: "nearby.mine.owned.retry", kind: .failure, action: retryJoinedTeams)
+                             actionTitle: "action.retry", kind: .failure, action: retryJoinedTeams)
+                    .background {
+                        if let retryJoinedTeams {
+                            // ContentUnavailableView's action is not a hosted control on iOS 27, so the retry the
+                            // player sees is also a real UIControl the hosted lookup can activate.
+                            RoamHostedAccessibilityAnchor(identifier: "nearby.mine.owned.retry", action: retryJoinedTeams)
+                        }
+                    }
             case .loaded: EmptyView()
             }
             if mine.loading { CYLoadingStateView(rows: 1, label: "nearby.w208.mine.loading") }

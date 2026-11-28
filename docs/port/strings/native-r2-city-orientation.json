@@ -92,7 +92,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Route"
+            "value": "Directions"
           }
         },
         "zh-Hans": {
@@ -262,7 +262,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No results for session yet"
+            "value": "No results for this session yet"
           }
         },
         "zh-Hans": {
@@ -381,7 +381,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Control"
+            "value": "Control points"
           }
         },
         "zh-Hans": {
@@ -670,7 +670,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Waiting location"
+            "value": "Waiting for location"
           }
         },
         "zh-Hans": {
@@ -704,7 +704,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No location"
+            "value": "No location needed"
           }
         },
         "zh-Hans": {
@@ -1010,7 +1010,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Need"
+            "value": "Requirement"
           }
         },
         "zh-Hans": {
@@ -1112,7 +1112,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Teammates aren't sharing"
+            "value": "Teammates aren't sharing their location"
           }
         },
         "zh-Hans": {

@@ -6,7 +6,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancel occurrence"
+            "value": "Cancel this occurrence"
           }
         },
         "zh-Hans": {
@@ -22,7 +22,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This unpublishes the occurrence, processes refunds and ends waitlist. Parts already checked aren't refunded."
+            "value": "This unpublishes the occurrence, processes refunds and ends the waitlist. Parts already checked in aren't refunded."
           }
         },
         "zh-Hans": {
@@ -150,7 +150,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unpublishes this occurrence, processes refunds and ends waitlist"
+            "value": "Unpublishes this occurrence, processes refunds and ends the waitlist"
           }
         },
         "zh-Hans": {
@@ -198,7 +198,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Capacity optional; when full, waitlist first-in, first-out per event ticket type"
+            "value": "Capacity is optional; when full, the waitlist is first-in, first-out per event and ticket type"
           }
         },
         "zh-Hans": {
@@ -214,7 +214,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use ticket type’s"
+            "value": "Use the ticket type’s capacity"
           }
         },
         "zh-Hans": {
@@ -246,7 +246,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The correction reason needs least 2 chars"
+            "value": "The correction reason needs at least 2 characters"
           }
         },
         "zh-Hans": {
@@ -438,7 +438,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No alerts needed"
+            "value": "No notifications needed"
           }
         },
         "zh-Hans": {
@@ -470,7 +470,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Occurrence canceled"
+            "value": "This occurrence is canceled"
           }
         },
         "zh-Hans": {
@@ -614,7 +614,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign-up count to confirmed"
+            "value": "Registration count to be confirmed"
           }
         },
         "zh-Hans": {
@@ -806,7 +806,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refund status awaiting"
+            "value": "Refund status awaiting readback"
           }
         },
         "zh-Hans": {
@@ -822,7 +822,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refund window counted “24 hours before meeting."
+            "value": "The refund window is counted as “24 hours before the meeting time”."
           }
         },
         "zh-Hans": {
@@ -838,7 +838,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Corrections aren’t"
+            "value": "Corrections aren’t available right now"
           }
         },
         "zh-Hans": {
@@ -870,7 +870,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Occurrence’s roster · visible only check-in permission"
+            "value": "This occurrence’s roster · visible only with check-in permission"
           }
         },
         "zh-Hans": {
@@ -934,7 +934,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check-in corrections are only allowed from the start of event until 48 hours after ends. Correction window occurrence: %@"
+            "value": "Check-in corrections are only allowed from the start of the event until 48 hours after it ends. Correction window for this occurrence: %@"
           }
         },
         "zh-Hans": {
@@ -950,7 +950,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check-in corrections are only allowed from start event until 48 hours after ends."
+            "value": "Check-in corrections are only allowed from the start of the event until 48 hours after it ends."
           }
         },
         "zh-Hans": {
@@ -1014,7 +1014,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Occurrence’s"
+            "value": "This occurrence’s roster"
           }
         },
         "zh-Hans": {
@@ -1110,7 +1110,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only future occurrences no registrations can changed"
+            "value": "Only future occurrences with no registrations can be changed"
           }
         },
         "zh-Hans": {
@@ -1222,7 +1222,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stops new registrations for occurrence removes listings."
+            "value": "Stops new registrations for this occurrence and removes it from listings."
           }
         },
         "zh-Hans": {
@@ -1238,7 +1238,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ends waiting list promotions processes eligible refunds; checked-in items aren't refunded."
+            "value": "Ends waiting list promotions and processes eligible refunds; checked-in items aren't refunded."
           }
         },
         "zh-Hans": {

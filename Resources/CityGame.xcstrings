@@ -566,7 +566,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This action couldn't completed. No points deducted."
+            "value": "This action couldn't be completed. No points were deducted."
           }
         },
         "zh-Hans": {
@@ -838,7 +838,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Protected"
+            "value": "Protected until"
           }
         },
         "zh-Hans": {
@@ -1270,7 +1270,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paused by venue"
+            "value": "Paused by the venue"
           }
         },
         "zh-Hans": {
@@ -1654,7 +1654,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your location is out of date. Wait moment try again."
+            "value": "Your location is out of date. Wait a moment and try again."
           }
         },
         "zh-Hans": {
@@ -1718,7 +1718,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Return home isn't ready."
+            "value": "Return-home restore isn't available right now."
           }
         },
         "zh-Hans": {
@@ -1926,7 +1926,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stamina for run only"
+            "value": "Stamina for this run only"
           }
         },
         "zh-Hans": {
@@ -1942,7 +1942,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stamina for theme only"
+            "value": "Stamina for this theme only"
           }
         },
         "zh-Hans": {

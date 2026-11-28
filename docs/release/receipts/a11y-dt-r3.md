@@ -719,6 +719,8 @@ are mp-states / mp-nav, none for this lane); no K50 `lane-layout` rows for this 
 | MP page | Native file | MP sections | Optimization | Status |
 |---|---|---|---|---|
 | `pages/club/post-compose` image list + preview sheet | `ClubPostImagePicker.swift:379`, `:483` | ✓ (images → size → replace / remove) | "1080×720" read as "1080 times 720" → spoken label "1080 by 720 pixels" / "1080 × 720 像素" (`a11y.label.pixelSize`, en + zh-Hans) | Done |
+| `pages/square/detail` comment row actions (赞 · 回复 · 举报 · 删除 · ⋯) | `SquareDetailView.swift` (`liveCommentRow`, `commentActionLayout`) | ✓ (MP order kept: like → reply → report → delete → ⋯ block) | `HStack(spacing: 20)` of up to five actions overflowed 375 pt at AX sizes (English "Reply Report Delete" each ~100 pt at AX5) → `AnyLayout` stacks them leading at AX sizes, same order; 44 pt targets unchanged | Done |
+| `pages/square/detail` post action bar (赞 · 评论 · 收藏 · 分享) | `SquareDetailView.swift` (`postActions`, `postActionLayout`) | ✓ (MP order kept) | Four body-size icon + count labels with 28 pt gaps ran past 375 pt at AX5 → stacked leading at AX sizes; VoiceOver labels / values / selected traits unchanged | Done |
 | `pages/square` post video composer preview | `SquarePostVideoViews.swift:178` | ✓ (poster → duration → size → bytes) | Same pixel-size spoken label inside the combined preview element | Done |
 | `pages/club/post-detail` 评论 list (comments page) | `ClubCommunityViews.swift:1383` (`ClubCommunityCommentsView`) | ✓ (post → comments → delete / report → input + 预览) | Delete / Report 44 pt target: same fix as the twin's run 43 row (merged; kept the twin's leading alignment). Detail page comment rows: name + body one VO element, safety menu separate ✓; body wraps at AX5 ✓ | Done |
 | `pages/club/post-detail` 编辑历史 (history) | `ClubCommunityViews.swift:1423` (`ClubCommunityHistoryView`) | ✓ (version → content → time → images) | Checked at AX sizes: `LabeledContent` version stacks, content + time wrap, spoken dash for empty values. No change needed | Done |
@@ -726,8 +728,20 @@ are mp-states / mp-nav, none for this lane); no K50 `lane-layout` rows for this 
 | `pages/club` post card (cy-post-card) action rows | `ClubCommunityViews.swift:822` (`ClubCommunityPostTile`) | ✓ (赞 · 评论 · 转发 · 分享 · ⋯ → 详情 · 历史 · 安全) | "Detail" / "History" had `minHeight` outside a borderless button, so only the text line was tappable → frame + `contentShape` inside the label (44 pt). Action rows already stack at AX sizes ✓ | Done |
 | `pages/club` post images in review sheet + edit history | `ClubCommunityViews.swift:1499` (`ClubCommunityReferenceCover`) | ✓ (cover → reference) | Cover is an image element "Image n"; the raw storage reference under it (a long URL / key) is hidden from VoiceOver, same as the composer in run 43 | Done |
 
+## Run 45 (2026-11-28, hourly)
+Merged `origin/ui/combined-r7` (5375df502). Latest sweep b954de71c (18:30 section: P2 rows are mp-journey / mp-club, none for this
+lane); a11y-dt sheets (`a11y-dt/sheet-en.jpg`, `sheet-zh-Hans.jpg`: badges / passport / roam at AX5) stack and wrap cleanly. No K50
+`lane-layout` rows for this lane. Level per OWNER RULE 3: both pages below are level B (club posts, square feed).
+
+| MP page | Native file | MP sections | Optimization | Status |
+|---|---|---|---|---|
+| `pages/club` post images → full-screen preview (wx.previewImage) | `ClubPostImageGallery.swift:201` (`ClubPostImagePreview`) | ✓ (images in post order → preview with position → previous / next → close) | Previous / Next had `minHeight: 44` outside a borderless button (only the text was tappable) → 44 pt frame + `contentShape` inside the label, full width when stacked at AX sizes; a page swipe now announces "Image 2 of 5" / "第 2 张，共 5 张" once (VoiceOver had no feedback for the silent page change) | Done |
+| `pages/club` post images, thumbnail + preview load failure | `ClubPostImageGallery.swift:55`, `:114`, `:168` | ✓ (failed → 重试) | The three Retry buttons get a 44 pt hit area inside the label | Done |
+| `pages/square` post video (read + play path) | `SquarePostVideoViews.swift` (`SquarePostVideoPlayerRow`) | ✓ (review state → play → player → duration) | Play row 44 pt high with the whole row tappable; after Play, VoiceOver focus moves to the new player instead of being lost with the removed button; duration "15 s" is spoken as "15 seconds" / "15秒" (`Duration` `.units(width: .wide)`), visible text unchanged | Done |
+| `pages/square` post video composer preview | `SquarePostVideoViews.swift` (`SquarePostVideoComposerSection.preview`) | ✓ | Same spoken duration inside the combined preview element | Done |
+
 ## Not done (next run starts here)
-- Next pages in the area without a row (Roam map panel is coordinator-settled, do not edit `CYMapChrome` / `RoamBrowserView`; shared `App/DesignSystem` Dynamic Type is Cursor K26): square post video player controls (`SquarePostVideoViews.swift` read path), club post image gallery (`ClubPostImageGallery`).
+- Next pages in the area without a row (Roam map panel is coordinator-settled, do not edit `CYMapChrome` / `RoamBrowserView`; shared `App/DesignSystem` Dynamic Type is Cursor K26): square post detail remaining parts (reply editor sheet, report / block sheets), square composer (`SquarePostComposer*`).
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.

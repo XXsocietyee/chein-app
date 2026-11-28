@@ -185,7 +185,7 @@ public struct MerchantContentWriteApproval: Equatable {
     }
     private func envelope(_ path: String, _ body: Body = .none, query: [String: String] = [:], get: Bool = false, session: MerchantContentSession) async throws -> Envelope {
         try ensure(session); guard let configuration else { throw APIError.notConfigured }
-        var components = URLComponents(url: configuration.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
+        guard var components = URLComponents(url: configuration.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         if !query.isEmpty { components.queryItems = query.keys.sorted().map { URLQueryItem(name: $0, value: query[$0]) } }
         guard let url = components.url else { throw MerchantContentFailure.invalid }
         let form: [String: String]; if case .form(let fields) = body { form = fields } else { form = [:] }

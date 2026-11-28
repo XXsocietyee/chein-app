@@ -4,6 +4,6 @@ import XCTest
 final class AcceptTicketsFlowTests: XCTestCase {
     func testTicketsFlow() {
         continueAfterFailure = true
-        XCUIAcceptSmoke.cover(self, fixture: "e4-tickets", markers: ["ticketWallet.list", "ticketWallet.empty", "ticketWallet.partialFailure"], en: "Ticket wallet", zh: "票夹")
+        XCUIAcceptSmoke.cover(self, fixture: "e4-tickets", markers: ["ticketWallet.list", "ticketWallet.empty", "ticketWallet.partialFailure"], en: "Tickets", zh: "票夹")
     }
 }

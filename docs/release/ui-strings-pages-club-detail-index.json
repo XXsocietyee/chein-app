@@ -53,7 +53,7 @@
     },
     {
       "key": "club.noIntroduction",
-      "en": "No intro yet",
+      "en": "No introduction yet",
       "zh-Hans": "暂无简介"
     },
     {
@@ -109,7 +109,7 @@
     },
     {
       "key": "club.detail.leaderboard.open",
-      "en": "View contribution",
+      "en": "View contribution board",
       "zh-Hans": "查看贡献榜",
       "accessibilityIdentifier": "club.detail.leaderboard.open"
     },
@@ -121,7 +121,7 @@
     },
     {
       "key": "club.detail.leaderboard.unavailable",
-      "en": "Contribution board can't shown right",
+      "en": "The contribution board can't be shown right now",
       "zh-Hans": "暂时无法查看贡献榜",
       "accessibilityIdentifier": "club.detail.leaderboard.unavailable"
     },

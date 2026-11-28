@@ -292,9 +292,14 @@ enum NativeChannelNotificationCopy {
             localIssue = nil; saveConfirmation = true
         } catch { localIssue = "editor.invalid" }
     }
+    /// Quiet hours from the server are not a clock the device built. A bad pair falls back to 23:00
+    /// instead of crashing the notification screen.
     private static func clock(_ value: String) -> Date {
         let parts = value.split(separator: ":").compactMap { Int($0) }
-        return Calendar.current.date(from: DateComponents(year: 2001, month: 1, day: 1, hour: parts[0], minute: parts[1]))!
+        let hour = parts.count > 0 ? parts[0] : 23
+        let minute = parts.count > 1 ? parts[1] : 0
+        return Calendar.current.date(from: DateComponents(year: 2001, month: 1, day: 1, hour: hour, minute: minute))
+            ?? Date(timeIntervalSinceReferenceDate: 23 * 3600)
     }
     private static func time(_ value: Date) -> String {
         let parts = Calendar.current.dateComponents([.hour, .minute], from: value)

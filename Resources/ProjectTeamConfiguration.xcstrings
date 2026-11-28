@@ -41,7 +41,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose when players can form a team for topic."
+            "value": "Choose when players can form a team for this topic."
           }
         },
         "zh-Hans": {
@@ -109,7 +109,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invite after sign-up"
+            "value": "Invite after registration"
           }
         },
         "zh-Hans": {

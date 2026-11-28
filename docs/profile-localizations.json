@@ -21,7 +21,7 @@
   },
   {
     "key": "profile.loadFailed",
-    "en": "Couldn’t load this info",
+    "en": "Couldn’t load this information",
     "zh-Hans": "暂时无法加载"
   },
   {
@@ -81,7 +81,7 @@
   },
   {
     "key": "profile.orders.state",
-    "en": "Sign-up status",
+    "en": "Registration status",
     "zh-Hans": "报名状态"
   },
   {
@@ -116,7 +116,7 @@
   },
   {
     "key": "profile.orders.participateDate",
-    "en": "Participation",
+    "en": "Participation date",
     "zh-Hans": "参加日期"
   },
   {
@@ -186,7 +186,7 @@
   },
   {
     "key": "profile.orders.unknown",
-    "en": "Status",
+    "en": "Status unavailable",
     "zh-Hans": "状态未知"
   },
   {
@@ -211,7 +211,7 @@
   },
   {
     "key": "profile.orders.awaitingPayment",
-    "en": "Awaiting",
+    "en": "Awaiting payment",
     "zh-Hans": "待支付"
   },
   {
@@ -231,7 +231,7 @@
   },
   {
     "key": "profile.orders.refunding",
-    "en": "Refund",
+    "en": "Refund in progress",
     "zh-Hans": "退款中"
   },
   {
@@ -246,7 +246,7 @@
   },
   {
     "key": "profile.participants.title",
-    "en": "Participant info",
+    "en": "Participant information",
     "zh-Hans": "参与人信息"
   },
   {
@@ -266,12 +266,12 @@
   },
   {
     "key": "profile.participants.hint",
-    "en": "Used for sign-up contact and on-site verification.",
+    "en": "Used for registration contact and on-site verification.",
     "zh-Hans": "用于报名联系和到场核验。"
   },
   {
     "key": "profile.participants.contact",
-    "en": "Contact info",
+    "en": "Contact information",
     "zh-Hans": "联系信息"
   },
   {
@@ -351,7 +351,7 @@
   },
   {
     "key": "profile.badges.family",
-    "en": "Type",
+    "en": "Collection",
     "zh-Hans": "类别"
   },
   {

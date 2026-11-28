@@ -18,12 +18,21 @@ import Observation
         if !value { retireSelection() }
     }
     func disappear() { mounted = false; retireSelection() }
+    private var detailReaders: [UUID: ProfileFavoriteTopicReader] = [:]
+    /// A cover that remounts the detail must keep the reader created for this selection.
+    func detailReader(for selection: ProfileFavoriteTopicSelection, make: () -> ProfileFavoriteTopicReader) -> ProfileFavoriteTopicReader {
+        if let existing = detailReaders[selection.id] { return existing }
+        let made = make()
+        detailReaders[selection.id] = made
+        return made
+    }
     @discardableResult func open(_ next: ProfileFavoriteTopicSelection, scope: UUID) -> Bool {
         guard mounted, foreground, self.scope == scope, next.isCurrent else { return false }
         retireSelection(); selection = next; return true
     }
     @discardableResult func close(id: UUID) -> Bool {
         guard let selected = selection, selected.id == id else { return false }
+        detailReaders[id] = nil
         selected.retire(); selection = nil; return true
     }
     func binding(for selected: ProfileFavoriteTopicSelection) -> Binding<ProfileFavoriteTopicSelection?> {
@@ -35,7 +44,10 @@ import Observation
             if value == nil { _ = self.close(id: id) }
         })
     }
-    private func retireSelection() { selection?.retire(); selection = nil }
+    private func retireSelection() {
+        if let id = selection?.id { detailReaders[id] = nil }
+        selection?.retire(); selection = nil
+    }
 }
 
 /// A new UUID mounts a new non-nil native item binding; no initial-nil binding is reused.
@@ -57,6 +69,7 @@ import Observation
 @MainActor struct ProfileFavoriteTopicDestination: View {
     let selection: ProfileFavoriteTopicSelection
     @ObservedObject var session: AppSession
+    var navigationOwner: ProfileFavoriteTopicNavigationOwner? = nil
     let makeReader: () -> ProfileFavoriteTopicReader
     @State private var reader: ProfileFavoriteTopicReader?
     var body: some View {
@@ -68,7 +81,11 @@ import Observation
         }
         .onAppear {
             guard reader == nil, selection.isCurrent else { return }
-            reader = makeReader()
+            if let navigationOwner {
+                reader = navigationOwner.detailReader(for: selection, make: makeReader)
+            } else {
+                reader = makeReader()
+            }
         }
     }
 }

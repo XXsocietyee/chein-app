@@ -13,7 +13,7 @@ public struct MerchantPerkValidityDraft: Equatable {
         enabled = parsed != nil; day = parsed ?? Self.minimum(now: now)
     }
     public static func minimum(now: Date) -> Date {
-        calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: now))!
+        (calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: now)) ?? now.addingTimeInterval(86_400))
     }
     private static func formatter() -> DateFormatter {
         let f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX"); f.calendar = calendar

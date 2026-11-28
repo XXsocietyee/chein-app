@@ -36,7 +36,7 @@
   },
   {
     "key": "auth.login.subtitle",
-    "en": "Pick up your stamps trails where left off.",
+    "en": "Pick up your stamps and trails where you left off.",
     "zh-Hans": "继续你的印章与路线。"
   },
   {
@@ -126,7 +126,7 @@
   },
   {
     "key": "compliance.confirmSheet.action",
-    "en": "Yes, submit the request",
+    "en": "Yes, submit the application",
     "zh-Hans": "确认提交申请"
   }
 ]

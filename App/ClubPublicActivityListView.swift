@@ -40,6 +40,11 @@ import SwiftUI
     /// CLB-detail-35 (MP wxml:192, 212, js:3072-3088): 出示团码 on each card for the owner, an admin or
     /// `club:event:checkin`; the host opens the 选择场次 step for that topic.
     var groupCode: ((Int) -> Void)? = nil
+    /// mp-club r3 pass 51 (P38): on 概览 the same public list draws only the next activity as one date-tile card.
+    /// Loading, failure, unavailable and empty draw nothing here; the 活动 tab owns those MP states.
+    var nextOnly = false
+    /// P38: 全部活动 under the card switches the club page to its 活动 tab.
+    var showAll: (() -> Void)? = nil
     /// Card actions: merchant 邀约承接 (CLB-G01) and manager 出示团码 (CLB-detail-35). Nil when neither applies.
     private var cardActions: ((ClubActivityRow) -> AnyView)? {
         guard undertake != nil || groupCode != nil else { return nil }
@@ -91,7 +96,9 @@ import SwiftUI
             }
             // No issued reader, or a reader whose session no longer matches the scope (the grant is not issued in this
             // build, or the E2E host override), reads as unavailable, not as an endless loading row.
-            if scope == nil || source == nil || source?.scope(clubID: clubID) != scope {
+            if nextOnly {
+                nextOnlyContent
+            } else if scope == nil || source == nil || source?.scope(clubID: clubID) != scope {
                 Section { unavailableState }
             } else if let snapshot = accepted, !model.loading {
                 let renderedSnapshotID = model.snapshotID
@@ -117,6 +124,32 @@ import SwiftUI
                 issueSection(issue)
             } else {
                 Section { activityLoading }
+            }
+        }
+    }
+    @ViewBuilder private var nextOnlyContent: some View {
+        if scope != nil, source != nil, source?.scope(clubID: clubID) == scope,
+           let snapshot = accepted, !model.loading, let next = ClubNextActivity.pick(snapshot.rows) {
+            let renderedSnapshotID = model.snapshotID
+            Section {
+                ClubNextActivityCard(row: next, canOpen: visible && scenePhase == .active && opening == nil) {
+                    select(next, from: snapshot, snapshotID: renderedSnapshotID)
+                }
+                if let showAll {
+                    Button(action: showAll) {
+                        HStack {
+                            Text("club.detail.next.all")
+                            Spacer(minLength: 0)
+                            Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
+                                .foregroundStyle(.tertiary).accessibilityHidden(true)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("club.detail.next.all")
+                }
+            } header: {
+                Text("club.detail.next.title")
             }
         }
     }

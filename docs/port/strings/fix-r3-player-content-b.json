@@ -75,7 +75,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last day"
+            "value": "Yesterday"
           }
         },
         "zh-Hans": {
@@ -194,7 +194,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Official event"
+            "value": "Official event details"
           }
         },
         "zh-Hans": {
@@ -568,7 +568,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Personal payout"
+            "value": "Personal payout account"
           }
         },
         "zh-Hans": {
@@ -789,7 +789,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Details can be at most 2000 chars"
+            "value": "Details can be at most 2000 characters"
           }
         },
         "zh-Hans": {
@@ -1095,7 +1095,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The other person hasn't sent message yet, can't report them."
+            "value": "The other person hasn't sent a message yet, so you can't report them."
           }
         },
         "zh-Hans": {
@@ -1146,7 +1146,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Platform aims respond within"
+            "value": "The platform aims to respond within about "
           }
         },
         "zh-Hans": {
@@ -1163,7 +1163,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This kind of report is handled first. Platform aims respond within about"
+            "value": "This kind of report is handled first. The platform aims to respond within about "
           }
         },
         "zh-Hans": {

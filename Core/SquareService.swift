@@ -123,7 +123,7 @@ public struct SquareService {
     }
     private func get(_ path: String, query: [URLQueryItem] = [], token: String?) async throws -> Data {
         if let token, !AuthRequestBuilder.isValidToken(token) { throw APIError.invalidRequest }
-        var parts = URLComponents(url: configuration.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
+        guard var parts = URLComponents(url: configuration.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         if !query.isEmpty { parts.queryItems = query }
         guard let url = parts.url else { throw APIError.invalidRequest }
         let key = InFlightReadKey.query(path: path, items: query, token: token ?? "")

@@ -199,7 +199,7 @@ private func passportDuration(_ seconds: Int, locale: Locale) -> String {
                         else { passportText("dateUnknown") }
                         LabeledContent { Text(verbatim: fact.distanceKM.map { LocaleDisplay.walkedKilometers($0, locale: locale) } ?? "—") } label: { passportText("distance") }
                         LabeledContent { Text(verbatim: fact.shops.map(String.init) ?? "—") } label: { passportText("shops") }
-                        LabeledContent { Text(verbatim: fact.durationSeconds.map { passportDuration($0, locale: locale) } ?? "—") } label: { passportText("duration") }
+                        LabeledContent { Text(verbatim: fact.durationSeconds.map { passportDuration(Int($0), locale: locale) } ?? "—") } label: { passportText("duration") }
                         RoamPassportTrackView(track: model.track, places: model.supplement?.pois.map(\.point) ?? [])
                         passportText("trackBoundary").cyText(.meta).foregroundStyle(.secondary)
                     }

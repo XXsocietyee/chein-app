@@ -150,7 +150,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancel request"
+            "value": "Cancel application"
           }
         },
         "zh-Hans": {
@@ -294,7 +294,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check code"
+            "value": "Verification code"
           }
         },
         "zh-Hans": {
@@ -598,7 +598,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Consent not revoked"
+            "value": "Consent has not been revoked"
           }
         },
         "zh-Hans": {
@@ -694,7 +694,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Can't close account yet"
+            "value": "Can't close the account yet"
           }
         },
         "zh-Hans": {

@@ -155,7 +155,7 @@ public struct CityOrientationTaskService {
     func original(_ command: CityOrientationTaskCommand, token: String) async throws -> CityOrientationTaskReceipt? {
         guard let receiptTransport, command.sessionId == receiptSessionID else { throw PlayExperienceError.disabled }
         var request = try request(path: "receipt", token: token)
-        var url = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)!
+        guard let requestURL = request.url, var url = URLComponents(url: requestURL, resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         url.queryItems = [URLQueryItem(name: "sessionId", value: String(command.sessionId)),
                          URLQueryItem(name: "nodeId", value: String(command.nodeId)), URLQueryItem(name: "requestId", value: command.requestId)]
         request.url = url.url

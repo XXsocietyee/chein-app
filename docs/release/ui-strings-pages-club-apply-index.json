@@ -46,7 +46,7 @@
     },
     {
       "key": "club.gov.unavailable",
-      "en": "Feature isn't available right",
+      "en": "This feature isn't available right now",
       "zh-Hans": "此功能暂不可用",
       "accessibilityIdentifier": "club.host.apply.hidden"
     },
@@ -137,7 +137,7 @@
     },
     {
       "key": "club.host.contactPrivate",
-      "en": "Contact details aren't shown publicly.",
+      "en": "Your contact details aren't shown publicly.",
       "zh-Hans": "联系方式不对外展示",
       "accessibilityIdentifier": "club.gov.input.phone"
     },
@@ -173,7 +173,7 @@
     },
     {
       "key": "club.gov.field.leaderName",
-      "en": "Name or nick",
+      "en": "Real name or nickname",
       "zh-Hans": "实名/昵称",
       "accessibilityIdentifier": "club.gov.input.leaderName"
     },
@@ -197,7 +197,7 @@
     },
     {
       "key": "club.gov.field.experience",
-      "en": "Organizing",
+      "en": "Organizing experience",
       "zh-Hans": "组织经验",
       "accessibilityIdentifier": "club.gov.input.experience"
     },

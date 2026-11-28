@@ -476,6 +476,26 @@ Merged `origin/ui/combined-r7` (45264c9bf). Sheets: zh `d4-detail` renders clean
 
 Gates: generate OK, scaffold PASS, a11y 0 new, ratchet 46/46 new 0, design consistency PASS.
 
+## Pass 50: P42 loading skeleton on club reads; no new coordinator finding for mp-club (latest sweep is still 2fc0feb24 / 17:30 notes for mp-states and mp-nav); no K50 `lane-layout` rows for club
+Merged `origin/ui/combined-r7`. Every `pages/club/*` / `pages/talent/*` page has a row, so this pass took the newest principle not yet applied in the area (P42, sweep 17:30).
+| MP page | Native view | MP sections | Fix |
+|---|---|---|---|
+| `pages/talent/list` wxml:67 `cy-skeleton type="card" count=3`; `pages/club/detail` wxml:27 `cy-skeleton type="detail" loading-label="正在加载俱乐部详情"`; members `type="list"` (`components/cy/skeleton`; level B) | new `App/ClubReadSkeleton.swift`; `App/ClubReadScreen.swift` first-load branch (club tab, 查找俱乐部, 我的俱乐部, members, club detail) | MP first load draws the page's own skeleton; native showed a centred spinner + 正在加载俱乐部… on every club read | **Fixed (P42).** First load now draws the page shape with `.redacted(reason: .placeholder)`: club lists = 3 inset-grouped rows (48 pt thumbnail fill + name + member line, same geometry as `ClubRowThumbnail` rows); club detail = 160 pt hero + name + meta + three intro lines (MP `detail` skeleton). No shimmer (Reduce Motion safe), no hit testing; VoiceOver reads the MP loading words once (`club.loading` / `club.detail.loading`), and the `<prefix>.loading` identifiers stay, so `AcceptClubDetailFlowTests` / `AcceptClubDirectoryFlowTests` markers keep working. Reload with content keeps the small top progress capsule. No new keys |
+| club/event-ops 重复方式 step 3 (form inline on the hub) | — | — | Still **Not done** (moves `ClubGovernanceCommandForm` review/return ownership onto the hub; step 2 already opens the form for the picked topic in one tap) |
+| C-08 owner stage 邀请商家 | — | — | Out of scope (merchant) |
+
+Gates: generate OK, scaffold PASS, a11y 0 new, ratchet 46/46 new 0, design consistency PASS (silent spinner 0).
+
+## Pass 51: coordinator sweep 18:30 UTC (build b954de71c, `docs/sweeps/latest/mp-club/sheet-zh-Hans.jpg`, club home 概览), P38; no K50 `lane-layout` rows for club
+Merged `origin/ui/combined-r7` (5375df502).
+| MP page | Native view | MP sections | Fix |
+|---|---|---|---|
+| `pages/club/detail` 概览 (wxml:219-345) + 活动 `upcomingTopics` (wxml:210, js:369; level B, P38 "what's next") | `App/ClubDetailView.swift` `overviewNextActivity`; new `App/ClubNextActivityCard.swift`; `App/ClubPublicActivityListView.swift` / `SessionClubPublicActivityListView.swift` `nextOnly`; `Core/ClubActivityOverview.swift` `ClubNextActivity.pick` | MP 概览 order unchanged (简介 → 主理人/类型/城市 → 勋章 → 成员 → 贡献榜 → 治理). Sweep: 概览 was description-first with three label pairs and no "what's next" | **Fixed.** 概览 now opens with a 下一场活动 / "Next activity" card: a calendar tile (month in the page tint over the day in `.cyText(.numericTitle)`), the topic name (headline), weekday + time (or 进行中 · date when live) and the meeting point; tap opens the topic exactly like the 活动 tab card (same public-topics reader, same fresh-list check in `select`), and 全部活动 › switches to the 活动 tab. Data is the 活动 tab's own list (earliest non-ended topic; topics without a start come last); while loading, on failure, when unavailable or when empty it draws nothing, so the 活动 tab keeps the MP loading / 活动列表加载失败 / 暂时俱乐部还没有活动 states. AX sizes stack the tile above the text. 2 new keys `club.detail.next.title`, `club.detail.next.all` (en + zh-Hans). Test: `ClubNextActivityTests` (earliest current topic, ended skipped, no-start last, empty → no card) |
+| same, face pile beside the member count for an applicant | `ClubDetailHeader.people` | MP `canSeeClubRoster` (js:509-515): owner / member, or a visitor of a **public-join** club (`joinPolicy == 0`). An applicant of a 需审核 club (the swept fixture: 通过审核后可看成员名单) does not see member faces in the MP | **Kept per MP** for 需审核 clubs. For public-join visitors the roster is already reachable (`ClubPublicRosterView`), but the header face pile still reads only the member directory: **Not done** (needs the public-roster avatars in `ClubDetailR8Mounts.loadMemberAvatars`) |
+| club/event-ops 重复方式 step 3 (form inline on the hub) | — | — | Still **Not done** (moves `ClubGovernanceCommandForm` review/return ownership onto the hub; step 2 already opens the form for the picked topic in one tap) |
+
+Gates: generate OK, scaffold PASS, a11y 0 new, ratchet 46/46 new 0, design consistency PASS.
+
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.
 - ~~en-layout / fixtures: `D4Fixtures.swift:108-109` channel categories~~ fixed in pass 12.

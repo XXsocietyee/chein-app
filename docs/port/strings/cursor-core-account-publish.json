@@ -75,7 +75,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Look up original"
+            "value": "Look up the original request"
           }
         },
         "zh-Hans": {
@@ -92,7 +92,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retry with original input"
+            "value": "Retry with the original input"
           }
         },
         "zh-Hans": {

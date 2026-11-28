@@ -106,7 +106,7 @@
   },
   {
     "key": "messaging.scope",
-    "en": "Chat filter",
+    "en": "Conversation filter",
     "zh-Hans": "会话筛选"
   },
   {
@@ -141,7 +141,7 @@
   },
   {
     "key": "messaging.group",
-    "en": "Group",
+    "en": "Group conversation",
     "zh-Hans": "群聊"
   },
   {
@@ -151,7 +151,7 @@
   },
   {
     "key": "messaging.kind.direct",
-    "en": "Direct",
+    "en": "Direct conversation",
     "zh-Hans": "单聊"
   },
   {
@@ -231,7 +231,7 @@
   },
   {
     "key": "messaging.history.emptyHint",
-    "en": "No messages were returned for this chat.",
+    "en": "No messages were returned for this conversation.",
     "zh-Hans": "此会话暂无消息记录。"
   },
   {
@@ -316,7 +316,7 @@
   },
   {
     "key": "messaging.card.notification",
-    "en": "Alert",
+    "en": "Notification",
     "zh-Hans": "通知"
   },
   {
@@ -351,7 +351,7 @@
   },
   {
     "key": "messaging.card.taskID",
-    "en": "Number",
+    "en": "Reference number",
     "zh-Hans": "编号"
   },
   {

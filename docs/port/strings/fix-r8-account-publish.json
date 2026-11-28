@@ -192,7 +192,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Cast"
+          "value": "Characters"
         }
       },
       "zh-Hans": {
@@ -464,7 +464,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Bold"
+          "value": "Bold italic"
         }
       },
       "zh-Hans": {
@@ -481,7 +481,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Script"
+          "value": "Handwritten"
         }
       },
       "zh-Hans": {
@@ -498,7 +498,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Sans"
+          "value": "Sans serif"
         }
       },
       "zh-Hans": {
@@ -515,7 +515,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Kai"
+          "value": "Calligraphic"
         }
       },
       "zh-Hans": {
@@ -566,7 +566,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Mint"
+          "value": "Green"
         }
       },
       "zh-Hans": {
@@ -600,7 +600,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Dark"
+          "value": "Black"
         }
       },
       "zh-Hans": {
@@ -634,7 +634,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Lite"
+          "value": "White"
         }
       },
       "zh-Hans": {
@@ -651,7 +651,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Gold"
+          "value": "Yellow"
         }
       },
       "zh-Hans": {
@@ -685,7 +685,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Night"
+          "value": "Night city"
         }
       },
       "zh-Hans": {
@@ -736,7 +736,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Wilds"
+          "value": "Wasteland"
         }
       },
       "zh-Hans": {
@@ -855,7 +855,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Sign in to apply for identity"
+          "value": "Sign in to apply for an identity"
         }
       },
       "zh-Hans": {

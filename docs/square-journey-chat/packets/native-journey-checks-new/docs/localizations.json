@@ -4,15 +4,15 @@
     "zh-Hans": "旅程检定"
   },
   "journey.advantage": {
-    "en": "Plus",
+    "en": "Advantage",
     "zh-Hans": "优势"
   },
   "journey.disadvantage": {
-    "en": "Minus",
+    "en": "Disadvantage",
     "zh-Hans": "劣势"
   },
   "journey.success": {
-    "en": "Success",
+    "en": "Succeeded",
     "zh-Hans": "成功"
   },
   "journey.failure": {
@@ -20,7 +20,7 @@
     "zh-Hans": "失败"
   },
   "journey.dice": {
-    "en": "Dice",
+    "en": "Dice roll",
     "zh-Hans": "骰点"
   },
   "journey.kept": {
@@ -32,7 +32,7 @@
     "zh-Hans": "总计"
   },
   "journey.dc": {
-    "en": "Level",
+    "en": "Difficulty",
     "zh-Hans": "难度"
   },
   "journey.hp": {

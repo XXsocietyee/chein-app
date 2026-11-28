@@ -732,3 +732,32 @@ Merged `origin/ui/combined-r7` (clean). Still no `docs/release/receipts/cursor-k
 Checked, no change: zh balance-ledger times `2026-11-06 18:20` follow the owner-approved zh `yyyy-MM-dd HH:mm` (`Core/LocaleDisplay.swift:8`); ticket-wallet grey bands are from a build before continue 44 (`511b2f751` is not in 2fc0feb24); 成为商家 belongs to K12.
 
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 46 failing / baseline 46 / **new 0**. **Half done**; A half rows 1–2 still blocked.
+
+## Continue 47 (11-28, hourly run): en 票夹 reads "Tickets"; public-profile head separator
+
+Merged `origin/ui/combined-r7` (clean). Still no `docs/release/receipts/cursor-k50-p*.md` on any branch, and the brief has no new mp-mine coordinator rows after 13:15 (the 17:30 sweep covers mp-states / mp-nav). Half split at run start: 1 `CharacterCardReadbackView` byte pin · 2 `pass-unlock` rest (`MPCommerceGate.purchasesEnabled` false) | 3 P2-5c. A half (1–2) still blocked. Screens checked: `docs/sweeps/latest/mp-mine/en-d2-me.jpg`, `zh-Hans-e4-member.jpg`, `en-e4-self-medals.jpg` (build 2fc0feb24).
+
+| MP page | Native file | MP sections | Level | Fixed now |
+|---|---|---|---|---|
+| `cy/profile` `pc-actions` 票夹 + `subpackageMember/signup` title (`en-d2-me`: the button reads "Ticket") | `Resources/MemberProfile.xcstrings` `member.card.tickets`; `Resources/Localizable.xcstrings` `ticketWallet.title`, `contextSelfPlay.tickets`, `ticketWallet.number` | ✓ (unchanged) | B | **Fixed.** The K27 en-length pass (`90663aed1`) cut "Ticket wallet" to the singular "Ticket" (a wallet of one ticket) and 票号 to "Ticket" too, so the wallet detail had two rows that could both read "Ticket". Now 票夹 = "Tickets" (7 ≤ 8.8 budget) on the Me button, the wallet title and the self-play link, and 票号 = "Ticket #". `AcceptTicketsFlowTests` expected the pre-K27 "Ticket wallet" title (already failing after K27); now "Tickets". |
+| `cy/profile` identity head, public profile (`en-e4-self-medals`) | `App/SocialPublicProfileView.swift` head row | ✓ (unchanged) | B | **Fixed.** The list separator under the avatar + name began at the name text, over empty space, above the 分享身份卡 row; `.alignmentGuide(.listRowSeparatorLeading) { _ in 0 }` puts it at the card edge like the other card separators. |
+
+Also synced `Resources/ContextPublishingLocalizations.fragment.json` (`contextSelfPlay.tickets`), which `test_contextual_publishing_groupb` compares with the catalog.
+
+Checked, no change: en balance "CN¥0.00" is the en-US system format for CNY (zh shows ¥).
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 46 failing / baseline 46 / **new 0**, check_en_strings 11 problems (unchanged). **Half done**; A half rows 1–2 still blocked.
+
+## Continue 48 (11-28, half-hourly run): badge-wall sweep shows the shipped page
+
+Merged `origin/ui/combined-r7` (clean). Still no `docs/release/receipts/cursor-k50-p*.md` on any branch; the 17:30 and 18:30 sweeps have no mp-mine rows. Half split at run start: 1 `CharacterCardReadbackView` byte pin · 2 `pass-unlock` rest (`MPCommerceGate.purchasesEnabled` false) | 3 P2-5c. A half (1–2) still blocked. Screens checked: `docs/sweeps/latest/mp-mine/sheet-en.jpg`, `sheet-zh-Hans.jpg`, `en-e5b-badge-wall.jpg` (build b954de71c; continue 47 "Tickets" is not in that build yet).
+
+| MP page | Native file | MP sections | Level | Fixed now |
+|---|---|---|---|---|
+| `subpackageMember` badge wall (`en-e5b-badge-wall`, also `a11y-badges-ax5`): bare page, tiny 已点亮 / 未解锁 captions and the ring at the screen edge, unlike every other Me sub-page | `App/DesignFixtures/E5bFixtures.swift` `E5bBadgeWallFixture`, `App/DesignFixtures/AlbumFixtures.swift` `AlbumBadgeFixtureReader(identityRows:)` | ✓ (ring + counts → 已点亮 → 未解锁, unchanged) | B | **Fixed (fixture).** The shot was a hand-built copy of the wall in a `ScrollView`, never shipped. The fixture now mounts the real `ObjectBadgeWallView` (inset-grouped List with section headers, as `d4-badges` shows) on the same bilingual six badges, so the sweep and the AX5 variant show the page players get. Debug only; no product code changed. |
+
+Checked, no change: ticket rows (`e4-tickets`) show the MP route illustration when there is no cover (continue 44, MP `cover-route.svg`); session tickets carry time · place on the sub-line without a calendar glyph, as the MP `sessionLine`.
+
+Coordinator: please re-sweep `e5b-badge-wall` and `a11y-badges-ax5`.
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 46 failing / baseline 46 / **new 0**. **Half done**; A half rows 1–2 still blocked.

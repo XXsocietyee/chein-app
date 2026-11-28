@@ -5,7 +5,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Card"
+          "value": "Card draw"
         }
       },
       "zh-Hans": {
@@ -90,7 +90,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Blind"
+          "value": "Blind tasting"
         }
       },
       "zh-Hans": {
@@ -209,7 +209,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Estimate"
+          "value": "Estimate a number"
         }
       },
       "zh-Hans": {
@@ -226,7 +226,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Guess"
+          "value": "Guess the picture"
         }
       },
       "zh-Hans": {
@@ -243,7 +243,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Hidden"
+          "value": "Hidden objects"
         }
       },
       "zh-Hans": {
@@ -260,7 +260,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Guess"
+          "value": "Prediction"
         }
       },
       "zh-Hans": {
@@ -277,7 +277,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Q&A"
+          "value": "Question and answer"
         }
       },
       "zh-Hans": {
@@ -311,7 +311,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Photo"
+          "value": "Photo album"
         }
       },
       "zh-Hans": {
@@ -379,7 +379,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Leave"
+          "value": "Leave a note"
         }
       },
       "zh-Hans": {
@@ -1127,7 +1127,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Maximum text"
+          "value": "Maximum text length"
         }
       },
       "zh-Hans": {
@@ -1212,7 +1212,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Sign"
+          "value": "Signature"
         }
       },
       "zh-Hans": {
@@ -1229,7 +1229,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Seal"
+          "value": "Seal text"
         }
       },
       "zh-Hans": {
@@ -1416,7 +1416,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Allowed"
+          "value": "Allowed error"
         }
       },
       "zh-Hans": {
@@ -1450,7 +1450,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Picture details"
+          "value": "Picture description"
         }
       },
       "zh-Hans": {
@@ -1603,7 +1603,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Reveal after many days"
+          "value": "Reveal after this many days"
         }
       },
       "zh-Hans": {
@@ -1807,7 +1807,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Recognition image"
+          "value": "Recognition image address"
         }
       },
       "zh-Hans": {
@@ -1977,7 +1977,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Trigger rules"
+          "value": "Trigger conditions"
         }
       },
       "zh-Hans": {
@@ -2164,7 +2164,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Level"
+          "value": "Difficulty"
         }
       },
       "zh-Hans": {
@@ -2266,7 +2266,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Critical success"
+          "value": "Critical success effects"
         }
       },
       "zh-Hans": {
@@ -2283,7 +2283,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Critical failure"
+          "value": "Critical failure effects"
         }
       },
       "zh-Hans": {
@@ -2300,7 +2300,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Advantage rules"
+          "value": "Advantage conditions"
         }
       },
       "zh-Hans": {
@@ -2317,7 +2317,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Disadvantage"
+          "value": "Disadvantage conditions"
         }
       },
       "zh-Hans": {
@@ -2334,7 +2334,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Conditional"
+          "value": "Conditional modifiers"
         }
       },
       "zh-Hans": {
@@ -2351,7 +2351,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Rule"
+          "value": "Condition"
         }
       },
       "zh-Hans": {
@@ -2402,7 +2402,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Action"
+          "value": "Operation"
         }
       },
       "zh-Hans": {
@@ -2538,7 +2538,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Time"
+          "value": "Time limit"
         }
       },
       "zh-Hans": {
@@ -2589,7 +2589,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Terminal"
+          "value": "Terminal appearance"
         }
       },
       "zh-Hans": {
@@ -2623,7 +2623,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Elapsed"
+          "value": "Elapsed time"
         }
       },
       "zh-Hans": {
@@ -2708,7 +2708,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Ordered"
+          "value": "Sequential"
         }
       },
       "zh-Hans": {
@@ -2742,7 +2742,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Auto"
+          "value": "Automatic"
         }
       },
       "zh-Hans": {
@@ -2759,7 +2759,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Team leader"
+          "value": "Team leader assigns"
         }
       },
       "zh-Hans": {
@@ -2963,7 +2963,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Choice"
+          "value": "Choice question"
         }
       },
       "zh-Hans": {
@@ -3014,7 +3014,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Create"
+          "value": "Create collectible card"
         }
       },
       "zh-Hans": {
@@ -3031,7 +3031,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Foil"
+          "value": "Foil highlight"
         }
       },
       "zh-Hans": {
@@ -3201,7 +3201,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Greater"
+          "value": "Greater than"
         }
       },
       "zh-Hans": {
@@ -3235,7 +3235,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Less"
+          "value": "Less than"
         }
       },
       "zh-Hans": {
@@ -3439,7 +3439,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Whole numbers"
+          "value": "Whole numbers only"
         }
       },
       "zh-Hans": {
@@ -3660,7 +3660,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Effects are shown for review only and are never applied player state."
+          "value": "Effects are shown for review only and are never applied to player state."
         }
       },
       "zh-Hans": {
@@ -4306,7 +4306,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Module requires full-screen presentation."
+          "value": "This module requires full-screen presentation."
         }
       },
       "zh-Hans": {

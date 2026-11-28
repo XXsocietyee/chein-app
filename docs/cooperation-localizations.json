@@ -1,17 +1,17 @@
 [
   {
     "key": "cooperation.title",
-    "en": "Collab",
+    "en": "Cooperation invitations",
     "zh-Hans": "协作邀请"
   },
   {
     "key": "cooperation.detail.title",
-    "en": "Collab details",
+    "en": "Cooperation details",
     "zh-Hans": "协作详情"
   },
   {
     "key": "cooperation.direction",
-    "en": "Invite direction",
+    "en": "Invitation direction",
     "zh-Hans": "邀约方向"
   },
   {
@@ -46,7 +46,7 @@
   },
   {
     "key": "cooperation.unconfigured",
-    "en": "Collab isn't available",
+    "en": "Cooperation isn't available right now",
     "zh-Hans": "合作暂不可用"
   },
   {
@@ -91,7 +91,7 @@
   },
   {
     "key": "cooperation.invitations",
-    "en": "Collab",
+    "en": "Cooperation invitations",
     "zh-Hans": "合作邀约"
   },
   {
@@ -216,7 +216,7 @@
   },
   {
     "key": "cooperation.inviteID",
-    "en": "Invite reference",
+    "en": "Invitation reference",
     "zh-Hans": "邀约编号"
   },
   {
@@ -241,7 +241,7 @@
   },
   {
     "key": "cooperation.terms.traffic",
-    "en": "Traffic referral · no revenue",
+    "en": "Traffic referral · no revenue share",
     "zh-Hans": "引流型 · 无分成"
   },
   {
@@ -276,7 +276,7 @@
   },
   {
     "key": "cooperation.slot.game",
-    "en": "Pending invitations for game",
+    "en": "Pending invitations for this game",
     "zh-Hans": "本游戏挂起邀约"
   },
   {
@@ -291,7 +291,7 @@
   },
   {
     "key": "cooperation.leader",
-    "en": "Contact",
+    "en": "Contact person",
     "zh-Hans": "负责人"
   },
   {
@@ -306,7 +306,7 @@
   },
   {
     "key": "cooperation.depositOwed",
-    "en": "Deposit's due after terms locked",
+    "en": "Deposit is due after terms are locked",
     "zh-Hans": "锁价后需缴保证金"
   },
   {
@@ -331,7 +331,7 @@
   },
   {
     "key": "cooperation.pool.title",
-    "en": "Collab pool",
+    "en": "Cooperation pool",
     "zh-Hans": "合作池"
   },
   {
@@ -351,7 +351,7 @@
   },
   {
     "key": "cooperation.candidates.title",
-    "en": "Candidate",
+    "en": "Candidate directory",
     "zh-Hans": "候选目录"
   },
   {
@@ -381,7 +381,7 @@
   },
   {
     "key": "cooperation.invite.status.0",
-    "en": "Awaiting",
+    "en": "Awaiting confirmation",
     "zh-Hans": "待确认"
   },
   {
@@ -411,7 +411,7 @@
   },
   {
     "key": "cooperation.application.status.0",
-    "en": "Awaiting",
+    "en": "Awaiting response",
     "zh-Hans": "待处理"
   },
   {
@@ -431,7 +431,7 @@
   },
   {
     "key": "cooperation.registration.status.0",
-    "en": "Awaiting",
+    "en": "Awaiting allocation",
     "zh-Hans": "待调配"
   },
   {
@@ -446,7 +446,7 @@
   },
   {
     "key": "cooperation.pool.state.open",
-    "en": "Open requests",
+    "en": "Open for applications",
     "zh-Hans": "可申请"
   },
   {
@@ -456,7 +456,7 @@
   },
   {
     "key": "cooperation.pool.state.invited",
-    "en": "Shop invite received",
+    "en": "Merchant invitation received",
     "zh-Hans": "商家已邀约"
   },
   {
@@ -466,7 +466,7 @@
   },
   {
     "key": "cooperation.pool.state.cooped",
-    "en": "Collab",
+    "en": "Cooperation in progress",
     "zh-Hans": "合作中"
   },
   {

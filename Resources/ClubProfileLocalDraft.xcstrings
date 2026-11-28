@@ -38,7 +38,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Protected draft storage is unavailable. The existing record wasn't overwritten. Keep this editor open if latest input hasn't been retained."
+            "value": "Protected draft storage is unavailable. The existing record wasn't overwritten. Keep this editor open if your latest input hasn't been retained."
           }
         },
         "zh-Hans": {
@@ -502,7 +502,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Activity"
+            "value": "Activity preferences"
           }
         },
         "zh-Hans": {
@@ -566,7 +566,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Details"
+            "value": "Description"
           }
         },
         "zh-Hans": {

@@ -70,7 +70,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Shoes"
+            "value": "Shoes and bags"
           }
         },
         "zh-Hans": {
@@ -102,7 +102,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Books stationery"
+            "value": "Books and stationery"
           }
         },
         "zh-Hans": {
@@ -118,7 +118,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Toys ornaments"
+            "value": "Toys and ornaments"
           }
         },
         "zh-Hans": {
@@ -167,7 +167,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your collection can't be opened right"
+            "value": "Your collection can't be opened right now"
           }
         },
         "zh-Hans": {
@@ -280,7 +280,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Image generation is progress"
+            "value": "Image generation is in progress"
           }
         },
         "zh-Hans": {
@@ -312,7 +312,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Info"
+            "value": "Information"
           }
         },
         "zh-Hans": {
@@ -392,7 +392,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Images aren't available"
+            "value": "Images aren't available right now"
           }
         },
         "zh-Hans": {
@@ -584,7 +584,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Legend"
+            "value": "Legendary"
           }
         },
         "zh-Hans": {
@@ -712,7 +712,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Items"
+            "value": "Collectibles"
           }
         },
         "zh-Hans": {
@@ -808,7 +808,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Collab"
+            "value": "Co-create"
           }
         },
         "zh-Hans": {
