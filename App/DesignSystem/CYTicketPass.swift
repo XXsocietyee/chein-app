@@ -123,7 +123,7 @@ struct CYStatusRibbon: View {
     private var ribbon: some View {
         HStack(spacing: CYSpacing.xs) {
             Image(systemName: state.systemImage).accessibilityHidden(true)
-            text.textCase(.uppercase)
+            text
         }
         .cyText(.micro)
         .foregroundStyle(foreground)

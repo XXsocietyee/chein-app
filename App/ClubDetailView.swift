@@ -801,23 +801,27 @@ private struct ClubDetailHeader: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    /// The viewer's relation to the club: role tags are neutral; pending is amber, a declined request red with its reason.
+    /// The viewer's relation to the club: role tags are neutral; pending is amber. mp-club r3 (23:20 sweep, MP detail
+    /// wxml:82): a declined request has no status tag; the header shows 申请未通过：reason in secondary text only when
+    /// the server sent a reason, and the one action is the floating 重新申请 capsule on 概览.
     @ViewBuilder private var statusTags: some View {
-        if club.isOwner || club.isJoined || club.joinPending || club.myJoinStatus == 2 || club.viewerIsAdmin {
+        let declinedReason = club.myJoinStatus == 2 && !club.isJoined && !club.isOwner ? club.myJoinReviewReason : nil
+        if club.isOwner || club.isJoined || club.joinPending || declinedReason != nil || club.viewerIsAdmin {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                HStack(spacing: CYSpacing.md) {
-                    if club.isOwner { Label("club.role.creator", systemImage: "person.crop.circle.badge.checkmark") }
-                    else if club.isJoined { Label("club.membership.joined", systemImage: "checkmark.circle") }
-                    else if club.joinPending { Label("club.membership.pending", systemImage: "clock").foregroundStyle(.orange) }
-                    else if club.myJoinStatus == 2 { Label("club.membership.rejected", systemImage: "xmark.circle").foregroundStyle(.red) }
-                    if club.viewerIsAdmin { Label("club.viewerAdministrator", systemImage: "person.badge.shield.checkmark") }
+                if club.isOwner || club.isJoined || club.joinPending || club.viewerIsAdmin {
+                    HStack(spacing: CYSpacing.md) {
+                        if club.isOwner { Label("club.role.creator", systemImage: "person.crop.circle.badge.checkmark") }
+                        else if club.isJoined { Label("club.membership.joined", systemImage: "checkmark.circle") }
+                        else if club.joinPending { Label("club.membership.pending", systemImage: "clock").foregroundStyle(.orange) }
+                        if club.viewerIsAdmin { Label("club.viewerAdministrator", systemImage: "person.badge.shield.checkmark") }
+                    }
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                 }
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                if club.myJoinStatus == 2, let reason = club.myJoinReviewReason {
+                if let reason = declinedReason {
                     Text(verbatim: locale.pick("申请未通过：\(reason)", "Application not approved: \(reason)"))
                         .font(.subheadline)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("club.membership.rejectedReason")
                 }

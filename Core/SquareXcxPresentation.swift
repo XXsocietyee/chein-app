@@ -104,7 +104,8 @@ public struct SquarePostCardFacts: Equatable {
         else { playSubtitle = post.completed ? .completed : .inProgress }
         lifecycle = Lifecycle(rawValue: post.lifecycle)
         let body = post.contents ?? ""
-        bodyExpandable = body.count > 40 || body.filter({ $0 == "\n" }).count >= 2
+        // MP post-card js:77 `text.length > 120 || lines > 6` (wxss:169 clamps at 6 lines).
+        bodyExpandable = body.count > 120 || body.split(separator: "\n", omittingEmptySubsequences: false).count > 6
         leadingRoutePreview = isCompletionShare || title != nil ? nil : cover
         strip = isCompletionShare ? [] : post.images
         showsCountPill = post.images.count >= 2

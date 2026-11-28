@@ -113,15 +113,6 @@ extension View {
     func cyNightCardDepth(radius: CGFloat = CYRadius.xl) -> some View { modifier(CYNightCardDepth(radius: radius)) }
 }
 
-// MARK: - Eyebrow
-
-extension Text {
-    /// Uppercase eyebrow in the footnote text style, system letter spacing (owner rule 2: no custom tracking).
-    func cyEyebrow(isChinese: Bool) -> some View {
-        self.font(.footnote.weight(isChinese ? .medium : .semibold))
-            .textCase(.uppercase)
-    }
-}
 
 // MARK: - Lantern medallion
 

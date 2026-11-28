@@ -326,3 +326,13 @@ Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design 
 ### Component coverage (Continue 14)
 
 Remaining `subpackageMember/components/cy/*` without a row were traced to their mounting pages: `team-report-sheet` (`pages/team/detail`, `subpackageRoam/nearby` → mp-activity / mp-roam), `scene-game-coupon-wallet` (`pages/play` → mp-journey), `npc-avatar` / `npc-chat` / `scene-route-content` / `scene-play-activity-detail` (journey), `scene-roam-poi-detail` (roam), `coop-invite-sheet` (coop → mp-activity), `merchant-correction-sheet` (merchant, gated), `scene-deep-link` (mp-nav). `dot-qr` is the 票夹 inline QR (`signup` row: NAT-12, not done on purpose) and `pass-object` is part of `pass-unlock` (gated). Every page in the mp-mine area now has a row; later runs re-check the sweep.
+
+## Continue 15 (half-hourly re-arm, sweep 23:20 UTC build b3b03703a)
+
+No merge needed (branch already contains combined-r7). Screen checked: `docs/sweeps/latest/mp-mine/en-d2-me.jpg`.
+
+| Screenshot | MP / brief | Native file | Fixed now |
+|---|---|---|---|
+| `en-d2-me.jpg`: stacked Me card reads [Start exploring] full width, then [Ticket wallet] + a small "···" capsule | 23:20: the two primary buttons equal width in both rows; "···" as a card item or a trailing icon button | `App/MemberHomeHeader.swift` `actionRow`, `moreButton` | **Fixed.** The ··· `Menu` moved to the trailing end of the identity row (name / level / city), as a `.bordered` circle icon button (`.large`, 44 pt). The action row is now only [开始探索][票夹]: side by side when they fit, else both full width stacked. MP content unchanged (same three controls, same menu items); only the ··· placement is native chrome. Needs a simulator look. |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.

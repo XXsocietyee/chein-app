@@ -77,7 +77,7 @@ import SwiftUI
                     .onChange(of: draft.contents) { _, value in
                         if value.utf16.count > Self.maximumContents { draft.contents = Self.clipped(value) }
                     }
-                Text(verbatim: "\(draft.contents.utf16.count)/\(Self.maximumContents)").cyText(.meta)
+                Text(verbatim: "\(draft.contents.utf16.count)/\(Self.maximumContents)").accessibilityLabel(Text("a11y.value.characters \(Int(draft.contents.utf16.count)) \(Int(Self.maximumContents))")).cyText(.meta)
             }.disabled(busy || state == .unknown || state == .acknowledged)
             if imageUploader != nil {
                 Section {
@@ -115,7 +115,7 @@ import SwiftUI
                 } header: {
                     Text("context.review.photos")
                 } footer: {
-                    Text(verbatim: "\(draft.imageURLs.count)/\(Self.maximumPhotos)").monospacedDigit()
+                    Text(verbatim: "\(draft.imageURLs.count)/\(Self.maximumPhotos)").accessibilityLabel(Text("a11y.value.ofTotal \(Int(draft.imageURLs.count)) \(Int(Self.maximumPhotos))")).monospacedDigit()
                 }
                 .disabled(busy || state == .unknown || state == .acknowledged)
             }
