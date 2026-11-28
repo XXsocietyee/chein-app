@@ -1,17 +1,17 @@
 {
   "sourceLanguage": "en",
   "strings": {
-    "blacklist.title": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Blocked"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "黑名单"}}}},
+    "blacklist.title": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Blocked people"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "黑名单"}}}},
     "blacklist.ownerOnly": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Manage only people you blocked, even without a conversation."}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "仅管理你主动拉黑的用户，与现有会话无关。"}}}},
     "blacklist.noRestore": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Unblocking does not restore friendship, meetups or location sharing, or open a new chat."}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "解除拉黑不会自动恢复好友、约见或位置共享，也不会开启新会话。"}}}},
-    "blacklist.closed": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Blocked people can't be shown right."}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "暂时无法查看黑名单"}}}},
+    "blacklist.closed": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Blocked people can't be shown right now."}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "暂时无法查看黑名单"}}}},
     "blacklist.empty": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "No one blocked"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "没有拉黑任何人"}}}},
     "blacklist.review": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Unblock"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "解除拉黑"}}}},
     "blacklist.more": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Load more"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "加载更多"}}}},
     "blacklist.confirmImpact": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Their new messages will reach you again. They won't be notified."}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "对方的新消息会重新送达，对方不会收到解除提示。"}}}},
     "blacklist.confirm": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Unblock"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "解除拉黑"}}}},
     "blacklist.cancel": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Cancel"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "取消"}}}},
-    "blacklist.retry": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Try"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "重试"}}}},
+    "blacklist.retry": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Try again"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "重试"}}}},
     "blacklist.storageFailure": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Something went wrong. Nothing was changed. Try again."}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "出了点问题，未做任何更改，请重试。"}}}},
     "blacklist.readFailure": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Couldn't load blocked people."}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "黑名单加载失败"}}}},
     "blacklist.moreFailure": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Couldn't load more. Try again."}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "加载更多失败，请重试。"}}}},
@@ -32,7 +32,7 @@
     "blacklist.listReadbackFailure": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Couldn't refresh the list. Try again."}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "列表刷新失败，请重试。"}}}},
     "blacklist.refreshCurrent": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Refresh status"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "刷新状态"}}}},
     "blacklist.returnList": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Back to blocked people"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "返回黑名单"}}}},
-    "d7.blacklist.reviewTitle": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Unblock?"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "解除拉黑?"}}}}
+    "d7.blacklist.reviewTitle": {"extractionState": "manual", "localizations": {"en": {"stringUnit": {"state": "translated", "value": "Unblock this person?"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "解除拉黑?"}}}}
   },
   "version": "1.0"
 }

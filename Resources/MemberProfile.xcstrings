@@ -54,7 +54,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Create"
+            "value": "Create groups"
           }
         },
         "zh-Hans": {
@@ -166,7 +166,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "In-store redeem"
+            "value": "In-store redemption"
           }
         },
         "zh-Hans": {
@@ -182,7 +182,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No limit"
+            "value": "unlimited"
           }
         },
         "zh-Hans": {
@@ -246,7 +246,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No benefits show."
+            "value": "No benefits to show."
           }
         },
         "zh-Hans": {
@@ -310,7 +310,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fans"
+            "value": "Followers"
           }
         },
         "zh-Hans": {
@@ -326,7 +326,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Follows"
+            "value": "Following"
           }
         },
         "zh-Hans": {
@@ -454,7 +454,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tickets"
+            "value": "Ticket wallet"
           }
         },
         "zh-Hans": {
@@ -710,7 +710,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending"
+            "value": "Pending review"
           }
         },
         "zh-Hans": {
@@ -934,7 +934,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdrawing stops recording tracks."
+            "value": "Withdrawing stops recording your tracks."
           }
         },
         "zh-Hans": {
@@ -973,118 +973,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "撤回"
-          }
-        }
-      }
-    },
-    "member.privacy.sheetBody": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Location is used only while you roam, play, or turn on home-city location. Photos, text, and recordings are sent to a third-party model only after you agree separately."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "定位只在你漫游、游玩或开启首页城市定位时使用；照片、文字和录音只在你单独同意后才会交给第三方模型处理。"
-          }
-        }
-      }
-    },
-    "member.privacy.homeCity.title": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Automatic home-city location"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "首页城市自动定位"
-          }
-        }
-      }
-    },
-    "member.privacy.homeCity.on": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Turn on"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "开启"
-          }
-        }
-      }
-    },
-    "member.privacy.homeCity.off": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Turn off"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "关闭"
-          }
-        }
-      }
-    },
-    "member.privacy.homeCity.enabled": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Automatic home-city location is on"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已开启首页城市自动定位"
-          }
-        }
-      }
-    },
-    "member.privacy.homeCity.disabled": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Automatic home-city location is off"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已关闭首页城市自动定位"
-          }
-        }
-      }
-    },
-    "member.privacy.homeCity.saveFailed": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The home-city location setting was not saved. Try again."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "首页城市定位设置未保存，请重试"
           }
         }
       }
@@ -1382,7 +1270,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't unlike."
+            "value": "Couldn't unlike. Please try again."
           }
         },
         "zh-Hans": {
@@ -1494,7 +1382,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last day"
+            "value": "Yesterday"
           }
         },
         "zh-Hans": {
@@ -1526,7 +1414,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "About"
+            "value": "About recommendations"
           }
         },
         "zh-Hans": {
@@ -1542,7 +1430,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Favorites"
+            "value": "Favorites and recommendations"
           }
         },
         "zh-Hans": {
