@@ -267132,6 +267132,23 @@
         }
       }
     },
+    "templateOwnShelf.read.create": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Make a play"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "做一个玩法"
+          }
+        }
+      }
+    },
     "templateOwnShelf.read.empty": {
       "extractionState": "manual",
       "localizations": {
