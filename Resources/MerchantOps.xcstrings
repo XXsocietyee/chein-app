@@ -143,7 +143,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No requests awaiting response"
+            "value": "No requests awaiting your response"
           }
         },
         "zh-Hans": {
@@ -194,7 +194,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Refund review and payout questions are handled by platform."
+            "value": "Refund review and payout questions are handled by the platform."
           }
         },
         "zh-Hans": {
@@ -330,7 +330,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Platform didn't approve refund"
+            "value": "Platform did not approve the refund"
           }
         },
         "zh-Hans": {
@@ -381,7 +381,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Platform status to confirmed"
+            "value": "Platform status to be confirmed"
           }
         },
         "zh-Hans": {
@@ -415,7 +415,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original-route refund failed; the platform handling manually"
+            "value": "The original-route refund failed; the platform is handling it manually"
           }
         },
         "zh-Hans": {
@@ -466,7 +466,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The platform confirmed money returned"
+            "value": "The platform confirmed the money was returned"
           }
         },
         "zh-Hans": {
@@ -483,7 +483,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Approved by platform; money still being processed"
+            "value": "Approved by the platform; the money is still being processed"
           }
         },
         "zh-Hans": {
@@ -517,7 +517,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Platform hasn't finished reviewing refund"
+            "value": "The platform has not finished reviewing the refund"
           }
         },
         "zh-Hans": {
@@ -636,7 +636,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose how you want respond."
+            "value": "Choose how you want to respond."
           }
         },
         "zh-Hans": {
@@ -738,7 +738,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting"
+            "value": "Awaiting response"
           }
         },
         "zh-Hans": {
@@ -1435,7 +1435,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Awaiting"
+            "value": "Awaiting reconciliation"
           }
         },
         "zh-Hans": {
@@ -1452,7 +1452,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No payment needed period"
+            "value": "No payment needed this period"
           }
         },
         "zh-Hans": {
@@ -1673,7 +1673,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invoice"
+            "value": "Invoice reversed"
           }
         },
         "zh-Hans": {
@@ -1945,7 +1945,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending"
+            "value": "Pending settlement"
           }
         },
         "zh-Hans": {
@@ -2064,7 +2064,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Redeemed month"
+            "value": "Redeemed this month"
           }
         },
         "zh-Hans": {
@@ -2098,7 +2098,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending"
+            "value": "Pending settlement"
           }
         },
         "zh-Hans": {
@@ -2285,7 +2285,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ask the store owner to enable"
+            "value": "Ask the store owner to enable it"
           }
         },
         "zh-Hans": {
@@ -2472,7 +2472,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Publish"
+            "value": "Publish an activity"
           }
         },
         "zh-Hans": {
@@ -2812,7 +2812,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Assessed by platform, awaiting manual handling"
+            "value": "Assessed by the platform, awaiting manual handling"
           }
         },
         "zh-Hans": {

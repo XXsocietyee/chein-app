@@ -132,7 +132,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "You've already"
+          "value": "You've already registered"
         }
       },
       "zh-Hans": {
@@ -292,7 +292,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Chapter"
+          "value": "Chapter recruitment"
         }
       },
       "zh-Hans": {
@@ -948,7 +948,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Recruiting"
+          "value": "Recruiting category"
         }
       },
       "zh-Hans": {
@@ -2116,7 +2116,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Recording"
+          "value": "Recording reference"
         }
       },
       "zh-Hans": {
@@ -2132,7 +2132,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Voice state source"
+          "value": "Voice state from source"
         }
       },
       "zh-Hans": {
@@ -2516,7 +2516,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Content couldn't loaded correctly"
+          "value": "This content couldn't be loaded correctly"
         }
       },
       "zh-Hans": {
@@ -2676,7 +2676,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "No char has been configured for node"
+          "value": "No character has been configured for this node"
         }
       },
       "zh-Hans": {
@@ -2692,7 +2692,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Take"
+          "value": "Take offline"
         }
       },
       "zh-Hans": {
@@ -2708,7 +2708,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Make"
+          "value": "Make available"
         }
       },
       "zh-Hans": {
@@ -3172,7 +3172,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Request couldn't."
+          "value": "This request couldn't be completed."
         }
       },
       "zh-Hans": {

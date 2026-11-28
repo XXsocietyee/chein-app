@@ -103,7 +103,7 @@ class NativeChannelAppealLocalizationContracts(unittest.TestCase):
             'recovery.journalUnavailable': 'The original request record is temporarily unavailable. Refresh to read it again; this won\'t create another appeal or auto-resend.',
             'result.acceptedNotReversed': 'A receipt only confirms the appeal was accepted. It does not reverse the original action.',
             'result.currentSeparate': 'The original request outcome is confirmed. Current appeal status is read separately; a past receipt does not enable a new statement or withdrawal.',
-            'session.unavailable': 'The current session or access is no longer valid. Original pending request still saved.',
+            'session.unavailable': 'The current session or access is no longer valid. The original pending request is still saved.',
         }
         for key, english in expected.items():
             self.assertEqual(STRINGS[key]['localizations']['en']['stringUnit']['value'], english)

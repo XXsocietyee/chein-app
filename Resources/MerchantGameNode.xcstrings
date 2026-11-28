@@ -166,7 +166,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't generate a check-in code right"
+            "value": "Couldn't generate a check-in code right now"
           }
         },
         "zh-Hans": {
@@ -358,7 +358,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not enough on-site"
+            "value": "Not enough on-site resources"
           }
         },
         "zh-Hans": {
@@ -550,7 +550,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This merchant isn't responsible station session."
+            "value": "This merchant is not responsible for a station in this session."
           }
         },
         "zh-Hans": {
@@ -582,7 +582,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Action parameters invalid."
+            "value": "The action parameters are invalid."
           }
         },
         "zh-Hans": {
@@ -662,7 +662,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The action result incomplete."
+            "value": "The action result is incomplete."
           }
         },
         "zh-Hans": {
@@ -678,7 +678,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The action result invalid."
+            "value": "The action result is invalid."
           }
         },
         "zh-Hans": {
@@ -694,7 +694,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Action record parameters invalid."
+            "value": "The action record parameters are invalid."
           }
         },
         "zh-Hans": {
@@ -726,7 +726,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The action state invalid."
+            "value": "The action state is invalid."
           }
         },
         "zh-Hans": {
@@ -758,7 +758,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This station can't be viewed right"
+            "value": "This station can't be viewed right now"
           }
         },
         "zh-Hans": {
@@ -1270,7 +1270,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "To confirmed"
+            "value": "To be confirmed"
           }
         },
         "zh-Hans": {
@@ -1686,7 +1686,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Publicly authorised"
+            "value": "Publicly authorised content"
           }
         },
         "zh-Hans": {
@@ -2470,7 +2470,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Switch"
+            "value": "Switch station"
           }
         },
         "zh-Hans": {
@@ -2582,7 +2582,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This station can't be paused right"
+            "value": "This station can't be paused right now"
           }
         },
         "zh-Hans": {
@@ -2630,7 +2630,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Complete the checklist and fill in capacity service hours"
+            "value": "Complete the checklist and fill in capacity and service hours"
           }
         },
         "zh-Hans": {
@@ -2886,7 +2886,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Action didn't go through."
+            "value": "The action didn't go through."
           }
         },
         "zh-Hans": {
@@ -2934,7 +2934,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original action didn't go."
+            "value": "The original action didn't go through."
           }
         },
         "zh-Hans": {
@@ -2998,7 +2998,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retrying with original request number…"
+            "value": "Retrying with the original request number…"
           }
         },
         "zh-Hans": {
