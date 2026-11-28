@@ -12,7 +12,7 @@ public extension ProfileComplaintReadIssue {
         switch self {
         case .failed: return "profile.complaintP2.loadFailed.generic"
         case .signIn: return "profile.complaintP2.loadFailed.signIn"
-        case .unavailable: return titleKey
+        case .unavailable, .denied: return titleKey
         }
     }
 }
