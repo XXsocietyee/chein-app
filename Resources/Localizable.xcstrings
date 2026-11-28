@@ -78880,6 +78880,23 @@
         }
       }
     },
+    "globalSearch.emptyQuery %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No results for “%@”."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有找到与“%@”相关的结果。"
+          }
+        }
+      }
+    },
     "globalSearchRetention.refreshing": {
       "localizations": {
         "en": {
