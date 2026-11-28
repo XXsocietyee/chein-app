@@ -767,6 +767,8 @@ struct HomeTodayCandidate: Equatable {
     var imageURL: URL?
     /// Set when the candidate is a real activity: the Today card then opens the activity detail and zooms into it.
     var activityID: Int? = nil
+    /// Where a club event meets (P28): the card then shows a fixed map snippet under the facts.
+    var meetingPoint: HomeTodayMeetingPoint? = nil
 }
 
 extension HomeTodayCandidate {
@@ -816,6 +818,7 @@ struct HomeTodayCard: View {
     var onStartRoam: (() -> Void)?
     @Environment(\.locale) private var locale
     @Environment(\.timeZone) private var timeZone
+    @Environment(\.homeTodayFixtureCover) private var fixtureCover
     /// Kept for DEBUG fixtures that still pass a model; the native card uses the system button press.
     var waveModel: CYPressWaveModel?
 
@@ -832,16 +835,22 @@ struct HomeTodayCard: View {
         var id: String
         /// Design pass explore P1/P2: the ticket / club event start, so the card can lead with the live time-to-start.
         var start: Date? = nil
+        /// P28 fact rows: time and place as separate icon rows (nil when unknown).
+        var timeText: String? = nil
+        var placeText: String? = nil
+        var meetingPoint: HomeTodayMeetingPoint? = nil
     }
 
     private var content: Content {
         switch choice {
         case .ticket(let c):
             return Content(eyebrow: copy("Today · Your ticket", "今天 · 你的门票"), title: c.title, meta: meta(c),
-                           pill: copy("Show ticket", "出示门票"), symbol: "ticket", imageURL: c.imageURL, action: onTicket, id: "ticket", start: c.start)
+                           pill: copy("Show ticket", "出示门票"), symbol: "ticket", imageURL: c.imageURL, action: onTicket, id: "ticket", start: c.start,
+                           timeText: timeText(c), placeText: placeText(c))
         case .clubEvent(let c):
             return Content(eyebrow: copy("Today · Club event", "今天 · 俱乐部活动"), title: c.title, meta: meta(c),
-                           pill: copy("See event", "查看活动"), symbol: "person.3", imageURL: c.imageURL, action: onClubEvent, id: "clubEvent", start: c.start)
+                           pill: copy("See event", "查看活动"), symbol: "person.3", imageURL: c.imageURL, action: onClubEvent, id: "clubEvent", start: c.start,
+                           timeText: timeText(c), placeText: placeText(c), meetingPoint: c.meetingPoint)
         case .roam:
             return Content(eyebrow: copy("Today", "今天"), title: copy("Start a roam", "开始一次漫游"),
                            meta: copy("Walk somewhere new and light up the map.", "走去一个新地方，点亮地图"),
@@ -852,29 +861,67 @@ struct HomeTodayCard: View {
     /// time · place, em dash when the time is unknown (never a fake value).
     /// mp-home r3 (sweep wave-today-club): the eyebrow already says 今天, so a same-day start shows the time only.
     private func meta(_ c: HomeTodayCandidate) -> String {
+        [timeText(c) ?? "—", placeText(c)].compactMap { $0 }.joined(separator: " · ")
+    }
+
+    private func timeText(_ c: HomeTodayCandidate) -> String? {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = timeZone
-        let time = c.start.map { start -> String in
+        return c.start.map { start -> String in
             let sameDay = calendar.isDate(start, inSameDayAs: Date())
             return start.formatted(Date.FormatStyle(date: sameDay ? .omitted : .abbreviated, time: .shortened, locale: locale, timeZone: timeZone))
         }
-        let place = c.place?.trimmingCharacters(in: .whitespacesAndNewlines)
-        return [time ?? "—", (place?.isEmpty ?? true) ? nil : place].compactMap { $0 }.joined(separator: " · ")
+    }
+
+    private func placeText(_ c: HomeTodayCandidate) -> String? {
+        let place = c.place?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return place.isEmpty ? nil : place
+    }
+
+    /// Bundled fixture cover first (offline sweep), then a safe https cover; nil keeps the card text-only.
+    @ViewBuilder
+    private func cover(_ c: Content) -> some View {
+        if let image = fixtureCover {
+            Color.clear
+                .aspectRatio(16.0 / 9.0, contentMode: .fit)
+                .overlay { image.resizable().scaledToFill() }
+                .clipShape(.rect(cornerRadius: CYRadius.md))
+                .accessibilityHidden(true)
+        } else if let url = c.imageURL, url.scheme?.lowercased() == "https" {
+            Color.clear
+                .aspectRatio(16.0 / 9.0, contentMode: .fit)
+                .overlay {
+                    PlayerFeedRemoteImage(url: url, maxPixel: 1200, placeholder: { Color.clear }, failure: { Color.clear })
+                }
+                .clipShape(.rect(cornerRadius: CYRadius.md))
+                .accessibilityHidden(true)
+        }
+    }
+
+    /// P28: one icon row per fact (time, place); the roam prompt keeps its one-line description.
+    @ViewBuilder
+    private func facts(_ c: Content) -> some View {
+        if c.timeText != nil || c.placeText != nil {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Label(c.timeText ?? "—", systemImage: "clock")
+                if let place = c.placeText {
+                    Label(place, systemImage: "mappin.and.ellipse")
+                }
+            }
+            .font(.subheadline)
+            .monospacedDigit()
+            .foregroundStyle(.secondary)
+            .accessibilityHidden(true)
+        } else if let meta = c.meta {
+            Text(verbatim: meta).font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
+        }
     }
 
     var body: some View {
         let c = content
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             // Optional cover as one plain header image.
-            if let url = c.imageURL, url.scheme?.lowercased() == "https" {
-                Color.clear
-                    .aspectRatio(16.0 / 9.0, contentMode: .fit)
-                    .overlay {
-                        PlayerFeedRemoteImage(url: url, maxPixel: 1200, placeholder: { Color.clear }, failure: { Color.clear })
-                    }
-                    .clipped()
-                    .accessibilityHidden(true)
-            }
+            cover(c)
             Label(c.eyebrow, systemImage: c.symbol)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -886,8 +933,10 @@ struct HomeTodayCard: View {
                 .accessibilityAddTraits(.isHeader)
             // Design pass explore P1/P2: within a day of the start the card's one number is the ticking time-to-start.
             ExploreStartsInLine(start: c.start, end: nil, tint: CYColor.textPrimary, style: .cardTitle)
-            if let meta = c.meta {
-                Text(verbatim: meta).font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
+            facts(c)
+            if let point = c.meetingPoint {
+                HomeTodayMeetingPointMap(point: point, place: c.placeText)
+                    .padding(.top, CYSpacing.xs)
             }
             if let action = c.action {
                 Button(action: action) {

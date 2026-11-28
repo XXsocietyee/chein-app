@@ -489,7 +489,7 @@ extension PlayKitScreen {
                 }
             }
         }
-        .sensoryFeedback(.success, trigger: claimed) { old, next in !old && next }
+        .sensoryFeedback(.success, trigger: claimed, condition: CYHapticTransition.turnedOn)
     }
 
     var nativeSlowTaskSubmit: NativeGameSubmit? {

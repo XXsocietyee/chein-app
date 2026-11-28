@@ -235,8 +235,8 @@ extension EnvironmentValues {
         .cyHideTabBar(true)
         .scrollDismissesKeyboard(.interactively)
         .safeAreaInset(edge: .bottom, spacing: 0) { primaryBar }
-        .cyHaptic(.impactMedium, trigger: preparing) { old, new in !old && new }
-        .cyHaptic(.impactMedium, trigger: confirming) { old, new in !old && new }
+        .cyHaptic(.impactMedium, trigger: preparing, where: CYHapticTransition.turnedOn)
+        .cyHaptic(.impactMedium, trigger: confirming, where: CYHapticTransition.turnedOn)
         .cyModalConfirm(
             isPresented: model.coordinator.review != nil,
             title: appLocalized("merchant.cityRedeem.confirmTitle", locale: locale),

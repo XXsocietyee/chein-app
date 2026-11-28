@@ -182,8 +182,8 @@ import ImageIO
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            .sensoryFeedback(.start, trigger: playing) { _, now in now }
-            .sensoryFeedback(.error, trigger: failed) { _, now in now }
+            .sensoryFeedback(.start, trigger: playing, condition: CYHapticTransition.isOn)
+            .sensoryFeedback(.error, trigger: failed, condition: CYHapticTransition.isOn)
             .onReceive(NotificationCenter.default.publisher(for: IMVoiceCoordinator.consumptionRetiredNotification)) { event in
                 if let retired = event.object as? IMVoiceCoordinator, retired === owner { stop() }
             }

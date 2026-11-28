@@ -1144,7 +1144,11 @@ enum WalletIncomeSegment: Hashable {
                     }.accessibilityElement(children: .combine).accessibilityIdentifier("wallet.withdrawal.\(item.id)")
                 }
                 if let total = page.total, total > page.rows.count { Text("wallet.sourceLimited") }
-            } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin, unavailable: model.unavailable) { Task { await load() } } }
+            } else {
+                // MP scene-member-withdraw-history wxml:18: 提现记录加载失败 / 当前身份不能查看提现记录.
+                WalletIssueView(reader: reader, requiresLogin: model.requiresLogin, unavailable: model.unavailable,
+                                failedKey: "withdrawal.history.failed.title", deniedKey: "withdrawal.history.denied.title") { Task { await load() } }
+            }
             if showsSupportContact {
                 Section {
                     Button("withdrawal.support.contact") { showContact = true }

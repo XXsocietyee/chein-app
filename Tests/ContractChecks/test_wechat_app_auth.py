@@ -35,7 +35,8 @@ class WeChatAuthSourceChecks(unittest.TestCase):
         self.assertIn('.onDisappear { model.coordinator.cancel() }', view)
     def test_existing_channels_preserved(self):
         login=(ROOT/'App/LoginView.swift').read_text()
-        for key in ['auth.signIn','auth.otherChannels','AuthChannelView(embeddedModel: model', 'LoginAuthChannelHost(coordinator: session.authChannels)']:
+        for key in ['auth.signIn','auth.otherChannels','AuthChannelView(embeddedModel: model', 'LoginAuthChannelHost(coordinator: channelCoordinator)', 'return session.authChannels']:
+            # mp-nav 11-28: the host reads `channelCoordinator` (session.authChannels; DEBUG fixtures may inject one).
             self.assertIn(key, login)
         self.assertIn('if session.operationalMarket == .china', login)
     def test_no_sdk_or_entitlement_activation(self):

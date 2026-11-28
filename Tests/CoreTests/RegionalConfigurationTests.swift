@@ -58,7 +58,17 @@ final class RegionalConfigurationTests: XCTestCase {
         XCTAssertEqual(config.phoneContract, .internationalE164)
         XCTAssertFalse(config.canUseDomesticChinaPhone)
         XCTAssertEqual(config.availability(of: .domesticChinaPhone), .notRequested)
-        XCTAssertTrue(config.availableCapabilities.isEmpty)
+        // Owner 11-28 04:30: +1 phone sign-in is implemented for the US; every other provider stays pending.
+        XCTAssertEqual(config.availableCapabilities, [.internationalPhone])
+        XCTAssertTrue(config.canUseInternationalPhone)
+        XCTAssertTrue(config.canUsePhoneSignIn)
+    }
+    func testUSPhoneNeedsVerificationAndBackend() throws {
+        let pending = try RegionalConfiguration(market: .unitedStates, baseURL: usURL, approvedBaseURLs: [.unitedStates: [usURL]])
+        XCTAssertEqual(pending.availability(of: .internationalPhone), .verificationPending)
+        XCTAssertFalse(pending.canUsePhoneSignIn)
+        let noBackend = try RegionalConfiguration(market: .unitedStates, verifiedCapabilities: [.internationalPhone])
+        XCTAssertFalse(noBackend.canUseInternationalPhone)
     }
     func testPaymentsPayoutsAndAppleRemainDisabledEvenWithVerificationFlags() throws {
         let config = try RegionalConfiguration(market: .china, baseURL: cnURL,

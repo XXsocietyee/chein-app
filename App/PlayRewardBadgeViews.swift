@@ -47,7 +47,8 @@ import SwiftUI
     }
     var body: some View {
         List {
-            if model.identity == nil { Text("profile.signInRequired") }
+            // mp-states r3 (MP subpackageP3/pages/badge-wall/index/index.wxml:103-106): signed out = 登录后查看我的勋章 · 登录.
+            if model.identity == nil { PlayRewardBadgeSignInState() }
             else if !model.isConfigured { CYEmptyState(systemImage: "medal", "playBadge.unavailable") }
             else {
                 Section {
@@ -55,8 +56,9 @@ import SwiftUI
                     LabeledContent("playBadge.code", value: model.target.code)
                     Text("playBadge.readbackHint").cyText(.bodyCompact).foregroundStyle(.secondary)
                 }
-                if model.isLoading { CYSkeleton(label: "profile.loading") }
-                else if model.failed { Text("playBadge.failed").accessibilityIdentifier("playBadge.failed") }
+                // mp-states r3 (badge-wall wxml:73, :103-106): 正在加载勋章; failure = 勋章数据没有到达 · 重试 in one state.
+                if model.isLoading { CYSkeleton(label: "playBadge.loading") }
+                else if model.failed { failedState }
                 else if let focus = model.focus { PlayRewardBadgeFocusContent(focus: focus) }
                 // BWALL-1: MP 查看收藏 reads the earned badge back on the wall (badge-wall?badgeCode=); 成长中心 stays secondary.
                 Section {
@@ -82,6 +84,32 @@ import SwiftUI
         }
         .refreshable { await reads.run { await model.load() } }
         .onDisappear { reads.deactivate(); model.deactivate() }
+    }
+
+    private var failedState: some View {
+        CYEmptyState(systemImage: "exclamationmark.triangle", "playBadge.failed", messageIdentifier: "playBadge.failed",
+                     actionTitle: "action.retry", actionIdentifier: "playBadge.failed.retry", kind: .failure, action: retry)
+    }
+
+    private func retry() {
+        reads.start { await model.load() }
+    }
+}
+
+@MainActor private struct PlayRewardBadgeSignInState: View {
+    @Environment(\.rootSignIn) private var rootSignIn
+    var body: some View {
+        ContentUnavailableView {
+            Label("playBadge.signIn", systemImage: "person.crop.circle.badge.exclamationmark")
+        } actions: {
+            if rootSignIn.isAvailable {
+                Button("mp.common.signIn") { rootSignIn() }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .accessibilityIdentifier("playBadge.signIn.action")
+            }
+        }
+        .accessibilityIdentifier("playBadge.signIn")
     }
 }
 

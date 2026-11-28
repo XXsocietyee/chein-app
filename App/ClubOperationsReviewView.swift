@@ -48,7 +48,7 @@ struct ClubOperationsReviewView: View {
                     }
                     .disabled(submitted)
                     .accessibilityIdentifier("club.ops.confirm")
-                    .cyHaptic(.impactMedium, trigger: submitted) { old, new in !old && new }
+                    .cyHaptic(.impactMedium, trigger: submitted, where: CYHapticTransition.turnedOn)
                 }
             }
         }

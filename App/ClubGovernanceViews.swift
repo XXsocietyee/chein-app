@@ -796,7 +796,7 @@ struct ClubGovernanceReadView: View {
         }
         // Round 4 copy: MP customer-detail bar title is 客户 (wxml:8); the member action sheet keeps 客户详情.
         .cyPageTitle(String.LocalizationValue(stringLiteral: pageTitleKey))
-        .cyHaptic(.impactMedium, trigger: editor?.id) { _, opened in opened != nil }
+        .cyHaptic(.impactMedium, trigger: editor?.id, where: CYHapticTransition.isSet)
         // CLB-r7-D-02 (fix-r3-club-b): MP customers onShow re-reads the list, so a tag/remark saved on the
         // customer page shows when the owner comes back.
         .onAppear { rereadCustomersOnReturn() }

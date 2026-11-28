@@ -41,7 +41,7 @@ import SwiftUI
                             .accessibilityIdentifier("profile.selfGrowth.loading")
                     }
                     else if let issue = model.issue(key: key) {
-                        GrowthCenterIssueView(issue: issue, retry: reload)
+                        GrowthCenterIssueView(issue: issue, retry: reload, failedTitle: "profile.selfGrowth.failed")
                     } else if let overview = model.value(key: key) {
                         let summary = ProfileSelfGrowthSummary(overview)
                         GrowthCenterMetricRow("growth.level") { GrowthCenterInteger(value: summary.level) }

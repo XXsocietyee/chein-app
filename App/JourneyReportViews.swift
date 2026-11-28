@@ -1131,7 +1131,7 @@ struct JourneySettleView: View {
         .padding(.horizontal, CYSpacing.pageHorizontal)
         .contentShape(Rectangle())
         .onTapGesture { if !skipped { skipped = true } }
-        .cyHaptic(.success, trigger: sealSuccess) { _, new in new }
+        .cyHaptic(.success, trigger: sealSuccess, where: CYHapticTransition.isOn)
         .onAppear {
             // The seal owns its spring (`CYMotion.seal`) and its heavy impact at contact.
             overviewOn = true

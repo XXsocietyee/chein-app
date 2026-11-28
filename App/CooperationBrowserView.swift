@@ -2,6 +2,7 @@ import SwiftUI
 
 @MainActor struct CooperationBrowserView: View {
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let reader: any CooperationReading
     var onClose:(()->Void)? = nil
     var peerReader: (any CoopFlowReading)? = nil
@@ -191,6 +192,15 @@ import SwiftUI
             }
         }
     }
+    /// One row at standard sizes; at accessibility sizes the same views stack leading (same order), so status chips and
+    /// the 拒绝 / 接受合作 pair never squeeze or clip (a11y-dt r3).
+    private func axStack<Content: View>(alignment: VerticalAlignment, @ViewBuilder content: () -> Content) -> some View {
+        let layout: AnyLayout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
+            : AnyLayout(HStackLayout(alignment: alignment, spacing: CYSpacing.sm))
+        return layout { content() }
+    }
+
     @ViewBuilder private func invitationSection(_ state: CooperationSection<CooperationInvites>, direction: CooperationDirection) -> some View {
         Section("cooperation.invitations") {
             switch state {
@@ -218,9 +228,10 @@ import SwiftUI
                                         .accessibilityHidden(true)
                                 }
                                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                                    HStack(alignment: .center, spacing: CYSpacing.sm) {
+                                    // AX sizes (a11y-dt r3): status above "From X" instead of both squeezed into one line.
+                                    axStack(alignment: .center) {
                                         CooperationStatus(key: row.statusKey, symbol: row.status == 0 ? "clock" : row.status == 1 ? "checkmark.circle" : row.status == 2 ? "xmark.circle" : "circle")
-                                        Spacer(minLength: CYSpacing.sm)
+                                        if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
                                         HStack(spacing: CYSpacing.xs) {
                                             Text(LocalizedStringKey(direction == .received ? "cooperation.detail.from" : "cooperation.detail.to"))
                                             CooperationName(name: row.partner?.name).lineLimit(2).truncationMode(.tail).fixedSize(horizontal: false, vertical: true)
@@ -263,7 +274,7 @@ import SwiftUI
                     }
                     if direction == .received, case .decide = CooperationInvitePresentation(invite: row, direction: direction).footer {
                         // MP wxml:84-87: 拒绝 (secondary) then 接受合作 (the card's one solid action).
-                        HStack(spacing: CYSpacing.sm) {
+                        axStack(alignment: .center) {
                             Button("cooperation.detail.reject") { listHandle = CoopListHandle(row: row, action: .reject) }
                                 .buttonStyle(.bordered)
                                 .accessibilityIdentifier("cooperation.invite.received.reject.\(row.id).\(index)")
