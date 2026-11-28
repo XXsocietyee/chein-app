@@ -49,7 +49,7 @@ import MapKit
         }
         let seconds = model.clock.elapsedSeconds
         if seconds > 0 { items.append(.init(id: "medalScreen.stat.time", value: PlayRunElapsedText.format(seconds))) }
-        if walkedMeters > 0 { items.append(.init(id: "nativeR2.city.metric.distance", value: CityOrientationFormat.distance(walkedMeters))) }
+        if walkedMeters > 0 { items.append(.init(id: "nativeR2.city.metric.distance", value: CityOrientationFormat.distance(walkedMeters, locale: locale))) }
         if let snapshot = model.snapshot {
             let puzzle = PlayPuzzleSummary(snapshot: snapshot)
             if puzzle.count > 0 { items.append(.init(id: "playx.finish.puzzleScore", value: String(puzzle.score))) }
