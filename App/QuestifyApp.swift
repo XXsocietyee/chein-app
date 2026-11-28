@@ -633,6 +633,9 @@ struct SessionRootView: View {
         }
         .modifier(ExternalGameCatalogLaunch())
         .environmentObject(session)
+        // K40: 用这个模板 opens pages/publish/fabu?id= from home search, the create sheet and square 看看模板,
+        // the same destination the 发布 tab already injects. Merchant scope stays behind PlayerLaunch.
+        .environment(\.topicEditorDestination, PublishTabRootView.topicEditorDestination(session: session))
         .environment(\.passOrderWriteSession, session)
         .environment(\.profileIMStartWire, ProfileIMStartWire(
             baseURL: { session.currentRuntimeDependencyContext?.baseURL },
