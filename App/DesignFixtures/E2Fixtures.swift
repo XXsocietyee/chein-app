@@ -153,7 +153,9 @@ private struct E2BadgeDetailHost: View {
         NavigationStack {
             PlayExperienceView(model: model)
         }
-        .cyDomainScreen(.game)
+        // mp-journey r3 (sweep 23:50): hosted in `.player` like `SessionPlayRuntimeView` (play `screenDomain`), so the
+        // run map follows the system appearance; `.game` forced dark while d2-play rendered light.
+        .cyDomainScreen(.player)
         .task { await model.load() }
     }
 }
