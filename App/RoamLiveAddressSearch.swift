@@ -5,9 +5,9 @@ import QuestifyCore
 
 /// MP `components/cy/map-address-search` (pages/roam/index.wxml:297, `screen=='map'`): the 输入地址 entry on the live map.
 /// MP order: field (路名、门牌号或店名) + 取消 → up to five rows (pin · name · address) → 这附近没有搜到.
-/// Rows come from the session's own nearby places (MP `_searchPlaces` = `this._pois` with a coordinate) and match on
-/// name or address (MP `matchPlaces` ①; pinyin needs backend fields the API does not send). Picking a row moves the
-/// map there without leaving the screen (MP `onSearchPick`).
+/// Rows come from this session's nearby places and registered shops. Match is MP `matchPlaces`:
+/// name or address contains, or (shops) `namePinyin` / `nameInitials` prefix. The client never invents pinyin.
+/// Picking a row moves the map there without leaving the screen (MP `onSearchPick`).
 enum RoamLiveAddressMatch {
     /// MP `MAX_RESULTS` (P-33): at most five rows.
     static let maxResults = 5
@@ -19,31 +19,43 @@ enum RoamLiveAddressMatch {
         return desc.isEmpty ? nil : desc
     }
 
-    static func results(_ places: [RoamPlace], query: String) -> [RoamPlace] {
-        let needle = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        let located = places.filter { $0.coordinate != nil }
-        let hits: [RoamPlace]
-        if needle.isEmpty {
-            hits = located
-        } else {
-            hits = located.filter { place in
-                if place.name.localizedCaseInsensitiveContains(needle) { return true }
-                guard let sub = subtitle(place) else { return false }
-                return sub.localizedCaseInsensitiveContains(needle)
-            }
+    static func rows(places: [RoamPlace], shops: [RoamRouteNode], query: String) -> [RoamLiveAddressHit] {
+        var hits: [RoamLiveAddressHit] = []
+        for place in places {
+            guard place.coordinate != nil else { continue }
+            guard MapAddressMatch.matches(name: place.name, address: subtitle(place), pinyin: nil, initials: nil, query: query) else { continue }
+            hits.append(.place(place))
+        }
+        for shop in shops {
+            guard shop.coordinate != nil else { continue }
+            guard MapAddressMatch.matches(name: shop.addressName, address: shop.address, pinyin: shop.namePinyin, initials: shop.nameInitials, query: query) else { continue }
+            hits.append(.shop(shop))
         }
         return Array(hits.prefix(maxResults))
     }
 }
 
+enum RoamLiveAddressHit: Identifiable {
+    case place(RoamPlace)
+    case shop(RoamRouteNode)
+    var id: String {
+        switch self {
+        case .place(let place): return "place.\(place.id)"
+        case .shop(let shop): return "shop.\(shop.id)"
+        }
+    }
+}
+
 struct RoamLiveAddressSearchSheet: View {
     let places: [RoamPlace]
-    let onPick: (RoamPlace) -> Void
+    let shops: [RoamRouteNode]
+    let onPickPlace: (RoamPlace) -> Void
+    let onPickShop: (RoamRouteNode) -> Void
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
     @State private var query = ""
 
-    private var rows: [RoamPlace] { RoamLiveAddressMatch.results(places, query: query) }
+    private var rows: [RoamLiveAddressHit] { RoamLiveAddressMatch.rows(places: places, shops: shops, query: query) }
 
     var body: some View {
         NavigationStack {
@@ -55,15 +67,18 @@ struct RoamLiveAddressSearchSheet: View {
                     .listRowBackground(Color.clear)
                     .accessibilityIdentifier("roam.live.addressSearch.none")
                 } else {
-                    ForEach(rows) { place in
+                    ForEach(rows) { hit in
                         Button {
-                            onPick(place)
+                            switch hit {
+                            case .place(let place): onPickPlace(place)
+                            case .shop(let shop): onPickShop(shop)
+                            }
                             dismiss()
                         } label: {
-                            row(place)
+                            row(hit)
                         }
                         .buttonStyle(.plain)
-                        .accessibilityIdentifier("roam.live.addressSearch.row.\(place.id)")
+                        .accessibilityIdentifier(identifier(hit))
                     }
                 }
             }
@@ -83,17 +98,41 @@ struct RoamLiveAddressSearchSheet: View {
         .presentationDragIndicator(.visible)
     }
 
-    private func row(_ place: RoamPlace) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: RoamLivePlaceLevel.symbol(place.nodeLevel))
-                .foregroundStyle(RoamLivePlaceLevel.tint(place.nodeLevel))
+    private func identifier(_ hit: RoamLiveAddressHit) -> String {
+        switch hit {
+        case .place(let place): return "roam.live.addressSearch.row.\(place.id)"
+        case .shop(let shop): return "roam.live.addressSearch.row.shop.\(shop.id)"
+        }
+    }
+
+    private func row(_ hit: RoamLiveAddressHit) -> some View {
+        let name: String
+        let subtitle: String?
+        let symbol: String
+        let tint: Color
+        switch hit {
+        case .place(let place):
+            name = place.name.isEmpty ? appLocalized("roam.unnamed", locale: locale) : place.name
+            subtitle = RoamLiveAddressMatch.subtitle(place)
+            symbol = RoamLivePlaceLevel.symbol(place.nodeLevel)
+            tint = RoamLivePlaceLevel.tint(place.nodeLevel)
+        case .shop(let shop):
+            name = shop.addressName.isEmpty ? appLocalized("nativeR2.mapHome.kind.merchant", locale: locale) : shop.addressName
+            let address = shop.address?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            subtitle = address.isEmpty ? nil : address
+            symbol = "storefront.fill"
+            tint = .gray
+        }
+        return HStack(spacing: 12) {
+            Image(systemName: symbol)
+                .foregroundStyle(tint)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: place.name.isEmpty ? appLocalized("roam.unnamed", locale: locale) : place.name)
+                Text(verbatim: name)
                     .font(.body)
                     .foregroundStyle(.primary)
-                if let sub = RoamLiveAddressMatch.subtitle(place) {
-                    Text(verbatim: sub)
+                if let subtitle {
+                    Text(verbatim: subtitle)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)

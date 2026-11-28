@@ -24,8 +24,8 @@ check('query completion fenced', 'SearchMapQueryGate' in reading and 'ticket.sco
 # pages/searchmap/index.js:173 (`pageSize: 10`), posted on the activity list at :283.
 pagination=(root/'Core/SearchMapPagination.swift').read_text()
 check('local filters and first-page scope', 'Dates/prices are intentionally absent' in service and 'pageSize: 12' in service and 'SearchMapActivityPage.pageSize' in service and 'public static let pageSize = 10' in pagination)
-# mp-home r3 (plan audit H-05e): club/list is @Anonymous and the MP sends it for guests, so only the two city-node reads stay credentialed.
-check('private sources require a credential', service.count('guard token != nil else { throw APIError.unauthorized }')>=2 and 'func clubRows' in service)
+# k40 map (plan H-04b): GET /api/city/nodes and /nodes/{id} follow the guest projection. Club list stays open (H-05e).
+check('guest city nodes and club list are not pre-refused', 'guard token != nil else { throw APIError.unauthorized }' not in service and 'func clubRows' in service and 'func cityNodes' in service and 'api/city/nodes' in service)
 check('city/detail IDs distinct from nearby/node IDs', 'case topic(Int), activity(Int), club(Int), merchant(Int), cityNode(Int)' in contracts and 'result.poiID == id' in service)
 check('secure local-only history', 'SecItemCopyMatching' in app and 'kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly' in app and 'guard let namespace else' in app)
 check('route fallback never invents ETA/instructions', 'self.etaSeconds = isStraightLine ? nil : etaSeconds' in (root/'Core/SearchRoutePreview.swift').read_text())

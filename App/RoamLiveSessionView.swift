@@ -187,7 +187,7 @@ import QuestifyCore
         }
         .sheet(isPresented: $guideShown) { AIGuideSheet(context: guideContext, journal: guideJournal) }
         .sheet(isPresented: $addressSearchShown) {
-            RoamLiveAddressSearchSheet(places: owner.places, onPick: pickAddress)
+            RoamLiveAddressSearchSheet(places: owner.places, shops: owner.registeredShops, onPickPlace: pickAddress, onPickShop: pickShop)
         }
         .sheet(isPresented: $showTools) {
             RoamSessionToolsSheetView(runners: runners, presenceEnabled: owner.presenceEnabled, ownExplorePercent: owner.explorationPercent,
@@ -299,6 +299,18 @@ import QuestifyCore
             withAnimation(.easeInOut(duration: 0.35)) { mapCamera = .region(region) }
         }
         mapPick = .place(place.id)
+    }
+    /// Same move as `pickAddress`, onto a registered shop pin (`RoamLiveMapPick.shop`).
+    private func pickShop(_ shop: RoamRouteNode) {
+        guard let point = shop.coordinate else { return }
+        let center = CLLocationCoordinate2D(latitude: point.latitude, longitude: point.longitude)
+        let region = MKCoordinateRegion(center: center, latitudinalMeters: 600, longitudinalMeters: 600)
+        if reduceMotion {
+            mapCamera = .region(region)
+        } else {
+            withAnimation(.easeInOut(duration: 0.35)) { mapCamera = .region(region) }
+        }
+        mapPick = .shop(shop.id)
     }
     /// Gap #24: this walk's revealed cells (Core `RoamLiveFogProjection`); nil while none, or when 迷雾 is switched off.
     private var liveFog: FogPresentation? {

@@ -27,10 +27,13 @@ private actor EditorCityNodeTransport: HTTPTransport {
         let fields = Dictionary(uniqueKeysWithValues: URLComponents(url: request.url!, resolvingAgainstBaseURL: false)!.queryItems!.map { ($0.name, $0.value ?? "") })
         XCTAssertEqual(fields, ["lat":"31.0", "lng":"121.0", "radius":"20000", "keyword":"park"])
     }
-    func testGuestCannotDispatch() async throws {
+    func testGuestDispatchesCityNodesWithoutCredential() async throws {
         let t = EditorCityNodeTransport()
-        do { _ = try await service(t).cityNodes(query()); XCTFail("guest dispatched") } catch { XCTAssertEqual(error as? APIError, .unauthorized) }
-        let requests = await t.requests; XCTAssertTrue(requests.isEmpty)
+        let result = try await service(t).cityNodes(query())
+        XCTAssertEqual(result.map(\.id), [7])
+        let requests = await t.requests
+        XCTAssertEqual(requests.count, 1)
+        XCTAssertNil(requests[0].value(forHTTPHeaderField: "Authorization"))
     }
     func testUnapprovedSessionDoesNotDispatchOrActivateReader() async throws {
         let t = EditorCityNodeTransport(), context = try SearchMapContext(accountID: 7, epoch: 1, token: "synthetic-token")
