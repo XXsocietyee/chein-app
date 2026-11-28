@@ -486,8 +486,9 @@ monograms, share / ticket art, HUD and ring numbers left as they are).
 
 ## Not done (next run starts here)
 - Re-read the a11y sheets after the next sweep (newer than ffeef67c7, to see runs 28-30).
-- Next pages without a row: `.frame(width:)` on text containers at AX5 (fixed widths that clip wrapped text), then
-  `.fixedSize()` on button labels in HStacks.
+- Next pages without a row: Reduce Motion — player files that call `withAnimation(.spring / .bouncy / .snappy)` without reading
+  `accessibilityReduceMotion`. (Run 30: `.frame(width:)` on text scanned, only `minWidth` rank numerals and 18-24 pt icon columns, no
+  clipping; `.fixedSize()` was covered in run 11.)
 
 ## For other lanes
 - en-layout: `RoamTerritoryView.swift` nearby/mine cards format "\(Int(dist))m" and "\(n) pts" by hand; use `Measurement`/`.formatted` and a localized points string.
