@@ -1,74 +1,73 @@
 # K18 Core swift test burn-down
 
-Branch `cursor/1128-core-tests` was cut from `origin/ui/combined-r7` `97b4ef2c28f44594743425a4c0ff272314e1900c`. The suite ran on top of `c4e43841afaddd576a72104f8bf8641af2060732` (that commit is the next tip of combined-r7 and is already on `origin/ui/combined-r7`). A later fetch moved combined-r7 to `a7c956335e765f618f7bc86480aa523015bc6e30`; this burn-down was not rebased onto that tip.
+Branch `cursor/1128-core-tests`. It contains `origin/ui/combined-r7` at `c4e43841afaddd576a72104f8bf8641af2060732` (merged, not rebased). A later fetch moved `origin/ui/combined-r7` to `a7c956335e765f618f7bc86480aa523015bc6e30`. This burn-down was not rebased onto that tip.
 Command: `swift test --disable-sandbox` from the repo root. No `xcodebuild`, no simulator, no DerivedData.
 
 ## Counts
 
 | run | executed | unique failing tests | assertion records |
 |---|---:|---:|---:|
-| start, compile | 0 | — | 1 compile error |
-| start, after the compile helper | 9805, then the runner aborted | 9 observed | 25 |
-| end | 18411 (2 skipped) | **25** | **47** (10 unexpected) |
+| first invocation | 0 | — | 1 compile error |
+| `/tmp/cursor-1128-core-tests-2.log` (the named start) | aborted after the runner had summed about 9805 | 9 | 25, then signal 5 |
+| first complete run, after the crash fix | 18411 (2 skipped) | 29 | 54 (10 unexpected) |
+| ending run, `/tmp/cursor-1128-core-tests-10.log` | 18411 (2 skipped) | **22** | 44 (8 unexpected) |
 
-The first invocation did not run tests. `Tests/CoreTests/AccountDeregistrationAppleReauthTests.swift:38` called a `@MainActor` initializer from a default argument. The helper now builds that fake inside the MainActor method. Deletion assertions were not edited. The class then passed 7/7.
+The first invocation did not run tests. `Tests/CoreTests/AccountDeregistrationAppleReauthTests.swift` called a `@MainActor` initializer from a default argument. The helper now builds that fake inside the MainActor method. Deletion assertions were not edited. That class then passed.
 
-The next run died with `Index out of range` once `MerchantStaffApproval` dropped a pending row. JSON `0` matched `is Bool` on Darwin, so status 0 never became a row and the test subscripted an empty list. `Core/MerchantStaffApproval.swift` now accepts a number only when it is not a CFBoolean, the same rule as the rest of Core. The test was not edited. The suite completes.
+The named run then died with `Index out of range` as `OwnerDecisions1124Tests` started. `MerchantStaffApproval` dropped a pending row because JSON `0` matched `is Bool` on Darwin, so status 0 never became a row. `Core/MerchantStaffApproval.swift` now accepts a number only when it is not a CFBoolean. The test was not edited. The suite completes.
 
-The 9 failures seen before that abort were `ClubCommunityReadRuntimeTests`, `HomeSearchTabParityTests`, `IMExpandedTests`, `LocaleDisplayR2Tests`, `MemberBenefitsLifetimeTests`, `MerchantOfferWithdrawalUnifiedStoreTests`, `OPTTriageClosureTests`, `OfflineRetryPackage63Tests`, and `OwnerDecisionGuardTests`. The four stale ones in that set now pass. The other five are in the ending 25. Everything after `OwnerDecisions1124Tests` had not run yet.
+The 9 failures seen before that abort were `ClubCommunityReadRuntimeTests`, `HomeSearchTabParityTests`, `IMExpandedTests`, `LocaleDisplayR2Tests`, `MemberBenefitsLifetimeTests`, `MerchantOfferWithdrawalUnifiedStoreTests`, `OPTTriageClosureTests`, `OfflineRetryPackage63Tests`, and `OwnerDecisionGuardTests`. Four of those were stale and now pass. The other five are in the ending 22.
 
-`WorkshopLibraryReadRejectionRecoveryTests.testLate401CannotRetireNewOwnedPresentation` is one of the 25. It passed the two earlier full runs and passed again alone. The ending miss is the helper at `Tests/CoreTests/WorkshopLibraryReadRejectionRecoveryTests.swift:21` (`Expected synthetic suspended read`) after 1000 yields, before the product assertions. It is not in the owner table. With the two store-character fixtures corrected after this run, the remaining set from these 25 is 23, and 22 of those are listed below.
+One later full run, under a loaded machine, also failed `WorkshopLibraryReadRejectionRecoveryTests.testLate401CannotRetireNewOwnedPresentation` because its 1000-yield wait returned before the paused read suspended. That test passed on the runs before and on the ending run. It was not edited.
 
 ## Stale tests updated (product left as shipped)
 
-- `ClubCommunityReadRuntimeTests`: the feed body now includes `hasMore: false`. The runtime refuses a feed that omits it, then the club cursor kept paging. Request count stays 9.
+- `ClubCommunityReadRuntimeTests`: the feed body now includes `hasMore: false`. The runtime refuses a feed that omits it, then the club cursor kept paging.
 - `HomeSearchTabParityTests`: English banner titles follow the shipped order (activity, club, merchant). Route paths already did.
-- `IMExpandedTests`: the read cursor is multipart (`name="conversation_id"` / `name="read_to"`), which the sibling start/mute/read test already locks. `last_message_id` stays absent.
-- `OPTTriageClosureTests`: cart citations moved to `ChinaReviewedRouteCapability.swift:938` and `:2769`. The same strings are still required. Wallet lines did not move.
-- `PlayFullStoryH3Tests`: a named `who` is a margin `.line`, not a `Ada：` prefix. A branch with no cast is omitted. `testDeclarationIsServerFormatAndOmitsUnrenderedBranch` already requires that omission.
-- `SearchMapTests`: activity list `pageSize` is 10 (`Core/SearchMapPagination.swift:6`, the mini-program page size). The pin of 50 was stale.
-- `RoamOfficialTasksTests`: joined rows are kept only when their id is also in the roam list (`Core/RoamOfficialTasks.swift:81`). The fixture id is 71, which is in that list. 81 was dropped on purpose.
-- `ProjectEditRichStoryFixtures`: gallery, branch, line, and divider are part of `richKinds`. The line carries a speaker, which `Core/ProjectEditRichStoryContract.swift:154` requires. Both rich-story serialization tests pass.
-- `StoreCharacterTests`: `run` and `runWrite` compare the scope captured before the call with the scope after it (`Core/StoreCharacterService.swift:200` and `:208`). The fixtures passed `{ UUID() }`, so each read was a new scope and the product correctly threw `staleScope` / `outcomeUnknown`. Both tests now keep one scope. They passed when filtered after that change. The full-run count below still includes them.
+- `IMExpandedTests`: the read cursor is multipart (`name="conversation_id"` / `name="read_to"`). `last_message_id` stays absent.
+- `OPTTriageClosureTests`: cart citations moved to `ChinaReviewedRouteCapability.swift:938` and `:2769`. The same strings are still required.
+- `PlayFullStoryH3Tests`: a named `who` is a margin `.line`, not an `Ada：` prefix. A branch with no cast is omitted.
+- `SearchMapTests`: activity list `pageSize` is 10 (`Core/SearchMapPagination.swift:6`). The pin of 50 was stale.
+- `RoamOfficialTasksTests` mine rows: a joined id is kept only when it is also in the roam list (`Core/RoamOfficialTasks.swift:81`). The fixture id is 71, which is in that list. The unsigned-read test was not changed.
+- `ProjectEditRichStoryFixtures`: gallery, branch, line, and divider are part of `richKinds`. The line carries a speaker, which `Core/ProjectEditRichStoryContract.swift:154` requires.
+- `StoreCharacterTests`: the voice reset and voice-status fixtures now hold one scope id for the call. `scope: { UUID() }` minted a new id on every read, so the shipped stale-scope check (`Core/StoreCharacterService.swift:200` and `:208`) fired before the body and review assertions. Those assertions are unchanged. The rotating-scope test in the same file was not changed.
 
 ## Left for the owner
 
-Money, payout, privacy, or permission. Not edited.
+Money, payout, privacy, permission, or deletion. Not edited, except the deletion compile helper above (assertions unchanged).
 
-| test | line | what the run showed |
+| test | line | what the ending run showed |
 |---|---|---|
 | `LocaleDisplayR2Tests.testYuanAmountsRelabelsOnlyOutsideChineseAndNeverTwice` | `Tests/CoreTests/LocaleDisplayR2Tests.swift:58` | English text stays `¥30.00`, not `CN¥30.00`. `Core/LocaleDisplay.swift:31` uses the narrow symbol in every locale. |
-| `MemberBenefitsLifetimeTests.testOriginalPermissionMappingDoesNotInferEarningsFromRoleOrMissingFlags` | `Tests/CoreTests/MemberBenefitsLifetimeTests.swift:114` | 8 benefit rows, test still wants 9. Earnings stay closed. `Core/MemberHome.swift:223`. |
-| `MerchantOfferWithdrawalUnifiedStoreTests.testKnownHistoricalRootReadsExactScopeAndNeverAcknowledgesOrRewrites` | `Tests/CoreTests/MerchantOfferWithdrawalUnifiedStoreTests.swift:98` | `persistence` before any row. `Core/MerchantOfferWithdrawalOriginalJournal.swift:25` opens the historical root with `O_NOFOLLOW`. |
+| `MemberBenefitsLifetimeTests.testOriginalPermissionMappingDoesNotInferEarningsFromRoleOrMissingFlags` | `Tests/CoreTests/MemberBenefitsLifetimeTests.swift:114` | 8 benefit rows, test still wants 9. `Core/MemberHome.swift:223`. |
+| `MerchantOfferWithdrawalUnifiedStoreTests.testKnownHistoricalRootReadsExactScopeAndNeverAcknowledgesOrRewrites` | `Tests/CoreTests/MerchantOfferWithdrawalUnifiedStoreTests.swift:98` | `persistence` before any row. `Core/MerchantOfferWithdrawalOriginalJournal.swift` opens the historical root with `O_NOFOLLOW`. |
 | `OfflineRetryPackage63Tests.testMoneyAndPayoutWritesAreNotQueuedAndProductionHostIsRefused` | `Tests/CoreTests/OfflineRetryPackage63Tests.swift:623` | `/prod-api/api/pay/create` is `routeNotIdempotent`, not `moneyWriteNeverAutoReplayed`. `Core/OfflineIdempotentWriteQueue.swift:316`. `normalized` keeps the `/prod-api` prefix, so the `/api/pay/` marker misses it. |
 | `OwnerDecisionGuardTests.testOWND05cPayoutWritesSendNothingWhileClosedAndProductionRefusesThem` | `Tests/CoreTests/OwnerDecisionGuardTests.swift:185` | The recorder is not empty after the unbind this test requires to be sent. |
 | `PayoutReceiverClientTests.testChinaProductionRefusesEveryPayoutRouteUntilTheSwitchOpens` | `Tests/CoreTests/PayoutReceiverClientTests.swift:132` | `api/club/settlement/mine` is admitted while the switch is closed. |
-| `PrivacyProtectionPageModelTests` (3) | `Tests/CoreTests/PrivacyProtectionPageModelTests.swift:106`, `:148`, `:214` | Usage-record history is shown (`:106`). The usage-record route is `liveInProduction` (`:214`). Unknown renders `—` and literal zero renders `0` (`:148`). |
-| `ProfileContractTests.testOrderDetailFactsFollowTheMiniProgramCard` | `Tests/CoreTests/ProfileContractTests.swift:132` | Two `金额待确认` rows. `Core/ProfileContracts.swift:635` also emits the omitted processing amount. |
-| `ReleaseMoneyWriteSwitchDerivationTests.testReleaseBuildKeepsCompileTimeConstants` | `Tests/CoreTests/ReleaseMoneyWriteSwitchDerivationTests.swift:27` | Compile-time constants failed: `payment`, `payout`, `withdrawal`, `virtualGoods`, `refund`, `hostCancelRefund`. |
+| `PrivacyProtectionPageModelTests` (3) | `Tests/CoreTests/PrivacyProtectionPageModelTests.swift:106`, `:148`, `:214` | Usage-record route is `liveInProduction`. Unknown and literal zero render text. Money switches stay off. |
+| `ProfileContractTests.testOrderDetailFactsFollowTheMiniProgramCard` | `Tests/CoreTests/ProfileContractTests.swift:132` | Two `金额待确认` rows. The product also emits the omitted processing amount. |
+| `ReleaseMoneyWriteSwitchDerivationTests.testReleaseBuildKeepsCompileTimeConstants` | `Tests/CoreTests/ReleaseMoneyWriteSwitchDerivationTests.swift:27` | `payment`, `payout`, `withdrawal`, `virtualGoods`, `refund`, and `hostCancelRefund` constants failed. |
 | `StripePayContractsTests.testUSDQuoteChannelsCountAsAppChannels` | `Tests/CoreTests/StripePayContractsTests.swift:119` | `malformedResponse`. |
-| `WP08HostTipSurfaceTests.testGrantCoversTheNamedRoutesAndLeavesMoneyClosed` | `Tests/CoreTests/WP08HostTipSurfaceTests.swift:41` | `/api/coupon/usability` is live. Money paths were not opened. |
-| `ZzZzCov4AccountPublishPinTests.testQuoteCreatePayRefundPayoutWithdrawalAndPricingConfirmSendNothing` | `Tests/CoreTests/ZzZzCov4AccountPublishPinTests.swift:191` | A pay/refund/payout pin sent, and a later call did not throw. |
-| `ZzZzZzCov4ClubContractPinTests.testPayRefundPayoutWithdrawalPaidOrdersQuoteCreateAndPricingConfirmSendNothing` | `Tests/CoreTests/ZzZzZzCov4ClubContractPinTests.swift:272` | Same shape on the club pin. |
+| `WP08HostTipSurfaceTests.testGrantCoversTheNamedRoutesAndLeavesMoneyClosed` | `Tests/CoreTests/WP08HostTipSurfaceTests.swift:41` | `/api/coupon/usability` is live. |
+| `ZzZzCov4AccountPublishPinTests.testQuoteCreatePayRefundPayoutWithdrawalAndPricingConfirmSendNothing` | `Tests/CoreTests/ZzZzCov4AccountPublishPinTests.swift:191` | A pay/refund/payout pin sent, and a later call did not throw (`:203`). |
+| `ZzZzZzCov4ClubContractPinTests.testPayRefundPayoutWithdrawalPaidOrdersQuoteCreateAndPricingConfirmSendNothing` | `Tests/CoreTests/ZzZzZzCov4ClubContractPinTests.swift:272` | Same shape on the club pin (`:286`). |
 
 Product still disagrees with the test. Tests were not rewritten to match.
 
 | test | test line | product line |
 |---|---|---|
-| `PlayModeLifecycleTests.testFreeEvidenceRejectsOrientationAnswerGPSAndSensorCommands` | `Tests/CoreTests/PlayModeLifecycleTests.swift:90` | `Core/PlayExperienceCoordinator.swift:478` throws `invalidAction`; one evidence did not throw. |
+| `PlayModeLifecycleTests.testFreeEvidenceRejectsOrientationAnswerGPSAndSensorCommands` | `Tests/CoreTests/PlayModeLifecycleTests.swift:90` | One free-mode evidence did not throw. A later one threw `invalidAction` at `Core/PlayExperienceCoordinator.swift:478`. |
 | `PlayReadCapabilityTests.testServerSpectatorMarkerDoesNotGrantRegistrationOrCompletion` | `Tests/CoreTests/PlayReadCapabilityTests.swift:72` | `Core/PlayProgression.swift:37` treats `leadSpectator == true` as past `registrationRequired` (`active`). |
-| `RoamOfficialTasksTests.testUnavailableOrUnsignedSceneNeverReads` | `Tests/CoreTests/RoamOfficialTasksTests.swift:63` | An unconfigured or unsigned scene still reads. Failed again alone. |
-| `SignedInContentDetailTests.testActivityMalformedAndUnauthorizedEnvelopeStayErrors` | `Tests/CoreTests/SignedInContentDetailTests.swift:82` | A string `"code":"200"` envelope was not kept as an error. |
-| `SignedInContentDetailTests.testGuestTopicDetailDoesNotDispatchAndRoleABADropsLate401` | `Tests/CoreTests/SignedInContentDetailTests.swift:114` | Late 401 arrived as `malformedResponse`, not `unauthorized`. |
-| `TemplateShelfReadTests.testCanonicalActualBuildersAndBoundedPages` | (caught error) | `Core/TemplateAuthoringWireRequestBuilder.swift:29` `invalidRequest`. |
-| `TopicTests.testTopicDisplayDoesNotPromoteCollaboratorsOrPublisherToInitiator` | `Tests/CoreTests/TopicTests.swift:58` | Decoded `TopicDetail` is not equal to the no-collaborator value. |
-
-`RoamOfficialTasksTests.testCompleteSceneReadsOnlyTwoExistingListContracts`, `testFourBucketsReuseExistingOfficialStatusContract`, and `SearchMapTests.testCityNodesUseGETCamelCaseAndActivitySourceUsesFormSnakeCase` were red on the run before the fixture updates above. They pass with those fixtures and are not in the ending 25.
+| `RoamOfficialTasksTests.testUnavailableOrUnsignedSceneNeverReads` | `Tests/CoreTests/RoamOfficialTasksTests.swift:63` | `Core/RoamOfficialTasks.swift:77` still reads `activeForRoam()` when the scene is configured, including a guest. |
+| `SignedInContentDetailTests.testActivityMalformedAndUnauthorizedEnvelopeStayErrors` | `Tests/CoreTests/SignedInContentDetailTests.swift:82` | `Core/ActivityService.swift:69` turns a string `"code":"200"` into 200, so that envelope is not an error. |
+| `SignedInContentDetailTests.testGuestTopicDetailDoesNotDispatchAndRoleABADropsLate401` | `Tests/CoreTests/SignedInContentDetailTests.swift:114` | `Core/TopicReading.swift:55` sends a guest topic detail. The call returned `malformedResponse`, and the request list was not empty. |
+| `TemplateShelfReadTests.testCanonicalActualBuildersAndBoundedPages` | `Tests/CoreTests/TemplateShelfReadTests.swift:40` | `Core/TemplateAuthoringWireRequestBuilder.swift:29` rebuilds the shelf request without `scope`, so `scope: "MERCHANT"` throws `invalidRequest`. |
+| `TopicTests.testTopicDisplayDoesNotPromoteCollaboratorsOrPublisherToInitiator` | `Tests/CoreTests/TopicTests.swift:58` | `Core/TopicContracts.swift:369` keeps `memberId` as `ownerMemberID`, and `:402` uses `contentPublisherName` as the publisher. |
 
 ## Gates
 
-- `python3 tools/check_scaffold.py` PASS (appsession ratchet included)
-- `python3 tools/check_a11y_lint.py` PASS, 0 new
-- `python3 tools/contract_ratchet.py --check` 46 failing, baseline 46, new 0
+- `python3 tools/check_scaffold.py` PASS, exit 0 (appsession ratchet included)
+- `python3 tools/check_a11y_lint.py` PASS, 0 new, exit 0
+- `python3 tools/contract_ratchet.py --check` 46 failing, baseline 46, new 0, fixed 0, exit 0
 - `App/AppSession.swift` is 7977 lines
 - No `String(localized:)` literals added
