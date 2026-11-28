@@ -13,3 +13,7 @@ Branch `mp/r3-activity-b` from `origin/mp/r3-activity` (49b6ede5f). Works the op
 ## Gates
 - `generate_project` ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 failing / baseline 52 / **new 0**
 - Nearby station terms run: `generate_project` ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 46 failing / baseline 46 / **new 0**
+- Nearby 补位 menu run (11-28): `generate_project` ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 46 failing / baseline 46 / **new 0** · `test_chapter_replacement_invitation` OK (10). No Swift compiler or simulator here: unbuilt, recheck the topic-mode 找商家承接 menu in a sweep.
+
+## Half done (11-28, collision-fix split)
+Second half of the A receipt's Not done list (Owner check 05:35 → Coop row) checked bottom-up. Coop row: stations, per-row chapter terms and the 补位 interaction are done here; its other parts are documented keeps (俱乐部/商家 picker, coop-list 合作池, read-receipt row, nearby consent block) or blocked (缴纳保证金 / 重试保证金退款: no native deposit payment client; inline send result: sends go through the per-recipient reviewed preview by design). Baoming manual entry and Official 参与情况 are documented keeps; Square 探店 has no backend field; the organizer 联系与签到配置 form lives in `OfficialOrganizerConsoleView` (already built); Owner check 05:35 needs a simulator sweep. Nothing actionable remains in the B half, so this run stops here.
