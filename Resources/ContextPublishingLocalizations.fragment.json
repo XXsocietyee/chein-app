@@ -109,7 +109,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "AI generation isn't available right now. Can still create manually."
+            "value": "AI generation isn't available right now. You can still create manually."
           }
         },
         "zh-Hans": {
@@ -466,7 +466,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pass purchase isn't available right now. Check existing orders before trying again."
+            "value": "Pass purchase isn't available right now. Check your existing orders before trying again."
           }
         },
         "zh-Hans": {
@@ -670,7 +670,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm create order"
+            "value": "Confirm and create order"
           }
         },
         "zh-Hans": {
@@ -738,7 +738,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "An existing intent is retained. Check order status before taking another action."
+            "value": "An existing intent is retained. Check its order status before taking another action."
           }
         },
         "zh-Hans": {
@@ -976,7 +976,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continue payment"
+            "value": "Continue to payment"
           }
         },
         "zh-Hans": {
