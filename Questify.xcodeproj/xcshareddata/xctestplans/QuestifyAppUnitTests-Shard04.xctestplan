@@ -380,6 +380,7 @@
         "PersonalLocationShareNormalEntryTests",
         "PlayAnswerReviewTests",
         "PlayBranchHistoryFixtureHandshakeTests",
+        "PlayDirectorIncidentSheetTests",
         "PlayGapOwnerGrantTests",
         "PlayKitGLBDecoderTests",
         "PlayKitSensorStageLifecycleTests",

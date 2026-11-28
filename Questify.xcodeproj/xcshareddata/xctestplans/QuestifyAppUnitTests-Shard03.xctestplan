@@ -366,6 +366,7 @@
         "PhotoLibraryAndCameraPermissionSectionViewTests",
         "PlayAnswerReviewTests",
         "PlayBranchHistoryAppTests",
+        "PlayDirectorIncidentSheetTests",
         "PlayExperiencePresentationMountTests",
         "PlayGapOwnerGrantTests",
         "PlayOperatingSummaryPresentationTests",
