@@ -756,7 +756,7 @@ Checker `done leading` widened: also a Done label through a helper call (`Button
 three lines above; baseline stays 0.
 
 Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
-(done leading 0, status capsule 29 baselined), `contract_ratchet --check` RATCHET.
+(done leading 0, status capsule 29 baselined), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
 
 ### Not done (next run)
 None from this run.
