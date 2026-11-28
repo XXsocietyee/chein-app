@@ -769,3 +769,11 @@ Merged `origin/ui/combined-r7` (73 commits, clean). Still no `docs/release/recei
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 46 failing / baseline 46 / **new 0**. **Half done**; run stops here per the 15:45 split rule.
 
 Coordinator: the A half stays blocked until the pin owner releases `CharacterCardReadbackView` or the owner turns pass purchase on; re-sweep `e5b-badge-wall`, `a11y-badges-ax5` and `d2-me` ("Tickets") once continue 47/48 are in a build.
+
+## Continue 50 (11-28, half-hourly run): A half still blocked
+
+Merged `origin/ui/combined-r7` (114 files, clean). K50 receipts on combined-r7 are only the release series (`cursor-k50-r01/03/04/08/09/10`); none has a `lane-layout` or mp-mine row, and there are still no `cursor-k50-p*` parity receipts. The brief has no mp-mine coordinator rows after 13:15 (latest sweep still build b954de71c, already checked in continue 48/49). B lane run 6 changed nothing to mark. Half split at run start: 1 `CharacterCardReadbackView` byte pin · 2 `pass-unlock` rest (`MPCommerceGate.purchasesEnabled = false`) | 3 P2-5c. A half (1–2) still blocked.
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 46 failing / baseline 46 / **new 0**. **Half done**; run stops here per the 15:45 split rule.
+
+Coordinator: same asks as continue 49 (release the `CharacterCardReadbackView` pin or turn pass purchase on; re-sweep `e5b-badge-wall`, `a11y-badges-ax5`, `d2-me`).
