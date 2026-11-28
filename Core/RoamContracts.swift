@@ -128,6 +128,12 @@ public struct RoamRouteNode: Decodable, Equatable, Identifiable {
             productType = nil
         }
     }
+    /// MP `_fetchNearbyMerchants` (pages/roam/index.js:1394): a shop attached to a topic stays on the
+    /// live merchant layer only when that topic is 自由探索 (`productType == 2`); 城市定向 topic shops are dropped.
+    public var isLiveMerchantLayerShop: Bool {
+        guard let topicId, topicId != 0 else { return true }
+        return productType == 2
+    }
 }
 
 /// A strict public-field whitelist. Retired `hangout` and unknown kinds are excluded by the service.

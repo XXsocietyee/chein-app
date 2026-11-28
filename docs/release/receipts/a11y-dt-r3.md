@@ -274,14 +274,26 @@ Not done item 2: VoiceOver values built as `"\(a) / \(b)"` (read "slash" / "斜�
 | character counters (playkit note + short message, trust report, creator text field + rehearsal, orient/report appeals ×3, object-card rename, player content ×2, stamp slip caption, member report, contextual review, journey review) | `PlayKitPersonalForms.swift`, `CommunityTrustPlayerViews.swift`, `TemplateCreatorConfigurationView.swift`, `TemplateCreatorRehearsalView.swift`, `MPGap/Member/OrientScoreGapViews.swift`, `MPGap/Member/ReportAppealAndCouponSummaryViews.swift`, `MPGap/PlayRoam/ObjectCardCategoryAndRenameSheets.swift`, `MPGap/PlayerContent/PlayerContentRound2Views.swift`, `MPGap/PlayerContent/PlayerContentRound4Views.swift`, `RoamSubpageParityViews.swift`, `CommunityMemberReportSheet.swift`, `ContextualReviewComposer.swift`, `JourneyReportViews.swift` | ✓ | → `a11y.value.characters` | Done |
 | badge wall ring (zh) | `ObjectBadgeWallParityViews.swift:57` | ✓ (mp-mine owns order) | "已点亮 3 / 6 枚徽章" → "已点亮 3 枚徽章，共 6 枚" | Done |
 
+## Run 16 (2026-11-28, half-hourly)
+Merged `origin/ui/combined-r7` (793c3190b). Sweep 23:37Z (build 793c3190b) a11y sheets read: build predates run 15 (d926759a1 not
+an ancestor), so `a11y-roam-ax5` still shows the black panel; re-read stays open. Badge wall ring-above-heading ✓, passport capsules ✓.
+Not done item 2 (VoiceOver slash scan, rest): types checked against Core contracts; integer pairs → `a11y.value.ofTotal`.
+
+| MP page / surface | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `subpackageMember` attributes (AXP progress, today / soft cap) | `MemberAttributesSection.swift:68,74` | ✓ (mp-mine owns order) | "120 / 500" → "120 of 500" / "120，共 500" | Done |
+| Home return-account row | `HomeReturnSection.swift:23`, `NativeHomeReturnSection.swift:28` | ✓ (mp-home owns order) | same (Int64 pair) | Done |
+| Club channel progress meter + team rows | `NativeChannelProgressBoardView.swift:327`, `NativeChannelProgressEntry.swift:150` | ✓ (mp-club owns order) | same | Done |
+| `pages/play` lead sheet arrived / play lead arrived | `PlayToolsAndLeadSheetView.swift:264`, `PlayExperienceView.swift:1986` | ✓ (mp-journey owns order) | same | Done |
+| `pages/topic` route progress | `TopicRouteMapAndTeamsSection.swift:45` | ✓ (mp-publish owns order) | same | Done |
+| Creator rehearsal hotspots, rule-step count, editor add-row limit, prefab check score / DC | `TemplateCreatorRehearsalView.swift:117`, `TemplateAuthoringRuleFields.swift:58`, `EditorKitLists.swift:135`, `PlayPrefabRuntimeView.swift:50` | ✓ | same | Done |
+
 ## Not done (next run starts here)
-- Re-read `en-a11y-roam-ax5` after the next sweep (newer than b3b03703a) to confirm the peek line reads on the black panel.
-- VoiceOver slash scan, rest (types not verified as integers this run, so left alone): `PlayKitSensorChallengeView.swift:139`,
-  `HomeReturnSection.swift:23` / `NativeHomeReturnSection.swift:28`, `MemberAttributesSection.swift:68,74`, `ObjectBadgeWallParityViews.swift:36`,
-  `PlayPrefabRuntimeView.swift:50`, `PlayRuntimeGapViews.swift:397`, `NearbyAndHistoryGapViews.swift:91`, `PlayToolsAndLeadSheetView.swift:264`,
-  `TopicRouteMapAndTeamsSection.swift:45`, `PlayExperienceView.swift:1986`, `TemplateCreatorRehearsalView.swift:117`,
-  `NativeChannelProgressBoardView.swift:327`, `NativeChannelProgressEntry.swift:150`, `EditorKitLists.swift:135`, `TemplateAuthoringRuleFields.swift:58`,
-  `FreeExploreBundleLaunchView.swift:157`, `PlayKitDecisionProgressViews.swift:122`.
+- Re-read `en-a11y-roam-ax5` after the next sweep (build must contain d926759a1) to confirm the peek line reads on the panel.
+- Slash scan leftovers, types not plain integer pairs (verify first): `PlayKitSensorChallengeView.swift:139` (ball hits/goal),
+  `PlayRuntimeGapViews.swift:397` (backpack), `NearbyAndHistoryGapViews.swift:91` (team memberCount/capacity),
+  `FreeExploreBundleLaunchView.swift:157` (step "n/N · title"), `PlayKitDecisionProgressViews.swift:122` (steps with percent).
+  `ObjectBadgeWallParityViews.swift:36` counts are em-dash strings by design: leave.
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch

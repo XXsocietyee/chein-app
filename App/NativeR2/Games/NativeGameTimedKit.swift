@@ -118,6 +118,10 @@ import SwiftUI
                     LabeledContent {
                         Text(verbatim: segment["toleranceMs"].integer.map { PlayTimedDisplayLocalization.tolerance($0, locale: locale) } ?? "—").monospacedDigit()
                     } label: { Text("playkit.stopwatch.tolerance") }
+                    // MP `sw__tip`: the server's XP_BADGE_ONLY ceiling note under 目标 / 误差.
+                    if segment["rewardCeiling"].text == "XP_BADGE_ONLY" {
+                        Text("playkit.rewardNote.xpBadgeOnly").font(.footnote).foregroundStyle(.secondary)
+                    }
                 }
             }
         } header: {
