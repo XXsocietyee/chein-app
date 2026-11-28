@@ -391,9 +391,21 @@ Merged `origin/ui/combined-r7` (already up to date). Sweep **ad55acd94** (03:04Z
 | `pages/playkit` 每日一签 (daily sign scratch) | `NativeR2/Games/ChoiceKits.swift` (`ChoiceDailySignKit`) | ✓ (mp-journey owns order) | Scratch reveal advanced the stage with a spring always → resolved through Reduce Motion | Done |
 | Player kit header circles, sheet modal close, camera card reveal, sort kits, club ops event, payout receiver, player parity B, CYTilt | `DesignSystem/CYPlayerKit.swift`, `DesignSystem/CYSheetModal.swift`, `NativeR2/Games/CameraKits.swift`, `NativeR2/Games/NativeGameSortKits.swift`, `ClubOpsEventView.swift`, `ClubPayoutReceiverView.swift`, `PlayerParityBViews.swift`, `DesignSystem/CYTilt.swift` | ✓ | Audit: 36 / 28 / 32 pt circles sit inside 44 pt hit frames and are labelled; camera reveal is an opacity fade (the Reduce Motion fallback itself); tilt consumers (`MotionR2`, `CYFoil`, onboarding light) already gate on Reduce Motion; no 1-line limits or raw sizes. `CYTeamMemberRow` seat badge text in a 32 pt circle is fixture-only today (note for when it is mounted). No change | Done |
 
+## Run 24 (2026-11-28, half-hourly)
+Branch up to date with `origin/ui/combined-r7` (733bfb368). Sweep **733bfb368** (03:49Z) a11y sheets read, en + zh-Hans:
+passport capsules full-width ✓, roam peek wraps on the light panel ✓; `a11y-badges-ax5` ring count "3/6" stayed ~23 pt under
+~40 pt AX5 headings. No open coordinator finding for this lane.
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/badge-wall` (fixture `a11y-badges-ax5`) | `DesignFixtures/E5bFixtures.swift` → `ObjectBadgeWallParityViews.swift` | ✓ (mp-mine owns order) | Fixture drew the fixture-only `CYCountRing`; now the shipped `CYAlbumProgressRing` (size 84, grows 1.4x at AX sizes, labelled "3 of 6 badges unlocked") so the sweep checks the real ring. Screenshot: `a11y-dt/sheet-en.jpg` tile 1 | Done |
+| Stamp slam celebration (passport book tile) | `DesignSystem/CYCelebrationViews.swift` (`CYStampSlamView`) | ✓ | `.title2` book glyph in a fixed 48 pt tile overflowed at AX sizes → `@ScaledMetric(relativeTo: .title2)` capped 88 | Done |
+| `subpackageJourney` route stops (play detail route list) | `DesignSystem/CYBusinessComponents.swift` (`CYRouteNodeRow`, used by `PlayExperienceView.swift:385`) | ✓ (mp-journey owns order) | Stop number / check / lock (`.caption`) in a fixed 28 pt node and 28 pt rail clipped at AX sizes → `@ScaledMetric(relativeTo: .caption)` capped 56 for node and rail | Done |
+| `pages/roam` finish report (漫游总结) | `RoamFinishReportView.swift` (`bottomBar`) | ✓ (mp-roam owns order) | Share + Done half-width capsules with `lineLimit(1)` cut the labels at AX sizes → `AnyLayout` stacks them full-width at accessibility sizes (Share above the primary Done, order kept) | Done |
+
 ## Not done (next run starts here)
-- Continue pages without a row (largest player views next; pick by `wc -l App/*.swift`, skip Merchant / Fixture / Diagnostics).
-- Re-read the a11y sheets after the next sweep (newer than ad55acd94).
+- Continue pages without a row (largest player views next; pick by `wc -l App/*.swift`, skip Merchant / Fixture / Diagnostics). Next candidates: `CYDesignComponents.swift`, `NativeGallery/NativeGalleryScreens.swift`, `OfficialOrganizerConsoleView.swift`.
+- Re-read the a11y sheets after the next sweep (newer than 733bfb368; confirm the badge ring now scales in `a11y-badges-ax5`).
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch
