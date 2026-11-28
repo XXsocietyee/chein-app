@@ -627,7 +627,7 @@ enum ReviewedPlayerReadRoute {
     static let imPaths: Set<String> = ["api/im/send", "api/im/send-receipt"]
     static let clubCommunityPaths: Set<String> = [
         "api/club/post/create", "api/club/post/update", "api/club/post/like", "api/club/post/report",
-        "api/club/post/delete", "api/club/post/comment/create", "api/club/post/comment/delete",
+        "api/club/post/delete", "api/club/post/pin", "api/club/post/comment/create", "api/club/post/comment/delete",
         "api/club/post/comment/report", "api/club/post/repost", "api/club/post/repost/undo", "api/club/chat"
     ]
     static let squarePaths: Set<String> = [
@@ -1011,6 +1011,22 @@ enum ReviewedPlayerReadRoute {
         if let existing = clubCommunityReadByContext[key], !existing.isRevoked, Date() < existing.expiresAt { return existing }
         guard let issued = try? ClubCommunityReadApproval(context: context, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
         clubCommunityReadByContext[key] = issued
+        return issued
+    }
+
+    private var clubPostImageUploadByKey: [String: ClubPostImageUploadApproval] = [:]
+    /// P1-13 (MP pages/club/detail post composer → `api/common/uploadOSS`, `bizType=club_post_image`): the club post
+    /// image upload, issued per viewer context and club with the same OSS/CDN origins as the avatar upload. Cached so
+    /// the transport's equality fence holds. Not money.
+    func clubPostImageUpload(_ context: RuntimeDependencyContext, clubID: Int) -> ClubPostImageUploadApproval? {
+        guard socialRole(context), clubID > 0 else { return nil }
+        let key = contextKey(context) + "|club:\(clubID)"
+        if let existing = clubPostImageUploadByKey[key] { return existing }
+        let origins = RetainedImageOrigin.configured(apiBase: context.baseURL,
+            extra: Bundle.main.object(forInfoDictionaryKey: "CYStampImageOrigins") as? String)
+        guard let issued = try? ClubPostImageUploadApproval(baseURL: context.baseURL, namespace: context.session.namespace,
+            accountID: context.session.accountID, clubID: clubID, approvedOrigins: origins, nativePicker: true) else { return nil }
+        clubPostImageUploadByKey[key] = issued
         return issued
     }
 
@@ -1572,6 +1588,7 @@ extension AppCompositionRoot {
         nativeFriendTeamInviteApproval = { [gates] context, mode in gates.friendTeamInvite(context, mode: mode) }
         nativeFriendChannelSourceApproval = { [gates] context, channelID in gates.friendChannelSource(context, channelID: channelID) }
         clubCommunityReadApproval = { [gates] context in gates.clubCommunityRead(context) }
+        clubPostImageUploadApproval = { [gates] context, clubID in gates.clubPostImageUpload(context, clubID: clubID) }
         nativeChannelManagementApproval = { [gates] context, viewer, scope in
             gates.channelManagement(context, viewerRevision: viewer, scope: scope)
         }
