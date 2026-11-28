@@ -114,8 +114,8 @@ enum BundlePayResultPresentation: Equatable {
         .listStyle(.insetGrouped)
         .cyHeroScreen()
         .themeDomain(.player)
-        .cyHaptic(.success, trigger: landed) { _, new in new && presentation == .success }
-        .cyHaptic(.warning, trigger: landed) { _, new in new && presentation == .failed }
+        .cyHaptic(.success, trigger: landed && presentation == .success, where: CYHapticTransition.turnedOn)
+        .cyHaptic(.warning, trigger: landed && presentation == .failed, where: CYHapticTransition.turnedOn)
         .onAppear { land() }
         .onChange(of: presentation) { _, _ in landed = false; land() }
     }

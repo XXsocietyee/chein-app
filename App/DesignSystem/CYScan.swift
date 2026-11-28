@@ -402,6 +402,7 @@ struct CYScanResultCard: View {
     @QuestifyReduceMotion private var reduceMotion
     @State private var pendingSince = ContinuousClock.now
     @State private var mark: CYScanMarkKind = .pending
+    private static func succeeded(_ old: CYScanMarkKind, _ new: CYScanMarkKind) -> Bool { new == .success }
     @State private var orbit = false
     @State private var titleIn = false
     @State private var countIn = false
@@ -448,7 +449,7 @@ struct CYScanResultCard: View {
         .frame(maxWidth: .infinity)
         .padding(CYSpacing.xl)
         .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-        .cyHaptic(.success, trigger: mark) { _, new in new == .success }
+        .cyHaptic(.success, trigger: mark, where: Self.succeeded)
         .task(id: state) { await sequence() }
     }
 

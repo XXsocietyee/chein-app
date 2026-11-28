@@ -737,7 +737,7 @@ private struct DemoRow: View {
                 .contentTransition(.opacity)
         }
         .animation(reduceMotion ? CYMotion.reduced : OBMotion.demoSuccess, value: done)
-        .cyHaptic(haptic, trigger: done) { old, new in !old && new }
+        .cyHaptic(haptic, trigger: done, where: CYHapticTransition.turnedOn)
         .task {
             guard autoplay, !done else { return }
             try? await Task.sleep(for: .milliseconds(1000))
@@ -805,7 +805,7 @@ private struct GOHoldDemo: View {
         .padding(.vertical, CYSpacing.xs)
         .obGlassCapsule()
         .animation(.easeInOut(duration: 0.2), value: done)
-        .cyHaptic(.impactHeavy, trigger: done) { old, new in !old && new }
+        .cyHaptic(.impactHeavy, trigger: done, where: CYHapticTransition.turnedOn)
         .task {
             // Fixture capture: hold 900 ms (ticks at 200 / 400 ms), then commit.
             guard autoplay, !done else { return }

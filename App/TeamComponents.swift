@@ -376,7 +376,7 @@ struct TeamMemberRow: View {
                 }
             }
         }
-        .sensoryFeedback(trigger: copyFeedbackCount) { _, _ in copyMessageKey == "team.invite.copied" ? SensoryFeedback.success : SensoryFeedback.warning }
+        .sensoryFeedback(trigger: copyFeedbackCount, copyFeedback)
         .cyDomainSheet(detents: [.half, .full])
         .onAppear { copyPermit = model.beginInvitePreview() }
         .onChange(of: team) { _, _ in endPreview() }
@@ -393,5 +393,12 @@ struct TeamMemberRow: View {
         }
         copyMessageKey = copied ? "team.invite.copied" : "team.invite.unavailable"
         copyFeedbackCount += 1
+    }
+}
+
+private extension TeamInvitePreview {
+    /// Typed haptic: success when the invite was copied, warning when the copy failed.
+    func copyFeedback(_ old: Int, _ new: Int) -> SensoryFeedback? {
+        copyMessageKey == "team.invite.copied" ? SensoryFeedback.success : SensoryFeedback.warning
     }
 }

@@ -443,8 +443,8 @@ extension EnvironmentValues {
     let celebrate: @MainActor () -> Void
     func body(content: Content) -> some View {
         content
-            .sensoryFeedback(.error, trigger: wrongReply) { _, next in next != nil }
-            .sensoryFeedback(.success, trigger: verdict) { old, next in old != .passed && next == .passed }
+            .sensoryFeedback(.error, trigger: wrongReply, condition: CYHapticTransition.isSet)
+            .sensoryFeedback(.success, trigger: verdict == .passed, condition: CYHapticTransition.turnedOn)
             .onChange(of: wrongReply) { _, next in
                 if let next, !next.isEmpty { AccessibilityNotification.Announcement(next).post() }
             }

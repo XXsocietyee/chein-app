@@ -55,7 +55,7 @@ import UIKit
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { toolbar }
         .safeAreaInset(edge: .bottom) { captureButton }
-        .sensoryFeedback(.success, trigger: createdStampID) { _, new in new != nil }
+        .sensoryFeedback(.success, trigger: createdStampID, condition: CYHapticTransition.isSet)
         .navigationDestination(item: $createdStampTarget) { target in
             if let album, target.isCurrent(reader: album.reader) {
                 RoamCreatedStampView(target: target, album: album)

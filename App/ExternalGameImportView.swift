@@ -118,7 +118,7 @@ import WebKit
         .animation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion), value: store.installedGames.map(\.manifest.id))
         .editorToast($undoCenter.toast)
         // CF-62: a confirmed install lands as a new row (slides in on `CYMotion.standard`) with one success tap.
-        .sensoryFeedback(.success, trigger: store.installedGames.count) { old, new in new > old }
+        .sensoryFeedback(.success, trigger: store.installedGames.count, condition: CYHapticTransition.increased)
         .onAppear { undoCenter.attach(undoManager) }
         .onDisappear { for id in Array(pendingRemoval.keys) { commitRemoval(id, token: pendingRemoval[id]) } }
         .cySheet(isPresented: $showingImportSheet) {

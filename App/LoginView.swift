@@ -86,14 +86,11 @@ struct LoginView: View {
         }
     }
 
-    /// The sign-in form, split out of `stack(_:)` so each part type-checks in time.
-    private func loginForm(_ model: AuthChannelModel) -> some View {
-        Form {
-            loginHeaderSection
-            if !consentGranted {
-                // Asked here only when the launch agreement was declined (P-008: consent is asked once).
-                UsageConsentSignInRequirement(market: session.operationalMarket, granted: $consentGranted)
-            }
+    /// Phone entry, split out of `loginForm(_:)` so the form type-checks in time.
+    @ViewBuilder private var phoneEntrySection: some View {
+        // Owner 11-28 04:30 (P27 order): phone first in both markets (+86 / +1, default from the market);
+        // the US page appears once the deployment verified `.internationalPhone`, otherwise nothing renders.
+        if session.supportsPhoneSignIn {
             Section {
                 Button {
                     session.weChatAuth.cancel(); password=""; path.append(.phone)
@@ -101,7 +98,7 @@ struct LoginView: View {
                     recordIntegratedLoginPhase("other_action")
 #endif
                 } label: {
-                    Label(LocalizedStringKey(session.operationalMarket == .china ? "auth.channels.phoneTitle" : "auth.channels.title"), systemImage: "iphone")
+                    Label("auth.channels.phoneTitle", systemImage: "iphone")
                         .frame(maxWidth: .infinity)
                 }
                 .modifier(LoginOtherChannelsStyle(prominent: !showsPasswordForm))
@@ -110,12 +107,25 @@ struct LoginView: View {
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
             }
-            // L1 P-006: Sign in with Apple is on the first screen, Apple's own button, under phone sign-in (20:55 sweep);
-            // gated channels render nothing (P27).
-            appleSignInSection(model)
+        }
+    }
+
+    /// The sign-in form, split out of `stack(_:)` so each part type-checks in time.
+    private func loginForm(_ model: AuthChannelModel) -> some View {
+        Form {
+            loginHeaderSection
+            if !consentGranted {
+                // Asked here only when the launch agreement was declined (P-008: consent is asked once).
+                UsageConsentSignInRequirement(market: session.operationalMarket, granted: $consentGranted)
+            }
+            phoneEntrySection
+            // Owner 11-28 04:30 / P27 order: phone first (+86 / +1), then the third-party row — WeChat (CN), Alipay (CN),
+            // then Sign in with Apple (both markets; Apple's own button). Gated channels render nothing.
             if session.operationalMarket == .china && consentGranted {
                 WeChatAppAuthSection(coordinator: session.weChatAuth, context: session.authChannelSnapshot)
+                AlipayAppAuthSection(coordinator: session.makeAlipayAuthCoordinator(), context: session.authChannelSnapshot)
             }
+            appleSignInSection(model)
             if showsPasswordForm {
                 Section {
                     TextField("auth.username",text:$username)
@@ -149,10 +159,6 @@ struct LoginView: View {
                     .listRowInsets(EdgeInsets())
                     .listRowBackground(Color.clear)
                 }
-            } else if session.operationalMarket != .china {
-                Section {
-                    Text("region.usLoginPending").foregroundStyle(.secondary).accessibilityIdentifier("region.auth.pending")
-                }
             }
             if !showsPasswordForm, let key = shownErrorKey {
                 Section {
@@ -172,7 +178,7 @@ struct LoginView: View {
         switch route {
         case .phone:
             AuthChannelView(embeddedModel: model, sessionSnapshot: session.authChannelSnapshot,
-                            domesticPhoneVisible: session.supportsDomesticPhoneInput)
+                            domesticPhoneVisible: session.supportsPhoneSignIn)
 #if DEBUG
                 .onAppear { recordIntegratedLoginPhase("channels_appear") }
                 .onDisappear { recordIntegratedLoginPhase("channels_disappear") }

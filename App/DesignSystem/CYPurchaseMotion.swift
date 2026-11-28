@@ -187,7 +187,7 @@ struct CYPayPressStyle: ButtonStyle {
         configuration.label
             .environment(\.cyPressHandled, true)
             .cyPressEffect(configuration.isPressed && isEnabled, scale: 0.96, reduceMotion: reduceMotion)
-            .cyHaptic(.impactMedium, trigger: configuration.isPressed) { _, new in new && isEnabled }
+            .cyHaptic(.impactMedium, trigger: configuration.isPressed && isEnabled, where: CYHapticTransition.turnedOn)
     }
 }
 

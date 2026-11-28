@@ -36,11 +36,8 @@ import SwiftUI
         .navigationBarTitleDisplayMode(.inline)
         .themeDomain(.player)
         .cyAnimation(value: model.phase)
-        .cyHaptic(.success, trigger: model.phase) { _, new in
-            if case .claimed = new { return true }
-            return false
-        }
-        .cyHaptic(.warning, trigger: model.phase) { _, new in new == .codeNotAccepted }
+        .cyHaptic(.success, trigger: model.phase, where: Self.transferClaimed)
+        .cyHaptic(.warning, trigger: model.phase == .codeNotAccepted, where: CYHapticTransition.turnedOn)
         .onDisappear { code = "" }
     }
 
@@ -132,3 +129,11 @@ import SwiftUI
     func remove(_ key: String) throws { values[key] = nil }
 }
 #endif
+
+/// Typed haptic condition (design consistency `untyped haptic`): fires when the state lands on `.claimed`.
+private extension BundleTransferClaimView {
+    static func transferClaimed(_ old: BundleTransferClaimPhase, _ new: BundleTransferClaimPhase) -> Bool {
+        if case .claimed = new { return true }
+        return false
+    }
+}

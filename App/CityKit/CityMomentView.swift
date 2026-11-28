@@ -180,7 +180,7 @@ struct CitySeal: View {
             .scaleEffect(landed || reduceMotion ? 1 : 1.6)
             .opacity(landed ? 1 : 0)
             .shadow(color: .black.opacity(0.35), radius: 10, y: 6)
-            .sensoryFeedback(.impact(weight: .heavy), trigger: landed) { _, new in new }
+            .sensoryFeedback(.impact(weight: .heavy), trigger: landed, condition: CYHapticTransition.isOn)
             .accessibilityHidden(true)
     }
 }

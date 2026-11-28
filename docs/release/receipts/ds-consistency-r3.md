@@ -814,6 +814,70 @@ Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0
 ### Not done (next run)
 None from this run.
 
+## Continue run 27 (2026-11-28, after merging combined-r7)
+
+Merge: one conflict in `tools/check_design_consistency.py` (this lane's `section spacing` kind next to the
+coordinator's new `untyped haptic` kind, 04:20); kept both. Run 26 Not done: none. No new coordinator row for this
+lane (latest sweep build 733bfb368 has no ds-consistency fixtures; 04:00 sweep: no new findings).
+
+Scan: one haptic pattern (coordinator 04:20 compile rule; OWNER RULE 2 "consistent logic and patterns"). The new
+`untyped haptic` kind landed with 103 baselined hits. Shared typed transitions added to the motion tokens
+(`App/DesignSystem/CYMotion.swift` `CYHapticTransition.turnedOn / isOn / turnedOff`, Bool) and 55 single-line Bool
+closures across 38 files now pass a named function (`where:` for `cyHaptic`, `condition:` for `sensoryFeedback`);
+`{ old, new in !old && new }` → `turnedOn`, `{ _, new in new }` → `isOn`, `{ _, now in !now }` → `turnedOff`. Same
+transitions, same haptics; no view content touched, MP sections unchanged. `CYInPlaceResult.swift` (shared result
+button, toast, streak row, moment seal) gets typed `private static func` conditions for its non-Bool triggers
+(`CYResultPhase`, `CYResultToastState.Phase`, `Int`).
+
+| Area | Files | Change |
+|---|---|---|
+| App/DesignSystem (result, ticket pass, signature, pass card, onboarding, collectible) | 7 files | closures → `CYHapticTransition` / `Self.becameDone` etc. |
+| App/NativeR2 games, motion, city orientation, free explore | 17 files | closures → `CYHapticTransition` |
+| other player views (roam subpages, login, editor results, bundles, club, publishing …) | 14 files | closures → `CYHapticTransition` |
+
+Checker: untyped haptic **48** baselined (was 103), ratcheted with `--update`. The 48 left are multi-line or
+non-Bool conditions (`new > old`, enum compares) that need a per-view typed func; next run.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(untyped haptic 48, status capsule 29 baselined), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+No compiler in the cloud: every replaced trigger is a Bool expression (checked line by line); next integration build
+confirms.
+
+Batch 2 (same run): `CYHapticTransition` gains generic `isSet` (any change ending non-nil), `becameSet` (nil → value)
+and `increased` (Int up). 11 more sites: `EditorKitLists:203`, `NativeStampCaptureView:58`, `CameraKits:264`,
+`CityOrientationPunchSheet:110`, `NativeGameShell:446`, `ClubGovernanceViews:799`, `ClubLeadPrimaryActionView:115`
+(isSet); `BankWithdrawalView:79`, `QuestifyApp:500` (becameSet); `ExternalGameImportView:121` (increased);
+`CouponCodeView:64` (inline `where:` closure → turnedOn). Per-view typed statics: `ClubContextualViews:139-140`
+(`ClubOpsTimeState` acknowledged / rejected), `CYScan:451` (`CYScanMarkKind.success`). Untyped haptic **34** baselined.
+Gates as above, `contract_ratchet` new 0.
+
+### Not done (next run)
+- untyped haptic: the remaining 34 read view state inside the condition (`presentation`, `visible`, `kind`,
+  `isEnabled`, `nodeID`) or span lines → move each into a small typed `ViewModifier` (pattern
+  `RegistrationSelectionHaptics`), largest files first (`ChanceKits`, `NativeGameSensorKit`, `RoamFogMapView`).
+
+## Continue run 28 (2026-11-28, after merging combined-r7, 38 commits)
+
+Run 27 Not done row: the last 34 untyped haptic conditions → **0** (gate kind `untyped haptic` now baselines 0 hits).
+
+| Pattern | Sites | Change |
+|---|---|---|
+| `{ _, new in new == .x }` / `old != .x && new == .x` / `old < 1 && new >= 1` | `ChallengePOIView:81`, `IMConversationReadAllView:101`, `PlayInPlayTools:99`, `TemplateQuestionMediaPickers:221`, `BundleTransferClaimView:43`, `NativeGameShell:447`, `ChoiceKits:148`, `ChanceKits:336-337`, `ClubManagementView:561` | Bool trigger (`state == .x`) + `CYHapticTransition.turnedOn` |
+| condition mixes a constant (`let presentation`, `let kind`, `nodeID`, `isEnabled`) | `BundlePayResultView:117-118`, `NativeGameSensorKit:140-141`, `CityOrientationPunchSheet:109`, `CYPurchaseMotion:190`, `EditorKitResults:71` | constant folded into the Bool trigger + `turnedOn` |
+| `if case .x = new` (associated-value enums) | `BundleReviewComposeView`, `BundleTransferSendView`, `BundleTransferClaimView`, `ChapterReplacementInvitationView`, `IMConversationRowActionsView`, `IMSafetyReviewView` | per-view typed `static func` in a `private extension` |
+| `!next.isEmpty && old != next`, `old != nil && new != nil && old != new`, `new != nil && old != new` | `ChanceKits:61/153/231`, `CYGlassCarousel:129`, `PublishingAIDraftSheet:145` | new shared `CYHapticTransition.nonEmpty` / `bothSet`, existing `isSet` |
+| condition reads view state, or returns the feedback | `RoamFogMapView:139-140`, `CYSegmentedContent` (`CYLoadingChoreography:173`), `NativeGameTimedKit:240`, `PlayKitTimedChallengeView:134`, `TeamInvitePreview` (`TeamComponents:379`) | named instance func in a `private extension` (`revealAdvanced`, `playsSelectionHaptic`, `measuredFeedback`, `copyFeedback`) |
+
+Semantics: every Bool trigger fires on the same transitions as the closure it replaces (the folded terms are `let`
+properties or stable for the view's life); `onChange` only fires on a change, so `old != new` terms were redundant.
+No compiler in the cloud: the next integration build confirms.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(untyped haptic 0, status capsule 29 baselined), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
+### Not done (next run)
+- status capsule (29 baselined): move per-page soft-tint capsules to `CYStatusChip`, largest files first.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

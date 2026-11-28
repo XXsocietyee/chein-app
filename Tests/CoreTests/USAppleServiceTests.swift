@@ -72,7 +72,8 @@ final class USAppleServiceTests: XCTestCase {
         XCTAssertTrue(transport.requests.isEmpty)
         let regional = try RegionalConfiguration(market: .unitedStates, baseURL: "https://us.example.com",
             approvedBaseURLs: [.unitedStates: ["https://us.example.com"]], verifiedCapabilities: Set(RegionalCapability.allCases))
-        XCTAssertTrue(regional.availableCapabilities.isEmpty)
+        // Owner 11-28 04:30: only +1 phone sign-in is implemented for the US; Apple stays behind its production gate.
+        XCTAssertEqual(regional.availableCapabilities, [.internationalPhone])
     }
     func testOnlyApprovedTLSUSOriginAndExplicitRealmAreAccepted() throws {
         let approved = "https://us.example.com"
