@@ -602,3 +602,15 @@ Merged `origin/ui/combined-r7` (clean). No new mp-mine rows in the brief (the 12
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**. `tools/check_personal_location_share.py` has 3 failures before and after this change (not ours).
 
 Not done: `CharacterCardReadbackView` byte pin. Coordinator: please re-sweep `e4-settings` (zh-Hans + en) to confirm the grouped sections render as one list per group.
+
+## Continue 37 (11-28, hourly run): d2-me identity card hairlines
+
+Merged `origin/ui/combined-r7` (clean). Brief rows after 07:45 for mp-mine: the 13:15 "成为商家" Settings row goes to K12 (`cursor/1128-merchant-gate`), so skipped; the 13:15 票夹 "generic grey ticket glyph" note is from build 0446d1c4f, which predates our pass cards (`27099b8ae`, continue 34; now in combined-r7) — please re-sweep `e4-tickets`. Screens checked: `docs/sweeps/latest/mp-mine/zh-Hans-d2-me.jpg`, `en-d2-me.jpg`.
+
+| MP page | Native file | MP sections | Level | Fixed now |
+|---|---|---|---|---|
+| `subpackageMember/components/cy/profile` identity card (wxml hero → name/level/city → 好友/关注/粉丝 → actions) | `App/MemberHomeHeader.swift` `MemberIdentityCardSection`, new `MemberCardSeparatorEdge` | ✓ (unchanged order) | B | **Fixed.** The card's list hairlines started at two different insets (under the city text ≈165 pt, then under 好友 ≈80 pt), so the card looked broken into pieces. The identity row, streak row, assets row and counters row now start their separator at the row's leading edge (`.alignmentGuide(.listRowSeparatorLeading)`, the same pattern as `OrderLifecycleView`), so every hairline in the card has one inset. No content, order or identifier change. |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+Not done: `CharacterCardReadbackView` byte pin. Coordinator: please re-sweep `d2-me` and `e4-tickets`.
