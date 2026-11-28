@@ -186,7 +186,8 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                         }
                     }
                     SessionClubPublicActivityListView(clubID: id, session: session, onSignIn: onSignIn, embedded: { openedTopicID = $0 },
-                        undertake: viewerDomain == .merchant ? { r8Route = .undertake(topicID: $0) } : nil,
+                        // K12: 邀约承接 opens merchantinfo. Hidden in Release even for a merchant-role account.
+                        undertake: PlayerLaunch.merchantCenterEnabled && viewerDomain == .merchant ? { r8Route = .undertake(topicID: $0) } : nil,
                         onPublish: canManageActivities(club) ? { r8Route = .publish } : nil,
                         groupCode: groupCodeCardAction(club))
                 }

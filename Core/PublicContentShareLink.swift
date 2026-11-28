@@ -60,9 +60,16 @@ public enum PublicContentShareLink {
         return url
     }
 
-    /// Mini-program `subpackageRoam/poi-detail/index?id=`. Nil while that path is not already parsed.
+    /// Mini-program `subpackageRoam/poi-detail/index?poiId=` (mp-nav r3: MP poi-detail/index.js:4 long-term contract,
+    /// utils/place-share.js; the MP page opened with `?id=` shows 找不到这个节点). Nil while that path is not parsed back
+    /// to the same place.
     public static func poi(id: Int) -> URL? {
-        universalLink(path: NativeContentTarget.Kind.poi.sourcePath, id: id)
+        let path = NativeContentTarget.Kind.poi.sourcePath
+        guard let origin, canonicalID(String(id)) != nil,
+              let url = URL(string: "\(origin)\(path)?poiId=\(id)"),
+              let intent = UniversalLinkParser(verifiedHTTPSOrigins: [origin]).parse(url),
+              case .content(let target) = intent, target.kind == .poi, target.id == id else { return nil }
+        return url
     }
 
     /// Mini-program `pages/talent/list/index?tab=`. Nil while that page is not already a universal link.
@@ -95,6 +102,19 @@ public enum PublicContentShareLink {
         return reviewedPage(TopicClubShareLink.page, items: items)
     }
 
+    /// T-02 (MP pages/team/detail/index.js:546 `onShareAppMessage` path `/pages/team/join/index?code=`): the team
+    /// invite as an https universal link carrying only the code. Nil when it would not parse back to the same invitation.
+    public static func teamInvite(code: String) -> URL? {
+        guard let origin else { return nil }
+        var components = URLComponents(string: origin)
+        components?.path = "/pages/team/join/index"
+        components?.queryItems = [URLQueryItem(name: "code", value: code)]
+        guard let url = components?.url,
+              let intent = UniversalLinkParser(verifiedHTTPSOrigins: [origin]).parse(url),
+              case .teamInvitation(let route) = intent, route.code == code, route.fromTeamID == nil else { return nil }
+        return url
+    }
+
     /// Builds `origin/<page>?<items>` and keeps it only when the existing universal-link parser reads back the same page.
     private static func reviewedPage(_ page: String, items: [URLQueryItem]) -> URL? {
         guard let origin, let link = MiniProgramPageLink(path: page, items: items) else { return nil }
@@ -116,7 +136,7 @@ public enum PublicContentShareLink {
     /// Path text for a POI whose route is not a universal link. Not a URL.
     public static func poiCopyText(id: Int) -> String? {
         guard canonicalID(String(id)) != nil, poi(id: id) == nil else { return nil }
-        return "\(NativeContentTarget.Kind.poi.sourcePath)?id=\(id)"
+        return "\(NativeContentTarget.Kind.poi.sourcePath)?poiId=\(id)"
     }
 
     /// Path text for the talent club hub when it is not a universal link. Not a URL.

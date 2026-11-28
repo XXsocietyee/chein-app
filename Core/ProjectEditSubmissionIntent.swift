@@ -32,6 +32,8 @@ public enum ProjectEditSubmissionIntent: String, Codable, Equatable {
         if draft.chapters.isEmpty { absent.insert("chapters") }
         // MP draftView: a draft drops clues whose unlock chapter is gone instead of stopping the save.
         absent.insert("castClueChapter")
+        // MP index.js:7743: a cloud draft skips the runtime-structure check (运行结局 included).
+        absent.insert(ProjectEditRuntimeEndings.issueID)
         for (index, chapter) in draft.chapters.enumerated() {
             if !chapter.hasRealStory { absent.insert("story\(index)") }
             if chapter.nodes.isEmpty { absent.insert("nodes\(index)") }

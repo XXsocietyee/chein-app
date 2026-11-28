@@ -1,0 +1,278 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "projectNodeArrival.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrival and guide"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到达与引导"
+          }
+        }
+      }
+    },
+    "projectNodeArrival.summary.unset": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not set"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未配置"
+          }
+        }
+      }
+    },
+    "projectNodeArrival.summary.reselect": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需重选"
+          }
+        }
+      }
+    },
+    "projectNodeArrival.place": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrival place"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到达地点"
+          }
+        }
+      }
+    },
+    "projectNodeArrival.place.choose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a node of this theme"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择本主题节点"
+          }
+        }
+      }
+    },
+    "projectNodeArrival.place.node %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Node %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "节点 %lld"
+          }
+        }
+      }
+    },
+    "projectNodeArrival.place.shared %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shared place (%@)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已有共用地点（%@）"
+          }
+        }
+      }
+    },
+    "projectNodeArrival.guide": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Staff-guided quiz"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "工作人员引导答题"
+          }
+        }
+      }
+    },
+    "projectNodeArrival.fallback": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup nodes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备用节点"
+          }
+        }
+      }
+    },
+    "projectNodeArrival.fallback.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save other nodes first"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先保存其它节点"
+          }
+        }
+      }
+    },
+    "projectNodeArrival.fallback.footer %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Players who can't reach this place can finish at one of these nodes instead. Up to %lld."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到不了这里时，可以改在这些节点完成，最多 %lld 个。"
+          }
+        }
+      }
+    },
+    "projectNodeArrival.refuse.saveNode": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save this node first, then set arrival and guide"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先保存这个节点，再设置到达与引导"
+          }
+        }
+      }
+    },
+    "projectNodeArrival.refuse.challenge": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zero-HP challenge stops don't use arrival and guide"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "归零挑战站不设置到达与引导"
+          }
+        }
+      }
+    },
+    "projectNodeArrival.refuse.guide": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an objective-question game type; the guide uses its own questions and answers"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择已有客观题玩法；引导使用该玩法原有题目和答案"
+          }
+        }
+      }
+    },
+    "projectNodeArrival.refuse.fallbackLimit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose up to 20 backup nodes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多选择 20 个备用节点"
+          }
+        }
+      }
+    },
+    "projectNodeArrival.refuse.place": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose the arrival place first"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先选择到达地点"
+          }
+        }
+      }
+    },
+    "projectNodeArrival.matrixFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't read which game types support a guide. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有读到玩法支持范围，请重试"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

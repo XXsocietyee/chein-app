@@ -101,4 +101,6 @@ public extension NearbyTeamSession {
     init(teamSession: TeamSession) {
         self.init(accountID: teamSession.accountID, epoch: teamSession.epoch, region: teamSession.region, namespace: teamSession.storageNamespace, role: teamSession.role)
     }
+    /// Same key as `TeamSession.ownerKey`, so the list page reads the journal the team page writes.
+    var teamOwnerKey: String { TeamSession.ownerKey(region: region, storageNamespace: namespace, accountID: accountID) }
 }

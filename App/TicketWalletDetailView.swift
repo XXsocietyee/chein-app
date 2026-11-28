@@ -430,5 +430,7 @@ private struct TicketWalletEntitlementRow: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }.padding(.vertical, 6)
+        // a11y-dt: chapter, status, redeemed time and reason read as one row in VoiceOver (no controls inside).
+        .accessibilityElement(children: .combine)
     }
 }

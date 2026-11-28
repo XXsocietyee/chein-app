@@ -694,7 +694,7 @@ public enum PlayThemeTradeRules {
             switch status {
             case "OPEN": statusText = W8Text.t("等待双方队长确认", "Waiting for both captains")
             case "COMPLETED": statusText = W8Text.t("已交换", "Exchanged")
-            case "CANCELLED": statusText = W8Text.t("已取消", "Cancelled")
+            case "CANCELLED": statusText = W8Text.t("已取消", "Canceled")
             default: statusText = status
             }
             let confirmedTeams = (row["confirmedTeams"].array ?? []).map { $0.tolerantInteger.map(String.init) ?? $0.text ?? "" }
@@ -871,7 +871,7 @@ public enum PlayThemePlayerOpsRules {
         switch status {
         case "PAUSED": statusText = W8Text.t("主持人已暂停本局：暂停期间只能查看，不能提交操作", "The host paused this run: view only, no actions while paused")
         case "INTERRUPTED": statusText = W8Text.t("主持人已中断本局：只能查看，进行中的任务已结束", "The host interrupted this run: view only; active tasks ended")
-        case "CANCELLED": statusText = W8Text.t("主持人已取消本局：只能查看，进行中的任务已结束", "The host cancelled this run: view only; active tasks ended")
+        case "CANCELLED": statusText = W8Text.t("主持人已取消本局：只能查看，进行中的任务已结束", "The host canceled this run: view only; active tasks ended")
         default: statusText = ""
         }
         let modeText: String
@@ -1265,7 +1265,7 @@ public enum PlayThemePlansRules {
         "FUNDED": W8Text.t("已凑齐", "Fully funded"),
         "LOCKED": W8Text.t("已锁定", "Locked"),
         "RESOLVED": W8Text.t("已执行", "Executed"),
-        "CANCELLED": W8Text.t("已取消", "Cancelled"),
+        "CANCELLED": W8Text.t("已取消", "Canceled"),
         "EXPIRED": W8Text.t("已过期", "Expired"),
     ]
 

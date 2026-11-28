@@ -64,6 +64,7 @@ extension EnvironmentValues {
 struct ProfileInviteLatestEarnCard: View {
     let member: SocialInvitedMember
     let reward: SocialInviteReward
+    @Environment(\.locale) private var locale
     var body: some View {
         HStack(alignment: .center) {
             CYAvatarView(url: member.avatar.flatMap { URL(string: $0) }, name: member.nickname ?? "—", size: .lg)
@@ -79,7 +80,7 @@ struct ProfileInviteLatestEarnCard: View {
             }
             Spacer()
             if let time = reward.createdAt, !time.isEmpty {
-                Text(verbatim: WalletPointsShortTime.text(time)).font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
+                Text(verbatim: WalletPointsShortTime.text(time, locale: locale)).font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
             }
         }
         .accessibilityElement(children: .combine)
