@@ -28,7 +28,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Quests"
+            "value": "Challenges"
           }
         }
       }
@@ -44,7 +44,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Live"
+            "value": "Interactive"
           }
         }
       }
@@ -348,7 +348,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Import scanning"
+            "value": "Import by scanning"
           }
         }
       }

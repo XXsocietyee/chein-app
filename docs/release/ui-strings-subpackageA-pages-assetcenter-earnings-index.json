@@ -187,7 +187,7 @@
     {
       "key": "wallet.earnings.stages.retry",
       "table": "WalletEarningsOverview",
-      "en": "Try",
+      "en": "Try again",
       "zh-Hans": "重试",
       "accessibilityIdentifier": "wallet.earnings.stages.retry"
     },

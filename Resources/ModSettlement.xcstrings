@@ -182,7 +182,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Creator payout eligibility"
+            "value": "Creator settlement eligibility"
           }
         },
         "zh-Hans": {
@@ -198,7 +198,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Eligibility"
+            "value": "Eligibility revision"
           }
         },
         "zh-Hans": {
@@ -358,7 +358,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Payout details"
+            "value": "Settlement details"
           }
         },
         "zh-Hans": {
@@ -454,7 +454,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original record"
+            "value": "Original record references"
           }
         },
         "zh-Hans": {

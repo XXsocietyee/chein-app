@@ -22,7 +22,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use your location once to confirm you’re store"
+            "value": "Use your location once to confirm you’re at the store"
           }
         },
         "zh-Hans": {
@@ -70,7 +70,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdraw approval"
+            "value": "Withdraw authorization"
           }
         },
         "zh-Hans": {
@@ -118,7 +118,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You can go"
+            "value": "You can go now"
           }
         },
         "zh-Hans": {
@@ -134,7 +134,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "There's queue. Consider another store first."
+            "value": "There's a queue. Consider another store first."
           }
         },
         "zh-Hans": {
@@ -390,7 +390,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirming approval…"
+            "value": "Confirming authorization…"
           }
         },
         "zh-Hans": {
@@ -694,7 +694,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Station already complete"
+            "value": "This station is already complete"
           }
         },
         "zh-Hans": {
@@ -726,7 +726,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Answer has already been recorded"
+            "value": "This answer has already been recorded"
           }
         },
         "zh-Hans": {
@@ -950,7 +950,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Location isn’t precise enough, try"
+            "value": "Location isn’t precise enough, try again"
           }
         },
         "zh-Hans": {
@@ -1014,7 +1014,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Store authorization wasn't granted, so the redeem code wasn't opened"
+            "value": "Store authorization wasn't granted, so the redemption code wasn't opened"
           }
         },
         "zh-Hans": {
@@ -1046,7 +1046,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Store authorization isn't confirmed, so the redeem code wasn't opened"
+            "value": "Store authorization isn't confirmed, so the redemption code wasn't opened"
           }
         },
         "zh-Hans": {
@@ -1062,7 +1062,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Store approval couldn't be saved, so the redeem code wasn't opened"
+            "value": "Store authorization couldn't be saved, so the redemption code wasn't opened"
           }
         },
         "zh-Hans": {
@@ -1078,7 +1078,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Store approval isn't yet connected in the app, so the redeem code wasn't opened"
+            "value": "Store authorization isn't yet connected in the app, so the redemption code wasn't opened"
           }
         },
         "zh-Hans": {
@@ -1094,7 +1094,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scanning photo capture aren't available device"
+            "value": "Scanning and photo capture aren't available on this device"
           }
         },
         "zh-Hans": {
@@ -1190,7 +1190,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open this from your ticket wallet to show the redeem code"
+            "value": "Open this from your ticket wallet to show the redemption code"
           }
         },
         "zh-Hans": {
@@ -1254,7 +1254,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not at store yet"
+            "value": "Not at the store yet"
           }
         },
         "zh-Hans": {
@@ -1286,7 +1286,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The preference task couldn't be opened. Go back to the theme page try again."
+            "value": "The preference task couldn't be opened. Go back to the theme page and try again."
           }
         },
         "zh-Hans": {
@@ -1350,7 +1350,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Store needs code scanned"
+            "value": "This store needs its code scanned"
           }
         },
         "zh-Hans": {
@@ -1366,7 +1366,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Redeem code couldn't opened. Go back ticket wallet try again."
+            "value": "The redemption code couldn't be opened. Go back to your ticket wallet and try again."
           }
         },
         "zh-Hans": {
@@ -1510,7 +1510,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Current store approval"
+            "value": "Current store authorization"
           }
         },
         "zh-Hans": {
@@ -1574,7 +1574,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Arrived, awaiting redeem"
+            "value": "Arrived, awaiting redemption"
           }
         },
         "zh-Hans": {
@@ -1702,7 +1702,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign again view."
+            "value": "Sign in again to view this store."
           }
         },
         "zh-Hans": {
@@ -1830,7 +1830,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not here yet"
+            "value": "Not yet arrived"
           }
         },
         "zh-Hans": {

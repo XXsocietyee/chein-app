@@ -118,7 +118,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Configured target tolerance"
+            "value": "Configured target and tolerance"
           }
         },
         "zh-Hans": {
@@ -134,7 +134,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bearing"
+            "value": "Direction"
           }
         },
         "zh-Hans": {

@@ -6,7 +6,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Following and fans"
+            "value": "Following and followers"
           }
         },
         "zh-Hans": {
@@ -22,7 +22,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Follows"
+            "value": "Following"
           }
         },
         "zh-Hans": {
@@ -38,7 +38,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fans"
+            "value": "Followers"
           }
         },
         "zh-Hans": {

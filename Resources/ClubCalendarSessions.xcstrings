@@ -108,7 +108,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No visible sessions were returned for this month."
+            "value": "No currently visible sessions were returned for this month."
           }
         }
       }

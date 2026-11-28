@@ -646,7 +646,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Request version"
+            "value": "Application version"
           }
         },
         "zh-Hans": {
@@ -774,7 +774,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try"
+            "value": "Try again"
           }
         },
         "zh-Hans": {
@@ -822,7 +822,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Channel"
+            "value": "Channel invitations"
           }
         },
         "zh-Hans": {
