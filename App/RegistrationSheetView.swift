@@ -145,7 +145,7 @@ struct RegistrationSheetView: View {
                                 quoteReceivedAt: flow.currentQuoteReceivedAt,
                                 consented: flow.consented,
                                 requiresFreshQuote: false,
-                                channel: .standard,
+                                channel: RegistrationAppPayResolver.inAppChannel,
                                 onExpiredRebuild: { Task { await flow.requestQuote() } }
                             )
                         }
@@ -1291,7 +1291,7 @@ private struct RegistrationOperationSections: View {
                     quoteReceivedAt: flow.currentQuoteReceivedAt,
                     consented: flow.consented,
                     requiresFreshQuote: flow.quoteState.quoteValue != nil,
-                    channel: .standard,
+                    channel: RegistrationAppPayResolver.inAppChannel,
                     onExpiredRebuild: { Task { await flow.requestQuote() } }
                 )
             }
