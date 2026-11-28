@@ -504,7 +504,7 @@ struct RegistrationSheetView: View {
         }
     }
     private var confirmationTitle: String {
-        let titleKey = flow.creationPolicy.isOfflineFixture ? "registration.form.confirmTitle" : "registration.waitlist.confirmTitle"
+        let titleKey = "registration.waitlist.confirmTitle"
         return appLocalized(String.LocalizationValue(stringLiteral: titleKey), locale: locale)
     }
     private var confirmationMessage: String {
@@ -516,7 +516,7 @@ struct RegistrationSheetView: View {
         return base + gatedPayAmount(review.quote.payAmount) + nonRefundableSuffix
     }
     @ViewBuilder private var confirmationButtons: some View {
-        let confirmKey = flow.creationPolicy.isOfflineFixture ? "registration.form.confirmCreate" : "registration.waitlist.confirmCreate"
+        let confirmKey = "registration.waitlist.confirmCreate"
         Button(appLocalized(String.LocalizationValue(stringLiteral: confirmKey), locale: locale)) { confirmRegistration() }
             .accessibilityIdentifier("registration.form.confirm")
         Button(appLocalized("action.cancel", locale: locale), role: .cancel) {
@@ -641,7 +641,7 @@ struct RegistrationSheetView: View {
                 // MP baoming.wxml:325-328 bmbottom_box: the separate, unticked sharing consent (PIPL Art. 23) sits
                 // in the bottom bar directly above the button, so "tick it first" points at something in view.
                 if flow.creationPolicy.permitsCreation {
-                    Toggle(LocalizedStringKey(flow.creationPolicy.isOfflineFixture ? "registration.form.fixtureConsent" : "registration.r3.hostShareConsent"), isOn: Binding(get: { flow.consented }, set: flow.setConsent))
+                    Toggle(LocalizedStringKey("registration.r3.hostShareConsent"), isOn: Binding(get: { flow.consented }, set: flow.setConsent))
                         .font(.footnote)
                         .disabled(!flow.canEdit).accessibilityIdentifier("registration.form.consent")
                 }
@@ -712,23 +712,15 @@ struct RegistrationSheetView: View {
                 CYPillButton("registration.form.reloadParticipants", style: .secondary) { Task { await flow.loadParticipants() } }
                     .accessibilityIdentifier("registration.form.reloadParticipants")
             } else if flow.participantProjectionIsCurrent, !flow.participants.isEmpty {
-                Picker("registration.form.savedParticipant", selection: Binding<Int?>(
-                    get: { flow.selectedParticipantID },
-                    set: { if let id = $0 { flow.selectParticipant(id: id) } else { flow.useManualEntry() } }
-                )) {
-                    Text("registration.form.manualEntry").tag(Optional<Int>.none)
-                    ForEach(flow.participants) { participant in
-                        Text(verbatim: participant.fullName).tag(Optional(participant.id))
-                    }
-                }.accessibilityIdentifier("registration.form.participantPicker")
+                // MP baoming.wxml:31-46: one 参与人信息 row opens the participant popup (native `.sheet`).
                 Button {
                     focusedField = nil
                     showingParticipantSheet = true
                 } label: {
-                    Text(verbatim: PlayCloseCopy.text("选择参与人信息", "Choose a saved participant…", locale))
+                    RegistrationChoiceRow(title: "registration.form.savedParticipant", value: participantRowValue)
                 }
                 .disabled(!flow.canEdit)
-                .accessibilityIdentifier("registration.form.openParticipantSheet")
+                .accessibilityIdentifier("registration.form.participantPicker")
             }
             if let participantReader, let participantCoordinator,
                participantReader.identity != nil, participantReader.identity == participantCoordinator.identity {
@@ -754,6 +746,14 @@ struct RegistrationSheetView: View {
             }
         } header: { E1IconHeader(systemImage: "person.crop.circle", title: CoreLoopCopy(locale: locale).t("参与人信息", "Participant")) }
         .disabled(!flow.canEdit)
+    }
+    /// Saved participant name while the fields still hold it; 手动填写 once the player typed their own.
+    private var participantRowValue: String {
+        if let id = flow.selectedParticipantID, let row = flow.participants.first(where: { $0.id == id }),
+           row.fullName == flow.draft.realName {
+            return row.fullName
+        }
+        return appLocalized("registration.form.manualEntry", locale: locale)
     }
     /// R7-PC-C2-1: MP baoming.wxml:155-161 (儿童年龄, sent as `childAge` with quote/create, js:1876),
     /// 206-212 + js:760-764 (商家暂停营业) and js:1871-1876 (通行证 row).
@@ -810,22 +810,15 @@ struct RegistrationSheetView: View {
             if flow.activity.tickets.isEmpty {
                 Text("registration.form.noTickets").foregroundStyle(.secondary)
             } else {
-                Picker("registration.form.ticket", selection: Binding<Int?>(
-                    get: { flow.selectedTicketID },
-                    set: { if flow.selectTicket(id: $0) { Task { await flow.requestQuote() } } }
-                )) {
-                    ForEach(flow.activity.tickets) { ticket in
-                        Text(verbatim: ticket.name).tag(Optional(ticket.id))
-                    }
-                }.disabled(!flow.canEdit).accessibilityIdentifier("registration.form.ticketPicker")
+                // MP baoming.wxml ticket row: one tappable row opens the ticket popup (native `.sheet`).
                 Button {
                     focusedField = nil
                     showingTicketSheet = true
                 } label: {
-                    Text(verbatim: PlayCloseCopy.text("选择票种", "Choose a ticket…", locale))
+                    RegistrationChoiceRow(title: "registration.form.ticket", value: flow.selectedTicket?.name ?? "")
                 }
                 .disabled(!flow.canEdit)
-                .accessibilityIdentifier("registration.form.openTicketSheet")
+                .accessibilityIdentifier("registration.form.ticketPicker")
                 if let ticket = flow.selectedTicket {
                     RegistrationAmountRow(key: "registration.form.ticketPrice", amount: ticket.price)
                     if let description = ticket.description, !description.isEmpty { Text(verbatim: description) }
@@ -1476,3 +1469,25 @@ private struct RegistrationPlayerSheetHeader: ViewModifier {
     }
 }
 
+/// One list row for a choice made in a sheet: title leading, current value trailing, disclosure chevron.
+private struct RegistrationChoiceRow: View {
+    let title: LocalizedStringKey
+    let value: String
+
+    var body: some View {
+        LabeledContent {
+            HStack(spacing: 6) {
+                Text(verbatim: value)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.trailing)
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+                    .accessibilityHidden(true)
+            }
+        } label: {
+            Text(title).foregroundStyle(.primary)
+        }
+        .contentShape(Rectangle())
+    }
+}

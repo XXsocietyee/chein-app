@@ -71,6 +71,11 @@ import SwiftUI
         .init(readerID: ObjectIdentifier(reader), scope: reader.scope, isAuthenticated: reader.isAuthenticated,
               isConfigured: reader.isConfigured, query: filter)
     }
+    /// Design fixtures (`d2-search`, `d2-search-results`) render the real page: the 示例内容 note is hidden there,
+    /// while `isOfflineExample` still keeps every write offline (same rule as Square).
+    private var showsOfflineExampleNote: Bool {
+        reader.isOfflineExample && (reader as? any SearchMapOfflineNoteHiding)?.hidesOfflineExampleNote != true
+    }
     /// Mini-program `pages/search2`: search field with 筛选, then 搜索历史, 推荐搜索 and 类别, then the map entry.
     /// Results replace the suggestions in place (the mini-program pushes `search2/result`).
     var body: some View {
@@ -90,7 +95,7 @@ import SwiftUI
                         .accessibilityIdentifier("searchMap.emptySearchNotice")
                 }
                 if historyFailure { Text("searchMap.historyUnavailable").font(.footnote).foregroundStyle(.secondary) }
-                if reader.isOfflineExample { Label("searchMap.offline", systemImage: "wifi.slash").font(.footnote).foregroundStyle(.secondary) }
+                if showsOfflineExampleNote { Label("searchMap.offline", systemImage: "wifi.slash").font(.footnote).foregroundStyle(.secondary) }
             }
             // The primary action appears once a keyword or category can search. An empty Search key
             // shows the prompt and does not start a request.
@@ -394,7 +399,14 @@ import SwiftUI
     }
     @ViewBuilder private func results(_ value: GlobalSearchResults, retainedKinds: [GlobalSearchKind]) -> some View {
         // Mini-program `pages/search2/result` tabs are the system scope bar (`.searchScopes` in `globalSearchField`);
-        // counts reach it through the search model once a search settles.
+        // counts reach it through the search model once a search settles. The system scope bar only shows while the
+        // field is active, and the MP result tabs are always on the page, so the same scopes sit above the results as
+        // filter chips whenever the field is not presented (one selection, `searchModel.scope`).
+        if !searchModel.isPresented, searchModel.kinds.count > 1 {
+            Section { resultScopeChips }
+                .listRowInsets(EdgeInsets(top: 0, leading: CYSpacing.md, bottom: 0, trailing: CYSpacing.md))
+                .listRowBackground(Color.clear)
+        }
         if (loading && !value.rows.isEmpty) || !retainedKinds.isEmpty || !value.gatedKinds.isEmpty || !value.failedKinds.isEmpty {
             Section {
                 if loading && !value.rows.isEmpty {
@@ -498,6 +510,19 @@ import SwiftUI
         }
     }
     /// Player lanes read the page model (em dash when failed or gated); merchant keeps its own count.
+    /// MP `search2/result` `cy-tabs variant="chip"`: 全部 then each kind with its settled count.
+    private var resultScopeChips: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: CYSpacing.sm) {
+                CYFilterChip("searchMap.all", isSelected: searchModel.scope == nil) { searchModel.scope = nil }
+                ForEach(searchModel.kinds, id: \.self) { kind in
+                    CYFilterChip(kind.titleKey, count: Int(searchModel.scopeCounts[kind] ?? ""),
+                                 isSelected: searchModel.scope == kind) { searchModel.scope = kind }
+                }
+            }
+        }
+        .accessibilityIdentifier("searchMap.resultScopes")
+    }
     private func countText(_ value: GlobalSearchResults, _ kind: GlobalSearchKind) -> String {
         GlobalSearchEntryReadiness.countText(value, kind: kind) ?? String(value.count(kind))
     }
@@ -581,3 +606,6 @@ extension View {
         }
     }
 }
+
+/// mp-home r3 (00:10 sweep d2-search / d2-search-results): demo wording must not appear in a rendered fixture.
+@MainActor protocol SearchMapOfflineNoteHiding { var hidesOfflineExampleNote: Bool { get } }

@@ -589,6 +589,61 @@ Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0
 ### Not done (next run)
 None from this run.
 
+## Continue run 19 (2026-11-28, after merging combined-r7 into 0ca14c667)
+
+Merge clean (73 files). Run 18 Not done: none. No new coordinator row for this lane. New sweep `docs/sweeps/latest` =
+build 283dd3b52 (00:10Z, light mode); sheets read: `mp-roam/sheet-en.jpg`, `mp-activity/sheet-zh-Hans.jpg`.
+
+Scan: one appearance. `mp-roam/sheet-en.jpg` (`en-d2-roam`) shows the 漫游 map home in light mode with a **black panel**
+under the "Nearby activities 2" peek line: `cyMapPanelColor` (the fill of every map scaffold panel) was `Color.black`,
+so every map page drew a dark slab under a light map, while the 城市 nearby drawer and all system sheets follow the
+system appearance. Contents already use semantic colours (the peek line even carried a comment working around the
+black panel), so only the surface changes.
+
+| MP page | Native view (file:line) | MP sections | Change |
+|---|---|---|---|
+| `pages/roam/index` map home panel (`en-d2-roam`) + nearby teams map, play map, play session (same scaffold) | `App/DesignSystem/CYMapChrome.swift:391` `cyMapPanelColor` (used by `CYMapScaffold`, `CYRoamKit` sheet, `RoamBrowserView:604`) | unchanged | fixed `Color.black` → `CYColor.bgElevated` (light: white elevated surface, dark: system elevated grey). |
+| — (panel grabbers) | `CYMapChrome.swift:499`, `CYRoamKit.swift:365` | — | `Color.white.opacity(0.5 / 0.3)` (invisible on a light panel) → system `tertiaryLabel`, the sheet-grabber colour. |
+| — | `App/RoamBrowserView.swift:380` | — | stale "black panel" comment updated. |
+
+New checker kind **fixed surface**: a shared colour token `let x = Color.black` / `.white` (design system included).
+Baseline 0, nothing allowed. Self-test: the pre-fix `CYMapChrome.swift` fails at line 391. Other `Color.black` fills
+(image caption backing with `.colorScheme(.dark)`, Island overlay, route thumbnail art, a `#Preview`) are local art
+surfaces, not shared tokens, and stay.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(fixed surface 0, status capsule 29 baselined, 76 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+Simulator check of d2-roam / d6-roam panel in light and dark still needed (next sweep).
+
+### Not done (next run)
+None from this run.
+
+## Continue run 20 (2026-11-28, after merging combined-r7 f8574edab)
+
+Merge clean (61 files). Run 19 Not done: none. Coordinator 00:50 row (mp-roam / a11y-dt: "附近活动 sheet is solid black
+over the light map", `a11y-dt/sheet-zh-Hans.jpg` tile `a11y-roam-ax5`): the sweep build f8574edab predates run 19
+(ff2548a23 is not in it); that black panel is `cyMapPanelColor`, already `CYColor.bgElevated` on this branch — answered,
+next sweep should show it light.
+
+Scan: the same appearance bug one level smaller. Two map chips drew a fixed `Color.black.opacity(0.5)` layer under an
+`.ultraThinMaterial`, then put semantic text on it: in light mode that is black text on a dark-grey capsule.
+
+| MP page | Native view (file:line) | MP sections | Change |
+|---|---|---|---|
+| `pages/roam/index` fog coverage chip (已探索 37% · 4 待确认) | `App/DesignSystem/CYFogEngine.swift:43` `CYFogCoverageBadge` | unchanged | black layer removed; `.regularMaterial` capsule (follows light / dark) |
+| `pages/roam/index` "new area revealed" toast | `App/DesignSystem/CYRoamKit.swift:288` `CYRevealToast` | unchanged | black layer removed; `.regularMaterial`; white 16 % hairline → `CYColor.borderSubtle` |
+
+New checker kind **dark backing**: `.background(Color.black.opacity(…))` on the same or the line after a material
+`.background` (design system included). Baseline 0, nothing allowed. Self-test: the pre-fix tree fails in exactly the
+two files above.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(dark backing 0, status capsule 29 baselined, 76 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+Simulator check of d6-roam chips in light and dark still needed (next sweep).
+
+### Not done (next run)
+None from this run.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

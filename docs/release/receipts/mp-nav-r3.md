@@ -215,6 +215,23 @@ Merged `origin/ui/combined-r7` (793c3190b). Sweep sheets (en / zh-Hans): `d2-inb
 | pages/club/detail 成员 / 贡献榜 row → pages/userinfo/userinfo (`goMemberProfile`, detail index.js:2506 navigateTo) → App/ClubPublicRosterView.swift | `.cySheet(item:)` `.large` with its own `NavigationStack` | `navigationDestination(item:)` push of `SocialPublicProfileView` + `.cyPushedChrome()`; the roster's onDisappear reset is skipped while the profile is pushed (as with the sheet), scene-phase / identity checks still close it | fixed |
 | talent/list 帖文 post tap / author / club chip → square detail, club detail (postId), pages/userinfo (onPostTap / onPostUser / onPostClub) | — | `navigationDestination(item:)` pushes in ClubCommunityFeedView (ClubCommunityViews.swift:471-493) | OK |
 
+## Re-scan 11-28 00:4x (sweep build 283dd3b52; mp-nav sheets clean)
+
+Merged `origin/ui/combined-r7` (283dd3b52). Sweep sheets (en / zh-Hans) `d2-inbox`, `ia-tabs`, `login-player`, `onboarding-1`, `welcome`: clean, no new coordinator row for mp-nav. Contract-cleanup row `/api/compliance/usage-records` already fixed (21:0x). Next edge without a row: club detail 帖子 post-card author.
+
+| MP edge → native view | before | after | status |
+|---|---|---|---|
+| pages/club/detail 帖子 post-card author → pages/userinfo/userinfo (`onPostUser`, detail index.js:2895-2897 navigateTo) → App/ClubPostAuthorProfile.swift | `.cySheet(item:)` `.large` with its own `NavigationStack` + 关闭 around `SocialPublicProfileView` | `NavigationLink` push of `ClubPostAuthorDestination` (no own stack, no 关闭, `.cyPushedChrome()`, system back); destination still re-checks post / identity / profile reader and pops when stale. Author label (avatar + name) unchanged; `club.postAuthor.close` retired | fixed |
+
+## Re-scan 11-28 hourly (merged combined-r7 f8574edab; backend field audit row 00:30)
+
+Merged `origin/ui/combined-r7` (f8574edab), clean. Took the brief's app-side row **[mp-nav] chat-info "mark read"**.
+
+| MP edge → native view | before | after | status |
+|---|---|---|---|
+| subpackageB/pages/im/chat markRead (index.js:862-866: `POST /api/im/read` `{conversation_id, read_to}`) → chat info 标为已读 (App/IMExpandedViews.swift:370-374) → `IMExpandedService.perform(.readCursor)` (Core/IMExpandedService.swift) | sent `last_message_id` + `ack-<uuid>` request id; server reads only `read_to`, marked the whole chat read, and the app then failed decoding the reply as a channel ACK (`malformedResponse`) | sends `read_to` + a lowercase UUID `request_id` (validated through `OrdinaryIMReadRequest`); decodes `OrdinaryIMReadReceiptWire` (source / conversation / request id / requested_read_to must match; `APPLIED` → read, `PENDING`/`NOT_FOUND` → unknown outcome, retry keeps the same request). Unit test `IMExpandedTests.testChannelReadSendsCursorAndKeepsTheSameRequest` rewritten for the MP wire shape (read_to present, no last_message_id, mismatched cursor rejected, `ack-` / uppercase ids rejected before any request). Not compiled here | fixed |
+| pages/square/detail 作者头像 → 查看主页 (`goUserInfo`, index.js:160-165 navigateTo pages/userinfo) and comment author → App/SquareDetailView.swift:215-219, :474 | pushed `SocialPublicProfileView` without the shared pushed chrome, so the tab bar came back on the profile and the page ground/tint were the pushing stack's (the `cloudProfile` push at :199-203 already had it) | `.cyPushedChrome(domain: .player)` on both pushes, same as every other L2 profile push. MP order / content unchanged | fixed |
+
 ## Route coverage
 
 All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScreen cases or `MPParityDestination`), except four pages that are parsed (`Core/MiniProgramPageLink.swift`) but have no native screen case: `pages/playkit/index/index`, `pages/publishkit/index/index` (MP kit galleries), `pages/crop/index` (MP image-crop utility) and `subpackageP3/pages/badge-3d/index` (MP 3D badge viewer). No native player control links to them; left for the coordinator to confirm they stay unrouted.

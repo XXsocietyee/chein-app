@@ -159,6 +159,27 @@ Merged `origin/ui/combined-r7` (clean, 793c3190b). No newer sweep than 23:37Z; w
 | 57 | `pages/play/*` compass / shout kits → `NativeR2/Games/NativeGameSensorKit.swift:192,226`; music corner → `NativeR2/Games/ChoiceKits.swift:125` | "Aligned. Hold for 2 s more", "Keep it loud for 3 s in a row" (bare "s" after a number); "Healing music corner" (literal 治愈) | en → "Aligned. Hold steady for %@ more sec", "Stay loud for %@ sec straight", "Relaxing music corner" (catalog + `mp-journey-r3.json`) | Done |
 | 58 | `pages/publish/*` quick publish / modes → `PublishingModesViews.swift` (`publishModes.quick.loadFailed`, `.readFailed`); 九宫格 completion → `ProjectEditView` (`projectEdit.completion.serverConditions`); publisher pricing → `publisherPricing.marginNote` | Read as translations: "The draft allowance didn't load. The network isn't connected. Try again.", "Edit the nine cells in S order", "Whatever the final price exceeds the cost floor by is…" | en → "Couldn’t load your draft allowance. Check your connection and try again." / "Couldn’t load the list. …" / "Edit the nine cells along an S-shaped path. Cell labels don’t change when a cell lights up." / "Anything the final price adds above the cost floor is the organizer’s gross margin. …"; zh unchanged | Done |
 
+### Run 15 (2026-11-28, half-hourly)
+
+Merged `origin/ui/combined-r7` (clean, 283dd3b52). Sweep 00:10Z has no en-layout sheet in my area beyond rows already done; worked from code on `pages/templatedetail/*` and `pages/publishkit/*`.
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 59 | `pages/templatedetail/templatedetail.wxml` → `DiscoveryTemplateDetailView.swift`, `DiscoveryTemplateDetailParitySections.swift`, `TopicTemplateUseSection.swift` (MP sections unchanged) | 主题模板 was "route template" in 7 strings and "topic template" in 4 (share, loading, open-failed, list-failed); notice "can’t start a group directly"; "Adoption conditions", "Categories and settings" (reads as app Settings); "This play could not be opened" | All → "route template" (`u10.template.shareTopic`, `discovery.topicsFailed`, `.topicTemplate.openFailed`, `.topicPreview.loading`); "This is a play template — you can’t host a session from it directly"; "Requirements to use"; "Categories and use cases"; "Couldn’t open this play" (catalog + `tools/add_u10_screens_localizations.py`); zh unchanged | Done |
+| 60 | `pages/publishkit/index` → `TemplateAuthoringView.swift` | 玩法 was "play" in the create title but "gameplay"/"game" in edit title, save, advanced, preview; "Additional configuration families" | en → "Edit play template", "Save play", "Advanced play settings", "Preview this play", "You can try this play on the route.", "More modules" (catalog + `fix-r9-account-publish.json`); zh unchanged | Done |
+
+### Run 16 (2026-11-28, hourly)
+
+Merged `origin/ui/combined-r7` (clean, f8574edab). Sweep f8574edab (00:37Z): looked at `mp-roam`, `mp-nav`, `mp-journey`, `mp-mine`, `mp-club`, `mp-home` `sheet-en.jpg` and `mp-club/en-d4-detail.jpg`; no new English text/wrap problem in my area (row 41 action bar now fits in `en-d4-tab-posts`). Worked from code on `pages/publishkit/components/*` and player error copy.
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 61 | `pages/publishkit/components/look-preview` + 画面风格 panel → `MPGap/AccountPublish/AccountPublishR8Mounts.swift` `ProjectEditLook` (MP sections unchanged) | British "Theme colours" / "Use each chapter's colours" in the US build; font picker read "Song" / "Kai" / "Hei" (Chinese typeface pinyin, meaningless in English) | en → "Theme colors", "Use each chapter’s colors", "Serif", "Calligraphic", "Sans serif" (catalog + `fix-r8-account-publish.json`); zh unchanged | Done |
+| 62 | `pages/publishkit/components/chapter-gate` + node player preview → `ConfigR4.xcstrings` `config.preview.*` | 玩法 read "gameplay" ("This gameplay has no story", "Untitled gameplay") while row 60 settled on "play"; "See failure / See success" buttons | en → "This play has no story", "Untitled play", "Show failure", "Show success"; chapter-gate (`chapterFlip.*`: "Chapter 1 of 3", "Prologue", "Tap to continue") checked, fine | Done |
+| 63 | Play arrival / recovery (MP `pages/play/*` arrive errors) → `PlayRecovery.xcstrings`, `Core/BackendErrorCatalog.swift` (`ARRIVE_COORD_NOT_CONFIGURED`, `CONFIG_INVALID`); club create join-review switch → `DesignR1Club.xcstrings` | British "organiser" in 7 player-facing strings (US launch; row 58 and the rest of the catalog use "organizer") | en → "organizer" (catalog + `tools/backend_error_catalog.py --write` regenerated Swift/catalog/`docs/release/cb50-errors.md`, `tools/build_design_r1_localizations.py`); pin `BackendErrorCatalogTests.swift:55,67` updated (reason: US spelling). Merchant catalogs left (out of scope) | Done |
+| 64 | `pages/roam/*` live cards team chip → `RoamLiveCardsStrip.swift:100` (`roam.live.cards.teamPeople`, arrived with this merge) | "1/1 people"; `check_locale_format.py` failed on the merged base (plural substitutions) | `tools/add_i18n_r2_substitutions.py` → en "%1$lld/%#@person@" ("1/1 person", "3/5 people"; catalog + `mp-r3-roam.json`); zh unchanged. Locale format PASS | Done |
+| 65 | `pages/topic/components/cy/pass-reveal` 通行证已到账 → `TopicPurchaseRevealMount.swift:25` (`topicReveal.duration*`) | "Playable until 12/31 · Days left: 1" (form-label wording, no plural); "(when the topic ends)" in parentheses mid-line | en → "Playable until %1$lld/%2$lld · %#@day@ left" / "…, when the topic ends · …" ("1 day left", "5 days left") via `tools/add_i18n_r2_substitutions.py` (catalog + `i18n-r3-strings.json`); zh unchanged. `topicReveal.days %@` tile ("%@ days", String arg) left: needs an Int in the model to pluralize — not a strings-only change | Done |
+
 ## Not done
 
 | Item | Why |
@@ -167,9 +188,10 @@ Merged `origin/ui/combined-r7` (clean, 793c3190b). No newer sweep than 23:37Z; w
 
 
 ## Next pages (no row yet)
-Re-check rows 23, 37–41, 46, 56–57 in the next sweep. Then `pages/templatedetail/*` and `pages/publishkit/*` (no en sheet yet: work from code). Catalog-wide: ~50 `publish*`/`projectEdit*` en values use straight apostrophes (not a layout problem; leave unless a screen is touched).
+Re-check rows 23, 37–41, 46, 56–57 in the next sweep. `pages/templatedetail/*` and `pages/publishkit/index` done from code (rows 59–60); `pages/publishkit/components/*` done (rows 61–62; reward-selector is coupon creation = merchant, out of scope); `pages/topic/catalog` is a redirect only (no content); pass-reveal done (row 65); next: remaining `pages/topic/components/cy/*` (route-progress, date-range-sheet, npc forms). Catalog-wide: other British spellings remain ("licence", "centre" in creator/merchant tools; "cancelled" is accepted US usage) — fix when a player screen is touched. Catalog-wide: ~50 `publish*`/`projectEdit*` en values use straight apostrophes (not a layout problem; leave unless a screen is touched).
 
 ## For other lanes
+- mp-club: `en-d4-detail` (declined non-member) — the floating "Apply again" button sits over the "Message to the club" field and the contribution-board header; the bottom action needs its own inset (`safeAreaInset(edge: .bottom)`) so content scrolls clear of it.
 - mp-mine: balance ledger shows "¥" while the Me balance tile shows "CN¥" in English (row 44); public profile role line "— City explorer" shows a dash placeholder (`en-e4-member`).
 - mp-journey: `en-d2-play` nav shows debug "Switch synthetic account"; t5-free-explore "DEBUG fixture" banner still visible.
 - mp-activity: Square fixture post text "A synthetic city walk / 一次示例城市漫步" (`Core/SquareSyntheticFixtures.swift`, shared with Core tests) shows Chinese in English (`en-d2-square`).

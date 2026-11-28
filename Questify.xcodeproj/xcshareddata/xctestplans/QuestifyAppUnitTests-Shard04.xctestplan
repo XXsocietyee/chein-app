@@ -127,6 +127,7 @@
         "ClubSettlementDetailTests",
         "ClubStatsOverviewReadTests",
         "ClubTerminalSessionFlowTests",
+        "ClubTopicDirectorLoadStateTests",
         "ClubTopicMerchantContentTests",
         "ClubWelcomeNoteOriginalHostTests",
         "ColdStartLaunchLatencyAndPrewarmSectionViewTests",

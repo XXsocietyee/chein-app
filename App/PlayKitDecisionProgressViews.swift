@@ -121,6 +121,7 @@ extension PlayKitScreen {
                         .accessibilityLabel(Text("playkit.walk.progress"))
                     Text(verbatim: "\(steps.formatted()) / \(goal.formatted()) · \(min(100, steps * 100 / goal))%")
                         .cyText(.caption).monospacedDigit()
+                        .accessibilityLabel(Text("a11y.value.ofTotal \(steps) \(goal)") + Text(verbatim: ", \(min(100, steps * 100 / goal))%"))
                 } else {
                     Text(verbatim: steps.formatted()).cyText(.display).monospacedDigit()
                 }

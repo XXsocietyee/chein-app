@@ -285,9 +285,8 @@ struct CYRevealToast: View {
             CYCountUpPercent(percent: percent).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
         }
         .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
-        .background(.ultraThinMaterial, in: Capsule(style: .continuous))
-        .background(Color.black.opacity(0.5), in: Capsule(style: .continuous))
-        .overlay(Capsule(style: .continuous).strokeBorder(Color.white.opacity(0.16), lineWidth: 1))
+        .background(.regularMaterial, in: Capsule(style: .continuous))
+        .overlay(Capsule(style: .continuous).strokeBorder(CYColor.borderSubtle, lineWidth: 1))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(percent.map { Text("roam.fog.toast.a11y \($0)") } ?? Text("roam.fog.toast.a11yUnknown"))
         .accessibilityAddTraits(.updatesFrequently)
@@ -362,7 +361,7 @@ struct CYRoamNearbySheet<Peek: View, Content: View>: View {
             let height = min(max(detent.height(in: total, peekHeight: peekLine) - drag, lowest * 0.9), total * 0.96)
             VStack(spacing: 0) {
                 VStack(spacing: 0) {
-                    Capsule().fill(Color.white.opacity(0.3)).frame(width: 40, height: 5).padding(.top, CYSpacing.sm)
+                    Capsule().fill(Color(uiColor: .tertiaryLabel)).frame(width: 40, height: 5).padding(.top, CYSpacing.sm)
                     peek.padding(.horizontal, CYSpacing.lg).padding(.top, CYSpacing.sm).frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .frame(minHeight: 44)

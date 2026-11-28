@@ -270,6 +270,22 @@ Merged `origin/ui/combined-r7` (clean). Coordinator 23:50: the mp-home 19:15 / 1
 | `pages/topic/index/index.wxml:302-316` 评价 empty → `App/TopicDetailView.swift` `Section("topic.comments")` | Continue-13 Not-done row: with no reviews the bordered 写评价 button sat above the 还没有评价 card, which is itself the write entry (two entries). | **Fixed** — the bordered button (`topic.openReview`) shows only when the empty card does not; the empty card button is unchanged (keeps `topic.reviews.empty`). `TopicFlowTests.testKnownEmptyTopicReviewsUseChineseEmptyStateWithoutZeroStars` now asserts no `topic.openReview` in the empty state; `check_contextual_flows.py` still finds the id (its pre-existing failure at line 21, `ContextualTopicPicker`, is unrelated and fails on the base too). With reviews, 写评价 stays above the list (MP: trailing in the rating row) — kept. |
 | `scene-play-activity-detail/index.wxml:47-53` `activity-host` (avatar · name · 「发起人 · 主理人」) → `App/ActivityPeopleSection.swift` host row | Native showed avatar + name only. | **Fixed** — `.footnote` `.secondary` role line under the name, new key `activity.people.hostRole` 发起人 · 主理人 / Creator · Host (en + zh-Hans, `docs/port/strings/mp-home-r3.json` + catalog). Shop-hosted activities keep the 主办方 section (MP 商家 role) unchanged. |
 
+## Round 3 continue (16) — 00:10 sweep (build 283dd3b52), mp-home sheets zh-Hans + en
+
+Rebased on `origin/mp/r3-home`, merged `origin/ui/combined-r7` (clean). No new coordinator item for mp-home after 23:50. Sweep shows continue 14 (编辑精选 老城灯笼夜行 / Old Town Lantern Walk ✓); continue 15 is not in this build.
+
+| MP page → native view | Difference (screenshot) | Fixed / not |
+|---|---|---|
+| `pages/search2/index` → `App/GlobalSearchView.swift` | `zh-Hans-d2-search.jpg` / `en-d2-search.jpg` / `*-d2-search-results.jpg`: a `wifi.slash` 「示例内容」 / "Example content" row under 筛选 — demo wording in the rendered fixture (same class as the 00:20 registration-sheet finding); the MP has no such row. | **Fixed** — hidden under `--design-fixture` via `SearchMapOfflineNoteHiding` (Square's rule); UI tests and offline examples keep it, `isOfflineExample` still keeps writes offline. |
+
+## Round 3 continue (17) — 00:37 sweep (build f8574edab), mp-home sheets zh-Hans + en
+
+Merged `origin/ui/combined-r7` into `mp/r3-home`. No new coordinator item for mp-home after 00:20. Build f8574edab predates continue 16 (`adacc174d`, 示例内容 row), so that row still shows; recheck next sweep.
+
+| MP page → native view | Difference (screenshot) | Fixed / not |
+|---|---|---|
+| `pages/search2/result/index.wxml:15-16` `cy-tabs variant="chip"` (全部 / 主题 / 活动 / 俱乐部 / 商家, always on the page) → `App/GlobalSearchView.swift` results branch | `zh-Hans-d2-search-results.jpg` / `en-…`: no result tabs. Native puts them in the system scope bar (`.searchScopes(activation: .onSearchPresentation)`), which iOS only draws while the field is focused, so after a search the type filter was invisible. | **Fixed** — when the field is not presented, the same scopes sit above the results as `CYFilterChip` capsules (全部 + each kind with its settled count), bound to the one `searchModel.scope`; the scope bar stays while typing. Id `searchMap.resultScopes`. |
+
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -291,3 +307,5 @@ Merged `origin/ui/combined-r7` (clean). Coordinator 23:50: the mp-home 19:15 / 1
 - Needs a simulator pass (continue 14): `d2-home` 编辑精选 card name.
 - Needs a simulator pass (continue 15): activity detail 「N 人已报名」 section header (and the `ActivityFlowTests` label "12 going").
 - Needs a simulator pass (continue 15): `TopicFlowTests.testKnownEmptyTopicReviewsUseChineseEmptyStateWithoutZeroStars` with one write entry.
+- Needs a simulator pass (continue 16): `d2-search` / `d2-search-results` without the 示例内容 row.
+- Needs a simulator pass (continue 17): `d2-search-results` result-scope chips row (全部 / 主题 n / 活动 n …) in en + zh-Hans, and that it hides while the field is active.
