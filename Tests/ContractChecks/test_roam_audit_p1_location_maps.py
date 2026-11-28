@@ -25,6 +25,14 @@ class RoamAuditLocationMapsChecks(unittest.TestCase):
         owner = self.read('PlatformConsumerSessionOwner.swift')
         self.assertIn('PlatformExternalMaps(opener: NativePlatformMapOpener(), copier: NativePlatformAddressCopier(), enabled: true)', owner)
 
+    def test_guest_go_signs_in_then_starts_like_mp_go_start(self):
+        # MP pages/roam/index.js goStart: guest → app.requireLogin({ reason: 'roam' }) → goStart() again.
+        self.assertIn('signInToStart: session.account == nil ? { resume in requestSignIn(then: resume) } : nil',
+                      self.read('QuestifyApp.swift'))
+        sheet = self.read('NativeR2/MapHome/RoamMapHomeSheet.swift')
+        self.assertIn('Button("nativeR2.mapHome.start.action", action: startRoam)', sheet)
+        self.assertIn('if let gate = dependencies.signInToStart { gate { model.showsLive = true } }', sheet)
+
 
 if __name__ == '__main__':
     unittest.main()

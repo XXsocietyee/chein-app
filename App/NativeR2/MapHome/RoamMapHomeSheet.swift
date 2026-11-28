@@ -216,6 +216,12 @@ import QuestifyCore
         }
     }
 
+    /// MP `goStart`: a guest signs in first (登录后继续) and the walk starts after sign-in; 暂不登录 leaves the page as is.
+    private func startRoam() {
+        let model = model
+        if let gate = dependencies.signInToStart { gate { model.showsLive = true } } else { model.showsLive = true }
+    }
+
     /// MP `_syncRoamPermission`: read the system status; when location is already allowed and no area is set yet,
     /// locate silently (MP `enableEntryLocation(true)`: no prompt, no error on failure).
     private func syncLocation(automatic: Bool) async {
@@ -280,7 +286,7 @@ import QuestifyCore
                 // MP ticket NO.01: 继续漫游 when a walk is unfinished, else 走起 with 走到哪，雾散到哪 under it.
                 let resumes = recoveryBanner == .recovered
                 LabeledContent {
-                    Button("nativeR2.mapHome.start.action") { model.showsLive = true }
+                    Button("nativeR2.mapHome.start.action", action: startRoam)
                         .buttonStyle(.borderedProminent)
                         .accessibilityIdentifier("roam.go")
                 } label: {

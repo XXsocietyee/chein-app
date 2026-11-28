@@ -389,6 +389,7 @@ struct SessionRootView: View {
             onChooseArea: { showsAreaPicker = true },
             locateArea: { try await session.locateRoamArea() },
             onOpenAccount: openAccount,
+            signInToStart: session.account == nil ? { resume in requestSignIn(then: resume) } : nil,
             experienceReader: session.roamExperienceReader)
     }
 
