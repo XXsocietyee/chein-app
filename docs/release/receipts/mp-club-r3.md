@@ -11,7 +11,7 @@ The 21 MP pages were compared section by section, top to bottom, against their n
 | `python3 tools/generate_project.py` | OK |
 | `python3 tools/check_scaffold.py` | PASS (no FAIL lines; typography lint PASS) |
 | `python3 -B tools/check_a11y_lint.py` | PASS: 0 new |
-| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 23, after merging combined-r7 again), **new 0**, fixed 0 |
+| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 24, after merging combined-r7 a32387e9b), **new 0**, fixed 0 |
 | `python3 tools/check_design_consistency.py` | PASS |
 
 There is no Swift compiler in this environment. Edits are kept type-simple and reuse existing keys, components and patterns.
@@ -158,6 +158,7 @@ Fragment `docs/port/strings/mp-club-r3.json` and `Resources/Localizable.xcstring
 21. Pass 11: 报名名册 escrow line removed, hideEmpty tickets, team row colours.
 22. Pass 12: merge combined-r7 (xcstrings: combined is a superset, plural variants); club fixtures follow the UI language; 创建俱乐部 intro without the checklist and 封面/Logo under the step-3 header; join-requests and apply done re-checked.
 23. Pass 17: merge combined-r7; 改为转让主理人 moved into the 解散 confirm as the MP alternative (with its hint).
+29. Pass 24: merge combined-r7; club join / apply / leave haptics for success, refusal and prepare failure.
 28. Pass 23: merge combined-r7; club detail join action as a full-width bottom bar (01:20 sweep).
 27. Pass 22: topic-detail director load states (empty / network / business error, a refused read no longer renders nothing).
 26. Pass 21: merge combined-r7; apply note moved into an MP-style 申请加入 sheet, capsule always enabled (d4-detail).
@@ -266,6 +267,12 @@ Merged `origin/ui/combined-r7`.
 | MP page | Native view | MP sections | Optimizations / fix |
 |---|---|---|---|
 | `pages/club/detail` join capsule on 概览 (wxml:1028-1036) | `App/ClubActionPanel.swift` `floatingBar` (mounted by `ClubDetailView.floatingJoin` in the List's `.safeAreaInset(edge: .bottom)`) | Shot: "Apply again" / 重新申请 is a centred capsule floating over the 概览 list and covers the "Club contribution this week" header. MP content unchanged: one 加入 / 申请加入 / 重新申请 action on 概览, greyed 等待主理人审核 when pending, guests sign in first. | **Fixed.** The action is now a bottom bar: full-width `.borderedProminent` capsule (`.large`) on `.bar` material with a top divider, extending under the home indicator; the list scrolls above it so nothing is covered. Status / progress / error lines sit above the button inside the same bar (the separate see-through material card is gone). The bar draws only when it holds something (`floatingHasContent`), so members and the owner get no empty strip. Same ids (`club.action.join/apply/gated/signIn`), apply sheet and confirmation dialog. Re-check on the next sweep |
+
+## Pass 24: brief 01:40 "Next round" item 2 (motion and feedback); no open coordinator finding for mp-club (sweep a32387e9b predates pass 23, so the bottom bar is re-checked on the next sweep)
+Merged `origin/ui/combined-r7` (a32387e9b). Every MP club page already has a row above, so this pass starts the 01:40 list.
+| MP page | Native view | MP sections | Optimizations / fix |
+|---|---|---|---|
+| `pages/club/detail` 加入 / 申请加入 / 退出 (js `onJoin` / `onQuit`: success toast, failure toast) | `App/ClubActionPanel.swift` `submit` / `prepare` | MP content unchanged (same actions, same confirmations, same copy). Before: only a successful join / apply played a haptic; a successful leave, a server refusal and a failed prepare were silent. | **Fixed.** Leave acknowledged → `CYHaptics.success`; `.rejected` (join / apply / leave) → `CYHaptics.warning`; prepare failure (资格已变化 / 准备失败) → `CYHaptics.warning`. State changes keep the existing `.animation(reduceMotion ? nil : .default)`. Already present elsewhere: `.selection` on the detail tab bar and the create/edit type pickers, `.impact(.light)` on post likes, `.success` on the reward chip |
 
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.
