@@ -241,6 +241,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                         .accessibilityIdentifier("club.openManagement")
                     }
                 }
+                if tab == .overview { overviewNextActivity(tabs: tabs, tab: tab) }
                 if tab == .overview {
                     // CLB-detail-21 (MP wxml:219-250): the introduction opens 概览 with no 俱乐部介绍 header (global rule:
                     // no sub-title under a title), then the 俱乐部勋章 row. The MP no longer shows 活动偏好 / 关键词 / 风格.
@@ -561,6 +562,16 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             }
         }
         ClubDetailTabBar(tabs: tabs.tabs, selection: tab) { selectedTab = tabs.select($0, from: tab) }
+    }
+    /// mp-club r3 pass 51 (P38, sweep 18:30): 概览 leads with the next activity as a date-tile card, from the same
+    /// public topic list as 活动 (MP wxml:210 `upcomingTopics`); it draws nothing while loading, on failure or when empty.
+    @ViewBuilder private func overviewNextActivity(tabs: ClubDetailTabPolicy, tab: ClubDetailTab) -> some View {
+        if let session = reader as? AppSession {
+            let showAll: (() -> Void)? = tabs.tabs.contains(.events) ? { selectedTab = tabs.select(.events, from: tab) } : nil
+            SessionClubPublicActivityListView(clubID: id, session: session, onSignIn: onSignIn,
+                                              embedded: { (topicID: Int) in openedTopicID = topicID },
+                                              nextOnly: true, showAll: showAll)
+        }
     }
     /// MP detail wxml:1028-1036: the 加入 capsule floats over 概览 only (never 帖文 / 活动), and only when the viewer
     /// is not the owner. It stays mounted after a join so the joined chip and the server readback stay readable.
