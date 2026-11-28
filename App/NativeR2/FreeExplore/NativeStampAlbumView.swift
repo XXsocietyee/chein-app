@@ -88,8 +88,14 @@ import SwiftUI
 
     // MARK: Header (MP scene-roam-stamp-album order: 我的 / 收到的 head, then 共 N 枚)
 
+    /// Design fixtures (`e2-stamp-album`) render the real page: the 示例内容 note is hidden there (same rule as Search /
+    /// Square), while `offline` still keeps the album local and shows the bundled stamp art.
+    private var showsOfflineNote: Bool {
+        offline && !ProcessInfo.processInfo.arguments.contains("--design-fixture")
+    }
+
     @ViewBuilder private var header: some View {
-        if offline {
+        if showsOfflineNote {
             Label("roam.experience.offline", systemImage: "testtube.2")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
