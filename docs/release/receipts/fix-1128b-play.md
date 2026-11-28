@@ -36,7 +36,12 @@ No Swift compiler in this environment: the Swift tests are written, not run. The
 
 `python3 tools/generate_project.py`, `python3 tools/check_scaffold.py` (AppSession ratchet PASS),
 `python3 tools/contract_ratchet.py --check` (new 0), `python3 tools/check_design_consistency.py`,
-`python3 tools/check_a11y_lint.py` — results in the commit that adds this receipt.
+`python3 tools/check_a11y_lint.py`, run on the final tree:
+
+- generate_project: 4135 native sources; check_scaffold: PASS (AppSession ratchet PASS, 5329 Swift files, bilingual keys PASS)
+- contract ratchet: 52 failing, baseline 52, **new 0**, fixed 0
+- design consistency: PASS (all counters 0); a11y lint: PASS (0 new)
+- Swift unit tests (Core + AppUnit) were written but **not run** (no Swift toolchain here).
 
 ## Owner actions
 
