@@ -46,6 +46,7 @@ struct ClubOperationsEntryButton: View {
     @State private var pendingReturn: ClubProfileConfirmedReturn?
     @State private var pendingWelcomeReturn: ClubWelcomeNoteConfirmedReturn?
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dynamicTypeSize) private var entryTypeSize
     var body: some View {
         Button {
             guard visit == nil else { return }
@@ -54,7 +55,7 @@ struct ClubOperationsEntryButton: View {
         } label: {
             Label(target == .create ? "club.ops.create" : "club.ops.manage", systemImage: target == .create ? "plus.circle" : "slider.horizontal.3")
                 .labelStyle(.titleAndIcon)
-                .lineLimit(1)
+                .lineLimit(entryTypeSize.isAccessibilitySize ? nil : 1)
         }
             .accessibilityIdentifier("club.ops." + (target == .create ? "openCreate" : "openManage"))
             .cySheet(item: $visit, onDismiss: {
@@ -1071,6 +1072,8 @@ private struct ClubOperationsProfileForm: View {
     /// Stepped create only: the cover / logo section, shown on step 3 between the step header and the name (MP order).
     var stepMedia: AnyView? = nil
     @Environment(\.locale) private var formLocale
+    /// Direction row icon keeps pace with the row title at large Dynamic Type sizes.
+    @ScaledMetric(relativeTo: .body) private var checkRowIconSide: CGFloat = 22
     @QuestifyReduceMotion private var reduceMotion
     @State private var createStep = 0
     @State private var createChecking = false
@@ -1269,7 +1272,7 @@ private struct ClubOperationsProfileForm: View {
                 Label {
                     title.foregroundStyle(.primary)
                 } icon: {
-                    if let icon { icon.resizable().renderingMode(.template).scaledToFit().frame(width: 22, height: 22) }
+                    if let icon { icon.resizable().renderingMode(.template).scaledToFit().frame(width: checkRowIconSide, height: checkRowIconSide) }
                 }
                 Spacer(minLength: 8)
                 if isSelected {

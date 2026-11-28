@@ -30,7 +30,7 @@ extension PlayKitScreen {
         case .random: ChanceRandomKit(context: gamesBContext)
         case .branch: ChoiceBranchKit(context: gamesBContext, cast: castContext)
         case .musicCorner: ChoiceMusicCornerKit(context: gamesBContext, mediaScope: mediaScope, makeAudio: makeAudio)
-        case .dailySign: ChoiceDailySignKit(context: gamesBContext)
+        case .dailySign: ChoiceDailySignKit(context: gamesBContext, stage: $profileStep)
         case .hiddenObject: nativeHiddenObjectB
         case .blindTaste: ChoiceBlindTasteKit(context: gamesBContext, stage: $profileStep)
         default: EmptyView()
@@ -63,9 +63,16 @@ extension PlayKitScreen {
             return NativeGameSubmit(title: Text("playkit.random.draw"), enabled: enabled && remaining > 0, busy: model.phase == "submitting",
                                     identifier: "playkit.random.draw", action: { nativePrepare("DRAW") })
         case .dailySign:
-            guard !projection.complete else { return nil }
+            // MP ds__cta: 收下这张签 once the line is revealed; after the claim 出发 closes the kit (not inline).
+            if projection.complete {
+                guard presentation != .inline else { return nil }
+                return NativeGameSubmit(title: Text("playx.opening.depart"), enabled: true,
+                                        identifier: "playkit.dailySign.go", action: { dismiss() })
+            }
+            let lines = (raw["lines"].array ?? []).compactMap(\.text).filter { !$0.isEmpty }
+            let revealed = profileStep >= 1 || lines.isEmpty
             return nativeSubmit("CLAIM_DAILY_SIGN", ["text": .string(text), "photoUrl": .string(avatarURL)],
-                                valid: !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                                valid: revealed && !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                                 title: Text("nativeR2.gamesB.daily.accept"))
         case .musicCorner:
             // MP 继续: the music corner is never judged, so it can always be left (walk-through A25).

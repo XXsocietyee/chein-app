@@ -320,14 +320,18 @@ import VisionKit
                 .frame(minHeight: 320)
                 .accessibilityLabel(Text("playkit.album.carousel"))
                 .accessibilityIdentifier("playkit.album.ring")
+                // MP `album`: page count right under the photos, then the photo's line (only when it has one).
                 let index = min(current, projection.photos.count - 1)
-                Text(verbatim: projection.photos[index].line)
-                    .font(.body)
-                    .multilineTextAlignment(.center)
-                    .accessibilityIdentifier("playkit.album.line")
                 Text(verbatim: "\(index + 1) / \(projection.photos.count)")
                     .font(.footnote).monospacedDigit().foregroundStyle(.secondary)
+                    .accessibilityLabel(Text("playkit.album.page \(index + 1) \(projection.photos.count)"))
                     .accessibilityIdentifier("playkit.album.count")
+                if !projection.photos[index].line.isEmpty {
+                    Text(verbatim: projection.photos[index].line)
+                        .font(.body)
+                        .multilineTextAlignment(.center)
+                        .accessibilityIdentifier("playkit.album.line")
+                }
             }
             if projection.completionEnabled && projection.done {
                 Label("playkit.album.locked", systemImage: "lock")
@@ -400,11 +404,16 @@ import VisionKit
                             }
                             .buttonStyle(.bordered)
                         }
-                        Text(verbatim: card.title).font(.headline).accessibilityIdentifier("playCard.title")
-                        if !card.caption.isEmpty { Text(verbatim: card.caption).foregroundStyle(.secondary) }
-                        if !card.place.isEmpty { LabeledContent("objects.place", value: card.place) }
-                        LabeledContent("objects.style") { Text(card.cardStyle == "plain" ? "objects.plain" : "objects.foil") }
-                        if card.generating { Label("objects.generating", systemImage: "hourglass") }
+                        // MP `oc__form`: 名称 · 分类 (when sent) → 物品信息 · 地点 → 已收进藏品册 (· 3D 生成中…); no caption,
+                        // no card style.
+                        LabeledContent("objects.name") { Text(verbatim: card.title).font(.headline) }
+                            .accessibilityIdentifier("playCard.title")
+                        if !card.category.isEmpty { LabeledContent("objects.category", value: card.category) }
+                        if !card.place.isEmpty {
+                            Text("playCard.itemInfo").font(.footnote).foregroundStyle(.secondary)
+                                .accessibilityAddTraits(.isHeader)
+                            LabeledContent("objects.place", value: card.place)
+                        }
                         if card.generationStatus == "FAILED" { Text("playCard.framesUnavailable").foregroundStyle(.secondary) }
                     }
                 } label: {
@@ -416,7 +425,7 @@ import VisionKit
                 Text("objects.sessionChanged")
             }
         } footer: {
-            Text("playCard.collectionHint")
+            Text(card.generating ? LocalizedStringKey("playCard.savedGenerating") : LocalizedStringKey("playCard.saved"))
         }
         .privacySensitive()
         .accessibilityIdentifier("playCard.reveal")

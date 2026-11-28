@@ -89,18 +89,18 @@ extension EnvironmentValues {
                 failureRow(c.t("队伍进度加载失败", "Couldn’t load team progress"))
                     .accessibilityIdentifier("team.orient.error")
             } else if let board {
-                Text(
-                    board.isEmpty
-                        ? c.t("当前场次暂无定向任务", "No orienteering tasks for this session")
-                        : c.t("全队已完成 \(board.completedCount) / \(board.tasks.count) 个节点",
-                              "Team completed \(board.completedCount) / \(board.tasks.count) nodes")
-                )
+                // mp-states r3 (MP team/detail wxml:120-122): the summary line always, then cy-empty 暂无节点 when empty.
+                Text(c.t("全队已完成 \(board.completedCount) / \(board.tasks.count) 个节点",
+                         "Team completed \(board.completedCount) / \(board.tasks.count) nodes"))
                 .cyText(.bodyCompact)
                 .foregroundStyle(.secondary)
                 .contentTransition(reduceMotion ? .identity : .numericText())
                 .accessibilityIdentifier("team.orient.summary")
 
-                if !board.isEmpty {
+                if board.isEmpty {
+                    CYEmptyState(systemImage: "mappin.slash", verbatimTitle: c.t("暂无节点", "No nodes yet"))
+                        .accessibilityIdentifier("team.orient.empty")
+                } else {
                     ScrollView(.horizontal, showsIndicators: false) {
                         Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 8) {
                             GridRow {

@@ -184,6 +184,8 @@ import SwiftUI
                 viewModel.setForeground(phase == .active, preservingSnapshot: target != nil)
             }
             .refreshable { await refresh() }
+            .cyAnimation(CYMotion.standard, value: bucket)
+            .cyHaptic(.selection, trigger: bucket)
             .onChange(of: model.owner) { _, _ in bucket = .live; keyword = ""; target = nil; viewModel.ownerChanged() }
             .navigationDestination(item: $target) { selection in
                 if model.mayRemainOpen(selection) {

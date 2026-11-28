@@ -254,6 +254,8 @@ final class ClubCommunityViewModel: ObservableObject {
         do {
             try await coordinator.confirm(review)
             guard isCurrent(ticket) else { return false }
+            // The write landed (or was queued for moderation): the MP success toast, as a haptic.
+            CYHaptics.success.play()
             pendingRecord = coordinator.pendingRecord(for: review.evidence)
             let queued = coordinator.outcome == .moderationQueued
             let refreshTicket = generation &+ 1
@@ -266,6 +268,7 @@ final class ClubCommunityViewModel: ObservableObject {
             guard isCurrent(ticket) else { return false }
             _ = recoverPendingState(clubID: targetClubID, post: targetPost, comment: targetComment)
             notice = coordinator.outcome == .unknownLocked ? "club.community.unknown" : "club.community.actionUnavailable"
+            CYHaptics.warning.play()
         }
         return true
     }

@@ -639,7 +639,7 @@ struct ClubManagementView: View {
         guard run == generation, access.identity == pending.identity, !Task.isCancelled, viewerRevision == revision, screenRevision == revision,
               reviewOwner.permitsDispatch(item, context: reviewContext, active: scenePhase == .active) else { return }
         state = coordinator.state(clubID: clubID)
-        if case .rejected = state { failedRow = (pending.action, pending.memberID) } else { failedRow = nil }
+        if case .rejected = state { failedRow = (pending.action, pending.memberID); CYHaptics.warning.play() } else { failedRow = nil }
         switch coordinator.readback(clubID: clubID) {
         case .received(let result): snapshot = result
         case .unavailable: readbackUnavailable = true
