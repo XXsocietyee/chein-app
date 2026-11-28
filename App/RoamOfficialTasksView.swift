@@ -147,6 +147,19 @@ import SwiftUI
     }
     private var query: OfficialEventBrowseQuery { .init(bucket: bucket, keyword: keyword) }
     var body: some View {
+        // Destination sits outside the searchable list. iOS 27 drops a destination that follows
+        // the navigation-bar search field, and a list-body swap during the push deinits it.
+        Group { taskList }
+            .navigationDestination(item: $target) { selection in
+                if model.mayRemainOpen(selection) {
+                    RoamOfficialTaskDetail.make(eventID: selection.eventID, reader: reader,
+                                                actions: actions, onLogin: onLogin, onOpenRoam: onOpenRoam)
+                } else { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.tasks.changed") }
+            }
+            .accessibilityIdentifier("roam.tasks.browser")
+            .privacySensitive()
+    }
+    private var taskList: some View {
         let retry = viewModel.readAction(), refresh = viewModel.refreshAction()
         List {
             if viewModel.isVisible {
@@ -222,25 +235,19 @@ import SwiftUI
                     .accessibilityIdentifier("roam.tasks.loading")
             }
         }.cyGroupedSurface().navigationTitle("roam.tasks.title").navigationBarTitleDisplayMode(.inline)
-            // MP `task-search` keyword box, always visible above the tabs: the system search field.
-            .searchable(text: $keyword, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("official.search"))
-            .onAppear { viewModel.appear(foreground: scenePhase == .active) }
+            .onAppear { viewModel.appear(foreground: scenePhase != .background) }
             .onDisappear { viewModel.disappear(preservingSnapshot: target != nil) }
             .onChange(of: scenePhase) { _, phase in
+                // A push reports inactive. Only background retires the list.
+                guard phase != .inactive else { return }
                 viewModel.setForeground(phase == .active, preservingSnapshot: target != nil)
             }
             .refreshable { await refresh() }
             .cyAnimation(CYMotion.standard, value: bucket)
             .cyHaptic(.selection, trigger: bucket)
             .onChange(of: model.owner) { _, _ in bucket = .live; keyword = ""; target = nil; viewModel.ownerChanged() }
-            .navigationDestination(item: $target) { selection in
-                if model.mayRemainOpen(selection) {
-                    RoamOfficialTaskDetail.make(eventID: selection.eventID, reader: reader,
-                                                actions: actions, onLogin: onLogin, onOpenRoam: onOpenRoam)
-                } else { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.tasks.changed") }
-            }
-            .accessibilityIdentifier("roam.tasks.browser")
-            .privacySensitive()
+            // MP `task-search` keyword box, always visible above the tabs: the system search field.
+            .searchable(text: $keyword, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("official.search"))
     }
 }
 /// MP scene-roam-task-list `task-stale`: 活动列表更新失败，请稍后重试 with 重试 beside it.

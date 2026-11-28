@@ -271,6 +271,25 @@ import SwiftUI
     }
     private var flow: NativeFriendDirectoryDetailFlow { model.flow }
     var body: some View {
+        // The push lives on this group, not on the List. Purging the detail snapshot rebuilds
+        // the List, and a destination attached to that List is deinited mid-push (idle → failed).
+        Group { detailList }
+            .navigationDestination(isPresented: childBinding) {
+                Group {
+                    if let child = model.child {
+                        switch child {
+                        case .metadata(let metadata, let nickname): NativeFriendMetadataView(flow: metadata, nickname: nickname)
+                        case .removal(let removal): NativeFriendRemovalView(flow: removal)
+                        case .profile(let profile):
+                            if let publicProfile { publicProfile(profile.memberID, { model.owns(profile) }).id(profile.id) }
+                        case .conversation(let id): conversation(id)
+                        }
+                    }
+                }
+                .cyPushedChrome()
+            }
+    }
+    private var detailList: some View {
         List {
             Section {
                 if let item = flow.detail?.item {
@@ -358,22 +377,6 @@ import SwiftUI
                 break
             }
         }
-        // Child route owns only the original flow/peer identity; it does not require retained detail data.
-        .navigationDestination(isPresented: childBinding) {
-            Group {
-                if flow.isCurrent, let child = model.child {
-                    switch child {
-                    case .metadata(let metadata, let nickname): NativeFriendMetadataView(flow: metadata, nickname: nickname)
-                    case .removal(let removal): NativeFriendRemovalView(flow: removal)
-                    case .profile(let profile):
-                        if let publicProfile { publicProfile(profile.memberID, { model.owns(profile) }).id(profile.id) }
-                    case .conversation(let id): conversation(id)
-                    }
-                }
-            }
-            .cyPushedChrome()
-        }
-        .animation(nil, value: model.routeGeneration)
     }
     private var childBinding: Binding<Bool> {
         let captured = model.routeGeneration

@@ -79,20 +79,25 @@ import UIKit
         })
     }
 
+    private var ownedScenes: [HostedNavigationSceneWindow] = []
     private func mount(_ r: AnniversaryHostRig, includeDestination: Bool = true) -> UIWindow {
         let destination: ((String) -> AnyView)? = includeDestination ? { topicID in
             r.topics.append(topicID)
             return AnyView(Text("Original topic destination: " + topicID)
                 .accessibilityIdentifier("anniversary.host.topic." + topicID))
         } : nil
-        let host = UIHostingController(rootView: RoamBrowserView(reader: r.map, experienceReader: r.history,
+        let owned = try? HostedNavigationSceneWindow()
+        let window = owned?.window ?? hostedSceneWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 1100))
+        if let owned { ownedScenes.append(owned) }
+        hostedMount(window, root: RoamBrowserView(reader: r.map, experienceReader: r.history,
             toolsReader: r.tools, passportToolsReader: r.tools, anniversaryRouteDestination: destination)
             .environment(\.locale, Locale(identifier: "en_US")))
-        let window = hostedSceneWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 1100))
-        window.rootViewController = host; window.makeKeyAndVisible()
-        host.loadViewIfNeeded(); host.view.layoutIfNeeded(); return window
+        return window
     }
-    private func close(_ window: UIWindow) { window.isHidden = true; window.rootViewController = nil }
+    private func close(_ window: UIWindow) {
+        if let index = ownedScenes.firstIndex(where: { $0.window === window }) { ownedScenes.remove(at: index).retire(); return }
+        window.isHidden = true; window.rootViewController = nil
+    }
     private func selectPassport(in window: UIWindow) async throws {
         try await waitFor("Original tab picker") { self.segment(in: window) != nil }
         let picker = try XCTUnwrap(segment(in: window))
@@ -108,6 +113,7 @@ import UIKit
     private func waitFor(_ message: String, _ condition: () -> Bool) async throws {
         for _ in 0..<150 {
             if condition() { return }
+            RunLoop.main.run(until: Date().addingTimeInterval(0.002))
             try await Task.sleep(nanoseconds: 20_000_000)
         }
         XCTFail(message); throw APIError.notConfigured
@@ -115,7 +121,9 @@ import UIKit
     private func reveal(_ id: String, in window: UIWindow) async throws {
         for _ in 0..<35 {
             if find(id, in: window) != nil { return }
-            scroll(window); try await Task.sleep(nanoseconds: 40_000_000)
+            scroll(window)
+            RunLoop.main.run(until: Date().addingTimeInterval(0.002))
+            try await Task.sleep(nanoseconds: 40_000_000)
         }
         XCTFail("Original control not found: " + id + " " + hostedDiagnostics()); throw APIError.notConfigured
     }

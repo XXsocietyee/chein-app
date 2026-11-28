@@ -261,8 +261,11 @@ struct RoamTileMemoryPageOwner: Equatable, Hashable {
             }
         }.cyGroupedSurface().navigationTitle(showsLiveUnavailable ? "roam.experience.live" : "roam.experience.tileMemory").navigationBarTitleDisplayMode(.inline)
             .refreshable { await refresh() }
-            .onAppear { presentation.appear(foreground: scenePhase == .active) }
-            .onChange(of: scenePhase) { _, phase in presentation.setForeground(phase == .active) }
+            .onAppear { presentation.appear(foreground: scenePhase != .background) }
+            .onChange(of: scenePhase) { _, phase in
+                guard phase != .inactive else { return }
+                presentation.setForeground(phase == .active)
+            }
             .onDisappear { presentation.disappear() }
             // Same as the hub (73a06a74f): iOS 27 only exposes a screen-level identifier on an accessibility container.
             .accessibilityElement(children: .contain)

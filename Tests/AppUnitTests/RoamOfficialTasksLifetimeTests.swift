@@ -153,7 +153,11 @@ import UIKit
     }
     private func settle() async { for _ in 0..<20 { await Task.yield() } }
     private func waitFor(_ condition: () -> Bool) async throws {
-        for _ in 0..<150 { if condition() { return }; try await Task.sleep(for: .milliseconds(20)) }
+        for _ in 0..<150 {
+            if condition() { return }
+            RunLoop.main.run(until: Date().addingTimeInterval(0.002))
+            try await Task.sleep(for: .milliseconds(20))
+        }
         XCTFail("Original official task journey did not settle" + " " + hostedDiagnostics()); throw APIError.notConfigured
     }
     private func tap(_ id: String, in window: UIWindow) async throws {
@@ -162,7 +166,9 @@ import UIKit
                 if let control = target as? UIControl { control.sendActions(for: .touchUpInside) }
                 else { XCTAssertTrue(target.accessibilityActivate()) }; return
             }
-            scroll(window); try await Task.sleep(for: .milliseconds(30))
+            scroll(window)
+            RunLoop.main.run(until: Date().addingTimeInterval(0.002))
+            try await Task.sleep(for: .milliseconds(30))
         }
         XCTFail("Missing original action: " + id + " " + hostedDiagnostics()); throw APIError.notConfigured
     }

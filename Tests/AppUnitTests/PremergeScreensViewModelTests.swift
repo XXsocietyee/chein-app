@@ -67,7 +67,9 @@ final class PremergeScreensViewModelTests: XCTestCase {
             verifiedCapabilities: [.domesticChinaPhone],
             bundleIdentifier: "test.questify.premerge",
             realm: "premerge-tests",
-            reads: [.homeAndSearch]
+            reads: [.homeAndSearch],
+            productionGatesEnabled: true,
+            playerWritesEnabled: true
         )
     }
 
@@ -128,7 +130,9 @@ final class PremergeScreensViewModelTests: XCTestCase {
 
         let actions = session.memberPopupActions()
         let disableOutcome = await actions.disablePresence?()
-        XCTAssertEqual(disableOutcome, .disabled)
+        // Shipped China admits POST api/club/my once both gates are on, and refuses
+        // presence-visibility: the disable lease also requires api/roam/session/records.
+        XCTAssertEqual(disableOutcome, .failed)
 
         let clubOutcome = await actions.loadOwnedClubs?()
         if case .openClub(let club)? = clubOutcome {

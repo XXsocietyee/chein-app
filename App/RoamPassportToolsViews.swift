@@ -258,7 +258,7 @@ struct RoamAnniversaryReadIntent {
                     case .available(let target):
                         if routeDestination != nil {
                             Button {
-                                guard isVisible, scenePhase == .active, unavailableError == nil else { return }
+                                guard isVisible, scenePhase != .background, unavailableError == nil else { return }
                                 _ = navigation.open(target, memory: item, currentRows: state.rows, owner: reader?.identity)
                             } label: { Text("roam.tools.anniversary.openRoute") }
                                 .disabled(state.isLoading)
@@ -327,11 +327,13 @@ struct RoamAnniversaryReadIntent {
             }
         }
         .onChange(of: scenePhase) { _, phase in
-            if phase != .active {
+            // Inactive is the navigation transition, not a leave. Suspending here clears the
+            // archive while the passport or hub push is still opening.
+            if phase == .background {
                 visit = UUID()
                 state.requestRefresh()
                 state.suspend()
-            } else {
+            } else if phase == .active {
                 enqueueRefreshIfNeeded()
             }
         }
@@ -368,7 +370,7 @@ struct RoamAnniversaryReadIntent {
                         RoamHostedAccessibilityItem(
                             identifier: "roam.tools.anniversary.openRoute",
                             action: {
-                                guard isVisible, scenePhase == .active, unavailableError == nil else { return }
+                                guard isVisible, scenePhase != .background, unavailableError == nil else { return }
                                 _ = navigation.open(target, memory: item, currentRows: state.rows, owner: reader?.identity)
                             }
                         )
@@ -426,7 +428,7 @@ struct RoamAnniversaryReadIntent {
         enqueue(readIntent(.refresh))
     }
     private func load(_ offered: RoamAnniversaryReadIntent) async {
-        guard !Task.isCancelled, isVisible, scenePhase == .active, navigation.openedPresentation == nil,
+        guard !Task.isCancelled, isVisible, scenePhase != .background, navigation.openedPresentation == nil,
               pageOwner.matches(reader), offered.matches(reader: reader, state: state, navigation: navigation, visit: visit) else { return }
         guard unavailableError == nil else {
             state.revokeAccess(unavailableError ?? APIError.notConfigured)
@@ -742,20 +744,21 @@ struct RoamAnniversaryReadIntent {
                 routeOpened: Binding(get: { openedRouteDetail == presentation.id },
                                      set: { openedRouteDetail = $0 ? presentation.id : nil }))
         }.cySheet(detents: [.large]) }
-        .onAppear { lifetime.appear(reader, foreground: scenePhase == .active) }
+        .onAppear { lifetime.appear(reader, foreground: scenePhase != .background) }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { lifetime.resume(reader, foreground: true) }
-            else { lifetime.suspend() }
+            // Inactive is the sheet/push transition. Suspending here hides the kind picker and the open row.
+            if phase == .background { lifetime.suspend() }
+            else { lifetime.resume(reader, foreground: true) }
         }
-        .onChange(of: (reader as? RoamPassportToolsSessionReader)?.readScope) { _, _ in lifetime.bind(reader); lifetime.resume(reader, foreground: scenePhase == .active) }
-        .onChange(of: readerID) { _, _ in lifetime.bind(reader); lifetime.resume(reader, foreground: scenePhase == .active) }
+        .onChange(of: (reader as? RoamPassportToolsSessionReader)?.readScope) { _, _ in lifetime.bind(reader); lifetime.resume(reader, foreground: scenePhase != .background) }
+        .onChange(of: readerID) { _, _ in lifetime.bind(reader); lifetime.resume(reader, foreground: scenePhase != .background) }
         .onChange(of: model.month) { _, _ in pickedWeek = nil }
         // Next round (motion): a selection tick when the month or the kind changes (MP prevMonth / nextMonth / pickKind).
         .cyHaptic(.selection, trigger: model.month)
         .cyHaptic(.selection, trigger: model.kind)
         .onChange(of: model.kind) { _, _ in pickedWeek = nil }
-        .onChange(of: reader?.identity) { _, _ in lifetime.bind(reader); lifetime.resume(reader, foreground: scenePhase == .active) }
-        .onChange(of: reader?.isConfigured) { _, _ in lifetime.accessChanged(reader, foreground: scenePhase == .active) }
+        .onChange(of: reader?.identity) { _, _ in lifetime.bind(reader); lifetime.resume(reader, foreground: scenePhase != .background) }
+        .onChange(of: reader?.isConfigured) { _, _ in lifetime.accessChanged(reader, foreground: scenePhase != .background) }
         .refreshable { pickedWeek = nil; await lifetime.perform(reader) { await $0.refresh() } }
         .onDisappear { lifetime.disappear() }
         .background { RoamHostedAccessibilityGroup(items: recapAccessibilityItems) }
@@ -794,7 +797,7 @@ struct RoamAnniversaryReadIntent {
            presentation.topicID != nil, routeDestination != nil {
             // Without an action this probe shadowed the detail's real route link and could never activate it.
             items.append(RoamHostedAccessibilityItem(identifier: "roam.tools.recap.detail.openRoute", action: {
-                guard scenePhase == .active, model.isCurrent(presentation) else { return }
+                guard scenePhase != .background, model.isCurrent(presentation) else { return }
                 openedRouteDetail = presentation.id
             }))
         }
