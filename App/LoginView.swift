@@ -101,7 +101,7 @@ struct LoginView: View {
                     recordIntegratedLoginPhase("other_action")
 #endif
                 } label: {
-                    Label(LocalizedStringKey(session.operationalMarket == .china ? "auth.channels.phoneTitle" : "auth.channels.title"), systemImage: "iphone")
+                    Label("auth.channels.phoneTitle", systemImage: "iphone")
                         .frame(maxWidth: .infinity)
                 }
                 .modifier(LoginOtherChannelsStyle(prominent: !showsPasswordForm))
@@ -110,12 +110,13 @@ struct LoginView: View {
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
             }
-            // L1 P-006: Sign in with Apple is on the first screen, Apple's own button, under phone sign-in (20:55 sweep);
-            // gated channels render nothing (P27).
-            appleSignInSection(model)
+            // Owner 11-28 04:30 / P27 order: phone first (+86 / +1 in both markets), then the third-party row —
+            // WeChat (CN), Alipay (CN), then Sign in with Apple (both markets). Gated channels render nothing.
             if session.operationalMarket == .china && consentGranted {
                 WeChatAppAuthSection(coordinator: session.weChatAuth, context: session.authChannelSnapshot)
+                AlipayAppAuthSection(coordinator: session.makeAlipayAuthCoordinator(), context: session.authChannelSnapshot)
             }
+            appleSignInSection(model)
             if showsPasswordForm {
                 Section {
                     TextField("auth.username",text:$username)
@@ -149,10 +150,6 @@ struct LoginView: View {
                     .listRowInsets(EdgeInsets())
                     .listRowBackground(Color.clear)
                 }
-            } else if session.operationalMarket != .china {
-                Section {
-                    Text("region.usLoginPending").foregroundStyle(.secondary).accessibilityIdentifier("region.auth.pending")
-                }
             }
             if !showsPasswordForm, let key = shownErrorKey {
                 Section {
@@ -171,8 +168,9 @@ struct LoginView: View {
     @ViewBuilder private func loginDestination(_ route: LoginRoute, model: AuthChannelModel) -> some View {
         switch route {
         case .phone:
+            // Owner 11-28 04:30: the US market signs in by phone (+1) too; the country menu defaults from the market.
             AuthChannelView(embeddedModel: model, sessionSnapshot: session.authChannelSnapshot,
-                            domesticPhoneVisible: session.supportsDomesticPhoneInput)
+                            domesticPhoneVisible: session.supportsPhoneSignInInput)
 #if DEBUG
                 .onAppear { recordIntegratedLoginPhase("channels_appear") }
                 .onDisappear { recordIntegratedLoginPhase("channels_disappear") }
@@ -322,4 +320,9 @@ private struct LoginAuthChannelHost<Content: View>: View {
     }
 
     var body: some View { content(model) }
+}
+
+extension AppSession {
+    /// Owner 11-28 04:30: phone sign-in in both markets (+86 China digits, +1 E.164); the coordinator still gates the service.
+    var supportsPhoneSignInInput: Bool { operationalMarket != nil }
 }

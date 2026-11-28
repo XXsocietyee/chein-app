@@ -3416,7 +3416,7 @@ final class AppSession: ObservableObject {
         context: { [weak self] in
             self?.weChatContext ?? WeChatAppAuthContext(session: .init(epoch: 0, accountID: nil, isBusy: true), market: nil, namespace: nil)
         })
-    private var weChatContext: WeChatAppAuthContext {
+    var weChatContext: WeChatAppAuthContext {
         WeChatAppAuthContext(session: AuthChannelSessionSnapshot(epoch: gate.currentStamp,
             accountID: account?.id, isBusy: isWorking || authChannels.state.isWorking),
             market: operationalMarket, namespace: storageScope?.service)
@@ -3438,7 +3438,7 @@ final class AppSession: ObservableObject {
         guard let self else { return false }
         return try self.commitChannelLogin(result, expected: expected)
     })
-    private func commitChannelLogin(_ result: LoginResult, expected: AuthChannelSessionSnapshot) throws -> Bool {
+    func commitChannelLogin(_ result: LoginResult, expected: AuthChannelSessionSnapshot) throws -> Bool {
         guard self.authChannelSnapshot == expected, self.account == nil, !self.isWorking else { return false }
         try self.vault.write(result.token)
         self.invalidateInvoiceLaunch()

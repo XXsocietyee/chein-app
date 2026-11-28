@@ -170,9 +170,8 @@ struct PhoneSignInForm<AppleContent: View>: View {
                     }
                 }
             } else {
-                Section {
-                    Text("region.usLoginPending").foregroundStyle(.secondary).accessibilityIdentifier("region.auth.pending")
-                } footer: {
+                // Phone entry hidden by the host: nothing for the channel itself (P27), only a live status.
+                Section {} footer: {
                     status
                 }
             }
