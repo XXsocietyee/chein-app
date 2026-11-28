@@ -117,7 +117,7 @@ struct RegistrationSheetView: View {
                     alreadyRegisteredSection
                     if flow.hasRetainedIntent {
                         activitySection
-                        RegistrationOperationSections(flow: flow,revision:model.revision,orderReader:orderReader,payMethod:payMethod)
+                        RegistrationOperationSections(flow: flow,revision:model.revision,orderReader:orderReader,payMethod:chosenPayMethod)
                         resultOrderSection
                     } else if case .pending(let registrationID) = flow.durableCreation {
                         activitySection
@@ -147,7 +147,7 @@ struct RegistrationSheetView: View {
                                 requiresFreshQuote: false,
                                 channel: RegistrationAppPayResolver.inAppChannel,
                                 onExpiredRebuild: { Task { await flow.requestQuote() } },
-                                payMethod: payMethod
+                                payMethod: chosenPayMethod
                             )
                         }
                         recoveredOrderSection
@@ -604,6 +604,15 @@ struct RegistrationSheetView: View {
         let quote = flow.quoteState.quoteValue
         return StripePayEligibility.readiness(currency: quote?.currency, paymentChannels: quote?.paymentChannels)
             ?? paymentReadiness
+    }
+
+    /// The "Pay with" row's effective choice (its default until the player changes it), handed to the pay step (P32).
+    private var chosenPayMethod: RegistrationPayMethod? {
+        let options = RegistrationPayMethod.options(market: payMethodMarket,
+                                                    applePayAvailable: ApplePayStripeAuthorizer.canMakePayments,
+                                                    paymentChannels: flow.quoteState.quoteValue?.paymentChannels)
+        if let payMethod, options.contains(payMethod) { return payMethod }
+        return options.first
     }
 
     private var payMethodMarket: RegionalMarket? {

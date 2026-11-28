@@ -65,6 +65,12 @@ import SwiftUI
         return methods.first
     }
 
+    /// Order detail (no "Pay with" row): the other offered method as a secondary button.
+    private var alternateMethods: [RegistrationPayMethod] {
+        let primary = primaryMethod
+        return methods.filter { $0 != primary }
+    }
+
     var body: some View {
         Group {
             switch stage {
@@ -96,7 +102,7 @@ import SwiftUI
         if let primaryMethod {
             methodButton(primaryMethod, primary: true)
             if preferredMethod == nil {
-                ForEach(methods.filter { $0 != primaryMethod }, id: \.self) { other in
+                ForEach(alternateMethods, id: \.self) { other in
                     methodButton(other, primary: false)
                 }
             }
