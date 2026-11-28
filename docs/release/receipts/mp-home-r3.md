@@ -346,6 +346,14 @@ Merged `origin/ui/combined-r7` (clean). No open coordinator item for mp-home (04
 | `pages/index/index.wxml:246` `cy-empty` 暂时没有主题 (rails hidden when empty, `:84/:133/:170` `wx:if`) → `App/HomeFeedView.swift` | empty 首页 | Native already hides empty rails and shows `homeFeed.topicsEmpty` under the feed tabs, but no fixture showed it. | **Added** fixture `d2-home-empty` (`HomeFeedFixtureReader` scenario `empty`) + `Tests/AppUITests/Fixture_d2_home_emptyTests.swift`. |
 | `pages/index/index.wxml:92` `cy-error` 编辑精选加载失败 + 重试 (other rails load) → `HomeFeedView.section` (`mpfresh.home.sectionFailed.recommended`) | one rail failed | Only the all-down offline state had a fixture. | **Added** scenario `sectionFailed` (编辑精选 throws 503, 附近活动 / feed load) and fixture `d2-home-failed` + `Fixture_d2_home_failedTests.swift`. Coordinator: please add `d2-home-empty`, `d2-home-failed` (and `d2-search-empty`, `d2-search-failed`) to the mp-home sweep row. |
 
+## Round 3 continue (25) — sweep 11-28 ~04:50 (build 13a6690eb), mp-home (P2) wave-today-club
+
+Merged `origin/ui/combined-r7` (receipts of other lanes / design-consistency tool taken from combined; fixture registry kept both sides). Screenshot `en-wave-today-club.jpg` / `zh-Hans-wave-today-club.jpg`: one small text card at the top of an empty screen.
+
+| MP page → native view | Difference | Fixed / not |
+|---|---|---|
+| 首页 Today card (native-only `HomeTodayCard`; the MP `pages/index/index.wxml` has no Today card, so no MP section is added or reordered) → `App/HomeFeedView.swift` `HomeTodayCard`, new `App/HomeTodayMeetingPointMap.swift` | Card was eyebrow + title + one meta line + button: no image, no place, nothing below. | **Fixed** — full card: 16:9 cover (fixture: bundled MP `clubCityCamera` via `homeTodayFixtureCover`, production: safe https cover, else text-only), P28 fact icon rows (`clock` time, `mappin.and.ellipse` place) instead of the `·` meta line, and a fixed meeting-point map snippet (system `Map`, one `Marker`, no gestures, tap opens Apple Maps) when the candidate has a `meetingPoint`; `@ScaledMetric` height capped at 220 pt. VoiceOver keeps the one combined card label (time · place). Fixture `wave-today-club` gets the Old Town meeting point. |
+
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -377,3 +385,4 @@ Merged `origin/ui/combined-r7` (clean). No open coordinator item for mp-home (04
 - Needs a device pass (continue 22): selection haptics on the search result-scope chips.
 - Needs a simulator pass (continue 23): `d2-search-empty` (没有找到 / no results) and `d2-search-failed` (没能完成搜索 + 重试) in en + zh-Hans.
 - Needs a simulator pass (continue 24): `d2-home-empty` (暂时没有主题 / No themes right now) and `d2-home-failed` (编辑精选加载失败 + 重试 above 附近活动) in en + zh-Hans.
+- Needs a simulator pass (continue 25): `wave-today-club` full card (cover, time/place icon rows, meeting-point map) in en + zh-Hans, light/dark, AX5.
