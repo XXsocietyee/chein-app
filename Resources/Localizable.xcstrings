@@ -175557,13 +175557,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This session’s leaderboard is enabled. No entries are available yet."
+            "value": "No collaborations yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本局榜单已开启，暂时没有记录。"
+            "value": "暂无协作记录"
           }
         }
       }
