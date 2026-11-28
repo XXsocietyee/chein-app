@@ -171,7 +171,7 @@ import SwiftUI
                             .merchantProjectHostDestinations(session: session)
                             .toolbar { TopicCreatorToolsToolbar(session: session, topicID: id, entryScope: releasedEntryScope) })
                     }
-                    return AnyView(SessionTopicDetailView(session: session, id: id))
+                    return AnyView(SessionTopicDetailView(id: id, session: session))
                 case .activity(let id): return AnyView(ActivityDetailView(id: id, reader: session)
                     .toolbar { MyProjectActivityDetailWriteToolbar(session: session, activityID: id) })
                 case .playTemplate(let id): return AnyView(DiscoveryTemplateDetailView(id: id, reader: session,
