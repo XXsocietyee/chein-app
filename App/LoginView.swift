@@ -129,18 +129,19 @@ struct LoginView: View {
     }
 
     /// P33 (audit P0-5): China leads with WeChat (only when installed and configured), then phone +86, then Sign in with
-    /// Apple; the US leads with Sign in with Apple, then phone +1. Equal-width 50 pt buttons, one primary action, terms in
-    /// the footnote. No Alipay sign-in (Alipay is payment only). Gated channels render nothing (P27).
+    /// Apple; the US leads with Sign in with Apple, then phone +1. The storefront decides: the shared deployment's
+    /// market stays China for both. Equal-width 50 pt buttons, one primary action, terms in the footnote.
+    /// No Alipay sign-in (Alipay is payment only). Gated channels render nothing (P27).
     @ViewBuilder private func signInChannelSections(_ model: AuthChannelModel) -> some View {
-        if session.operationalMarket == .china {
+        if USLaunchPresentation.signInLeadsWithApple(storefront: RegionalLaunchConfiguration.storefrontMarket, deployment: session.operationalMarket) {
+            appleSignInSection(model)
+            phoneEntrySection(prominent: !appleShown(model))
+        } else {
             if consentGranted {
                 WeChatAppAuthSection(coordinator: session.weChatAuth, context: session.authChannelSnapshot)
             }
             phoneEntrySection(prominent: !weChatLeads)
             appleSignInSection(model)
-        } else {
-            appleSignInSection(model)
-            phoneEntrySection(prominent: !appleShown(model))
         }
     }
 
@@ -313,8 +314,8 @@ struct LoginView: View {
 #endif
     /// A legal document pushed inside the sign-in sheet (it used to be a third stacked sheet).
     @ViewBuilder private func legalDocument(_ type: SettingsLegalType) -> some View {
-        if type == .privacyPolicy { PrivacyProtectionView(market: session.operationalMarket, legalReader: session.legalReader, signedIn: session.account != nil) }
-        else { SettingsLegalDocumentView(type: type, market: session.operationalMarket, reader: session.legalReader) }
+        if type == .privacyPolicy { PrivacyProtectionView(market: UserMarketMemory.legalDocumentMarket(deployment: session.operationalMarket), legalReader: session.legalReader, signedIn: session.account != nil) }
+        else { SettingsLegalDocumentView(type: type, market: UserMarketMemory.legalDocumentMarket(deployment: session.operationalMarket), reader: session.legalReader) }
     }
     /// Brand mark, once. `images/d_logo.png` is the same mark at a smaller size (not a wordmark), so stacking it
     /// under `cy_logo_mark` drew the logo twice (sweep login-player). The title below carries the words.

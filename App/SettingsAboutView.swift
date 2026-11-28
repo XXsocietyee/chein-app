@@ -43,7 +43,7 @@ import UIKit
             Section {
                 ForEach([SettingsLegalType.userAgreement, .privacyPolicy]) { type in
                     NavigationLink {
-                        SettingsLegalDocumentView(type: type, market: market, reader: legalReader)
+                        SettingsLegalDocumentView(type: type, market: UserMarketMemory.legalDocumentMarket(deployment: market), reader: legalReader)
                     } label: {
                         Label { Text(LocalizedStringKey(type.titleKey)) } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconAgreement) } // MP about: icon_agreement on both
                             .environment(\.settingsTileTint, type == .privacyPolicy ? SettingsTint.blue : SettingsTint.gray)

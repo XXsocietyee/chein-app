@@ -156,3 +156,13 @@ provider through `AiGatewayService` (quota, input/output safety, audit log).
 | `feature.flag.roamNpcEvent` | backend `sys_config` | `true` turns on the roam prompt layer (reviewed lines, place meaning, route story) that also fills the guide sheet | **owner decision** (default false) |
 | `feature.flag.roamNpcChat` | backend `sys_config` | stays `false`: no roam free chat (07-22 decision; `chatOn()` is hard false in code) | fixed |
 | Story script | `Resources/Story/StoryGuide.json` | NPC identity line, fallback greeting, guide identity, guide prompts (en + zh-Hans). Schema: `docs/release/story-content.md` | **owner to revise** |
+
+## K50-R1 remote push: APNs auth key (owner only)
+
+The app does not hold the key that sends remote notifications. Sending is the backend's job. The name below is a placeholder, not a key, and it is not an xcconfig or Info.plist value. The app does not read it.
+
+| Name | Where | Placeholder | Status |
+|---|---|---|---|
+| `QUESTIFY_APNS_AUTH_KEY` | backend environment only | `chein-apns-unset` | **owner to supply** the real APNs auth key under this name. Never commit the key. |
+
+`Config/Questify.entitlements` already has `aps-environment` = `development`. That entitlement does not register a device and does not send a push. The device-token upload `POST api/device/push-token` is still refused by the composition, so the app does not call `registerForRemoteNotifications`.

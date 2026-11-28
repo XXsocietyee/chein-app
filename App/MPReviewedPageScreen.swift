@@ -221,10 +221,10 @@ import SwiftUI
                 roam
             }
         case "pages/privacy/index":
-            PrivacyProtectionView(market: session.operationalMarket, legalReader: session.legalReader, signedIn: session.account != nil,
+            PrivacyProtectionView(market: UserMarketMemory.legalDocumentMarket(deployment: session.operationalMarket), legalReader: session.legalReader, signedIn: session.account != nil,
                                   moreSettings: { AnyView(SettingsPrivacyLocationEntry.destination(session: session)) })
         case "pages/agreement/index":
-            SettingsLegalDocumentView(type: SettingsLegalType.resolve(query["type"] ?? ""), market: session.operationalMarket, reader: session.legalReader)
+            SettingsLegalDocumentView(type: SettingsLegalType.resolve(query["type"] ?? ""), market: UserMarketMemory.legalDocumentMarket(deployment: session.operationalMarket), reader: session.legalReader)
         case "pages/deregister/index":
             if let coordinator = session.accountComplianceCoordinator {
                 AccountComplianceSheet(coordinator: coordinator, destination: .cancellation, market: session.operationalMarket, legalReader: session.legalReader,

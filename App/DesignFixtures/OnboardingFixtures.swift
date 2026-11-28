@@ -68,10 +68,14 @@ struct ConsentFixture: View {
 
 struct LoginFixture: View {
     /// Sweep 04:50: render the shipped CN channel set (Apple approved), not the unreviewed bare session.
-    @State private var channels = AuthChannelCoordinator(
-        service: LoginFixtureOfflineService(), appleSignInApproved: true,
-        currentSession: { AuthChannelSessionSnapshot(epoch: 0, accountID: nil) },
-        commitLogin: { (_: LoginResult, _: AuthChannelSessionSnapshot) -> Bool in false })
+    @State private var channels = LoginFixture.approvedChannels()
+    /// The shipped channel set (Apple approved, offline service); shared with the `e4-login-*` state fixtures (sweep 17:30).
+    @MainActor static func approvedChannels() -> AuthChannelCoordinator {
+        AuthChannelCoordinator(
+            service: LoginFixtureOfflineService(), appleSignInApproved: true,
+            currentSession: { AuthChannelSessionSnapshot(epoch: 0, accountID: nil) },
+            commitLogin: { (_: LoginResult, _: AuthChannelSessionSnapshot) -> Bool in false })
+    }
     @StateObject private var session = AppSession()
     var body: some View {
         var view = LoginView(intent: .player)

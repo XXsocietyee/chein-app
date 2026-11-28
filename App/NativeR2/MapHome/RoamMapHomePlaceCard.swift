@@ -41,7 +41,7 @@ import QuestifyCore
                             Label {
                                 Text(verbatim: rating ?? "—").monospacedDigit()
                             } icon: {
-                                Image(systemName: "star.fill").foregroundStyle(.yellow)
+                                Image(systemName: "star.fill").foregroundStyle(CYColor.ratingStar)
                             }
                             .labelStyle(.titleAndIcon)
                             .accessibilityLabel(Text("nativeR2.mapHome.card.rating \(rating ?? "—")"))
