@@ -258,6 +258,14 @@ Sweep sheets (en / zh-Hans) `d2-inbox`, `ia-tabs`, `login-player`, `onboarding-1
 | sign-in sheet → App/LoginView.swift | P27 left-aligned title, one brand mark | header was a centred 88 pt mark + centred title/subtitle; now one 56 pt mark and title/subtitle leading-aligned (`VStack(alignment: .leading)`), Dynamic Type `.title` / `.subheadline` unchanged | `login-player` centred card → leading header | fixed (not compiled here) |
 | same | motion / feedback | `.sensoryFeedback(.success)` when `session.account?.id` goes nil → non-nil (sign-in completes, just before the sheet dismisses); no animation added, so nothing for Reduce Motion | — | fixed |
 
+## Re-scan 11-28 03:xx (merged combined-r7 41374363f; sweep 02:20 "mp-nav clean" → Next round item 2, motion/feedback)
+
+| page → native view | principle | change | fixture | status |
+|---|---|---|---|---|
+| 消息 收件箱 / 发件箱 tab row (MP subpackageB/pages/im/list index.wxml:11) → App/MessagingHomeView.swift scope Picker | feedback | `.sensoryFeedback(.selection, trigger: box)` on the segmented control; sections/order unchanged; states already covered by `MessagingReadScreen` (ProgressView loading, MessagingIssueView error / signed-out / unconfigured + retry, `.refreshable`, ContentUnavailableView empty with MP copy) | `d2-inbox`, `d2-inbox-empty` | fixed (not compiled here) |
+| launch welcome consent checkbox (MP pages/privacy/index.wxml:10) → App/WelcomeView.swift `consentRow` | feedback | `.sensoryFeedback(.selection)` on a tap counter (`consentTaps`), so only the player's own check / uncheck ticks, not the stored agreement syncing in on appear / scene change | `welcome` | fixed (not compiled here) |
+| sign-in sheet → App/LoginView.swift | feedback | `.sensoryFeedback(.warning)` when `session.errorKey` becomes non-nil (failed code / sign-in), next to the existing success tick | `login-player` | fixed (not compiled here) |
+
 ## Route coverage
 
 All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScreen cases or `MPParityDestination`), except four pages that are parsed (`Core/MiniProgramPageLink.swift`) but have no native screen case: `pages/playkit/index/index`, `pages/publishkit/index/index` (MP kit galleries), `pages/crop/index` (MP image-crop utility) and `subpackageP3/pages/badge-3d/index` (MP 3D badge viewer). No native player control links to them; left for the coordinator to confirm they stay unrouted.
