@@ -193,7 +193,7 @@ import SwiftUI
                     }
                     if poll.hasResults, let count = option.voteCount, let total = poll.totalVoters {
                         ProgressView(value: Double(count), total: Double(max(total, 1))).accessibilityLabel(Text(verbatim: option.content))
-                            .accessibilityValue(Text(verbatim: "\(count) / \(total)"))
+                            .accessibilityValue(Text("a11y.value.ofTotal \(count) \(total)"))
                     }
                     if owner.canVote {
                         Button { selectedOption = option.id } label: {

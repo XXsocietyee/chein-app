@@ -386,7 +386,8 @@ struct RegistrationSheetView: View {
             }
         }
     }
-    /// Ticket card: cover tile, activity name, date + venue, perforation, selected ticket and its price.
+    /// Activity card: cover tile, activity name, date + venue. MP baoming.wxml (费用明细 note): the ticket row moved
+    /// out of this card into 票种 / 费用明细, so the card only answers which activity this is.
     private var activitySection: some View {
         let checkout = RegistrationCheckoutFacts(activity: flow.activity, ticket: flow.selectedTicket)
         let copy = CoreLoopCopy(locale: locale)
@@ -434,25 +435,6 @@ struct RegistrationSheetView: View {
                     Spacer(minLength: 0)
                 }
                 .padding(CYSpacing.lg)
-                E1Perforation()
-                ViewThatFits(in: .horizontal) {
-                    HStack(alignment: .firstTextBaseline) {
-                        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                            Text(verbatim: copy.t("票种", "Ticket")).cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                            Text(verbatim: flow.selectedTicket?.name ?? "—").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary).cyWrapText()
-                        }
-                        Spacer(minLength: CYSpacing.sm)
-                        Text(verbatim: ticketPriceText(copy)).cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-                            .cyWrapText().layoutPriority(1)
-                    }
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        Text(verbatim: copy.t("票种", "Ticket")).cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                        Text(verbatim: flow.selectedTicket?.name ?? "—").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary).cyWrapText()
-                        Text(verbatim: ticketPriceText(copy)).cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary).cyWrapText()
-                    }
-                }
-                .padding(CYSpacing.lg)
-                .accessibilityElement(children: .combine)
             }
             .cyDomainCard(radius: CYRadius.lg, padding: 0)
             .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0)).listRowBackground(Color.clear)
@@ -468,12 +450,6 @@ struct RegistrationSheetView: View {
             parts?.queryItems = [URLQueryItem(name: "q", value: venue)]
         }
         return parts?.url
-    }
-    private func ticketPriceText(_ copy: CoreLoopCopy) -> String {
-        guard let ticket = flow.selectedTicket else { return "—" }
-        if ticket.price == 0 { return copy.t("免费", "Free") }
-        guard PlayAreaPopupCopy.paymentsOpen else { return "—" }
-        return E1Money.yuan(ticket.price, locale: locale) ?? "—"
     }
     private func gatedPayAmount(_ amount: Decimal?) -> String {
         guard let amount else { return "—" }
@@ -726,9 +702,7 @@ struct RegistrationSheetView: View {
                     focusedField = nil
                     showingParticipantSheet = true
                 } label: {
-                    Text(verbatim: PlayCloseCopy.text("选择参与人信息", "Select participant sheet", locale))
-                        .cyText(.caption, weight: .semibold)
-                        .foregroundStyle(CYColor.brandStrong)
+                    Text(verbatim: PlayCloseCopy.text("选择参与人信息", "Choose a saved participant…", locale))
                 }
                 .disabled(!flow.canEdit)
                 .accessibilityIdentifier("registration.form.openParticipantSheet")
@@ -825,9 +799,7 @@ struct RegistrationSheetView: View {
                     focusedField = nil
                     showingTicketSheet = true
                 } label: {
-                    Text(verbatim: PlayCloseCopy.text("选择票种", "Choose ticket sheet", locale))
-                        .cyText(.caption, weight: .semibold)
-                        .foregroundStyle(CYColor.brandStrong)
+                    Text(verbatim: PlayCloseCopy.text("选择票种", "Choose a ticket…", locale))
                 }
                 .disabled(!flow.canEdit)
                 .accessibilityIdentifier("registration.form.openTicketSheet")

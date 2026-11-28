@@ -291,3 +291,38 @@ Merged `origin/ui/combined-r7` (clean). No new sweep since Continue 11, so no ne
 | `components/cy/scene-member-withdraw-history` (+ `tixianjilu` shell) | `App/WithdrawalHistoryView.swift` | Amount: L09-023 `moneyText` = −¥ with the site amount format, ¥0 for zero, never a bare "-12.00"; first load `cy-skeleton type="list" count="4"` | **Fixed.** Rows and the detail sheet use `WithdrawalAmountDisplay` (`.currency(code: "CNY")` in the UI locale: −¥12.30 zh, -CN¥12.30 en; ¥0.00 for zero; "—" when unknown). The skeleton shows four rows. `WithdrawalParityFlowTests` now checks "12.30" + "¥" instead of the bare "-12.30" (pin followed the MP format). Title, empty (还没有发起提现), login / denied / failed copy, statuses, load-more + 更多提现记录加载失败 · 重试 already matched. The day-grouped sections stay (layout, no new content). |
 
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+## Continue 13 (half-hourly re-arm, sweep still 22:11 UTC build 8fa84e4d3)
+
+Merged `origin/ui/combined-r7` (clean). No mp-mine rows in the 22:20 sweep or the contract-cleanup table; this pass continues the member components without a row.
+
+| MP page | Native view | MP says | Fixed now |
+|---|---|---|---|
+| `components/cy/scene-member-order-history` | `App/ProfileOrdersView.swift`, `App/ProfileOrderFilterSection.swift` | Filter tabs on top (9 MP options in MP order) → skeleton → 订单加载失败 / 登录后查看订单 / 当前身份不能查看订单 → 还没有城市路线订单 + 去发现城市路线 → 当前筛选暂无订单 → cards (mode tag + state / name / time / place, 实付款 / 待付款 line, 取消订单 · 立即支付 / 取消并退款 · 查看详情 / 查看退款详情 / 查看处理进度, 已下架) | — (matches; the chip row is the system filter `Picker(.menu)` per G-053, same nine options in MP order) |
+| `components/cy/scene-qr-coupon` | `App/CouponCodeView.swift` | Live code: `cy-qr-voucher` title = coupon name, desc 出示给商家扫码核销, then the code, 二维码 Ns 后自动刷新, 刷新二维码 | **Fixed.** The ready state shows the coupon name (when read) and 出示给商家扫码核销 / "Show this to the merchant to scan and redeem" above the code (existing key `couponCode.presentToMerchant`, id `couponCode.voucherHead`). Not-started, not-mine, used / expired / revoked results already matched. Kept: native 核销状态暂未更新 footnote for the MP poll inline error. |
+| `components/cy/report-sheet` | `im.reportPeer.*` sheet (IM / profile report) | loading → reasons → form (举报原因 / 具体说明 / 被举报方看不到你的身份 / 换个原因 · 提交举报) → 举报已提交 / 提交结果未知 | — (copy and stages already ported) |
+| `components/cy/scene-share-invite` + profile 关于 `探索与更多` (wxml:533-545) | `App/AccountView.swift` `aboutTabSections` | 探索与更多 = 我的优惠券 → **邀请好友** (personal code via `/api/user/player-code`) → 当前权益 | **Fixed.** The personal-code row (我的邀请码, BL-71) sat among the app-only rows below 当前权益; it now leads the 探索与更多 section as **邀请好友 / Invite friends** (`gift`, new key `account.inviteFriends`, id `account.playerCode` unchanged, destination unchanged), before the app-only 邀请记录 / 填写邀请人. Not done: the MP share card copy (一起探索城市里的新玩法, 分享链接) on the code page; `PlayerCodeAndJoinSection` belongs to the player-gap owner. |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+| `components/cy/scene-member-order-detail` | `App/ProfileOrdersView.swift` detail + `App/ProfileOrderSourceDetailSections.swift` | 订单明细 (订单号 / 票种 / 日期与时间 / 集合点) → 支付明细 → 和队友一起出发 (仅邀请可加入 switch, 叫上队友) → 订单进度 → 支付信息 → 开票 → 报名人 → 凭证与有效期 → 联系客服 · 复制订单号 → 去支付 / 查看记录 | — (spot-checked: sections, keys and order were ported in earlier rounds, FIN-16 / orderParity). Kept: the 仅邀请可加入 choice is the `team.invitationOnly` toggle on the next step (`TeamCreateView`), still chosen before the team is created, as the MP comment requires. Not done: MP note 场次已开始，只能建仅邀请队伍 (no `teamStarted` field in `ProfileOrder`). |
+| `components/cy/pass-unlock` (market/pass post-purchase reveal) | `App/PassMarketViews.swift` | Animated unlock steps after a pass purchase | Not done: purchase-adjacent and gated (see `market/pass` row); no native reveal. |
+
+## Continue 14 (hourly re-arm, sweep still 22:11 UTC build 8fa84e4d3)
+
+Merged `origin/ui/combined-r7` (clean). Screens checked: `docs/sweeps/latest/mp-mine/sheet-zh-Hans.jpg`, `sheet-en.jpg`.
+
+| Screenshot | MP / brief | Native file | Fixed now |
+|---|---|---|---|
+| `zh-Hans-d2-me.jpg`, `zh-Hans-e4-member.jpg`: name and city read "Synthetic member" / "Synthetic City" in the Chinese UI | 19:50: fixture data follows the UI language | `App/MemberHomeFixture.swift` `MemberHomeFixtureReader.identity()` | **Fixed.** `iaFixtureText` (示例会员 / 示例城市). The en UI tests (`MemberHomeFlowTests`) still read the English names. |
+| `zh-Hans-e4-self-medals.jpg`: "Synthetic medal owner" in the Chinese UI | same | `App/ProfileSelfMedalsFixture.swift` | **Fixed** (示例勋章主人; `ProfileSelfMedalsFlowTests` runs in en). |
+| `*-ia-passport.jpg`: tab root title reads 护照 / Passport while the real tab root (`AccountView`, `tabBar.mine`) and d2-me read 我的 / Me | OWNER RULE 2: one top-left title per tab root | `App/DesignFixtures/IAFixtures.swift` | **Fixed.** `.cyRootHeader(.mine)` with the tab's own title. |
+| `zh-Hans-t5-order-center.jpg`, `zh-Hans-e4-wallet-balance.jpg`: dates read `2026-11-14 10:00` in zh, formatted in en | — | — | Kept: `LocaleDisplay.civil` leaves zh server dates unchanged by design (as the MP shows them). |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, check_l10n no failure in my files (6 failures are in other lanes' files: `ProjectEditPlaySetupRows`, `OfficialPrivateViews`, `SquareDetailView`), contract ratchet 52 failing / baseline 52 / **new 0**.
+
+### For other lanes
+- i18n-r3: `check_l10n.py` fails on combined-r7 in `App/MPGap/AccountPublish/ProjectEditPlaySetupRows.swift`, `App/OfficialPrivateViews.swift`, `App/SquareDetailView.swift`.
+
+### Component coverage (Continue 14)
+
+Remaining `subpackageMember/components/cy/*` without a row were traced to their mounting pages: `team-report-sheet` (`pages/team/detail`, `subpackageRoam/nearby` → mp-activity / mp-roam), `scene-game-coupon-wallet` (`pages/play` → mp-journey), `npc-avatar` / `npc-chat` / `scene-route-content` / `scene-play-activity-detail` (journey), `scene-roam-poi-detail` (roam), `coop-invite-sheet` (coop → mp-activity), `merchant-correction-sheet` (merchant, gated), `scene-deep-link` (mp-nav). `dot-qr` is the 票夹 inline QR (`signup` row: NAT-12, not done on purpose) and `pass-object` is part of `pass-unlock` (gated). Every page in the mp-mine area now has a row; later runs re-check the sweep.

@@ -53,7 +53,7 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
     var body: some View {
         Group {
             if isInitialLoading {
-                ProgressView { Text("club.loading") }
+                ProgressView { usesClubPageStates ? Text("club.detail.loading") : Text("club.loading") }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .accessibilityIdentifier(accessibilityPrefix + ".loading")
             } else {

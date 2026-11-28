@@ -144,7 +144,9 @@ import SwiftUI
             .onChange(of: session.profileFavoritesReader.scope) { _, scope in
                 savedPostOwner.updateScope(scope); savedTopicOwner.updateScope(scope)
             }
-            .cySheet(isPresented:$showsSettings, onDismiss: settingsDismissHandler) { Group {
+            // mp-nav r3: MP profile 设置 = navigateTo pages/shezhi/shezhi, a page: Settings pushes (no own stack, no 完成).
+            // The guide hand-off still runs after the page has left (pop), as it did after the sheet dismissed.
+            .navigationDestination(isPresented:$showsSettings) { Group {
                 let presentation = settingsGuideHandoff.presentation
                 let revision = session.sessionRevision
                 SettingsView(onOpenGuideDestination: onOpenGuideDestination.map { open in { destination in
@@ -154,12 +156,12 @@ import SwiftUI
                               open(destination)
                           }) else { return }
                     showsSettings = false
-                } })
+                } }, isPushed: true)
                 .themeDomain(.player)
             }
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
+            .cyPushedChrome()
             }
+            .onChange(of: showsSettings) { _, open in if !open { settingsDismissHandler() } }
             .cySheet(isPresented:$showsCooperation) { Group {
                 CooperationBrowserView(reader:session.cooperationReader,onClose:{ showsCooperation=false },peerReader:session.cooperationFlowReader,topicDestination:{ AnyView(SessionTopicDetailView(id:$0,session:session)) }).id(session.cooperationReader.scope)
             }
@@ -192,8 +194,8 @@ import SwiftUI
             showsTicketPass = true; presentsTicketPass?.wrappedValue = false
         }
         .onChange(of: confirmsLogout) { _, visible in if !visible { logoutConfirmation = nil } }
-        // Settings, Cooperation and the wallet cover the tabs: a replayed chein:// link waits until they close.
-        .onChange(of: showsSettings || showsCooperation) { _, open in presentation?.setSheet("passport", open: open) }
+        // Cooperation covers the tabs: a replayed chein:// link waits until it closes (Settings is a push now).
+        .onChange(of: showsCooperation) { _, open in presentation?.setSheet("passport", open: open) }
         .onChange(of: session.authChannelSnapshot) { _, _ in logoutConfirmation = nil; confirmsLogout = false }
         .onChange(of: scenePhase) { _, phase in savedPostOwner.setForeground(phase == .active); savedTopicOwner.setForeground(phase == .active) }
     }
@@ -303,6 +305,12 @@ import SwiftUI
             .id(session.accountCollectionReader.scope)
         // MP 探索与更多: 我的优惠券 (above) then 邀请好友, before 当前权益.
         Section {
+            // mp-mine r3: MP 邀请好友 (profile wxml:541) opens the personal code (/api/user/player-code), so the code row leads here.
+            if session.playerGapService != nil {
+                NavigationLink { Form { Section { PlayerCodeAndJoinSection() } }.navigationTitle(Text("playerGap.playerCode.title")).navigationBarTitleDisplayMode(.inline).cyPushedChrome() } label: {
+                    Label("account.inviteFriends", systemImage: "gift")
+                }.accessibilityIdentifier("account.playerCode")
+            }
             NavigationLink { SocialInviteHistoryView(reader: session.profileInviteHistoryReader, squareReader: session.squareReader, actions: session.socialActionCoordinator).id(session.profileInviteHistoryReader.identity).cyPushedChrome()
                     .environment(\.socialConversationDestination, session.socialConversationDestination) } label: {
                 Label("social.invites.title", systemImage: "person.2.badge.plus")
@@ -339,11 +347,6 @@ import SwiftUI
             }.accessibilityIdentifier("account.clubs")
             }
             if session.account?.effectiveRole == "club" { PayoutAccountLinks(audience: .club) }
-            if session.playerGapService != nil {
-                NavigationLink { Form { Section { PlayerCodeAndJoinSection() } }.navigationTitle(Text("playerGap.playerCode.title")).navigationBarTitleDisplayMode(.inline).cyPushedChrome() } label: {
-                    Label("playerGap.playerCode.title", systemImage: "qrcode")
-                }.accessibilityIdentifier("account.playerCode")
-            }
         }
         Section {
             PrivateHomeAccountLink(coordinator: privateHomeCoordinator)

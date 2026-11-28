@@ -16,6 +16,8 @@ struct ClubDissolvedReturn {
     let leave: @MainActor () -> Void
     /// mp-club r3 pass 10 (MP utils/danger-actions.js `club.dissolve` title 解散「name」？): the club name for the confirm.
     var clubName: String? = nil
+    /// mp-club r3 pass 17 (MP danger-actions `club.dissolve.alt`): 改为转让主理人 inside the dissolve confirm opens 成员治理.
+    var transferInstead: (() -> Void)? = nil
 }
 private struct ClubDissolvedReturnKey: EnvironmentKey {
     static let defaultValue: ClubDissolvedReturn? = nil
@@ -108,6 +110,7 @@ struct ClubOperationsWorkspaceView: View {
     @StateObject private var createStepBar = ClubCreateStepBar()
     @Environment(\.scenePhase) private var scenePhase
     @State private var snapshot: ClubOperationsSnapshot?
+    @State private var transferInsteadShown = false
     @State private var draft = ClubOperationsDraft()
     @State private var baseline = ClubOperationsDraft()
     @State private var state: ClubOperationsState = .idle
@@ -122,7 +125,6 @@ struct ClubOperationsWorkspaceView: View {
     @State private var readbackUnavailable = false
     @State private var ownerID = UUID()
     @State private var artworkRevision = UUID()
-    @ScaledMetric(relativeTo: .body) private var identityCoverSide: CGFloat = 56
     @State private var createReceiptIdentity: ClubReadIdentity?
     @State private var createReceiptClubID: Int?
     @State private var readbackIdentity: ClubReadIdentity?
@@ -382,43 +384,9 @@ struct ClubOperationsWorkspaceView: View {
         scenePhase == .active && screenIdentity == identity && !loading && !state.locksForm && !profileDraftBlocked && review == nil &&
             expected.matches(target: target, identity: identity, access: access, profile: snapshot?.profile, sourceRevision: artworkRevision)
     }
-    /// The edit header row: the cover (or the club glyph) beside name, city and role.
-    private func clubIdentityHero(_ club: ClubRecord) -> some View {
-        Label {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: club.name).font(.headline)
-                if let city = club.city, !city.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    Text(verbatim: city).font(.subheadline).foregroundStyle(.secondary)
-                }
-                Label(LocalizedStringKey(club.isOwner ? "club.ops.owner" : "club.ops.administrator"), systemImage: club.isOwner ? "crown" : "person.badge.key")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-        } icon: {
-            if let cover = QuestifyCardArtwork.safeURL(club.cover) {
-                PlayerFeedRemoteImage(url: cover, maxPixel: 240, placeholder: { identityGlyph }, failure: { identityGlyph })
-                    .frame(width: identityCoverSide, height: identityCoverSide)
-                    .clipped()
-                    .accessibilityHidden(true)
-            } else {
-                identityGlyph
-            }
-        }
-        .accessibilityElement(children: .combine)
-    }
-    private var identityGlyph: some View {
-        Image(systemName: "person.3.fill")  // CLB-edit-06
-            .foregroundStyle(.secondary)
-            .accessibilityHidden(true)
-    }
     @ViewBuilder private func content(_ value: ClubOperationsSnapshot) -> some View {
-        if let profile = value.profile {
-            Section {
-                // CLB-r10-nat-edit-01 (MP scene-club-edit wxml club-head: logo + name + city): one plain row with a
-                // system-size cover beside 名称 / 城市 / 角色, not a full-bleed blurred image card.
-                clubIdentityHero(profile.club)
-            }
-        }
+        // mp-club r3 pass 18 (OWNER RULE): the MP edit page (scene-club-edit wxml) has no club head; the page title is
+        // 编辑资料 and the form starts at 俱乐部形象 (头像 / 封面), so the cover · name · city · role row is gone.
         if target == .create && !value.canCreate {
             // Mini-program club/create no-permission and limit states.
             Section {
@@ -520,18 +488,17 @@ struct ClubOperationsWorkspaceView: View {
                     ClubGovernanceReadView(operation: .dissolutionBlockers, scope: .init(clubID: profile.club.id), identity: identity,
                         access: governance.access, coordinator: governance.coordinator)
                         .environment(\.clubProfileDraftFlow, profileDraft)
-                        .environment(\.clubDissolvedReturn, ClubDissolvedReturn(leave: { dismiss() }, clubName: profile.club.name))
+                        .environment(\.clubDissolvedReturn, ClubDissolvedReturn(leave: { dismiss() }, clubName: profile.club.name,
+                            transferInstead: { transferInsteadShown = true }))
+                        // mp-club r3 pass 17 (MP scene-club-edit 危险操作 + danger-actions `club.dissolve.alt`, edit js:35-39
+                        // goGovernance): 改为转让主理人 is the dissolve confirm's lighter alternative, not a permanent row here.
+                        .navigationDestination(isPresented: $transferInsteadShown) {
+                            ClubGovernanceReadView(operation: .bans, scope: .init(clubID: profile.club.id), identity: identity,
+                                access: governance.access, coordinator: governance.coordinator)
+                        }
                 } label: { Label("club.ops.dissolve", systemImage: "trash").foregroundStyle(.red) }
                     .disabled(loading || state.locksForm)
                     .accessibilityIdentifier("club.ops.dissolve")
-                // CLB-G19 (r9, MP edit js:35-39 goGovernance; scene-club-edit wxml:206 alt): 改为转让主理人 next to 解散
-                // opens the governance manage page (pages/club/governance/index?clubId=…), where the transfer lives.
-                NavigationLink {
-                    ClubGovernanceReadView(operation: .bans, scope: .init(clubID: profile.club.id), identity: identity,
-                        access: governance.access, coordinator: governance.coordinator)
-                } label: { Label("改为转让主理人", systemImage: "person.crop.circle.badge.checkmark") }
-                    .disabled(loading || state.locksForm)
-                    .accessibilityIdentifier("club.ops.transferInstead")
             } header: {
                 // CLB-edit-02 (parity r2): MP 危险操作 section with its consequence beside the button.
                 Text("club.ops.danger")
@@ -1436,8 +1403,6 @@ private struct ClubOperationsProfileForm: View {
     /// Mini-program cy-scene-club-edit order: 基础信息 → 俱乐部介绍 → 定位 → 会员经营配置.
     @ViewBuilder private var editSections: some View {
         Section {
-            // cy-scene-club-edit admin-note: administrators may only edit display information.
-            if !isOwner { Text("club.ops.adminNote").cyText(.meta).foregroundStyle(.secondary).accessibilityIdentifier("club.ops.adminNote") }
             // Round 4 copy (MP scene-club-edit wxml:50-72): the edit page has its own labels and placeholders
             // (名称* / 城市* / 关键词 / 风格, 俱乐部名称 / 所在城市 / 如：城市探索、解谜（选填）…), not the create wizard's.
             field("name", text: $draft.name, editCopy: true)
@@ -1455,7 +1420,13 @@ private struct ClubOperationsProfileForm: View {
         if !isOwner {
             // Locked card instead of disabled toggles, echoing the current owner-only values.
             Section("club.ops.signupSettings") {
-                Text("club.ops.locked.title").cyText(.bodyMedium)
+                // mp-club r3 pass 18 (MP scene-club-edit wxml:121-128): the locked card alone explains the admin
+                // limit (title → 仅主理人可设置 → 当前：…); the old top-of-form admin note is not on the MP page.
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("club.ops.locked.title").cyText(.bodyMedium)
+                    Text("club.ops.locked.sub").cyText(.meta).foregroundStyle(.secondary)
+                }
+                .accessibilityElement(children: .combine)
                 lockedCurrent.cyText(.meta).accessibilityIdentifier("club.ops.locked.current")
             }
         } else {
