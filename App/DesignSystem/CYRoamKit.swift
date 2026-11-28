@@ -285,9 +285,8 @@ struct CYRevealToast: View {
             CYCountUpPercent(percent: percent).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
         }
         .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
-        .background(.ultraThinMaterial, in: Capsule(style: .continuous))
-        .background(Color.black.opacity(0.5), in: Capsule(style: .continuous))
-        .overlay(Capsule(style: .continuous).strokeBorder(Color.white.opacity(0.16), lineWidth: 1))
+        .background(.regularMaterial, in: Capsule(style: .continuous))
+        .overlay(Capsule(style: .continuous).strokeBorder(CYColor.borderSubtle, lineWidth: 1))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(percent.map { Text("roam.fog.toast.a11y \($0)") } ?? Text("roam.fog.toast.a11yUnknown"))
         .accessibilityAddTraits(.updatesFrequently)

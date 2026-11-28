@@ -50,50 +50,92 @@ extension PlayKitScreen {
         dirty = true
     }
 
+    /// MP sort / match / classify show no attempt rows (a capped kit keeps the HUD 还能错 pill) and no how-to line;
+    /// the judged outcome is one feedback line in place, overall only (the server never says which row is off).
     @ViewBuilder var nativeReasoning: some View {
         switch kind {
         case .sort: nativeSortSection
         case .match: nativeMatchSection
         default: nativeClassifySections
         }
-        if let cap = raw["maxAttempts"].integer, cap > 0 {
-            Section {
-                if let attempts = raw["attempts"].integer, attempts > 0 {
-                    LabeledContent { Text(verbatim: String(attempts)).monospacedDigit() } label: { Text("playkit.attempts") }
-                }
-                LabeledContent { Text(verbatim: String(cap)).monospacedDigit() } label: { Text("playkit.attemptLimit") }
-            }
-        } else if let attempts = raw["attempts"].integer, attempts > 0 {
-            Section {
-                LabeledContent { Text(verbatim: String(attempts)).monospacedDigit() } label: { Text("playkit.attempts") }
-            }
+    }
+
+    var nativeReasoningPassed: Bool { (raw["attempts"].integer ?? 0) > 0 && raw["passed"].bool == true }
+
+    /// MP `so__fb` / `ma__fb`: only after a judged submit (classify draws its own verdict row).
+    var nativeReasoningFeedback: (key: LocalizedStringKey, ok: Bool)? {
+        // MP clears the verdict as soon as a row moves / a pair changes: hide it after an edit until the next judged submit.
+        guard (raw["attempts"].integer ?? 0) > 0, let passed = raw["passed"].bool,
+              reasoningFeedback.showsResult(for: projection) else { return nil }
+        switch kind {
+        case .sort:
+            if passed { return ("playkit.sort.fb.ok", true) }
+            let key = raw["finished"].bool == true ? "playkit.sort.fb.exhausted" : "playkit.sort.fb.retry"
+            return (LocalizedStringKey(key), false)
+        case .match:
+            if passed { return ("playkit.match.fb.ok", true) }
+            return ("playkit.match.fb.retry", false)
+        default:
+            return nil
         }
     }
 
-    /// System drag handles (the list is in edit mode while the kit is open), plus VoiceOver move actions.
+    @ViewBuilder var nativeReasoningFeedbackLine: some View {
+        if let feedback = nativeReasoningFeedback {
+            Label {
+                Text(feedback.key)
+            } icon: {
+                Image(systemName: feedback.ok ? "checkmark.circle.fill" : "arrow.uturn.backward.circle")
+                    .foregroundStyle(feedback.ok ? Color.green : Color.orange)
+            }
+            .font(.subheadline)
+            .accessibilityIdentifier("playkit.reasoning.feedback")
+        }
+    }
+
+    /// MP `playkit-sort`: prompt (shell header) → numbered rows (picture when the item has one; all rows turn green only
+    /// once the whole order passed, never per row) → one feedback line → 就这个顺序 on the bottom bar. No how-to line and no
+    /// attempt rows (MP shows neither; a capped kit keeps the HUD 还能错 pill). System drag handles + VoiceOver move actions.
     @ViewBuilder var nativeSortSection: some View {
         let ids = nativeSortIDs
         let items = nativeItems
+        let passed = nativeReasoningPassed
         Section {
             ForEach(Array(ids.enumerated()), id: \.element) { index, id in
-                Label {
-                    Text(verbatim: items.first { $0.id == id }?.label ?? id)
-                } icon: {
-                    Text(verbatim: String(index + 1)).monospacedDigit().foregroundStyle(.secondary)
+                let item = items.first { $0.id == id }
+                HStack(spacing: 12) {
+                    Text(verbatim: String(index + 1))
+                        .font(.title3.weight(.bold).italic())
+                        .monospacedDigit()
+                        .foregroundStyle(passed ? Color.green : Color.secondary)
+                    if let image = item?.raw["img"].text, !image.isEmpty {
+                        PlayKitArtwork(source: image, approvedHosts: approvedArtworkHosts)
+                            .frame(width: 48, height: 48)
+                            .clipShape(.rect(cornerRadius: CYRadius.sm))
+                            .accessibilityHidden(true)
+                    }
+                    Text(verbatim: item?.label ?? id)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if passed {
+                        Spacer(minLength: 0)
+                        Image(systemName: "checkmark").foregroundStyle(.green).accessibilityHidden(true)
+                    }
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(Text("playkit.sort.rowLabel \(index + 1) \(item?.label ?? id)"))
                 .accessibilityAction(named: Text("playkit.sort.up")) { nativeMove(index, by: -1) }
                 .accessibilityAction(named: Text("playkit.sort.down")) { nativeMove(index, by: 1) }
                 .accessibilityIdentifier("playkit.sort.row." + id)
             }
             .onMove { from, to in
-                guard enabled else { return }
+                guard enabled, !passed else { return }
                 var next = nativeSortIDs
                 next.move(fromOffsets: from, toOffset: to)
                 nativeOrder = next
                 nativeReasoningEdited()
             }
-        } header: {
-            Text("playkit.sort.instructions")
+        } footer: {
+            nativeReasoningFeedbackLine
         }
     }
 
@@ -127,28 +169,51 @@ extension PlayKitScreen {
                     Text(verbatim: item.label)
                 }
                 .pickerStyle(.menu)
-                .disabled(!enabled)
+                .disabled(!enabled || nativeReasoningPassed)
+                .tint(nativeReasoningPassed ? Color.green : nil)
                 .accessibilityIdentifier("playkit.match.row." + item.id)
             }
-        } header: {
-            Text("playkit.match.instructions")
+        } footer: {
+            nativeReasoningFeedbackLine
         }
     }
 
-    /// 未分类 on top; each bin is its own section. Swipe to take an item back.
+    /// MP `playkit-classify`: prompt (shell) → the top card (n / total · label) with the bins as buttons (label · count)
+    /// → each bin's placed items (tap to take back; all green after a pass) → 还有 N 条没分 → 全分对了 / 还有分错的… → 分好了.
     @ViewBuilder var nativeClassifySections: some View {
         let placement = nativeCleanPlacement
         let items = nativeItems
         let unsorted = items.filter { placement[$0.id] == nil }
-        Section {
-            ForEach(unsorted) { item in nativeClassifyRow(item) }
-        } header: {
-            Text("nativeGames.classify.unsorted")
-        } footer: {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("playkit.classify.instructions")
-                Text("playkit.classify.remainingLine \(unsorted.count)")
-                    .accessibilityIdentifier("playkit.classify.remaining")
+        let passed = raw["passed"].bool == true
+        if let top = unsorted.first, !passed {
+            Section {
+                Text(verbatim: top.label)
+                    .font(.title3.weight(.semibold))
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .accessibilityIdentifier("playkit.classify.card")
+                ForEach(nativeBins) { bin in
+                    let count = items.filter { placement[$0.id] == bin.id }.count
+                    Button {
+                        guard enabled else { return }
+                        var next = nativeCleanPlacement
+                        next[top.id] = bin.id
+                        nativePlacement = next
+                        nativeReasoningEdited()
+                    } label: {
+                        LabeledContent {
+                            Text(verbatim: String(count)).monospacedDigit()
+                        } label: {
+                            Label(bin.label, systemImage: "tray.and.arrow.down")
+                        }
+                    }
+                    .disabled(!enabled)
+                    .accessibilityLabel(Text("playkit.classify.dropInto \(bin.label) \(count)"))
+                    .accessibilityIdentifier("playkit.classify.bin." + bin.id)
+                }
+            } header: {
+                Text(verbatim: "\(items.count - unsorted.count + 1) / \(items.count)").monospacedDigit()
             }
         }
         ForEach(nativeBins) { bin in
@@ -156,19 +221,48 @@ extension PlayKitScreen {
             if !placed.isEmpty {
                 Section {
                     ForEach(placed) { item in
-                        nativeClassifyRow(item)
-                            .swipeActions(edge: .trailing) {
-                                Button("nativeGames.classify.takeBack") {
-                                    var next = nativeCleanPlacement
-                                    next.removeValue(forKey: item.id)
-                                    nativePlacement = next
-                                    nativeReasoningEdited()
-                                }
-                                .disabled(!enabled)
+                        Button {
+                            guard enabled, !passed else { return }
+                            var next = nativeCleanPlacement
+                            next.removeValue(forKey: item.id)
+                            nativePlacement = next
+                            nativeReasoningEdited()
+                        } label: {
+                            Label {
+                                Text(verbatim: item.label).foregroundStyle(.primary)
+                            } icon: {
+                                Image(systemName: passed ? "checkmark.circle.fill" : "arrow.uturn.backward.circle")
+                                    .foregroundStyle(passed ? Color.green : Color.secondary)
                             }
+                        }
+                        .disabled(!enabled || passed)
+                        .accessibilityLabel(passed ? Text("playkit.classify.placed \(item.label)") : Text("playkit.classify.takeBackItem \(item.label)"))
+                        .accessibilityIdentifier("playkit.classify.row." + item.id)
                     }
                 } header: {
-                    Text(verbatim: bin.label)
+                    HStack {
+                        Text(verbatim: bin.label)
+                        Spacer()
+                        Text(verbatim: String(placed.count)).monospacedDigit()
+                    }
+                }
+            }
+        }
+        let judged = reasoningFeedback.showsResult(for: projection) && ((raw["attempts"].integer ?? 0) > 0 || passed)
+        if !unsorted.isEmpty || judged {
+            Section {
+                if !unsorted.isEmpty {
+                    Text("playkit.classify.leftLine \(unsorted.count)")
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("playkit.classify.remaining")
+                }
+                if judged {
+                    let ok = passed || raw["lastCorrect"].bool == true
+                    Label(ok ? LocalizedStringKey("playkit.classify.allRight") : LocalizedStringKey("playkit.classify.someWrong"),
+                          systemImage: ok ? "checkmark.circle.fill" : "xmark.circle.fill")
+                        .font(.headline)
+                        .foregroundStyle(ok ? Color.green : Color.red)
+                        .accessibilityIdentifier("playkit.classify.verdict")
                 }
             }
         }
