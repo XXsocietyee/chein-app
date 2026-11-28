@@ -252,7 +252,10 @@ enum E4Fixtures {
         case "e4-self-medals": return wrap(ProfileSelfMedalsFixtureHost(scenario: "content", showsTestControls: false))
         case "e4-template-mine": return wrap(TemplateAuthoringFixtureHostView())
         case "e4-wallet-income": return wrap(WalletCommerceFixtureHost(designPage: "income"))
+        case "e4-wallet-income-empty": return wrap(WalletCommerceFixtureHost(designPage: "income", stateArguments: ["--wallet-paged-ledger-empty"]))
         case "e4-wallet-points": return wrap(WalletCommerceFixtureHost(designPage: "points"))
+        case "e4-wallet-points-empty": return wrap(WalletCommerceFixtureHost(designPage: "points", stateArguments: ["--wallet-paged-ledger-empty"]))
+        case "e4-wallet-points-error": return wrap(WalletCommerceFixtureHost(designPage: "points", stateArguments: ["--wallet-paged-ledger-recover"]))
         case "e4-wallet-balance": return wrap(WalletCommerceFixtureHost(designPage: "balance"))
         // mp-mine r3 (Next round 3): ledger empty and error (first read fails, 重试 recovers) for the sweep.
         case "e4-wallet-balance-empty": return wrap(WalletCommerceFixtureHost(designPage: "balance", stateArguments: ["--wallet-ledger-empty"]))
