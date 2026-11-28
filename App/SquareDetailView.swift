@@ -362,6 +362,8 @@ import SwiftUI
         }
         .buttonStyle(.borderless).font(.body).labelStyle(.titleAndIcon)
         .frame(minHeight: 44)
+        .cyHaptic(.selection, trigger: post.isLiked)
+        .cyHaptic(.selection, trigger: post.isBookmarked)
     }
     /// Mini `square-share.js`: a publicly shareable post links to its parsed detail URL. Anything else has no public URL.
     private func makeShareRoute(for post: SquarePost) -> ShareRoute? {
@@ -496,6 +498,7 @@ import SwiftUI
                             .accessibilityLabel(Text(comment.isLiked == 0 ? LocalizedStringKey("square.like") : LocalizedStringKey("square.unlike")))
                             .accessibilityValue(comment.likeCount.map { Text("square.xcx.likesA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark))
                             .accessibilityIdentifier("square.comment.like.\(comment.id)")
+                            .cyHaptic(.selection, trigger: comment.isLiked)
                         if post?.viewerCanComment == true {
                             Button { editor = .init(purpose: .comment, target: .comment(postID: id, commentID: comment.id), text: "") } label: {
                                 Text("social.reply").font(.caption).foregroundStyle(.secondary)
