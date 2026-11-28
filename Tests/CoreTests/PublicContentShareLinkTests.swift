@@ -75,22 +75,32 @@ final class PublicContentShareLinkTests: XCTestCase {
         XCTAssertNil(PublicContentShareLink.discoveryTemplate(id: -3))
     }
 
+    // Name kept for the CI manifest; since function audit P2-2 the topic-template share is the parsed https link.
     func testTopicTemplatePathIsNotParsedSoOnlyTheMiniProgramPathIsCopied() throws {
-        XCTAssertNil(PublicContentShareLink.topicTemplate(id: 15))
         let raw = "https://www.chengyinhub.com/pages/templatedetail/topic-detail/index?id=15"
         let url = try XCTUnwrap(URL(string: raw))
         XCTAssertNil(CheinDeepLink(url: url))
         // PC-A-8-1 (parity r1): a verified universal link to the MP template detail opens that template.
         XCTAssertEqual(UniversalLinkParser(verifiedHTTPSOrigins: ["https://www.chengyinhub.com"]).parse(url),
                        .miniProgramPage(try XCTUnwrap(MiniProgramPageLink(path: "pages/templatedetail/topic-detail/index", query: ["id": "15"]))))
-        XCTAssertNil(UniversalLinkParser().parse(url))
-        XCTAssertEqual(PublicContentShareLink.topicTemplateCopyText(id: 15), "/pages/templatedetail/topic-detail/index?id=15")
-        let text = try XCTUnwrap(PublicContentShareLink.topicTemplateCopyText(id: 15))
-        XCTAssertFalse(text.contains("http"))
-        XCTAssertFalse(text.contains("chengyinhub"))
-        XCTAssertFalse(text.contains("referral"))
+        // Function audit P2-2: the share is that https link, so the copy-text fallback is gone.
+        XCTAssertEqual(PublicContentShareLink.topicTemplate(id: 15)?.absoluteString, raw)
+        XCTAssertNil(PublicContentShareLink.topicTemplateCopyText(id: 15))
         XCTAssertNil(PublicContentShareLink.topicTemplateCopyText(id: 0))
         XCTAssertNil(PublicContentShareLink.topicTemplate(id: 0))
+        XCTAssertNil(PublicContentShareLink.topicTemplate(id: -3))
+    }
+
+    func testActivityShareCarriesTheParsedActivityLink() throws {
+        // Function audit P2-2: MP activity/detail `onShareAppMessage` path `/pages/activity/detail/index?id=`.
+        let url = try XCTUnwrap(PublicContentShareLink.activity(id: 42))
+        XCTAssertEqual(url.absoluteString, "https://www.chengyinhub.com/pages/activity/detail/index?id=42")
+        guard case .content(let target) = UniversalLinkParser(verifiedHTTPSOrigins: ["https://www.chengyinhub.com"]).parse(url) else {
+            return XCTFail("parser must type the activity link")
+        }
+        XCTAssertEqual(target.kind, .activity)
+        XCTAssertEqual(target.id, 42)
+        XCTAssertNil(PublicContentShareLink.activity(id: 0))
     }
 
     func testMemberInviteSharePathUsesTheIndexQueryAndNoInventedHost() throws {
