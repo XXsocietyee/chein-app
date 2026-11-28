@@ -12,5 +12,5 @@ Rows skipped bottom-up (not this area or not a fix): "For ds-consistency: `CYCel
 Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
 
 ## Not done / next (B lane, bottom-up)
-- citystamp end-to-end write-step coordinator (upload-only camera mode) — next.
+- citystamp end-to-end write-step coordinator: read this run (`RoamCityStampFlowView` `exchange`/`draft` are never passed; `RoamStampCameraView` / `NativeStampCaptureView` create + exchange themselves when `showsCaption`). Needs an upload-only camera result (picture URL) feeding `RoamStampExchangeDraft`, a session-built `RoamStampExchangeCoordinator` (executor + `RoamStampExchangeJournal` on the history Keychain store) and the camera switched to `showsCaption: false` in the same change — too wide to land safely without a Swift build; next B run takes it only with a compiler, otherwise moves up to P2-7.
 - P2-7 rest (`/api/roam/checkin` from built-in POI tap) and P1-22 (owner value) — leave to the A lane (top-down) unless still open when reached.
