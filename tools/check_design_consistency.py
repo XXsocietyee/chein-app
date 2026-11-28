@@ -187,7 +187,10 @@ MATERIAL_BACKGROUND = re.compile(r'\.background\(\s*\.(?:ultraThin|thin|regular|
 LOCALE_MONEY = 'locale money'
 # One money label: `LocaleDisplay.money` reads `¥12.00` in Chinese and `CN¥12.00` elsewhere. The wallet's currency
 # table without a locale, or a literal `¥` drawn as text, puts a bare `¥` in English next to `CN¥` on other screens.
-LOCALE_MONEY_PATTERN = re.compile(r'WalletCurrencySymbol\.symbol\((?![^()]*locale:)[^()]*\)|Text\((?:verbatim:\s*)?"[+\-\u2212]?¥')
+# Run 22: a price / amount string shown as-is (`Text(verbatim: offer.priceText)`) keeps a server or hand-built `¥` in
+# English; show it through `LocaleDisplay.yuanAmounts(in:locale:)` (idempotent) or a locale-aware money helper.
+LOCALE_MONEY_PATTERN = re.compile(r'WalletCurrencySymbol\.symbol\((?![^()]*locale:)[^()]*\)|Text\((?:verbatim:\s*)?"[+\-\u2212]?¥'
+                                  r'|Text\((?:verbatim:\s*)?[A-Za-z_.]*(?:priceText|amountText|PriceText|AmountText)\)')
 DUPLICATE_TYPE = 'duplicate type'
 UNDECLARED_STATE = 'undeclared state'
 KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, CUSTOM_BACK, BUTTON_STYLE, POPUP_SCRIM,

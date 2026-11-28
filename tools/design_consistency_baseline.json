@@ -151,6 +151,15 @@
     "App/CloudCIShardStatusSectionView.swift": {
       "status capsule": 1
     },
+    "App/ClubSettlementDetail.swift": {
+      "locale money": 2
+    },
+    "App/CoopSettlementDetailView.swift": {
+      "locale money": 1
+    },
+    "App/DesignSystem/CYBusinessComponents.swift": {
+      "locale money": 2
+    },
     "App/FinalReleaseSignoffAndZeroGapCertificateView.swift": {
       "status capsule": 1
     },
@@ -169,11 +178,20 @@
     "App/LocalizationCompletenessSectionView.swift": {
       "status capsule": 1
     },
+    "App/MPGap/Club/ClubGapManageExtensions.swift": {
+      "locale money": 1
+    },
+    "App/MPGap/Club/ClubGapReferenceSettlementView.swift": {
+      "locale money": 1
+    },
     "App/PhotoLibraryAndCameraPermissionSectionView.swift": {
       "status capsule": 2
     },
     "App/ReformWorkPackagesW02ToW20SectionView.swift": {
       "status capsule": 2
+    },
+    "App/RegistrationPaySection.swift": {
+      "locale money": 2
     },
     "App/ReleaseArchiveChecklistSectionView.swift": {
       "status capsule": 2
