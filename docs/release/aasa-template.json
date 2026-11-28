@@ -72,7 +72,7 @@
           },
           {
             "/": "/subpackageRoam/poi-detail/index",
-            "comment": "NativeContentTarget.poi. Requires one positive id."
+            "comment": "NativeContentTarget.poi. Requires one positive poiId (MP spelling) or id."
           },
           {
             "/": "/subpackageRoam/session/index",

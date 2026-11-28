@@ -171,7 +171,7 @@ struct CYShareComposer<Controls: View, Actions: View>: View {
         .scrollIndicators(.hidden)
         .animation(animation, value: style.tint)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel(Text(verbatim: locale.pick("背景颜色", "Background colour")))
+        .accessibilityLabel(Text(verbatim: locale.pick("背景颜色", "Background color")))
     }
 
     // MARK: Caption

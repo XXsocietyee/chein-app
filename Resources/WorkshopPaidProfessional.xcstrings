@@ -908,7 +908,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This request is terminally cancelled and cannot be revived."
+            "value": "This request is terminally canceled and cannot be revived."
           }
         }
       }

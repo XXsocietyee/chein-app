@@ -29,6 +29,19 @@ public struct TeamPendingRecord: Codable, Equatable {
         guard let result = try? JSONDecoder().decode(TeamPendingRecord.self, from: data), result.ownerKey == ownerKey, result.targetKey == targetKey else { throw TeamFailure.persistence }
         return result
     }
+    /// MP `roam-team-recovery.js` mount: scans the stored keys of this account for unknown-outcome team commands
+    /// (`team-<id>` targets only). A key whose record does not decode throws, so the list page shows the MP
+    /// storage error instead of an incomplete list.
+    public func pendingTeamIDs(ownerKey: String) throws -> [Int] {
+        let prefix = key(ownerKey, "team-")
+        var ids: [Int] = []
+        for name in defaults.dictionaryRepresentation().keys where name.hasPrefix(prefix) {
+            guard let id = Int(name.dropFirst(prefix.count)), id > 0 else { continue }
+            guard try pending(ownerKey: ownerKey, targetKey: "team-\(id)") != nil else { continue }
+            ids.append(id)
+        }
+        return ids.sorted()
+    }
     public func write(_ record: TeamPendingRecord) throws {
         let data = try JSONEncoder().encode(record); let name = key(record.ownerKey, record.targetKey)
         defaults.set(data, forKey: name)

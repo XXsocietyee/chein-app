@@ -118,8 +118,8 @@ struct TemplateLocationTodosSection: View {
                             }
                             if !row.issueText.isEmpty { Text(verbatim: row.issueText).font(.footnote).foregroundStyle(CYColor.warningText) }
                             if let error = rowError[row.slotKey] { Text(verbatim: error).font(.footnote).foregroundStyle(CYColor.dangerText) }
-                            Button(PlayerCapabilityCopy.text("选节点绑定", "Bind a node", locale)) {
-                                if bindableNodes.isEmpty { rowError[row.slotKey] = PlayerCapabilityCopy.text("先在章节里给节点设置这座城市的地点并保存", "First set a place in this city for a node in your chapters, then save", locale) }
+                            Button(PlayerCapabilityCopy.text("选节点绑定", "Choose a stop", locale)) {
+                                if bindableNodes.isEmpty { rowError[row.slotKey] = PlayerCapabilityCopy.text("先在章节里给节点设置这座城市的地点并保存", "First give a stop in your chapters a place in this city, then save", locale) }
                                 else { picking = row }
                             }
                             .buttonStyle(.borderless)
@@ -133,7 +133,7 @@ struct TemplateLocationTodosSection: View {
             }
         }
         .confirmationDialog(
-            PlayerCapabilityCopy.text("绑定到哪个节点", "Bind to which node", locale),
+            PlayerCapabilityCopy.text("绑定到哪个节点", "Choose a stop for this place", locale),
             isPresented: Binding(get: { picking != nil }, set: { if !$0 { picking = nil } }),
             titleVisibility: .visible,
             presenting: picking

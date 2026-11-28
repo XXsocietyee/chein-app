@@ -398,6 +398,7 @@ struct PlayerCodeAndJoinSection: View {
                     LabeledContent("playerGap.join.title") { Text(verbatim: join.title ?? "#\(join.id)") }
                 }
                 codeState
+                inviteCopy
             }
             .task {
                 guard let service = service else { return }
@@ -442,6 +443,28 @@ struct PlayerCodeAndJoinSection: View {
             .frame(maxWidth: .infinity)
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("gap.playerCode.loading")
+        }
+    }
+
+    /// mp-mine-b r3: MP `scene-share-invite/index.wxml:23-28` — under the code, 邀请好友一起探索城市 ·
+    /// 分享城瘾给你的好友，一起发现城市里的新玩法。 then 分享链接. The app shares the personal code once it is ready.
+    @ViewBuilder private var inviteCopy: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("playerGap.invite.title")
+                .font(.headline)
+            Text("playerGap.invite.description")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .accessibilityElement(children: .combine)
+        if let qr {
+            ShareLink(item: qr, subject: Text("playerGap.invite.title"), message: Text("playerGap.invite.description")) {
+                Label("playerGap.invite.share", systemImage: "square.and.arrow.up")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+            .accessibilityIdentifier("gap.playerCode.share")
         }
     }
 

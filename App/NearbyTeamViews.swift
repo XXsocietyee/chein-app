@@ -48,6 +48,8 @@ import SwiftUI
     @State private var recruiting = NearbyRecruitingLoad.idle
     /// RTEAMS-3c: pending join counts per led recruiting team (MP my-teams index.js:139-155 `pending`).
     @State private var leaderPending: [Int: NearbyLeaderApplicantFact] = [:]
+    /// MP `team-recovery-panel`: unknown-outcome team commands kept for this account.
+    @State private var commandRecovery = NearbyTeamCommandRecovery.idle
     let initialContext: NearbyQueryContext?
     let joinedTeams: [OwnedTeam]
     let onSignIn: (() -> Void)?
@@ -57,14 +59,17 @@ import SwiftUI
     let navigate: (NearbyTeamDestination) -> Void
     /// RTEAMS-3: MP my-teams nav action 加入码 (`team/join?entry=code`); nil hides it.
     let joinCodeDestination: (() -> AnyView)?
+    /// Team ids with a stored unknown-outcome command (`TeamDefaultsJournal`); nil hides the recovery panel.
+    let pendingTeamCommands: (() throws -> [Int])?
     /// `initialRadius`/`focusTeamID`/`initialTab` mirror the xcx `?radius=&teamId=` and my-teams entry options.
     init(coordinator: NearbyTeamCoordinator, context: NearbyQueryContext? = nil, joinedTeams: [OwnedTeam] = [],
          initialTab: Int = 0, initialRadius: Int? = nil, focusTeamID: NearbyTeamID? = nil, onSignIn: (() -> Void)? = nil,
          joinedTeamsStatus: NearbyOwnedTeamsStatus = .loaded, retryJoinedTeams: (() -> Void)? = nil,
          discoverySources: NearbyMapDiscoverySources? = nil,
          joinCodeDestination: (() -> AnyView)? = nil,
+         pendingTeamCommands: (() throws -> [Int])? = nil,
          navigate: @escaping (NearbyTeamDestination) -> Void = { _ in }) {
-        self.joinCodeDestination = joinCodeDestination
+        self.joinCodeDestination = joinCodeDestination; self.pendingTeamCommands = pendingTeamCommands
         _model = StateObject(wrappedValue: NearbyTeamScreenModel(coordinator)); initialContext = context; self.joinedTeams = joinedTeams; self.navigate = navigate
         self.onSignIn = onSignIn; self.joinedTeamsStatus = joinedTeamsStatus; self.retryJoinedTeams = retryJoinedTeams
         self.discoverySources = discoverySources
@@ -169,6 +174,7 @@ import SwiftUI
             .onChange(of: joinedTeams) { _, _ in ownedReadVisit = UUID(); recruitAfterOwnedRead() }
             .onChange(of: mine.loading) { _, loading in if !loading { recruitAfterOwnedRead() } }
             .onDisappear { ownedReadVisible = false; ownedReadVisit = UUID(); discovery.cancel(); coordinator.leave() }
+            .task(id: ownedReadVisit) { reloadCommandRecovery() }
             .cySheet(item: $discoverySelection, onDismiss: {
                 if ownedReadVisible { reloadDiscovery(force: true) }
             }) { selection in Group {
@@ -188,6 +194,7 @@ import SwiftUI
             // MP my-teams wxml:16 `team-recovery-panel` (待确认的队伍操作 / read errors) sits right under the title,
             // above .mt-stats and the 我的 / 附近招募 segment.
             notice
+            NearbyTeamCommandRecoveryPanel(state: commandRecovery, reload: reloadCommandRecovery) { navigate(.team(NearbyTeamID($0))) }
             if tab == 1 { mineStats }
             Picker("nearby.section", selection: $tab) {
                 Text("nearby.title").tag(0); Text("nearby.mine").tag(1)
@@ -296,6 +303,8 @@ import SwiftUI
             await loadRecruiting()
         }
     }
+    /// MP `roam-team-recovery.js` mount: re-read on every visit (the team page settles or clears its record).
+    private func reloadCommandRecovery() { commandRecovery = .read(pendingTeamCommands) }
     /// Only real states reach the player: example marker, an unresolved action, and messages from the server.
     @ViewBuilder private var notice: some View {
         let hasMessage = coordinator.messageKey != nil || !coordinator.serverMessage.isEmpty

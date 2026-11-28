@@ -565,11 +565,26 @@ Next item (VoiceOver grouping on player cards), started:
 |---|---|---|---|---|
 | `pages/square` post card / detail header (`components/cy/post-card`) | `SquareComponents.swift:106-120,128-135` | ✓ (mp-activity owns order) | Author name, verified mark and relative time were three VoiceOver stops, and level / author / notice badges were three more. Each group is now one element (`.combine`); Follow and the avatar menu stay separate buttons. Level B | Done |
 
+### Run 35 (2026-11-28)
+Merged `origin/ui/combined-r7`. Sweep **0446d1c4f** (13:03Z, contains runs 28-32, not 33-34) a11y sheets read (`sheet-en.jpg`):
+badge ring "3 of 6" + Collected / Locked rows wrap at AX5, passport Ticket wallet / Earnings / Messages stack and wrap, stamps
+"3 of 12", Roam "Nearby activities 2" wraps on the light panel, i · Go · map fit ✓. No open coordinator finding.
+Not done item: VoiceOver grouping on player cards (scripted scan: `*Card` / `*Row` / `*Tile` views with 3+ `Text`, no
+`accessibilityElement`, no controls; 48 hits, internal `*SectionView` audit rows and club admin skipped, unused structs dropped).
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/square` list card | `SquareXcxPostCard.swift` | ✓ (mp-activity owns order) | Audit: the card is the label of a `NavigationLink` (`SquareBrowserView.swift:92`), so VoiceOver already reads it as one element. No change. Level B | Done |
+| `pages/club` post tile / author | `ClubCommunityViews.swift:697`, `ClubPostAuthorProfile.swift` | ✓ (mp-club owns order) | Audit: count row combined, like / comments / repost / share are labelled 44 pt buttons, avatar hidden beside the name. No change. Level B | Done |
+| `subpackageMember` ticket detail 权益 rows | `TicketWalletDetailView.swift` (`TicketWalletEntitlementRow`) | ✓ (mp-mine owns order) | Chapter, status, redeemed time and invalid reason were up to four VoiceOver stops per List row → one combined row (no controls inside; row identifier kept on the parent). Level B | Done |
+| `pages/topic` reviews (评价) | `TopicReviewsContent.swift:93` | ✓ (mp-publish owns order) | Rating read "4 slash 5" → "4 of 5" / "4/5分" via the shared `a11y.value.ofTotal` key. Header not combined: `TopicFlowTests` queries `topic.reviews.rating.1` as its own element. Level B | Done |
+| `pages/play` free explore offline / expired archive | `FreeExplorationViews.swift` (`FreeExplorationArchiveCards` locked place) | ✓ (mp-journey owns order) | Locked place name + lock chip were two stops → one combined card ("Name, Locked"). Level A | Done |
+| `subpackageMember` order detail 开始 / 结束 time, `pages/activity/baoming` amount rows | `ProfileOrdersView.swift` (`ProfileOrderTicketTimeRow`), `RegistrationSheetView.swift` (`RegistrationAmountRow`) | ✓ (mp-mine / mp-activity own order) | Audit: both are `LabeledContent`, which VoiceOver already reads as one label + value; the amount keeps its `.amount` identifier for tests. No change. Level C | Done |
+
 ## Not done (next run starts here)
-- Re-read the a11y sheets after the next sweep (newer than 3348aa51f, to see runs 31-34).
-- Next pages without a row: VoiceOver grouping on player list cards. Find cards built from 3+ `Text` with no
-  `.accessibilityElement(children: .combine)` that VoiceOver visits piece by piece. Square post is done; next are
-  `SquareXcxPostCard.swift`, club post cards (`ClubComponents.swift`) and activity cards.
+- Re-read the a11y sheets after the next sweep (newer than 0446d1c4f, to see runs 33-35).
+- VoiceOver grouping, rest of the run-35 scan: `TeamHomeRow` (NavigationLink label, likely fine), `RegistrationChoiceRow`
+  (check UI-test identifiers before combining), `TemplateOwnShelfCard`.
 - Then: `UGCSafetyMenuButton` default (text 举报 label) inline uses and `Toggle` / `Stepper` rows with caption labels.
 
 ## For other lanes
