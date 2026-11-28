@@ -9,7 +9,6 @@ import SwiftUI
     @ObservedObject var model: ClubCommunityViewModel
     let openComments: () -> Void
     @Environment(\.clubCustomerTopics) private var topics
-    @State private var selected: ClubPostReferenceRoute?
     @State private var sourceActive = true
     private var context: ClubPostReferenceContext {
         .init(clubID: clubID, identity: identity, readScope: model.imageReadScope, viewerRevision: topics.viewerRevision)
@@ -34,9 +33,10 @@ import SwiftUI
                     .accessibilityIdentifier("club.postReference.comments.\(post.id)")
                 case let .topic(topicID):
                     if topics.destination != nil {
-                        Button {
-                            guard sourceActive, selected == nil, topics.destination != nil, current(target) else { return }
-                            selected = target
+                        // mp-nav r3: MP talent/list index.js:241-246 onPostReference = navigateTo pages/topic/index/index,
+                        // so the topic is a push (system back), not a sheet with 关闭. The destination re-checks the route.
+                        NavigationLink {
+                            ClubPostReferenceDestination(target: target, identity: identity, topics: topics, model: model)
                         } label: { referenceLabel }
                         .accessibilityHint("roamEvent.openTopic")
                         .accessibilityIdentifier("club.postReference.open.\(post.id)")
@@ -47,13 +47,6 @@ import SwiftUI
             } else { referenceLabel }
         }
         .buttonStyle(.borderless)
-        .cySheet(item: $selected) { target in
-            ClubPostReferenceDestination(target: target, identity: identity, topics: topics, model: model)
-                .presentationDetents([.large]).presentationCompactAdaptation(.sheet)
-        }
-        .onChange(of: context) { _, _ in selected = nil }
-        .onChange(of: post) { _, _ in selected = nil }
-        .onChange(of: topics.destination == nil) { _, _ in selected = nil }
         .onAppear { sourceActive = true }
         .onDisappear { sourceActive = false }
     }
@@ -123,16 +116,12 @@ private enum ClubCloud14HTTPS {
         target.isCurrent(acceptedPosts: model.snapshot?.posts, context: context)
     }
     var body: some View {
-        NavigationStack {
+        Group {
             if current, case let .topic(id) = target.destination, let destination = topics.destination {
                 destination(id).id(target.id)
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("action.close") { dismiss() }.accessibilityIdentifier("club.postReference.close")
-                        }
-                    }
             } else { Color.clear.onAppear { dismiss() } }
         }
+        .cyPushedChrome()
         .onChange(of: context) { _, _ in dismiss() }
     }
 }
