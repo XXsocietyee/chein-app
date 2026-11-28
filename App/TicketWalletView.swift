@@ -227,7 +227,8 @@ import SwiftUI
     }
     @ViewBuilder private var focusSection: some View {
         if focusPhase == .resolving {
-            ProgressView { Text("ticketWallet.loading") }
+            // MP signup wxml:34 loading-label 正在定位原报名凭证.
+            ProgressView { Text("ticketWallet.focus.resolvingLabel") }
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .accessibilityIdentifier("ticketWallet.focus.resolving")
         } else if focusPhase == .missing {

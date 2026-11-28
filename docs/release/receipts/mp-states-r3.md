@@ -141,6 +141,7 @@ match is a queue item (133 at the start). Tab roots first, then their pushed pag
 | **Coordinator 07:05 (P2)** 票夹 failure (`TicketWalletView` → `TicketWalletIssueView`, fixture `e4-tickets-error`; level B) | `pages/signup/index` cy-error 票夹没能打开 + reason + 重试 | a 票夹没能打开 headline row above a separate `ContentUnavailableView` with the reason (said twice) | one `ContentUnavailableView`: title 票夹没能打开 / Your ticket wallet couldn't open, reason as description, `.bordered` 重试; identifier `ticketWallet.errorTitle` kept on the title (`App/TicketWalletModel.swift:54-80`, `App/TicketWalletView.swift:52-55`); contract test updated |
 | **Coordinator 07:05 (P2)** 首页 feed empty (`HomeFeedView.streamSection`, fixture `d2-home-empty`; level B) | `pages/index/index.wxml:246,283` cy-empty 暂时没有主题 / 暂时没有活动 (MP has no CTA; coordinator asks for the next step) | title only | `ContentUnavailableView` action `.bordered` 看看活动 / See activities (on 主题) or 看看主题 / See themes (on 活动) switching the MP feed tab (`App/HomeFeedView.swift:238-256`) |
 | **Coordinator 07:05 (P2)** 漫游 · 官方线路 empty (`RoamMapHomeRoutesList`, fixture `r3-roam-routes-empty`; level B) | `subpackageRoam/official-routes/index.wxml:11` cy-empty 还没有上架的官方线路 | title only | `ContentUnavailableView` action `.borderedProminent` 去地图看看 / Explore the map: pops the sheet to its root and returns to the peek detent so the map shows (`App/NativeR2/MapHome/RoamMapHomeRoutes.swift:28-40`) |
+| 票夹 focus loader (`TicketWalletView.focusSection`, 票夹 opened from a registration) — code read (level B) | `subpackageMember/signup/index.wxml:34` loading-label 正在定位原报名凭证 | `ProgressView` 加载中… | `ProgressView` 正在定位原报名凭证 (Finding the original registration ticket); identifier `ticketWallet.focus.resolving` kept. (The wallet failure state itself was fixed by the 07:05 run.) |
 
 ## Sweep fixtures for mp-states (coordinator 05:50 UTC: "mp-states has no sheets")
 
@@ -176,6 +177,7 @@ delay or locale-dependent path, so this reads as a capture-timing flake in the s
 - mp-roam / mp-journey: MP `pages/play/components/scene-roam-discover` (搜店名 search, hot tags, 附近商家无法打开 · 重试, 没有找到匹配的商家 · 换个关键词试试) has no native screen — a missing page, not a state.
 - mp-activity: `TeamOrientBoardView` progress card title reads 任务进度; MP `pages/team/detail/index.wxml:115` says 队伍进度.
 - **mp-mine:** 我的 · 邀请好友 page (`AccountView` → `PlayerCodeAndJoinSection`) lacks the MP `scene-share-invite` copy block (邀请好友一起探索城市 / 分享城瘾给你的好友…) and the 分享链接 button (`ShareLink`) under the code; mp-states only fixed the code's loading / failure / unavailable states.
+- **mp-club:** 俱乐部 · 主题详情 (`pages/club/topic-detail`) has three MP sections with no native screen: 主题设置 (wxml:474-476), 报名名单 (wxml:581-594) and 报名趋势 (wxml:633-635), each with its own loading / denied / 获取失败 · 重试 state.
 
 ## Gates
 
