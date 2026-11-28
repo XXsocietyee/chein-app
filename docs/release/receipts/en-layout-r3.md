@@ -223,6 +223,16 @@ Merged `origin/ui/combined-r7` (clean). Latest sweep is still 41374363f (02:10Z)
 | 79 | `pages/publish/activity/index.wxml` 发布前摘要 / 发起人信息未加载 (MP order unchanged) → `Core/ActivityPublishingWizard.swift:109`, `fixr8.activity.organizerFailed` | "Summary before publishing" (literal), "Organizer details didn't load" (straight apostrophe, passive) | en → "Review before publishing", "Couldn’t load organizer details" (Swift `W8Text.t`, catalog, `ui-strings-pages-publish-activity-index.json`, `fix-r8-account-publish.json`); other activity-publish strings checked (edit-visibility note, Add ticket option), fine | Done |
 | 80 | `pages/publish/components/start-prep` 开局前准备 (准备项 list → 添加准备项 → 建议) → `CreatorEditorUI.xcstrings` `creatorEditor.prep*`, play `play.prep.startHint` | Checked: "Before you start", "Add a prep item", "Check off every prep item to start" read well | No change | Checked |
 
+### Run 21 (2026-11-28, half-hourly)
+
+Merged `origin/ui/combined-r7` (up to date). Latest sweep ad55acd94 (03:04Z, home zh / club zh, no findings); looked at `mp-club/sheet-en.jpg` and `mp-home/sheet-en.jpg` from that build.
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 81 | `pages/talent/list` 发现俱乐部 rows (name · 成员数 · 简介 · 申请加入; MP order unchanged) → `ClubDirectoryView.swift:154` (`en-d4-directory`) | "3 members · Offline sa…": the member count + description line cut off after two words beside the Apply to join button | Discover rows allow 2 lines for the secondary line (your clubs stay 1); no type shrink | Done |
+| 82 | `pages/index/index` hero action banners → `Core/HomeSearchTabParity.swift:79-81` (`en-d2-home`) | Title Case "Join Activities with Friends", "Become a Club" (reads as becoming a club), "Become a Merchant" | en → "Join activities with friends", "Become a club host" (same as the Settings row), "Become a merchant"; zh unchanged; `HomeSearchTabParityTests` pin updated | Done |
+| 83 | `pages/index/index` greeting city picker (未定位 → 选择城市) → `Core/HomeSearchTabParity.swift:405`, `App/HomeSearchTabParityViews.swift:231` | "Select City" in Title Case while every other picker label is sentence case | en → "Select city" (reverse map keeps both spellings → 选择城市); test pin updated | Done |
+
 ## Not done
 
 | Item | Why |
