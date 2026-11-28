@@ -262,6 +262,9 @@ struct PlayThemeMusicKey: Equatable {
     }
     var body: some View {
         presentationLayer
+        // fix/1128c-ai-weather: story weather (SURVIVAL look) or live weather + weather events over the play scene.
+        .modifier(PlaySceneWeather(topicID: model.snapshot?.result.topicID, latitude: sceneWeatherPoint?.latitude,
+                                   longitude: sceneWeatherPoint?.longitude, look: themeFacts?.look))
         .modifier(PlayNightHintOverlay(receipt: model.reward))
         .modifier(PlayFlyScoreOverlay(receipt: model.reward))
         .modifier(PlayCouponToastOverlay(receipt: model.reward, snapshot: model.snapshot))
@@ -342,6 +345,9 @@ struct PlayThemeMusicKey: Equatable {
         guard NativeR2Flags.cityOrientation, model.gameplayMode == .cityOrientation else { return }
         cityLocation.setRunActive(phase == .running || phase == .paused)
         if phase == .ended { cityLocation.stop() }
+    }
+    private var sceneWeatherPoint: (latitude: Double, longitude: Double)? {
+        PlaySceneWeather.point(model.snapshot?.result.nodes ?? [])
     }
     private var themeFacts: PlayThemePresentationFacts? {
         model.snapshot?.result.topicID.flatMap { themeReader?.facts(topicID: $0) }

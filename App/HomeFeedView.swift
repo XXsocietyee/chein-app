@@ -31,6 +31,8 @@ import UIKit
     var onOpenUnifiedSearch: ((UnifiedSearchExperience.PresentationMode) -> Void)? = nil
     /// 我的地盘 rail (City Monopoly, round-1 Q1): sits 24 pt under 编辑精选. Nil hides it.
     var cityRail: AnyView? = nil
+    /// fix/1128c-ai-showcase: the AI guide / NPC hero card, at the head of the MP 编辑精选 block. Nil hides it.
+    var aiShowcase: AnyView? = nil
     let onDestination: (HomeFeedDestination) -> Void
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -111,7 +113,11 @@ import UIKit
                         }
                     }
                     .homeFeedShelfRows()
-                    // Mini-program order: 编辑精选, 附近活动, 即将上线, then 主题 / 活动.
+                    // Mini-program order: 编辑精选, 附近活动, 即将上线, then 主题 / 活动. The AI showcase heads the
+                    // 编辑精选 (featured) block, as the owner asked on 11-28; it adds no MP section in between.
+                    if let aiShowcase, !feedDown {
+                        Section { aiShowcase }.homeFeedShelfRows()
+                    }
                     feedSection(.recommended)
                     if let cityRail {
                         Section { cityRail }.homeFeedShelfRows(insets: EdgeInsets())

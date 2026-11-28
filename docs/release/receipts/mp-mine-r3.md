@@ -566,3 +566,27 @@ Branch fast-forwarded to `origin/ui/combined-r7` (8952067e9). The brief's 07:45 
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
 
 Not done: e4-settings row regroup (needs row-only entry APIs + simulator check), e4-tickets pass-card look, `CharacterCardReadbackView` byte pin.
+
+## Continue 34 (11-28, hourly run): e4-tickets pass card (ADA)
+
+Merged `origin/ui/combined-r7` (clean, 22 files). The sweep in `docs/sweeps/latest` is still build 3348aa51f and the brief has no mp-mine rows after 07:05. Screens checked: `docs/sweeps/latest/mp-mine/zh-Hans-e4-tickets.jpg` (two plain rows with grey `ticket` glyph tiles, 60 % of the page empty).
+
+| ADA row | MP | Native file | Level | Fixed now |
+|---|---|---|---|---|
+| e4-tickets (P1): two plain rows with placeholder glyph tiles; "nothing looks like a pass" | MP `subpackageMember/signup/index.wxml:57-70`: each ticket is one big card, cover (`wImg`, else `/images/cover-route.svg`) on the card, title · sub · F13 tag, tap opens the code | `App/TicketWalletView.swift` `TicketWalletRow`, new `TicketWalletPerforation`, ticket `ForEach` | B | **Fixed (closes the continue 31/32/33 Not done "pass-card look").** Each ticket is its own inset-grouped section: a full-width cover band (132 pt, 72 pt at AX sizes) with the MP route illustration when there is no cover — the same band and fallback as the pass sheet (`TicketPassSheet.header`), so wallet and pass are one object — then a dashed perforation hairline (`.separator`), then the unchanged MP facts (F13 tag, title, date, place, sub-line). Identifiers, navigation, locked/dimmed rules and order unchanged. Still no Upcoming / Past split (MP has none, continue 30 row). Add to Apple Wallet: no pkpass from the backend. |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0** (`test_w2_04_ticket_wallet` detail-first pin made indentation-tolerant: the rows moved into per-ticket Sections).
+
+Not done: e4-settings row regroup (needs row-only entry APIs + simulator check), `CharacterCardReadbackView` byte pin. Coordinator: please re-sweep `e4-tickets` (zh-Hans + en, and AX5 if a11y-dt adds it).
+
+## Continue 35 (11-28, half-hourly run): e4-tickets session line (MP P-27)
+
+Rebased onto the twin run's continue 34 (pass cards). No new mp-mine rows in the brief after 07:45 (the 12:25 AI items go to `fix/1128c-*`). P2-5b (Apple full name) is closed upstream: `1b9caf4ee` sends `givenName` / `familyName` from `AuthChannelAppleButton` to `POST /api/login/apple`. Screens checked: `docs/sweeps/latest/mp-mine/zh-Hans-e4-tickets.jpg`, `en-e4-tickets.jpg` (build 3348aa51f): the session ticket reads only 示例活动票 · 场次.
+
+| MP page | Native file | MP sections | Level | Fixed now |
+|---|---|---|---|---|
+| `subpackageMember/signup/index.js` `walletCard` / `sessionLine` (P-27): a session card reads「M月D日 HH:mm · 地点」; only without a start time 场次 · 剩 N 天; upcoming keeps the type | `App/TicketWalletView.swift` `TicketWalletSubline.head`, new `TicketWalletTicket.walletSessionLine`; `App/TicketWalletFixtureSupport.swift` | ✓ (card line) | B | **Fixed.** The session ticket sub-line is the start (Beijing time, in the user's locale: 5月1日 19:30 / May 1, 7:30 PM) · place, as the MP; the separate place line is hidden when it is already in the session line (no duplicate). Route tickets, upcoming tickets and sessions without a start time are unchanged. The fixture session ticket now has a start time and place (西湖文化广场 / West Lake Culture Square) so the sweep shows the line. |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+Not done: e4-settings row regroup (needs row-only entry APIs + simulator check), `CharacterCardReadbackView` byte pin.

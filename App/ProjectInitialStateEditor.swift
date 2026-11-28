@@ -61,7 +61,7 @@ import SwiftUI
     var body: some View {
         let original = controller.presentation
         Section {
-            Button { controller.open() } label: { Text("projectInitialState.title", tableName: "ProjectInitialState") }
+            Button { controller.open() } label: { ProjectInitialStateEntryLabel() }
                 .disabled(!controller.available).accessibilityIdentifier("projectInitialState.open")
             ProjectInitialAttributesEntry(model: model, chapterID: controller.chapterID)
         }
@@ -88,18 +88,17 @@ import SwiftUI
                 if !controller.isCurrent(original) { Text("projectStarter.stale") }
                 else if buffer.readOnly { Text("projectInitialState.unsupported", tableName: "ProjectInitialState") }
                 else {
-                    ForEach(ProjectInitialState.Kind.allCases, id: \.self) { kind in
-                        Section {
-                            Toggle(isOn: .init(get: { resource(kind).wrappedValue.enabled }, set: { buffer.setEnabled($0, kind: kind); invalid = false })) {
-                                Text(kind == .hp ? "projectInitialState.hp" : "projectInitialState.luck", tableName: "ProjectInitialState")
-                            }
-                            if resource(kind).wrappedValue.enabled {
-                                TextField(text: resource(kind).initial) { Text("projectInitialState.initial", tableName: "ProjectInitialState") }.keyboardType(.numberPad)
-                                TextField(text: resource(kind).maximum) { Text("projectInitialState.maximum", tableName: "ProjectInitialState") }.keyboardType(.numberPad)
-                            }
-                            Text(kind == .hp ? "projectInitialState.hpRange" : "projectInitialState.luckRange", tableName: "ProjectInitialState").font(.caption)
-                        }
+                    ForEach(ProjectInitialState.Kind.allCases.filter { resource($0).wrappedValue.enabled }, id: \.self) { kind in
+                        ProjectInitialStateResourceSection(kind: kind, resource: resource(kind),
+                            remove: { buffer.setEnabled(false, kind: kind); invalid = false }, edited: { invalid = false })
                     }
+                    Section {
+                        ForEach(ProjectInitialState.Kind.allCases, id: \.self) { kind in
+                            ProjectInitialStateOptionRow(kind: kind, added: resource(kind).wrappedValue.enabled) {
+                                buffer.setEnabled(true, kind: kind); invalid = false
+                            }
+                        }
+                    } header: { Text("projectInitialState.addHeader", tableName: "ProjectInitialState") }
                     if !buffer.recoveryChanges.isEmpty {
                         Section {
                             Text("projectInitialState.recoveryNotice", tableName: "ProjectInitialState")
@@ -111,14 +110,88 @@ import SwiftUI
                         }
                     }
                     if invalid { Text("projectInitialState.invalid", tableName: "ProjectInitialState") }
-                    Button { invalid = !controller.apply(buffer, to: original) } label: {
-                        Text("projectInitialState.confirm", tableName: "ProjectInitialState")
-                    }.accessibilityIdentifier("projectInitialState.confirm")
                 }
             }
             .navigationTitle(Text("projectInitialState.title", tableName: "ProjectInitialState")).navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { controller.close(original) } } }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button { controller.close(original) } label: { Text("projectInitialState.exit", tableName: "ProjectInitialState") }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button { invalid = !controller.apply(buffer, to: original) } label: {
+                        Text("projectInitialState.done", tableName: "ProjectInitialState")
+                    }
+                    .disabled(!controller.isCurrent(original) || buffer.readOnly)
+                    .accessibilityIdentifier("projectInitialState.confirm")
+                }
+            }
             .scrollDismissesKeyboard(.interactively)
         }
+    }
+}
+
+/// MP `fabu/index.wxml:1322` entry card: 初始状态 · 第一章开局数值 · 配置.
+private struct ProjectInitialStateEntryLabel: View {
+    var body: some View {
+        LabeledContent {
+            Text("projectInitialState.configure", tableName: "ProjectInitialState")
+        } label: {
+            Text("projectInitialState.title", tableName: "ProjectInitialState")
+            Text("projectInitialState.entrySubtitle", tableName: "ProjectInitialState")
+        }
+    }
+}
+
+/// MP `fabu/index.wxml:1929-1940`: one card per added resource, its switch and the 开局 stepper.
+/// The maximum lives in the topic's runtime values (MP: 上限归主题数值域设置；首章初始状态只改开局值).
+private struct ProjectInitialStateResourceSection: View {
+    let kind: ProjectInitialState.Kind
+    @Binding var resource: ProjectInitialState.Resource
+    let remove: () -> Void
+    let edited: () -> Void
+    private var lower: Int { kind == .hp ? 1 : 0 }
+    private var upper: Int {
+        let ceiling = kind == .hp ? 20 : 5
+        let parsed = Int(resource.maximum) ?? lower
+        return max(lower, min(parsed, ceiling))
+    }
+    private var start: Binding<Int> {
+        Binding<Int>(get: { max(lower, min(Int(resource.initial) ?? lower, upper)) },
+                     set: { (value: Int) in resource.initial = String(value); edited() })
+    }
+    var body: some View {
+        Section {
+            Toggle(isOn: Binding<Bool>(get: { true }, set: { (on: Bool) in if !on { remove() } })) {
+                Text(kind == .hp ? "projectInitialState.hp" : "projectInitialState.luck", tableName: "ProjectInitialState")
+            }
+            Stepper(value: start, in: lower...upper) {
+                LabeledContent {
+                    Text(start.wrappedValue, format: .number).monospacedDigit()
+                } label: {
+                    Text(kind == .hp ? "projectInitialState.startHP" : "projectInitialState.startLuck", tableName: "ProjectInitialState")
+                }
+            }
+        } footer: {
+            Text("projectInitialState.range \(lower) \(upper)", tableName: "ProjectInitialState")
+        }
+    }
+}
+
+/// MP `fabu/index.wxml:1946-1955` 添加初始状态 choices (`story-initial-state.js` OPTIONS).
+private struct ProjectInitialStateOptionRow: View {
+    let kind: ProjectInitialState.Kind
+    let added: Bool
+    let add: () -> Void
+    var body: some View {
+        Button(action: add) {
+            LabeledContent {
+                Text(added ? "projectInitialState.added" : "projectInitialState.add", tableName: "ProjectInitialState")
+            } label: {
+                Text(kind == .hp ? "projectInitialState.hp" : "projectInitialState.luck", tableName: "ProjectInitialState")
+                Text(kind == .hp ? "projectInitialState.hpExample" : "projectInitialState.luckExample", tableName: "ProjectInitialState")
+            }
+        }
+        .disabled(added)
+        .accessibilityIdentifier("projectInitialState.add." + kind.rawValue)
     }
 }

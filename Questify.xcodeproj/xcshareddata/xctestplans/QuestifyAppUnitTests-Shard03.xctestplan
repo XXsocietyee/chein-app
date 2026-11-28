@@ -17,12 +17,14 @@
     {
       "parallelizable": false,
       "skippedTests": [
+        "AICreationReleaseCompositionTests",
         "AccessibilityHardeningWaveTests",
         "AccessibilityReadinessSectionViewTests",
         "AccountDeletionAndGDPRPIPLSectionViewTests",
         "AccountDeregistrationConsentPresentationTests",
         "AccountDeregistrationHostLifetimeTests",
         "ActivityAssociatedPlaysViewTests",
+        "ActivityCalendarDraftTests",
         "ActivityCoverAuthoringOwnerTests",
         "ActivityEditingForegroundRecoveryTests",
         "ActivityEditingOwnerTests",
@@ -156,6 +158,7 @@
         "Fix1128bMapsCompositionTests",
         "Fix1128bMineCompositionTests",
         "Fix1128bTeamRegCompositionTests",
+        "Fix1128cWeatherReleaseCompositionTests",
         "FogOverlayLayerPixelTests",
         "G1ProductionGatesEndToEndTests",
         "G6CapabilityGrantTests",

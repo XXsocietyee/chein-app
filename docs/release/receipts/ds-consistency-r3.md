@@ -1227,6 +1227,60 @@ Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0
 - mp-roam: `RoamStampViews.swift:358` ring value = total (always full); pass the collected count once the album reader
   returns it (MP shows only 共 N 枚 there, so a plain total line may be the MP-faithful choice).
 
+## Continue run 36 (2026-11-28, combined-r7 70917c058 already merged)
+
+Merge: up to date. No new coordinator row for this lane (latest: 07:45 sweep mp-nav / mp-activity; 12:25 AI items go
+to `fix/1128c-*`). Run 35 Not done row worked: **badge detail name weight.** The two badge detail heroes drew the
+name in `.title2` semibold while the other 54 in-content object names use `.title2.bold()` (run 30 batch 3). The byte pin
+`test_existing_detail_and_route_lifetimes_are_byte_identical` was re-pinned here with a one-line reason (this lane
+re-pinned it in runs 9 and 10 the same way); detail content, MP sections and route lifetimes unchanged.
+
+| Page (MP → native) · level | Line | Change |
+|---|---|---|
+| badge detail (`subpackageP3/pages/badge-3d`) → `ObjectBadgeDetailView` · B | `App/ObjectBadgeViews.swift:258` | `.title2.weight(.semibold)` → `.title2.bold()` |
+| profile badge detail → `ProfileBadgesView` · B | `App/ProfileBadgesView.swift:107` | same |
+
+Pin: `Tests/ContractChecks/test_object_badge_wall_layout.py` sha256 → `c2de7c1d…` (8 tests OK).
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(0 debt, 114 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
+### Not done (next run)
+- none. Scan of the other `.title2.weight(.semibold)` sites: `TicketPassSheet:348` pass code, `TeamComponents:344` invite
+  code (monospaced codes) and `PlayKitQuestoViews:330` crossword letter (level A) are not names; kept.
+
+## Continue run 37 (2026-11-28, merged combined-r7 0446d1c4f)
+
+Merge clean. No new coordinator row for this lane (latest: 12:25 AI items → `fix/1128c-*`). Run 36 Not done: none.
+Next cross-screen row from the ADA audit §3 **Dates** ("ZH raw `2026-11-06 18:20:00` on the wallet, order, chat and
+free-explore screens"): the shared civil-date formatter. MP never shows seconds (`utils/datetime.js`
+`formatMinuteDots`, ledger `scene-asset-income-detail/index.js:15` 今天 / 昨天 / M月d日); the app's own zh day-time
+shape is `yyyy-MM-dd HH:mm` (`LocaleDisplay.dayTime`).
+
+| Page (MP → native) · level | Line | Before → after |
+|---|---|---|
+| every `LocaleDisplay.civil` caller (~70: 余额流水 `WalletCommerceViews:641,736,1144` · C, withdrawal history · C, order lifecycle · C, club join / request times · B/C, free-explore visited-on · B, ticket participate date · B, topic sessions · B) | `Core/LocaleDisplay.swift` `civil` + `civilChineseMinutes` | zh `2026-11-06 18:20:00` / `…T18:20:00` → `2026-11-06 18:20`; date-only and other zh text unchanged; en unchanged |
+
+Pin: `Tests/CoreTests/LocaleDisplayTests.swift:47` zh expectation follows (seconds dropped, `T` form, date-only kept).
+Display only: every caller renders the result (checked: none feeds it back into a wire value). Call sites that trim
+`prefix(16)` by hand (`ClubActivityListContent:132`, `ClubManagedProjectsSection:35`, `SettingsPostGovernanceView:53`)
+keep working.
+
+### Batch 2 — one avatar fallback (ADA audit §3 **Avatars**: memoji vs grey glyph vs "S"/"F" monograms)
+`CYAvatarView`, `ClubMPAvatar`, `SquareAuthorAvatar` and `SettingsAccountAvatar` already fall back to the MP default
+face `/images/d_profile.png` (`MPAsset.AvatarDefault.dProfile`; 38 MP wxml/js uses). `MPAvatar` was the last one
+drawing a per-screen initial monogram on a grey disc.
+
+| Page (MP → native) · level | Line | Before → after |
+|---|---|---|
+| journey landing inviter (72 pt) + circle cards (56 pt) → `JourneyLandingViews:407, 813` · B; journey leaderboard rows (32 pt) → `JourneyReportViews:339` · B | `App/MPParityKit.swift` `MPAvatar` | initial monogram on `.fill.secondary` → MP default face under the remote photo, clipped circle |
+
+`initial:` kept on the API so the 3 callers are unchanged; VoiceOver stays hidden (the name is next to it in every
+row). `CYAvatarView` labels `用户头像` / `%@的头像` are catalog keys with en values (checked). `E3Avatar` (seeded art, no
+URL, club kit fixtures/cards) is a different object and stays.
+
+### Not done (next run)
+- none.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

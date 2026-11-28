@@ -11,3 +11,15 @@ extension EnvironmentValues {
         set { self[OrderTeamCreateKey.self] = newValue }
     }
 }
+
+private struct OrderActivityDestinationKey: EnvironmentKey {
+    static let defaultValue: ((Int) -> AnyView)? = nil
+}
+
+extension EnvironmentValues {
+    /// Planning audit G-04: the activity detail for an order's activity id. Nil hides the post-refund link (fixtures).
+    var orderActivityDestination: ((Int) -> AnyView)? {
+        get { self[OrderActivityDestinationKey.self] }
+        set { self[OrderActivityDestinationKey.self] = newValue }
+    }
+}
