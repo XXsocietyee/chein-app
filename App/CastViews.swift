@@ -257,7 +257,7 @@ struct CastRememberedLines: View {
     }
     private var identityStep: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("cast.start.identityQuestion").font(.title.bold()).accessibilityAddTraits(.isHeader)
+            Text("cast.start.identityQuestion").cyText(.pageTitle).accessibilityAddTraits(.isHeader)
             ForEach(config.identities) { identity in
                 Button { identityKey = identity.key } label: {
                     VStack(alignment: .leading, spacing: 4) {

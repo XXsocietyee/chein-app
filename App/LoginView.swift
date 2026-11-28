@@ -67,7 +67,7 @@ struct LoginView: View {
             // P27: one mark, then a left-aligned title that says what happens.
             VStack(alignment: .leading, spacing: 12) {
                 brandMark
-                Text("auth.login.headline").font(.title.bold())
+                Text("auth.login.headline").cyText(.pageTitle)
                     .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
                 Text("auth.login.subtitle").font(.subheadline).foregroundStyle(.secondary)
