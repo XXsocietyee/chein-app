@@ -791,7 +791,7 @@ private struct ProfileOrderHeroSection: View {
             VStack(alignment: .leading, spacing: 4) {
                 // Unknown money is an em dash, never ¥0.
                 Text(verbatim: order.actualPaidAmount.map(ProfileOrderYuan.text) ?? "—")
-                    .font(.largeTitle.weight(.bold)).monospacedDigit().foregroundStyle(.primary)
+                    .cyText(.dataXL).foregroundStyle(.primary)
                 if let title {
                     Text(verbatim: title).font(.headline).foregroundStyle(.primary)
                         .lineLimit(2).fixedSize(horizontal: false, vertical: true)

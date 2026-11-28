@@ -15,7 +15,7 @@ import SwiftUI
                 Text("profile.inviteRewards.hero").font(.subheadline).foregroundStyle(.secondary)
                 if let points = review.cumulativePoints {
                     Text(verbatim: "+" + NSDecimalNumber(decimal: points).stringValue)
-                        .font(.largeTitle.bold()).monospacedDigit().foregroundStyle(.primary)
+                        .cyText(.dataXL).foregroundStyle(.primary)
                         .accessibilityIdentifier("profile.inviteRewards.cumulative")
                 } else {
                     Text("profile.inviteRewards.heroPending").font(.title3).foregroundStyle(.secondary)

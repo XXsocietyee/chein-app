@@ -211,7 +211,7 @@ private struct TemplateTimerRehearsalReading: View {
     let value: String
     let identifier: String
     private var reading: some View {
-        Text(verbatim: value).font(.largeTitle.bold()).monospacedDigit()
+        Text(verbatim: value).cyText(.dataXL)
             .accessibilityIdentifier(identifier)
     }
     var body: some View {

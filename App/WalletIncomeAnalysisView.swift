@@ -120,12 +120,12 @@ import Accessibility
                         .font(.footnote).foregroundStyle(.secondary)
                         if summary.unknownCount > 0, current.count == 0 {
                             monthAmount(current, summary: summary, currency: currency)
-                                .font(.largeTitle.bold()).monospacedDigit()
+                                .cyText(.dataXL)
                                 .fixedSize(horizontal: false, vertical: true)
                         } else {
                             // Headline amount rolls when the month figure changes (reload, currency switch).
                             Text(verbatim: WalletIncomeAnalysisPresentation.text(current.amount, currency: currency, locale: locale))
-                                .font(.largeTitle.bold()).monospacedDigit().contentTransition(.numericText())
+                                .cyText(.dataXL).contentTransition(.numericText())
                         }
                         if summary.unknownCount > 0 { text("knownSubtotal").font(.footnote).foregroundStyle(.secondary) }
                     }

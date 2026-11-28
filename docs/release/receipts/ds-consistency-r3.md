@@ -1064,6 +1064,49 @@ Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0
 - Number styles: big numbers outside the `.dataXL`/data tokens (`.font(.title.bold())` glyph/percent above, other
   `.largeTitle` counts) → one count style (ADA audit cross-screen section).
 
+## Continue run 33 (2026-11-28, merged combined-r7)
+
+Merge clean (1 file). No new coordinator row for this lane (07:05 sweep: mp-states, mp-activity). Run 32 Not done rows:
+badge detail weight still waits for the byte re-pin (mp-mine / debt-r3); **one count style** worked here.
+
+Big numbers drew in two faces: `.cyText(.dataXL)` / `CYLiveCounter(style: .dataXL)` (largeTitle, bold, rounded,
+monospaced) on passport, balance, city board, medals; raw `.font(.largeTitle.bold|semibold)` + `.monospacedDigit()`
+(default face, mixed weights) on 20 other count sites. All folded into `.cyText(.dataXL)` (copy, MP sections, order,
+`contentTransition` and identifiers unchanged):
+
+| Page (MP → native) · level | Lines |
+|---|---|
+| Me points (`subpackageMember/components/cy/profile`) · B | `MemberHomeHeader:393, 714` |
+| passport stamp/badge placeholder "—" (now same face as the counter beside it) · B | `PassportView:189, 401` |
+| order paid amount · C | `ProfileOrdersView:794`, `OrderCardComponents:126` |
+| invite rewards total · C | `ProfileInviteRewardReviewSection:18` |
+| pass points (`subpackagePass`) · B | `PassMarketViews:286` |
+| bundle units / refund quote / transfer code · C | `BundleWalletView:75`, `BundleRefundQuoteView:66`, `BundleTransferSendView:139, 149` |
+| income month amount · C | `WalletIncomeAnalysisView:123, 128` |
+| template rating · B | `DiscoveryTemplateDetailParitySections:78` |
+| publisher price floor · C | `PublisherLifecycleViews:120` |
+| channel check-in streak · B | `NativeChannelCheckinView:103` |
+| orienteering score · A (number only) | `OrientScoreView:225` |
+| live-session mini HUD time · A (number only) | `ActiveSessionMiniBar:217` |
+| team gathering "n/m" · A (number only) | `PlayExperienceView:1984` |
+| motion reminder steps / walk left · B | `NativeMotionReminderViews:31, 106, 366` |
+| template timer / dice sample preview · C | `TemplateTimerRehearsalView:214`, `TemplateAdditionalSampleBrowserView:197` |
+
+Kept: game HUD numerals in `NativeR2/Games` (`ChanceKits:140`, `NativeGameKitsB:332`, level A, own look); headings
+(`CastViews`, `WelcomeView`, story reader) are display text, not counts.
+
+Gate: new kind **raw count** (`RAW_COUNT`): `.font(.largeTitle…)` with `.monospacedDigit()` on the same or next line,
+outside `App/DesignSystem` and the OWNER RULE 3 effect surfaces; baseline 0. Self-test: before the second batch it
+failed on `BundleTransferSendView`, `NativeMotionReminderViews:106`, `TemplateAdditionalSampleBrowserView:197`.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(0 debt, raw count 0), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
+### Not done (next run)
+- Badge detail name weight (run 30 row; needs the `test_object_badge_wall_layout…byte_identical` re-pin).
+- Mid-size numbers: `.font(.title…)` + `.monospacedDigit()` counts vs `.cyText(.dataL…)`-style tokens (check whether a
+  mid data token exists; fold or add one).
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

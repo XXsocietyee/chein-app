@@ -1981,7 +1981,7 @@ struct PlayExperienceIssueView: View {
                             .symbolEffect(.variableColor.iterative, options: .repeating, isActive: !reduceMotion)
                             .accessibilityHidden(true)
                         Text("playx.lead.gathering").font(.subheadline).foregroundStyle(.secondary)
-                        (Text(verbatim: "\(lead.arrived ?? 0)").font(.largeTitle.weight(.bold))
+                        (Text(verbatim: "\(lead.arrived ?? 0)").cyText(.dataXL)
                             + Text(verbatim: "/\(lead.members.count)").font(.title3).foregroundStyle(.secondary))
                             .monospacedDigit()
                             .contentTransition(.numericText())

@@ -100,8 +100,7 @@ import SwiftUI
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 Text("d7.checkin.streak.value \(status.streak)")
-                    .font(.largeTitle.bold())
-                    .monospacedDigit()
+                    .cyText(.dataXL)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)

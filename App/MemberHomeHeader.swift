@@ -390,7 +390,7 @@ import SwiftUI
             }
             .font(.subheadline).foregroundStyle(.secondary)
             Text(verbatim: pointsText)
-                .font(.largeTitle.weight(.semibold))
+                .cyText(.dataXL)
                 .foregroundStyle(points == nil ? Color.secondary : Color.primary)
                 .lineLimit(1).minimumScaleFactor(0.6)
                 .modifier(MemberAssetRoll(value: points.map { Double($0) }))
@@ -711,7 +711,7 @@ private struct MemberAssetRoll: ViewModifier {
             }
             .font(.subheadline).foregroundStyle(.secondary)
             Text(verbatim: pointsText)
-                .font(.largeTitle.weight(.semibold)).monospacedDigit()
+                .cyText(.dataXL)
                 .foregroundStyle(points == nil ? Color.secondary : Color.primary)
                 .lineLimit(1).minimumScaleFactor(0.6)
                 .modifier(MemberAssetRoll(value: points.map { Double($0) }))

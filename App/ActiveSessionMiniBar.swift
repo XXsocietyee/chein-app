@@ -214,7 +214,7 @@ struct ActiveSessionPlayHUD: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     ActiveSessionLiveValue(entry: entry)
-                        .font(.largeTitle.weight(.bold))
+                        .cyText(.dataXL)
                         .accessibilityIdentifier("activeSession.hud.value")
                 }
                 .accessibilityElement(children: .combine)
