@@ -103,6 +103,7 @@ struct PlayThemeMusicKey: Equatable {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.mpParity) private var mpParity
     @Environment(\.externalGameSession) private var externalGameSession
+    @Environment(\.playerGapService) private var playToolsGapService
     private func chapterTitle(_ name: String?) -> String {
         let trimmed = name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         return trimmed.isEmpty ? "—" : trimmed
@@ -793,8 +794,21 @@ struct PlayThemeMusicKey: Equatable {
             boardDestination: model.snapshot == nil ? nil : { [model] in AnyView(PlayCompanionBoardView(model: model)) },
             scoreDestination: orientScoreDestination,
             entryCodeRegistrationID: entryCode?.registrationID,
-            contact: playContact
+            contact: playContact,
+            onTeamBroadcast: teamBroadcast
         )
+    }
+    /// mp-journey-b r3: MP `leadBroadcast` from 游玩工具 队伍位置 — `POST /api/club/lead/broadcast {activityId, text}`,
+    /// then the team progress is read again (MP `loadTeamProgress`); the line shown is the server's, else 已广播.
+    private var teamBroadcast: ((String) async -> String)? {
+        guard let service = playToolsGapService, case .activity(let activityID) = model.scope, activityID > 0 else { return nil }
+        let context = model.interactionContext
+        return { [model] text in
+            let reply = await service.leadBroadcast(activityID: activityID, text: text)
+            if reply.data != nil { await model.loadLead(context: context) }
+            if let message = reply.message, !message.isEmpty { return message }
+            return appLocalized(reply.data != nil ? "playerGap.lead.broadcasted" : "playerGap.lead.retry", locale: .current)
+        }
     }
     /// mp-journey r3: MP `_orientSessionId` (mode 1 and `routeState.sessionId`) opens 本局成绩; natively that is the
     /// member orient-score page at this session.
