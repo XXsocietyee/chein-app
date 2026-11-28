@@ -896,6 +896,10 @@ struct RegistrationSheetView: View {
             } header: { Text("registration.hostReservation.title") }
         }
     }
+    private var showsWaitlistReadFailure: Bool {
+        flow.block == .waitlistUnavailable && flow.waitlistStatus == nil && !flow.waitlistOutcomeUnknown
+            && !flow.isReadingWaitlist && !flow.isMutatingWaitlist
+    }
     @ViewBuilder private var waitlistSection: some View {
         if flow.selectedTicket?.isSoldOut == true || flow.waitlistStatus != nil {
             Section {
@@ -936,10 +940,18 @@ struct RegistrationSheetView: View {
                                 .accessibilityIdentifier("registration.waitlist.openOrder")
                             }
                         }
-                    } else if flow.block == .waitlistUnavailable { Text("registration.waitlist.unavailable") }
-                    CYPillButton("registration.waitlist.refresh", style: .secondary) { Task { await flow.loadWaitlist() } }
-                        .disabled(!flow.canEdit || flow.isReadingWaitlist)
-                        .accessibilityIdentifier("registration.waitlist.refresh")
+                    }
+                    if showsWaitlistReadFailure {
+                        // MP baoming.wxml:270-272 cy-inline-error 候补状态读取失败 + 重试: one state, retry inside.
+                        CYEmptyState(systemImage: "exclamationmark.triangle", "registration.waitlist.loadFailed",
+                                     actionTitle: "action.retry", actionIdentifier: "registration.waitlist.retry",
+                                     kind: .failure) { Task { await flow.loadWaitlist() } }
+                            .disabled(!flow.canEdit)
+                    } else {
+                        CYPillButton("registration.waitlist.refresh", style: .secondary) { Task { await flow.loadWaitlist() } }
+                            .disabled(!flow.canEdit || flow.isReadingWaitlist)
+                            .accessibilityIdentifier("registration.waitlist.refresh")
+                    }
                     if flow.canJoinWaitlist {
                         CYPillButton("registration.waitlist.join", style: .secondary) { Task { await flow.joinWaitlist() } }
                             .accessibilityIdentifier("registration.waitlist.join")
