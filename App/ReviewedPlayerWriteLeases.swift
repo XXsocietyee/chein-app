@@ -1457,11 +1457,16 @@ enum ReviewedPlayerReadRoute {
             .clubChat: Set([try? BusinessRuntimeRoute.post("api/club/chat")].compactMap { $0 })
         ]
         if socialRole(context) { imRoutes.merge(Self.imMediaRoutes()) { $0.union($1) } }
+        // P1-28 (MP chat/index.js chooseMedia → uploadOSS → im/send msg_type image): the chat image row now works.
+        if socialRole(context) { imRoutes[.imUpload] = Set([try? BusinessRuntimeRoute.post("api/common/uploadOSS")].compactMap { $0 }) }
         if socialRole(context) { imRoutes.merge(Self.projectEditorRoutes(baseURL: context.baseURL)) { $0.union($1) } }
         if socialRole(context) { imRoutes.merge(Self.beGapImRoutes()) { $0.union($1) } }
         let businessConfiguration = try? BusinessRuntimeConfiguration(
             market: .china, baseURL: context.baseURL, namespace: context.session.namespace,
-            accountID: context.session.accountID, routes: imRoutes
+            accountID: context.session.accountID, routes: imRoutes,
+            imMediaOrigins: RetainedImageOrigin.configured(apiBase: context.baseURL,
+                extra: Bundle.main.object(forInfoDictionaryKey: "CYStampImageOrigins") as? String),
+            imImageSelection: socialRole(context)
         )
         let rewardPledge = context.market == .china
         return NativeRuntimeDependencies(

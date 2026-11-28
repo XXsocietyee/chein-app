@@ -302,7 +302,13 @@ public enum ChinaReviewedRouteCapability {
         "/api/topic/invite-chapters",
         "/api/topic/chapter/supply-terms",
         "/api/topic/host-qrcode",
-        "/api/topic/free-explore/visit-config"
+        "/api/topic/free-explore/visit-config",
+        // P2-6 (function audit 11-28): r3 serves publish-status (ApiTopicStateKeyController.java:267) and the
+        // edit-request receipts (ApiAppGapsTopicController.java:68-75), so production grants them too.
+        "/api/topic/edit-requests/read",
+        "/api/topic/edit-requests/submit",
+        "/api/topic/edit-requests/resume-post-processing",
+        "/api/topic/publish-status"
     ]
 
     /// `PUT /api/topic/state-keys/{stateKey}` names a key such as `clue.door`, not a numeric id.
