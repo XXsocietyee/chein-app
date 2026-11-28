@@ -43,3 +43,5 @@ New strings (en + zh-Hans, also in `docs/port/strings/mp-journey-r3.json`): `pla
 
 Open rows of the A receipt in file order: J-18 club-lead bar · stopwatch 再来一局 / 暂停 | free-explore hero 3D card face · finish grid 个人最佳 (B half; the 本局成绩 rank, 同行者榜 orient board and startedAt rows were shared out earlier: A built the first two, B the startedAt fallback).
 **B half done**: 个人最佳 built; the hero 3D card face is story-flow (paused). Nothing open left in the B half; J-18 waits for the coordinator (A half).
+
+**B lane, 11-28 ~17:xx run:** merged `origin/mp/r3-journey` (receipt only). Open rows of the A receipt unchanged: J-18 club-lead bar (A half, waits for the coordinator) | free-explore hero 3D card face (story-flow, paused). No `cursor-k50-p*` lane-layout rows on any branch; brief unchanged since the K50 post (no new mp-journey sweep finding, no J-18 ruling). **B half still done** — run stopped.
