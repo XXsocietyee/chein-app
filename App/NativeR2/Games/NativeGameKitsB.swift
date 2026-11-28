@@ -39,10 +39,17 @@ extension PlayKitScreen {
 
     // MARK: Bottom bar (NativeGameScreenHost.nativeKitSubmit falls through to this)
 
-    /// The one prominent action. Camera, branch and hidden keep their actions in the kit (multi-step
-    /// capture, a confirmation dialog, a tap on the scene); music plays in the kit and 继续 sits here.
+    /// The one prominent action. Camera and hidden keep their actions in the kit (multi-step capture, a tap on
+    /// the scene); music plays in the kit and 继续 sits here; branch confirms its pick here (MP 确认选择).
     var nativeKitSubmitB: NativeGameSubmit? {
         switch kind {
+        case .branch:
+            // MP: 确认选择 only with more than one option and before the end step; a single option confirms on tap.
+            let options = projection.options
+            guard !projection.complete, raw["currentStep"]["terminal"].bool != true, options.count > 1 else { return nil }
+            let choice = selected.first ?? ""
+            return nativeSubmit("CHOOSE", ["optionId": .string(choice)], valid: options.contains { $0.id == choice },
+                                title: Text("playkit.branch.confirmPick"), identifier: "playkit.submit.branch")
         case .coinFlip:
             return NativeGameSubmit(title: Text("playkit.coin.flip"), enabled: enabled, busy: model.phase == "submitting",
                                     identifier: "playkit.coin.flip", action: { nativePrepare("FLIP_COIN") })
