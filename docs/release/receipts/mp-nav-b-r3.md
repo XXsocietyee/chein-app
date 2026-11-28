@@ -36,3 +36,8 @@ Merged `origin/mp/r3-nav` (26f67441e, fast-forward). Brief re-read (B lanes, col
 Merged `origin/mp/r3-nav` (clean; brings `cursor-k50-r01/r03/r08` receipts). Brief re-read (B lanes, collision fix 15:45, K50, sweeps 17:30 / 18:30): no new mp-nav finding after the 17:30 `ia-tabs` P2 (fixed by A). No `cursor-k50-p*` lane-layout receipt exists on any branch; the `k50-r*` receipts name no mp-nav row. Open rows in `mp-nav-r3.md`, file order: only (1) "漫游护照与工具" hub sheet (line 40) → A half (owner Q9, coordinator). B half empty.
 
 **Half done.** Run stopped.
+
+## Run 11-28 ~20:xx UTC (hourly)
+Merged `origin/mp/r3-nav` (d37453ed7, clean). Brief re-read (B lanes, collision fix 15:45, K50, sweeps through 18:30): no new mp-nav coordinator finding; sweep index still build b954de71c. No `cursor-k50-p*` lane-layout receipt exists on any branch. Open rows in `mp-nav-r3.md`, file order: only (1) "漫游护照与工具" hub sheet (line 40) → A half (owner Q9, coordinator). B half empty.
+
+**Half done.** Run stopped.
