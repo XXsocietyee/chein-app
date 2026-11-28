@@ -116,3 +116,17 @@ The defaults keep every dependent feature hidden, so a build with placeholders s
 | Key (xcconfig → Info.plist) | Where | Value | Status |
 |---|---|---|---|
 | `QUESTIFY_IMAGE_ORIGINS` → `CYStampImageOrigins` | `Config/OwnerValues.xcconfig` | Comma-separated https origins that `api/common/uploadOSS` returns (OSS bucket / CDN host). Used by avatar, stamp, IM image, play photo upload and, since fix-1128b #22, play kit artwork (`artworkHosts`). The API origin is always included. Write each URL as `https:/$()/host`. | **owner to supply** (empty = API origin only) |
+
+## fix/1128c-ai-npc-guide: AI NPC and guide (backend only; no AI key in the app)
+
+The app holds no model key, provider URL or ASR credential. Every AI call goes to our backend, which owns the
+provider through `AiGatewayService` (quota, input/output safety, audit log).
+
+| Key | Where | Value | Status |
+|---|---|---|---|
+| `CHENGYIN_AI_API_KEY` (and the provider base URL / model per `AiSceneRouter` bizType `npc_chat`) | backend env | provider key for NPC replies | **owner to supply** (backend only) |
+| `feature.flag.shopNpcChat` | backend `sys_config` | `true` turns on in-store NPC text + voice (`/api/ai/npc/shop-chat`, `/voice-chat`). Off: players see the server message 「店铺分身对话还没开放」 | **owner decision** (default false; needs the shop-NPC compliance sign-off) |
+| ASR provider for `SpeechToTextService` | backend env | speech-to-text credentials | **owner to supply**; until set, voice questions answer 「语音识别还没接入，先打字问我」 |
+| `feature.flag.roamNpcEvent` | backend `sys_config` | `true` turns on the roam prompt layer (reviewed lines, place meaning, route story) that also fills the guide sheet | **owner decision** (default false) |
+| `feature.flag.roamNpcChat` | backend `sys_config` | stays `false`: no roam free chat (07-22 decision; `chatOn()` is hard false in code) | fixed |
+| Story script | `Resources/Story/StoryGuide.json` | NPC identity line, fallback greeting, guide identity, guide prompts (en + zh-Hans). Schema: `docs/release/story-content.md` | **owner to revise** |
