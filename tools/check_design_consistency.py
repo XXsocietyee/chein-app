@@ -140,7 +140,12 @@ LEADING_ACTION = 'leading action'
 LEADING_PLACEMENT = re.compile(r'placement:\s*\.(?:topBarLeading|navigationBarLeading)\b')
 DONE_LEADING = 'done leading'
 DONE_LEADING_PLACEMENT = re.compile(r'placement:\s*\.(?:cancellationAction|topBarLeading|navigationBarLeading)\b')
-DONE_BUTTON = re.compile(r'Button\((?:String\(localized:\s*LocalizedStringResource\()?"[A-Za-z0-9_.]*\.done"')
+DONE_BUTTON = re.compile(r'Button\((?:String\(localized:\s*LocalizedStringResource\()?"[A-Za-z0-9_.]*\.done"'
+                         # also a Done label through a helper / label closure: `Button(loc("x.done"))`,
+                         # `Button { … } label: { Text("done", tableName: …) }`, `Button(W8Text.t("完成", "Done"))`
+                         r'|Button\([A-Za-z0-9_.]+\("(?:[A-Za-z0-9_.]*\.)?done"'
+                         r'|Button\s*\{.*label:\s*\{\s*Text\("(?:[A-Za-z0-9_.]*\.)?done"'
+                         r'|Button\([A-Za-z0-9_.]+\("完成",\s*"Done"\)\)')
 LEADING_ACTION_CONTENT = re.compile(r'\bShareLink\(|"arrow\.counterclockwise"|"square\.and\.arrow\.up"')
 RAW_RADIUS = 'raw radius'
 # One radius scale (CYRadius: inner/sm 8, card 12, bubble 18, hero 20, sheet 24): a literal non-zero corner radius.

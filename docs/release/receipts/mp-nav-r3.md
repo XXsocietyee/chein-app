@@ -258,6 +258,27 @@ Sweep sheets (en / zh-Hans) `d2-inbox`, `ia-tabs`, `login-player`, `onboarding-1
 | sign-in sheet → App/LoginView.swift | P27 left-aligned title, one brand mark | header was a centred 88 pt mark + centred title/subtitle; now one 56 pt mark and title/subtitle leading-aligned (`VStack(alignment: .leading)`), Dynamic Type `.title` / `.subheadline` unchanged | `login-player` centred card → leading header | fixed (not compiled here) |
 | same | motion / feedback | `.sensoryFeedback(.success)` when `session.account?.id` goes nil → non-nil (sign-in completes, just before the sheet dismisses); no animation added, so nothing for Reduce Motion | — | fixed |
 
+## Re-scan 11-28 03:xx (merged combined-r7 41374363f; sweep 02:20 "mp-nav clean" → Next round item 2, motion/feedback)
+
+| page → native view | principle | change | fixture | status |
+|---|---|---|---|---|
+| 消息 收件箱 / 发件箱 tab row (MP subpackageB/pages/im/list index.wxml:11) → App/MessagingHomeView.swift scope Picker | feedback | `.sensoryFeedback(.selection, trigger: box)` on the segmented control; sections/order unchanged; states already covered by `MessagingReadScreen` (ProgressView loading, MessagingIssueView error / signed-out / unconfigured + retry, `.refreshable`, ContentUnavailableView empty with MP copy) | `d2-inbox`, `d2-inbox-empty` | fixed (not compiled here) |
+| launch welcome consent checkbox (MP pages/privacy/index.wxml:10) → App/WelcomeView.swift `consentRow` | feedback | `.sensoryFeedback(.selection)` on a tap counter (`consentTaps`), so only the player's own check / uncheck ticks, not the stored agreement syncing in on appear / scene change | `welcome` | fixed (not compiled here) |
+| sign-in sheet → App/LoginView.swift | feedback | `.sensoryFeedback(.warning)` when `session.errorKey` becomes non-nil (failed code / sign-in), next to the existing success tick | `login-player` | fixed (not compiled here) |
+
+## Re-scan 11-28 03:xx (b) (merged combined-r7 ad55acd94; Next round item 3, all states)
+
+Backend audit row **[mp-nav] chat-info mark read** (round 4, 00:30): already in the branch — `IMMutation.readCursor` posts `conversation_id` + `read_to` + a lowercase UUID `request_id` and decodes `OrdinaryIMReadReceiptWire` (Core/IMExpandedService.swift:60-64, 91-95; App/IMExpandedViews.swift:370-374). Verified, no change.
+
+| page → native view | state | change | fixture | status |
+|---|---|---|---|---|
+| 消息 inbox (MP subpackageB/pages/im/list cy-error) → App/MessagingHomeView.swift via `MessagingReadScreen` | error: 加载失败 + server line + 重试 | new design fixture; the fixture server line follows the UI language (was English "Synthetic service failure" in zh) | `d2-inbox-error` (new) | fixed (not compiled here) |
+| same (MP cy-empty no-permission 登录后查看消息) | signed out | new design fixture (lock icon, sign-in hint; 登录 button when the root sign-in is available) | `d2-inbox-signed-out` (new) | fixed (not compiled here) |
+| same (MP first load) | loading | new design fixture (`ProgressView` 正在加载…, 15 s fixture delay) | `d2-inbox-loading` (new) | fixed (not compiled here) |
+| same | empty | already `d2-inbox-empty` (ContentUnavailableView, MP copy, one action) | — | OK |
+
+Coordinator: please add `d2-inbox-error`, `d2-inbox-signed-out`, `d2-inbox-loading` to the mp-nav sweep list.
+
 ## Route coverage
 
 All 136 non-merchant MP pages in `app.json` resolve natively (MPReviewedPageScreen cases or `MPParityDestination`), except four pages that are parsed (`Core/MiniProgramPageLink.swift`) but have no native screen case: `pages/playkit/index/index`, `pages/publishkit/index/index` (MP kit galleries), `pages/crop/index` (MP image-crop utility) and `subpackageP3/pages/badge-3d/index` (MP 3D badge viewer). No native player control links to them; left for the coordinator to confirm they stay unrouted.

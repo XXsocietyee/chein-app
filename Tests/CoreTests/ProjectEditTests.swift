@@ -811,6 +811,31 @@ final class ProjectEditThemeRulesTests: XCTestCase {
         XCTAssertNil(ProjectEditThemeRules.cardCustomName(.luck, in: customName))
     }
 
+    func testTopicKeysItemsFollowTheMiniProgramItemTable() throws {
+        let empty = try draft(with: [:])
+        XCTAssertEqual(ProjectEditTopicKeys.items(in: empty), [])
+        let added = try ProjectEditTopicKeys.addItem(named: " 铜钥匙 ", id: "i1", in: empty)
+        XCTAssertEqual(ProjectEditTopicKeys.items(in: added).map(\.name), ["铜钥匙"])
+        XCTAssertEqual(try theme(added)["schemaVersion"], .number(1))
+        let renamed = try ProjectEditTopicKeys.renameItem("i1", to: "铁钥匙", in: added)
+        XCTAssertEqual(ProjectEditTopicKeys.items(in: renamed).map(\.name), ["铁钥匙"])
+        let used = try draft(with: ["items": .array([.object(["id": .string("i2"), "kind": .string("ITEM"), "name": .string("灯")]),
+                                                      .object(["id": .string("c1"), "kind": .string("COIN"), "name": .string("币")])]),
+                                    "grants": .array([.object(["id": .string("completion_material"), "itemId": .string("i2")])]),
+                                    "chapters": .array([.object(["index": .number(1), "eggs": .array([.object(["name": .string("井"), "rewards": .array([.object(["itemId": .string("i2")])])])])])])])
+        let items = ProjectEditTopicKeys.items(in: used)
+        XCTAssertEqual(items.map(\.id), ["i2"])
+        XCTAssertEqual(items.first?.usedIn, [.completionReward, .chapterEgg(2, "井")])
+        XCTAssertEqual(try ProjectEditTopicKeys.deleteItem("i2", in: used), used)
+        let removed = try ProjectEditTopicKeys.deleteItem("i1", in: renamed)
+        XCTAssertEqual(ProjectEditTopicKeys.items(in: removed), [])
+        XCTAssertEqual(ProjectEditTopicKeys.nameIssue(String(repeating: "长", count: 25), taken: [], kind: .clue), .tooLong)
+        XCTAssertEqual(ProjectEditTopicKeys.nameIssue("灯", taken: ["灯"], kind: .item), .taken(.item))
+        XCTAssertNil(ProjectEditTopicKeys.nameIssue("", taken: [], kind: .tag))
+        XCTAssertEqual(ProjectEditTopicKeys.usedIn(fromRefusal: "clue.door 仍被引用，引用位置：第 1 章、结局"), ["第 1 章", "结局"])
+        XCTAssertEqual(ProjectEditTopicKeys.usedIn(fromRefusal: "删除失败"), [])
+    }
+
     func testTradeAndVoteOnlyApplyToASharedTeamWorld() throws {
         let solo = try draft(with: ["schemaVersion": .number(1), "gameplayRuntime": .object(["runtimeScope": .string("TEAM")])])
         XCTAssertFalse(ProjectEditThemeRules.worldShared(in: solo))

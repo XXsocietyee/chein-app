@@ -46,7 +46,7 @@ entries = {
 'publishParity.crop.ratio': ('Ratio', '比例'),
 'publishParity.crop.failed': ('No image to crop. Go back and choose an image again.', '没有可裁剪的图片，请返回上一页重新选择图片后再裁剪。'),
 'publishParity.crop.progress %lld %lld': ('Crop %lld/%lld', '裁剪 %lld/%lld'),
-'publishParity.intro.lead': ('Turn a stretch you have played', '把你玩过的一段路'),
+'publishParity.intro.lead': ('Turn a route you’ve explored', '把你玩过的一段路'),
 'publishParity.intro.tail': ('into a play others can follow', '做成别人也能走的玩法'),
 }
 # zh-Hans values of existing keys aligned to pages/publish/template-intro and templateadd.
