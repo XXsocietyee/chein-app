@@ -1615,6 +1615,23 @@
         }
       }
     },
+    "a11y.value.characters %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld of %2$lld characters"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已输入 %1$lld 字，最多 %2$lld 字"
+          }
+        }
+      }
+    },
     "a11y.value.ofTotal %lld %lld": {
       "extractionState": "manual",
       "localizations": {
@@ -3551,6 +3568,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "主理人"
+          }
+        }
+      }
+    },
+    "activity.people.hostRole": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creator · Host"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发起人 · 主理人"
           }
         }
       }
@@ -15226,6 +15260,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "请缩短留言后再确认。"
+          }
+        }
+      }
+    },
+    "club.application.placeholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A friend sent me; I’d like to try a night walk"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "朋友推荐来的，想跟一次夜行"
+          }
+        }
+      }
+    },
+    "club.application.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Say a word to the host, like who you are and what kind of outing you’d like to join (required, up to 60 characters)."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "给主理人说一句吧，比如你是谁、想跟哪种局（必填，60 字内）。"
           }
         }
       }
@@ -38855,6 +38923,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "放弃这条评价？"
+          }
+        }
+      }
+    },
+    "context.review.failedTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your review wasn't posted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "评价没有发布"
           }
         }
       }
@@ -81238,13 +81323,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Home can’t open right now"
+            "value": "Home is unavailable"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "首页无法打开"
+            "value": "首页暂不可用"
           }
         }
       }
@@ -132610,6 +132695,23 @@
         }
       }
     },
+    "messaging.list.loadFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load messages"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载失败"
+          }
+        }
+      }
+    },
     "messaging.loadFailed": {
       "extractionState": "manual",
       "localizations": {
@@ -135754,6 +135856,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "加座需从原订单发起，暂不可直接购买"
+          }
+        }
+      }
+    },
+    "mp.pass.buy.requote": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Price quote isn’t available right now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报价暂不可用"
           }
         }
       }
@@ -141459,6 +141578,91 @@
           "stringUnit": {
             "state": "translated",
             "value": "主题玩法配置读取失败，请保存主题后重试"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.allowTrade": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teams can trade items"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍之间可以交换物资"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.votePolicy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voting"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "表决方式"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.vote.majority": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Majority"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "过半数"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.vote.unanimous": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Everyone agrees"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全体同意"
+          }
+        }
+      }
+    },
+    "mpPublish.rules.vote.majorityAcceptance": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Majority accepts (a tie can be voted again)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "过半接受（平票可复议）"
           }
         }
       }
@@ -183472,142 +183676,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "屏幕叠图，并非空间 AR"
-          }
-        }
-      }
-    },
-    "playkit.blind.eyebrow": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Blind taster · Tasting"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "闭眼味觉师 · 盲品"
-          }
-        }
-      }
-    },
-    "playkit.blind.title": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Close your eyes, take a sip, guess which one it is"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "闭上眼，尝一口，猜猜是哪一种"
-          }
-        }
-      }
-    },
-    "playkit.blind.got": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "I have the samples"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "小样拿到了"
-          }
-        }
-      }
-    },
-    "playkit.blind.closeEyes": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Close your eyes"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "闭上眼"
-          }
-        }
-      }
-    },
-    "playkit.blind.dontPeek": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Keep your eyes closed, take your time"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "别睁眼，慢慢尝"
-          }
-        }
-      }
-    },
-    "playkit.blind.openEyes": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Done tasting. Tap to open your eyes"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "尝好了，轻点睁眼"
-          }
-        }
-      }
-    },
-    "playkit.blind.ready": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Done"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "好"
-          }
-        }
-      }
-    },
-    "playkit.blind.peeked": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Peeked? Close your eyes again"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "偷看了？再闭一次眼"
           }
         }
       }
@@ -231544,6 +231612,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "盖章成功，算你来过"
+          }
+        }
+      }
+    },
+    "roam.poi.favorite.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't update your favorite"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收藏状态没有更新"
           }
         }
       }
@@ -296102,6 +296187,40 @@
         }
       }
     },
+    "fixr3.deregister.applyFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your closure request wasn't submitted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "注销申请没有提交"
+          }
+        }
+      }
+    },
+    "fixr3.deregister.cancelFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The request wasn't withdrawn"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤销没有完成"
+          }
+        }
+      }
+    },
     "fixr3.deregister.code": {
       "extractionState": "manual",
       "localizations": {
@@ -296200,6 +296319,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "获取验证码"
+          }
+        }
+      }
+    },
+    "fixr3.deregister.smsFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The code wasn't sent"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "验证码没有发送"
           }
         }
       }
@@ -310033,6 +310169,91 @@
           "stringUnit": {
             "state": "translated",
             "value": "导演台读取失败"
+          }
+        }
+      }
+    },
+    "club.topic.director.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No event session to manage yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有可管理的活动局"
+          }
+        }
+      }
+    },
+    "club.topic.director.emptySub": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start a session from club management first, then open the director desk."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先从俱乐部管理区开一场，再进入导演台。"
+          }
+        }
+      }
+    },
+    "club.topic.director.network": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Network connection failed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网络连接失败"
+          }
+        }
+      }
+    },
+    "club.topic.director.reconnect": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reconnect"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新连接"
+          }
+        }
+      }
+    },
+    "club.topic.director.failedSub": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The director desk can't be opened right now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动导演台暂时无法打开"
           }
         }
       }
@@ -345597,6 +345818,23 @@
         }
       }
     },
+    "account.mine.tab.achievements": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Awards"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成就"
+          }
+        }
+      }
+    },
     "account.mine.tab.projects": {
       "extractionState": "manual",
       "localizations": {
@@ -351772,70 +352010,41 @@
         }
       }
     },
-    "playkit.qa.placeholder": {
+    "roam.live.cards.teamPeople %lld %lld": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Type your answer here"
+            "value": "%1$lld/%#@person@"
+          },
+          "substitutions": {
+            "person": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg person"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg people"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在这里作答"
-          }
-        }
-      }
-    },
-    "playkit.qa.tag.answer": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Correct answer"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正确答案"
-          }
-        }
-      }
-    },
-    "playkit.qa.tag.chosen": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your choice"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "你的选择"
-          }
-        }
-      }
-    },
-    "playkit.hangman.howToDefault": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "One letter or character per box. Pinyin without tone marks; type V for ü."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "一格填一个字或字母；拼音不写声调，ü 用 V 代替。"
+            "value": "%1$lld/%2$lld 人"
           }
         }
       }
@@ -352112,402 +352321,6 @@
         }
       }
     },
-    "playkit.profile.kicker": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Birth registration"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "出生登记"
-          }
-        }
-      }
-    },
-    "playkit.branch.endMark": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The end"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "结局"
-          }
-        }
-      }
-    },
-    "playkit.branch.confirmPick": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Confirm choice"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "确认选择"
-          }
-        }
-      }
-    },
-    "playkit.hidden.progress %lld %lld": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Found %1$lld of %2$lld"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已找到 %1$lld / %2$lld"
-          }
-        }
-      }
-    },
-    "playkit.compare.outOfTries": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Out of tries. No life lost this time."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "次数用完了，这次不扣生命"
-          }
-        }
-      }
-    },
-    "playkit.classify.dropInto %@ %lld": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Put this card in “%1$@”, %2$lld already there"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "把这一张放进「%1$@」，里面已有 %2$lld 条"
-          }
-        }
-      }
-    },
-    "playkit.classify.takeBackItem %@": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Take “%@” back"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "把「%@」拿回来"
-          }
-        }
-      }
-    },
-    "playkit.classify.placed %@": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@, sorted correctly"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@，分对了"
-          }
-        }
-      }
-    },
-    "playkit.classify.leftLine %lld": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld left to sort"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "还有 %lld 条没分"
-          }
-        }
-      }
-    },
-    "playkit.classify.allRight": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "All sorted correctly"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "全分对了"
-          }
-        }
-      }
-    },
-    "playkit.classify.someWrong": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Some are in the wrong place. Tap a label to take it back and try again."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "还有分错的，点小标签拿回来重放"
-          }
-        }
-      }
-    },
-    "playkit.pricePair.fallbackName %lld": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Picture %lld"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "图 %lld"
-          }
-        }
-      }
-    },
-    "a11y.value.characters %lld %lld": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$lld of %2$lld characters"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已输入 %1$lld 字，最多 %2$lld 字"
-          }
-        }
-      }
-    },
-    "activity.people.hostRole": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Creator · Host"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "发起人 · 主理人"
-          }
-        }
-      }
-    },
-    "messaging.list.loadFailed": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Couldn’t load messages"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "加载失败"
-          }
-        }
-      }
-    },
-    "mpPublish.rules.allowTrade": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Teams can trade items"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "队伍之间可以交换物资"
-          }
-        }
-      }
-    },
-    "mpPublish.rules.votePolicy": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Voting"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "表决方式"
-          }
-        }
-      }
-    },
-    "mpPublish.rules.vote.majority": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Majority"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "过半数"
-          }
-        }
-      }
-    },
-    "mpPublish.rules.vote.unanimous": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Everyone agrees"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "全体同意"
-          }
-        }
-      }
-    },
-    "mpPublish.rules.vote.majorityAcceptance": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Majority accepts (a tie can be voted again)"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "过半接受（平票可复议）"
-          }
-        }
-      }
-    },
-    "account.mine.tab.achievements": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Awards"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "成就"
-          }
-        }
-      }
-    },
-    "roam.live.cards.teamPeople %lld %lld": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$lld/%#@person@"
-          },
-          "substitutions": {
-            "person": {
-              "argNum": 2,
-              "formatSpecifier": "lld",
-              "variations": {
-                "plural": {
-                  "one": {
-                    "stringUnit": {
-                      "state": "translated",
-                      "value": "%arg person"
-                    }
-                  },
-                  "other": {
-                    "stringUnit": {
-                      "state": "translated",
-                      "value": "%arg people"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$lld/%2$lld 人"
-          }
-        }
-      }
-    },
     "mpPublish.rules.mode": {
       "extractionState": "manual",
       "localizations": {
@@ -352712,444 +352525,138 @@
         }
       }
     },
-    "playkit.sort.fb.ok": {
+    "playkit.qa.placeholder": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "All in the right order"
+            "value": "Type your answer here"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "全排对了"
+            "value": "在这里作答"
           }
         }
       }
     },
-    "playkit.sort.fb.exhausted": {
+    "playkit.qa.tag.answer": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No tries left. This one costs you no life"
+            "value": "Correct answer"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "次数用完了，这次不扣生命"
+            "value": "正确答案"
           }
         }
       }
     },
-    "playkit.sort.fb.retry": {
+    "playkit.qa.tag.chosen": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not in order yet. Move them and submit again"
+            "value": "Your choice"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没排对，挪一挪再交"
+            "value": "你的选择"
           }
         }
       }
     },
-    "playkit.sort.rowLabel %lld %@": {
+    "playkit.hangman.howToDefault": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Position %1$lld: %2$@"
+            "value": "One letter or character per box. Pinyin without tone marks; type V for ü."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "第 %1$lld 位：%2$@"
+            "value": "一格填一个字或字母；拼音不写声调，ü 用 V 代替。"
           }
         }
       }
     },
-    "playkit.match.fb.ok": {
+    "playkit.profile.kicker": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "All linked correctly"
+            "value": "Birth registration"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "全连对了"
+            "value": "出生登记"
           }
         }
       }
     },
-    "playkit.match.fb.retry": {
+    "playkit.branch.endMark": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Some links are wrong. Change a pair and submit again"
+            "value": "The end"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还有没连对的，改一改再交"
+            "value": "结局"
           }
         }
       }
     },
-    "playVerdict.tapToContinue": {
+    "playkit.branch.confirmPick": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tap anywhere to continue"
+            "value": "Confirm choice"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "轻点继续"
+            "value": "确认选择"
           }
         }
       }
     },
-    "playkit.scan.matchNote": {
+    "playkit.hidden.progress %lld %lld": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This only checks this stop's task code."
+            "value": "Found %1$lld of %2$lld"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅确认这一站的任务码"
-          }
-        }
-      }
-    },
-    "playkit.scan.title": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scan this stop's code"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "扫描这一站的二维码"
-          }
-        }
-      }
-    },
-    "playkit.scan.imagePending": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The picture you get after scanning"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "扫完给的那张图"
-          }
-        }
-      }
-    },
-    "playCard.saved": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Saved to your collection"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已收进藏品册"
-          }
-        }
-      }
-    },
-    "playCard.savedGenerating": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Saved to your collection · 3D is being made; turn it around in your collection later"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已收进藏品册 · 3D 生成中，稍后在藏品册里转着看"
-          }
-        }
-      }
-    },
-    "playkit.album.page %lld %lld": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Photo %1$lld of %2$lld"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "第 %1$lld 张，共 %2$lld 张"
-          }
-        }
-      }
-    },
-    "playCard.itemInfo": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Item details"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "物品信息"
-          }
-        }
-      }
-    },
-    "club.application.placeholder": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A friend sent me; I’d like to try a night walk"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "朋友推荐来的，想跟一次夜行"
-          }
-        }
-      }
-    },
-    "club.application.prompt": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Say a word to the host, like who you are and what kind of outing you’d like to join (required, up to 60 characters)."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "给主理人说一句吧，比如你是谁、想跟哪种局（必填，60 字内）。"
-          }
-        }
-      }
-    },
-    "mp.pass.buy.requote": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Price quote isn’t available right now"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "报价暂不可用"
-          }
-        }
-      }
-    },
-    "roam.poi.favorite.failed": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Couldn't update your favorite"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "收藏状态没有更新"
-          }
-        }
-      }
-    },
-    "fixr3.deregister.applyFailed": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your closure request wasn't submitted"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "注销申请没有提交"
-          }
-        }
-      }
-    },
-    "fixr3.deregister.cancelFailed": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The request wasn't withdrawn"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "撤销没有完成"
-          }
-        }
-      }
-    },
-    "fixr3.deregister.smsFailed": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The code wasn't sent"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "验证码没有发送"
-          }
-        }
-      }
-    },
-    "club.topic.director.empty": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No event session to manage yet"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "还没有可管理的活动局"
-          }
-        }
-      }
-    },
-    "club.topic.director.emptySub": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Start a session from club management first, then open the director desk."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "先从俱乐部管理区开一场，再进入导演台。"
-          }
-        }
-      }
-    },
-    "club.topic.director.network": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Network connection failed"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "网络连接失败"
-          }
-        }
-      }
-    },
-    "club.topic.director.reconnect": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reconnect"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重新连接"
-          }
-        }
-      }
-    },
-    "club.topic.director.failedSub": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The director desk can't be opened right now."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "活动导演台暂时无法打开"
+            "value": "已找到 %1$lld / %2$lld"
           }
         }
       }
@@ -353473,6 +352980,244 @@
           "stringUnit": {
             "state": "translated",
             "value": "救助记录"
+          }
+        }
+      }
+    },
+    "playkit.compare.outOfTries": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Out of tries. No life lost this time."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次数用完了，这次不扣生命"
+          }
+        }
+      }
+    },
+    "playkit.classify.dropInto %@ %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Put this card in “%1$@”, %2$lld already there"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把这一张放进「%1$@」，里面已有 %2$lld 条"
+          }
+        }
+      }
+    },
+    "playkit.classify.takeBackItem %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Take “%@” back"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把「%@」拿回来"
+          }
+        }
+      }
+    },
+    "playkit.classify.placed %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, sorted correctly"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@，分对了"
+          }
+        }
+      }
+    },
+    "playkit.classify.leftLine %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld left to sort"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还有 %lld 条没分"
+          }
+        }
+      }
+    },
+    "playkit.classify.allRight": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All sorted correctly"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全分对了"
+          }
+        }
+      }
+    },
+    "playkit.classify.someWrong": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some are in the wrong place. Tap a label to take it back and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还有分错的，点小标签拿回来重放"
+          }
+        }
+      }
+    },
+    "playkit.pricePair.fallbackName %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Picture %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图 %lld"
+          }
+        }
+      }
+    },
+    "playkit.sort.fb.ok": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All in the right order"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全排对了"
+          }
+        }
+      }
+    },
+    "playkit.sort.fb.exhausted": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No tries left. This one costs you no life"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次数用完了，这次不扣生命"
+          }
+        }
+      }
+    },
+    "playkit.sort.fb.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not in order yet. Move them and submit again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没排对，挪一挪再交"
+          }
+        }
+      }
+    },
+    "playkit.sort.rowLabel %lld %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Position %1$lld: %2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %1$lld 位：%2$@"
+          }
+        }
+      }
+    },
+    "playkit.match.fb.ok": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All linked correctly"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全连对了"
+          }
+        }
+      }
+    },
+    "playkit.match.fb.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some links are wrong. Change a pair and submit again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还有没连对的，改一改再交"
           }
         }
       }
@@ -354174,19 +353919,750 @@
         }
       }
     },
-    "playkit.daily.signerDefault": {
+    "playkit.blind.eyebrow": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This stop's host"
+            "value": "Blind taster · Tasting"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这一站的发起人"
+            "value": "闭眼味觉师 · 盲品"
+          }
+        }
+      }
+    },
+    "playkit.blind.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close your eyes, take a sip, guess which one it is"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "闭上眼，尝一口，猜猜是哪一种"
+          }
+        }
+      }
+    },
+    "playkit.blind.got": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I have the samples"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "小样拿到了"
+          }
+        }
+      }
+    },
+    "playkit.blind.closeEyes": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close your eyes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "闭上眼"
+          }
+        }
+      }
+    },
+    "playkit.blind.dontPeek": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep your eyes closed, take your time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "别睁眼，慢慢尝"
+          }
+        }
+      }
+    },
+    "playkit.blind.openEyes": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done tasting. Tap to open your eyes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尝好了，轻点睁眼"
+          }
+        }
+      }
+    },
+    "playkit.blind.ready": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "好"
+          }
+        }
+      }
+    },
+    "playkit.blind.peeked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Peeked? Close your eyes again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "偷看了？再闭一次眼"
+          }
+        }
+      }
+    },
+    "playVerdict.tapToContinue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap anywhere to continue"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "轻点继续"
+          }
+        }
+      }
+    },
+    "playkit.scan.matchNote": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This only checks this stop's task code."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅确认这一站的任务码"
+          }
+        }
+      }
+    },
+    "playkit.scan.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan this stop's code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫描这一站的二维码"
+          }
+        }
+      }
+    },
+    "playkit.scan.imagePending": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The picture you get after scanning"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫完给的那张图"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.clock.name": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "名称"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.clock.namePrompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clock name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进度钟名称"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.clock.kind": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clock type"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进度钟类型"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.clock.segments": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segments"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "格数"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.clock.segmentsOption %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld segments"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 格"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.clock.add": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add clock"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加进度钟"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.clock.addAction": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.clock.delete": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.clock.deleteTitle %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete clock “%@”?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除进度钟「%@」？"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.clock.deleteMessage": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conditions and effects that use it will need to be chosen again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用到它的条件和效果需要重新选择。"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.add": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add trait"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加特质"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.remove": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.removeTitle %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove trait “%@”?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除特质「%@」？"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.removeMessage": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conditions that use it will need to be chosen again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用到它的条件需要重新选择。"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.nightOwl": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Night owl"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "夜行者"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.nightOwl.desc": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moves more easily at night"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "夜里行动更顺手"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.hurt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Injured"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "受了伤"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.hurt.desc": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actions are harder until healed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "行动吃力，直到治好"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.sharpEye": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sharp-eyed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "眼尖"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.sharpEye.desc": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spots clues more easily"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更容易发现线索"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.bold": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bold"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "胆大"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.bold.desc": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stays calmer in danger"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "面对危险更镇定"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.handy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Handy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手巧"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.handy.desc": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Better at picking locks and repairs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开锁和修理更顺手"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.memory": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Good memory"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记性好"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.memory.desc": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remembers the clues already seen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记得住看过的线索"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.watched": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Being watched"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "被盯上了"
+          }
+        }
+      }
+    },
+    "mpPublish.d20.aspect.preset.watched.desc": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Night watchers notice you more easily"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "巡夜人更容易注意到你"
+          }
+        }
+      }
+    },
+    "playCard.itemInfo": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Item details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "物品信息"
+          }
+        }
+      }
+    },
+    "playCard.saved": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved to your collection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已收进藏品册"
+          }
+        }
+      }
+    },
+    "playCard.savedGenerating": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved to your collection · 3D is being made; turn it around in your collection later"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已收进藏品册 · 3D 生成中，稍后在藏品册里转着看"
+          }
+        }
+      }
+    },
+    "playkit.album.page %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo %1$lld of %2$lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %1$lld 张，共 %2$lld 张"
           }
         }
       }
@@ -354259,6 +354735,23 @@
         }
       }
     },
+    "playkit.daily.saving": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成中…"
+          }
+        }
+      }
+    },
     "playkit.daily.scratchHint": {
       "extractionState": "manual",
       "localizations": {
@@ -354276,19 +354769,19 @@
         }
       }
     },
-    "playkit.daily.saving": {
+    "playkit.daily.signerDefault": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Preparing…"
+            "value": "This stop's host"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "生成中…"
+            "value": "这一站的发起人"
           }
         }
       }

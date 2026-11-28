@@ -130,6 +130,7 @@ import QuestifyCore
     /// status, nearby and trace lists sit in one persistent system sheet with the Apple Maps detents.
     private var sessionContent: some View {
         liveMapGround
+        .modifier(RoamLiveMapWeather(latitude: weatherPoint?.latitude, longitude: weatherPoint?.longitude))
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 InGameChannelToolbarButton(
@@ -252,6 +253,11 @@ import QuestifyCore
         }
     }
     /// Map ground (static fog backdrop when the live reveal is off).
+    /// MP `cy-map-weather` reads the GCJ-02 map centre; the live map follows the player, so the player's GCJ-02 fix.
+    private var weatherPoint: (latitude: Double, longitude: Double)? {
+        guard let fix = owner.lastFix, let point = try? RuntimeLocationProjection.gcj02(fix) else { return nil }
+        return (point.coordinate.latitude, point.coordinate.longitude)
+    }
     @ViewBuilder private var liveMapGround: some View {
         if PersonalFogFeature.liveRevealEnabled, let fogMap {
             RoamFogMapView(area: fogMap.area, items: fogMap.items, fillsHeight: true, fog: fogMap.presentation,
