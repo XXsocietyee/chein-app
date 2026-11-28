@@ -1,0 +1,56 @@
+import SwiftUI
+
+// MARK: - MP pages/publish/fabu/topic-detail-sheet.wxml:144-185 (玩法规则 card, rows 允许再玩一次 · 同场路线)
+// theme-runtime-survival.js:101 display, :124-137 toggleThemeReplay / toggleThemeTeamTrail
+
+/// 玩法规则 in the 主题详情 sheet, after the runtime-values entries and before 可玩时段 (MP order).
+/// Two system `Toggle` rows bound to Core `ProjectEditThemeRules`; a refusal shows as a red section footer
+/// (MP `themeReplayError`). No request: the topic save carries `themeRuntimeConfig`.
+@MainActor struct ProjectEditThemeRulesSection: View {
+    @ObservedObject var model: ProjectEditModel
+    @State private var refusalKey: String?
+
+    var body: some View {
+        Section {
+            Toggle(isOn: Binding(get: { ProjectEditThemeRules.replayEnabled(in: model.draft) }, set: { setReplay($0) })) {
+                Label("mpPublish.rules.replay", systemImage: "arrow.counterclockwise")
+            }
+            .accessibilityIdentifier("projectEdit.rules.replay")
+            Toggle(isOn: Binding(get: { ProjectEditThemeRules.teamTrail(in: model.draft) }, set: { setTeamTrail($0) })) {
+                Label("mpPublish.rules.teamTrail", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
+            }
+            .accessibilityIdentifier("projectEdit.rules.teamTrail")
+        } header: {
+            Text("mpPublish.rules.title")
+        } footer: {
+            if let refusalKey {
+                Label(LocalizedStringKey(refusalKey), systemImage: "exclamationmark.circle")
+                    .foregroundStyle(.red)
+                    .accessibilityIdentifier("projectEdit.rules.error")
+            }
+        }
+        .disabled(!model.fullEdit)
+    }
+
+    private func setReplay(_ enabled: Bool) {
+        do {
+            model.draft = try ProjectEditThemeRules.setReplay(enabled, in: model.draft)
+            refusalKey = nil
+        } catch ProjectEditRuntimeActsError.refused(let key) {
+            refusalKey = key
+        } catch {
+            refusalKey = ProjectEditThemeRules.Copy.unreadable
+        }
+    }
+
+    private func setTeamTrail(_ enabled: Bool) {
+        do {
+            model.draft = try ProjectEditThemeRules.setTeamTrail(enabled, in: model.draft)
+            refusalKey = nil
+        } catch ProjectEditRuntimeActsError.refused(let key) {
+            refusalKey = key
+        } catch {
+            refusalKey = ProjectEditThemeRules.Copy.unreadable
+        }
+    }
+}

@@ -18,10 +18,11 @@ final class ClubEditAdminLockFlowTests: XCTestCase {
         return element.exists
     }
 
-    func testAdministratorSeesNoteAndLockedSettingsWithoutToggles() {
+    func testAdministratorSeesLockedSettingsWithoutToggles() {
         open("admin")
-        XCTAssertTrue(app.staticTexts["club.ops.adminNote"].waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertTrue(app.textFields.firstMatch.waitForExistence(timeout: 10), app.debugDescription)
         XCTAssertTrue(reveal(app.staticTexts["club.ops.locked.current"]), app.debugDescription)
+        XCTAssertFalse(app.staticTexts["club.ops.adminNote"].exists)
         XCTAssertFalse(app.switches["club.ops.prioritySignup"].exists)
     }
 

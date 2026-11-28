@@ -17,7 +17,7 @@ import UIKit
                     // automatic row-button behavior around a sparse placeholder.
                     .buttonStyle(.plain)
                     .accessibilityLabel(Text("image.retained.preview"))
-                    .accessibilityValue(Text("\(index + 1) / \(min(urls.count, 9))"))
+                    .accessibilityValue(Text("carousel.position \(index + 1) \(min(urls.count, 9))"))
                     .accessibilityIdentifier("image.retained.reviewPhoto.\(index)")
             }
         }.cySheet(isPresented: Binding(get: { selected != nil }, set: { if !$0 { selected = nil } })) { Group {

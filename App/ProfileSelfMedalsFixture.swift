@@ -10,7 +10,7 @@ import Observation
     var isOfflineExample = true
     var isSignedIn: Bool { identity.accountID != nil }
     func publicProfile(memberID:Int) async throws -> SocialPublicProfile {
-        try JSONDecoder().decode(SocialPublicProfile.self,from:Data("{\"id\":\(memberID),\"nickname\":\"Synthetic medal owner\"}".utf8))
+        try JSONDecoder().decode(SocialPublicProfile.self,from:Data("{\"id\":\(memberID),\"nickname\":\"\(iaFixtureText("Synthetic medal owner", "示例勋章主人"))\"}".utf8))
     }
     func informationList() async throws -> [SocialInformation] { [] }
     func information(id:Int) async throws -> SocialInformation { throw APIError.notConfigured }
