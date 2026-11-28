@@ -116,3 +116,14 @@ The defaults keep every dependent feature hidden, so a build with placeholders s
 | Key (xcconfig → Info.plist) | Where | Value | Status |
 |---|---|---|---|
 | `QUESTIFY_IMAGE_ORIGINS` → `CYStampImageOrigins` | `Config/OwnerValues.xcconfig` | Comma-separated https origins that `api/common/uploadOSS` returns (OSS bucket / CDN host). Used by avatar, stamp, IM image, play photo upload and, since fix-1128b #22, play kit artwork (`artworkHosts`). The API origin is always included. Write each URL as `https:/$()/host`. | **owner to supply** (empty = API origin only) |
+
+## fix/1128c-ai-showcase: AI on the home page and in the build process
+
+No new app-side secret. The app switches the creator AI routes on in Release; the backend decides with its own values.
+
+| Value | Where | Status |
+|---|---|---|
+| AI provider key and model for `ApiAiController` (theme draft, template fill, safety precheck, club design) | backend `sys_config` / env (us/r3-functional) | **owner to confirm** it is set on the production host; without it every call answers with the server's own message, the precheck degrades to pass |
+| Daily AI quota per member (`今日AI次数已用完`, shared by all creator AI endpoints) | backend `sys_config` | **owner to confirm** the value (the app shows the server's count and wording) |
+| AIGC filing number (算法备案号) shown under every AI tool (`AIGCFilingNumberText`) | read from the backend (`squareReader.aigcFilingNumber()`, App/CloudB3Production.swift:90) | **owner to set server-side**; empty renders nothing |
+| Home showcase copy (`aiShowcase.guide.*`, 24 lines, en + zh-Hans) | `Resources/Localizable.xcstrings` via `tools/add_fix_1128c_ai_showcase_localizations.py` | placeholder copy written by the worker; **owner to revise** (content, not code) |

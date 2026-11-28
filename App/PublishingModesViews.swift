@@ -39,6 +39,13 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
         // professional editor directly. 发布活动 / 我的项目 / 发布人登记 stay below as the native secondary section
         // (the MP reaches them from 我的项目 and the club pages).
         List {
+            // fix/1128c-ai-showcase: AI is the visible first step of creating (owner 11-28); the MP choices follow.
+            Section {
+                NavigationLink { SessionAICreationHubView() } label: {
+                    AICreationRow(title: "aiCreation.title", detail: "aiCreation.entry.detail", symbol: "wand.and.stars")
+                }
+                .accessibilityIdentifier("publishModes.ai")
+            }
             Section {
                 if let makeProfessional {
                     NavigationLink { makeProfessional(.freeExplore) } label: { Label("projectEdit.freeExplore", systemImage: "location.magnifyingglass") }
@@ -78,8 +85,11 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
     var draftStore: PublishingDraftStore? = nil
     var makeAIDraft: (() -> any PublishingAIDraftServing)? = nil
     var simplePageRead: ((PublishingRead) async throws -> ProjectEditJSON)? = nil
+    /// fix/1128c-ai-showcase: "Draft with AI" opens the AI draft sheet as the first step.
+    var opensAIOnAppear: Bool = false
     var openProfessional: (ProjectEditDraft) -> Void
     @StateObject private var simplePage = QuickPublishSimplePageOwner()
+    @State private var didAutoOpenAI = false
     var body: some View {
         let _ = journey.bind(account: account)
         let draft = journey.draftBinding()
@@ -100,6 +110,11 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                 Button(action: journey.openAIAction(makeClient: makeAIDraft)) {
                     Label("contextPublish.ai.title", systemImage: "sparkles")
                 }.accessibilityIdentifier("contextPublish.ai.open")
+                if journey.draftBeforeAI != nil {
+                    Button(role: .destructive, action: journey.undoAIAction()) {
+                        Label("aiCreation.undoDraft", systemImage: "arrow.uturn.backward")
+                    }.accessibilityIdentifier("aiCreation.undoDraft")
+                }
             }
             Section {
                 Picker("publishModes.product", selection: draft.product) { Text("projectEdit.city").tag(ProjectEditProduct.city); Text("projectEdit.freeExplore").tag(ProjectEditProduct.freeExplore) }
@@ -154,6 +169,7 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
         }
         .onAppear { journey.appear(active: scenePhase == .active) }
         .task(id: account?.epoch) { await simplePage.load(read: simplePageRead, draft: journey.draft) }
+        .task { await autoOpenAIIfAsked() }
         .onChange(of: scenePhase) { _, phase in journey.setActive(phase == .active) }
         .background { QuickPublishingJourneyLifetime(owner: journey).frame(width: 0, height: 0) }
         .background {
@@ -164,6 +180,14 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
     }
 }
 extension QuickPublishingView {
+    /// Once per page: after the push settles, open the AI draft sheet (the journey's own fences still apply).
+    func autoOpenAIIfAsked() async {
+        guard opensAIOnAppear, !didAutoOpenAI else { return }
+        try? await Task.sleep(nanoseconds: 400_000_000)
+        guard !Task.isCancelled, !didAutoOpenAI else { return }
+        didAutoOpenAI = true
+        journey.openAIAction(makeClient: makeAIDraft)()
+    }
     /// Details done = a name; stops done = at least one stop, every stop named and placed. The editor step is the handoff.
     static func stepsDone(_ draft: QuickPublishDraft) -> Int {
         let issues = QuickPublishValidation.issues(draft)
