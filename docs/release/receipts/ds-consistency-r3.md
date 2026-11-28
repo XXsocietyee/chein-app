@@ -873,7 +873,7 @@ properties or stable for the view's life); `onChange` only fires on a change, so
 No compiler in the cloud: the next integration build confirms.
 
 Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
-(untyped haptic 0, status capsule 29 baselined), `contract_ratchet --check` see Gates.
+(untyped haptic 0, status capsule 29 baselined), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
 
 ### Not done (next run)
 - status capsule (29 baselined): move per-page soft-tint capsules to `CYStatusChip`, largest files first.
