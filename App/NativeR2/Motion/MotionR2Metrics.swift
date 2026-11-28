@@ -172,7 +172,7 @@ struct MotionR2RankText: View {
             if direction != 0 {
                 Image(systemName: direction < 0 ? "arrow.up" : "arrow.down")
                     .font(.caption.bold())
-                    .foregroundStyle(direction < 0 ? Color.green : Color.red)
+                    .foregroundStyle(direction < 0 ? CYColor.successText : CYColor.dangerText)
                     .transition(.opacity)
                     .accessibilityHidden(true)
             }

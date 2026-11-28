@@ -53,10 +53,10 @@ import SwiftUI
                   let channel = [RegistrationPayChannel.standard, .app].first(where: { url.path.hasSuffix("/" + $0.rawValue) }),
                   ReviewedAreaSwitch.moneyPayments(apiHost: url.host ?? expectedHost),
                   !ReleaseMoneyWriteSwitch.blocks(channel.routePath),
-                  let body = request.httpBody,
-                  let text = String(data: body, encoding: .utf8),
-                  let idValue = URLComponents(string: "?" + text)?.queryItems?.first(where: { $0.name == "id" })?.value,
-                  let registrationID = Int(idValue), registrationID > 0 else {
+                  let token = request.value(forHTTPHeaderField: "Authorization"),
+                  // fix/1128-cn-pay P0-2: `RegistrationPayService` sends the canonical multipart form (`id` only);
+                  // the old URL-encoded parse never matched it, so every pay was refused here.
+                  ReviewedProductionFormMutationRoute.singlePositiveFormField(request, url: url, key: "id", token: token) else {
                 throw APIError.notConfigured
             }
             return try await underlying.send(request)
@@ -92,10 +92,13 @@ extension EnvironmentValues {
     @Environment(\.locale) private var locale
     @Environment(\.registrationPaymentReadiness) private var readinessReader
     @Environment(\.registrationPayExecutor) private var payExecutor
-    /// US launch r1: non-nil only in the US market with payments open. Nil keeps the China flow exactly as before.
+    /// US launch r1 / fix 11-28 P1-3: non-nil while payments are open; used only for a USD quote / order. Nil keeps the China flow.
     @Environment(\.stripePayContext) private var stripePay
     /// Owner check 11-28 05:35: the WeChat SDK hand-off for APP pay params. Nil keeps the status chip only.
     @Environment(\.registrationAppPay) private var appPay
+    /// fix-1128-alipay (P0-4 / P32): the sheet's "Pay with" choice and the Alipay hand-off. Nil keeps WeChat Pay.
+    @Environment(\.registrationPayMethodChoice) private var payMethodChoice
+    @Environment(\.registrationAlipayPay) private var alipayPay
 
     let registrationID: Int
     let payableAmount: Decimal?
@@ -108,11 +111,20 @@ extension EnvironmentValues {
     /// US r2: the order's own `currency` / `paymentChannels` (order detail has no quote). A quote wins when present.
     let orderCurrency: String?
     let orderPaymentChannels: [String]?
-    /// P32: the sheet's 支付方式 choice; the pay button then reads 微信支付 ¥12.50. Nil keeps 立即支付 (order detail).
+    /// P32: the sheet's 支付方式 choice; the pay button then reads 微信支付 ¥12.50. Nil (order detail) is WeChat Pay,
+    /// the only China in-app method until Alipay is ready (fix/1128-cn-pay).
     let payMethod: RegistrationPayMethod?
+    /// fix/1128-cn-pay P0-2: APP pay params the create already returned (MP baoming: create → requestPayment).
+    /// Non-empty params open WeChat at once; no second `pay/app` call is made for them.
+    let initialPayParams: [String: String]?
+    /// fix/1128-cn-pay P1-2: the server read said paid; the host refreshes its order / registration status.
+    let onSettled: (() -> Void)?
+    /// fix/1128-us-pay: called once the server confirms a US order paid, so the host can read the order again.
+    let onPaid: (() -> Void)?
 
     @StateObject private var viewModel = RegistrationPayViewModel()
     @State private var readiness: RegistrationPaymentReadiness?
+    @State private var payStepMethod: RegistrationPayMethod?
 
     init(registrationID: Int,
          payableAmount: Decimal?,
@@ -124,7 +136,10 @@ extension EnvironmentValues {
          onExpiredRebuild: (() -> Void)? = nil,
          orderCurrency: String? = nil,
          orderPaymentChannels: [String]? = nil,
-         payMethod: RegistrationPayMethod? = nil) {
+         payMethod: RegistrationPayMethod? = nil,
+         initialPayParams: [String: String]? = nil,
+         onSettled: (() -> Void)? = nil,
+         onPaid: (() -> Void)? = nil) {
         self.registrationID = registrationID
         self.payableAmount = payableAmount
         self.quote = quote
@@ -136,6 +151,9 @@ extension EnvironmentValues {
         self.orderCurrency = orderCurrency
         self.orderPaymentChannels = orderPaymentChannels
         self.payMethod = payMethod
+        self.initialPayParams = initialPayParams
+        self.onSettled = onSettled
+        self.onPaid = onPaid
     }
 
     /// Quote first (registration sheet), else the order detail's own fields; nil on a China order.
@@ -168,35 +186,49 @@ extension EnvironmentValues {
                     .accessibilityLabel(Text(verbatim: c.t("待支付金额", "Amount due")))
                     .accessibilityValue(Text(verbatim: amountText))
                     .accessibilityHint(Text(verbatim: payOnceHint))
+                    // One "Pay with" row: the picker when Alipay is offered (below), otherwise this read-only row.
+                    if !usesStripePay, !alipayOffered {
+                        payWithRow
+                    }
                     statusView
                     if let stripePay, usesStripe(stripePay) {
                         RegistrationStripePayRows(context: stripePay, registrationID: registrationID,
-                                                  paymentChannels: payChannels, consented: consented,
-                                                  readiness: readiness)
+                                                  paymentChannels: payChannels,
+                                                  amountText: payableAmount == nil ? nil : amountText,
+                                                  consented: consented,
+                                                  preferredMethod: payMethod, onPaid: onPaid)
+                    } else if isUSDOrder {
+                        // A USD order never goes to the China route (backend 409 STRIPE_CHANNEL_REQUIRED).
+                        Text("registration.stripe.unavailable")
+                            .cyText(.body)
+                            .foregroundStyle(CYColor.warningText)
+                            .accessibilityIdentifier("registration.pay.stripe.unavailable")
+                    } else if canTapPay, chosenPayMethod == .alipay, let alipayPay {
+                        RegistrationPayStepMethodRow(selection: payStepMethodBinding, enabled: !alipayPay.isWaiting())
+                        RegistrationAlipayPayRows(context: alipayPay, registrationID: registrationID,
+                                                  amountText: amountText, onExpiredRebuild: onExpiredRebuild)
+                    } else if let params = pendingInitialParams {
+                        RegistrationAppPayRows(context: appPay, registrationID: registrationID,
+                                               parameters: params, onSettled: onSettled)
                     } else if canTapPay {
-                        CYPillButton(verbatim: payButtonTitle, style: .primary) {
-                            Task {
-                                await viewModel.model.pay(
-                                    registrationID: registrationID,
-                                    paymentsOpen: true,
-                                    readiness: readiness,
-                                    readinessReader: {
-                                        let r = await readinessReader?()
-                                        readiness = r
-                                        return r
-                                    },
-                                    quote: quote,
-                                    quoteReceivedAt: quoteReceivedAt,
-                                    consented: consented,
-                                    requiresFreshQuote: requiresFreshQuote,
-                                    channel: channel,
-                                    executor: payExecutor
-                                )
-                            }
+                        if alipayOffered {
+                            RegistrationPayStepMethodRow(selection: payStepMethodBinding, enabled: true)
                         }
-                        .accessibilityIdentifier("registration.pay.submit")
-                        .accessibilityLabel(Text(verbatim: payButtonTitle))
-                        .accessibilityHint(Text(verbatim: payOnceHint))
+                        if weChatCanOpen {
+                            CYPillButton(verbatim: weChatPayTitle, style: .primary) {
+                                startPay()
+                            }
+                            .accessibilityIdentifier("registration.pay.submit")
+                            .accessibilityLabel(Text(verbatim: weChatPayTitle))
+                            .accessibilityHint(Text(verbatim: payOnceHint))
+                        } else {
+                            // P32: the reason is a footnote, never a disabled button used as a message.
+                            Text("registration.pay.weChatNotReady")
+                                .font(.footnote)
+                                .foregroundStyle(CYColor.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("registration.pay.weChatNotReady")
+                        }
                     }
                 }
             } header: {
@@ -206,16 +238,103 @@ extension EnvironmentValues {
                          "Payment runs once with no automatic retry. Rebuild the order manually if it expires."))
             }
             .task(id: registrationID) {
-                if readiness == nil, let readinessReader {
+                if readiness == nil, !isUSDOrder, let readinessReader {
                     readiness = await readinessReader()
                 }
             }
         }
     }
 
-    /// US launch r1: a USD quote listing `APPLE_PAY` / `APP_STRIPE` in the US market. China quotes never match.
+    /// fix-1128-alipay: Alipay is a choice for this CNY order (backend `APP_ALIPAY` + the app can open Alipay).
+    private var alipayOffered: Bool {
+        RegistrationAlipayBridge.offered(alipayPay, paymentChannels: payChannels)
+    }
+
+    private var chosenPayMethod: RegistrationPayMethod {
+        RegistrationPayMethod.effective(selection: payStepMethod ?? payMethodChoice, market: .china,
+                                        applePayAvailable: false, alipayOffered: alipayOffered,
+                                        paymentChannels: payChannels)
+    }
+
+    private var payStepMethodBinding: Binding<RegistrationPayMethod> {
+        Binding(get: { chosenPayMethod }, set: { payStepMethod = $0 })
+    }
+
+    /// P32: the button names the method ("Pay ¥12.50 with WeChat Pay").
+    private var weChatPayTitle: String {
+        RegistrationAlipayBridge.payButtonTitle(.wechatPay, amountText: amountText, locale: locale)
+    }
+
+    /// Fix 11-28 P1-3: a USD quote / order listing `APPLE_PAY` / `APP_STRIPE`, whatever the storefront market.
+    /// China (CNY) quotes never match and keep WeChat Pay / Alipay.
     private func usesStripe(_ context: StripePayContext) -> Bool {
-        StripePayEligibility.applies(market: context.market, currency: payCurrency, paymentChannels: payChannels)
+        StripePayEligibility.applies(currency: payCurrency, paymentChannels: payChannels)
+    }
+
+    /// The quote / order is USD: Stripe only, readiness from its channels (the WeChat probe does not apply).
+    private var isUSDOrder: Bool {
+        StripePayEligibility.isUSDOrder(currency: payCurrency, paymentChannels: payChannels)
+    }
+
+    /// The readiness shown above the button: the order's Stripe channels for USD, else the WeChat probe.
+    private var shownReadiness: RegistrationPaymentReadiness? {
+        StripePayEligibility.readiness(currency: payCurrency, paymentChannels: payChannels) ?? readiness
+    }
+
+    private var usesStripePay: Bool {
+        guard let stripePay else { return false }
+        return usesStripe(stripePay)
+    }
+
+    /// The China in-app method shown on the row and the button: the sheet's choice, else WeChat Pay.
+    private var shownPayMethod: RegistrationPayMethod { payMethod ?? .wechatPay }
+
+    /// P32: ONE "Pay with" row showing the chosen method, plain text as in `RegistrationPayMethodSection`.
+    private var payWithRow: some View {
+        LabeledContent {
+            Text(verbatim: c.t(shownPayMethod.names.zh, shownPayMethod.names.en))
+                .foregroundStyle(CYColor.textPrimary)
+        } label: {
+            Text("registration.pay.payWith")
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("registration.pay.payWith")
+    }
+
+    /// Create-returned params open WeChat once, until this section has made its own `pay/app` attempt.
+    private var pendingInitialParams: [String: String]? {
+        guard let initialPayParams, !initialPayParams.isEmpty,
+              !viewModel.model.isLocked(registrationID: registrationID) else { return nil }
+        return initialPayParams
+    }
+
+    /// A host without the WeChat hand-off (design fixtures) keeps the button; a session says whether WeChat opens.
+    private var weChatCanOpen: Bool {
+        guard let appPay else { return true }
+        return appPay.isAvailable()
+    }
+
+    private func startPay() {
+        Task { @MainActor in
+            await viewModel.model.pay(
+                registrationID: registrationID,
+                paymentsOpen: true,
+                readiness: readiness,
+                readinessReader: { await readAndStoreReadiness() },
+                quote: quote,
+                quoteReceivedAt: quoteReceivedAt,
+                consented: consented,
+                requiresFreshQuote: requiresFreshQuote,
+                channel: channel,
+                executor: payExecutor
+            )
+        }
+    }
+
+    private func readAndStoreReadiness() async -> RegistrationPaymentReadiness? {
+        let value = await readinessReader?()
+        readiness = value
+        return value
     }
 
     /// A missing amount stays on screen as an em dash. A decoded zero stays off this section.
@@ -231,14 +350,14 @@ extension EnvironmentValues {
                                     currencyCode: payCurrency ?? RegistrationUIMoney.yuanCurrencyCode) ?? "—"
     }
 
-    /// P32: the button is the payment method plus the total; without a method or a known amount it stays 立即支付.
+    /// P32: the button is the payment method plus the total; without a known amount it stays 立即支付.
     private var payButtonTitle: String {
-        guard let payMethod,
-              let total = RegistrationUIMoney.display(payableAmount, locale: locale,
+        let method = shownPayMethod
+        guard let total = RegistrationUIMoney.display(payableAmount, locale: locale,
                                                       currencyCode: payCurrency ?? RegistrationUIMoney.yuanCurrencyCode) else {
             return c.t("立即支付", "Pay now")
         }
-        let title = payMethod.payTitle(amount: total)
+        let title = method.payTitle(amount: total)
         return c.t(title.zh, title.en)
     }
 
@@ -260,7 +379,7 @@ extension EnvironmentValues {
     @ViewBuilder private var statusView: some View {
         switch viewModel.model.outcome {
         case .idle:
-            if let readiness, !readiness.ready {
+            if let readiness = shownReadiness, !readiness.ready, !isUSDOrder {
                 Text(verbatim: readiness.message ?? c.t("支付服务暂不可用", "Payment service unavailable"))
                     .cyText(.body)
                     .foregroundStyle(CYColor.warningText)
@@ -284,11 +403,9 @@ extension EnvironmentValues {
                 .foregroundStyle(CYColor.warningText)
                 .accessibilityIdentifier("registration.pay.blocked")
         case .paidOrParametersReceived(let response):
-            if let params = response.payParams, !params.isEmpty {
-                RegistrationAppPayRows(context: appPay, registrationID: response.registrationID, parameters: params)
-            } else {
-                paidChip(response)
-            }
+            // P1-2: with or without provider params, the stage comes from one `api/registration/info` read.
+            RegistrationAppPayRows(context: appPay, registrationID: response.registrationID,
+                                   parameters: response.payParams ?? [:], onSettled: onSettled)
         case .expiredNeedsRebuild(let message):
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 Text(verbatim: message)
@@ -324,15 +441,6 @@ extension EnvironmentValues {
                 if let row = RequestReferenceRow(pathFragment: "/api/registration/pay") { row }
             }
         }
-    }
-
-    /// Paid without provider params (or no params): the MP success copy as a chip.
-    private func paidChip(_ response: RegistrationPayResponse) -> some View {
-        CYStatusChip(
-            verbatim: response.message ?? c.t("支付成功，票已放入票夹", "Paid. Your ticket is in the wallet."),
-            tone: .success
-        )
-        .accessibilityIdentifier("registration.pay.succeeded")
     }
 
     private func blockedCopy(_ reason: RegistrationPayBlockReason) -> String {

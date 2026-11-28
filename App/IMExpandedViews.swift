@@ -235,7 +235,7 @@ func imShownName(_ name: String) -> String {
         .onAppear {
             model.observe()
             if focus == .route, permitsReply, topicReader != nil, selectedTopic == nil { showingTopics = true }
-            if focus == .image, permitsReply, writerReady, uploadOwner != nil, !hasPendingState { showingPhotoCompose = true }
+            if focus == .image, permitsReply, writerReady, uploadOwner?.isConfigured == true, !hasPendingState { showingPhotoCompose = true }
             // R9-PC-D9-1: MP onSendLocation (index.js:743-751) calls wx.chooseLocation straight from the plus sheet.
             if focus == .location, permitsReply, writerReady, !hasPendingState, latitude.isEmpty { pickingPlace = true }
         }
@@ -272,7 +272,7 @@ func imShownName(_ name: String) -> String {
                 Section { Text("im.reply.systemNotice").accessibilityIdentifier("im.reply.controlsNotice") }
             }
             if permitsReply && writerReady {
-                if let uploadOwner, focus == nil || focus == .image {
+                if let uploadOwner, uploadOwner.isConfigured, focus == nil || focus == .image {
                     Section {
                         NavigationLink {
                             photoCompose(uploadOwner, selectsOnAppear: false)

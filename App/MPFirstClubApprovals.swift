@@ -107,6 +107,12 @@ enum MPFirstClubWriteRoute {
         // CLB-r10-join-requests-01 (MP pages/club/join-requests/index.js:170): ClubManagementService's list read and
         // 通过 / 拒绝 (ClubJoinRequestsPageReady.routes). No other firewall branch admitted them in Release China.
         "api/club/join-requests", "api/club/join-request/approve", "api/club/join-request/reject",
+        // P1-12: owner reads the club pages send through ClubGovernanceRead (MP stats/settlement/customers/event-ops/notify):
+        // 统计概览, 结算 summary (read only; withdraw stays refused by the "withdraw" word), CRM list, series list, audience counts.
+        "api/stats/club", settlementSummaryPath, "api/club/crm/customers/list", "api/club/event-ops/series/list",
+        "api/club/event-notification/audience-counts",
+        // P1-11 (MP pages/club/detail/index.js:3430 removeMember): 移除成员, `{clubId, memberId}` (ClubManagementService.perform).
+        "api/club/remove-member",
         // CLB-r11-money-01 (MP event-ops/index.js:1106-1115, topic-detail/index.js:1145-1148): host-cancel refund
         // writes and the cancel review read. The writes pass only while `.hostCancelRefund` is on (`accepts`).
         "api/club/event-ops/cancel", "api/club/topic-setting/end", "api/club/event-ops/occurrence/status",
@@ -116,6 +122,8 @@ enum MPFirstClubWriteRoute {
         coopPoolApplyPath
     ]
     static let coopPoolApplyPath = "api/coop/pool/apply"
+    /// P1-12: the one settlement path this firewall admits, an owner read `{clubId}` (ClubGovernanceRead.settlement).
+    static let settlementSummaryPath = "api/club/settlement/summary"
     /// CLB-r11-money-01: the host-cancel refund writes. Gated on `ReleaseMoneyWriteSwitch` `.hostCancelRefund`.
     static let hostCancelRefundPaths: Set<String> = ["api/club/event-ops/cancel", "api/club/topic-setting/end"]
     /// CLB-G13a: the club staff shared-run command (MP topic-detail director.js confirmGenericOps / plan-fallback.js →
@@ -146,7 +154,7 @@ enum MPFirstClubWriteRoute {
               let relative = MPFirstMerchantWriteRoute.relativePath(parts.path, base: baseURL.path),
               !relative.contains("pay") && !relative.contains("refund") && !relative.contains("payout")
                 && !relative.contains("withdraw") && !relative.contains("quote") && !relative.contains("registration")
-                && !relative.contains("pricing") && !relative.contains("settlement"),
+                && !relative.contains("pricing") && (!relative.contains("settlement") || relative == settlementSummaryPath),
               let body = request.httpBody, body.count < 65_536 else { return false }
         let contentType = request.value(forHTTPHeaderField: "Content-Type") ?? ""
         if formPaths.contains(relative) {
@@ -256,6 +264,13 @@ enum MPFirstClubWriteRoute {
         "api/club/topic-setting/detail": .init(ids: ["clubId", "topicId"]),
         "api/club/join-requests": .init(ids: ["clubId"]),
         "api/club/join-request/approve": .init(ids: ["clubId", "memberId"]),
+        "api/club/remove-member": .init(ids: ["clubId", "memberId"]),
+        // P1-12: ClubGovernanceRead.fields bodies for the owner reads.
+        "api/stats/club": .init(ids: ["clubId"]),
+        "api/club/settlement/summary": .init(ids: ["clubId"]),
+        "api/club/event-ops/series/list": .init(ids: ["clubId"]),
+        "api/club/crm/customers/list": .init(ids: ["clubId", "pageNum", "pageSize"], optional: ["filter", "keyword"]),
+        "api/club/event-notification/audience-counts": .init(ids: ["clubId"], optional: ["activityId"]),
         "api/club/join-request/reject": .init(ids: ["clubId", "memberId"], optional: ["reviewReason"]),
         // CLB-r11-money-01: MP event-ops/index.js:1110-1115 and topic-detail/index.js:1147 bodies, exact keys.
         "api/club/event-ops/occurrence/status": .init(ids: ["clubId", "activityId"]),

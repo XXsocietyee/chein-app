@@ -375,7 +375,7 @@ func invoiceTitleLine(_ title: InvoiceLaunchTitle) -> String {
         VStack(alignment: .leading, spacing: 4) {
             Label { invoiceText(notice.titleKey) } icon: {
                 Image(systemName: notice.kind == .unknown ? "clock.badge.questionmark" : "exclamationmark.circle.fill")
-                    .foregroundStyle(notice.kind == .unknown ? Color.secondary : Color.red)
+                    .foregroundStyle(notice.kind == .unknown ? Color.secondary : CYColor.dangerText)
             }
             .font(.body)
             if let detail = notice.detailKey {

@@ -261,7 +261,7 @@ extension PlayKitScreen {
                     Label(ok ? LocalizedStringKey("playkit.classify.allRight") : LocalizedStringKey("playkit.classify.someWrong"),
                           systemImage: ok ? "checkmark.circle.fill" : "xmark.circle.fill")
                         .font(.headline)
-                        .foregroundStyle(ok ? Color.green : Color.red)
+                        .foregroundStyle(ok ? CYColor.successText : CYColor.dangerText)
                         .accessibilityIdentifier("playkit.classify.verdict")
                 }
             }

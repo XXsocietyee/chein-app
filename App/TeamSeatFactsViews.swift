@@ -19,10 +19,10 @@ struct TeamSeatFactsCard: View {
                     LabeledContent {
                         Text(verbatim: String(row.value))
                             .monospacedDigit()
-                            .foregroundStyle(row.warning ? Color.red : Color.primary)
+                            .foregroundStyle(row.warning ? CYColor.dangerText : Color.primary)
                     } label: {
                         Text(LocalizedStringKey(row.labelKey))
-                            .foregroundStyle(row.warning ? Color.red : Color.primary)
+                            .foregroundStyle(row.warning ? CYColor.dangerText : Color.primary)
                     }
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("teamSeats.row.\(row.id)")
