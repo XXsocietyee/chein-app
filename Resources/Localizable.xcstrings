@@ -204098,6 +204098,23 @@
         }
       }
     },
+    "profile.posts.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t load posts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帖文加载失败"
+          }
+        }
+      }
+    },
     "profile.postsRefresh.refresh": {
       "localizations": {
         "en": {
