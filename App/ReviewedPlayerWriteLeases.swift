@@ -69,6 +69,8 @@ extension ReviewedProductionFormMutationRoute {
         if relative.hasPrefix("api/club/roles/") || relative.hasPrefix("api/merchant/") || relative.hasPrefix("api/mod-commerce") { return false }
         // fix-1128b-social #4/#27: 发布 tab, club 发布活动 and 我的项目 activity 编辑 (POST, MP pages/publish/*).
         if let publishing = MPFirstSocialApprovals.publishingDecision(relative: relative, method: method, request: request) { return publishing }
+        // fix/1128c-ai-showcase: the player/club AI creation calls (theme draft, quota, club design, template fill, safety).
+        if let aiCreation = AICreationReleaseApprovals.decision(relative: relative, method: method, request: request) { return aiCreation }
         if let reportRead = MPFirstSocialApprovals.reportReadDecision(relative: relative, method: method, request: request) { return reportRead }
         if let official = officialParticipationDecision(request, relative: relative, method: method, url: url) {
             return official
@@ -1696,6 +1698,8 @@ enum ReviewedPlayerReadRoute {
         if socialRole(context) { imRoutes.merge(Self.beGapImRoutes()) { $0.union($1) } }
         // fix-1128b-social #4 (audit H-06a, H-13a): the 发布 tab "+" and club 发布活动 need `publishingService`.
         if socialRole(context) { imRoutes.merge(MPFirstSocialApprovals.publishingRoutes(baseURL: context.baseURL)) { $0.union($1) } }
+        // fix/1128c-ai-showcase: AI theme draft + quota (player, club); club design, template fill, safety precheck (club).
+        if socialRole(context) { imRoutes.merge(AICreationReleaseApprovals.routes(baseURL: context.baseURL, role: context.role)) { $0.union($1) } }
         let businessConfiguration = try? BusinessRuntimeConfiguration(
             market: .china, baseURL: context.baseURL, namespace: context.session.namespace,
             accountID: context.session.accountID, routes: imRoutes,
