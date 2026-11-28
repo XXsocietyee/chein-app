@@ -58,7 +58,10 @@ struct E5bBadgeWallFixture: View {
                     // mp-mine r3 (P24, MP badge-wall order): same header and groups as `ObjectBadgeWallView`: the ring with the
                     // collected / locked counts, then 已点亮, then 未解锁, so the sweep shows the real wall's structure.
                     header {
-                        CYCountRing(value: 3, total: 6)
+                        // a11y-dt r3 (sweep 733bfb368): the fixture drew `CYCountRing` (fixture-only, "3/6" ~23 pt at AX5);
+                        // the shipped wall (`ObjectBadgeWallView.ring`) uses `CYAlbumProgressRing` size 84, which grows at AX sizes.
+                        CYAlbumProgressRing(value: 3, total: 6, size: 84,
+                                            accessibilityLabel: Text(verbatim: tt("3 of 6 badges unlocked", "已点亮 3 枚徽章，共 6 枚")))
                         CYCollectedLockedSummary(collected: 3, locked: 3)
                     }
                     group("profile.badges.unlocked", badges.filter { !$0.isLocked })

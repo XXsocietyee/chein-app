@@ -250,6 +250,8 @@ public struct CYRouteNodeRow: View {
     private let onPerkTap: (() -> Void)?
 
     @Environment(\.cyPalette) private var palette
+    /// Node circle scales with its `.caption` number / glyph (a fixed 28 pt clipped at AX sizes; a11y-dt r3), capped at 56.
+    @ScaledMetric(relativeTo: .caption) private var nodeSide: CGFloat = 28
 
     public init(
         index: Int,
@@ -378,7 +380,7 @@ public struct CYRouteNodeRow: View {
             ZStack {
                 Circle()
                     .fill(tokens.nodeFill)
-                    .frame(width: 28, height: 28)
+                    .frame(width: min(nodeSide, 56), height: min(nodeSide, 56))
                 switch completion {
                 case .completed:
                     Image(systemName: "checkmark")
@@ -399,7 +401,7 @@ public struct CYRouteNodeRow: View {
                 .frame(width: 2)
                 .frame(maxHeight: .infinity)
         }
-        .frame(width: 28)
+        .frame(width: min(nodeSide, 56))
     }
 }
 
