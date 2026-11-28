@@ -251874,6 +251874,23 @@
         }
       }
     },
+    "squareReport.descriptionTooLong": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep it within 2,000 characters. Your text has been kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "说明不能超过 2000 字，已输入的内容会保留。"
+          }
+        }
+      }
+    },
     "squareReport.emergency": {
       "localizations": {
         "en": {

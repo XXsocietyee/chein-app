@@ -74,7 +74,11 @@ extension EnvironmentValues {
                 Section {
                     TextEditor(text: $description).frame(minHeight: 140).focused($descriptionFocused)
                         .accessibilityLabel("squareReport.description").accessibilityIdentifier("squareReport.description")
-                    Text("\(description.utf16.count)/2000").font(.footnote).monospacedDigit().foregroundStyle(description.utf16.count > 2000 ? CYColor.dangerText : Color.secondary)
+                    Text(verbatim: "\(description.utf16.count)/2000").accessibilityLabel(Text("a11y.value.characters \(Int(description.utf16.count)) \(Int(2000))")).font(.footnote).monospacedDigit().foregroundStyle(description.utf16.count > 2000 ? CYColor.dangerText : Color.secondary)
+                    if description.utf16.count > 2000 {
+                        Text("squareReport.descriptionTooLong").font(.footnote).foregroundStyle(CYColor.dangerText)
+                            .accessibilityIdentifier("squareReport.descriptionTooLong")
+                    }
                 } header: {
                     Text("squareReport.description")
                 } footer: {

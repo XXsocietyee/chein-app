@@ -145,7 +145,7 @@ import SwiftUI
             Spacer(minLength: 0)
             Button(action: clear) { Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary).frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget).contentShape(Rectangle()) }
                 .buttonStyle(.borderless)
-                .accessibilityLabel(Text(verbatim: copy("清除", "Clear")))
+                .accessibilityLabel(Text(verbatim: copy("清除：\(title)", "Clear: \(title)")))
         }
     }
 
@@ -263,15 +263,21 @@ import SwiftUI
                     ForEach(drafts) { row in
                         Button { pick(row) } label: {
                             VStack(alignment: .leading) {
-                                HStack(alignment: .firstTextBaseline) {
-                                    Text(verbatim: row.nickname).font(.headline).foregroundStyle(.primary)
-                                    Spacer(minLength: 0)
-                                    Text(verbatim: row.date).font(.caption).foregroundStyle(.secondary)
+                                ViewThatFits(in: .horizontal) {
+                                    HStack(alignment: .firstTextBaseline) {
+                                        Text(verbatim: row.nickname).font(.headline).foregroundStyle(.primary)
+                                        Spacer(minLength: 0)
+                                        Text(verbatim: row.date).font(.caption).foregroundStyle(.secondary)
+                                    }
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(verbatim: row.nickname).font(.headline).foregroundStyle(.primary)
+                                        Text(verbatim: row.date).font(.caption).foregroundStyle(.secondary)
+                                    }
                                 }
                                 Text(verbatim: row.summary).font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
                             }
                         }
-                        .accessibilityLabel(Text(verbatim: copy("继续编辑这条草稿", "Continue this draft")))
+                        .accessibilityHint(Text(verbatim: copy("继续编辑这条草稿", "Continue this draft")))
                         .accessibilityIdentifier("square.cloud.draft.row")
                         .swipeActions(edge: .trailing) {
                             Button(role: .destructive) { delete(row) } label: {
