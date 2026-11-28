@@ -472,7 +472,7 @@ private struct CityMapControlMaterial: ViewModifier {
     }
     private var pointsCell: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(verbatim: points).font(.title2.bold().monospacedDigit())
+            Text(verbatim: points).font(.title2.bold().monospacedDigit()).accessibilityLabel(CYFractionSpeech.label(points))
                 .nativeR2RollingNumber(Double(doneCount))
                 .opacity(statsOpacity)
             Text("nativeR2.city.metric.points").font(.caption).foregroundStyle(.secondary)

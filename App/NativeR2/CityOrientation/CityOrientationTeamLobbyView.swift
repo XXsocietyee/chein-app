@@ -114,7 +114,7 @@ import SwiftUI
             if let name = team.name ?? team.title, !name.isEmpty { Text(verbatim: name) } else { Text("orientLobby.unnamed \(team.teamID)") }
             HStack(spacing: 4) {
                 if let leader = team.leaderName, !leader.isEmpty { Text("orientLobby.leader \(leader)") } else { Text("orientLobby.leaderUnknown") }
-                Text(verbatim: "· " + membersText(team)).monospacedDigit()
+                Text(verbatim: "· " + membersText(team)).monospacedDigit().accessibilityLabel(CYFractionSpeech.label(membersText(team)))
             }
         }
         .accessibilityElement(children: .combine)
