@@ -255,7 +255,7 @@ struct ObjectBadgeWallBadgeLabel: View {
                         .opacity(badge.isLocked ? 0.45 : 1)
                         .accessibilityElement(children: .ignore)
                         .accessibilityLabel(Text(verbatim: displayName))
-                    Text(verbatim: displayName).font(.title2.weight(.semibold))
+                    Text(verbatim: displayName).font(.title2.bold())
                         .frame(maxWidth: .infinity).multilineTextAlignment(.center)
                 }
                 Section {

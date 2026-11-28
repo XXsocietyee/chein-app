@@ -1227,6 +1227,27 @@ Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0
 - mp-roam: `RoamStampViews.swift:358` ring value = total (always full); pass the collected count once the album reader
   returns it (MP shows only 共 N 枚 there, so a plain total line may be the MP-faithful choice).
 
+## Continue run 36 (2026-11-28, combined-r7 70917c058 already merged)
+
+Merge: up to date. No new coordinator row for this lane (latest: 07:45 sweep mp-nav / mp-activity; 12:25 AI items go
+to `fix/1128c-*`). Run 35 Not done row worked: **badge detail name weight.** The two badge detail heroes drew the
+name in `.title2` semibold while the other 54 in-content object names use `.title2.bold()` (run 30 batch 3). The byte pin
+`test_existing_detail_and_route_lifetimes_are_byte_identical` was re-pinned here with a one-line reason (this lane
+re-pinned it in runs 9 and 10 the same way); detail content, MP sections and route lifetimes unchanged.
+
+| Page (MP → native) · level | Line | Change |
+|---|---|---|
+| badge detail (`subpackageP3/pages/badge-3d`) → `ObjectBadgeDetailView` · B | `App/ObjectBadgeViews.swift:258` | `.title2.weight(.semibold)` → `.title2.bold()` |
+| profile badge detail → `ProfileBadgesView` · B | `App/ProfileBadgesView.swift:107` | same |
+
+Pin: `Tests/ContractChecks/test_object_badge_wall_layout.py` sha256 → `c2de7c1d…` (8 tests OK).
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(0 debt, 114 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
+### Not done (next run)
+- none. Scan of the other `.title2.weight(.semibold)` sites: `TicketPassSheet:348` pass code, `TeamComponents:344` invite
+  code (monospaced codes) and `PlayKitQuestoViews:330` crossword letter (level A) are not names; kept.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.
