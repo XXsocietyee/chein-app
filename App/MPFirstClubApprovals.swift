@@ -119,8 +119,15 @@ enum MPFirstClubWriteRoute {
         // CLB-r11-checkin-detail-01 (MP checkin-detail/index.js): the owner refund evidence read.
         "api/club/crm/checkin/detail",
         // CLB-r11-detail-05 (MP detail/index.js:3813-3847 applyCoopPool): 申请带队, intent only, not money.
-        coopPoolApplyPath
+        coopPoolApplyPath,
+        // 1128-plan C-08 / C-09 / C-07a / C-19 (MP topic-detail/index.js:309,980,1048, topic-story/index.js:285,
+        // event-ops, enroll/index.js:373): director stats, 商家 / 报名参与者 sheets, 查看答案, the occurrence browser and
+        // 报名名册. Owner reads only, each on its ClubGovernanceRead.fields body (readShapes).
+        "api/club/crm/topic-manage-stats", "api/club/recruit/overview", "api/club/crm/topic-customers",
+        "api/club/topic-node-answer", "api/club/event-ops/series/occurrences", topicRegistrationsPath
     ]
+    /// 1128-plan C-19: the one "registration" path this firewall admits, the owner roster read `{clubId, topicId}`.
+    static let topicRegistrationsPath = "api/club/topic-registrations"
     static let coopPoolApplyPath = "api/coop/pool/apply"
     /// P1-12: the one settlement path this firewall admits, an owner read `{clubId}` (ClubGovernanceRead.settlement).
     static let settlementSummaryPath = "api/club/settlement/summary"
@@ -153,7 +160,8 @@ enum MPFirstClubWriteRoute {
               let parts = URLComponents(url: url, resolvingAgainstBaseURL: false), parts.query == nil,
               let relative = MPFirstMerchantWriteRoute.relativePath(parts.path, base: baseURL.path),
               !relative.contains("pay") && !relative.contains("refund") && !relative.contains("payout")
-                && !relative.contains("withdraw") && !relative.contains("quote") && !relative.contains("registration")
+                && !relative.contains("withdraw") && !relative.contains("quote")
+                && (!relative.contains("registration") || relative == topicRegistrationsPath)
                 && !relative.contains("pricing") && (!relative.contains("settlement") || relative == settlementSummaryPath),
               let body = request.httpBody, body.count < 65_536 else { return false }
         let contentType = request.value(forHTTPHeaderField: "Content-Type") ?? ""
@@ -279,7 +287,14 @@ enum MPFirstClubWriteRoute {
         // CLB-r11-checkin-detail-01: the owner refund evidence read (ClubGovernanceRead.checkin keys).
         "api/club/crm/checkin/detail": .init(ids: ["clubId", "registrationId"]),
         // CLB-r11-detail-05: MP detail/index.js:3813-3847 body `{topicId, clubId, message}` (ClubCoopPoolApplyClient).
-        "api/coop/pool/apply": .init(ids: ["topicId", "clubId"], required: ["message"])
+        "api/coop/pool/apply": .init(ids: ["topicId", "clubId"], required: ["message"]),
+        // 1128-plan C-08 / C-09 / C-07a / C-19: ClubGovernanceRead.fields bodies (topicStats sends activityId or null).
+        "api/club/crm/topic-manage-stats": .init(ids: ["clubId", "topicId"], optional: ["activityId"]),
+        "api/club/recruit/overview": .init(ids: ["clubId", "topicId"]),
+        "api/club/crm/topic-customers": .init(ids: ["clubId", "topicId"], required: ["filter"]),
+        "api/club/topic-node-answer": .init(ids: ["clubId", "topicId", "nodeId"]),
+        "api/club/event-ops/series/occurrences": .init(ids: ["clubId", "seriesId"]),
+        "api/club/topic-registrations": .init(ids: ["clubId", "topicId"])
     ]
     static func positive(_ value: Any?) -> Bool {
         guard let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() else { return false }
