@@ -94,8 +94,8 @@ enum PlayDirectorBroadcastAudience {
                 Text("playx.director.broadcast.scope.team").tag("TEAM")
                 Text("playx.director.broadcast.scope.role").tag("ROLE")
             }
-            .pickerStyle(.segmented)
             .labelsHidden()
+            .cyAdaptiveSegmented()
             .accessibilityIdentifier("playx.director.broadcast.scopePicker")
             ForEach(targetRows) { target in
                 targetRow(target)
