@@ -566,3 +566,15 @@ Branch fast-forwarded to `origin/ui/combined-r7` (8952067e9). The brief's 07:45 
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
 
 Not done: e4-settings row regroup (needs row-only entry APIs + simulator check), e4-tickets pass-card look, `CharacterCardReadbackView` byte pin.
+
+## Continue 34 (11-28, hourly run): e4-tickets pass card (ADA)
+
+Merged `origin/ui/combined-r7` (clean, 22 files). The sweep in `docs/sweeps/latest` is still build 3348aa51f and the brief has no mp-mine rows after 07:05. Screens checked: `docs/sweeps/latest/mp-mine/zh-Hans-e4-tickets.jpg` (two plain rows with grey `ticket` glyph tiles, 60 % of the page empty).
+
+| ADA row | MP | Native file | Level | Fixed now |
+|---|---|---|---|---|
+| e4-tickets (P1): two plain rows with placeholder glyph tiles; "nothing looks like a pass" | MP `subpackageMember/signup/index.wxml:57-70`: each ticket is one big card, cover (`wImg`, else `/images/cover-route.svg`) on the card, title · sub · F13 tag, tap opens the code | `App/TicketWalletView.swift` `TicketWalletRow`, new `TicketWalletPerforation`, ticket `ForEach` | B | **Fixed (closes the continue 31/32/33 Not done "pass-card look").** Each ticket is its own inset-grouped section: a full-width cover band (132 pt, 72 pt at AX sizes) with the MP route illustration when there is no cover — the same band and fallback as the pass sheet (`TicketPassSheet.header`), so wallet and pass are one object — then a dashed perforation hairline (`.separator`), then the unchanged MP facts (F13 tag, title, date, place, sub-line). Identifiers, navigation, locked/dimmed rules and order unchanged. Still no Upcoming / Past split (MP has none, continue 30 row). Add to Apple Wallet: no pkpass from the backend. |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0** (`test_w2_04_ticket_wallet` detail-first pin made indentation-tolerant: the rows moved into per-ticket Sections).
+
+Not done: e4-settings row regroup (needs row-only entry APIs + simulator check), `CharacterCardReadbackView` byte pin. Coordinator: please re-sweep `e4-tickets` (zh-Hans + en, and AX5 if a11y-dt adds it).
