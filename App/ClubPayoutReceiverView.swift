@@ -149,7 +149,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                         .disabled(busy).accessibilityIdentifier("payoutReceiver.unbind")
                 }
                 if busy { ProgressView() }
-                if bound { Label(payoutText("payoutReceiver.bound", locale), systemImage: "checkmark").foregroundStyle(.green) }
+                if bound { Label(payoutText("payoutReceiver.bound", locale), systemImage: "checkmark").foregroundStyle(CYColor.successText) }
                 if let notice {
                     PayoutReceiverIssueText(issue: notice, fallbackKey: noticeFromUnbind ? "payoutReceiver.unbindFailed" : "payoutReceiver.bindFailed")
                         .font(.footnote).foregroundStyle(.orange)
