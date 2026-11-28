@@ -78,7 +78,7 @@ STRINGS = {
     'cooperation.settlement.breakdown': ('Amount breakdown', '金额分解'),
     'cooperation.settlement.progress': ('Settlement progress', '结算进度'),
     'cooperation.settlement.perspective.host': ('Organizer profit share', '主办分润'),
-    'cooperation.settlement.perspective.merchant': ('Host-side profit', '承接分润'),
+    'cooperation.settlement.perspective.merchant': ('Host-side profit share', '承接分润'),
     'cooperation.settlement.status.awaitingCredit': ('Awaiting credit', '待入账'),
     'cooperation.settlement.status.creditedBalance': ('Added to balance', '已入余额'),
     'cooperation.settlement.status.void': ('Voided', '已作废'),

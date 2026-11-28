@@ -8,15 +8,15 @@ FRAGMENT = ROOT / 'Resources/MerchantStoreParityLocalizations.fragment.json'
 CATALOG = ROOT / 'Resources/Localizable.xcstrings'
 PAIRS = {
 # pages/merchant/index reminders (index.wxml:113-132)
-'merchant.workbench.aftercareReminder %lld': ('%lld after-sales requests await response', '有 %lld 笔售后待回应'),
+'merchant.workbench.aftercareReminder %lld': ('%lld after-sales requests await your response', '有 %lld 笔售后待回应'),
 'merchant.workbench.predictReminder %lld': ('%lld prediction rounds await your answer', '有 %lld 轮竞猜待给答案'),
 'merchant.workbench.reminderUnavailable': ('Open this from the business workspace.', '请从经营工作区进入处理。'),
 # pages/merchant/reviews summary (index.wxml:31-77)
 'merchant.reviewSummary.title': ('Reviews', '口碑'),
 'merchant.reviewSummary.stars %lld': ('%lld of 5 stars', '%lld 星（满分 5 星）'),
 'merchant.reviewSummary.total %lld': ('%lld verified-redemption reviews · merchants cannot edit original reviews', '%lld 条已核销评价 · 商家不能改用户原评'),
-'merchant.reviewSummary.pending': ('Awaiting', '待回复'),
-'merchant.reviewSummary.pendingHint': ('Replies can edited later', '回复后可修改'),
+'merchant.reviewSummary.pending': ('Awaiting reply', '待回复'),
+'merchant.reviewSummary.pendingHint': ('Replies can be edited later', '回复后可修改'),
 'merchant.reviewSummary.month': ('New this month', '本月新增'),
 'merchant.reviewSummary.monthHint': ('From this month’s redeem reviews', '来自本月核销评价'),
 'merchant.reviewSummary.rate': ('Reply rate', '已回复率'),

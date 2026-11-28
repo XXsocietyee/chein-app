@@ -53,6 +53,16 @@ two 17:30 rows and handed the third to this lane ("the search-overlay row is the
 **Half done (run 11-28, fifth B run):** the B half (17:30 P2 search overlay) is closed as sweep timing, and P1-9 is still blocked.
 Run stopped per the collision-fix rule.
 
+## Run 11-28 (sixth B run, split by half)
+
+A receipt open rows at start (`origin/mp/r3-states` bd4c6cd6d, merged with `origin/ui/combined-r7`): **none**. "Not done" says
+None (P1-9 remote push moved to Cursor K50-R1); the A lane's ~18:40 run took the one new b954de71c sweep row (票夹 en error
+title) and found nothing else in the mp-states sheets. Latest sweep is still b954de71c; no `cursor-k50-p*.md` `lane-layout`
+rows exist on any remote branch. Merge note: two catalog conflicts with en-layout's run 40 were resolved — 
+`ticketWallet.parity.error.title` en takes combined-r7's "Couldn't open your ticket wallet" (catalog and
+`W204TicketWalletLocalizations.fragment.json` kept equal), `ticketWallet.title` en keeps the A lane's "Ticket wallet"
+(matches the Me card). **Half done** — empty B half; run stopped per the collision-fix rule.
+
 ## Not done
 
 | Row | Why |
@@ -62,7 +72,7 @@ Run stopped per the collision-fix rule.
 ## Gates
 
 Before each push, on the branch head: `python3 tools/generate_project.py` (no project diff), `python3 tools/check_scaffold.py`
-PASS, `python3 -B tools/check_a11y_lint.py` (0 new), `python3 -B tools/contract_ratchet.py --check` (52 failing = baseline 52,
+PASS, `python3 -B tools/check_a11y_lint.py` (0 new), `python3 -B tools/contract_ratchet.py --check` (46 failing = baseline 46,
 new 0), `python3 tools/check_design_consistency.py` PASS. No Swift compiler here: the edit mirrors the existing
 `ProgressView { Text(…) }` / `Label { } icon: { }` / `.buttonStyle(.bordered)` patterns.
 
