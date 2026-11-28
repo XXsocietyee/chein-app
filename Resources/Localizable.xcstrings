@@ -323162,6 +323162,23 @@
         }
       }
     },
+    "orderDetail.team.started": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This session has started, so you can only create an invite-only team."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "场次已开始，只能建仅邀请队伍。"
+          }
+        }
+      }
+    },
     "orderDetail.seats.manage": {
       "extractionState": "manual",
       "localizations": {
