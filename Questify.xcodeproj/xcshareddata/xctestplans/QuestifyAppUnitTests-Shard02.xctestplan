@@ -178,6 +178,7 @@
         "GrowthNormalContractSelectionTests",
         "GrowthNormalReadTransportTests",
         "HapticFeedbackAndMotionReduceSectionViewTests",
+        "HomeCityCentreNearestTests",
         "HomeReturnAndCityDeltaSectionViewTests",
         "IMConversationReadAllAppTests",
         "IMConversationReplyPolicyAppTests",

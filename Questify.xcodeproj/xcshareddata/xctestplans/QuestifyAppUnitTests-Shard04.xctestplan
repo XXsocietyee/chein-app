@@ -175,6 +175,7 @@
         "GrowthNormalContractSelectionTests",
         "GrowthNormalReadTransportTests",
         "HapticFeedbackAndMotionReduceSectionViewTests",
+        "HomeCityCentreNearestTests",
         "HomeFeedReturnModelTests",
         "HomeReturnAndCityDeltaSectionViewTests",
         "IMAndSocialSafetyParitySectionViewTests",
