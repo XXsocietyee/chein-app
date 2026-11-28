@@ -169,6 +169,8 @@ extension EnvironmentValues {
     @ObservedObject var controller: ProjectNodePlacePickerController
     @ObservedObject private var model: ProjectEditModel
     let original: ProjectNodePlacePickerController.Opening
+    /// fix-1128b-social #26 (audit H-07): pick the search centre on an Apple map (search or tap a pin) instead of typing it.
+    @State private var choosesCenterOnMap = false
     init(controller: ProjectNodePlacePickerController, original: ProjectNodePlacePickerController.Opening) {
         self.controller = controller; self.original = original; model = controller.model
     }
@@ -181,6 +183,8 @@ extension EnvironmentValues {
                 if controller.isCurrent(original) {
                     Section {
                         Text("projectPlace.centerHint", tableName: "ProjectNodePlacePicker")
+                        Button { choosesCenterOnMap = true } label: { Label("social1128.place.pickCenter", systemImage: "map") }
+                            .accessibilityIdentifier("projectPlace.mapCenter")
                         TextField(text: input(\.latitude)) { Text("projectPlace.latitude", tableName: "ProjectNodePlacePicker") }.keyboardType(.numbersAndPunctuation)
                         TextField(text: input(\.longitude)) { Text("projectPlace.longitude", tableName: "ProjectNodePlacePicker") }.keyboardType(.numbersAndPunctuation)
                         TextField(text: input(\.keyword)) { Text("projectPlace.keyword", tableName: "ProjectNodePlacePicker") }
@@ -222,5 +226,16 @@ extension EnvironmentValues {
             }.navigationBarTitleDisplayMode(.inline).navigationTitle(Text("projectPlace.title", tableName: "ProjectNodePlacePicker"))
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { controller.close(original) } } }
         }
+        .cySheet(isPresented: $choosesCenterOnMap) {
+            PublishingPlacePicker(provider: PublishingMapKitAdapter.playerPublishing, onConfirm: useMapCenter)
+        }
+    }
+    /// The chosen place becomes the 中心 latitude / longitude; the node search then runs around it as before.
+    private func useMapCenter(_ place: PublishingPlace) {
+        var next = controller.input
+        next.latitude = String(format: "%.6f", place.latitude)
+        next.longitude = String(format: "%.6f", place.longitude)
+        controller.edit(next, in: original)
+        choosesCenterOnMap = false
     }
 }

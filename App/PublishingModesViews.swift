@@ -1204,11 +1204,10 @@ struct ActivityPublishingTimeRangeDraft {
             List {
                 if busy { CYLoadingState() }
                 if failed || provider == nil { Text("publishModes.mapUnavailable").foregroundStyle(CYColor.dangerText) }
-                if let selected {
-                    Map(initialPosition: .region(.init(center: .init(latitude: selected.latitude, longitude: selected.longitude), span: .init(latitudeDelta: 0.01, longitudeDelta: 0.01)))) {
-                        Marker(selected.name, coordinate: .init(latitude: selected.latitude, longitude: selected.longitude))
-                    }.frame(height: 240).id(selected.id).accessibilityLabel(Text(selected.name))
-                    .listRowInsets(EdgeInsets())
+                if provider != nil && !failed {
+                    // fix-1128b-social #26: tap the map to drop a pin; search results move it.
+                    PublishingPlaceMapPreview(selected: selected, onDrop: dropPin)
+                        .listRowInsets(EdgeInsets())
                 }
                 ForEach(rows) { place in
                     Button { selected = place } label: {
@@ -1229,6 +1228,16 @@ struct ActivityPublishingTimeRangeDraft {
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("publishModes.cancel") { dismiss() } }; ToolbarItem(placement: .confirmationAction) { Button("publishModes.confirmPlace") { if let selected { onConfirm(selected) } }.disabled(selected == nil) } }
             .onDisappear { generation += 1 }
         }
+    }
+    private func dropPin(_ coordinate: CLLocationCoordinate2D) {
+        guard let pin = PublishingMapKitAdapter.droppedPin(coordinate) else { return }
+        selected = pin
+        Task { await nameDroppedPin(pin) }
+    }
+    private func nameDroppedPin(_ pin: PublishingPlace) async {
+        guard let adapter = provider as? PublishingMapKitAdapter, let named = await adapter.named(pin) else { return }
+        guard selected?.id == pin.id else { return }
+        selected = named
     }
     private func search() async {
         generation += 1; let stamp = generation; selected = nil; rows = []; failed = false

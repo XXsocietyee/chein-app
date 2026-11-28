@@ -20,7 +20,7 @@ import SwiftUI
         PublishingModesView(service: session.publishingService, account: session.publishingSession, makeAIDraft: makeAIDraft ?? session.g6PublishingAIDraftFactory,
                             makeIdentityRegistration: { session.makePublisherIdentityRegistrationService() },
                             makeActivityTemplate: { activityTemplateCreator() }, makeActivityCover: { session.makeActivityCoverService() },
-                            placeSearch: PublishingMapKitAdapter(), draftStore: session.publishingDraftStore, openProfessional: { seed = $0; showEditor = true },
+                            placeSearch: PublishingMapKitAdapter.playerPublishing, draftStore: session.publishingDraftStore, openProfessional: { seed = $0; showEditor = true },
                             openResource: { resource = $0 },
                             makeProfessional: { professionalEditor($0) },
                             makeTemplateAuthoring: { templateAuthoring() },
@@ -107,7 +107,7 @@ private struct SessionPublishingRootChrome: ViewModifier {
                 CYEmptyState(systemImage: "exclamationmark.arrow.triangle.2.circlepath", "projectRemote.stale", messageIdentifier: "projectRemote.stale")
             }
         } else {
-            ActivityPublishingView(service: session.publishingService, account: session.publishingSession, placeSearch: PublishingMapKitAdapter(),
+            ActivityPublishingView(service: session.publishingService, account: session.publishingSession, placeSearch: PublishingMapKitAdapter.playerPublishing,
                                    draftStore: session.publishingDraftStore,
                                    makeIdentityRegistration: { session.makePublisherIdentityRegistrationService() },
                                    makeActivityTemplate: { sessionActivityTemplateCreator(session) },
