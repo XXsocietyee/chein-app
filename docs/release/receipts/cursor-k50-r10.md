@@ -2,7 +2,7 @@
 
 Branch `cursor/1128-k50-r10` from `origin/ui/combined-r7` @ `d5702393c`. Extends the K24 `Tests/AppUITests/Accept` lane. Each new test calls `XCUIAcceptSmoke.cover`, which launches the existing `--design-fixture` once in English and once in zh-Hans and waits until a marker accessibility identifier and the page copy are both on screen.
 
-33 page tests added. K24's 25 tests are unchanged. No new fixture, launch argument, accessibility identifier, or page path. `AppSession.swift` stays 7976 lines (ceiling 7977). `AppCompositionRoot.swift` stays 4173. Init order stays devices, sensors, artworkHosts. Money is unchanged. `merchantCenterEnabled` stays false in Release (`#if DEBUG || TEST` true, else false). No `String(localized:)`.
+34 page tests added. K24's 25 tests are unchanged. No new fixture, launch argument, accessibility identifier, or page path. `AppSession.swift` stays 7976 lines (ceiling 7977). `AppCompositionRoot.swift` stays 4173. Init order stays devices, sensors, artworkHosts. Money is unchanged. `merchantCenterEnabled` stays false in Release (`#if DEBUG || TEST` true, else false). No `String(localized:)`.
 
 XCUITest NOT_RUN. This VM has no Xcode and no simulator, and this round does not run `xcodebuild`.
 
@@ -17,6 +17,7 @@ XCUITest NOT_RUN. This VM has no Xcode and no simulator, and this round does not
 | `t5-official-inbox` | `pages/activity/official-inbox/index` | `official.inbox.content` | Official event invitations | 官方活动邀约 |
 | `t5-official-mine` | `pages/activity/official-mine/index` | `official.published.content` | My published | 我发布的 |
 | `t5-official-organizer` | `pages/activity/official-organizer/index` | `official.organizer.content` | Organizer console | 主办控制台 |
+| `t5-official-detail` | `pages/activity/official-detail/index` | `official.detail.content` | Official event | 活动详情 |
 | `t11-fabu` | `pages/publish/fabu/index` | `projectEdit.name` | Edit topic | 编辑主题 |
 | `publish-quick` | `pages/publish/simple/index` | `publishModes.quick.name` | Quick route setup | 快速配置 |
 | `e5-guide` | `subpackageA/pages/infomation/infomation` | `social.guide` | Play guide | 城瘾玩法 |
@@ -58,4 +59,4 @@ Pages that already have a literal identifier, and that this repo does not alread
 
 ## Gates
 
-`python3 tools/generate_project.py` (new Accept sources are in the UI-test target). `tools/check_scaffold.py` PASS (21783 bilingual keys). `tools/check_a11y_lint.py` 0 new. `tools/check_design_consistency.py` PASS. `tools/check_appsession_ratchet.py` PASS (7976 < 7977). `python3 -B tools/contract_ratchet.py --check` 46 failing, baseline 46, **new 0**.
+`python3 tools/generate_project.py` (new Accept sources are in the UI-test target). `tools/check_scaffold.py` PASS (21801 bilingual keys). `tools/check_a11y_lint.py` 0 new. `tools/check_design_consistency.py` PASS. `tools/check_appsession_ratchet.py` PASS (7976 < 7977). `python3 -B tools/contract_ratchet.py --check` 46 failing, baseline 46, **new 0**.
