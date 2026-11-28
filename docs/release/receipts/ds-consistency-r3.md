@@ -1322,6 +1322,20 @@ in both languages while the card showed 10月19日 / Oct 19.
 `RoamRunCardPresentation.dateShort` stays as the pinned MP projection (`RoamSubpageParityTests:17`, no other caller),
 so no test re-pin was needed.
 
+### Batch 2 — one owner role word (ADA audit §3 **Role / level**: "Owner vs Creator")
+MP club pages never say 创建者: the owner is 主理人 everywhere (`pages/club/detail/index.wxml:233` Facts 主理人,
+`:222`, `:255`; `pages/club/apply`, `create`, `enroll`). The app had 主理人 / Owner on the strip and ops screens
+(`club.strip.owner`, `club.ops.owner`) but 创建者 / Creator on the role pill and the roster card.
+
+| Page (MP → native) · level | Line | Before → after |
+|---|---|---|
+| club detail role pill / members list / action panel / club card (`ClubDetailView:819`, `ClubMembersView:270`, `ClubActionPanel:253`, `ClubComponents:97`) · C | `Resources/Localizable.xcstrings` `club.role.creator` | 创建者 / Creator → 主理人 / Owner |
+| club roster card (`ClubRosterCardKit:69,78`) · B | `Resources/DesignR1Club.xcstrings` `r1club.roster.members.roles` (+ generator `tools/build_design_r1_localizations.py:63`) | zh 创建者 %ld → 主理人 %ld (en was already Owner) |
+
+Pin: `Tests/AppUnitTests/DesignR1ClubKitTests.swift:114` zh expectation follows (copy only). Level label: already one
+shape (`Lv.N` on Me header `MemberHomeHeader:239` and public profile `SocialPublicProfileView:146`); no "Level 3 ·"
+string remains in the catalogs (checked), so nothing to change there.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

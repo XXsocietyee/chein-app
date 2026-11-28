@@ -700,7 +700,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "创建者 %ld · 管理员 %ld · 成员 %ld"
+            "value": "主理人 %ld · 管理员 %ld · 成员 %ld"
           }
         }
       }

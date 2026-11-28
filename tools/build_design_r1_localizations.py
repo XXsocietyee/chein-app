@@ -60,7 +60,7 @@ CLUB = {
     'roster.refunded': ('Refunded', '已退'),
     'roster.net': ('Net', '净额'),
     # polish-d-r1: the members screen roster summary
-    'roster.members.roles': ('Owner %ld · Admins %ld · Members %ld', '创建者 %ld · 管理员 %ld · 成员 %ld'),
+    'roster.members.roles': ('Owner %ld · Admins %ld · Members %ld', '主理人 %ld · 管理员 %ld · 成员 %ld'),
     # verify-r1 2.6: the roster card heads 报名名册
     'roster.title': ('Sign-up roster', '报名名册'),
     # polish-d-r1: club tab creation quota in plain words
