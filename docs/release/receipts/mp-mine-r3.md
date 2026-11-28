@@ -359,3 +359,15 @@ Branch already contains combined-r7. That build has continue 15 (··· on the i
 | `*-e4-settings.jpg`: the account card reads "Mia Chen · Lv.7" in both languages, beside 示例会员 / Synthetic member Lv.3 on d2-me | 19:50: fixture data follows the UI language | `App/DesignFixtures/DesignFixtureRegistry.swift` `E4SettingsFixture` | **Fixed.** Same member as d2-me: `iaFixtureText("Synthetic member", "示例会员")`, Lv.3. No test reads the old name. |
 
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+## Continue 18 (hourly re-arm, sweep 00:37 UTC build f8574edab)
+
+Merged `origin/ui/combined-r7` (clean, 78 commits). That build has continue 16 (en **Awards**: the four tabs are now segmented in en ✓) but not continue 17. No new mp-mine rows in the 00:50 coordinator sweep. Screens checked: `docs/sweeps/latest/mp-mine/sheet-en.jpg`, `sheet-zh-Hans.jpg`.
+
+| Screenshot | MP / brief | Native file | Fixed now |
+|---|---|---|---|
+| `*-d2-me.jpg` 项目 tab: only 我的资产 · 账户余额 | MP `cy/profile` wxml:182-245 for a self player: 我的订单 (only with orders) → **我的项目 header + 管理全部 (always)** → 视频悬赏 (hidden at 0) → 我的资产 → **通行证与礼品 (always for players)** | `App/DesignFixtures/D2Fixtures.swift` `D2MeFixture` | **Fixed (fixture).** The real `AccountView` (Passport host) already draws `ProfileSelfProjectsEntry` and `MPPassAssetsLink`; the fixture hand-drew only the balance. It now shows 我的项目 with the 查看全部项目 link, then 我的资产 with 账户余额 and 通行证与礼品, in MP order. |
+| same, real screen | MP shows no preview, no empty text and no refresh button when there are no projects (block gated on `projectPreviewList.length \|\| projectErr`) | `App/ProfileSelfProjectsSection.swift` | **Not done.** The section draws `profile.selfProjects.empty` and a 刷新 button; both are driven by `ProfileSelfProjectsFlowTests` (taps refresh, waits for the empty text) and `test_profile_self_projects.py`. Moving refresh to pull-down needs those tests rewritten (same case as the posts refresh row, continue 10). |
+| `zh-Hans-e4-wallet-balance.jpg`: dates `2026-11-06 18:20:00` | — | — | Kept: `LocaleDisplay.civil` leaves zh server dates as given (owner-approved, see continue 14). |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
