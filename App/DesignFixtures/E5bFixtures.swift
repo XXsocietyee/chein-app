@@ -55,16 +55,14 @@ struct E5bBadgeWallFixture: View {
                     // a11y-dt r3 (22:11 sweep, a11y-badges-ax5): beside the ring the AX5 heading broke as "已收集 3 / 6"
                     // over two lines; at accessibility sizes the ring sits above the heading and the count stays one token.
                     let header = dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(spacing: CYSpacing.lg))
+                    // mp-mine r3 (P24, MP badge-wall order): same header and groups as `ObjectBadgeWallView`: the ring with the
+                    // collected / locked counts, then 已点亮, then 未解锁, so the sweep shows the real wall's structure.
                     header {
                         CYCountRing(value: 3, total: 6)
-                        Text(verbatim: tt("3 of 6 collected", "已收集 3/6")).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
-                            .accessibilityAddTraits(.isHeader)
+                        CYCollectedLockedSummary(collected: 3, locked: 3)
                     }
-                    LazyVGrid(columns: CYCollectionGrid.columns(accessibility: dynamicTypeSize.isAccessibilitySize), alignment: .leading, spacing: CYCollectionGrid.spacing) {
-                        ForEach(Array(badges.enumerated()), id: \.offset) { _, badge in
-                            ObjectBadgeWallBadgeLabel(badge: badge)
-                        }
-                    }
+                    group("profile.badges.unlocked", badges.filter { !$0.isLocked })
+                    group("profile.badges.notUnlocked", badges.filter { $0.isLocked })
                 }
                 .padding(CYSpacing.pageHorizontal)
             }
@@ -73,6 +71,16 @@ struct E5bBadgeWallFixture: View {
         }
         .themeDomain(.player)
         // mp-mine r3 (18:15 rule): fixtures follow the system appearance, no forced scheme.
+    }
+    private func group(_ title: LocalizedStringKey, _ items: [ProfileBadgeSelection]) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Text(title).cyText(.meta).foregroundStyle(.secondary).accessibilityAddTraits(.isHeader)
+            LazyVGrid(columns: CYCollectionGrid.columns(accessibility: dynamicTypeSize.isAccessibilitySize), alignment: .leading, spacing: CYCollectionGrid.spacing) {
+                ForEach(Array(items.enumerated()), id: \.offset) { _, badge in
+                    ObjectBadgeWallBadgeLabel(badge: badge)
+                }
+            }
+        }
     }
 }
 

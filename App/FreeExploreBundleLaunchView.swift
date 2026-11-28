@@ -214,7 +214,7 @@ import SwiftUI
                 }
                 // mp-journey r3 (sweep 19:15): the MP page has no 实付金额 line; show it only once the amount is known.
                 if facts.paidAmountText != "—" {
-                    LabeledContent { Text(verbatim: facts.paidAmountText).monospacedDigit() } label: { text("paidAmount") }
+                    LabeledContent { Text(verbatim: LocaleDisplay.yuanAmounts(in: facts.paidAmountText, locale: locale)).monospacedDigit() } label: { text("paidAmount") }
                         .accessibilityIdentifier("freeBundle.paidAmount")
                 }
                 // MKT-7-3: MP `支付：{paymentText} · 报名：{registrationText}` under the order number; mp-journey r3 (sweep 19:15):

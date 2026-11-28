@@ -100,6 +100,8 @@ struct RoamItemDetailView: View {
                 // MP cy-skeleton while the node reads; P10 says it in words.
                 else if loading { ProgressView { Text("roam.place.loading") } }
                 else if nodeUnavailable { RoamPOIUnavailableView { merchantRetry.cancel(); dismiss() } }
+                // mp-states r3 (MP scene-roam-poi-detail wxml:4): a missing node is 找不到这个节点 · 返回地图, not a retry.
+                else if issue == .notFound { RoamPOIMissingView { merchantRetry.cancel(); dismiss() } }
                 // mp-states r3 (MP scene-roam-poi-detail wxml:2): a failed read is 节点无法打开 · 重试.
                 else if let issue { RoamStatusView(issue: issue, retry: { startLoad(visit: offeredReadVisit) }, failureTitle: "roam.place.openFailed") }
                 else { content }
@@ -289,16 +291,22 @@ struct RoamItemDetailView: View {
     private func merchantRetrySection(node: RoamNodeDetail) -> some View {
         let renderedScope = eventScope
         let renderedSnapshot = merchantReadSnapshot
+        // mp-states r3: MP scene-roam-poi-detail wxml:55 cy-error 商家信息无法打开 · 重试 — one state, retry inside.
         return Section("roam.merchant") {
-            Label("roam.merchantFailed", systemImage: "exclamationmark.triangle").foregroundStyle(.secondary)
             if merchantRetry.isLoading {
                 ProgressView { Text("roam.merchant.loading") }.accessibilityIdentifier("roam.merchant.retry.loading")
+                    .frame(maxWidth: .infinity)
             }
-            Button("action.retry", systemImage: "arrow.clockwise") {
-                retryMerchant(node: node, rendered: renderedScope, snapshot: renderedSnapshot)
+            ContentUnavailableView {
+                Label("roam.merchantFailed", systemImage: "exclamationmark.triangle")
+            } actions: {
+                Button("action.retry", systemImage: "arrow.clockwise") {
+                    retryMerchant(node: node, rendered: renderedScope, snapshot: renderedSnapshot)
+                }
+                .buttonStyle(.bordered)
+                .disabled(merchantRetry.isLoading || loading || !eventIsVisible || renderedScope == nil)
+                .accessibilityIdentifier("roam.merchant.retry")
             }
-            .disabled(merchantRetry.isLoading || loading || !eventIsVisible || renderedScope == nil)
-            .accessibilityIdentifier("roam.merchant.retry")
         }
     }
     private func retryMerchant(node capturedNode: RoamNodeDetail, rendered: RoamEventNavigationScope?, snapshot: UUID) {

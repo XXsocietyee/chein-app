@@ -54,7 +54,7 @@ import SwiftUI
             Section {
                 if let priceText {
                     LabeledContent {
-                        Text(verbatim: priceText)
+                        Text(verbatim: LocaleDisplay.yuanAmounts(in: priceText, locale: locale))
                             .font(.title2.weight(.semibold).monospacedDigit())
                             .foregroundStyle(.primary)
                     } label: {

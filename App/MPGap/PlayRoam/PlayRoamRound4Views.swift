@@ -6,6 +6,7 @@ import SwiftUI
 // MARK: - JSETTLE-r7-1: 完局优惠卡
 
 public struct JourneyFinishOfferCardView: View {
+    @Environment(\.locale) private var locale
     public let offer: JourneyFinishOffer
     public let purchaseGated: Bool
     public var onAppearTrack: () -> Void = {}
@@ -42,7 +43,7 @@ public struct JourneyFinishOfferCardView: View {
                     }
                 }
                 Spacer()
-                Text(offer.priceText)
+                Text(verbatim: LocaleDisplay.yuanAmounts(in: offer.priceText, locale: locale))
                     .cyText(.sectionTitle, monospacedDigit: true)
                     .foregroundStyle(CYColor.brand)
                 Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
@@ -57,7 +58,7 @@ public struct JourneyFinishOfferCardView: View {
         .buttonStyle(.plain)
         // MP aria-label="{{offer.name}} {{offer.price}}".
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(Text(verbatim: offer.name + " " + offer.priceText))
+        .accessibilityLabel(Text(verbatim: offer.name + " " + LocaleDisplay.yuanAmounts(in: offer.priceText, locale: locale)))
         .accessibilityAddTraits(.isButton)
         .onAppear(perform: onAppearTrack)
     }
