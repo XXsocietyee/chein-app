@@ -219,6 +219,7 @@
         "MarketingOriginalSettingsHostTests",
         "MasterReleaseSignoffDashboardViewTests",
         "MasterSevenDayLaunchCommandCenterViewTests",
+        "MemberAssetsBalanceFoldTests",
         "MemberBenefitsReadOwnerTests",
         "MemberIdentityAvatarHostTests",
         "MemberReportProgressReadHostTests",
