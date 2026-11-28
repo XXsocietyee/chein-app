@@ -39,10 +39,6 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld places"
-          },
           "variations": {
             "plural": {
               "one": {
@@ -10062,7 +10058,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This route has %lld endings. This time, it was %@'s ending."
+            "value": "This route has %#@ending@. This time, it was %2$@'s ending."
+          },
+          "substitutions": {
+            "ending": {
+              "argNum": 1,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg ending"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg endings"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -73496,10 +73514,6 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld chapters"
-          },
           "variations": {
             "plural": {
               "one": {
@@ -153305,10 +153319,6 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld days"
-          },
           "variations": {
             "plural": {
               "one": {
@@ -153338,10 +153348,6 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld hours"
-          },
           "variations": {
             "plural": {
               "one": {
@@ -157009,10 +157015,6 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ended · %lld events"
-          },
           "variations": {
             "plural": {
               "one": {
@@ -157042,10 +157044,6 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Live · %lld events"
-          },
           "variations": {
             "plural": {
               "one": {
@@ -157075,10 +157073,6 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mine · %lld events"
-          },
           "variations": {
             "plural": {
               "one": {
@@ -157125,10 +157119,6 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coming soon · %lld events"
-          },
           "variations": {
             "plural": {
               "one": {
@@ -250695,9 +250685,21 @@
     "square.xcx.commentsA11y %lld": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld comments"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld comment"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld comments"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -251175,9 +251177,21 @@
     "square.xcx.likesA11y %lld": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld likes"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld like"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld likes"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -251255,9 +251269,21 @@
     "square.xcx.play.completedNodes %lld": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cleared · %lld stops"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Cleared · %lld stop"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Cleared · %lld stops"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -327398,10 +327424,6 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld results"
-          },
           "variations": {
             "plural": {
               "one": {
@@ -327516,10 +327538,6 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld stamps collected"
-          },
           "variations": {
             "plural": {
               "one": {
@@ -362256,10 +362274,6 @@
                 }
               }
             }
-          },
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld topics published"
           }
         },
         "zh-Hans": {
@@ -362306,10 +362320,6 @@
                 }
               }
             }
-          },
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld invitations sent"
           }
         },
         "zh-Hans": {

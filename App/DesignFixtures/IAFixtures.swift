@@ -12,12 +12,7 @@ struct IATabsFixture: View {
             ForEach(RootTab.playerTabs, id: \.self) { tab in
                 NavigationStack {
                     ScrollView {
-                        Image(systemName: tab.playerSystemImage)
-                            .font(.largeTitle)
-                            .foregroundStyle(.tertiary)
-                            .frame(maxWidth: .infinity)
-                            .padding(.top, CYSpacing.xl)
-                            .accessibilityHidden(true)
+                        IATabsLoadingCards()
                     }
                     .cyDomainPageBackground()
                     .cyRootHeader(tab)
@@ -29,6 +24,30 @@ struct IATabsFixture: View {
         .cyScreenStyle()
         .cyDomainTabBar(.player)
         .overlay { CYNightTabBar(selection: selection) }
+    }
+}
+
+/// mp-nav r3 (sweep 17:30 P2): a tab root while its content loads = system redacted placeholder cards under
+/// the large title (CYSkeletonBlock), never a lone tab glyph on an empty page. VoiceOver reads 加载中… once.
+private struct IATabsLoadingCards: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            ForEach(0..<3, id: \.self) { _ in
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
+                        .fill(.quaternary)
+                        .frame(height: 120)
+                    CYSkeletonBlock(height: 18)
+                    CYSkeletonBlock(height: 12)
+                }
+                .padding(CYSpacing.md)
+                .background(.background.secondary, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            }
+        }
+        .padding(.horizontal, CYSpacing.lg)
+        .padding(.top, CYSpacing.sm)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("cy.state.loading"))
     }
 }
 
