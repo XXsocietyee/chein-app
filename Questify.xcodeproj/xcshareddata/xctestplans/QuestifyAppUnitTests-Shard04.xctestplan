@@ -99,6 +99,7 @@
         "ClubCreateCurrentRecordPresentationTests",
         "ClubCreateWorkspaceAppFlowTests",
         "ClubCustomerKeywordDebounceTests",
+        "ClubDirectorRecapMetricTests",
         "ClubEnrollmentNavigationTests",
         "ClubEventCalendarHTTPJourneyTests",
         "ClubHostApplicationMaterialsTests",

@@ -421,6 +421,16 @@ Merged `origin/ui/combined-r7` (xcstrings: both sides' keys kept).
 
 Gates: generate OK, scaffold PASS, a11y 0 new, ratchet 46/46 new 0, design consistency PASS; `test_play_experience_contracts` + `test_play_director_prefab_contracts` OK (new playx keys also in `docs/play-experience-localizations.json`).
 
+## Pass 43: Not done row 61 (director sheets): 准备总览 (ready) and 活动复盘 (recap) re-checked against the MP (no new coordinator finding for mp-club; latest sweep is still 0446d1c4f, handled in pass 40)
+| MP page | Native view | MP sections | Fix |
+|---|---|---|---|
+| `pages/club/components/club-director-ready` (topic-detail wxml:246-254; level C) | `App/ClubTopicDirectorMount.swift` `ClubTopicDirectorReadySection` | ① 准备总览 ② 节点状态 + 「N/M 站就绪」 + station rows ③ 队伍进度 + session status + team rows ④ no in-card primary (C-09: 开始活动 only in the bottom bar) ⑤ caption = write message or blockers | **Already present (re-checked).** All five in MP order since CLB-G13c; 联系商家 stays merchant-gated (K12) |
+| `pages/club/components/club-director-recap` (topic-detail wxml:296-312, `director.js:280-305, 900-905`; level B) | `App/ClubTopicDirectorMount.swift` `recapSections`, new `ClubDirectorRecapTiles` / `ClubDirectorRecapMetric` | ① 活动复盘 + 显示/隐藏榜单 + 复制复盘数据 ② first three metrics as big tiles (value + unit over label) ③ 完成情况 rows (the rest) ④ 榜单 rows, or 暂无榜单记录 ⑤ 节点完成 rows | **Fixed.** Before: the three headline numbers were plain list rows; a metric without a value showed 「—」 (MP drops it; label fell back only to `label`, MP uses label/name/key); the 榜单 section vanished when empty. Now `recapMetrics` follows `recapMetricView` (label → name → key, value as text, dropped when either is missing), the first three render as a tile row (`.numericTitle` semibold monospaced digits, footnote unit/label, `ViewThatFits` stacks them at large Dynamic Type / long English), and 榜单 always shows with the existing `club.director.leaderboardEmpty` line. No new keys. Test: `Tests/AppUnitTests/ClubDirectorRecapMetricTests.swift` |
+| team / role director sheets | `PlayDirectorView` | — | Still **Not done**, next passes |
+| P2-4 rest | `/api/club/name-check` | — | Still **Not done** (backend route unconfirmed) |
+
+Gates: generate OK, scaffold PASS, a11y 0 new, ratchet 46/46 new 0, design consistency PASS.
+
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.
 - ~~en-layout / fixtures: `D4Fixtures.swift:108-109` channel categories~~ fixed in pass 12.

@@ -99,6 +99,7 @@
         "ClubCommunityReviewBindingTests",
         "ClubCreateWorkspaceAppFlowTests",
         "ClubCustomerKeywordDebounceTests",
+        "ClubDirectorRecapMetricTests",
         "ClubEventCalendarReadTests",
         "ClubFixtureIdentityLifecycleTests",
         "ClubGovernanceFormLifecycleTests",
