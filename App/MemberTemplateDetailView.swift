@@ -95,7 +95,7 @@ import SwiftUI
                     }
                     if let feedback = detail.reviewFeedback {
                         Text("discovery.templateDetail.reviewFeedback \(feedback)")
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(CYColor.warningText)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("memberTemplate.reviewFeedback")
                     }

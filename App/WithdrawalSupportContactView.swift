@@ -44,7 +44,7 @@ extension EnvironmentValues {
                         .disabled(busy).accessibilityIdentifier("withdrawal.support.copyWeChat")
                     } else if !busy {
                         Label("withdrawal.support.unconfigured", systemImage: "exclamationmark.bubble")
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(CYColor.warningText)
                             .accessibilityIdentifier("withdrawal.support.unconfigured")
                     }
                     if let issue { Text(LocalizedStringKey(issue)).accessibilityIdentifier("withdrawal.support.status") }

@@ -191,7 +191,7 @@ private struct ClubDirectoryCard: View {
                         .accessibilityIdentifier(identifier + ".join")
                 case .pending:
                     Label("club.membership.pending", systemImage: "clock")
-                        .font(.subheadline).foregroundStyle(.orange)
+                        .font(.subheadline).foregroundStyle(CYColor.warningText)
                 case .joined, .owner, .none:
                     EmptyView()
                 }

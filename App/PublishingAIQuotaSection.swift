@@ -10,7 +10,7 @@ import SwiftUI
             if flow.quotaReadState == .loading { ProgressView("publishingAIQuota.loading") }
             if let quota = flow.quota {
                 if flow.quotaIsStale {
-                    Label("publishingAIQuota.stale", systemImage: "clock").foregroundStyle(.orange)
+                    Label("publishingAIQuota.stale", systemImage: "clock").foregroundStyle(CYColor.warningText)
                         .accessibilityIdentifier("publishingAIQuota.stale")
                 }
                 if quota.limited {

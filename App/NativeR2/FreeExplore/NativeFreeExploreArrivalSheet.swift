@@ -89,7 +89,7 @@ import SwiftUI
         case .submitting:
             Section { ProgressView("playArrival.submitting") }
         case .succeeded:
-            Section { Label("playArrival.succeeded", systemImage: "checkmark.circle.fill").foregroundStyle(.green) }
+            Section { Label("playArrival.succeeded", systemImage: "checkmark.circle.fill").foregroundStyle(CYColor.successText) }
         case .rejected(let rejection):
             Section {
                 if let message = rejection.message, !message.isEmpty {

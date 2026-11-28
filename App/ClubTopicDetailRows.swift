@@ -182,7 +182,7 @@ struct ClubTopicStoryCard: View {
                 if value["storyReady"] == .bool(true) {
                     Label("club.topic.card.storyReady", systemImage: "checkmark.circle.fill")
                         .font(.subheadline)
-                        .foregroundStyle(.green)
+                        .foregroundStyle(CYColor.successText)
                 }
                 Text("club.topic.card.openStory").font(.subheadline).foregroundStyle(.tint)
             }

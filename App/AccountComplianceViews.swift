@@ -298,6 +298,10 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     // mp-states r3 (MP scene-settings-deregister cy-error): one state with its title, the reason
                     // as the description and 重试 inside it — 注销条件核验失败 / 验证码没有发送 / 注销申请没有提交 / 撤销没有完成.
                     cancellationIssue(error)
+                } else if destination == .marketing {
+                    // mp-states r3 (MP marketing-consent cy-inline-error): 营销同意状态加载失败 · sub · 重试 before the
+                    // list has loaded; 营销同意状态未更新 · sub (no action) once rows are on screen.
+                    marketingIssue(error)
                 } else {
                     Text(LocalizedStringKey(error), tableName: error == "compliance.impactChanged" ? "AccountDeregistrationPresentation" : nil)
                         .foregroundStyle(.red).accessibilityIdentifier("compliance.error")
@@ -425,6 +429,30 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     .accessibilityIdentifier("compliance.error.retry")
             }
         }
+    }
+    private var marketingIssueTitle: String {
+        model.state.marketingLoaded
+            ? MemberPopupCopy.text("营销同意状态未更新", "Marketing consent wasn't updated", locale: locale)
+            : MemberPopupCopy.text("营销同意状态加载失败", "Couldn't load marketing consent", locale: locale)
+    }
+    @ViewBuilder private func marketingIssue(_ error: String) -> some View {
+        ContentUnavailableView {
+            Label { Text(verbatim: marketingIssueTitle) } icon: { Image(systemName: "wifi.exclamationmark") }
+        } description: {
+            Text(LocalizedStringKey(error))
+                .accessibilityIdentifier("compliance.error")
+        } actions: {
+            if !model.state.marketingLoaded {
+                Button(action: retryMarketingRead) { Text("fixr3.common.retry") }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("compliance.error.retry")
+            }
+        }
+    }
+    private func retryMarketingRead() {
+        guard scenePhase == .active, let intent = model.marketingRead() else { return }
+        marketingChange = nil
+        Task { await model.coordinator.loadMarketing(intent: intent) }
     }
     private func requestCancellationRead() {
         guard destination == .cancellation, scenePhase == .active else { return }
@@ -788,7 +816,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             ForEach(model.state.marketingOriginalResults) { receipt in
                 MarketingConsentOriginalReceiptView(receipt: receipt)
             }
-            if page.phase != .loading && !model.state.marketingLoaded {
+            if page.phase != .loading && !model.state.marketingLoaded && model.state.error == nil {
                 Text("marketingOriginal.current.unconfirmed", tableName: "MarketingConsentOriginalPresentation")
             }
 

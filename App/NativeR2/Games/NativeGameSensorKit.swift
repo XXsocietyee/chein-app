@@ -56,7 +56,7 @@ import SwiftUI
                 if let issue = stage.issue {
                     Section {
                         Label(LocalizedStringKey("playkit.sensor.error." + issue.rawValue), systemImage: "exclamationmark.triangle")
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(CYColor.warningText)
                             .accessibilityIdentifier("playkit.sensor.issue")
                     }
                 }
@@ -218,7 +218,7 @@ import SwiftUI
             }
             compassStatus
             if stage.phase == .running, stage.compass.heading != nil, stage.compass.lowAccuracy {
-                Label("playkit.compass.lowAccuracy", systemImage: "exclamationmark.triangle").foregroundStyle(.orange)
+                Label("playkit.compass.lowAccuracy", systemImage: "exclamationmark.triangle").foregroundStyle(CYColor.warningText)
             }
             if (stage.phase == .idle || stage.phase == .interrupted), segment["done"].bool != true {
                 Text("playkit.compass.safe").font(.footnote).foregroundStyle(.secondary)

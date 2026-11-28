@@ -313,6 +313,13 @@ Merged `origin/ui/combined-r7`. Passes 27-29 render as intended (channel titles,
 |---|---|---|---|
 | `pages/talent/*` badge wall (d4-badges, en: locked badge reads "Synthetic unlock condition") | `App/ProfileFixtureSupport.swift` (fixture data for `ObjectBadgeWallView`) | MP shows the unlock condition under a locked badge; unchanged | **Fixed.** Fixture conditions read like MP copy in both languages: "Check in at 3 spots in one city" / 在同一城市打卡 3 个点位, "Collect every stamp in the city" / 集齐本城全部印章, identity statement "Explorer identity card" / 探索者身份卡. No test pins these strings (badge names stay as `RoamBadgeWallFlowTests` pins them) |
 
+## Pass 31: sweep 05:15 UTC (build a4142df0d, `docs/sweeps/latest/mp-club/en-d4-enroll.jpg`, `en-d4-detail.jpg`, `sheet-zh-Hans.jpg`); coordinator 05:35: nothing new for mp-club
+Merged `origin/ui/combined-r7` (7a7d2708a). Not done rows re-checked: 重复方式 inline form, topic-detail per-session rows and the director sheets stay queued (behaviour moves through `ClubGovernanceCommandForm`). Two visible layout items fixed from the sheets:
+| MP page | Native view | MP sections | Optimizations / fix |
+|---|---|---|---|
+| `pages/club/enroll` (wxml:17 `.sub` 「俱乐部名 · N 个团」 under the 报名名册 title) | `App/ClubEnrollmentView.swift` | Order unchanged: sub line → 正在更新报名名册… → stale error → teams. The sub line sat alone in a grey inset card, which read like a disabled text field (both languages) | **Fixed.** Plain secondary page line under the title (clear row background, no separator, card-aligned insets); text, identifier `club.enroll.headerLine` and count unchanged |
+| `pages/club/detail` 概览 `ov-facts` (wxml:227-243: 主理人 / 俱乐部类型 / 所在城市) | `App/ClubDetailView.swift` `ClubOverviewFacts` | Same three facts, same order. In English the HStack still fitted by wrapping "Fixture creator" over two lines (`.lineLimit(2)` let `ViewThatFits` shrink the cell) | **Fixed.** Value and label measure on one line at full width (`.lineLimit(1)` + `.fixedSize(horizontal:)`), so long values or large Dynamic Type fall through to the labelled `LabeledContent` rows instead of wrapping inside a third of the width (P12; same fix as the 18:15 Me-card note). zh short values keep the three cells |
+
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.
 - ~~en-layout / fixtures: `D4Fixtures.swift:108-109` channel categories~~ fixed in pass 12.

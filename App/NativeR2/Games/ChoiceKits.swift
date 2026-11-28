@@ -91,7 +91,7 @@ import UIKit
         Section {
             if raw["arrived"].bool == true {
                 Label("playkitLegacy.music.arrived", systemImage: "mappin")
-                    .foregroundStyle(.green)
+                    .foregroundStyle(CYColor.successText)
                     .accessibilityIdentifier("playkit.musicCorner.arrived")
             }
             LabeledContent {

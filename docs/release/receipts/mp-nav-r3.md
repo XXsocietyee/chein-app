@@ -363,3 +363,20 @@ Pins: test_pkg19_login_deletion_chain (`canUsePhoneSignIn` / `supportsPhoneSignI
 | Equal-width 50 pt buttons | App/WeChatAppAuthSection.swift | WeChat was a plain inset list row with the status rows inside the same card | full-width `.bordered` `.controlSize(.large)` button on a clear row (same width/height as Apple's 50 pt `SignInWithAppleButton` and the `.borderedProminent` phone button); working / cancel / error moved to the section footer; the static "not configured" row is gone (button disabled instead, P27) | fixed (not compiled here) |
 
 Still open: 3. MP-account sync note (backend field) — blocked. US Apple sign-in waits for a reviewed US host (`appleSignInApproved` is CN-only while the US build has no approved base URL).
+
+## Re-scan 11-28 08:xx — universal-link paths for MP share cards (merged combined-r7 7a7d2708a)
+
+Merged `origin/ui/combined-r7` (xcstrings: theirs, no mp-nav-only keys). Sweep a4142df0d mp-nav sheets (en / zh-Hans): inbox, ia-tabs, login-player, onboarding-1, welcome read correctly; login-player still shows phone only because that build predates the 07:xx Apple-fixture fix. No new coordinator row for mp-nav; item 3 (MP-account sync note) still blocked on the backend field.
+
+Next edge without a row: MP share paths (`onShareAppMessage` / `onShareTimeline` `path:`) vs `docs/release/aasa.json`. Every MP page already parses (`NativeNavigationContract.parse` → `MiniProgramPageLink`), but the AASA only claimed some of them, so a web link to the others would open Safari instead of the app once the domain is approved.
+
+| MP share path (source) → native | before | after | status |
+|---|---|---|---|
+| `/pages/activity/list/index` (activity/list index.js:365) | not in AASA | added | fixed |
+| `/pages/userinfo/userinfo?userId=&tab=` (cy/profile index.js:2429) | not in AASA | added | fixed |
+| `/pages/templatedetail/topic-detail/index?id=` (topic-detail index.js:317) | not in AASA | added | fixed |
+| `/subpackageRoam/official-route/index?id=` (official-route index.js:9 SHARE_PATH) | not in AASA | added | fixed |
+| `/subpackageA/pages/infomationdetail/infomationdetail?id=` (infomationdetail.js:161) | not in AASA | added | fixed |
+| `/pages/index/index`, `/pages/roam/index`, `/pages/talent/list/index` (tab roots as default share) | not in AASA | left out: a web link to a tab root is the site home, not an app page | n/a |
+
+For coordinator/owner: universal links route nothing yet — `AppSession.nativeEntryLinkPolicy` is built with `verifiedHTTPSOrigins: []` (App/AppSession.swift:7092) until the associated domain is approved and the AASA is hosted. No code change here.
