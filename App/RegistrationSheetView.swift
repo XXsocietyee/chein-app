@@ -146,7 +146,8 @@ struct RegistrationSheetView: View {
                                 consented: flow.consented,
                                 requiresFreshQuote: false,
                                 channel: RegistrationAppPayResolver.inAppChannel,
-                                onExpiredRebuild: { Task { await flow.requestQuote() } }
+                                onExpiredRebuild: { Task { await flow.requestQuote() } },
+                                payMethod: selectedPayMethod
                             )
                         }
                         recoveredOrderSection
@@ -620,10 +621,21 @@ struct RegistrationSheetView: View {
         guard let ticket = flow.selectedTicket else { return nil }
         if flow.quoteEnabled, case .received(let quote) = flow.quoteState, let amount = quote.payAmount {
             if amount == .zero { return copy.t("确认报名", "Confirm sign-up") }
-            return PlayAreaPopupCopy.paymentsOpen ? copy.t("付款", "Pay") : nil
+            guard PlayAreaPopupCopy.paymentsOpen else { return nil }
+            // P32: the button names the method and the total (微信支付 ¥12.50 / Pay ¥12.50 with WeChat Pay).
+            guard let total = RegistrationUIMoney.display(amount, locale: locale,
+                                                          currencyCode: quote.currency ?? RegistrationUIMoney.yuanCurrencyCode) else {
+                return copy.t("付款", "Pay")
+            }
+            let title = selectedPayMethod.payTitle(amount: total)
+            return copy.t(title.zh, title.en)
         }
         if ticket.price == 0 { return copy.t("确认报名", "Confirm sign-up") }
         return PlayAreaPopupCopy.paymentsOpen ? copy.t("确认价格并付款", "Confirm price and pay") : nil
+    }
+    private var selectedPayMethod: RegistrationPayMethod {
+        RegistrationPayMethod.effective(payMethod, market: RegionalLaunchConfiguration.storefrontMarket,
+                                        applePayAvailable: ApplePayStripeAuthorizer.canMakePayments)
     }
     private func footnoteReason(_ copy: CoreLoopCopy) -> String? {
         if flow.checkoutFooterNotice(paymentReadiness: paymentReadiness) != nil { return blockReason(copy) }
@@ -1292,7 +1304,10 @@ private struct RegistrationOperationSections: View {
                     consented: flow.consented,
                     requiresFreshQuote: flow.quoteState.quoteValue != nil,
                     channel: RegistrationAppPayResolver.inAppChannel,
-                    onExpiredRebuild: { Task { await flow.requestQuote() } }
+                    onExpiredRebuild: { Task { await flow.requestQuote() } },
+                    // P32: the CN in-app button is WeChat Pay (the only offered method until Alipay is ready).
+                    payMethod: RegistrationPayMethod.effective(nil, market: RegionalLaunchConfiguration.storefrontMarket,
+                                                               applePayAvailable: ApplePayStripeAuthorizer.canMakePayments)
                 )
             }
         }
