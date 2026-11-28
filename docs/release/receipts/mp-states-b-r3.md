@@ -63,6 +63,13 @@ rows exist on any remote branch. Merge note: two catalog conflicts with en-layou
 `W204TicketWalletLocalizations.fragment.json` kept equal), `ticketWallet.title` en keeps the A lane's "Ticket wallet"
 (matches the Me card). **Half done** — empty B half; run stopped per the collision-fix rule.
 
+## Run 11-28 (seventh B run, split by half)
+
+A receipt open rows at start (`origin/mp/r3-states` 223448bc6, merged): **none**. "Not done" = None (P1-9 is Cursor K50-R1); the A
+lane's 19:40 run closed its own new row (开局大厅 邀请同行 loader) and wrote "half done". Latest sweep still b954de71c (already
+checked); no coordinator row for mp-states after 17:30; no `cursor-k50-p*` receipt with a `lane-layout` row exists on any branch.
+**Half done** — empty B half; run stopped per the collision-fix rule.
+
 ## Not done
 
 | Row | Why |
