@@ -331,6 +331,16 @@ Base re-merged with `origin/ui/combined-r7` (xcstrings: one pure-addition confli
 
 Gates: generate_project OK · check_scaffold PASS (20986 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 
+## Round 3 continue (24) — coordinator 00:50 finding: black 附近活动 panel (build f8574edab)
+
+Base re-merged with `origin/ui/combined-r7` (clean). Screens read: `docs/sweeps/latest/a11y-dt/zh-Hans-a11y-roam-ax5.jpg` (black panel under the light map, 附近活动 2 on its own grey pill) and `mp-roam/zh-Hans-d2-roam.jpg` (launch tile, timing).
+
+| MP page → native | Finding | Fix |
+|---|---|---|
+| `pages/roam/index` entry map 附近活动 sheet → `App/RoamBrowserView.swift` map mode (`CYMapScaffold` panel) + `App/DesignSystem/CYMapChrome.swift` | Coordinator 00:50: the 附近活动 sheet is solid black over the light map (`cyMapPanelColor = .black`); rows and peek use semantic text colours, so light mode drew black-on-black, patched only by a material pill behind the peek line. | **Fixed:** new environment flag `cyMapPanelFollowsAppearance` (default off — play / nearby-teams / play-session scaffolds keep their look, their lanes decide); when on, the panel fill is the system `.regularMaterial` (follows light / dark like the map), lighter shadow (0.15), grabber `.tertiary`. The roam browser sets it on its scaffold, its list background in map mode is clear (was black), and the peek line drops its own material pill (the panel is the material now). No new strings; same MP content and order (peek 附近活动 · count → rows). |
+
+Gates: generate_project OK · check_scaffold PASS (21016 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no
@@ -339,7 +349,7 @@ Gates: generate_project OK · check_scaffold PASS (20986 keys) · a11y lint 0 ne
 - team-recovery per-command rows on my-teams / nearby (needs a persisted team-command store).
 - P21 mini bar for a running roam: the live session is a full-screen cover owning its own controller (`makeRoamLiveSessionController()` per presentation); a cross-tab bar needs the controller lifted to the session and a root-tab accessory (nav lane) — compiled pass.
 - Topic half-screen from merchant pins + shop photo pins: done in continue (23).
-- For other lanes (ds-consistency): `cyMapPanelColor = Color.black` (`App/DesignSystem/CYMapChrome.swift:391`) draws a black panel under light content in light mode (en-d2-roam, every sweep since 20:45).
+- For other lanes (ds-consistency, mp-journey, mp-activity): roam now opts into `.environment(\.cyMapPanelFollowsAppearance, true)` (continue 24). The other `CYMapScaffold` users (`PlayExperienceView`, `PlaySessionView`, `NearbyTeamViews`) and `CYRoamNearbySheet` (fixture only) still use the black `cyMapPanelColor`; opt in once their panel content is checked for semantic colours.
 - Entry peek `.login`: 401 part done in continue (16); the no-deployment `.login` fixture state stays (not reachable by players).
 - Live map bottom strip P-32: done in continue (21) for the map home (shipping tab root); the legacy `RoamBrowserView` live cover (flag off) gets no feed.
 - No Swift build ran here; integrator compiles.

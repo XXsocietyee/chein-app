@@ -376,11 +376,8 @@ struct RoamBrowserView: View {
                 .cyText(.bodyMedium, monospacedDigit: true).foregroundStyle(.primary)
             Image(systemName: "chevron.up").font(.footnote.weight(.semibold)).foregroundStyle(.secondary).accessibilityHidden(true)
         }
-        // design-r2-roam (en sweep d2-roam): the collapsed line sits on a material with semantic foregrounds so the
-        // count and chevron read on the black panel in light and dark (CYColor.text* is black in light mode).
+        // Sweep 00:50: the panel itself is the system material now, so the collapsed line needs no pill of its own.
         .padding(.horizontal, CYSpacing.lg).frame(maxWidth: .infinity, minHeight: 44)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-        .padding(.horizontal, CYSpacing.md)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("roam.sheet.peek")
     }
@@ -528,6 +525,8 @@ struct RoamBrowserView: View {
                         }
                     }
                 }, panel: { mapPanel })
+                // Sweep 00:50: rows use semantic text colours, so the panel is the system material (light / dark like the map).
+                .environment(\.cyMapPanelFollowsAppearance, true)
             } else {
                 resultsList(renderedKey: renderedKey, renderedItems: renderedItems)
             }
@@ -601,7 +600,7 @@ struct RoamBrowserView: View {
         .modifier(RoamMapListStyle(plain: mapMode))
         .listRowBackground(Color.clear)
         .scrollContentBackground(.hidden)
-        .background(mapMode ? cyMapPanelColor : CYColor.bgPage)
+        .background(mapMode ? Color.clear : CYColor.bgPage)
         .contentMargins(.bottom, mapMode ? 24 : 0, for: .scrollContent)
         .refreshable { await load() }
         .accessibilityIdentifier("roam.content")
