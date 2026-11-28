@@ -389,7 +389,7 @@ public enum HomeIndexParityPresentation {
     }
 
     /// Resolves the city selector label: returns trimmed city name, `"全国"` / `"Nationwide"` when nationwide is selected,
-    /// or `"选择城市"` / `"Select City"` when no city is resolved.
+    /// or `"选择城市"` / `"Select city"` when no city is resolved.
     public static func citySelectorLabel(
         selectedCity: String?,
         isNationwide: Bool = false,
@@ -402,7 +402,7 @@ public enum HomeIndexParityPresentation {
         if !trimmed.isEmpty {
             return trimmed
         }
-        return isEnglish(locale) ? "Select City" : defaultCityFallback
+        return isEnglish(locale) ? "Select city" : defaultCityFallback
     }
 
     /// Formats the mini-program hero greeting (`"Hi, {昵称‖旅人}!"` / `"Hi, {Nickname‖Traveler}!"`).

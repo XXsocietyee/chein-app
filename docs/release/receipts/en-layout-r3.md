@@ -231,6 +231,7 @@ Merged `origin/ui/combined-r7` (up to date). Latest sweep ad55acd94 (03:04Z, hom
 |---|---|---|---|---|
 | 81 | `pages/talent/list` 发现俱乐部 rows (name · 成员数 · 简介 · 申请加入; MP order unchanged) → `ClubDirectoryView.swift:154` (`en-d4-directory`) | "3 members · Offline sa…": the member count + description line cut off after two words beside the Apply to join button | Discover rows allow 2 lines for the secondary line (your clubs stay 1); no type shrink | Done |
 | 82 | `pages/index/index` hero action banners → `Core/HomeSearchTabParity.swift:79-81` (`en-d2-home`) | Title Case "Join Activities with Friends", "Become a Club" (reads as becoming a club), "Become a Merchant" | en → "Join activities with friends", "Become a club host" (same as the Settings row), "Become a merchant"; zh unchanged; `HomeSearchTabParityTests` pin updated | Done |
+| 83 | `pages/index/index` greeting city picker (未定位 → 选择城市) → `Core/HomeSearchTabParity.swift:405`, `App/HomeSearchTabParityViews.swift:231` | "Select City" in Title Case while every other picker label is sentence case | en → "Select city" (reverse map keeps both spellings → 选择城市); test pin updated | Done |
 
 ## Not done
 
