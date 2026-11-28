@@ -7,7 +7,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reply after scanning"
+            "value": "Reply after"
           }
         },
         "zh-Hans": {
@@ -160,7 +160,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Complete this stop"
+            "value": "Complete stop"
           }
         },
         "zh-Hans": {
@@ -398,7 +398,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reasoning"
+            "value": "Logic"
           }
         },
         "zh-Hans": {
@@ -432,7 +432,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pair the two columns one to one"
+            "value": "Pair the two columns one one"
           }
         },
         "zh-Hans": {
@@ -704,7 +704,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continue this chapter"
+            "value": "Continue chapter"
           }
         },
         "zh-Hans": {
@@ -770,9 +770,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld medals"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld medal"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld medals"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -897,7 +909,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose how this theme is played first"
+            "value": "Choose how this theme played first"
           }
         },
         "zh-Hans": {

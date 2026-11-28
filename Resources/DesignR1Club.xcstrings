@@ -358,7 +358,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdrawals are handled by platform support"
+            "value": "Withdrawals handled platform support"
           }
         },
         "zh-Hans": {
@@ -374,7 +374,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Contact platform support to withdraw"
+            "value": "Contact platform support withdraw"
           }
         },
         "zh-Hans": {
@@ -438,7 +438,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Suspend for a while"
+            "value": "Suspend for while"
           }
         },
         "zh-Hans": {
@@ -502,7 +502,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "They cannot post, comment or sign up until the suspension ends"
+            "value": "They can't post, comment or sign up until the suspension ends"
           }
         },
         "zh-Hans": {

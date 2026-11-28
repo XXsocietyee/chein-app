@@ -33,7 +33,7 @@
   },
   "topicRoute.merchants.title": {
     "zh-Hans": "参与商家",
-    "en": "Participating shops"
+    "en": "Participating"
   },
   "registration.merchantClosed.banner": {
     "zh-Hans": "商家暂停营业，暂不可预约",
@@ -101,7 +101,7 @@
   },
   "topicPricing.settlementPending": {
     "zh-Hans": "待结算",
-    "en": "Pending Settlement"
+    "en": "Pending"
   },
   "topicPricing.feeRate": {
     "zh-Hans": "平台服务费率",
@@ -145,7 +145,7 @@
   },
   "playTools.lead.settle": {
     "zh-Hans": "整团结算",
-    "en": "Settle for the team"
+    "en": "Settle for team"
   },
   "playTools.content.section": {
     "zh-Hans": "本局信息",
@@ -157,7 +157,7 @@
   },
   "playTools.evidence": {
     "zh-Hans": "证据卡",
-    "en": "Evidence cards"
+    "en": "Evidence"
   },
   "playTools.rewards": {
     "zh-Hans": "各站奖励",
@@ -169,7 +169,7 @@
   },
   "playTools.thoughts.section": {
     "zh-Hans": "伏笔",
-    "en": "Foreshadowing"
+    "en": "Hint"
   },
   "playTools.stats.section": {
     "zh-Hans": "本局读数",
@@ -357,7 +357,7 @@
   },
   "bundle.exitCases.title": {
     "zh-Hans": "售后记录",
-    "en": "After-Sales Records"
+    "en": "After-Sales"
   },
   "orientScore.board.title": {
     "zh-Hans": "本场榜单",
@@ -477,7 +477,7 @@
   },
   "merchantApply.rule.title": {
     "zh-Hans": "承接说明",
-    "en": "Hosting Instructions"
+    "en": "Hosting"
   },
   "merchantApply.rule.placeholder": {
     "zh-Hans": "填写可用空间、接待安全条件、拍摄许可、现场可配置物料",
@@ -533,7 +533,7 @@
   },
   "participation.editMerchantApply": {
     "zh-Hans": "去修改",
-    "en": "Edit Application"
+    "en": "Edit Request"
   },
   "bundle.catalog.empty": {
     "zh-Hans": "暂无参与商家",
@@ -541,7 +541,7 @@
   },
   "bundle.catalog.merchants": {
     "zh-Hans": "参与商家",
-    "en": "Participating shops"
+    "en": "Participating"
   },
   "bundle.catalog.openTopic": {
     "zh-Hans": "查看主题详情",
@@ -566,9 +566,5 @@
   "orientScore.settleRun.confirmTitle": {
     "zh-Hans": "确认结束并结算本场？",
     "en": "Settle and end this run?"
-  },
-  "common.cancel": {
-    "zh-Hans": "取消",
-    "en": "Cancel"
   }
 }

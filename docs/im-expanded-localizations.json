@@ -4,11 +4,11 @@
     "zh-Hans": "会话操作"
   },
   "im.full.disabled": {
-    "en": "This feature isn't available right now.",
+    "en": "Feature isn't available right.",
     "zh-Hans": "此功能暂不可用"
   },
   "im.full.conversation": {
-    "en": "Conversation",
+    "en": "Chat",
     "zh-Hans": "会话"
   },
   "im.full.read": {
@@ -52,7 +52,7 @@
     "zh-Hans": "纬度"
   },
   "im.full.longitude": {
-    "en": "Longitude",
+    "en": "Lng",
     "zh-Hans": "经度"
   },
   "im.full.locationConsent": {
@@ -72,7 +72,7 @@
     "zh-Hans": "结果未知。请先检查会话，再决定是否重试原请求。"
   },
   "im.full.retrySame": {
-    "en": "Retry unchanged request",
+    "en": "Retry unchanged",
     "zh-Hans": "重试原请求"
   },
   "im.full.rejected": {
@@ -88,7 +88,7 @@
     "zh-Hans": "服务器已确认此操作。"
   },
   "im.full.start": {
-    "en": "Start conversation",
+    "en": "Start chat",
     "zh-Hans": "发起会话"
   },
   "im.full.sendTo": {
@@ -120,7 +120,7 @@
     "zh-Hans": "接收方用户编号"
   },
   "im.full.imageConsent": {
-    "en": "Choose an image only after you agree to select it for this conversation.",
+    "en": "Choose an image only after you agree to select it for this chat.",
     "zh-Hans": "同意为此会话选择图片后再继续。"
   },
   "im.full.selectImage": {

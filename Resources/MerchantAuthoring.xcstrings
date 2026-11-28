@@ -198,7 +198,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Request cancellation"
+            "value": "Request"
           }
         },
         "zh-Hans": {
@@ -342,7 +342,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review before publishing"
+            "value": "Review before"
           }
         },
         "zh-Hans": {
@@ -390,7 +390,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm publication"
+            "value": "Confirm"
           }
         },
         "zh-Hans": {
@@ -406,7 +406,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancel publication"
+            "value": "Cancel"
           }
         },
         "zh-Hans": {
@@ -422,7 +422,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Publication receipt"
+            "value": "Publication"
           }
         },
         "zh-Hans": {
@@ -550,7 +550,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Service information"
+            "value": "Service info"
           }
         },
         "zh-Hans": {
@@ -630,7 +630,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Duration in minutes"
+            "value": "Duration minutes"
           }
         },
         "zh-Hans": {
@@ -646,7 +646,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Maximum participants"
+            "value": "Maximum people"
           }
         },
         "zh-Hans": {
@@ -662,7 +662,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Business hours segment"
+            "value": "Business hours"
           }
         },
         "zh-Hans": {
@@ -694,7 +694,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Photography limits"
+            "value": "Photography"
           }
         },
         "zh-Hans": {
@@ -742,7 +742,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Offline alternative"
+            "value": "Offline"
           }
         },
         "zh-Hans": {
@@ -854,7 +854,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The version or original request conflicts. Read back the current state before continuing."
+            "value": "The version original request conflicts. Read back current state before continuing."
           }
         },
         "zh-Hans": {
@@ -886,7 +886,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The server did not complete this request."
+            "value": "The server didn't complete request."
           }
         },
         "zh-Hans": {
@@ -1318,7 +1318,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reason for rejection"
+            "value": "Reason rejection"
           }
         },
         "zh-Hans": {
@@ -1398,7 +1398,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The exact review decision was confirmed by server readback. Publication remains a separate merchant action."
+            "value": "The exact review decision confirmed server readback. Publication remains separate merchant action."
           }
         },
         "zh-Hans": {
@@ -1558,7 +1558,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Theme approval is no longer effective. The merchant must save and confirm a new revision before another review."
+            "value": "Theme approval is no longer effective. The merchant must save and confirm new revision before another review."
           }
         },
         "zh-Hans": {
@@ -1718,7 +1718,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Observation source"
+            "value": "Observation"
           }
         },
         "zh-Hans": {
@@ -1926,7 +1926,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Weather and conditions info isn't available right now."
+            "value": "Weather and rules info isn't available right."
           }
         },
         "zh-Hans": {
@@ -2150,7 +2150,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose an approved time segment"
+            "value": "Choose approved time segment"
           }
         },
         "zh-Hans": {
@@ -2406,7 +2406,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original request result"
+            "value": "Original request"
           }
         },
         "zh-Hans": {
@@ -2630,7 +2630,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The original result could not be verified. Its pending marker has been retained."
+            "value": "The original result couldn't verified. Pending marker has been retained."
           }
         },
         "zh-Hans": {
@@ -3174,7 +3174,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm withdrawal"
+            "value": "Confirm cash-out"
           }
         },
         "zh-Hans": {
@@ -3222,7 +3222,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original withdrawal request"
+            "value": "Original cash-out"
           }
         },
         "zh-Hans": {
@@ -3366,7 +3366,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original request"
+            "value": "Original"
           }
         },
         "zh-Hans": {
@@ -3382,7 +3382,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original output version"
+            "value": "Original output"
           }
         },
         "zh-Hans": {
@@ -3398,7 +3398,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Current version observed at read time"
+            "value": "Current version observed read time"
           }
         },
         "zh-Hans": {
@@ -3862,7 +3862,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original request result"
+            "value": "Original request"
           }
         },
         "zh-Hans": {
@@ -4186,7 +4186,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original saved revision"
+            "value": "Original saved"
           }
         },
         "zh-Hans": {
@@ -4254,7 +4254,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The selected original revision is not available. Its entry is kept for another read."
+            "value": "The selected original revision isn't available. Its entry is kept for another read."
           }
         },
         "zh-Hans": {
@@ -4288,7 +4288,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This recorded approval was invalidated by a later revision."
+            "value": "This recorded approval was invalidated by later revision."
           }
         },
         "zh-Hans": {
@@ -4322,7 +4322,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original review evidence is unavailable"
+            "value": "Original review evidence"
           }
         },
         "zh-Hans": {

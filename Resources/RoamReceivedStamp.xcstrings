@@ -76,7 +76,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Received through an exchange. The author is anonymous."
+            "value": "Received through an exchange. The author anonymous."
           }
         }
       }
@@ -204,7 +204,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Canceled stamp"
+            "value": "Canceled"
           }
         }
       }

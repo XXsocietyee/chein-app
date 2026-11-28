@@ -5,6 +5,7 @@ import SwiftUI
 
 @MainActor struct OfficialRouteListView: View {
     @Environment(\.locale) private var locale
+    @Environment(\.dismiss) private var dismiss
     private var officialRouteIsChinese: Bool { locale.language.languageCode?.identifier == "zh" }
     let reader: OfficialRouteReader
     @State private var state: LoadState = .loading
@@ -35,8 +36,14 @@ import SwiftUI
                     Button { Task { await load() } } label: { Text("officialRoute.retry") }.buttonStyle(.bordered)
                 }
             case .empty:
-                // MP cy-empty kind="empty".
-                ContentUnavailableView("officialRoute.list.empty", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
+                // MP cy-empty kind="empty". The next step is the same return the map-home list already offers.
+                ContentUnavailableView {
+                    Label("officialRoute.list.empty", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
+                } actions: {
+                    Button("roamSub.w208.poi.backToMap") { dismiss() }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("officialRoute.list.empty.backToMap")
+                }
             case .ready(let routes):
                 ScrollView {
                     // OfficialRouteCard draws its own surface; the links stay plain.

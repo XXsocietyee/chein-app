@@ -2,28 +2,116 @@
   "page": "subpackageP3/pages/stamp-album/index/index",
   "screen": "App/RoamStampViews.swift",
   "keys": [
-    {"key": "roam.experience.album", "en": "Stamp album", "zh-Hans": "集邮册"},
-    {"key": "roam.experience.albumEmpty", "en": "No stamps yet", "zh-Hans": "还没有邮票"},
-    {"key": "roam.experience.albumEmptyHint", "en": "Take a photo with the stamp camera to start your album.", "zh-Hans": "用集邮相机拍一张，开始你的集邮册。"},
-    {"key": "stampAlbum.total %lld", "en": "Stamps: %lld", "zh-Hans": "%lld 枚"},
-    {"key": "stampAlbum.unknown", "en": "—", "zh-Hans": "—"},
-    {"key": "stampAlbum.denied", "en": "This identity can’t view it", "zh-Hans": "当前身份不能查看"},
-    {"key": "stampAlbum.openCamera", "en": "Open stamp camera", "zh-Hans": "打开集邮相机"},
-    {"key": "stampAlbum.continuationRetry", "en": "This page didn't load · tap to retry", "zh-Hans": "这一页没读到 · 点此重试"},
-    {"key": "stampAlbum.loadingNext", "en": "Loading the next page…", "zh-Hans": "正在读取下一页"},
-    {"key": "stampAlbum.scopeExpired", "en": "This album is no longer part of the current viewing session. Go back and open it again.", "zh-Hans": "此集邮册已不属于当前查看会话。请返回后重新打开。"},
-    {"key": "roam.experience.loadMore", "en": "Load more", "zh-Hans": "加载更多"},
-    {"key": "roam.loading", "en": "Loading map results…", "zh-Hans": "正在读取地图信息…"},
-    {"key": "media.stamp.title", "en": "Stamp camera", "zh-Hans": "集邮相机"},
-    {"key": "roam.experience.cityStamp", "en": "City stamp", "zh-Hans": "城市签"},
-    {"key": "roam.experience.imageUnavailable", "en": "Image unavailable", "zh-Hans": "图片暂不可用"},
-    {"key": "roam.experience.sampleArt", "en": "Example city illustration", "zh-Hans": "城市示例插图"},
-    {"key": "roam.experience.stampImage", "en": "City stamp image", "zh-Hans": "城市签图片"},
-    {"key": "roam.experience.offline", "en": "Example content", "zh-Hans": "示例内容"},
-    {"key": "roam.experience.readFailed", "en": "This didn't load. Try again.", "zh-Hans": "加载失败，请重试。"},
-    {"key": "roam.signInRequired", "en": "Sign in to continue", "zh-Hans": "请先登录"},
-    {"key": "roam.notConfigured", "en": "Map isn't available right now", "zh-Hans": "地图暂不可用"},
-    {"key": "action.retry", "en": "Retry", "zh-Hans": "重试"}
+    {
+      "key": "roam.experience.album",
+      "en": "Stamp album",
+      "zh-Hans": "集邮册"
+    },
+    {
+      "key": "roam.experience.albumEmpty",
+      "en": "No stamps yet",
+      "zh-Hans": "还没有邮票"
+    },
+    {
+      "key": "roam.experience.albumEmptyHint",
+      "en": "Take a photo with the stamp camera to start your album.",
+      "zh-Hans": "用集邮相机拍一张，开始你的集邮册。"
+    },
+    {
+      "key": "stampAlbum.total %lld",
+      "en": "Stamps: %lld",
+      "zh-Hans": "%lld 枚"
+    },
+    {
+      "key": "stampAlbum.unknown",
+      "en": "—",
+      "zh-Hans": "—"
+    },
+    {
+      "key": "stampAlbum.denied",
+      "en": "This identity can’t view it",
+      "zh-Hans": "当前身份不能查看"
+    },
+    {
+      "key": "stampAlbum.openCamera",
+      "en": "Open stamp camera",
+      "zh-Hans": "打开集邮相机"
+    },
+    {
+      "key": "stampAlbum.continuationRetry",
+      "en": "This page didn't load · tap to retry",
+      "zh-Hans": "这一页没读到 · 点此重试"
+    },
+    {
+      "key": "stampAlbum.loadingNext",
+      "en": "Loading the next page…",
+      "zh-Hans": "正在读取下一页"
+    },
+    {
+      "key": "stampAlbum.scopeExpired",
+      "en": "This album is no longer part of the current viewing session. Go back and open it again.",
+      "zh-Hans": "此集邮册已不属于当前查看会话。请返回后重新打开。"
+    },
+    {
+      "key": "roam.experience.loadMore",
+      "en": "Load more",
+      "zh-Hans": "加载更多"
+    },
+    {
+      "key": "roam.loading",
+      "en": "Loading map results…",
+      "zh-Hans": "正在读取地图信息…"
+    },
+    {
+      "key": "media.stamp.title",
+      "en": "Stamp camera",
+      "zh-Hans": "集邮相机"
+    },
+    {
+      "key": "roam.experience.cityStamp",
+      "en": "City stamp",
+      "zh-Hans": "城市签"
+    },
+    {
+      "key": "roam.experience.imageUnavailable",
+      "en": "Image unavailable",
+      "zh-Hans": "图片暂不可用"
+    },
+    {
+      "key": "roam.experience.sampleArt",
+      "en": "Example city illustration",
+      "zh-Hans": "城市示例插图"
+    },
+    {
+      "key": "roam.experience.stampImage",
+      "en": "City stamp image",
+      "zh-Hans": "城市签图片"
+    },
+    {
+      "key": "roam.experience.offline",
+      "en": "Example content",
+      "zh-Hans": "示例内容"
+    },
+    {
+      "key": "roam.experience.readFailed",
+      "en": "This didn't load. Try again.",
+      "zh-Hans": "加载失败，请重试。"
+    },
+    {
+      "key": "roam.signInRequired",
+      "en": "Sign in continue",
+      "zh-Hans": "请先登录"
+    },
+    {
+      "key": "roam.notConfigured",
+      "en": "Map isn't available right now",
+      "zh-Hans": "地图暂不可用"
+    },
+    {
+      "key": "action.retry",
+      "en": "Retry",
+      "zh-Hans": "重试"
+    }
   ],
   "accessibilityIdentifiers": [
     "roam.experience.album",

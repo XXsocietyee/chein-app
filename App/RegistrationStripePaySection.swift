@@ -191,12 +191,10 @@ import SwiftUI
     }
 
     @ViewBuilder private var paidRows: some View {
-        Label {
-            Text(c.t("支付成功，票已放入票夹", "Paid. Your ticket is in the wallet."))
-        } icon: {
-            Image(systemName: "checkmark.circle.fill").foregroundStyle(CYColor.successText)
-        }
-        .accessibilityIdentifier("registration.pay.succeeded")
+        // P39 payment success, same moment as WeChat Pay and Alipay: one burst, none under Reduce Motion.
+        // The success haptic stays on the stage change above. The View ticket button is unchanged.
+        RegistrationPaidTicketMoment(message: Text(c.t("支付成功，票已放入票夹", "Paid. Your ticket is in the wallet.")))
+            .accessibilityIdentifier("registration.pay.succeeded")
         Button {
             showsWallet = true
         } label: {

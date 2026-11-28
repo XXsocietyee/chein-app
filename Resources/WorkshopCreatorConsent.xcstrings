@@ -124,7 +124,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Exact text for this version"
+            "value": "Exact text for version"
           }
         }
       }
@@ -156,7 +156,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Planning information excluded from this package"
+            "value": "Planning info excluded from this package"
           }
         }
       }
@@ -204,7 +204,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Complete terms for this version"
+            "value": "Complete terms for version"
           }
         }
       }
@@ -300,7 +300,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This excludes resale or redistribution of the original package and does not expand past purchases"
+            "value": "This excludes resale or redistribution of the original package and doesn't expand past purchases"
           }
         }
       }
@@ -348,7 +348,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Package review is still required. This is not a listing or an issued purchase license."
+            "value": "Package review is still required. This isn't a listing issued purchase license."
           }
         }
       }
@@ -396,7 +396,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Declaration record"
+            "value": "Declaration"
           }
         }
       }
@@ -540,7 +540,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Description"
+            "value": "Details"
           }
         }
       }
@@ -684,7 +684,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Activity categories"
+            "value": "Activity groups"
           }
         }
       }
@@ -700,7 +700,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Player count"
+            "value": "Player"
           }
         }
       }
@@ -764,7 +764,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Difficulty"
+            "value": "Level"
           }
         }
       }

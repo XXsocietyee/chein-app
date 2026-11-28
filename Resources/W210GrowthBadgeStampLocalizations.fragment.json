@@ -22,7 +22,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This badge is not an identity card; it is recorded in the growth center"
+          "value": "This badge isn't identity card; it's recorded growth center"
         }
       },
       "zh-Hans": {
@@ -226,7 +226,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "You have not collected anything yet"
+          "value": "You'ven't collected anything"
         }
       },
       "zh-Hans": {

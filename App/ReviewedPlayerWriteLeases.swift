@@ -875,6 +875,7 @@ enum ReviewedPlayerReadRoute {
         "api/club/governance/cases/appeal", "api/orient/scoring/appeal", "api/orient/scoring/dispute",
         "api/external-game/reports", "api/merchant/reviews/report", "api/team/report",
         "api/community-trust/reports/taxonomy", "api/community-trust/reports/mine",
+        "api/community-trust/reports/submit", // K40 M-04b: MEMBER/ACTIVITY reports (v1 /reports 404s those targets)
         "api/native/blacklist/list",
         "api/ai/safety/precheck"
     ]

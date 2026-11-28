@@ -134,7 +134,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Applying and responding to applications isn't available right now."
+            "value": "Applying responding requests isn't available right."
           }
         },
         "zh-Hans": {
@@ -214,7 +214,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Longitude"
+            "value": "Lng"
           }
         },
         "zh-Hans": {
@@ -342,7 +342,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Distance from selected point"
+            "value": "Distance selected"
           }
         },
         "zh-Hans": {
@@ -502,7 +502,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "View this session’s tickets"
+            "value": "View session’s tickets"
           }
         },
         "zh-Hans": {
@@ -806,7 +806,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdraw application"
+            "value": "Withdraw request"
           }
         },
         "zh-Hans": {
@@ -934,7 +934,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nearby teams aren't available right now."
+            "value": "Nearby teams aren't available right."
           }
         },
         "zh-Hans": {
@@ -966,7 +966,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The action was not completed."
+            "value": "Action wasn't completed."
           }
         },
         "zh-Hans": {
@@ -1030,7 +1030,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You are the leader"
+            "value": "You're the leader"
           }
         },
         "zh-Hans": {
@@ -1238,7 +1238,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This application was processed or expired."
+            "value": "This request was processed or expired."
           }
         },
         "zh-Hans": {

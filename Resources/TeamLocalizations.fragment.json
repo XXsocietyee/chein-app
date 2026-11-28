@@ -2,123 +2,123 @@
   "sourceLanguage": "en",
   "strings": {
     "team.done.join": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "You joined the team"
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "已加入队伍"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You joined the team"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已加入队伍"
+          }
         }
+      }
     },
     "team.done.leave": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "You left the team"
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "已退出队伍"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You left the team"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已退出队伍"
+          }
         }
+      }
     },
     "team.done.remove": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Member removed"
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "成员已移出"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Member removed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成员已移出"
+          }
         }
+      }
     },
     "team.done.disband": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Team disbanded"
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "队伍已解散"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team disbanded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍已解散"
+          }
         }
+      }
     },
     "team.done.joinMode": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Join mode updated"
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "组队方式已更新"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Join mode updated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "组队方式已更新"
+          }
         }
+      }
     },
     "team.join.empty": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "No team found for this invitation"
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "没有找到这支队伍"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No team found for this invitation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有找到这支队伍"
+          }
         }
+      }
     },
     "team.join.emptyDetail": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Ask the person who invited you to send the link again."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "请让邀请你的人重新发送邀请链接"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask the person who invited you to send the link again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请让邀请你的人重新发送邀请链接"
+          }
         }
+      }
     },
     "team.invite.copied": {
       "extractionState": "manual",
@@ -211,7 +211,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Status not provided"
+            "value": "Status not"
           }
         },
         "zh-Hans": {
@@ -330,7 +330,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invitation only"
+            "value": "Invite only"
           }
         },
         "zh-Hans": {
@@ -347,7 +347,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Public applications"
+            "value": "Public requests"
           }
         },
         "zh-Hans": {
@@ -602,7 +602,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review disbanding this team"
+            "value": "Review disbanding team"
           }
         },
         "zh-Hans": {
@@ -925,7 +925,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The operation was not sent"
+            "value": "The action wasn't sent"
           }
         },
         "zh-Hans": {
@@ -1044,7 +1044,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Preview invitation"
+            "value": "Preview invite"
           }
         },
         "zh-Hans": {
@@ -1061,7 +1061,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This invitation is unavailable"
+            "value": "Invite unavailable"
           }
         },
         "zh-Hans": {
@@ -1299,7 +1299,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invitation only"
+            "value": "Invite only"
           }
         },
         "zh-Hans": {
@@ -1722,7 +1722,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ask the captain to share it again, then try later."
+            "value": "Ask the captain to share it again, try later."
           }
         },
         "zh-Hans": {
@@ -1773,7 +1773,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invitation link has been upgraded"
+            "value": "Invite link has been upgraded"
           }
         },
         "zh-Hans": {
@@ -1926,7 +1926,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Teaming up does not affect whether the activity runs"
+            "value": "Teaming up doesn't affect whether activity runs"
           }
         },
         "zh-Hans": {
@@ -2079,7 +2079,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "To be confirmed"
+            "value": "Pending"
           }
         },
         "zh-Hans": {
@@ -2181,7 +2181,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check your network connection and try again."
+            "value": "Check network connection try again."
           }
         },
         "zh-Hans": {
@@ -2244,718 +2244,718 @@
       }
     },
     "team.seats.paid": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Holding a valid ticket"
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "持有效票"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Holding valid"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "持有效票"
+          }
         }
+      }
     },
     "team.seats.missing": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Ticket no longer valid"
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "票已失效"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ticket no longer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "票已失效"
+          }
         }
+      }
     },
     "team.seats.pending": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Applications awaiting review"
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "待审申请"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applications"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待审申请"
+          }
         }
+      }
     },
     "team.seats.available": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Seats still open"
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "还可加入"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seats still open"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还可加入"
+          }
         }
+      }
     },
     "team.invite.expires %@": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Invitation valid until %@"
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "%@ 到期"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invite valid %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 到期"
+          }
         }
+      }
     },
     "team.blocker.NOT_SIGNED_IN": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Sign in to join this team."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "登录后才能加入队伍"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to join this team."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后才能加入队伍"
+          }
         }
+      }
     },
     "team.blocker.ALREADY_JOINED": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "You're already in this team."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "你已在队伍中"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're already in team."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你已在队伍中"
+          }
         }
+      }
     },
     "team.blocker.APPLY_REJECTED": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "You can't rejoin this team."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "你的申请已被拒绝"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can't rejoin this team."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的申请已被拒绝"
+          }
         }
+      }
     },
     "team.blocker.TEAM_FULL": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "This team is full."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "队伍已满"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This team full."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍已满"
+          }
         }
+      }
     },
     "team.blocker.TEAM_UNDER_REVIEW": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "This team is under review."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "队伍审核中"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team under review."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍审核中"
+          }
         }
+      }
     },
     "team.blocker.APPLY_BLOCKED": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "You can't join this team right now."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "暂时不能加入这支队伍"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can't join this team right now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时不能加入这支队伍"
+          }
         }
+      }
     },
     "team.blocker.TICKET_REQUIRED": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "You need a ticket for this session first."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "需要先买这一场的票"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You need a ticket for session first."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要先买这一场的票"
+          }
         }
+      }
     },
     "team.blocker.TEAM_NOT_PUBLIC": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "This team isn't recruiting publicly."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "队伍不公开招募"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team isn't recruiting."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍不公开招募"
+          }
         }
+      }
     },
     "team.blocker.APPLY_PENDING": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Your application is being reviewed."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "申请审核中"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申请审核中"
+          }
         }
+      }
     },
     "team.blocker.INVITE_UNAVAILABLE": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "This invitation is no longer valid."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "邀请已失效"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invite no longer."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请已失效"
+          }
         }
+      }
     },
     "team.reject.NOT_SIGNED_IN": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Sign in, then try again."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "请先登录后再试"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in, then try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先登录后再试"
+          }
         }
+      }
     },
     "team.reject.ALREADY_JOINED": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "You're already in this team. Refresh to see it."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "你已在队伍中，刷新即可查看"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're already in this team. Refresh to see it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你已在队伍中，刷新即可查看"
+          }
         }
+      }
     },
     "team.reject.APPLY_REJECTED": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "You can't join this team again with this link."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "你已被拒绝或移出，不能用这个链接再加入"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can't join this team again with this link."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你已被拒绝或移出，不能用这个链接再加入"
+          }
         }
+      }
     },
     "team.reject.TEAM_FULL": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "The team filled up or stopped recruiting. Nothing changed; look for another team."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "队伍已满或已停止招募，没有加入；可以换一支队伍"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The team filled up or stopped recruiting. Nothing changed; look for another team."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍已满或已停止招募，没有加入；可以换一支队伍"
+          }
         }
+      }
     },
     "team.reject.TEAM_UNDER_REVIEW": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "The team is under review and isn't taking members."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "队伍审核中，暂不能加入"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The team is under review isn't taking members."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍审核中，暂不能加入"
+          }
         }
+      }
     },
     "team.reject.APPLY_BLOCKED": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "You can't join this team right now."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "暂时无法加入该队伍"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can't join this team right now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法加入该队伍"
+          }
         }
+      }
     },
     "team.reject.TICKET_REQUIRED": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "You need a ticket for this session to join. Nothing was charged."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "持有这一场的票才能加入，没有产生任何扣费"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You need a ticket for this session to join. Nothing was charged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "持有这一场的票才能加入，没有产生任何扣费"
+          }
         }
+      }
     },
     "team.reject.TEAM_NOT_PUBLIC": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "This team isn't recruiting publicly. Ask the captain for an invitation."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "队伍不公开招募，请向队长要邀请"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This team isn't recruiting publicly. Ask the captain for invite."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍不公开招募，请向队长要邀请"
+          }
         }
+      }
     },
     "team.reject.APPLY_PENDING": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Your application is already awaiting review."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "你的申请正在审核中"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your request already awaiting review."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的申请正在审核中"
+          }
         }
+      }
     },
     "team.reject.INVITE_UNAVAILABLE": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "This invitation is no longer valid. Ask the captain for a new link."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "邀请已失效，请让队长重新分享"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This invite is no longer valid. Ask the captain for new link."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请已失效，请让队长重新分享"
+          }
         }
+      }
     },
     "team.reject.INVITE_REVOKED": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "This invitation was replaced or withdrawn. Ask the captain for a new link."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "邀请已撤销或换码，请让队长重新分享链接"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This invitation was replaced or withdrawn. Ask the captain for a new link."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请已撤销或换码，请让队长重新分享链接"
+          }
         }
+      }
     },
     "team.reject.INVITE_EXPIRED": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "This team is no longer recruiting. Look for another team."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "队伍已过招募期，可以换一支队伍"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This team is no longer recruiting. Look for another team."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍已过招募期，可以换一支队伍"
+          }
         }
+      }
     },
     "team.reject.TEAM_STATE_CHANGED": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "The team changed before this went through. Nothing changed; refresh and try again."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "队伍状态已变化，本次没有生效；请刷新后重试"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The team changed before this went through. Nothing changed; refresh and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队伍状态已变化，本次没有生效；请刷新后重试"
+          }
         }
+      }
     },
     "team.reject.LEADER_HANDOVER_FAILED": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Leadership couldn't be handed over, so you're still captain. Refresh and try again; during a run, ask on-site staff."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "队长移交失败，你仍是队长；请刷新后重试，游戏进行中请联系现场工作人员"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leadership couldn't be handed over, so you're still captain. Refresh and try again; during a run, ask on-site staff."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队长移交失败，你仍是队长；请刷新后重试，游戏进行中请联系现场工作人员"
+          }
         }
+      }
     },
     "team.reject.APPLY_STATE_CHANGED": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "The application changed before this went through. Refresh and try again."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "申请状态已变化，请刷新后重试"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The request changed before went through. Refresh try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申请状态已变化，请刷新后重试"
+          }
         }
+      }
     },
     "team.reject.APPLY_NOT_PENDING": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "This application was already handled or expired."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "申请已处理或已失效"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This request already handled expired."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申请已处理或已失效"
+          }
         }
+      }
     },
     "team.viewer.captain": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "You are captain"
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "你是队长"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You are captain"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你是队长"
+          }
         }
+      }
     },
     "team.viewer.member": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "You are a member"
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "你是队员"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You are a member"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你是队员"
+          }
         }
+      }
     },
     "team.viewer.dutyScope": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Captain is a team duty only. Story roles and host permissions are assigned separately."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "队长只是队伍职务，剧情角色和主持权限另行分配"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captain is a team duty only. Story roles and host permissions are assigned separately."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队长只是队伍职务，剧情角色和主持权限另行分配"
+          }
         }
+      }
     },
     "team.viewer.application.PENDING": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Your application is awaiting review."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "你的申请正在审核"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your request is awaiting review."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的申请正在审核"
+          }
         }
+      }
     },
     "team.viewer.application.EXPIRED": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Your earlier application expired."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "你之前的申请已过期"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your earlier application expired."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你之前的申请已过期"
+          }
         }
+      }
     },
     "team.viewer.application.QUIT": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "You left this team earlier."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "你之前退出过这支队伍"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You left this team earlier."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你之前退出过这支队伍"
+          }
         }
+      }
     },
     "team.viewer.application.KICKED": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "You were removed from this team."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "你已被移出这支队伍"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You were removed from this team."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你已被移出这支队伍"
+          }
         }
+      }
     },
     "team.viewer.application.REJECTED": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Your application was declined."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "你的申请未通过"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your application was declined."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的申请未通过"
+          }
         }
+      }
     },
     "team.viewer.application.WITHDRAWN": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "You withdrew your earlier application."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "你已撤回之前的申请"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You withdrew your earlier application."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你已撤回之前的申请"
+          }
         }
+      }
     },
     "team.leave.consequence.member": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Leaving doesn't refund your ticket; it stays valid. You lose team-chat access, and rejoining needs a new invitation."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "退队不会同步退票，你的票仍然有效。你会失去队伍群聊入口，重新加入需要新的邀请。"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leaving doesn't refund your ticket; it stays valid. You lose team-chat access, and rejoining needs a new invitation."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退队不会同步退票，你的票仍然有效。你会失去队伍群聊入口，重新加入需要新的邀请。"
+          }
         }
+      }
     },
     "team.leave.consequence.leader": {
-        "extractionState": "manual",
-        "localizations": {
-            "en": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "Leaving doesn't refund your ticket; it stays valid. You lose team-chat access. Captain passes to the earliest-joined teammate; if you're the only one left, the team disbands. This can't be undone."
-                }
-            },
-            "zh-Hans": {
-                "stringUnit": {
-                    "state": "translated",
-                    "value": "退队不会同步退票，你的票仍然有效。你会失去队伍群聊入口；队长会移交给最早加入的队员，只剩你一人时队伍直接解散。此操作不可撤销。"
-                }
-            }
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leaving doesn't refund your ticket; it stays valid. You lose team-chat access. Captain passes to the earliest-joined teammate; if you're the only one left, the team disbands. This can't be undone."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退队不会同步退票，你的票仍然有效。你会失去队伍群聊入口；队长会移交给最早加入的队员，只剩你一人时队伍直接解散。此操作不可撤销。"
+          }
         }
+      }
     }
   },
   "version": "1.0"

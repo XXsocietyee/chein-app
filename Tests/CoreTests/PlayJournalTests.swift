@@ -101,6 +101,22 @@ final class PlayJournalTests: XCTestCase {
         XCTAssertEqual(summary.count, 2)
     }
 
+    /// mp-journey-b r3: MP finish grid 解谜分 · 个人最佳 — the completion receipt's `puzzlePersonalBest` wins, else the
+    /// nodes read; 0, missing or a bad value shows nothing and never fails the route.
+    func testPuzzlePersonalBestPrefersTheReceiptThenTheNodesRead() throws {
+        func result(_ text: String) throws -> PlayNodesResult {
+            try JSONDecoder().decode(PlayNodesResult.self, from: Data(text.utf8))
+        }
+        let read = try result(#"{"nodes":[{"nodeId":1}],"puzzlePersonalBest":"86"}"#)
+        XCTAssertEqual(read.puzzlePersonalBest, 86)
+        XCTAssertEqual(PlayPuzzleSummary.personalBest(result: read, receipt: nil), 86)
+        let receipt = try JSONDecoder().decode(PlayWireValue.self, from: Data(#"{"nodeId":1,"puzzlePersonalBest":92}"#.utf8))
+        XCTAssertEqual(PlayPuzzleSummary.personalBest(result: read, receipt: receipt), 92)
+        let bad = try result(#"{"nodes":[{"nodeId":1}],"puzzlePersonalBest":"n/a"}"#)
+        XCTAssertNil(bad.puzzlePersonalBest)
+        XCTAssertNil(PlayPuzzleSummary.personalBest(result: try result(#"{"nodes":[],"puzzlePersonalBest":0}"#), receipt: nil))
+    }
+
     /// MP `play-route-state.js` keeps attributes with a text label and a finite number value; 旅程手记 lists them first.
     func testRouteAttributesKeepLabelledNumbersOnly() throws {
         let route = #"{"routeMode":"LINEAR","attributes":[{"key":"courage","label":"勇气","value":3},{"label":"体力","value":2.5},{"label":"坏","value":"7"},{"value":1},"x"]}"#

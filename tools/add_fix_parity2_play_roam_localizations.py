@@ -11,7 +11,7 @@ S = {
     'roamSub.w208.voucher.network': ('Network error. Try again later.', '网络异常，请稍后重试'),
     'roamSub.w208.voucher.retry': ('Retry', '重试'),
     # RCODE-4: MP scene-qr-citynode short form (no ASCII comma in CJK)
-    'roamSub.w208.voucher.desc': ('Show it to the merchant to scan and receive a coupon', '出示给商家扫码领券'),
+    'roamSub.w208.voucher.desc': ('Show it to merchant scan receive coupon', '出示给商家扫码领券'),
     # RROUTE-3 / RROUTES-2: route copy into the catalog (noun 路线 kept until the owner glossary rules 线路/路线)
     'officialRoute.badge': ('Official route', '官方路线'),
     'officialRoute.openFirstStop': ('Open first stop in Maps', '在地图中打开起点'),
