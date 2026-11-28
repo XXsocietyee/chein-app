@@ -18,7 +18,7 @@ import SwiftUI
                     content(reader)
                         .onAppear { reader.appear(foreground: pageIsForeground) }
                         .onDisappear { reader.disappear() }
-                } else { ProgressView() }
+                } else { ProgressView { Text("social.loading") }.frame(maxWidth: .infinity).accessibilityIdentifier("profile.publicInfo.loading") }
             } else { SocialIssueView(error: APIError.unauthorized) }
         }
         .task { reader?.appear(foreground: pageIsForeground) }

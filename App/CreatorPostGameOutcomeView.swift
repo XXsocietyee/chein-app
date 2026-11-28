@@ -36,7 +36,7 @@ import QuestifyCore
                     ForEach(scopeTopics) { topic in Text(verbatim: topic.title ?? "#\(topic.id)").tag(Optional(topic.id)) }
                 }.accessibilityIdentifier("creatorStudio.outcome.topic")
             } footer: { Text("creatorStudio.outcome.definition") }
-            if loading && outcome == nil { Section { HStack { Spacer(); ProgressView(); Spacer() } } }
+            if loading && outcome == nil { Section { ProgressView { Text("social.loading") }.frame(maxWidth: .infinity) } }
             else if let outcome { report(outcome) }
             else { Section { CreatorStudioIssueView(failure: failure) { Task { await load() } } } }
         }
