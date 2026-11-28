@@ -197,9 +197,8 @@ struct RegistrationSheetView: View {
             .cyToast(verbatimMessage: $toastMessage)
             // Next-round motion: a player's own choice (ticket, saved participant, sharing consent) answers with a
             // selection tick; the first automatic preselect (nil → id) stays silent.
-            .cyHaptic(.selection, trigger: flow.selectedTicketID, where: { old, new in old != nil && new != nil && old != new })
-            .cyHaptic(.selection, trigger: flow.selectedParticipantID, where: { old, new in old != nil && new != nil && old != new })
-            .cyHaptic(.selection, trigger: flow.consented)
+            .modifier(RegistrationSelectionHaptics(ticket: flow.selectedTicketID, participant: flow.selectedParticipantID,
+                                                   consented: flow.consented))
             .sheet(isPresented: $showingTicketSheet) { ticketSheetContent }
             .sheet(isPresented: $showingParticipantSheet, onDismiss: {
                 if addAfterParticipantSheet { addAfterParticipantSheet = false; showingAddParticipant = true }
@@ -1538,5 +1537,26 @@ private struct RegistrationChoiceRow: View {
             Text(title).foregroundStyle(.primary)
         }
         .contentShape(Rectangle())
+    }
+}
+
+
+/// Selection ticks for the player's own choices, kept out of `RegistrationSheetView.body` so the body type-checks in time.
+private struct RegistrationSelectionHaptics<T: Equatable, P: Equatable>: ViewModifier {
+    let ticket: T?
+    let participant: P?
+    let consented: Bool
+    func body(content: Content) -> some View {
+        let ticketChanged: (T?, T?) -> Bool = Self.userChange
+        let participantChanged: (P?, P?) -> Bool = Self.userChange
+        return content
+            .cyHaptic(.selection, trigger: ticket, where: ticketChanged)
+            .cyHaptic(.selection, trigger: participant, where: participantChanged)
+            .cyHaptic(.selection, trigger: consented)
+    }
+    /// A change between two real values; the first automatic preselect (nil → id) stays silent.
+    private static func userChange<V: Equatable>(_ old: V?, _ new: V?) -> Bool {
+        guard let old, let new else { return false }
+        return old != new
     }
 }
