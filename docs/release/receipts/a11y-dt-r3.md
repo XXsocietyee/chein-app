@@ -482,11 +482,11 @@ monograms, share / ticket art, HUD and ring numbers left as they are).
 | `pages/publishkit` project schedule start / end | `ProjectEditFlowParity.swift:48` | ✓ (mp-publish owns order) | Date shrank to 70 % in a half-width column → 2 lines, no shrink | Done |
 | Story cast lines (margin speaker name) | `CastViews.swift:83` | ✓ | Caption name shrank to 80 % in the fixed margin → up to 3 lines, full size | Done |
 | `pages/roam` city orientation ETA (预计 12分钟 · 14:32 到达), teams on route | `CityOrientationNavComponents.swift:57`, `CityOrientationRunView.swift:635` | ✓ (mp-roam owns order) | ETA one line shrunk to 80 % → 2 lines; teams-on-route footnote 2 lines + shrink → 3 lines, no shrink. Map panel files untouched (coordinator 02:05) | Done |
+| `pages/roam` city orientation paused tag + stop cleared, platform reminder 已开放 | `CityOrientationNavComponents.swift:69,124`, `NativeMotionReminderViews.swift:254` | ✓ (mp-roam owns order) | Label text in `Color.orange` / `Color.green` (~2.2:1 to 3:1 on white) → `CYColor.warningText` / `successText`. Remaining `Color.green` / `Color.yellow` hits are glyph-only (medal, checkmark; 3:1 graphics rule) | Done |
 
 ## Not done (next run starts here)
 - Re-read the a11y sheets after the next sweep (newer than ffeef67c7, to see runs 28-30).
-- Next pages without a row: `Color.orange` / `Color.green` text (not `.orange`) contrast, e.g. `CityOrientationPausedTag`
-  (`CityOrientationNavComponents.swift`); then `.frame(width:)` on text containers at AX5 (fixed widths that clip wrapped text), then
+- Next pages without a row: `.frame(width:)` on text containers at AX5 (fixed widths that clip wrapped text), then
   `.fixedSize()` on button labels in HStacks.
 
 ## For other lanes

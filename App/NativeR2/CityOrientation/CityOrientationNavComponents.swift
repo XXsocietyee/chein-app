@@ -66,7 +66,7 @@ struct CityOrientationPausedTag: View {
     var body: some View {
         Label("nativeR2.city.paused.tag", systemImage: "pause.circle.fill")
             .font(.subheadline.weight(.semibold))
-            .foregroundStyle(Color.orange)
+            .foregroundStyle(CYColor.warningText)
             .accessibilityIdentifier("nativeR2.city.paused.tag")
     }
 }
@@ -121,7 +121,7 @@ struct CityOrientationArrivalCard: View {
         VStack(alignment: .leading, spacing: 10) {
             Label("nativeR2.city.arrival.cleared", systemImage: "checkmark.seal.fill")
                 .font(.headline)
-                .foregroundStyle(Color.green)
+                .foregroundStyle(CYColor.successText)
                 .nativeR2BounceOnAppear()
             if total > 0 {
                 ProgressView(value: Double(min(doneCount, total)), total: Double(total)) {

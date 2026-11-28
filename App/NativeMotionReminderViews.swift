@@ -251,7 +251,7 @@ extension NativeStepsHostView {
             if let stage {
                 if let window = stage.window, window.openNow {
                     Label("nativePlatform.reminder.open", systemImage: "clock")
-                        .foregroundStyle(Color.green)
+                        .foregroundStyle(CYColor.successText)
                 }
                 if let scheduled = stage.scheduled {
                     Label("playkit.window.subscribed", systemImage: "bell.badge")
