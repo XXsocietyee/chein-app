@@ -179,7 +179,7 @@ enum R9MiniCropRect {
             } footer: {
                 if let refusalKey {
                     Label(LocalizedStringKey(refusalKey), systemImage: "exclamationmark.circle")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("projectEdit.chapter.hostUnlock.error")
                 }
             }

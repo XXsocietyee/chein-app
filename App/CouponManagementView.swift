@@ -459,7 +459,7 @@ private struct CouponManagementDetailItem: Identifiable {
             Section {
                 Label(LocalizedStringKey(blocker), systemImage: "exclamationmark.circle")
                     .font(.footnote)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(CYColor.dangerText)
             }
         }
         if let review = model.core.review { CouponManagementReviewSection(model: model, review: review) }

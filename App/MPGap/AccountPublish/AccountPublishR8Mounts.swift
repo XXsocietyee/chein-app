@@ -706,8 +706,8 @@ enum ProjectEditLook {
                 .accessibilityIdentifier("team.invite.saveImage")
             switch phase {
             case .saving: ProgressView().controlSize(.small)
-            case .saved: Text("fixr8.team.saveImage.saved").font(.footnote).foregroundStyle(.green)
-            case .failed: Text("fixr8.team.saveImage.failed").font(.footnote).foregroundStyle(.red)
+            case .saved: Text("fixr8.team.saveImage.saved").font(.footnote).foregroundStyle(CYColor.successText)
+            case .failed: Text("fixr8.team.saveImage.failed").font(.footnote).foregroundStyle(CYColor.dangerText)
             case .idle: EmptyView()
             }
         }

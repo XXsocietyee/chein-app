@@ -117,7 +117,7 @@ import SwiftUI
     private var rosterError: some View {
         Section {
             Label { Text(verbatim: rosterCopy("club.publicRoster.revoked")) } icon: { Image(systemName: "exclamationmark.triangle") }
-                .foregroundStyle(.red)
+                .foregroundStyle(CYColor.dangerText)
                 .accessibilityIdentifier("club.publicRoster.error")
             Button { Task { await load() } } label: { Label("action.retry", systemImage: "arrow.clockwise") }
                 .disabled(loading)

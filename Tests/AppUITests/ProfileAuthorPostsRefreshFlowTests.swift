@@ -11,12 +11,19 @@ final class ProfileAuthorPostsRefreshFlowTests: XCTestCase {
         if !button.isHittable { app.swipeUp() }
         XCTAssertTrue(button.waitForExistence(timeout: 3)); button.tap()
     }
+    /// 11-28 05:35 sweep: the posts refresh by pull-down (MP), so the tests pull the list instead of tapping a row.
+    private func pullToRefresh(_ app: XCUIApplication) {
+        let list = app.collectionViews.firstMatch
+        XCTAssertTrue(list.waitForExistence(timeout: 3))
+        let start = list.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.2))
+        start.press(forDuration: 0.1, thenDragTo: list.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.95)))
+    }
     func testRefreshFailureRetainsCardsAndRetryReplacesTail() {
         let app = launch("refreshFailure")
         XCTAssertTrue(app.buttons["profile.postsRefresh.post.101"].waitForExistence(timeout: 3))
         tap("profile.postsRefresh.more", in: app)
         XCTAssertTrue(app.buttons["profile.postsRefresh.post.201"].waitForExistence(timeout: 3))
-        app.swipeDown(); tap("profile.postsRefresh.refresh", in: app)
+        app.swipeDown(); pullToRefresh(app)
         XCTAssertTrue(app.staticTexts["profile.postsRefresh.retained"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["profile.postsRefresh.post.201"].exists)
         tap("profile.postsRefresh.retry", in: app)
@@ -26,7 +33,7 @@ final class ProfileAuthorPostsRefreshFlowTests: XCTestCase {
     func testEmptyRefreshReplacesPreviouslyVisiblePost() {
         let app = launch("emptyRefresh")
         XCTAssertTrue(app.buttons["profile.postsRefresh.post.101"].waitForExistence(timeout: 3))
-        tap("profile.postsRefresh.refresh", in: app)
+        pullToRefresh(app)
         XCTAssertTrue(app.staticTexts["profile.postsRefresh.empty"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.buttons["profile.postsRefresh.post.101"].exists)
     }

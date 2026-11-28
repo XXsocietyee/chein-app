@@ -306,7 +306,7 @@ struct RoamPOIActionRows: View {
         }
         if let redeem = model.pendingRecovered {
             Label(LocalizedStringKey(redeem ? "roam.poi.pending.recoveredRedeem" : "roam.poi.pending.recoveredDone"), systemImage: "checkmark.seal.fill")
-                .foregroundStyle(.green).accessibilityIdentifier("roam.poi.pending.recovered")
+                .foregroundStyle(CYColor.successText).accessibilityIdentifier("roam.poi.pending.recovered")
         }
         if case .failed(let failure) = model.checkInPhase {
             failureRow(failure, retry: { model.checkIn(poiID: node.poiId, evidence: model.lastEvidence, actions: actions) })

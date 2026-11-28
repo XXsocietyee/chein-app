@@ -85,7 +85,7 @@ import Combine
                 Section("templateLegacyQuiz.question") {
                     Text(verbatim: editor.question).font(.headline)
                     if editor.state == .completed {
-                        Label("templateLegacyQuiz.completed", systemImage: "checkmark.circle").foregroundStyle(.green).accessibilityIdentifier("templateLegacyQuiz.completed")
+                        Label("templateLegacyQuiz.completed", systemImage: "checkmark.circle").foregroundStyle(CYColor.successText).accessibilityIdentifier("templateLegacyQuiz.completed")
                     } else {
                         if editor.method == .text {
                             TextField("templateLegacyQuiz.answer", text: editor.answerInput(), axis: .vertical).textInputAutocapitalization(.never).autocorrectionDisabled()
@@ -104,7 +104,7 @@ import Combine
                                     .accessibilityValue(editor.selected == option.letter ? Text("templateLegacyQuiz.selected") : Text("templateLegacyQuiz.unselected"))
                             }
                         }
-                        if editor.state == .wrong { Text("templateLegacyQuiz.wrong").foregroundStyle(.red).accessibilityIdentifier("templateLegacyQuiz.wrong") }
+                        if editor.state == .wrong { Text("templateLegacyQuiz.wrong").foregroundStyle(CYColor.dangerText).accessibilityIdentifier("templateLegacyQuiz.wrong") }
                         if let hint = editor.visibleHint { Text(verbatim: hint).accessibilityIdentifier("templateLegacyQuiz.hintText") }
                         else if editor.canRevealHint { Button(action: editor.hintAction()) { Label("templateLegacyQuiz.hint", systemImage: "lightbulb") }.accessibilityIdentifier("templateLegacyQuiz.hint") }
                         Button(action: editor.submitAction()) { Text("templateLegacyQuiz.submit").fontWeight(.semibold) }.disabled(!editor.canAttempt).accessibilityIdentifier("templateLegacyQuiz.submit")

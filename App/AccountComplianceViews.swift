@@ -186,7 +186,7 @@ import SwiftUI
         // Destructive row: its own section, red, with the consequence stated underneath.
         Section {
             Button(role: .destructive) { selected = .cancellation } label: {
-                Label { Text("settings.deregister.row").foregroundStyle(.red) } // MP shezhi.wxml:34 账号注销
+                Label { Text("settings.deregister.row").foregroundStyle(CYColor.dangerText) } // MP shezhi.wxml:34 账号注销
                     icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcUserRoundX) }
                     .environment(\.settingsTileTint, SettingsTint.red)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -298,9 +298,13 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     // mp-states r3 (MP scene-settings-deregister cy-error): one state with its title, the reason
                     // as the description and 重试 inside it — 注销条件核验失败 / 验证码没有发送 / 注销申请没有提交 / 撤销没有完成.
                     cancellationIssue(error)
+                } else if destination == .marketing {
+                    // mp-states r3 (MP marketing-consent cy-inline-error): 营销同意状态加载失败 · sub · 重试 before the
+                    // list has loaded; 营销同意状态未更新 · sub (no action) once rows are on screen.
+                    marketingIssue(error)
                 } else {
                     Text(LocalizedStringKey(error), tableName: error == "compliance.impactChanged" ? "AccountDeregistrationPresentation" : nil)
-                        .foregroundStyle(.red).accessibilityIdentifier("compliance.error")
+                        .foregroundStyle(CYColor.dangerText).accessibilityIdentifier("compliance.error")
                 }
             }
             switch destination {
@@ -426,6 +430,30 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             }
         }
     }
+    private var marketingIssueTitle: String {
+        model.state.marketingLoaded
+            ? MemberPopupCopy.text("营销同意状态未更新", "Marketing consent wasn't updated", locale: locale)
+            : MemberPopupCopy.text("营销同意状态加载失败", "Couldn't load marketing consent", locale: locale)
+    }
+    @ViewBuilder private func marketingIssue(_ error: String) -> some View {
+        ContentUnavailableView {
+            Label { Text(verbatim: marketingIssueTitle) } icon: { Image(systemName: "wifi.exclamationmark") }
+        } description: {
+            Text(LocalizedStringKey(error))
+                .accessibilityIdentifier("compliance.error")
+        } actions: {
+            if !model.state.marketingLoaded {
+                Button(action: retryMarketingRead) { Text("fixr3.common.retry") }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("compliance.error.retry")
+            }
+        }
+    }
+    private func retryMarketingRead() {
+        guard scenePhase == .active, let intent = model.marketingRead() else { return }
+        marketingChange = nil
+        Task { await model.coordinator.loadMarketing(intent: intent) }
+    }
     private func requestCancellationRead() {
         guard destination == .cancellation, scenePhase == .active else { return }
         guard let intent = model.cancellationIntent() else {
@@ -542,7 +570,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 }
                     .disabled(model.state.busy || !model.state.localCancellationConsent.allowsNewConsent).accessibilityIdentifier("compliance.sendSMS")
                 if model.state.error == DeregistrationBoundPhone.missingMessage {
-                    Text(verbatim: DeregistrationBoundPhone.missingMessage).font(.subheadline).foregroundStyle(.red)
+                    Text(verbatim: DeregistrationBoundPhone.missingMessage).font(.subheadline).foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("compliance.boundPhoneMissing")
                 } else if let notice = model.state.smsNotice, model.state.smsSent {
                     Text(verbatim: notice).font(.subheadline).foregroundStyle(.secondary)
@@ -788,7 +816,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             ForEach(model.state.marketingOriginalResults) { receipt in
                 MarketingConsentOriginalReceiptView(receipt: receipt)
             }
-            if page.phase != .loading && !model.state.marketingLoaded {
+            if page.phase != .loading && !model.state.marketingLoaded && model.state.error == nil {
                 Text("marketingOriginal.current.unconfirmed", tableName: "MarketingConsentOriginalPresentation")
             }
 

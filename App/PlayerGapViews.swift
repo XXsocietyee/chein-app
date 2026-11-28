@@ -389,6 +389,7 @@ struct PlayerCodeAndJoinSection: View {
     @State private var qr: URL?
     @State private var join: RegistrationJoinInfo?
     @State private var loading = false
+    @State private var failed = false
 
     var body: some View {
         if service != nil {
@@ -396,26 +397,67 @@ struct PlayerCodeAndJoinSection: View {
                 if let join, join.hasJoin {
                     LabeledContent("playerGap.join.title") { Text(verbatim: join.title ?? "#\(join.id)") }
                 }
-                if let qr {
-                    AsyncImage(url: qr) { $0.resizable().scaledToFit() } placeholder: { ProgressView() }
-                        .frame(maxWidth: 180, maxHeight: 180)
-                        .accessibilityLabel(Text("playerGap.playerCode.image"))
-                } else {
-                    Button("playerGap.playerCode.load") {
-                        guard !loading, let service = service else { return }
-                        loading = true
-                        Task { qr = await service.playerCode(); loading = false }
-                    }
-                    .disabled(loading)
-                    .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
-                    .accessibilityIdentifier("gap.playerCode.load")
-                }
+                codeState
             }
             .task {
-                guard let service = service, let account = service.accountID else { return }
-                join = await service.joinInfo(memberID: account)
+                guard let service = service else { return }
+                if qr == nil && !loading { await loadCode() }
+                if let account = service.accountID { join = await service.joinInfo(memberID: account) }
             }
+        } else {
+            // mp-states r3: MP scene-share-invite cy-empty 二维码暂时不可用 when no code source exists.
+            ContentUnavailableView("playerGap.playerCode.unavailable", systemImage: "qrcode")
+                .accessibilityIdentifier("gap.playerCode.unavailable")
         }
+    }
+
+    /// mp-states r3: MP `subpackageMember/components/cy/scene-share-invite/index.wxml:4-21` — the code loads on
+    /// open (正在加载邀请二维码 · 加载完成后即可扫码邀请好友), a failed read is cy-error 个人码加载失败 · 重新生成.
+    @ViewBuilder private var codeState: some View {
+        if let qr {
+            AsyncImage(url: qr) { $0.resizable().scaledToFit() } placeholder: {
+                ProgressView { Text("playerGap.playerCode.loading") }
+            }
+            .frame(maxWidth: 180, maxHeight: 180)
+            .accessibilityLabel(Text("playerGap.playerCode.image"))
+        } else if failed && !loading {
+            ContentUnavailableView {
+                Label("playerGap.playerCode.failed", systemImage: "qrcode")
+            } description: {
+                Text("playerGap.playerCode.failedHint")
+            } actions: {
+                Button(action: retry) { Text("playerGap.playerCode.retry") }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("gap.playerCode.load")
+            }
+            .accessibilityIdentifier("gap.playerCode.failed")
+        } else {
+            VStack(spacing: 4) {
+                ProgressView { Text("playerGap.playerCode.loading") }
+                Text("playerGap.playerCode.loadingHint")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("gap.playerCode.loading")
+        }
+    }
+
+    private func retry() {
+        guard !loading else { return }
+        Task { await loadCode() }
+    }
+
+    private func loadCode() async {
+        guard let service = service else { return }
+        loading = true
+        failed = false
+        let code = await service.playerCode()
+        qr = code
+        failed = code == nil
+        loading = false
     }
 }
 

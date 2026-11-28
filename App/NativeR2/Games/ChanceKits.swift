@@ -424,7 +424,7 @@ private struct ChanceSymbolSize {
                 } footer: {
                     if let issue = model.issue {
                         Label { Text(verbatim: issue) } icon: { Image(systemName: "exclamationmark.triangle") }
-                            .foregroundStyle(.red)
+                            .foregroundStyle(CYColor.dangerText)
                             .accessibilityIdentifier("journey.check.error")
                     }
                 }

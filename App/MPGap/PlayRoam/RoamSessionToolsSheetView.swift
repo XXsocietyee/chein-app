@@ -184,7 +184,7 @@ struct RoamSessionToolsSheetView: View {
             .disabled(presenceSubmitting)
             .accessibilityIdentifier("roamTools.presence")
             if presenceFailed {
-                Text("roamTools.presence.failed").font(.footnote).foregroundStyle(.red)
+                Text("roamTools.presence.failed").font(.footnote).foregroundStyle(CYColor.dangerText)
             }
         }
         .confirmationDialog("roamTools.presence.consentTitle", isPresented: $presenceConsentShown, titleVisibility: .visible) {

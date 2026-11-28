@@ -45,7 +45,7 @@ struct TopicSelfSupplyNode: Identifiable, Hashable {
                     TextField("topicSelfSupply.capacity", text: $capacity).keyboardType(.numberPad)
                     DatePicker("topicSelfSupply.validEnd", selection: $validEnd, in: Date()..., displayedComponents: .date)
                 } footer: {
-                    if let errorText { Text(verbatim: errorText).foregroundStyle(.red) }
+                    if let errorText { Text(verbatim: errorText).foregroundStyle(CYColor.dangerText) }
                 }
             }
             .appNavigationTitle("topicSelfSupply.title")

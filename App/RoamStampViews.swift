@@ -594,7 +594,7 @@ struct RoamCityStampDraftView: View {
                             .lineLimit(2...5).textFieldStyle(.roundedBorder)
                             .accessibilityIdentifier("roam.experience.stamp.caption")
                         LabeledContent("roam.experience.remaining", value: String(draft.remaining)).cyText(.meta).monospacedDigit()
-                        if !draft.canReview { Label("roam.experience.captionLimit", systemImage: "exclamationmark.circle").foregroundStyle(.red) }
+                        if !draft.canReview { Label("roam.experience.captionLimit", systemImage: "exclamationmark.circle").foregroundStyle(CYColor.dangerText) }
                         Button("roam.experience.previewDraft") { withAnimation(reduceMotion ? nil : QuestifyMotion.content) { review = true } }
                             .buttonStyle(.borderedProminent).disabled(!draft.canReview)
                             .accessibilityIdentifier("roam.experience.stamp.preview")

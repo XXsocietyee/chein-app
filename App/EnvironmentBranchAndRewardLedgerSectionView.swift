@@ -88,7 +88,7 @@ public struct EnvironmentBranchHostSectionView: View {
                 if presentation.requiresSafeExitAction {
                     Text(verbatim: "安全保护已开启：暂停户外节点推进，请按引导撤离至安全室内点位。")
                         .cyText(.label)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("environmentBranch.host.safeExitNotice")
                 }
             }
@@ -183,7 +183,7 @@ public struct RewardLedgerHostSectionView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(verbatim: "奖励账本校验未通过")
                         .cyText(.bodyMedium)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(CYColor.dangerText)
                     Text(verbatim: describeError(error))
                         .cyText(.bodyCompact)
                         .foregroundStyle(.secondary)
@@ -241,7 +241,7 @@ public struct RewardLedgerHostSectionView: View {
                     if let revOf = row.reversalOf {
                         Text(verbatim: "冲正原记录: \(revOf)")
                             .cyText(.caption)
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(CYColor.warningText)
                     } else if let pairedRev = row.pairedReversalEntryID {
                         Text(verbatim: "已被追加冲正: \(pairedRev)")
                             .cyText(.caption)

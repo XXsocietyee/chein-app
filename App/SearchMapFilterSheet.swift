@@ -33,16 +33,8 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             Form {
-                if applyCityOptions != nil {
-                    Section("searchMap.cityOptions") {
-                        TextField("searchMap.tag", text: $tag).accessibilityIdentifier("searchMap.tag")
-                        TextField("searchMap.cityRole", text: $cityRole).accessibilityIdentifier("searchMap.cityRole")
-                        Picker("searchMap.sort", selection: $sortType) {
-                            Text("searchMap.nearest").tag(1) // R7-PC-A5-3: MP searchmap sort_type 最近 only; 最热 removed (pages/searchmap/index.js:281)
-                        }
-                    }
-                }
-                Section("searchMap.categories") {
+                // MP pages/searchmap filter order: 商家发现 (category, 探索标签, 城市角色) → 日期 → 价格 → 排序.
+                Section(LocalizedStringKey(applyCityOptions == nil ? "searchMap.categories" : "searchMap.merchantDiscovery")) {
                     Picker("searchMap.category", selection: $draft.categoryID) {
                         Text("searchMap.all").tag(Int?.none)
                         ForEach(categories) { Text(verbatim: $0.name).tag(Optional($0.id)) }
@@ -66,6 +58,10 @@ import SwiftUI
                     } else if categoryLoaded && categories.isEmpty {
                         Text("searchMap.empty").font(.caption)
                             .accessibilityIdentifier("searchMap.category.empty")
+                    }
+                    if applyCityOptions != nil {
+                        TextField("searchMap.tag", text: $tag).accessibilityIdentifier("searchMap.tag")
+                        TextField("searchMap.cityRole", text: $cityRole).accessibilityIdentifier("searchMap.cityRole")
                     }
                 }
                 Section("searchMap.dates") {
@@ -107,7 +103,13 @@ import SwiftUI
                         .accessibilityValue(Text(verbatim: maximum.isEmpty ? "—" : maximum))
                         .accessibilityHint(Text("searchMap.price"))
                 }
-                if applyCityOptions == nil {
+                if applyCityOptions != nil {
+                    Section("searchMap.sort") {
+                        Picker("searchMap.sort", selection: $sortType) {
+                            Text("searchMap.nearest").tag(1) // R7-PC-A5-3: MP searchmap sort_type 最近 only; 最热 removed (pages/searchmap/index.js:281)
+                        }
+                    }
+                } else {
                     Section("searchMap.sort") {
                         Picker("searchMap.sort", selection: .constant(SearchListSort.recent)) {
                             Text("search.sort.recent").tag(SearchListSort.recent)

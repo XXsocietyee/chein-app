@@ -154,7 +154,7 @@ struct PlayNodeDetailView: View {
                                 .cyText(.meta)
                         }
                         if let extGameIssue {
-                            Text(verbatim: extGameIssue).cyText(.meta).foregroundStyle(.red)
+                            Text(verbatim: extGameIssue).cyText(.meta).foregroundStyle(CYColor.dangerText)
                         }
                         Button(isLaunchingExtGame ? W8Text.t("正在准备小游戏…", "Loading game…") : W8Text.t("启动外部小游戏", "Launch External Game")) {
                             Task { await launchBoundExternalGame(ext.gameID) }

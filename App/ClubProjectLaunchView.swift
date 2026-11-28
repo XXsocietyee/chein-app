@@ -83,7 +83,7 @@ import SwiftUI
             if !scope.canRead || model.phase == .denied {
                 Section {
                     Label("club.projectLaunch.ownerRequired", systemImage: "lock")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(CYColor.warningText)
                 }
             } else {
                 launchActions(scope)
@@ -128,11 +128,11 @@ import SwiftUI
                 if model.phase == .loading { launchLoading }
                 if model.phase == .failed {
                     Label("club.projectLaunch.failed", systemImage: "exclamationmark.triangle")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(CYColor.dangerText)
                 }
                 if model.phase == .editorUnavailable {
                     Label("club.projectLaunch.editorUnavailable", systemImage: "square.and.pencil")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(CYColor.warningText)
                 }
             }
         }

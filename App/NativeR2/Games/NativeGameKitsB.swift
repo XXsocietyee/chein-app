@@ -274,7 +274,7 @@ extension PlayKitScreen {
                 }
                 if peeked {
                     Label("playkit.blind.peeked", systemImage: "eye")
-                        .font(.footnote).foregroundStyle(.orange)
+                        .font(.footnote).foregroundStyle(CYColor.warningText)
                 }
             }
         }

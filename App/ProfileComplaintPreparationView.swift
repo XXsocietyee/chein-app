@@ -246,7 +246,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
             }
             Section {
                 if let validation = model.validation {
-                    Text(LocalizedStringKey(validation.titleKey)).font(.subheadline).foregroundStyle(.red)
+                    Text(LocalizedStringKey(validation.titleKey)).font(.subheadline).foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("profile.complaint.validation")
                 }
                 // PLY-27-3: one primary 提交投诉 (complaint/index.wxml:75-76). A valid draft goes straight to the
@@ -284,7 +284,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
                 Text(verbatim: review.reason).accessibilityIdentifier("profile.complaint.reviewText")
                 if sending.state == .succeeded {
                     Label("profile.complaint.submit.done", systemImage: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
+                        .foregroundStyle(CYColor.successText)
                         .accessibilityIdentifier("profile.complaint.submit.done")
                 } else if !sending.isConfigured {
                     Text("profile.complaint.notSubmitted").font(.subheadline).foregroundStyle(.secondary)
@@ -293,7 +293,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
             }
             if case .failed(let failure) = sending.state {
                 Section {
-                    Text(LocalizedStringKey(failure.titleKey)).foregroundStyle(.red)
+                    Text(LocalizedStringKey(failure.titleKey)).foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("profile.complaint.submit.failure")
                     if case .rejected(let message?) = failure {
                         Text(verbatim: message).font(.subheadline).accessibilityIdentifier("profile.complaint.submit.serverMessage")

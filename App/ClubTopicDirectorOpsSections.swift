@@ -196,7 +196,7 @@ import SwiftUI
                     } else if !status.reason.isEmpty {
                         Text(verbatim: status.reason).font(.footnote).foregroundStyle(.secondary)
                     }
-                    if let failure { Text(failure).font(.footnote).foregroundStyle(.red) }
+                    if let failure { Text(failure).font(.footnote).foregroundStyle(CYColor.dangerText) }
                 } header: {
                     Text("club.topic.planFallback.title")
                 }
@@ -217,7 +217,7 @@ import SwiftUI
                             .lineLimit(3...8)
                             .accessibilityIdentifier("club.topic.planFallback.reasonField")
                     } footer: {
-                        if let draftError { Text(draftError).foregroundStyle(.red) }
+                        if let draftError { Text(draftError).foregroundStyle(CYColor.dangerText) }
                         // CLB-r10-nat-topic-detail-07: the length rule in the footer, no n/500 counter.
                         else { Text("club.topic.planFallback.lengthRule") }
                     }

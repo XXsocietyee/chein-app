@@ -436,7 +436,7 @@ private struct ProfileOrderRow: View {
             // HANDOFF-R1 MC-35 / §2 Status: blue is not used for status or tags.
             Text("profile.orders.mode.city").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
         case .freeExplore?:
-            Text("profile.orders.mode.free").font(.caption.weight(.semibold)).foregroundStyle(.green)
+            Text("profile.orders.mode.free").font(.caption.weight(.semibold)).foregroundStyle(CYColor.successText)
         case nil: EmptyView()
         }
     }
@@ -607,7 +607,7 @@ struct ProfileOrderDetailView: View {
                     Section {
                         NavigationLink { OrderLifecycleView(id: id, coordinator: lifecycleCoordinator).id(lifecycleCoordinator.scope) } label: {
                             if let key = order.selfServiceExitKey {
-                                Label(LocalizedStringKey(key), systemImage: "xmark.circle").foregroundStyle(.red)
+                                Label(LocalizedStringKey(key), systemImage: "xmark.circle").foregroundStyle(CYColor.dangerText)
                             } else {
                                 Label("orderLifecycle.title", systemImage: "list.bullet.rectangle")
                             }

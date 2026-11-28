@@ -1264,7 +1264,7 @@ struct ClubCommunityReviewView: View {
                         Text(pinned ? "club.community.pin" : "club.community.unpin")
                     default:
                         Text("club.community.deleteWarning")
-                            .foregroundStyle(.red)
+                            .foregroundStyle(CYColor.dangerText)
                     }
                 } footer: {
                     // E2E R13: the note follows the same grant that admits the write; a granted Confirm never says "unavailable".

@@ -176,7 +176,7 @@ import SwiftUI
                     } header: { applyStepHeader(2) } footer: {
                         // CLB-r10-nat-apply-03: the field error sits in the footer (MP apply js 请选择组织经验 toast).
                         if applyBlocked, (draft.text["experience"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            Text(verbatim: ClubPlayerCopy.applyExperienceGap(locale)).foregroundStyle(.red)
+                            Text(verbatim: ClubPlayerCopy.applyExperienceGap(locale)).foregroundStyle(CYColor.dangerText)
                                 .accessibilityIdentifier("club.player.apply.experienceGap")
                         }
                     }
@@ -384,7 +384,7 @@ import SwiftUI
                     // js:435-452, roles js:400-415). Heavy commands still stop once on the consequence sheet (MC-33);
                     // 分配 stays tappable and names the missing field instead of greying out.
                     if let directHint {
-                        Text(LocalizedStringKey(directHint)).font(.footnote).foregroundStyle(.red)
+                        Text(LocalizedStringKey(directHint)).font(.footnote).foregroundStyle(CYColor.dangerText)
                             .accessibilityIdentifier("club.gov.directHint")
                     }
                     Button(LocalizedStringKey("club.gov.action." + route.operation.rawValue)) {
@@ -429,7 +429,7 @@ import SwiftUI
                     // CLB-G15 (MP event-ops wxml:200): the series-create receipt's windowWarning, the server's own sentence.
                     if route.operation == .createSeries, let warning = receipt["windowWarning"].string?.trimmingCharacters(in: .whitespacesAndNewlines), !warning.isEmpty {
                         Label { Text(verbatim: warning) } icon: { Image(systemName: "exclamationmark.triangle") }
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(CYColor.warningText)
                             .accessibilityIdentifier("clubOpsEvent.series.windowWarning")
                     }
                     // CLB-apply-11 (MP apply/index.js:415, wxml:177): 主理人 comes from the submitted draft, not a status read.
@@ -505,7 +505,7 @@ import SwiftUI
                             guard let pending = cancelConfirmReview, pending.id == review?.id else { cancelConfirmReview = nil; return }
                             cancelConfirmReview = nil; Task { await confirm(pending) }
                         } label: { Text("clubOpsEvent.cancel.confirmAction", tableName: "ClubOpsEvent") }
-                        .foregroundStyle(.red)
+                        .foregroundStyle(CYColor.dangerText)
                     }
                 }
             }
@@ -829,11 +829,11 @@ import SwiftUI
             Text("club.host.requiredFooter")
             Text("club.host.contactPrivate")
             if applyBlocked, (draft.text["leaderName"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                Text(verbatim: ClubPlayerCopy.applyNameGap(locale)).foregroundStyle(.red)
+                Text(verbatim: ClubPlayerCopy.applyNameGap(locale)).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("club.player.apply.nameGap")
             }
             if applyBlocked, (draft.text["phone"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                Text(verbatim: ClubPlayerCopy.applyPhoneGap(locale)).foregroundStyle(.red)
+                Text(verbatim: ClubPlayerCopy.applyPhoneGap(locale)).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("club.player.apply.phoneGap")
             }
         }

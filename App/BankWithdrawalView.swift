@@ -313,7 +313,7 @@ import SwiftUI
     private func issueLine(_ key: String, identified: Bool) -> some View {
         Label {
             Text(LocalizedStringKey(key))
-                .foregroundStyle(.red)
+                .foregroundStyle(CYColor.dangerText)
                 .modifier(Cloud02Identifier(identified ? "bank.withdrawal.issue" : nil))
         } icon: {
             Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.red)

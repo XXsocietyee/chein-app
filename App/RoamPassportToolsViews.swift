@@ -344,6 +344,7 @@ struct RoamAnniversaryReadIntent {
             let parts = Self.shanghai.dateComponents([.month, .day], from: value)
             guard let month = parts.month, let day = parts.day else { return }
             guard let selected = RoamAnniversaryListState.Day(month: month, day: day), state.select(selected) else { return }
+            HapticsService.shared.play(.selection)
             navigation.invalidate()
             enqueue(readIntent(.refresh))
         }
@@ -749,6 +750,9 @@ struct RoamAnniversaryReadIntent {
         .onChange(of: (reader as? RoamPassportToolsSessionReader)?.readScope) { _, _ in lifetime.bind(reader); lifetime.resume(reader, foreground: scenePhase == .active) }
         .onChange(of: readerID) { _, _ in lifetime.bind(reader); lifetime.resume(reader, foreground: scenePhase == .active) }
         .onChange(of: model.month) { _, _ in pickedWeek = nil }
+        // Next round (motion): a selection tick when the month or the kind changes (MP prevMonth / nextMonth / pickKind).
+        .cyHaptic(.selection, trigger: model.month)
+        .cyHaptic(.selection, trigger: model.kind)
         .onChange(of: model.kind) { _, _ in pickedWeek = nil }
         .onChange(of: reader?.identity) { _, _ in lifetime.bind(reader); lifetime.resume(reader, foreground: scenePhase == .active) }
         .onChange(of: reader?.isConfigured) { _, _ in lifetime.accessChanged(reader, foreground: scenePhase == .active) }
@@ -813,6 +817,8 @@ private struct RoamRecapWeekChart: View {
     @ScaledMetric(relativeTo: .caption) private var chartHeight: CGFloat = 170
     /// Categorical x value for a week (Swift Charts selection works on the plotted value).
     private static func key(_ index: Int) -> String { String(index) }
+    /// A tick only for a picked week (the month change clears the pick silently).
+    static func weekPicked(_ was: Int?, _ now: Int?) -> Bool { now != nil && now != was }
     /// Plain-String series names (not catalog keys; the axis and marks carry the localized text).
     private static let xSeries: String = "week", ySeries: String = "count"
     private var selection: Binding<String?> {
@@ -835,6 +841,7 @@ private struct RoamRecapWeekChart: View {
         .chartYAxis(.hidden)
         .chartXAxis { weekAxis }
         .chartXSelection(value: selection)
+        .cyHaptic(.selection, trigger: picked, where: Self.weekPicked)
         .frame(minHeight: chartHeight)
         // TRECAP-6: one summary of every week first (MP `aria-label`).
         .accessibilityElement(children: .contain)

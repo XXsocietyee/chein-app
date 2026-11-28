@@ -52,6 +52,7 @@ import Observation
 @MainActor struct ProfileAuthorPostsRefreshFixtureHost: View {
     @State private var reader: ProfileAuthorPostsRefreshFixtureReader
     @State private var showsPosts = true
+    @State private var refreshToken = 0
     init(scenario: String = "content") {
         _reader = State(initialValue: ProfileAuthorPostsRefreshFixtureReader(scenario: scenario))
     }
@@ -64,8 +65,9 @@ import Observation
                     Button("Sign out synthetic account") { reader.signOut() }.accessibilityIdentifier("profile.postsFixture.logout")
                     Button("Toggle author posts") { showsPosts.toggle() }.accessibilityIdentifier("profile.postsFixture.toggle")
                 }
-                if showsPosts { ProfileAuthorPostsSection(memberID: 91, accountReader: reader, squareReader: reader) }
+                if showsPosts { ProfileAuthorPostsSection(memberID: 91, accountReader: reader, squareReader: reader, refreshTrigger: refreshToken) }
             }
+            .refreshable { await MainActor.run { refreshToken += 1 } }
         }
     }
 }

@@ -160,7 +160,7 @@ import SwiftUI
                     .disabled(replayBusy)
                     .accessibilityIdentifier("topic.records.replay")
                 if replayFailed {
-                    Text("topicXcx.records.replayFailed").font(.footnote).foregroundStyle(.red)
+                    Text("topicXcx.records.replayFailed").font(.footnote).foregroundStyle(CYColor.dangerText)
                 }
             }
         }

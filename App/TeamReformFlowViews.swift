@@ -167,14 +167,14 @@ struct TeamReformSheetHost: View {
                     Spacer()
                     switch batch.deliveries[friend.friendId] ?? .notSent {
                     case .sent:
-                        if flow.revokeUnknown.contains(friend.friendId) { Text("teamReform.invite.revokeUnknown").font(.subheadline).foregroundStyle(.orange) }
+                        if flow.revokeUnknown.contains(friend.friendId) { Text("teamReform.invite.revokeUnknown").font(.subheadline).foregroundStyle(CYColor.warningText) }
                         Button("teamReform.invite.revoke", role: .destructive) { Task { await box.run { await $0.revoke(friendId: friend.friendId) } } }
                             .buttonStyle(.borderless)
                             .disabled(flow.busy).accessibilityIdentifier("teamReform.invite.revoke.\(friend.friendId)")
                     case .revoked: Text("teamReform.invite.revokedState").font(.subheadline).foregroundStyle(.secondary).accessibilityIdentifier("teamReform.invite.revoked.\(friend.friendId)")
-                    case .rejected: Text("teamReform.invite.rejected").font(.subheadline).foregroundStyle(.red)
-                    case .unknown: Text("teamReform.invite.unknown").font(.subheadline).foregroundStyle(.orange)
-                    case .failed, .notSent: Text("teamReform.invite.retryable").font(.subheadline).foregroundStyle(.orange)
+                    case .rejected: Text("teamReform.invite.rejected").font(.subheadline).foregroundStyle(CYColor.dangerText)
+                    case .unknown: Text("teamReform.invite.unknown").font(.subheadline).foregroundStyle(CYColor.warningText)
+                    case .failed, .notSent: Text("teamReform.invite.retryable").font(.subheadline).foregroundStyle(CYColor.warningText)
                     }
                 }
             }

@@ -27,6 +27,7 @@ import SwiftUI
     @Environment(\.dynamicTypeSize) private var typeSize
     private enum Tab: String, CaseIterable { case mine, posts, achievements, about }
     @State private var authorPosts = ProfileAuthorPostsRefreshController()
+    @State private var pullRefreshToken = 0
     @State private var authorPostTicket: ProfileAuthorPostTicket?
     @State private var tab = Tab.posts
     @State private var appliedInitialTab = false
@@ -230,7 +231,8 @@ import SwiftUI
                             ProfileSelfOrdersEntry(memberID: memberID, social: reader, access: selfOrdersAccess, isCurrent: isCurrent)
                         }
                         if let selfProjectsAccess {
-                            ProfileSelfProjectsEntry(memberID: memberID, accountReader: reader, access: selfProjectsAccess, isCurrent: isCurrent)
+                            ProfileSelfProjectsEntry(memberID: memberID, accountReader: reader, access: selfProjectsAccess, isCurrent: isCurrent,
+                                refreshTrigger: pullRefreshToken)
                         }
                     case .posts:
                         // r8 A1-01: own profile only.
@@ -330,6 +332,8 @@ import SwiftUI
         }
         }
             .cyPageTitle("social.profile")
+            // 11-28 05:35 sweep: posts refresh by pull-down, as in the MP (no refresh row).
+            .cyRefreshable { await refreshPage() }
             .cyHideTabBar()
             .navigationDestination(item: selfEditBinding) { ticket in
                 ProfileSelfEditDestination(ticket: ticket, access: selfEditAccess,
@@ -378,6 +382,12 @@ import SwiftUI
             .onChange(of: selfOrdersAccess?.context(memberID: memberID, social: reader, isCurrent: isCurrent())) { _, context in
                 if context == nil && tab == .mine && selfProjectsAccess?.context(memberID: memberID, accountReader: reader, isCurrent: isCurrent()) == nil { tab = .posts }
             }
+    }
+    /// Pull to refresh (MP pull-down): 帖文 reloads the retained author feed; 我的项目 reloads on the bumped token.
+    private func refreshPage() async {
+        pullRefreshToken &+= 1
+        guard tab == .posts, !authorPosts.isBusy else { return }
+        await authorPosts.refresh(memberID: memberID, accountReader: reader, squareReader: squareReader, isCurrent: isCurrent)
     }
     /// Label for the side-by-side bordered 关注 / 发消息 buttons.
     @ViewBuilder private func profilePill(_ title: Text, systemImage: String?) -> some View {
@@ -599,7 +609,7 @@ struct ProfileSelfCouponContext: Hashable {
             .accessibilityHint(followed == true ? Text("social.editor.unfollow") : Text(verbatim: ""))
             .accessibilityIdentifier("social.profile.follow")
             if failed {
-                Text("social.follow.failed").font(.footnote).foregroundStyle(.red)
+                Text("social.follow.failed").font(.footnote).foregroundStyle(CYColor.dangerText)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("social.profile.follow.failed")
             }
@@ -666,7 +676,7 @@ extension EnvironmentValues {
             .accessibilityValue(busy ? Text("social.follow.pending") : Text(verbatim: ""))
             .accessibilityIdentifier("social.profile.startChat")
             if failed {
-                Text("social.startChat.failed").font(.footnote).foregroundStyle(.red)
+                Text("social.startChat.failed").font(.footnote).foregroundStyle(CYColor.dangerText)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("social.profile.startChat.failed")
             }

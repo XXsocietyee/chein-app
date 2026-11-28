@@ -51,10 +51,10 @@ import SwiftUI
                 } footer: {
                     VStack(alignment: .leading, spacing: 6) {
                         if let key = model.flow.messageKey {
-                            Text(LocalizedStringKey(key)).foregroundStyle(.red)
+                            Text(LocalizedStringKey(key)).foregroundStyle(CYColor.dangerText)
                         }
                         if let message = model.flow.serverMessage {
-                            Text(verbatim: message).foregroundStyle(.red)
+                            Text(verbatim: message).foregroundStyle(CYColor.dangerText)
                         }
                         if !model.flow.canGenerate && !model.flow.busy && model.flow.quotaReadState != .loading && model.flow.quota?.exhausted != true {
                             Text("contextPublish.ai.unavailable")
@@ -85,7 +85,7 @@ import SwiftUI
                     Section {
                         if model.flow.candidateIsPrevious {
                             Label("publishingAICandidate.previousNotice", systemImage: "clock.arrow.circlepath")
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(CYColor.warningText)
                         }
                         if let sourceIdea = model.flow.candidateSourceIdea {
                             VStack(alignment: .leading, spacing: 2) {
@@ -109,7 +109,7 @@ import SwiftUI
                         }
                         .id(candidateGeneration)
                         Label("contextPublish.ai.placesUnconfirmed", systemImage: "mappin.and.ellipse")
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(CYColor.warningText)
                         ForEach(Array(result.draft.nodes.enumerated()), id: \.element.id) { index, node in
                             Label {
                                 VStack(alignment: .leading, spacing: 2) {

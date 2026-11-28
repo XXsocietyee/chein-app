@@ -90,7 +90,7 @@ import SwiftUI
             if model.busy { NativeChannelProgressPrivacyLoading() }
             if !model.isCurrent {
                 Label { Text(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.closed")) } icon: { Image(systemName: "lock") }
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(CYColor.warningText)
                     .accessibilityLabel(Text("d7.channelProgress.closed", tableName: "NativeChannelProgress"))
             }
             if model.isCurrent, let values = draft {
@@ -131,17 +131,17 @@ import SwiftUI
                 if model.privacyPhase == .unresolved { Text("d7.channelProgress.outcomeUnknown", tableName: "NativeChannelProgress").nativeChannelNotice(systemImage: "clock") }
                 if model.privacyPhase == .conflict {
                     Label { Text(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.privacyConflict")) } icon: { Image(systemName: "exclamationmark.triangle") }
-                        .foregroundStyle(.red)
+                        .foregroundStyle(CYColor.dangerText)
                         .accessibilityLabel(Text("d7.channelProgress.privacyConflict", tableName: "NativeChannelProgress"))
                 }
                 if model.privacyPhase == .persistenceFailed {
                     Label { Text(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.persistenceFailed")) } icon: { Image(systemName: "exclamationmark.circle") }
-                        .foregroundStyle(.red)
+                        .foregroundStyle(CYColor.dangerText)
                         .accessibilityLabel(Text("d7.channelProgress.persistenceFailed", tableName: "NativeChannelProgress"))
                 }
                 if let receipt = model.receipt, receipt.status == "APPLIED" {
                     Label { Text(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.applied")) } icon: { Image(systemName: "checkmark.circle") }
-                        .foregroundStyle(.green)
+                        .foregroundStyle(CYColor.successText)
                         .accessibilityIdentifier("channelProgress.applied")
                         .accessibilityLabel(Text("d7.channelProgress.applied", tableName: "NativeChannelProgress"))
                 }
