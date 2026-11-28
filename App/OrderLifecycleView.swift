@@ -169,7 +169,7 @@ import SwiftUI
                     payableAmount: detail.payableAmount,
                     consented: coordinator.issue != .reconsentRequired,
                     requiresFreshQuote: false,
-                    channel: .standard,
+                    channel: RegistrationAppPayResolver.inAppChannel,
                     orderCurrency: detail.currency,
                     orderPaymentChannels: detail.paymentChannels
                 )

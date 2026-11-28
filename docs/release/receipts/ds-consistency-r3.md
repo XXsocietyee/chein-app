@@ -878,6 +878,134 @@ Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0
 ### Not done (next run)
 - status capsule (29 baselined): move per-page soft-tint capsules to `CYStatusChip`, largest files first.
 
+## Continue run 29 (2026-11-28, after merging combined-r7)
+
+Run 28 Not done row (status capsule, 29 baselined in 18 files). Checked every file before converting: **none is a player
+surface.** Each is an internal release-checklist status page (`AssetPointsAndOrderCancellationSectionView`,
+`CloudCIShardStatusSectionView`, `FinalReleaseSignoff…`, `ReleaseArchiveChecklistSectionView`, `Wave3HandoffStatus…`, …)
+whose `struct …: View` has **no call site in `App/`** (one, `FinalThreeDocumentAndSevenDayGoalCompletionView`, is mounted
+only by `DesignFixtures/CurFixtures8.swift`). Their copy is internal Chinese QA wording (`MASTER_OK`, `I04_OK`), so a
+restyle changes nothing a player sees; the brief also scopes `*SectionView` internal screens out of the native lanes.
+
+| Change | Where |
+|---|---|
+| 29 `status capsule` hits moved from `baseline` (debt) to `allowed` with reason `unmounted internal screen: …` | `tools/design_consistency_baseline.json` (18 files) |
+| New guard: an allowed entry whose reason starts `unmounted internal screen` **fails** as soon as the file's `struct …: View` (any access level) is called from an `App/` file outside `DesignFixtures` / `*Fixture*` — mounting it for players means converting its capsules to `CYStatusChip` first | `tools/check_design_consistency.py` (`mounted_unmounted`, docstring) |
+
+Self-test: appending `CloudCIShardStatusSectionView()` to `App/GrowthCenterView.swift` fails the gate with
+"CloudCIShardStatusSectionView is now called from App/GrowthCenterView.swift"; reverted. All 18 files resolve a view name.
+
+Result: **0 baselined debt in every kind** (status capsule 0), 114 allowed hits, each with a reason.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(0 debt), `contract_ratchet --check` 52 failing, baseline 52, **new 0** (both batches).
+
+### Batch 2 — one section-header pattern (sweep build a4142df0d, `mp-home/en-rep3-activity-detail`)
+The activity detail showed two header looks in one list: "About this activity" as the system section header
+(footnote, secondary) and "Tickets" as a bold `.sectionTitle` heading with an icon. Same mix in the registration sheet
+(Activity / Participant / Ticket / Price details bold; host reservation / waitlist system headers).
+
+| MP page → native | Change |
+|---|---|
+| `pages/activity/detail` → `ActivityDetailView:459`; `pages/activity/baoming` → `RegistrationSheetView:453/763/865/1070` | shared `E1IconHeader` (`E1CommerceComponents.swift`) drops the custom `.cyText(.sectionTitle, .semibold)` + primary colour + secondary icon tint and inherits the List's system section-header style (`Label` with the SF Symbol kept, `.textCase(nil)`, `.isHeader`). Call sites, MP sections and order unchanged; contract pins on `E1IconHeader(systemImage: "ticket"` still hold. |
+
+### Batch 3 — gate kind `header font`
+Brace-balanced scan of every `header: { … }` closure on player files: 6 set a font; 5 are footnote/meta trailing
+accessories (fine, header size), 1 was a heading: `NPCChatDataView:325` (AI chat records → delete section) used
+`.cyText(.sectionTitle)` + primary colour → plain system header text. New checker kind **header font**
+(`header_font_hits`): heading text styles / `.bold()` / `.fontWeight(.bold…)` inside a header closure fail; baseline 0.
+Self-test: the pre-fix `NPCChatDataView` fails at line 327. Gates: `generate_project` PASS, `check_scaffold` PASS,
+`check_a11y_lint` PASS (0 new), `check_design_consistency` PASS (header font 0), `contract_ratchet --check` 52 failing,
+baseline 52, **new 0**.
+
+### For other lanes
+- debt-r3: the 18 unmounted `*SectionView` release-checklist pages above (plus their unit tests) are dead code in the
+  player target; deleting them would shrink the app and the allowed list.
+
+### Not done (next run)
+- Shared header components outside `header:` closures (`E1IconHeader`-like wrappers in page files) are not seen by
+  `header font`; scan for `View` structs used only as section headers and fold them into the system header.
+
+## Continue run 30 (2026-11-28, after merging combined-r7 135f87720)
+
+Merge clean. No new coordinator row for this lane (05:35 / 05:50 sweeps: mp-mine, mp-club, mp-roam, mp-journey only).
+Run 29 Not done row worked: header wrappers outside the `header:` closure.
+
+| Page (MP → native) | Before | Change |
+|---|---|---|
+| AI chat record detail (`NPCChatDataView:358/367/379`) | private `NPCChatSectionTitle` set `.cyText(.sectionTitle)` + primary colour in three Form headers (问题 / 回复 / 来源时间) | plain system header text (`.textCase(nil)`, `.isHeader` kept) |
+| AI chat records list (`NPCChatDataView:171/189`), co-op finance topics (`CoopFinanceProfitView:136`), MOD creator income (`ModCreatorIncomeViews:81/196/235`), MOD rehearsal (`ModInstallationSavedRehearsalView:137/159`), MOD action receipt (`ModInstallationNativeActionReceiptView:70`), H5 session (`H5DeclaredSessionView:22`) | `CYSectionHeader` (the `.headline` header meant for scroll pages) inside List/Form `header:` closures: 10 headers bigger and darker than every other list header | `Text(title).accessibilityAddTraits(.isHeader)`, same copy and keys; the list header now matches the rest of the app |
+
+Gate `header font` extended (`tools/check_design_consistency.py`): (1) `header: { Wrapper(…) }` resolves `Wrapper`'s
+`struct …: View` body (same file first, then any player file) and fails when it sets a heading font; (2)
+`CYSectionHeader(` inside a `header:` closure fails. Baseline stays 0. Self-tests: the pre-fix `NPCChatDataView` fails
+at 358/367/379 ("NPCChatSectionTitle (line 402): .cyText(.sectionTitle)"); the pre-fix `H5DeclaredSessionView` fails at 22.
+Other wrappers checked and clean: `DiscoverySectionHeader`, `NativeChannelSectionTitle`, `TemplateXbSectionTitle`,
+`ClubOpsCustomerHeading`, `ChannelNotifyHeading`, `ClubStoryChapterHeader`, `E1IconHeader`.
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS
+(0 debt, header font 0, 114 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
+### Batch 2 — scroll-page section titles
+Scanned every player file that uses `CYSectionHeader` for a hand-built `.cyText(.sectionTitle)` title on the same page:
+4 hits, none a section title (dice check result line `PlayRPGComponents:130`, MOD content title `ModInstallationView:540`,
+role title `JourneyRoleViewSection:128`, pack art name `FreeExplorationViews:39`): no change. Header-named wrapper
+structs with their own font: `MPSectionHeader` (`MPParityKit.swift`, `.meta` secondary + padding, a second list-header
+look) had **0 call sites** → deleted. `E3SectionTitle` is used only by `DesignFixtures/E3Fixtures.swift` (left).
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS,
+`contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+
+### Not done (next run)
+- Page-hero headers (`ActivityDetailHeader`, `ClubDetailHeader`, `TeamPageHeader`: `.title2.bold()`) vs
+  `cyPageTitle`: check they share one hero title style.
+
+## Continue run 31 (2026-11-28, rebased onto run 30) — OWNER RULE 3 shared effect kit (ds-consistency goes first)
+
+Took OWNER RULE 3 (11-28 06:10) before the run 29 Not done row: "ds-consistency goes first so the others call it".
+
+| Component (`App/DesignSystem`) | Restored from `89e71d61d^` | Reduce Motion / Low Power gating |
+|---|---|---|
+| `CYBurst` (particles) | Canvas + TimelineView body | draws only when `!reduceMotion && CYLightBudget.particlesAllowed` (unchanged) |
+| `CYConfettiBurst` (`CYSignature`) | Canvas confetti body | `fire()` now also requires `CYLightBudget.particlesAllowed` (was Reduce Motion only) |
+| `CYStarBloom` | horizon / glow / silhouette / orbit | callers pass `phase: 1` under Reduce Motion and `cheap` under Low Power (`CYCelebrationViews:536`) |
+| `CYFogLayer` (`CYRoamKit`) | drifting fog Canvas + reveal spring | drift now also requires `CYLightBudget.shadersAllowed`; static frame otherwise |
+| `CYEdgeGlow` + `.cyEdgeGlow(trigger:)` | comet sweep + ring | Reduce Motion: ring fade only; Low Power: `cheap` (no blur layers); Reduce Transparency: solid ring |
+| `CYFoil` / `.cyFoil` | live foil + tilt hold | live only with `!reduceMotion && gyroAllowed`; static highlight otherwise |
+
+Not restored on purpose: `CYMapChrome` and the Roam panel (coordinator 02:05: settled, do not edit), `CYNightGlass`
+(map buttons; part of the settled map chrome), `CYGlassCarousel` / `CYGlassSliver` / `CYGlassGroup` /
+`CYCarouselBackdrop` (only mounted by `DesignFixtures/CarouselFixtures`; no distinctive surface uses it yet).
+
+Clean-page calls removed (the effect would now be live there):
+
+| MP page → native | Call removed | Why clean |
+|---|---|---|
+| `subpackageMember` ticket wallet → `App/E1TicketCard.swift:38` | `.cyFoilSheen(trigger: sheen + autoSheen)` | wallet list (OWNER RULE 3 clean list); tap keeps its selection haptic, the pass foil edge stays |
+| roam stamp album → `App/RoamStampViews.swift:439` (`RoamStampAlbumPage`) | `.cyFoilSheen(trigger:)` on flip | album grid = collection list (P24); the stamp-collected moment keeps `cyStampSlam` / celebrations |
+
+Gate: new kind **effect on clean page** (`tools/check_design_consistency.py`, `EFFECT_PATTERN`): any call to the kit
+above outside the distinctive surfaces fails. Allowed: `EFFECT_SURFACE_DIRS` (`NativeR2/Games`, `Story`,
+`FreeExplore`, `CityOrientation`, `MapHome`, `Motion`), `EFFECT_SURFACE_NAME` (play / game / chapter / story /
+pay / checkout / journey report / roam live, finish, fog / city roam / stamp capture / celebration / reward files),
+and `EFFECT_KIT_FILES` (the kit and its celebration / album / medal hosts). One allowed entry with reason:
+`CYTicketPass` `cyCodeReveal` (pass reveal after payment, no clean call site). Celebration overlays
+(`.cyCelebrations`, `.cyStampSlam`) are the allowed moments themselves and are not flagged on their host pages.
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS (0 debt, 115 allowed), `contract_ratchet --check` 52 failing, baseline 52, **new 0**.
+Current hits: 0. Self-test: re-adding `.cyFoilSheen(trigger: sheen)` to `E1TicketCard` fails at line 39; reverted.
+
+Callers for the other lanes (OWNER RULE 3 owners): mp-roam `CYFogLayer` (only a fixture mounts it today) and stamp
+burst; mp-journey games / story / run finish; mp-activity payment moment; mp-mine badges / level (`CYStarBloom` via
+`CYCelebrationViews`); mp-club `CYJoinReward`. All of them pass the gate when called from their surface files.
+
+No compiler in the cloud: the restored bodies are the exact pre-11-26 code; helpers they call (`draw`, `CYFogCanvas`,
+`CYFoilLive`, `cyTiltHold`, `horizon` …) were never removed. Next integration build confirms.
+
+### Not done (next run)
+- Page-hero headers (`ActivityDetailHeader`, `ClubDetailHeader`, `TeamPageHeader`: `.title2.bold()`) vs
+  `cyPageTitle`: one hero title style (run 30 row).
+- Effect kit: reduce-motion fallback for `CYBurst` / `CYConfettiBurst` is "draw nothing" (callers pair a haptic);
+  check each celebration caller also shows the static state (opacity fade) per OWNER RULE 3.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

@@ -396,7 +396,9 @@ import SwiftUI
         return initialContext.map { .init(latitude: $0.latitude, longitude: $0.longitude, radius: NearbyTeamPresentation.recruitingRadius) }
     }
     /// my-teams `reload`; when the viewer has no rows, `loadOpen` runs automatically.
+    /// MP my-teams: a guest sees only 登录后查看 + 登录 (PG-004); no mine read, so no 队伍获取失败 under the gate.
     private func loadMine() async {
+        guard coordinator.authenticated else { mine.loading = false; mine.failed = false; return }
         mine.loading = true; mine.failed = false
         await model.run { await coordinator.loadMine() }
         mine.loading = false; mine.loaded = true

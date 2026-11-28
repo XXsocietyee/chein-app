@@ -67,7 +67,8 @@ import SwiftUI
                 }
             }
         } header: {
-            CYSectionHeader(LocalizedStringKey(stringLiteral: copy("原动作回执（非当前状态）", "Original action receipt (not current state)")))
+            Text(LocalizedStringKey(stringLiteral: copy("原动作回执（非当前状态）", "Original action receipt (not current state)")))
+                .accessibilityAddTraits(.isHeader)
         }
         .privacySensitive()
         .accessibilityIdentifier("modInstallation.native.originalReceipt")

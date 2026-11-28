@@ -89,8 +89,12 @@ extension EnvironmentValues {
             // mp-club r3 (MP enroll wxml:17-20): the sub line comes first, then 正在更新报名名册…, then the stale error.
             if host == liveHost, scenePhase == .active, reader.isCurrentAccess, identity == reader.identity, identity == access.identity, reader.hasLoaded {
                 // Mini-program sub line: 「俱乐部名 · N 个团」 (俱乐部名 falls back to 我的俱乐部); MP enroll wxml:17 has no escrow note.
+                // Plain page sub line under the title (MP `.sub`), not a card row that reads like a disabled field.
                 Section {
                     subLine.accessibilityIdentifier("club.enroll.headerLine")
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                        .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20))
                 }
             }
             if reader.loading, reader.hasLoaded {

@@ -11,7 +11,7 @@ The 21 MP pages were compared section by section, top to bottom, against their n
 | `python3 tools/generate_project.py` | OK |
 | `python3 tools/check_scaffold.py` | PASS (no FAIL lines; typography lint PASS) |
 | `python3 -B tools/check_a11y_lint.py` | PASS: 0 new |
-| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 29, after merging combined-r7 93bff6dcd), **new 0**, fixed 0 |
+| `python3 -B tools/contract_ratchet.py --check` | 52 failing, baseline 52 (pass 32, after merging combined-r7 135f87720), **new 0**, fixed 0 |
 | `python3 tools/check_design_consistency.py` | PASS |
 
 There is no Swift compiler in this environment. Edits are kept type-simple and reuse existing keys, components and patterns.
@@ -37,7 +37,7 @@ There is no Swift compiler in this environment. Edits are kept type-simple and r
 | club/topic-detail | same | 接下来 only when there are sessions (wxml:134); native showed a 还没有场次 placeholder. | **Fixed.** The section is hidden unless there are sessions or 管理场次 is allowed |
 | club/topic-detail · 更多 | same | MP order (wxml:430-470): 剧情与玩法 → 结束活动 → 核销记录 → 场次管理 → 退出与暂停规则. Native was missing 剧情与玩法 and 核销记录, had 结束活动 last, and had stats/settings/enrollment first. | **Fixed.** MP order; stats/settings/enrollment follow as a second group |
 | club/topic-detail | same | Hide 核销/主题/接下来 when the director is active and the topic ended (wxml:92, C-11 review state). | **Fixed (pass 3).** `directorReview` wraps those three blocks |
-| club/topic-detail | same | Per-session 团码/run-control/集合时间 rows (MP has one director row); inline settings block in 更多; rules as a footbar half-sheet. | **Not done.** large / behaviour moves |
+| club/topic-detail | same | Per-session 团码/run-control/集合时间 rows (MP has one director row); inline settings block in 更多; rules as a footbar half-sheet. | Rules **fixed (pass 32)**; per-session rows and inline settings block still **Not done** (large / behaviour moves) |
 | club/topic-detail · 结束主题 (`components/cy/club-topic-end-confirm`) | `ClubGovernanceConsequence.endTopic` sheet | MP body 「停止售卖并把未核销的票原价退回。只是想让它不再露出的话，下架就够了。」, confirm 结束并退款, cancel 再想想. Native lines said 「未开始的场次全部取消…」/「已付款的报名自动退款，个别订单转人工处理」 and the confirm read 结束主题. | **Fixed (pass 6).** OpsR3 lines = the MP's two sentences (refund, then the 下架 alternative; symbols `arrow.uturn.backward.circle` / `eye.slash`), confirm 结束并退款 / End and refund. Manual-order counts still show in the result row. The 「主题名」 first line: **fixed (pass 8)**: the 更多 entry seeds `topicName` from the topic-setting read (MP `setting.topicName`, wxml:648); the form passes it to `ClubGovernanceConsequence.endTopic.sheet`, which shows it as the sheet's object line above the consequences (title stays 结束主题, CU-C-154). The draft keeps only the `cancellationEpoch` anchor, so the request body is unchanged |
 | club/topic-story | `ClubGovernanceStoryView`, `ClubStoryViews.swift` | Missing-param 链接已失效 + 返回 (wxml:13). | Already present (`MPReviewedPageScreen` `club.story.missingTopic`, CLB-r9-topic-story-01) |
 | club/topic-story | `ClubStoryViews.swift` `ClubStoryGameplayCard` | Extra orange "no answer" chip on play rows (MP: an unanswerable play just has no 查看答案 button). | **Fixed (pass 3).** Chip removed |
@@ -313,6 +313,19 @@ Merged `origin/ui/combined-r7`. Passes 27-29 render as intended (channel titles,
 |---|---|---|---|
 | `pages/talent/*` badge wall (d4-badges, en: locked badge reads "Synthetic unlock condition") | `App/ProfileFixtureSupport.swift` (fixture data for `ObjectBadgeWallView`) | MP shows the unlock condition under a locked badge; unchanged | **Fixed.** Fixture conditions read like MP copy in both languages: "Check in at 3 spots in one city" / 在同一城市打卡 3 个点位, "Collect every stamp in the city" / 集齐本城全部印章, identity statement "Explorer identity card" / 探索者身份卡. No test pins these strings (badge names stay as `RoamBadgeWallFlowTests` pins them) |
 
+## Pass 31: sweep 05:15 UTC (build a4142df0d, `docs/sweeps/latest/mp-club/en-d4-enroll.jpg`, `en-d4-detail.jpg`, `sheet-zh-Hans.jpg`); coordinator 05:35: nothing new for mp-club
+Merged `origin/ui/combined-r7` (7a7d2708a). Not done rows re-checked: 重复方式 inline form, topic-detail per-session rows and the director sheets stay queued (behaviour moves through `ClubGovernanceCommandForm`). Two visible layout items fixed from the sheets:
+| MP page | Native view | MP sections | Optimizations / fix |
+|---|---|---|---|
+| `pages/club/enroll` (wxml:17 `.sub` 「俱乐部名 · N 个团」 under the 报名名册 title) | `App/ClubEnrollmentView.swift` | Order unchanged: sub line → 正在更新报名名册… → stale error → teams. The sub line sat alone in a grey inset card, which read like a disabled text field (both languages) | **Fixed.** Plain secondary page line under the title (clear row background, no separator, card-aligned insets); text, identifier `club.enroll.headerLine` and count unchanged |
+| `pages/club/detail` 概览 `ov-facts` (wxml:227-243: 主理人 / 俱乐部类型 / 所在城市) | `App/ClubDetailView.swift` `ClubOverviewFacts` | Same three facts, same order. In English the HStack still fitted by wrapping "Fixture creator" over two lines (`.lineLimit(2)` let `ViewThatFits` shrink the cell) | **Fixed.** Value and label measure on one line at full width (`.lineLimit(1)` + `.fixedSize(horizontal:)`), so long values or large Dynamic Type fall through to the labelled `LabeledContent` rows instead of wrapping inside a third of the width (P12; same fix as the 18:15 Me-card note). zh short values keep the three cells |
+
+
+## Pass 32: Not done row topic-detail (rules footbar); sweep 05:38 UTC (build 7a7d2708a, `docs/sweeps/latest/mp-club/sheet-en.jpg`, `sheet-zh-Hans.jpg`), no open coordinator finding for mp-club
+Merged `origin/ui/combined-r7` (135f87720). Sheets: nothing new (the en d4-detail facts wrap is pass 31, after this build; en d4-enroll tile is the black warm-up frame). Header face pile + Invite on the member view kept: P17 asks for them.
+| MP page | Native view | MP sections | Optimizations / fix |
+|---|---|---|---|
+| `pages/club/topic-detail` ⑦ 固定底部条 (wxml:321-339: ⓘ 退出与暂停规则 › note above the phase primary) + rules half sheet (wxml:676-683 `cy-scene-sheet variant="half"`) | `App/ClubGovernanceViews.swift` `topicPrimaryFooter`, `topicRulesNote`, `topicRulesSheet` | Native put 退出与暂停规则 as a pushed list row at the very end of the page, outside the bottom bar | **Fixed.** The bottom bar (system `.bar` material, `.safeAreaInset`) now holds a `.borderless` footnote note (info.circle · 退出与暂停规则 · chevron, 44 pt, id `club.context.openRules` kept) above the `.borderedProminent` phase primary; it shows even when there is no primary, like the MP. It opens `ClubOperatingRulesView` in a sheet with `.medium`/`.large` detents and a Close button. The end-of-page row is gone; the 更多 › 退出与暂停规则 push row stays (MP wxml:465 keeps it there too). Existing keys only (`context.rules.title`, `action.close`) |
 ## For other lanes
 - mp-home / coordinator: `5e2a0a57f` (17:23) made design fixtures run without `AppSession`; the three fixtures that quit in the 18:15 sweep (d4-badges, d4-stamps/e2-stamp-album, e4-tickets) all touch that path, but no earlier clean sweep covered them, so this is a lead, not a cause. Please attach the simulator crash log to the next sweep so the owning lane can fix the exact line.
 - ~~en-layout / fixtures: `D4Fixtures.swift:108-109` channel categories~~ fixed in pass 12.

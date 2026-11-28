@@ -9,12 +9,23 @@ public enum RegistrationPayMethod: String, CaseIterable, Hashable, Sendable {
     case applePay
     case card
 
-    /// Channels offered in a market, default first. Apple Pay only when the device can pay with it.
-    public static func options(market: RegionalMarket?, applePayAvailable: Bool) -> [RegistrationPayMethod] {
+    /// Owner check 11-28 05:35: Alipay is selectable only once backend `alipay.trade.app.pay` and the SDK bridge
+    /// (`AlipaySDKPaymentAdapter`) are wired. Until then Release hides it and DEBUG shows it disabled (Coming soon).
+    public static let alipayReady = false
+
+    /// Channels offered in a market, default first. Apple Pay only when the device can pay with it;
+    /// Alipay only when `alipayReady`.
+    public static func options(market: RegionalMarket?, applePayAvailable: Bool,
+                               alipayReady: Bool = RegistrationPayMethod.alipayReady) -> [RegistrationPayMethod] {
         switch market ?? .china {
         case .unitedStates: return applePayAvailable ? [.applePay, .card] : [.card]
-        default: return [.wechatPay, .alipay]
+        default: return alipayReady ? [.wechatPay, .alipay] : [.wechatPay]
         }
+    }
+
+    /// DEBUG only: the China market lists Alipay as a disabled "Coming soon" row while it is not ready.
+    public static func showsAlipayComingSoon(market: RegionalMarket?, alipayReady: Bool = RegistrationPayMethod.alipayReady) -> Bool {
+        (market ?? .china) != .unitedStates && !alipayReady
     }
 
     public static func defaultMethod(market: RegionalMarket?, applePayAvailable: Bool) -> RegistrationPayMethod {
@@ -29,6 +40,25 @@ public enum RegistrationPayMethod: String, CaseIterable, Hashable, Sendable {
         case .applePay: return ("Apple Pay", "Apple Pay")
         case .card: return ("银行卡", "Card")
         }
+    }
+
+    /// P32: the primary button is the payment method — "微信支付 ¥12.50" / "Pay ¥12.50 with WeChat Pay".
+    /// `amount` is the already formatted total (currency symbol included). zh first, en second.
+    public func payTitle(amount: String) -> (zh: String, en: String) {
+        switch self {
+        case .wechatPay: return ("微信支付 " + amount, "Pay " + amount + " with WeChat Pay")
+        case .alipay: return ("支付宝支付 " + amount, "Pay " + amount + " with Alipay")
+        case .applePay: return ("Apple Pay 支付 " + amount, "Pay " + amount + " with Apple Pay")
+        case .card: return ("银行卡支付 " + amount, "Pay " + amount + " by card")
+        }
+    }
+
+    /// The method in effect: the player's choice when it is offered in this market, else the market default.
+    public static func effective(_ selection: RegistrationPayMethod?, market: RegionalMarket?,
+                                 applePayAvailable: Bool) -> RegistrationPayMethod {
+        let offered = options(market: market, applePayAvailable: applePayAvailable)
+        if let selection, offered.contains(selection) { return selection }
+        return offered[0]
     }
 
 }

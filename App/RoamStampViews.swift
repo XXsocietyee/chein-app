@@ -436,7 +436,6 @@ private struct RoamStampAlbumPage: View {
             }
             .padding(CYSpacing.lg)
         }
-        .cyFoilSheen(trigger: flipped ? 0 : 1)
         .accessibilityElement(children: .combine)
         .accessibilityHint(Text(verbatim: ChannelCopy.text("双击翻面查看详情", "Double-tap to flip for details", locale: locale)))
     }

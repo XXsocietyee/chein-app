@@ -464,3 +464,31 @@ Merged `origin/ui/combined-r7` (conflicts: other lanes' receipts and `tools/chec
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
 
 Coordinator: please add `e4-wallet-withdrawals-empty` and `e4-wallet-withdrawals-error` to the mp-mine sweep.
+
+## Continue 27 (half-hourly re-arm, sweep 05:15 UTC build a4142df0d)
+
+Merged `origin/ui/combined-r7` (conflicts: other lanes' receipts, `tools/check_design_consistency.py`, xcstrings and pbxproj taken from combined-r7, which already holds every mp-mine key; `DesignFixtureRegistry.swift` kept both sides' cases; pbxproj regenerated). Coordinator sweep 11-28 ~05:35 has two mp-mine P2 rows; both are fixed here. Screens checked: `docs/sweeps/latest/mp-mine/en-ia-passport.jpg`, `en-e4-self-medals.jpg`.
+
+| Finding | MP | Native file | Fixed now |
+|---|---|---|---|
+| Badge totals disagree: Me stats card "Badges 3 of 12" vs badge wall ring "3 / 6" (`ia-passport` vs `e5b-badge-wall`) | 勋章墙 counts lit + locked from one list | `App/PassportView.swift`, `App/DesignFixtures/DesignFixtureRegistry.swift` | **Fixed.** The card's collected count and its total now come from the same badge-wall list (`ObjectBadgeWallSummary.unlocked` / `.total`, new `badgeCollected` on `PassportOverviewContent`; the earned-rail count is only the fallback when the wall read fails). The `ia-passport` fixture total is 6, matching the badge wall fixture (3 lit, 3 locked) and `a11y-passport-ax5`. Stamps keep the album count (3 of 12 is the stamp album, a different list). |
+| Public profile → Posts with no posts: blue "Refresh posts" row above a plain "No posts yet" line (`e4-self-medals`) | MP 推文 refreshes by pull-down only; empty `cy-empty` 还没有帖文 | `App/ProfileAuthorPostsSection.swift`, `App/SocialPublicProfileView.swift`, `App/AccountView.swift`, `App/ProfileAuthorPostsRefreshFixture.swift` | **Fixed** (closes the continue 10 Not done row). The refresh row is gone. The public profile refreshes the retained feed from `.cyRefreshable` on the 帖文 tab; the 我的 tab bumps `refreshTrigger` from its existing pull (`memberRefreshToken`); the UI-test host has `.refreshable`. Empty is a `ContentUnavailableView` (还没有帖文 / No posts yet, `text.bubble`), id `profile.postsRefresh.empty` unchanged. `ProfileAuthorPostsRefreshFlowTests` now pull the list instead of tapping the row; `test_profile_author_posts_refresh.py` asserts the pull contract. No "Share your first walk" action: the MP empty has no action, and the own-profile composer already sits above the section on the 帖文 tab. |
+
+| 我的项目: a 刷新 row under the preview (continue 18 Not done row; same pattern) | MP refreshes by pull-down only | `App/ProfileSelfProjectsSection.swift`, `App/SocialPublicProfileView.swift`, `App/AccountView.swift` | **Fixed.** The 刷新 row is gone. `ProfileSelfProjectsEntry` / `ProfileSelfProjectsSection` take `refreshTrigger`; the 我的 tab passes `memberRefreshToken` and the public profile's pull (`refreshPage()`) bumps `pullRefreshToken`, so the preview reloads from the page's pull on both hosts. `ProfileSelfProjectsFlowTests.testRefreshFailure…` pulls the list instead of tapping the row. |
+
+Not done: the 我的项目 empty `ContentUnavailableView` stays (the MP hides the block when empty; `ProfileSelfProjectsFlowTests.testTruncationAndEmpty…` reads the empty text, so removing it needs that test rewritten); `CharacterCardReadbackView` byte pin unchanged.
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+## Continue 28 (11-28, hourly run)
+
+Merged `origin/ui/combined-r7` (conflicts: other lanes' receipts and xcstrings taken from combined-r7, which has no branch-only mp-mine key missing; `DesignFixtureRegistry.swift` kept both sides' cases; pbxproj regenerated). Coordinator notes up to 05:50 have no new mp-mine rows; both 05:35 rows were closed in continue 27. Sweep build is still 7a7d2708a (before continue 27), so `docs/sweeps/latest/mp-mine/sheet-zh-Hans.jpg` / `sheet-en.jpg` still show the old posts refresh row and badge card count; nothing else new. Settings 成为商家 shows in the DEBUG sweep only (`PlayerLaunch.merchantCenterEnabled`, hidden in Release), so it stays as is.
+
+| MP page | Native file | Difference | Fixed now |
+|---|---|---|---|
+| `subpackageMember/components/cy/profile` 项目 tab, 我的项目 (wxml:180-212) | `App/ProfileSelfProjectsSection.swift`, `Tests/AppUITests/ProfileSelfProjectsFlowTests.swift` | MP draws the preview only when `projectPreviewList.length \|\| projectErr`; no projects = header + 管理全部 link only. Native drew a `ContentUnavailableView` 还没有项目 under the header (continue 27 Not done row) | **Fixed.** The empty view is gone; the 查看全部项目 link stays, loading / error + 重试 / truncated unchanged. `testTruncationAndEmptyHaveDifferentTruthfulStates` now asserts the empty scenario shows the all-projects link, no empty text and no issue. |
+| same, header link (wxml:186 `管理全部`, aria 管理全部项目) | `Resources/Localizable.xcstrings` `profile.selfProjects.all` | Native link read 查看全部项目 / View all projects | **Fixed.** 管理全部项目 / Manage all projects (MP copy; the row opens the projects manager with the 模板 tab). Same id and destination. |
+
+Not done: `CharacterCardReadbackView` byte pin unchanged (needs the pin owner).
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**, `test_profile_self_projects.py` 30 OK.

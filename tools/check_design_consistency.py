@@ -104,10 +104,25 @@ fixtures included; there is no Swift compiler in the lanes' cloud sessions):
                    (`var` / `let` / `inout` / enum `case`) in that type, its extensions or the module's globals
                    (a lane used `governanceMemberCount = $0` without `@State private var governanceMemberCount`).
                    Heuristic text scan: string literals are blanked first.
+  effect on clean page  a call to the restored effect kit (OWNER RULE 3, 11-28): `CYBurst(` / `CYConfettiBurst(` /
+                  `CYStarBloom(` / `CYFogLayer(` / `CYEdgeGlow(` / `CYCelebrationMoment(` / `CYJoinReward(` /
+                  `CYGlassCarousel(` / `CYGlassSliver(` / `CYCarouselBackdrop(`, `.cyFoil(` / `.cyFoilSheen(` /
+                  `.cyEdgeGlow(` / `.cyUnlockCelebration(` outside the distinctive surfaces: games, story flow,
+                  payment, maps and celebration moments (EFFECT_SURFACE_DIRS / EFFECT_SURFACE_NAME) and the kit files
+                  that host them (EFFECT_KIT_FILES). Home, search, lists, settings, Me, wallet, club admin, inbox,
+                  forms and details stay clean: remove the call there
+  header font     a List/Form `header: { … }` closure outside App/DesignSystem that sets a heading style
+                  (`.cyText(.sectionTitle / .cardTitle / .headline / .title…)`, `.font(.headline / .title… /
+                  .largeTitle)`, `.bold()`, `.fontWeight(.bold / .semibold …)`): one section shouts next to its
+                  system-header siblings. Leave the header text plain (system footnote, secondary); trailing
+                  footnote / meta accessories are fine
 
 Baseline: tools/design_consistency_baseline.json
   "allowed":  {file: {kind: reason}}  intentional chrome (game HUDs, full-screen maps, procedural art), never fails;
-                                      an allowed kind with no hit left in its file is reported as stale and fails
+                                      an allowed kind with no hit left in its file is reported as stale and fails;
+                                      a reason starting "unmounted internal screen" fails as soon as the file's
+                                      `struct …: View` is called anywhere in App/ outside DesignFixtures / *Fixture*
+                                      (mounting it for players means converting its chrome first)
   "baseline": {file: {kind: count}}   debt on this tree; a count above it fails, so new violations fail
 
   python3 tools/check_design_consistency.py            # check (exit 1 on a new violation)
@@ -218,11 +233,46 @@ SECTION_SPACING = 'section spacing'
 SECTION_SPACING_PATTERN = re.compile(r'\.listSectionSpacing\(\s*(?!\.compact\b|\.default\b)')
 DUPLICATE_TYPE = 'duplicate type'
 UNDECLARED_STATE = 'undeclared state'
+HEADER_FONT = 'header font'
+# One section-header look: a List/Form `header: { … }` closure inherits the system header style (footnote, secondary).
+# A heading-size font, bold weight or primary colour inside it makes one section shout next to its siblings.
+HEADER_OPEN = re.compile(r'\bheader:\s*\{')
+HEADER_FONT_PATTERN = re.compile(
+    r'\.cyText\(\s*\.(?:sectionTitle|cardTitle|headline|largeTitle|title\w*|display\w*)\b'
+    r'|\.font\(\s*\.(?:headline|largeTitle|title\w*)\b'
+    r'|\.(?:bold|fontWeight)\(\s*(?:\.(?:bold|semibold|heavy|black))?\s*\)'
+    # `CYSectionHeader` is the `.headline` header for scroll pages; inside a List/Form `header:` it must be system text.
+    r'|\bCYSectionHeader\(')
+EFFECT_ON_CLEAN = 'effect on clean page'
+# OWNER RULE 3 (11-28): the 11-26 no-op effects are restored, but only for games, story flow, payment, maps and
+# celebration moments. Every other page stays clean (system components, no glow / foil / particles / glass).
+EFFECT_PATTERN = re.compile(
+    r'(?<![\w.])(?:CYBurst|CYConfettiBurst|CYStarBloom|CYFogLayer|CYEdgeGlow|CYCelebrationMoment|CYJoinReward|'
+    r'CYGlassCarousel|CYGlassSliver|CYCarouselBackdrop)\s*[(<]'
+    r'|\.(?:cyFoil|cyFoilSheen|cyEdgeGlow|cyUnlockCelebration)\s*\(')
+EFFECT_SURFACE_DIRS = ('App/NativeR2/Games/', 'App/NativeR2/Story/', 'App/NativeR2/FreeExplore/',
+                       'App/NativeR2/CityOrientation/', 'App/NativeR2/MapHome/', 'App/NativeR2/Motion/')
+# Page files of the distinctive surfaces, by name: play / game / chapter / story, payment, journey and roam maps,
+# celebration and reward moments.
+EFFECT_SURFACE_NAME = re.compile(
+    r'^App/(?:[^/]+/)*(?:Play(?!er)\w*|\w*Game\w*|\w*Chapter\w*|\w*Story\w*|\w*Pay(?!out)\w*|\w*Checkout\w*|'
+    r'JourneyReport\w*|FreeExplor\w*|RoamLive\w*|RoamFinish\w*|RoamFog\w*|CityRoam\w*|RoamCreatedStamp\w*|'
+    r'RoamStampCamera\w*|\w*StampCapture\w*|\w*Celebration\w*|\w*Reward\w*)\.swift$')
+# The kit itself: definitions and the celebration / album / medal hosts that compose them.
+EFFECT_KIT_FILES = tuple('App/DesignSystem/' + n + '.swift' for n in (
+    'CYBurst', 'CYEdgeGlow', 'CYFoil', 'CYRoamKit', 'CYSignature', 'CYStarBloom', 'CYGlassCarousel', 'CYAlbum',
+    'CYCollectible', 'CYBadgeCraft', 'CYCelebrationViews', 'CYCelebrationEngine', 'CYJoinReward', 'CYNightGlass'))
+
+
+def effect_surface(rel):
+    return rel in EFFECT_KIT_FILES or rel.startswith(EFFECT_SURFACE_DIRS) or bool(EFFECT_SURFACE_NAME.match(rel))
+
+
 KINDS = (RAW_FONT, TRACKING, ROOT_TITLE, PUSHED_LARGE, TITLE_MODE, HIDDEN_NAV, CUSTOM_BACK, BUTTON_STYLE, POPUP_SCRIM,
          RAW_COLOUR, LIST_STYLE, CUSTOM_SHEET, CUSTOM_TABS, FONT_DESIGN, CUSTOM_SEARCH, TEXT_ON_ART, RAW_SEGMENTED,
          LEADING_ACTION, DONE_LEADING, RAW_RADIUS, LINE_SPACING, STATUS_CAPSULE, SILENT_SPINNER, BUSY_SWAP, HAND_DIVIDER,
          ALL_CAPS, GRID_LINK, FIXED_SURFACE, DARK_BACKING, LOCALE_MONEY, REFRESH_NO_PULL, SECTION_SPACING, DUPLICATE_TYPE,
-         UNDECLARED_STATE, UNTYPED_HAPTIC)
+         UNDECLARED_STATE, UNTYPED_HAPTIC, HEADER_FONT, EFFECT_ON_CLEAN)
 
 # The five player tab roots (Core/RootTab.swift, QuestifyApp root TabView) and the files that own their title.
 # 漫游 is the full-screen map home: its chrome is allowed in the baseline instead.
@@ -372,6 +422,90 @@ def code_lines(text):
         yield number, code
 
 
+def header_font_hits(lines):
+    """`header: { … }` closures (brace-balanced over comment-free code lines) that set a heading font or weight."""
+    out = []
+    for index, (number, code) in enumerate(lines):
+        match = HEADER_OPEN.search(code)
+        if not match:
+            continue
+        depth = 1
+        body = [(number, code[match.end():])]
+        for later_number, later in lines[index + 1:index + 40]:
+            body.append((later_number, later))
+        for part_number, part in body:
+            cut = len(part)
+            for pos, ch in enumerate(part):
+                depth += {'{': 1, '}': -1}.get(ch, 0)
+                if depth == 0:
+                    cut = pos
+                    break
+            if HEADER_FONT_PATTERN.search(part[:cut]):
+                out.append((part_number, HEADER_FONT, part.strip()))
+            if depth == 0:
+                break
+    return out
+
+
+HEADER_CALL = re.compile(r'\bheader:\s*\{\s*([A-Z]\w*)\s*\(')
+STRUCT_VIEW = re.compile(r'\bstruct\s+([A-Z]\w*)\s*:\s*View\b')
+_WRAPPER_INDEX = None
+
+
+def _struct_bodies(lines):
+    """`struct Name: View { … }` bodies (brace-balanced) in one file: name -> [(number, code)]."""
+    out = {}
+    for index, (number, code) in enumerate(lines):
+        match = STRUCT_VIEW.search(code)
+        if not match:
+            continue
+        depth, started, body = 0, False, []
+        for later_number, later in lines[index:index + 80]:
+            body.append((later_number, later))
+            for ch in later:
+                if ch == '{':
+                    depth, started = depth + 1, True
+                elif ch == '}':
+                    depth -= 1
+            if started and depth <= 0:
+                break
+        out.setdefault(match.group(1), body)
+    return out
+
+
+def _wrapper_index():
+    """Every player-file View struct body, so a header closure that calls a wrapper is checked across files."""
+    global _WRAPPER_INDEX
+    if _WRAPPER_INDEX is None:
+        _WRAPPER_INDEX = {}
+        for rel, path in player_files():
+            if rel.startswith('App/DesignSystem/'):
+                continue
+            text = path.read_text(encoding='utf-8', errors='replace')
+            for name, body in _struct_bodies(list(code_lines(text))).items():
+                _WRAPPER_INDEX.setdefault(name, (rel, body))
+    return _WRAPPER_INDEX
+
+
+def header_wrapper_font_hits(lines):
+    """`header: { Wrapper(…) }`: the wrapper View's own body must not set a heading font either (reported at its call)."""
+    out = []
+    local = _struct_bodies(lines)
+    for index, (number, code) in enumerate(lines):
+        match = HEADER_CALL.search(code)
+        if not match:
+            continue
+        name = match.group(1)
+        body = local.get(name) or _wrapper_index().get(name, (None, None))[1]
+        if not body:
+            continue
+        for body_number, body_code in body:
+            if HEADER_FONT_PATTERN.search(body_code):
+                out.append((number, HEADER_FONT, f'{name} (line {body_number}): {body_code.strip()}'))
+                break
+    return out
+
+
 def scan_file(rel, text):
     hits = []
     lines = list(code_lines(text))
@@ -379,6 +513,7 @@ def scan_file(rel, text):
     colour_exempt = rel.startswith(COLOUR_EXEMPT_PREFIXES)
     design_system = rel.startswith('App/DesignSystem/')
     is_root = rel in TAB_ROOTS
+    clean_effects_ok = effect_surface(rel)
     # `.system(size: x)` where `x` is an `@ScaledMetric` scales with Dynamic Type: that is the approved pattern.
     scaled = set(SCALED_METRIC.findall(text))
     prev_code = ''
@@ -419,6 +554,8 @@ def scan_file(rel, text):
             hits.append((number, LINE_SPACING, code.strip()))
         if not colour_exempt and SECTION_SPACING_PATTERN.search(code):
             hits.append((number, SECTION_SPACING, code.strip()))
+        if not clean_effects_ok and EFFECT_PATTERN.search(code):
+            hits.append((number, EFFECT_ON_CLEAN, code.strip()))
         if UNTYPED_HAPTIC_PATTERN.search(code):
             hits.append((number, UNTYPED_HAPTIC, code.strip()))
         if not colour_exempt and HAND_DIVIDER_PATTERN.search(code):
@@ -500,6 +637,9 @@ def scan_file(rel, text):
         for number, code in lines:
             if TITLE_PATTERN.search(code):
                 hits.append((number, TITLE_MODE, code.strip()))
+    if not design_system:
+        hits.extend(header_font_hits(lines))
+        hits.extend(header_wrapper_font_hits(lines))
     if is_root:
         has_large = any(ROOT_HEADER_PATTERN.search(c) or LARGE_PATTERN.search(c) for _, c in lines)
         if not has_large:
@@ -711,6 +851,36 @@ def counts(hits):
     return out
 
 
+UNMOUNTED_REASON = 'unmounted internal screen'
+VIEW_DECL_PATTERN = re.compile(r'^(?:public\s+|internal\s+|private\s+|fileprivate\s+)?struct\s+([A-Za-z_][A-Za-z0-9_]*)\s*:\s*View\b', re.M)
+
+
+def mounted_unmounted(allowed):
+    """Allowed entries justified as unmounted whose view is now called from a non-fixture App file."""
+    marked = sorted(rel for rel, kinds in allowed.items()
+                    if any(str(r).startswith(UNMOUNTED_REASON) for r in kinds.values()))
+    if not marked:
+        return []
+    names = {}
+    for rel in marked:
+        path = ROOT / rel
+        if path.exists():
+            for name in VIEW_DECL_PATTERN.findall(path.read_text(encoding='utf-8')):
+                names[name] = rel
+    if not names:
+        return []
+    call = re.compile(r'\b(' + '|'.join(sorted(names)) + r')\s*\(')
+    out = []
+    for path in sorted((ROOT / 'App').rglob('*.swift')):
+        rel = path.relative_to(ROOT).as_posix()
+        if 'Fixture' in rel:
+            continue
+        for match in call.finditer(path.read_text(encoding='utf-8')):
+            if names[match.group(1)] != rel:
+                out.append(f'{names[match.group(1)]}: {match.group(1)} is now called from {rel}')
+    return sorted(set(out))
+
+
 def load_baseline():
     if not BASELINE.exists():
         return {'allowed': {}, 'baseline': {}}
@@ -763,6 +933,8 @@ def main():
             if kind not in present:
                 stale.append(f'{rel}: {kind}')
 
+    mounted = mounted_unmounted(allowed)
+
     below = 0
     for rel, kinds in baseline.items():
         for kind, limit in kinds.items():
@@ -795,6 +967,12 @@ def main():
 
     summary = ', '.join(f'{k} {totals[k]}' for k in KINDS)
     allowed_summary = sum(allowed_totals.values())
+    if mounted:
+        print('FAIL design consistency: an "unmounted internal screen" is now mounted; convert its chrome to the')
+        print('design system (status words -> CYStatusChip) and remove its "allowed" entry:')
+        for row in mounted:
+            print(f'  {row}')
+        return 1
     if stale and not failures:
         print('FAIL design consistency: stale "allowed" entries (no hit left; remove them from the baseline):')
         for row in stale:

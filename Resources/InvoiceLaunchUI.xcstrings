@@ -916,9 +916,21 @@
     "orderCountFormat": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%ld orders"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%ld order"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%ld orders"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -1238,7 +1250,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enter the full tax number: 15 to 20 digits or capital letters. A masked number can't be used."
+            "value": "Enter the full tax ID: 15 to 20 digits or capital letters. A masked ID can't be used."
           }
         },
         "zh-Hans": {
@@ -1254,7 +1266,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tax number"
+            "value": "Tax ID"
           }
         },
         "zh-Hans": {
@@ -1270,7 +1282,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enter the full tax number again"
+            "value": "Enter the full tax ID again"
           }
         },
         "zh-Hans": {
@@ -1414,7 +1426,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdraw not confirmed. Refresh to check."
+            "value": "Withdrawal not confirmed. Refresh to check."
           }
         },
         "zh-Hans": {
@@ -1430,7 +1442,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Delete not confirmed. Refresh to check."
+            "value": "Deletion not confirmed. Refresh to check."
           }
         },
         "zh-Hans": {
@@ -1606,7 +1618,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdraw didn't finish"
+            "value": "Withdrawal didn't finish"
           }
         },
         "zh-Hans": {
@@ -1622,7 +1634,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The withdraw is not confirmed yet"
+            "value": "The withdrawal is not confirmed yet"
           }
         },
         "zh-Hans": {
@@ -1638,7 +1650,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Delete didn't finish"
+            "value": "Deletion didn't finish"
           }
         },
         "zh-Hans": {
@@ -1654,7 +1666,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The delete is not confirmed yet"
+            "value": "The deletion is not confirmed yet"
           }
         },
         "zh-Hans": {

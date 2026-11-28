@@ -22,6 +22,8 @@ final class ParticipantFormModel: ObservableObject {
     private var loadedIdentity: ProfileReadIdentity?
     private var generation: UInt64 = 0
     private var originalRetryIsActive = true
+    /// mp-states r3: MP addressinfo.wxml:44 titles a rejected save 参与人信息没有保存 · 重试保存; a rejected delete keeps the shared title.
+    @Published private(set) var lastMutationIsDelete = false
 
     init(id: Int?, reader: any ProfileReading, coordinator: ParticipantMutationCoordinator) {
         self.id = id; self.reader = reader; self.coordinator = coordinator
@@ -93,6 +95,7 @@ final class ParticipantFormModel: ObservableObject {
         guard canSave, let identity = loadedIdentity else { return }
         do {
             confirmation = try coordinator.prepare(.save(draft), expectedIdentity: identity)
+            lastMutationIsDelete = false
             originalCreateRetry = confirmation.flatMap(ParticipantOriginalCreateRetry.init(confirmation:))
             confirmationSummary = draft.fullName.trimmingCharacters(in: .whitespacesAndNewlines)
                 + "\n" + draft.mobilePhone.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -103,6 +106,7 @@ final class ParticipantFormModel: ObservableObject {
         guard canMutate, let id, let identity = loadedIdentity else { return }
         do {
             confirmation = try coordinator.prepare(.delete(id: id), expectedIdentity: identity)
+            lastMutationIsDelete = true
             confirmationSummary = draft.fullName + "\n" + draft.mobilePhone
             showConfirmation = true; issue = nil; sync()
         } catch { issue = ParticipantScreenIssue(error) }
@@ -247,6 +251,12 @@ struct ParticipantFormView: View {
                 set: { model.showConfirmation = $0 })
     }
 
+    /// MP addressinfo.wxml:45 重试保存 → `saveAddress`: the same review + save as the toolbar 保存.
+    private func retrySaveAction() {
+        focusedField = model.reviewForSave()
+        if focusedField == nil, model.pendingIsSave { Task { await commitMutation() } }
+    }
+
     @MainActor private func commitMutation() async {
         if await model.confirmMutation() {
             if let row = model.coordinator.savedParticipant, let identity = model.coordinator.identity { onCreated(row, identity) }
@@ -349,7 +359,8 @@ struct ParticipantFormView: View {
                         routes: ["/api/user/address/action"],
                         session: offlineWriteSession.session
                     )
-                    ParticipantOperationSections(state: model.operation, readback: model.readback, canReadAgain: model.canReadBack, actionIssue: model.issue) {
+                    ParticipantOperationSections(state: model.operation, readback: model.readback, canReadAgain: model.canReadBack, actionIssue: model.issue,
+                                                 saveRetry: model.lastMutationIsDelete ? nil : retrySaveAction) {
                         Task { await model.readBack() }
                     }
                 }
@@ -463,11 +474,30 @@ struct ParticipantOperationSections: View {
     let readback: ParticipantReadbackState
     var canReadAgain: Bool = true
     var actionIssue: ParticipantScreenIssue? = nil
+    /// mp-states r3: set only by the add/edit form after a rejected save (MP addressinfo.wxml:44
+    /// cy-inline-error 参与人信息没有保存 · sub saveError · 重试保存). Delete / detail flows pass nil.
+    var saveRetry: (() -> Void)? = nil
     let readAgain: () -> Void
     var body: some View {
         switch state {
         case .submitting:
             Section { ProgressView("participant.form.saving") }
+        case .rejected(let failure) where saveRetry != nil:
+            Section {
+                ContentUnavailableView {
+                    Label("participant.form.saveRejected", systemImage: "exclamationmark.triangle")
+                } description: {
+                    if let message = failure.message, !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        Text(verbatim: message)
+                    } else { Text("participant.form.rejectedHint") }
+                } actions: {
+                    Button("participant.form.retrySave") { saveRetry?() }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("participant.form.retrySave")
+                }
+                .accessibilityIdentifier("participant.form.saveRejected")
+                if let row = RequestReferenceRow(pathFragment: "/api/user/") { row }
+            }
         case .rejected(let failure):
             Section("participant.form.rejected") {
                 if let message = failure.message, !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
