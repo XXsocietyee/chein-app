@@ -370,6 +370,14 @@ Merged `origin/ui/combined-r7` (882fca768). Sweep build 0446d1c4f: checked `mp-c
 | 123 | `pages/club/*` 成员 (MP order unchanged) → `App/ClubKit/ClubRosterCardKit.swift:65-80` (`en-d4-members`) | Members summary read "Owner 1 · Admins 1 · Members 1": noun before the number, and "Owner" while the rows say "Creator" | en → "Creator: 1 · Admins: 1 · Members: 1" (`tools/build_design_r1_localizations.py` → `Resources/DesignR1Club.xcstrings`; pin in `Tests/AppUnitTests/DesignR1ClubKitTests.swift:114`); zh unchanged | Done |
 | 124 | `pages/index/index` 编辑精选 (MP order unchanged) → `App/HomeFeedView.swift` `homeFeed.editorsPicksFootnote` (`en-d2-home`) | "Check each page for entry rules" — vague translation of 参加条件以详情为准 | en → "See each topic for how to join"; zh unchanged | Done |
 
+### Run 33 (11-28)
+Merged `origin/ui/combined-r7` (clean). Sweep build 0446d1c4f: checked `mp-mine/sheet-en.jpg` and `mp-activity/sheet-en.jpg` (not checked in run 32b). Activity: "Pay ¥12.50 with Apple Pay" on a CNY order is mp-activity's P1-3 (route by quote currency), left.
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 125 | `pages/member/*` passport 徽章 rail (MP order unchanged) → `App/PassportView.swift` `badgeObject` (`en-ia-passport`) | Two-word English badge names clipped to the first line ("Market Regular" shows as "Market") inside the horizontal `LazyHStack` | Label reserves its two lines (`.lineLimit(…, reservesSpace: true)`), so every tile has the same height and the second line is never clipped; zh unchanged | Done |
+| 126 | `pages/member/*` 票夹 (`wType` 场次) → `App/TicketWalletView.swift:565` `ticketWallet.type.session` (`en-e4-tickets`) | Activity ticket sub-line reads a bare "Session" | en → "Event" (beside "City orienteering" / "Free explore"); zh 场次 unchanged | Done |
+
 ## Not done
 
 | Item | Why |
