@@ -873,6 +873,26 @@ final class ProjectEditThemeRulesTests: XCTestCase {
         XCTAssertEqual(off["stateEnabled"], .bool(true))
         XCTAssertNotNil(off["attributes"])
 
+        // 更多规则 (MP newClock / newAspect / apply): new clock sized by the difficulty, traits keep the preset text,
+        // an emptied list drops the field.
+        var more = ProjectEditD20Rules.model(in: draft)
+        more.preset = .hard
+        let clock = ProjectEditD20Rules.newClock(label: "警报", in: more)
+        XCTAssertTrue(clock.key.hasPrefix("counter.clock_"))
+        XCTAssertTrue(clock.danger)
+        XCTAssertEqual(clock.segments, 4)
+        more.clocks.append(clock)
+        more.clocks[0].danger = false
+        more.aspects.append(ProjectEditD20Rules.newAspect(label: "眼尖", desc: "更容易发现线索", in: more))
+        let moreRules = try rules(ProjectEditD20Rules.save(more, in: draft))
+        let clockRows = try XCTUnwrap(moreRules["rpg"]?.object?["clocks"]?.array)
+        XCTAssertEqual(clockRows.count, 2)
+        XCTAssertEqual(clockRows[0].object?["kind"], .string("progress"))
+        XCTAssertEqual(clockRows[1].object?["segments"], .number(4))
+        XCTAssertEqual(moreRules["rpg"]?.object?["aspects"]?.array?.first?.object?["desc"], .string("更容易发现线索"))
+        more.clocks = []
+        XCTAssertNil(try rules(ProjectEditD20Rules.save(more, in: draft))["rpg"]?.object?["clocks"])
+
         draft.preserved["journeyRules"] = .string("{broken")
         XCTAssertThrowsError(try ProjectEditD20Rules.setCheckEnabled(true, in: draft))
         draft.preserved["journeyRules"] = nil

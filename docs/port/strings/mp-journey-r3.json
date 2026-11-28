@@ -3860,5 +3860,73 @@
         }
       }
     }
+  },
+  "playVerdict.tapToContinue": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Tap anywhere to continue"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "轻点继续"
+        }
+      }
+    }
+  },
+  "playkit.scan.matchNote": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This only checks this stop's task code."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "仅确认这一站的任务码"
+        }
+      }
+    }
+  },
+  "playkit.scan.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Scan this stop's code"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "扫描这一站的二维码"
+        }
+      }
+    }
+  },
+  "playkit.scan.imagePending": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The picture you get after scanning"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "扫完给的那张图"
+        }
+      }
+    }
   }
 }

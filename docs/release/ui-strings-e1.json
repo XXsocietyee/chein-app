@@ -374,7 +374,7 @@
     "key": "authEntry.gate.checkRequired",
     "table": "AuthEntry",
     "kind": "rewrite",
-    "en": "Tick the box to continue.",
+    "en": "Check the box to continue.",
     "zh-Hans": "请先勾选，再继续。"
   },
   {

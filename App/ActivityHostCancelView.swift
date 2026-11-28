@@ -154,19 +154,22 @@ import SwiftUI
                         let shown = msg?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
                             ? c.tr(msg!)
                             : c.t("当前无法取消", "Cannot cancel right now")
-                        Label {
+                        // MP scene-play-activity-detail/index.wxml:124: cy-error 暂不能取消这场活动 · sub cancelError · 重新检查.
+                        ContentUnavailableView {
+                            Label {
+                                Text(verbatim: c.t("暂不能取消这场活动", "This event can't be cancelled right now"))
+                            } icon: { Image(systemName: "exclamationmark.triangle") }
+                        } description: {
                             Text(verbatim: shown)
-                                .fixedSize(horizontal: false, vertical: true)
-                        } icon: {
-                            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+                        } actions: {
+                            Button {
+                                Task { await model.loadPreview() }
+                            } label: { Text(verbatim: c.t("重新检查", "Check again")) }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("activity.hostCancel.recheck")
+                            .accessibilityLabel(Text(verbatim: c.t("重新检查", "Check again")))
                         }
                         .accessibilityIdentifier("activity.hostCancel.blocked")
-
-                        Button {
-                            Task { await model.loadPreview() }
-                        } label: { Text(verbatim: c.t("重新检查", "Check again")) }
-                        .accessibilityIdentifier("activity.hostCancel.recheck")
-                        .accessibilityLabel(Text(verbatim: c.t("重新检查", "Check again")))
                     }
                 case .unknownCount, .networkError:
                     Section {
@@ -291,12 +294,23 @@ import SwiftUI
             .accessibilityIdentifier("activity.hostCancel.reason")
 
             if let err = model.submitError {
-                Label {
-                    Text(verbatim: c.tr(err)).fixedSize(horizontal: false, vertical: true)
-                } icon: {
-                    Image(systemName: "exclamationmark.circle")
+                // MP scene-play-activity-detail/index.wxml:128: cy-error 活动取消失败 · sub cancelError · 重试 (submitCancel → confirm again).
+                ContentUnavailableView {
+                    Label {
+                        Text(verbatim: c.t("活动取消失败", "Couldn't cancel the event"))
+                    } icon: { Image(systemName: "exclamationmark.triangle") }
+                } description: {
+                    Text(verbatim: c.tr(err))
+                } actions: {
+                    Button {
+                        guard PlayAreaPopupCopy.paymentsOpen else { return }
+                        confirming = true
+                    } label: { Text(verbatim: c.t("重试", "Try again")) }
+                    .buttonStyle(.bordered)
+                    .disabled(!model.canSubmit || !PlayAreaPopupCopy.paymentsOpen)
+                    .accessibilityIdentifier("activity.hostCancel.retry")
+                    .accessibilityLabel(Text(verbatim: c.t("重试", "Try again")))
                 }
-                .foregroundStyle(.red)
                 .accessibilityIdentifier("activity.hostCancel.submitError")
             }
         } header: {

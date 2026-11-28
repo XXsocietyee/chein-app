@@ -179,7 +179,7 @@ enum WalletPayoutCapability {
                         // PC-D-5-3: MP label 账户收益 (the currency symbol is drawn beside the number).
                         WalletEarningsHero(label: appLocalized("wallet.earnings.balance", locale: locale),
                                            number: WalletNumberLocalization.money(value.balance.text, locale: locale),
-                                           symbol: WalletCurrencySymbol.symbol(value.currency))
+                                           symbol: WalletCurrencySymbol.symbol(value.currency, locale: locale))
                             .privacySensitive()
                             .accessibilityIdentifier("wallet.earnings.balance")
                     } else {
@@ -289,7 +289,7 @@ enum WalletPayoutCapability {
                                     }
                                 }
                                 Spacer(minLength: 8)
-                                Text(verbatim: format.signed(row, points: false, income: true) + " " + (row.currency.flatMap { WalletCurrencySymbol.symbol($0) } ?? ""))
+                                Text(verbatim: format.signed(row, points: false, income: true) + " " + (row.currency.flatMap { WalletCurrencySymbol.symbol($0, locale: format.locale) } ?? ""))
                                     .monospacedDigit().privacySensitive()
                             }.padding(.vertical, 8)
                         }
@@ -340,7 +340,7 @@ enum WalletPayoutCapability {
         }.accessibilityIdentifier("wallet.earnings.stages.home")
     }
     private func assetAmount(_ amount: WalletAmount, _ currency: String?) -> String {
-        guard let symbol = WalletCurrencySymbol.symbol(currency) else { return format.amount(amount, currency: currency) }
+        guard let symbol = WalletCurrencySymbol.symbol(currency, locale: locale) else { return format.amount(amount, currency: currency) }
         return symbol + WalletNumberLocalization.money(amount.text, locale: locale)
     }
     private func assetRow(_ icon: String, _ title: LocalizedStringKey, _ value: String?) -> some View {
@@ -665,7 +665,7 @@ extension EnvironmentValues {
             let first = model.pager.rows.first
             let value = points ? first?.afterPoints : first?.afterBalance
             let unit = points ? format.pointsUnit(for: value) : (first?.currency ?? "")
-            let glyph: String? = points ? nil : WalletCurrencySymbol.symbol(first?.currency).flatMap { $0.count == 1 ? $0 : nil }
+            let glyph: String? = points ? nil : WalletCurrencySymbol.symbol(first?.currency, locale: locale).flatMap { WalletCurrencySymbol.isGlyph($0) ? $0 : nil }
             VStack(alignment: .leading, spacing: 4) {
                 Text(points ? "wallet.pointsBalance" : "wallet.balanceLedger")
                     .font(.subheadline).foregroundStyle(.secondary)
@@ -1281,6 +1281,19 @@ enum WalletCurrencySymbol {
         case "GBP": return "£"
         default: return code
         }
+    }
+
+    /// ds-consistency r3: one money label app-wide, the shared `LocaleDisplay.money` rule — `¥` in Chinese,
+    /// `CN¥` in other languages (Me balance, orders, coop and topic prices already read `CN¥12.00` in English).
+    static func symbol(_ currency: String?, locale: Locale) -> String? {
+        guard let base = symbol(currency) else { return nil }
+        guard base == "¥", !LocaleDisplay.isChinese(locale) else { return base }
+        return LocaleDisplay.currencySymbol(currencyCode: "CNY", locale: locale)
+    }
+
+    /// A drawn symbol (`¥`, `CN¥`, `$`), not a bare ISO code (`JPY`), so it can sit before the number.
+    static func isGlyph(_ symbol: String) -> Bool {
+        symbol.unicodeScalars.contains { !CharacterSet.letters.contains($0) }
     }
 }
 

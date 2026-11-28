@@ -98,8 +98,9 @@ import SwiftUI
                 if showsOfflineExampleNote { Label("searchMap.offline", systemImage: "wifi.slash").font(.footnote).foregroundStyle(.secondary) }
             }
             // The primary action appears once a keyword or category can search. An empty Search key
-            // shows the prompt and does not start a request.
-            if filter.canSearch {
+            // shows the prompt and does not start a request. MP `search2/result` has no search button:
+            // once this query's results (or its request) are on screen, the button steps away.
+            if filter.canSearch && !loading && retainedResults.snapshot(in: resultContext) == nil {
                 Section {
                     Button { submitSearch() } label: {
                         Text("searchMap.search").frame(maxWidth: .infinity)
