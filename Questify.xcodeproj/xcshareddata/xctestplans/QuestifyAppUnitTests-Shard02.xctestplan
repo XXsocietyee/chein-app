@@ -166,6 +166,7 @@
         "EndToEndReleaseCandidateGateSectionViewTests",
         "EnvironmentBranchAndRewardLedgerViewTests",
         "FinalReleaseSignoffAndZeroGapCertificateViewTests",
+        "Fix1128bMapsCompositionTests",
         "Fix1128bPlayReleaseCompositionTests",
         "Fix1128bTeamRegCompositionTests",
         "FogOverlayLayerPixelTests",

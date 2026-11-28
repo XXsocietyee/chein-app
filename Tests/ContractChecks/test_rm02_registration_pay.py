@@ -28,7 +28,9 @@ class Rm02RegistrationPayContractTests(unittest.TestCase):
         sheet = self.read("App/RegistrationSheetView.swift")
         self.assertIn("RegistrationPaySection(", sheet)
         order = self.read("App/OrderLifecycleView.swift")
-        self.assertIn("RegistrationPaySection(", order)
+        # fix-1128b gap #9: order-detail re-pay wraps the pay section with the same "Pay with" row (OrderRepaySection).
+        self.assertIn("OrderRepaySection(", order)
+        self.assertIn("RegistrationPaySection(", self.read("App/OrderRepaySection.swift"))
 
     def test_release_money_switch_stays_off_in_release(self):
         cap = self.read("Core/ChinaReviewedRouteCapability.swift")

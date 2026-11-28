@@ -153,6 +153,7 @@
         "FinalTwentyBatchMasterCompletionViewTests",
         "Finding4LocalizationTests",
         "Fix1128bClubReadRouteTests",
+        "Fix1128bMapsCompositionTests",
         "Fix1128bMineCompositionTests",
         "Fix1128bTeamRegCompositionTests",
         "FogOverlayLayerPixelTests",

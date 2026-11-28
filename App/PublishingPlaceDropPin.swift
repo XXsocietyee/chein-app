@@ -20,7 +20,7 @@ import MapKit
                 .onTapGesture(coordinateSpace: .local) { point in Self.drop(point, proxy: proxy, onDrop: onDrop) }
             }
             .frame(height: 240)
-            .accessibilityLabel(Text(selected.map { $0.name } ?? String(localized: "social1128.place.mapHint")))
+            .accessibilityLabel(Text(selected.map { $0.name } ?? String(localized: LocalizedStringResource("social1128.place.mapHint"))))
             .accessibilityIdentifier("publishModes.placeMap")
             Text("social1128.place.tapHint").font(.footnote).foregroundStyle(.secondary)
                 .padding(.horizontal)
@@ -50,7 +50,7 @@ extension PublishingMapKitAdapter {
     /// A dropped pin as a place. The label is replaced by Apple's reverse-geocoded name when one comes back.
     static func droppedPin(_ coordinate: CLLocationCoordinate2D) -> PublishingPlace? {
         let address = String(format: "%.6f, %.6f", coordinate.latitude, coordinate.longitude)
-        return try? PublishingPlace(id: "pin:" + address, name: String(localized: "social1128.place.dropped"), address: address,
+        return try? PublishingPlace(id: "pin:" + address, name: String(localized: LocalizedStringResource("social1128.place.dropped")), address: address,
                                     latitude: coordinate.latitude, longitude: coordinate.longitude)
     }
 
