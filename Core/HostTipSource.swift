@@ -57,6 +57,29 @@ public struct HostTipPrepareFact: Equatable, Sendable {
     public static let unknownMark = "—"
 }
 
+/// What the player is told after `POST /api/host-tip/prepare`. Prepare never takes money
+/// (there is no host-tip pay step), so a payable intent is not a successful payment.
+public enum HostTipPrepareBanner: Equatable, Sendable {
+    /// Channel off or the prepare is not payable.
+    case unavailable
+    /// The payment switch is off. Copy says the payment did not succeed.
+    case paymentClosed
+    /// The switch is on and the prepare is payable. The intent list carries the status.
+    /// This is not "payment closed" and it is not "paid".
+    case pending
+}
+
+public enum HostTipPreparePresentation {
+    /// P2-1: both branches used to say payment closed. A payable prepare says that only
+    /// while the payment switch is off. While the switch is on, the result stays pending.
+    public static func banner(fact: HostTipPrepareFact, paymentsOpen: Bool) -> HostTipPrepareBanner {
+        if fact.paymentSucceeded { return .paymentClosed }
+        if fact.unavailable { return .unavailable }
+        if fact.payable { return paymentsOpen ? .pending : .paymentClosed }
+        return .unavailable
+    }
+}
+
 public struct HostTipIntentFact: Equatable, Sendable {
     public let id: String
     public let status: String

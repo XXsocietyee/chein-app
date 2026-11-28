@@ -68,3 +68,73 @@ public enum RegistrationPayMethod: String, CaseIterable, Hashable, Sendable {
     }
 
 }
+
+/// Checkout bar copy (P32 / ADA t5-baoming). The button names the action. A block never
+/// replaces that label; the footnote above the button carries the reason.
+public enum RegistrationCheckoutSubmit: Equatable, Sendable {
+    case confirmSignup
+    case confirmPriceAndPay
+    /// Method-labelled pay button. The view fills in the chosen method and the amount.
+    case pay
+    /// Priced ticket while the payment switch is off. The view keeps its review key.
+    case reviewKey
+}
+
+/// Footnote above a disabled checkout button. Distinct from the button label.
+public enum RegistrationCheckoutFootnote: Equatable, Sendable {
+    case sharingConsent
+    case chooseParticipant
+    case signupClosed
+    case blockReason
+}
+
+public enum RegistrationCheckoutPayUX {
+    /// The label does not take the block. A received quote amount of zero is a free confirmation
+    /// even when the ticket's list price is not. A missing quote amount falls through to the ticket price.
+    public static func submit(hasTicket: Bool, ticketPrice: Decimal?, quoteEnabled: Bool,
+                              quoteReceived: Bool, quotePayAmount: Decimal?, paymentsOpen: Bool) -> RegistrationCheckoutSubmit? {
+        guard hasTicket else { return nil }
+        if quoteEnabled, quoteReceived, let amount = quotePayAmount {
+            if amount == .zero { return .confirmSignup }
+            return paymentsOpen ? .pay : .reviewKey
+        }
+        if let ticketPrice, ticketPrice == .zero { return .confirmSignup }
+        return paymentsOpen ? .confirmPriceAndPay : .reviewKey
+    }
+
+    /// Price for the Pay-with row. Zero (a free quote) hides the row. Before a quote, the ticket price is used.
+    public static func payWithRowPrice(ticketPrice: Decimal?, quoteEnabled: Bool,
+                                       quoteReceived: Bool, quotePayAmount: Decimal?) -> Decimal? {
+        if quoteEnabled, quoteReceived, let amount = quotePayAmount { return amount }
+        return ticketPrice
+    }
+
+    public static func showsPayWithRow(ticketPrice: Decimal?, quoteEnabled: Bool,
+                                       quoteReceived: Bool, quotePayAmount: Decimal?) -> Bool {
+        (payWithRowPrice(ticketPrice: ticketPrice, quoteEnabled: quoteEnabled,
+                         quoteReceived: quoteReceived, quotePayAmount: quotePayAmount) ?? .zero) > .zero
+    }
+
+    /// MP baoming.wxml:329 reasons, shown above the button, never as its title.
+    public static func footnote(_ block: RegistrationUIBlock?) -> RegistrationCheckoutFootnote? {
+        switch block {
+        case .missingConsent: return .sharingConsent
+        case .invalidForm: return .chooseParticipant
+        case .signupClosed: return .signupClosed
+        case nil: return nil
+        default: return .blockReason
+        }
+    }
+}
+
+/// Gap #9: order-detail re-pay. A USD order uses the player's Stripe choice when that method is still
+/// offered. A CNY order returns nil so the pay section keeps WeChat Pay / Alipay.
+public enum OrderRepayChoice {
+    public static func method(currency: String?, paymentChannels: [String]?,
+                              selection: RegistrationPayMethod?, applePayAvailable: Bool) -> RegistrationPayMethod? {
+        guard StripePayEligibility.isUSDOrder(currency: currency, paymentChannels: paymentChannels),
+              let selection else { return nil }
+        let offered = StripePayEligibility.methods(paymentChannels: paymentChannels, applePayAvailable: applePayAvailable)
+        return offered.contains(selection) ? selection : nil
+    }
+}
