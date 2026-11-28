@@ -27007,6 +27007,26 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "002C67240C4AE742204A267B";
 		};
+		"26289F79D002C47964A3DCBD" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/InboundLinkCatalog.swift";
+			"sourceTree" = "<group>";
+		};
+		"4285B248B2724F521F012053" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "26289F79D002C47964A3DCBD";
+		};
+		"D0338B21A89A38AA44E71EB0" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/InboundLinkCatalogPages.swift";
+			"sourceTree" = "<group>";
+		};
+		"6AC2A675DB6517329079C117" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "D0338B21A89A38AA44E71EB0";
+		};
 		"423EC45E3C0AC57928BBEEBD" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -47032,6 +47052,8 @@
 				"B967E4281054092D40D1BF28",
 				"12E0E204C6159A113E74905D",
 				"002C67240C4AE742204A267B",
+				"26289F79D002C47964A3DCBD",
+				"D0338B21A89A38AA44E71EB0",
 				"423EC45E3C0AC57928BBEEBD",
 				"7BC3E458C2E408A4276526BF",
 				"967E8243B6600639D4256A28",
@@ -52687,6 +52709,8 @@
 				"A533EC68B202FE78859E47C7",
 				"5B632A381D64E643F6A6531B",
 				"30D70BFDC957A7B01A10861C",
+				"4285B248B2724F521F012053",
+				"6AC2A675DB6517329079C117",
 				"CB413E2073D35DC66AB27D5F",
 				"BEA048EA966C847E9CF97290",
 				"E9CB167DEECB21235D8FECBC",
