@@ -160,27 +160,29 @@ import SwiftUI
     var body: some View {
         let token = editor.editToken
         Form {
-            Section {
-                Text(copy.text("zeroHP.copy.012")).nativeAuthorSupportingCopy()
-                if editor.busy { NativeAuthorLoading(text: Text(copy.text("zeroHP.copy.013"))).accessibilityIdentifier("zeroHPAuthor.loading") }
-                if let message = editor.message { NativeAuthorNotice(text: Text(verbatim: copy.message(message)), tone: .attention).accessibilityIdentifier("zeroHPAuthor.notice") }
-                if !editor.current {
-                    Text(copy.text("zeroHP.copy.014"))
-                    Button { guard editor.editToken == token else { return }; editor.open() } label: { Text(verbatim: copy.text("zeroHP.copy.015")) }.disabled(!model.fullEdit).accessibilityIdentifier("zeroHPAuthor.reloadProject")
-                } else if editor.staged?.readOnly != true {
-                    Button { guard editor.editToken == token else { return }; editor.reload() } label: { Text(verbatim: copy.text("zeroHP.copy.016")) }.disabled(editor.busy).accessibilityIdentifier("zeroHPAuthor.reloadInputs")
+            // MP zero-hp-editor.wxml has no intro or 值域 summary card: status rows appear only while loading, on a notice, or when the copy went stale.
+            if editor.busy || editor.message != nil || !editor.current || (editor.inputs == nil && editor.staged?.readOnly != true) {
+                Section {
+                    if editor.busy { NativeAuthorLoading(text: Text(copy.text("zeroHP.copy.013"))).accessibilityIdentifier("zeroHPAuthor.loading") }
+                    if let message = editor.message { NativeAuthorNotice(text: Text(verbatim: copy.message(message)), tone: .attention).accessibilityIdentifier("zeroHPAuthor.notice") }
+                    if !editor.current {
+                        Text(copy.text("zeroHP.copy.014"))
+                        Button { guard editor.editToken == token else { return }; editor.open() } label: { Text(verbatim: copy.text("zeroHP.copy.015")) }.disabled(!model.fullEdit).accessibilityIdentifier("zeroHPAuthor.reloadProject")
+                    } else if editor.staged?.readOnly != true && !editor.busy {
+                        Button { guard editor.editToken == token else { return }; editor.reload() } label: { Text(verbatim: copy.text("zeroHP.copy.016")) }.accessibilityIdentifier("zeroHPAuthor.reloadInputs")
+                    }
                 }
             }
             if editor.current, let staged = editor.staged {
-                Section(copy.healthName(staged) + copy.text("zeroHP.copy.017")) {
-                    Text(staged.hp.enabled ? copy.format("zeroHP.enabled", staged.hp.maximum) : copy.text("zeroHP.copy.018"))
-                    Text(copy.format("zeroHP.editResource", copy.message(staged.hpEditorName))).font(.footnote).foregroundStyle(.secondary)
-                }
                 if staged.readOnly {
-                    Section(copy.text("zeroHP.copy.019")) {
-                        Text(verbatim: copy.compatibility(staged)).fixedSize(horizontal: false, vertical: true)
-                            .accessibilityIdentifier("zeroHPAuthor.readOnly")
-                        Text(copy.text("zeroHP.copy.020")).nativeAuthorSupportingCopy()
+                    Section {
+                        LabeledContent {
+                            Text(verbatim: copy.compatibility(staged)).fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("zeroHPAuthor.readOnly")
+                        } label: {
+                            Text(copy.text("zeroHP.mp.legacy"))
+                        }
+                        Text(copy.text("zeroHP.mp.legacyNote")).nativeAuthorSupportingCopy()
                         if staged.selected == .steps {
                             Text(copy.text("zeroHP.copy.021") + staged.text("restoreTo"))
                             Text(copy.text("zeroHP.copy.022") + staged.text("limit"))
@@ -192,12 +194,12 @@ import SwiftUI
                     policySection(staged, inputs: inputs)
                     if staged.selected == .challenge { challengeSection(staged, inputs: inputs) }
                     if staged.selected?.blockKey != nil { recoverySection(staged) }
-                    Section(copy.text("zeroHP.copy.025")) {
-                        TextField(copy.text("zeroHP.copy.026"), text: Binding(get: { staged.zeroMessage }, set: { text in editor.mutate(token) { value, _ in value.message(text) } }), axis: .vertical)
+                    Section(copy.text("zeroHP.mp.reply")) {
+                        TextField(copy.text("zeroHP.mp.replyExample"), text: Binding(get: { staged.zeroMessage }, set: { text in editor.mutate(token) { value, _ in value.message(text) } }), axis: .vertical)
                             .lineLimit(3...8)
                             .accessibilityIdentifier("zeroHPAuthor.reply")
-                            .accessibilityLabel(Text(copy.text("zeroHP.copy.026")))
-                        Text(copy.text("zeroHP.copy.027")).font(.footnote).foregroundStyle(.secondary)
+                            .accessibilityLabel(Text(copy.text("zeroHP.mp.reply")))
+                        if staged.selected == .fail { Text(copy.text("zeroHP.mp.failNote")).font(.footnote).foregroundStyle(.secondary) }
                     }.disabled(editor.busy)
                     if !editor.issues.isEmpty { Section(copy.text("zeroHP.copy.028")) {
                         ForEach(Array(editor.issues.enumerated()), id: \.offset) { _, issue in NativeAuthorNotice(text: Text(verbatim: copy.message(issue)), tone: .attention) }
@@ -206,7 +208,7 @@ import SwiftUI
             }
         }
         .nativeAuthorSurface()
-        .navigationTitle(Text(verbatim: copy.text("zeroHP.copy.030")))
+        .navigationTitle(Text(verbatim: editor.staged.map { copy.format("zeroHP.mp.title", copy.healthName($0)) } ?? copy.text("zeroHP.copy.030")))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) { Button(copy.text("zeroHP.copy.031")) { guard editor.editToken == token else { return }; editor.retire(); dismiss() }.accessibilityIdentifier("zeroHPAuthor.cancel") }
@@ -243,9 +245,8 @@ import SwiftUI
     }
     private func challengeSection(_ staged: NativeZeroHPAuthorDraft, inputs: NativeRuntimeStructureAuthorInputs) -> some View {
         let token = editor.editToken
-        return Section(copy.text("zeroHP.copy.034")) {
-            Text(copy.text("zeroHP.copy.035")).font(.footnote).foregroundStyle(.secondary)
-            if staged.savedNodes.isEmpty || !editor.hasSavedTopic { Text(copy.text("zeroHP.copy.036")) }
+        return Section(copy.text("zeroHP.mp.node")) {
+            if staged.savedNodes.isEmpty || !editor.hasSavedTopic { Text(copy.text("zeroHP.mp.noNodes")).font(.footnote).foregroundStyle(.secondary) }
             ForEach(staged.savedNodes) { node in
                 if let id = node.localMetadata["id"]?.integer {
                     let reason = NativeZeroHPAuthorPolicy.nodeReason(node, draft: staged, inputs: inputs)
@@ -262,8 +263,7 @@ import SwiftUI
                     .accessibilityIdentifier("zeroHPAuthor.main.\(id)")
                 }
             }
-            Text(copy.text("zeroHP.copy.038") + ((staged.challenge["gameplayKey"]?.text).map { copy.gameplay($0) } ?? copy.text("zeroHP.copy.039"))).font(.footnote).foregroundStyle(.secondary)
-            DisclosureGroup(copy.format("zeroHP.alternatives", String(staged.alternatives.count))) {
+            DisclosureGroup {
                 ForEach(staged.savedNodes.filter { $0.localMetadata["id"]?.integer != staged.challenge["challengeNodeId"]?.integer }) { node in
                     if let id = node.localMetadata["id"]?.integer {
                         let reason = NativeZeroHPAuthorPolicy.nodeReason(node, draft: staged, inputs: inputs)
@@ -278,28 +278,37 @@ import SwiftUI
                     Button(copy.format("zeroHP.removeStale", String(stale))) { editor.mutate(token) { try $0.alternative(nodeID: stale, selected: false, inputs: $1) } }.disabled(editor.busy)
                         .accessibilityIdentifier("zeroHPAuthor.removeAlternative.\(stale)")
                 }
+            } label: {
+                LabeledContent(copy.text("zeroHP.mp.alternatives"), value: String(staged.alternatives.count))
             }
-            number(staged, field: "requiredCompletions", label: copy.text("zeroHP.copy.043"))
-            number(staged, field: "withinSeconds", label: copy.text("zeroHP.copy.044"))
+            number(staged, field: "requiredCompletions", label: copy.text("zeroHP.mp.completions"), hint: "1–99")
+            number(staged, field: "withinSeconds", label: copy.text("zeroHP.mp.within"), hint: "1–86400")
         }
     }
-    private func number(_ staged: NativeZeroHPAuthorDraft, field: String, label: String) -> some View {
+    /// MP `rt-field`: the label stays visible next to the value; the allowed range is the prompt.
+    private func number(_ staged: NativeZeroHPAuthorDraft, field: String, label: String, hint: String) -> some View {
         let token = editor.editToken
-        return TextField(label, text: Binding(get: { staged.text(field) }, set: { text in editor.mutate(token) { value, _ in value.number(field, text: text) } }))
-            .keyboardType(.numberPad).disabled(editor.busy)
-            .accessibilityLabel(Text(verbatim: label))
-            .accessibilityIdentifier("zeroHPAuthor.number.\(field)")
+        return LabeledContent {
+            TextField(text: Binding(get: { staged.text(field) }, set: { text in editor.mutate(token) { value, _ in value.number(field, text: text) } }), prompt: Text(verbatim: hint)) { Text(verbatim: label) }
+                .keyboardType(.numberPad)
+                .multilineTextAlignment(.trailing)
+                .accessibilityLabel(Text(verbatim: label))
+                .accessibilityIdentifier("zeroHPAuthor.number.\(field)")
+        } label: {
+            Text(verbatim: label)
+        }
+        .disabled(editor.busy)
     }
     private func recoverySection(_ staged: NativeZeroHPAuthorDraft) -> some View {
         let token = editor.editToken
-        return Section(copy.text("zeroHP.copy.045")) {
-            if staged.selected == .wait { number(staged, field: "minutes", label: copy.text("zeroHP.copy.046")) }
+        return Section {
+            if staged.selected == .wait { number(staged, field: "minutes", label: copy.text("zeroHP.mp.wait"), hint: "1–10080") }
             if staged.selected == .steps {
-                number(staged, field: "steps", label: copy.text("zeroHP.copy.047")).disabled(true)
+                number(staged, field: "steps", label: copy.text("zeroHP.copy.055"), hint: "1–100000").disabled(true)
                 Text(copy.text("zeroHP.copy.048")).font(.footnote).foregroundStyle(.secondary)
             }
-            number(staged, field: "restoreTo", label: copy.format("zeroHP.restoreRange", staged.hp.maximum))
-            number(staged, field: "limit", label: copy.text("zeroHP.copy.049"))
+            number(staged, field: "restoreTo", label: copy.text("zeroHP.mp.restoreTo"), hint: "1–" + staged.hp.maximum)
+            number(staged, field: "limit", label: copy.text("zeroHP.mp.limit"), hint: "1–99")
             Picker(copy.text("zeroHP.copy.050"), selection: Binding(get: { staged.text("thenPolicy") }, set: { key in if let policy = NativeZeroHPAuthorDraft.Policy(rawValue: key) { editor.mutate(token) { value, _ in try value.then(policy) } } })) {
                 Text(copy.text("zeroHP.copy.051")).tag("")
                 Text(copy.text("zeroHP.copy.052")).tag(NativeZeroHPAuthorDraft.Policy.fail.rawValue)
