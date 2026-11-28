@@ -9,7 +9,7 @@ def obj(object_key, **fields):
 # Metal shaders are an opt-in build dependency: the Metal Toolchain is a separate Xcode download and may be missing on a runner.
 METAL_ON = os.environ.get('CY_ENABLE_METAL') == '1'
 METAL_COND = ' CY_METAL_SHADERS' if METAL_ON else ''
-sources = sorted([*ROOT.glob('App/*.swift'), *ROOT.glob('App/Theme/*.swift'), *ROOT.glob('App/DesignSystem/*.swift'), *(ROOT.glob('App/DesignSystem/*.metal') if METAL_ON else []), *ROOT.glob('App/DesignFixtures/*.swift'), *ROOT.glob('App/ClubKit/*.swift'), *ROOT.glob('App/MerchantKit/*.swift'), *ROOT.glob('App/MerchantApprovals/*.swift'), *ROOT.glob('App/CityKit/*.swift'), *ROOT.glob('App/NativeGallery/*.swift'), *ROOT.glob('App/MPGap/**/*.swift'), *ROOT.glob('App/NativeR2/**/*.swift'), *ROOT.glob('App/MPAssets/*.swift'), *ROOT.glob('App/*.m'), *ROOT.glob('Core/*.swift'), *ROOT.glob('Core/MPGap/**/*.swift')])
+sources = sorted([*ROOT.glob('App/*.swift'), *ROOT.glob('App/Theme/*.swift'), *ROOT.glob('App/DesignSystem/*.swift'), *(ROOT.glob('App/DesignSystem/*.metal') if METAL_ON else []), *ROOT.glob('App/DesignFixtures/*.swift'), *ROOT.glob('App/ClubKit/*.swift'), *ROOT.glob('App/MerchantKit/*.swift'), *ROOT.glob('App/MerchantApprovals/*.swift'), *ROOT.glob('App/CityKit/*.swift'), *ROOT.glob('App/NativeGallery/*.swift'), *ROOT.glob('App/MPGap/**/*.swift'), *ROOT.glob('App/NativeR2/**/*.swift'), *ROOT.glob('App/AIGuide/*.swift'), *ROOT.glob('App/MPAssets/*.swift'), *ROOT.glob('App/*.m'), *ROOT.glob('Core/*.swift'), *ROOT.glob('Core/MPGap/**/*.swift')])
 ui_source_paths = sorted(ROOT.glob('Tests/AppUITests/*.swift'))
 # Compile this canonical demo source in the app only for Debug. Release AppUnit
 # retains the old tests by compiling that same source in the test bundle instead.
@@ -50,7 +50,7 @@ for target_name, paths in [('Questify', sources), ('QuestifyUITests', ui_source_
                            ('QuestifyAppUnitTests', unit_source_paths), ('QuestifyLiveActivity', live_activity_sources)]:
     validate_swift_basenames(target_name, paths)
 headers = sorted(ROOT.glob('App/*.h'))
-resources = sorted([*ROOT.glob('Resources/*.xcstrings'), *ROOT.glob('Resources/*Notices.txt'), *ROOT.glob('Resources/PrivacyInfo.xcprivacy'), *ROOT.glob('Resources/SettingsBrandMark.png'), *ROOT.glob('App/Assets.xcassets')])
+resources = sorted([*ROOT.glob('Resources/*.xcstrings'), *ROOT.glob('Resources/*Notices.txt'), *ROOT.glob('Resources/PrivacyInfo.xcprivacy'), *ROOT.glob('Resources/SettingsBrandMark.png'), *ROOT.glob('Resources/Story/*.json'), *ROOT.glob('App/Assets.xcassets')])
 refs, source_builds, resource_builds = [], [], []
 for path in sources + resources + headers:
     relative = str(path.relative_to(ROOT))

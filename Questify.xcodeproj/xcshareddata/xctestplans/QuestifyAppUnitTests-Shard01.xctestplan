@@ -165,6 +165,7 @@
         "Fix1128bMineCompositionTests",
         "Fix1128bPlayReleaseCompositionTests",
         "Fix1128bTeamRegCompositionTests",
+        "Fix1128cAINPCReleaseCompositionTests",
         "FreeExploreBundleLaunchModelTests",
         "FreeExploreBundleReadHostTests",
         "FreeExploreBundleReservationTransportTests",
