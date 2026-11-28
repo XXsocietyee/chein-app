@@ -229,31 +229,13 @@
     "App/MessagingHistoryView.swift": {
       "manual paging": 1
     },
-    "App/NativeChannelChainView.swift": {
-      "manual paging": 1
-    },
-    "App/NativeChannelMentionEntry.swift": {
-      "manual paging": 1
-    },
     "App/NativeChannelMessageContextView.swift": {
-      "manual paging": 1
-    },
-    "App/NativeChannelRoleEntry.swift": {
-      "manual paging": 1
-    },
-    "App/NativeFriendChannelInviteEntry.swift": {
-      "manual paging": 1
-    },
-    "App/NativeFriendChannelSourceEntry.swift": {
       "manual paging": 1
     },
     "App/NativeNotificationDeliveryLogView.swift": {
       "manual paging": 1
     },
     "App/NativeR2/FreeExplore/NativeStampAlbumView.swift": {
-      "manual paging": 1
-    },
-    "App/PlayThemeRecordsView.swift": {
       "manual paging": 1
     },
     "App/ProjectStoryTemplateView.swift": {

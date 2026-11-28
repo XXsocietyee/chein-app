@@ -697,3 +697,26 @@ Merged `origin/ui/combined-r7` (clean). Half split per the coordinator 15:45 rul
 For other lanes (mp-activity): `OrderLifecycleView.swift:189` (registration order lifecycle, `detail.teamOpen`) opens team creation without the started rule; pass `sessionStarted:` there the same way if that screen should follow the MP order detail.
 
 A half (rows 1–3): row 2 fixed, row 3 partly fixed (rest gated by `MPCommerceGate`), row 1 (`CharacterCardReadbackView` byte pin) still blocked on the pin owner. **Half done**; run stops here per the 15:45 split rule.
+
+## Continue 44 (11-28, half-hourly run): ticket wallet cover fallback visible again
+
+Merged `origin/ui/combined-r7` (clean). No K50 `cursor-k50-p*` receipts exist yet, and the brief has no mp-mine coordinator rows after 13:15. Half split at run start: open rows in file order 1 `CharacterCardReadbackView` byte pin (pin still in `docs/issue5-hunks/C02-ios-pbx.rnhunk.md`) · 2 `pass-unlock` rest (`MPCommerceGate.purchasesEnabled` still false) | 3 P2-5c (backend / legal). All three are still blocked, and every MP page in the area already has a row. So this run fixes what the sweep shows. Screens checked: `docs/sweeps/latest/mp-mine/sheet-en.jpg` (build c4e43841a): `e4-tickets` pass cards show an empty grey band with a single dot where the cover goes.
+
+| MP page | Native file | MP sections | Level | Fixed now |
+|---|---|---|---|---|
+| `subpackageMember/signup` wallet card cover (wxml:67-69 `wc__im` with `wImg`, else `wc__im--illus cy-cover-fb` + `/images/cover-route.svg`; app.wxss:285 `cy-cover-fb` gradient) | `App/TicketWalletView.swift` `TicketWalletRow.coverBand`, `App/TicketPassSheet.swift` `header`, `App/E1CommerceComponents.swift` `E1CoverArt` | ✓ (cover, else route illustration; unchanged order) | B | **Fixed.** The MP art is white (made for the dark player theme); on the native light `bgSurfaceSubtle` / `.quaternary` tile at 50 % opacity only its dark pin hole showed, which read as a broken image. Both the wallet pass and the pass sheet now use the shared `E1CoverArt` (as the registration sheet does: cover URL, else the `cy-cover-fb` gradient tile with the illustration), and `E1CoverArt` draws a non-filling fallback as a template in `textPlaceholder`, so it is visible in light and dark. Two private cover implementations are gone (one design system). |
+
+For the coordinator: `ia-passport` in the mp-mine sheet is still the black launch screen (same fixture wait as the 15:50 roam note).
+For other lanes (mp-activity): the registration sheet uses the same `E1CoverArt` fallback, so its no-cover thumbnail now shows the tinted route illustration too.
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 46 failing / baseline 46 / **new 0**. Open rows unchanged (1–3 blocked). **Half done**; run stops here per the 15:45 split rule.
+
+## Continue 45 (11-28, hourly run): A half still blocked
+
+Merged `origin/ui/combined-r7` (clean). No `docs/release/receipts/cursor-k50-p*.md` on any branch yet, so there are no K50 `lane-layout` rows for mp-mine. Sweep unchanged (build c4e43841a, checked in continue 44); no mp-mine coordinator rows after 13:15. B lane run 4 changed nothing to mark.
+
+Half split at run start (open rows in file order): 1 `CharacterCardReadbackView` byte pin (pin still in `docs/issue5-hunks/C02-ios-pbx.rnhunk.md`) · 2 `pass-unlock` rest (`App/MPParityKit.swift:12` `MPCommerceGate.purchasesEnabled = false`) | 3 P2-5c (backend / legal). **A half = rows 1–2, both still blocked**; no code change this run.
+
+Gates: generate_project no change, check_scaffold PASS (log redaction failed once while four gates ran in parallel, PASS on rerun), a11y lint 0 new, design consistency PASS, contract ratchet 46 failing / baseline 46 / **new 0**.
+
+**Half done**; run stops here per the 15:45 split rule.

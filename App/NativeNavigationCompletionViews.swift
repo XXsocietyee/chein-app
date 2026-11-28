@@ -39,6 +39,18 @@ import SwiftUI
     /// Counts rejected codes (format or lookup) so each rejection plays one warning haptic.
     @State private var rejectTicks = 0
     private static let maxCodeLength = 40
+    /// The preset values let design fixtures open the page on a typed code with its MP error showing;
+    /// every app caller leaves them at their defaults (empty field, no error).
+    init(makeCoordinator: @escaping () -> TeamCoordinator, onLogin: (() -> Void)? = nil,
+         onOpen: ((TeamInvitationRoute) -> Void)? = nil, presetCode: String = "", presetInvalid: Bool = false,
+         presetReason: LocalizedStringKey? = nil) {
+        self.makeCoordinator = makeCoordinator
+        self.onLogin = onLogin
+        self.onOpen = onOpen
+        _code = State(initialValue: presetCode)
+        _invalid = State(initialValue: presetInvalid)
+        _lookupReason = State(initialValue: presetReason)
+    }
     private func open() {
         guard !looking else { return }
         guard let value = try? TeamInvitationRoute(code: code) else { invalid = true; lookupReason = nil; rejectTicks += 1; return }

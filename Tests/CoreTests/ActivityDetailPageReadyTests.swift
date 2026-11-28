@@ -25,6 +25,12 @@ final class ActivityDetailPageReadyTests: XCTestCase {
         XCTAssertNotEqual(ActivityDetailPageCapability.readPath, "api/club/activity/detail")
     }
 
+    func testUnauthorizedActivityReadAsksForSignIn() {
+        XCTAssertTrue(ActivityDetailPageModel.readFailedBecauseSignedOut(APIError.unauthorized))
+        XCTAssertFalse(ActivityDetailPageModel.readFailedBecauseSignedOut(APIError.malformedResponse))
+        XCTAssertFalse(ActivityDetailPageModel.readFailedBecauseSignedOut(CancellationError()))
+    }
+
     func testLoadingAndFailureDoNotInventCounts() throws {
         let access = ActivityDetailAccess.allowed(try detail(ActivityDetailPageFixtureData.readyJSON))
         XCTAssertEqual(ActivityDetailPageModel.phase(loading: true, failed: false, access: nil), .loading)

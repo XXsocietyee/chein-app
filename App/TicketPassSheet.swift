@@ -278,25 +278,11 @@ enum CYPassCardPick {
     /// Cover-art band (same art as the wallet pass), then the title, date and place below it (native r2: no scrim).
     private var header: some View {
         VStack(alignment: .leading, spacing: 0) {
-            ZStack {
-                // R8-MEM-21-3: the MP `wImg` cover, else the shipped route illustration (`cover-route.svg`); no generated art.
-                if let url = ticket.walletHTTPSCoverURL {
-                    AsyncImage(url: url) { phase in
-                        if let image = phase.image { image.resizable().scaledToFill() } else { Rectangle().fill(.quaternary) }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .clipped()
-                    .accessibilityHidden(true)
-                } else {
-                    ZStack {
-                        Rectangle().fill(.quaternary)
-                        MPAsset.BannerCover.coverRoute.resizable().scaledToFit().padding(12)
-                            .opacity(0.5)
-                            .accessibilityHidden(true)
-                    }
-                    .accessibilityHidden(true)
-                }
-            }
+            // R8-MEM-21-3: the MP `wImg` cover, else the shipped route illustration (`cover-route.svg`) on the
+            // `cy-cover-fb` tile; the same `E1CoverArt` as the wallet pass, so both read as one object.
+            E1CoverArt(seed: ticket.title ?? "", symbol: "ticket", imageURL: ticket.walletHTTPSCoverURL?.absoluteString,
+                       debugLabel: false, fallbackImage: MPAsset.BannerCover.coverRoute, fallbackFills: false)
+            .frame(maxWidth: .infinity)
             .frame(height: typeSize.isAccessibilitySize ? 72 : 132)
             .clipped()
             VStack(alignment: .leading, spacing: 4) {

@@ -5208,7 +5208,7 @@ final class AppSession: ObservableObject {
     private var retainedSquareGovernance: SquareGovernanceCoordinator?
     func squareGovernance() -> SquareGovernanceCoordinator? {
         guard let configuration = regionalConfiguration?.apiConfiguration else { return nil }
-        let model = SquareGovernanceCoordinator(service: SquareNotificationLease.service(baseURL: configuration.baseURL, transport: runtimeHTTPTransport))
+        let model = SquareGovernanceCoordinator(service: SquareNotificationLease.service(baseURL: configuration.baseURL, transport: runtimeHTTPTransport, preferenceWrites: currentSquareCommunityWriteApproval != nil))
         retainedSquareGovernance = model; return model
     }
     func squareGovernanceAccess(postID: Int? = nil) -> SquareGovernanceSessionAccess {

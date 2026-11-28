@@ -181,6 +181,8 @@ files; `mp/r3-mine` only gated 查看报名凭证 in `PlayerJourneyViews` (not o
 
 **A lane, 11-28 ~17:xx run:** no K50 `cursor-k50-p*` lane-layout rows published yet on any branch; no new coordinator finding for mp-journey since the 05:50 sweep (rows 125/126 fixed); the brief has no ruling on J-18 yet. B half done too (个人最佳 `c04d09a09`). **A half still done; nothing open in the A half** — run stopped.
 
+**A lane, 11-28 ~18:xx run:** merged `origin/ui/combined-r7` (`2b6ff8700`, 161 commits; no conflicts). Still no `cursor-k50-p*` lane-layout rows on any branch, no new sweep (latest is still `c4e43841a`), no J-18 ruling in the brief. Gates: generate_project ok · check_scaffold ok · check_a11y_lint PASS 0 new · contract_ratchet 46 / 46, **new 0** · check_design_consistency PASS. **A half still done** — run stopped.
+
 ## For other lanes
 
 - coordinator (sweep 15:31 `c4e43841a`, `mp-journey/sheet-en.jpg`): `t5-free-explore`, `t5-settle` and `rep3-task-play` are still the black launch screen (logo only), and `d2-city` was caught mid launch fade (logo over the 城市点位权属 link). Same fixture-wait issue as mp-roam's first fixture; please give these fixtures the launch delay so the lane can check them.

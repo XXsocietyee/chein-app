@@ -211,7 +211,8 @@ import SwiftUI
     }
     @ViewBuilder private var recurrenceRows: some View {
         if !topicFacts.isEmpty { topicPicker }
-        push(.eventTopics, .init(clubID: scope.clubID, topicID: pickedTopicID ?? scope.topicID)) {
+        if let fact = topicFacts.first(where: { $0.id == pickedTopicID }) { topicFactRows(fact) }
+        recurrenceAddLink {
             Label {
                 VStack(alignment: .leading) {
                     Text("clubOpsEvent.recurrence.add", tableName: "ClubOpsEvent")
@@ -224,6 +225,21 @@ import SwiftUI
             }
         }
     }
+    /// mp-club r3 (MP event-ops wxml:178-238): with a topic picked in 主题 above, 添加日期 opens the 重复方式 form
+    /// for that topic straight away (the topics read still proves it, then presents the form once). Without a
+    /// topic list it keeps the plain topics push.
+    @ViewBuilder private func recurrenceAddLink<RowLabel: View>(@ViewBuilder label: () -> RowLabel) -> some View {
+        if let topicID = pickedTopicID, topicFacts.contains(where: { $0.id == topicID }) {
+            NavigationLink {
+                ClubGovernanceReadView(operation: .eventTopics, scope: .init(clubID: scope.clubID, topicID: topicID),
+                                       identity: identity, access: access, coordinator: coordinator,
+                                       opensSeriesCreationOnLoad: true)
+            } label: { label() }
+                .accessibilityIdentifier("clubOpsEvent.open.eventTopics")
+        } else {
+            push(.eventTopics, .init(clubID: scope.clubID, topicID: scope.topicID), label: label)
+        }
+    }
     private var topicPicker: some View {
         Picker(selection: $pickedTopicID) {
             ForEach(topicFacts) { fact in
@@ -234,6 +250,38 @@ import SwiftUI
         }
         .pickerStyle(.menu)
         .accessibilityIdentifier("clubOpsEvent.recurrence.topicPicker")
+    }
+    /// MP event-ops wxml:197-198 under the 主题 dropdown: C-17 「票价 ¥X · 集合点 …」 (read-only, what the player
+    /// sees at checkout) and C-02 the no-online-payment warning for a priced topic.
+    @ViewBuilder private func topicFactRows(_ fact: ClubOpsEventTopicFact) -> some View {
+        if fact.hasSessionFacts {
+            topicFactsText(fact)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier("clubOpsEvent.recurrence.topicFacts")
+        }
+        if !fact.paymentNotice.isEmpty {
+            Label("club.eventOps.paymentNotice", systemImage: "exclamationmark.triangle")
+                .font(.subheadline)
+                .foregroundStyle(CYColor.warningText)
+                .accessibilityIdentifier("clubOpsEvent.recurrence.paymentNotice")
+        }
+    }
+    private func topicFactsText(_ fact: ClubOpsEventTopicFact) -> Text {
+        var parts: [Text] = []
+        switch fact.priceFact {
+        case .paid(let amount): parts.append(Text("clubOpsEvent.topic.price \(amount)", tableName: "ClubOpsEvent"))
+        case .free: parts.append(Text("clubOpsEvent.topic.free", tableName: "ClubOpsEvent"))
+        case nil: break
+        }
+        if let point = fact.meetingPoint {
+            parts.append(Text("clubOpsEvent.topic.meetingPoint \(point)", tableName: "ClubOpsEvent"))
+        }
+        var result = Text(verbatim: "")
+        for (index, part) in parts.enumerated() {
+            result = index == 0 ? part : result + Text(verbatim: " · ") + part
+        }
+        return result
     }
     /// CU-C-34 (MP event-ops js:62-74 topicDropdownLabel): 「名称 · 起止日期 · 自有/合作」, 日期未定 without dates.
     private func topicLabel(_ fact: ClubOpsEventTopicFact) -> Text {

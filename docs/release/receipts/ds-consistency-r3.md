@@ -1469,6 +1469,60 @@ PASS (manual paging 29 baselined, 114 allowed), `contract_ratchet --check` 46 fa
   a loading phase, so an appear-load would reset scroll each page; they need an append-only page read first.
   Next no-test candidates: `NativeChannelMentionEntry:31`, `NativeChannelRoleEntry:83`, `NativeFriendChannel*` invite lists (check each flow clears its more-flag on failure). `TemplateAuthoringMineView:281` is pinned by ~10 contract tests (mp-publish); leave it.
 
+## Continue run 44 (2026-11-28, merged combined-r7)
+
+Merge clean. No new coordinator row for this lane (latest: 15:50 sweep, mp-roam / mp-home). No K50 `lane-layout`
+rows posted yet (`docs/release/receipts/cursor-k50-p*.md` absent on every branch).
+
+Run 43 Not done row worked (no-test candidates; each flow checked: the more-flag is false while busy and a failed
+read clears it, so an appearing row can never re-fire):
+
+| Page (MP → native) · level | Line | Before → after |
+|---|---|---|
+| Club channel @mention picker, members (`d7` channel) → `App/NativeChannelMentionEntry.swift:31` · C | `d7.channelMention.loadMore` | plain `Button` → `CYLoadMoreRow(isLoading: source.busy)`; `canReadMore` needs `!busy`, failure clears `more` (`Core/NativeChannelMentionTargets.swift:79`) |
+| Club channel roles, member list → `App/NativeChannelRoleEntry.swift:83` · C | `d7.channelRoles.loadMore` | plain `Button` → `CYLoadMoreRow`; `canReadMoreMembers` needs `!memberBusy`, failure clears `memberMore` (`Core/NativeChannelRoleFlow.swift:62`) |
+| Friend channel invites, mine → `App/NativeFriendChannelInviteEntry.swift:98` · C | `d7.friendInvite.loadMore` | plain `Button` → `CYLoadMoreRow(isLoading: flow.busy)`; failure resets `mineCursor` to "0" so `canMore` is false |
+| Friend channel invite source list → `App/NativeFriendChannelSourceEntry.swift:105` · C | `d7.friendInvite.loadMore` | plain `Button` → `CYLoadMoreRow(isLoading: source.busy)`; failure clears `more` (`Core/NativeFriendChannelSourceFlow.swift:103`) |
+
+Checker: manual paging 29 → **25** baselined (`--update`, ratchet down only).
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency`
+PASS (manual paging 25 baselined, 114 allowed), `contract_ratchet --check` 46 failing, baseline 46, **new 0**.
+
+### Not done (next run)
+- manual paging debt (25): next no-test candidates `NativeChannelChainView`, `NativeChannelMessageContextView`,
+  `MessagingHistoryView`, `NativeNotificationDeliveryLogView`, `CooperationContextualViews`,
+  `MapPublicLayerSectionView`, `PlayThemeRecordsView` (check each for tests on the tap and that failure clears the
+  more-flag). Capsule / goals / anniversary, Topic / Activity / stamp album, favorites, post / square governance and
+  `TemplateAuthoringMineView` stay as listed in run 43 (tests or append-only reads first).
+
+## Continue run 45 (2026-11-28, merged combined-r7)
+
+Merge clean. No new coordinator row for this lane; no K50 `lane-layout` rows posted (`cursor-k50-p*.md` absent).
+
+Run 44 Not done row worked:
+
+| Page (MP → native) · level | Line | Before → after |
+|---|---|---|
+| Club channel 接龙 (chain) entries → `App/NativeChannelChainView.swift:107` · C | `d7.chain.showMore` | plain `Button` → `CYLoadMoreRow(isLoading: flow.busy)`, still disabled during a review; `read(more:)` guards `!busy` / `review == nil`, failure clears `page` so `hasMore` row goes away (`Core/NativeChannelChain.swift:318,344`) |
+| Theme play records → `App/PlayThemeRecordsView.swift:23` · B | `playx.themeRecords.more` | plain `Button` → `CYLoadMoreRow(isLoading: model.busy)` while no error; on `.historyFailed` the explicit 重新加载 button stays (same identifier, so `PlayThemeRecordsFlowTests.testEmptyAndFailureStates` holds) — an error never auto-retries |
+| Notification delivery log → `App/NativeNotificationDeliveryLogView.swift:48` · C | `d7.deliveryLog.next` | **kept**: "next" *replaces* the page (`read` resets `storedPage`, no append), so an auto-load on appear would chain through every page on a short list. Stays a manual "Next page" button; baselined on purpose |
+
+Checker: manual paging 25 → **23** baselined (`--update`, ratchet down only).
+
+Gates: `generate_project` PASS, `check_scaffold` PASS, `check_a11y_lint` PASS (0 new), `check_design_consistency` PASS (manual paging 23 baselined, 114 allowed), `contract_ratchet --check` 46 failing, baseline 46, **new 0**.
+
+Further candidates checked (no code change; each stays a manual button on purpose):
+- `App/NativeChannelMessageContextView.swift:44` 更早/更晚: re-anchors the context on a new message (no append), so an auto-load would jump the reader.
+- `App/MapPublicLayerSectionView.swift:270` 下一页: rows do append, but the section is a non-lazy `VStack` inside `SearchMapExplorerView`, so `.onAppear` fires at once and would chain every page. Needs a lazy container first (search lane's page).
+- `App/MessagingHistoryView.swift:330` 更早消息: three UI tests tap `messaging.history.earlier` (`ReferenceChatTaskFlowTests:105`, `ModuleFlowTests:291`, `IntegratedNativeAcceptanceFlowTests:378`); tests-first, like run 43's list.
+- `App/CooperationContextualViews.swift` 215/386: merchant cooperation pages — out of scope.
+
+### Not done (next run)
+- manual paging debt (23): every remaining site is now either intentional (replace/re-anchor paging, non-lazy
+  container, merchant) or has UI tests on the tap. Next run: move the intentional ones to `allowed` with reasons in the
+  baseline, then pick the next design-system scan for player screens.
+
 ## Allowed (kept on purpose, reasons in the baseline)
 - Procedural art sized from its own frame: `CYAlbum`, `CYBadgeCraft`, `CYCityBoard`, `CYCollectible`, `CYCoverArt`,
   `CYMedalStack`, `CYSignature`, `CYStarBloom`, celebration medal glyph, chapter numeral, verdict glyph, wordmark, map pin.

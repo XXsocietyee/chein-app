@@ -668,6 +668,21 @@ Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design c
 
 **A half done** for this run: every remaining A-half row needs a compiled pass or an owner value.
 
+## Round 3 continue (52) — merge `ui/combined-r7`; A half still done
+
+- Merged `origin/ui/combined-r7`. No `cursor-k50-p*` receipts exist yet (K50 posted 16:34), so no `lane-layout` rows for roam to take; the next run reads them.
+- Sweep unchanged (build c4e43841a, handled in continue 51). Every `pages/roam` / `subpackageRoam` page and component has a row (see the "no row until now" line).
+- A-half open rows (P2-7 MapKit POI tap, citystamp write-step coordinator, P21 mini bar) still need a compiled pass; P1-22 waits on the owner's region list. **A half done** — stopped per the 15:45 collision rule.
+
+## Round 3 continue (53) — merge `ui/combined-r7` (2b6ff8700); A half still done
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 46 / baseline 46, new 0.
+
+- Merged `origin/ui/combined-r7` (K40 receipts, K27 strings). Still no `cursor-k50-p*` receipts on any branch, so no `lane-layout` rows for roam yet. `cursor-k40-map.md` leaves roam-tab work to this lane but lists no open roam row.
+- No new coordinator finding for roam: the brief's last roam item is the 15:50 sweep (handled in continue 51); `docs/sweeps/latest` is still build c4e43841a.
+- B receipt (16:55): B half ④–⑥ closed, nothing new to mark "(B lane)".
+- A-half open rows (P2-7 MapKit POI tap, citystamp write-step coordinator, P21 mini bar) still need a compiled pass; P1-22 waits on the owner's region list. **A half done**: stopped per the 15:45 collision rule.
+
 ## Not done / next
 
 - Planning audit R-02f+ (finish track): done (continue 40). R-04c nearby 活动/主题 layer = P1-23 lease (done continue 36/P1-23).

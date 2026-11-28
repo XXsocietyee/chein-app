@@ -104,8 +104,8 @@ import SwiftUI
             }
             ForEach(flow.entries) { entry in chainEntry(entry) }
             if page.hasMore {
-                Button("d7.chain.showMore") { run { _ in await flow.more() } }
-                    .disabled(flow.busy || flow.review != nil)
+                CYLoadMoreRow("d7.chain.showMore", isLoading: flow.busy) { run { _ in await flow.more() } }
+                    .disabled(flow.review != nil)
             }
         } header: { Text("d7.chain.entries") }
         if flow.pending == nil, flow.review == nil { mineSection(page) }

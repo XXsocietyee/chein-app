@@ -54,13 +54,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This account can't view node plays"
+            "value": "Your current role can't view these templates"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前账号无法查看节点玩法"
+            "value": "当前身份不能查看这些模板"
           }
         }
       }
