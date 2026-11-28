@@ -17690,7 +17690,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Approval to join"
+            "value": "Approval required"
           }
         },
         "zh-Hans": {
@@ -17836,7 +17836,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Approved members can see the members"
+            "value": "Member list unlocks once you’re approved"
           }
         },
         "zh-Hans": {
@@ -135988,13 +135988,13 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "Includes %lld work"
+                  "value": "Covers %lld play"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "Includes %lld works"
+                  "value": "Covers %lld plays"
                 }
               }
             }
@@ -136014,7 +136014,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Includes %#@work@ · %#@person@"
+            "value": "Covers %#@work@ · %#@person@"
           },
           "substitutions": {
             "work": {
@@ -136025,13 +136025,13 @@
                   "one": {
                     "stringUnit": {
                       "state": "translated",
-                      "value": "%arg work"
+                      "value": "%arg play"
                     }
                   },
                   "other": {
                     "stringUnit": {
                       "state": "translated",
-                      "value": "%arg works"
+                      "value": "%arg plays"
                     }
                   }
                 }
@@ -136226,7 +136226,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Playable works"
+            "value": "Included plays"
           }
         },
         "zh-Hans": {
@@ -276638,7 +276638,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ | Host club"
+            "value": "Hosted by %@"
           }
         },
         "zh-Hans": {
@@ -276654,7 +276654,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scroll down for games, sessions and sign-up"
+            "value": "Scroll down for plays, sessions and sign-up"
           }
         },
         "zh-Hans": {
@@ -276941,9 +276941,21 @@
     "topicXcx.include.chapters %lld": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld chapters"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld chapter"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld chapters"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -277033,9 +277045,21 @@
     "topicXcx.include.plays %lld": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld games"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld play"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld plays"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -277049,9 +277073,21 @@
     "topicXcx.include.stops %lld": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld stops"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld stop"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld stops"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -277171,9 +277207,21 @@
     "topicXcx.moreMerchants %lld": {
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld shops in total"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld shop in total"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld shops in total"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -297128,7 +297176,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tick every prep item to start"
+            "value": "Check off every prep item to start"
           }
         },
         "zh-Hans": {
@@ -298245,7 +298293,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Get approved to see the contribution board"
+            "value": "Contribution board unlocks once you’re approved"
           }
         },
         "zh-Hans": {

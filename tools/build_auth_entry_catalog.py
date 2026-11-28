@@ -12,7 +12,7 @@ S={
 "authEntry.gate.checkbox":("I have read and agree to the User Service Agreement and the privacy protection guidelines","我已阅读并同意《用户服务协议》及隐私保护指引"),
 "authEntry.gate.decline":("Not now","暂不同意"),
 "authEntry.gate.agree":("Agree and continue","同意并继续"),
-"authEntry.gate.checkRequired":("Tick the box to continue.","请先勾选，再继续。"),
+"authEntry.gate.checkRequired":("Check the box to continue.","请先勾选，再继续。"),
 "authEntry.gate.localOnly":("Your choice is saved on this device but hasn't been submitted yet.","你的选择已保存在本机，但尚未提交。"),
 "authEntry.gate.requiredForSignIn":("Before signing in, please agree to the User Service Agreement and the privacy protection guidelines. You can keep browsing without signing in.","登录前需要先同意《用户服务协议》及隐私保护指引；不登录也可以继续浏览。"),
 "authEntry.gate.review":("Review and agree","阅读并同意"),
