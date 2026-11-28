@@ -195,6 +195,11 @@ struct RegistrationSheetView: View {
             .modifier(RegistrationPlayerSheetHeader(onClose: { flow.leave(); dismiss() }))
             .overlay { registrationPopups }
             .cyToast(verbatimMessage: $toastMessage)
+            // Next-round motion: a player's own choice (ticket, saved participant, sharing consent) answers with a
+            // selection tick; the first automatic preselect (nil → id) stays silent.
+            .cyHaptic(.selection, trigger: flow.selectedTicketID, where: { old, new in old != nil && new != nil && old != new })
+            .cyHaptic(.selection, trigger: flow.selectedParticipantID, where: { old, new in old != nil && new != nil && old != new })
+            .cyHaptic(.selection, trigger: flow.consented)
             .sheet(isPresented: $showingTicketSheet) { ticketSheetContent }
             .sheet(isPresented: $showingParticipantSheet, onDismiss: {
                 if addAfterParticipantSheet { addAfterParticipantSheet = false; showingAddParticipant = true }
