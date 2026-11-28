@@ -337,6 +337,15 @@ Merged `origin/ui/combined-r7` (clean). Sweep `mp-home/sheet-zh-Hans.jpg` / `she
 | `pages/search2/result/index.wxml:23` `cy-empty` 没有找到 → `App/GlobalSearchView.swift` results branch (`globalSearch.empty`) | empty result list | State existed but no design fixture showed it, so the sweep never checked it. | **Added** fixture `d2-search-empty` (`SearchMapFixtureReader(.empty)` + the localized keyword) in `App/DesignFixtures/D2Fixtures.swift` / `DesignFixtureRegistry.swift`; UI test `Tests/AppUITests/Fixture_d2_search_emptyTests.swift` (en + zh-Hans screenshot, no raw keys). |
 | `pages/search2/result/index.wxml:23` `cy-error` 没能完成搜索 + 重试 → `GlobalSearchView` `SearchMapIssue("globalSearch.failed")` | request failed | Same: no fixture. | **Added** fixture `d2-search-failed` (`SearchMapFixtureReader(.failure)`) + `Fixture_d2_search_failedTests.swift`. Coordinator: please add both ids to the mp-home sweep row. |
 
+## Round 3 continue (24) — sweep still build 733bfb368, "Next round" item 3 (all states, 首页)
+
+Merged `origin/ui/combined-r7` (clean). No open coordinator item for mp-home (04:00: "no new findings").
+
+| MP page → native view | MP state | Difference | Fixed / not |
+|---|---|---|---|
+| `pages/index/index.wxml:246` `cy-empty` 暂时没有主题 (rails hidden when empty, `:84/:133/:170` `wx:if`) → `App/HomeFeedView.swift` | empty 首页 | Native already hides empty rails and shows `homeFeed.topicsEmpty` under the feed tabs, but no fixture showed it. | **Added** fixture `d2-home-empty` (`HomeFeedFixtureReader` scenario `empty`) + `Tests/AppUITests/Fixture_d2_home_emptyTests.swift`. |
+| `pages/index/index.wxml:92` `cy-error` 编辑精选加载失败 + 重试 (other rails load) → `HomeFeedView.section` (`mpfresh.home.sectionFailed.recommended`) | one rail failed | Only the all-down offline state had a fixture. | **Added** scenario `sectionFailed` (编辑精选 throws 503, 附近活动 / feed load) and fixture `d2-home-failed` + `Fixture_d2_home_failedTests.swift`. Coordinator: please add `d2-home-empty`, `d2-home-failed` (and `d2-search-empty`, `d2-search-failed`) to the mp-home sweep row. |
+
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -367,3 +376,4 @@ Merged `origin/ui/combined-r7` (clean). Sweep `mp-home/sheet-zh-Hans.jpg` / `she
 - Needs a simulator pass (continue 21): `wave-today-club` meta line time-only in en + zh-Hans.
 - Needs a device pass (continue 22): selection haptics on the search result-scope chips.
 - Needs a simulator pass (continue 23): `d2-search-empty` (没有找到 / no results) and `d2-search-failed` (没能完成搜索 + 重试) in en + zh-Hans.
+- Needs a simulator pass (continue 24): `d2-home-empty` (暂时没有主题 / No themes right now) and `d2-home-failed` (编辑精选加载失败 + 重试 above 附近活动) in en + zh-Hans.
