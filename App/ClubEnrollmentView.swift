@@ -457,6 +457,9 @@ extension EnvironmentValues {
         .foregroundStyle(.secondary)
         .monospacedDigit()
         .fixedSize(horizontal: false, vertical: true)
+        // a11y-dt r3 run 41: 「n / 上限」 was read "n slash m" in three pieces; one element "n of m" / "n，共 m".
+        .accessibilityElement(children: .combine)
+        .modifier(EnrollmentCapacitySpoken(count: ticket.registrants.count, capacity: ticket.capacity))
         .accessibilityIdentifier("club.enroll.capacity.\(ticket.id)")
     }
     @ViewBuilder private func teamStatusText(_ status: Int) -> some View {
@@ -514,8 +517,9 @@ extension EnvironmentValues {
         let tint: Color
         let symbol: String
         switch registrant.checkin {
-        case .done: key = "club.enroll.checkin.done"; tint = .green; symbol = "checkmark.circle"
-        case .pending: key = "club.enroll.checkin.pending"; tint = .orange; symbol = "ticket"
+        // a11y-dt r3 run 41: system .green / .orange text measured ~2:1 on white; the CY text tokens keep ≥ 4.5:1.
+        case .done: key = "club.enroll.checkin.done"; tint = CYColor.successText; symbol = "checkmark.circle"
+        case .pending: key = "club.enroll.checkin.pending"; tint = CYColor.warningText; symbol = "ticket"
         case .unknown: key = "club.enroll.checkin.unknown"; tint = .secondary; symbol = "questionmark.circle"
         }
         return Label(key, systemImage: symbol)
@@ -554,6 +558,19 @@ extension EnvironmentValues {
     /// Nil is the catalog em dash. A real count, including 0, keeps its digits.
     @ViewBuilder private func number(_ count: Int?) -> some View {
         if let count, count >= 0 { Text(count, format: .number).monospacedDigit() } else { Text("club.enroll.unknown") }
+    }
+}
+
+/// Speaks a positive-capacity ticket as "n of m"; without a capacity the visible 「n 人」 already reads well.
+private struct EnrollmentCapacitySpoken: ViewModifier {
+    let count: Int
+    let capacity: Int?
+    func body(content: Content) -> some View {
+        if let capacity, capacity > 0 {
+            content.accessibilityLabel(Text("a11y.value.ofTotal \(count) \(capacity)"))
+        } else {
+            content
+        }
     }
 }
 
