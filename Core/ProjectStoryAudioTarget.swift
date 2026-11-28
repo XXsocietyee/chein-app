@@ -16,7 +16,7 @@ public struct ProjectStoryAudioTarget: Codable, Equatable {
     public let ownerKey: String
     public let draftBucket: String
     public let chapterID: String
-    public enum Kind: String, Codable { case storyBlock, chapterNarration }
+    public enum Kind: String, Codable { case storyBlock, chapterNarration, themeMusic }
     public let kind: Kind
     public let blockID: String?
     public let originalDraftHash: String
@@ -37,6 +37,14 @@ public struct ProjectStoryAudioTarget: Codable, Equatable {
         self.id = id; ownerKey = session.ownerKey; draftBucket = identity.bucket; self.chapterID = chapterID
         kind = .chapterNarration; blockID = nil; originalDraftHash = ProjectStoryImageTarget.hash(raw)
     }
+    /// MP `theme-media.js` `uploadThemeAudio`: the topic's looping 主题配乐 (`formData.audioUrl`); no chapter, no block.
+    public init(themeMusicIn draft: ProjectEditDraft, identity: ProjectEditDraftIdentity, session: ProjectEditSession,
+                id: UUID = UUID()) throws {
+        guard !ProjectThemeAudio.isUnsupported(in: draft),
+              let raw = ProjectEditPendingMaterials.exactData(draft) else { throw ProjectStoryAudioFailure.changedContext }
+        self.id = id; ownerKey = session.ownerKey; draftBucket = identity.bucket; chapterID = ""
+        kind = .themeMusic; blockID = nil; originalDraftHash = ProjectStoryImageTarget.hash(raw)
+    }
     private enum CodingKeys: String, CodingKey { case id, ownerKey, draftBucket, chapterID, blockID, originalDraftHash, kind }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -45,7 +53,7 @@ public struct ProjectStoryAudioTarget: Codable, Equatable {
         originalDraftHash = try c.decode(String.self, forKey: .originalDraftHash)
         kind = try c.decodeIfPresent(Kind.self, forKey: .kind) ?? .storyBlock
         blockID = try c.decodeIfPresent(String.self, forKey: .blockID)
-        guard hasValidDestination, kind != .chapterNarration || !c.contains(.blockID) else {
+        guard hasValidDestination, kind == .storyBlock || !c.contains(.blockID) else {
             throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: "Invalid audio destination"))
         }
     }
@@ -57,13 +65,19 @@ public struct ProjectStoryAudioTarget: Codable, Equatable {
         else { try c.encode(kind, forKey: .kind) }
     }
     public var hasValidDestination: Bool {
-        guard !chapterID.isEmpty else { return false }
         switch kind {
-        case .storyBlock: return blockID?.isEmpty == false
-        case .chapterNarration: return blockID == nil
+        case .storyBlock: return !chapterID.isEmpty && blockID?.isEmpty == false
+        case .chapterNarration: return !chapterID.isEmpty && blockID == nil
+        case .themeMusic: return chapterID.isEmpty && blockID == nil
         }
     }
-    public var maximumReferenceUTF16Count: Int { kind == .chapterNarration ? ProjectChapterAudio.maximumReferenceUTF16Count : 500 }
+    public var maximumReferenceUTF16Count: Int {
+        switch kind {
+        case .storyBlock: return 500
+        case .chapterNarration: return ProjectChapterAudio.maximumReferenceUTF16Count
+        case .themeMusic: return ProjectThemeAudio.maximumReferenceUTF16Count
+        }
+    }
     public func matches(_ draft: ProjectEditDraft, identity: ProjectEditDraftIdentity, session: ProjectEditSession) -> Bool {
         guard ownerKey == session.ownerKey, draftBucket == identity.bucket,
               let raw = ProjectEditPendingMaterials.exactData(draft) else { return false }
@@ -71,6 +85,12 @@ public struct ProjectStoryAudioTarget: Codable, Equatable {
     }
     public func applying(_ receipt: ProjectStoryUploadedAudio, to draft: ProjectEditDraft,
                          identity: ProjectEditDraftIdentity, session: ProjectEditSession) throws -> ProjectEditDraft {
+        if kind == .themeMusic {
+            guard receipt.ownerKey == ownerKey, ProjectThemeAudio.fitsWire(receipt.reference),
+                  matches(draft, identity: identity, session: session),
+                  !ProjectThemeAudio.isUnsupported(in: draft) else { throw ProjectStoryAudioFailure.changedContext }
+            return ProjectThemeAudio.setting(receipt.reference, in: draft)
+        }
         if kind == .chapterNarration {
             guard receipt.ownerKey == ownerKey, ProjectChapterAudio.fitsWire(receipt.reference),
                   matches(draft, identity: identity, session: session),
@@ -93,6 +113,11 @@ public struct ProjectStoryAudioTarget: Codable, Equatable {
     }
     public func hasAppliedReference(_ receipt: ProjectStoryUploadedAudio, in draft: ProjectEditDraft,
                                     identity: ProjectEditDraftIdentity, session: ProjectEditSession) -> Bool {
+        if kind == .themeMusic {
+            guard receipt.ownerKey == ownerKey, ownerKey == session.ownerKey, draftBucket == identity.bucket,
+                  let reference = ProjectThemeAudio.reference(in: draft) else { return false }
+            return reference.utf8.elementsEqual(receipt.reference.utf8)
+        }
         if kind == .chapterNarration {
             guard receipt.ownerKey == ownerKey, ownerKey == session.ownerKey, draftBucket == identity.bucket,
                   let index = ProjectChapterAudio.chapterIndex(chapterID, in: draft),

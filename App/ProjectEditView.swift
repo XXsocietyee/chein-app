@@ -1050,10 +1050,12 @@ import SwiftUI
         }
         .disabled(!model.canEdit)
     }
-    /// MP topic-detail-sheet.wxml, after the covers: 画面风格 → 剧情详情 (≤1000) → 伏笔, then the topic rules this app edits.
+    /// MP topic-detail-sheet.wxml, after the covers: 主题配乐 → 画面风格 → 剧情详情 (≤1000) → 伏笔, then the topic rules this app edits.
     @ViewBuilder private var storyFields: some View {
+        // MP topic-detail-sheet.wxml:70-77: 主题配乐 (上传 / 更换 / 移除) after the covers, then
         // r8 C-F7 (MP topic-detail-sheet.wxml:79, look-sheet.wxml): 画面风格.
         if model.coordinator.snapshot?.scope != .whitelist {
+            ProjectThemeAudioField(model: model)
             ProjectEditLookHost(preserved: $model.draft.preserved, readOnly: model.coordinator.isReadOnly,
                                 chapterNames: model.draft.chapters.map(\.name))
         }
