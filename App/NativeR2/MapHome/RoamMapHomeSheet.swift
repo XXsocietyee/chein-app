@@ -100,6 +100,9 @@ import QuestifyCore
     @Bindable var model: RoamMapHomeModel
     let dependencies: RoamMapHomeDependencies
     @State private var location: RoamLocationSettingsSnapshot?
+    /// MP `_entryLocating` / the 开启定位 fail branch: one locate at a time; a non-denied failure shows a retry line.
+    @State private var locating = false
+    @State private var locateFailed = false
     /// MP `unfinishedRoam` / `recoveryError`: the same local journal read the roam browser's 走起 tab uses.
     @State private var recoveryEntry = RoamHomeRecoveryEntry()
     /// MP `entryStripTab` ('near' | 'city'): the entry-peek tabs 附近活动 / 本城推荐.
@@ -164,13 +167,15 @@ import QuestifyCore
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) { mapMenu }
         }
-        .task { location = try? await dependencies.locationSettings?.readStatus() }
+        .task { await syncLocation(automatic: true) }
         .onAppear {
             recoveryEntry.appear(reader: dependencies.experienceReader, foreground: scenePhase == .active, hasDestination: hasLiveDestination)
         }
         .onDisappear { recoveryEntry.disappear() }
         .onChange(of: scenePhase) { _, phase in
             recoveryEntry.setForeground(phase == .active, reader: dependencies.experienceReader, hasDestination: hasLiveDestination)
+            // MP `_syncRoamPermission` on onShow: back from Settings, re-read the status (and locate if now allowed).
+            if phase == .active { Task { await syncLocation(automatic: true) } }
         }
         // Closing the live cover can finish or leave a walk: re-read so 继续漫游 / 走起 is current.
         .onChange(of: model.showsLive) { _, showing in
@@ -188,12 +193,54 @@ import QuestifyCore
             } description: {
                 Text("nativeR2.mapHome.area.required.detail")
             } actions: {
+                if dependencies.locateArea != nil {
+                    Button { Task { await locate(automatic: false) } } label: {
+                        CYBusyLabel(busy: locating) { Text("nativeR2.city.enableLocation") }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(locating)
+                    .accessibilityIdentifier("roam.mapHome.locate")
+                }
                 if let onChooseArea = dependencies.onChooseArea {
                     Button("roam.area.title", action: onChooseArea)
                         .buttonStyle(.bordered)
                         .accessibilityIdentifier("roam.mapHome.area")
                 }
             }
+            if locateFailed {
+                Text("nearby.locationFailed")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("roam.mapHome.locate.failed")
+            }
+        }
+    }
+
+    /// MP `_syncRoamPermission`: read the system status; when location is already allowed and no area is set yet,
+    /// locate silently (MP `enableEntryLocation(true)`: no prompt, no error on failure).
+    private func syncLocation(automatic: Bool) async {
+        guard let settings = dependencies.locationSettings else { return }
+        location = try? await settings.readStatus()
+        guard area == nil, let status = location, status.servicesEnabled,
+              status.authorization == .whenInUse || status.authorization == .always else { return }
+        await locate(automatic: automatic)
+    }
+
+    /// MP `enableEntryLocation`: one fix becomes the search area; the map recentres and the entry read reloads
+    /// through the area change. A tap that fails shows 没有取到定位，请重试; denied re-reads the status so the
+    /// 需要定位 · 去设置 section replaces this one.
+    private func locate(automatic: Bool) async {
+        guard let locateArea = dependencies.locateArea, !locating else { return }
+        locating = true
+        defer { locating = false }
+        do {
+            _ = try await locateArea()
+            locateFailed = false
+        } catch is CancellationError {
+            return
+        } catch {
+            if let settings = dependencies.locationSettings { location = try? await settings.readStatus() }
+            if !automatic && !locationDenied { locateFailed = true }
         }
     }
 

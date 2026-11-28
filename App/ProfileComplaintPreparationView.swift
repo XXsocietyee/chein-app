@@ -232,7 +232,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
                 // Counter mirrors the 500 UTF-16 unit rule enforced by the draft validation.
                 let used = model.draft.reason.utf16.count
                 Text(verbatim: "\(used)/500").monospacedDigit()
-                    .foregroundStyle(used > 500 ? Color.red : Color.secondary)
+                    .foregroundStyle(used > 500 ? CYColor.dangerText : Color.secondary)
                     .frame(maxWidth: .infinity, alignment: .trailing)
                     .accessibilityIdentifier("profile.complaint.reasonCount")
             }

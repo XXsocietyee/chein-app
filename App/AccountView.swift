@@ -349,9 +349,12 @@ import SwiftUI
             }
             if session.account?.effectiveRole == "club" { PayoutAccountLinks(audience: .club) }
         }
+        // P2-5: no 私人主页 row while the deployment has no private-home service (no dead "disabled" page).
+        if privateHomeCoordinator != nil {
         Section {
             PrivateHomeAccountLink(coordinator: privateHomeCoordinator)
                 .environment(\.nativeHomeReturnSelection, nativeHomeReturnSelection)
+        }
         }
         // mp-mine r3: 城瘾玩法, location sharing, 投诉建议, 我的举报, teams and support live in Settings (MP pages/shezhi).
         if WelcomeView.showsMerchantChoice && PlayerLaunch.merchantCenterEnabled { // Lane G: coop row hidden in Release

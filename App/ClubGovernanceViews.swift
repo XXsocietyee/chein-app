@@ -1657,7 +1657,7 @@ struct ClubGovernanceReadView: View {
                         } icon: {
                             Image(systemName: chipState == .rejected ? "xmark.circle.fill" : "circle.fill")
                                 .imageScale(.small)
-                                .foregroundStyle(chipState == .rejected ? Color.red : (chipState == .running ? Color.green : Color.secondary))
+                                .foregroundStyle(chipState == .rejected ? CYColor.dangerText : (chipState == .running ? CYColor.successText : Color.secondary))
                         }
                         .font(.subheadline)
                         .accessibilityIdentifier("club.topic.status")

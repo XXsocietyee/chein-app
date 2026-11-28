@@ -18,6 +18,8 @@ import SwiftUI
     @State private var publishHome: [String: ProjectEditJSON]?
     /// MP `toast` for the pre-checks (发布信息尚未就绪 / 当前身份不可发布主题).
     @State private var publishNotice: LocalizedStringKey?
+    /// P2-6 (MP `components/tabBar/index.js:88-93` `ensureLoginFor('publish', …)`): signed out, “+” opens sign-in.
+    @State private var showsSignIn = false
 
     var body: some View {
         DiscoveryTemplateBrowserView(
@@ -28,12 +30,18 @@ import SwiftUI
             isTabRoot: true
         )
         .id(session.templateAuthoringViewIdentity)
+        // P1-26 (MP topic-preview `useTemplate` → `publish/fabu?id=`): 用这个模板 pushes the copied draft into the editor.
+        .environment(\.topicEditorDestination, Self.topicEditorDestination(session: session))
         // Design hand-off r1 PL-11: 消息 is the first trailing action on every tab root (MP `tpl-bell` → IM list).
         .modifier(SessionMessagingToolbarEntry(session: session))
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 if session.isConfigured {
-                    publishMenu
+                    if session.isSignedIn {
+                        publishMenu
+                    } else {
+                        signInPublishButton
+                    }
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
@@ -66,6 +74,26 @@ import SwiftUI
             await loadPublishHome()
         }
         .cyToast(message: $publishNotice)
+        .cySheet(isPresented: $showsSignIn) {
+            Group { LoginView(intent: .player).environmentObject(session) }
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+        }
+    }
+
+    /// Signed out: the same “+” in the same place, but it asks for sign-in first (MP `ensureLoginFor`). After sign-in the
+    /// “+” becomes the publish menu.
+    private var signInPublishButton: some View {
+        Button {
+            showsSignIn = true
+        } label: {
+            Label("discovery.templateTab.publish", systemImage: "plus")
+                .labelStyle(.iconOnly)
+                .frame(minWidth: 44, minHeight: 44)
+        }
+        .accessibilityLabel(Text("discovery.templateTab.publish"))
+        .accessibilityHint(Text("action.goSignIn"))
+        .accessibilityIdentifier("publishTab.publish.signIn")
     }
 
     private func loadPublishHome() async {
@@ -156,6 +184,21 @@ import SwiftUI
         case .interaction:
             sessionTemplateAuthoringEntry(session)
         }
+    }
+
+    /// P1-26: the same `pages/publish/fabu/index?id=&scope=` editor the 首页 template pages open (MPReviewedPageScreen).
+    static func topicEditorDestination(session: AppSession) -> (Int, String?) -> AnyView {
+        { topicID, scope in
+            AnyView(MPReviewedPageScreen(page: "pages/publish/fabu/index", query: topicEditorQuery(topicID: topicID, scope: scope))
+                .environmentObject(session))
+        }
+    }
+
+    /// MP `publish/fabu` query for a copied draft: `id`, plus `scope` only when the template was adopted for a scope.
+    nonisolated static func topicEditorQuery(topicID: Int, scope: String?) -> [String: String] {
+        var query = ["id": String(topicID)]
+        if let scope, !scope.isEmpty { query["scope"] = scope }
+        return query
     }
 
     private func professionalEditor(_ product: ProjectEditProduct) -> some View {

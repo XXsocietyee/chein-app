@@ -56,6 +56,32 @@ import XCTest
         }
     }
 
+    /// P1-11 (MP pages/club/detail/index.js:3430): 移除成员 passes on ClubManagementService's exact `{clubId, memberId}` body only.
+    func testAdmitsRemoveMemberOnItsExactBody() {
+        XCTAssertTrue(MPFirstClubWriteRoute.accepts(json("api/club/remove-member", body: #"{"clubId":3,"memberId":8}"#), baseURL: base, token: token))
+        for body in [#"{"clubId":3}"#, #"{"clubId":3,"memberId":0}"#, #"{"clubId":3,"memberId":8,"amount":1}"#,
+                     #"{"clubId":3,"memberId":8,"reviewReason":"x"}"#, #"{"clubId":"3","memberId":8}"#] {
+            XCTAssertFalse(MPFirstClubWriteRoute.accepts(json("api/club/remove-member", body: body), baseURL: base, token: token), body)
+        }
+    }
+
+    /// P1-12: the club owner reads (统计概览, 结算, CRM, series, audience counts) pass on ClubGovernanceRead's exact bodies;
+    /// settlement writes and extra keys stay refused.
+    func testAdmitsOwnerReadsOnTheirExactBody() throws {
+        let scope = ClubGovernanceScope(clubID: 3)
+        for read in [ClubGovernanceRead.stats, .settlement, .series, .customers, .audienceCounts] {
+            let fields = try read.fields(scope: scope)
+            let body = String(decoding: try JSONEncoder().encode(fields), as: UTF8.self)
+            XCTAssertTrue(MPFirstClubWriteRoute.accepts(json(read.path, body: body), baseURL: base, token: token), "\(read.path) \(body)")
+        }
+        for (path, body) in [("api/stats/club", #"{"clubId":3,"amount":1}"#), ("api/club/settlement/summary", #"{"clubId":0}"#),
+                             ("api/club/settlement/summary", #"{"clubId":3,"personal":true}"#), ("api/club/settlement/withdraw", #"{"clubId":3}"#),
+                             ("api/club/settlement/mine", #"{"clubId":3}"#), ("api/club/crm/customers/list", #"{"clubId":3}"#),
+                             ("api/club/event-ops/series/list", #"{"clubId":3,"page":1}"#)] {
+            XCTAssertFalse(MPFirstClubWriteRoute.accepts(json(path, body: body), baseURL: base, token: token), "\(path) \(body)")
+        }
+    }
+
     func testAdmitsMultipartChapterWritesAndTopicReadOnly() throws {
         for path in ["api/topic/chapter/recruit", "api/topic/chapter/finish", "api/topic/info-to-user"] {
             let form = try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent(path), fields: ["chapterId": "12", "scope": ""], token: token)

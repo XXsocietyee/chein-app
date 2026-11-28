@@ -85,9 +85,11 @@ public struct ComplianceDeregistration: Decodable, Equatable {
     }
     public var startable: Bool { Self.startable.contains(status) }
     static let startable: Set<String> = ["NORMAL", "CANCELLED", "FAILED"]
-    /// iOS can verify only by SMS. WECHAT reconfirmation needs a fresh mini-program wx.login
-    /// code bound to the account's mini-program openid, which a native app cannot produce.
-    public var verificationAvailableOnThisDevice: Bool { verificationMethod == nil || verificationMethod == "SMS" }
+    /// iOS verifies by SMS (phone accounts) or a fresh Sign in with Apple (APPLE, accounts with no phone).
+    /// WECHAT reconfirmation needs a fresh mini-program wx.login code bound to the account's mini-program
+    /// openid (backend `jscode2session`), which a native app cannot produce.
+    public var verificationAvailableOnThisDevice: Bool { verificationMethod == nil || verificationMethod == "SMS" || verificationMethod == "APPLE" }
+    public var verifiesWithApple: Bool { verificationMethod == "APPLE" }
     enum CodingKeys: String, CodingKey { case status, blockers, executeAfter, verificationMethod, impact }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -149,6 +151,23 @@ public struct DeregistrationBoundPhone: Equatable {
     public var sentNotice: String { "验证码已发送至尾号 \(tail) 的手机号" }
     public static let missingMessage = "请先绑定手机号后再获取验证码"
     public init(phone: String) { self.phone = phone }
+}
+/// P0-6 (App Store 5.1.1(v)): a fresh Sign in with Apple re-authentication for an account with no bound phone.
+/// Sent to `POST /api/user/deregister/apply` as `identityToken` (+ optional `authorizationCode`); the backend
+/// verifies it like `/api/login/apple` and requires its `sub` to equal the account's appleId. In memory only.
+public struct DeregistrationAppleProof: Equatable {
+    public let identityToken: String
+    public let authorizationCode: String?
+    /// Apple identity tokens are JWTs well under this size; anything larger is not a credential.
+    static let maximumLength = 8192
+    public init?(identityToken: String, authorizationCode: String?) {
+        let token = identityToken.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !token.isEmpty, token.utf8.count <= Self.maximumLength,
+              token.split(separator: ".", omittingEmptySubsequences: false).count == 3 else { return nil }
+        let code = authorizationCode?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.identityToken = token
+        if let code, !code.isEmpty, code.utf8.count <= Self.maximumLength { self.authorizationCode = code } else { self.authorizationCode = nil }
+    }
 }
 /// A review is bound to the account/session and authoritative load that the user saw.
 public struct ComplianceMarketingReview: Equatable {

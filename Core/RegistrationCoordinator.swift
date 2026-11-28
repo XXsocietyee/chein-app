@@ -101,7 +101,8 @@ public enum RegistrationCoordinatorBlock: Equatable {
     case quoteNotUsable
     case intentAlreadySubmitted
     case invalidRequest
-    /// Quote price is above zero. Payment stays off, so this confirm does not send.
+    /// Quote price is above zero while the Release payment switch is off, so this confirm does not send.
+    /// fix/1128-cn-pay P0-1: with payment on, a paid quote creates the order with `payChannel=APP`.
     case paymentRequired
     case cancelledBeforeDispatch
     case noKnownRegistrationID
@@ -124,6 +125,8 @@ public final class RegistrationCoordinator {
 
     private let service: any RegistrationCoordinatingService
     private let makeRequestID: () -> String
+    /// fix/1128-cn-pay P0-1: paid orders are sent only while the payment switch is on (`ReleaseMoneyWriteSwitch`).
+    private let paymentsOpen: () -> Bool
     private var token: String?
     private var accountGeneration: UInt64 = 0
     private var quoteGeneration: UInt64 = 0
@@ -136,9 +139,21 @@ public final class RegistrationCoordinator {
     }
 
     public init(service: any RegistrationCoordinatingService,
-                makeRequestID: @escaping () -> String = { "app-\(UUID().uuidString)" }) {
+                makeRequestID: @escaping () -> String = { "app-\(UUID().uuidString)" },
+                paymentsOpen: @escaping () -> Bool = { ReleaseMoneyWriteSwitch.paymentEnabled }) {
         self.service = service
         self.makeRequestID = makeRequestID
+        self.paymentsOpen = paymentsOpen
+    }
+
+    /// fix/1128-cn-pay P0-1: true when a quote above zero may be confirmed (payment switch on).
+    public var acceptsPaidOrders: Bool { paymentsOpen() }
+
+    /// A paid quote creates with the in-app channel (MP baoming.js create → `payChannel`; backend
+    /// `RegistrationCheckoutServiceImpl.isAppChannel` → `trade_type=APP` pay params). A free quote sends no channel.
+    nonisolated static func sendsAppPaymentChannel(quote: RegistrationQuote, participant: RegistrationParticipantDetails) -> Bool {
+        guard let amount = quote.payAmount, amount > .zero else { return false }
+        return participant.usesAppPaymentChannel
     }
 
     /// Only the current account's record is exposed. Credentials never appear in state.
@@ -253,14 +268,14 @@ public final class RegistrationCoordinator {
               !participant.phone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             return .blocked(.invalidRequest)
         }
-        guard quote.payAmount == .zero else { return .blocked(.paymentRequired) }
+        if let amount = quote.payAmount, amount > .zero, !paymentsOpen() { return .blocked(.paymentRequired) }
         let intent: RegistrationCreateIntent
         do {
             intent = try RegistrationCreateIntent(
                 selection: selection, quote: quote, realName: participant.realName,
                 phone: participant.phone, email: participant.email,
                 participateDate: participant.participateDate,
-                usesAppPaymentChannel: false,
+                usesAppPaymentChannel: Self.sendsAppPaymentChannel(quote: quote, participant: participant),
                 requestID: makeRequestID(), waitlistOffer: participant.waitlistOffer
             )
         } catch { return .blocked(.invalidRequest) }

@@ -145,22 +145,6 @@
         }
       }
     },
-    "member.benefit.publishCoupons": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Publish coupons"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "发布优惠券"
-          }
-        }
-      }
-    },
     "member.benefit.publishRoutes": {
       "localizations": {
         "en": {

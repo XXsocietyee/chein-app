@@ -84,11 +84,12 @@ extension AppSession {
         return NativeNavigationContract.homeReferral(query)
     }
 
-    /// Universal links. A reviewed path on a verified origin (`nativeEntryLinkPolicy`, empty until the domains are
-    /// approved) routes like a chein link; anything else stays with the WeChat callback drivers as before.
+    /// Universal links (P1-1). The WeChat SDK callbacks (`/app/wx<AppID>/oauth`, `/pay`) are claimed first, and only while
+    /// an attempt is pending. Any other link on the verified origin (`appLinkRouter`, `QUESTIFY_APP_LINK_DOMAIN`) routes like
+    /// a chein link. An unroutable link is ignored: Safari already showed the page, so no error sheet is raised.
     func receiveUniversalLink(_ activity: NSUserActivity) {
-        if let url = activity.webpageURL, let intent = nativeEntryLinkPolicy.parse(url) { receiveNativeIntent(intent); return }
-        receiveWeChatUserActivity(activity)
+        if receiveWeChatUserActivity(activity) { return }
+        if let url = activity.webpageURL, let destination = appLinkRouter.route(url) { receiveAppLink(destination) }
     }
 
     /// A referral, gift or seat landing opens the journey landing page. Opening it claims, pays or starts nothing.

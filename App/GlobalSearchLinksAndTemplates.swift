@@ -98,12 +98,15 @@ extension EnvironmentValues {
     @EnvironmentObject private var session: AppSession
     var initialQuery: GlobalSearchQuery?
     var startsOnMap = false
+    /// Function audit P2-3 (MP `pages/searchmap` loads `getList` at once around the known position): the map opens on
+    /// this area instead of the 选择区域 prompt. Nil keeps the prompt.
+    var initialArea: RoamSearchArea? = nil
     var onSignIn: (() -> Void)? = nil
     var body: some View {
         Group {
             if startsOnMap {
                 SearchMapExplorerView(reader: session.searchMapReader, mode: .city, initialFilter: initialQuery ?? .init(),
-                                      onSignIn: onSignIn, destination: destination)
+                                      initialArea: initialArea, onSignIn: onSignIn, destination: destination)
             } else {
                 GlobalSearchView(reader: session.searchMapReader, historyNamespace: session.searchMapHistoryNamespace,
                                  publicMerchant: session.publicMerchantHomeContext, onSignIn: onSignIn,

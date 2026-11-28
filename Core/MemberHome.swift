@@ -207,7 +207,7 @@ public struct MemberRoleInfo: Decodable, Equatable {
 
 public struct MemberBenefit: Equatable, Identifiable {
     public enum Kind: String, CaseIterable, Equatable {
-        case publishRoutes, publishCoupons, redeemCoupons, branching, gameMechanics, openAsNode, medalDesign, createGroup, earnings
+        case publishRoutes, redeemCoupons, branching, gameMechanics, openAsNode, medalDesign, createGroup, earnings
     }
     public enum RouteLimit: Equatable { case unlimited, limited(Int) }
     public let kind: Kind
@@ -217,6 +217,8 @@ public struct MemberBenefit: Equatable, Identifiable {
     /// Only 我的收益 navigates, and only when unlocked.
     public var opensEarnings: Bool { kind == .earnings && unlocked }
     public var id: String { kind.rawValue }
+    /// 到店核销 / 开放门店为城市节点 are merchant capabilities (merchant center is not in the first release).
+    public var isMerchantCapability: Bool { kind == .redeemCoupons || kind == .openAsNode }
 
     public static func rows(for p: MemberRoleInfo.Permission) -> [MemberBenefit] {
         let limit: RouteLimit = p.maxThemes.map { .limited(max(0, $0)) } ?? .unlimited
@@ -224,7 +226,7 @@ public struct MemberBenefit: Equatable, Identifiable {
         func row(_ kind: Kind, _ flag: Bool?) -> MemberBenefit { .init(kind: kind, unlocked: flag == true, routeLimit: nil) }
         return [
             .init(kind: .publishRoutes, unlocked: routesUnlocked, routeLimit: limit),
-            row(.publishCoupons, p.canPublishCoupon), row(.redeemCoupons, p.canRedeemCoupon),
+            row(.redeemCoupons, p.canRedeemCoupon),
             row(.branching, p.canBranch), row(.gameMechanics, p.canGameMechanic),
             row(.openAsNode, p.canOpenAsNode), row(.medalDesign, p.canDesignMedal),
             row(.createGroup, p.canCreateGroup), row(.earnings, p.withdrawable)
@@ -547,7 +549,7 @@ public enum MemberHomePageModel {
         "member.card.balance", "member.card.balanceValue", "member.card.loading", "member.card.empty",
         "member.card.failed", "member.card.unknown", "member.card.retry", "member.benefits.loading",
         "member.benefits.unavailable", "member.benefits.failed", "member.benefits.retry",
-        "member.benefit.publishRoutes", "member.benefit.publishCoupons", "member.benefit.redeemCoupons",
+        "member.benefit.publishRoutes", "member.benefit.redeemCoupons",
         "member.benefit.branching", "member.benefit.gameMechanics", "member.benefit.openAsNode",
         "member.benefit.medalDesign", "member.benefit.createGroup", "member.benefit.earnings"
     ]
