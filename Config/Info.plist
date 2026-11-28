@@ -4,6 +4,7 @@
     <key>QuestifyMarket</key><string>$(QUESTIFY_MARKET)</string>
     <key>QuestifyAPIBaseURL</key><string>$(QUESTIFY_API_BASE_URL)</string>
     <key>QuestifySessionRealm</key><string>$(QUESTIFY_SESSION_REALM)</string>
+    <key>QuestifyAlipayAppScheme</key><string>$(QUESTIFY_ALIPAY_APP_SCHEME)</string>
     <key>QuestifyCityGameRegion</key><string>$(QUESTIFY_CITY_GAME_REGION)</string>
     <key>QuestifyDeploymentEnvironment</key><string>$(QUESTIFY_DEPLOYMENT_ENVIRONMENT)</string>
     <key>ITSAppUsesNonExemptEncryption</key><false/>
