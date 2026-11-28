@@ -417,6 +417,21 @@ UI test `Fixture_r3_roamStampAlbumStatesTests` (empty id; error id + MP title + 
 
 Gates: generate_project OK · check_scaffold PASS (21174 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
 
+## Round 3 continue (30) — 官方线路 states as design fixtures (01:40 "next round" item 3) + sweep 03:49 (build 733bfb368)
+
+Base re-merged with `origin/ui/combined-r7` (xcstrings conflict: both sides' keys kept). No open coordinator finding for mp-roam
+(sweep 03:49 `mp-roam/sheet-en.jpg`: d2-roam / d6-roam same inline title + light map, e2-stamp-album art + Not received yet cell,
+e5b-stamp — keep). Map panel settled (02:05) — not touched.
+
+| MP page → native | Difference | Fix | Fixture |
+|---|---|---|---|
+| `subpackageRoam/official-routes` (`cy-skeleton` → `cy-error title="线路加载失败" retry="重试"` → `cy-empty title="还没有上架的官方线路"` → `.orl-card` cover · name · metaText) → `App/NativeR2/MapHome/RoamMapHomeRoutes.swift` `RoamMapHomeRoutesList` (shipping map-home push) | Content and MP copy already match (`nativeR2.mapHome.routes.failed` / `.empty`). The sweep never showed the shipping list: only the legacy `OfficialRouteListView` had fixtures (`e1-routes`, English "(offline example)" names in both languages). Empty / error had no identifiers. | New `App/DesignFixtures/RoamR3RoutesFixture.swift` mounts the real `RoamMapHomeRoutesList` on an offline reader with route names in the UI language (外滩夜色步行线 / Bund night walk …); ids `officialRoute.list.empty`, `officialRoute.list.error` on the two `ContentUnavailableView`s. UI test `Fixture_r3_roamRoutesStatesTests` (row / empty id / error id + 重试 + foreground). | `r3-roam-routes`, `r3-roam-routes-empty`, `r3-roam-routes-error` |
+| `subpackageRoam/official-route` (`cy-skeleton` → `cy-error 线路加载失败 + 重试` → `cy-empty 这条线路不存在或已下架` → title · metaText · cover → 节点（N） rows / `cy-empty 这条线路还没有节点`) → `RoamMapHomeRouteCard` (shipping route card) | Content, order and MP copy already match (continue 2). No fixture showed the shipping card or its error / not-found states; no ids on them. | Same fixture file: `RoamR3RouteDetailFixtureHost` mounts the real card on route 1 with three stops in the UI language (外滩源庭院 · 外白渡桥 · 滨江步道, 参考停留 on two); error = transport failure, not-found = `OfficialRouteReader.Failure.notFound`. Ids `officialRoute.detail.error`, `.notFound`, `.noStops`. UI tests in `Fixture_r3_roamRoutesStatesTests`. | `r3-roam-route`, `r3-roam-route-error`, `r3-roam-route-notfound` |
+
+**For the coordinator:** please add `r3-roam-routes`, `r3-roam-routes-empty`, `r3-roam-routes-error`, `r3-roam-route`, `r3-roam-route-error`, `r3-roam-route-notfound` to the mp-roam sweep row (with the history and stamp-album state fixtures from 28/29).
+
+Gates: generate_project OK · check_scaffold PASS (21210 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here. No new strings.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no

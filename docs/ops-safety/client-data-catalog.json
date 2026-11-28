@@ -86,6 +86,15 @@
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
     {
+      "file": "App/ClubPostDraftStore.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Unsent club post draft (text + already-uploaded image references), key club.post.draft.<accountId>.<clubId>; restored when the member opens the club composer again (MP post-compose draftIdentity(memberId, clubId))",
+      "retention": "One draft per member and club, on this device only; cleared when the post goes to review or the member chooses 不保存 / Delete draft",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
       "file": "App/ClubOrdinaryAdmissionComposition.swift",
       "kinds": [
         "file"
