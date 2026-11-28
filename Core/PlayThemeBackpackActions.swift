@@ -195,7 +195,7 @@ public struct PlayThemeBackpackActionService {
         if case .topic = scope { fields["activityId"] = "0" }
         if let sessionID { fields["sessionId"] = String(sessionID) }
         var request = try request(token: session.token, path: "state")
-        var url = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)!
+        guard let requestURL = request.url, var url = URLComponents(url: requestURL, resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         url.queryItems = fields.sorted { $0.key < $1.key }.map { .init(name: $0.key, value: $0.value) }; request.url = url.url
         let reply: (Data, Int)
         if transport is PlayRecoveryRecordingTransport { reply = try await transport.send(request) }

@@ -60,6 +60,11 @@ public struct RoamSettledSessionArchive: Equatable, Sendable {
     public var pendingActionCount: Int { record?.unresolvedActions.count ?? 0 }
     public var explorationPercent: Int { min(99, Int((Double(grid.count) / 400 * 100).rounded())) }
     private let service: (any RoamLiveServing)?
+    /// A walk screen can be built before a service exists. Missing service is a refusal, not a crash.
+    private func requireService() throws -> any RoamLiveServing {
+        guard let service else { throw RoamLiveFailure.unavailable }
+        return service
+    }
     private let location: (any RoamDeviceLocationProviding)?
     private let journal: RoamLiveJournal
     private let history: RoamHistoryStore?
@@ -255,7 +260,7 @@ public struct RoamSettledSessionArchive: Equatable, Sendable {
             if lastPlaces == nil || now().timeIntervalSince(lastPlaces!) >= 30 { try await refreshPlaces(fix, token: token) }
             if presenceEnabled, let id = record?.sessionID, lastPresence == nil || now().timeIntervalSince(lastPresence!) >= 30 {
                 lastPresence = now()
-                do { try await service!.presence(sessionID: id, fix: fix, explorationPercent: explorationPercent); try check(token); presenceError = false }
+                do { try await requireService().presence(sessionID: id, fix: fix, explorationPercent: explorationPercent); try check(token); presenceError = false }
                 catch { try check(token); presenceError = true } // No claim of disappearance; server expiry is five minutes.
             }
         } catch { fail(error, token: token, locationFailure: true) }
@@ -308,7 +313,7 @@ public struct RoamSettledSessionArchive: Equatable, Sendable {
             else { unstartedSnapshot = nil }
             try check(token) // Storage callbacks cannot switch the owner before the fact request.
             phase = .recovering; error = nil; changed()
-            let fact = try await service!.fact(key: record.clientSessionKey); try check(token)
+            let fact = try await requireService().fact(key: record.clientSessionKey); try check(token)
             try validate(fact, record: record)
             if fact.state == .finished { try archive(fact); return }
             // A missing server row is not permission to erase an uncertain local write.
@@ -380,10 +385,10 @@ public struct RoamSettledSessionArchive: Equatable, Sendable {
             while record?.pendingTiles.isEmpty == false { try await flushReveal(token) }
             guard let id = record?.sessionID else { throw RoamLiveFailure.recoveryRequired }
             draft = record!; draft.pendingWrite = .finish; try persist(draft)
-            try await service!.finish(sessionID: id, poiIDs: draft.confirmedPOIIDs, distanceMeters: Int(draft.distanceMeters.rounded()),
+            try await requireService().finish(sessionID: id, poiIDs: draft.confirmedPOIIDs, distanceMeters: Int(draft.distanceMeters.rounded()),
                                       track: track.map(\.coordinate))
             try check(token)
-            let fact = try await service!.fact(key: draft.clientSessionKey); try check(token)
+            let fact = try await requireService().fact(key: draft.clientSessionKey); try check(token)
             try validate(fact, record: draft); guard fact.state == .finished else { throw RoamLiveFailure.recoveryRequired }
             try archive(fact)
         } catch { fail(error, token: token) }
@@ -449,13 +454,13 @@ public struct RoamSettledSessionArchive: Equatable, Sendable {
             draft.unresolvedActions.append(action); try persist(draft) // Before dispatch, even if canceled or killed.
             var receivedMeaning: String?
             if shop {
-                let receipt = try await service!.shopVisit(sessionID: id, sourceType: 1, sourceID: place.id, fix: fix)
+                let receipt = try await requireService().shopVisit(sessionID: id, sourceType: 1, sourceID: place.id, fix: fix)
                 try check(token); guard receipt.recorded else { throw RoamLiveFailure.unresolvedVisit }
                 draft.confirmedShops.append(action)
                 // ROAM-r11-7: a shop found for the first time raises the 首次发现 card (MP pages/roam/index.js:4643-4652).
                 if place.found != true { firstShopDiscovery = place }
             } else {
-                let receipt = try await service!.discover(sessionID: id, poiID: place.id, fix: fix)
+                let receipt = try await requireService().discover(sessionID: id, poiID: place.id, fix: fix)
                 try check(token); guard receipt.poiId == place.id else { throw APIError.malformedResponse }
                 receivedMeaning = receipt.meaning
                 draft.confirmedPOIIDs.append(place.id)
@@ -496,7 +501,7 @@ public struct RoamSettledSessionArchive: Equatable, Sendable {
             guard registeredShopGap(shop) == 0 else { throw RoamLiveFailure.outOfRange }
             let action = "shop:2:\(shop.id)"
             draft.unresolvedActions.append(action); try persist(draft)
-            let receipt = try await service!.shopVisit(sessionID: id, sourceType: 2, sourceID: shop.id, fix: fix)
+            let receipt = try await requireService().shopVisit(sessionID: id, sourceType: 2, sourceID: shop.id, fix: fix)
             try check(token); guard receipt.recorded else { throw RoamLiveFailure.unresolvedVisit }
             draft.confirmedShops.append(action); draft.unresolvedActions.removeAll { $0 == action }; try persist(draft); error = nil
         } catch { guard operation == token else { return }; self.error = error }
@@ -543,16 +548,16 @@ public struct RoamSettledSessionArchive: Equatable, Sendable {
         guard draft.pendingWrite == nil else { throw RoamLiveFailure.recoveryRequired }
         let batch = Array(draft.pendingTiles.prefix(200))
         draft.pendingWrite = .reveal; try persist(draft)
-        let receipt = try await service!.reveal(sessionID: draft.sessionID, clientSessionKey: draft.clientSessionKey, tiles: batch)
+        let receipt = try await requireService().reveal(sessionID: draft.sessionID, clientSessionKey: draft.clientSessionKey, tiles: batch)
         try check(token)
         guard draft.sessionID == nil || receipt.sessionId == draft.sessionID else { throw APIError.malformedResponse }
         draft.sessionID = receipt.sessionId; draft.pendingTiles.removeFirst(batch.count); draft.pendingWrite = nil
         try persist(draft); lastReveal = now()
     }
     private func refreshPlaces(_ fix: RoamDeviceFix, token: UUID) async throws {
-        do { let values = try await service!.places(fix: fix); try check(token); places = values; lastPlaces = now(); placesReadError = nil }
+        do { let values = try await requireService().places(fix: fix); try check(token); places = values; lastPlaces = now(); placesReadError = nil }
         catch { try check(token); placesReadError = error } // This source owns only its own read failure, never a visit/location/finish error.
-        do { let values = try await service!.registeredShops(fix: fix); try check(token); registeredShops = values; registeredShopsReadError = nil }
+        do { let values = try await requireService().registeredShops(fix: fix); try check(token); registeredShops = values; registeredShopsReadError = nil }
         catch { try check(token); registeredShopsReadError = error }
     }
     private func validate(_ fact: RoamSessionFact, record: RoamLiveRecord) throws {

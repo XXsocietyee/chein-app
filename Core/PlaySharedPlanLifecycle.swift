@@ -378,7 +378,8 @@ public struct PlaySharedPlanOperationTicket: Equatable, Identifiable {
             var payload: [String: PlayWireValue] = [:]
             switch action {
             case .propose:
-                payload = ["proposalKey": .string("plan_" + String(UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased().prefix(26))), "endingKey": .string(row!.endingKey)]
+                guard let row else { throw PlayExperienceError.invalidAction }
+                payload = ["proposalKey": .string("plan_" + String(UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased().prefix(26))), "endingKey": .string(row.endingKey)]
             case .intent, .withdraw:
                 guard let row, let proposal = row.proposalKey, let version = row.version else { throw PlayExperienceError.invalidAction }
                 payload = ["proposalKey": .string(proposal), "version": .int(version)]
@@ -398,7 +399,9 @@ public struct PlaySharedPlanOperationTicket: Equatable, Identifiable {
                 let eligible = Set(fresh.rows.filter { fresh.allows(.accept, row: $0) }.compactMap(\.proposalKey))
                 guard acceptance.isSubset(of: eligible) else { throw PlayExperienceError.invalidAction }
                 payload = ["round": .int(fresh.round), "proposalKeys": .array(acceptance.sorted().map(PlayWireValue.string))]
-            case .start: payload = ["operationKind": .string("PLAN"), "operationKey": .string(row!.endingKey)]
+            case .start:
+                guard let row else { throw PlayExperienceError.invalidAction }
+                payload = ["operationKind": .string("PLAN"), "operationKey": .string(row.endingKey)]
             case .cancel, .change, .rejectAll, .openVote, .nextVote: break
             }
             let command = PlaySharedPlanCommand(activityID: activityID, sessionID: fresh.team.sessionID, memberID: owner.accountID,

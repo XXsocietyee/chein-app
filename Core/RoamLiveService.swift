@@ -74,7 +74,7 @@ import FoundationNetworking
         try Task.checkCancellation()
         var request: URLRequest
         if get {
-            var url = URLComponents(url: api.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
+            guard var url = URLComponents(url: api.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
             url.queryItems = fields.keys.sorted().map { URLQueryItem(name: $0, value: fields[$0]) }
             guard let endpoint = url.url else { throw APIError.invalidRequest }
             request = URLRequest(url: endpoint); request.httpMethod = "GET"

@@ -116,9 +116,9 @@ public enum NativeChannelOnboardingPolicy {
             let choices=selected[prompt.id] ?? []
             guard !choices.isEmpty,(!prompt.singleSelect || choices.count==1),choices.isSubset(of:Set(prompt.options.map(\.id))) else {issue="请按原单/多选要求回答全部必答问题；也可跳过整个引导。";return}
             guard !prompt.options.contains(where:{choices.contains($0.id)&&$0.hasEffects}) else{issue="所选项需要尚未闭合的原角色/频道委托，不能只保存答案就声称授予；可跳过，不改准入。";return}
-            answers.append(.init(promptID:prompt.id,optionIDs:choices.sorted{Int64($0)!<Int64($1)!}))
+            answers.append(.init(promptID:prompt.id,optionIDs:choices.sorted{(Int64($0) ?? .max)<(Int64($1) ?? .max)}))
         }
-        answers.sort{Int64($0.promptID)!<Int64($1.promptID)!};let id=UUID().uuidString.lowercased()
+        answers.sort{(Int64($0.promptID) ?? .max)<(Int64($1.promptID) ?? .max)};let id=UUID().uuidString.lowercased()
         do { let rows=answers.map{["prompt_id":$0.promptID,"option_ids":$0.optionIDs] as [String:Any]};let body=try JSONSerialization.data(withJSONObject:["guild_kind":scope.guildKind,"guild_id":scope.guildID.rawValue,"request_id":id,"configuration_hash":snapshot.configurationHash,"answers":rows],options:.sortedKeys)
             review = .init(owner:owner,id:id,configurationHash:snapshot.configurationHash,answers:answers,body:body);issue=nil
         }catch{issue="原回答无法冻结，未发送。"}

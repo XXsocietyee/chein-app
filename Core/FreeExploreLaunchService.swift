@@ -105,7 +105,7 @@ public extension FreeExploreLaunchServing {
         try check(); return try await executeOptional(make(path, fields: fields))
     }
     private func make(_ path: String, fields: [String: String]) throws -> URLRequest {
-        var url = URLComponents(url: session.baseURL.appendingPathComponent("api/free-explore/bundle/" + path), resolvingAgainstBaseURL: false)!
+        guard var url = URLComponents(url: session.baseURL.appendingPathComponent("api/free-explore/bundle/" + path), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         if !fields.isEmpty { url.queryItems = fields.keys.sorted().map { URLQueryItem(name: $0, value: fields[$0]) } }
         guard let endpoint = url.url else { throw FreeExploreLaunchFailure.invalid }
         var request = URLRequest(url: endpoint); request.httpMethod = "GET"; request.timeoutInterval = 20

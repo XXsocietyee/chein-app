@@ -55,6 +55,7 @@ public struct TemplateQAAnswerSelection {
             return applying(.chooseID(options[index].id), to: draft)
         case .chooseID(let id):
             guard options.contains(where: { $0.id == id }) else { return nil }
+            guard rows.allSatisfy({ $0.object != nil }) else { return nil }
             rows = rows.map { raw in
                 var row = raw.object!
                 if isMultiple {
@@ -67,6 +68,7 @@ public struct TemplateQAAnswerSelection {
             fields["multi"] = .bool(enabled)
             if !enabled {
                 var kept = false
+                guard rows.allSatisfy({ $0.object != nil }) else { return nil }
                 fields["options"] = .array(rows.map { raw in
                     var row = raw.object!
                     let correct = (row["correct"]?.bool ?? false) && !kept

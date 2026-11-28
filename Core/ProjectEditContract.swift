@@ -61,11 +61,13 @@ public enum ProjectEditContract {
             // Unknown ("") is not sent: the server keeps its own value rather than receiving an invented 0.
             guard ticket.teamSize.isEmpty || Int(ticket.teamSize) != nil else { throw ProjectEditError.invalidDraft }
             let schedule = ticket.schedule(in: draft)
+            guard let startTime = ProjectEditValidation.dateTime(schedule.start),
+                  let endTime = ProjectEditValidation.dateTime(schedule.end, endOfDay: true) else { throw ProjectEditError.invalidDraft }
             var p: [String: ProjectEditJSON] = [
                 "name": .string(ticket.name), "price": .number(price), "mode": .number(Decimal(draft.product.rawValue)),
                 "totalStock": .number(Decimal(stock)),
-                "startTime": .string(ProjectEditValidation.dateTime(schedule.start)!),
-                "endTime": .string(ProjectEditValidation.dateTime(schedule.end, endOfDay: true)!)
+                "startTime": .string(startTime),
+                "endTime": .string(endTime)
             ]
             if let team = Int(ticket.teamSize) { p["teamSize"] = .number(Decimal(team)) }
             if !ticket.description.isEmpty { p["description"] = .string(ticket.description) }

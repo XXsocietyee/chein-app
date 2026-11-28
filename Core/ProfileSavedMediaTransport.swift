@@ -15,7 +15,7 @@ import FoundationNetworking
     init(expected: URLRequest, current: @escaping () -> Bool) { self.expected = expected; self.current = current }
     public var isCurrent: Bool { !invalidated && !Task.isCancelled && current() }
     public func accepts(_ request: URLRequest) -> Bool {
-        request.url?.absoluteString.utf8.elementsEqual(expected.url!.absoluteString.utf8) == true
+        (request.url?.absoluteString == expected.url?.absoluteString && request.url != nil) == true
             && request.httpMethod == "GET" && request.httpBody == nil && request.httpBodyStream == nil
             && !request.httpShouldHandleCookies && request.cachePolicy == .reloadIgnoringLocalCacheData
             && request.allHTTPHeaderFields == expected.allHTTPHeaderFields
@@ -49,7 +49,8 @@ import FoundationNetworking
     }
     public func send(_ request: URLRequest, authorization: ProfileSavedMediaReadAuthorization) async throws -> Data {
         guard authorization.accepts(request), authorization.isCurrent else { throw RetainedImageFailure.disabled }
-        let exchange = ProfileSavedMediaExchange(endpoint: request.url!)
+        guard let releaseURL = request.url else { throw APIError.invalidConfiguration }
+        let exchange = ProfileSavedMediaExchange(endpoint: releaseURL)
         return try await withTaskCancellationHandler(operation: {
             try await withCheckedThrowingContinuation { continuation in
                 exchange.install(continuation)

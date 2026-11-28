@@ -93,7 +93,7 @@ public enum ProfileFollowListTransportPolicy {
     public func page(kind: ProfileFollowListKind, cursor: Int) async throws -> ProfileFollowListPage {
         guard cursor >= 0 else { throw APIError.invalidRequest }
         return try await read {
-            var parts = URLComponents(url: context.baseURL.appendingPathComponent(ProfileFollowListApproval.path), resolvingAgainstBaseURL: false)!
+            guard var parts = URLComponents(url: context.baseURL.appendingPathComponent(ProfileFollowListApproval.path), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
             parts.queryItems = [URLQueryItem(name: "cursor", value: String(cursor)), URLQueryItem(name: "kind", value: kind.rawValue), URLQueryItem(name: "limit", value: "50")]
             guard let url = parts.url else { throw APIError.invalidRequest }
             var request = URLRequest(url: url); request.httpMethod = "GET"; request.httpShouldHandleCookies = false

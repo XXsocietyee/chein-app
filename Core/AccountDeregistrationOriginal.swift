@@ -100,7 +100,7 @@ public struct AccountDeregistrationOriginalReceipt: Decodable, Equatable {
         try Task.checkCancellation(); guard matches(session) else { throw ComplianceFailure.staleSession }; return value
     }
     private func request(_ path: String, method: String = "GET", query: [String: String] = [:], body: [String: Any]? = nil) throws -> URLRequest {
-        var parts = URLComponents(url: context.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
+        guard var parts = URLComponents(url: context.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         if !query.isEmpty { parts.queryItems = query.sorted { $0.key < $1.key }.map { .init(name: $0.key, value: $0.value) } }
         guard let url = parts.url else { throw ComplianceFailure.invalidInput }
         var r = URLRequest(url: url); r.httpMethod = method; r.httpShouldHandleCookies = false

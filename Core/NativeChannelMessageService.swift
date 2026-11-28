@@ -99,7 +99,7 @@ public extension NativeChannelMessageAccess {
     private func execute<Value: Decodable>(_ capability: NativeChannelMessageCapability, path: String,
             query: [String: String] = [:], body: [String: Any]? = nil) async throws -> Value {
         let credentials = try checked(capability), run = generation
-        var components = URLComponents(url: credentials.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
+        guard var components = URLComponents(url: credentials.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         if !query.isEmpty { components.queryItems = query.sorted { $0.key < $1.key }.map { URLQueryItem(name: $0.key, value: $0.value) } }
         guard let url = components.url else { throw APIError.invalidRequest }
         var request = URLRequest(url: url)

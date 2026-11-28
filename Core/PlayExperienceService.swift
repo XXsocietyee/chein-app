@@ -286,11 +286,12 @@ public struct PlayExperienceService {
         request.timeoutInterval = 20; request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue(token, forHTTPHeaderField: "Authorization"); request.setValue("application/json", forHTTPHeaderField: "Accept")
         if !query.isEmpty {
-            var components = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)!
+            guard let requestURL = request.url, var components = URLComponents(url: requestURL, resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
             components.queryItems = query.sorted { $0.key < $1.key }.map { URLQueryItem(name: $0.key, value: $0.value) }; request.url = components.url
         }
         if let form {
-            request = try AuthRequestBuilder.makeFormRequest(url: request.url!, fields: form, token: token, boundary: boundary)
+            guard let releaseURL = request.url else { throw APIError.invalidConfiguration }
+            request = try AuthRequestBuilder.makeFormRequest(url: releaseURL, fields: form, token: token, boundary: boundary)
         } else if let json {
             request.httpMethod = "POST"; request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             // Re-encoding an exact reviewed retry must not reorder dictionary keys.
@@ -411,13 +412,14 @@ extension PlayExperienceService {
         receipt: Bool = false, finalCheck: () throws -> Void) async throws -> PlayWireValue {
         guard activityID > 0, !receipt || command != nil else { throw APIError.invalidRequest }
         let kind = receipt ? "receipt" : command == nil ? "view" : "command"
-        var parts = URLComponents(url: configuration.baseURL.appendingPathComponent("api/game/session/" + kind), resolvingAgainstBaseURL: false)!
+        guard var parts = URLComponents(url: configuration.baseURL.appendingPathComponent("api/game/session/" + kind), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         if let command { try command.validate(); guard command.activityID == activityID else { throw APIError.invalidRequest } }
         if kind != "command" {
             parts.queryItems = [.init(name: "activityId", value: String(activityID)), .init(name: "perspective", value: "PLAYER")]
             if let command { parts.queryItems?.append(.init(name: "requestId", value: command.requestID)) }
         }
-        var request = URLRequest(url: parts.url!); request.httpMethod = kind == "command" ? "POST" : "GET"
+        guard let releaseURL = parts.url else { throw APIError.invalidConfiguration }
+        var request = URLRequest(url: releaseURL); request.httpMethod = kind == "command" ? "POST" : "GET"
         request.cachePolicy = .reloadIgnoringLocalCacheData; request.timeoutInterval = 20
         request.setValue(token, forHTTPHeaderField: "Authorization"); request.setValue("application/json", forHTTPHeaderField: "Accept")
         if kind == "command", let command {

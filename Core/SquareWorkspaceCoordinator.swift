@@ -281,7 +281,8 @@ public struct SquareWorkspaceRevisionRead {
                 }
                 try check(value.session); status = "squareWorkspace.acknowledged"
             } else {
-                let guidelineID = value.guideline!.id
+                guard let guideline = value.guideline else { throw SquareWorkspaceFailure.staleReview }
+                let guidelineID = guideline.id
                 try await api.acknowledge(guidelineID: guidelineID, workflowID: value.draft.workflowID, token: token)
                 let saved = try await api.upsert(draft: value.draft, guidelineID: guidelineID, publishing: true, token: token)
                 guard saved.authorID == session.accountID, value.draft.postID == nil || saved.id == value.draft.postID else { throw SquareWorkspaceFailure.unknown }

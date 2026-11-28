@@ -54,9 +54,10 @@ import FoundationNetworking
     private func request(_ path: String, key: String? = nil, payload: [String: PlayWireValue]? = nil) async throws -> PlayWireValue {
         try gate(); try Task.checkCancellation()
         guard Self.paths.contains(path) else { throw NativeEnrollmentIssue.invalidContract }
-        var url = URLComponents(url: api.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
+        guard var url = URLComponents(url: api.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         if let key { url.queryItems = [URLQueryItem(name: "deviceKeyId", value: key)] }
-        var request = URLRequest(url: url.url!); request.httpMethod = payload == nil ? "GET" : "POST"
+        guard let releaseURL = url.url else { throw APIError.invalidConfiguration }
+        var request = URLRequest(url: releaseURL); request.httpMethod = payload == nil ? "GET" : "POST"
         request.cachePolicy = .reloadIgnoringLocalCacheData; request.timeoutInterval = 30
         request.setValue(owner.token, forHTTPHeaderField: "Authorization"); request.setValue("application/json", forHTTPHeaderField: "Accept")
         if let payload { request.setValue("application/json", forHTTPHeaderField: "Content-Type"); request.httpBody = try JSONEncoder().encode(payload) }
