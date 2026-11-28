@@ -300,6 +300,16 @@ Base re-merged with `origin/ui/combined-r7` (xcstrings: two pure-addition confli
 
 Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
 
+## Round 3 continue (21) — live map bottom strip P-32 (Not done) + sweep 23:07 (build b3b03703a)
+
+Base re-merged with `origin/ui/combined-r7` (xcstrings: one pure-addition conflict, base keys kept). Screens read: `docs/sweeps/latest/mp-roam/sheet-zh-Hans.jpg`, `sheet-en.jpg` — d6-roam both languages and e2-stamp-album now show one appearance-following map and the MP stamp photos (keep); `zh-Hans-d2-roam.jpg` is the black launch tile (machine load per the 17:3x note); `en-d2-roam.jpg` still shows the black `cyMapPanelColor` panel (shared scaffold, already listed for ds-consistency in continue 16). Every MP roam page / component already has a row.
+
+| MP page / scene | Native view | Differences | Status |
+|---|---|---|---|
+| `pages/roam/index` live map `live-peek` (P-32, wxml:535–545; index.js `_syncEntryMap` `liveCards` = entry activity cards + `entryMap.teamView` teams, same read; `onLiveCardTap` → topic / activity detail, team → `_openEntryTeamById`; shown on `screen=='map'` while no shop strip is open, hidden when empty) — Not done since continue (10) | New `App/RoamLiveCardsStrip.swift` (`RoamLiveCardsFeed`, environment `\.roamLiveCards`, `RoamLiveCardsSection`) → `App/RoamLiveSessionView.swift` `sessionList`; fed from `App/NativeR2/MapHome/RoamMapHomeSheet.swift` live cover | The live session had no nearby-activity / team cards. | **Fixed:** the map home passes its already-loaded entry read (`model.cards(reader:)` + `model.teams`, no new request) and its `eventDestination` / `nearbyTeamDestination` into the live cover through the environment, so the three `RoamLiveSessionView(...)` construction sites stay unchanged and fixtures / the legacy browser (no feed) show nothing. Section right under the HUD (the HUD stays the sheet's peek hero) while ready / acquiring / active / paused and no topic sheet is open: horizontal snap row of cards — cover (MP `home-route-city-placeholder` fallback) → tag (城市定向 / 自由探索 / 队伍) → title (未命名活动 / 玩家队伍 fallback) → meta (activity: MP `activityView.meta` via `RoamEntryMetaLine`; team: activity name · `N/M 人` · 距你 X km); rows without a point dropped as `entryMap.build`. Tap = `NavigationLink` to the topic / activity detail or the nearby-teams page focused on the team. Ids `roam.live.cards`, `roam.live.card.<id>`, `roam.live.team.<id>`. Card width `@ScaledMetric`, text under the cover (Dynamic Type). New key `roam.live.cards.teamPeople %lld %lld` (en `%1$lld/%2$lld people`, zh `%1$lld/%2$lld 人`). |
+
+Gates: generate_project OK · check_scaffold PASS (20942 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no
@@ -309,5 +319,5 @@ Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design c
 - P21 mini bar for a running roam: the live session is a full-screen cover owning its own controller (`makeRoamLiveSessionController()` per presentation); a cross-tab bar needs the controller lifted to the session and a root-tab accessory (nav lane) — compiled pass.
 - Topic half-screen: MP pins on the live **map** itself (merchant pins) — native has no merchant-pin layer on the live map yet (shops are list rows); the sheet hangs off the row until a pin layer exists. MP also drops `topicId` shops whose `productType != 2` from the merchant layer; native keeps them and labels them 城市定向.
 - Entry peek `.login`: 401 part done in continue (16); the no-deployment `.login` fixture state stays (not reachable by players).
-- Live map bottom strip P-32 (`pages/roam/index.wxml:534–541`, `liveCards` = the entry read's nearby activity cards + nearby team cards, shown while no shop strip is open; tap → topic / activity detail or the team): `RoamLiveSessionView` has no nearby-events / teams reader. Needs `roamNearbyEventsReader` + teams passed into the three `RoamLiveSessionView(...)` construction sites (QuestifyApp ×2, MPReviewedPageScreen) — compiled pass.
+- Live map bottom strip P-32: done in continue (21) for the map home (shipping tab root); the legacy `RoamBrowserView` live cover (flag off) gets no feed.
 - No Swift build ran here; integrator compiles.

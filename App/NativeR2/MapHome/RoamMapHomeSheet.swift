@@ -19,7 +19,10 @@ import QuestifyCore
         .cyFullScreenCover(isPresented: $model.showsLive) {
             NavigationStack {
                 if let live = dependencies.liveDestination {
+                    // MP P-32 live strip: the same entry read (activity cards + nearby teams) rides into the live map.
                     live()
+                        .environment(\.roamLiveCards, RoamLiveCardsFeed(cards: model.cards(reader: dependencies.entryReader), teams: model.teams,
+                                                                        event: dependencies.eventDestination, team: dependencies.nearbyTeamDestination))
                         .toolbar {
                             ToolbarItem(placement: .cancellationAction) {
                                 Button { model.showsLive = false } label: { Label("action.close", systemImage: "xmark") }
