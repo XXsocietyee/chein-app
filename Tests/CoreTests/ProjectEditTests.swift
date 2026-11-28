@@ -855,6 +855,41 @@ final class ProjectEditThemeRulesTests: XCTestCase {
         XCTAssertEqual(ProjectEditThemeRules.votePolicy(in: voting), .majorityAcceptance)
     }
 
+    func testHPAndLuckRowsFollowTheRuntimeValuesCard() throws {
+        // MP story-initial-state.js parse: empty journeyRules = fresh topic, both off.
+        let fresh = try draft(with: ["schemaVersion": .number(1)])
+        XCTAssertTrue(ProjectEditRuntimeStats.available(in: fresh))
+        XCTAssertFalse(ProjectEditRuntimeStats.enabled(.hp, in: fresh))
+        XCTAssertEqual(ProjectEditRuntimeStats.maximum(.hp, in: fresh), 10)
+        XCTAssertEqual(ProjectEditRuntimeStats.maximum(.luck, in: fresh), 3)
+        // MP onRuntimeStatToggle: hp on keeps luck off, turns stateEnabled and checkEnabled on.
+        let hpOn = try ProjectEditRuntimeStats.setEnabled(true, .hp, in: fresh)
+        XCTAssertTrue(ProjectEditRuntimeStats.enabled(.hp, in: hpOn))
+        XCTAssertFalse(ProjectEditRuntimeStats.enabled(.luck, in: hpOn))
+        let rules = try journeyRules(hpOn)
+        XCTAssertEqual(rules["stateEnabled"], .bool(true))
+        XCTAssertEqual(rules["checkEnabled"], .bool(true))
+        XCTAssertEqual(rules["schemaVersion"], .number(1))
+        XCTAssertEqual(try ProjectEditRuntimeStats.setEnabled(true, .hp, in: hpOn), hpOn)
+        // MP onRuntimeStatMax + serialize ranges.
+        XCTAssertThrowsError(try ProjectEditRuntimeStats.setMaximum(21, .hp, in: hpOn))
+        XCTAssertThrowsError(try ProjectEditRuntimeStats.setMaximum(6, .luck, in: hpOn))
+        let lowered = try ProjectEditRuntimeStats.setMaximum(5, .hp, in: hpOn)
+        XCTAssertEqual(ProjectEditRuntimeStats.maximum(.hp, in: lowered.draft), 5)
+        XCTAssertEqual(lowered.warning, ProjectEditRuntimeStats.Copy.initialOverMaximum)
+        XCTAssertNil(try ProjectEditRuntimeStats.setMaximum(12, .hp, in: hpOn).warning)
+        // MP onRuntimeName: theme hpName, cut to 20.
+        let named = try ProjectEditRuntimeStats.setName(String(repeating: "精", count: 25), .hp, in: hpOn)
+        XCTAssertEqual(ProjectEditRuntimeStats.name(.hp, in: named).count, 20)
+        let off = try ProjectEditRuntimeStats.setEnabled(false, .hp, in: hpOn)
+        XCTAssertEqual(try journeyRules(off)["stateEnabled"], .bool(false))
+        // Schema-2 rules keep the older resource editor.
+        var schemaTwo = fresh
+        schemaTwo.preserved["journeyRules"] = .string("{\"schemaVersion\":2}")
+        XCTAssertFalse(ProjectEditRuntimeStats.available(in: schemaTwo))
+        XCTAssertThrowsError(try ProjectEditRuntimeStats.setEnabled(true, .hp, in: schemaTwo))
+    }
+
     func testActionCountAndConsumeOnNoEffectFollowTheRuntimeValuesCard() throws {
         let base = try draft(with: ["schemaVersion": .number(1)])
         XCTAssertNil(ProjectEditThemeRules.actionLimit(in: base))
@@ -960,6 +995,11 @@ final class ProjectEditThemeRulesTests: XCTestCase {
         let data = try JSONEncoder().encode(ProjectEditJSON.object(theme))
         draft.preserved["themeRuntimeConfig"] = .string(try XCTUnwrap(String(data: data, encoding: .utf8)))
         return draft
+    }
+
+    private func journeyRules(_ draft: ProjectEditDraft) throws -> [String: ProjectEditJSON] {
+        let text = try XCTUnwrap(draft.preserved["journeyRules"]?.text)
+        return try XCTUnwrap(try JSONDecoder().decode(ProjectEditJSON.self, from: Data(text.utf8)).object)
     }
 
     private func theme(_ draft: ProjectEditDraft) throws -> [String: ProjectEditJSON] {

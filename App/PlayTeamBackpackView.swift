@@ -20,10 +20,9 @@ import SwiftUI
             switch read {
             case .hidden: EmptyView()
             case .failed(let message):
+                // mp-states r3 (MP pages/play/theme-backpack.wxml:16 cy-inline-error title + retry): one failure state, retry inside.
                 Section {
-                    Group { if let message, !message.isEmpty { Text(verbatim: message) } else { Text("playTeam.failed") } }
-                        .foregroundStyle(CYColor.dangerText)
-                    Button("playx.backpack.retry") { Task { await reload() } }
+                    PlayTeamBackpackFailure(message: message, retry: retry)
                 }.accessibilityIdentifier("playTeam.failed")
             case .loaded(let snapshot):
                 content(snapshot)
@@ -48,6 +47,10 @@ import SwiftUI
 
     private struct HelpSheetID: Identifiable { let id: String; init(_ flow: PlayCoopHelpFlow) { id = flow.questKey } }
     private struct TradeSheetID: Identifiable { let key: String; var id: String { key } }
+
+    private func retry() {
+        Task { await reload() }
+    }
 
     private func reload() async {
         guard let gap = runtimeGap, let activityID = gap.activityID, let client = gap.client() else { read = .hidden; active = false; return }
@@ -560,5 +563,21 @@ import SwiftUI
     private func commandButton(_ title: LocalizedStringKey, hint: Text, enabled: Bool, id: String, action: @escaping () -> Void) -> some View {
         CurA11yTextButton(title: Text(title), hint: hint, identifier: id, expands: false, action: action)
             .disabled(!enabled || model.busy)
+    }
+}
+
+/// Team backpack read failure: 本局状态暂未同步 with the server sentence as the description when sent
+/// (MP `cy-inline-error title="{{themeBagError}}"`), 重试 inside the one state.
+@MainActor private struct PlayTeamBackpackFailure: View {
+    let message: String?
+    let retry: () -> Void
+    var body: some View {
+        CYEmptyState(systemImage: "exclamationmark.triangle", "playTeam.failed", detailVerbatim: detail,
+                     actionTitle: "playx.backpack.retry", actionIdentifier: "playTeam.retry", kind: .failure, action: retry)
+    }
+
+    private var detail: String? {
+        guard let message, !message.isEmpty else { return nil }
+        return message
     }
 }

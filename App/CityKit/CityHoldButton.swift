@@ -48,7 +48,7 @@ struct CityHoldButton: View {
                 withAnimation(CityTokens.pressSpring) { progress = 0 }
             }
         }
-        .sensoryFeedback(.impact(weight: .medium), trigger: done) { _, new in new }
+        .sensoryFeedback(.impact(weight: .medium), trigger: done, condition: CYHapticTransition.isOn)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: title))
         .accessibilityAddTraits(.isButton)

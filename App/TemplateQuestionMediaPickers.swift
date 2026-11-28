@@ -218,7 +218,7 @@ private extension TemplateAuthoringModel {
                 }
             }
         }
-        .sensoryFeedback(.success, trigger: owner.status) { _, new in new == "uploaded" }
+        .sensoryFeedback(.success, trigger: owner.status == "uploaded", condition: CYHapticTransition.turnedOn)
     }
 }
 

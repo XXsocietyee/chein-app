@@ -71,13 +71,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The current editor allows 2,000 text units. Shorten the text before saving; no text has been truncated."
+            "value": "This field allows up to 2,000 characters. Shorten the text before saving; nothing has been cut."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前编辑器最多支持 2,000 个文本单位。请缩短后保存；现有文字未被截断。"
+            "value": "最多 2,000 字。请缩短后保存；现有文字未被截断。"
           }
         }
       }

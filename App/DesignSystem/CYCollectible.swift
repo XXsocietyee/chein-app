@@ -115,7 +115,7 @@ struct CYCelebrationMoment: View {
             .padding(.bottom, CYSpacing.lg)
             CYConfettiBurst(trigger: burst)
         }
-        .cyHaptic(.success, trigger: landed) { _, new in new }
+        .cyHaptic(.success, trigger: landed, where: CYHapticTransition.isOn)
         .onAppear {
             if reduceMotion { landed = true; return }
             withAnimation(.spring(response: 0.6, dampingFraction: 0.58)) { landed = true }
@@ -171,7 +171,7 @@ private struct CYStampSlam: ViewModifier {
         content
             .scaleEffect(done || reduceMotion ? 1 : 1.35)
             .opacity(done || reduceMotion ? 1 : 0)
-            .cyHaptic(.impactHeavy, trigger: done) { _, new in new }
+            .cyHaptic(.impactHeavy, trigger: done, where: CYHapticTransition.isOn)
             .onAppear { settle() }
             .onChange(of: active) { _, _ in settle() }
     }

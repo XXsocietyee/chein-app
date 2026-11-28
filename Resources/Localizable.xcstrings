@@ -33921,7 +33921,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only the organiser and this stop's host see the answer, to judge on site whether a player passes. Players never see it."
+            "value": "Only the organizer and this stop's host see the answer, to judge on site whether a player passes. Players never see it."
           }
         },
         "zh-Hans": {
@@ -67792,7 +67792,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Colour (hex)"
+            "value": "Color (hex)"
           }
         },
         "zh-Hans": {
@@ -87967,7 +87967,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Search around the map centre"
+            "value": "Search around the map center"
           }
         },
         "zh-Hans": {
@@ -169258,13 +169258,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The collection could not be read. Refresh to try again."
+            "value": "Your badge data didn’t arrive"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂时无法读取收藏，请刷新重试。"
+            "value": "勋章数据没有到达"
           }
         }
       }
@@ -205272,7 +205272,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pick a colour for this chapter."
+            "value": "Pick a color for this chapter."
           }
         },
         "zh-Hans": {
@@ -205400,7 +205400,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't save the colour. Pick it again to retry."
+            "value": "Couldn't save the color. Pick it again to retry."
           }
         },
         "zh-Hans": {
@@ -209959,13 +209959,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ticket price"
+            "value": "Ticket price (¥)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "票价"
+            "value": "票单价格 (¥)"
           }
         }
       }
@@ -210055,13 +210055,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Total stock"
+            "value": "Tickets issued"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "总库存"
+            "value": "发行数量 (张)"
           }
         }
       }
@@ -210915,13 +210915,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The current editor allows 2,000 text units. Shorten the text before saving; no text has been truncated."
+            "value": "This field allows up to 2,000 characters. Shorten the text before saving; nothing has been cut."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前编辑器最多支持 2,000 个文本单位。请缩短后保存；现有文字未被截断。"
+            "value": "最多 2,000 字。请缩短后保存；现有文字未被截断。"
           }
         }
       }
@@ -220909,7 +220909,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your name and mobile number go to the organiser to verify your registration."
+            "value": "Your name and mobile number go to the organizer to verify your registration."
           }
         },
         "zh-Hans": {
@@ -255182,7 +255182,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Send the invitation to friends travelling with you. They appear here after joining."
+            "value": "Send the invitation to friends traveling with you. They appear here after joining."
           }
         },
         "zh-Hans": {
@@ -257794,7 +257794,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Settings this editor doesn't recognise are kept, but must be removed before you publish."
+            "value": "Settings this editor doesn't recognize are kept, but must be removed before you publish."
           }
         },
         "zh-Hans": {
@@ -349044,7 +349044,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Light colour"
+            "value": "Light color"
           }
         },
         "zh-Hans": {
@@ -355734,6 +355734,108 @@
         }
       }
     },
+    "mpPublish.values.hp": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HP"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生命值"
+          }
+        }
+      }
+    },
+    "mpPublish.values.luck": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luck"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "幸运值"
+          }
+        }
+      }
+    },
+    "mpPublish.values.hp.maxInvalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Max HP must be a whole number from 1 to 20."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生命值上限须为 1 至 20 的整数"
+          }
+        }
+      }
+    },
+    "mpPublish.values.luck.maxInvalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Max luck must be a whole number from 0 to 5."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "幸运值上限须为 0 至 5 的整数"
+          }
+        }
+      }
+    },
+    "mpPublish.values.stat.initialOver": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The chapter 1 starting value is above the max. Adjust the starting state."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第一章开局值超过上限，请调整初始状态"
+          }
+        }
+      }
+    },
+    "mpPublish.values.stat.schemaTwo": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This topic uses the older resource rules. Edit them in the resource section below."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个主题使用旧版资源规则，请在下方资源设置中修改"
+          }
+        }
+      }
+    },
     "mpPublish.values.action": {
       "extractionState": "manual",
       "localizations": {
@@ -355859,7 +355961,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use up even with no effect"
+            "value": "Count recoveries that have no effect"
           }
         },
         "zh-Hans": {
@@ -355917,6 +356019,295 @@
           "stringUnit": {
             "state": "translated",
             "value": "请先选择进行方式"
+          }
+        }
+      }
+    },
+    "profile.selfGrowth.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load your growth record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成长记录加载失败"
+          }
+        }
+      }
+    },
+    "auth.alipay.signIn": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue with Alipay"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支付宝登录"
+          }
+        }
+      }
+    },
+    "auth.alipay.working": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for Alipay sign-in"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在等待支付宝登录"
+          }
+        }
+      }
+    },
+    "auth.alipay.notConfigured": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alipay sign-in isn't available right now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支付宝登录暂不可用"
+          }
+        }
+      }
+    },
+    "auth.alipay.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alipay is unavailable on this device"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此设备无法使用支付宝"
+          }
+        }
+      }
+    },
+    "auth.alipay.launchFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alipay authorization could not start"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法启动支付宝授权"
+          }
+        }
+      }
+    },
+    "auth.alipay.timedOut": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alipay sign-in timed out. Try again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支付宝登录超时，请重试"
+          }
+        }
+      }
+    },
+    "auth.alipay.invalidCode": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alipay did not return a valid authorization code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支付宝未返回有效授权码"
+          }
+        }
+      }
+    },
+    "auth.alipay.invalidResponse": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The sign-in response could not be verified"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法验证登录响应"
+          }
+        }
+      }
+    },
+    "auth.alipay.staleSession": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your sign-in session changed. Start again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录会话已更改，请重新开始"
+          }
+        }
+      }
+    },
+    "auth.alipay.rateLimited": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Too many attempts. Try again later"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尝试次数过多，请稍后重试"
+          }
+        }
+      }
+    },
+    "auth.alipay.unauthorized": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The sign-in request was not accepted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录请求未获接受"
+          }
+        }
+      }
+    },
+    "auth.alipay.rejected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alipay sign-in was rejected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支付宝登录被拒绝"
+          }
+        }
+      }
+    },
+    "auth.alipay.network": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not complete sign-in. Try again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法完成登录，请重试"
+          }
+        }
+      }
+    },
+    "auth.alipay.storage": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not securely save your sign-in"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法安全保存登录信息"
+          }
+        }
+      }
+    },
+    "playBadge.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading badges…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载勋章…"
+          }
+        }
+      }
+    },
+    "playBadge.signIn": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to see your badges"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后查看我的勋章"
           }
         }
       }
