@@ -138,6 +138,27 @@ Merged `origin/ui/combined-r7` (clean). Sweep still build 8fa84e4d3 (22:11Z). Lo
 | 50 | `pages/activity/baoming` 选择参与人信息 half-screen + 选择票种 links → `RegistrationSheetView.swift:729`, `:828` (`en-t5-baoming`) | Link labels read "Select participant sheet" / "Choose ticket sheet" (internal wording) | en → "Choose participant details" / "Choose a ticket" (MP titles); zh unchanged. Fixture names ("Offline fixture activity", "Standard fixture ticket") and the ticket price "—" are mp-activity's (coordinator 22:20) | Done |
 | 51 | Workshop creator consent / pending (`WorkshopCreatorConsentView`, `WorkshopCreatorPendingView`) | Checked: `declaredAt` / `expiresAt` raw next to version ids and hashes | Record surfaces with ISO instants (same as row 48); left as sent | Checked |
 
+### Run 13 (2026-11-27, half-hourly)
+
+Merged `origin/ui/combined-r7` (one conflict in `RegistrationSheetView.swift`: took the base's restyled participant/ticket links, "Choose a saved participant…" / "Choose a ticket…", fine in English). Sweep build b3b03703a (23:07Z): looked at `mp-mine/sheet-en.jpg`, `mp-home/sheet-en.jpg`, `mp-club/sheet-en.jpg`.
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 52 | `pages/index/index` 编辑精选 subtitle → `HomeFeedView.swift:195` (`en-d2-home`) | "Editor's picks · entry conditions are on each detail page" repeats the heading right above it and reads as a translation | en → "Picked by our editors · see each page for entry requirements"; zh unchanged | Done |
+| 53 | Club channel chat (MP `im/chat` `decorate` divider + burst header) → `Core/ChannelDiscordMessaging.swift` `formatDivider` (`en-d4-channel-chat`) | "Nov 7, 09:00" / "Today 08:30": 24-hour MP clock in US English | English (non-Chinese) clock via the locale hour cycle (`localeClock`, template `jmm`) → "Nov 7, 9:00 AM"; zh keeps MP `MM-dd HH:mm`. Pin `ChannelDiscordMessagingTests.swift:585/587` updated (reason: locale hour cycle) | Done |
+| 54 | Club events / series occurrences / correction window / managed projects / invoice time → `Core/ClubOpsEventPresentation.swift:54,61`, `ClubActivityListContent.swift:135`, `ClubManagedProjectsSection.swift:42`, `InvoiceLaunchPresentation.swift:286` | Date templates used `HHmm`, which forces 24-hour time in English | Templates `HHmm` → `jmm` (locale hour cycle; zh-Hans still 24-hour). Pin `ClubOpsEventPresentationTests.swift:42` updated | Done |
+| 55 | Me / balance ledger / order lookup / badge wall (`en-d2-me`, `en-e4-wallet-balance`, `en-t5-order-center`, `en-e5b-badge-wall`) | Checked: CN¥ vs ¥ is row 44; badge "First Stamp" grey with "Unlocked" is fixture art (data says unlocked); Search "Example content" is the fixture notice (same in zh) | No change | Checked |
+
+### Run 14 (2026-11-28, hourly)
+
+Merged `origin/ui/combined-r7` (clean, 793c3190b). No newer sweep than 23:37Z; worked from code on strings this merge added and on `pages/publish/*`.
+
+| # | MP page → native view | Problem in English | Fix | Status |
+|---|---|---|---|---|
+| 56 | `pages/publish/fabu/topic-detail-sheet.wxml:144-185` 玩法规则 → `MPGap/AccountPublish/ProjectEditThemeRulesSection.swift` | 同场路线 read "Shared routes in a session" while play (`playerGap.trail.title`) says "Shared routes"; refusal footer named the toggle without quotes and used straight apostrophes | en → "Shared routes"; "Team play can’t be replayed alone. Turn off “Allow playing again.”" (catalog + `mp-r3-publish.json`); zh unchanged | Done |
+| 57 | `pages/play/*` compass / shout kits → `NativeR2/Games/NativeGameSensorKit.swift:192,226`; music corner → `NativeR2/Games/ChoiceKits.swift:125` | "Aligned. Hold for 2 s more", "Keep it loud for 3 s in a row" (bare "s" after a number); "Healing music corner" (literal 治愈) | en → "Aligned. Hold steady for %@ more sec", "Stay loud for %@ sec straight", "Relaxing music corner" (catalog + `mp-journey-r3.json`) | Done |
+| 58 | `pages/publish/*` quick publish / modes → `PublishingModesViews.swift` (`publishModes.quick.loadFailed`, `.readFailed`); 九宫格 completion → `ProjectEditView` (`projectEdit.completion.serverConditions`); publisher pricing → `publisherPricing.marginNote` | Read as translations: "The draft allowance didn't load. The network isn't connected. Try again.", "Edit the nine cells in S order", "Whatever the final price exceeds the cost floor by is…" | en → "Couldn’t load your draft allowance. Check your connection and try again." / "Couldn’t load the list. …" / "Edit the nine cells along an S-shaped path. Cell labels don’t change when a cell lights up." / "Anything the final price adds above the cost floor is the organizer’s gross margin. …"; zh unchanged | Done |
+
 ## Not done
 
 | Item | Why |
@@ -146,7 +167,7 @@ Merged `origin/ui/combined-r7` (clean). Sweep still build 8fa84e4d3 (22:11Z). Lo
 
 
 ## Next pages (no row yet)
-Re-check rows 23, 37–41, 46 in the next sweep. Then the rest of publish (`pages/publish/*`, `pages/templatedetail/*`, no en sheet in the sweep yet: work from code) and nav English sheets.
+Re-check rows 23, 37–41, 46, 56–57 in the next sweep. Then `pages/templatedetail/*` and `pages/publishkit/*` (no en sheet yet: work from code). Catalog-wide: ~50 `publish*`/`projectEdit*` en values use straight apostrophes (not a layout problem; leave unless a screen is touched).
 
 ## For other lanes
 - mp-mine: balance ledger shows "¥" while the Me balance tile shows "CN¥" in English (row 44); public profile role line "— City explorer" shows a dash placeholder (`en-e4-member`).

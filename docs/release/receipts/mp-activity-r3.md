@@ -160,6 +160,23 @@ Merged `ui/combined-r7` (xcstrings conflict: HEAD side empty, kept theirs; JSON 
 
 Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · coop topic-filter / x01 / project-navigation suites OK.
 
+## Round 3 continue (2026-11-27, sixteenth session — sweep 23:07 build b3b03703a)
+Merged `ui/combined-r7` (xcstrings conflict: HEAD side empty, kept theirs; JSON + duplicate-key check ok). Sheets `en/zh-Hans-t5-baoming`, `-d2-square`, `-t5-pass-market` re-read; build includes the fourteenth/fifteenth-session fixes (English baoming fixture text and the lone price dash are gone).
+| MP page | Native view | MP sections (✓ present / added / reordered) | Optimizations |
+|---|---|---|---|
+| `components/cy/post-card` body (js:77 `textLong = length > 120 \|\| lines > 6`, wxss:169 `-webkit-line-clamp: 6`; used by `pages/square/*`) | `App/SquareXcxPostCard.swift`, `Core/SquareXcxPresentation.swift` `bodyExpandable` | screenshot `en-d2-square`: both two-line English posts showed a 「More」 link although nothing was cut (native clamped at 2 lines and counted > 40 characters — an old MP threshold). Now the MP rule: clamp 6 lines, 展开 / More only past 120 characters or 6 lines. `SquareXcxParityTests` thresholds updated (reason: MP round-3 post-card) | no expand affordance on text that is fully shown, in either language |
+| `pages/activity/baoming/baoming` bottom bar (wxml:325-330: sharing-consent checkbox directly above the cy-btn, whose label is 请先勾选信息共享同意 while unticked) | `App/RegistrationSheetView.swift` `checkoutBar` / `confirmationSection` | screenshot `en-t5-baoming`: the consent switch sat in a list section far above, the disabled button said 「Tick the sharing consent first」 and a footnote repeated 「Tick the confirmation above to continue」. **Reordered**: the consent `Toggle` (same id `registration.form.consent`, same unticked default, only when creation is permitted) now sits in the bottom bar above the button as in the MP; the footnote is dropped when the disabled button already names the step (consent / participant / closed), other reasons (price, sold out, payment) still show | native `Toggle` in the pinned `CYFooterBar`; one message per state |
+
+Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · registration + square contract suites OK (`test_square_workspace` fails identically on the base: missing `flutter_source` module).
+
+## Round 3 continue (2026-11-28, seventeenth session — sweep 23:37 build 793c3190b)
+Merged `ui/combined-r7` (xcstrings conflict: HEAD side empty, kept theirs; JSON + duplicate-key check ok). Sheets `en/zh-Hans-t5-baoming`, `-d2-square`, `-t5-pass-market` re-read; this build predates the sixteenth-session fixes (Square More threshold, consent in the bottom bar), so those still look old in the shots.
+| MP page | Native view | MP sections (✓ present / added / reordered) | Optimizations |
+|---|---|---|---|
+| `pages/activity/baoming/baoming` 活动信息 cover (wxml:85) | `App/RegistrationSheetView.swift` `activitySection`, `App/RegistrationFixtureSupport.swift` | screenshot `zh-Hans/en-t5-baoming`: the 72 pt cover was an empty grey tile with a dot (offline fixture, no HTTPS cover, route fallback drawn tiny). The fixture now hands a bundled MP cover through the existing `e1ActivityHeroFixtureCover` key (same as mp-home's activity hero); the card uses it only when the activity has no loadable HTTPS cover. Production never sets it, real covers / MP fallback unchanged | no empty image frame in the reference fixture |
+
+Gates: generate_project ok · scaffold PASS · a11y PASS (0 new) · design consistency PASS · contract_ratchet 52 / baseline 52 / **new 0** · registration parity suite 10 OK.
+
 ## Not done
 - Attendance (player): organizer 联系与签到配置 form (duty phones, window, public-confirm switch, scan, recovery 查询原结果 / 原请求重试 / 终止 / 确认归档) lives in `OfficialOrganizerConsoleView`, not in this section.
 - Square completion card: 探店 (`shopText`) has no backend field. Refused team reads have no server message in `TeamFailure`, so 邀请已失效 is the fixed fallback copy.

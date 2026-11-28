@@ -109,6 +109,8 @@ import QuestifyCore
     @Environment(\.roamPresenceVisibility) private var roamPresenceVisibility
     @Environment(\.roamClearLocal) private var roamClearLocal
     @Environment(\.roamDiscoverDestinations) private var discoverDestinations
+    /// MP P-32 `liveCards`: nearby activity + team cards from the map home's entry read; nil hides the strip.
+    @Environment(\.roamLiveCards) private var liveCards
     init(controller: RoamLiveSessionController, offlineExample: Bool = false, localHistoryReader: (any RoamExperienceReading)? = nil, albumMetadataReader: RoamAlbumMetadataReader? = nil, browsePresentation: RoamPausedBrowsePresentation? = nil) {
         self.offlineExample = offlineExample; self.localHistoryReader = localHistoryReader; self.albumMetadataReader = albumMetadataReader
         _browse = StateObject(wrappedValue: browsePresentation ?? RoamPausedBrowsePresentation())
@@ -319,6 +321,10 @@ import QuestifyCore
     private var sessionList: some View {
         List {
             if owner.phase != .unavailable { hud }
+            // MP P-32 strip: on the live map while no shop strip / topic sheet is open; an empty read shows nothing.
+            if let liveCards, topicShop == nil, [.ready, .acquiring, .active, .paused].contains(owner.phase) {
+                RoamLiveCardsSection(feed: liveCards)
+            }
             officialArrivalSection
             if offlineExample { RoamExperienceNotice(offline: true) }
             if model.syncStatus.isOffline {

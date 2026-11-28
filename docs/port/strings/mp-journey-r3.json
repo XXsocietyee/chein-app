@@ -2711,7 +2711,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Aligned. Hold for %@ s more"
+          "value": "Aligned. Hold steady for %@ more sec"
         }
       },
       "zh-Hans": {
@@ -2949,7 +2949,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Keep it loud for %@ s in a row"
+          "value": "Stay loud for %@ sec straight"
         }
       },
       "zh-Hans": {
@@ -2983,7 +2983,7 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Healing music corner"
+          "value": "Relaxing music corner"
         }
       },
       "zh-Hans": {
@@ -3619,6 +3619,159 @@
         "stringUnit": {
           "state": "translated",
           "value": "已找到 %1$lld / %2$lld"
+        }
+      }
+    }
+  },
+  "playkit.sort.fb.ok": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "All in the right order"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "全排对了"
+        }
+      }
+    }
+  },
+  "playkit.sort.fb.exhausted": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No tries left. This one costs you no life"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "次数用完了，这次不扣生命"
+        }
+      }
+    }
+  },
+  "playkit.sort.fb.retry": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Not in order yet. Move them and submit again"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "还没排对，挪一挪再交"
+        }
+      }
+    }
+  },
+  "playkit.sort.rowLabel %lld %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Position %1$lld: %2$@"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "第 %1$lld 位：%2$@"
+        }
+      }
+    }
+  },
+  "playkit.match.fb.ok": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "All linked correctly"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "全连对了"
+        }
+      }
+    }
+  },
+  "playkit.match.fb.retry": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Some links are wrong. Change a pair and submit again"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "还有没连对的，改一改再交"
+        }
+      }
+    }
+  },
+  "playkit.classify.fb.ok": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "All in the right groups"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "全分对了"
+        }
+      }
+    }
+  },
+  "playkit.classify.fb.retry": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Some are in the wrong group. Swipe one back and place it again"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "还有分错的，左滑拿回来重放"
+        }
+      }
+    }
+  },
+  "playkit.classify.left %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%lld left to sort"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "还有 %lld 条没分"
         }
       }
     }

@@ -50,50 +50,91 @@ extension PlayKitScreen {
         dirty = true
     }
 
+    /// MP sort / match / classify show no attempt rows (a capped kit keeps the HUD 还能错 pill) and no how-to line;
+    /// the judged outcome is one feedback line in place, overall only (the server never says which row is off).
     @ViewBuilder var nativeReasoning: some View {
         switch kind {
         case .sort: nativeSortSection
         case .match: nativeMatchSection
         default: nativeClassifySections
         }
-        if let cap = raw["maxAttempts"].integer, cap > 0 {
-            Section {
-                if let attempts = raw["attempts"].integer, attempts > 0 {
-                    LabeledContent { Text(verbatim: String(attempts)).monospacedDigit() } label: { Text("playkit.attempts") }
-                }
-                LabeledContent { Text(verbatim: String(cap)).monospacedDigit() } label: { Text("playkit.attemptLimit") }
-            }
-        } else if let attempts = raw["attempts"].integer, attempts > 0 {
-            Section {
-                LabeledContent { Text(verbatim: String(attempts)).monospacedDigit() } label: { Text("playkit.attempts") }
-            }
+    }
+
+    var nativeReasoningPassed: Bool { (raw["attempts"].integer ?? 0) > 0 && raw["passed"].bool == true }
+
+    /// MP `so__fb` / `ma__fb` / `cf__fb`: only after a judged submit.
+    var nativeReasoningFeedback: (key: LocalizedStringKey, ok: Bool)? {
+        guard (raw["attempts"].integer ?? 0) > 0, let passed = raw["passed"].bool else { return nil }
+        switch kind {
+        case .sort:
+            if passed { return ("playkit.sort.fb.ok", true) }
+            let key = raw["finished"].bool == true ? "playkit.sort.fb.exhausted" : "playkit.sort.fb.retry"
+            return (LocalizedStringKey(key), false)
+        case .match:
+            if passed { return ("playkit.match.fb.ok", true) }
+            return ("playkit.match.fb.retry", false)
+        default:
+            if passed { return ("playkit.classify.fb.ok", true) }
+            return ("playkit.classify.fb.retry", false)
         }
     }
 
-    /// System drag handles (the list is in edit mode while the kit is open), plus VoiceOver move actions.
+    @ViewBuilder var nativeReasoningFeedbackLine: some View {
+        if let feedback = nativeReasoningFeedback {
+            Label {
+                Text(feedback.key)
+            } icon: {
+                Image(systemName: feedback.ok ? "checkmark.circle.fill" : "arrow.uturn.backward.circle")
+                    .foregroundStyle(feedback.ok ? Color.green : Color.orange)
+            }
+            .font(.subheadline)
+            .accessibilityIdentifier("playkit.reasoning.feedback")
+        }
+    }
+
+    /// MP `playkit-sort`: prompt (shell header) → numbered rows (picture when the item has one; all rows turn green only
+    /// once the whole order passed, never per row) → one feedback line → 就这个顺序 on the bottom bar. No how-to line and no
+    /// attempt rows (MP shows neither; a capped kit keeps the HUD 还能错 pill). System drag handles + VoiceOver move actions.
     @ViewBuilder var nativeSortSection: some View {
         let ids = nativeSortIDs
         let items = nativeItems
+        let passed = nativeReasoningPassed
         Section {
             ForEach(Array(ids.enumerated()), id: \.element) { index, id in
-                Label {
-                    Text(verbatim: items.first { $0.id == id }?.label ?? id)
-                } icon: {
-                    Text(verbatim: String(index + 1)).monospacedDigit().foregroundStyle(.secondary)
+                let item = items.first { $0.id == id }
+                HStack(spacing: 12) {
+                    Text(verbatim: String(index + 1))
+                        .font(.title3.weight(.bold).italic())
+                        .monospacedDigit()
+                        .foregroundStyle(passed ? Color.green : Color.secondary)
+                    if let image = item?.raw["img"].text, !image.isEmpty {
+                        PlayKitArtwork(source: image, approvedHosts: approvedArtworkHosts)
+                            .frame(width: 48, height: 48)
+                            .clipShape(.rect(cornerRadius: CYRadius.sm))
+                            .accessibilityHidden(true)
+                    }
+                    Text(verbatim: item?.label ?? id)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if passed {
+                        Spacer(minLength: 0)
+                        Image(systemName: "checkmark").foregroundStyle(.green).accessibilityHidden(true)
+                    }
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(Text("playkit.sort.rowLabel \(index + 1) \(item?.label ?? id)"))
                 .accessibilityAction(named: Text("playkit.sort.up")) { nativeMove(index, by: -1) }
                 .accessibilityAction(named: Text("playkit.sort.down")) { nativeMove(index, by: 1) }
                 .accessibilityIdentifier("playkit.sort.row." + id)
             }
             .onMove { from, to in
-                guard enabled else { return }
+                guard enabled, !passed else { return }
                 var next = nativeSortIDs
                 next.move(fromOffsets: from, toOffset: to)
                 nativeOrder = next
                 nativeReasoningEdited()
             }
-        } header: {
-            Text("playkit.sort.instructions")
+        } footer: {
+            nativeReasoningFeedbackLine
         }
     }
 
@@ -127,48 +168,68 @@ extension PlayKitScreen {
                     Text(verbatim: item.label)
                 }
                 .pickerStyle(.menu)
-                .disabled(!enabled)
+                .disabled(!enabled || nativeReasoningPassed)
+                .tint(nativeReasoningPassed ? Color.green : nil)
                 .accessibilityIdentifier("playkit.match.row." + item.id)
             }
-        } header: {
-            Text("playkit.match.instructions")
+        } footer: {
+            nativeReasoningFeedbackLine
         }
     }
 
-    /// 未分类 on top; each bin is its own section. Swipe to take an item back.
+    /// MP `playkit-classify` order: the card stack (未分类, N / total) → every bin with its count and its placed items
+    /// (swipe to take one back, MP 点小标签拿回来) → 还有 N 条没分 → feedback → 分好了 (bottom bar).
     @ViewBuilder var nativeClassifySections: some View {
         let placement = nativeCleanPlacement
         let items = nativeItems
         let unsorted = items.filter { placement[$0.id] == nil }
-        Section {
-            ForEach(unsorted) { item in nativeClassifyRow(item) }
-        } header: {
-            Text("nativeGames.classify.unsorted")
-        } footer: {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("playkit.classify.instructions")
-                Text("playkit.classify.remainingLine \(unsorted.count)")
-                    .accessibilityIdentifier("playkit.classify.remaining")
+        let passed = nativeReasoningPassed
+        if !unsorted.isEmpty {
+            Section {
+                ForEach(unsorted) { item in nativeClassifyRow(item) }
+            } header: {
+                HStack {
+                    Text("nativeGames.classify.unsorted")
+                    Spacer()
+                    Text(verbatim: "\(items.count - unsorted.count + 1) / \(items.count)").monospacedDigit()
+                }
             }
         }
         ForEach(nativeBins) { bin in
             let placed = items.filter { placement[$0.id] == bin.id }
-            if !placed.isEmpty {
-                Section {
-                    ForEach(placed) { item in
-                        nativeClassifyRow(item)
-                            .swipeActions(edge: .trailing) {
-                                Button("nativeGames.classify.takeBack") {
-                                    var next = nativeCleanPlacement
-                                    next.removeValue(forKey: item.id)
-                                    nativePlacement = next
-                                    nativeReasoningEdited()
-                                }
-                                .disabled(!enabled)
+            Section {
+                ForEach(placed) { item in
+                    nativeClassifyRow(item)
+                        .tint(passed ? Color.green : nil)
+                        .swipeActions(edge: .trailing) {
+                            Button("nativeGames.classify.takeBack") {
+                                var next = nativeCleanPlacement
+                                next.removeValue(forKey: item.id)
+                                nativePlacement = next
+                                nativeReasoningEdited()
                             }
-                    }
-                } header: {
+                            .disabled(!enabled || passed)
+                        }
+                }
+            } header: {
+                HStack {
                     Text(verbatim: bin.label)
+                    Spacer()
+                    Text(verbatim: String(placed.count)).monospacedDigit()
+                }
+                .accessibilityElement(children: .combine)
+            }
+        }
+        if !unsorted.isEmpty || nativeReasoningFeedback != nil {
+            Section {
+                EmptyView()
+            } footer: {
+                VStack(alignment: .leading, spacing: 6) {
+                    if !unsorted.isEmpty {
+                        Text("playkit.classify.left \(unsorted.count)")
+                            .accessibilityIdentifier("playkit.classify.remaining")
+                    }
+                    nativeReasoningFeedbackLine
                 }
             }
         }
@@ -188,7 +249,7 @@ extension PlayKitScreen {
             Text(verbatim: item.label)
         }
         .pickerStyle(.menu)
-        .disabled(!enabled)
+        .disabled(!enabled || nativeReasoningPassed)
         .accessibilityIdentifier("playkit.classify.row." + item.id)
     }
 

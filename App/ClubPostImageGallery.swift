@@ -199,7 +199,7 @@ import UIKit
         .accessibilityAction(.escape) { dismiss() }
     }
     private var positionLabel: some View {
-        Text("\(index + 1) / \(selection.sources.count)").monospacedDigit().accessibilityIdentifier("club.postImages.position")
+        Text("\(index + 1) / \(selection.sources.count)").accessibilityLabel(Text("carousel.position \(Int(index + 1)) \(Int(selection.sources.count))")).monospacedDigit().accessibilityIdentifier("club.postImages.position")
     }
     private var previous: some View {
         Button("media.destination.previous") { index = selection.previous(index) }

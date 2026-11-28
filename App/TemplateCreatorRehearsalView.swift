@@ -100,7 +100,7 @@ import SwiftUI
             Text(verbatim: text("prompt")); TextField("creator.input", text: $input, axis: .vertical)
             let key = family == .note ? "presets" : "suggestions"
             ForEach(Array((fields[key]?.array ?? []).enumerated()), id: \.offset) { _, value in Button(value.string ?? "") { input = value.string ?? "" } }
-            Text(verbatim: "\(input.utf16.count) / \(fields["maxLength"]?.integer ?? 40)").font(.footnote).foregroundStyle(.secondary)
+            Text(verbatim: "\(input.utf16.count) / \(fields["maxLength"]?.integer ?? 40)").accessibilityLabel(Text("a11y.value.characters \(Int(input.utf16.count)) \(Int(fields["maxLength"]?.integer ?? 40))")).font(.footnote).foregroundStyle(.secondary)
         case .check:
             Text(verbatim: text("skill"))
             Picker("creator.selectSample", selection: $sampleIndex) { Text("creator.success").tag(0); Text("creator.failure").tag(1) }.cyAdaptiveSegmented()
@@ -114,7 +114,7 @@ import SwiftUI
         case .hiddenObject:
             hiddenObjectCanvas
             Text(verbatim: text("hint")); Text("creator.hotspotReview").font(.subheadline).foregroundStyle(.secondary)
-            Text(verbatim: "\(rehearsal.foundTargets.count) / \(rows("hotspots").count)")
+            Text(verbatim: "\(rehearsal.foundTargets.count) / \(rows("hotspots").count)").accessibilityLabel(Text("a11y.value.ofTotal \(Int(rehearsal.foundTargets.count)) \(Int(rows("hotspots").count))"))
         case .predict:
             Text(verbatim: text("question")); Text(verbatim: text("hint")); options(rows("options"), identity: "key", label: "label", multiple: false)
         case .scan:

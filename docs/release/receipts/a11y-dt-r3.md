@@ -254,9 +254,46 @@ Not done item 2: VoiceOver "n / N" values read as "slash" on player screens.
 | group poll result bar | `GroupPollViews.swift` | ✓ (mp-club owns order) | votes "4 / 12" → `a11y.value.ofTotal` | Done |
 | bundle review compose character counter | `BundleReviewComposeView.swift` | ✓ | "12/500" read as "twelve slash five hundred" → "12 of 500 characters" / "已输入 12 字，最多 500 字" | Done |
 
+## Run 15 (2026-11-27, hourly)
+Merged `origin/ui/combined-r7`. Not done item 1: re-read the a11y sheets of sweep **b3b03703a** (23:07Z, contains run 13).
+`en-a11y-passport-ax5.jpg`: action capsules are symbol + label on one line at AX5 ✓, "3 of 12" stamps ✓.
+`en-a11y-badges-ax5.jpg`: ring above the "3 of 6 collected" heading ✓, one-column wall ✓, localized date ✓.
+`en-a11y-roam-ax5.jpg`: still wrong → fixed below.
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/roam/index` collapsed sheet (`en-a11y-roam-ax5.jpg`) | `DesignFixtures/E5bFixtures.swift` (`A11yRoamAX5Fixture`) | ✓ (mp-roam owns order) | Title was `textPrimary` (black) on the black map panel in light mode (invisible) and "2" grey on black (< 3:1) → same `.regularMaterial` line + `.primary` foregrounds + chevron as the real `RoamBrowserView.peekLine` | Done |
+
+Not done item 2: VoiceOver values built as `"\(a) / \(b)"` (read "slash" / "斜杠"). New catalog key
+`a11y.value.characters` ("12 of 500 characters" / "已输入 12 字，最多 500 字"); positions use `carousel.position`, progress `a11y.value.ofTotal`.
+
+| MP page / surface | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| image viewers (shared gallery, club post images, profile media ×2, album photo removal) | `NativeMediaGallery.swift:100`, `ClubPostImageGallery.swift:202`, `ProfileCurrentMediaPreview.swift:107,331`, `ProjectAlbumPhotoRemovalButton.swift:78` | ✓ | position "2 / 5" → `carousel.position` | Done |
+| progress fractions (free-explore ring, journey discoveries, advanced team, explore completion, review photos) | `FreeExplorationViews.swift:157`, `JourneyNarrativeView.swift:112`, `PlayAdvancedTeamViews.swift:13`, `ExploreCompletionView.swift:155`, `ContextualReviewComposer.swift:118` | ✓ | → `a11y.value.ofTotal` | Done |
+| character counters (playkit note + short message, trust report, creator text field + rehearsal, orient/report appeals ×3, object-card rename, player content ×2, stamp slip caption, member report, contextual review, journey review) | `PlayKitPersonalForms.swift`, `CommunityTrustPlayerViews.swift`, `TemplateCreatorConfigurationView.swift`, `TemplateCreatorRehearsalView.swift`, `MPGap/Member/OrientScoreGapViews.swift`, `MPGap/Member/ReportAppealAndCouponSummaryViews.swift`, `MPGap/PlayRoam/ObjectCardCategoryAndRenameSheets.swift`, `MPGap/PlayerContent/PlayerContentRound2Views.swift`, `MPGap/PlayerContent/PlayerContentRound4Views.swift`, `RoamSubpageParityViews.swift`, `CommunityMemberReportSheet.swift`, `ContextualReviewComposer.swift`, `JourneyReportViews.swift` | ✓ | → `a11y.value.characters` | Done |
+| badge wall ring (zh) | `ObjectBadgeWallParityViews.swift:57` | ✓ (mp-mine owns order) | "已点亮 3 / 6 枚徽章" → "已点亮 3 枚徽章，共 6 枚" | Done |
+
+## Run 16 (2026-11-28, half-hourly)
+Merged `origin/ui/combined-r7` (793c3190b). Sweep 23:37Z (build 793c3190b) a11y sheets read: build predates run 15 (d926759a1 not
+an ancestor), so `a11y-roam-ax5` still shows the black panel; re-read stays open. Badge wall ring-above-heading ✓, passport capsules ✓.
+Not done item 2 (VoiceOver slash scan, rest): types checked against Core contracts; integer pairs → `a11y.value.ofTotal`.
+
+| MP page / surface | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `subpackageMember` attributes (AXP progress, today / soft cap) | `MemberAttributesSection.swift:68,74` | ✓ (mp-mine owns order) | "120 / 500" → "120 of 500" / "120，共 500" | Done |
+| Home return-account row | `HomeReturnSection.swift:23`, `NativeHomeReturnSection.swift:28` | ✓ (mp-home owns order) | same (Int64 pair) | Done |
+| Club channel progress meter + team rows | `NativeChannelProgressBoardView.swift:327`, `NativeChannelProgressEntry.swift:150` | ✓ (mp-club owns order) | same | Done |
+| `pages/play` lead sheet arrived / play lead arrived | `PlayToolsAndLeadSheetView.swift:264`, `PlayExperienceView.swift:1986` | ✓ (mp-journey owns order) | same | Done |
+| `pages/topic` route progress | `TopicRouteMapAndTeamsSection.swift:45` | ✓ (mp-publish owns order) | same | Done |
+| Creator rehearsal hotspots, rule-step count, editor add-row limit, prefab check score / DC | `TemplateCreatorRehearsalView.swift:117`, `TemplateAuthoringRuleFields.swift:58`, `EditorKitLists.swift:135`, `PlayPrefabRuntimeView.swift:50` | ✓ | same | Done |
+
 ## Not done (next run starts here)
-- Re-read the a11y sheets after the next sweep (newer than 8fa84e4d3) to confirm run 13 (badge heading, passport AX rows, roam light map).
-- VoiceOver: scan remaining slash values built as `String` (e.g. `"\(a)/\(b)"` without spaces, `accessibilityLabel` with " / ") on player screens.
+- Re-read `en-a11y-roam-ax5` after the next sweep (build must contain d926759a1) to confirm the peek line reads on the panel.
+- Slash scan leftovers, types not plain integer pairs (verify first): `PlayKitSensorChallengeView.swift:139` (ball hits/goal),
+  `PlayRuntimeGapViews.swift:397` (backpack), `NearbyAndHistoryGapViews.swift:91` (team memberCount/capacity),
+  `FreeExploreBundleLaunchView.swift:157` (step "n/N · title"), `PlayKitDecisionProgressViews.swift:122` (steps with percent).
+  `ObjectBadgeWallParityViews.swift:36` counts are em-dash strings by design: leave.
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch

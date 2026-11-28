@@ -283,7 +283,7 @@ func invoiceTime(_ time: InvoiceLaunchTime?, locale: Locale) -> String {
     case nil: return "—"
     }
     let formatter = DateFormatter(); formatter.locale = locale
-    formatter.setLocalizedDateFormatFromTemplate("MMMdHHmm")
+    formatter.setLocalizedDateFormatFromTemplate("MMMdjmm")
     return formatter.string(from: date)
 }
 /// Source base.js `titleLine`: 单位/个人 · 部分税号 · 默认.
@@ -328,12 +328,12 @@ func invoiceTitleLine(_ title: InvoiceLaunchTitle) -> String {
             }
         }
         if model.issue == "session" {
-            // Source cy-empty kind="no-permission": lock icon, the page's 登录后… title and 微信登录 (FIN-11-7).
+            // Source cy-empty kind="no-permission": lock icon, the page's 登录后… title and the app's 登录 (MP 微信登录; the app has no WeChat sign-in).
             ContentUnavailableView {
                 Label { Text(sessionTitle) } icon: { Image(systemName: "lock") }
             } description: { invoiceText("session") } actions: {
                 if let onSignIn {
-                    Button(action: onSignIn) { Text("auth.wechat.signIn") }
+                    Button(action: onSignIn) { Text("mp.common.signIn") }
                         .buttonStyle(.borderedProminent).controlSize(.large)
                         .accessibilityIdentifier("invoice.signIn")
                 }

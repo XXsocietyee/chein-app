@@ -85,6 +85,9 @@ import SwiftUI
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 0)
+                // 23:20 sweep: the ··· menu sits on the identity row (card top-trailing), so [开始探索][票夹]
+                // stay two equal buttons whether the row fits or stacks.
+                moreButton
             }
             .padding(.vertical, 4)
             // xrefs-1 Adopt 6: the streak gets its own row under the name (native r2: a plain LabeledContent row).
@@ -114,7 +117,7 @@ import SwiftUI
                 }
             }
             // MP cy-profile `pc-actions`: [开始探索] [票夹] (same size, both primary) [···] under the counters.
-            if let onOpenTickets, onStartExplore != nil || moreMenu != nil {
+            if let onOpenTickets, onStartExplore != nil {
                 actionRow(onOpenTickets)
             } else if let onOpenTickets {
                 // Mini-program member header: one full-width 票夹 button under the counters.
@@ -138,9 +141,9 @@ import SwiftUI
 
     private var snapshot: MemberIdentitySnapshot? { if case .ready(let value) = phase { return value }; return nil }
 
-    /// MP `pc-actions`: two equal primary buttons and the ··· menu. One-line labels; when the row does not
-    /// fit (English "Start exploring" at 375 pt, accessibility sizes) 开始探索 takes its own full-width line
-    /// and [票夹][···] share the next one, so the ··· never sits alone under the buttons.
+    /// MP `pc-actions`: two equal primary buttons (the ··· menu is on the identity row). One-line labels; when
+    /// the row does not fit (English "Start exploring" at 375 pt, accessibility sizes) both buttons stack, each
+    /// full width, so the two rows always match.
     private func actionRow(_ onOpenTickets: @escaping () -> Void) -> some View {
         Group {
             if typeSize.isAccessibilitySize {
@@ -152,7 +155,6 @@ import SwiftUI
                     HStack(spacing: 8) {
                         startExploreButton(fixedLabel: true)
                         ticketsButton(onOpenTickets, fixedLabel: true)
-                        moreButton
                     }
                     stackedActions(onOpenTickets)
                 }
@@ -163,10 +165,7 @@ import SwiftUI
     private func stackedActions(_ onOpenTickets: @escaping () -> Void) -> some View {
         VStack(spacing: 8) {
             startExploreButton(fixedLabel: false)
-            HStack(spacing: 8) {
-                ticketsButton(onOpenTickets, fixedLabel: false)
-                moreButton
-            }
+            ticketsButton(onOpenTickets, fixedLabel: false)
         }
     }
     /// MP `pc-primary` 开始探索 is a text-only button (no icon), unlike 票夹.
@@ -204,9 +203,8 @@ import SwiftUI
             } label: {
                 Label { Text("member.card.more") } icon: { Image(systemName: "ellipsis") }
                     .labelStyle(.iconOnly)
-                    .frame(minWidth: 28)
             }
-            .buttonStyle(.bordered).controlSize(.large)
+            .buttonStyle(.bordered).buttonBorderShape(.circle).controlSize(.large)
             .accessibilityLabel(Text("member.card.more"))
             .accessibilityIdentifier("member.card.more")
         }
