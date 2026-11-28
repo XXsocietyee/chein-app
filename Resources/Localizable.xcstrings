@@ -32294,13 +32294,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Owner"
+            "value": "Creator"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "主理人"
+            "value": "创建者"
           }
         }
       }
@@ -273964,7 +273964,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Event"
+            "value": "Session"
           }
         },
         "zh-Hans": {
@@ -361620,21 +361620,9 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld topic published"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld topics published"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld topics published"
           }
         },
         "zh-Hans": {
@@ -361666,21 +361654,9 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld invitation sent"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld invitations sent"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld invitations sent"
           }
         },
         "zh-Hans": {
@@ -363474,6 +363450,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "确认驳回"
+          }
+        }
+      }
+    },
+    "activeSession.play.open": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to the game"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回到游戏"
+          }
+        }
+      }
+    },
+    "activeSession.play.open.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens the game screen of this run"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开这局游戏的页面"
           }
         }
       }
