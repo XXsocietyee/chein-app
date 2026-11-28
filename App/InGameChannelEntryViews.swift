@@ -156,6 +156,8 @@ import SwiftUI
                     IMUnreadBadge(count: model.unreadCount, muted: model.isMuted)
                         .offset(x: 6, y: -4)
                 }
+                .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                .contentShape(Rectangle())
             }
             .accessibilityLabel(Text(titleKey))
             .accessibilityIdentifier(accessibilityID)

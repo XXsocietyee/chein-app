@@ -69,6 +69,30 @@ enum HomeCityLocationDeclineStore {
         }
     }
 
+    /// mp-home r3 (continue 32): MP `onTapHomeCity` → `getHomeCityLocation({ userInitiated: true })`
+    /// (pages/index/index.js:1294-1330, 1438). Signed in only (guests keep the manual city menu). A REVOKE row stops
+    /// silently, as the MP; no agreement on record brings the consent card back (a local 暂不 is cleared, because the
+    /// user asked); a current agreement returns `true` so the caller locates now. A failed read returns `false`.
+    func userAsksToLocate(_ session: AppSession) async -> Bool {
+        generation &+= 1
+        let stamp = generation
+        guard UsageConsentEnvironment.policy.granted,
+              let account = session.account, account.id > 0, session.token != nil,
+              session.composition.isAccountComplianceEnabled,
+              let coordinator = session.accountComplianceCoordinator else { return false }
+        let baseline: HomeCityLocationConsentBaseline
+        do { baseline = try await coordinator.latestHomeCityLocationConsent() }
+        catch { return false }
+        guard stamp == generation else { return false }
+        if HomeCityLocationConsentRecord.isRevoked(baseline) { return false }
+        if HomeCityLocationConsentRecord.shouldAsk(baseline) {
+            HomeCityLocationDeclineStore.saveLocationDeclined(false, defaults: defaults)
+            asks = true
+            return false
+        }
+        return true
+    }
+
     func decline() {
         generation &+= 1
         asks = false

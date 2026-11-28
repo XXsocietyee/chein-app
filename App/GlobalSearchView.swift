@@ -473,6 +473,11 @@ import SwiftUI
                     }
                 } description: {
                     EmptyView()
+                } actions: {
+                    // mp-states r3: the MP footer 刷新 sits inside the empty state (one action), not as a separate row.
+                    Button("searchMap.refreshResults") { Task { await search() } }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("searchMap.refreshResults")
                 }
             }
             ForEach(visible) { row in
@@ -496,7 +501,7 @@ import SwiftUI
                                onRows: { unifiedReplacesLanes = $0 }, destination: destination)
         }
         // Mini-program result footer: "内容已加载完" under results; "刷新搜索结果" also stays on an empty or failed page.
-        if !loading {
+        if !loading, !value.showsEmptyState(for: selectedKind, isLoading: loading) {
             Section {
                 VStack(spacing: CYSpacing.xs) {
                     if !visible.isEmpty {

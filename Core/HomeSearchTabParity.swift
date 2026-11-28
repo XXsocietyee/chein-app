@@ -411,11 +411,26 @@ public enum HomeIndexParityPresentation {
         locale: Locale = Locale(identifier: "zh-Hans")
     ) -> String {
         let trimmed = nickname?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-        let fallback = isEnglish(locale) ? "Traveler" : defaultTravelerNickname
-        let resolved = trimmed.isEmpty ? fallback : trimmed
         // Design hand-off r1 PL-54: the greeting is the 首页 subtitle, not a title ("Hi, 玩家小城!" → "小城，今天去哪").
-        return isEnglish(locale) ? "Where to today, \(resolved)?" : "\(resolved)，今天去哪"
+        // MP `utils/index/home-greeting.js`: guests and system default nicknames (城瘾用户 / 微信用户 / 旅人 / 用户123)
+        // are not addressed by name. ADA 11-28: the Chinese question ends with "？" like the English one.
+        if isPlaceholderNickname(trimmed) {
+            return isEnglish(locale) ? "Where to today?" : "今天去哪？"
+        }
+        return isEnglish(locale) ? "Where to today, \(trimmed)?" : "\(trimmed)，今天去哪？"
     }
+
+    /// MP `home-greeting.js` `isPlaceholderNickname`: empty, a default nickname, or a generated `用户<digits>`.
+    public static func isPlaceholderNickname(_ nickname: String) -> Bool {
+        let nick = nickname.trimmingCharacters(in: .whitespacesAndNewlines)
+        if nick.isEmpty || placeholderNicknames.contains(nick) { return true }
+        guard nick.hasPrefix("用户") else { return false }
+        let digits = nick.dropFirst(2)
+        return !digits.isEmpty && digits.allSatisfy { $0.isASCII && $0.isNumber }
+    }
+
+    /// MP `PLACEHOLDER_NICKNAMES` plus the English fallback name.
+    static let placeholderNicknames: Set<String> = ["城瘾用户", "微信用户", "旅人", "Traveler"]
 
     /// Returns all shelf headers in display order.
     public static var shelfHeaders: [String] {

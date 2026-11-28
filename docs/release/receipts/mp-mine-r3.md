@@ -554,3 +554,15 @@ For other lanes: mp-activity — ADA currency row: `E1CommerceComponents.swift:1
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
 
 Not done: e4-settings row regroup (needs row-only entry APIs + simulator check), e4-tickets pass-card look, `CharacterCardReadbackView` byte pin.
+
+## Continue 33 (11-28, hourly run): e4-settings account row (ADA)
+
+Branch fast-forwarded to `origin/ui/combined-r7` (8952067e9). The brief's 07:45 sweep has no mp-mine rows; `fix/1128b-club-mine` holds planning-audit #10–#14, #18, #29, #30 (not taken here). Screens checked: `docs/sweeps/latest/mp-mine/sheet-en.jpg`, `sheet-zh-Hans.jpg` (build 3348aa51f), `en-e4-settings.jpg`.
+
+| ADA row | MP | Native file | Level | Fixed now |
+|---|---|---|---|---|
+| e4-settings: the account row is a grey "S" lettermark while Me shows the photo; level reads "Level 3 · City explorer" (EN) / "Lv.3 · 城市探索者" (ZH) vs Me "Lv.3 City explorer" / "Lv.3 城市探索者" | MP `pages/shezhi/shezhi.wxml:14` 个人资料 cell; Me identity card `cy/profile/index.wxml` avatar with `d_profile` fallback | `App/SettingsView.swift` `SettingsAccountCard`, new `SettingsAccountAvatar`; `Resources/Localizable.xcstrings` `settings.account.subtitle %lld` | C | **Fixed.** The row draws the user-info `avatar` (same read Settings already makes, `homeAccount(from:).avatar`, https only via `MemberIdentityCardSection.remoteAvatarURL`) over the MP default `d_profile`, like the Me card; no lettermark. Merchant view keeps `icon_lc_store`. Level line is now one string with the Me card: `Lv.%lld City explorer` / `Lv.%lld 城市探索者`. "Become a merchant" is already behind `PlayerLaunch.merchantCenterEnabled` (Release off; DEBUG sweep shows it). |
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+Not done: e4-settings row regroup (needs row-only entry APIs + simulator check), e4-tickets pass-card look, `CharacterCardReadbackView` byte pin.

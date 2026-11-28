@@ -43,7 +43,8 @@ import XCTest
         let configuration = try XCTUnwrap(built.sessionDependencies(player).configuration)
         XCTAssertEqual(configuration.devices, [.photo, .scan, .location, .motion])
         XCTAssertTrue(configuration.play.isSuperset(of: [.mediaUpload, .preference, .tags, .reads, .classicCompletion]))
-        XCTAssertFalse(configuration.play.contains(.leader))
+        // mp-club r3 J-18: the club-lead tools join the release play grant (MP pages/play/index.js lead bar).
+        XCTAssertTrue(configuration.play.contains(.leader))
         XCTAssertFalse(configuration.play.contains(.directorCommands))
         XCTAssertTrue(configuration.artworkHosts.contains("www.chengyinhub.com"))
         XCTAssertFalse(configuration.artworkHosts.contains { $0.contains("://") || $0.contains("/") })
@@ -121,6 +122,63 @@ import XCTest
         XCTAssertFalse(ReviewedProductionFormMutationRoute.acceptsPlayerWrite(
             try request(base, "api/play/tag/81/revoke", method: "GET", token: token), baseURL: base, token: token, context: player, grant: grant))
         XCTAssertNotNil(consentLatest.httpBody)
+    }
+
+    /// mp-journey r3 (plan audit J-09a / J-10b): the Release play lease admits the MP hint ladder and the points hint
+    /// unlock (form fields session scope, nodeId, level match `PlayExperienceService.hint`; pinned in PlayModeLifecycleTests).
+    func testReleasePlayLeaseAdmitsPuzzleHintAndHintUnlock() throws {
+        let built = composition(Fix1128bRecorder())
+        let player = try playerContext(built)
+        let configuration = try XCTUnwrap(built.sessionDependencies(player).configuration)
+        XCTAssertTrue(configuration.play.contains(.hints))
+        for path in ["api/play/puzzle/hint", "api/play/hint/unlock"] {
+            XCTAssertTrue(configuration.endpoints.paths.contains(path), path)
+            XCTAssertTrue(ReviewedProductionGateLeases.isPlayGrantPath(path), path)
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/" + path), path)
+        }
+        let grant = try XCTUnwrap(built.playerWriteGrant(player))
+        XCTAssertTrue(grant.play.paths.isSuperset(of: ["api/play/puzzle/hint", "api/play/hint/unlock"]))
+    }
+
+    /// mp-journey r3 (plan audit J-16): the play page now asks `productionPlayCircle` first. Its session transport goes
+    /// through the player write grant, which admits every circle route the MP circle page sends (offers/card by id).
+    func testReleasePlayGrantAdmitsTheCirclePageRoutes() throws {
+        let built = composition(Fix1128bRecorder())
+        let player = try playerContext(built)
+        let grant = try XCTUnwrap(built.playerWriteGrant(player))
+        for path in ["api/circle-theme/session", "api/circle-theme/session/join", "api/circle-theme/session/answer",
+                     "api/circle-theme/session/record", "api/circle-theme/instance/71/offers", "api/circle-theme/session/81/card"] {
+            XCTAssertTrue(ReviewedProductionGateLeases.isPlayGrantPath(path), path)
+        }
+        XCTAssertTrue(grant.play.paths.isSuperset(of: ["api/circle-theme/session/join", "api/circle-theme/instance/{}/offers"]))
+        XCTAssertFalse(ReviewedProductionGateLeases.isPlayGrantPath("api/circle-theme/instance/71/delete"))
+    }
+
+    /// mp-club r3 J-18 / P2-4: the club-lead bar and tools (MP pages/play/index.js:5604-5966) pass the Release lease on
+    /// their MP shapes: GET reads with a query and no body, POST writes with a body. A POST to a read path, a bodiless
+    /// write and a GET settle stay refused.
+    func testReleaseLeaseAdmitsClubLeadBarAndToolsOnTheirShapes() throws {
+        let built = composition(Fix1128bRecorder())
+        let player = try playerContext(built)
+        let grant = try XCTUnwrap(built.playerWriteGrant(player))
+        let configuration = try XCTUnwrap(built.sessionDependencies(player).configuration)
+        XCTAssertTrue(configuration.play.contains(.leader))
+        let token = player.session.token, base = player.baseURL
+        func accepts(_ request: URLRequest) -> Bool {
+            ReviewedProductionFormMutationRoute.acceptsPlayerWrite(request, baseURL: base, token: token, context: player, grant: grant)
+        }
+        XCTAssertTrue(configuration.endpoints.paths.contains("api/club/lead/team-progress"))
+        XCTAssertTrue(accepts(try request(base, "api/club/lead/team-progress", method: "GET", query: "activityId=3", token: token)))
+        XCTAssertTrue(accepts(try request(base, "api/club/lead/unlock-chapter-receipt", method: "GET", query: "activityId=3&commandId=lead-abc12345", token: token)))
+        XCTAssertFalse(accepts(try request(base, "api/club/lead/team-progress", method: "POST", json: #"{"activityId":3}"#, token: token)))
+        for write in ["api/club/lead/start", "api/club/lead/unlock-chapter", "api/club/lead/release-station",
+                      "api/club/lead/edit-ops", "api/club/lead/settle"] {
+            XCTAssertTrue(configuration.endpoints.paths.contains(write), write)
+            XCTAssertTrue(accepts(try request(base, write, method: "POST", json: #"{"activityId":3}"#, token: token)), write)
+            XCTAssertFalse(accepts(try request(base, write, method: "POST", token: token)), write)
+        }
+        // 全团结算 is a POST only (money-switch bound branch); a GET never reaches it.
+        XCTAssertFalse(accepts(try request(base, "api/club/lead/settle", method: "GET", query: "activityId=3", token: token)))
     }
 
     /// #21: the store-day gates the Release session builds permit proof and consent writes; merchant gates do not.
