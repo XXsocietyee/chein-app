@@ -73,6 +73,8 @@ struct D2InboxStateFixture: View {
         NavigationStack {
             MessagingHomeView(reader: MessagingFixtureReader(scenario), expanded: nil, squareDestination: { _ in AnyView(EmptyView()) })
         }
+        // The app root (QuestifyApp) always provides root sign-in; without it the signed-out state hid its 登录 button.
+        .environment(\.rootSignIn, RootSignIn { _ in })
     }
 }
 

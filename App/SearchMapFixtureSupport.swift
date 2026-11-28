@@ -281,12 +281,20 @@ enum SearchMapFixtureLanguage {
         if isChinese { return isDesignFixture ? "老城 · \(keyword)" : "离线示例 · \(keyword)" }
         return isDesignFixture ? "Old Town · \(keyword)" : "Offline \(keyword)"
     }
-    static func categories(_ json: String) -> String {
-        guard isChinese else {
-            guard isDesignFixture else { return json }
-            return json.replacingOccurrences(of: "Synthetic culture", with: "Culture")
-                .replacingOccurrences(of: "Synthetic outdoors", with: "Outdoors")
+    /// mp-home r3 (continue 32, sweep 07:26 `d2-search`): the 类别 card held one capsule, so the MP category grid
+    /// read as a stray chip. The design fixture shows a full MP-like category row in the UI language (icons follow
+    /// `SearchCategorySymbol`); UI-test runs keep the pinned synthetic list.
+    static var designFixtureCategories: String {
+        let names = isChinese ? ["文化", "户外", "美食", "摄影", "夜游", "亲子"]
+            : ["Culture", "Outdoors", "Food", "Photography", "Night walks", "Family"]
+        let rows: [String] = names.enumerated().map { (pair) -> String in
+            #"{"id":\#(7 + pair.offset),"categoryName":"\#(pair.element)","type":1}"#
         }
+        return "[" + rows.joined(separator: ",") + "]"
+    }
+    static func categories(_ json: String) -> String {
+        if isDesignFixture { return designFixtureCategories }
+        guard isChinese else { return json }
         return json.replacingOccurrences(of: "Synthetic culture", with: "人文")
             .replacingOccurrences(of: "Synthetic outdoors", with: "户外")
     }

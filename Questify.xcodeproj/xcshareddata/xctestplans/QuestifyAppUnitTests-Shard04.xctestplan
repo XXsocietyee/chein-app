@@ -578,6 +578,7 @@
         "RuntimeSessionRoleConsistencyTests",
         "SQLiteAndJSONJournalCorruptionRecoverySectionViewTests",
         "ScheduleAndLeadProgressPollingSectionViewTests",
+        "SearchCategorySymbolTests",
         "SearchMapActivityCardTests",
         "SearchMapDatePickerDraftTests",
         "SearchMapDatePresetDraftTests",

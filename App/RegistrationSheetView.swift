@@ -33,6 +33,9 @@ struct RegistrationSheetView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.offlineWriteSession) private var offlineWriteSession
     @Environment(\.registrationHidesFixtureNotice) private var hidesFixtureNotice
+    /// Coordinator 07:45 (P32): a design fixture renders the Release sheet, where money is on, so the fee rows, the
+    /// Pay with row and the method-labelled button ("Pay ¥12.50 with WeChat Pay") show; `.offlineFixture` keeps writes offline.
+    private var paymentsOpen: Bool { PlayAreaPopupCopy.paymentsOpen || hidesFixtureNotice }
     /// R11-PC-C-3: marketing-consent opt-in after a successful create (MP baoming.wxml:345-351).
     @Environment(\.marketingConsentService) private var marketingConsentService
     /// fix-1128-alipay (P0-4 / P32): Alipay app pay; offered only when the quote lists `APP_ALIPAY`.
@@ -377,7 +380,7 @@ struct RegistrationSheetView: View {
                 if let marketingConsentService {
                     MarketingConsentOfferRow(ownerMemberID: flow.activity.hostMemberID, makeService: marketingConsentService)
                 }
-                if PlayAreaPopupCopy.paymentsOpen {
+                if paymentsOpen {
                     Button {
                         showingPaymentPending = true
                     } label: {
@@ -484,7 +487,7 @@ struct RegistrationSheetView: View {
     }
     private func gatedPayAmount(_ amount: Decimal?) -> String {
         guard let amount else { return "—" }
-        if amount > .zero, !PlayAreaPopupCopy.paymentsOpen { return "—" }
+        if amount > .zero, !paymentsOpen { return "—" }
         if amount == .zero { return CoreLoopCopy(locale: locale).t("免费", "Free") }
         return RegistrationUIMoney.display(amount, locale: locale) ?? "—"
     }
@@ -492,12 +495,12 @@ struct RegistrationSheetView: View {
     private var systemDialogs: some View {
         Color.clear
             .alert(Text(verbatim: CoreLoopCopy(locale: locale).tr(NonRefundable24hNotice.modalTitle)),
-                   isPresented: Binding(get: { showingNonRefundable && PlayAreaPopupCopy.paymentsOpen },
+                   isPresented: Binding(get: { showingNonRefundable && paymentsOpen },
                                         set: { if !$0 { showingNonRefundable = false } })) {
                 nonRefundableButtons
             } message: { Text(verbatim: CoreLoopCopy(locale: locale).tr(NonRefundable24hNotice.modalContent)) }
             .alert(Text(verbatim: confirmationTitle),
-                   isPresented: Binding(get: { showingConfirmation && !(showingNonRefundable && PlayAreaPopupCopy.paymentsOpen) && flow.confirmation != nil },
+                   isPresented: Binding(get: { showingConfirmation && !(showingNonRefundable && paymentsOpen) && flow.confirmation != nil },
                                         set: { if !$0 { showingConfirmation = false } })) {
                 confirmationButtons
             } message: { Text(verbatim: confirmationMessage) }
@@ -533,7 +536,7 @@ struct RegistrationSheetView: View {
     private var confirmationMessage: String {
         guard let review = flow.confirmation else { return "" }
         let base = "\(flow.activity.summary.name)\n\(flow.selectedTicket?.name ?? "")\n\(review.draft.trimmedName)\n\(review.draft.trimmedPhone)\n"
-        let nonRefundableSuffix = (!PlayAreaPopupCopy.paymentsOpen && review.quote.requiresNonRefundableConfirmation)
+        let nonRefundableSuffix = (!paymentsOpen && review.quote.requiresNonRefundableConfirmation)
             ? "\n\(CoreLoopCopy(locale: locale).tr(NonRefundable24hNotice.modalTitle)): \(CoreLoopCopy(locale: locale).tr(NonRefundable24hNotice.modalContent))"
             : ""
         return base + gatedPayAmount(review.quote.payAmount) + nonRefundableSuffix
@@ -575,7 +578,7 @@ struct RegistrationSheetView: View {
         }
     }
     @ViewBuilder private var registrationPopups: some View {
-        if showingPaymentPending, PlayAreaPopupCopy.paymentsOpen {
+        if showingPaymentPending, paymentsOpen {
             PlayPaymentPendingModal(
                 detailed: flow.resultOrderDestination == nil,
                 onGoOrders: {
@@ -660,10 +663,10 @@ struct RegistrationSheetView: View {
         if flow.quoteEnabled, case .received(let quote) = flow.quoteState, let amount = quote.payAmount {
             if amount == .zero { return copy.t("确认报名", "Confirm sign-up") }
             // P32 (fix-1128-alipay): the button is the method, "Pay ¥12.50 with WeChat Pay" / "… with Alipay".
-            return PlayAreaPopupCopy.paymentsOpen ? payWithLabel(amount: amount, currency: quote.currency) : nil
+            return paymentsOpen ? payWithLabel(amount: amount, currency: quote.currency) : nil
         }
         if ticket.price == 0 { return copy.t("确认报名", "Confirm sign-up") }
-        return PlayAreaPopupCopy.paymentsOpen ? copy.t("确认价格并付款", "Confirm price and pay") : nil
+        return paymentsOpen ? copy.t("确认价格并付款", "Confirm price and pay") : nil
     }
     /// fix-1128-alipay: Alipay is offered for this quote (backend `APP_ALIPAY` and the app can open Alipay).
     private var alipayOffered: Bool {
@@ -736,7 +739,7 @@ struct RegistrationSheetView: View {
                             focusedField = nil
                             if blocked { blockedTaps += 1; return }
                             if flow.prepareConfirmation() {
-                                if PlayAreaPopupCopy.paymentsOpen,
+                                if paymentsOpen,
                                    flow.confirmation?.quote.requiresNonRefundableConfirmation == true,
                                    !nonRefundableConfirmed {
                                     showingNonRefundable = true
@@ -1218,6 +1221,8 @@ private struct RegistrationPickerRow: View {
 
 private struct RegistrationAmountRow: View {
     @Environment(\.locale) private var locale
+    @Environment(\.registrationHidesFixtureNotice) private var hidesFixtureNotice
+    private var paymentsOpen: Bool { PlayAreaPopupCopy.paymentsOpen || hidesFixtureNotice }
     let key: String
     let amount: Decimal?
     var deduction = false
@@ -1230,7 +1235,7 @@ private struct RegistrationAmountRow: View {
         LabeledContent {
             if listedPrice {
                 Text(verbatim: listedText).monospacedDigit().foregroundStyle(CYColor.textPrimary).accessibilityIdentifier(key + ".amount")
-            } else if let amount, amount > .zero, !PlayAreaPopupCopy.paymentsOpen {
+            } else if let amount, amount > .zero, !paymentsOpen {
                 Text(verbatim: "—").foregroundStyle(CYColor.textPrimary).accessibilityIdentifier(key + ".amount")
             } else if let text = RegistrationUIMoney.display(amount, locale: locale, currencyCode: currencyCode) {
                 VStack(alignment: .trailing, spacing: 2) {

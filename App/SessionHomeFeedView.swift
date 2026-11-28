@@ -150,6 +150,7 @@ import SwiftUI
                 onStartRoam: onStartRoam,
                 // R7-PC-A1-1 (r1 PC-A-1-3): MP `onManualCityChange` — the 首页 city menu is live.
                 onSelectCity: { city, nationwide in selectHomeCity(city, nationwide: nationwide) },
+                onLocateCity: session.account == nil ? nil : { relocateHomeCity() },
                 cityLocationConsent: cityConsent.asks ? (agree: { agreeAndLocateHomeCity() }, decline: { cityConsent.decline() }) : nil,
                 // R7-PC-A5-1 (r1 PC-A-5-1): the hero map button opens the city map, the field opens the list search.
                 onOpenUnifiedSearch: { mode in if mode == .map { showsSearchMap = true } else { search.isPresented = true } },
@@ -329,6 +330,17 @@ import SwiftUI
         cityConsent.agree(session)
         let capture = session.cityCaptureFix()
         Task {
+            guard let fix = try? await capture() else { return }
+            guard let city = HomeCityCentre.nearest(to: fix.coordinate) else { return }
+            homeCityStored = city
+        }
+    }
+    /// MP `onTapHomeCity` (pages/index/index.js:1438): the city menu's 使用当前位置 asks the consent read first, then
+    /// takes the same one foreground fix as 同意 (matched on the device; the coordinate is never sent).
+    private func relocateHomeCity() {
+        Task {
+            guard await cityConsent.userAsksToLocate(session) else { return }
+            let capture = session.cityCaptureFix()
             guard let fix = try? await capture() else { return }
             guard let city = HomeCityCentre.nearest(to: fix.coordinate) else { return }
             homeCityStored = city

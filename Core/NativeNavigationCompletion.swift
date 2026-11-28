@@ -63,6 +63,7 @@ public enum NativeNavigationContract {
                   query.values.allSatisfy({ $0.utf8.count <= 2048 && $0.rangeOfCharacter(from: .controlCharacters) == nil }) else { return nil }
             return .badge(ObjectBadgeDetailParameters(query: query, fallbackName: ""))
         }
+        if path == "/pages/index/index", let scene = homeScene(query) { return scene }
         if path == "/pages/index/index", let door = homeReferral(query) { return .door(door) }
         if let page = MiniProgramPageLink(path: path, query: query) { return .miniProgramPage(page) }
         return nil
@@ -71,6 +72,59 @@ public enum NativeNavigationContract {
     /// mp-nav r3: MP invite share card `/pages/index/index?inviter=<uid>` (older cards `?id=`; cy/profile index.js:2413,
     /// myinvite.js:25) and the home QR `?scene=`. MP home onLoad (index.js:37, 318, 355) keeps the inviter until sign-in,
     /// then `setInviter`. Same keys as the `/door` link; a non-numeric inviter is not a route.
+    /// mp-nav r3: MP home QR scenes (pages/index/index.js:353-375 `consumeDoorScene`, utils/game-door-entry.js):
+    /// `tp.<topicId>` → topic detail, `ac.<activityId>` → official activity, `sh.<memberId>` → shop profile (about tab),
+    /// `tm.<code>` / `th.<b64url>` → team join. MP redirects before it reads the inviter, so an inviter key is dropped too.
+    /// `rc.` (merchant 招商位置) and the 32-hex door code stay on the door path.
+    public static func homeScene(_ query: [String: String]) -> NativeEntryIntent? {
+        guard let raw = query["scene"], Set(query.keys).isSubset(of: ["scene", "inviter", "id"]),
+              let target = homeScenePath(raw) else { return nil }
+        return parseInternal(target)
+    }
+
+    public static func homeScenePath(_ raw: String) -> String? {
+        let text = (raw.removingPercentEncoding ?? raw).trimmingCharacters(in: .whitespacesAndNewlines)
+        let parts = text.split(separator: ".", maxSplits: 1, omittingEmptySubsequences: false).map(String.init)
+        guard parts.count == 2 else { return nil }
+        let prefix = parts[0]
+        let body = parts[1]
+        if prefix == "tm" || prefix == "th" {
+            guard let code = teamSceneCode(prefix: prefix, body: body) else { return nil }
+            return "/pages/team/join/index?code=" + code
+        }
+        let isDigits = (1...18).contains(body.utf8.count) && body.utf8.allSatisfy { (48...57).contains($0) }
+        guard isDigits, let id = Int(body), id > 0 else { return nil }
+        switch prefix {
+        case "tp": return "/pages/topic/index/index?id=" + String(id)
+        case "ac": return "/pages/activity/official-detail/index?id=" + String(id)
+        case "sh": return "/pages/userinfo/userinfo?userId=" + String(id) + "&tab=about"
+        default: return nil
+        }
+    }
+
+    /// game-door-entry.js `teamCode`: `tm.` + six-letter join code or a 22-char base64url invite (as is);
+    /// `th.` + 22-char base64url = a migrated 32-hex invite, restored to lowercase hex.
+    static func teamSceneCode(prefix: String, body: String) -> String? {
+        let shortAlphabet = Array("23456789ABCDEFGHJKMNPQRSTUVWXYZ".utf8)
+        if prefix == "tm", body.utf8.count == 6, body.utf8.allSatisfy({ shortAlphabet.contains($0) }) { return body }
+        let alphabet = Array("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".utf8)
+        guard body.utf8.count == 22, body.utf8.allSatisfy({ alphabet.contains($0) }) else { return nil }
+        if prefix == "tm" { return body }
+        var bits = 0
+        var value = 0
+        var hex = ""
+        for byte in body.utf8 {
+            guard let v = alphabet.firstIndex(of: byte) else { return nil }
+            value = ((value << 6) | v) & 0xFFFF
+            bits += 6
+            if bits >= 8 {
+                bits -= 8
+                hex += String(format: "%02x", (value >> bits) & 0xFF)
+            }
+        }
+        return hex.utf8.count == 32 ? hex : nil
+    }
+
     public static func homeReferral(_ query: [String: String]) -> DoorIntent? {
         guard !query.isEmpty, Set(query.keys).isSubset(of: ["scene", "inviter", "id"]) else { return nil }
         let referral = query["inviter"] ?? query["id"]

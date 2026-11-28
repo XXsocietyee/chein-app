@@ -18,9 +18,12 @@ final class HomeSearchTabParityTests: XCTestCase {
             HomeIndexParityPresentation.shelfHeaders,
             ["精选路线", "近期活动", "热门主题", "现成玩法"]
         )
-        XCTAssertEqual(HomeIndexParityPresentation.greetingText(nickname: nil), "旅人，今天去哪")
-        XCTAssertEqual(HomeIndexParityPresentation.greetingText(nickname: "  "), "旅人，今天去哪")
-        XCTAssertEqual(HomeIndexParityPresentation.greetingText(nickname: "阿明"), "阿明，今天去哪")
+        XCTAssertEqual(HomeIndexParityPresentation.greetingText(nickname: nil), "今天去哪？")
+        XCTAssertEqual(HomeIndexParityPresentation.greetingText(nickname: "  "), "今天去哪？")
+        XCTAssertEqual(HomeIndexParityPresentation.greetingText(nickname: "微信用户"), "今天去哪？")
+        XCTAssertEqual(HomeIndexParityPresentation.greetingText(nickname: "用户123"), "今天去哪？")
+        XCTAssertEqual(HomeIndexParityPresentation.greetingText(nickname: "用户小明"), "用户小明，今天去哪？")
+        XCTAssertEqual(HomeIndexParityPresentation.greetingText(nickname: "阿明"), "阿明，今天去哪？")
         XCTAssertEqual(HomeIndexParityPresentation.fixedActionBanners.count, 3)
         XCTAssertEqual(
             HomeIndexParityPresentation.fixedActionBanners.map(\.routePath),
@@ -81,7 +84,8 @@ final class HomeSearchTabParityTests: XCTestCase {
         XCTAssertNil(HomeIndexParityPresentation.upcomingCountdownText(start: now.addingTimeInterval(-60), now: now))
 
         let enLocale = Locale(identifier: "en_US")
-        XCTAssertEqual(HomeIndexParityPresentation.greetingText(nickname: nil, locale: enLocale), "Where to today, Traveler?")
+        XCTAssertEqual(HomeIndexParityPresentation.greetingText(nickname: nil, locale: enLocale), "Where to today?")
+        XCTAssertEqual(HomeIndexParityPresentation.greetingText(nickname: "Mia", locale: enLocale), "Where to today, Mia?")
         XCTAssertEqual(HomeIndexParityPresentation.citySelectorLabel(selectedCity: nil, locale: enLocale), "Select city")
         XCTAssertEqual(HomeIndexParityPresentation.citySelectorLabel(selectedCity: "上海", isNationwide: true, locale: enLocale), "Nationwide")
         XCTAssertEqual(

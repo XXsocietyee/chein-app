@@ -534,9 +534,39 @@ Base re-merged with `origin/ui/combined-r7` (clean; `fix/1128-wechat-login` land
 
 Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. Contract checks `test_universal_link_associated_domains.py` + `test_roam_audit_p1_location_maps.py` OK (11). No Swift build here.
 
+## Round 3 continue (39) — function audit P1-25 (US roam)
+
+Rebased onto `origin/mp/r3-roam` (twin run). No open coordinator finding for mp-roam (07:45 sweep: none). Map panel settled (02:05) — not touched.
+
+| Audit id | MP page → native | Difference | Fix | Level / fixture |
+|---|---|---|---|---|
+| **P1-25** | `pages/roam/index` 走起 / live roam, `subpackageRoam/nearby` teams (MP has one backend, no market split) → `App/RegionalLaunchConfiguration.swift` `shippedComposition`, `App/ReviewedPlayerWriteLeases.swift` `roamLive` / `roamLiveWrite` / `nearbyTeamRead` / `nearbyTeamWrite`, `Core/RoamLiveContracts.swift` `RoamLiveApproval.allows`, `App/AppSession.swift` `currentRoamExperienceSession` | The audit read the literal China-only checks (`market == "cn"`, `context.market == .china`). Since US launch r1 (11-27) the shipped US build is pinned to the shared reviewed backend (`BuildMetadata(market: CN …)`), so `regionalConfiguration.market`, the runtime context and the roam identity scope are all CN for US players; only `storefrontMarket` stays US for presentation. The leases are therefore issued in the US build; nothing in roam reads `storefrontMarket`. | **Resolved by reading + proved in Release:** no gate widened (a US-market context is never built by the shipped app, so widening would only open an unreachable path). New `Tests/AppUnitTests/RoamUnitedStatesReleaseCompositionTests.swift` builds `RegionalLaunchConfiguration.shippedComposition` for a US build on the reviewed host and asserts: production gates on; `roamLiveApproval` non-nil with every `RoamLiveApproval.requiredPaths` + `api/roam/presence`; `approval.allows` the identity AppSession builds (`regional.market.rawValue`); `roamLiveWriteApproval` non-nil; nearby-team read + the three write paths for player / club / merchant; guest gets none. No new strings. | A · live roam |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
+
+## Round 3 continue (40) — planning audit R-02f+ (finish uploads the track)
+
+| Audit id | MP page → native | Difference | Fix | Level / fixture |
+|---|---|---|---|---|
+| **R-02f+** (planning audit "next after the 30") | `pages/roam/index.js` `sendFinish` (2026-10-31 P-7: `track` = `JSON.stringify([[lat,lng],…])`, every `ceil(n/600)`-th point + the last, `''` when ≤1 point; history card `utils/roam-passport-read.js` draws it) → `Core/RoamExperienceMutationContracts.swift` `.finish(…, track:)` + `finishTrack`, `Core/RoamLiveContracts.swift` `RoamLiveServing.finish(…, track:)` (default forwards to the old call, so fixtures / test doubles are unchanged), `Core/RoamLiveService.swift`, `Core/RoamLiveSessionController.swift` finish | The finish sent only `sessionId` / `poiIds` / `distanceM`, so iOS walks had no server track and the passport history card on another device / after reinstall had no route. | **Fixed:** the controller passes its in-memory accepted track (GCJ-02 fixes, same datum as the MP) to the finish; the request adds `track` in the MP JSON shape when ≥2 points remain after the MP thinning. The track stays in memory only (the durable `RoamLiveRecord` still keeps no fixes), so a finish replayed after recovery sends none, like an MP finish with an empty `_track`. Core test `RoamExperienceMutationTests.testFinishCarriesTheThinnedTrackLikeTheMP`; the exact-fields pin for a trackless finish is unchanged. No new strings. | A · live roam |
+
+Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
+
+## Round 3 continue (41) — OWNER RULE 3 celebration: stamp collected (owner mp-roam)
+
+Base re-merged with `origin/ui/combined-r7` (clean). No open coordinator finding for mp-roam (07:45 sweep: none). Map panel settled (02:05) — not touched; fog / lit trail are on `fix/1128b-maps` (#24), not here.
+
+| MP page → native | Difference | Fix | Level / fixture |
+|---|---|---|---|
+| `subpackageRoam/citystamp` ③ 换票 (wxml:68–135: tear the slip, scratch 六成 → 解锁「收下，出发」) → `App/RoamSubpageParityViews.swift` `RoamStampSlipView.paper` | The reveal (the moment the exchanged stamp is collected) had only the success haptic; OWNER RULE 3 lists "stamp collected" as a Level A celebration. MP sections / order unchanged. | New `App/RoamStampRevealCelebration.swift` (`roamStampCollectedBurst(_:)`, name matches the gate's `*Celebration*` surface): one `CYBurst` dust burst over the slip when `revealed` turns true (it never turns back), on top of the existing `.success` haptic and `CYMotion.standard` transition. Reduce Motion / Low Power / thermal → nothing drawn (`CYLightBudget.particlesAllowed`); no hit testing; hidden from VoiceOver. | A · celebration / citystamp slip (live route only; not in a fixture) |
+| P3 存入集邮册 → 已入册 (`scene-roam-stamp-album` landing) → `App/RoamCreatedStampView.swift` `.found` match card | The created stamp slammed in (`cyStampSlam`) with a heavy tap but no light. | Same burst once on the match card, after the slam (same gating). | A · celebration / created stamp |
+
+No new strings. Gates: generate_project OK · check_scaffold PASS · a11y lint 0 new · design consistency PASS (effect on clean page: 0) · contract_ratchet **new 0**. No Swift build here.
+
 ## Not done / next
 
-- Function audit (mp-roam, not on a fix worker): P1-21 done (continue 38), P1-22 city-game region (owner value), P1-25 US roam,
+- Planning audit R-02f+ (finish track): done (continue 40). R-04c nearby 活动/主题 layer = P1-23 lease (done continue 36/P1-23).
+- Function audit (mp-roam, not on a fix worker): P1-21 done (continue 38), P1-22 city-game region (owner value), P1-25 done (continue 39, shared backend),
   P2-7 rest (`/api/roam/checkin` from 点亮: the MP posts it when the player taps a *built-in* map POI (`bindpoitap`); native needs MapKit feature
   selection (`MapSelection<MapFeature>`, iOS 18) beside the existing pin selection plus a `.checkin` capability (`productionEnabled` false today) — compiled pass).
 

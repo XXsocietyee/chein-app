@@ -75,7 +75,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Load Public Layers"
+            "value" : "Load public layers"
           }
         },
         "zh-Hans" : {
@@ -228,7 +228,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Load More Public Layers"
+            "value" : "Load more public layers"
           }
         },
         "zh-Hans" : {
@@ -279,7 +279,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Retry Current Cursor"
+            "value" : "Try again"
           }
         },
         "zh-Hans" : {
