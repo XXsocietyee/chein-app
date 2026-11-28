@@ -431,10 +431,16 @@ struct RoamPOIMissingView: View {
                 if let receipt { RoamStampSlipView(slip: RoamStampSlip(receipt), place: placeText, openedAt: openedAt) }
                 else { writeStep }
             }.padding()
+                .cyAnimation(CYMotion.standard, value: receipt != nil)
         }.navigationTitle(Text(LocalizedStringKey(RoamStampSlip.titleKey(kind: kind))))
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(isPresented: $showsCamera) { cameraView }
             .onAppear(perform: openCameraFirst)
+            // Next-round motion: success when the note lands in the mailbox, warning on a failed send,
+            // a selection tick when the dragged note arms the mailbox.
+            .cyHaptic(.success, trigger: receipt != nil) { old, new in !old && new }
+            .cyHaptic(.warning, trigger: failed) { old, new in !old && new }
+            .cyHaptic(.selection, trigger: boxArmed) { old, new in !old && new }
             .accessibilityIdentifier("roamSub.w208.stamp.flow")
         .cyDomainScreen(.player)
     }
@@ -445,6 +451,7 @@ struct RoamPOIMissingView: View {
             // It lifts a little while the dragged note is over it (MP `boxArmed`).
             MPAsset.Other.mailbox.resizable().scaledToFit().frame(maxWidth: 200)
                 .scaleEffect(boxArmed ? 1.035 : 1)
+                .cyAnimation(CYMotion.release, value: boxArmed)
                 .background(GeometryReader { proxy in
                     Color.clear
                         .onAppear { boxFrame = proxy.frame(in: .named(Self.writeSpace)) }
@@ -621,6 +628,10 @@ struct RoamPOIMissingView: View {
                 .accessibilityIdentifier("roamSub.w208.stamp.done")
             if slip.got && !revealed { Text("roamSub.w208.stamp.revealFirst").cyText(.meta).foregroundStyle(.secondary) }
         }
+        .cyAnimation(CYMotion.standard, value: torn)
+        .cyAnimation(CYMotion.standard, value: revealed)
+        .cyHaptic(.impactMedium, trigger: torn) { old, new in !old && new }
+        .cyHaptic(.success, trigger: revealed) { old, new in !old && new }
     }
     private var paper: some View {
         VStack(alignment: .leading, spacing: 10) {

@@ -367,6 +367,25 @@ roam MP page already has a row, so this run applies the new principles. Screens 
 | `pages/roam/index` entry-peek 附近活动 (wxml:143–174) → `App/NativeR2/MapHome/RoamMapHomeSheet.swift` `nearbySection` header + `RoamMapHomePinRow` | **P29** — the header now states the count of loaded rows trailing the 附近活动 title (combined VoiceOver element, header trait, id `roam.mapHome.nearby.count`; hidden while empty / loading). Each row's kind · distance gains `· N min walk` / `· 步行 N 分钟` (80 m/min, rounded up, only ≤ 3 km; `RoamMapHomePinRow.walkMinutes`), stacked at AX sizes like the distance. MP sections / order unchanged (the MP card meta is kept; no chips added: the MP tabs 附近活动 / 本城推荐 already are the segmented header). Distances stay `Measurement` `.road` (locale units). New key `nativeR2.mapHome.walkMinutes %lld`. | Shipping map home (no map-home fixture yet, see continue 11 Not done) |
 | `e5b-stamp` (`CYCelebrationMoment(kind: .stamp)`, generic pin glyph) | Read only: the component is not mounted by any shipping roam screen (grep: fixture-only), so it is a design-system preview, not a roam page. | For ds-consistency (below). |
 
+## Round 3 continue (27) — motion and feedback on roam subpages (01:40 "next round" item 2) + sweep 02:10 (build 41374363f)
+
+Base re-merged with `origin/ui/combined-r7` (clean). No open coordinator finding for mp-roam (02:20: none; map panel settled 02:05 — this run
+does not touch `CYMapChrome.swift` or the `RoamBrowserView` panel). Screens read: `docs/sweeps/latest/mp-roam/sheet-zh-Hans.jpg`,
+`sheet-en.jpg` (d2-roam, d6-roam: same inline title + light map; e2-stamp-album: 外滩夜色 / 老街霓虹 + 还没收到 cell; e5b-stamp): keep.
+MP content and order unchanged on every page below; only feedback and state-change motion were added (shared `cyHaptic` →
+`HapticsService`, shared `cyAnimation` → `CYMotion` springs, which cross-fade under Reduce Motion).
+
+| MP page → native | Action / state change | Feedback + motion |
+|---|---|---|
+| `subpackageRoam/citystamp` write step → `App/RoamSubpageParityViews.swift` `RoamCityStampFlowView` | 投进信箱 sends (button or drag-drop) | `.success` when the receipt lands (false → true only), `.warning` when a send fails, `.selection` when the dragged note arms the mailbox; the mailbox lift animates with `CYMotion.release`; write step → slip swaps with `CYMotion.standard`. |
+| `subpackageRoam/citystamp` slip (`sgslip`) → `RoamStampSlipView` | tear 撕下 / scratch 刮开 | `.impactMedium` on tear, `.success` on reveal; the hint/next-control swaps animate with `CYMotion.standard` (cross-fade under Reduce Motion; VoiceOver and Reduce Motion keep the plain buttons). |
+| `subpackageRoam/components/cy/scene-roam-stamp-album` 我的 / 收到的 → `NativeStampAlbumView` | segmented tab change | `.selection` + `CYMotion.standard` pane swap. |
+| `subpackageRoam/components/cy/scene-roam-task-list` 进行中 / 即将 / 我的 → `RoamOfficialTasksView` | segmented tab change | `.selection` + `CYMotion.standard` list change. |
+
+Gates: generate_project OK · check_scaffold PASS (21152 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
+
+No new strings. Fixtures: e2-stamp-album (tab), shipping citystamp flow (fixture receipt path `fixtureReceipt` also fires `.success`).
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no
