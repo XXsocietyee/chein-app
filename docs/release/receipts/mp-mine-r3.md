@@ -539,3 +539,17 @@ Merged `origin/ui/combined-r7` (conflicts: other lanes' receipts taken from comb
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
 
 Next (ADA, still open for mp-mine): e4-settings row regroup (above); e4-tickets pass-card look (the Upcoming / Past split stays out, see the twin run above); e5b-badge-wall share + per-badge art; t5-order-center (MP order list vs lookup); CN¥ vs ¥ in EN.
+
+## Continue 32 (11-28, half-hourly run): t5-order-center vs the MP entry
+
+Merged `origin/ui/combined-r7` (conflicts: other lanes' receipts and `Localizable.xcstrings` taken from combined-r7; the only branch-only key, `region.usLoginPending`, was removed upstream by P0-5 and is unused). The sweep in `docs/sweeps/latest` is still build ffeef67c7 and the brief has no coordinator notes after 07:05 for mp-mine. Screens checked: `docs/sweeps/latest/mp-mine/zh-Hans-t5-order-center.jpg`. CN¥ vs ¥ (ADA cross-screen): the mine screens already use the shared formatter; the hand-built "¥" paths the audit names are `E1CommerceComponents.swift` / `MPParityPassSession.swift` (mp-activity, see For other lanes).
+
+| ADA row | MP | Native file | Level | Fixed now |
+|---|---|---|---|---|
+| t5-order-center (P1): pre-filled order number + 查询 row on a deep-link page (form-like); "check the MP list" | `subpackageMember/components/cy/order-center-entry/index.wxml:1-16`: a deep-link entry with no input; `wx:if id` shows `cy-scene-member-order-detail` in place; otherwise loading / `cy-empty` (title + one action) / summary card (title, status, 金额, 订单号 `user-select`, 创建时间) + 联系客服. The order *list* is 我的订单 (`scene-member-order-history`, already its own row above) | `App/OrderCenterEntryView.swift` | C | **Fixed.** Opened from a link (`subpackageMember/orderinfo?outTradeNo=`), the page has no number field and no 查询 row, as the MP. A registration order shows its order detail in place (no extra "open registration" row). The failure state is a `ContentUnavailableView` (MP copy + 重试), loading sits on a clear row. Order number is selectable (MP `user-select`). The number field stays only for the native 设置 → 订单查询 entry (no number to start from); it submits from the keyboard (`.submitLabel(.search)`). |
+
+For other lanes: mp-activity — ADA currency row: `E1CommerceComponents.swift:116` and `MPParityPassSession.swift:335` build "¥" by hand; use `MemberBalanceDisplay.text` / `LocaleDisplay.money`.
+
+Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 52 failing / baseline 52 / **new 0**.
+
+Not done: e4-settings row regroup (needs row-only entry APIs + simulator check), e4-tickets pass-card look, `CharacterCardReadbackView` byte pin.
