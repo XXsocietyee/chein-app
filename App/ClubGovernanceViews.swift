@@ -1548,7 +1548,17 @@ struct ClubGovernanceReadView: View {
             }
         } else {
             if operation == .customers {
-                contentCustomersList(snapshot)
+                if let list = try? ClubOpsCustomerListPresentation(value: value) {
+                    let pageFilters = snapshotCustomerFilters ?? customerFilters
+                    ClubOpsCustomerListContent(first: list, filtered: snapshotCustomerFilters?.isFiltered == true, pager: customerPager,
+                        readPage: { pageNum in
+                            try await access.read(.customers, scope: scope, options: [
+                                "filter": .string(pageFilters.filter), "keyword": .string(pageFilters.keyword),
+                                "pageNum": .integer(pageNum), "pageSize": .integer(ClubOpsCustomerListPresentation.pageSize)]).value
+                        }) { id in
+                        AnyView(ClubGovernanceReadView(operation: .customer, scope: .init(clubID: scope.clubID, memberID: id), identity: identity, access: access, coordinator: coordinator))
+                    }
+                } else { Text("club.gov.malformed").accessibilityIdentifier("clubOps.customers.malformed") }
             } else {
                 contentOtherReads(snapshot)
             }
@@ -2065,21 +2075,6 @@ struct ClubGovernanceReadView: View {
                 }
             } else { Text("club.gov.malformed").accessibilityIdentifier("club.feed.malformed") }
         
-    }
-
-    @ViewBuilder private func contentCustomersList(_ snapshot: ClubGovernanceSnapshot) -> some View {
-        let value = snapshot.value
-                if let list = try? ClubOpsCustomerListPresentation(value: value) {
-                    let pageFilters = snapshotCustomerFilters ?? customerFilters
-                    ClubOpsCustomerListContent(first: list, filtered: snapshotCustomerFilters?.isFiltered == true, pager: customerPager,
-                        readPage: { pageNum in
-                            try await access.read(.customers, scope: scope, options: [
-                                "filter": .string(pageFilters.filter), "keyword": .string(pageFilters.keyword),
-                                "pageNum": .integer(pageNum), "pageSize": .integer(ClubOpsCustomerListPresentation.pageSize)]).value
-                        }) { id in
-                        AnyView(ClubGovernanceReadView(operation: .customer, scope: .init(clubID: scope.clubID, memberID: id), identity: identity, access: access, coordinator: coordinator))
-                    }
-                } else { Text("club.gov.malformed").accessibilityIdentifier("clubOps.customers.malformed") }
     }
 
     @ViewBuilder private func contentOtherReads(_ snapshot: ClubGovernanceSnapshot) -> some View {
