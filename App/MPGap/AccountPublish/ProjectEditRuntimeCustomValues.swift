@@ -143,12 +143,16 @@ struct ProjectEditRuntimeValueEditorItem: Identifiable, Hashable {
         case .link(let id):
             let text: String.LocalizationValue = "mpPublish.values.ref.link \(id)"
             return String(localized: text)
+        case .node(let chapter, let node, let path):
+            let text: String.LocalizationValue = "mpPublish.values.ref.node \(chapter) \(node) \(path)"
+            return String(localized: text)
         }
     }
 }
 
 /// MP value editor sheet: 名称 · 玩家可见 → 范围 (最小值 · 最大值) → 关联 (下降时一起扣生命值) → 删除数值.
-/// 退出 drops the edits; 完成 saves through `ProjectEditRuntimeValues.save`.
+/// 退出 drops the edits; 完成 saves through `ProjectEditRuntimeValues.save`. A registry-bound topic
+/// (MP `definitionReadOnly`) keeps the definition read-only but still edits and saves 关联.
 @MainActor struct ProjectEditRuntimeValueEditor: View {
     @ObservedObject var model: ProjectEditModel
     let start: ProjectEditRuntimeValueEditorItem
@@ -202,13 +206,18 @@ struct ProjectEditRuntimeValueEditorItem: Identifiable, Hashable {
             }
             .disabled(readOnly)
             rangeSection
-            Section("mpPublish.values.custom.links") {
-                Toggle(isOn: $link) {
+            Section {
+                Toggle(isOn: linkBinding) {
                     Text("mpPublish.values.custom.link \(hpLabel)")
                 }
                 .accessibilityIdentifier("projectEdit.values.custom.editor.link")
+            } header: {
+                Text("mpPublish.values.custom.links")
+            } footer: {
+                if readOnly {
+                    Text("mpPublish.values.custom.boundFooter")
+                }
             }
-            .disabled(readOnly)
             deleteSection
         }
     }
@@ -254,8 +263,15 @@ struct ProjectEditRuntimeValueEditorItem: Identifiable, Hashable {
         }
         ToolbarItem(placement: .confirmationAction) {
             Button("mpPublish.values.custom.done") { save() }
-                .disabled(readOnly)
         }
+    }
+
+    /// MP `onValueLinkSwitch`: the switch also clears the sheet error.
+    private var linkBinding: Binding<Bool> {
+        Binding(get: { link }, set: { on in
+            link = on
+            errorKey = nil
+        })
     }
 
     /// MP `maxlength="24"`.

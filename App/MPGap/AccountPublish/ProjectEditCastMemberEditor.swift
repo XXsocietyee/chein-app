@@ -1,4 +1,6 @@
+import PhotosUI
 import SwiftUI
+import UIKit
 
 /// What the 角色 list opens: an existing role (edit) or a fresh one (add, joins the list only on 完成).
 struct ProjectEditCastEditTarget: Identifiable {
@@ -10,7 +12,8 @@ struct ProjectEditCastEditTarget: Identifiable {
 /// MP `publish/fabu/cast-sheet.wxml` second sheet 编辑角色 (theme-cast.js `_openMember` / `saveCastMember`), stacked on
 /// the 角色 sheet: face → 名字* → 一句话身份 → 声音 → 颜色 → 你知道的 → 结局台词 → 删除角色.
 /// 完成 stays tappable like the MP (#871): a problem shows in red under its section instead.
-/// Not built natively: avatar upload and 用自己的声音录 (no cast uploads in the app yet); a value set on the MP is kept.
+/// Avatar: MP `pickCastAvatar` (one photo → upload → `avatarUrl`), only when the editor has an approved image upload.
+/// Not built natively: 用自己的声音录 (no cast audio recording in the app yet); a recording made on the MP is kept.
 struct ProjectEditCastMemberEditor: View {
     let target: ProjectEditCastEditTarget
     /// Other roles in the cast, for the MP duplicate-name rule.
@@ -19,21 +22,35 @@ struct ProjectEditCastMemberEditor: View {
     let onPreviewVoice: ((TopicCastMemberDraft) -> Void)?
     let onSave: (TopicCastMemberDraft) -> Void
     let onDelete: () -> Void
+    /// nil hides 上传头像 (no approved upload in this editor, e.g. read-only or signed out).
+    let avatarUpload: ProjectEditCastAvatarUpload?
 
     @Environment(\.dismiss) private var dismiss
     @State private var member: TopicCastMemberDraft
     @State private var issue: Issue?
     @State private var confirmingDelete = false
+    @State private var avatarItem: PhotosPickerItem?
+    @State private var avatarPreview: UIImage?
+    @State private var avatarTask: Task<Void, Never>?
+    @State private var uploadingAvatar = false
 
     enum Issue: Equatable {
         case nameMissing
         case nameTaken(String)
         case clueEmpty(Int)
+        /// MP 无法选择图片，请重试
+        case avatarUnreadable
+        /// MP 头像上传失败，请重试
+        case avatarFailed
+        /// MP 还在上传，请稍候再点完成
+        case avatarUploading
     }
 
     init(target: ProjectEditCastEditTarget, others: [TopicCastMemberDraft], chapters: [ProjectEditChapter],
          onPreviewVoice: ((TopicCastMemberDraft) -> Void)?,
-         onSave: @escaping (TopicCastMemberDraft) -> Void, onDelete: @escaping () -> Void) {
+         onSave: @escaping (TopicCastMemberDraft) -> Void, onDelete: @escaping () -> Void,
+         avatarUpload: ProjectEditCastAvatarUpload? = nil) {
+        self.avatarUpload = avatarUpload
         self.target = target
         self.others = others
         self.chapters = chapters
@@ -68,13 +85,19 @@ struct ProjectEditCastMemberEditor: View {
             .cyPageTitle("castMember.title")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("common.cancel") { dismiss() }
+                    Button("common.cancel") { avatarTask?.cancel(); dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("fixr8.common.done") { save() }
                         .accessibilityIdentifier("projectEdit.castMember.done")
                 }
             }
+            .onChange(of: avatarItem) { _, item in
+                guard let item else { return }
+                avatarItem = nil
+                startAvatarUpload(item)
+            }
+            .onDisappear { avatarTask?.cancel() }
             .confirmationDialog(deleteTitle, isPresented: $confirmingDelete, titleVisibility: .visible) {
                 Button("castMember.delete", role: .destructive) {
                     onDelete()
@@ -92,14 +115,76 @@ struct ProjectEditCastMemberEditor: View {
 
     // MARK: Sections (MP order)
 
+    /// MP `cast-avatar`: the face (photo, or the initial on the role colour) with 上传头像 / 更换头像 under it.
     @ViewBuilder private var faceSection: some View {
         Section {
-            HStack {
-                Spacer()
-                ProjectEditCastFace(name: member.name, colorHex: member.colorHex, size: .large)
-                Spacer()
+            VStack(spacing: CYSpacing.sm) {
+                ProjectEditCastFace(name: member.name, colorHex: member.colorHex, size: .large,
+                                    imageURL: member.avatarURL, localImage: avatarPreview)
+                if avatarUpload != nil {
+                    PhotosPicker(selection: $avatarItem, matching: .images) {
+                        Label(member.avatarURL == nil ? LocalizedStringKey("castMember.avatar.upload") : LocalizedStringKey("castMember.avatar.change"),
+                              systemImage: "camera")
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(uploadingAvatar)
+                    .accessibilityIdentifier("projectEdit.castMember.avatar")
+                    if uploadingAvatar {
+                        ProgressView { Text("castMember.avatar.uploading") }
+                            .font(.footnote)
+                    }
+                }
             }
+            .frame(maxWidth: .infinity)
             .listRowBackground(Color.clear)
+        } footer: {
+            if let text = avatarIssueText {
+                Text(text)
+                    .foregroundStyle(CYColor.dangerText)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+    }
+
+    private var avatarIssueText: LocalizedStringKey? {
+        switch issue {
+        case .avatarUnreadable: return "castMember.avatar.unreadable"
+        case .avatarFailed: return "castMember.avatar.failed"
+        case .avatarUploading: return "castMember.avatar.stillUploading"
+        default: return nil
+        }
+    }
+
+    private var isAvatarIssue: Bool { avatarIssueText != nil }
+
+    /// MP `pickCastAvatar` + `_startCastUpload('avatar', …)`: a new pick replaces a running upload; the reference is
+    /// written only after the server returns it, and 取消 / closing the sheet drops the upload (MP `_abortCastUploads`).
+    private func startAvatarUpload(_ item: PhotosPickerItem) {
+        guard let avatarUpload else { return }
+        avatarTask?.cancel()
+        uploadingAvatar = true
+        if isAvatarIssue { issue = nil }
+        avatarTask = Task { @MainActor in
+            let bytes = try? await item.loadTransferable(type: Data.self)
+            if Task.isCancelled { return }
+            guard let bytes, let image = try? RetainedImageSanitizer.sanitize(bytes) else {
+                uploadingAvatar = false
+                issue = .avatarUnreadable
+                return
+            }
+            do {
+                let reference = try await avatarUpload.upload(image)
+                if Task.isCancelled { return }
+                guard let saved = ProjectEditCastConfig.savableAvatar(reference) else { throw ProjectStoryImageFailure.invalidResponse }
+                member.avatarURL = saved
+                avatarPreview = UIImage(data: image.jpeg)
+                uploadingAvatar = false
+                if isAvatarIssue { issue = nil }
+            } catch {
+                if Task.isCancelled { return }
+                uploadingAvatar = false
+                issue = .avatarFailed
+            }
         }
     }
 
@@ -286,6 +371,10 @@ struct ProjectEditCastMemberEditor: View {
 
     /// MP `memberIssues` (story-cast.js) for the fields this page edits, first problem only.
     private func save() {
+        if uploadingAvatar {
+            issue = .avatarUploading
+            return
+        }
         let name = member.name.trimmingCharacters(in: .whitespacesAndNewlines)
         if name.isEmpty {
             issue = .nameMissing
@@ -316,6 +405,10 @@ struct ProjectEditCastFace: View {
     let name: String
     let colorHex: String?
     let size: Size
+    /// MP story-cast.js `shownAvatar`: only an `https://` photo is drawn; `media-asset:` ids keep the initial.
+    var imageURL: String? = nil
+    /// The photo just picked in 编辑角色 (MP `avatarPreview`), shown before the saved URL loads.
+    var localImage: UIImage? = nil
 
     @ScaledMetric(relativeTo: .body) private var mediumSide: CGFloat = 36
     @ScaledMetric(relativeTo: .largeTitle) private var largeSide: CGFloat = 72
@@ -330,7 +423,31 @@ struct ProjectEditCastFace: View {
                     .font(size == .large ? .title.weight(.semibold) : .headline)
                     .foregroundStyle(.white)
             }
+            .overlay { photo }
+            .clipShape(Circle())
             .accessibilityHidden(true)
+    }
+
+    @ViewBuilder private var photo: some View {
+        if let localImage {
+            Image(uiImage: localImage)
+                .resizable()
+                .scaledToFill()
+                .accessibilityHidden(true)
+        } else if let remoteURL {
+            AsyncImage(url: remoteURL) { phase in
+                if let image = phase.image {
+                    image
+                        .resizable()
+                        .scaledToFill()
+                }
+            }
+        }
+    }
+
+    private var remoteURL: URL? {
+        guard let imageURL, imageURL.hasPrefix("https://") else { return nil }
+        return URL(string: imageURL)
     }
 
     private var initial: String {
@@ -343,5 +460,26 @@ struct ProjectEditCastFace: View {
         guard let hex, let index = ProjectEditCastConfig.colors.firstIndex(of: hex) else { return .gray }
         let system: [Color] = [.red, .blue, .green, .pink, .orange, .gray]
         return system[index]
+    }
+}
+
+/// MP theme-cast.js `pickCastAvatar` upload: one sanitized photo → the editor's approved `api/common/uploadOSS`
+/// (`ProjectStoryImageUploading`, the same path as story pictures) → the returned reference for `avatarUrl`.
+public struct ProjectEditCastAvatarUpload {
+    public let upload: @MainActor (RetainedSelectedImage) async throws -> String
+
+    public init(upload: @escaping @MainActor (RetainedSelectedImage) async throws -> String) {
+        self.upload = upload
+    }
+
+    /// nil when the editor cannot upload (read-only, no session, no approved picker): 上传头像 is not shown.
+    @MainActor static func make(_ model: ProjectEditModel) -> ProjectEditCastAvatarUpload? {
+        guard !model.coordinator.isReadOnly, let source = model.coordinator.storyImageSource,
+              let session = model.coordinator.session,
+              source.isCurrent(session: session), source.permitsPicker(session: session) else { return nil }
+        return ProjectEditCastAvatarUpload { image in
+            guard source.isCurrent(session: session) else { throw ProjectStoryImageFailure.changedContext }
+            return try await source.upload(image, attemptID: UUID(), session: session).reference
+        }
     }
 }

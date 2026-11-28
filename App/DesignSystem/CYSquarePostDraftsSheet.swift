@@ -89,7 +89,7 @@ struct CYSquarePostDraftsSheet: View {
                 HStack(alignment: .top, spacing: CYSpacing.md) {
                     SquareAuthorAvatar(source: row.avatar, size: 40)
                     VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                        if typeSize.isAccessibilitySize {
+                        Group { if typeSize.isAccessibilitySize {
                             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                                 draftName(row).lineLimit(2)
                                 draftDate(row)
@@ -100,7 +100,7 @@ struct CYSquarePostDraftsSheet: View {
                                 Spacer(minLength: CYSpacing.sm)
                                 draftDate(row)
                             }
-                        }
+                        } }
                         .cyText(.label, weight: .semibold).foregroundStyle(CYColor.textPrimary)
                         Group {
                             if let summary = row.summary, !summary.isEmpty { Text(verbatim: summary) } else { Text("drafts.untitled", tableName: "SocialParity") }

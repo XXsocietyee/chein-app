@@ -347,6 +347,8 @@ import SwiftUI
             await applied(receipt)
         case .rejected(let message):
             pendingCommand = nil; unknown = false; error = message
+        case .notedUnknown(let message):
+            unknown = true; error = message
         case .unknown:
             unknown = true; error = appLocalized("i18nR3.actionUnknownRetry", locale: .current)
         }

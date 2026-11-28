@@ -35,7 +35,8 @@ import XCTest
     func testOnlyFourHundredsAreRefusals() {
         XCTAssertEqual(PlayHelpReply.classify(data: Data(#"{"code":409,"msg":"x","reasonCode":"POINTS_INSUFFICIENT"}"#.utf8), status: 200),
                        .refused(code: 409, reason: "POINTS_INSUFFICIENT", message: "x"))
-        XCTAssertEqual(PlayHelpReply.classify(data: Data(#"{"code":500,"msg":"x"}"#.utf8), status: 200), .unknown)
+        XCTAssertEqual(PlayHelpReply.classify(data: Data(#"{"code":500,"msg":"x"}"#.utf8), status: 200), .retryable(message: "x"))
+        XCTAssertEqual(PlayHelpReply.classify(data: Data(#"{"code":500}"#.utf8), status: 200), .unknown)
         XCTAssertEqual(PlayHelpReply.classify(data: Data(), status: 502), .unknown)
         XCTAssertEqual(PlayHelpReply.classify(data: Data(#"{"code":401}"#.utf8), status: 200), .unauthorized)
     }
@@ -73,6 +74,22 @@ import XCTest
         await model.use(1)
         XCTAssertEqual(model.row(1)?.problem, .insufficient)
         XCTAssertNil(model.row(1)?.content)
+    }
+
+    func testRetryableUseKeepsTheRequestAndShowsTheSentence() async {
+        let store = PlayHelpMemoryRequestStore()
+        let client = PlayHelpClient(identity: identity, view: { self.envelope(self.view) },
+            use: { _, _ in .retryable(message: "积分服务忙") },
+            skip: { _ in .retryable(message: "跳过未确认") }, receipt: { .unknown })
+        let model = PlayHelpLadderModel(client: client, store: store)
+        await model.load()
+        await model.use(1)
+        XCTAssertEqual(model.row(1)?.problem, .pendingNote("积分服务忙"))
+        XCTAssertTrue(model.row(1)?.pending ?? false)
+        XCTAssertNotNil(store.requestID(for: identity.storageKey(.use, level: 1)))
+        await model.skip()
+        XCTAssertTrue(model.skipPending)
+        XCTAssertEqual(model.notice, .pendingNote("跳过未确认"))
     }
 
     func testLetterContentMustBeOneCharacter() {

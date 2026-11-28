@@ -102,11 +102,54 @@ final class WeatherContextTests: XCTestCase {
         XCTAssertNil(WeatherContext.compose(latitude: 0, longitude: 0, now: now))
     }
 
-    func testContextGoesStaleAfterThirtyMinutes() {
+    func testMapWeatherExpiresInTenMinutesAndEnvironmentInThirty() {
         let at = Date(timeIntervalSince1970: 1_000_000)
-        let context = WeatherContext(kind: .rain, daypart: .night, source: .mapAmbience, observedAt: at)
-        XCTAssertTrue(context.isFresh(now: at.addingTimeInterval(29 * 60)))
-        XCTAssertFalse(context.isFresh(now: at.addingTimeInterval(31 * 60)))
+        let map = WeatherContext(kind: .rain, daypart: .night, source: .mapAmbience, observedAt: at)
+        XCTAssertEqual(WeatherContext.mapFreshFor, 10 * 60)
+        XCTAssertTrue(map.isFresh(now: at.addingTimeInterval(WeatherContext.mapFreshFor - 1)))
+        XCTAssertFalse(map.isFresh(now: at.addingTimeInterval(WeatherContext.mapFreshFor)))
+        let kit = WeatherContext(kind: .rain, daypart: .night, source: .weatherKit, observedAt: at)
+        XCTAssertFalse(kit.isFresh(now: at.addingTimeInterval(WeatherContext.mapFreshFor)))
+        let server = WeatherContext(kind: .rain, daypart: .night, source: .environment, observedAt: at)
+        XCTAssertEqual(WeatherContext.environmentFreshFor, 30 * 60)
+        XCTAssertTrue(server.isFresh(now: at.addingTimeInterval(WeatherContext.environmentFreshFor - 1)))
+        XCTAssertFalse(server.isFresh(now: at.addingTimeInterval(WeatherContext.environmentFreshFor)))
+    }
+
+    /// `cursor/1128-be-weather`: 20 cells/degree (~5.5 km), Hangzhou 30.2741,120.1551 → `map:weather:605:2403`,
+    /// and the reply is kind + intensity. 2026-11-28 00:30Z is morning in Asia/Shanghai and night in UTC.
+    func testMapWeatherIsKindAndIntensityOnTheShanghaiCell() async throws {
+        XCTAssertEqual(MapSearchPlayerService.cellsPerDegree, 20)
+        let cell = try XCTUnwrap(MapSearchPlayerService.cell(latitude: 30.2741, longitude: 120.1551))
+        XCTAssertEqual(cell.0, 605)
+        XCTAssertEqual(cell.1, 2403)
+        let body = #"{"kind":"rain","intensity":0.6,"temperature":22,"city":"杭州"}"#
+        let raw = try JSONDecoder().decode(SquareGovernanceJSON.self, from: Data(body.utf8))
+        let parsed = try XCTUnwrap(MapSearchPlayerService.weather(raw))
+        XCTAssertEqual(parsed, .init(kind: "rain", intensity: 0.6))
+        XCTAssertNil(MapSearchPlayerService.weather(try JSONDecoder().decode(SquareGovernanceJSON.self, from: Data(#"{"kind":"clear","intensity":0,"temperature":22}"#.utf8))))
+
+        let now = Date(timeIntervalSince1970: 1_795_825_800)
+        let context = try XCTUnwrap(WeatherContext.compose(map: (kind: parsed.kind, intensity: parsed.intensity),
+                                                           latitude: 30.2741, longitude: 120.1551, now: now))
+        XCTAssertEqual(context.kind, .rain)
+        XCTAssertEqual(context.daypart, .morning)
+        XCTAssertNil(context.temperatureCelsius)
+        XCTAssertEqual(context.guideFacts["daypart"], "morning")
+        XCTAssertNil(context.guideFacts["temperatureC"])
+        let utc = try XCTUnwrap(WeatherContext.compose(map: (kind: "rain", intensity: 0.6), latitude: 30.2741, longitude: 120.1551,
+                                                       now: now, timeZone: TimeZone(secondsFromGMT: 0)!))
+        XCTAssertEqual(utc.daypart, .night)
+
+        let stub = Stub()
+        stub.reply = #"{"code":200,"data":{"kind":"rain","intensity":0.6,"temperature":22,"city":"杭州"}}"#
+        let client = PlayerCapabilityClient(baseURL: URL(string: "https://example.test/native/")!, token: "synthetic-token", transport: stub)
+        let sent = await MapSearchPlayerService(client: client).weather(latitude: 30.2741, longitude: 120.1551)
+        XCTAssertEqual(sent, .init(kind: "rain", intensity: 0.6))
+        let request = try XCTUnwrap(stub.requests.last)
+        let items = URLComponents(url: try XCTUnwrap(request.url), resolvingAgainstBaseURL: false)?.queryItems
+        XCTAssertEqual(items, [URLQueryItem(name: "lat", value: "30.275"), URLQueryItem(name: "lng", value: "120.175")])
+        XCTAssertFalse(request.url?.query?.contains("temperature") == true)
     }
 
     @MainActor func testBoardKeepsTheLastValue() {
@@ -116,6 +159,11 @@ final class WeatherContextTests: XCTestCase {
         let context = WeatherContext(kind: .fog, daypart: .dawn, source: .mapAmbience, observedAt: Date())
         board.publish(context)
         XCTAssertEqual(board.current, context)
+        let stale = WeatherContext(kind: .rain, daypart: .night, source: .mapAmbience,
+                                   observedAt: Date().addingTimeInterval(-WeatherContext.mapFreshFor))
+        board.publish(stale)
+        XCTAssertEqual(board.latest, stale)
+        XCTAssertNil(board.current)
         board.clear()
         XCTAssertNil(board.current)
     }

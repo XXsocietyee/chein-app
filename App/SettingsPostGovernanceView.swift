@@ -96,6 +96,15 @@ struct PostGovernanceRow: Identifiable, Equatable {
     @State private var generation = UUID()
     private static let reasonMax = 500
 
+    @Environment(\.locale) private var locale
+
+    /// MP `done(requestError(res, '申诉未提交'))`: the server's own refusal sentence when it is safe to show.
+    /// Server text is Chinese, so English keeps the fixed copy instead of mixing languages.
+    static func refusalNotice(_ message: String?, locale: Locale) -> LocalizedStringKey {
+        guard let message, locale.language.languageCode?.identifier == "zh" else { return "mpd.postGov.submitFailed" }
+        return "\(message)"
+    }
+
     enum Phase: Equatable { case loading, signedOut, failed, ready }
 
     var body: some View {
@@ -276,6 +285,8 @@ struct PostGovernanceRow: Identifiable, Equatable {
             await reload()
             let landed = PostGovernanceRow.rows(self.snapshot?.enforcements ?? []).first { $0.id == enforcementID }.map { !$0.canAppeal } ?? false
             notice = landed ? nil : "mpd.postGov.unconfirmed"
+        } catch SquareGovernanceFailure.appealRefused(let message) {
+            notice = Self.refusalNotice(message, locale: locale)
         } catch {
             notice = "mpd.postGov.submitFailed"
         }

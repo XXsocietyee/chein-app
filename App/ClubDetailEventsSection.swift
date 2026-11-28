@@ -36,7 +36,10 @@ import SwiftUI
         Section {
             switch summary.state {
             case .loading:
-                ProgressView().accessibilityIdentifier("club.detail.events.loading")
+                // a11y-dt r3 (P10): the spinner says what it loads; VoiceOver reads the words, not only "in progress".
+                ProgressView { Text("cy.state.loading") }
+                    .frame(maxWidth: .infinity)
+                    .accessibilityIdentifier("club.detail.events.loading")
             case .failed(let key):
                 Text(LocalizedStringKey(key)).foregroundStyle(.secondary).accessibilityIdentifier("club.detail.events.error")
             case .empty:

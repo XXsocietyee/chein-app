@@ -84,10 +84,14 @@ public enum WeatherSceneKind: String, CaseIterable, Sendable {
     }
 }
 
-/// Backend daypart (`TopicEnvironmentService.daypart`, Asia/Shanghai server clock): dawn 5–8, morning 8–12,
-/// afternoon 12–17, evening 17–20, night otherwise. The device uses the same cut points in its own time zone.
+/// Backend daypart (`TopicEnvironmentService.daypart`): dawn 5–8, morning 8–12, afternoon 12–17, evening 17–20,
+/// night otherwise. The server clock is Asia/Shanghai and does not read the device zone (`cursor/1128-be-weather`).
+/// The fallback below uses that same zone so a map with no environment daypart still matches `weather_event_rule`.
 public enum WeatherDaypart: String, CaseIterable, Sendable {
     case dawn, morning, afternoon, evening, night
+
+    /// `TopicEnvironmentService` zone. GMT+8 if the identifier is missing.
+    public static let serverZone: TimeZone = TimeZone(identifier: "Asia/Shanghai") ?? TimeZone(secondsFromGMT: 8 * 3600)!
 
     public static func server(_ raw: String?) -> WeatherDaypart? {
         raw.flatMap { WeatherDaypart(rawValue: $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()) }
@@ -103,7 +107,7 @@ public enum WeatherDaypart: String, CaseIterable, Sendable {
         }
     }
 
-    public static func at(_ date: Date, timeZone: TimeZone = .current) -> WeatherDaypart {
+    public static func at(_ date: Date, timeZone: TimeZone = serverZone) -> WeatherDaypart {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = timeZone
         return at(hour: calendar.component(.hour, from: date))
@@ -203,7 +207,7 @@ public struct WeatherContext: Equatable, Sendable {
     public static func compose(environmentWeather: String? = nil, environmentDaypart: String? = nil,
                                map: (kind: String, intensity: Double)? = nil, device: DeviceWeatherReading? = nil,
                                latitude: Double? = nil, longitude: Double? = nil,
-                               now: Date = Date(), timeZone: TimeZone = .current) -> WeatherContext? {
+                               now: Date = Date(), timeZone: TimeZone = WeatherDaypart.serverZone) -> WeatherContext? {
         let solar: SolarLight.Phase? = {
             guard let latitude, let longitude, latitude.isFinite, longitude.isFinite,
                   abs(latitude) <= 90, abs(longitude) <= 180, !(latitude == 0 && longitude == 0) else { return nil }
@@ -266,9 +270,19 @@ public struct WeatherContext: Equatable, Sendable {
         return out
     }
 
-    /// Fresh for 30 minutes, the backend environment cache window (`WEATHER_TTL_MILLIS`).
-    public static let freshFor: TimeInterval = 30 * 60
-    public func isFresh(now: Date = Date()) -> Bool { now.timeIntervalSince(observedAt) < Self.freshFor }
+    /// Map ambience and WeatherKit: 10 minutes, `MapWeatherServiceImpl.TTL_MINUTES` on `cursor/1128-be-weather`
+    /// (the ~5.5 km cell). Topic environment weather stays 30 minutes (`TopicEnvironmentService.WEATHER_TTL_MILLIS`).
+    public static let mapFreshFor: TimeInterval = 10 * 60
+    public static let environmentFreshFor: TimeInterval = 30 * 60
+
+    public var freshFor: TimeInterval {
+        switch source {
+        case .mapAmbience, .weatherKit: return Self.mapFreshFor
+        case .environment, .story, .daylightOnly: return Self.environmentFreshFor
+        }
+    }
+
+    public func isFresh(now: Date = Date()) -> Bool { now.timeIntervalSince(observedAt) < freshFor }
 }
 
 #if canImport(Combine)
@@ -279,7 +293,7 @@ public struct WeatherContext: Equatable, Sendable {
 
     public init() {}
 
-    /// Nil once older than `WeatherContext.freshFor`, so a guide line never states stale weather.
+    /// Nil once older than the source window, so a guide line never states stale weather.
     public var current: WeatherContext? { latest.flatMap { $0.isFresh() ? $0 : nil } }
 
     public func publish(_ context: WeatherContext?) {
