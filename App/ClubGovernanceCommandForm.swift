@@ -957,7 +957,12 @@ import SwiftUI
             guard presentation.owns(activity, in: presentationContext), !Task.isCancelled, revision == generation, expected == identity, expected == access.identity else { return }
             guard seriesScheduleReady else { coordinator.cancelReview(); throw ClubGovernanceFailure.invalidRequest }
             review = pending
-        } catch { if presentation.owns(activity, in: presentationContext), !Task.isCancelled, revision == generation && expected == identity { failure = error as? ClubGovernanceFailure ?? .malformed } }
+        } catch {
+            if presentation.owns(activity, in: presentationContext), !Task.isCancelled, revision == generation && expected == identity {
+                failure = error as? ClubGovernanceFailure ?? .malformed
+                CYHaptics.warning.play()
+            }
+        }
     }
     private func confirm(_ review: ClubGovernanceReview) async {
         // MC-33: a heavy command stops here once to show its consequences; the sheet's confirm comes back in.
@@ -1028,12 +1033,16 @@ import SwiftUI
                 groupCode = try ClubGovernanceGroupCode(receipt: value, receivedAt: Date(),
                     expectedClubID: review.command.scope.clubID, expectedActivityID: activityID)
             }
+            // mp-club r3 pass 29 (MP success toast / failure toast after every governance write): an acknowledged
+            // write plays success; an 结束主题 that left sessions uncancelled plays warning with its error line.
+            if failure == nil { CYHaptics.success.play() } else { CYHaptics.warning.play() }
         } catch {
             if presentation.owns(activity, in: presentationContext), !Task.isCancelled, revision == generation && expected == identity {
                 // Invalid original QR cannot render an acknowledged success card.
                 // This clears ephemeral presentation only, never the durable original request.
                 if route.operation == .issueGroupCode { groupCode = nil; receipt = nil }
                 failure = error as? ClubGovernanceFailure ?? .unknown(message: nil)
+                CYHaptics.warning.play()
                 self.review = nil; locked = coordinator.isLocked(review.command, identity: review.identity)
                 if route.operation == .updateSeries, submittedRequestID == draft.requestID, !locked, let definite = failure {
                     seriesUpdateReturn?.conflicted(review, definite)
