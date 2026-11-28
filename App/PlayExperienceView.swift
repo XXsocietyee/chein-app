@@ -365,6 +365,10 @@ struct PlayThemeMusicKey: Equatable {
                   model.hasCurrentMediaSnapshot, finishShownFor != model.identity else { return }
             finishShownFor = model.identity; finishScreen = true
         }
+        .onChange(of: finishScreen) { _, shown in
+            // MP chapter finish (`index.js:9039`): re-read `sessStats` for the 本局成绩 rank.
+            if shown { Task { await loadSessionStats() } }
+        }
     }
 
     private var playExperienceTail: some View {
@@ -831,7 +835,8 @@ struct PlayThemeMusicKey: Equatable {
             teamLead: model.lead,
             journalRows: model.snapshot.map(PlayJournal.rows(in:)),
             journalAttributes: model.snapshot.map(PlayJournal.attributes(in:)) ?? [],
-            boardDestination: model.snapshot == nil ? nil : { [model, orientBoard] in AnyView(PlayCompanionBoardView(model: model, orientBoard: orientBoard)) },
+            boardDestination: model.snapshot == nil ? nil : { [model, sessionID = orientBoardSessionID, read = orientBoardLoader] in
+                AnyView(PlayCompanionBoardView(model: model, orientSessionID: sessionID, orientRead: read)) },
             scoreDestination: orientScoreDestination,
             sessionStats: sessionStats,
             sessionStatsOff: sessionStatsOff,
@@ -840,13 +845,6 @@ struct PlayThemeMusicKey: Equatable {
             contact: playContact,
             onTeamBroadcast: teamBroadcast
         )
-    }
-    /// mp-journey-b r3: MP `openBoard` — a city run (mode 1) with `routeState.sessionId` reads the orient-scoring board
-    /// first; nil keeps the `/api/play/leaderboard` board.
-    private var orientBoard: (() async -> PlayOrientBoardRead)? {
-        guard let loader = orientBoardLoader, let result = model.snapshot?.result, result.mode == 1,
-              let sessionID = result.routeState?.sessionID, sessionID > 0 else { return nil }
-        return { await loader(sessionID) }
     }
     /// mp-journey-b r3: MP `leadBroadcast` from 游玩工具 队伍位置 — `POST /api/club/lead/broadcast {activityId, text}`,
     /// then the team progress is read again (MP `loadTeamProgress`); the line shown is the server's, else 已广播.
@@ -1042,6 +1040,17 @@ struct PlayThemeMusicKey: Equatable {
             }
         }
     }
+    /// MP `openBoard`: `mode === 1` with `routeState.sessionId` reads the orient-scoring board.
+    private var orientBoardSessionID: Int? {
+        guard let result = model.snapshot?.result, result.mode == 1,
+              let sessionID = result.routeState?.sessionID, sessionID > 0 else { return nil }
+        return sessionID
+    }
+    /// MP `finish-journal-entry` value: `{{provisional ? '暂列' : ''}}第 N 名` once `sessStats` has a rank.
+    private var finishScoreRank: CityOrientationScoreRank? {
+        guard case .ready(_, _, let rank, let provisional)? = sessionStats, let rank else { return nil }
+        return CityOrientationScoreRank(rank: rank, provisional: provisional)
+    }
     @ViewBuilder private var cityFinishSummary: some View {
         let snapshot = model.snapshot
         let medals = model.reward.map { PlayRewardSection.medals(in: $0, locale: locale) } ?? []
@@ -1053,23 +1062,10 @@ struct PlayThemeMusicKey: Equatable {
             model: model, titleKey: key, subtitle: [topic, earned].compactMap { $0 }.joined(separator: " · "),
             medals: medals, shareText: appLocalized("medalScreen.shareText \(topic ?? title)", locale: locale),
             walkedMeters: cityLocation.walkedMeters, reportDestination: cityReportDestination,
-            scoreDestination: finishScoreReady(snapshot) ? orientScoreDestination?() : nil,
+            scoreDestination: (snapshot?.result.allDone ?? false) || sessionStatsOff ? nil : orientScoreDestination?(),
             scoreRank: finishScoreRank,
             collectionDestination: cityCollectionDestination,
             onClose: { finishScreen = false })
-            // MP `index.js:9039`: the chapter finish (not all done) reads `loadSessionStats` for the 本局成绩 rank.
-            .task { if !(snapshot?.result.allDone ?? false) { await loadSessionStats() } }
-    }
-    /// MP `finish-journal-entry` 本局成绩: `!allDone && mode == 1 && sessStats.state === 'ok'`.
-    private func finishScoreReady(_ snapshot: PlaySnapshot?) -> Bool {
-        guard !(snapshot?.result.allDone ?? false), case .ready? = sessionStats else { return false }
-        return true
-    }
-    /// MP `fje-v`: `{{sessStats.provisional ? '暂列' : ''}}第 {{sessStats.rank}} 名`, only with a rank.
-    private var finishScoreRank: String? {
-        guard case .ready(_, _, let rank?, let provisional)? = sessionStats else { return nil }
-        if provisional { return appLocalized("playx.finish.sessionRank.provisional \(rank)", locale: locale) }
-        return appLocalized("playTools.boardRank \(rank)", locale: locale)
     }
     /// Design pass roam (P8): the badge collection for the first badge this run awarded, through the same
     /// `rewardCollectionDestination` the reward rows use.

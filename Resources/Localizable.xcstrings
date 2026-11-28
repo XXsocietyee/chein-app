@@ -32282,13 +32282,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Creator"
+            "value": "Owner"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "创建者"
+            "value": "主理人"
           }
         }
       }
@@ -273868,7 +273868,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Session"
+            "value": "Event"
           }
         },
         "zh-Hans": {
@@ -361500,9 +361500,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld topics published"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld topic published"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld topics published"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -361534,9 +361546,21 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld invitations sent"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld invitation sent"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld invitations sent"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
@@ -362744,6 +362768,23 @@
         }
       }
     },
+    "playx.finish.rankProvisional %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provisional No. %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂列第 %lld 名"
+          }
+        }
+      }
+    },
     "playTools.team.broadcastTitle": {
       "extractionState": "manual",
       "localizations": {
@@ -362791,91 +362832,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "发送"
-          }
-        }
-      }
-    },
-    "playx.finish.sessionRank.provisional %lld": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Provisionally No. %lld"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暂列第 %lld 名"
-          }
-        }
-      }
-    },
-    "playx.board.orient.points %@": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ pts"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ 分"
-          }
-        }
-      }
-    },
-    "playx.board.orient.reached": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reached the ending"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已到达结局"
-          }
-        }
-      }
-    },
-    "playx.board.orient.notReached": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not at the ending yet"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "尚未到达结局"
-          }
-        }
-      }
-    },
-    "playx.board.orient.elapsedPending": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Time to be confirmed"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "用时待确认"
           }
         }
       }

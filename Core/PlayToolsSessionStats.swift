@@ -25,7 +25,7 @@ public enum PlayToolsSessionStats: Equatable {
             return date > now
         }()
         let rank = me.flatMap { $0.rank > 0 ? $0.rank : nil }
-        // MP `scoreScreen`: the board's `me.elapsedMs` first; else `startedAt → endedAt` (ended) or `startedAt → now`.
+        // mp-journey-b r3, MP `scoreScreen`: the board's `me.elapsedMs` first; else `startedAt → endedAt` (ended) or `→ now`.
         var elapsed = me?.elapsedMs.map(clock(milliseconds:))
         if elapsed == nil, let started = score.startedAt {
             let end: Date? = ended ? score.endedAt : now
@@ -76,53 +76,26 @@ public enum PlayToolsSessionStats: Equatable {
     }
 }
 
-/// mp-journey-b r3: MP 同行者榜 on a city run (`pages/play/index.js` `openBoard`, mode 1 with `routeState.sessionId`):
-/// the orient-scoring board `/api/orient/scoring/session/{id}/leaderboard`, projected the way
-/// `pages/play/utils/play-board-view.js` `project` does for SCORE / ROUTE boards.
-public struct PlayOrientBoard: Equatable {
-    public struct Row: Equatable, Identifiable {
-        public let id: String
-        public let rank: Int
-        /// MP nickname: 我 for the player's own row, else 同行者 (the orient board carries no names or avatars).
-        public let mine: Bool
-        /// SCORE: MP `centi` (two decimals, "17.50"); nil on a ROUTE board.
-        public let points: String?
-        /// ROUTE: 已到达结局 / 尚未到达结局.
-        public let reachedEnding: Bool
-        /// MP `elapsedText`: `clock(elapsedMs)`, nil = 用时待确认.
-        public let elapsed: String?
-    }
-    public let mode: OrientSessionLeaderboard.Mode
-    public let rows: [Row]
-    public let me: Row?
+/// mp-journey r3: MP 同行者榜 on a city-orientation round (`pages/play/index.js` `openBoard`, mode 1 with an orient session)
+/// reads `/api/orient/scoring/session/{id}/leaderboard`; `play-board-view.js` `project` names rows 我 / 同行者 and shows the
+/// SCORE points or the ROUTE 已到 / 未到结局 flag, plus mm:ss or 用时待确认.
+public struct PlayOrientBoardRow: Equatable, Identifiable {
+    public let id: String
+    public let rank: Int
+    public let mine: Bool
+    /// SCORE mode points text (two decimals); nil in ROUTE mode.
+    public let scoreText: String?
+    public let reachedEnding: Bool
+    /// mm:ss; nil is 用时待确认.
+    public let elapsed: String?
 
-    public init(_ board: OrientSessionLeaderboard) {
-        mode = board.mode
-        func row(_ raw: OrientSessionLeaderboard.Row) -> Row {
-            Row(id: raw.rowKey, rank: raw.rank, mine: raw.mine,
-                points: board.mode == .score ? Self.centi(raw.scoreCenti) : nil,
-                reachedEnding: raw.reachedEnding,
-                elapsed: raw.elapsedMs.map(PlayToolsSessionStats.clock(milliseconds:)))
+    public static func rows(_ board: OrientSessionLeaderboard) -> (list: [PlayOrientBoardRow], me: PlayOrientBoardRow?) {
+        func item(_ row: OrientSessionLeaderboard.Row) -> PlayOrientBoardRow {
+            PlayOrientBoardRow(id: row.rowKey, rank: row.rank, mine: row.mine,
+                               scoreText: board.mode == .score ? OrientScoreFormat.centi(row.scoreCenti) : nil,
+                               reachedEnding: row.reachedEnding,
+                               elapsed: row.elapsedMs.map(PlayToolsSessionStats.clock(milliseconds:)))
         }
-        rows = board.list.map(row)
-        me = board.me.map(row)
+        return (board.list.map(item), board.me.map(item))
     }
-
-    /// MP `orient-score-view.js` `centi` without the 分 suffix: 1750 → "17.50", -5 → "-0.05".
-    public static func centi(_ value: Int) -> String {
-        let digits = String(value.magnitude)
-        let padded = String(repeating: "0", count: max(0, 3 - digits.count)) + digits
-        let whole = String(padded.dropLast(2)), fraction = String(padded.suffix(2))
-        let sign = value < 0 ? "-" : ""
-        return sign + whole + "." + fraction
-    }
-}
-
-/// mp-journey-b r3: result of the MP `openBoard` orient read. `.scoringOff` (`ORIENT_SCORING_DISABLED` /
-/// `ORIENT_SCORING_NOT_APPLICABLE`) is the only case that falls back to `/api/play/leaderboard`; any other failure is
-/// the board error (MP: "Network/permission failures do not").
-public enum PlayOrientBoardRead: Equatable {
-    case board(PlayOrientBoard)
-    case scoringOff
-    case failed
 }

@@ -17,8 +17,8 @@ import MapKit
     /// mp-journey r3: MP finsheet 本局成绩 (`finish-journal-entry`, chapter finish of a mode 1 run with an orient session),
     /// right before 本局战报. Nil hides the row.
     var scoreDestination: AnyView? = nil
-    /// mp-journey-b r3: MP `fje-v` on the 本局成绩 row — 第 N 名, 暂列第 N 名 while the result is provisional. Nil shows no value.
-    var scoreRank: String? = nil
+    /// MP `fje-v`: 暂列第 N 名 / 第 N 名 on the 本局成绩 row; nil shows the row without a value.
+    var scoreRank: CityOrientationScoreRank? = nil
     /// The MP badge collection for the first medal earned here (P8: "see the collection"); nil hides the link.
     var collectionDestination: AnyView? = nil
     let onClose: () -> Void
@@ -160,7 +160,13 @@ import MapKit
                     Section {
                         NavigationLink { scoreDestination } label: {
                             LabeledContent {
-                                if let scoreRank { Text(verbatim: scoreRank).monospacedDigit() }
+                                if let scoreRank {
+                                    if scoreRank.provisional {
+                                        Text("playx.finish.rankProvisional \(scoreRank.rank)").monospacedDigit()
+                                    } else {
+                                        Text("playTools.boardRank \(scoreRank.rank)").monospacedDigit()
+                                    }
+                                }
                             } label: {
                                 Label("playx.finish.sessionScore", systemImage: "list.number")
                             }
@@ -360,4 +366,10 @@ import MapKit
             Text(verbatim: String(score)).monospacedDigit().foregroundStyle(.secondary)
         }
     }
+}
+
+/// mp-journey r3: the 本局成绩 rank on the finish sheet (MP `sessStats.rank` / `provisional`).
+struct CityOrientationScoreRank: Equatable {
+    let rank: Int
+    let provisional: Bool
 }
