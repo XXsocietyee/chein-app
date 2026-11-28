@@ -747,3 +747,15 @@ Also synced `Resources/ContextPublishingLocalizations.fragment.json` (`contextSe
 Checked, no change: en balance "CN¥0.00" is the en-US system format for CNY (zh shows ¥).
 
 Gates: generate_project no change, check_scaffold PASS, a11y lint 0 new, design consistency PASS, contract ratchet 46 failing / baseline 46 / **new 0**, check_en_strings 11 problems (unchanged). **Half done**; A half rows 1–2 still blocked.
+
+## Continue 48 (11-28, half-hourly run): badge-wall sweep shows the shipped page
+
+Merged `origin/ui/combined-r7` (clean). Still no `docs/release/receipts/cursor-k50-p*.md` on any branch; the 17:30 and 18:30 sweeps have no mp-mine rows. Half split at run start: 1 `CharacterCardReadbackView` byte pin · 2 `pass-unlock` rest (`MPCommerceGate.purchasesEnabled` false) | 3 P2-5c. A half (1–2) still blocked. Screens checked: `docs/sweeps/latest/mp-mine/sheet-en.jpg`, `sheet-zh-Hans.jpg`, `en-e5b-badge-wall.jpg` (build b954de71c; continue 47 "Tickets" is not in that build yet).
+
+| MP page | Native file | MP sections | Level | Fixed now |
+|---|---|---|---|---|
+| `subpackageMember` badge wall (`en-e5b-badge-wall`, also `a11y-badges-ax5`): bare page, tiny 已点亮 / 未解锁 captions and the ring at the screen edge, unlike every other Me sub-page | `App/DesignFixtures/E5bFixtures.swift` `E5bBadgeWallFixture`, `App/DesignFixtures/AlbumFixtures.swift` `AlbumBadgeFixtureReader(identityRows:)` | ✓ (ring + counts → 已点亮 → 未解锁, unchanged) | B | **Fixed (fixture).** The shot was a hand-built copy of the wall in a `ScrollView`, never shipped. The fixture now mounts the real `ObjectBadgeWallView` (inset-grouped List with section headers, as `d4-badges` shows) on the same bilingual six badges, so the sweep and the AX5 variant show the page players get. Debug only; no product code changed. |
+
+Checked, no change: ticket rows (`e4-tickets`) show the MP route illustration when there is no cover (continue 44, MP `cover-route.svg`); session tickets carry time · place on the sub-line without a calendar glyph, as the MP `sessionLine`.
+
+Coordinator: please re-sweep `e5b-badge-wall` and `a11y-badges-ax5`.

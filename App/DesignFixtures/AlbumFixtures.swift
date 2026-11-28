@@ -92,7 +92,12 @@ enum AlbumBadgeVariant { case mixed, allLocked }
 /// two city medals and one achievement. `.allLocked`: only locked identity badges and no medals.
 @MainActor final class AlbumBadgeFixtureReader: ProfileReading {
     let variant: AlbumBadgeVariant
-    init(variant: AlbumBadgeVariant) { self.variant = variant }
+    /// Sweep fixtures (`e5b-badge-wall`) pass their own bilingual identity rows; no medals then.
+    private let identityRows: [ProfileIdentityBadge]?
+    init(variant: AlbumBadgeVariant, identityRows: [ProfileIdentityBadge]? = nil) {
+        self.variant = variant
+        self.identityRows = identityRows
+    }
     var isConfigured: Bool { true }
     var identity: ProfileReadIdentity? { ProfileReadIdentity(accountID: 9001, epoch: 1) }
     func profileOrders() async throws -> [ProfileOrder] { throw APIError.notConfigured }
@@ -101,6 +106,7 @@ enum AlbumBadgeVariant { case mixed, allLocked }
     func profileParticipant(id: Int) async throws -> ProfileParticipant { throw APIError.notConfigured }
     func profileBadges() async throws -> ProfileBadgeWall {
         try Task.checkCancellation()
+        if let identityRows { return ProfileBadgeWall(identities: identityRows, medals: []) }
         let today = AlbumFixtures.stamp(daysAgo: 0)
         let identities: String
         switch variant {
