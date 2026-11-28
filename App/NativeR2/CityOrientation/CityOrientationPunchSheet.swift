@@ -106,7 +106,7 @@ import SwiftUI
         .onChange(of: confirmReview) { _, visible in
             if !visible, review != nil { model.cancelReview(); review = nil }
         }
-        .sensoryFeedback(.error, trigger: model.arrivalFailure?.nodeID) { _, new in NativeR2Flags.motion && new == nodeID }
+        .sensoryFeedback(.error, trigger: NativeR2Flags.motion && model.arrivalFailure?.nodeID == nodeID, condition: CYHapticTransition.turnedOn)
         .sensoryFeedback(.error, trigger: refusal, condition: CYHapticTransition.isSet)
         .modifier(CityOrientationStartModeDialogs(arrival: arrival, model: model, nodeID: nodeID,
                                                   startModesShown: $startModesShown, deskConfirmShown: $deskConfirmShown))

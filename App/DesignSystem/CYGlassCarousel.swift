@@ -126,7 +126,7 @@ struct CYGlassCarousel: View {
             .padding(.top, CYSpacing.md)
         }
         .frame(height: metrics.railHeight)
-        .cyHaptic(.selection, trigger: selectedID, where: { old, new in old != nil && new != nil && old != new })
+        .cyHaptic(.selection, trigger: selectedID, where: CYHapticTransition.bothSet)
         .onAppear { if selectedID == nil { selectedID = slides.first?.id; state = .idle(selected: slides.first?.id ?? "") } }
         .onChange(of: slides.map(\.id)) { _, ids in
             state = state.reduce(.itemsChanged(ids: ids))

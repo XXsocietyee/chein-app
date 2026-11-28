@@ -68,7 +68,7 @@ struct EditorResultContent: View {
         .padding(.bottom, CYSpacing.lg)
         .frame(maxWidth: .infinity)
         .onAppear { withAnimation(reduceMotion ? nil : .easeOut(duration: EditorMotionSpec.revealSeconds)) { appeared = true } }
-        .sensoryFeedback(state == .failed ? SensoryFeedback.error : SensoryFeedback.success, trigger: appeared) { _, new in new && state != .unknown }
+        .sensoryFeedback(state == .failed ? SensoryFeedback.error : SensoryFeedback.success, trigger: appeared && state != .unknown, condition: CYHapticTransition.turnedOn)
         .interactiveDismissDisabled(false)
     }
 

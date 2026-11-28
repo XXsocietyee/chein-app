@@ -131,7 +131,7 @@ import SwiftUI
         }
         .frame(maxWidth: 300).aspectRatio(1, contentMode: .fit).frame(maxWidth: .infinity)
         .sensoryFeedback(.impact(weight: .medium), trigger: timing.phase == .running)
-        .sensoryFeedback(trigger: timing.phase == .measured) { _, now in now ? (stopwatchOutcome == false ? .warning : .success) : nil }
+        .sensoryFeedback(trigger: timing.phase == .measured, measuredFeedback)
         .accessibilityElement(children: .ignore)
         .accessibilityValue(Text(verbatim: clockLabel))
         .accessibilityLabel(Text(kind == .stopwatch && running && elapsed >= 1000 ? "playkit.stopwatch.hidden" : "playkit.challenge.clock"))
@@ -320,5 +320,13 @@ struct PlayTimedResultCard: View {
         .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous).stroke(tone.opacity(0.5), lineWidth: 1))
         .accessibilityElement(children: .combine)
+    }
+}
+
+private extension PlayKitTimedChallengeView {
+    /// Typed haptic: a measured stopwatch plays warning when it missed the window, success otherwise.
+    func measuredFeedback(_ old: Bool, _ now: Bool) -> SensoryFeedback? {
+        guard now else { return nil }
+        return stopwatchOutcome == false ? .warning : .success
     }
 }

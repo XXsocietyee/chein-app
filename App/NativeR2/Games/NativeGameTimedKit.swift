@@ -237,7 +237,7 @@ import SwiftUI
             .accessibilityValue(clockAccessibilityValue)
             .accessibilityLabel(Text(kind == .stopwatch && running && elapsed >= 1000 ? "playkit.stopwatch.hidden" : "playkit.challenge.clock"))
             .sensoryFeedback(.impact(weight: .medium), trigger: timing.phase == .running, condition: CYHapticTransition.isOn)
-            .sensoryFeedback(trigger: timing.phase == .measured) { _, now in now ? (stopwatchOutcome == false ? .warning : .success) : nil }
+            .sensoryFeedback(trigger: timing.phase == .measured, measuredFeedback)
             if !validConfiguration {
                 ContentUnavailableView("playkit.configurationInvalid", systemImage: "exclamationmark.triangle")
             }
@@ -508,5 +508,13 @@ import SwiftUI
     }
     private func interrupt() {
         timing.interrupt(); reaction.interrupt(); typingFocused = false; ticker = UUID()
+    }
+}
+
+private extension NativeGameTimedKit {
+    /// Typed haptic: a measured stopwatch plays warning when it missed the window, success otherwise.
+    func measuredFeedback(_ old: Bool, _ now: Bool) -> SensoryFeedback? {
+        guard now else { return nil }
+        return stopwatchOutcome == false ? .warning : .success
     }
 }

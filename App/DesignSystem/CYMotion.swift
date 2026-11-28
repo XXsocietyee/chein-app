@@ -81,6 +81,10 @@ enum CYHapticTransition {
     static func becameSet<Value>(_ old: Value?, _ new: Value?) -> Bool { old == nil && new != nil }
     /// The count went up.
     static func increased(_ old: Int, _ new: Int) -> Bool { new > old }
+    /// Any change that ends non-empty (a new face, a new roll).
+    static func nonEmpty<Value: Collection>(_ old: Value, _ new: Value) -> Bool { !new.isEmpty }
+    /// A change from one value to another (not the first set, not a clear).
+    static func bothSet<Value>(_ old: Value?, _ new: Value?) -> Bool { old != nil && new != nil }
 }
 
 // MARK: - Tokens
