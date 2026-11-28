@@ -41,7 +41,7 @@ class HomeCityLocationConsentWiring(unittest.TestCase):
         record = (ROOT / 'Core/HomeCityLocationConsent.swift').read_text()
         self.assertIn('public static let unknownDisplay = "\u2014"', record)
         catalog = json.loads((ROOT / 'Resources/Localizable.xcstrings').read_text())['strings']
-        for key in ('homeCityConsent.title', 'homeCityConsent.body', 'homeCityConsent.agree', 'homeCityConsent.decline', 'homeCityConsent.saveFailed', 'homeCityConsent.unknown'):
+        for key in ('homeCityConsent.title', 'homeCityConsent.body', 'homeCityConsent.privacy', 'homeCityConsent.agree', 'homeCityConsent.decline', 'homeCityConsent.saveFailed', 'homeCityConsent.unknown'):
             entry = catalog[key]['localizations']
             for language in ('en', 'zh-Hans'):
                 unit = entry[language]['stringUnit']
@@ -49,6 +49,19 @@ class HomeCityLocationConsentWiring(unittest.TestCase):
                 self.assertTrue(unit['value'].strip())
         self.assertEqual(catalog['homeCityConsent.unknown']['localizations']['en']['stringUnit']['value'], '\u2014')
         self.assertEqual(catalog['homeCityConsent.unknown']['localizations']['zh-Hans']['stringUnit']['value'], '\u2014')
+
+    def test_card_primes_honestly_with_one_primary_and_a_quiet_not_now(self):
+        # mp-home r3 continue 45 (P40): the coordinate is matched on the device and never sent, so the copy must not
+        # say it is uploaded; one prominent 同意定位, a plain 暂不定位, and a privacy line.
+        card = (ROOT / 'App/HomeCityLocationConsentCard.swift').read_text()
+        self.assertIn('Label("homeCityConsent.privacy", systemImage: "lock.fill")', card)
+        self.assertEqual(card.count('.buttonStyle(.borderedProminent)'), 1)
+        self.assertIn('.buttonStyle(.borderless)', card)
+        catalog = json.loads((ROOT / 'Resources/Localizable.xcstrings').read_text())['strings']
+        for language in ('en', 'zh-Hans'):
+            body = catalog['homeCityConsent.body']['localizations'][language]['stringUnit']['value']
+            self.assertNotIn('sent to', body)
+            self.assertNotIn('发送给', body)
 
     def test_glue_files_stay_at_the_ratchet_ceiling(self):
         # Never above the ratchet ceilings (lowered by E2E-20261112 when code moved out of the glue files).
