@@ -26,6 +26,8 @@ enum DesignFixtureRegistry {
         case "kit-merchant": return AnyView(KitGalleryFixture(domain: .merchant))
         case "d2-home": return AnyView(D2Fixture(screen: .home))
         case "d2-home-offline": return AnyView(D2Fixture(screen: .homeOffline))
+        case "d2-home-empty": return AnyView(D2Fixture(screen: .homeEmpty))
+        case "d2-home-failed": return AnyView(D2Fixture(screen: .homeSectionFailed))
         case "d2-search": return AnyView(D2Fixture(screen: .search))
         case "d2-search-results": return AnyView(D2Fixture(screen: .searchResults))
         case "d2-search-empty": return AnyView(D2Fixture(screen: .searchEmpty))
