@@ -283,7 +283,14 @@ import QuestifyCore
                 }
                 // MP `_fetchNearbyMerchants` merchant layer: grey shop pins (MP merchant grey), name or 商家 when blank.
                 ForEach(owner.registeredShops.filter { $0.coordinate != nil }) { shop in
-                    if let point = shop.coordinate {
+                    if let point = shop.coordinate, let photo = RoamLivePhotoPin.url(for: shop) {
+                        // MP photo-pins `pinPhoto`: a shop with a real picUrl is a photo pin.
+                        Annotation(shop.addressName.isEmpty ? appLocalized("nativeR2.mapHome.kind.merchant", locale: locale) : shop.addressName,
+                                   coordinate: CLLocationCoordinate2D(latitude: point.latitude, longitude: point.longitude)) {
+                            RoamLivePhotoPin(url: photo, tint: .gray)
+                        }
+                        .tag(RoamLiveMapPick.shop(shop.id))
+                    } else if let point = shop.coordinate {
                         Marker(shop.addressName.isEmpty ? appLocalized("nativeR2.mapHome.kind.merchant", locale: locale) : shop.addressName,
                                systemImage: "storefront.fill",
                                coordinate: CLLocationCoordinate2D(latitude: point.latitude, longitude: point.longitude))
@@ -1616,6 +1623,12 @@ struct RoamCheckinTarget: Identifiable {
     /// MP `isParticipating` + `pinPhoto`: shops (type 2) with a cover; only allowlisted media origins.
     static func url(for place: RoamPlace) -> URL? {
         guard place.type == 2, let raw = place.coverImage?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty,
+              ObjectCardMediaPolicy.origin(raw) != nil else { return nil }
+        return URL(string: raw)
+    }
+    /// Merchant layer: MP `photo: n.picUrl ? imgUrl : ''`; same media allowlist.
+    static func url(for shop: RoamRouteNode) -> URL? {
+        guard let raw = shop.picUrl?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty,
               ObjectCardMediaPolicy.origin(raw) != nil else { return nil }
         return URL(string: raw)
     }
