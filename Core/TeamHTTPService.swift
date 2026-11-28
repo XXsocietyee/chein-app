@@ -3,7 +3,8 @@ import Foundation
 import FoundationNetworking
 #endif
 
-/// Dormant source-backed JSON adapter. Join-mode uses the verified mini/backend setter.
+/// Source-backed JSON adapter for `/api/team/{create,join,quit,kick,disband,join-mode}` (P0-8: live in `makeTeamCoordinator`
+/// when the reviewed membership write lease is issued). Join-mode uses the verified mini/backend setter.
 /// No remote operation receipt or automatic retry is invented.
 /// The caller must persist the exact local operation identity before invoking submit.
 @MainActor public final class TeamHTTPService: TeamServing {
@@ -16,10 +17,14 @@ import FoundationNetworking
     public var authority: TeamServiceAuthority { approval == nil ? .readOnly : .approved }
     public init(configuration: APIConfiguration, transport: any HTTPTransport, approval: OperationEndpointApproval? = nil,
                 journal: any TeamPendingJournal, currentSession: @escaping () -> TeamSession?,
-                creationLoader: ((Int, TeamSession) async throws -> TeamCreationContext)? = nil) {
+                creationLoader: ((Int, TeamSession) async throws -> TeamCreationContext)? = nil,
+                readApproval: OperationEndpointApproval? = nil, requiresIDMembership: Bool = false) {
         self.configuration = configuration; self.transport = transport; self.approval = approval
         self.journal = journal; self.currentSession = currentSession
-        reader = TeamReadOnlyService(configuration: configuration, transport: transport, currentSession: currentSession, creationLoader: creationLoader)
+        // P0-8: the production reader keeps its own read lease and the fresh-membership rule on ID reads.
+        reader = TeamReadOnlyService(configuration: configuration, transport: transport, readApproval: readApproval,
+                                     currentSession: currentSession, requiresIDMembership: requiresIDMembership,
+                                     creationLoader: creationLoader)
     }
     private func check(_ session: TeamSession) throws {
         try Task.checkCancellation()
