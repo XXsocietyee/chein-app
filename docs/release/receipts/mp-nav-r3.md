@@ -341,6 +341,7 @@ Sections / order unchanged; navigation only.
 Pins: Tests/ContractChecks/test_pkg19_login_deletion_chain.py:58-59 (phone page follows any configured market, owner 04:30); Tests/AppUITests/RegionalEntryFlowTests.swift US cases now expect the +1 phone field instead of the pending row. Note: a US *build* still has no approved host (`ReviewedMarketLaunch.approvedBaseURLs`), so there the phone page shows the existing `auth.notConfigured` line until a host is approved (coordinator/backend).
 
 Pins (Alipay commit): Tests/ContractChecks/test_remaining_native_clients.py:46 splits at `func commitChannelLogin(` (now internal so the Alipay channel shares the WeChat commit; `weChatContext` also internal).
+Pins (07:xx): Tests/ContractChecks/test_wechat_app_auth.py:38 — LoginView host now reads `channelCoordinator` (returns `session.authChannels`; DEBUG fixture may inject an Apple-approved coordinator).
 
 ## Re-scan 11-28 06:xx — US phone gating (after the parallel 04:30 commits above)
 
