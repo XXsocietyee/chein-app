@@ -161,6 +161,7 @@
         "FinalThreeDocumentAndSevenDayGoalCompletionViewTests",
         "FinalTwentyBatchMasterCompletionViewTests",
         "Finding4LocalizationTests",
+        "Fix1128bTeamRegCompositionTests",
         "FreeExploreBundleLaunchModelTests",
         "FreeExploreBundleReadHostTests",
         "FreeExploreBundleReservationTransportTests",

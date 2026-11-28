@@ -5340,7 +5340,7 @@ final class AppSession: ObservableObject {
                     return self.currentTeamSession
                 }
             reader = TeamMembershipWriteComposition.service(configuration: configuration, transport: runtimeHTTPTransport, readEndpoints: approval.endpoints,
-                write: currentRuntimeDependencyContext.flatMap { composition.teamMembershipWriteApproval($0) }, journal: teamJournal, currentSession: coordinatorSession)
+                write: composition.teamWrites(currentRuntimeDependencyContext, transport: runtimeHTTPTransport), journal: teamJournal, currentSession: coordinatorSession)
         } else if let readApproval, let configuration = regionalConfiguration?.apiConfiguration {
             reader = TeamReadOnlyService(configuration: configuration, transport: runtimeHTTPTransport,
                 readApproval: readApproval, currentSession: { [weak self] in self?.currentTeamSession },

@@ -97,6 +97,8 @@ public enum TeamReadFailureKind: Equatable, Sendable {
     public private(set) var messageKey: String?
     /// The last write's source `errorCode`, if any (U06-01/U06-03). Cleared by every new read or review.
     public private(set) var rejectionCode: String?
+    /// Gap #7: the server's REJECTED message for the last command, shown verbatim instead of the generic copy.
+    public private(set) var rejectionMessage: String?
     /// Why the last read failed, for source copy only (网络没连上 vs 403 vs data). Never an authorization.
     public private(set) var readFailure: TeamReadFailureKind?
     /// MP team/join `TEAM_INFO_REFUSED`: the server answered and refused the read (not 401/403). Copy only.
@@ -132,7 +134,7 @@ public enum TeamReadFailureKind: Equatable, Sendable {
         generation &+= 1; scope = UUID(); capturedSession = currentSession()
         completedTeamsRead = false
         teams = []; detail = nil; creation = nil; review = nil; pending = nil; activeLookup = nil; messageKey = nil; completedTeamID = nil; completedJoinID = nil; readFailure = nil
-        rejectionCode = nil
+        rejectionCode = nil; rejectionMessage = nil
         loading = false; writeState = .idle; retiredMembershipTeamID = nil; confirmedJoinMode = nil
     }
     private func active(_ session: TeamSession, _ stamp: UInt64) -> Bool {
@@ -175,7 +177,7 @@ public enum TeamReadFailureKind: Equatable, Sendable {
         generation &+= 1; let stamp = generation; loading = true; review = nil; messageKey = nil; readFailure = nil; readRefused = false
         // Keep the write's reason beside the refreshed page; a different target drops it below.
         // The host uses a separate coordinator for each detail route. Never retain another target.
-        if activeLookup != lookup { detail = nil; pending = nil; writeState = .idle; completedJoinID = nil; retiredMembershipTeamID = nil; confirmedJoinMode = nil; rejectionCode = nil }; activeLookup = lookup
+        if activeLookup != lookup { detail = nil; pending = nil; writeState = .idle; completedJoinID = nil; retiredMembershipTeamID = nil; confirmedJoinMode = nil; rejectionCode = nil; rejectionMessage = nil }; activeLookup = lookup
         defer { if generation == stamp { loading = false } }
         if case .id(let id) = lookup, membershipRetired(teamID: id, session: session) {
             detail = nil; retiredMembershipTeamID = id; messageKey = "team.changed"; return
@@ -241,7 +243,7 @@ public enum TeamReadFailureKind: Equatable, Sendable {
         do { try restorePending(targetKey: action.targetKey, session: session) }
         catch { return }
         guard pending == nil else { return }
-        rejectionCode = nil
+        rejectionCode = nil; rejectionMessage = nil
         guard action.isAllowed(detail: detail) else { messageKey = "team.changed"; return }
         if case .join = action, action.lookup != activeLookup { messageKey = "team.changed"; return }
         if case .create(let context, _, _) = action, context != creation { messageKey = "team.changed"; return }
@@ -377,6 +379,14 @@ public enum TeamReadFailureKind: Equatable, Sendable {
             do {
                 try journal.clear(record); pending = nil; retirementOperations[record.operationID] = nil
                 writeState = .rejected; rejectionCode = code; messageKey = TeamSeatPresentation.rejectionKey(code)
+            }
+            catch { writeState = .unknown; messageKey = "team.unknown" }
+        case .rejectedMessage(let code, let message):
+            // Gap #7: REJECTED is terminal (the server rolled back). The row and the team stay; the server text shows.
+            do {
+                try journal.clear(record); pending = nil; retirementOperations[record.operationID] = nil
+                writeState = .rejected; rejectionCode = TeamSeatPresentation.isMachineCode(code) ? code : nil
+                rejectionMessage = message; messageKey = TeamSeatPresentation.rejectionKey(rejectionCode)
             }
             catch { writeState = .unknown; messageKey = "team.unknown" }
         }

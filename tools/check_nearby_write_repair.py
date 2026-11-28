@@ -35,7 +35,8 @@ class NearbyWriteRepairChecks(unittest.TestCase):
   self.assertIn('service.submit(snapshot.action, session: capturedSession, review: snapshot)',C)
   self.assertIn('switch outcome { case .unknown: break; default: locks.remove',C)
  def test_authored_tests(self):
-  self.assertEqual(T.count('    func test'),22)
+  # Gap #7 (1128 plan, fix/1128b-team-reg): +1 for testHandleCommandStateRejectedAndUnknownAreNotSuccess.
+  self.assertEqual(T.count('    func test'),23)
   for value in ['testConcurrentAdapterInstancesCannotReplaySameReview','testEpochChangeAfterSendCannotClearUnknownLock','testDefaultsJournalSurvivesRecreationWithoutSecrets','testCoordinatorReportsAcknowledgmentAndServerExpiry']: self.assertIn(value,T)
  def test_localizations(self):
   strings=json.loads((R/'Resources/NearbyTeamWriteLocalizations.fragment.json').read_text())['strings'];self.assertEqual(len(strings),4)

@@ -152,6 +152,7 @@
         "FinalThreeDocumentAndSevenDayGoalCompletionViewTests",
         "FinalTwentyBatchMasterCompletionViewTests",
         "Finding4LocalizationTests",
+        "Fix1128bTeamRegCompositionTests",
         "FogOverlayLayerPixelTests",
         "G1ProductionGatesEndToEndTests",
         "G6CapabilityGrantTests",

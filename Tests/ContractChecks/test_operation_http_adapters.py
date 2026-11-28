@@ -20,11 +20,14 @@ class OperationHTTPAdapters(unittest.TestCase):
         # P0-8: the team write adapter is built only by the composition helper, behind the read lease and the reviewed write lease.
         team=app.split('func makeTeamCoordinator(',1)[1].split('private let orderLifecycleService',1)[0]
         self.assertLess(team.index('if let approval = currentTeamReadApproval'),team.index('TeamMembershipWriteComposition.service('))
-        self.assertIn('write: currentRuntimeDependencyContext.flatMap { composition.teamMembershipWriteApproval($0) }',team)
+        # Gap #6 (1128 plan, fix/1128b-team-reg): the helper now also carries the `api/team/command` writer from the
+        # player grant; both leases stay composition-issued and nil when signed out.
+        self.assertIn('write: composition.teamWrites(currentRuntimeDependencyContext, transport: runtimeHTTPTransport)',team)
         helper=self.text('App/TeamMembershipWriteComposition.swift')
         self.assertEqual(helper.count('TeamHTTPService('),1)
         self.assertIn('guard reviewed?.productionGatesEnabled == true else { return nil }',helper)
-        self.assertIn('if let write {',helper)
+        self.assertIn('if write.approval != nil || write.commands != nil {',helper)
+        self.assertIn('guard let context else { return TeamWriteLeases(approval: nil, commands: nil) }',helper)
     def test_owned_registration_bridge_is_not_activity_id_guess(self):
         app=self.text('App/AppSession.swift')
         for guard in ['creationSource.registrationID', 'detail.teamCreationSource', 'self.currentTeamSession == session', 'path: "api/registration/info"']: self.assertIn(guard,app)

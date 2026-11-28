@@ -103,17 +103,23 @@ import SwiftUI
     let canSimulate: Bool
     let messageKey: String?
     let hasPending: Bool
+    /// Gap #7: the server's REJECTED text (MP shows the receipt message next to the button).
+    let serverMessage: String?
     init(coordinator: TeamCoordinator) {
         canSimulate = coordinator.canSimulate
         messageKey = coordinator.messageKey
         hasPending = coordinator.pending != nil
+        serverMessage = coordinator.writeState == .rejected ? coordinator.rejectionMessage : nil
     }
     var body: some View {
         // Only real messages (and the example-content marker) earn a box; no standing "unavailable" banner.
-        if canSimulate || messageKey != nil {
+        if canSimulate || messageKey != nil || serverMessage != nil {
         VStack(alignment: .leading, spacing: 8) {
             if canSimulate { Label("team.fixtureNotice", systemImage: "testtube.2").accessibilityIdentifier("team.fixtureNotice") }
-            if let key = messageKey {
+            if let serverMessage {
+                Label(serverMessage, systemImage: "exclamationmark.circle")
+                    .accessibilityIdentifier("team.message")
+            } else if let key = messageKey {
                 Label(LocalizedStringKey(key), systemImage: hasPending ? "exclamationmark.triangle" : "info.circle")
                     .accessibilityIdentifier("team.message")
             }

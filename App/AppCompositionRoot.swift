@@ -623,7 +623,7 @@ extension KeychainTokenStore: AppTokenStorage {}
 
     func teamCommandWriter(context: RuntimeDependencyContext, transport: any HTTPTransport) -> TeamCommandWriter? {
         guard let approval = playerWriteGrant(context)?.team, let api = reviewed?.regional.apiConfiguration else { return nil }
-        return try? TeamCommandWriter(approval: approval, configuration: api, transport: transport)
+        return try? TeamCommandWriter(approval: approval, configuration: api, transport: transport, context: context)
     }
     var reviewed: ReviewedAppDeployment? {
         if case .reviewed(let value) = deployment { return value }; return nil
