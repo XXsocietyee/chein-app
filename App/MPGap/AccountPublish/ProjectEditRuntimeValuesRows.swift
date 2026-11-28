@@ -126,7 +126,7 @@ import SwiftUI
     @ViewBuilder private var footer: some View {
         if let refusalKey {
             Label(LocalizedStringKey(refusalKey), systemImage: "exclamationmark.circle")
-                .foregroundStyle(.red)
+                .foregroundStyle(CYColor.dangerText)
                 .accessibilityIdentifier("projectEdit.values.error")
         }
     }

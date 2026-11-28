@@ -480,6 +480,20 @@ d2-roam / d6-roam same inline title + light map, e2-stamp-album art + 还没收�
 
 Gates: generate_project OK · check_scaffold PASS (21251 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
 
+## Round 3 continue (35) — 官方活动 task list states (01:40 "next round" item 3)
+
+Base re-merged with `origin/ui/combined-r7` (clean). No open coordinator finding for mp-roam (05:35 sweep "nothing new"; build 7a7d2708a
+`mp-roam/sheet-*.jpg` unchanged). Map panel settled (02:05) — not touched.
+
+| MP page → native | Difference | Fix | Fixture |
+|---|---|---|---|
+| `subpackageRoam/components/cy/scene-roam-task-list` (`cy-skeleton` → `cy-error 活动列表没能打开 + 重试` → stale → list / `cy-empty size="lg" title="{{emptyTitle}}" sub="{{emptySub}}"`; js `_filter`: tab titles 暂无进行中的活动 / 暂无即将开始的活动 / 还没有参与的活动, sub only while searching 没有找到相关活动 · 换个关键词试试) → `App/RoamOfficialTasksView.swift` | Empty was one plain text row with the generic `official.empty` (这个分类暂时没有官方活动) for every tab; first-load spinner was a bare `ProgressView` row, not the shared loading state. No fixture showed the page. | Empty → `ContentUnavailableView` with `query.emptyTitleKey` (per tab, shared keys `official.empty.live/upcoming/mine`, search `official.empty.search`) and the description only while searching (`official.searchEmptyDetail`); id `roam.tasks.empty` kept. Loading → `CYLoadingStateView(label: "official.loading")`, id `roam.tasks.loading` kept. New fixtures on the real view with `OfficialFixtureReader` (content / empty / failure); UI test `Fixture_r3_roamTasksTests`. No new strings. | `r3-roam-tasks`, `r3-roam-tasks-empty`, `r3-roam-tasks-error` |
+
+**For the coordinator:** please add `r3-roam-tasks`, `-empty`, `-error` to the mp-roam sweep row.
+**For mp-activity:** shared key `official.empty.upcoming` zh reads 暂无即将上线的活动; the roam MP says 暂无即将开始的活动 — left as is (shared with the activity list).
+
+Gates: generate_project OK · check_scaffold PASS (21268 keys) · a11y lint 0 new · design consistency PASS · contract_ratchet 52 / baseline 52, **new 0**. No Swift build here.
+
 ## Not done / next
 
 - citystamp end-to-end MP flow (camera only shoots → write step note → mailbox send creates + exchanges): the live write step still has no

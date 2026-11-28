@@ -20,7 +20,7 @@ import SwiftUI
                                 } label: { Text("d7.channelReport.reason") }
                                 TextField("d7.channelReport.note", text: Binding(get: { owner.note }, set: { owner.select(reason: owner.selectedReason, note: $0) }), axis: .vertical).lineLimit(3...8)
                                 if owner.note.utf16.count > 500 {
-                                    Text("d7.channelReport.noteTooLong").font(.footnote).foregroundStyle(.red)
+                                    Text("d7.channelReport.noteTooLong").font(.footnote).foregroundStyle(CYColor.dangerText)
                                 }
                             }
                             Section {

@@ -139,7 +139,7 @@ public struct OrientScoreAppealSheetView: View {
                         if let errorMessage, !errorMessage.isEmpty {
                             Text(errorMessage)
                                 .cyText(.meta)
-                                .foregroundStyle(.red)
+                                .foregroundStyle(CYColor.dangerText)
                         }
                     }
                 }

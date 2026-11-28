@@ -75,10 +75,7 @@ struct ProfileSelfProjectSelection: Identifiable, Hashable {
                     if let page = model.page {
                         let today = ProfileSelfProjectCalendar.today()
                         let preview = ProfileSelfProjectsPreview(page: page, today: today)
-                        if preview.rows.isEmpty && model.issue == nil && !model.isLoading {
-                            ContentUnavailableView("profile.selfProjects.empty", systemImage: "folder")
-                                .accessibilityIdentifier("profile.selfProjects.empty")
-                        }
+                        // MP profile wxml:189: no projects = no preview and no empty text; only the 管理全部 link stays.
                         if preview.sourceTruncated {
                             Text("profile.selfProjects.truncated").font(.footnote).foregroundStyle(.secondary)
                                 .accessibilityIdentifier("profile.selfProjects.truncated")

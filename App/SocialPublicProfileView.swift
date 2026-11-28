@@ -609,7 +609,7 @@ struct ProfileSelfCouponContext: Hashable {
             .accessibilityHint(followed == true ? Text("social.editor.unfollow") : Text(verbatim: ""))
             .accessibilityIdentifier("social.profile.follow")
             if failed {
-                Text("social.follow.failed").font(.footnote).foregroundStyle(.red)
+                Text("social.follow.failed").font(.footnote).foregroundStyle(CYColor.dangerText)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("social.profile.follow.failed")
             }
@@ -676,7 +676,7 @@ extension EnvironmentValues {
             .accessibilityValue(busy ? Text("social.follow.pending") : Text(verbatim: ""))
             .accessibilityIdentifier("social.profile.startChat")
             if failed {
-                Text("social.startChat.failed").font(.footnote).foregroundStyle(.red)
+                Text("social.startChat.failed").font(.footnote).foregroundStyle(CYColor.dangerText)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("social.profile.startChat.failed")
             }

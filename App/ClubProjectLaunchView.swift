@@ -128,7 +128,7 @@ import SwiftUI
                 if model.phase == .loading { launchLoading }
                 if model.phase == .failed {
                     Label("club.projectLaunch.failed", systemImage: "exclamationmark.triangle")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(CYColor.dangerText)
                 }
                 if model.phase == .editorUnavailable {
                     Label("club.projectLaunch.editorUnavailable", systemImage: "square.and.pencil")

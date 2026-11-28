@@ -184,7 +184,7 @@ import SwiftUI
                         color: stage.phase == .running ? color : .primary)
             if let sub = serverText("sub") { Text(verbatim: sub).foregroundStyle(.secondary) }
             if xpBadgeOnly { Text("playkit.rewardNote.xpBadgeOnly").font(.footnote).foregroundStyle(.secondary) }
-            if stage.quiet.exceeded { Label("playkit.quiet.limitReached", systemImage: "speaker.wave.3").foregroundStyle(.red) }
+            if stage.quiet.exceeded { Label("playkit.quiet.limitReached", systemImage: "speaker.wave.3").foregroundStyle(CYColor.dangerText) }
         case .shout:
             // MP `playkit-shout`: figure (seconds left) → one plain line → safety line before the run; no level bar.
             let running = stage.phase == .running
@@ -427,7 +427,7 @@ import SwiftUI
 
     @ViewBuilder private func label(_ degrees: Int) -> some View {
         switch degrees {
-        case 0: Text("playkit.compass.north").font(.headline).foregroundStyle(.red)
+        case 0: Text("playkit.compass.north").font(.headline).foregroundStyle(CYColor.dangerText)
         case 90: Text("playkit.compass.east").font(.subheadline.weight(.semibold))
         case 180: Text("playkit.compass.south").font(.subheadline.weight(.semibold))
         case 270: Text("playkit.compass.west").font(.subheadline.weight(.semibold))

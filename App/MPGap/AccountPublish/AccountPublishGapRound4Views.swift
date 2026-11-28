@@ -214,7 +214,7 @@ public struct ProjectEditGapCastEditorSheet: View {
         } footer: {
             if player.playerIdentity {
                 if player.identities.isEmpty {
-                    Text("castPlayer.needIdentity").foregroundStyle(.red)
+                    Text("castPlayer.needIdentity").foregroundStyle(CYColor.dangerText)
                 } else if player.identities.count >= ProjectEditCastConfig.maxIdentities {
                     Text("castPlayer.identityMax \(ProjectEditCastConfig.maxIdentities)")
                 }
@@ -367,9 +367,9 @@ public struct ProjectEditGapChapterExtrasSection: View {
                     ForEach(triggerableOutcomes.issues) { issue in
                         switch issue.code {
                         case .invalidCode:
-                            Text("templateAuthor.outcome.invalidCode").font(.footnote).foregroundStyle(.red)
+                            Text("templateAuthor.outcome.invalidCode").font(.footnote).foregroundStyle(CYColor.dangerText)
                         case .duplicateCode:
-                            Text("templateAuthor.outcome.duplicateCode").font(.footnote).foregroundStyle(.red)
+                            Text("templateAuthor.outcome.duplicateCode").font(.footnote).foregroundStyle(CYColor.dangerText)
                         }
                     }
                 } header: {

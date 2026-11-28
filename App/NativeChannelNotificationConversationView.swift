@@ -266,7 +266,7 @@ enum NativeChannelNotificationCopy {
         Section {
             if let localIssue {
                 Label { Text(verbatim: c(localIssue)) } icon: { Image(systemName: "exclamationmark.triangle").accessibilityHidden(true) }
-                    .foregroundStyle(.red)
+                    .foregroundStyle(CYColor.dangerText)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityElement(children: .combine)
             }

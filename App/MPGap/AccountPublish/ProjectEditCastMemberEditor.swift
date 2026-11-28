@@ -116,9 +116,9 @@ struct ProjectEditCastMemberEditor: View {
         } footer: {
             switch issue {
             case .nameMissing:
-                Text("castMember.nameRequired").foregroundStyle(.red)
+                Text("castMember.nameRequired").foregroundStyle(CYColor.dangerText)
             case .nameTaken(let name):
-                Text("castMember.nameTaken \(name)").foregroundStyle(.red)
+                Text("castMember.nameTaken \(name)").foregroundStyle(CYColor.dangerText)
             default:
                 EmptyView()
             }
@@ -207,7 +207,7 @@ struct ProjectEditCastMemberEditor: View {
                         Label("castMember.clue.unlock", systemImage: "lock")
                     }
                     if issue == .clueEmpty(index) {
-                        Text("castMember.clue.empty \(index + 1)").font(.footnote).foregroundStyle(.red)
+                        Text("castMember.clue.empty \(index + 1)").font(.footnote).foregroundStyle(CYColor.dangerText)
                     }
                 }
             }

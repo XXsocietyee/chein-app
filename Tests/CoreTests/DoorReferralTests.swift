@@ -25,6 +25,16 @@ import FoundationNetworking
         let intent = policy.parse(URL(string: "https://example.test/door?scene=%2561bcdef0123456789abcdef0123456789&inviter=&id=4")!)
         XCTAssertEqual(intent?.inviter, ""); XCTAssertNil(DoorParsing.scene(intent?.scene))
     }
+    /// mp-nav r3: MP invite card `/pages/index/index?inviter=` (and older `?id=`) is the door intent, not a route error.
+    func testMiniProgramHomeInviteCardIsDoorIntent() {
+        XCTAssertEqual(NativeNavigationContract.parseInternal("/pages/index/index?inviter=42"), .door(DoorIntent(scene: nil, inviter: "42")))
+        XCTAssertEqual(NativeNavigationContract.parseInternal("/pages/index/index?id=42"), .door(DoorIntent(scene: nil, inviter: "42")))
+        XCTAssertEqual(NativeNavigationContract.parseInternal("/pages/index/index?scene=" + hex), .door(DoorIntent(scene: hex, inviter: nil)))
+        XCTAssertEqual(NativeNavigationContract.parseInternal("/pages/index/index"), .miniProgramPage(MiniProgramPageLink(path: "pages/index/index", query: [:])!))
+        for raw in ["/pages/index/index?inviter=abc", "/pages/index/index?inviter=0", "/pages/index/index?inviter=4&redirect=x"] {
+            if case .door = NativeNavigationContract.parseInternal(raw) { XCTFail(raw) }
+        }
+    }
     func testTypedDestinationMatrix() throws {
         XCTAssertEqual(DoorScanResult(action: "play", topicID: 2, activityID: 3).destination, .activityPlay(activityID: 3, topicID: 2))
         XCTAssertEqual(DoorScanResult(action: "play", topicID: 2).destination, .topicSelfPlay(topicID: 2))
