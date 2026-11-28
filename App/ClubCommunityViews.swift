@@ -1018,6 +1018,10 @@ struct ClubCommunityComposer: View {
     @State private var canAnnounce = false
     @State private var asAnnouncement = false
     @State private var postRef: ClubPostRefOption?
+    /// P31: the text field is focused on open; Cancel with content asks Save draft / Delete / Keep editing.
+    @FocusState private var editorFocused: Bool
+    @State private var confirmingExit = false
+    @State private var keepsDraft = true
     @StateObject private var imageBridge: ClubPostImageComposerBridge
     init(model: ClubCommunityViewModel, clubID: Int, post: ClubCommunityPost?) {
         self.model = model
@@ -1037,6 +1041,7 @@ struct ClubCommunityComposer: View {
                 Section {
                     TextEditor(text: $content)
                         .frame(minHeight: editorMinHeight)
+                        .focused($editorFocused)
                         .accessibilityLabel(Text("club.community.content"))
                         .accessibilityIdentifier("club.community.content")
                 } footer: {
@@ -1078,14 +1083,16 @@ struct ClubCommunityComposer: View {
                     if let post {
                         ClubPostEditExitControl(post: post, clubID: clubID, source: model,
                             content: $content, images: $images, canExit: { !model.busy && !uploading && !imageBridge.isBusy }, close: { dismiss() })
-                    } else { Button("club.community.cancel") { dismiss() } }
+                    } else { Button("club.community.cancel", action: cancelNewPost) }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("club.community.review") {
                         let operation: ClubCommunityOperation = post == nil ? .create(content: content, images: images, notice: canAnnounce && asAnnouncement, ref: postRef) : .update(content: content, images: images, requestID: UUID().uuidString)
                         model.stageDraft(operation, clubID: clubID, post: post)
+                        discardDraft()
                         dismiss()
                     }
+                    .buttonStyle(.borderedProminent)
                     .disabled(model.busy || uploading || imageBridge.isBusy || content.count > 300 || (content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && images.isEmpty))
                     .accessibilityIdentifier("club.community.reviewDraft")
                 }
@@ -1098,17 +1105,78 @@ struct ClubCommunityComposer: View {
                 if content.isEmpty && images.isEmpty {
                     content = post?.content ?? ""
                     images = post?.images ?? []
+                    restoreDraft()
                 }
                 imageBridge.bind(initialReferences: images)
+                if post == nil { editorFocused = true }
             }
             .onDisappear {
+                persistDraft()
                 imageBridge.invalidate()
             }
         }
+        .modifier(ClubPostDraftExitDialog(isPresented: $confirmingExit, save: saveAndClose, delete: deleteAndClose))
         .interactiveDismissDisabled(post.map {
             model.busy || uploading || imageBridge.isBusy || ClubPostEditDraft(content: content, images: images) !=
                 ClubPostEditDraft(content: $0.content, images: $0.images)
         } ?? false)
+    }
+
+    private var accountID: Int? {
+        (try? model.context.currentSession())?.identity.accountID
+    }
+
+    private var currentDraft: ClubPostDraft {
+        ClubPostDraft(content: content, images: images)
+    }
+
+    private func cancelNewPost() {
+        if currentDraft.isEmpty || accountID == nil { discardDraft(); dismiss() } else { confirmingExit = true }
+    }
+
+    private func saveAndClose() {
+        keepsDraft = true
+        dismiss()
+    }
+
+    private func deleteAndClose() {
+        discardDraft()
+        dismiss()
+    }
+
+    private func discardDraft() {
+        guard post == nil else { return }
+        keepsDraft = false
+        ClubPostDraftStore.clear(accountID: accountID, clubID: clubID)
+    }
+
+    private func restoreDraft() {
+        guard post == nil, let draft = ClubPostDraftStore.load(accountID: accountID, clubID: clubID) else { return }
+        content = draft.content
+        images = draft.images
+    }
+
+    /// MP post-compose `persist` on close: a swipe-down or Save draft keeps the words for next time.
+    private func persistDraft() {
+        guard post == nil, keepsDraft else { return }
+        ClubPostDraftStore.save(currentDraft, accountID: accountID, clubID: clubID)
+    }
+}
+
+/// P31 drafts-on-cancel dialog, kept out of the composer body (compile-time rule 03:50).
+private struct ClubPostDraftExitDialog: ViewModifier {
+    @Binding var isPresented: Bool
+    let save: () -> Void
+    let delete: () -> Void
+
+    func body(content: Content) -> some View {
+        content.confirmationDialog(Text("club.community.draftTitle"), isPresented: $isPresented, titleVisibility: .visible) {
+            Button("club.community.draftSave", action: save)
+            Button("club.community.draftDelete", role: .destructive, action: delete)
+            Button("club.community.draftKeep", role: .cancel) {}
+        } message: {
+            Text("club.community.draftMessage")
+        }
     }
 }
 
