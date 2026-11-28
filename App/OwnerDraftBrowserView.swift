@@ -3,10 +3,15 @@ import SwiftUI
 /// Shared by the normal Account creator section and synthetic entry-wiring recorder.
 struct OwnerDraftAccountLink: View {
     let browser: OwnerDraftBrowser?
+    /// Function audit P2-6 (MP-first): the MP has no content-draft page, and without a read approval this row only
+    /// ever opened 未配置. The row shows only when a browser is composed; `OwnerDraftDestination` keeps its
+    /// not-configured state for deep links.
     var body: some View {
-        NavigationLink { OwnerDraftDestination(browser: browser) } label: {
-            Label("ownerDraft.title", systemImage: "doc.on.doc")
-        }.accessibilityIdentifier("account.ownerDrafts")
+        if let browser {
+            NavigationLink { OwnerDraftDestination(browser: browser) } label: {
+                Label("ownerDraft.title", systemImage: "doc.on.doc")
+            }.accessibilityIdentifier("account.ownerDrafts")
+        }
     }
 }
 
