@@ -537,3 +537,9 @@ Scan for edges without a row: every non-merchant MP page in `app.json` is either
 Merged `origin/ui/combined-r7` 543d9033b (clean). Brief re-read: no coordinator finding for mp-nav after 07:45; sweep index still build c4e43841a (mp-nav sheets read correctly, as the run above). No `cursor-k50-p*` lane-layout receipts exist yet; new `cursor-k40-*` and `cursor-1128-dynamic-type` receipts carry no mp-nav row asking for a change (dynamic-type: IM inbox "No change asked"). Open rows unchanged: (1) "漫游护照与工具" hub sheet (A half, kept by owner Q9, coordinator); (2) "3. MP-account sync note" (B half, blocked on the backend field). Inbound deep-link catalog stays with K30.
 
 **Half done** (A half unchanged). Run stopped.
+
+## Run 11-28 ~17:xx UTC (hourly) — merged combined-r7 2b6ff8700
+
+Merged `origin/ui/combined-r7` 2b6ff8700 (clean). Brief re-read: no coordinator finding for mp-nav after 07:45; sweep index still build c4e43841a (mp-nav sheets clean). No `cursor-k50-p*` lane-layout receipts on any branch yet. B receipt read: no new rows. Open rows unchanged: (1) "漫游护照与工具" hub sheet (A half, kept by owner Q9, coordinator); (2) "3. MP-account sync note" (B half, blocked on the backend field).
+
+**Half done** (A half unchanged). Run stopped.
