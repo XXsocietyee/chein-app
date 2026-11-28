@@ -102,6 +102,15 @@ gltf_link=obj('gltf-link',isa='PBXBuildFile',fileRef=gltf_product)
 gltf_embed=obj('gltf-embed',isa='PBXBuildFile',fileRef=gltf_product,settings={'ATTRIBUTES':['CodeSignOnCopy','RemoveHeadersOnCopy']})
 embed_phase=obj('embed-frameworks',isa='PBXCopyFilesBuildPhase',buildActionMask=2147483647,dstPath='',dstSubfolderSpec=10,files=[gltf_embed],name='Embed Frameworks',runOnlyForDeploymentPostprocessing=0)
 framework_phase=obj('frameworks',isa='PBXFrameworksBuildPhase',buildActionMask=2147483647,files=[gltf_link],runOnlyForDeploymentPostprocessing=0)
+# fix/1128-cn-pay P0-2: Tencent WechatOpenSDK (WeChat APP pay). The official xcframework is owner-supplied and is
+# linked only when it exists at Vendor/WechatOpenSDK/; without it the project is unchanged and the conditional
+# QFWeChatPaymentBridge.m stays compiled out (QUESTIFY_WECHAT_PAYMENT_SDK_APPROVED + __has_include).
+WECHAT_PAY_SDK_PATH='Vendor/WechatOpenSDK/WechatOpenSDK-XCFramework.xcframework'
+WECHAT_PAY_SDK_ON=(ROOT/WECHAT_PAY_SDK_PATH).is_dir()
+if WECHAT_PAY_SDK_ON:
+    wechat_sdk_ref=obj('wechat-pay-sdk',isa='PBXFileReference',lastKnownFileType='wrapper.xcframework',path=WECHAT_PAY_SDK_PATH,sourceTree='<group>')
+    objects[group]['children'].append(wechat_sdk_ref)
+    objects[framework_phase]['files'].append(obj('wechat-pay-sdk-link',isa='PBXBuildFile',fileRef=wechat_sdk_ref))
 def configurations(scope):
     configs=[]
     for name in ['Debug','Release']:
@@ -109,6 +118,7 @@ def configurations(scope):
         if scope=='target': settings.update({'FRAMEWORK_SEARCH_PATHS':'$(inherited) $(BUILT_PRODUCTS_DIR)','LD_RUNPATH_SEARCH_PATHS':'$(inherited) @executable_path/Frameworks'})
         if scope=='target': settings['SWIFT_OBJC_BRIDGING_HEADER']='$(SRCROOT)/App/Questify-Bridging-Header.h'
         if scope=='target': settings['CODE_SIGN_ENTITLEMENTS']='Config/Questify.entitlements'
+        if scope=='target' and WECHAT_PAY_SDK_ON: settings['OTHER_LDFLAGS']='$(inherited) -ObjC -all_load -lc++ -lz -lsqlite3 -framework WebKit -framework Security -framework CoreGraphics'
         if scope=='target': settings.update({'SWIFT_OPTIMIZATION_LEVEL':'-Onone' if name=='Debug' else '-O','DEBUG_INFORMATION_FORMAT':'dwarf' if name=='Debug' else 'dwarf-with-dsym'})
         if scope=='target' and name=='Debug':
             settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS']='DEBUG $(inherited)'+METAL_COND

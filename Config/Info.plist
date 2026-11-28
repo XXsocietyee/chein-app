@@ -6,6 +6,9 @@
     <key>QuestifySessionRealm</key><string>$(QUESTIFY_SESSION_REALM)</string>
     <key>QuestifyCityGameRegion</key><string>$(QUESTIFY_CITY_GAME_REGION)</string>
     <key>QuestifyDeploymentEnvironment</key><string>$(QUESTIFY_DEPLOYMENT_ENVIRONMENT)</string>
+    <key>QuestifyWeChatAppID</key><string>$(QUESTIFY_WECHAT_APP_ID)</string>
+    <key>QuestifyWeChatUniversalLink</key><string>$(QUESTIFY_WECHAT_UNIVERSAL_LINK)</string>
+    <key>QuestifyWeChatPayMerchantID</key><string>$(QUESTIFY_WECHAT_PAY_MERCHANT_ID)</string>
     <key>ITSAppUsesNonExemptEncryption</key><false/>
     <key>NSPhotoLibraryAddUsageDescription</key><string>Save a walk card, a medal card, or a city stamp slip picture to Photos when you choose Save to Photos.</string>
     <key>NSSupportsLiveActivities</key><true/>
