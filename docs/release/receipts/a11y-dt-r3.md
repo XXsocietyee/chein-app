@@ -351,9 +351,21 @@ light under the light map, wraps at AX5 ✓. No open coordinator finding. Then N
 | `pages/mylike` rows, search map explorer, roam item detail | `PlayerGapViews.swift`, `SearchMapExplorerView.swift`, `RoamItemDetailView.swift` | ✓ | Audit: 56 pt cover decorative + hidden, name wraps; no raw sizes, tap gestures or 1-line limits. No change | Done |
 | Native game kits C (true/false, jigsaw, scratch, compare, accusation) | `NativeR2/Games/NativeGameKitsC.swift` | ✓ (mp-journey owns order) | Audit: options are Buttons with `.isSelected`, jigsaw tiles labelled with piece + position, swaps / reveals / suspect push gated on Reduce Motion (opacity fallback). No change | Done |
 
+## Run 21 (2026-11-28, hourly)
+Merged `origin/ui/combined-r7` (41374363f): `CYMapChrome.swift` conflict → took combined-r7's version as-is (coordinator
+02:05: map panel settled, this lane no longer edits `CYMapChrome.swift` / the Roam panel). Sweep index still 41374363f with the
+same a11y fixtures read in run 20 (passport / badges / roam AX5 clean), no open coordinator finding. Pages without a row:
+
+| MP page | Native view file | MP sections present | Optimization applied (a11y-dt) | Status |
+|---|---|---|---|---|
+| `pages/club` 创建你自己的俱乐部 / 管理 entry (club tab, club detail manage tab) | `ClubOperationsViews.swift` (`ClubOperationsEntryButton`) | ✓ (mp-club owns order) | Label `.lineLimit(1)` at every size → no limit at AX sizes (the club tab already stacks the prompt and button there), so "Create a club" / 创建俱乐部 wraps instead of truncating in the detail list row | Done |
+| `pages/club/create` 俱乐部方向 (pick up to 3) | `ClubOperationsViews.swift` (`checkRow`) | ✓ (mp-club owns order) | MP direction icon fixed 22 pt → `@ScaledMetric(relativeTo: .body)`; row already a Button with `.isSelected` and a hidden checkmark | Done |
+| `subpackagePass` pass market cards + seal, club topic sheet, IM location picker | `PassMarketViews.swift`, `ClubGovernanceViews.swift:1634`, `IMExpandedViews.swift:961` | ✓ | Audit: price stacks at AX sizes, 44 pt seal / logo decorative or labelled; map tap has the "use map center" button alternative. No change | Done |
+| Club governance command form, bundle commerce, channel management, external game import, publisher lifecycle, series schedule editor | `ClubGovernanceCommandForm.swift`, `BundleCommerceMount.swift`, `NativeChannelManagementViews.swift`, `ExternalGameImportView.swift`, `PublisherLifecycleViews.swift`, `ClubSeriesScheduleEditor.swift` | ✓ | Audit: system Form / List rows; only zero-size anchors and 44 pt / 24 pt icon frames; no raw sizes or 1-line limits. No change | Done |
+
 ## Not done (next run starts here)
 - Continue pages without a row (largest player views next; pick by `wc -l App/*.swift`, skip Merchant / Fixture / Diagnostics).
-- Re-read the a11y sheets after the next sweep (newer than a32387e9b).
+- Re-read the a11y sheets after the next sweep (newer than 41374363f).
 
 ## For other lanes
 - **mp-home / mp-mine** (sweep 17:24, `a11y-passport-ax5`): the screen is still dimmed under the grey launch
