@@ -538,6 +538,14 @@ Merged `origin/ui/combined-r7` (fast-forward). No coordinator item for mp-home i
 |---|---|---|
 | `pages/index/index.wxml:74-81` `v3-locprompt` (title · content · 暂不定位 · 同意定位; copy `index.js:1342-1347`) → `App/HomeCityLocationConsentCard.swift` (`d2-home` with consent pending) | P40: the card had two equal-weight buttons and no privacy line; the MP body says the precise location "is sent to 城瘾 … then located automatically", but the native 同意 (continue 31) matches the fix **on the device**, never sends it, and only locates again from the city menu — the copy was untrue for the app. | **Fixed** — MP order and fields kept (title, one sentence, decline, agree). Body rewritten to what the app does (用一次当前位置确定首页城市，之后可在城市菜单里重新定位，不用于附近排序。 / en), new privacy line `homeCityConsent.privacy` with `lock.fill` (位置只在本机匹配城市，不会上传。 / en), 暂不定位 now a quiet `.borderless` "Not now" beside the one `.borderedProminent` 同意定位. Pin `test_card_primes_honestly_with_one_primary_and_a_quiet_not_now`. |
 
+## Round 3 continue (46) — sweep 17:10 (build 2fc0feb24), mp-home `sheet-en.jpg` / `sheet-zh-Hans.jpg`
+
+Merged `origin/ui/combined-r7` (Localizable.xcstrings auto-merged). Gates: generate_project OK · scaffold PASS · a11y lint 0 new · contract ratchet new 0 (46/46) · design consistency PASS. Sheets checked: continue 42 hero (title + action inside) and offline Retry (`.borderedProminent`, regular) are in the build; no K50 `lane-layout` rows for mp-home (no `cursor-k50-p*.md` on any branch). Level B (Crafted).
+
+| MP page → native | Difference | Status |
+|---|---|---|
+| `pages/search2/index.wxml:62` `g-type1` 类别 → `App/GlobalSearchView.swift:339` section header and `App/SearchMapFilterSheet.swift:37` (`en-d2-search.jpg`) | en heading read **Groups** above the category capsules (Culture / Outdoors / Food …): reads like clubs/teams, not MP 类别. | **Fixed** — `searchMap.categories` en → **Categories** (zh 类别 unchanged) in `Resources/Localizable.xcstrings` and the pinned fragment `docs/search-map-localizations.json`. |
+
 ## Not done / follow-ups
 - ~~主题详情 评价: double write entry in the empty state~~ — closed in continue 15 (UI test assertion flipped; needs a simulator run).
 - ~~成为俱乐部 opens as a sheet~~ — closed: mp-nav r3 pushes it.
@@ -600,4 +608,5 @@ Merged `origin/ui/combined-r7` (fast-forward). No coordinator item for mp-home i
 - Needs a device pass (continue 43): topic 收藏 success haptic on save, warning on rollback, none on page open.
 
 ## For other lanes
+- en-layout / publish lanes: other 类别/品类 keys still read "Groups" in en: `mapActivity.categories` (品类), `playkitAuthor.categories`, `projectEdit.categoriesTitle`; likely "Categories".
 - mp-states: the 07:05 `d2-home-empty` next-step item is done on `mp/r3-home` (continue 30); `r3-roam-routes-empty` stays yours / mp-roam.

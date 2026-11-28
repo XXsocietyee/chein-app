@@ -39,6 +39,7 @@ extension EnvironmentValues {
     let place: RoamPlace
     let destinations: RoamDiscoverDestinations
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.analyticsEventClient) private var analytics
     @State private var exploreDay: RoamExploreDay?
 
     var body: some View {
@@ -63,11 +64,13 @@ extension EnvironmentValues {
                         Label { VStack(alignment: .leading) { Text("roam.discover.coupon"); Text("roam.discover.couponHint").font(.footnote).foregroundStyle(.secondary) } }
                             icon: { Image(systemName: "ticket") }
                     }
+                    .simultaneousGesture(TapGesture().onEnded { trackDiscoverReward() })
                     .accessibilityIdentifier("roam.discover.coupon")
                     NavigationLink { destinations.tasks() } label: {
                         Label { VStack(alignment: .leading) { Text("roam.discover.task"); Text("roam.discover.taskHint").font(.footnote).foregroundStyle(.secondary) } }
                             icon: { Image(systemName: "flag") }
                     }
+                    .simultaneousGesture(TapGesture().onEnded { trackDiscoverReward() })
                     .accessibilityIdentifier("roam.discover.task")
                     if let exploreDay {
                         NavigationLink { destinations.activity(exploreDay.id) } label: {
@@ -80,6 +83,8 @@ extension EnvironmentValues {
                                 Text("roam.discover.exploreDayHint \(exploreDay.distanceM ?? 0)").font(.footnote).foregroundStyle(.secondary)
                             } } icon: { Image(systemName: "point.topleft.down.to.point.bottomright.curvepath") }
                         }
+                        .simultaneousGesture(TapGesture().onEnded { trackExploreDayClick(exploreDay.id) })
+                        .onAppear { trackExploreDayShown(exploreDay.id) }
                         .accessibilityIdentifier("roam.discover.exploreDay")
                     }
                 }
@@ -93,6 +98,25 @@ extension EnvironmentValues {
         }
         .presentationDetents([.medium, .large])
         .task { exploreDay = await destinations.exploreDay() }
+    }
+
+    /// `roam_discover_reward_click`. Place id only: no shop name, address, or street.
+    private func trackDiscoverReward() {
+        MiniProgramAnalytics.track(analytics, "roam_discover_reward_click", bizType: "roam",
+            bizID: MiniProgramAnalytics.bizID(place.id), pagePath: "/pages/roam/index")
+    }
+
+    /// `roam_exploreday_reco_shown` once per activity id. No title and no meeting point.
+    private func trackExploreDayShown(_ activityID: Int) {
+        MiniProgramAnalytics.track(analytics, "roam_exploreday_reco_shown", bizType: "roam",
+            bizID: MiniProgramAnalytics.bizID(activityID), pagePath: "/pages/roam/index",
+            idempotencyKey: "roam_exploreday_reco_shown_\(activityID)")
+    }
+
+    /// `roam_exploreday_reco_click`. Activity id only.
+    private func trackExploreDayClick(_ activityID: Int) {
+        MiniProgramAnalytics.track(analytics, "roam_exploreday_reco_click", bizType: "roam",
+            bizID: MiniProgramAnalytics.bizID(activityID), pagePath: "/pages/roam/index")
     }
 }
 

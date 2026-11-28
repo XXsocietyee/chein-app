@@ -68,6 +68,22 @@ final class AuthChannelServiceTests: XCTestCase {
         XCTAssertEqual(AuthChannelService.appleNamePart(String(repeating: "A", count: 40))?.count, 30)
         XCTAssertNil(AuthChannelService.appleNamePart("\u{0}"))
     }
+    /// US launch: +1 SMS keeps the E.164 plus in the multipart body. China stays the bare 11 digits.
+    func testUnitedStatesSMSKeepsTheE164Plus() async throws {
+        XCTAssertEqual(try AuthChannelInput.phone("+14155550132"), "+14155550132")
+        XCTAssertEqual(try AuthChannelInput.phone("13800138000"), "13800138000")
+        XCTAssertThrowsError(try AuthChannelInput.phone("+11155550132")) { error in
+            XCTAssertEqual(error as? AuthChannelError, .invalidPhone)
+        }
+        let transport = AuthChannelFixtureTransport([(#"{"code":200}"#, 200), (success, 200)])
+        let service = try service(transport)
+        try await service.sendSMSCode(phone: "+14155550132")
+        _ = try await service.loginWithPhone(phone: "+14155550132", code: "123456")
+        let sms = String(data: transport.requests[0].httpBody!, encoding: .utf8)!
+        let login = String(data: transport.requests[1].httpBody!, encoding: .utf8)!
+        XCTAssertTrue(sms.contains("name=\"phone\"\r\n\r\n+14155550132\r\n"), sms)
+        XCTAssertTrue(login.contains("name=\"phone\"\r\n\r\n+14155550132\r\n"), login)
+    }
     func testInvalidPhoneAndCodeNeverDispatch() async throws {
         let transport = AuthChannelFixtureTransport([]), service = try service(transport)
         for phone in ["", "20000000000", "1000000000", "100000000000", "+8610000000000", "１0000000000", "1000000000x", "1000\n000000"] {

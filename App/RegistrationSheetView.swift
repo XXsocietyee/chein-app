@@ -1067,6 +1067,10 @@ struct RegistrationSheetView: View {
             couponPhase = .failed
         }
     }
+    /// Listed price and promotion rows. A quote with no currency stays CNY. Named `*Yuan` rows stay CNY.
+    private var listedCurrencyCode: String {
+        RegistrationUIMoney.quoteDisplayCode(flow.quoteState.quoteValue?.currency) ?? RegistrationUIMoney.yuanCurrencyCode
+    }
     private var quoteSection: some View {
         Section {
             // Source 订单金额 is the selected ticket's listed price; unknown stays unknown.
@@ -1074,7 +1078,7 @@ struct RegistrationSheetView: View {
             if flow.selectedTicket != nil && showsOrderAmount {
                 RegistrationAmountRow(key: "registrationParity.orderAmount",
                     amount: RegistrationCheckoutFacts(activity: flow.activity, ticket: flow.selectedTicket).orderAmount,
-                    currencyCode: RegistrationUIMoney.yuanCurrencyCode, listedPrice: true)
+                    currencyCode: listedCurrencyCode, listedPrice: true)
             }
             if !flow.quoteEnabled {
                 Text("registration.form.quoteDisabled").foregroundStyle(.secondary)
@@ -1094,7 +1098,7 @@ struct RegistrationSheetView: View {
                     // 原价 struck through only when it differs from the ticket price, then one deduction per server label.
                     if quote.showsMarketingAdjustments {
                         if let list = quote.listAmount, list != flow.selectedTicket?.price,
-                           let text = RegistrationUIMoney.display(list, locale: locale, currencyCode: RegistrationUIMoney.yuanCurrencyCode) {
+                           let text = RegistrationUIMoney.display(list, locale: locale, currencyCode: listedCurrencyCode) {
                             LabeledContent("registration.marketing.listAmount") {
                                 Text(verbatim: text).strikethrough().monospacedDigit().foregroundStyle(.secondary)
                             }
@@ -1102,7 +1106,7 @@ struct RegistrationSheetView: View {
                         }
                         ForEach(quote.marketingAdjustments) { adjustment in
                             RegistrationAmountRow(key: "registration.fees.adjustment", amount: adjustment.amount, deduction: true,
-                                                  currencyCode: RegistrationUIMoney.yuanCurrencyCode, verbatimLabel: adjustment.label)
+                                                  currencyCode: listedCurrencyCode, verbatimLabel: adjustment.label)
                         }
                     }
                     // MP baoming.wxml 费用明细 通行证 row (mkt.coveredByPass): after the reductions, before 积分.
@@ -1131,7 +1135,8 @@ struct RegistrationSheetView: View {
                         Text(LocalizedStringKey(refusal.localizationKey)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             .accessibilityIdentifier("registration.form.pointsRefusal")
                     }
-                    RegistrationAmountRow(key: "registration.form.total", amount: quote.payAmount)
+                    RegistrationAmountRow(key: "registration.form.total", amount: quote.payAmount,
+                                           currencyCode: RegistrationUIMoney.quoteDisplayCode(quote.currency))
                         .cyText(.cardTitle).monospacedDigit().accessibilityIdentifier("registration.form.total")
                     if let refundNotice = NonRefundable24hNotice.feeRowNotice(for: quote) {
                         Text(verbatim: CoreLoopCopy(locale: locale).tr(refundNotice))

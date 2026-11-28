@@ -150,7 +150,7 @@ public enum PlayStageAnalytics {
     }
 
     /// False when the gate is off, the issue report has no category, or there is no client.
-    /// The existing client still drops names that are not on its allow-list.
+    /// These five names are on `AnalyticsEventClient.allowedEvents`. Any other name is still dropped.
     @MainActor
     @discardableResult
     public static func track(_ client: AnalyticsEventClient?, _ event: PlayStageEvent, nodeID: Int?, kit: String?,
